@@ -43,12 +43,23 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter();
+  ExtendedRewriter(bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n);
 
  private:
+  /**
+   * Whether this extended rewriter applies aggressive rewriting techniques,
+   * which are more expensive. Examples of aggressive rewriting include:
+   * - conditional rewriting,
+   * - condition merging,
+   * - sorting childing of commutative operators with more than 5 children.
+   *
+   * Aggressive rewriting is applied for SyGuS, whereas non-aggressive rewriting
+   * may be applied as a preprocessing step.
+   */
+  bool d_aggr;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -62,6 +73,8 @@ class ExtendedRewriter
    * where ---->^E denotes extended rewriting.
    */
   Node extendedRewritePullIte(Node n);
+  /** extended rewrite aggressive */
+  Node extendedRewriteAggr(Node n);
 };
 
 } /* CVC4::theory::quantifiers namespace */

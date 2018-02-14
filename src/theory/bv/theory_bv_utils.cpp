@@ -27,35 +27,6 @@ namespace utils {
 
 /* ------------------------------------------------------------------------- */
 
-uint32_t pow2(uint32_t n)
-{
-  Assert(n < 32);
-  uint32_t one = 1;
-  return one << n;
-}
-
-/* ------------------------------------------------------------------------- */
-
-BitVector mkBitVectorOnes(unsigned size)
-{
-  Assert(size > 0);
-  return BitVector(1, Integer(1)).signExtend(size - 1);
-}
-
-BitVector mkBitVectorMinSigned(unsigned size)
-{
-  Assert(size > 0);
-  return BitVector(size).setBit(size - 1);
-}
-
-BitVector mkBitVectorMaxSigned(unsigned size)
-{
-  Assert(size > 0);
-  return ~mkBitVectorMinSigned(size);
-}
-
-/* ------------------------------------------------------------------------- */
-
 unsigned getSize(TNode node)
 {
   return node.getType().getBitVectorSize();
@@ -63,7 +34,7 @@ unsigned getSize(TNode node)
 
 const bool getBit(TNode node, unsigned i)
 {
-  Assert(i < utils::getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
+  Assert(i < getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
   Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
   return (bit == 1u);
 }
@@ -90,7 +61,7 @@ unsigned getSignExtendAmount(TNode node)
 bool isZero(TNode node)
 {
   if (!node.isConst()) return false;
-  return node == utils::mkConst(utils::getSize(node), 0u);
+  return node == mkZero(getSize(node));
 }
 
 unsigned isPow2Const(TNode node, bool& isNeg)
@@ -136,35 +107,23 @@ bool isBvConstTerm(TNode node)
 
 bool isBVPredicate(TNode node)
 {
-  if (node.getKind() == kind::EQUAL || node.getKind() == kind::BITVECTOR_ULT
-      || node.getKind() == kind::BITVECTOR_SLT
-      || node.getKind() == kind::BITVECTOR_UGT
-      || node.getKind() == kind::BITVECTOR_UGE
-      || node.getKind() == kind::BITVECTOR_SGT
-      || node.getKind() == kind::BITVECTOR_SGE
-      || node.getKind() == kind::BITVECTOR_ULE
-      || node.getKind() == kind::BITVECTOR_SLE
-      || node.getKind() == kind::BITVECTOR_REDOR
-      || node.getKind() == kind::BITVECTOR_REDAND
-      || (node.getKind() == kind::NOT
-          && (node[0].getKind() == kind::EQUAL
-              || node[0].getKind() == kind::BITVECTOR_ULT
-              || node[0].getKind() == kind::BITVECTOR_SLT
-              || node[0].getKind() == kind::BITVECTOR_UGT
-              || node[0].getKind() == kind::BITVECTOR_UGE
-              || node[0].getKind() == kind::BITVECTOR_SGT
-              || node[0].getKind() == kind::BITVECTOR_SGE
-              || node[0].getKind() == kind::BITVECTOR_ULE
-              || node[0].getKind() == kind::BITVECTOR_SLE
-              || node[0].getKind() == kind::BITVECTOR_REDOR
-              || node[0].getKind() == kind::BITVECTOR_REDAND)))
+  Kind k = node.getKind();
+  if (k == kind::NOT)
   {
-    return true;
+    node = node[0];
+    k = node.getKind();
   }
-  else
-  {
-    return false;
-  }
+  return k == kind::EQUAL
+         || k == kind::BITVECTOR_ULT
+         || k == kind::BITVECTOR_SLT
+         || k == kind::BITVECTOR_UGT
+         || k == kind::BITVECTOR_UGE
+         || k == kind::BITVECTOR_SGT
+         || k == kind::BITVECTOR_SGE
+         || k == kind::BITVECTOR_ULE
+         || k == kind::BITVECTOR_SLE
+         || k == kind::BITVECTOR_REDOR
+         || k == kind::BITVECTOR_REDAND;
 }
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache)
@@ -256,20 +215,34 @@ Node mkFalse()
   return NodeManager::currentNM()->mkConst<bool>(false);
 }
 
-Node mkOnes(unsigned size)
-{
-  BitVector val = mkBitVectorOnes(size);
-  return NodeManager::currentNM()->mkConst<BitVector>(val);
-}
-
 Node mkZero(unsigned size)
 {
+  Assert(size > 0);
   return mkConst(size, 0u);
 }
 
 Node mkOne(unsigned size)
 {
+  Assert(size > 0);
   return mkConst(size, 1u);
+}
+
+Node mkOnes(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkOnes(size));
+}
+
+Node mkMinSigned(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkMinSigned(size));
+}
+
+Node mkMaxSigned(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkMaxSigned(size));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -299,33 +272,6 @@ Node mkVar(unsigned size)
   return nm->mkSkolem("BVSKOLEM$$",
                       nm->mkBitVectorType(size),
                       "is a variable created by the theory of bitvectors");
-}
-
-/* ------------------------------------------------------------------------- */
-
-Node mkNode(Kind kind, TNode child)
-{
-  return NodeManager::currentNM()->mkNode(kind, child);
-}
-
-Node mkNode(Kind kind, TNode child1, TNode child2)
-{
-  return NodeManager::currentNM()->mkNode(kind, child1, child2);
-}
-
-Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3)
-{
-  return NodeManager::currentNM()->mkNode(kind, child1, child2, child3);
-}
-
-Node mkNode(Kind kind, std::vector<Node>& children)
-{
-  Assert(children.size() > 0);
-  if (children.size() == 1)
-  {
-    return children[0];
-  }
-  return NodeManager::currentNM()->mkNode(kind, children);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -394,18 +340,16 @@ Node mkSignExtend(TNode node, unsigned amount)
 
 Node mkExtract(TNode node, unsigned high, unsigned low)
 {
-  Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(
-      BitVectorExtract(high, low));
-  std::vector<Node> children;
-  children.push_back(node);
-  return NodeManager::currentNM()->mkNode(extractOp, children);
+  NodeManager *nm = NodeManager::currentNM();
+  Node extractOp = nm->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
+  return nm->mkNode(extractOp, node);
 }
 
 Node mkBitOf(TNode node, unsigned index)
 {
-  Node bitOfOp =
-      NodeManager::currentNM()->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
-  return NodeManager::currentNM()->mkNode(bitOfOp, node);
+  NodeManager *nm = NodeManager::currentNM();
+  Node bitOfOp = nm->mkConst<BitVectorBitOf>(BitVectorBitOf(index));
+  return nm->mkNode(bitOfOp, node);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -444,13 +388,13 @@ Node mkConcat(TNode node, unsigned repeat)
 Node mkInc(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_PLUS, t, bv::utils::mkOne(bv::utils::getSize(t)));
+      kind::BITVECTOR_PLUS, t, mkOne(getSize(t)));
 }
 
 Node mkDec(TNode t)
 {
   return NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_SUB, t, bv::utils::mkOne(bv::utils::getSize(t)));
+      kind::BITVECTOR_SUB, t, mkOne(getSize(t)));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -480,109 +424,25 @@ Node mkUmulo(TNode t1, TNode t2)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkConjunction(const std::set<TNode> nodes)
-{
-  std::set<TNode> expandedNodes;
-
-  std::set<TNode>::const_iterator it = nodes.begin();
-  std::set<TNode>::const_iterator it_end = nodes.end();
-  while (it != it_end)
-  {
-    TNode current = *it;
-    if (current != mkTrue())
-    {
-      Assert(current.getKind() == kind::EQUAL
-             || (current.getKind() == kind::NOT
-                 && current[0].getKind() == kind::EQUAL));
-      expandedNodes.insert(current);
-    }
-    ++it;
-  }
-
-  Assert(expandedNodes.size() > 0);
-  if (expandedNodes.size() == 1)
-  {
-    return *expandedNodes.begin();
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-
-  it = expandedNodes.begin();
-  it_end = expandedNodes.end();
-  while (it != it_end)
-  {
-    conjunction << *it;
-    ++it;
-  }
-
-  return conjunction;
-}
-
 Node mkConjunction(const std::vector<TNode>& nodes)
 {
-  std::vector<TNode> expandedNodes;
-
-  std::vector<TNode>::const_iterator it = nodes.begin();
-  std::vector<TNode>::const_iterator it_end = nodes.end();
-  while (it != it_end)
-  {
-    TNode current = *it;
-
-    if (current != mkTrue())
-    {
-      Assert(isBVPredicate(current));
-      expandedNodes.push_back(current);
-    }
-    ++it;
-  }
-
-  if (expandedNodes.size() == 0)
-  {
-    return mkTrue();
-  }
-
-  if (expandedNodes.size() == 1)
-  {
-    return *expandedNodes.begin();
-  }
-
   NodeBuilder<> conjunction(kind::AND);
-
-  it = expandedNodes.begin();
-  it_end = expandedNodes.end();
-  while (it != it_end)
+  Node btrue = mkTrue();
+  for (const Node& n : nodes)
   {
-    conjunction << *it;
-    ++it;
+    if (n != btrue)
+    {
+      Assert(isBVPredicate(n));
+      conjunction << n;
+    }
   }
-
+  unsigned nchildren = conjunction.getNumChildren();
+  if (nchildren == 0) { return btrue; }
+  if (nchildren == 1) { return conjunction[0]; }
   return conjunction;
 }
 
 /* ------------------------------------------------------------------------- */
-
-void getConjuncts(TNode node, std::set<TNode>& conjuncts)
-{
-  if (node.getKind() != kind::AND)
-  {
-    conjuncts.insert(node);
-  }
-  else
-  {
-    for (unsigned i = 0; i < node.getNumChildren(); ++i)
-    {
-      getConjuncts(node[i], conjuncts);
-    }
-  }
-}
-
-void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts)
-{
-  for (unsigned i = 0, i_end = nodes.size(); i < i_end; ++i)
-  {
-    getConjuncts(nodes[i], conjuncts);
-  }
-}
 
 Node flattenAnd(std::vector<TNode>& queue)
 {
@@ -616,42 +476,6 @@ Node flattenAnd(std::vector<TNode>& queue)
 
 /* ------------------------------------------------------------------------- */
 
-std::string setToString(const std::set<TNode>& nodeSet) {
-  std::stringstream out;
-  out << "[";
-  std::set<TNode>::const_iterator it = nodeSet.begin();
-  std::set<TNode>::const_iterator it_end = nodeSet.end();
-  bool first = true;
-  while (it != it_end) {
-    if (!first) {
-      out << ",";
-    }
-    first = false;
-    out << *it;
-    ++ it;
-  }
-  out << "]";
-  return out.str();
-}
-
-std::string vectorToString(const std::vector<Node>& nodes)
-{
-  std::stringstream out;
-  out << "[";
-  for (unsigned i = 0; i < nodes.size(); ++i)
-  {
-    if (i > 0)
-    {
-      out << ",";
-    }
-    out << nodes[i];
-  }
-  out << "]";
-  return out.str();
-}
-
-/* ------------------------------------------------------------------------- */
-
 // FIXME: dumb code
 void intersect(const std::vector<uint32_t>& v1,
                       const std::vector<uint32_t>& v2,
@@ -667,39 +491,6 @@ void intersect(const std::vector<uint32_t>& v1,
     if (found) {
       intersection.push_back(v1[i]);
     }
-  }
-}
-
-/* ------------------------------------------------------------------------- */
-
-uint64_t numNodes(TNode node, NodeSet& seen)
-{
-  if (seen.find(node) != seen.end()) return 0;
-
-  uint64_t size = 1;
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    size += numNodes(node[i], seen);
-  }
-  seen.insert(node);
-  return size;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void collectVariables(TNode node, NodeSet& vars)
-{
-  if (vars.find(node) != vars.end()) return;
-
-  if (Theory::isLeafOf(node, THEORY_BV)
-      && node.getKind() != kind::CONST_BITVECTOR)
-  {
-    vars.insert(node);
-    return;
-  }
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    collectVariables(node[i], vars);
   }
 }
 

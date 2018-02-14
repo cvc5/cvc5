@@ -2,9 +2,9 @@
 /*! \file bitblast_strategies_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Clark Barrett
+ **   Liana Hadarean, Aina Niemetz, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -518,63 +518,70 @@ void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>
 }
 
 template <class T>
-void DefaultUdivBB (TNode node, std::vector<T>& q, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&  q.size() == 0);
+void DefaultUdivBB(TNode node, std::vector<T>& q, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_UDIV_TOTAL && q.size() == 0);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
   std::vector<T> r;
-  uDivModRec(a, b, q, r, utils::getSize(node)); 
+  uDivModRec(a, b, q, r, utils::getSize(node));
   // adding a special case for division by 0
-  std::vector<T> iszero; 
-  for (unsigned i = 0; i < b.size(); ++i) {
-    iszero.push_back(mkIff(b[i], mkFalse<T>())); 
+  std::vector<T> iszero;
+  for (unsigned i = 0; i < b.size(); ++i)
+  {
+    iszero.push_back(mkIff(b[i], mkFalse<T>()));
   }
-  T b_is_0 = mkAnd(iszero); 
-  
-  for (unsigned i = 0; i < q.size(); ++i) {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]); // a udiv 0 is 11..11
-    r[i] = mkIte(b_is_0, a[i], r[i]);        // a urem 0 is a
+  T b_is_0 = mkAnd(iszero);
+
+  for (unsigned i = 0; i < q.size(); ++i)
+  {
+    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
+    r[i] = mkIte(b_is_0, a[i], r[i]);         // a urem 0 is a
   }
 
   // cache the remainder in case we need it later
-  Node remainder = Rewriter::rewrite(
-      utils::mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
+  Node remainder = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
   bb->storeBBTerm(remainder, r);
 }
 
 template <class T>
-void DefaultUremBB (TNode node, std::vector<T>& rem, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UREM_TOTAL &&  rem.size() == 0);
+void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_UREM_TOTAL && rem.size() == 0);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
   std::vector<T> q;
-  uDivModRec(a, b, q, rem, utils::getSize(node)); 
+  uDivModRec(a, b, q, rem, utils::getSize(node));
   // adding a special case for division by 0
-  std::vector<T> iszero; 
-  for (unsigned i = 0; i < b.size(); ++i) {
-    iszero.push_back(mkIff(b[i], mkFalse<T>())); 
+  std::vector<T> iszero;
+  for (unsigned i = 0; i < b.size(); ++i)
+  {
+    iszero.push_back(mkIff(b[i], mkFalse<T>()));
   }
-  T b_is_0 = mkAnd(iszero); 
-  
-  for (unsigned i = 0; i < q.size(); ++i) {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]); // a udiv 0 is 11..11
-    rem[i] = mkIte(b_is_0, a[i], rem[i]);    // a urem 0 is a
+  T b_is_0 = mkAnd(iszero);
+
+  for (unsigned i = 0; i < q.size(); ++i)
+  {
+    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
+    rem[i] = mkIte(b_is_0, a[i], rem[i]);     // a urem 0 is a
   }
 
   // cache the quotient in case we need it later
-  Node quotient = Rewriter::rewrite(
-      utils::mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
+  Node quotient = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
   bb->storeBBTerm(quotient, q);
 }
-
 
 template <class T>
 void DefaultSdivBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
@@ -596,10 +603,11 @@ void DefaultSmodBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 }
 
 template <class T>
-void DefaultShlBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultShlBB bitblasting " << node  << "\n";
-  Assert (node.getKind() == kind::BITVECTOR_SHL &&
-          res.size() == 0);
+void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultShlBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_SHL && res.size() == 0);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
@@ -608,47 +616,56 @@ void DefaultShlBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node =
-      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
+  Node b_ult_a_size_node = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node); 
+  bb->bbAtom(b_ult_a_size_node);
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
   std::vector<T> prev_res;
-  res = a; 
+  res = a;
   // we only need to look at the bits bellow log2_a_size
-  for(unsigned s = 0; s < log2_size; ++s) {
+  for (unsigned s = 0; s < log2_size; ++s)
+  {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
-    prev_res = res; 
-    unsigned threshold = pow(2, s); 
-    for(unsigned i = 0; i < a.size(); ++i) {
-      if (i < threshold) {
+    prev_res = res;
+    unsigned threshold = pow(2, s);
+    for (unsigned i = 0; i < a.size(); ++i)
+    {
+      if (i < threshold)
+      {
         // if b[s] is true then we must have shifted by at least 2^b bits so
-        // all bits bellow 2^s will be 0, otherwise just use previous shift value
+        // all bits bellow 2^s will be 0, otherwise just use previous shift
+        // value
         res[i] = mkIte(b[s], mkFalse<T>(), prev_res[i]);
-      } else {
+      }
+      else
+      {
         // if b[s]= 0, use previous value, otherwise shift by threshold  bits
-        Assert(i >= threshold); 
-        res[i] = mkIte(b[s], prev_res[i-threshold], prev_res[i]); 
+        Assert(i >= threshold);
+        res[i] = mkIte(b[s], prev_res[i - threshold], prev_res[i]);
       }
     }
   }
   prev_res = res;
-  for (unsigned i = 0; i < b.size(); ++i) {
+  for (unsigned i = 0; i < b.size(); ++i)
+  {
     // this is fine  because b_ult_a_size has been bit-blasted
-    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>()); 
+    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
   }
-  
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+
+  if (Debug.isOn("bitvector-bb"))
+  {
+    Debug("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
 }
 
 template <class T>
-void DefaultLshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultLshrBB bitblasting " << node  << "\n";
-  Assert (node.getKind() == kind::BITVECTOR_LSHR &&
-          res.size() == 0);
+void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultLshrBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_LSHR && res.size() == 0);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
@@ -657,49 +674,56 @@ void DefaultLshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node =
-      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
+  Node b_ult_a_size_node = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node); 
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node); 
+  bb->bbAtom(b_ult_a_size_node);
+  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
   res = a;
   std::vector<T> prev_res;
-  
-  for(unsigned s = 0; s < log2_size; ++s) {
+
+  for (unsigned s = 0; s < log2_size; ++s)
+  {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
-    prev_res = res; 
-    int threshold = pow(2, s); 
-    for(unsigned i = 0; i < a.size(); ++i) {
-      if (i + threshold >= a.size()) {
+    prev_res = res;
+    int threshold = pow(2, s);
+    for (unsigned i = 0; i < a.size(); ++i)
+    {
+      if (i + threshold >= a.size())
+      {
         // if b[s] is true then we must have shifted by at least 2^b bits so
         // all bits above 2^s will be 0, otherwise just use previous shift value
         res[i] = mkIte(b[s], mkFalse<T>(), prev_res[i]);
-      } else {
+      }
+      else
+      {
         // if b[s]= 0, use previous value, otherwise shift by threshold  bits
-        Assert (i+ threshold < a.size()); 
-        res[i] = mkIte(mkNot(b[s]), prev_res[i], prev_res[i+threshold]);
+        Assert(i + threshold < a.size());
+        res[i] = mkIte(mkNot(b[s]), prev_res[i], prev_res[i + threshold]);
       }
     }
   }
-  
+
   prev_res = res;
-  for (unsigned i = 0; i < b.size(); ++i) {
+  for (unsigned i = 0; i < b.size(); ++i)
+  {
     // this is fine  because b_ult_a_size has been bit-blasted
-    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>()); 
+    res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
   }
 
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  if (Debug.isOn("bitvector-bb"))
+  {
+    Debug("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
 }
 
 template <class T>
-void DefaultAshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-
-  Debug("bitvector-bb") << "theory::bv::DefaultAshrBB bitblasting " << node  << "\n";
-  Assert (node.getKind() == kind::BITVECTOR_ASHR &&
-          res.size() == 0);
+void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultAshrBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_ASHR && res.size() == 0);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
@@ -708,42 +732,50 @@ void DefaultAshrBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node =
-      Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size));
+  Node b_ult_a_size_node = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
   // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node); 
+  bb->bbAtom(b_ult_a_size_node);
   T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
-  
+
   res = a;
   T sign_bit = a.back();
   std::vector<T> prev_res;
 
-  for(unsigned s = 0; s < log2_size; ++s) {
+  for (unsigned s = 0; s < log2_size; ++s)
+  {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
-    prev_res = res; 
-    int threshold = pow(2, s); 
-    for(unsigned i = 0; i < a.size(); ++i) {
-      if (i + threshold >= a.size()) {
+    prev_res = res;
+    int threshold = pow(2, s);
+    for (unsigned i = 0; i < a.size(); ++i)
+    {
+      if (i + threshold >= a.size())
+      {
         // if b[s] is true then we must have shifted by at least 2^b bits so
-        // all bits above 2^s will be the sign bit, otherwise just use previous shift value
+        // all bits above 2^s will be the sign bit, otherwise just use previous
+        // shift value
         res[i] = mkIte(b[s], sign_bit, prev_res[i]);
-      } else {
+      }
+      else
+      {
         // if b[s]= 0, use previous value, otherwise shift by threshold  bits
-        Assert (i+ threshold < a.size()); 
-        res[i] = mkIte(mkNot(b[s]), prev_res[i], prev_res[i+threshold]);
+        Assert(i + threshold < a.size());
+        res[i] = mkIte(mkNot(b[s]), prev_res[i], prev_res[i + threshold]);
       }
     }
   }
 
   prev_res = res;
-  for (unsigned i = 0; i < b.size(); ++i) {
+  for (unsigned i = 0; i < b.size(); ++i)
+  {
     // this is fine  because b_ult_a_size has been bit-blasted
-    res[i] = mkIte(b_ult_a_size, prev_res[i], sign_bit); 
+    res[i] = mkIte(b_ult_a_size, prev_res[i], sign_bit);
   }
 
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  if (Debug.isOn("bitvector-bb"))
+  {
+    Debug("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
 }
 

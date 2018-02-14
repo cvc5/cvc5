@@ -2,7 +2,7 @@
 /*! \file theory_bv_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Morgan Deters
+ **   Aina Niemetz, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -37,29 +37,6 @@ namespace utils {
 
 typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-
-/* Compute 2^n. */
-uint32_t pow2(uint32_t n);
-
-/* Compute the greatest common divisor for two objects of Type T.  */
-template <class T>
-T gcd(T a, T b)
-{
-  while (b != 0)
-  {
-    T t = b;
-    b = a % t;
-    a = t;
-  }
-  return a;
-}
-
-/* Create bit-vector of ones of given size. */
-BitVector mkBitVectorOnes(unsigned size);
-/* Create bit-vector representing the minimum signed value of given size. */
-BitVector mkBitVectorMinSigned(unsigned size);
-/* Create bit-vector representing the maximum signed value of given size. */
-BitVector mkBitVectorMaxSigned(unsigned size);
 
 /* Get the bit-width of given node. */
 unsigned getSize(TNode node);
@@ -102,6 +79,10 @@ Node mkOnes(unsigned size);
 Node mkZero(unsigned size);
 /* Create bit-vector node representing a bit-vector value one of given size. */
 Node mkOne(unsigned size);
+/* Create bit-vector node representing the min signed value of given size. */
+Node mkMinSigned(unsigned size);
+/* Create bit-vector node representing the max signed value of given size. */
+Node mkMaxSigned(unsigned size);
 
 /* Create bit-vector constant of given size and value. */
 Node mkConst(unsigned size, unsigned int value);
@@ -112,16 +93,28 @@ Node mkConst(const BitVector& value);
 /* Create bit-vector variable. */
 Node mkVar(unsigned size);
 
-/* Create n-ary node of given kind.  */
-Node mkNode(Kind kind, TNode child);
-Node mkNode(Kind kind, TNode child1, TNode child2);
-Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
-Node mkNode(Kind kind, std::vector<Node>& children);
-
 /* Create n-ary bit-vector node of kind BITVECTOR_AND, BITVECTOR_OR or
  * BITVECTOR_XOR where its children are sorted  */
 Node mkSortedNode(Kind kind, TNode child1, TNode child2);
 Node mkSortedNode(Kind kind, std::vector<Node>& children);
+
+/* Create n-ary node of associative/commutative kind.  */
+template<bool ref_count>
+Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
+{
+  Assert (k == kind::AND
+          || k == kind::OR
+          || k == kind::XOR
+          || k == kind::BITVECTOR_AND
+          || k == kind::BITVECTOR_OR
+          || k == kind::BITVECTOR_XOR
+          || k == kind::BITVECTOR_PLUS
+          || k == kind::BITVECTOR_SUB
+          || k == kind::BITVECTOR_MULT);
+
+  if (nodes.size() == 1) { return nodes[0]; }
+  return NodeManager::currentNM()->mkNode(k, nodes);
+}
 
 /* Create node of kind NOT. */
 Node mkNot(Node child);
@@ -190,32 +183,16 @@ Node mkDec(TNode t);
  * http://ieeexplore.ieee.org/document/987767 */
 Node mkUmulo(TNode t1, TNode t2);
 
-/* Create conjunction over a set of (dis)equalities.  */
-Node mkConjunction(const std::set<TNode> nodes);
+/* Create conjunction.  */
 Node mkConjunction(const std::vector<TNode>& nodes);
 
-/* Get a set of all operands of nested and nodes.  */
-void getConjuncts(TNode node, std::set<TNode>& conjuncts);
-void getConjuncts(std::vector<TNode>& nodes, std::set<TNode>& conjuncts);
 /* Create a flattened and node.  */
 Node flattenAnd(std::vector<TNode>& queue);
-
-/* Create a string representing a set of nodes.  */
-std::string setToString(const std::set<TNode>& nodeSet);
-
-/* Create a string representing a vector of nodes.  */
-std::string vectorToString(const std::vector<Node>& nodes);
 
 /* Create the intersection of two vectors of uint32_t. */
 void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
-
-/* Determine the total number of nodes that a given node consists of.  */
-uint64_t numNodes(TNode node, NodeSet& seen);
-
-/* Collect all variables under a given a node.  */
-void collectVariables(TNode node, NodeSet& vars);
 
 }
 }

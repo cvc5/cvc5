@@ -74,6 +74,9 @@ public:
     IntStat d_cegqi_lemmas_ce;
     IntStat d_cegqi_lemmas_refine;
     IntStat d_cegqi_si_lemmas;
+    IntStat d_solutions;
+    IntStat d_candidate_rewrites_print;
+    IntStat d_candidate_rewrites;
     Statistics();
     ~Statistics();
   };/* class CegInstantiation::Statistics */

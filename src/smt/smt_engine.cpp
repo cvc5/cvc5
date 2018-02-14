@@ -1885,7 +1885,12 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
-    if (options::sygusRewSynth())
+    if (options::sygusRew())
+    {
+      options::sygusRewSynth.set(true);
+      options::sygusRewVerify.set(true);
+    }
+    if (options::sygusRewSynth() || options::sygusRewVerify())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -4287,6 +4292,16 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   bool noConflict = true;
+
+  if (options::extRewPrep())
+  {
+    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
+    for (unsigned i = 0; i < d_assertions.size(); ++i)
+    {
+      Node a = d_assertions[i];
+      d_assertions.replace(i, extr.extendedRewrite(a));
+    }
+  }
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {

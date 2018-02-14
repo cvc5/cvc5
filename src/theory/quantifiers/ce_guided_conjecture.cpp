@@ -20,6 +20,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -622,15 +623,17 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
+      CegInstantiation* cei = d_qe->getCegInstantiation();
+      ++(cei->d_statistics.d_solutions);
 
       if (status != 0 && options::sygusRewSynth())
       {
         TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-        std::map<Node, SygusSampler>::iterator its = d_sampler.find(prog);
+        std::map<Node, SygusSamplerExt>::iterator its = d_sampler.find(prog);
         if (its == d_sampler.end())
         {
-          d_sampler[prog].initializeSygus(
-              sygusDb, prog, options::sygusSamples());
+          d_sampler[prog].initializeSygusExt(
+              d_qe, prog, options::sygusSamples());
           its = d_sampler.find(prog);
         }
         Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
@@ -638,45 +641,26 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         // eq_sol is a candidate solution that is equivalent to sol
         if (eq_sol != solb)
         {
-          // one of eq_sol or solb must be ordered
-          bool eqor = its->second.isOrdered(eq_sol);
-          bool sor = its->second.isOrdered(solb);
-          bool outputRewrite = false;
-          if (eqor || sor)
-          {
-            outputRewrite = true;
-            // if only one is ordered, then the ordered one must contain the
-            // free variables of the other
-            if (!eqor)
-            {
-              outputRewrite = its->second.containsFreeVariables(solb, eq_sol);
-            }
-            else if (!sor)
-            {
-              outputRewrite = its->second.containsFreeVariables(eq_sol, solb);
-            }
-          }
-
-          if (outputRewrite)
+          ++(cei->d_statistics.d_candidate_rewrites);
+          if (!eq_sol.isNull())
           {
             // Terms solb and eq_sol are equivalent under sample points but do
             // not rewrite to the same term. Hence, this indicates a candidate
             // rewrite.
             out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
                 << std::endl;
-            // if the previous value stored was unordered, but this is
-            // ordered, we prefer this one. Thus, we force its addition to the
-            // sampler database.
-            if (!eqor)
+            ++(cei->d_statistics.d_candidate_rewrites_print);
+            // debugging information
+            if (Trace.isOn("sygus-rr-debug"))
             {
-              its->second.registerTerm(solb, true);
+              ExtendedRewriter* er = sygusDb->getExtRewriter();
+              Node solbr = er->extendedRewrite(solb);
+              Node eq_solr = er->extendedRewrite(eq_sol);
+              Trace("sygus-rr-debug")
+                  << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
+              Trace("sygus-rr-debug")
+                  << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
             }
-          }
-          else
-          {
-            Trace("sygus-synth-rr")
-                << "Alpha equivalent candidate rewrite : " << eq_sol << " "
-                << solb << std::endl;
           }
         }
       }
@@ -865,8 +849,9 @@ bool CegConjecture::sampleAddRefinementLemma(std::vector<Node>& vals,
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)
         d_cegis_sample_refine.insert(i);
+        std::vector<Node> vars;
         std::vector<Node> pt;
-        d_cegis_sampler.getSamplePoint(i, pt);
+        d_cegis_sampler.getSamplePoint(i, vars, pt);
         Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());

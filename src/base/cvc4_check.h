@@ -11,24 +11,25 @@
  **
  ** \brief Assertion utility classes, functions and macros.
  **
- ** The CHECK utility classes, functions and macros are related to the Assert()
- ** macros defined in base/cvc4_assert.h. The major distinguishing attribute
- ** is the CHECK's abort() the process on failures while Assert() statements
- ** throw C++ exceptions.
+ ** The CVC4_CHECK utility classes, functions and macros are related to the
+ ** Assert() macros defined in base/cvc4_assert.h. The major distinguishing
+ ** attribute is the CVC4_CHECK's abort() the process on failures while
+ ** Assert() statements throw C++ exceptions.
  **
- ** The main usage in the file is the CHECK macros. The CHECK macros assert a
- ** condition and aborts()'s the process if the condition is not satisfied. The
- ** macro leaves a hanging ostream for the user to specify additional
- ** information about the failure. Example usage:
- **   CHECK(x >= 0) << "x must be positive.";
+ ** The main usage in the file is the CVC4_CHECK macros. The CVC4_CHECK macros
+ ** assert a condition and aborts()'s the process if the condition is not
+ ** satisfied. The macro leaves a hanging ostream for the user to specify
+ ** additional information about the failure. Example usage:
+ **   CVC4_CHECK(x >= 0) << "x must be positive.";
  **
- ** DCHECK is a CHECK that is only enabled in debug builds.
- **   DCHECK(pointer != nullptr);
+ ** CVC4_DCHECK is a CVC4_CHECK that is only enabled in debug builds.
+ **   CVC4_DCHECK(pointer != nullptr);
  **
  ** CVC4_FATAL() can be used to indicate unreachable code.
  **
- ** The CHECK and DCHECK macros are not safe for use in signal-handling code.
- ** TODO(taking): Add a signal-handling safe version of CHECK.
+ ** The CVC4_CHECK and CVC4_DCHECK macros are not safe for use in
+ ** signal-handling code. In future, a a signal-handling safe version of
+ ** CVC4_CHECK may be added.
  **/
 
 #include "cvc4_private.h"
@@ -65,10 +66,11 @@ namespace CVC4 {
 
 // Implementation notes:
 // To understand FatalStream and OStreamVoider, it is useful to understand
-// how a CHECK is structured. CHECK(cond) is roughly the following pattern:
+// how a CVC4_CHECK is structured. CVC4_CHECK(cond) is roughly the following
+// pattern:
 //  cond ? (void)0 : OstreamVoider() & FatalStream().stream()
 // This is a carefully crafted message to achieve a hanging ostream using
-// operator precedence. The line `CHECK(cond) << foo << bar;` will bind as
+// operator precedence. The line `CVC4_CHECK(cond) << foo << bar;` will bind as
 // follows:
 //  `cond ? ((void)0) : (OSV() & ((FS().stream() << foo) << bar));`
 // Once the expression is evaluated, the destructor ~FatalStream() of the
@@ -123,19 +125,19 @@ class OstreamVoider
 // If `cond` is false, log an error message and abort()'s the process.
 // Otherwise, does nothing. This leaves a hanging std::ostream& that can be
 // inserted into using operator<<. Example usages:
-//   CHECK(x >= 0);
-//   CHECK(x >= 0) << "x must be positive";
-//   CHECK(x >= 0) << "expected a positive value. Got " << x << " instead";
-#define CHECK(cond)                                               \
+//   CVC4_CHECK(x >= 0);
+//   CVC4_CHECK(x >= 0) << "x must be positive";
+//   CVC4_CHECK(x >= 0) << "expected a positive value. Got " << x << " instead";
+#define CVC4_CHECK(cond)                                          \
   CVC4_FATAL_IF(!(cond), __PRETTY_FUNCTION__, __FILE__, __LINE__) \
       << "Check failure\n\n " << #cond << "\n"
 
-// DCHECK is a variant of CHECK() that is only checked when CVC4_ASSERTIONS is
-// defined. We rely on the optimizer to remove the deadcode.
+// CVC4_DCHECK is a variant of CVC4_CHECK() that is only checked when
+// CVC4_ASSERTIONS is defined. We rely on the optimizer to remove the deadcode.
 #ifdef CVC4_ASSERTIONS
-#define DCHECK(cond) CHECK(cond)
+#define CVC4_DCHECK(cond) CVC4_CHECK(cond)
 #else
-#define DCHECK(cond) \
+#define CVC4_DCHECK(cond) \
   CVC4_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #endif /* CVC4_DEBUG */
 

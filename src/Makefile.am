@@ -315,7 +315,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
-	theory/bv/cd_set_collection.h \
 	theory/bv/eager_bitblaster.cpp \
 	theory/bv/lazy_bitblaster.cpp \
 	theory/bv/slicer.cpp \
@@ -387,6 +386,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ceg_t_instantiator.h \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
+	theory/quantifiers/dynamic_rewrite.cpp \
+	theory/quantifiers/dynamic_rewrite.h \
 	theory/quantifiers/equality_query.cpp \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
