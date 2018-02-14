@@ -162,7 +162,73 @@ bool isCoreTerm(TNode term, TNodeBoolMap& cache)
   return true;
 }
 
-bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
+bool isEqualityTermNew(TNode term, TNodeBoolMap& cache)
+{
+  TNode t = term.getKind() == kind::NOT ? term[0] : term;
+
+  std::vector<TNode> stack;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  stack.push_back(t);
+
+  while (!stack.empty())
+  {
+    TNode n = stack.back();
+    stack.pop_back();
+
+    if (cache.find(n) != cache.end()) continue;
+
+    if (n.getNumChildren() == 0)
+    {
+      cache[n] = true;
+      visited[n] = true;
+      continue;
+    }
+
+    if (!visited[n])
+    {
+      visited[n] = true;
+      stack.push_back(n);
+      stack.insert(stack.end(), n.begin(), n.end());
+    }
+    else
+    {
+      bool iseqt = true;
+      for (const Node& c : n)
+      {
+        Assert(cache.find(c) != cache.end());
+        if (!cache[c])
+        {
+          iseqt = false;
+          break;
+        }
+      }
+
+      if (!iseqt)
+      {
+        cache[n] = false;
+        continue;
+      }
+
+      if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
+          == theory::THEORY_BV)
+      {
+        Kind k = n.getKind();
+        Assert(k != kind::CONST_BITVECTOR);
+        if (k != kind::EQUAL
+            && n.getMetaKind() != kind::metakind::VARIABLE)
+        {
+          cache[n] = false;
+          continue;
+        }
+      }
+      cache[n] = true;
+    }
+  }
+  Assert(cache.find(t) != cache.end());
+  return cache[t];
+}
+
+bool isEqualityTermOld(TNode term, TNodeBoolMap& cache)
 {
   term = term.getKind() == kind::NOT ? term[0] : term;
   TNodeBoolMap::const_iterator it = cache.find(term);
@@ -195,6 +261,15 @@ bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
 
   cache[term] = true;
   return true;
+}
+
+bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
+{
+  TNodeBoolMap cachecopy(cache);
+  bool resold = isEqualityTermOld(term, cache);
+  bool resnew = isEqualityTermNew(term, cachecopy);
+  Assert(resold==resnew);
+  return resold;
 }
 
 bool isBitblastAtom(Node lit)
