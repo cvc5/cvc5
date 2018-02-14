@@ -408,12 +408,14 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       new_ret = nm->mkConst(false);
       debugExtendedRewrite( ret, new_ret, "ULT-arith" );
     }
+    /*
     else if( isConstBv( ret[0], false ) || isConstBv( ret[1], true ) )
     {
       new_ret = ret[0].eqNode( ret[1] );
       new_ret = new_ret.negate();
       debugExtendedRewrite( ret, new_ret, "ULT-neq" );
     }
+    */
   }
   else if( k == BITVECTOR_SLT )
   {
