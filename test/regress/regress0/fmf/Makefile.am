@@ -20,45 +20,25 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
 	array_card.smt2 \
-	REM \
 	QEpres-uf.855035.smt \
-	REM \
 	Arrow_Order-smtlib.778341.smt \
-	REM \
-	REM \
-	REM \
-	REM \
 	fc-simple.smt2 \
 	fc-unsat-tot-2.smt2 \
 	fc-unsat-pent.smt2 \
 	Hoare-z3.931718.smt \
-	REM \
 	syn002-si-real-int.smt2 \
 	krs-sat.smt2 \
 	forall_unit_data2.smt2 \
 	sc_bad_model_1221.smt2 \
- 	REM \
-	fd-false.smt2 \
+ 	fd-false.smt2 \
 	tail_rec.smt2 \
-	REM \
 	fmc_unsound_model.smt2 \
-	REM \
-	REM \
-	REM \
-	REM \
 	bounded_sets.smt2 \
 	fmf-strange-bounds-2.smt2 \
-	REM \
-	REM \
-	REM \
-	REM \
 	bug652.smt2 \
 	bug782.smt2 \
 	quant_real_univ.cvc \
-	REM \
 	bug-041417-set-options.cvc \
-	REM \
-	REM \
 	cruanes-no-minimal-unk.smt2 \
 	no-minimal-sat.smt2 \
 	sat-logic.smt2 

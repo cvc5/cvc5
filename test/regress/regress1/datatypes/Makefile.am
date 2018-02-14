@@ -18,7 +18,12 @@ endif
 # put it below in "TESTS +="
 TESTS =	\
 	manos-model.smt2 \
-	acyclicity-sr-ground096.smt2
+	acyclicity-sr-ground096.smt2 \
+	bug341.cvc \
+	dt-color-2.6.smt2 \
+	dt-param-card4-unsat.smt2 \
+	error.cvc \
+	rec5.cvc
 
 EXTRA_DIST = $(TESTS)
 

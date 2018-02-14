@@ -24,7 +24,6 @@ MAKEFLAGS = -k
 TESTS =	\
 	length_trick.smt2 \
 	datatypes.smt2 \
-	REM \
 	relation.smt2 \
 	simulate_rewriting.smt2 \
 	native_arrays.smt2 

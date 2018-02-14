@@ -19,51 +19,31 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS = \
-  REM \
   bug001.smt2 \
   bug002.smt2 \
   escchar.smt2 \
   escchar_25.smt2 \
-  REM \
-  REM \
   str003.smt2 \
   str004.smt2 \
   str005.smt2 \
-  REM \
   type001.smt2 \
   model001.smt2 \
-  REM \
   leadingzero001.smt2 \
   loop001.smt2 \
-  REM \
-  REM \
-  REM \
-  REM \
-  REM \
   unsound-0908.smt2 \
   ilc-like.smt2 \
-  REM \
   indexof-sym-simp.smt2 \
   bug613.smt2 \
-  REM \
   norn-simp-rew.smt2 \
-  REM \
-  REM \
   bug612.smt2 \
   idof-rewrites.smt2 \
-  REM \
   norn-31.smt2 \
   strings-native-simple.cvc \
-  REM \
-  REM \
-  REM \
   strings-charat.cvc \
-  REM \
   issue1189.smt2 \
   rewrites-v2.smt2 \
   substr-rewrites.smt2 \
-  repl-rewrites2.smt2 \
-  REM
+  repl-rewrites2.smt2
 
 FAILING_TESTS =
 

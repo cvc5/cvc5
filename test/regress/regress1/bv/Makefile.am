@@ -25,8 +25,11 @@ TESTS =	\
 	bv-int-collapse2-sat.smt2 \
 	cmu-rdk-3.smt2 \
 	decision-weight00.smt2 \
-	divtest.smt2
-
+	divtest.smt2 \
+	bench_38.delta.smt2 \
+	bv2nat-ground.smt2 \
+	bv2nat-simp-range-sat.smt2 \
+	unsound1.smt2
 
 EXTRA_DIST = $(TESTS)
 

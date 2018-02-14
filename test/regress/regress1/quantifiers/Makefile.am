@@ -53,8 +53,39 @@ TESTS =	\
 	smtlib46f14a.smt2 \
 	smtlibf957ea.smt2 \
 	stream-x2014-09-18-unsat.smt2 \
-	symmetric_unsat_7.smt2
-
+	symmetric_unsat_7.smt2 \
+	anti-sk-simp.smt2 \
+	Arrays_Q1-noinfer.smt2 \
+	bi-artm-s.smt2 \
+	burns13.smt2 \
+	burns4.smt2 \
+	cbqi-sdlx-fixpoint-3-dd.smt2 \
+	ext-ex-deq-trigger.smt2 \
+	extract-nproc.smt2 \
+	florian-case-ax.smt2 \
+	is-even.smt2 \
+	macro-subtype-param.smt2 \
+	mix-coeff.smt2 \
+	parametric-lists.smt2 \
+	psyco-001-bv.smt2 \
+	qbv-disequality3.smt2 \
+	qbv-test-invert-bvashr-0.smt2 \
+	qbv-test-invert-bvashr-1.smt2 \
+	qbv-test-invert-bvlshr-1.smt2 \
+	qbv-test-invert-bvmul-neq.smt2 \
+	qbv-test-invert-bvmul.smt2 \
+	qbv-test-invert-bvudiv-0-neq.smt2 \
+	qbv-test-invert-bvudiv-1-neq.smt2 \
+	qbv-test-invert-bvurem-1-neq.smt2 \
+	qbv-test-urem-rewrite.smt2 \
+	refcount24.cvc \
+	RND-small.smt2 \
+	RNDPRE_4_1-dd-nqe.smt2 \
+	set3.smt2 \
+	set8.smt2 \
+	subtype-param-unk.smt2 \
+	subtype-param.smt2 \
+	z3.620661-no-fv-trigger.smt2
 
 EXTRA_DIST = $(TESTS)
 

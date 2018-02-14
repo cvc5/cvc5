@@ -25,7 +25,11 @@ TESTS =	\
 	no-syntax-test-no-si.sy \
 	process-10-vars-2fun.sy \
 	process-arg-invariance.sy \
-	real-grammar-neg.sy
+	real-grammar-neg.sy \
+	lustre-real.sy \
+	max2-univ.sy \
+	mpg_guard1-dd.sy \
+	three.sy
 
 EXTRA_DIST = $(TESTS)
 

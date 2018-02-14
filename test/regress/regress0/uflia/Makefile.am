@@ -35,12 +35,8 @@ SMT2_TESTS = \
 	check02.smt2 \
 	check03.smt2 \
 	check04.smt2 \
-	REM \
-	REM \
 	stalmark_e7_27_e7_31.ec.minimized.smt2 \
-	REM \
-	tiny.smt2 \
-	REM
+	tiny.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = 
@@ -56,11 +52,7 @@ EXTRA_DIST = $(TESTS) \
 	check02.smt2.expect \
 	check03.smt2.expect \
 	check04.smt2.expect \
-	REM.expect \
-	REM.expect \
-	REM.expect \
 	stalmark_e7_27_e7_31.ec.minimized.smt2.expect \
-	REM.expect \
 	tiny.smt2.expect
 
 # synonyms for "check" in this directory

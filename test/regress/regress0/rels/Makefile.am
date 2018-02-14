@@ -22,18 +22,10 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
   addr_book_0.cvc \
-  REM \
   oneLoc_no_quant-int_0_1.cvc \
-  REM \
   rel_join_3_1.cvc \
   rel_product_0_1.cvc \
-  REM \
-  REM \
-  REM \
   rel_transpose_1_1.cvc \
-  REM \
-  REM \
-  REM \
   rel_conflict_0.cvc \
   rel_join_3.cvc \
   rel_product_0.cvc \
@@ -41,57 +33,40 @@ TESTS =	\
   rel_tc_7.cvc \
   rel_tp_join_2.cvc \
   rel_transpose_1.cvc \
-  REM \
-  REM \
-  REM \
-  REM \
   rel_join_0_1.cvc \
   rel_join_4.cvc \
   rel_product_1_1.cvc \
   rel_tc_2_1.cvc \
   rel_tp_join_3.cvc \
   rel_transpose_3.cvc \
-  REM \
-  REM \
   rel_1tup_0.cvc \
   rel_join_0.cvc \
   rel_join_5.cvc \
   rel_product_1.cvc \
   rel_tc_3_1.cvc \
-  REM \
   rel_tp_join_eq_0.cvc \
   rel_transpose_4.cvc \
-  REM \
   rel_complex_0.cvc \
   rel_join_1_1.cvc \
   rel_join_6.cvc \
   rel_symbolic_1_1.cvc \
   rel_tc_3.cvc \
-  REM \
   rel_tp_join_int_0.cvc \
   rel_transpose_5.cvc \
-  REM \
   join-eq-u.cvc \
   rel_complex_1.cvc \
   rel_join_1.cvc \
   rel_join_7.cvc \
   rel_symbolic_1.cvc \
-  REM \
   rel_tp_3_1.cvc \
   rel_tp_join_pro_0.cvc \
   rel_transpose_6.cvc \
-  REM \
   join-eq-u-sat.cvc \
-  REM \
   rel_join_2_1.cvc \
-  REM \
   rel_symbolic_2_1.cvc \
-  REM \
   rel_tp_join_0.cvc \
   rel_tp_join_var_0.cvc \
   rel_transpose_7.cvc \
-  REM \
-  REM \
   rel_join_2.cvc \
   rel_symbolic_3_1.cvc \
   rel_tp_join_1.cvc \
@@ -100,19 +75,10 @@ TESTS =	\
   atom_univ2.cvc \
   rels-sharing-simp.cvc \
   iden_0.cvc \
-  REM \
   iden_1.cvc \
-  REM \
-  REM \
   joinImg_0.cvc \
-  REM \
-  REM \
-  REM \
-  REM \
   card_transpose.cvc \
   relations-ops.smt2
-
-# unsolved : REM
 
 EXTRA_DIST = $(TESTS)
 

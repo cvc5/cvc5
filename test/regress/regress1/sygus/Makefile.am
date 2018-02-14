@@ -19,12 +19,9 @@ endif
 TESTS = \
 	hd-sdiv.sy \
 	stopwatch-bt.sy \
-	REM \
 	VC22_a.sy \
 	unbdd_inv_gen_ex7.sy \
-	REM \
 	real-grammar.sy \
-	REM \
 	cegar1.sy \
 	cggmp.sy \
 	clock-inc-tuple.sy \
@@ -37,15 +34,40 @@ TESTS = \
 	icfp_easy-ite.sy \
 	inv-example.sy \
 	inv-unused.sy \
-	REM \
 	multi-fun-polynomial2.sy \
 	no-flat-simp.sy \
 	process-10-vars.sy \
 	tl-type.sy \
 	tl-type-4x.sy \
 	twolets2-orig.sy \
-	unbdd_inv_gen_winf1.sy
-
+	unbdd_inv_gen_winf1.sy \
+	array_search_2.sy \
+	array_sum_2_5.sy \
+	commutative.sy \
+	constant.sy \
+	dt-test-ns.sy \
+	enum-test.sy \
+	hd-19-d1-prog-dup-op.sy \
+	list-head-x.sy \
+	max.smt2 \
+	max.sy \
+	nflat-fwd-3.sy \
+	nflat-fwd.sy \
+	nia-max-square-ns.sy \
+	no-mention.sy \
+	qe.sy \
+	strings-concat-3-args.sy \
+	strings-double-rec.sy \
+	strings-small.sy \
+	strings-template-infer-unused.sy \
+	strings-template-infer.sy \
+	strings-trivial-simp.sy \
+	strings-trivial-two-type.sy \
+	strings-trivial.sy \
+	sygus-dt.sy \
+	tl-type-0.sy \
+	triv-type-mismatch-si.sy \
+	twolets1.sy
 
 EXTRA_DIST = $(TESTS)
 

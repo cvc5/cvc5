@@ -32,16 +32,9 @@ SMT2_TESTS = \
   tiny_bug.smt2
 
 BUG_TESTS = \
-	REM \
 	bug233.cvc \
-	REM \
-	REM \
-	REM \
-	REM \
-	REM \
 	quant-fun-proc-unfd.smt2 \
 	bug654-dd.smt2 \
-	REM \
 	inc-double-u.smt2 \
 	inc-define.smt2 \
 	bug691.smt2 \
@@ -50,8 +43,7 @@ BUG_TESTS = \
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
-EXTRA_DIST = $(TESTS) \
-	REM.expect
+EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

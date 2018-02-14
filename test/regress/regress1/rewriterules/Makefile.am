@@ -29,7 +29,22 @@ TESTS =	\
 	length_gen_020_sat.smt2 \
 	length_gen_040.smt2 \
 	length_gen_040_lemma.smt2 \
-	length_gen_040_lemma_trigger.smt2
+	length_gen_040_lemma_trigger.smt2 \
+	datatypes_clark_quantification.smt2 \
+	datatypes_sat.smt2 \
+	datatypes2.smt2 \
+	datatypes3.smt2 \
+	length_gen_010_lemma.smt2 \
+	length_gen_010.smt2 \
+	length_gen_080.smt2 \
+	length_gen_160_lemma.smt2 \
+	length_gen_inv_160.smt2 \
+	length_trick3_int.smt2 \
+	length_trick3.smt2 \
+	set_A_new_fast_tableau-base_sat.smt2 \
+	set_A_new_fast_tableau-base.smt2 \
+	test_guards.smt2 \
+	why3_vstte10_max_sum_harness2.smt2
 
 
 EXTRA_DIST = $(TESTS)

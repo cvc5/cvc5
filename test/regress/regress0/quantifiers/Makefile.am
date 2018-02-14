@@ -22,92 +22,56 @@ TESTS =	\
 	bug269.smt2 \
 	bug290.smt2 \
 	bug291.smt2 \
-	REM \
 	bug269.smt2 \
-	REM \
-	REM \
 	ex3.smt2 \
 	ex6.smt2 \
-	REM \
 	ARI176e1.smt2 \
-	REM \
 	simp-typ-test.smt2 \
 	macros-int-real.smt2 \
 	simp-len.smt2 \
-	REM \
 	is-even-pred.smt2 \
 	delta-simp.smt2  \
 	nested-delta.smt2 \
 	nested-inf.smt2 \
-	REM \
 	clock-3.smt2 \
 	cbqi-lia-dt-simp.smt2 \
 	is-int.smt2 \
 	floor.smt2 \
 	mix-simp.smt2 \
-	REM \
 	mix-match.smt2 \
 	ari056.smt2 \
-	REM \
 	matching-lia-1arg.smt2 \
 	agg-rew-test.smt2 \
 	agg-rew-test-cf.smt2 \
 	rew-to-scala.smt2 \
 	macros-real-arg.smt2 \
-	REM \
 	pure_dt_cbqi.smt2 \
-	REM \
 	double-pattern.smt2 \
 	qcf-rel-dom-opt.smt2 \
-	REM \
 	partial-trigger.smt2 \
-	REM \
 	bug749-rounding.smt2 \
-	REM \
 	mix-complete-strat.smt2 \
-	REM \
 	qbv-simp.smt2 \
-	REM \
-	REM \
 	qbv-inequality2.smt2 \
 	qbv-test-invert-bvadd-neq.smt2 \
 	qbv-test-invert-bvand.smt2 \
 	qbv-test-invert-bvand-neq.smt2 \
-	REM \
 	qbv-test-invert-bvashr-0-neq.smt2 \
-	REM \
 	qbv-test-invert-bvashr-1-neq.smt2 \
 	qbv-test-invert-bvlshr-0.smt2 \
 	qbv-test-invert-bvlshr-0-neq.smt2 \
-	REM \
 	qbv-test-invert-bvlshr-1-neq.smt2 \
-	REM \
-	REM \
 	qbv-test-invert-bvor.smt2 \
 	qbv-test-invert-bvor-neq.smt2 \
 	qbv-test-invert-bvshl-0.smt2 \
-	REM \
-	REM \
 	qbv-test-invert-bvult-1.smt2 \
-	REM \
 	qbv-test-invert-bvxor.smt2 \
 	qbv-test-invert-bvxor-neq.smt2 \
 	qbv-test-invert-concat-0.smt2 \
 	qbv-test-invert-concat-1.smt2 \
 	qbv-test-invert-sign-extend.smt2 \
-	REM \
-	REM \
 	clock-10.smt2 \
 	lra-triv-gn.smt2
- 
-
-# regression can be solved with --finite-model-find --fmf-inst-engine
-# REM
-
-# FIXME: I've disabled these since they give different error messages on production and debug
-#	REM 
-#	REM 
-#	REM 
 
 EXTRA_DIST = $(TESTS) \
 	bug291.smt2.expect

@@ -18,7 +18,9 @@ endif
 # put it below in "TESTS +="
 TESTS =	\
 	error3.smt \
-	quant-symmetric_unsat_7.smt2
+	quant-symmetric_unsat_7.smt2 \
+	quant-Arrays_Q1-noinfer.smt2 \
+	quant-ex1.disable_miniscope.smt2
 
 EXTRA_DIST = $(TESTS) \
 	quant-symmetric_unsat_7.smt2.expect

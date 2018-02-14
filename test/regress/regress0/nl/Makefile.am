@@ -22,46 +22,20 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
   coeff-sat.smt2 \
-  REM \
   magnitude-wrong-1020-m.smt2 \
-  REM \
   mult-po.smt2 \
   very-simple-unsat.smt2 \
   subs0-unsat-confirm.smt2 \
-  REM \
-  REM \
-  REM \
   very-easy-sat.smt2 \
-  REM \
-  REM \
-  REM \
   nia-wrong-tl.smt2 \
-  REM \
   real-div-ufnra.smt2 \
-  REM \
   real-as-int.smt2 \
-  nta/REM \
-  nta/REM \
   nta/cos-sig-value.smt2 \
-  nta/REM \
-  nta/REM \
-  nta/REM \
-  nta/REM \
-  nta/REM \
   nta/sin-sym.smt2 \
   nta/tan-rewrite.smt2 \
-  nta/REM \
-  nta/REM \
-  nta/REM \
-  nta/REM \
-  nta/REM \
-  nta/REM \
   nta/exp1-ub.smt2 \
-  nta/REM \
   nta/exp-n0.5-ub.smt2 \
-  nta/exp-n0.5-lb.smt2 \
-  nta/REM \
-  nta/REM
+  nta/exp-n0.5-lb.smt2
 
 # unsolved : garbage_collect.cvc
 

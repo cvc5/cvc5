@@ -21,35 +21,14 @@ MAKEFLAGS = -k
 TESTS =	\
   pto-01.smt2 \
   pto-02.smt2 \
-  REM \
   sep-01.smt2 \
-  REM \
-  REM \
-  REM \
   sep-plus1.smt2 \
-  REM \
-  REM \
   nspatial-simp.smt2 \
-  REM \
   sep-simp-unsat-emp.smt2 \
-  REM \
-  REM \
-  REM \
-  REM \
   nemp.smt2 \
   wand-crash.smt2 \
-  REM \
-  REM \
-  REM \
-  REM \
-  REM \
-  REM \
-  REM \
-  REM \
   trees-1.smt2 \
-  REM \
   dup-nemp.smt2 \
-  REM \
   dispose-1.smt2 \
   nil-no-elim.smt2
 

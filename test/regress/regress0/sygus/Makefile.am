@@ -18,51 +18,26 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = REM \
-        REM \
-        REM \
-        REM \
+TESTS =	\
         parity-AIG-d0.sy \
-        REM \
-        REM \
         const-var-test.sy \
         no-syntax-test.sy \
         let-ringer.sy \
         let-simp.sy \
-        REM \
-        REM \
         no-syntax-test-bool.sy \
         uminus_one.sy \
-        REM \
         dt-no-syntax.sy \
-        REM \
-        REM \
-        REM \
-        REM \
         strings-unconstrained.sy \
-        REM \
-        REM \
-        REM \
-        REM \
         General_plus10.sy \
-        REM \
         parse-bv-let.sy \
-        REM \
-        REM \
-        REM \
         ccp16.lus.sy \
-        REM \
-        REM \
-        REM \
         real-si-all.sy  \
         c100.sy \
         check-generic-red.sy
 
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
-  REM \
-  sygus-uf.sl \
-  REM 
+  sygus-uf.sl
   
 # REM
 

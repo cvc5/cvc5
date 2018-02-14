@@ -51,8 +51,27 @@ TESTS =	\
 	substr001.smt2 \
 	type002.smt2 \
 	type003.smt2 \
-	username_checker_min.smt2
-
+	username_checker_min.smt2 \
+	at001.smt2 \
+	cmu-2db2-extf-reg.smt2 \
+	gm-inc-071516-2.smt2 \
+	idof-handg.smt2 \
+	idof-neg-index.smt2 \
+	idof-triv.smt2 \
+	ilc-l-nt.smt2 \
+	issue1105.smt2 \
+	loop002.smt2 \
+	loop003.smt2 \
+	loop004.smt2 \
+	loop005.smt2 \
+	loop006.smt2 \
+	norn-simp-rew-sat.smt2 \
+	regexp003.smt2 \
+	repl-empty-sem.smt2 \
+	repl-soundness-sem.smt2 \
+	str001.smt2 \
+	str002.smt2 \
+	str007.smt2
 
 EXTRA_DIST = $(TESTS)
 

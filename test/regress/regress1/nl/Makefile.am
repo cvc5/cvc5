@@ -37,8 +37,33 @@ TESTS =	\
 	sqrt-problem-1.smt2 \
 	sugar-ident-2.smt2 \
 	sugar-ident-3.smt2 \
-	tan-rewrite2.smt2
-
+	tan-rewrite2.smt2 \
+	bad-050217.smt2 \
+	coeff-unsat-base.smt2 \
+	coeff-unsat.smt2 \
+	combine.smt2 \
+	cos-bound.smt2 \
+	cos1-tc.smt2 \
+	disj-eval.smt2 \
+	div-mod-partial.smt2 \
+	exp_monotone.smt2 \
+	exp1-lb.smt2 \
+	metitarski-1025.smt2 \
+	NAVIGATION2.smt2 \
+	nl-unk-quant.smt2 \
+	ones.smt2 \
+	shifting.smt2 \
+	shifting2.smt2 \
+	simple-mono-unsat.smt2 \
+	sin-init-tangents.smt2 \
+	sin-sign.smt2 \
+	sin-sym2.smt2 \
+	sin1-lb.smt2 \
+	sin1-ub.smt2 \
+	sin2-lb.smt2 \
+	sin2-ub.smt2 \
+	sugar-ident.smt2 \
+	zero-subset.smt2
 
 EXTRA_DIST = $(TESTS)
 

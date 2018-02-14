@@ -92,12 +92,9 @@ SMT_TESTS = \
 	fuzz41.smt \
 	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt \
 	smtcompbug.smt \
-	REM \
 	unsound1-reduced.smt2 \
-	REM \
 	bv2nat-ground-c.smt2 \
 	bv2nat-simp-range.smt2 \
-	REM \
 	bv-int-collapse1.smt2 \
 	bv-int-collapse2.smt2 \
 	divtest_2_5.smt2 \
@@ -105,9 +102,6 @@ SMT_TESTS = \
 	mul-neg-unsat.smt2 \
 	mul-negpow2.smt2 \
 	bvmul-pow2-only.smt2
-
-# This benchmark is currently disabled as it uses --check-proof
-# REM
 
 # Regression tests for PL inputs
 CVC_TESTS = bvsimple.cvc sizecheck.cvc

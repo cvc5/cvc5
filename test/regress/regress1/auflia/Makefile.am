@@ -17,7 +17,8 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	bug330.smt2
+	bug330.smt2 \
+	bug337.smt2
 
 EXTRA_DIST = $(TESTS)
 

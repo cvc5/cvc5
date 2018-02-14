@@ -26,8 +26,28 @@ TESTS =	\
 	sep-find2.smt2 \
 	sep-fmf-priority.smt2 \
 	sep-neg-1refine.smt2 \
-	sep-nterm-again.smt2
-
+	sep-nterm-again.smt2 \
+	chain-int.smt2 \
+	crash1220.smt2 \
+	emp2-quant-unsat.smt2 \
+	fmf-nemp-2.smt2 \
+	pto-04.smt2 \
+	quant_wand.smt2 \
+	sep-02.smt2 \
+	sep-03.smt2 \
+	sep-neg-nstrict.smt2 \
+	sep-neg-nstrict2.smt2 \
+	sep-neg-simple.smt2 \
+	sep-neg-swap.smt2 \
+	sep-nterm-val-model.smt2 \
+	simple-neg-sat.smt2 \
+	wand-0526-sat.smt2 \
+	wand-false.smt2 \
+	wand-nterm-simp.smt2 \
+	wand-nterm-simp2.smt2 \
+	wand-simp-sat.smt2 \
+	wand-simp-sat2.smt2 \
+	wand-simp-unsat.smt2
 
 EXTRA_DIST = $(TESTS)
 
