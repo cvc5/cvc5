@@ -12,7 +12,7 @@
  ** \brief utility for processing programming by examples synthesis conjectures
  **
  **/
-#include "theory/quantifiers/ce_guided_pbe.h"
+#include "theory/quantifiers/sygus/sygus_pbe.h"
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"

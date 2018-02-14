@@ -18,7 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
 #include "context/cdlist.h"
-#include "theory/quantifiers/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 #include "theory/quantifiers/single_inv_partition.h"

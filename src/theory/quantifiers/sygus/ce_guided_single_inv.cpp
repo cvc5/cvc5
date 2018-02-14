@@ -12,7 +12,7 @@
  ** \brief utility for processing single invocation synthesis conjectures
  **
  **/
-#include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"

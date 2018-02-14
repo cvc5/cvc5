@@ -12,12 +12,12 @@
  ** \brief utility for processing single invocation synthesis conjectures
  **
  **/
-#include "theory/quantifiers/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "theory/quantifiers/ce_guided_single_inv.h"
+#include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"

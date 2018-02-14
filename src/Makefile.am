@@ -366,12 +366,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_generator.cpp \
 	theory/quantifiers/candidate_generator.h \
-	theory/quantifiers/ce_guided_single_inv.cpp \
-	theory/quantifiers/ce_guided_single_inv.h \
-	theory/quantifiers/ce_guided_pbe.cpp \
-	theory/quantifiers/ce_guided_pbe.h \
-	theory/quantifiers/ce_guided_single_inv_sol.cpp \
-	theory/quantifiers/ce_guided_single_inv_sol.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
@@ -458,6 +452,12 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/ce_guided_conjecture.h \
 	theory/quantifiers/sygus/ce_guided_instantiation.cpp \
 	theory/quantifiers/sygus/ce_guided_instantiation.h \
+	theory/quantifiers/sygus/ce_guided_single_inv.cpp \
+	theory/quantifiers/sygus/ce_guided_single_inv.h \
+	theory/quantifiers/sygus/sygus_pbe.cpp \
+	theory/quantifiers/sygus/sygus_pbe.h \
+	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \
+	theory/quantifiers/sygus/ce_guided_single_inv_sol.h \
 	theory/quantifiers/sygus/sygus_explain.cpp \
 	theory/quantifiers/sygus/sygus_explain.h \
 	theory/quantifiers/sygus/sygus_invariance.cpp \
