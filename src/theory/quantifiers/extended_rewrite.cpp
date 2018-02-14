@@ -333,6 +333,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   Node new_ret;
   if( k==EQUAL )
   {
+    /*
     Assert( ret[0].getType().isBitVector() );
     bool isZero = false;
     for( unsigned i=0; i<2; i++ )
@@ -350,6 +351,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       new_ret = new_ret.eqNode(bv_zero);
       debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
     }
+    */
   }
   else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
   {
