@@ -131,7 +131,7 @@ bool isCoreTermNew(TNode term, TNodeBoolMap& cache)
   TNode t = term.getKind() == kind::NOT ? term[0] : term;
 
   std::vector<TNode> stack;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   stack.push_back(t);
 
   while (!stack.empty())
@@ -140,28 +140,55 @@ bool isCoreTermNew(TNode term, TNodeBoolMap& cache)
     stack.pop_back();
 
     if (cache.find(n) != cache.end()) continue;
-    if (visited.find(n) != visited.end()) continue;
-    visited.insert(n);
 
     if (n.getNumChildren() == 0)
     {
       cache[n] = true;
+      visited[n] = true;
       continue;
     }
-    else if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
-             == theory::THEORY_BV)
+
+    if (!visited[n])
     {
-      Kind k = n.getKind();
-      if (k != kind::CONST_BITVECTOR
-          && k != kind::BITVECTOR_CONCAT
-          && k != kind::BITVECTOR_EXTRACT
-          && k != kind::EQUAL
-          && term.getMetaKind() != kind::metakind::VARIABLE)
+      visited[n] = true;
+      stack.push_back(n);
+      stack.insert(stack.end(), n.begin(), n.end());
+    }
+    else
+    {
+      bool iseqt = true;
+      for (const Node& c : n)
+      {
+        Assert(cache.find(c) != cache.end());
+        if (!cache[c])
+        {
+          iseqt = false;
+          break;
+        }
+      }
+
+      if (!iseqt)
       {
         cache[n] = false;
+        continue;
       }
+
+      if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
+          == theory::THEORY_BV)
+      {
+        Kind k = n.getKind();
+        Assert(k != kind::CONST_BITVECTOR);
+        if (k != kind::EQUAL
+            && k != kind::BITVECTOR_CONCAT
+            && k != kind::BITVECTOR_EXTRACT
+            && n.getMetaKind() != kind::metakind::VARIABLE)
+        {
+          cache[n] = false;
+          continue;
+        }
+      }
+      cache[n] = true;
     }
-    stack.insert(stack.end(), n.begin(), n.end());
   }
   Assert(cache.find(t) != cache.end());
   return cache[t];
