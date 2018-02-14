@@ -315,7 +315,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
-	theory/bv/cd_set_collection.h \
 	theory/bv/eager_bitblaster.cpp \
 	theory/bv/lazy_bitblaster.cpp \
 	theory/bv/slicer.cpp \
