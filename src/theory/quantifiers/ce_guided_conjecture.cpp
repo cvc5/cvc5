@@ -20,6 +20,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -622,6 +623,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
+      CegInstantiation* cei = d_qe->getCegInstantiation();
+      ++(cei->d_statistics.d_solutions);
 
       if (status != 0 && options::sygusRewSynth())
       {
@@ -638,21 +641,26 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         // eq_sol is a candidate solution that is equivalent to sol
         if (eq_sol != solb)
         {
-          // Terms solb and eq_sol are equivalent under sample points but do
-          // not rewrite to the same term. Hence, this indicates a candidate
-          // rewrite.
-          out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
-              << std::endl;
-          // debugging information
-          if (Trace.isOn("sygus-rr-debug"))
+          ++(cei->d_statistics.d_candidate_rewrites);
+          if (!eq_sol.isNull())
           {
-            ExtendedRewriter* er = sygusDb->getExtRewriter();
-            Node solbr = er->extendedRewrite(solb);
-            Node eq_solr = er->extendedRewrite(eq_sol);
-            Trace("sygus-rr-debug")
-                << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
-            Trace("sygus-rr-debug")
-                << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
+            // Terms solb and eq_sol are equivalent under sample points but do
+            // not rewrite to the same term. Hence, this indicates a candidate
+            // rewrite.
+            out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
+                << std::endl;
+            ++(cei->d_statistics.d_candidate_rewrites_print);
+            // debugging information
+            if (Trace.isOn("sygus-rr-debug"))
+            {
+              ExtendedRewriter* er = sygusDb->getExtRewriter();
+              Node solbr = er->extendedRewrite(solb);
+              Node eq_solr = er->extendedRewrite(eq_sol);
+              Trace("sygus-rr-debug")
+                  << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
+              Trace("sygus-rr-debug")
+                  << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
+            }
           }
         }
       }

@@ -2,7 +2,7 @@
 /*! \file theory_bv_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Morgan Deters
+ **   Aina Niemetz, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -37,13 +37,6 @@ namespace utils {
 
 typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-
-/* Create bit-vector of ones of given size. */
-BitVector mkBitVectorOnes(unsigned size);
-/* Create bit-vector representing the minimum signed value of given size. */
-BitVector mkBitVectorMinSigned(unsigned size);
-/* Create bit-vector representing the maximum signed value of given size. */
-BitVector mkBitVectorMaxSigned(unsigned size);
 
 /* Get the bit-width of given node. */
 unsigned getSize(TNode node);
@@ -86,6 +79,10 @@ Node mkOnes(unsigned size);
 Node mkZero(unsigned size);
 /* Create bit-vector node representing a bit-vector value one of given size. */
 Node mkOne(unsigned size);
+/* Create bit-vector node representing the min signed value of given size. */
+Node mkMinSigned(unsigned size);
+/* Create bit-vector node representing the max signed value of given size. */
+Node mkMaxSigned(unsigned size);
 
 /* Create bit-vector constant of given size and value. */
 Node mkConst(unsigned size, unsigned int value);
@@ -196,12 +193,6 @@ Node flattenAnd(std::vector<TNode>& queue);
 void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
-
-/* Determine the total number of nodes that a given node consists of.  */
-uint64_t numNodes(TNode node, NodeSet& seen);
-
-/* Collect all variables under a given a node.  */
-void collectVariables(TNode node, NodeSet& vars);
 
 }
 }
