@@ -49,7 +49,6 @@ TESTS = \
 	enum-test.sy \
 	hd-19-d1-prog-dup-op.sy \
 	list-head-x.sy \
-	max.smt2 \
 	max.sy \
 	nflat-fwd-3.sy \
 	nflat-fwd.sy \

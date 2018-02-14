@@ -27,7 +27,11 @@ TESTS = \
 	bug674.smt2
 
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	DRAGON_11_e1_2450.ec.minimized.smt2.expect \
+	FIREFLY_3_e2_2236_e7_3681.ec.core.smt2.expect \
+	speed2_e8_449_e8_517.ec.smt2.expect \
+	stalmark_e7_27_e7_31.ec.smt2.expect
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

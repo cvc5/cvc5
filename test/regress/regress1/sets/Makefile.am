@@ -36,7 +36,6 @@ TESTS =	\
 	lemmabug-ListElts317minimized.smt2 \
 	ListElem.hs.fqout.cvc4.38.smt2 \
 	ListElts.hs.fqout.cvc4.317.smt2 \
-	setofsets-disequal.smt2 \
 	sets-tuple-poly.cvc \
 	sharingbug.smt2 \
 	UniqueZipper.hs.1030minimized.cvc4.smt2 \
@@ -45,7 +44,8 @@ TESTS =	\
 	UniqueZipper.hs.fqout.cvc4.1832.smt2 \
 	univ-set-uf-elim.smt2
 	
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	setofsets-disequal.smt2 
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

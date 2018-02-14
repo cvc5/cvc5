@@ -91,12 +91,6 @@ FAILING_TESTS = \
 
 EXTRA_DIST = $(TESTS)
 
-if CVC4_BUILD_PROFILE_COMPETITION
-else
-TESTS += \
-	REM
-endif
-
 # and make sure to distribute it
 EXTRA_DIST += \
 	$(FAILING_TESTS)

@@ -64,7 +64,6 @@ TESTS =	\
 	extract-nproc.smt2 \
 	florian-case-ax.smt2 \
 	is-even.smt2 \
-	macro-subtype-param.smt2 \
 	mix-coeff.smt2 \
 	parametric-lists.smt2 \
 	psyco-001-bv.smt2 \
@@ -83,9 +82,15 @@ TESTS =	\
 	RNDPRE_4_1-dd-nqe.smt2 \
 	set3.smt2 \
 	set8.smt2 \
-	subtype-param-unk.smt2 \
-	subtype-param.smt2 \
 	z3.620661-no-fv-trigger.smt2
+
+# removed because they take more than 20s
+#		javafe.ast.ArrayInit.35.smt2
+
+# FIXME: I've disabled these since they give different error messages on production and debug
+#	macro-subtype-param.smt2
+#	subtype-param-unk.smt2 
+#	subtype-param.smt2
 
 EXTRA_DIST = $(TESTS)
 

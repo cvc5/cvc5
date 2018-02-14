@@ -28,7 +28,6 @@ TESTS =	\
 	bv1.cvc \
 	bv1p-sat.cvc \
 	bv2.cvc \
-	garbage_collect.cvc \
 	iden_1_1.cvc \
 	join-eq-structure_0_1.cvc \
 	join-eq-structure-and.cvc \
@@ -55,7 +54,8 @@ TESTS =	\
 	strat_0_1.cvc \
 	strat.cvc
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	garbage_collect.cvc 
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
