@@ -12,8 +12,8 @@
  ** \brief Implementation of counterexample-guided quantifier instantiation
  **/
 
-#include "theory/quantifiers/ceg_instantiator.h"
-#include "theory/quantifiers/ceg_t_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
@@ -23,7 +23,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace std;

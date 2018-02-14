@@ -12,7 +12,7 @@
  ** \brief implementation of class that encapsulates counterexample-guided instantiation
  **        techniques for a single SyGuS synthesis conjecture
  **/
-#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
@@ -20,12 +20,12 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 

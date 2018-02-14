@@ -13,13 +13,13 @@
  **   This class is the entry point for both synthesis algorithms in Reynolds et al CAV 2015
  **
  **/
-#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 //FIXME : remove this include (github issue #1156)
 #include "theory/bv/theory_bv_rewriter.h"

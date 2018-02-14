@@ -12,8 +12,8 @@
  ** \brief Implementation of e matching instantiation strategies
  **/
 
-#include "theory/quantifiers/inst_strategy_e_matching.h"
-#include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"

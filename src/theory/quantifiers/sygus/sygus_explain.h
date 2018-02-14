@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus_invariance.h"
+#include "theory/quantifiers/sygus/sygus_invariance.h"
 
 namespace CVC4 {
 namespace theory {

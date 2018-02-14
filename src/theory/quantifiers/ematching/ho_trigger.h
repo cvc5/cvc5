@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 
 namespace CVC4 {
 namespace theory {

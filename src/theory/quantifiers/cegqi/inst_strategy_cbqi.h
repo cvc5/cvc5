@@ -19,8 +19,8 @@
 #define __CVC4__INST_STRATEGY_CBQI_H
 
 #include "theory/arith/arithvar.h"
-#include "theory/quantifiers/ceg_instantiator.h"
-#include "theory/quantifiers/instantiation_engine.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

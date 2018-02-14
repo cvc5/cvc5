@@ -13,16 +13,16 @@
  ** are encoded into datatypes.
  **/
 
-#include "theory/quantifiers/sygus_grammar_norm.h"
+#include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus_grammar_red.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_grammar_red.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 #include <numeric>  // for std::iota

@@ -12,10 +12,10 @@
  ** \brief Implementation of techniques for sygus explanations
  **/
 
-#include "theory/quantifiers/sygus_explain.h"
+#include "theory/quantifiers/sygus/sygus_explain.h"
 
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
 using namespace std;

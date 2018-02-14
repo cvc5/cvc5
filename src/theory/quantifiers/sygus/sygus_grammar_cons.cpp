@@ -12,16 +12,16 @@
  ** \brief implementation of class for constructing inductive datatypes that correspond to
  ** grammars that encode syntactic restrictions for SyGuS.
  **/
-#include "theory/quantifiers/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 #include <stack>
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus_process_conj.h"
-#include "theory/quantifiers/sygus_grammar_norm.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/sygus_grammar_norm.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;

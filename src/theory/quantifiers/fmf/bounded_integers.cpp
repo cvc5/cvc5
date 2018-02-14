@@ -14,11 +14,11 @@
  ** This class manages integer bounds for quantifiers
  **/
 
-#include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"

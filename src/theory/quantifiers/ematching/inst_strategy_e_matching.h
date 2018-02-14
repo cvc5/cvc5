@@ -19,8 +19,8 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers/instantiation_engine.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
 #include "options/quantifiers_options.h"

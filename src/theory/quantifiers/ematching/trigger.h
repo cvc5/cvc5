@@ -103,7 +103,7 @@ class TriggerTermInfo {
 *
 * This class encapsulates all implementations of E-matching in CVC4.
 * Its primary use is as a utility of the quantifiers module InstantiationEngine
-* (see theory/quantifiers/instantiation_engine.h) which uses Trigger to make
+* (see theory/quantifiers/ematching/instantiation_engine.h) which uses Trigger to make
 * appropriate calls to Instantiate::addInstantiation(...)
 * (see theory/instantiate.h) for the instantiate utility of the quantifiers
 * engine (d_quantEngine) associated with this trigger.  These calls
@@ -185,7 +185,7 @@ class Trigger {
   * via queries to functions in d_qe. This calls the addInstantiations function
   * of the underlying match generator. It can be extended to
   * produce instantiations beyond what is produced by the match generator
-  * (for example, see theory/quantifiers/ho_trigger.h).
+  * (for example, see theory/quantifiers/ematching/ho_trigger.h).
   */
   virtual int addInstantiations();
   /** Return whether this is a multi-trigger. */

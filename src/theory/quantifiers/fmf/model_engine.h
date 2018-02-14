@@ -18,7 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/model_builder.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {

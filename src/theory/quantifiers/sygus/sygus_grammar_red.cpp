@@ -12,10 +12,10 @@
  ** \brief Implementation of sygus_grammar_red
  **/
 
-#include "theory/quantifiers/sygus_grammar_red.h"
+#include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;

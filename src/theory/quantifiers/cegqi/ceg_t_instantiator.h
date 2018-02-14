@@ -19,7 +19,7 @@
 #define __CVC4__CEG_T_INSTANTIATOR_H
 
 #include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 #include <unordered_set>
 

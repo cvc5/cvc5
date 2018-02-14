@@ -12,7 +12,7 @@
  ** \brief Implementation of term database sygus class
  **/
 
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"

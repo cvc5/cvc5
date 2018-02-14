@@ -12,12 +12,12 @@
  ** \brief Implementation of techniqures for static preprocessing and analysis
  ** of sygus conjectures.
  **/
-#include "theory/quantifiers/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/sygus_process_conj.h"
 
 #include <stack>
 
 #include "expr/datatype.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;

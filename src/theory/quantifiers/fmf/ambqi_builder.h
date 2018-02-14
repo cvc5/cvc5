@@ -17,7 +17,7 @@
 #ifndef ABSTRACT_MBQI_BUILDER
 #define ABSTRACT_MBQI_BUILDER
 
-#include "theory/quantifiers/model_builder.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 
 namespace CVC4 {

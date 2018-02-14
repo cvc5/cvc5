@@ -12,11 +12,11 @@
  ** \brief Implementation of techniques for sygus invariance tests.
  **/
 
-#include "theory/quantifiers/sygus_invariance.h"
+#include "theory/quantifiers/sygus/sygus_invariance.h"
 
-#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/ce_guided_pbe.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
 using namespace std;

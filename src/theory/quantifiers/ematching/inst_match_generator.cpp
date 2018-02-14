@@ -12,7 +12,7 @@
  ** [[ Add lengthier description here ]]
  ** \todo document this file
  **/
-#include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/ematching/inst_match_generator.h"
 
 #include "expr/datatype.h"
 #include "options/datatypes_options.h"
@@ -21,7 +21,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;

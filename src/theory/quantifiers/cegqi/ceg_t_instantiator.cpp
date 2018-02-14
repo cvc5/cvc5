@@ -12,14 +12,14 @@
  ** \brief Implementation of theory-specific counterexample-guided quantifier instantiation
  **/
 
-#include "theory/quantifiers/ceg_t_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/partial_model.h"

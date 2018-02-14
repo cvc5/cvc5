@@ -18,7 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_INSTANTIATION_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {

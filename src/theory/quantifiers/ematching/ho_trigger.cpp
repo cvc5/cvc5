@@ -14,7 +14,7 @@
 
 #include <stack>
 
-#include "theory/quantifiers/ho_trigger.h"
+#include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"

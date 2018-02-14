@@ -11,7 +11,7 @@
  **
  ** \brief Implementation of counterexample-guided quantifier instantiation strategies
  **/
-#include "theory/quantifiers/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace std;

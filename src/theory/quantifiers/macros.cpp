@@ -25,7 +25,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;

@@ -12,7 +12,7 @@
  ** \brief Implementation of full model check class
  **/
 
-#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"

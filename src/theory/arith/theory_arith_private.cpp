@@ -64,7 +64,7 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ite_utilities.h"
-#include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"

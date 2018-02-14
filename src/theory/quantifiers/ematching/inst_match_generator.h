@@ -36,7 +36,7 @@ class Trigger;
 *
 * Virtual base class for generating InstMatch objects, which correspond to
 * quantifier instantiations. The main use of this class is as a backend utility
-* to Trigger (see theory/quantifiers/trigger.h).
+* to Trigger (see theory/quantifiers/ematching/trigger.h).
 *
 * Some functions below take as argument a pointer to the current quantifiers
 * engine, which is used for making various queries about what terms and
