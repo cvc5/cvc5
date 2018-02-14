@@ -80,7 +80,8 @@ TESTS =	\
 	quant-fun-proc-unmacro.smt2 \
 	quant-fun-proc.smt2
 	
-EXTRA_DIST = $(TESTS) 
+EXTRA_DIST = $(TESTS) \
+	bug216.smt2.expect
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

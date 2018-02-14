@@ -23,7 +23,9 @@ TESTS =	\
 	quant-ex1.disable_miniscope.smt2
 
 EXTRA_DIST = $(TESTS) \
-	quant-symmetric_unsat_7.smt2.expect
+	quant-symmetric_unsat_7.smt2.expect \
+	quant-Arrays_Q1-noinfer.smt2.expect \
+	quant-ex1.disable_miniscope.smt2.expect
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
