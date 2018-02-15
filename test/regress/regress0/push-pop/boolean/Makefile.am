@@ -25,57 +25,24 @@ MAKEFLAGS = -k
 CVC_TESTS =
 
 SMT2_TESTS = \
-	fuzz_1.smt2 \
 	fuzz_2.smt2 \
 	fuzz_3.smt2 \
-	fuzz_4.smt2 \
-	fuzz_5.smt2 \
-	fuzz_6.smt2 \
-	fuzz_7.smt2 \
-	fuzz_8.smt2 \
-	fuzz_9.smt2 \
-	fuzz_10.smt2 \
-	fuzz_11.smt2 \
 	fuzz_12.smt2 \
 	fuzz_13.smt2 \
 	fuzz_14.smt2 \
-	fuzz_15.smt2 \
-	fuzz_16.smt2 \
 	fuzz_18.smt2 \
-	fuzz_19.smt2 \
-	fuzz_20.smt2 \
 	fuzz_21.smt2 \
 	fuzz_22.smt2 \
-	fuzz_23.smt2 \
-	fuzz_24.smt2 \
-	fuzz_25.smt2 \
-	fuzz_26.smt2 \
 	fuzz_27.smt2 \
-	fuzz_28.smt2 \
-	fuzz_29.smt2 \
-	fuzz_30.smt2 \
 	fuzz_31.smt2 \
-	fuzz_32.smt2 \
 	fuzz_33.smt2 \
-	fuzz_34.smt2 \
-	fuzz_35.smt2 \
 	fuzz_36.smt2 \
-	fuzz_37.smt2 \
 	fuzz_38.smt2 \
-	fuzz_39.smt2 \
-	fuzz_40.smt2 \
-	fuzz_41.smt2 \
-	fuzz_42.smt2 \
-	fuzz_43.smt2 \
-	fuzz_44.smt2 \
-	fuzz_45.smt2 \
 	fuzz_46.smt2 \
 	fuzz_47.smt2 \
 	fuzz_48.smt2 \
 	fuzz_49.smt2 \
-	fuzz_50.smt2 \
-	fuzz_51.smt2 \
-	fuzz_52.smt2 
+	fuzz_50.smt2
 
 # Disabled because they take too long
 #	fuzz_1_to_52_merged.smt2 \

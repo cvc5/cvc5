@@ -17,15 +17,26 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	fuzz10.smt \
-	bug580.smt2
+	array_sum_dd.sy \
+	icfp_easy_mt_ite.sy \
+	inv_gen_n_c11.sy \
+	MPwL_d1s3.sy \
+	nia-max-square.sy \
+	no-syntax-test-no-si.sy \
+	process-10-vars-2fun.sy \
+	process-arg-invariance.sy \
+	real-grammar-neg.sy \
+	lustre-real.sy \
+	max2-univ.sy \
+	mpg_guard1-dd.sy \
+	three.sy
 
 EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
-.PHONY: regress regress1 test
-regress regress1 test: check
+.PHONY: regress regress2 test
+regress regress2 test: check
 
 # do nothing in this subdir
-.PHONY: regress0 regress2 regress3 regress4
-regress0 regress2 regress3 regress4:
+.PHONY: regress0 regress1 regress3 regress4
+regress0 regress1 regress3 regress4:
