@@ -92,27 +92,16 @@ SMT_TESTS = \
 	fuzz41.smt \
 	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt \
 	smtcompbug.smt \
-	unsound1.smt2 \
 	unsound1-reduced.smt2 \
-	bv2nat-ground.smt2 \
 	bv2nat-ground-c.smt2 \
-	cmu-rdk-3.smt2 \
 	bv2nat-simp-range.smt2 \
-	bv2nat-simp-range-sat.smt2 \
 	bv-int-collapse1.smt2 \
 	bv-int-collapse2.smt2 \
-	bv-int-collapse2-sat.smt2 \
 	divtest_2_5.smt2 \
 	divtest_2_6.smt2 \
 	mul-neg-unsat.smt2 \
 	mul-negpow2.smt2 \
 	bvmul-pow2-only.smt2
-
-# This benchmark is currently disabled as it uses --check-proof
-# bench_38.delta.smt2
-
-# Regression tests for SMT2 inputs
-SMT2_TESTS = divtest.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = bvsimple.cvc sizecheck.cvc
@@ -123,11 +112,9 @@ BUG_TESTS = \
 	bug260b.smt \
 	bug440.smt \
 	bug733.smt2 \
-	bug734.smt2 \
-	bug_extract_mult_leading_bit.smt2 \
-	bug787.smt2
+	bug734.smt2 
 
-TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
+TESTS =	$(SMT_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
 	test00.smt \

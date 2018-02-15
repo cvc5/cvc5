@@ -17,15 +17,22 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	fuzz10.smt \
-	bug580.smt2
+	ForElimination-scala-9.smt2 \
+	javafe.ast.ArrayInit.35.smt2 \
+	javafe.ast.StandardPrettyPrint.319.smt2 \
+	javafe.ast.WhileStmt.447.smt2 \
+	javafe.tc.CheckCompilationUnit.001.smt2 \
+	javafe.tc.FlowInsensitiveChecks.682.smt2 \
+	nunchaku2309663.nun.min.smt2 \
+	AdditiveMethods_AdditiveMethods..ctor.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	small-bug1-fixpoint-3.smt2
 
 # synonyms for "check" in this directory
-.PHONY: regress regress1 test
-regress regress1 test: check
+.PHONY: regress regress2 test
+regress regress2 test: check
 
 # do nothing in this subdir
-.PHONY: regress0 regress2 regress3 regress4
-regress0 regress2 regress3 regress4:
+.PHONY: regress0 regress1 regress3 regress4
+regress0 regress1 regress3 regress4:
