@@ -1316,27 +1316,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   int lemmas_proc = 0;
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
-  
-    /*
-  // mark all terms in false assertions
-  std::unordered_set<TNode, TNodeHashFunction> false_xts;
-  for( const Node& fa : false_asserts )
-  {
-    std::vector<TNode> visit;
-    TNode cur;
-    visit.push_back(fa);
-    do {
-      cur = visit.back();
-      visit.pop_back();
-      if (false_xts.find(cur) == false_xts.end()) {
-        false_xts.insert(cur);
-        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-          visit.push_back(cur[i]);
-        }
-      }
-    } while (!visit.empty());
-  }
-  */
 
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
@@ -1350,12 +1329,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                        << d_mv[0][a] << " ]" << std::endl;
     //Assert(d_mv[1][a].isConst());
     //Assert(d_mv[0][a].isConst());
-    /*
-    if( false_xts.find(a)==false_xts.end() )
-    {
-      continue;
-    }
-    */
     if (a.getKind() == NONLINEAR_MULT)
     {
       d_ms.push_back( a );
@@ -1595,7 +1568,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-      exit(1);
       return lemmas_proc;
     }
   }
