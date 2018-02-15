@@ -46,7 +46,6 @@ TESTS = \
 	commutative.sy \
 	constant.sy \
 	dt-test-ns.sy \
-	enum-test.sy \
 	hd-19-d1-prog-dup-op.sy \
 	list-head-x.sy \
 	max.sy \
@@ -68,7 +67,8 @@ TESTS = \
 	triv-type-mismatch-si.sy \
 	twolets1.sy
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	enum-test.sy 
 
 # Base16_1.sy
 

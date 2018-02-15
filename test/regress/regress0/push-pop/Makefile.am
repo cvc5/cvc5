@@ -1,4 +1,4 @@
-SUBDIRS = boolean arith . 
+SUBDIRS = boolean . 
 
 # don't override a BINARY imported from a personal.mk
 @mk_if@eq ($(BINARY),)

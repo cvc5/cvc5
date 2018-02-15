@@ -19,7 +19,6 @@ endif
 TESTS =	\
 	bug802.smt2 \
 	006-cbqi-ite.smt2 \
-	REM \
 	AdditiveMethods_OwnedResults.Mz.smt2 \
 	ari118-bv-2occ-x.smt2 \
 	array-unsat-simp3.smt2 \
@@ -80,7 +79,6 @@ TESTS =	\
 	refcount24.cvc \
 	RND-small.smt2 \
 	RNDPRE_4_1-dd-nqe.smt2 \
-	set3.smt2 \
 	set8.smt2 \
 	z3.620661-no-fv-trigger.smt2
 
@@ -92,7 +90,8 @@ TESTS =	\
 #	subtype-param-unk.smt2 
 #	subtype-param.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	set3.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

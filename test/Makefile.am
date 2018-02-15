@@ -48,7 +48,6 @@ subdirs_to_check = \
 	regress/regress0/precedence \
 	regress/regress0/preprocess \
 	regress/regress0/push-pop \
-	regress/regress0/push-pop/arith \
 	regress/regress0/push-pop/boolean \
 	regress/regress0/quantifiers \
 	regress/regress0/rels \
