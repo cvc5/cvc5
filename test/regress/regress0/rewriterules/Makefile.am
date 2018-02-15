@@ -28,7 +28,7 @@ TESTS =	\
 	simulate_rewriting.smt2 \
 	native_arrays.smt2 
 
-# length_trick2.smt2 reachability_bbttf_eT_arrays.smt2 REM REM
+# length_trick2.smt2 reachability_bbttf_eT_arrays.smt2
 
 EXTRA_DIST = $(TESTS)
 
