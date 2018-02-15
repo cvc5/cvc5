@@ -76,7 +76,6 @@ TESTS =	\
 	qbv-test-invert-bvudiv-1-neq.smt2 \
 	qbv-test-invert-bvurem-1-neq.smt2 \
 	qbv-test-urem-rewrite.smt2 \
-	refcount24.cvc \
 	RND-small.smt2 \
 	RNDPRE_4_1-dd-nqe.smt2 \
 	set8.smt2 \

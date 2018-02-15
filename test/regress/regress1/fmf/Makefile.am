@@ -55,7 +55,8 @@ TESTS =	\
 	memory_model-R_cpp-dd.cvc \
 	PUZ001+1.smt2 \
 	refcount24.cvc.smt2 \
-	sc-crash-052316.smt2
+	sc-crash-052316.smt2 \
+	refcount24.cvc
 
 EXTRA_DIST = $(TESTS)
 

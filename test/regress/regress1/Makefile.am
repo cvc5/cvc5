@@ -44,7 +44,6 @@ TESTS =	\
 	bug520.smt2 \
 	bug543.smt2 \
 	bug567.smt2 \
-	bug585.cvc \
 	bug593.smt2 \
 	bug681.smt2 \
 	bug800.smt2 \
@@ -66,7 +65,8 @@ TESTS =	\
 EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \
 	bug590.smt2.expect \
-	bug590.smt2
+	bug590.smt2 \
+	bug585.cvc 
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
