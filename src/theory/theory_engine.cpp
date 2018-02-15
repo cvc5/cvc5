@@ -40,7 +40,7 @@
 #include "theory/care_graph.h"
 #include "theory/ite_utilities.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -900,6 +900,11 @@ void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
 /* get model */
 TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
+}
+
+void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+{
+  d_quantEngine->getSynthSolutions(sol_map);
 }
 
 bool TheoryEngine::presolve() {

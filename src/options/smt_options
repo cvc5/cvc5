@@ -54,6 +54,9 @@ option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-uns
 option dumpUnsatCoresFull dump-unsat-cores-full --dump-unsat-cores-full bool :default false :link --dump-unsat-cores :link-smt dump-unsat-cores :notify notifyBeforeSearch
  dump the full unsat core, including unlabeled assertions
 
+option checkSynthSol --check-synth-sol bool :default false
+ checks whether produced solutions to functions-to-synthesize satisfy the conjecture
+
 option produceAssignments produce-assignments --produce-assignments bool :default false :notify notifyBeforeSearch
  support the get-assignment command
 
@@ -67,6 +70,11 @@ option doITESimp --ite-simp bool :read-write
 
 option doITESimpOnRepeat --on-repeat-ite-simp bool :read-write :default false
  do the ite simplification pass again if repeating simplification
+ 
+option extRewPrep --ext-rew-prep bool :read-write :default false
+ use extended rewriter as a preprocessing pass
+option extRewPrepAgg --ext-rew-prep-agg bool :read-write :default false
+ use aggressive extended rewriter as a preprocessing pass
 
 option simplifyWithCareEnabled --simp-with-care bool :default false :read-write
  enables simplifyWithCare in ite simplificiation

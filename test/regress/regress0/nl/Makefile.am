@@ -80,7 +80,9 @@ TESTS =	\
   nta/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2 \
   nta/NAVIGATION2.smt2 \
   nta/sin1-sat.smt2 \
-  nta/sin1-deq-sat.smt2
+  nta/sugar-ident.smt2 \
+  nta/sugar-ident-2.smt2 \
+  nta/sugar-ident-3.smt2
 
 # unsolved : garbage_collect.cvc
 

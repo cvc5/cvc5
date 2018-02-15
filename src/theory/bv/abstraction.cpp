@@ -2,9 +2,9 @@
 /*! \file abstraction.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Tim King
+ **   Liana Hadarean, Aina Niemetz, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,57 +29,74 @@ using namespace CVC4::context;
 using namespace std;
 using namespace CVC4::theory::bv::utils;
 
-bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
+                                         std::vector<Node>& new_assertions)
+{
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
 
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    if (assertions[i].getKind() == kind::OR) {
-      for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
-        if (!isConjunctionOfAtoms(assertions[i][j])) {
+  for (unsigned i = 0; i < assertions.size(); ++i)
+  {
+    if (assertions[i].getKind() == kind::OR)
+    {
+      for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j)
+      {
+        if (!isConjunctionOfAtoms(assertions[i][j]))
+        {
           continue;
         }
         Node signature = computeSignature(assertions[i][j]);
         storeSignature(signature, assertions[i][j]);
-        Debug("bv-abstraction") << "   assertion: " << assertions[i][j] <<"\n";
-        Debug("bv-abstraction") << "   signature: " << signature <<"\n";
+        Debug("bv-abstraction") << "   assertion: " << assertions[i][j] << "\n";
+        Debug("bv-abstraction") << "   signature: " << signature << "\n";
       }
     }
   }
   finalizeSignatures();
 
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    if (assertions[i].getKind() == kind::OR &&
-        assertions[i][0].getKind() == kind::AND) {
+  for (unsigned i = 0; i < assertions.size(); ++i)
+  {
+    if (assertions[i].getKind() == kind::OR
+        && assertions[i][0].getKind() == kind::AND)
+    {
       std::vector<Node> new_children;
-      for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
-        if (hasSignature(assertions[i][j])) {
+      for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j)
+      {
+        if (hasSignature(assertions[i][j]))
+        {
           new_children.push_back(abstractSignatures(assertions[i][j]));
-        } else {
+        }
+        else
+        {
           new_children.push_back(assertions[i][j]);
         }
       }
-      new_assertions.push_back(utils::mkNode(kind::OR, new_children));
-    } else {
+      new_assertions.push_back(utils::mkOr(new_children));
+    }
+    else
+    {
       // assertions that are not changed
       new_assertions.push_back(assertions[i]);
     }
   }
 
-  if (options::skolemizeArguments()) {
+  if (options::skolemizeArguments())
+  {
     skolemizeArguments(new_assertions);
   }
 
-
   // if we are using the eager solver reverse the abstraction
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    if (d_funcToSignature.size() == 0) {
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    if (d_funcToSignature.size() == 0)
+    {
       // we did not change anything
       return false;
     }
     NodeNodeMap seen;
-    for (unsigned i = 0; i < new_assertions.size(); ++i) {
+    for (unsigned i = 0; i < new_assertions.size(); ++i)
+    {
       new_assertions[i] = reverseAbstraction(new_assertions[i], seen);
     }
     // we undo the abstraction functions so the logic is QF_BV still
@@ -89,7 +106,6 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
   // return true if we have created new function symbols for the problem
   return d_funcToSignature.size() != 0;
 }
-
 
 bool AbstractionModule::isConjunctionOfAtoms(TNode node) {
   TNodeSet seen;
@@ -146,83 +162,98 @@ Node AbstractionModule::reverseAbstraction(Node assertion, NodeNodeMap& seen) {
   return res;
 }
 
-void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
-  for (unsigned i = 0; i < assertions.size(); ++i) {
+void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0; i < assertions.size(); ++i)
+  {
     TNode assertion = assertions[i];
-    if (assertion.getKind() != kind::OR)
-      continue;
+    if (assertion.getKind() != kind::OR) continue;
 
     bool is_skolemizable = true;
-    for (unsigned k = 0; k < assertion.getNumChildren(); ++k) {
-      if (assertion[k].getKind() != kind::EQUAL ||
-          assertion[k][0].getKind() != kind::APPLY_UF ||
-          assertion[k][1].getKind() != kind::CONST_BITVECTOR ||
-          assertion[k][1].getConst<BitVector>() != BitVector(1, 1u)) {
+    for (unsigned k = 0; k < assertion.getNumChildren(); ++k)
+    {
+      if (assertion[k].getKind() != kind::EQUAL
+          || assertion[k][0].getKind() != kind::APPLY_UF
+          || assertion[k][1].getKind() != kind::CONST_BITVECTOR
+          || assertion[k][1].getConst<BitVector>() != BitVector(1, 1u))
+      {
         is_skolemizable = false;
         break;
       }
     }
 
-    if (!is_skolemizable)
-      continue;
+    if (!is_skolemizable) continue;
 
     ArgsTable assertion_table;
 
     // collect function symbols and their arguments
-    for (unsigned j = 0; j < assertion.getNumChildren(); ++j) {
+    for (unsigned j = 0; j < assertion.getNumChildren(); ++j)
+    {
       TNode current = assertion[j];
-      Assert (current.getKind() == kind::EQUAL &&
-              current[0].getKind() == kind::APPLY_UF);
+      Assert(current.getKind() == kind::EQUAL
+             && current[0].getKind() == kind::APPLY_UF);
       TNode func = current[0];
       ArgsVec args;
-      for (unsigned k = 0; k < func.getNumChildren(); ++k) {
+      for (unsigned k = 0; k < func.getNumChildren(); ++k)
+      {
         args.push_back(func[k]);
       }
       assertion_table.addEntry(func.getOperator(), args);
     }
 
-    NodeBuilder<> assertion_builder (kind::OR);
+    NodeBuilder<> assertion_builder(kind::OR);
     // construct skolemized assertion
-    for (ArgsTable::iterator it = assertion_table.begin(); it != assertion_table.end(); ++it) {
+    for (ArgsTable::iterator it = assertion_table.begin();
+         it != assertion_table.end();
+         ++it)
+    {
       // for each function symbol
       ++(d_statistics.d_numArgsSkolemized);
       TNode func = it->first;
       ArgsTableEntry& args = it->second;
-      NodeBuilder<> skolem_func (kind::APPLY_UF);
+      NodeBuilder<> skolem_func(kind::APPLY_UF);
       skolem_func << func;
       std::vector<Node> skolem_args;
 
-      for (unsigned j = 0; j < args.getArity(); ++j) {
+      for (unsigned j = 0; j < args.getArity(); ++j)
+      {
         bool all_same = true;
-        for (unsigned k = 1; k < args.getNumEntries(); ++k) {
-          if ( args.getEntry(k)[j] != args.getEntry(0)[j])
-            all_same = false;
+        for (unsigned k = 1; k < args.getNumEntries(); ++k)
+        {
+          if (args.getEntry(k)[j] != args.getEntry(0)[j]) all_same = false;
         }
-        Node new_arg = all_same ? (Node)args.getEntry(0)[j] : utils::mkVar(utils::getSize(args.getEntry(0)[j]));
+        Node new_arg = all_same
+                           ? (Node)args.getEntry(0)[j]
+                           : utils::mkVar(utils::getSize(args.getEntry(0)[j]));
         skolem_args.push_back(new_arg);
         skolem_func << new_arg;
       }
 
-
-      Node skolem_func_eq1 = utils::mkNode(kind::EQUAL, (Node)skolem_func, utils::mkConst(1, 1u));
+      Node skolem_func_eq1 =
+          nm->mkNode(kind::EQUAL, (Node)skolem_func, utils::mkConst(1, 1u));
 
       // enumerate arguments assignments
       std::vector<Node> or_assignments;
-      for (ArgsTableEntry::iterator it = args.begin(); it != args.end(); ++it) {
+      for (ArgsTableEntry::iterator it = args.begin(); it != args.end(); ++it)
+      {
         NodeBuilder<> arg_assignment(kind::AND);
-        ArgsVec& args =  *it;
-        for (unsigned k = 0; k < args.size(); ++k) {
-          Node eq = utils::mkNode(kind::EQUAL, args[k], skolem_args[k]);
+        ArgsVec& args = *it;
+        for (unsigned k = 0; k < args.size(); ++k)
+        {
+          Node eq = nm->mkNode(kind::EQUAL, args[k], skolem_args[k]);
           arg_assignment << eq;
         }
         or_assignments.push_back(arg_assignment);
       }
 
-      Node new_func_def = utils::mkNode(kind::AND, skolem_func_eq1, utils::mkNode(kind::OR, or_assignments));
+      Node new_func_def =
+        utils::mkAnd(skolem_func_eq1, utils::mkOr(or_assignments));
       assertion_builder << new_func_def;
     }
     Node new_assertion = assertion_builder;
-    Debug("bv-abstraction-dbg") << "AbstractionModule::skolemizeArguments " << assertions[i] << " => \n";
+    Debug("bv-abstraction-dbg") << "AbstractionModule::skolemizeArguments "
+                                << assertions[i] << " => \n";
     Debug("bv-abstraction-dbg") << "    " << new_assertion;
     assertions[i] = new_assertion;
   }
@@ -243,22 +274,27 @@ Node AbstractionModule::computeSignature(TNode node) {
   return sig;
 }
 
-Node AbstractionModule::getSignatureSkolem(TNode node) {
-  Assert (node.getKind() == kind::VARIABLE);
+Node AbstractionModule::getSignatureSkolem(TNode node)
+{
+  Assert(node.getKind() == kind::VARIABLE);
+  NodeManager* nm = NodeManager::currentNM();
   unsigned bitwidth = utils::getSize(node);
-  if (d_signatureSkolems.find(bitwidth) == d_signatureSkolems.end()) {
+  if (d_signatureSkolems.find(bitwidth) == d_signatureSkolems.end())
+  {
     d_signatureSkolems[bitwidth] = vector<Node>();
   }
 
   vector<Node>& skolems = d_signatureSkolems[bitwidth];
   // get the index of bv variables of this size
   unsigned index = getBitwidthIndex(bitwidth);
-  Assert (skolems.size() + 1 >= index );
-  if (skolems.size() == index) {
+  Assert(skolems.size() + 1 >= index);
+  if (skolems.size() == index)
+  {
     ostringstream os;
-    os << "sig_" <<bitwidth <<"_" << index;
-    NodeManager* nm = NodeManager::currentNM();
-    skolems.push_back(nm->mkSkolem(os.str(), nm->mkBitVectorType(bitwidth), "skolem for computing signatures"));
+    os << "sig_" << bitwidth << "_" << index;
+    skolems.push_back(nm->mkSkolem(os.str(),
+                                   nm->mkBitVectorType(bitwidth),
+                                   "skolem for computing signatures"));
   }
   ++(d_signatureIndices[bitwidth]);
   return skolems[index];
@@ -392,70 +428,95 @@ void AbstractionModule::storeGeneralization(TNode s, TNode t) {
   d_sigToGeneralization[s] = t;
 }
 
-void AbstractionModule::finalizeSignatures() {
+void AbstractionModule::finalizeSignatures()
+{
   NodeManager* nm = NodeManager::currentNM();
-  Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures num signatures = " << d_signatures.size() <<"\n";
+  Debug("bv-abstraction")
+      << "AbstractionModule::finalizeSignatures num signatures = "
+      << d_signatures.size() << "\n";
   TNodeSet new_signatures;
 
   // "unify" signatures
-  for (SignatureMap::const_iterator ss = d_signatures.begin(); ss != d_signatures.end(); ++ss) {
-    for (SignatureMap::const_iterator tt = ss; tt != d_signatures.end(); ++tt) {
+  for (SignatureMap::const_iterator ss = d_signatures.begin();
+       ss != d_signatures.end();
+       ++ss)
+  {
+    for (SignatureMap::const_iterator tt = ss; tt != d_signatures.end(); ++tt)
+    {
       TNode t = getGeneralization(tt->first);
       TNode s = getGeneralization(ss->first);
 
-      if (t != s) {
+      if (t != s)
+      {
         int status = comparePatterns(s, t);
-        Assert (status);
-        if (status < 0)
-          continue;
-        if (status == 1) {
+        Assert(status);
+        if (status < 0) continue;
+        if (status == 1)
+        {
           storeGeneralization(t, s);
-        } else {
+        }
+        else
+        {
           storeGeneralization(s, t);
         }
       }
     }
   }
   // keep only most general signatures
-  for (SignatureMap::iterator it = d_signatures.begin(); it != d_signatures.end(); ) {
+  for (SignatureMap::iterator it = d_signatures.begin();
+       it != d_signatures.end();)
+  {
     TNode sig = it->first;
     TNode gen = getGeneralization(sig);
-    if (sig != gen) {
-      Assert (d_signatures.find(gen) != d_signatures.end());
+    if (sig != gen)
+    {
+      Assert(d_signatures.find(gen) != d_signatures.end());
       // update the count
-      d_signatures[gen]+= d_signatures[sig];
+      d_signatures[gen] += d_signatures[sig];
       d_signatures.erase(it++);
-    } else {
+    }
+    else
+    {
       ++it;
     }
   }
-
 
   // remove signatures that are not frequent enough
-  for (SignatureMap::iterator it = d_signatures.begin(); it != d_signatures.end(); ) {
-    if (it->second <= 7) {
+  for (SignatureMap::iterator it = d_signatures.begin();
+       it != d_signatures.end();)
+  {
+    if (it->second <= 7)
+    {
       d_signatures.erase(it++);
-    } else {
+    }
+    else
+    {
       ++it;
     }
   }
 
-  for (SignatureMap::const_iterator it = d_signatures.begin(); it != d_signatures.end(); ++it) {
+  for (SignatureMap::const_iterator it = d_signatures.begin();
+       it != d_signatures.end();
+       ++it)
+  {
     TNode signature = it->first;
     // we already processed this signature
-    Assert (d_signatureToFunc.find(signature) == d_signatureToFunc.end());
+    Assert(d_signatureToFunc.find(signature) == d_signatureToFunc.end());
 
-    Debug("bv-abstraction") << "Processing signature " << signature << " count " << it->second << "\n";
+    Debug("bv-abstraction") << "Processing signature " << signature << " count "
+                            << it->second << "\n";
     std::vector<TypeNode> arg_types;
     TNodeSet seen;
     collectArgumentTypes(signature, arg_types, seen);
-    Assert (signature.getType().isBoolean());
+    Assert(signature.getType().isBoolean());
     // make function return a bitvector of size 1
-    //Node bv_function = utils::mkNode(kind::ITE, signature, utils::mkConst(1, 1u), utils::mkConst(1, 0u));
-    TypeNode range = NodeManager::currentNM()->mkBitVectorType(1);
+    // Node bv_function = nm->mkNode(kind::ITE, signature, utils::mkConst(1,
+    // 1u), utils::mkConst(1, 0u));
+    TypeNode range = nm->mkBitVectorType(1);
 
     TypeNode abs_type = nm->mkFunctionType(arg_types, range);
-    Node abs_func = nm->mkSkolem("abs_$$", abs_type, "abstraction function for bv theory");
+    Node abs_func =
+        nm->mkSkolem("abs_$$", abs_type, "abstraction function for bv theory");
     Debug("bv-abstraction") << " abstracted by function " << abs_func << "\n";
 
     // NOTE: signature expression type is BOOLEAN
@@ -465,7 +526,8 @@ void AbstractionModule::finalizeSignatures() {
 
   d_statistics.d_numFunctionsAbstracted.setData(d_signatureToFunc.size());
 
-  Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted " << d_signatureToFunc.size() << " signatures. \n";
+  Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted "
+                          << d_signatureToFunc.size() << " signatures. \n";
 }
 
 void AbstractionModule::collectArgumentTypes(TNode sig, std::vector<TypeNode>& types, TNodeSet& seen) {
@@ -510,15 +572,18 @@ void AbstractionModule::collectArguments(TNode node, TNode signature, std::vecto
   }
 }
 
-
-Node AbstractionModule::abstractSignatures(TNode assertion) {
-  Debug("bv-abstraction") << "AbstractionModule::abstractSignatures "<< assertion <<"\n";
+Node AbstractionModule::abstractSignatures(TNode assertion)
+{
+  Debug("bv-abstraction") << "AbstractionModule::abstractSignatures "
+                          << assertion << "\n";
+  NodeManager* nm = NodeManager::currentNM();
   // assume the assertion has been fully abstracted
   Node signature = getGeneralizedSignature(assertion);
 
-  Debug("bv-abstraction") << "   with sig "<< signature <<"\n";
+  Debug("bv-abstraction") << "   with sig " << signature << "\n";
   NodeNodeMap::iterator it = d_signatureToFunc.find(signature);
-  if (it!= d_signatureToFunc.end()) {
+  if (it != d_signatureToFunc.end())
+  {
     std::vector<Node> args;
     TNode func = it->second;
     // pushing the function symbol
@@ -526,14 +591,16 @@ Node AbstractionModule::abstractSignatures(TNode assertion) {
     TNodeSet seen;
     collectArguments(assertion, signature, args, seen);
     std::vector<TNode> real_args;
-    for (unsigned i = 1; i < args.size(); ++i) {
+    for (unsigned i = 1; i < args.size(); ++i)
+    {
       real_args.push_back(args[i]);
     }
     d_argsTable.addEntry(func, real_args);
-    Node result = utils::mkNode(kind::EQUAL, utils::mkNode(kind::APPLY_UF, args),
-                                utils::mkConst(1, 1u));
-    Debug("bv-abstraction") << "=>   "<< result << "\n";
-    Assert (result.getType() == assertion.getType());
+    Node result = nm->mkNode(
+        kind::EQUAL,
+        nm->mkNode(kind::APPLY_UF, args), utils::mkConst(1, 1u));
+    Debug("bv-abstraction") << "=>   " << result << "\n";
+    Assert(result.getType() == assertion.getType());
     return result;
   }
   return assertion;

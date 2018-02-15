@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules_normalization.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Tim King
+ **   Liana Hadarean, Aina Niemetz, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -67,13 +67,14 @@ bool RewriteRule<ExtractNot>::applies(TNode node) {
           node[0].getKind() == kind::BITVECTOR_NOT);
 }
 
-template<> inline
-Node RewriteRule<ExtractNot>::apply(TNode node) {
+template <>
+inline Node RewriteRule<ExtractNot>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<ExtractNot>(" << node << ")" << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
   Node a = utils::mkExtract(node[0][0], high, low);
-  return utils::mkNode(kind::BITVECTOR_NOT, a); 
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, a);
 }
 
 /** 
@@ -93,40 +94,47 @@ bool RewriteRule<ExtractSignExtend>::applies(TNode node) {
   return false; 
 }
 
-template<> inline
-Node RewriteRule<ExtractSignExtend>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ExtractSignExtend>(" << node << ")" << std::endl;
-  TNode extendee = node[0][0]; 
+template <>
+inline Node RewriteRule<ExtractSignExtend>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<ExtractSignExtend>(" << node << ")"
+                      << std::endl;
+  TNode extendee = node[0][0];
   unsigned extendee_size = utils::getSize(extendee);
 
   unsigned high = utils::getExtractHigh(node);
-  unsigned low = utils::getExtractLow(node); 
+  unsigned low = utils::getExtractLow(node);
 
-  Node resultNode; 
+  Node resultNode;
   // extract falls on extendee
-  if (high < extendee_size) {
-    resultNode = utils::mkExtract(extendee, high, low); 
-  } else if (low < extendee_size && high >= extendee_size) {
+  if (high < extendee_size)
+  {
+    resultNode = utils::mkExtract(extendee, high, low);
+  }
+  else if (low < extendee_size && high >= extendee_size)
+  {
     // if extract overlaps sign extend and extendee
     Node low_extract = utils::mkExtract(extendee, extendee_size - 1, low);
     unsigned new_amount = high - extendee_size + 1;
     resultNode = utils::mkSignExtend(low_extract, new_amount);
-  } else {
+  }
+  else
+  {
     // extract only over sign extend
-    Assert (low >= extendee_size);
-    unsigned top = utils::getSize(extendee) - 1; 
+    Assert(low >= extendee_size);
+    unsigned top = utils::getSize(extendee) - 1;
     Node most_significant_bit = utils::mkExtract(extendee, top, top);
     std::vector<Node> bits;
-    for (unsigned i = 0; i < high - low + 1; ++i) {
-      bits.push_back(most_significant_bit); 
+    for (unsigned i = 0; i < high - low + 1; ++i)
+    {
+      bits.push_back(most_significant_bit);
     }
-    resultNode =  utils::mkNode(kind::BITVECTOR_CONCAT, bits);
+    resultNode = utils::mkConcat(bits);
   }
-  Debug("bv-rewrite") << "                           =>" << resultNode << std::endl;
-  return resultNode; 
+  Debug("bv-rewrite") << "                           =>" << resultNode
+                      << std::endl;
+  return resultNode;
 }
-
-
 
 /**
  * ExtractArith
@@ -142,19 +150,21 @@ bool RewriteRule<ExtractArith>::applies(TNode node) {
            node[0].getKind() == kind::BITVECTOR_MULT));
 }
 
-template<> inline
-Node RewriteRule<ExtractArith>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<ExtractArith>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")"
+                      << std::endl;
   unsigned low = utils::getExtractLow(node);
-  Assert (low == 0); 
+  Assert(low == 0);
   unsigned high = utils::getExtractHigh(node);
   std::vector<Node> children;
-  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
-    children.push_back(utils::mkExtract(node[0][i], high, low)); 
+  for (unsigned i = 0; i < node[0].getNumChildren(); ++i)
+  {
+    children.push_back(utils::mkExtract(node[0][i], high, low));
   }
-  Kind kind = node[0].getKind(); 
-  return utils::mkNode(kind, children); 
-  
+  Kind kind = node[0].getKind();
+  return utils::mkNaryNode(kind, children);
 }
 
 /**
@@ -171,19 +181,22 @@ bool RewriteRule<ExtractArith2>::applies(TNode node) {
            node[0].getKind() == kind::BITVECTOR_MULT));
 }
 
-template<> inline
-Node RewriteRule<ExtractArith2>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<ExtractArith2>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")"
+                      << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
   std::vector<Node> children;
-  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
-    children.push_back(utils::mkExtract(node[0][i], high, 0)); 
+  for (unsigned i = 0; i < node[0].getNumChildren(); ++i)
+  {
+    children.push_back(utils::mkExtract(node[0][i], high, 0));
   }
-  Kind kind = node[0].getKind(); 
-  Node op_children = utils::mkNode(kind, children); 
-  
-  return utils::mkExtract(op_children, high, low); 
+  Kind kind = node[0].getKind();
+  Node op_children = utils::mkNaryNode(kind, children);
+
+  return utils::mkExtract(op_children, high, low);
 }
 
 template<> inline
@@ -204,33 +217,41 @@ bool RewriteRule<FlattenAssocCommut>::applies(TNode node) {
   return false;
 }
 
-
-template<> inline
-Node RewriteRule<FlattenAssocCommut>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")"
+                      << std::endl;
   std::vector<Node> processingStack;
   processingStack.push_back(node);
   std::vector<Node> children;
-  Kind kind = node.getKind(); 
-  
-  while (! processingStack.empty()) {
+  Kind kind = node.getKind();
+
+  while (!processingStack.empty())
+  {
     TNode current = processingStack.back();
     processingStack.pop_back();
 
     // flatten expression
-    if (current.getKind() == kind) {
-      for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+    if (current.getKind() == kind)
+    {
+      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      {
         processingStack.push_back(current[i]);
       }
-    } else {
-      children.push_back(current); 
+    }
+    else
+    {
+      children.push_back(current);
     }
   }
-  if (node.getKind() == kind::BITVECTOR_PLUS ||
-      node.getKind() == kind::BITVECTOR_MULT) {
-    return utils::mkNode(kind, children);
+  if (node.getKind() == kind::BITVECTOR_PLUS
+      || node.getKind() == kind::BITVECTOR_MULT)
+  {
+    return utils::mkNaryNode(kind, children);
   }
-  else {
+  else
+  {
     return utils::mkSortedNode(kind, children);
   }
 }
@@ -310,112 +331,131 @@ static inline void updateCoefMap(TNode current, unsigned size,
   }
 }
 
-
-static inline void addToChildren(TNode term, unsigned size, BitVector coeff, std::vector<Node>& children) {
-  if (coeff == BitVector(size, (unsigned)0)) {
+static inline void addToChildren(TNode term,
+                                 unsigned size,
+                                 BitVector coeff,
+                                 std::vector<Node> &children)
+{
+  NodeManager *nm = NodeManager::currentNM();
+  if (coeff == BitVector(size, (unsigned)0))
+  {
     return;
   }
-  else if (coeff == BitVector(size, (unsigned)1)) {
-    children.push_back(term); 
+  else if (coeff == BitVector(size, (unsigned)1))
+  {
+    children.push_back(term);
   }
-  else if (coeff == -BitVector(size, (unsigned)1)) {
+  else if (coeff == -BitVector(size, (unsigned)1))
+  {
     // avoid introducing an extra multiplication
-    children.push_back(utils::mkNode(kind::BITVECTOR_NEG, term)); 
+    children.push_back(nm->mkNode(kind::BITVECTOR_NEG, term));
   }
-  else if (term.getKind() == kind::BITVECTOR_MULT) {
+  else if (term.getKind() == kind::BITVECTOR_MULT)
+  {
     NodeBuilder<> nb(kind::BITVECTOR_MULT);
     TNode::iterator child_it = term.begin();
-    for(; child_it != term.end(); ++child_it) {
+    for (; child_it != term.end(); ++child_it)
+    {
       nb << *child_it;
     }
     nb << utils::mkConst(coeff);
     children.push_back(Node(nb));
   }
-  else {
+  else
+  {
     Node coeffNode = utils::mkConst(coeff);
-    Node product = utils::mkNode(kind::BITVECTOR_MULT, term, coeffNode); 
-    children.push_back(product); 
+    Node product = nm->mkNode(kind::BITVECTOR_MULT, term, coeffNode);
+    children.push_back(product);
   }
 }
-
 
 template<> inline
 bool RewriteRule<PlusCombineLikeTerms>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_PLUS);
 }
 
-
-template<> inline
-Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<PlusCombineLikeTerms>(" << node << ")" << std::endl;
-  unsigned size = utils::getSize(node); 
-  BitVector constSum(size, (unsigned)0); 
+template <>
+inline Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<PlusCombineLikeTerms>(" << node << ")"
+                      << std::endl;
+  unsigned size = utils::getSize(node);
+  BitVector constSum(size, (unsigned)0);
   std::map<Node, BitVector> factorToCoefficient;
 
   // combine like-terms
-  for(unsigned i= 0; i < node.getNumChildren(); ++i) {
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
     TNode current = node[i];
     updateCoefMap(current, size, factorToCoefficient, constSum);
   }
-    
-  std::vector<Node> children; 
 
-  // construct result 
+  std::vector<Node> children;
+
+  // construct result
   std::map<Node, BitVector>::const_iterator it = factorToCoefficient.begin();
-  
-  for (; it != factorToCoefficient.end(); ++it) {
+
+  for (; it != factorToCoefficient.end(); ++it)
+  {
     addToChildren(it->first, size, it->second, children);
   }
 
-  if (constSum != BitVector(size, (unsigned)0)) {
-    children.push_back(utils::mkConst(constSum)); 
+  if (constSum != BitVector(size, (unsigned)0))
+  {
+    children.push_back(utils::mkConst(constSum));
   }
 
-  if(children.size() == 0) {
-    return utils::mkConst(size, (unsigned)0); 
-  }
-
-  return utils::mkNode(kind::BITVECTOR_PLUS, children);
+  unsigned csize = children.size();
+  return csize == 0
+    ? utils::mkZero(size)
+    : utils::mkNaryNode(kind::BITVECTOR_PLUS, children);
 }
-
 
 template<> inline
 bool RewriteRule<MultSimplify>::applies(TNode node) {
   return node.getKind() == kind::BITVECTOR_MULT;
 }
 
-template<> inline
-Node RewriteRule<MultSimplify>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<MultSimplify>(" << node << ")" << std::endl;
-  unsigned size = utils::getSize(node); 
+template <>
+inline Node RewriteRule<MultSimplify>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<MultSimplify>(" << node << ")"
+                      << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
+  unsigned size = utils::getSize(node);
   BitVector constant(size, Integer(1));
 
   bool isNeg = false;
   std::vector<Node> children;
-  for (const TNode& current : node)
+  for (const TNode &current : node)
   {
-    if (current.getKind() == kind::CONST_BITVECTOR) {
-      BitVector value = current.getConst<BitVector>();
-      constant = constant * value;
-      if(constant == BitVector(size, (unsigned) 0)) {
-        return utils::mkConst(size, 0); 
-      }
-    }
-    else if (current.getKind() == kind::BITVECTOR_NEG)
+    Node c = current;
+    if (c.getKind() == kind::BITVECTOR_NEG)
     {
       isNeg = !isNeg;
-      children.push_back(current[0]);
-    } else {
-      children.push_back(current); 
+      c = c[0];
+    }
+
+    if (c.getKind() == kind::CONST_BITVECTOR)
+    {
+      BitVector value = c.getConst<BitVector>();
+      constant = constant * value;
+      if (constant == BitVector(size, (unsigned)0))
+      {
+        return utils::mkConst(size, 0);
+      }
+    }
+    else
+    {
+      children.push_back(c);
     }
   }
   BitVector oValue = BitVector(size, static_cast<unsigned>(1));
-  BitVector noValue = utils::mkBitVectorOnes(size);
+  BitVector noValue = BitVector::mkOnes(size);
 
   if (children.empty())
   {
-    Assert(!isNeg);
-    return utils::mkConst(constant);
+    return utils::mkConst(isNeg ? -constant : constant);
   }
 
   std::sort(children.begin(), children.end());
@@ -434,16 +474,15 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
     children.push_back(utils::mkConst(constant));
   }
 
-  Node ret = utils::mkNode(kind::BITVECTOR_MULT, children);
+  Node ret = utils::mkNaryNode(kind::BITVECTOR_MULT, children);
 
   // if negative, negate entire node
   if (isNeg && size > 1)
   {
-    ret = utils::mkNode(kind::BITVECTOR_NEG, ret);
+    ret = nm->mkNode(kind::BITVECTOR_NEG, ret);
   }
   return ret;
 }
-
 
 template<> inline
 bool RewriteRule<MultDistribConst>::applies(TNode node) {
@@ -461,28 +500,32 @@ bool RewriteRule<MultDistribConst>::applies(TNode node) {
           factor.getKind() == kind::BITVECTOR_NEG); 
 }
 
-template<> inline
-Node RewriteRule<MultDistribConst>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<MultDistribConst>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")"
+                      << std::endl;
 
+  NodeManager *nm = NodeManager::currentNM();
   TNode constant = node[1];
   TNode factor = node[0];
   Assert(constant.getKind() == kind::CONST_BITVECTOR);
 
-  if (factor.getKind() == kind::BITVECTOR_NEG) {
+  if (factor.getKind() == kind::BITVECTOR_NEG)
+  {
     // push negation on the constant part
     BitVector const_bv = constant.getConst<BitVector>();
-    return utils::mkNode(kind::BITVECTOR_MULT,
-                         factor[0],
-                         utils::mkConst(-const_bv)); 
+    return nm->mkNode(
+        kind::BITVECTOR_MULT, factor[0], utils::mkConst(-const_bv));
   }
 
   std::vector<Node> children;
-  for(unsigned i = 0; i < factor.getNumChildren(); ++i) {
-    children.push_back(utils::mkNode(kind::BITVECTOR_MULT, factor[i], constant));
+  for (unsigned i = 0; i < factor.getNumChildren(); ++i)
+  {
+    children.push_back(nm->mkNode(kind::BITVECTOR_MULT, factor[i], constant));
   }
-  
-  return utils::mkNode(factor.getKind(), children); 
+
+  return utils::mkNaryNode(factor.getKind(), children);
 }
 
 template<> inline
@@ -500,25 +543,29 @@ bool RewriteRule<MultDistrib>::applies(TNode node) {
          node[1].getKind() == kind::BITVECTOR_SUB; 
 }
 
-template<> inline
-Node RewriteRule<MultDistrib>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<MultDistrib>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")"
+                      << std::endl;
 
-  bool is_rhs_factor = node[0].getKind() == kind::BITVECTOR_PLUS ||
-                       node[0].getKind() == kind::BITVECTOR_SUB;
+  NodeManager *nm = NodeManager::currentNM();
+  bool is_rhs_factor = node[0].getKind() == kind::BITVECTOR_PLUS
+                       || node[0].getKind() == kind::BITVECTOR_SUB;
   TNode factor = !is_rhs_factor ? node[0] : node[1];
   TNode sum = is_rhs_factor ? node[0] : node[1];
-  Assert (factor.getKind() != kind::BITVECTOR_PLUS &&
-          factor.getKind() != kind::BITVECTOR_SUB &&
-          (sum.getKind() == kind::BITVECTOR_PLUS ||
-           sum.getKind() == kind::BITVECTOR_SUB));
+  Assert(factor.getKind() != kind::BITVECTOR_PLUS
+         && factor.getKind() != kind::BITVECTOR_SUB
+         && (sum.getKind() == kind::BITVECTOR_PLUS
+             || sum.getKind() == kind::BITVECTOR_SUB));
 
   std::vector<Node> children;
-  for(unsigned i = 0; i < sum.getNumChildren(); ++i) {
-    children.push_back(utils::mkNode(kind::BITVECTOR_MULT, sum[i], factor));
+  for (unsigned i = 0; i < sum.getNumChildren(); ++i)
+  {
+    children.push_back(nm->mkNode(kind::BITVECTOR_MULT, sum[i], factor));
   }
-  
-  return utils::mkNode(sum.getKind(), children); 
+
+  return utils::mkNaryNode(sum.getKind(), children);
 }
 
 template<> inline
@@ -541,18 +588,18 @@ bool RewriteRule<ConcatToMult>::applies(TNode node) {
   return true;
 }
 
-template<> inline
-Node RewriteRule<ConcatToMult>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<ConcatToMult>(" << node << ")" << std::endl;
-  unsigned size = utils::getSize(node); 
+template <>
+inline Node RewriteRule<ConcatToMult>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<ConcatToMult>(" << node << ")"
+                      << std::endl;
+  unsigned size = utils::getSize(node);
   Node factor = node[0][0];
   Assert(utils::getSize(factor) == utils::getSize(node));
   BitVector amount = BitVector(size, utils::getSize(node[1]));
   Node coef = utils::mkConst(BitVector(size, 1u).leftShift(amount));
-  return utils::mkNode(kind::BITVECTOR_MULT, factor, coef); 
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_MULT, factor, coef);
 }
-
-
 
 template<> inline
 bool RewriteRule<SolveEq>::applies(TNode node) {
@@ -564,10 +611,11 @@ bool RewriteRule<SolveEq>::applies(TNode node) {
   return true;
 }
 
-
-// Doesn't do full solving (yet), instead, if a term appears both on lhs and rhs, it subtracts from both sides so that one side's coeff is zero
-template<> inline
-Node RewriteRule<SolveEq>::apply(TNode node) {
+// Doesn't do full solving (yet), instead, if a term appears both on lhs and
+// rhs, it subtracts from both sides so that one side's coeff is zero
+template <>
+inline Node RewriteRule<SolveEq>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<SolveEq>(" << node << ")" << std::endl;
 
   TNode left = node[0];
@@ -580,83 +628,105 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
   std::map<Node, BitVector> leftMap, rightMap;
 
   // Collect terms and coefficients plus constant for left
-  if (left.getKind() == kind::BITVECTOR_PLUS) {
-    for(unsigned i= 0; i < left.getNumChildren(); ++i) {
+  if (left.getKind() == kind::BITVECTOR_PLUS)
+  {
+    for (unsigned i = 0; i < left.getNumChildren(); ++i)
+    {
       updateCoefMap(left[i], size, leftMap, leftConst);
     }
   }
-  else if (left.getKind() == kind::BITVECTOR_NOT && left[0] == right) {
+  else if (left.getKind() == kind::BITVECTOR_NOT && left[0] == right)
+  {
     return utils::mkFalse();
   }
-  else {
+  else
+  {
     updateCoefMap(left, size, leftMap, leftConst);
   }
 
   // Collect terms and coefficients plus constant for right
-  if (right.getKind() == kind::BITVECTOR_PLUS) {
-    for(unsigned i= 0; i < right.getNumChildren(); ++i) {
+  if (right.getKind() == kind::BITVECTOR_PLUS)
+  {
+    for (unsigned i = 0; i < right.getNumChildren(); ++i)
+    {
       updateCoefMap(right[i], size, rightMap, rightConst);
     }
   }
-  else if (right.getKind() == kind::BITVECTOR_NOT && right[0] == left) {
+  else if (right.getKind() == kind::BITVECTOR_NOT && right[0] == left)
+  {
     return utils::mkFalse();
   }
-  else {
+  else
+  {
     updateCoefMap(right, size, rightMap, rightConst);
   }
 
   std::vector<Node> childrenLeft, childrenRight;
 
-  std::map<Node, BitVector>::const_iterator iLeft = leftMap.begin(), iLeftEnd = leftMap.end();
-  std::map<Node, BitVector>::const_iterator iRight = rightMap.begin(), iRightEnd = rightMap.end();
+  std::map<Node, BitVector>::const_iterator iLeft = leftMap.begin(),
+                                            iLeftEnd = leftMap.end();
+  std::map<Node, BitVector>::const_iterator iRight = rightMap.begin(),
+                                            iRightEnd = rightMap.end();
 
   BitVector coeffLeft;
   TNode termLeft;
-  if (iLeft != iLeftEnd) {
+  if (iLeft != iLeftEnd)
+  {
     coeffLeft = iLeft->second;
     termLeft = iLeft->first;
   }
 
   BitVector coeffRight;
   TNode termRight;
-  if (iRight != iRightEnd) {
+  if (iRight != iRightEnd)
+  {
     coeffRight = iRight->second;
     termRight = iRight->first;
   }
 
   bool incLeft, incRight;
 
-  while (iLeft != iLeftEnd || iRight != iRightEnd) {
+  while (iLeft != iLeftEnd || iRight != iRightEnd)
+  {
     incLeft = incRight = false;
-    if (iLeft != iLeftEnd && (iRight == iRightEnd || termLeft < termRight)) {
+    if (iLeft != iLeftEnd && (iRight == iRightEnd || termLeft < termRight))
+    {
       addToChildren(termLeft, size, coeffLeft, childrenLeft);
       incLeft = true;
-    }      
-    else if (iLeft == iLeftEnd || termRight < termLeft) {
+    }
+    else if (iLeft == iLeftEnd || termRight < termLeft)
+    {
       Assert(iRight != iRightEnd);
       addToChildren(termRight, size, coeffRight, childrenRight);
       incRight = true;
     }
-    else {
-      if (coeffLeft > coeffRight) {
+    else
+    {
+      if (coeffLeft > coeffRight)
+      {
         addToChildren(termLeft, size, coeffLeft - coeffRight, childrenLeft);
       }
-      else if (coeffRight > coeffLeft) {
+      else if (coeffRight > coeffLeft)
+      {
         addToChildren(termRight, size, coeffRight - coeffLeft, childrenRight);
       }
       incLeft = incRight = true;
     }
-    if (incLeft) {
+    if (incLeft)
+    {
       ++iLeft;
-      if (iLeft != iLeftEnd) {
+      if (iLeft != iLeftEnd)
+      {
         Assert(termLeft < iLeft->first);
         coeffLeft = iLeft->second;
         termLeft = iLeft->first;
       }
     }
-    if (incRight) {
+    if (incRight)
+    {
       ++iRight;
-      if (iRight != iRightEnd) {
+      if (iRight != iRightEnd)
+      {
         Assert(termRight < iRight->first);
         coeffRight = iRight->second;
         termRight = iRight->first;
@@ -664,86 +734,98 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
     }
   }
 
-  // construct result 
+  // construct result
 
-  // If both constants are nonzero, combine on right, otherwise leave them where they are
-  if (rightConst != zero) {
+  // If both constants are nonzero, combine on right, otherwise leave them where
+  // they are
+  if (rightConst != zero)
+  {
     rightConst = rightConst - leftConst;
     leftConst = zero;
-    if (rightConst != zero) {
+    if (rightConst != zero)
+    {
       childrenRight.push_back(utils::mkConst(rightConst));
     }
   }
-  else if (leftConst != zero) {
+  else if (leftConst != zero)
+  {
     childrenLeft.push_back(utils::mkConst(leftConst));
   }
 
   Node newLeft, newRight;
 
-  if(childrenRight.size() == 0 && leftConst != zero) {
-    Assert(childrenLeft.back().isConst() && childrenLeft.back().getConst<BitVector>() == leftConst);
-    if (childrenLeft.size() == 1) {
+  if (childrenRight.size() == 0 && leftConst != zero)
+  {
+    Assert(childrenLeft.back().isConst()
+           && childrenLeft.back().getConst<BitVector>() == leftConst);
+    if (childrenLeft.size() == 1)
+    {
       // c = 0 ==> false
       return utils::mkFalse();
     }
-    // special case - if right is empty and left has a constant, move the constant
+    // special case - if right is empty and left has a constant, move the
+    // constant
     childrenRight.push_back(utils::mkConst(-leftConst));
     childrenLeft.pop_back();
   }
 
-  if(childrenLeft.size() == 0) {
-    if (rightConst != zero) {
-      Assert(childrenRight.back().isConst() && childrenRight.back().getConst<BitVector>() == rightConst);
-      if (childrenRight.size() == 1) {
+  if (childrenLeft.size() == 0)
+  {
+    if (rightConst != zero)
+    {
+      Assert(childrenRight.back().isConst()
+             && childrenRight.back().getConst<BitVector>() == rightConst);
+      if (childrenRight.size() == 1)
+      {
         // 0 = c ==> false
         return utils::mkFalse();
       }
-      // special case - if left is empty and right has a constant, move the constant
+      // special case - if left is empty and right has a constant, move the
+      // constant
       newLeft = utils::mkConst(-rightConst);
       childrenRight.pop_back();
     }
-    else {
-      newLeft = utils::mkConst(size, (unsigned)0); 
+    else
+    {
+      newLeft = utils::mkConst(size, (unsigned)0);
     }
   }
-  else if (childrenLeft.size() == 1) {
-    newLeft = childrenLeft[0];
-  }
-  else {
-    newLeft = utils::mkNode(kind::BITVECTOR_PLUS, childrenLeft);
+  else
+  {
+    newLeft = utils::mkNaryNode(kind::BITVECTOR_PLUS, childrenLeft);
   }
 
-  if (childrenRight.size() == 0) {
+  if (childrenRight.size() == 0)
+  {
     newRight = utils::mkConst(size, (unsigned)0);
   }
-  else if (childrenRight.size() == 1) {
-    newRight = childrenRight[0];
-  }
-  else {
-    newRight = utils::mkNode(kind::BITVECTOR_PLUS, childrenRight);
+  else
+  {
+    newRight = utils::mkNaryNode(kind::BITVECTOR_PLUS, childrenRight);
   }
 
   //  Assert(newLeft == Rewriter::rewrite(newLeft));
   //  Assert(newRight == Rewriter::rewrite(newRight));
 
-  if (newLeft == newRight) {
-    Assert (newLeft == utils::mkConst(size, (unsigned)0));
+  if (newLeft == newRight)
+  {
+    Assert(newLeft == utils::mkConst(size, (unsigned)0));
     return utils::mkTrue();
   }
 
-  if (newLeft < newRight) {
-    Assert((newRight == left && newLeft == right) ||
-           Rewriter::rewrite(newRight) != left ||
-           Rewriter::rewrite(newLeft) != right);
+  if (newLeft < newRight)
+  {
+    Assert((newRight == left && newLeft == right)
+           || Rewriter::rewrite(newRight) != left
+           || Rewriter::rewrite(newLeft) != right);
     return newRight.eqNode(newLeft);
   }
-  
-  Assert((newLeft == left && newRight == right) ||
-         Rewriter::rewrite(newLeft) != left ||
-         Rewriter::rewrite(newRight) != right);
+
+  Assert((newLeft == left && newRight == right)
+         || Rewriter::rewrite(newLeft) != left
+         || Rewriter::rewrite(newRight) != right);
   return newLeft.eqNode(newRight);
 }
-
 
 template<> inline
 bool RewriteRule<BitwiseEq>::applies(TNode node) {
@@ -899,10 +981,12 @@ bool RewriteRule<NegSub>::applies(TNode node) {
           node[0].getKind() == kind::BITVECTOR_SUB);
 }
 
-template<> inline
-Node RewriteRule<NegSub>::apply(TNode node) {
+template <>
+inline Node RewriteRule<NegSub>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<NegSub>(" << node << ")" << std::endl;
-  return utils::mkNode(kind::BITVECTOR_SUB, node[0][1], node[0][0]);
+  return NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_SUB, node[0][1], node[0][0]);
 }
 
 template<> inline
@@ -911,18 +995,18 @@ bool RewriteRule<NegPlus>::applies(TNode node) {
           node[0].getKind() == kind::BITVECTOR_PLUS);
 }
 
-template<> inline
-Node RewriteRule<NegPlus>::apply(TNode node) {
+template <>
+inline Node RewriteRule<NegPlus>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<NegPlus>(" << node << ")" << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   std::vector<Node> children;
-  for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
-    children.push_back(utils::mkNode(kind::BITVECTOR_NEG, node[0][i])); 
+  for (unsigned i = 0; i < node[0].getNumChildren(); ++i)
+  {
+    children.push_back(nm->mkNode(kind::BITVECTOR_NEG, node[0][i]));
   }
-  return utils::mkNode(kind::BITVECTOR_PLUS, children);
+  return utils::mkNaryNode(kind::BITVECTOR_PLUS, children);
 }
-
-
-
 
 struct Count {
   unsigned pos;
@@ -952,62 +1036,82 @@ bool RewriteRule<AndSimplify>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_AND);
 }
 
-template<> inline
-Node RewriteRule<AndSimplify>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<AndSimplify>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")"
+                      << std::endl;
 
+  NodeManager *nm = NodeManager::currentNM();
   // this will remove duplicates
   std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
-  BitVector constant = utils::mkBitVectorOnes(size); 
-  
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+  BitVector constant = BitVector::mkOnes(size);
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
     TNode current = node[i];
     // simplify constants
-    if (current.getKind() == kind::CONST_BITVECTOR) {
+    if (current.getKind() == kind::CONST_BITVECTOR)
+    {
       BitVector bv = current.getConst<BitVector>();
       constant = constant & bv;
-    } else {
-      if (current.getKind() == kind::BITVECTOR_NOT) {
+    }
+    else
+    {
+      if (current.getKind() == kind::BITVECTOR_NOT)
+      {
         insert(subterms, current[0], true);
-      } else {
+      }
+      else
+      {
         insert(subterms, current, false);
       }
     }
   }
 
   std::vector<Node> children;
-  
-  if (constant == BitVector(size, (unsigned)0)) {
-    return utils::mkZero(size); 
+
+  if (constant == BitVector(size, (unsigned)0))
+  {
+    return utils::mkZero(size);
   }
 
-  if (constant != utils::mkBitVectorOnes(size)) {
+  if (constant != BitVector::mkOnes(size))
+  {
     children.push_back(utils::mkConst(constant)); 
   }
-  
-  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
 
-  for (; it != subterms.end(); ++it) {
-    if (it->second.pos > 0 && it->second.neg > 0) {
-      // if we have a and ~a 
-      return utils::mkZero(size); 
-    } else {
-      // idempotence 
-      if (it->second.neg > 0) {
+  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
+      subterms.begin();
+
+  for (; it != subterms.end(); ++it)
+  {
+    if (it->second.pos > 0 && it->second.neg > 0)
+    {
+      // if we have a and ~a
+      return utils::mkZero(size);
+    }
+    else
+    {
+      // idempotence
+      if (it->second.neg > 0)
+      {
         // if it only occured negated
-        children.push_back(utils::mkNode(kind::BITVECTOR_NOT, it->first));
-      } else {
+        children.push_back(nm->mkNode(kind::BITVECTOR_NOT, it->first));
+      }
+      else
+      {
         // if it only occured positive
-        children.push_back(it->first); 
+        children.push_back(it->first);
       }
     }
   }
-  if (children.size() == 0) {
-    return utils::mkOnes(size); 
+  if (children.size() == 0)
+  {
+    return utils::mkOnes(size);
   }
-  
-  return utils::mkSortedNode(kind::BITVECTOR_AND, children); 
+
+  return utils::mkSortedNode(kind::BITVECTOR_AND, children);
 }
 
 template<> inline
@@ -1060,62 +1164,82 @@ bool RewriteRule<OrSimplify>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_OR);
 }
 
-template<> inline
-Node RewriteRule<OrSimplify>::apply(TNode node) {
+template <>
+inline Node RewriteRule<OrSimplify>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<OrSimplify>(" << node << ")" << std::endl;
 
+  NodeManager *nm = NodeManager::currentNM();
   // this will remove duplicates
   std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
-  BitVector constant(size, (unsigned)0); 
-  
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+  BitVector constant(size, (unsigned)0);
+
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
     TNode current = node[i];
     // simplify constants
-    if (current.getKind() == kind::CONST_BITVECTOR) {
+    if (current.getKind() == kind::CONST_BITVECTOR)
+    {
       BitVector bv = current.getConst<BitVector>();
       constant = constant | bv;
-    } else {
-      if (current.getKind() == kind::BITVECTOR_NOT) {
+    }
+    else
+    {
+      if (current.getKind() == kind::BITVECTOR_NOT)
+      {
         insert(subterms, current[0], true);
-      } else {
+      }
+      else
+      {
         insert(subterms, current, false);
       }
     }
   }
 
   std::vector<Node> children;
-  
-  if (constant == utils::mkBitVectorOnes(size)) {
+
+  if (constant == BitVector::mkOnes(size))
+  {
     return utils::mkOnes(size); 
   }
 
-  if (constant != BitVector(size, (unsigned)0)) {
-    children.push_back(utils::mkConst(constant)); 
+  if (constant != BitVector(size, (unsigned)0))
+  {
+    children.push_back(utils::mkConst(constant));
   }
-  
-  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
 
-  for (; it != subterms.end(); ++it) {
-    if (it->second.pos > 0 && it->second.neg > 0) {
-      // if we have a or ~a 
-      return utils::mkOnes(size); 
-    } else {
-      // idempotence 
-      if (it->second.neg > 0) {
+  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
+      subterms.begin();
+
+  for (; it != subterms.end(); ++it)
+  {
+    if (it->second.pos > 0 && it->second.neg > 0)
+    {
+      // if we have a or ~a
+      return utils::mkOnes(size);
+    }
+    else
+    {
+      // idempotence
+      if (it->second.neg > 0)
+      {
         // if it only occured negated
-        children.push_back(utils::mkNode(kind::BITVECTOR_NOT, it->first));
-      } else {
+        children.push_back(nm->mkNode(kind::BITVECTOR_NOT, it->first));
+      }
+      else
+      {
         // if it only occured positive
-        children.push_back(it->first); 
+        children.push_back(it->first);
       }
     }
   }
 
-  if (children.size() == 0) {
-    return utils::mkZero(size); 
+  if (children.size() == 0)
+  {
+    return utils::mkZero(size);
   }
-  return utils::mkSortedNode(kind::BITVECTOR_OR, children); 
+  return utils::mkSortedNode(kind::BITVECTOR_OR, children);
 }
 
 template<> inline
@@ -1123,32 +1247,44 @@ bool RewriteRule<XorSimplify>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_XOR);
 }
 
-template<> inline
-Node RewriteRule<XorSimplify>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<XorSimplify>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")"
+                      << std::endl;
 
-
+  NodeManager *nm = NodeManager::currentNM();
   std::unordered_map<TNode, Count, TNodeHashFunction> subterms;
   unsigned size = utils::getSize(node);
-  BitVector constant; 
-  bool const_set = false; 
+  BitVector constant;
+  bool const_set = false;
 
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
     TNode current = node[i];
     // simplify constants
-    if (current.getKind() == kind::CONST_BITVECTOR) {
+    if (current.getKind() == kind::CONST_BITVECTOR)
+    {
       BitVector bv = current.getConst<BitVector>();
-      if (const_set) {
+      if (const_set)
+      {
         constant = constant ^ bv;
-      } else {
-        const_set = true; 
+      }
+      else
+      {
+        const_set = true;
         constant = bv;
       }
-    } else {
+    }
+    else
+    {
       // collect number of occurances of each term and its negation
-      if (current.getKind() == kind::BITVECTOR_NOT) {
+      if (current.getKind() == kind::BITVECTOR_NOT)
+      {
         insert(subterms, current[0], true);
-      } else {
+      }
+      else
+      {
         insert(subterms, current, false);
       }
     }
@@ -1156,60 +1292,71 @@ Node RewriteRule<XorSimplify>::apply(TNode node) {
 
   std::vector<Node> children;
 
-  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it = subterms.begin();
+  std::unordered_map<TNode, Count, TNodeHashFunction>::const_iterator it =
+      subterms.begin();
   unsigned true_count = 0;
-  bool seen_false = false; 
-  for (; it != subterms.end(); ++it) {
-    unsigned pos = it->second.pos; // number of positive occurances
-    unsigned neg = it->second.neg; // number of negated occurances 
+  bool seen_false = false;
+  for (; it != subterms.end(); ++it)
+  {
+    unsigned pos = it->second.pos;  // number of positive occurances
+    unsigned neg = it->second.neg;  // number of negated occurances
 
     // remove duplicates using the following rules
     // a xor a ==> false
     // false xor false ==> false
-    seen_false = seen_false? seen_false : (pos > 1 || neg > 1);
+    seen_false = seen_false ? seen_false : (pos > 1 || neg > 1);
     // check what did not reduce
-    if (pos % 2 && neg % 2) {
+    if (pos % 2 && neg % 2)
+    {
       // we have a xor ~a ==> true
       ++true_count;
-    } else if (pos % 2) {
+    }
+    else if (pos % 2)
+    {
       // we had a positive occurence left
-      children.push_back(it->first); 
-    } else if (neg % 2) {
+      children.push_back(it->first);
+    }
+    else if (neg % 2)
+    {
       // we had a negative occurence left
-      children.push_back(utils::mkNode(kind::BITVECTOR_NOT, it->first)); 
+      children.push_back(nm->mkNode(kind::BITVECTOR_NOT, it->first));
     }
     // otherwise both reduced to false
   }
 
   std::vector<BitVector> xorConst;
-  BitVector true_bv = utils::mkBitVectorOnes(size);
+  BitVector true_bv = BitVector::mkOnes(size);
   BitVector false_bv(size, (unsigned)0);
-  
-  if (true_count) {
+
+  if (true_count)
+  {
     // true xor ... xor true ==> true (odd)
-    //                       ==> false (even) 
-    xorConst.push_back(true_count % 2? true_bv : false_bv); 
+    //                       ==> false (even)
+    xorConst.push_back(true_count % 2 ? true_bv : false_bv);
   }
-  if (seen_false) {
-    xorConst.push_back(false_bv); 
+  if (seen_false)
+  {
+    xorConst.push_back(false_bv);
   }
-  if(const_set) {
-    xorConst.push_back(constant); 
+  if (const_set)
+  {
+    xorConst.push_back(constant);
   }
 
-  if (xorConst.size() > 0) {
+  if (xorConst.size() > 0)
+  {
     BitVector result = xorConst[0];
-    for (unsigned i = 1; i < xorConst.size(); ++i) {
-      result = result ^ xorConst[i]; 
+    for (unsigned i = 1; i < xorConst.size(); ++i)
+    {
+      result = result ^ xorConst[i];
     }
-    children.push_back(utils::mkConst(result)); 
+    children.push_back(utils::mkConst(result));
   }
 
   Assert(children.size());
-  
-  return utils::mkSortedNode(kind::BITVECTOR_XOR, children); 
-}
 
+  return utils::mkSortedNode(kind::BITVECTOR_XOR, children);
+}
 
 /** 
  * BitwiseSlicing
@@ -1245,48 +1392,61 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
   return false; 
 }
 
-template<> inline
-Node RewriteRule<BitwiseSlicing>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<BitwiseSlicing>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")"
+                      << std::endl;
+  NodeManager *nm = NodeManager::currentNM();
   // get the constant
-  bool found_constant = false ;
+  bool found_constant = false;
   TNode constant;
-  std::vector<Node> other_children; 
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    if (node[i].getKind() == kind::CONST_BITVECTOR && !found_constant) {
+  std::vector<Node> other_children;
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
+    if (node[i].getKind() == kind::CONST_BITVECTOR && !found_constant)
+    {
       constant = node[i];
-      found_constant = true; 
-    } else {
-      other_children.push_back(node[i]); 
+      found_constant = true;
+    }
+    else
+    {
+      other_children.push_back(node[i]);
     }
   }
-  Assert (found_constant && other_children.size() == node.getNumChildren() - 1);
+  Assert(found_constant && other_children.size() == node.getNumChildren() - 1);
 
-  Node other = utils::mkNode(node.getKind(), other_children);
-  
+  Node other = utils::mkNaryNode(node.getKind(), other_children);
+
   BitVector bv_constant = constant.getConst<BitVector>();
-  std::vector<Node> concat_children; 
+  std::vector<Node> concat_children;
   int start = bv_constant.getSize() - 1;
   int end = start;
-  for (int i = end - 1; i >= 0; --i) {
-    if (bv_constant.isBitSet(i + 1) != bv_constant.isBitSet(i)) {
+  for (int i = end - 1; i >= 0; --i)
+  {
+    if (bv_constant.isBitSet(i + 1) != bv_constant.isBitSet(i))
+    {
       Node other_extract = utils::mkExtract(other, end, start);
       Node const_extract = utils::mkExtract(constant, end, start);
-      Node bitwise_op = utils::mkNode(node.getKind(), const_extract, other_extract);
+      Node bitwise_op =
+          nm->mkNode(node.getKind(), const_extract, other_extract);
       concat_children.push_back(bitwise_op);
-      start = end = i; 
-    } else {
-      start--; 
+      start = end = i;
     }
-    if (i == 0) {
+    else
+    {
+      start--;
+    }
+    if (i == 0)
+    {
       Node other_extract = utils::mkExtract(other, end, 0);
       Node const_extract = utils::mkExtract(constant, end, 0);
-      Node bitwise_op = utils::mkNode(node.getKind(), const_extract, other_extract);
+      Node bitwise_op =
+          nm->mkNode(node.getKind(), const_extract, other_extract);
       concat_children.push_back(bitwise_op);
     }
-
   }
-  Node result = utils::mkNode(kind::BITVECTOR_CONCAT, concat_children);
+  Node result = utils::mkConcat(concat_children);
   Debug("bv-rewrite") << "    =>" << result << std::endl;
   return result;
 }

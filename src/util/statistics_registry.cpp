@@ -17,9 +17,13 @@
 
 #include "util/statistics_registry.h"
 
-#include "base/cvc4_assert.h"
-#include "lib/clock_gettime.h"
+#include <cstdlib>
+#include <iostream>
 
+#include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
+#include "lib/clock_gettime.h"
+#include "util/ostream_util.h"
 
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
@@ -73,7 +77,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  Assert(nsec >= 0 && nsec < nsec_per_sec);
+  CVC4_DCHECK(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -134,6 +138,7 @@ inline bool operator>=(const timespec& a, const timespec& b) {
 /** Output a timespec on an output stream. */
 std::ostream& operator<<(std::ostream& os, const timespec& t) {
   // assumes t.tv_nsec is in range
+  StreamFormatScope format_scope(os);
   return os << t.tv_sec << "."
             << std::setfill('0') << std::setw(9) << std::right << t.tv_nsec;
 }
@@ -163,12 +168,12 @@ void StatisticsRegistry::registerStat(Stat* s)
 void StatisticsRegistry::unregisterStat(Stat* s)
 {
 #ifdef CVC4_STATISTICS_ON
-  PrettyCheckArgument(d_stats.find(s) != d_stats.end(), s,
-                "Statistic `%s' was not registered with this registry.",
-                s->getName().c_str());
-  d_stats.erase(s);
+  CVC4_CHECK(s != nullptr);
+  CVC4_CHECK(d_stats.erase(s) > 0)
+      << "Statistic `" << s->getName()
+      << "' was not registered with this registry.";
 #endif /* CVC4_STATISTICS_ON */
-}/* StatisticsRegistry::unregisterStat_() */
+} /* StatisticsRegistry::unregisterStat() */
 
 void StatisticsRegistry::flushStat(std::ostream &out) const {
 #ifdef CVC4_STATISTICS_ON
@@ -198,7 +203,7 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(__CVC4_USE_STATISTICS) {
-    PrettyCheckArgument(d_running, *this, "timer not running");
+    CVC4_CHECK(d_running) << "timer not running";
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;

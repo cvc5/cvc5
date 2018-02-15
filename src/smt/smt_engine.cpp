@@ -93,7 +93,7 @@
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/global_negate.h"
 #include "theory/quantifiers/macros.h"
@@ -1353,13 +1353,13 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if(options::checkModels()) {
-    if(! options::produceAssertions()) {
+  if ((options::checkModels() || options::checkSynthSol())
+      && !options::produceAssertions())
+  {
       Notice() << "SmtEngine: turning on produce-assertions to support "
-               << "check-models." << endl;
+               << "check-models or check-synth-sol." << endl;
       setOption("produce-assertions", SExpr("true"));
     }
-  }
 
   if(options::unsatCores()) {
     if(options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
@@ -1885,7 +1885,12 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
-    if (options::sygusRewSynth())
+    if (options::sygusRew())
+    {
+      options::sygusRewSynth.set(true);
+      options::sygusRewVerify.set(true);
+    }
+    if (options::sygusRewSynth() || options::sygusRewVerify())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -4288,6 +4293,16 @@ void SmtEnginePrivate::processAssertions() {
 
   bool noConflict = true;
 
+  if (options::extRewPrep())
+  {
+    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
+    for (unsigned i = 0; i < d_assertions.size(); ++i)
+    {
+      Node a = d_assertions[i];
+      d_assertions.replace(i, extr.extendedRewrite(a));
+    }
+  }
+
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
@@ -4800,6 +4815,12 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
         TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
+    }
+    // Check that synthesis solutions satisfy the conjecture
+    if (options::checkSynthSol()
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      checkSynthSolution();
     }
 
     return r;
@@ -5486,6 +5507,104 @@ void SmtEngine::checkModel(bool hardFailure) {
     }
   }
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
+}
+
+void SmtEngine::checkSynthSolution()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Notice() << "SmtEngine::checkSynthSolution(): checking synthesis solution" << endl;
+  map<Node, Node> sol_map;
+  /* Get solutions and build auxiliary vectors for substituting */
+  d_theoryEngine->getSynthSolutions(sol_map);
+  Trace("check-synth-sol") << "Got solution map:\n";
+  std::vector<Node> function_vars, function_sols;
+  for (const auto& pair : sol_map)
+  {
+    Trace("check-synth-sol") << pair.first << " --> " << pair.second << "\n";
+    function_vars.push_back(pair.first);
+    function_sols.push_back(pair.second);
+  }
+  Trace("check-synth-sol") << "Starting new SMT Engine\n";
+  /* Start new SMT engine to check solutions */
+  SmtEngine solChecker(d_exprManager);
+  solChecker.setLogic(getLogicInfo());
+  setOption("check-synth-sol", SExpr("false"));
+
+  Trace("check-synth-sol") << "Retrieving assertions\n";
+  // Build conjecture from original assertions
+  if (d_assertionList == NULL)
+  {
+    Trace("check-synth-sol") << "No assertions to check\n";
+    return;
+  }
+  for (AssertionList::const_iterator i = d_assertionList->begin();
+       i != d_assertionList->end();
+       ++i)
+  {
+    Notice() << "SmtEngine::checkSynthSolution(): checking assertion " << *i << endl;
+    Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
+    Node conj = Node::fromExpr(*i);
+    // Apply any define-funs from the problem.
+    {
+      unordered_map<Node, Node, NodeHashFunction> cache;
+      conj = d_private->expandDefinitions(conj, cache);
+    }
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
+    Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
+
+    // Apply solution map to conjecture body
+    Node conjBody;
+    /* Whether property is quantifier free */
+    if (conj[1].getKind() != kind::EXISTS)
+    {
+      conjBody = conj[1].substitute(function_vars.begin(),
+                                    function_vars.end(),
+                                    function_sols.begin(),
+                                    function_sols.end());
+    }
+    else
+    {
+      conjBody = conj[1][1].substitute(function_vars.begin(),
+                                       function_vars.end(),
+                                       function_sols.begin(),
+                                       function_sols.end());
+
+      /* Skolemize property */
+      std::vector<Node> vars, skos;
+      for (unsigned j = 0, size = conj[1][0].getNumChildren(); j < size; ++j)
+      {
+        vars.push_back(conj[1][0][j]);
+        std::stringstream ss;
+        ss << "sk_" << j;
+        skos.push_back(nm->mkSkolem(ss.str(), conj[1][0][j].getType()));
+        Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
+                                 << skos.back() << "\n";
+      }
+      conjBody = conjBody.substitute(
+          vars.begin(), vars.end(), skos.begin(), skos.end());
+    }
+    Notice() << "SmtEngine::checkSynthSolution(): -- body substitutes to "
+             << conjBody << endl;
+    Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
+                             << "\n";
+    solChecker.assertFormula(conjBody.toExpr());
+    Result r = solChecker.checkSat();
+    Notice() << "SmtEngine::checkSynthSolution(): result is " << r << endl;
+    Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
+    if (r.asSatisfiabilityResult().isUnknown())
+    {
+      InternalError(
+          "SmtEngine::checkSynthSolution(): could not check solution, result "
+          "unknown.");
+    }
+    else if (r.asSatisfiabilityResult().isSat())
+    {
+      InternalError(
+          "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
+          "negated conjecture.");
+    }
+    solChecker.resetAssertions();
+  }
 }
 
 // TODO(#1108): Simplify the error reporting of this method.

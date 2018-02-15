@@ -2,9 +2,9 @@
 /*! \file lazy_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,6 +32,30 @@
 namespace CVC4 {
 namespace theory {
 namespace bv {
+
+namespace {
+
+/* Determine the number of uncached nodes that a given node consists of.  */
+uint64_t numNodes(TNode node, utils::NodeSet& seen)
+{
+  std::vector<TNode> stack;
+  uint64_t res = 0;
+
+  stack.push_back(node);
+  while (!stack.empty())
+  {
+    Node n = stack.back();
+    stack.pop_back();
+
+    if (seen.find(n) != seen.end()) continue;
+
+    res += 1;
+    seen.insert(n);
+    stack.insert(stack.end(), n.begin(), n.end());
+  }
+  return res;
+}
+}
 
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
@@ -89,62 +113,76 @@ TLazyBitblaster::~TLazyBitblaster()
  * @param node the atom to be bitblasted
  *
  */
-void TLazyBitblaster::bbAtom(TNode node) {
-  node = node.getKind() == kind::NOT?  node[0] : node;
+void TLazyBitblaster::bbAtom(TNode node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  node = node.getKind() == kind::NOT ? node[0] : node;
 
-  if (hasBBAtom(node)) {
+  if (hasBBAtom(node))
+  {
     return;
   }
-  
+
   // make sure it is marked as an atom
   addAtom(node);
 
-  Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
+  Debug("bitvector-bitblast") << "Bitblasting node " << node << "\n";
   ++d_statistics.d_numAtoms;
-  
 
-  /// if we are using bit-vector abstraction bit-blast the original interpretation
-  if (options::bvAbstraction() &&
-      d_abstraction != NULL &&
-      d_abstraction->isAbstraction(node)) {
+  /// if we are using bit-vector abstraction bit-blast the original
+  /// interpretation
+  if (options::bvAbstraction() && d_abstraction != NULL
+      && d_abstraction->isAbstraction(node))
+  {
     // node must be of the form P(args) = bv1
     Node expansion = Rewriter::rewrite(d_abstraction->getInterpretation(node));
 
     Node atom_bb;
-    if (expansion.getKind() == kind::CONST_BOOLEAN) {
+    if (expansion.getKind() == kind::CONST_BOOLEAN)
+    {
       atom_bb = expansion;
-    } else {
-      Assert (expansion.getKind() == kind::AND);
+    }
+    else
+    {
+      Assert(expansion.getKind() == kind::AND);
       std::vector<Node> atoms;
-      for (unsigned i = 0; i < expansion.getNumChildren(); ++i) {
+      for (unsigned i = 0; i < expansion.getNumChildren(); ++i)
+      {
         Node normalized_i = Rewriter::rewrite(expansion[i]);
-        Node atom_i = normalized_i.getKind() != kind::CONST_BOOLEAN ?
-          Rewriter::rewrite(d_atomBBStrategies[normalized_i.getKind()](normalized_i, this)) :
-          normalized_i;
+        Node atom_i =
+            normalized_i.getKind() != kind::CONST_BOOLEAN
+                ? Rewriter::rewrite(d_atomBBStrategies[normalized_i.getKind()](
+                      normalized_i, this))
+                : normalized_i;
         atoms.push_back(atom_i);
       }
       atom_bb = utils::mkAnd(atoms);
     }
-    Assert (!atom_bb.isNull());
-    Node atom_definition = utils::mkNode(kind::EQUAL, node, atom_bb);
+    Assert(!atom_bb.isNull());
+    Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
+    d_cnfStream->convertAndAssert(
+        atom_definition, false, false, RULE_INVALID, TNode::null());
     return;
   }
 
   // the bitblasted definition of the atom
   Node normalized = Rewriter::rewrite(node);
-  Node atom_bb = normalized.getKind() != kind::CONST_BOOLEAN ?
-                 d_atomBBStrategies[normalized.getKind()](normalized, this) : normalized;
+  Node atom_bb =
+      normalized.getKind() != kind::CONST_BOOLEAN
+          ? d_atomBBStrategies[normalized.getKind()](normalized, this)
+          : normalized;
 
-  if (!options::proof()) {
+  if (!options::proof())
+  {
     atom_bb = Rewriter::rewrite(atom_bb);
   }
 
   // asserting that the atom is true iff the definition holds
-  Node atom_definition = utils::mkNode(kind::EQUAL, node, atom_bb);
+  Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
+  d_cnfStream->convertAndAssert(
+      atom_definition, false, false, RULE_INVALID, TNode::null());
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
@@ -174,13 +212,13 @@ void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
   d_variables.insert(var);
 }
 
-uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen) {
-  node = node.getKind() == kind::NOT?  node[0] : node;
-  if( !utils::isBitblastAtom( node ) ){
-    return 0;
-  }
-  Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
-  uint64_t size = utils::numNodes(atom_bb, seen);
+uint64_t TLazyBitblaster::computeAtomWeight(TNode node, NodeSet& seen)
+{
+  node = node.getKind() == kind::NOT ? node[0] : node;
+  if (!utils::isBitblastAtom(node)) { return 0; }
+  Node atom_bb =
+      Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
+  uint64_t size = numNodes(atom_bb, seen);
   return size;
 }
 
@@ -307,19 +345,24 @@ prop::SatValue TLazyBitblaster::solveWithBudget(unsigned long budget) {
   return d_satSolver->solve(budget);
 }
 
-
-void TLazyBitblaster::getConflict(std::vector<TNode>& conflict) {
+void TLazyBitblaster::getConflict(std::vector<TNode>& conflict)
+{
+  NodeManager* nm = NodeManager::currentNM();
   prop::SatClause conflictClause;
   d_satSolver->getUnsatCore(conflictClause);
 
-  for (unsigned i = 0; i < conflictClause.size(); i++) {
+  for (unsigned i = 0; i < conflictClause.size(); i++)
+  {
     prop::SatLiteral lit = conflictClause[i];
     TNode atom = d_cnfStream->getNode(lit);
-    Node  not_atom;
-    if (atom.getKind() == kind::NOT) {
+    Node not_atom;
+    if (atom.getKind() == kind::NOT)
+    {
       not_atom = atom[0];
-    } else {
-      not_atom = NodeManager::currentNM()->mkNode(kind::NOT, atom);
+    }
+    else
+    {
+      not_atom = nm->mkNode(kind::NOT, atom);
     }
     conflict.push_back(not_atom);
   }
@@ -394,24 +437,30 @@ void TLazyBitblaster::MinisatNotify::safePoint(unsigned amount)
   d_bv->d_out->safePoint(amount);
 }
 
-
-EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
+EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
+{
   int numAssertions = d_bv->numAssertions();
-  Debug("bv-equality-status")<< "TLazyBitblaster::getEqualityStatus " << a <<" = " << b <<"\n";
-  Debug("bv-equality-status")<< "BVSatSolver has full model? " << (d_fullModelAssertionLevel.get() == numAssertions) <<"\n";
+  Debug("bv-equality-status")
+      << "TLazyBitblaster::getEqualityStatus " << a << " = " << b << "\n";
+  Debug("bv-equality-status")
+      << "BVSatSolver has full model? "
+      << (d_fullModelAssertionLevel.get() == numAssertions) << "\n";
 
   // First check if it trivially rewrites to false/true
-  Node a_eq_b = Rewriter::rewrite(utils::mkNode(kind::EQUAL, a, b));
+  Node a_eq_b =
+      Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL, a, b));
 
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-  if (d_fullModelAssertionLevel.get() != numAssertions) {
+  if (d_fullModelAssertionLevel.get() != numAssertions)
+  {
     return theory::EQUALITY_UNKNOWN;
   }
 
   // Check if cache is valid (invalidated in check and pops)
-  if (d_bv->d_invalidateModelCache.get()) {
+  if (d_bv->d_invalidateModelCache.get())
+  {
     invalidateModelCache();
   }
   d_bv->d_invalidateModelCache.set(false);
@@ -419,17 +468,16 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
   Node a_value = getTermModel(a, true);
   Node b_value = getTermModel(b, true);
 
-  Assert (a_value.isConst() &&
-          b_value.isConst());
+  Assert(a_value.isConst() && b_value.isConst());
 
-  if (a_value == b_value) {
-    Debug("bv-equality-status")<< "theory::EQUALITY_TRUE_IN_MODEL\n";
+  if (a_value == b_value)
+  {
+    Debug("bv-equality-status") << "theory::EQUALITY_TRUE_IN_MODEL\n";
     return theory::EQUALITY_TRUE_IN_MODEL;
   }
-  Debug("bv-equality-status")<< "theory::EQUALITY_FALSE_IN_MODEL\n";
+  Debug("bv-equality-status") << "theory::EQUALITY_FALSE_IN_MODEL\n";
   return theory::EQUALITY_FALSE_IN_MODEL;
 }
-
 
 bool TLazyBitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();

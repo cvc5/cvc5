@@ -270,8 +270,6 @@ option sygusQePreproc --sygus-qe-preproc bool :default false
   
 option sygusMinGrammar --sygus-min-grammar bool :default true
   statically minimize sygus grammars
-option sygusMinGrammarAgg --sygus-min-grammar-agg bool :default false
-  aggressively minimize sygus grammars
 option sygusAddConstGrammar --sygus-add-const-grammar bool :default true
   statically add constants appearing in conjecture to grammars
 option sygusGrammarNorm --sygus-grammar-norm bool :default false
@@ -294,17 +292,24 @@ option sygusCRefEval --sygus-cref-eval bool :default true
   direct evaluation of refinement lemmas for conflict analysis
 option sygusCRefEvalMinExp --sygus-cref-eval-min-exp bool :default true
   use min explain for direct evaluation of refinement lemmas for conflict analysis
-  
+
 option sygusStream --sygus-stream bool :read-write :default false
   enumerate a stream of solutions instead of terminating after the first one
   
+option cegisSample --cegis-sample=MODE CVC4::theory::quantifiers::CegisSampleMode :read-write :default CVC4::theory::quantifiers::CEGIS_SAMPLE_NONE :include "options/quantifiers_modes.h" :handler stringToCegisSampleMode
+  mode for using samples in the counterexample-guided inductive synthesis loop
+
 # internal uses of sygus
-option sygusRewSynth --sygus-rr-synth bool :default false
+option sygusRew --sygus-rr bool :default false
+  use sygus to enumerate and verify correctness of rewrite rules via sampling
+option sygusRewSynth --sygus-rr-synth bool :read-write :default false
   use sygus to enumerate candidate rewrite rules via sampling
-option sygusRewVerify --sygus-rr-verify bool :default false
+option sygusRewVerify --sygus-rr-verify bool :read-write :default false
   use sygus to verify the correctness of rewrite rules via sampling
 option sygusSamples --sygus-samples=N int :read-write :default 100 :read-write
   number of points to consider when doing sygus rewriter sample testing
+option sygusSampleGrammar --sygus-sample-grammar bool :default true
+  when applicable, use grammar for choosing sample points
 
 # CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
@@ -323,6 +328,10 @@ option cbqiMultiInst --cbqi-multi-inst bool :read-write :default false
  when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation
 option cbqiRepeatLit --cbqi-repeat-lit bool :read-write :default false
  solve literals more than once in counterexample-based quantifier instantiation
+option cbqiInnermost --cbqi-innermost bool :read-write :default true
+ only process innermost quantified formulas in counterexample-based quantifier instantiation
+option cbqiNestedQE --cbqi-nested-qe bool :read-write :default false
+ process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
  
 # CEGQI for arithmetic
 option cbqiUseInfInt --cbqi-use-inf-int bool :read-write :default false
@@ -341,10 +350,6 @@ option cbqiNopt --cbqi-nopt bool :default true
   non-optimal bounds for counterexample-based quantifier instantiation
 option cbqiLitDepend --cbqi-lit-dep bool :default true
   dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation
-option cbqiInnermost --cbqi-innermost bool :read-write :default true
- only process innermost quantified formulas in counterexample-based quantifier instantiation
-option cbqiNestedQE --cbqi-nested-qe bool :read-write :default false
- process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation
  
 # CEGQI for EPR
 option quantEpr --quant-epr bool :default false :read-write

@@ -29,7 +29,7 @@
 #include "context/context.h"
 #include "expr/datatype.h"
 #include "expr/node.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -38,19 +38,6 @@ namespace theory {
 namespace datatypes {
 
 class TheoryDatatypes;
-
-class SygusSplitNew
-{
-private:
-  quantifiers::TermDbSygus * d_tds;
-  std::map< Node, std::vector< Node > > d_splits;
-public:
-  SygusSplitNew( quantifiers::TermDbSygus * tds ) : d_tds( tds ){}
-  virtual ~SygusSplitNew(){}
-  /** get sygus splits */
-  void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
-  static Node getSygusSplit( quantifiers::TermDbSygus * tds, Node n, const Datatype& dt );
-};
 
 class SygusSymBreakNew
 {
@@ -184,7 +171,6 @@ public:
   void assertFact( Node n, bool polarity, std::vector< Node >& lemmas );
   void preRegisterTerm( TNode n, std::vector< Node >& lemmas  );
   void check( std::vector< Node >& lemmas );
-  void getPossibleCons( const Datatype& dt, TypeNode tn, std::vector< bool >& pcons );
 public:
   Node getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas );
 };

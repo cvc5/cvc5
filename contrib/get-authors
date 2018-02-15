@@ -22,8 +22,16 @@ while [ $# -gt 0 ]; do
   f=$1
   shift
   contributors=
+  if [ -z "`grep " \*\* Top contributors" $f`" ]
+  then
+    header_lines=0
+  else
+    header_lines=`grep "\*\*\/" $f -m 1 -n | cut -d ':' -f 1`
+    if [ -z $header_lines ]; then header_lines=0; fi
+  fi
+  ((header_lines++))
   total_lines=`wc -l "$f" | awk '{print$1}'`
-  git blame --incremental "$f" | \
+  git blame --incremental -L $header_lines,$total_lines "$f" | \
     gawk '/^[0-9a-f]+ [0-9]+ [0-9]+ [0-9]+$/ {nl=$4;} /^summary .*copyright/ {nl=0} /^author / {$1=""; author=$0;} /^author-mail / {mail=$2} /^filename / {while(nl--) {print author,mail}}' | \
     sed "s,Not Committed Yet <not.committed.yet>,$gituser," | \
     sed 's/PaulMeng/Paul Meng/' | \

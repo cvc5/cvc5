@@ -2,9 +2,9 @@
 /*! \file bv_inverter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -286,7 +286,7 @@ static Node getScBvSltSgt(bool pol, Kind k, Node x, Node t)
        * (distinct t min)
        * where
        * min is the minimum signed value with getSize(min) = w  */
-      Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+      Node min = bv::utils::mkMinSigned(w);
       Node scl = nm->mkNode(DISTINCT, min, t);
       Node scr = nm->mkNode(k, x, t);
       sc = nm->mkNode(IMPLIES, scl, scr);
@@ -309,7 +309,7 @@ static Node getScBvSltSgt(bool pol, Kind k, Node x, Node t)
        * (distinct t max)
        * where
        * max is the signed maximum value with getSize(max) = w  */
-      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+      Node max = bv::utils::mkMaxSigned(w);
       Node scl = nm->mkNode(DISTINCT, t, max);
       Node scr = nm->mkNode(k, x, t);
       sc = nm->mkNode(IMPLIES, scl, scr);
@@ -433,7 +433,7 @@ static Node getScBvMult(bool pol,
        * (bvsge (bvand (bvor (bvneg s) s) max) t)
        * where
        * max is the signed maximum value with getSize(max) = w  */
-      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+      Node max = bv::utils::mkMaxSigned(w);
       Node o = nm->mkNode(BITVECTOR_OR, nm->mkNode(BITVECTOR_NEG, s), s);
       Node a = nm->mkNode(BITVECTOR_AND, o, max);
       scl = nm->mkNode(BITVECTOR_SGE, a, t);
@@ -715,7 +715,7 @@ static Node getScBvUrem(bool pol,
          * where
          * z = 0 with getSize(z) = w
          * and max is the maximum signed value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         Node nt = nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_NEG, s));
         Node i1 = nm->mkNode(IMPLIES,
             nm->mkNode(BITVECTOR_SGT, s, z), nm->mkNode(BITVECTOR_SLT, t, nt));
@@ -766,7 +766,7 @@ static Node getScBvUrem(bool pol,
          * (or (bvult t min) (bvsge t s))
          * where
          * min is the minimum signed value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node o1 = nm->mkNode(BITVECTOR_ULT, t, min);
         Node o2 = nm->mkNode(BITVECTOR_SGE, t, s);
         scl = nm->mkNode(OR, o1, o2);
@@ -992,7 +992,7 @@ static Node getScBvUdiv(bool pol,
          * where
          * z = 0 with getSize(z) = w
          * and min is the minimum signed value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
         Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div, t);
@@ -1008,7 +1008,7 @@ static Node getScBvUdiv(bool pol,
          * where
          * ones = ~0 with getSize(ones) = w
          * and max is the maximum signed value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         Node ones = bv::utils::mkOnes(w);
         Node udiv1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
         Node udiv2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, max, s);
@@ -1077,7 +1077,7 @@ static Node getScBvUdiv(bool pol,
          * where
          * ones = ~0 with getSize(ones) = w
          * and max is the maximum signed value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         Node ones = bv::utils::mkOnes(w);
         Node div1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
         Node sgt1 = nm->mkNode(BITVECTOR_SGT, div1, t);
@@ -1098,7 +1098,7 @@ static Node getScBvUdiv(bool pol,
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
         Node div1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, s);
         Node o1 = nm->mkNode(EQUAL, div1, t);
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
         Node div2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div2, t);
@@ -1350,7 +1350,7 @@ static Node getScBvAndOr(bool pol,
        * (bvslt t (bvor s max))
        * where
        * max is the signed maximum value with getSize(max) = w  */
-      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+      Node max = bv::utils::mkMaxSigned(w);
       scl = nm->mkNode(BITVECTOR_SLT, t, nm->mkNode(k, s, max));
     }
     else
@@ -1362,7 +1362,7 @@ static Node getScBvAndOr(bool pol,
          * (bvuge s (bvand t min))
          * where
          * min is the signed minimum value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         scl = nm->mkNode(BITVECTOR_UGE, s, nm->mkNode(BITVECTOR_AND, t, min));
       }
       else
@@ -1372,7 +1372,7 @@ static Node getScBvAndOr(bool pol,
          * (bvsge t (bvor s min))
          * where
          * min is the signed minimum value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         scl = nm->mkNode(BITVECTOR_SGE, t, nm->mkNode(BITVECTOR_OR, s, min));
       }
     }
@@ -1623,7 +1623,7 @@ static Node getScBvLshr(bool pol,
          * (bvslt t (bvlshr (bvshl max s) s))
          * where
          * max is the signed maximum value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, max, s);
         Node lshr = nm->mkNode(BITVECTOR_LSHR, shl, s);
         scl = nm->mkNode(BITVECTOR_SLT, t, lshr);
@@ -1661,7 +1661,7 @@ static Node getScBvLshr(bool pol,
          * (or (bvult t min) (bvsge t s))
          * where
          * min is the minimum signed value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node ult = nm->mkNode(BITVECTOR_ULT, t, min);
         Node sge = nm->mkNode(BITVECTOR_SGE, t, s);
         scl = ult.orNode(sge);
@@ -1839,7 +1839,7 @@ static Node getScBvAshr(bool pol,
          * (or (bvult s min) (bvuge t s))
          * where
          * min is the minimum signed value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node ult = nm->mkNode(BITVECTOR_ULT, s, min);
         Node uge = nm->mkNode(BITVECTOR_UGE, t, s);
         scl = ult.orNode(uge);
@@ -1857,7 +1857,7 @@ static Node getScBvAshr(bool pol,
          * (bvslt (bvashr min s) t)
          * where
          * min is the minimum signed value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         scl = nm->mkNode(BITVECTOR_SLT, nm->mkNode(BITVECTOR_ASHR, min, s), t);
       }
       else
@@ -1867,7 +1867,7 @@ static Node getScBvAshr(bool pol,
          * (bvsge (bvlshr max s) t)
          * where
          * max is the signed maximum value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         scl = nm->mkNode(BITVECTOR_SGE, nm->mkNode(BITVECTOR_LSHR, max, s), t);
       }
     }
@@ -1898,7 +1898,7 @@ static Node getScBvAshr(bool pol,
   else
   {
     Assert(litk == BITVECTOR_SGT);
-    Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+    Node max = bv::utils::mkMaxSigned(w);
     if (idx == 0)
     {
       Node lshr = nm->mkNode(BITVECTOR_LSHR, max, s);
@@ -2114,7 +2114,7 @@ static Node getScBvShl(bool pol,
          * (bvslt (bvshl (bvlshr min s) s) t)
          * where
          * min is the signed minimum value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node lshr = nm->mkNode(BITVECTOR_LSHR, min, s);
         Node shl = nm->mkNode(BITVECTOR_SHL, lshr, s);
         scl = nm->mkNode(BITVECTOR_SLT, shl, t);
@@ -2126,7 +2126,7 @@ static Node getScBvShl(bool pol,
          * (bvsge (bvand (bvshl max s) max) t)
          * where
          * max is the signed maximum value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, max, s);
         scl = nm->mkNode(BITVECTOR_SGE, nm->mkNode(BITVECTOR_AND, shl, max), t);
       }
@@ -2140,7 +2140,7 @@ static Node getScBvShl(bool pol,
          * (bvult (bvshl min s) (bvadd t min))
          * where
          * min is the signed minimum value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, min, s);
         Node add = nm->mkNode(BITVECTOR_PLUS, t, min);
         scl = nm->mkNode(BITVECTOR_ULT, shl, add);
@@ -2167,7 +2167,7 @@ static Node getScBvShl(bool pol,
          * (bvslt t (bvand (bvshl max s) max))
          * where
          * max is the signed maximum value with getSize(max) = w  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w));
+        Node max = bv::utils::mkMaxSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, max, s);
         scl = nm->mkNode(BITVECTOR_SLT, t, nm->mkNode(BITVECTOR_AND, shl, max));
       }
@@ -2178,7 +2178,7 @@ static Node getScBvShl(bool pol,
          * (bvult (bvlshr t (bvlshr t s)) min)
          * where
          * min is the signed minimum value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         Node ts = nm->mkNode(BITVECTOR_LSHR, t, s);
         scl = nm->mkNode(BITVECTOR_ULT, nm->mkNode(BITVECTOR_LSHR, t, ts), min);
       }
@@ -2200,7 +2200,7 @@ static Node getScBvShl(bool pol,
          * (bvult (bvlshr t s) min)
          * where
          * min is the signed minimum value with getSize(min) = w  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w));
+        Node min = bv::utils::mkMinSigned(w);
         scl = nm->mkNode(BITVECTOR_ULT, nm->mkNode(BITVECTOR_LSHR, t, s), min);
       }
     }
@@ -2500,7 +2500,7 @@ static Node getScBvConcat(bool pol,
          * (=> (= tx min) (bvult s2 t2))
          * where
          * min is the signed minimum value with getSize(min) = wx  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(wx));
+        Node min = bv::utils::mkMinSigned(wx);
         Node ult = nm->mkNode(BITVECTOR_ULT, s2, t2);
         scl = nm->mkNode(IMPLIES, tx.eqNode(min), ult);
       }
@@ -2510,7 +2510,7 @@ static Node getScBvConcat(bool pol,
          * (=> (= tx max) (bvuge s2 t2))
          * where
          * max is the signed maximum value with getSize(max) = wx  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(wx));
+        Node max = bv::utils::mkMaxSigned(wx);
         Node uge = nm->mkNode(BITVECTOR_UGE, s2, t2);
         scl = nm->mkNode(IMPLIES, tx.eqNode(max), uge);
       }
@@ -2583,7 +2583,7 @@ static Node getScBvConcat(bool pol,
          * (=> (= tx max) (bvugt s2 t2))
          * where
          * max is the signed maximum value with getSize(max) = wx  */
-        Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(wx));
+        Node max = bv::utils::mkMaxSigned(wx);
         Node ugt = nm->mkNode(BITVECTOR_UGT, s2, t2);
         scl = nm->mkNode(IMPLIES, tx.eqNode(max), ugt);
       }
@@ -2594,7 +2594,7 @@ static Node getScBvConcat(bool pol,
          * (=> (= tx min) (bvule s2 t2))
          * where
          * min is the signed minimum value with getSize(min) = wx  */
-        Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(wx));
+        Node min = bv::utils::mkMinSigned(wx);
         Node ule = nm->mkNode(BITVECTOR_ULE, s2, t2);
         scl = nm->mkNode(IMPLIES, tx.eqNode(min), ule);
       }
@@ -2753,7 +2753,7 @@ static Node getScBvSext(bool pol,
        * (bvslt ((_ sign_extend ws) min) t)
        * where
        * min is the signed minimum value with getSize(min) = w - ws  */
-      Node min = bv::utils::mkConst(bv::utils::mkBitVectorMinSigned(w - ws));
+      Node min = bv::utils::mkMinSigned(w - ws);
       Node ext = bv::utils::mkSignExtend(min, ws);
       scl = nm->mkNode(BITVECTOR_SLT, ext, t);
     }
@@ -2776,7 +2776,7 @@ static Node getScBvSext(bool pol,
       Node z = bv::utils::mkZero(ws + 1);
       Node n = bv::utils::mkOnes(ws + 1);
       Node o1 = nm->mkNode(OR, ext1.eqNode(z), ext1.eqNode(n));
-      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w - ws));
+      Node max = bv::utils::mkMaxSigned(w - ws);
       Node ext2 = bv::utils::mkConcat(bv::utils::mkZero(ws), max);
       Node o2 = nm->mkNode(BITVECTOR_SLT, t, ext2);
       scl = nm->mkNode(OR, o1, o2);
@@ -2792,7 +2792,7 @@ static Node getScBvSext(bool pol,
        * (bvslt t ((_ zero_extend ws) max))
        * where
        * max is the signed maximum value with getSize(max) = w - ws  */
-      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w - ws));
+      Node max = bv::utils::mkMaxSigned(w - ws);
       Node ext = bv::utils::mkConcat(bv::utils::mkZero(ws), max);
       scl = nm->mkNode(BITVECTOR_SLT, t, ext);
     }
@@ -2803,7 +2803,7 @@ static Node getScBvSext(bool pol,
        * (bvsge t (bvnot ((_ zero_extend ws) max)))
        * where
        * max is the signed maximum value with getSize(max) = w - ws  */
-      Node max = bv::utils::mkConst(bv::utils::mkBitVectorMaxSigned(w - ws));
+      Node max = bv::utils::mkMaxSigned(w - ws);
       Node ext = bv::utils::mkConcat(bv::utils::mkZero(ws), max);
       scl = nm->mkNode(BITVECTOR_SGE, t, nm->mkNode(BITVECTOR_NOT, ext));
     }

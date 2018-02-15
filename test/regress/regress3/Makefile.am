@@ -30,7 +30,6 @@ TESTS =	bmc-ibm-1.smt \
 	eq_diamond14.smt \
 	incorrect1.smt \
 	incorrect2.smt \
-	bug497.cvc \
 	pp-regfile.smt
 
 EXTRA_DIST = $(TESTS) \
