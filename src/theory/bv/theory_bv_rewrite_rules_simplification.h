@@ -808,6 +808,10 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
       children.push_back(cn);
     }
   }
+  if (exponent >= size)
+  {
+    return utils::mkZero(size);
+  }
 
   Node a;
   if (children.empty())
@@ -823,7 +827,10 @@ inline Node RewriteRule<MultPow2>::apply(TNode node)
   {
     a = nm->mkNode(kind::BITVECTOR_NEG, a);
   }
-
+  if (exponent == 0)
+  {
+    return a;
+  }
   Node extract = utils::mkExtract(a, size - exponent - 1, 0);
   Node zeros = utils::mkConst(exponent, 0);
   return utils::mkConcat(extract, zeros); 
