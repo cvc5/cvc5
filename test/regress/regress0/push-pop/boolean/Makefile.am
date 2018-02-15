@@ -43,9 +43,7 @@ SMT2_TESTS = \
 	fuzz_47.smt2 \
 	fuzz_48.smt2 \
 	fuzz_49.smt2 \
-	fuzz_50.smt2 \
-	fuzz_51.smt2 \
-	fuzz_52.smt2 
+	fuzz_50.smt2
 
 # Disabled because they take too long
 #	fuzz_1_to_52_merged.smt2 \

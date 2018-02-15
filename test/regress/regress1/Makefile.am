@@ -38,7 +38,6 @@ TESTS =	\
 	boolean-terms-kernel2.smt2 \
 	boolean.cvc \
 	bug216.smt2 \
-	bug472.smt2 \
 	bug512.smt2 \
 	bug516.smt2 \
 	bug520.smt2 \
@@ -48,17 +47,13 @@ TESTS =	\
 	bug681.smt2 \
 	bug800.smt2 \
 	bvdiv2.smt2 \
-	crash_burn_locusts.smt2 \
 	error.cvc \
 	errorcrash.smt2 \
 	hole6.cvc \
-	issue1048-arrays-int-real.smt2 \
 	ite5.smt2 \
 	non-fatal-errors.smt2 \
 	proof00.smt2 \
-	simple-rdl-definefun.smt2 \
 	sqrt2-sort-inf-unk.smt2 \
-	subranges.cvc \
 	test12.cvc \
 	uf2.smt2
 	
@@ -66,7 +61,13 @@ EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \
 	bug590.smt2.expect \
 	bug590.smt2 \
-	bug585.cvc 
+	bug585.cvc \
+	crash_burn_locusts.smt2 \
+	bug216.smt2.expect \
+	bug472.smt2 \
+	simple-rdl-definefun.smt2
+	
+# issue1048-arrays-int-real.smt2 -- different errors on debug and production
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
