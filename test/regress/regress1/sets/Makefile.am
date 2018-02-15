@@ -18,9 +18,34 @@ endif
 # put it below in "TESTS +="
 TESTS =	\
 	sets-disequal.smt2 \
-	card-vc6-minimized.smt2
-
-EXTRA_DIST = $(TESTS)
+	card-vc6-minimized.smt2 \
+	card-4.smt2 \
+	fuzz15201.smt2 \
+	insert_invariant_37_2.smt2 \
+	remove_check_free_31_6.smt2 \
+	TalkingAboutSets.hs.fqout.cvc4.3577.smt2 \
+	arjun-set-univ.cvc \
+	card-3.smt2 \
+	card-5.smt2 \
+	card-6.smt2 \
+	card-7.smt2 \
+	copy_check_heap_access_33_4.smt2 \
+	deepmeas0.hs.fqout.cvc4.41.smt2 \
+	fuzz14418.smt2 \
+	fuzz31811.smt2 \
+	lemmabug-ListElts317minimized.smt2 \
+	ListElem.hs.fqout.cvc4.38.smt2 \
+	ListElts.hs.fqout.cvc4.317.smt2 \
+	sets-tuple-poly.cvc \
+	sharingbug.smt2 \
+	UniqueZipper.hs.1030minimized.cvc4.smt2 \
+	UniqueZipper.hs.1030minimized2.cvc4.smt2 \
+	UniqueZipper.hs.fqout.cvc4.10.smt2 \
+	UniqueZipper.hs.fqout.cvc4.1832.smt2 \
+	univ-set-uf-elim.smt2
+	
+EXTRA_DIST = $(TESTS) \
+	setofsets-disequal.smt2 
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

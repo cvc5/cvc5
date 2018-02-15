@@ -2,9 +2,9 @@
 /*! \file node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -923,24 +923,100 @@ inline std::ostream& operator<<(std::ostream& out, TNode n) {
   return out;
 }
 
+namespace {
+
+template <typename T>
+void nodeContainerToOut(std::ostream& out, const T& container)
+{
+  out << "[";
+  bool is_first = true;
+  for (const auto& item : container)
+  {
+    out << (!is_first ? ", " : "") << item;
+    is_first = false;
+  }
+  out << "]";
+}
+
+}
+
 /**
- * Serializes a vector of node to the given stream.
+ * Serialize a vector of nodes to given stream.
  *
  * @param out the output stream to use
- * @param ns the vector of nodes to output to the stream
+ * @param container the vector of nodes to output to the stream
  * @return the stream
  */
-template<bool ref_count>
-inline std::ostream& operator<<(std::ostream& out,
-                                const std::vector< NodeTemplate<ref_count> > & ns) {
-  for(typename std::vector< NodeTemplate<ref_count> >::const_iterator
-        i=ns.begin(), end=ns.end();
-      i != end; ++i){
-    out << *i;
-  }
+template <bool RC>
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<NodeTemplate<RC>>& container)
+{
+  nodeContainerToOut(out, container);
   return out;
 }
 
+/**
+ * Serialize a set of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the set of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC>
+std::ostream& operator<<(std::ostream& out,
+                         const std::set<NodeTemplate<RC>>& container)
+{
+  nodeContainerToOut(out, container);
+  return out;
+}
+
+/**
+ * Serialize an unordered_set of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the unordered_set of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC, typename hash_function>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_set<NodeTemplate<RC>, hash_function>& container)
+{
+  nodeContainerToOut(out, container);
+  return out;
+}
+
+/**
+ * Serialize a map of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the map of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC, typename V>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::map<NodeTemplate<RC>, V>& container)
+{
+  nodeContainerToOut(out, container);
+  return out;
+}
+
+/**
+ * Serialize an unordered_map of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the unordered_map of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC, typename V, typename HF>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_map<NodeTemplate<RC>, V, HF>& container)
+{
+  nodeContainerToOut(out, container);
+  return out;
+}
 
 }/* CVC4 namespace */
 

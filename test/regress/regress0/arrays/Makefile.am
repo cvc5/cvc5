@@ -44,11 +44,8 @@ TESTS =	\
 	bug272.minimized.smt \
 	constarr.smt2 \
 	constarr2.smt2 \
-	constarr3.smt2 \
 	constarr.cvc \
 	constarr2.cvc \
-	constarr3.cvc \
-	parsing_ringer.cvc \
 	bug637.delta.smt2 \
 	bool-array.smt2
 
