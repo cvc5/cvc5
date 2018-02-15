@@ -22,9 +22,9 @@
 #include "printer/printer.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus_explain.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_model.h"
 

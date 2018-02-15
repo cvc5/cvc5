@@ -496,24 +496,6 @@ void intersect(const std::vector<uint32_t>& v1,
 
 /* ------------------------------------------------------------------------- */
 
-void collectVariables(TNode node, NodeSet& vars)
-{
-  if (vars.find(node) != vars.end()) return;
-
-  if (Theory::isLeafOf(node, THEORY_BV)
-      && node.getKind() != kind::CONST_BITVECTOR)
-  {
-    vars.insert(node);
-    return;
-  }
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    collectVariables(node[i], vars);
-  }
-}
-
-/* ------------------------------------------------------------------------- */
-
 }/* CVC4::theory::bv::utils namespace */
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
