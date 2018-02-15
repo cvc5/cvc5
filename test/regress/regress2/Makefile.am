@@ -47,7 +47,6 @@ TESTS =	\
 	uflia-error0.smt2 \
 	bug812.smt2 \
 	bug765.smt2 \
-	AdditiveMethods_AdditiveMethods..ctor.smt2 \
 	simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
 	bug674.smt2
  

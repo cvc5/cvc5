@@ -23,7 +23,8 @@ TESTS =	\
 	javafe.ast.WhileStmt.447.smt2 \
 	javafe.tc.CheckCompilationUnit.001.smt2 \
 	javafe.tc.FlowInsensitiveChecks.682.smt2 \
-	nunchaku2309663.nun.min.smt2
+	nunchaku2309663.nun.min.smt2 \
+	AdditiveMethods_AdditiveMethods..ctor.smt2
 
 EXTRA_DIST = $(TESTS) \
 	small-bug1-fixpoint-3.smt2
