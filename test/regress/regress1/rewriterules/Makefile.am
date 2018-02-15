@@ -47,7 +47,7 @@ EXTRA_DIST = $(TESTS) \
 	set_A_new_fast_tableau-base_sat.smt2 \
 	set_A_new_fast_tableau-base.smt2 \
 	test_guards.smt2 \
-	why3_vstte10_max_sum_harness2.smt2 \
+	why3_vstte10_max_sum_harness2.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
