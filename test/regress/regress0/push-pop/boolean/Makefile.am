@@ -25,7 +25,6 @@ MAKEFLAGS = -k
 CVC_TESTS =
 
 SMT2_TESTS = \
-	fuzz_1.smt2 \
 	fuzz_2.smt2 \
 	fuzz_3.smt2 \
 	fuzz_12.smt2 \
