@@ -42,7 +42,7 @@ public:
   void testPushPop() {
 #ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 #warning "Using the debug context memory manager, omitting unit tests"
-#else /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+#else
     // Push, then allocate, then pop
     // We make sure that we don't allocate too much so that all the regions
     // should be reclaimed
