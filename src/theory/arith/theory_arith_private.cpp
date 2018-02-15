@@ -4902,18 +4902,33 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        // partial function: division
-        if (d_divByZero.isNull())
+        Node divByZeroNum;
+        if( options::arithNoPartial() )
         {
-          d_divByZero =
-              nm->mkSkolem("divByZero",
-                           nm->mkFunctionType(nm->realType(), nm->realType()),
-                           "partial real division",
-                           NodeManager::SKOLEM_EXACT_NAME);
-          logicRequest.widenLogic(THEORY_UF);
+          // partial function: division
+          if (d_divByZero.isNull())
+          {
+            d_divByZero =
+                nm->mkSkolem("divByZeroSkolem",nm->realType(),"partial real division skolem",
+                            NodeManager::SKOLEM_EXACT_NAME);
+          }
+          divByZeroNum = d_divByZero;
+        }
+        else
+        {
+          // partial function: division
+          if (d_divByZero.isNull())
+          {
+            d_divByZero =
+                nm->mkSkolem("divByZero",
+                            nm->mkFunctionType(nm->realType(), nm->realType()),
+                            "partial real division",
+                            NodeManager::SKOLEM_EXACT_NAME);
+            logicRequest.widenLogic(THEORY_UF);
+          }
+          divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
         }
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
       return ret;

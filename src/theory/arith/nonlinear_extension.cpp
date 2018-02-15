@@ -1316,6 +1316,27 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   int lemmas_proc = 0;
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
+  
+    /*
+  // mark all terms in false assertions
+  std::unordered_set<TNode, TNodeHashFunction> false_xts;
+  for( const Node& fa : false_asserts )
+  {
+    std::vector<TNode> visit;
+    TNode cur;
+    visit.push_back(fa);
+    do {
+      cur = visit.back();
+      visit.pop_back();
+      if (false_xts.find(cur) == false_xts.end()) {
+        false_xts.insert(cur);
+        for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+          visit.push_back(cur[i]);
+        }
+      }
+    } while (!visit.empty());
+  }
+  */
 
   Trace("nl-ext-mv") << "Extended terms : " << std::endl;
   // register the extended function terms
@@ -1329,7 +1350,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                        << d_mv[0][a] << " ]" << std::endl;
     //Assert(d_mv[1][a].isConst());
     //Assert(d_mv[0][a].isConst());
-
+    /*
+    if( false_xts.find(a)==false_xts.end() )
+    {
+      continue;
+    }
+    */
     if (a.getKind() == NONLINEAR_MULT)
     {
       d_ms.push_back( a );
@@ -1447,6 +1473,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     << " new lemmas SINE phase shifting." << std::endl;
     return lemmas_proc;
   }
+  Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
 
   // register constants
   registerMonomial(d_one);
@@ -1518,10 +1545,11 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   for (unsigned c = 0; c < 3; c++) {
     // c is effort level
     lemmas = checkMonomialMagnitude( c );
+    unsigned nlem = lemmas.size();
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc
-                      << " new lemmas (out of possible " << lemmas.size()
+                      << " new lemmas (out of possible " << nlem
                       << ")." << std::endl;
       return lemmas_proc;
     }
@@ -1567,6 +1595,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
+      exit(1);
       return lemmas_proc;
     }
   }
@@ -1699,9 +1728,8 @@ void NonlinearExtension::check(Theory::Effort e) {
             // the problem is that we cannot evaluate transcendental functions
             // (they don't have a rewriter that returns constants)
             // thus, the actual value in their model can be themselves, hence we
-            // have no reference
-            //   point to rule out the current model.  In this case, we may set
-            //   incomplete below.
+            // have no reference point to rule out the current model.  In this 
+            // case, we may set incomplete below.
           }
         }
       }
@@ -2353,7 +2381,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
   }
   // remove redundant lemmas, e.g. if a > b, b > c, a > c were
   // inferred, discard lemma with conclusion a > c
-  Trace("nl-ext-comp") << "Compute redundand_cies for " << lemmas.size()
+  Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                        << " lemmas." << std::endl;
   // naive
   std::vector<Node> r_lemmas;
