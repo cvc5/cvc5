@@ -1,5 +1,6 @@
 (set-option :produce-models true)
 (set-logic QF_BV)
+(set-info :status sat)
 (set-info :source |
  Patrice Godefroid, SAGE (systematic dynamic test generation)
  For more information: http://research.microsoft.com/en-us/um/people/pg/public_psfiles/ndss2008.pdf

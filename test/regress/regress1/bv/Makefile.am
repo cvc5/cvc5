@@ -19,9 +19,21 @@ endif
 TESTS =	\
 	bv-proof00.smt \
 	fuzz34.smt \
-	fuzz38.smt
+	fuzz38.smt \
+	bug_extract_mult_leading_bit.smt2 \
+	bug787.smt2 \
+	bv-int-collapse2-sat.smt2 \
+	cmu-rdk-3.smt2 \
+	decision-weight00.smt2 \
+	divtest.smt2 \
+	bv2nat-ground.smt2 \
+	bv2nat-simp-range-sat.smt2 \
+	unsound1.smt2
 
 EXTRA_DIST = $(TESTS)
+
+# This benchmark is currently disabled as it uses --check-proof
+# bench_38.delta.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

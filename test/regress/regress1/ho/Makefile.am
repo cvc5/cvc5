@@ -17,10 +17,14 @@ endif
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	fuzz10.smt \
-	bug580.smt2
-
-EXTRA_DIST = $(TESTS)
+	auth0068.smt2 \
+	fta0409.smt2 \
+	ho-exponential-model.smt2 \
+	ho-matching-enum-2.smt2 \
+	ho-std-fmf.smt2
+	
+EXTRA_DIST = $(TESTS) \
+	hoa0102.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test
