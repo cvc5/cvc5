@@ -93,7 +93,7 @@
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/global_negate.h"
 #include "theory/quantifiers/macros.h"
