@@ -148,6 +148,21 @@ bool isCoreTerm(TNode term, TNodeBoolMap& cache)
       continue;
     }
 
+    if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
+        == theory::THEORY_BV)
+    {
+      Kind k = n.getKind();
+      Assert(k != kind::CONST_BITVECTOR);
+      if (k != kind::EQUAL
+          && k != kind::BITVECTOR_CONCAT
+          && k != kind::BITVECTOR_EXTRACT
+          && n.getMetaKind() != kind::metakind::VARIABLE)
+      {
+        cache[n] = false;
+        continue;
+      }
+    }
+
     if (!visited[n])
     {
       visited[n] = true;
@@ -166,28 +181,7 @@ bool isCoreTerm(TNode term, TNodeBoolMap& cache)
           break;
         }
       }
-
-      if (!iseqt)
-      {
-        cache[n] = false;
-        continue;
-      }
-
-      if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
-          == theory::THEORY_BV)
-      {
-        Kind k = n.getKind();
-        Assert(k != kind::CONST_BITVECTOR);
-        if (k != kind::EQUAL
-            && k != kind::BITVECTOR_CONCAT
-            && k != kind::BITVECTOR_EXTRACT
-            && n.getMetaKind() != kind::metakind::VARIABLE)
-        {
-          cache[n] = false;
-          continue;
-        }
-      }
-      cache[n] = true;
+      cache[n] = iseqt;
     }
   }
   Assert(cache.find(t) != cache.end());
