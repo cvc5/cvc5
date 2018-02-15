@@ -135,6 +135,9 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   for (const Node& n : all) { conjunction << n; }
   return conjunction;
 }
+
+/* ------------------------------------------------------------------------- */
+
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
 /* Create n-ary node of kind OR.  */

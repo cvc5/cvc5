@@ -29,7 +29,6 @@
 
 using namespace std;
 using namespace CVC4::context;
-using namespace CVC4::theory::bv::utils;
 
 namespace CVC4 {
 namespace theory {
@@ -156,7 +155,7 @@ bool BitblastSolver::check(Theory::Effort e) {
       if (!ok) {
         std::vector<TNode> conflictAtoms;
         d_bitblaster->getConflict(conflictAtoms);
-        setConflict(mkConjunction(conflictAtoms));
+        setConflict(utils::mkAnd(conflictAtoms));
         return false;
       }
     }
@@ -170,7 +169,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     if (!ok) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      setConflict(mkConjunction(conflictAtoms));
+      setConflict(utils::mkAnd(conflictAtoms));
       return false;
     }
   }
@@ -184,7 +183,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     if (!ok) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      Node conflict = mkConjunction(conflictAtoms);
+      Node conflict = utils::mkAnd(conflictAtoms);
       setConflict(conflict);
       return false;
     }
@@ -208,7 +207,7 @@ bool BitblastSolver::check(Theory::Effort e) {
       if (!ok) {
         std::vector<TNode> conflictAtoms;
         d_bitblaster->getConflict(conflictAtoms);
-        setConflict(mkConjunction(conflictAtoms));
+        setConflict(utils::mkAnd(conflictAtoms));
         return false;
       }
     }
@@ -218,7 +217,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     if (!ok) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      Node conflict = mkConjunction(conflictAtoms);
+      Node conflict = utils::mkAnd(conflictAtoms);
       setConflict(conflict);
       ++(d_statistics.d_numBBLemmas);
       return false;

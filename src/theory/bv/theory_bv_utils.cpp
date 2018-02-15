@@ -424,26 +424,6 @@ Node mkUmulo(TNode t1, TNode t2)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkConjunction(const std::vector<TNode>& nodes)
-{
-  NodeBuilder<> conjunction(kind::AND);
-  Node btrue = mkTrue();
-  for (const Node& n : nodes)
-  {
-    if (n != btrue)
-    {
-      Assert(isBVPredicate(n));
-      conjunction << n;
-    }
-  }
-  unsigned nchildren = conjunction.getNumChildren();
-  if (nchildren == 0) { return btrue; }
-  if (nchildren == 1) { return conjunction[0]; }
-  return conjunction;
-}
-
-/* ------------------------------------------------------------------------- */
-
 Node flattenAnd(std::vector<TNode>& queue)
 {
   TNodeSet nodes;
