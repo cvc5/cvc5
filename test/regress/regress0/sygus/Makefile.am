@@ -38,18 +38,6 @@ TESTS =	\
 # sygus tests currently taking too long for make regress
 EXTRA_DIST = $(TESTS) \
   sygus-uf.sl
-  
-# REM
-
-#if CVC4_BUILD_PROFILE_COMPETITION
-#else
-#TESTS += \
-# error.cvc
-#endif
-
-# disabled tests, yet distribute
-#EXTRA_DIST += \
-# setofsets-disequal.smt2
 
 # synonyms for "check"
 .PHONY: regress regress0 test
