@@ -2,9 +2,9 @@
 /*! \file bv_quick_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,8 +40,9 @@ uint64_t BVQuickCheck::computeAtomWeight(TNode node, NodeSet& seen) {
   return d_bitblaster->computeAtomWeight(node, seen);
 }
 
-void BVQuickCheck::setConflict() {
-  Assert (!inConflict());
+void BVQuickCheck::setConflict()
+{
+  Assert(!inConflict());
   std::vector<TNode> conflict;
   d_bitblaster->getConflict(conflict);
   Node confl = utils::mkAnd(conflict);
