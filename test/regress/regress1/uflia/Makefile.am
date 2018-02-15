@@ -23,8 +23,7 @@ TESTS = \
 	DRAGON_11_e1_2450.ec.minimized.smt2 \
 	FIREFLY_3_e2_2236_e7_3681.ec.core.smt2 \
 	speed2_e8_449_e8_517.ec.smt2 \
-	stalmark_e7_27_e7_31.ec.smt2 \
-	bug674.smt2
+	stalmark_e7_27_e7_31.ec.smt2
 
 
 EXTRA_DIST = $(TESTS) \

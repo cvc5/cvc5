@@ -60,10 +60,10 @@ TESTS =	\
 EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \
 	bug590.smt2.expect \
+	bug216.smt2.expect \
 	bug590.smt2 \
 	bug585.cvc \
 	crash_burn_locusts.smt2 \
-	bug216.smt2.expect \
 	bug472.smt2 \
 	simple-rdl-definefun.smt2
 	
