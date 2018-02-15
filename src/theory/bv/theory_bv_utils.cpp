@@ -126,7 +126,7 @@ bool isBVPredicate(TNode node)
          || k == kind::BITVECTOR_REDAND;
 }
 
-bool isCoreTerm(TNode term, TNodeBoolMap& cache)
+static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
 {
   TNode t = term.getKind() == kind::NOT ? term[0] : term;
 
@@ -154,8 +154,8 @@ bool isCoreTerm(TNode term, TNodeBoolMap& cache)
       Kind k = n.getKind();
       Assert(k != kind::CONST_BITVECTOR);
       if (k != kind::EQUAL
-          && k != kind::BITVECTOR_CONCAT
-          && k != kind::BITVECTOR_EXTRACT
+          && (iseq || k != kind::BITVECTOR_CONCAT)
+          && (iseq || k != kind::BITVECTOR_EXTRACT)
           && n.getMetaKind() != kind::metakind::VARIABLE)
       {
         cache[n] = false;
@@ -188,39 +188,14 @@ bool isCoreTerm(TNode term, TNodeBoolMap& cache)
   return cache[t];
 }
 
+bool isCoreTerm(TNode term, TNodeBoolMap& cache)
+{
+  return isCoreEqTerm(false, term, cache);
+}
+
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
 {
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-
-  if (term.getNumChildren() == 0) return true;
-
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
-  {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isEqualityTerm(term[i], cache))
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  cache[term] = true;
-  return true;
+  return isCoreEqTerm(true, term, cache);
 }
 
 bool isBitblastAtom(Node lit)
