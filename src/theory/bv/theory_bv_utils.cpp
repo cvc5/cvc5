@@ -2,7 +2,7 @@
 /*! \file theory_bv_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Tim King
+ **   Aina Niemetz, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -420,26 +420,6 @@ Node mkUmulo(TNode t1, TNode t2)
   Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
   tmp.push_back(mkExtract(mul, w, w));
   return nm->mkNode(kind::EQUAL, nm->mkNode(kind::BITVECTOR_OR, tmp), mkOne(1));
-}
-
-/* ------------------------------------------------------------------------- */
-
-Node mkConjunction(const std::vector<TNode>& nodes)
-{
-  NodeBuilder<> conjunction(kind::AND);
-  Node btrue = mkTrue();
-  for (const Node& n : nodes)
-  {
-    if (n != btrue)
-    {
-      Assert(isBVPredicate(n));
-      conjunction << n;
-    }
-  }
-  unsigned nchildren = conjunction.getNumChildren();
-  if (nchildren == 0) { return btrue; }
-  if (nchildren == 1) { return conjunction[0]; }
-  return conjunction;
 }
 
 /* ------------------------------------------------------------------------- */
