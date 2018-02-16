@@ -41,17 +41,13 @@ SMT_TESTS = \
 	neq-deltacomp.smt \
 	fuzz01.smt
 
-# Regression tests for SMT2 inputs
-SMT2_TESTS = \
-	bug800.smt2
-
 # Regression tests for PL inputs
 CVC_TESTS = 
 
 # Regression tests derived from bug reports
 BUG_TESTS = 
 
-TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
+TESTS =	$(SMT_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 # Necessary to get automake's attention when splitting TESTS into
 # SMT_TESTS, SMT2_TESTS, etc..

@@ -1,4 +1,4 @@
-SUBDIRS = . arith
+SUBDIRS = . arith nl quantifiers strings sygus
 
 # don't override a BINARY imported from a personal.mk
 @mk_if@eq ($(BINARY),)
@@ -20,7 +20,8 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	bug136.smt \
+TESTS =	\
+	bug136.smt \
 	bug148.smt \
 	bug394.smt2 \
 	DTP_k2_n35_c175_s15.smt2 \
@@ -44,12 +45,18 @@ TESTS =	bug136.smt \
 	xs-09-16-3-4-1-5.smt \
 	xs-09-16-3-4-1-5.decn.smt \
 	uflia-error0.smt2 \
-	bug812.smt2
+	bug812.smt2 \
+	bug765.smt2 \
+	simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
+	bug674.smt2
  
 EXTRA_DIST = $(TESTS) \
 	FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2.expect \
 	uflia-error0.smt2.expect \
-	xs-09-16-3-4-1-5.decn.smt.expect
+	xs-09-16-3-4-1-5.decn.smt.expect \
+	bug396.smt2 \
+	javafe.ast.StandardPrettyPrint.319_no_forall.smt2 \
+	javafe.ast.WhileStmt.447_no_forall.smt2
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
