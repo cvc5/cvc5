@@ -1137,9 +1137,12 @@ std::vector<Node> NonlinearExtension::checkModel(
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
-  // add bounds for PI
-  d_tf_check_model_bounds[d_pi] =
-      std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+  if( !d_pi.isNull() )
+  {
+    // add bounds for PI
+    d_tf_check_model_bounds[d_pi] =
+        std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+  }
   for (const std::pair<const Node, std::pair<Node, Node> >& tfb :
        d_tf_check_model_bounds)
   {
@@ -1321,6 +1324,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   // register the extended function terms
   std::map< Node, Node > mvarg_to_term;
   std::vector<Node> trig_no_base;
+  bool needPi = false;
   for( unsigned i=0; i<xts.size(); i++ ){
     Node a = xts[i];
     computeModelValue(a, 0);
@@ -1369,11 +1373,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         if( d_trig_is_base.find( a )==d_trig_is_base.end() ){
           consider = false;
           trig_no_base.push_back(a);
-          if (d_pi.isNull())
-          {
-            mkPi();
-            getCurrentPiBounds(lemmas);
-          }
+          needPi = true;
         }
       }
       if( consider ){
@@ -1395,12 +1395,21 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     else if (a.getKind() == PI)
     {
-      //TODO?
-    }else{
+      needPi = true;
+      d_tf_rep_map[a.getKind()][a] = a;
+    }
+    else
+    {
       Assert( false );
     }
   }
-  
+  // initialize pi if necessary
+  if (needPi && d_pi.isNull())
+  {
+    mkPi();
+    getCurrentPiBounds(lemmas);
+  }
+          
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during registration." << std::endl;
@@ -3122,15 +3131,20 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
   
   for( std::map< Kind, std::map< Node, Node > >::iterator it = d_tf_rep_map.begin(); it != d_tf_rep_map.end(); ++it ){
-    for( std::map< Node, Node >::iterator itt = it->second.begin(); itt != it->second.end(); ++itt ){
-      computeModelValue( itt->second[0], 1 );
-      Assert( d_mv[1].find( itt->second[0] )!=d_mv[1].end() );
-      if( d_mv[1][itt->second[0]].isConst() ){
-        Trace("nl-ext-tf-mono-debug") << "...tf term : " << itt->second[0] << std::endl;
-        sorted_tf_args[ it->first ].push_back( itt->second[0] );
-        tf_arg_to_term[ it->first ][ itt->second[0] ] = itt->second;
-      }
-    } 
+    Kind k = it->first;
+    if( k==EXPONENTIAL || k==SINE )
+    {
+      for( std::map< Node, Node >::iterator itt = it->second.begin(); itt != it->second.end(); ++itt ){
+        Node a = itt->second[0];
+        computeModelValue( a, 1 );
+        Assert( d_mv[1].find( a )!=d_mv[1].end() );
+        if( d_mv[1][a].isConst() ){
+          Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
+          sorted_tf_args[k].push_back(a);
+          tf_arg_to_term[k][a] = itt->second;
+        }
+      } 
+    }
   }
   
   SortNonlinearExtension smv;
@@ -3277,6 +3291,11 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
   {
     Kind k = tfs.first;
+    if( k==kind::PI )
+    {
+      // we do not use Taylor approximation for PI currently
+      continue;
+    }
     Node tft = nm->mkNode(k, d_zero);
     Trace("nl-ext-tf-tplanes-debug") << "Taylor variables: " << std::endl;
     Trace("nl-ext-tf-tplanes-debug")
