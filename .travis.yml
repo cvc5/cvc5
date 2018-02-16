@@ -81,7 +81,9 @@ script:
        error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
    }
    makeCheck() {
-     make V=1 -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/TEST FAILED";
+     make V=1 -j2 units || error "BUILD/UNIT TEST FAILED";
+     make V=1 -j2 systemtests || error "BUILD/SYSTEM TEST FAILED";
+     make V=1 -j2 regress0 CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/REGRESSION TEST FAILED";
    }
    makeExamples() {
      make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
