@@ -17,14 +17,15 @@ undocumented-alias --dag-threshold=N = --default-dag-thresh=N
 option printExprTypes --print-expr-types bool :default false :notify notifySetPrintExprTypes
  print types with variables when printing exprs
 
-option earlyTypeChecking --eager-type-checking/--lazy-type-checking bool :default USE_EARLY_TYPE_CHECKING_BY_DEFAULT
+option earlyTypeChecking --eager-type-checking bool :default USE_EARLY_TYPE_CHECKING_BY_DEFAULT
  type check expressions immediately on creation (debug builds only)
-/type check expressions only when necessary (default)
 
 # --no-type-checking will override any --early-type-checking or --lazy-type-checking option
 # --lazy-type-checking is linked because earlyTypeChecking should be set false too
-option typeChecking type-checking /--no-type-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--lazy-type-checking
+option typeChecking type-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT
  never type check expressions
+
+undocumented-alias --no-type-checking = --lazy-type-checking
 
 endmodule
 

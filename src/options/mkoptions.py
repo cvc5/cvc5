@@ -1,53 +1,79 @@
 #!/usr/bin/env python3
 
-import json
-import toml
+import re
 import sys
+import toml
 
 # TODO: more checks for options, e.g., long options start with -- ...
 # TODO: documentation generation
 # TODO: long-options have --no- alternate if type is bool
 # TODO: add error checking as done in mkoptions
+# TODO: bool options don't have handlers
+# TODO: check short options only one character
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
-MODULE_ATTR_OPT = ['option', 'alias']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + MODULE_ATTR_OPT
+MODULE_ATTR_ALL = {
+    'id':     None,
+    'name':   None,
+    'header': None,
+    'options': [],    # Note: .toml attribute is option
+    'aliases': []     # Note: .toml attribute is alias
+}
 
-OPTION_ATTR_REQ = ['name', 'category', 'type']
-OPTION_ATTR_OPT = [
-   'help', 'smt_name', 'short', 'long', 'include', 'default', 'handler' ,
-   'predicate', 'notify', 'read_only', 'link'
-]
-OPTION_ATTR_ALL = OPTION_ATTR_REQ + OPTION_ATTR_OPT
+OPTION_ATTR_REQ = ['category', 'long', 'type']
+OPTION_ATTR_ALL = {
+    'category':   None,
+    'type':       None,
+    'name':       None,
+    'help':       None,
+    'smt_name':   None,
+    'short':      None,
+    'long':       None,
+    'default':    None,
+    'includes':   [],
+    'handler':    None,
+    'predicates': [],
+    'notifies':   [],
+    'links':      [],
+    'read_only':  False
+}
 
-ALIAS_ATTR_REQ = ['name', 'category', 'link']
-ALIAS_ATTR_OPT = ['help', 'short', 'long']
-ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ALIAS_ATTR_OPT
+ALIAS_ATTR_REQ = ['name', 'category', 'links']
+ALIAS_ATTR_ALL = {
+    'name':     None,
+    'category': None,
+    'links':    [],
+    'help':     None,
+    'short':    None,
+    'long':     None
+}
 
-TYPE_VALUES = ['common', 'expert', 'regular', 'undocumented']
+CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
 
 class Module(object):
     def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
+        self.__dict__ = dict(MODULE_ATTR_ALL)
         for (k, v) in d.items():
-            assert(k in self.__dict__)
-            self.__dict__[k] = v
+            assert(k in d)
+            if len(v) > 0:
+                self.__dict__[k] = v
 
 class Option(object):
     def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
+        self.__dict__ = dict(OPTION_ATTR_ALL)
         for (k, v) in d.items():
             assert(k in self.__dict__)
-            self.__dict__[k] = v
-        # TODO: initialize read_only if not in 'd'
+            if k == 'read_only' or len(v) > 0:
+                self.__dict__[k] = v
 
 class Alias(object):
     def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in ALIAS_ATTR_ALL)
+        self.__dict__ = dict(ALIAS_ATTR_ALL)
         for (k, v) in d.items():
             assert(k in self.__dict__)
-            self.__dict__[k] = v
+            if len(v) > 0:
+                self.__dict__[k] = v
 
 
 def die(msg):
@@ -158,11 +184,11 @@ def codegen_module(module):
 
     holder_specs.append(tpl_h_holder_spec_def.format(id=module.id))
     for option in module.options:
-        if option.name == '-':
+        if option.name is None:
             continue
 
         ### generate code for {module.name}_options.h
-        includes.update(["#include {}".format(x) for x in option.include])
+        includes.update(["#include {}".format(x) for x in option.includes])
 
         # generate option holder
         holder_specs.append(tpl_h_holder_spec.format(name=option.name))
@@ -175,10 +201,10 @@ def codegen_module(module):
             specs.append(tpl_h_spec_s.format(name=option.name))
         specs.append(tpl_h_spec_wsbu.format(name=option.name))
 
-        if option.type == "bool":
-            specs.append(tpl_h_spec_a.format(name=option.name))
-        else:
+        if option.type == 'bool':
             specs.append(tpl_h_spec_ab.format(name=option.name))
+        else:
+            specs.append(tpl_h_spec_a.format(name=option.name))
 
         # generate module inlines
         if not option.read_only:
@@ -204,36 +230,235 @@ def codegen_module(module):
     print(tpl_module_h.format(filename=filename,
                               header=module.header,
                               id=module.id,
-                              includes="\n".join(sorted(list(includes))),
-                              holder_spec=" \\\n".join(holder_specs),
-                              decls="\n".join(decls),
-                              specs="\n".join(specs),
-                              inls="\n".join(inls)))
+                              includes='\n'.join(sorted(list(includes))),
+                              holder_spec=' \\\n'.join(holder_specs),
+                              decls='\n'.join(decls),
+                              specs='\n'.join(specs),
+                              inls='\n'.join(inls)))
 
     print(tpl_module_cpp.format(filename=filename,
-                                accs="\n".join(accs),
-                                defs="\n".join(defs)))
+                                accs='\n'.join(accs),
+                                defs='\n'.join(defs)))
+
+
+def strip_long_option(name):
+    return name.split('=')[0]
+
+def is_numeric_type(t):
+    if t in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
+        return True
+    elif re.match('u?int[0-9]+_t', t):
+        return True
+    return False
+
+def codegen_all_modules(modules):
+
+    option_value_start = 256
+
+    tpl_run_bool_pred = """
+template <> void runBoolPredicates(options::{name}__option_t, std::string option, bool b, options::OptionsHandler* handler) {{
+  {predicates}
+}}
+"""
+    tpl_run_handler_pred = """
+template <> options::{name}__option_t::type runHandlerAndPredicates(options::{name}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {{
+  options::{name}__option_t::type retval = {handler};
+  {predicates}
+  return retval;
+}}
+"""
+    tpl_assign = """
+template <> void Options::assign(options::{name}__option_t, std::string option, std::string value) {{
+  d_holder->{name} = runHandlerAndPredicates(options::{name}, option, value, d_handler);
+  d_holder->{name}__setByUser__ = true;
+  Trace(\"options\") << \"user assigned option {name}\" << std::endl;
+  {notifications}
+}}
+"""
+    tpl_assign_bool = """
+template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value) {{
+  runBoolPredicates(options::{name}, option, value, d_handler);
+  d_holder->{name} = value;
+  d_holder->{name}__setByUser__ = true;
+  Trace(\"options\") << \"user assigned option {name}\" << std::endl;
+  {notifications}
+}}
+"""
+
+    headers_module = []
+    headers_handler = []
+    handlers = []
+    notifiers = []
+    options_short = []
+    options_long = []
+    options_smt = []
+    options_getopts = []
+    options_handler = []
+    defaults = []
+    custom_handlers = []
+    help_common = []
+    help_others = []
+
+    options_smtget = []
+    options_smtset = []
+
+    option_value_cur = option_value_start
+    for module in modules:
+        headers_module.append(module.header)
+        for option in module.options:
+            argument_req = option.type not in ['bool', 'void']
+
+            headers_handler.extend(option.includes)
+
+            # TODO: consider empty names
+
+            # build opts for options::getOptions()
+            optname = None
+            if option.smt_name:
+                optname = option.smt_name
+
+                # collect SMT option names
+                options_smt.append('"{}"'.format(option.smt_name))
+            elif option.long:
+                optname = option.long
+
+            if optname:
+                if option.type == 'bool':
+                    s  = '{ std::vector<std::string> v; '
+                    s += 'v.push_back("{}"); '.format(optname)
+                    s += 'v.push_back(std::string(d_holder->{} ? "true" : "false")); '.format(option.name)
+                    s += 'opts.push_back(v); }'
+                else:
+                    s  = '{ std::stringstream ss; '
+                    if is_numeric_type(option.type):
+                        s += 'ss << std::fixed << std::setprecision(8); '
+                    s += 'ss << d_holder->{};'.format(option.name)
+                    s += 'std::vector<std::string> v; '
+                    s += 'v.push_back("{}");'.format(optname)
+                    s += 'v.push_back(ss.str()); '
+                    s += 'opts.push_back(v); }'
+                options_getopts.append(s)
+
+
+            # create all handlers
+            notifications = ['d_handler->{}(option);'.format(x) \
+                                for x in option.notifies]
+            if option.type == 'bool':
+                #template <> void runBoolPredicates(options::${internal}__option_t, std::string option, bool b, options::OptionsHandler* handler) {
+                #  $run_handlers
+                #}"
+                preds = ['handler->{}(option, b);'.format(x) \
+                            for x in option.predicates]
+                if len(preds) > 0:
+                    custom_handlers.append(
+                        tpl_run_bool_pred.format(
+                            name=option.name,
+                            predicates='\n'.join(preds)
+                        ))
+                custom_handlers.append(
+                        tpl_assign_bool.format(
+                            name=option.name,
+                            notifications='\n'.join(notifications)
+                        ))
+            elif option.type != 'void':
+                if option.handler != '':
+                    handler = 'handler->{}(option, optionarg);'.format(option.handler)
+                else:
+                    handler = 'handleOption<{}>(option, optionarg);'.format(option.type)
+                preds = ['handler->{}(option, retval);'.format(x) for x in option.predicates]
+
+                if option.name:
+
+#template <> options::${internal}__option_t::type runHandlerAndPredicates(options::${internal}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {
+#  options::${internal}__option_t::type retval = $run_handlers
+#  return retval;
+#}"
+                custom_handlers.append(
+                    tpl_run_handler_pred.format(
+                        name=option.name,
+                        handler=handler,
+                        predicates='\n'.join(preds)
+                    ))
+
+#  if [ "$type" = bool ]; then
+#    all_custom_handlers="${all_custom_handlers}
+#template <> void Options::assignBool(options::${internal}__option_t, std::string option, bool value) {
+#  runBoolPredicates(options::$internal, option, value, d_handler);
+#  d_holder->$internal = value;
+#  d_holder->${internal}__setByUser__ = true;
+#  Trace(\"options\") << \"user assigned option $internal\" << std::endl;$run_notifications
+#}"
+#  elif [ -n "$expect_arg" -a "$internal" != - ] && [ -n "$cases" -o -n "$cases_alternate" -o -n "$smtname" ]; then
+#    all_custom_handlers="${all_custom_handlers}
+#template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value) {
+#  d_holder->$internal = runHandlerAndPredicates(options::$internal, option, value, d_handler);
+#  d_holder->${internal}__setByUser__ = true;
+#  Trace(\"options\") << \"user assigned option $internal\" << std::endl;$run_notifications
+#}"
+#  fi
+
+
+
+
+
+            # default option values
+            defaults.append('{}({})'.format(option.name, option.default))
+            defaults.append('{}__setByUser__(false)'.format(option.name))
+
+            cases = []  # list of tuples (value, option-name)
+            if option.short:
+                options_short.append(option.short)
+                if argument_req:
+                    options_short.append(':')
+                cases.append((option.short, None))
+
+            if option.long:
+                options_long.append('{{ "{}", {}_argument, nullptr, {} }}'.format(
+                    strip_long_option(option.long),
+                    'required' if argument_req else 'no',
+                    option_value_cur))
+                cases.append((option_value_cur, option.long))
+                option_value_cur += 1
+
+
+    tpl_options = read_tpl('options_template_new.cpp')
+    print(tpl_options.format(
+        template='options_template_new.cpp',
+        headers_module='\n'.join(headers_module),
+        headers_handler='\n'.join(headers_handler),
+        custom_handlers='\n'.join(custom_handlers), # TODO
+        module_defaults='\n'.join(defaults), # TODO
+        help_common='\n'.join(help_common), # TODO
+        help_others='\n'.join(help_others), # TODO
+        options_long=',\n'.join(options_long),
+        options_short=''.join(options_short),
+        options_handler='\n'.join(options_handler), # TODO
+        option_value_begin=option_value_start,
+        option_value_end=option_value_cur - 1,
+        options_smt='\n'.join(options_smt),
+        options_getopts='\n'.join(options_getopts)
+        ))
+
 
 
 
 def check(data):
+
+    data_options = data.get('option')
+    data_aliases = data.get('alias')
+    del(data['option'])
+    del(data['alias'])
+
     check_attribs(MODULE_ATTR_REQ, MODULE_ATTR_ALL, data, 'module')
 
-    options = []
-    if 'option' in data:
-        for attribs in data['option']:
-            check_attribs(OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
-            options.append(Option(attribs))
-
-    aliases = []
-    if 'alias' in data:
-        for attribs in data['alias']:
-            check_attribs(ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
-            aliases.append(Alias(attribs))
-
     module = Module(data)
-    module.options = options
-    module.aliases = aliases
+    for attribs in data_options:
+        check_attribs(OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
+        module.options.append(Option(attribs))
+    for attribs in data_aliases:
+        check_attribs(ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
+        module.aliases.append(Alias(attribs))
+
     return module
 
 
@@ -252,5 +477,7 @@ if __name__ == "__main__":
 
     for module in modules:
         codegen_module(module)
+
+    codegen_all_modules(modules)
 
     sys.exit(0)

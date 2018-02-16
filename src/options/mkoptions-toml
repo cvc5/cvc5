@@ -414,6 +414,7 @@ function handle_option {
   option_notify=""
   option_links=""
   option_links_smt=""
+  option_predicates=""
   # parse attributes
   i=$(($type_pos+1))
   colon_pattern='^\:'
@@ -435,6 +436,7 @@ function handle_option {
        while [ $(($i+1)) -lt ${#args[@]} ] && ! [[ ${args[$(($i+1))]} =~ $colon_pattern ]]; do
          let ++i
          predicates="${predicates} ${args[$i]}"
+         option_predicates="${option_predicates}, \"${args[$i]}\""
        done
        ;;
     :notify)
@@ -535,6 +537,9 @@ function handle_option {
     echo "invalid category $category"
     exit 1
   fi
+  if [ "$internal" == "-" ]; then
+    internal=""
+  fi
   echo ""
   echo "[[option]]"
   echo "  name      = \"$internal\""
@@ -543,33 +548,39 @@ function handle_option {
 
   short=""
   if [ -n "$short_option" ]; then
-    short="\"$short_option\""
+    short="$short_option"
   fi
   if [ -n "$short_option_alternate" ]; then
-    if [ -n "$short" ]; then
-      short="$short, "
+    if [ -z "$short" ]; then
+      >&2 echo "[error] no short option for: $short_option_alternate"
+      exit 1  # NOTE: this should not happen
     fi
-    short="\"$short_option_alternate\""
   fi
-  echo "  short     = [$short]"
+  echo "  short     = \"$short\""
 
   long=""
   if [ -n "$long_option" ]; then
-    long="\"$long_option\""
+    long="${long_option#enable-}"
   fi
   if [ -n "$long_option_alternate" -a "$long_option_alternate" != "no-$long_option" ]; then
     if [ -n "$long" ]; then
-      long="$long, "
+      >&2 echo "alternate long: $long_option_alternate for $long"
+    else
+      >&2 echo "alternate long: $long_option_alternate"
+      long="$long_option_alternate"
     fi
-    long="$long\"$long_option_alternate\""
   fi
-  echo "  long      = [$long]"
-  echo "  type      = \"$type\""
-  echo "  default   = \"$default_value\""
-  echo "  handler   = \"$handlers\""
-  echo "  predicate = \"$predicate\""
-  echo "  include   = [${option_includes:2}]"
-  echo "  notify    = [${option_notify:2}]"
+  echo "  long       = \"$long\""
+  echo "  type       = \"$type\""
+  echo "  default    = \"$default_value\""
+  echo "  handler    = \"$handlers\""
+  echo "  predicates = [${option_predicates:2}]"
+  echo "  includes   = [${option_includes:2}]"
+  echo "  notifies   = [${option_notify:2}]"
+
+  if [ -n "$links_alternate" ]; then
+    >&2 echo "alternate links: $links_alternate"
+  fi
 
   link=""
   if [ -n "$option_links" ]; then
@@ -587,7 +598,7 @@ function handle_option {
 #    fi
   fi
 
-  echo "  link      = [$link]"
+  echo "  links     = [$link]"
   echo "  read_only = $readOnly"
   return
 
@@ -1143,7 +1154,7 @@ function handle_alias {
   echo "  category  = \"$category\""
   echo "  short     = \"$short_option\""
   echo "  long      = \"$long_option\""
-  echo "  link      = [${alias_links:2}]"
+  echo "  links     = [${alias_links:2}]"
 #  all_modules_option_handlers="$all_modules_option_handlers$cases$links
 #      break;
 #"

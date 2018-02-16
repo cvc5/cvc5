@@ -187,9 +187,10 @@ option statsEveryQuery --stats-every-query bool :default false :link --stats :li
  in incremental mode, print stats after every satisfiability or validity query
 undocumented-alias --statistics-every-query = --stats-every-query
 undocumented-alias --no-statistics-every-query = --no-stats-every-query
-option statsHideZeros --stats-hide-zeros/--stats-show-zeros bool :default false
+option statsHideZeros --stats-hide-zeros bool :default false
  hide statistics which are zero
-/show statistics even when they are zero (default)
+
+undocumented-alias --stats-show-zeros = --no-stats-hide-zeros
 undocumented-alias --hide-zero-stats = --stats-hide-zeros
 undocumented-alias --show-zero-stats = --stats-show-zeros
 

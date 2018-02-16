@@ -11,8 +11,10 @@ common-option strictParsing --strict-parsing bool
 option memoryMap --mmap bool
  memory map file input
 
-option semanticChecks semantic-checks /--no-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--no-type-checking
+option semanticChecks semantic-checks bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT
  disable ALL semantic checks, including type checks
+
+undocumented-alias --no-checking = --no-type-checking
 
 option globalDeclarations global-declarations bool :default false
  force all declarations and definitions to be global
@@ -29,7 +31,7 @@ option globalDeclarations global-declarations bool :default false
 # main driver, there are ways via the API to get the CVC4 library to open a file
 # for reading or writing and thus leak information from an existing file, or
 # overwrite an existing file with malicious content.
-undocumented-option filesystemAccess filesystem-access /--no-filesystem-access bool :default true
+undocumented-option filesystemAccess filesystem-access bool :default true
 undocumented-alias --no-include-file = --no-filesystem-access
 
 endmodule
