@@ -479,8 +479,8 @@ private:
   std::vector< Node > d_ms;
   std::vector< Node > d_ms_vars;
   std::map<Node, bool> d_ms_proc;
-  std::vector<Node> d_mterms;  
-  
+  std::vector<Node> d_mterms;
+
   //list of monomials with factors whose model value is non-constant in model 
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
@@ -673,7 +673,7 @@ private:
   *
   * |x|>|y| => |x*z|>|y*z|
   * |x|>|y| ^ |z|>|w| ^ |x|>=1 => |x*x*z*u|>|y*w|
-  * 
+  *
   * Argument c indicates the class of inferences to perform for the (non-linear)
   * monomials in the vector d_ms.
   *   0 : compare non-linear monomials against 1,
