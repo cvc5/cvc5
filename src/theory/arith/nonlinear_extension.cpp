@@ -3295,7 +3295,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
   {
     Kind k = tfs.first;
-    if (k == kind::PI)
+    if (k == PI)
     {
       // we do not use Taylor approximation for PI currently
       continue;
