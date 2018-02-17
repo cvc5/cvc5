@@ -542,9 +542,9 @@ function handle_option {
   fi
   echo ""
   echo "[[option]]"
-  echo "  name      = \"$internal\""
-  echo "  smt_name  = \"$smtname\""
-  echo "  category  = \"$category\""
+  echo "  name       = \"$internal\""
+  echo "  smt_name   = \"$smtname\""
+  echo "  category   = \"$category\""
 
   short=""
   if [ -n "$short_option" ]; then
@@ -556,7 +556,7 @@ function handle_option {
       exit 1  # NOTE: this should not happen
     fi
   fi
-  echo "  short     = \"$short\""
+  echo "  short      = \"$short\""
 
   long=""
   if [ -n "$long_option" ]; then
@@ -598,8 +598,8 @@ function handle_option {
 #    fi
   fi
 
-  echo "  links     = [$link]"
-  echo "  read_only = $readOnly"
+  echo "  links      = [$link]"
+  echo "  read_only  = $readOnly"
   return
 
   # set up structures
@@ -1150,11 +1150,11 @@ function handle_alias {
 
   echo ""
   echo "[[alias]]"
-  echo "  name      = \"$option\""
-  echo "  category  = \"$category\""
-  echo "  short     = \"$short_option\""
-  echo "  long      = \"$long_option\""
-  echo "  links     = [${alias_links:2}]"
+  echo "  name       = \"$option\""
+  echo "  category   = \"$category\""
+  echo "  short      = \"$short_option\""
+  echo "  long       = \"$long_option\""
+  echo "  links      = [${alias_links:2}]"
 #  all_modules_option_handlers="$all_modules_option_handlers$cases$links
 #      break;
 #"
@@ -1255,7 +1255,7 @@ $@"
     the_doc="$@"
     mandoc="$@"
     mansmtdoc="$@"
-    echo "  help      = \"$(echo $mandoc | sed 's/"/\\"/g')\""
+    echo "  help       = \"$(echo $mandoc | sed 's/"/\\"/g')\""
     return
 
 

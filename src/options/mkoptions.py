@@ -183,6 +183,7 @@ def codegen_module(module):
     defs = []
 
     holder_specs.append(tpl_h_holder_spec_def.format(id=module.id))
+
     for option in module.options:
         if option.name is None:
             continue
@@ -225,8 +226,8 @@ def codegen_module(module):
         defs.append(tpl_cpp_def.format(name=option.name))
 
 
-
     filename=module.header[:-2]
+    # TODO: template name
     print(tpl_module_h.format(filename=filename,
                               header=module.header,
                               id=module.id,
@@ -255,26 +256,23 @@ def codegen_all_modules(modules):
 
     option_value_start = 256
 
-    tpl_run_bool_pred = """
+    tpl_run_handler_bool = """
 template <> void runBoolPredicates(options::{name}__option_t, std::string option, bool b, options::OptionsHandler* handler) {{
   {predicates}
-}}
-"""
-    tpl_run_handler_pred = """
+}}"""
+    tpl_run_handler = """
 template <> options::{name}__option_t::type runHandlerAndPredicates(options::{name}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {{
   options::{name}__option_t::type retval = {handler};
   {predicates}
   return retval;
-}}
-"""
+}}"""
     tpl_assign = """
 template <> void Options::assign(options::{name}__option_t, std::string option, std::string value) {{
   d_holder->{name} = runHandlerAndPredicates(options::{name}, option, value, d_handler);
   d_holder->{name}__setByUser__ = true;
   Trace(\"options\") << \"user assigned option {name}\" << std::endl;
   {notifications}
-}}
-"""
+}}"""
     tpl_assign_bool = """
 template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value) {{
   runBoolPredicates(options::{name}, option, value, d_handler);
@@ -282,15 +280,13 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
   d_holder->{name}__setByUser__ = true;
   Trace(\"options\") << \"user assigned option {name}\" << std::endl;
   {notifications}
-}}
-"""
+}}"""
 
     headers_module = []
     headers_handler = []
-    handlers = []
     notifiers = []
     options_short = []
-    options_long = []
+    cmdline_options = []
     options_smt = []
     options_getopts = []
     options_handler = []
@@ -306,119 +302,161 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
     for module in modules:
         headers_module.append(module.header)
         for option in module.options:
+            assert(option.type != 'void' or option.name is None)
+            assert(option.name or option.smt_name or option.short or option.long)
             argument_req = option.type not in ['bool', 'void']
 
             headers_handler.extend(option.includes)
 
-            # TODO: consider empty names
+            ### generate handler call
+            handler = None
+            if option.handler:
+                handler = \
+                    'handler->{}(option, optionarg)'.format(option.handler)
+            elif option.type != 'bool':
+                handler = \
+                    'handleOption<{}>(option, optionarg)'.format(option.type)
 
-            # build opts for options::getOptions()
-            optname = None
-            if option.smt_name:
-                optname = option.smt_name
-
-                # collect SMT option names
-                options_smt.append('"{}"'.format(option.smt_name))
-            elif option.long:
-                optname = option.long
-
-            if optname:
+            ### generate predicate calls
+            predicates = []
+            if option.predicates:
                 if option.type == 'bool':
-                    s  = '{ std::vector<std::string> v; '
-                    s += 'v.push_back("{}"); '.format(optname)
-                    s += 'v.push_back(std::string(d_holder->{} ? "true" : "false")); '.format(option.name)
-                    s += 'opts.push_back(v); }'
-                else:
-                    s  = '{ std::stringstream ss; '
-                    if is_numeric_type(option.type):
-                        s += 'ss << std::fixed << std::setprecision(8); '
-                    s += 'ss << d_holder->{};'.format(option.name)
-                    s += 'std::vector<std::string> v; '
-                    s += 'v.push_back("{}");'.format(optname)
-                    s += 'v.push_back(ss.str()); '
-                    s += 'opts.push_back(v); }'
-                options_getopts.append(s)
-
-
-            # create all handlers
-            notifications = ['d_handler->{}(option);'.format(x) \
-                                for x in option.notifies]
-            if option.type == 'bool':
-                #template <> void runBoolPredicates(options::${internal}__option_t, std::string option, bool b, options::OptionsHandler* handler) {
-                #  $run_handlers
-                #}"
-                preds = ['handler->{}(option, b);'.format(x) \
+                    predicates = \
+                        ['handler->{}(option, b);'.format(x) \
                             for x in option.predicates]
-                if len(preds) > 0:
-                    custom_handlers.append(
-                        tpl_run_bool_pred.format(
-                            name=option.name,
-                            predicates='\n'.join(preds)
-                        ))
-                custom_handlers.append(
-                        tpl_assign_bool.format(
-                            name=option.name,
-                            notifications='\n'.join(notifications)
-                        ))
-            elif option.type != 'void':
-                if option.handler != '':
-                    handler = 'handler->{}(option, optionarg);'.format(option.handler)
+                elif option.type != 'void':
+                    predicates = \
+                        ['handler->{}(option, retval);'.format(x) \
+                            for x in option.predicates]
                 else:
-                    handler = 'handleOption<{}>(option, optionarg);'.format(option.type)
-                preds = ['handler->{}(option, retval);'.format(x) for x in option.predicates]
+                    assert(False)
 
-                if option.name:
+            ### generate notification calls
+            notifications = \
+                ['d_handler->{}(option);'.format(x) for x in option.notifies]
 
-#template <> options::${internal}__option_t::type runHandlerAndPredicates(options::${internal}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {
-#  options::${internal}__option_t::type retval = $run_handlers
-#  return retval;
-#}"
-                custom_handlers.append(
-                    tpl_run_handler_pred.format(
-                        name=option.name,
-                        handler=handler,
-                        predicates='\n'.join(preds)
-                    ))
+            ### options_handler for switch (c) { ... } in parseOptionRecursive
+            cases = []
+            if option.short:
+                cases.append("case '{}':".format(option.short))
 
-#  if [ "$type" = bool ]; then
-#    all_custom_handlers="${all_custom_handlers}
-#template <> void Options::assignBool(options::${internal}__option_t, std::string option, bool value) {
-#  runBoolPredicates(options::$internal, option, value, d_handler);
-#  d_holder->$internal = value;
-#  d_holder->${internal}__setByUser__ = true;
-#  Trace(\"options\") << \"user assigned option $internal\" << std::endl;$run_notifications
-#}"
-#  elif [ -n "$expect_arg" -a "$internal" != - ] && [ -n "$cases" -o -n "$cases_alternate" -o -n "$smtname" ]; then
-#    all_custom_handlers="${all_custom_handlers}
-#template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value) {
-#  d_holder->$internal = runHandlerAndPredicates(options::$internal, option, value, d_handler);
-#  d_holder->${internal}__setByUser__ = true;
-#  Trace(\"options\") << \"user assigned option $internal\" << std::endl;$run_notifications
-#}"
-#  fi
+            if option.long:
+                cases.append(
+                    "case '{}': \\\\ --{}".format(option_value_cur, option.long))
+                option_value_cur += 1
+
+            if len(cases) > 0:
+                if option.type == 'bool':
+                    cases.append(
+                        'options->assignBool(options::{}, option, true);'.format(option.name))
+                elif option.type != 'void':
+                    cases.append(
+                        'options->assign(options::{}, option, optionarg);'.format(option.name))
+                elif option.type == 'void' and handler:
+                    cases.append('{};'.format(handler))
+
+                cases.extend(
+                    ['extender->pushBackPreemption("{}");'.format(x) \
+                        for x in option.links])
+                cases.append('break;')
+
+                options_handler.append('\n'.join(cases))
+
+            # handle --no- case for boolean options
+            if option.long and option.type == 'bool':
+                cases = []
+                cases.append(
+                    "case '{}': \\\\ --no-{}".format(
+                        option_value_cur, option.long))
+                option_value_cur += 1
+                cases.append(
+                    'options->assignBool(options::{}, option, false);'.format(option.name))
+#                cases.extend(
+#                    ['extender->pushBackPreemption("{}");'.format(x) \
+#                        for x in option.links])
+                cases.append('break;')
+
+                options_handler.append('\n'.join(cases))
 
 
-
-
-
-            # default option values
-            defaults.append('{}({})'.format(option.name, option.default))
-            defaults.append('{}__setByUser__(false)'.format(option.name))
-
-            cases = []  # list of tuples (value, option-name)
+            ### options_short for getopt_long
             if option.short:
                 options_short.append(option.short)
                 if argument_req:
                     options_short.append(':')
-                cases.append((option.short, None))
 
+            ### cmdline_options for getopt_long
             if option.long:
-                options_long.append('{{ "{}", {}_argument, nullptr, {} }}'.format(
-                    strip_long_option(option.long),
-                    'required' if argument_req else 'no',
-                    option_value_cur))
-                cases.append((option_value_cur, option.long))
-                option_value_cur += 1
+                cmdline_options.append(
+                    '{{ "{}", {}_argument, nullptr, {} }},'.format(
+                        strip_long_option(option.long),
+                        'required' if argument_req else 'no',
+                        option_value_cur))
+
+            ### build opts for options::getOptions()
+            if option.name:
+                optname = None
+                if option.smt_name:
+                    optname = option.smt_name
+
+                    # collect SMT option names
+                    options_smt.append('"{}",'.format(option.smt_name))
+                else:
+                    optname = option.long
+
+                if optname:
+                    if option.type == 'bool':
+                        s  = '{ std::vector<std::string> v; '
+                        s += 'v.push_back("{}"); '.format(optname)
+                        s += 'v.push_back(std::string(d_holder->{} ? "true" : "false")); '.format(option.name)
+                        s += 'opts.push_back(v); }'
+                    else:
+                        s  = '{ std::stringstream ss; '
+                        if is_numeric_type(option.type):
+                            s += 'ss << std::fixed << std::setprecision(8); '
+                        s += 'ss << d_holder->{};'.format(option.name)
+                        s += 'std::vector<std::string> v; '
+                        s += 'v.push_back("{}");'.format(optname)
+                        s += 'v.push_back(ss.str()); '
+                        s += 'opts.push_back(v); }'
+                    options_getopts.append(s)
+
+
+            ### define runBoolPredicates/runHandlerAndPredicates
+            if len(predicates) > 0:
+                assert(option.name)
+                if option.type == 'bool':
+                    assert(handler is None)
+                    custom_handlers.append(
+                        tpl_run_handler_bool.format(
+                            name=option.name,
+                            predicates='\n'.join(predicates)
+                        ))
+                else:
+                    assert(option.type != 'void')
+                    assert(handler)
+                    custom_handlers.append(
+                        tpl_run_handler.format(
+                            name=option.name,
+                            handler=handler,
+                            predicates='\n'.join(predicates)
+                        ))
+
+            ### define handler assign/assignBool
+            if len(notifications) > 0:
+                assert(option.name)
+                tpl = tpl_assign_bool if option.type == 'bool' else tpl_assign
+                custom_handlers.append(
+                        tpl.format(
+                            name=option.name,
+                            notifications='\n'.join(notifications)
+                        ))
+
+            # default option values
+            if option.name:
+                default = option.default if option.default else ''
+                defaults.append('{}({})'.format(option.name, default))
+                defaults.append('{}__setByUser__(false)'.format(option.name))
 
 
     tpl_options = read_tpl('options_template_new.cpp')
@@ -426,13 +464,13 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
         template='options_template_new.cpp',
         headers_module='\n'.join(headers_module),
         headers_handler='\n'.join(headers_handler),
-        custom_handlers='\n'.join(custom_handlers), # TODO
-        module_defaults='\n'.join(defaults), # TODO
+        custom_handlers='\n'.join(custom_handlers),
+        module_defaults=',\n'.join(defaults),
         help_common='\n'.join(help_common), # TODO
         help_others='\n'.join(help_others), # TODO
-        options_long=',\n'.join(options_long),
+        cmdline_options='\n'.join(cmdline_options),
         options_short=''.join(options_short),
-        options_handler='\n'.join(options_handler), # TODO
+        options_handler='\n'.join(options_handler),
         option_value_begin=option_value_start,
         option_value_end=option_value_cur - 1,
         options_smt='\n'.join(options_smt),
@@ -444,10 +482,15 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
 
 def check(data):
 
-    data_options = data.get('option')
-    data_aliases = data.get('alias')
-    del(data['option'])
-    del(data['alias'])
+    data_options = []
+    data_aliases = []
+
+    if 'option' in data:
+        data_options = data['option']
+        del(data['option'])
+    if 'alias' in data:
+        data_aliases = data['alias']
+        del(data['alias'])
 
     check_attribs(MODULE_ATTR_REQ, MODULE_ATTR_ALL, data, 'module')
 
