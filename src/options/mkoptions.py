@@ -3,6 +3,7 @@
 import copy
 import re
 import sys
+import textwrap
 import toml
 
 # TODO: more checks for options, e.g., long options start with -- ...
@@ -186,10 +187,7 @@ def codegen_module(module):
 
         ### generate code for {module.name}_options.h
         for include in option.includes:
-            if '<' in include:
-                includes.add('#include {}'.format(include))
-            else:
-                includes.add('#include "{}"'.format(include))
+            includes.add(format_include(include))
 
         # generate option holder
         holder_specs.append(tpl_h_holder.format(name=option.name))
@@ -256,6 +254,42 @@ def is_numeric_type(t):
         return True
     return False
 
+def format_include(include):
+    if '<' in include:
+        return '#include {}'.format(include)
+    return '#include "{}"'.format(include)
+
+def help_format_options(option):
+    opts = []
+    arg = None
+    if option.long:
+        opts.append('--{}'.format(option.long))
+        l = option.long.split('=')
+        if len(l) > 1:
+            arg = l[1]
+
+    if option.short:
+        if arg:
+            opts.append('-{} {}'.format(option.short, arg))
+        else:
+            opts.append('-{}'.format(option.short))
+
+    return ' | '.join(opts)
+
+def help_format(option):
+    width = 80
+    width_opt = 25
+    text = \
+        textwrap.wrap(option.help.replace('"', '\\"'), width=width - width_opt)
+    text_opt = help_format_options(option)
+    if len(text_opt) > width_opt - 3:
+        lines = ['  {}'.format(text_opt)]
+        lines.append(' ' * width_opt + text[0])
+    else:
+        lines = ['  {}{}'.format(text_opt.ljust(width_opt - 2), text[0])]
+    lines.extend([' ' * width_opt + l for l in text[1:]])
+    return ['"{}\\n"'.format(x) for x in lines]
+
 def codegen_all_modules(modules):
 
     option_value_start = 256
@@ -264,9 +298,11 @@ def codegen_all_modules(modules):
 """template <> void runBoolPredicates(options::{name}__option_t, std::string option, bool b, options::OptionsHandler* handler) {{
   {predicates}
 }}"""
+# TODO: remove newline before {handler}
     tpl_run_handler = \
 """template <> options::{name}__option_t::type runHandlerAndPredicates(options::{name}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {{
-  options::{name}__option_t::type retval = {handler};
+  options::{name}__option_t::type retval = 
+  {handler};
   {predicates}
   return retval;
 }}"""
@@ -306,7 +342,7 @@ def codegen_all_modules(modules):
 
     option_value_cur = option_value_start
     for module in modules:
-        headers_module.append('#include "{}"'.format(module.header))
+        headers_module.append(format_include(module.header))
         for option in module.options:
             assert(option.type != 'void' or option.name is None)
             assert(option.name or option.smt_name or option.short or option.long)
@@ -315,10 +351,16 @@ def codegen_all_modules(modules):
             # TODO: we can probably remove these includes since they are
             #       already included in 'headers_module' header files
             for include in option.includes:
-                if '<' in include:
-                    headers_handler.add('#include {}'.format(include))
-                else:
-                    headers_handler.add('#include "{}"'.format(include))
+                headers_handler.add(format_include(include))
+
+            # generate help text
+            if (option.short or option.long) \
+               and option.category != 'undocumented':
+                l = help_common if option.category == 'common' else help_others
+                if not option.help:
+                    print("no help for {} option {}".format(
+                           option.category, option.name))
+                l.extend(help_format(option))
 
             ### generate handler call
             handler = None
@@ -347,63 +389,64 @@ def codegen_all_modules(modules):
             notifications = \
                 ['d_handler->{}(option);'.format(x) for x in option.notifies]
 
-            ### options_handler for switch (c) { ... } in parseOptionRecursive
+            ### options_handler and cmdline_options
             cases = []
             if option.short:
                 cases.append("case '{}':".format(option.short))
 
-            if option.long:
-                cases.append(
-                    "case '{}': \\\\ --{}".format(option_value_cur, option.long))
-                option_value_cur += 1
-
-            if len(cases) > 0:
-                if option.type == 'bool':
-                    cases.append(
-                        'options->assignBool(options::{}, option, true);'.format(option.name))
-                elif option.type != 'void':
-                    cases.append(
-                        'options->assign(options::{}, option, optionarg);'.format(option.name))
-                elif option.type == 'void' and handler:
-                    cases.append('{};'.format(handler))
-
-                cases.extend(
-                    ['extender->pushBackPreemption("{}");'.format(x) \
-                        for x in option.links])
-                cases.append('break;')
-
-                options_handler.append('\n'.join(cases))
-
-            # handle --no- case for boolean options
-            if option.long and option.type == 'bool':
-                cases = []
-                cases.append(
-                    "case '{}': \\\\ --no-{}".format(
-                        option_value_cur, option.long))
-                option_value_cur += 1
-                cases.append(
-                    'options->assignBool(options::{}, option, false);'.format(option.name))
-#                cases.extend(
-#                    ['extender->pushBackPreemption("{}");'.format(x) \
-#                        for x in option.links])
-                cases.append('break;')
-
-                options_handler.append('\n'.join(cases))
-
-
-            ### options_short for getopt_long
-            if option.short:
                 options_short.append(option.short)
                 if argument_req:
                     options_short.append(':')
 
-            ### cmdline_options for getopt_long
             if option.long:
+                cases.append(
+                    'case {}:// --{}'.format(option_value_cur, option.long))
                 cmdline_options.append(
                     '{{ "{}", {}_argument, nullptr, {} }},'.format(
                         strip_long_option(option.long),
                         'required' if argument_req else 'no',
                         option_value_cur))
+                option_value_cur += 1
+
+            if len(cases) > 0:
+                if option.type == 'bool':
+                    cases.append(
+                        '  options->assignBool(options::{}, option, true);'.format(option.name))
+                elif option.type != 'void':
+                    cases.append(
+                        '  options->assign(options::{}, option, optionarg);'.format(option.name))
+                elif option.type == 'void' and handler:
+                    cases.append('{};'.format(handler))
+
+                cases.extend(
+                    ['  extender->pushBackPreemption("{}");'.format(x) \
+                        for x in option.links])
+                cases.append('  break;\n')
+
+                options_handler.extend(cases)
+
+            # handle --no- case for boolean options
+            if option.long and option.type == 'bool':
+                cases = []
+                cases.append(
+                    'case {}:// --no-{}'.format(
+                        option_value_cur, option.long))
+                option_value_cur += 1
+                cases.append(
+                    '  options->assignBool(options::{}, option, false);'.format(option.name))
+#                cases.extend(
+#                    ['extender->pushBackPreemption("{}");'.format(x) \
+#                        for x in option.links])
+                cases.append('  break;\n')
+
+                options_handler.extend(cases)
+
+                cmdline_options.append(
+                    '{{ "no-{}", {}_argument, nullptr, {} }},'.format(
+                        strip_long_option(option.long),
+                        'required' if argument_req else 'no',
+                        option_value_cur))
+
 
             ### build opts for options::getOptions()
             if option.name:
@@ -426,25 +469,25 @@ def codegen_all_modules(modules):
                         s  = '{ std::stringstream ss; '
                         if is_numeric_type(option.type):
                             s += 'ss << std::fixed << std::setprecision(8); '
-                        s += 'ss << d_holder->{};'.format(option.name)
+                        s += 'ss << d_holder->{}; '.format(option.name)
                         s += 'std::vector<std::string> v; '
-                        s += 'v.push_back("{}");'.format(optname)
+                        s += 'v.push_back("{}"); '.format(optname)
                         s += 'v.push_back(ss.str()); '
                         s += 'opts.push_back(v); }'
                     options_getopts.append(s)
 
 
             ### define runBoolPredicates/runHandlerAndPredicates
-            if len(predicates) > 0:
-                assert(option.name)
+            if option.name:
                 if option.type == 'bool':
-                    assert(handler is None)
-                    custom_handlers.append(
-                        tpl_run_handler_bool.format(
-                            name=option.name,
-                            predicates='\n'.join(predicates)
-                        ))
-                else:
+                    if len(predicates) > 0:
+                        assert(handler is None)
+                        custom_handlers.append(
+                            tpl_run_handler_bool.format(
+                                name=option.name,
+                                predicates='\n'.join(predicates)
+                            ))
+                elif option.short or option.long:
                     assert(option.type != 'void')
                     assert(handler)
                     custom_handlers.append(
@@ -455,14 +498,15 @@ def codegen_all_modules(modules):
                         ))
 
             ### define handler assign/assignBool
-            if len(notifications) > 0:
-                assert(option.name)
+            if option.name:
                 tpl = tpl_assign_bool if option.type == 'bool' else tpl_assign
-                custom_handlers.append(
-                        tpl.format(
-                            name=option.name,
-                            notifications='\n'.join(notifications)
-                        ))
+                if option.type == 'bool' \
+                   or option.short or option.long or option.smt_name:
+                    custom_handlers.append(
+                            tpl.format(
+                                name=option.name,
+                                notifications='\n'.join(notifications)
+                            ))
 
             # default option values
             if option.name:
@@ -470,6 +514,8 @@ def codegen_all_modules(modules):
                 defaults.append('{}({})'.format(option.name, default))
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
+    print('\n'.join(help_common))
+    print('\n'.join(help_others))
 
     write_file('options.cpp',
         tpl_options.format(
@@ -477,16 +523,16 @@ def codegen_all_modules(modules):
             headers_module='\n'.join(headers_module),
             headers_handler='\n'.join(sorted(list(headers_handler))),
             custom_handlers='\n'.join(custom_handlers),
-            module_defaults=',\n'.join(defaults),
-            help_common='\n'.join(help_common), # TODO
-            help_others='\n'.join(help_others), # TODO
-            cmdline_options='\n'.join(cmdline_options),
+            module_defaults=',\n  '.join(defaults),
+            help_common='\n'.join(help_common),
+            help_others='\n'.join(help_others),
+            cmdline_options='\n  '.join(cmdline_options),
             options_short=''.join(options_short),
-            options_handler='\n'.join(options_handler),
+            options_handler='\n    '.join(options_handler),
             option_value_begin=option_value_start,
-            option_value_end=option_value_cur - 1,
-            options_smt='\n'.join(options_smt),
-            options_getopts='\n'.join(options_getopts)
+            option_value_end=option_value_cur,
+            options_smt='\n  '.join(options_smt),
+            options_getopts='\n  '.join(options_getopts)
         ))
 
 
