@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import re
 import sys
 import toml
@@ -12,48 +13,25 @@ import toml
 # TODO: check short options only one character
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
-MODULE_ATTR_ALL = {
-    'id':     None,
-    'name':   None,
-    'header': None,
-    'options': [],    # Note: .toml attribute is option
-    'aliases': []     # Note: .toml attribute is alias
-}
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['options', 'aliases']
 
-OPTION_ATTR_REQ = ['category', 'long', 'type']
-OPTION_ATTR_ALL = {
-    'category':   None,
-    'type':       None,
-    'name':       None,
-    'help':       None,
-    'smt_name':   None,
-    'short':      None,
-    'long':       None,
-    'default':    None,
-    'includes':   [],
-    'handler':    None,
-    'predicates': [],
-    'notifies':   [],
-    'links':      [],
-    'read_only':  False
-}
+OPTION_ATTR_REQ = ['category', 'type']
+OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
+    'name', 'help', 'smt_name', 'short', 'long', 'default', 'includes',
+    'handler', 'predicates', 'notifies', 'links', 'read_only'
+]
 
 ALIAS_ATTR_REQ = ['name', 'category', 'links']
-ALIAS_ATTR_ALL = {
-    'name':     None,
-    'category': None,
-    'links':    [],
-    'help':     None,
-    'short':    None,
-    'long':     None
-}
+ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help', 'short', 'long']
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
 
 class Module(object):
     def __init__(self, d):
-        self.__dict__ = dict(MODULE_ATTR_ALL)
+        self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
+        self.options = []
+        self.aliases = []
         for (k, v) in d.items():
             assert(k in d)
             if len(v) > 0:
@@ -61,7 +39,12 @@ class Module(object):
 
 class Option(object):
     def __init__(self, d):
-        self.__dict__ = dict(OPTION_ATTR_ALL)
+        self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
+        self.includes = []
+        self.predicates = []
+        self.notifies = []
+        self.links = []
+        self.read_only = False
         for (k, v) in d.items():
             assert(k in self.__dict__)
             if k == 'read_only' or len(v) > 0:
@@ -69,7 +52,8 @@ class Option(object):
 
 class Alias(object):
     def __init__(self, d):
-        self.__dict__ = dict(ALIAS_ATTR_ALL)
+        self.__dict__ = dict((k, None) for k in ALIAS_ATTR_ALL)
+        self.links = []
         for (k, v) in d.items():
             assert(k in self.__dict__)
             if len(v) > 0:
@@ -93,11 +77,21 @@ def check_attribs(req_attribs, valid_attribs, d, type):
             die("invalid {} attribute '{}' specified{}".format(
                 type, k, msg_for))
 
+def write_file(name, s):
+    try:
+        f = open(name, 'w')
+    except IOError:
+        die("Could not write '{}'".format(name))
+    else:
+        with f:
+            f.write(s)
+
+
 def read_tpl(name):
     try:
         f = open(name, 'r')
     except IOError:
-        return None
+        die("Could not find '{}'. Aborting.".format(name))
     else:
         # Escape { and } since we later use .format to add the generated code.
         # Further, strip ${ and }$ from placeholder variables in the template
@@ -138,34 +132,36 @@ def codegen_module(module):
     tpl_module_h = read_tpl('module_template.h')
     tpl_module_cpp = read_tpl('module_template.cpp')
 
-    if tpl_module_h is None:
-        die("Cannot find 'module_template.h'. Aborting.")
-    if tpl_module_cpp is None:
-        die("Cannot find 'module_template.cpp'. Aborting.")
-
     # {name} ... option.name
-    tpl_h_holder_spec_def = "#define CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER"
-    tpl_h_holder_spec = "{name}__option_t::type {name}; bool {name}__setByUser__;"
+    tpl_h_holder_macro = "#define CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER"
+    tpl_h_holder = \
+        "  {name}__option_t::type {name}; \\\n  bool {name}__setByUser__;"
 
     # {name} ... option.name, {type} ... option.type
-    tpl_h_decl =  "extern struct CVC4_PUBLIC {name}__option_t {{ "
-    tpl_h_decl += "typedef {type} type; type operator()() const; "
-    tpl_h_decl += "bool wasSetByUser() const; "
-    tpl_h_decl += "void set(const type& v); }} {name} CVC4_PUBLIC;"
+    tpl_h_decl_rw  = "extern struct CVC4_PUBLIC {name}__option_t {{ "
+    tpl_h_decl_rw += "typedef {type} type; type operator()() const; "
+    tpl_h_decl_rw += "bool wasSetByUser() const; "
+    tpl_h_decl_rw += "void set(const type& v); }} {name} CVC4_PUBLIC;"
+
+    tpl_h_decl_ro  = "extern struct CVC4_PUBLIC {name}__option_t {{ "
+    tpl_h_decl_ro += "typedef {type} type; type operator()() const; "
+    tpl_h_decl_ro += "bool wasSetByUser() const; }} {name} CVC4_PUBLIC;"
 
     # {name} ... option.name
-    tpl_h_spec_s = "template <> void Options::set(options::{name}__option_t, const options::{name}__option_t::type& x);"
+    tpl_h_spec_s    = "template <> void Options::set(options::{name}__option_t, const options::{name}__option_t::type& x);"
+    tpl_h_spec_o    = "template <> const options::{name}__option_t::type& Options::operator[](options::{name}__option_t) const;"
     tpl_h_spec_wsbu = "template <> bool Options::wasSetByUser(options::{name}__option_t) const;"
-    tpl_h_spec_a = "template <> void Options::assign(options::{name}__option_t, std::string option, std::string value);"
-    tpl_h_spec_ab = "template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value);"
+    tpl_h_spec_a    = "template <> void Options::assign(options::{name}__option_t, std::string option, std::string value);"
+    tpl_h_spec_ab   = "template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value);"
 
     # {name} ... option.name
-    tpl_h_inl_s = "inline void {name}__option_t::set(const {name}__option_t::type& v) {{ Options::current()->set(*this, v); }}"
+    tpl_h_inl_s    = "inline void {name}__option_t::set(const {name}__option_t::type& v) {{ Options::current()->set(*this, v); }}"
     tpl_h_inl_wsbu = "inline bool {name}__option_t::wasSetByUser() const {{ return Options::current()->wasSetByUser(*this); }}"
-    tpl_h_inl_op = "inline {name}__option_t::type {name}__option_t::operator()() const {{ return (*Options::current())[*this]; }}"
+    tpl_h_inl_op   = "inline {name}__option_t::type {name}__option_t::operator()() const {{ return (*Options::current())[*this]; }}"
 
     # {name} ... option.name
-    tpl_cpp_acc_s = "template <> void Options::set(options::{name}__option_t, const options::{name}__option_t::type& x) {{ d_holder->{name} = x; }}"
+    tpl_cpp_acc_s    = "template <> void Options::set(options::{name}__option_t, const options::{name}__option_t::type& x) {{ d_holder->{name} = x; }}"
+    tpl_cpp_acc_o    = "template <> const options::{name}__option_t::type& Options::operator[](options::{name}__option_t) const {{ return d_holder->{name}; }}"
     tpl_cpp_acc_wsbu = "template <> bool Options::wasSetByUser(options::{name}__option_t) const {{ return d_holder->{name}__setByUser__; }}"
 
     tpl_cpp_def = "struct {name}__option_t {name};"
@@ -182,24 +178,30 @@ def codegen_module(module):
     accs = []
     defs = []
 
-    holder_specs.append(tpl_h_holder_spec_def.format(id=module.id))
+    holder_specs.append(tpl_h_holder_macro.format(id=module.id))
 
     for option in module.options:
         if option.name is None:
             continue
 
         ### generate code for {module.name}_options.h
-        includes.update(["#include {}".format(x) for x in option.includes])
+        for include in option.includes:
+            if '<' in include:
+                includes.add('#include {}'.format(include))
+            else:
+                includes.add('#include "{}"'.format(include))
 
         # generate option holder
-        holder_specs.append(tpl_h_holder_spec.format(name=option.name))
+        holder_specs.append(tpl_h_holder.format(name=option.name))
 
         # generate module declaration
-        decls.append(tpl_h_decl.format(name=option.name, type=option.type))
+        tpl_decl = tpl_h_decl_ro if option.read_only else tpl_h_decl_rw
+        decls.append(tpl_decl.format(name=option.name, type=option.type))
 
         # generate module specialization
         if not option.read_only:
             specs.append(tpl_h_spec_s.format(name=option.name))
+        specs.append(tpl_h_spec_o.format(name=option.name))
         specs.append(tpl_h_spec_wsbu.format(name=option.name))
 
         if option.type == 'bool':
@@ -208,11 +210,10 @@ def codegen_module(module):
             specs.append(tpl_h_spec_a.format(name=option.name))
 
         # generate module inlines
+        inls.append(tpl_h_inl_op.format(name=option.name))
+        inls.append(tpl_h_inl_wsbu.format(name=option.name))
         if not option.read_only:
             inls.append(tpl_h_inl_s.format(name=option.name))
-
-        inls.append(tpl_h_inl_wsbu.format(name=option.name))
-        inls.append(tpl_h_inl_op.format(name=option.name))
 
 
         ### generate code for {module.name}_options.cpp
@@ -220,6 +221,7 @@ def codegen_module(module):
         # accessors
         if not option.read_only:
             accs.append(tpl_cpp_acc_s.format(name=option.name))
+        accs.append(tpl_cpp_acc_o.format(name=option.name))
         accs.append(tpl_cpp_acc_wsbu.format(name=option.name))
 
         # global defintions
@@ -228,18 +230,20 @@ def codegen_module(module):
 
     filename=module.header[:-2]
     # TODO: template name
-    print(tpl_module_h.format(filename=filename,
-                              header=module.header,
-                              id=module.id,
-                              includes='\n'.join(sorted(list(includes))),
-                              holder_spec=' \\\n'.join(holder_specs),
-                              decls='\n'.join(decls),
-                              specs='\n'.join(specs),
-                              inls='\n'.join(inls)))
+    write_file('{}.h'.format(filename),
+        tpl_module_h.format(filename=filename,
+                            header=module.header,
+                            id=module.id,
+                            includes='\n'.join(sorted(list(includes))),
+                            holder_spec=' \\\n'.join(holder_specs),
+                            decls='\n'.join(decls),
+                            specs='\n'.join(specs),
+                            inls='\n'.join(inls)))
 
-    print(tpl_module_cpp.format(filename=filename,
-                                accs='\n'.join(accs),
-                                defs='\n'.join(defs)))
+    write_file('{}.cpp'.format(filename),
+        tpl_module_cpp.format(filename=filename,
+                              accs='\n'.join(accs),
+                              defs='\n'.join(defs)))
 
 
 def strip_long_option(name):
@@ -256,25 +260,25 @@ def codegen_all_modules(modules):
 
     option_value_start = 256
 
-    tpl_run_handler_bool = """
-template <> void runBoolPredicates(options::{name}__option_t, std::string option, bool b, options::OptionsHandler* handler) {{
+    tpl_run_handler_bool = \
+"""template <> void runBoolPredicates(options::{name}__option_t, std::string option, bool b, options::OptionsHandler* handler) {{
   {predicates}
 }}"""
-    tpl_run_handler = """
-template <> options::{name}__option_t::type runHandlerAndPredicates(options::{name}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {{
+    tpl_run_handler = \
+"""template <> options::{name}__option_t::type runHandlerAndPredicates(options::{name}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {{
   options::{name}__option_t::type retval = {handler};
   {predicates}
   return retval;
 }}"""
-    tpl_assign = """
-template <> void Options::assign(options::{name}__option_t, std::string option, std::string value) {{
+    tpl_assign = \
+"""template <> void Options::assign(options::{name}__option_t, std::string option, std::string value) {{
   d_holder->{name} = runHandlerAndPredicates(options::{name}, option, value, d_handler);
   d_holder->{name}__setByUser__ = true;
   Trace(\"options\") << \"user assigned option {name}\" << std::endl;
   {notifications}
 }}"""
-    tpl_assign_bool = """
-template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value) {{
+    tpl_assign_bool = \
+"""template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value) {{
   runBoolPredicates(options::{name}, option, value, d_handler);
   d_holder->{name} = value;
   d_holder->{name}__setByUser__ = true;
@@ -282,8 +286,10 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
   {notifications}
 }}"""
 
+    tpl_options = read_tpl('options_template_new.cpp')
+
     headers_module = []
-    headers_handler = []
+    headers_handler = set()
     notifiers = []
     options_short = []
     cmdline_options = []
@@ -295,18 +301,24 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
     help_common = []
     help_others = []
 
-    options_smtget = []
-    options_smtset = []
+    options_smtget = [] # TODO
+    options_smtset = [] # TODO
 
     option_value_cur = option_value_start
     for module in modules:
-        headers_module.append(module.header)
+        headers_module.append('#include "{}"'.format(module.header))
         for option in module.options:
             assert(option.type != 'void' or option.name is None)
             assert(option.name or option.smt_name or option.short or option.long)
             argument_req = option.type not in ['bool', 'void']
 
-            headers_handler.extend(option.includes)
+            # TODO: we can probably remove these includes since they are
+            #       already included in 'headers_module' header files
+            for include in option.includes:
+                if '<' in include:
+                    headers_handler.add('#include {}'.format(include))
+                else:
+                    headers_handler.add('#include "{}"'.format(include))
 
             ### generate handler call
             handler = None
@@ -459,22 +471,22 @@ template <> void Options::assignBool(options::{name}__option_t, std::string opti
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
 
-    tpl_options = read_tpl('options_template_new.cpp')
-    print(tpl_options.format(
-        template='options_template_new.cpp',
-        headers_module='\n'.join(headers_module),
-        headers_handler='\n'.join(headers_handler),
-        custom_handlers='\n'.join(custom_handlers),
-        module_defaults=',\n'.join(defaults),
-        help_common='\n'.join(help_common), # TODO
-        help_others='\n'.join(help_others), # TODO
-        cmdline_options='\n'.join(cmdline_options),
-        options_short=''.join(options_short),
-        options_handler='\n'.join(options_handler),
-        option_value_begin=option_value_start,
-        option_value_end=option_value_cur - 1,
-        options_smt='\n'.join(options_smt),
-        options_getopts='\n'.join(options_getopts)
+    write_file('options.cpp',
+        tpl_options.format(
+            template='options_template_new.cpp',
+            headers_module='\n'.join(headers_module),
+            headers_handler='\n'.join(sorted(list(headers_handler))),
+            custom_handlers='\n'.join(custom_handlers),
+            module_defaults=',\n'.join(defaults),
+            help_common='\n'.join(help_common), # TODO
+            help_others='\n'.join(help_others), # TODO
+            cmdline_options='\n'.join(cmdline_options),
+            options_short=''.join(options_short),
+            options_handler='\n'.join(options_handler),
+            option_value_begin=option_value_start,
+            option_value_end=option_value_cur - 1,
+            options_smt='\n'.join(options_smt),
+            options_getopts='\n'.join(options_getopts)
         ))
 
 
