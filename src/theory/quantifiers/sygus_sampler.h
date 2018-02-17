@@ -19,7 +19,7 @@
 
 #include <map>
 #include "theory/quantifiers/dynamic_rewrite.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 namespace CVC4 {
 namespace theory {

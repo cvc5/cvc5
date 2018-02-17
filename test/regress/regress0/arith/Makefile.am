@@ -28,38 +28,24 @@ TESTS =	\
 	fuzz_3-eq.smt \
 	leq.01.smt \
 	mod.01.smt2 \
-	mod.02.smt2 \
-	mod.03.smt2 \
 	div.01.smt2 \
 	div.02.smt2 \
-	div.03.smt2 \
 	div.04.smt2 \
 	div.05.smt2 \
-	div.06.smt2 \
 	div.07.smt2 \
-	div.08.smt2 \
 	mult.01.smt2 \
-	mult.02.smt2 \
 	bug443.delta01.smt \
 	miplib.cvc \
 	miplib2.cvc \
-	miplib3.cvc \
 	miplib4.cvc \
 	miplibtrick.smt \
-	bug547.1.smt2 \
 	bug547.2.smt2 \
 	bug569.smt2 \
-	div.09.smt2 \
-	bug716.0.smt2 \
-	bug716.1.cvc \
 	mod-simp.smt2
-#	problem__003.smt2
 
 EXTRA_DIST = $(TESTS) \
 	miplib-opt1217--27.smt \
-	miplib-opt1217--27.smt2 \
 	miplib-pp08a-3000.smt \
-	miplib-pp08a-3000.smt2 \
 	miplib-opt1217--27.smt.expect \
 	miplib-pp08a-3000.smt.expect
 

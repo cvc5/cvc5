@@ -24,7 +24,6 @@ TESTS =	\
 	bug347.smt \
 	bug451.smt \
 	bug509.smt \
-	bug580.smt2 \
 	bug580.delta.smt2 \
 	try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smt \
 	try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smt \

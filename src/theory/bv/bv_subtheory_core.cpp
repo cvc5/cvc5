@@ -316,9 +316,16 @@ void CoreSolver::buildModel()
           return;
         }
 
-        Node lemma = utils::mkOr(equalities);
-        d_bv->lemma(lemma);
-        Debug("bv-core") << "  lemma: " << lemma << "\n";
+        if (equalities.size() == 0)
+        {
+          Debug("bv-core") << "  lemma: true (no equalities)" << std::endl;
+        }
+        else
+        {
+          Node lemma = utils::mkOr(equalities);
+          d_bv->lemma(lemma);
+          Debug("bv-core") << "  lemma: " << lemma << std::endl;
+        }
         return;
       }
 
