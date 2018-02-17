@@ -58,7 +58,7 @@ extern int optreset;
 #include "options/language.h"
 #include "options/options_handler.h"
 
-${include_all_option_headers}$
+${include_all_option_headers}
 
 #line 64 "${template}"
 
@@ -66,7 +66,7 @@ ${include_all_option_headers}$
 #include "cvc4autoconfig.h"
 #include "options/base_handlers.h"
 
-${option_handler_includes}$
+${option_handler_includes}
 
 #line 72 "${template}"
 
@@ -388,7 +388,7 @@ Options::registerSetReplayLogFilename(
   return registerAndNotify(d_setReplayFilenameListeners, listener, notify);
 }
 
-${all_custom_handlers}$
+${all_custom_handlers}
 
 #line 394 "${template}"
 
@@ -404,20 +404,20 @@ ${all_custom_handlers}$
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT true
 #endif /* CVC4_MUZZLED || CVC4_COMPETITION_MODE */
 
-options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}$
+options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
 #line 412 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
-Most commonly-used CVC4 options:${common_documentation}$";
+Most commonly-used CVC4 options:${common_documentation}";
 
 #line 417 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
-Additional CVC4 options:${remaining_documentation}$";
+Additional CVC4 options:${remaining_documentation}";
 
 #line 423 "${template}"
 
@@ -496,7 +496,7 @@ void Options::printLanguageHelp(std::ostream& out) {
  * If you add something that has a short option equivalent, you should
  * add it to the getopt_long() call in parseOptions().
  */
-static struct option cmdlineOptions[] = {${all_modules_long_options}$
+static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
@@ -671,7 +671,7 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("options") << "[ argc == " << argc << ", argv == " << argv << " ]"
                      << std::endl;
     int c = getopt_long(argc, argv,
-                        "+:${all_modules_short_options}$",
+                        "+:${all_modules_short_options}",
                         cmdlineOptions, NULL);
 
     while(main_optind < optind) {
@@ -721,7 +721,7 @@ void Options::parseOptionsRecursive(Options* options,
                            << " (`" << char(c) << "'), " << option << std::endl;
 
     switch(c) {
-${all_modules_option_handlers}$
+${all_modules_option_handlers}
 
 #line 726 "${template}"
 
@@ -734,8 +734,8 @@ ${all_modules_option_handlers}$
     case '?':
     default:
       if( ( optopt == 0 ||
-            ( optopt >= ${long_option_value_begin}$ &&
-              optopt <= ${long_option_value_end}$ )
+            ( optopt >= ${long_option_value_begin} &&
+              optopt <= ${long_option_value_end} )
           ) && !strncmp(argv[optind - 1], "--thread", 8) &&
           strlen(argv[optind - 1]) > 8 )
       {
@@ -801,7 +801,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName)
 }
 
 static const char* smtOptions[] = {
-  ${all_modules_smt_options}$,
+  ${all_modules_smt_options},
 #line 804 "${template}"
   NULL
 };/* smtOptions[] */
@@ -825,7 +825,7 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 {
   std::vector< std::vector<std::string> > opts;
 
-  ${all_modules_get_options}$
+  ${all_modules_get_options}
 
 #line 826 "${template}"
 
