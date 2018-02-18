@@ -719,7 +719,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   Expr func;
   std::vector<Expr> flattenVars;
   std::vector<Expr> bvs;
-
+  std::vector<std::string> ids;
+  std::vector<std::pair<std::string, Type>> typeIds;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -894,19 +895,15 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t, CHECK_DECLARED] EQUAL_TOK 
-    LAMBDA LPAREN boundVarDeclsReturn[terms,types] RPAREN COLON formula[f]
+    LAMBDA 
+    LPAREN identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] RPAREN 
+    COLON formula[f]
   {
-    size_t size = terms.size();
-    std::vector<std::pair<std::string, Type>> sortedVarNames(size);
-
-    //Create sortedVarNames from types and terms
-    for(unsigned int i = 0; i < size;i++){
-      sortedVarNames[i].first = terms[i].toString();
-      sortedVarNames[i].second = types[i];
+    for(unsigned int i = 0; i < ids.size();i++){
+      typeIds.push_back(std::make_pair(ids[i], t));
     }
-    
-    func = PARSER_STATE->mkDefineFunRec(id, sortedVarNames, t, flattenVars);
-    PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
+    func = PARSER_STATE->mkDefineFunRec(id, typeIds, t, flattenVars);
+    PARSER_STATE->pushDefineFunRecScope(typeIds, func, flattenVars, bvs, true);
     PARSER_STATE->popScope();
     cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
   }
