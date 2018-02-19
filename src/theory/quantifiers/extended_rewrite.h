@@ -80,6 +80,8 @@ class ExtendedRewriter
   Node extendedRewritePullIte(Node n);
   /** rewrite bcp */
   Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node n );
+  /** */
+  Node substituteBcp( Node n, std::map< Node, Node >& assign, std::unordered_set< Kind >& bcp_kinds );
   /** mk negate (NOT, BITVECTOR_NOT, BITVECTOR_NEG) */
   Node mkNegate( Kind k, Node n );
   /** decompose chain */
@@ -127,7 +129,12 @@ class ExtendedRewriter
   
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv( Node n, bool isNot );
-  /** is const bv zero */
+  /** is const bv zero 
+   * 
+   * Returns true if n is 0 and isNot = false,
+   * Returns true if n is max and isNot = true,
+   * return false otherwise.
+   */
   bool isConstBv( Node n, bool isNot );
   /** get const child */
   Node getConstBvChild( Node n, std::vector< Node >& nconst );
@@ -145,7 +152,6 @@ class ExtendedRewriter
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
   /** mkNode */
   Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum );
-  
   
 };
 

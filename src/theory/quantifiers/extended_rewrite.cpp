@@ -281,25 +281,246 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
   return Node::null();
 }
 
+bool addToAssignment( Node n, Node pol, std::map< Node, Node >& assign, std::vector< Node >& avars, std::vector< Node >& asubs )
+{
+  std::map< Node, Node >::iterator it = assign.find(n);
+  if( it!=assign.end() )
+  {
+    return pol==it->second;
+  }
+  assign[n] = pol;
+  avars.push_back( n );
+  asubs.push_back( pol );
+  return true;
+}
 
 Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node ret )
 {
-  // TODO
-  std::vector< Node > clauses;
   Kind k = ret.getKind();
-  if( k==andk )
+  Assert( k==andk || k==ork );
+  Trace("ext-rew-bcp") << "BCP: **** INPUT: " << ret << std::endl;
+
+  NodeManager * nm = NodeManager::currentNM();
+  
+  TypeNode tn = ret.getType();
+  Node truen = TermUtil::mkTypeMaxValue(tn);
+  Node falsen = TermUtil::mkTypeValue(tn, 0);
+  
+  // specify legal BCP kinds
+  std::unordered_set< Kind > bcp_kinds;
+  if( tn.isBitVector() )
   {
-    
+    bcp_kinds.insert( BITVECTOR_AND );
+    bcp_kinds.insert( BITVECTOR_OR );
+    bcp_kinds.insert( BITVECTOR_NOT );
+    bcp_kinds.insert( BITVECTOR_XOR );
   }
-  else if( k==ork )
+  
+  // terms to process
+  std::vector< Node > to_process;
+  for( const Node& cn : ret )
   {
-    
+    to_process.push_back( cn );
   }
+  // the processing terms
+  std::vector< Node > clauses;
+  // the terms we have propagated information to 
+  std::unordered_set< Node, NodeHashFunction > prop_clauses;
+  // the assignment
+  std::map< Node, Node > assign;
+  std::vector< Node > avars;
+  std::vector< Node > asubs;
   
+  Kind ok = k==andk ? ork : andk;
+  // global polarity : when k=ork, everything is negated
+  bool gpol = k==andk;
   
+  do
+  {
+    // process the current nodes
+    while( !to_process.empty() )
+    {
+      std::vector< Node > new_to_process;
+      for( const Node& cn : to_process )
+      {
+        Trace("ext-rew-bcp-debug") << "process " << cn << std::endl;
+        Kind cnk = cn.getKind();
+        bool pol = cnk!=notk;
+        Node cln = cnk==notk ? cn[0] : cn;
+        Assert( cln.getKind()!=notk );
+        if( ( pol && cln.getKind()==k ) || ( !pol && cln.getKind()==ok )  )
+        {
+          // flatten
+          for( const Node& ccln : cln )
+          {
+            Node lccln = pol ? ccln : mkNegate( notk, ccln );
+            new_to_process.push_back( lccln );
+          }
+        }
+        else
+        {
+          // add it to the assignment
+          Node val = gpol==pol ? truen : falsen;
+          std::map< Node, Node >::iterator it = assign.find(cln);
+          Trace("ext-rew-bcp") << "BCP: assign " << cln << " -> " << val << std::endl;
+          if( it!=assign.end() )
+          {
+            if( val!=it->second )
+            {
+              Trace("ext-rew-bcp") << "BCP: conflict!" << std::endl;
+              // a conflicting assignment: we are done
+              return gpol ? falsen : truen;
+            }
+          }
+          else
+          {
+            assign[cln] = val;
+            avars.push_back( cln );
+            asubs.push_back( val );
+          }
+          
+          // also, treat it as clause if possible
+          if( cln.getNumChildren()>0 & ( bcp_kinds.empty() || bcp_kinds.find( cln.getKind() )!=bcp_kinds.end() ) )
+          {
+            if( std::find( clauses.begin(), clauses.end(), cn )==clauses.end() && prop_clauses.find( cn )==prop_clauses.end() )
+            {
+              Trace("ext-rew-bcp") << "BCP: new clause: " << cn << std::endl;
+              clauses.push_back( cn );
+            }
+          }
+        }
+      }
+      to_process.clear();
+      to_process.insert( to_process.end(), new_to_process.begin(), new_to_process.end() );
+    }
+    
+    // apply substitution to all subterms of clauses
+    std::vector< Node > new_clauses;
+    for( const Node& c : clauses )
+    {
+      bool childChanged = false;
+      std::vector< Node > ccs_children;
+      for( const Node& cc : c )
+      {
+        Node ccs = cc;
+        if( bcp_kinds.empty() )
+        {
+          ccs = cc.substitute( avars.begin(), avars.end(), asubs.begin(), asubs.end() );
+        }
+        else
+        {
+          // substitution is only applicable to compatible kinds
+          ccs = substituteBcp( ccs, assign, bcp_kinds );
+        }
+        childChanged = childChanged || ccs!=cc;
+        ccs_children.push_back( ccs );
+      }
+      if( childChanged )
+      {
+        if( c.getMetaKind() == kind::metakind::PARAMETERIZED ){
+          ccs_children.insert( ccs_children.begin(), c.getOperator() );
+        }
+        Node ccs = nm->mkNode( c.getKind(), ccs_children );
+        ccs = Rewriter::rewrite( ccs );
+        Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs << std::endl;
+        to_process.push_back( ccs );
+        // store this as a propagated node. This marks c so that it will not be 
+        // included in the final construction.
+        Node cp = c.getKind()==notk ? c[0] : c;
+        prop_clauses.insert( cp );
+      }
+      else
+      {
+        new_clauses.push_back( c );
+      }
+    }
+    clauses.clear();
+    clauses.insert( clauses.end(), new_clauses.begin(), new_clauses.end() );
+  }
+  while( !to_process.empty() );
   
+  // remake the node
+  if( !prop_clauses.empty() )
+  {
+    std::vector< Node > children;
+    for( const std::pair< Node, Node >& l : assign )
+    {
+      Node a = l.first;
+      // if we did not propagate values on a
+      if( prop_clauses.find( a )==prop_clauses.end() )
+      {
+        Assert( l.second==truen || l.second==falsen );
+        Node ln = (l.second==truen)==gpol ? a : mkNegate( notk, a );
+        children.push_back( ln );
+      }
+    }
+    Node new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
+    Trace("ext-rew-bcp") << "BCP: **** OUTPUT: " << new_ret << std::endl;
+    return new_ret;
+  }
   
   return Node::null();
+}
+
+
+Node ExtendedRewriter::substituteBcp( Node n, std::map< Node, Node >& assign, std::unordered_set< Kind >& bcp_kinds )
+{
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      std::map< Node, Node >::iterator it = assign.find(cur);
+      if( it!=assign.end() )
+      {
+        visited[cur] = it->second;
+      }
+      else
+      {
+        // can only recurse on these kinds
+        Kind k = n.getKind();
+        if( bcp_kinds.find( k )!=bcp_kinds.end() )
+        {
+          visited[cur] = Node::null();
+          visit.push_back(cur);
+          for (const Node& cn : cur) {
+            visit.push_back(cn);
+          }
+        }
+        else
+        {
+          visited[cur] = cur;
+        }
+      }
+    } else if (it->second.isNull()) {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur) {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) {
+        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
@@ -414,16 +635,35 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   }
   else if( k == BITVECTOR_NEG )
   {
+    Kind ck = ret[0].getKind();
     // miniscope
-    if( ret[0].getKind()==BITVECTOR_SHL )
+    if( ck==BITVECTOR_SHL )
     {
       new_ret = nm->mkNode( BITVECTOR_SHL, mkNegate( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
       debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
     }
-    else if( ret[0].getKind()==BITVECTOR_NOT )
+    else if( ck==BITVECTOR_NOT )
     {
       // this should be handled by NOT-plus-miniscope below
       Assert( ret[0][0].getKind()!=BITVECTOR_PLUS || !hasConstBvChild( ret[0][0] ) );
+    }
+    else if( ck==BITVECTOR_AND || ck==BITVECTOR_OR )
+    {
+      std::vector< Node > children;
+      for( const Node& cn : ret[0] )
+      {
+        children.push_back( cn );
+      }
+      Node cplus = nm->mkNode( BITVECTOR_PLUS, children );
+      cplus = Rewriter::rewrite( cplus );
+      if( isConstBv( cplus, false ) )
+      {
+        // if x+y=0, then 
+        // -( x and y ) ---> ( x or y )
+        // -( x or y ) ---> ( x and y )
+        new_ret = nm->mkNode( ck==BITVECTOR_AND ? BITVECTOR_OR : BITVECTOR_AND, children );
+        debugExtendedRewrite( ret, new_ret, "NEG-AND/OR-zero-miniscope" );
+      }
     }
     else 
     {
