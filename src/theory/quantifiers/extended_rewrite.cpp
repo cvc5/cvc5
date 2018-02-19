@@ -34,58 +34,6 @@ ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-Node ExtendedRewriter::extendedRewritePullIte(Node n)
-{
-  // generalize this?
-  Assert(n.getNumChildren() == 2);
-  Assert(n.getType().isBoolean());
-  Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-  std::vector<Node> children;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
-  {
-    children.push_back(n[i]);
-  }
-  for (unsigned i = 0; i < 2; i++)
-  {
-    if (n[i].getKind() == kind::ITE)
-    {
-      for (unsigned j = 0; j < 2; j++)
-      {
-        children[i] = n[i][j + 1];
-        Node eqr = extendedRewrite(
-            NodeManager::currentNM()->mkNode(n.getKind(), children));
-        children[i] = n[i];
-        if (eqr.isConst())
-        {
-          std::vector<Node> new_children;
-          Kind new_k;
-          if (eqr == d_true)
-          {
-            new_k = kind::OR;
-            new_children.push_back(j == 0 ? n[i][0] : n[i][0].negate());
-          }
-          else
-          {
-            Assert(eqr == d_false);
-            new_k = kind::AND;
-            new_children.push_back(j == 0 ? n[i][0].negate() : n[i][0]);
-          }
-          children[i] = n[i][2 - j];
-          Node rem_eq = NodeManager::currentNM()->mkNode(n.getKind(), children);
-          children[i] = n[i];
-          new_children.push_back(rem_eq);
-          Node nc = NodeManager::currentNM()->mkNode(new_k, new_children);
-          Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                                 << nc << " by simple ITE pulling."
-                                 << std::endl;
-          return nc;
-        }
-      }
-    }
-  }
-  return Node::null();
-}
-
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
   n = Rewriter::rewrite(n);
@@ -281,6 +229,79 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
   return new_ret;
 }  
 
+Node ExtendedRewriter::extendedRewritePullIte(Node n)
+{
+  // generalize this?
+  Assert(n.getNumChildren() == 2);
+  Assert(n.getType().isBoolean());
+  Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+  std::vector<Node> children;
+  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  {
+    children.push_back(n[i]);
+  }
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (n[i].getKind() == kind::ITE)
+    {
+      for (unsigned j = 0; j < 2; j++)
+      {
+        children[i] = n[i][j + 1];
+        Node eqr = extendedRewrite(
+            NodeManager::currentNM()->mkNode(n.getKind(), children));
+        children[i] = n[i];
+        if (eqr.isConst())
+        {
+          std::vector<Node> new_children;
+          Kind new_k;
+          if (eqr == d_true)
+          {
+            new_k = kind::OR;
+            new_children.push_back(j == 0 ? n[i][0] : n[i][0].negate());
+          }
+          else
+          {
+            Assert(eqr == d_false);
+            new_k = kind::AND;
+            new_children.push_back(j == 0 ? n[i][0].negate() : n[i][0]);
+          }
+          children[i] = n[i][2 - j];
+          Node rem_eq = NodeManager::currentNM()->mkNode(n.getKind(), children);
+          children[i] = n[i];
+          new_children.push_back(rem_eq);
+          Node nc = NodeManager::currentNM()->mkNode(new_k, new_children);
+          Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
+                                 << nc << " by simple ITE pulling."
+                                 << std::endl;
+          return nc;
+        }
+      }
+    }
+  }
+  return Node::null();
+}
+
+
+Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node ret )
+{
+  // TODO
+  std::vector< Node > clauses;
+  Kind k = ret.getKind();
+  if( k==andk )
+  {
+    
+  }
+  else if( k==ork )
+  {
+    
+  }
+  
+  
+  
+  
+  return Node::null();
+}
+
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
 {
   Kind k = ret.getKind(); 
@@ -333,73 +354,30 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   Node new_ret;
   if( k==EQUAL )
   {
-    /*
-    Assert( ret[0].getType().isBitVector() );
-    bool isZero = false;
-    for( unsigned i=0; i<2; i++ )
+    if( d_aggr )
     {
-      if( isConstBv( ret[0], false ) )
+      Assert( ret[0].getType().isBitVector() );
+      bool isZero = false;
+      for( unsigned i=0; i<2; i++ )
       {
-        isZero = true;
-        break;
+        if( isConstBv( ret[0], false ) )
+        {
+          isZero = true;
+          break;
+        }
+      }
+      if( !isZero )
+      {
+        new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], mkNegate( BITVECTOR_NEG, ret[1] ) );
+        Node bv_zero = mkConstBv(ret[0],false);
+        new_ret = new_ret.eqNode(bv_zero);
+        debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
       }
     }
-    if( !isZero )
-    {
-      new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], nm->mkNode( BITVECTOR_NEG, ret[1] ) );
-      Node bv_zero = mkConstBv(ret[0],false);
-      new_ret = new_ret.eqNode(bv_zero);
-      debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
-    }
-    */
   }
   else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
   {
-    bool isAnd = ( k == BITVECTOR_AND );
-    std::unordered_set< unsigned > drops;
-    std::vector< Node > children;
-    unsigned size=ret.getNumChildren();
-    for( unsigned i=0; i<size; i++ )
-    {
-      Node cmpi = isAnd ? ret[i] : nm->mkNode( BITVECTOR_NOT, ret[i] );
-      bool success = true;
-      for( unsigned j=0; j<size; j++ )
-      {
-        if( i!=j && drops.find(j)==drops.end() )
-        {
-          bool cond = isAnd ? bitVectorSubsume( ret[i], ret[j] ) : bitVectorSubsume( ret[j], ret[i] );
-          if( cond )
-          {
-            drops.insert(i);
-            success = false;
-          }
-          Node cmpj = isAnd ? ret[j] : nm->mkNode( BITVECTOR_NOT, ret[j] );
-          if( i<j && bitvectorDisjoint( cmpi, cmpj ) )
-          {
-            new_ret = mkConstBv( ret, !isAnd );
-            debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
-            break;
-          }
-        }
-      }
-      if( !new_ret.isNull() )
-      {
-        break;
-      }
-      if( success )
-      {
-        children.push_back(ret[i]);
-      }
-    }
-    if( new_ret.isNull() )
-    {
-      Assert( !children.empty() );
-      if( children.size()<size )
-      {
-        new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
-        debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
-      }
-    }
+    new_ret = rewriteBvBool( ret );
   }
   else if( k == BITVECTOR_ULT )
   {
@@ -408,14 +386,15 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       new_ret = nm->mkConst(false);
       debugExtendedRewrite( ret, new_ret, "ULT-arith" );
     }
-    /*
-    else if( isConstBv( ret[0], false ) || isConstBv( ret[1], true ) )
+    if( d_aggr )
     {
-      new_ret = ret[0].eqNode( ret[1] );
-      new_ret = new_ret.negate();
-      debugExtendedRewrite( ret, new_ret, "ULT-neq" );
+      if( isConstBv( ret[0], false ) || isConstBv( ret[1], true ) )
+      {
+        new_ret = ret[0].eqNode( ret[1] );
+        new_ret = new_ret.negate();
+        debugExtendedRewrite( ret, new_ret, "ULT-neq" );
+      }
     }
-    */
   }
   else if( k == BITVECTOR_SLT )
   {
@@ -438,7 +417,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     // miniscope
     if( ret[0].getKind()==BITVECTOR_SHL )
     {
-      new_ret = nm->mkNode( BITVECTOR_SHL, nm->mkNode( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
+      new_ret = nm->mkNode( BITVECTOR_SHL, mkNegate( BITVECTOR_NEG, ret[0][0] ), ret[0][1] );
       debugExtendedRewrite( ret, new_ret, "NEG-SHL-miniscope" );
     }
     else if( ret[0].getKind()==BITVECTOR_NOT )
@@ -462,7 +441,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     if( ck==BITVECTOR_PLUS && hasConstBvChild( ret[0] ) )
     {
       Node max_bv = mkConstBv(ret[0],true);
-      Node c = nm->mkNode( BITVECTOR_NEG, ret[0] );
+      Node c = mkNegate( BITVECTOR_NEG, ret[0] );
       new_ret = nm->mkNode( BITVECTOR_PLUS, c, max_bv );
       debugExtendedRewrite( ret, new_ret, "NOT-plus-miniscope" );
     }
@@ -489,32 +468,33 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
   unsigned size = bv::utils::getSize(ret);
   Node bv_one = bv::utils::mkOne(size);
   Node bv_neg_one = bv::utils::mkOnes(size);
-  /*
-  if( k == BITVECTOR_PLUS )
+  if( d_aggr )
   {
-    std::vector< Node > nconst;
-    Node cc = getConstBvChild(ret, nconst);
-    if( !cc.isNull() && ( cc==bv_one || cc==bv_neg_one ) )
+    if( k == BITVECTOR_PLUS )
     {
-      Node rem = nconst.size()==1 ? nconst[0] : nm->mkNode( k, nconst );
-      if( cc==bv_one )
+      std::vector< Node > nconst;
+      Node cc = getConstBvChild(ret, nconst);
+      if( !cc.isNull() && ( cc==bv_one || cc==bv_neg_one ) )
       {
-        // x+1 ---> -( ~x )
-        new_ret = nm->mkNode( BITVECTOR_NEG, nm->mkNode( BITVECTOR_NOT, rem ) );
+        Node rem = nconst.size()==1 ? nconst[0] : nm->mkNode( k, nconst );
+        if( cc==bv_one )
+        {
+          // x+1 ---> -( ~x )
+          new_ret = nm->mkNode( BITVECTOR_NEG, mkNegate( BITVECTOR_NOT, rem ) );
+        }
+        else if( cc==bv_neg_one )
+        {
+          // x-1 ---> ~( -x )
+          new_ret = nm->mkNode( BITVECTOR_NOT, mkNegate( BITVECTOR_NEG, rem ) );
+        }
       }
-      else if( cc==bv_neg_one )
+      if( !new_ret.isNull() )
       {
-        // x-1 ---> ~( -x )
-        new_ret = nm->mkNode( BITVECTOR_NOT, nm->mkNode( BITVECTOR_NEG, rem ) );
+        debugExtendedRewrite( ret, new_ret, "arith-plus-elim" );
+        return new_ret;
       }
-    }
-    if( !new_ret.isNull() )
-    {
-      debugExtendedRewrite( ret, new_ret, "arith-plus-elim" );
-      return new_ret;
     }
   }
-  */
   
   std::vector< Node > rchildren;
   bool rchildrenChanged = false;
@@ -531,14 +511,7 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
     if( isNeg )
     {
       // negate it
-      if( rcc.getKind()==BITVECTOR_NEG )
-      {
-        rcc = rcc[0];
-      }
-      else
-      {
-        rcc = nm->mkNode( BITVECTOR_NEG, rcc );
-      }
+      rcc = mkNegate( BITVECTOR_NEG, rcc );
     }
     rchildren.push_back( rcc );
   }
@@ -595,7 +568,7 @@ Node ExtendedRewriter::rewriteBvShift( Node ret )
   Node new_ret;
   
   std::vector< Node > cchildren;
-  Node base = decomposeChain( k, ret, cchildren );
+  Node base = decomposeRightAssocChain( k, ret, cchildren );
   
   if( k == BITVECTOR_LSHR )
   {
@@ -649,13 +622,75 @@ Node ExtendedRewriter::rewriteBvShift( Node ret )
     }
   }
   std::sort( cchildren.begin(), cchildren.end() );
-  new_ret = mkChain( k, base, cchildren );
+  new_ret = mkRightAssocChain( k, base, cchildren );
   if( new_ret!=ret )
   {
     debugExtendedRewrite( ret, new_ret, "shift-sort-arith" );
     return new_ret;
   }
   return Node::null();
+}
+
+
+Node ExtendedRewriter::rewriteBvBool( Node ret )
+{
+  Kind k = ret.getKind();
+  Assert( k == BITVECTOR_AND || k == BITVECTOR_OR );
+  NodeManager * nm = NodeManager::currentNM();
+  Node new_ret;
+  
+  bool isAnd = ( k == BITVECTOR_AND );
+  std::unordered_set< unsigned > drops;
+  std::vector< Node > children;
+  unsigned size=ret.getNumChildren();
+  for( unsigned i=0; i<size; i++ )
+  {
+    Node cmpi = isAnd ? ret[i] : mkNegate( BITVECTOR_NOT, ret[i] );
+    bool success = true;
+    for( unsigned j=0; j<size; j++ )
+    {
+      if( i!=j && drops.find(j)==drops.end() )
+      {
+        bool cond = isAnd ? bitVectorSubsume( ret[i], ret[j] ) : bitVectorSubsume( ret[j], ret[i] );
+        if( cond )
+        {
+          drops.insert(i);
+          success = false;
+        }
+        Node cmpj = isAnd ? ret[j] : mkNegate( BITVECTOR_NOT, ret[j] );
+        if( i<j && bitvectorDisjoint( cmpi, cmpj ) )
+        {
+          new_ret = mkConstBv( ret, !isAnd );
+          debugExtendedRewrite( ret, new_ret, "AND/OR-disjoint" );
+          return new_ret;
+        }
+      }
+    }
+    if( success )
+    {
+      children.push_back(ret[i]);
+    }
+  }
+  Assert( !children.empty() );
+  if( children.size()<size )
+  {
+    new_ret = children.size()==1 ? children[0] : nm->mkNode( k, children );
+    debugExtendedRewrite( ret, new_ret, "AND/OR subsume" );
+    return new_ret;
+  }
+  
+  // Boolean constraint propagation
+  if( d_aggr )
+  {
+    new_ret = extendedRewriteBcp( BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_NOT, ret );
+    if( !new_ret.isNull() )
+    {
+      debugExtendedRewrite( ret, new_ret, "BV bcp" );
+      return new_ret;
+    }
+  }
+  
+  return ret;
 }
 
 bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
@@ -781,7 +816,7 @@ bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
   return false;
 }
 
-Node ExtendedRewriter::decomposeChain( Kind k, Node n, std::vector< Node >& children )
+Node ExtendedRewriter::decomposeRightAssocChain( Kind k, Node n, std::vector< Node >& children )
 {
   Node curr = n;
   while( curr.getKind()==k )
@@ -792,7 +827,7 @@ Node ExtendedRewriter::decomposeChain( Kind k, Node n, std::vector< Node >& chil
   return curr;
 }
 
-Node ExtendedRewriter::mkChain( Kind k, Node base, std::vector< Node >& children )
+Node ExtendedRewriter::mkRightAssocChain( Kind k, Node base, std::vector< Node >& children )
 {
   NodeManager * nm = NodeManager::currentNM();
   Node curr = base;
@@ -817,6 +852,18 @@ bool ExtendedRewriter::isConstBv( Node n, bool isNot )
     return n==const_n;
   }
   return false;
+}
+
+Node ExtendedRewriter::mkNegate( Kind k, Node n )
+{
+  if( n.getKind()==k )
+  {
+    return n[0];
+  }
+  else
+  {
+    return NodeManager::currentNM()->mkNode( k, n );
+  }
 }
 
 Node ExtendedRewriter::getConstBvChild( Node n, std::vector< Node >& nconst )
@@ -906,7 +953,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
       for( std::map< Node, Node >::iterator it = n_msum.begin(); it != n_msum.end(); ++it )
       {
         Node coeff = it->second;
-        n_msum[it->first] = nm->mkNode( BITVECTOR_NEG, coeff );
+        n_msum[it->first] = mkNegate( BITVECTOR_NEG, coeff );
       }
     }
     else if( k == BITVECTOR_NOT )
@@ -977,7 +1024,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         Node cnb = cn;
         if( cnb.getKind()==BITVECTOR_SHL )
         {
-          cnb = decomposeChain( BITVECTOR_SHL, cnb, shls );
+          cnb = decomposeRightAssocChain( BITVECTOR_SHL, cnb, shls );
         }
         std::map< Node, Node > cn_msum;
         getBvMonomialSum( cnb, cn_msum );
@@ -1016,7 +1063,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
       }
       if( !shls.empty() )
       {
-        v = mkChain( BITVECTOR_SHL, v, shls );
+        v = mkRightAssocChain( BITVECTOR_SHL, v, shls );
       }
       Trace("q-ext-rewrite-debug2") << "...got " << v << " * " << coeff << std::endl;
       n_msum[v] = coeff;

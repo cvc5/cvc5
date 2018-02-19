@@ -45,6 +45,7 @@ class ExtendedRewriter
  public:
   ExtendedRewriter(bool aggr = true);
   ~ExtendedRewriter() {}
+  
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n);
 
@@ -60,11 +61,15 @@ class ExtendedRewriter
    * may be applied as a preprocessing step.
    */
   bool d_aggr;
+  /** cache for extendedRewrite */
+  std::unordered_map<Node, Node, NodeHashFunction> d_ext_rewrite_cache;  
+  /** extended rewrite aggressive */
+  Node extendedRewriteAggr(Node n);
+  
+  //--------------------------------------generic utilities
   /** true and false nodes */
   Node d_true;
   Node d_false;
-  /** cache for extendedRewrite */
-  std::unordered_map<Node, Node, NodeHashFunction> d_ext_rewrite_cache;
   /** pull ITE
    * Do simple ITE pulling, e.g.:
    *   C2 --->^E false
@@ -73,6 +78,29 @@ class ExtendedRewriter
    * where ---->^E denotes extended rewriting.
    */
   Node extendedRewritePullIte(Node n);
+  /** rewrite bcp */
+  Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node n );
+  /** mk negate (NOT, BITVECTOR_NOT, BITVECTOR_NEG) */
+  Node mkNegate( Kind k, Node n );
+  /** decompose chain */
+  Node decomposeRightAssocChain( Kind k, Node n, std::vector< Node >& children );
+  /** chain */
+  Node mkRightAssocChain( Kind k, Node base, std::vector< Node >& children );
+  /** extended rewrite 
+   * 
+   * Prints debug information, indicating the rewrite n ---> ret was found.
+   */
+  void debugExtendedRewrite( Node n, Node ret, const char * c );
+  //--------------------------------------end generic utilities
+  
+  //--------------------------------------theory-specific top-level calls
+  /** extended rewrite arith */
+  Node extendedRewriteArith( Node ret, bool& pol );
+  /** extended rewrite bv */
+  Node extendedRewriteBv( Node ret, bool& pol );
+  //--------------------------------------end theory-specific top-level calls
+  
+  
   /** bitvector subsume 
    * 
    * Returns true if a's 1 bits are a superset of b's 1 bits.
@@ -96,22 +124,6 @@ class ExtendedRewriter
    *   (bvand a b) = 0.
    */
   bool bitvectorDisjoint( Node a, Node b );
-  /** extended rewrite 
-   * 
-   * Prints debug information, indicating the rewrite n ---> ret was found.
-   */
-  void debugExtendedRewrite( Node n, Node ret, const char * c );
-  /** decompose chain */
-  Node decomposeChain( Kind k, Node n, std::vector< Node >& children );
-  /** chain */
-  Node mkChain( Kind k, Node base, std::vector< Node >& children );
-  
-  
-  /** extended rewrite arith */
-  Node extendedRewriteArith( Node ret, bool& pol );
-  /** extended rewrite bv */
-  Node extendedRewriteBv( Node ret, bool& pol );
-  
   
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv( Node n, bool isNot );
@@ -119,26 +131,22 @@ class ExtendedRewriter
   bool isConstBv( Node n, bool isNot );
   /** get const child */
   Node getConstBvChild( Node n, std::vector< Node >& nconst );
+  /** has const child */
+  bool hasConstBvChild( Node n );
   /** */
   Node rewriteBvArith( Node ret );
   /** */
   Node rewriteBvShift( Node ret );
-  
-  
+  /** */
+  Node rewriteBvBool( Node ret );
   /** */
   Node normalizeBvMonomial( Node n );
-  
   /** get monomial sum */
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
-  
   /** mkNode */
   Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum );
   
-  /** has const child */
-  bool hasConstBvChild( Node n );
   
-  /** extended rewrite aggressive */
-  Node extendedRewriteAggr(Node n);
 };
 
 } /* CVC4::theory::quantifiers namespace */
