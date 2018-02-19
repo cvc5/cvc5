@@ -5064,7 +5064,7 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest &logicRequest, ArithSkolemI
     }
 
     Node skolem;
-    if( options::arithNoPartial() )
+    if( options::arithNoPartialFun() )
     {
       // partial function: division
       skolem =
@@ -5090,7 +5090,7 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest &logicRequest, ArithSkolemI
 Node TheoryArithPrivate::getArithSkolemApp(LogicRequest &logicRequest, Node n, ArithSkolemId asi)
 {
   Node skolem = getArithSkolem( logicRequest, asi );
-  if( !options::arithNoPartial() )
+  if( !options::arithNoPartialFun() )
   {
     skolem = NodeManager::currentNM()->mkNode( APPLY_UF, skolem, n );
   }

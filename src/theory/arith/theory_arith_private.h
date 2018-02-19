@@ -862,7 +862,7 @@ private:
    * By default, this returns the term f( n ), where f is the Skolem function
    * for the identifier asi. 
    * 
-   * If the option arithNoPartialFun() is enabled, this returns f, where f is
+   * If the option arithNoPartialFun is enabled, this returns f, where f is
    * the Skolem constant for the identifier asi.
    */
   Node getArithSkolemApp( LogicRequest &logicRequest, Node n, ArithSkolemId asi );
