@@ -307,13 +307,13 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
   Node falsen = TermUtil::mkTypeValue(tn, 0);
   
   // specify legal BCP kinds
-  std::unordered_set< Kind > bcp_kinds;
+  std::map< Kind, bool > bcp_kinds;
   if( tn.isBitVector() )
   {
-    bcp_kinds.insert( BITVECTOR_AND );
-    bcp_kinds.insert( BITVECTOR_OR );
-    bcp_kinds.insert( BITVECTOR_NOT );
-    bcp_kinds.insert( BITVECTOR_XOR );
+    bcp_kinds[BITVECTOR_AND] = true;
+    bcp_kinds[BITVECTOR_OR] = true;
+    bcp_kinds[BITVECTOR_NOT] = true;
+    bcp_kinds[BITVECTOR_XOR] = true;
   }
   
   // terms to process
@@ -463,7 +463,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
 }
 
 
-Node ExtendedRewriter::substituteBcp( Node n, std::map< Node, Node >& assign, std::unordered_set< Kind >& bcp_kinds )
+Node ExtendedRewriter::substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds )
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
