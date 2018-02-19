@@ -3297,7 +3297,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     Kind k = tfs.first;
     if (k == PI)
     {
-      // we do not use Taylor approximation for PI currently
+      // We do not use Taylor approximation for PI currently.
+      // This is because the convergence is extremely slow, and hence an
+      // initial approximation is superior.
       continue;
     }
     Node tft = nm->mkNode(k, d_zero);
