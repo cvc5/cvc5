@@ -262,6 +262,13 @@ else
   echo "$expected_output" >"$expoutfile"
 fi
 
+if [ "$lang" = sygus ]; then
+  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-synth-sol' &>/dev/null &&
+     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-synth-sol' &>/dev/null; then
+    # later on, we'll run another test with --check-models on
+    command_line="$command_line --check-synth-sol"
+  fi
+fi
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
   if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
@@ -406,5 +413,6 @@ if $check_models || $check_proofs || $check_unsat_cores; then
     exitcode=1
   fi
 fi
+
 
 exit $exitcode

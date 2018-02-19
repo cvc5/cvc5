@@ -61,6 +61,17 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::SINE, "sin");
   addOperator(kind::COSINE, "cos");
   addOperator(kind::TANGENT, "tan");
+  addOperator(kind::COSECANT, "csc");
+  addOperator(kind::SECANT, "sec");
+  addOperator(kind::COTANGENT, "cot");
+  addOperator(kind::ARCSINE, "arcsin");
+  addOperator(kind::ARCCOSINE, "arccos");
+  addOperator(kind::ARCTANGENT, "arctan");
+  addOperator(kind::ARCCOSECANT, "arccsc");
+  addOperator(kind::ARCSECANT, "arcsec");
+  addOperator(kind::ARCCOTANGENT, "arccot");
+
+  addOperator(kind::SQRT, "sqrt");
 }
 
 void Smt2::addBitvectorOperators() {
@@ -240,14 +251,22 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INSERT, "insert");
     addOperator(kind::CARD, "card");
     addOperator(kind::COMPLEMENT, "complement");
+    addOperator(kind::JOIN, "join");
+    addOperator(kind::PRODUCT, "product");
+    addOperator(kind::TRANSPOSE, "transpose");
+    addOperator(kind::TCLOSURE, "tclosure");
     break;
 
   case THEORY_DATATYPES:
+  {
+    const std::vector<Type> types;
+    defineType("Tuple", getExprManager()->mkTupleType(types));
     Parser::addOperator(kind::APPLY_CONSTRUCTOR);
     Parser::addOperator(kind::APPLY_TESTER);
     Parser::addOperator(kind::APPLY_SELECTOR);
     Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
     break;
+  }
 
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
@@ -373,7 +392,6 @@ void Smt2::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, Type> >& sortedVarNames,
     Expr func,
     const std::vector<Expr>& flattenVars,
-    Expr& func_app,
     std::vector<Expr>& bvs,
     bool bindingLevel)
 {
@@ -391,17 +409,6 @@ void Smt2::pushDefineFunRecScope(
   }
 
   bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
-
-  // make the function application
-  if (bvs.empty())
-  {
-    // it has no arguments
-    func_app = func;
-  }
-  else
-  {
-    func_app = getExprManager()->mkExpr(kind::APPLY_UF, f_app);
-  }
 }
 
 void Smt2::reset() {

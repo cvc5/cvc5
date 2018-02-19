@@ -1,4 +1,4 @@
-SUBDIRS = boolean arith . 
+SUBDIRS = boolean . 
 
 # don't override a BINARY imported from a personal.mk
 @mk_if@eq ($(BINARY),)
@@ -32,31 +32,18 @@ SMT2_TESTS = \
   tiny_bug.smt2
 
 BUG_TESTS = \
-	bug216.smt2 \
 	bug233.cvc \
-	bug326.smt2 \
-	arith_lra_01.smt2 \
-  arith_lra_02.smt2 \
-  quant-fun-proc.smt2 \
-  quant-fun-proc-unmacro.smt2 \
-  quant-fun-proc-unfd.smt2 \
-  bug654-dd.smt2 \
-  bug-fmf-fun-skolem.smt2 \
-  bug674.smt2 \
-  inc-double-u.smt2 \
-  fmf-fun-dbu.smt2 \
-  inc-define.smt2 \
-  bug765.smt2 \
-  bug691.smt2 \
-  bug694-Unapply1.scala-0.smt2 \
-  simple_unsat_cores.smt2 \
-  bug821.smt2
+	quant-fun-proc-unfd.smt2 \
+	bug654-dd.smt2 \
+	inc-double-u.smt2 \
+	inc-define.smt2 \
+	bug691.smt2 \
+	simple_unsat_cores.smt2 \
+	bug821.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
-EXTRA_DIST = $(TESTS) \
-	bug216.smt2.expect \
-	bug396.smt2
+EXTRA_DIST = $(TESTS)
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

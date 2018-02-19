@@ -400,8 +400,7 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 } /* NodeManager::TopologicalSort() */
 
 TypeNode NodeManager::getType(TNode n, bool check)
-  throw(TypeCheckingExceptionPrivate, AssertionException) {
-
+{
   // Many theories' type checkers call Node::getType() directly.  This
   // is incorrect, since "this" might not be the caller's curent node
   // manager.  Rather than force the individual typecheckers not to do

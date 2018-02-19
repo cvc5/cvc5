@@ -461,10 +461,9 @@ public:
   /** Destroys a theory engine */
   ~TheoryEngine();
 
-  void interrupt() throw(ModalException);
-  /**
-   * "Spend" a resource during a search or preprocessing.
-   */
+  void interrupt();
+
+  /** "Spend" a resource during a search or preprocessing.*/
   void spendResource(unsigned amount);
 
   /**
@@ -707,7 +706,7 @@ public:
   /**
    * collect model info
    */
-  void collectModelInfo( theory::TheoryModel* m );
+  bool collectModelInfo(theory::TheoryModel* m);
   /** post process model */
   void postProcessModel( theory::TheoryModel* m );
 
@@ -715,6 +714,17 @@ public:
    * Get the current model
    */
   theory::TheoryModel* getModel();
+
+  /** get synth solutions
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * For details on what is added to sol_map, see
+   * CegConjecture::getSynthSolutions.
+   */
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
 
   /**
    * Get the model builder
@@ -855,17 +865,20 @@ private:
   std::set< std::string > d_theoryAlternatives;
 
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
-public:
 
-  /**
-   * Set user attribute.
-   * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
-   * via the syntax (! n :attr)
+ public:
+  /** Set user attribute.
+   * 
+   * This function is called when an attribute is set by a user.  In SMT-LIBv2
+   * this is done via the syntax (! n :attr)
    */
-  void setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value);
+  void setUserAttribute(const std::string& attr,
+                        Node n,
+                        const std::vector<Node>& node_values,
+                        const std::string& str_value);
 
-  /**
-   * Handle user attribute.
+  /** Handle user attribute.
+   * 
    * Associates theory t with the attribute attr.  Theory t will be
    * notified whenever an attribute of name attr is set.
    */
@@ -877,7 +890,7 @@ public:
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
 
-private:
+ private:
   IntStat d_arithSubstitutionsAdded;
 
 };/* class TheoryEngine */

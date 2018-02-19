@@ -22,14 +22,15 @@
 #include <iostream>
 #include <map>
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/datatype.h"
 #include "expr/node.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -37,19 +38,6 @@ namespace theory {
 namespace datatypes {
 
 class TheoryDatatypes;
-
-class SygusSplitNew
-{
-private:
-  quantifiers::TermDbSygus * d_tds;
-  std::map< Node, std::vector< Node > > d_splits;
-public:
-  SygusSplitNew( quantifiers::TermDbSygus * tds ) : d_tds( tds ){}
-  virtual ~SygusSplitNew(){}
-  /** get sygus splits */
-  void getSygusSplits( Node n, const Datatype& dt, std::vector< Node >& splits, std::vector< Node >& lemmas );
-  static Node getSygusSplit( quantifiers::TermDbSygus * tds, Node n, const Datatype& dt );
-};
 
 class SygusSymBreakNew
 {
@@ -59,7 +47,6 @@ private:
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   IntMap d_testers;
   IntMap d_is_const;
@@ -81,14 +68,34 @@ private:
     SearchCache(){}
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sb_lemmas;
-    // search values
+    /** search value
+     *
+     * For each sygus type, a map from a builtin term to a sygus term for that
+     * type that we encountered during the search whose analog rewrites to that
+     * term. The range of this map can be updated if we later encounter a sygus
+     * term that also rewrites to the builtin value but has a smaller term size.
+     */
     std::map< TypeNode, std::map< Node, Node > > d_search_val;
+    /** the size of terms in the range of d_search val. */
     std::map< TypeNode, std::map< Node, unsigned > > d_search_val_sz;
-    std::map< TypeNode, std::map< Node, Node > > d_search_val_b;
+    /** search value sample
+     *
+     * This is used for the sygusRewVerify() option. For each sygus term we
+     * register in this cache, this stores the value returned by calling
+     * SygusSample::registerTerm(...) on its analog.
+     */
+    std::map<Node, Node> d_search_val_sample;
+    /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };
   // anchor -> cache
   std::map< Node, SearchCache > d_cache;
+  /** a sygus sampler object for each anchor
+   *
+   * This is used for the sygusRewVerify() option to verify the correctness of
+   * the rewriter.
+   */
+  std::map<Node, quantifiers::SygusSampler> d_sampler;
   Node d_null;
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
   // register search term
@@ -164,7 +171,6 @@ public:
   void assertFact( Node n, bool polarity, std::vector< Node >& lemmas );
   void preRegisterTerm( TNode n, std::vector< Node >& lemmas  );
   void check( std::vector< Node >& lemmas );
-  void getPossibleCons( const Datatype& dt, TypeNode tn, std::vector< bool >& pcons );
 public:
   Node getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas );
 };

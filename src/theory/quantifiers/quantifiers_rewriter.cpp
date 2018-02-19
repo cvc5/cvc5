@@ -16,11 +16,12 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -537,7 +538,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
     Trace("quantifiers-rewrite-term-debug2") << "Return (cached) " << ret << " for " << body << std::endl;
   }else{
     //only do context dependent processing up to depth 8
-    bool doCD = nCurrCond<8;
+    bool doCD = options::condRewriteQuant() && nCurrCond < 8;
     bool changed = false;
     std::vector< Node > children;
     //set entailed conditions based on OR/AND
@@ -890,18 +891,121 @@ void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& ex
   }
 }
 
-bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs,
-                                                  std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds ) {
-  if( lit.getKind()==EQUAL && pol && options::varElimQuant() ){
-    for( unsigned i=0; i<2; i++ ){
-      std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit[i] );
-      if( ita!=args.end() ){
-        if( isVariableElim( lit[i], lit[1-i] ) ){
-          Trace("var-elim-quant") << "Variable eliminate based on equality : " << lit[i] << " -> " << lit[1-i] << std::endl;
-          vars.push_back( lit[i] );
-          subs.push_back( lit[1-i] );
-          args.erase( ita );
-          return true;
+Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
+                                                   std::vector<Node>& args,
+                                                   Node& var)
+{
+  if (Trace.isOn("quant-velim-bv"))
+  {
+    Trace("quant-velim-bv") << "Bv-Elim : " << lit << " varList = { ";
+    for (const Node& v : args)
+    {
+      Trace("quant-velim-bv") << v << " ";
+    }
+    Trace("quant-velim-bv") << "} ?" << std::endl;
+  }
+  Assert(lit.getKind() == EQUAL);
+  // TODO (#1494) : linearize the literal using utility
+
+  // figure out if this literal is linear and invertible on path with args
+  std::map<TNode, bool> linear;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(lit);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (std::find(args.begin(), args.end(), cur) != args.end())
+    {
+      bool lval = linear.find(cur) == linear.end();
+      linear[cur] = lval;
+    }
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+
+  BvInverter binv;
+  for (std::pair<const TNode, bool>& lp : linear)
+  {
+    if (lp.second)
+    {
+      TNode cvar = lp.first;
+      Trace("quant-velim-bv") << "...linear wrt " << cvar << std::endl;
+      std::vector<unsigned> path;
+      Node slit = binv.getPathToPv(lit, cvar, path);
+      if (!slit.isNull())
+      {
+        Node slv = binv.solveBvLit(cvar, lit, path, nullptr);
+        Trace("quant-velim-bv") << "...solution : " << slv << std::endl;
+        if (!slv.isNull())
+        {
+          var = cvar;
+          return slv;
+        }
+      }
+      else
+      {
+        Trace("quant-velim-bv") << "...non-invertible path." << std::endl;
+      }
+    }
+  }
+
+  return Node::null();
+}
+
+bool QuantifiersRewriter::computeVariableElimLit(
+    Node lit,
+    bool pol,
+    std::vector<Node>& args,
+    std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::map<bool, std::map<Node, bool> > >& num_bounds)
+{
+  Trace("var-elim-quant-debug")
+      << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
+  if (lit.getKind() == EQUAL && options::varElimQuant())
+  {
+    if (pol || lit[0].getType().isBoolean())
+    {
+      for (unsigned i = 0; i < 2; i++)
+      {
+        bool tpol = pol;
+        Node v_slv = lit[i];
+        if (v_slv.getKind() == NOT)
+        {
+          v_slv = v_slv[0];
+          tpol = !tpol;
+        }
+        std::vector<Node>::iterator ita =
+            std::find(args.begin(), args.end(), v_slv);
+        if (ita != args.end())
+        {
+          if (isVariableElim(v_slv, lit[1 - i]))
+          {
+            Node slv = lit[1 - i];
+            if (!tpol)
+            {
+              Assert(slv.getType().isBoolean());
+              slv = slv.negate();
+            }
+            Trace("var-elim-quant")
+                << "Variable eliminate based on equality : " << v_slv << " -> "
+                << slv << std::endl;
+            vars.push_back(v_slv);
+            subs.push_back(slv);
+            args.erase(ita);
+            return true;
+          }
         }
       }
     }
@@ -996,7 +1100,28 @@ bool QuantifiersRewriter::computeVariableElimLit( Node lit, bool pol, std::vecto
       }
     }
   }
-  
+  else if (lit.getKind() == EQUAL && lit[0].getType().isBitVector() && pol
+           && options::varElimQuant())
+  {
+    Node var;
+    Node slv = computeVariableElimLitBv(lit, args, var);
+    if (!slv.isNull())
+    {
+      Assert(!var.isNull());
+      std::vector<Node>::iterator ita =
+          std::find(args.begin(), args.end(), var);
+      Assert(ita != args.end());
+      Assert(isVariableElim(var, slv));
+      Trace("var-elim-quant")
+          << "Variable eliminate based on bit-vector inversion : " << var
+          << " -> " << slv << std::endl;
+      vars.push_back(var);
+      subs.push_back(slv);
+      args.erase(ita);
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -1559,21 +1684,39 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
 bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
   bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
   bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger;
-  if( computeOption==COMPUTE_ELIM_SYMBOLS ){
+  if (computeOption == COMPUTE_ELIM_SYMBOLS)
+  {
     return true;
-  }else if( computeOption==COMPUTE_MINISCOPING ){
+  }
+  else if (computeOption == COMPUTE_MINISCOPING)
+  {
     return is_std;
-  }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
+  }
+  else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
+  {
     return options::aggressiveMiniscopeQuant() && is_std;
-  }else if( computeOption==COMPUTE_PROCESS_TERMS ){
-    return options::condRewriteQuant();
-  }else if( computeOption==COMPUTE_COND_SPLIT ){
-    return ( options::iteDtTesterSplitQuant() || options::condVarSplitQuant() ) && !is_strict_trigger;
-  }else if( computeOption==COMPUTE_PRENEX ){
-    return options::prenexQuant()!=PRENEX_QUANT_NONE && !options::aggressiveMiniscopeQuant() && is_std;
-  }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
-    return ( options::varElimQuant() || options::dtVarExpandQuant() ) && is_std;
-  }else{
+  }
+  else if (computeOption == COMPUTE_PROCESS_TERMS)
+  {
+    return options::condRewriteQuant() || options::elimExtArithQuant()
+           || options::iteLiftQuant() != ITE_LIFT_QUANT_MODE_NONE;
+  }
+  else if (computeOption == COMPUTE_COND_SPLIT)
+  {
+    return (options::iteDtTesterSplitQuant() || options::condVarSplitQuant())
+           && !is_strict_trigger;
+  }
+  else if (computeOption == COMPUTE_PRENEX)
+  {
+    return options::prenexQuant() != PRENEX_QUANT_NONE
+           && !options::aggressiveMiniscopeQuant() && is_std;
+  }
+  else if (computeOption == COMPUTE_VAR_ELIMINATION)
+  {
+    return (options::varElimQuant() || options::dtVarExpandQuant()) && is_std;
+  }
+  else
+  {
     return false;
   }
 }

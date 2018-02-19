@@ -88,14 +88,12 @@ public:
    * input will use the standard ANTLR3 I/O implementation.
    */
   static AntlrInputStream* newFileInputStream(const std::string& name,
-                                              bool useMmap = false)
-    throw (InputStreamException);
+                                              bool useMmap = false);
 
   /** Create an input from an istream. */
   static AntlrInputStream* newStreamInputStream(std::istream& input,
                                                 const std::string& name,
-                                                bool lineBuffered = false)
-    throw (InputStreamException);
+                                                bool lineBuffered = false);
 
   /** Create a string input.
    * NOTE: the new AntlrInputStream will take ownership of input over
@@ -105,8 +103,7 @@ public:
    * @param name the "filename" to use when reporting errors
    */
   static AntlrInputStream* newStringInputStream(const std::string& input,
-                                                const std::string& name)
-    throw (InputStreamException);
+                                                const std::string& name);
 };/* class AntlrInputStream */
 
 class Parser;
@@ -223,13 +220,12 @@ protected:
   /**
    * Issue a non-fatal warning to the user with file, line, and column info.
    */
-  void warning(const std::string& msg);
+  void warning(const std::string& msg) override;
 
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  void parseError(const std::string& msg, bool eofException = false)
-    throw (ParserException);
+  void parseError(const std::string& msg, bool eofException = false) override;
 
   /** Set the ANTLR3 lexer for this input. */
   void setAntlr3Lexer(pANTLR3_LEXER pLexer);
@@ -238,7 +234,7 @@ protected:
   void setAntlr3Parser(pANTLR3_PARSER pParser);
 
   /** Set the Parser object for this input. */
-  virtual void setParser(Parser& parser);
+  void setParser(Parser& parser) override;
 };/* class AntlrInput */
 
 inline std::string AntlrInput::tokenText(pANTLR3_COMMON_TOKEN token) {

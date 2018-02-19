@@ -26,7 +26,11 @@ TESTS =	\
 	lpsat-goal-9.smt2 \
 	prp-13-24.smt2
 
-EXTRA_DIST = $(TESTS)
+
+EXTRA_DIST = $(TESTS) \
+	miplib-opt1217--27.smt2 \
+	miplib-pp08a-3000.smt2 \
+	arith-int-098.cvc
 
 # synonyms for "check" in this directory
 .PHONY: regress regress2 test

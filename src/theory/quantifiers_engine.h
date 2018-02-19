@@ -22,8 +22,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "options/quantifiers_modes.h"
 #include "theory/quantifiers/inst_match.h"
@@ -95,8 +95,8 @@ class QuantifiersEngine {
   friend class quantifiers::QuantConflictFind;
   friend class inst::InstMatch;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDChunkList<bool> BoolList;
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 private:
   /** reference to theory engine object */
@@ -399,6 +399,18 @@ public:
   void getExplanationForInstLemmas(const std::vector<Node>& lems,
                                    std::map<Node, Node>& quant,
                                    std::map<Node, std::vector<Node> >& tvec);
+
+  /** get synth solutions
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * For details on what is added to sol_map, see
+   * CegConjecture::getSynthSolutions.
+   */
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
+
   //----------end user interface for instantiations
 
   /** statistics class */

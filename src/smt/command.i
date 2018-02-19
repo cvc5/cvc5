@@ -9,15 +9,14 @@
 #endif /* SWIGJAVA */
 %}
 
-%ignore CVC4::operator<<(std::ostream&, const Command&) throw();
-%ignore CVC4::operator<<(std::ostream&, const Command*) throw();
-%ignore CVC4::operator<<(std::ostream&, const CommandStatus&) throw();
-%ignore CVC4::operator<<(std::ostream&, const CommandStatus*) throw();
-%ignore CVC4::operator<<(std::ostream&, BenchmarkStatus status) throw();
-%ignore CVC4::operator<<(std::ostream&, CommandPrintSuccess) throw();
+%ignore CVC4::operator<<(std::ostream&, const Command&);
+%ignore CVC4::operator<<(std::ostream&, const Command*);
+%ignore CVC4::operator<<(std::ostream&, const CommandStatus&);
+%ignore CVC4::operator<<(std::ostream&, const CommandStatus*);
+%ignore CVC4::operator<<(std::ostream&, BenchmarkStatus status);
+%ignore CVC4::operator<<(std::ostream&, CommandPrintSuccess);
 
 %ignore CVC4::GetProofCommand;
-%ignore CVC4::CommandPrintSuccess::Scope;
 
 #ifdef SWIGJAVA
 

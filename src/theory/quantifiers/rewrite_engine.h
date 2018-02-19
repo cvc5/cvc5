@@ -18,10 +18,9 @@
 #ifndef __CVC4__REWRITE_ENGINE_H
 #define __CVC4__REWRITE_ENGINE_H
 
-#include "context/cdchunk_list.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers_engine.h"
 
@@ -50,7 +49,6 @@ private:
   int checkRewriteRule( Node f, Theory::Effort e );
 public:
   RewriteEngine( context::Context* c, QuantifiersEngine* qe );
-  ~RewriteEngine() throw() {}
 
   bool needsCheck( Theory::Effort e );
   void check(Theory::Effort e, QEffort quant_e);

@@ -28,7 +28,7 @@ namespace CVC4 {
 class Random
 {
  public:
-  Random(uint64_t seed) : d_seed(seed), d_state(seed) {}
+  Random(uint64_t seed) { setSeed(seed); }
 
   /* Get current RNG (singleton).  */
   static Random& getRandom()
@@ -40,8 +40,8 @@ class Random
   /* Set seed of Random.  */
   void setSeed(uint64_t seed)
   {
-    d_seed = seed;
-    d_state = seed;
+    d_seed = seed == 0 ? ~seed : seed;
+    d_state = d_seed;
   }
 
   /* Next random uint64_t number. */

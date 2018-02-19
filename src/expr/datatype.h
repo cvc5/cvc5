@@ -88,7 +88,7 @@ public:
  * An exception that is thrown when a datatype resolution fails.
  */
 class CVC4_PUBLIC DatatypeResolutionException : public Exception {
-public:
+ public:
   inline DatatypeResolutionException(std::string msg);
 };/* class DatatypeResolutionException */
 
@@ -113,7 +113,7 @@ class CVC4_PUBLIC DatatypeUnresolvedType {
   std::string d_name;
 public:
   inline DatatypeUnresolvedType(std::string name);
-  inline std::string getName() const throw();
+  inline std::string getName() const;
 };/* class DatatypeUnresolvedType */
 
 /**
@@ -122,10 +122,10 @@ public:
 class CVC4_PUBLIC DatatypeConstructorArg {
   friend class DatatypeConstructor;
   friend class Datatype;
-public:
 
+ public:
   /** Get the name of this constructor argument. */
-  std::string getName() const throw();
+  std::string getName() const;
 
   /**
    * Get the selector for this constructor argument; this call is
@@ -161,7 +161,7 @@ public:
   /**
    * Returns true iff this constructor argument has been resolved.
    */
-  bool isResolved() const throw();
+  bool isResolved() const;
 
  private:
   /** the name of this selector */
@@ -173,7 +173,7 @@ public:
   /** whether this class has been resolved */
   bool d_resolved;
   /** is this selector unresolved? */
-  bool isUnresolvedSelf() const throw();
+  bool isUnresolvedSelf() const;
   /** constructor */
   DatatypeConstructorArg(std::string name, Expr selector);
 };/* class DatatypeConstructorArg */
@@ -269,7 +269,7 @@ class CVC4_PUBLIC DatatypeConstructor {
   void addArg(std::string selectorName, DatatypeSelfType);
 
   /** Get the name of this Datatype constructor. */
-  std::string getName() const throw();
+  std::string getName() const;
 
   /**
    * Get the constructor operator of this Datatype constructor.  The
@@ -317,12 +317,12 @@ class CVC4_PUBLIC DatatypeConstructor {
   /**
    * Get the tester name for this Datatype constructor.
    */
-  std::string getTesterName() const throw();
+  std::string getTesterName() const;
 
   /**
    * Get the number of arguments (so far) of this Datatype constructor.
    */
-  inline size_t getNumArgs() const throw();
+  inline size_t getNumArgs() const;
 
   /**
    * Get the specialized constructor type for a parametric
@@ -342,36 +342,36 @@ class CVC4_PUBLIC DatatypeConstructor {
    * Return the cardinality of this constructor (the product of the
    * cardinalities of its arguments).
    */
-  Cardinality getCardinality( Type t ) const throw(IllegalArgumentException);
+  Cardinality getCardinality(Type t) const;
 
   /**
    * Return true iff this constructor is finite (it is nullary or
    * each of its argument types are finite).  This function can
    * only be called for resolved constructors.
    */
-  bool isFinite( Type t ) const throw(IllegalArgumentException);
+  bool isFinite(Type t) const;
   /**
    * Return true iff this constructor is finite (it is nullary or
    * each of its argument types are finite) under assumption
    * uninterpreted sorts are finite.  This function can
    * only be called for resolved constructors.
    */
-  bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
+  bool isInterpretedFinite(Type t) const;
 
   /**
    * Returns true iff this Datatype constructor has already been
    * resolved.
    */
-  inline bool isResolved() const throw();
+  inline bool isResolved() const;
 
   /** Get the beginning iterator over DatatypeConstructor args. */
-  inline iterator begin() throw();
+  inline iterator begin();
   /** Get the ending iterator over DatatypeConstructor args. */
-  inline iterator end() throw();
+  inline iterator end();
   /** Get the beginning const_iterator over DatatypeConstructor args. */
-  inline const_iterator begin() const throw();
+  inline const_iterator begin() const;
   /** Get the ending const_iterator over DatatypeConstructor args. */
-  inline const_iterator end() const throw();
+  inline const_iterator end() const;
 
   /** Get the ith DatatypeConstructor arg. */
   const DatatypeConstructorArg& operator[](size_t index) const;
@@ -494,8 +494,7 @@ class CVC4_PUBLIC DatatypeConstructor {
                const std::vector<Type>& replacements,
                const std::vector<SortConstructorType>& paramTypes,
                const std::vector<DatatypeType>& paramReplacements,
-               size_t cindex) throw(IllegalArgumentException,
-                                    DatatypeResolutionException);
+               size_t cindex);
 
   /** Helper function for resolving parametric datatypes.
    *
@@ -518,16 +517,13 @@ class CVC4_PUBLIC DatatypeConstructor {
       const std::vector<DatatypeType>& paramReplacements);
 
   /** compute the cardinality of this datatype */
-  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const;
   /** compute whether this datatype is well-founded */
-  bool computeWellFounded(std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  bool computeWellFounded(std::vector<Type>& processing) const;
   /** compute ground term */
   Expr computeGroundTerm(Type t,
                          std::vector<Type>& processing,
-                         std::map<Type, Expr>& gt) const
-      throw(IllegalArgumentException);
+                         std::map<Type, Expr>& gt) const;
   /** compute shared selectors
    * This computes the maps d_shared_selectors and d_shared_selector_index.
    */
@@ -692,16 +688,16 @@ public:
   void setRecord();
 
   /** Get the name of this Datatype. */
-  inline std::string getName() const throw();
+  inline std::string getName() const;
 
   /** Get the number of constructors (so far) for this Datatype. */
-  inline size_t getNumConstructors() const throw();
+  inline size_t getNumConstructors() const;
 
   /** Is this datatype parametric? */
-  inline bool isParametric() const throw();
+  inline bool isParametric() const;
 
   /** Get the nubmer of type parameters */
-  inline size_t getNumParameters() const throw();
+  inline size_t getNumParameters() const;
 
   /** Get parameter */
   inline Type getParameter( unsigned int i ) const;
@@ -732,8 +728,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  Cardinality getCardinality( Type t ) const throw(IllegalArgumentException);
-  Cardinality getCardinality() const throw(IllegalArgumentException);
+  Cardinality getCardinality(Type t) const;
+  Cardinality getCardinality() const;
 
   /**
    * Return true iff this Datatype has finite cardinality. If the
@@ -744,8 +740,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  bool isFinite( Type t ) const throw(IllegalArgumentException);
-  bool isFinite() const throw(IllegalArgumentException);
+  bool isFinite(Type t) const;
+  bool isFinite() const;
 
   /**
    * Return true iff this  Datatype is finite (all constructors are
@@ -758,8 +754,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  bool isInterpretedFinite( Type t ) const throw(IllegalArgumentException);
-  bool isInterpretedFinite() const throw(IllegalArgumentException);
+  bool isInterpretedFinite(Type t) const;
+  bool isInterpretedFinite() const;
 
   /** is well-founded
    *
@@ -767,7 +763,7 @@ public:
    * values of this type).
    * This datatype must be resolved or an exception is thrown.
    */
-  bool isWellFounded() const throw(IllegalArgumentException);
+  bool isWellFounded() const;
 
   /** is recursive singleton
    *
@@ -779,8 +775,8 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
    */
-  bool isRecursiveSingleton( Type t ) const throw(IllegalArgumentException);
-  bool isRecursiveSingleton() const throw(IllegalArgumentException);
+  bool isRecursiveSingleton(Type t) const;
+  bool isRecursiveSingleton() const;
 
   /** recursive single arguments
    *
@@ -795,10 +791,10 @@ public:
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
   */
-  unsigned getNumRecursiveSingletonArgTypes( Type t ) const throw(IllegalArgumentException);
-  Type getRecursiveSingletonArgType( Type t, unsigned i ) const throw(IllegalArgumentException);
-  unsigned getNumRecursiveSingletonArgTypes() const throw(IllegalArgumentException);
-  Type getRecursiveSingletonArgType( unsigned i ) const throw(IllegalArgumentException);
+  unsigned getNumRecursiveSingletonArgTypes(Type t) const;
+  Type getRecursiveSingletonArgType(Type t, unsigned i) const;
+  unsigned getNumRecursiveSingletonArgTypes() const;
+  Type getRecursiveSingletonArgType(unsigned i) const;
 
   /**
    * Construct and return a ground term of this Datatype.  The
@@ -809,19 +805,19 @@ public:
    * datatype is this class, which may be an instantiated datatype
    * type if this datatype is parametric.
    */
-  Expr mkGroundTerm( Type t ) const throw(IllegalArgumentException);
+  Expr mkGroundTerm(Type t) const;
 
   /**
    * Get the DatatypeType associated to this Datatype.  Can only be
    * called post-resolution.
    */
-  DatatypeType getDatatypeType() const throw(IllegalArgumentException);
+  DatatypeType getDatatypeType() const;
 
   /**
    * Get the DatatypeType associated to this (parameterized) Datatype.  Can only be
    * called post-resolution.
    */
-  DatatypeType getDatatypeType(const std::vector<Type>& params) const throw(IllegalArgumentException);
+  DatatypeType getDatatypeType(const std::vector<Type>& params) const;
 
   /**
    * Return true iff the two Datatypes are the same.
@@ -836,21 +832,21 @@ public:
    * RB tree directly, so maybe we can consider adding these
    * comparison operators later on.
    */
-  bool operator==(const Datatype& other) const throw();
+  bool operator==(const Datatype& other) const;
   /** Return true iff the two Datatypes are not the same. */
-  inline bool operator!=(const Datatype& other) const throw();
+  inline bool operator!=(const Datatype& other) const;
 
   /** Return true iff this Datatype has already been resolved. */
-  inline bool isResolved() const throw();
+  inline bool isResolved() const;
 
   /** Get the beginning iterator over DatatypeConstructors. */
-  inline iterator begin() throw();
+  inline iterator begin();
   /** Get the ending iterator over DatatypeConstructors. */
-  inline iterator end() throw();
+  inline iterator end();
   /** Get the beginning const_iterator over DatatypeConstructors. */
-  inline const_iterator begin() const throw();
+  inline const_iterator begin() const;
   /** Get the ending const_iterator over DatatypeConstructors. */
-  inline const_iterator end() const throw();
+  inline const_iterator end() const;
 
   /** Get the ith DatatypeConstructor. */
   const DatatypeConstructor& operator[](size_t index) const;
@@ -1026,25 +1022,19 @@ public:
                const std::vector<Type>& placeholders,
                const std::vector<Type>& replacements,
                const std::vector<SortConstructorType>& paramTypes,
-               const std::vector<DatatypeType>&
-                   paramReplacements) throw(IllegalArgumentException,
-                                            DatatypeResolutionException);
+               const std::vector<DatatypeType>& paramReplacements);
   friend class ExprManager;  // for access to resolve()
 
   /** compute the cardinality of this datatype */
-  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  Cardinality computeCardinality(Type t, std::vector<Type>& processing) const;
   /** compute whether this datatype is a recursive singleton */
   bool computeCardinalityRecSingleton(Type t,
                                       std::vector<Type>& processing,
-                                      std::vector<Type>& u_assume) const
-      throw(IllegalArgumentException);
+                                      std::vector<Type>& u_assume) const;
   /** compute whether this datatype is well-founded */
-  bool computeWellFounded(std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  bool computeWellFounded(std::vector<Type>& processing) const;
   /** compute ground term */
-  Expr computeGroundTerm(Type t, std::vector<Type>& processing) const
-      throw(IllegalArgumentException);
+  Expr computeGroundTerm(Type t, std::vector<Type>& processing) const;
   /** Get the shared selector
    *
    * This returns the index^th (constructor-agnostic)
@@ -1081,31 +1071,32 @@ struct CVC4_PUBLIC DatatypeHashFunction {
 
 /* stores an index to Datatype residing in NodeManager */
 class CVC4_PUBLIC DatatypeIndexConstant {
-public:
+ public:
+  DatatypeIndexConstant(unsigned index);
 
-  DatatypeIndexConstant(unsigned index) throw(IllegalArgumentException);
-
-  ~DatatypeIndexConstant() throw() { }
-
-  const unsigned getIndex() const throw() {
-    return d_index;
-  }
-  bool operator==(const DatatypeIndexConstant& uc) const throw() {
+  const unsigned getIndex() const { return d_index; }
+  bool operator==(const DatatypeIndexConstant& uc) const
+  {
     return d_index == uc.d_index;
   }
-  bool operator!=(const DatatypeIndexConstant& uc) const throw() {
+  bool operator!=(const DatatypeIndexConstant& uc) const
+  {
     return !(*this == uc);
   }
-  bool operator<(const DatatypeIndexConstant& uc) const throw() {
+  bool operator<(const DatatypeIndexConstant& uc) const
+  {
     return d_index < uc.d_index;
   }
-  bool operator<=(const DatatypeIndexConstant& uc) const throw() {
+  bool operator<=(const DatatypeIndexConstant& uc) const
+  {
     return d_index <= uc.d_index;
   }
-  bool operator>(const DatatypeIndexConstant& uc) const throw() {
+  bool operator>(const DatatypeIndexConstant& uc) const
+  {
     return !(*this <= uc);
   }
-  bool operator>=(const DatatypeIndexConstant& uc) const throw() {
+  bool operator>=(const DatatypeIndexConstant& uc) const
+  {
     return !(*this < uc);
   }
 private:
@@ -1138,10 +1129,7 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
   d_name(name) {
 }
 
-inline std::string DatatypeUnresolvedType::getName() const throw() {
-  return d_name;
-}
-
+inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
 inline Datatype::Datatype(std::string name, bool isCo)
     : d_name(name),
       d_params(),
@@ -1177,22 +1165,14 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params,
       d_card(CardinalityUnknown()),
       d_well_founded(0) {}
 
-inline std::string Datatype::getName() const throw() {
-  return d_name;
-}
-
-inline size_t Datatype::getNumConstructors() const throw() {
+inline std::string Datatype::getName() const { return d_name; }
+inline size_t Datatype::getNumConstructors() const
+{
   return d_constructors.size();
 }
 
-inline bool Datatype::isParametric() const throw() {
-  return d_params.size() > 0;
-}
-
-inline size_t Datatype::getNumParameters() const throw() {
-  return d_params.size();
-}
-
+inline bool Datatype::isParametric() const { return d_params.size() > 0; }
+inline size_t Datatype::getNumParameters() const { return d_params.size(); }
 inline Type Datatype::getParameter( unsigned int i ) const {
   CheckArgument(isParametric(), this,
                 "Cannot get type parameter of a non-parametric datatype.");
@@ -1226,40 +1206,40 @@ inline bool Datatype::isRecord() const {
 inline Record * Datatype::getRecord() const {
   return d_record;
 }
-
-inline bool Datatype::operator!=(const Datatype& other) const throw() {
+inline bool Datatype::operator!=(const Datatype& other) const
+{
   return !(*this == other);
 }
 
-inline bool Datatype::isResolved() const throw() {
-  return d_resolved;
-}
-
-inline Datatype::iterator Datatype::begin() throw() {
+inline bool Datatype::isResolved() const { return d_resolved; }
+inline Datatype::iterator Datatype::begin()
+{
   return iterator(d_constructors, true);
 }
 
-inline Datatype::iterator Datatype::end() throw() {
+inline Datatype::iterator Datatype::end()
+{
   return iterator(d_constructors, false);
 }
 
-inline Datatype::const_iterator Datatype::begin() const throw() {
+inline Datatype::const_iterator Datatype::begin() const
+{
   return const_iterator(d_constructors, true);
 }
 
-inline Datatype::const_iterator Datatype::end() const throw() {
+inline Datatype::const_iterator Datatype::end() const
+{
   return const_iterator(d_constructors, false);
 }
 
-inline bool DatatypeConstructor::isResolved() const throw() {
+inline bool DatatypeConstructor::isResolved() const
+{
   return !d_tester.isNull();
 }
 
-inline size_t DatatypeConstructor::getNumArgs() const throw() {
-  return d_args.size();
-}
-
-inline bool DatatypeConstructorArg::isResolved() const throw() {
+inline size_t DatatypeConstructor::getNumArgs() const { return d_args.size(); }
+inline bool DatatypeConstructorArg::isResolved() const
+{
   // We could just write:
   //
   //   return !d_selector.isNull() && d_selector.getType().isSelector();
@@ -1276,19 +1256,23 @@ inline bool DatatypeConstructorArg::isResolved() const throw() {
   return d_resolved;
 }
 
-inline DatatypeConstructor::iterator DatatypeConstructor::begin() throw() {
+inline DatatypeConstructor::iterator DatatypeConstructor::begin()
+{
   return iterator(d_args, true);
 }
 
-inline DatatypeConstructor::iterator DatatypeConstructor::end() throw() {
+inline DatatypeConstructor::iterator DatatypeConstructor::end()
+{
   return iterator(d_args, false);
 }
 
-inline DatatypeConstructor::const_iterator DatatypeConstructor::begin() const throw() {
+inline DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
+{
   return const_iterator(d_args, true);
 }
 
-inline DatatypeConstructor::const_iterator DatatypeConstructor::end() const throw() {
+inline DatatypeConstructor::const_iterator DatatypeConstructor::end() const
+{
   return const_iterator(d_args, false);
 }
 

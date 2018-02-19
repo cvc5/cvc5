@@ -551,11 +551,13 @@ public:
  * Parse argc/argv and put the result into a CVC4::Options.
  * The return value is what's left of the command line (that is, the
  * non-option arguments).
+ *
+ * Throws OptionException on failures.
  */
 std::vector<std::string> Options::parseOptions(Options* options,
-                                               int argc, char* argv[])
-  throw(OptionException) {
-
+                                               int argc,
+                                               char* argv[])
+{
   Assert(options != NULL);
   Assert(argv != NULL);
 
@@ -599,8 +601,7 @@ std::vector<std::string> Options::parseOptions(Options* options,
 void Options::parseOptionsRecursive(Options* options,
                                     ArgumentExtender* extender,
                                     std::vector<std::string>* nonoptions)
-  throw(OptionException) {
-
+{
   int argc;
   char** argv;
 
@@ -787,7 +788,8 @@ ${all_modules_option_handlers}
   free(argv);
 }
 
-std::string Options::suggestCommandLineOptions(const std::string& optionName) throw() {
+std::string Options::suggestCommandLineOptions(const std::string& optionName)
+{
   DidYouMean didYouMean;
 
   const char* opt;
@@ -804,7 +806,9 @@ static const char* smtOptions[] = {
   NULL
 };/* smtOptions[] */
 
-std::vector<std::string> Options::suggestSmtOptions(const std::string& optionName) throw() {
+std::vector<std::string> Options::suggestSmtOptions(
+    const std::string& optionName)
+{
   std::vector<std::string> suggestions;
 
   const char* opt;
@@ -817,7 +821,8 @@ std::vector<std::string> Options::suggestSmtOptions(const std::string& optionNam
   return suggestions;
 }
 
-std::vector< std::vector<std::string> > Options::getOptions() const throw() {
+std::vector<std::vector<std::string> > Options::getOptions() const
+{
   std::vector< std::vector<std::string> > opts;
 
   ${all_modules_get_options}

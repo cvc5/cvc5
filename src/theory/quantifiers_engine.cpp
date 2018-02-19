@@ -20,25 +20,25 @@
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/ambqi_builder.h"
+#include "theory/quantifiers/fmf/ambqi_builder.h"
 #include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/bounded_integers.h"
-#include "theory/quantifiers/ce_guided_instantiation.h"
-#include "theory/quantifiers/ceg_t_instantiator.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/inst_propagator.h"
-#include "theory/quantifiers/inst_strategy_cbqi.h"
-#include "theory/quantifiers/inst_strategy_e_matching.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/instantiation_engine.h"
+#include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
-#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_equality_engine.h"
@@ -50,10 +50,10 @@
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -562,14 +562,22 @@ void QuantifiersEngine::check( Theory::Effort e ){
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
       //build the model if any module requested it
-      if( needsModelE==quant_e && !d_model->isBuilt() ){
-        // theory engine's model builder is quantifier engine's builder if it has one
-        Assert( !d_builder || d_builder==d_te->getModelBuilder() );
-        Trace("quant-engine-debug") << "Build model..." << std::endl;
-        if( !d_te->getModelBuilder()->buildModel( d_model ) ){
-          //we are done if model building was unsuccessful
-          Trace("quant-engine-debug") << "...added lemmas." << std::endl;
-          flushLemmas();
+      if (needsModelE == quant_e)
+      {
+        if (!d_model->isBuilt())
+        {
+          // theory engine's model builder is quantifier engine's builder if it
+          // has one
+          Assert(!d_builder || d_builder == d_te->getModelBuilder());
+          Trace("quant-engine-debug") << "Build model..." << std::endl;
+          if (!d_te->getModelBuilder()->buildModel(d_model))
+          {
+            flushLemmas();
+          }
+        }
+        if (!d_model->isBuiltSuccess())
+        {
+          break;
         }
       }
       if( !d_hasAddedLemma ){
@@ -690,16 +698,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   //SAT case
   if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
-    if( options::produceModels() ){
-      if( d_model->isBuilt() ){
-        Trace("quant-engine-debug") << "Already built model using model builder, finish..." << std::endl;
-      }else{
-        //use default model builder when no module built the model
-        Trace("quant-engine-debug") << "Build the default model..." << std::endl;
-        d_te->getModelBuilder()->buildModel( d_model );
-        Trace("quant-engine-debug") << "Done building the model." << std::endl;
-      }
-    }
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
@@ -1195,6 +1193,11 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   Node ret = d_eq_query->getInternalRepresentative( a, q, index );
   d_useModelEe = prevModelEe;
   return ret;
+}
+
+void QuantifiersEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+{
+  d_ceg_inst->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

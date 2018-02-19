@@ -319,10 +319,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   }
   case kind::SEXPR_TYPE:
     Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
-    return TypeNode();
   default:
     Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
-    return TypeNode();
   }
 }
 

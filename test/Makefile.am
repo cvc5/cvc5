@@ -48,7 +48,6 @@ subdirs_to_check = \
 	regress/regress0/precedence \
 	regress/regress0/preprocess \
 	regress/regress0/push-pop \
-	regress/regress0/push-pop/arith \
 	regress/regress0/push-pop/boolean \
 	regress/regress0/quantifiers \
 	regress/regress0/rels \
@@ -69,15 +68,24 @@ subdirs_to_check = \
 	regress/regress1/datatypes \
 	regress/regress1/decision \
 	regress/regress1/fmf \
+	regress/regress1/ho \
 	regress/regress1/lemmas \
+	regress/regress1/nl \
+	regress/regress1/push-pop \
+	regress/regress1/rels \
 	regress/regress1/rewriterules \
 	regress/regress1/sep \
 	regress/regress1/sets \
 	regress/regress1/strings \
 	regress/regress1/sygus \
 	regress/regress1/quantifiers \
+	regress/regress1/uflia \
 	regress/regress2 \
 	regress/regress2/arith \
+	regress/regress2/nl \
+	regress/regress2/quantifiers \
+	regress/regress2/strings \
+	regress/regress2/sygus \
 	regress/regress3 \
 	regress/regress4 \
 	system \

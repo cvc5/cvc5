@@ -51,28 +51,30 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   return os;
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
-
-Theory::Theory(TheoryId id, context::Context* satContext,
-               context::UserContext* userContext, OutputChannel& out,
-               Valuation valuation, const LogicInfo& logicInfo,
-               std::string name) throw()
-    : d_id(id)
-    , d_instanceName(name)
-    , d_satContext(satContext)
-    , d_userContext(userContext)
-    , d_logicInfo(logicInfo)
-    , d_facts(satContext)
-    , d_factsHead(satContext, 0)
-    , d_sharedTermsIndex(satContext, 0)
-    , d_careGraph(NULL)
-    , d_quantEngine(NULL)
-    , d_extTheory(NULL)
-    , d_checkTime(getFullInstanceName() + "::checkTime")
-    , d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime")
-    , d_sharedTerms(satContext)
-    , d_out(&out)
-    , d_valuation(valuation)
-    , d_proofsEnabled(false)
+Theory::Theory(TheoryId id,
+               context::Context* satContext,
+               context::UserContext* userContext,
+               OutputChannel& out,
+               Valuation valuation,
+               const LogicInfo& logicInfo,
+               std::string name)
+    : d_id(id),
+      d_instanceName(name),
+      d_satContext(satContext),
+      d_userContext(userContext),
+      d_logicInfo(logicInfo),
+      d_facts(satContext),
+      d_factsHead(satContext, 0),
+      d_sharedTermsIndex(satContext, 0),
+      d_careGraph(NULL),
+      d_quantEngine(NULL),
+      d_extTheory(NULL),
+      d_checkTime(getFullInstanceName() + "::checkTime"),
+      d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime"),
+      d_sharedTerms(satContext),
+      d_out(&out),
+      d_valuation(valuation),
+      d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
   smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);

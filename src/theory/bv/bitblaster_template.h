@@ -137,10 +137,10 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     , d_lazyBB(lbv)
     {}
 
-    bool notify(prop::SatLiteral lit);
-    void notify(prop::SatClause& clause);
-    void spendResource(unsigned ammount);
-    void safePoint(unsigned ammount);
+    bool notify(prop::SatLiteral lit) override;
+    void notify(prop::SatClause& clause) override;
+    void spendResource(unsigned amount) override;
+    void safePoint(unsigned amount) override;
   };
 
   TheoryBV *d_bv;
@@ -180,7 +180,7 @@ public:
   bool hasBBAtom(TNode atom) const; 
 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
-  ~TLazyBitblaster() throw();
+  ~TLazyBitblaster();
   /**
    * Pushes the assumption literal associated with node to the SAT
    * solver assumption queue. 
@@ -207,7 +207,7 @@ public:
    * @param fullModel whether to create a "full model," i.e., add
    * constants to equivalence classes that don't already have them
    */
-  void collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   void setProofLog( BitVectorProof * bvp );
 
   typedef TNodeSet::const_iterator vars_iterator;
@@ -249,12 +249,13 @@ public:
 class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
 public:
   MinisatEmptyNotify() {}
-  bool notify(prop::SatLiteral lit) { return true; }
-  void notify(prop::SatClause& clause) { }
-  void spendResource(unsigned ammount) {
-    NodeManager::currentResourceManager()->spendResource(ammount);
+  bool notify(prop::SatLiteral lit) override { return true; }
+  void notify(prop::SatClause& clause) override {}
+  void spendResource(unsigned amount) override
+  {
+    NodeManager::currentResourceManager()->spendResource(amount);
   }
-  void safePoint(unsigned ammount) {}
+  void safePoint(unsigned amount) override {}
 };
 
 
@@ -292,7 +293,7 @@ public:
 
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
-  void collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   void setProofLog( BitVectorProof * bvp );
 };
 

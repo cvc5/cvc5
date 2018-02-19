@@ -288,8 +288,8 @@ unsigned PropEngine::getAssertionLevel() const {
 bool PropEngine::isRunning() const {
   return d_inCheckSat;
 }
-
-void PropEngine::interrupt() throw(ModalException) {
+void PropEngine::interrupt()
+{
   if(! d_inCheckSat) {
     return;
   }
@@ -299,8 +299,9 @@ void PropEngine::interrupt() throw(ModalException) {
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource(unsigned ammount) throw (UnsafeInterruptException) {
-  d_resourceManager->spendResource(ammount);
+void PropEngine::spendResource(unsigned amount)
+{
+  d_resourceManager->spendResource(amount);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

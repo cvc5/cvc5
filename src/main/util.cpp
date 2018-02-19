@@ -77,6 +77,14 @@ void timeout_handler(int sig, siginfo_t* info, void*) {
   abort();
 }
 
+/** Handler for SIGTERM. */
+void sigterm_handler(int sig, siginfo_t* info, void*)
+{
+  safe_print(STDERR_FILENO, "CVC4 interrupted by SIGTERM.\n");
+  print_statistics();
+  abort();
+}
+
 /** Handler for SIGINT, i.e., when the user hits control C. */
 void sigint_handler(int sig, siginfo_t* info, void*) {
   safe_print(STDERR_FILENO, "CVC4 interrupted by user.\n");
@@ -253,7 +261,8 @@ void cvc4terminate() {
 }
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
-void cvc4_init() throw(Exception) {
+void cvc4_init()
+{
 #ifdef CVC4_DEBUG
   LastExceptionBuffer::setCurrent(new LastExceptionBuffer());
 #endif
@@ -321,13 +330,23 @@ void cvc4_init() throw(Exception) {
   }
 #endif /* HAVE_SIGALTSTACK */
 
+  struct sigaction act5;
+  act5.sa_sigaction = sigterm_handler;
+  act5.sa_flags = SA_SIGINFO;
+  sigemptyset(&act5.sa_mask);
+  if (sigaction(SIGTERM, &act5, NULL))
+  {
+    throw Exception(string("sigaction(SIGTERM) failure: ") + strerror(errno));
+  }
+
 #endif /* __WIN32__ */
 
   set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);
 }
 
-void cvc4_shutdown() throw () {
+void cvc4_shutdown() noexcept
+{
 #ifndef __WIN32__
 #ifdef HAVE_SIGALTSTACK
   free(cvc4StackBase);

@@ -227,8 +227,8 @@ public:
   void  preRegister(TNode node) {}
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions) {Unreachable("AlgebraicSolver does not propagate.\n");}
-  EqualityStatus getEqualityStatus(TNode a, TNode b); 
-  void collectModelInfo(TheoryModel* m, bool fullModel); 
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  bool collectModelInfo(TheoryModel* m, bool fullModel);
   Node getModelValue(TNode node); 
   bool isComplete();
   virtual void assertFact(TNode fact);

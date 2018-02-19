@@ -93,7 +93,7 @@ class FirstOrderModel : public TheoryModel
 {
  public:
   FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
-  virtual ~FirstOrderModel() throw() {}
+
   virtual FirstOrderModelIG* asFirstOrderModelIG() { return nullptr; }
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
   virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return nullptr; }
@@ -214,7 +214,7 @@ private:
 //the following functions are for evaluating quantifier bodies
 public:
   FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelIG() throw() {}
+
   FirstOrderModelIG * asFirstOrderModelIG() { return this; }
   // initialize the model
   void processInitialize( bool ispre );
@@ -248,19 +248,21 @@ class Def;
 class FirstOrderModelFmc : public FirstOrderModel
 {
   friend class FullModelChecker;
-private:
+
+ private:
   /** models for UF */
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
   Node intervalOp;
   /** get current model value */
-  void processInitializeModelForTerm(Node n);
-public:
+  void processInitializeModelForTerm(Node n) override;
+
+ public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  virtual ~FirstOrderModelFmc() throw();
-  FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
+  ~FirstOrderModelFmc() override;
+  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
   // initialize the model
-  void processInitialize( bool ispre );
+  void processInitialize(bool ispre) override;
   Node getFunctionValue(Node op, const char* argPrefix );
 
   bool isStar(Node n);
@@ -277,24 +279,26 @@ class AbsDef;
 
 class FirstOrderModelAbs : public FirstOrderModel
 {
-public:
+ public:
   std::map< Node, AbsDef * > d_models;
   std::map< Node, bool > d_models_valid;
   std::map< TNode, unsigned > d_rep_id;
   std::map< TypeNode, unsigned > d_domain;
   std::map< Node, std::vector< int > > d_var_order;
   std::map< Node, std::map< int, int > > d_var_index;
-private:
+
+ private:
   /** get current model value */
-  void processInitializeModelForTerm(Node n);
-  void processInitializeQuantifier( Node q );
+  void processInitializeModelForTerm(Node n) override;
+  void processInitializeQuantifier(Node q) override;
   void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
   TNode getUsedRepresentative( TNode n );
-public:
+
+ public:
   FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelAbs() throw();
-  FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
-  void processInitialize( bool ispre );
+  ~FirstOrderModelAbs() override;
+  FirstOrderModelAbs* asFirstOrderModelAbs() override { return this; }
+  void processInitialize(bool ispre) override;
   unsigned getRepresentativeId( TNode n );
   bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
   Node getFunctionValue(Node op, const char* argPrefix );

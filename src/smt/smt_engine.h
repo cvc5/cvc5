@@ -70,6 +70,10 @@ namespace context {
   class UserContext;
 }/* CVC4::context namespace */
 
+namespace preprocessing {
+class PreprocessingPassContext;
+}
+
 namespace prop {
   class PropEngine;
 }/* CVC4::prop namespace */
@@ -237,6 +241,11 @@ class CVC4_PUBLIC SmtEngine {
    */
   bool d_earlyTheoryPP;
 
+  /*
+   * Whether we did a global negation of the formula.
+   */
+  bool d_globalNegation;
+
   /**
    * Most recent result of last checkSat/query or (set-info :status).
    */
@@ -276,6 +285,16 @@ class CVC4_PUBLIC SmtEngine {
    * all user assertions.
    */
   void checkModel(bool hardFailure = true);
+
+  /**
+   * Check that a solution to a synthesis conjecture is indeed a solution.
+   *
+   * The check is made by determining if the negation of the synthesis
+   * conjecture in which the functions-to-synthesize have been replaced by the
+   * synthesized solutions, which is a quantifier-free formula, is
+   * unsatisfiable. If not, then the found solutions are wrong.
+   */
+  void checkSynthSolution();
 
   /**
    * Postprocess a value for output to the user.  Involves doing things
@@ -329,7 +348,7 @@ class CVC4_PUBLIC SmtEngine {
    * Fully type-check the argument, and also type-check that it's
    * actually Boolean.
    */
-  void ensureBoolean(const Expr& e) throw(TypeCheckingException);
+  void ensureBoolean(const Expr& e) /* throw(TypeCheckingException) */;
 
   void internalPush();
 
@@ -341,8 +360,10 @@ class CVC4_PUBLIC SmtEngine {
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
    */
-  void setLogicInternal() throw();
+  void setLogicInternal() /* throw() */;
 
+  // TODO (Issue #1096): Remove this friend relationship.
+  friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::BooleanTermConverter;
@@ -380,32 +401,50 @@ class CVC4_PUBLIC SmtEngine {
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
-public:
+
+  /**
+   * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
+   * the function that the formal argument list is for. This method is used
+   * as a helper function when defining (recursive) functions.
+   */
+  void debugCheckFormals(const std::vector<Expr>& formals, Expr func);
+
+  /**
+   * Checks whether formula is a valid function body for func whose formal
+   * argument list is stored in formals. This method is
+   * used as a helper function when defining (recursive) functions.
+   */
+  void debugCheckFunctionBody(Expr formula,
+                              const std::vector<Expr>& formals,
+                              Expr func);
+
+ public:
 
   /**
    * Construct an SmtEngine with the given expression manager.
    */
-  SmtEngine(ExprManager* em) throw();
+  SmtEngine(ExprManager* em) /* throw() */;
 
   /**
    * Destruct the SMT engine.
    */
-  ~SmtEngine() throw();
+  ~SmtEngine();
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const std::string& logic) throw(ModalException, LogicException);
+  void setLogic(
+      const std::string& logic) /* throw(ModalException, LogicException) */;
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const char* logic) throw(ModalException, LogicException);
+  void setLogic(const char* logic) /* throw(ModalException, LogicException) */;
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const LogicInfo& logic) throw(ModalException);
+  void setLogic(const LogicInfo& logic) /* throw(ModalException) */;
 
   /**
    * Get the logic information currently set
@@ -416,7 +455,7 @@ public:
    * Set information about the script executing.
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value)
-    throw(OptionException, ModalException);
+      /* throw(OptionException, ModalException) */;
 
   /**
    * Query information about the SMT environment.
@@ -427,19 +466,24 @@ public:
    * Set an aspect of the current SMT execution environment.
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
-    throw(OptionException, ModalException);
+      /* throw(OptionException, ModalException) */;
 
   /**
    * Get an aspect of the current SMT execution environment.
    */
   CVC4::SExpr getOption(const std::string& key) const
-    throw(OptionException);
+      /* throw(OptionException) */;
 
   /**
-   * Add a formula to the current context: preprocess, do per-theory
-   * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false if
-   * immediately determined to be inconsistent.
+   * Define function func in the current context to be:
+   *   (lambda (formals) formula)
+   * This adds func to the list of defined functions, which indicates that
+   * all occurrences of func should be expanded during expandDefinitions.
+   * This method expects input such that:
+   * - func : a variable of function type that expects the arguments in
+   *          formals,
+   * - formals : a list of BOUND_VARIABLE expressions,
+   * - formula does not contain func.
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
@@ -447,6 +491,32 @@ public:
 
   /** is defined function */
   bool isDefinedFunction(Expr func);
+
+  /** Define functions recursive
+   *
+   * For each i, this constrains funcs[i] in the current context to be:
+   *   (lambda (formals[i]) formulas[i])
+   * where formulas[i] may contain variables from funcs. Unlike defineFunction
+   * above, we do not add funcs[i] to the set of defined functions. Instead,
+   * we consider funcs[i] to be a free uninterpreted function, and add:
+   *   forall formals[i]. f(formals[i]) = formulas[i]
+   * to the set of assertions in the current context.
+   * This method expects input such that for each i:
+   * - func[i] : a variable of function type that expects the arguments in
+   *             formals[i], and
+   * - formals[i] : a list of BOUND_VARIABLE expressions.
+   */
+  void defineFunctionsRec(const std::vector<Expr>& funcs,
+                          const std::vector<std::vector<Expr> >& formals,
+                          const std::vector<Expr>& formulas);
+
+  /** Define function recursive
+   *
+   * Same as above, but for a single function.
+   */
+  void defineFunctionRec(Expr func,
+                         const std::vector<Expr>& formals,
+                         Expr formula);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory
@@ -456,27 +526,29 @@ public:
    * takes a Boolean flag to determine whether to include this asserted
    * formula in an unsat core (if one is later requested).
    */
-  Result assertFormula(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Result assertFormula(const Expr& e, bool inUnsatCore = true)
+      /* throw(TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Check validity of an expression with respect to the current set
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) throw(Exception);
+  Result query(const Expr& e, bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
   Result checkSat(const Expr& e = Expr(),
-                  bool inUnsatCore = true) throw(Exception);
+                  bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSynth(const Expr& e) throw(Exception);
+  Result checkSynth(const Expr& e) /* throw(Exception) */;
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -487,20 +559,28 @@ public:
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Expr simplify(const Expr& e) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Expr simplify(
+      const Expr&
+          e) /* throw(TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
    */
-  Expr expandDefinitions(const Expr& e) throw(TypeCheckingException, LogicException, UnsafeInterruptException);
+  Expr expandDefinitions(
+      const Expr&
+          e) /* throw(TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Get the assigned value of an expr (only if immediately preceded
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) const throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException);
+  Expr getValue(const Expr& e) const
+      /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
+      ;
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -586,8 +666,9 @@ public:
    * The argument strict is whether to output
    * warnings, such as when an unexpected logic is used.
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull,
-                               bool strict = true) throw(Exception);
+  Expr doQuantifierElimination(const Expr& e,
+                               bool doFull,
+                               bool strict = true) /* throw(Exception) */;
 
   /**
    * Get list of quantified formulas that were instantiated
@@ -616,7 +697,8 @@ public:
   /**
    * Push a user-level context.
    */
-  void push() throw(ModalException, LogicException, UnsafeInterruptException);
+  void
+  push() /* throw(ModalException, LogicException, UnsafeInterruptException) */;
 
   /**
    * Pop a user-level context.  Throws an exception if nothing to pop.
@@ -628,19 +710,19 @@ public:
    * recreated.  The result is as if newly constructed (so it still
    * retains the same options structure and ExprManager).
    */
-  void reset() throw();
+  void reset() /* throw() */;
 
   /**
    * Reset all assertions, global declarations, etc.
    */
-  void resetAssertions() throw();
+  void resetAssertions() /* throw() */;
 
   /**
    * Interrupt a running query.  This can be called from another thread
    * or from a signal handler.  Throws a ModalException if the SmtEngine
    * isn't currently in a query.
    */
-  void interrupt() throw(ModalException);
+  void interrupt() /* throw(ModalException) */;
 
   /**
    * Set a resource limit for SmtEngine operations.  This is like a time
@@ -725,7 +807,7 @@ public:
    * is not a cumulative resource limit set, this function throws a
    * ModalException.
    */
-  unsigned long getResourceRemaining() const throw(ModalException);
+  unsigned long getResourceRemaining() const /* throw(ModalException) */;
 
   /**
    * Get the remaining number of milliseconds that can be consumed by
@@ -733,7 +815,7 @@ public:
    * If there is not a cumulative resource limit set, this function
    * throws a ModalException.
    */
-  unsigned long getTimeRemaining() const throw(ModalException);
+  unsigned long getTimeRemaining() const /* throw(ModalException) */;
 
   /**
    * Permit access to the underlying ExprManager.
@@ -745,12 +827,12 @@ public:
   /**
    * Export statistics from this SmtEngine.
    */
-  Statistics getStatistics() const throw();
+  Statistics getStatistics() const /* throw() */;
 
   /**
    * Get the value of one named statistic from this SmtEngine.
    */
-  SExpr getStatistic(std::string name) const throw();
+  SExpr getStatistic(std::string name) const /* throw() */;
 
   /**
    * Flush statistic from this SmtEngine. Safe to use in a signal handler.
@@ -760,16 +842,16 @@ public:
   /**
    * Returns the most recent result of checkSat/query or (set-info :status).
    */
-  Result getStatusOfLastCommand() const throw() {
-    return d_status;
-  }
-
+  Result getStatusOfLastCommand() const /* throw() */ { return d_status; }
   /**
    * Set user attribute.
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
-  void setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value);
+  void setUserAttribute(const std::string& attr,
+                        Expr expr,
+                        const std::vector<Expr>& expr_values,
+                        const std::string& str_value);
 
   /**
    * Set print function in model
@@ -778,7 +860,7 @@ public:
 
 
   /** Throws a ModalException if the SmtEngine has been fully initialized. */
-  void beforeSearch() throw(ModalException);
+  void beforeSearch() /* throw(ModalException) */;
 
   LemmaChannels* channels() { return d_channels; }
 
