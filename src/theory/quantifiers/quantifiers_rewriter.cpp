@@ -518,17 +518,35 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     // if it is a function definition, rewrite the body independently
     Node fbody = QuantAttributes::getFunDefBody( q );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
-    if( !fbody.isNull() )
+    if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );
-      Assert( new_vars.size()==h.getNumChildren() );
-      return Rewriter::rewrite( NodeManager::currentNM()->mkNode( EQUAL, h, r ) );
+      Node r = computeProcessTerms2(fbody,
+                                    true,
+                                    true,
+                                    curr_cond,
+                                    0,
+                                    cache,
+                                    icache,
+                                    new_vars,
+                                    new_conds,
+                                    false);
+      Assert(new_vars.size() == h.getNumChildren());
+      return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
     }
     // It can happen that we can't infer the shape of the function definition,
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
     // forall xy. false.
   }
-  return computeProcessTerms2( body, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, options::elimExtArithQuant() );
+  return computeProcessTerms2(body,
+                              true,
+                              true,
+                              curr_cond,
+                              0,
+                              cache,
+                              icache,
+                              new_vars,
+                              new_conds,
+                              options::elimExtArithQuant());
 }
 
 Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
@@ -1921,11 +1939,14 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
     Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvTypes, fvs );
     return nn.negate();
   }else if( n.getKind()==kind::FORALL ){
-    if( n.getNumChildren()==3 ){
+    if (n.getNumChildren() == 3)
+    {
       // cannot pre-skolemize non-standard quantifiers
       // like recursive function definitions, or sygus conjectures
       return n;
-    }else if( polarity ){
+    }
+    else if (polarity)
+    {
       if( options::preSkolemQuant() && options::preSkolemQuantNested() ){
         vector< Node > children;
         children.push_back( n[0] );
