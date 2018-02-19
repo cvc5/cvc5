@@ -840,32 +840,32 @@ private:
    * Function symbols used to implement:
    * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
    * division function ("/"),
-   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with 
+   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with
    * partial function "div",
-   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial 
+   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial
    * function "mod".
-   * 
+   *
    * If the option arithNoPartialFun() is enabled, then the range of this map
    * stores Skolem constants instead of Skolem functions, meaning that the
    * function-ness of e.g. division by zero is ignored.
    */
-  std::map< ArithSkolemId, Node > d_arith_skolem;
+  std::map<ArithSkolemId, Node> d_arith_skolem;
   /** get arithmetic skolem
-   * 
-   * Returns the Skolem in the above map for the given id, creating it if it 
-   * does not already exist. If a Skolem function is created, the logic is 
+   *
+   * Returns the Skolem in the above map for the given id, creating it if it
+   * does not already exist. If a Skolem function is created, the logic is
    * widened to include UF.
    */
-  Node getArithSkolem( LogicRequest &logicRequest, ArithSkolemId asi );
-  /** get arithmetic skolem application 
-   * 
+  Node getArithSkolem(LogicRequest& logicRequest, ArithSkolemId asi);
+  /** get arithmetic skolem application
+   *
    * By default, this returns the term f( n ), where f is the Skolem function
-   * for the identifier asi. 
-   * 
+   * for the identifier asi.
+   *
    * If the option arithNoPartialFun is enabled, this returns f, where f is
    * the Skolem constant for the identifier asi.
    */
-  Node getArithSkolemApp( LogicRequest &logicRequest, Node n, ArithSkolemId asi );
+  Node getArithSkolemApp(LogicRequest& logicRequest, Node n, ArithSkolemId asi);
 
   /**
    *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse

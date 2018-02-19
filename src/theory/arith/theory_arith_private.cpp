@@ -4902,7 +4902,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node divByZeroNum = getArithSkolemApp(logicRequest,num,arith_skolem_div_by_zero);
+        Node divByZeroNum =
+            getArithSkolemApp(logicRequest, num, arith_skolem_div_by_zero);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -4917,7 +4918,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node intDivByZeroNum = getArithSkolemApp(logicRequest,num,arith_skolem_int_div_by_zero);
+        Node intDivByZeroNum =
+            getArithSkolemApp(logicRequest, num, arith_skolem_int_div_by_zero);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -4932,7 +4934,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node modZeroNum = getArithSkolemApp(logicRequest,num,arith_skolem_mod_by_zero);
+        Node modZeroNum =
+            getArithSkolemApp(logicRequest, num, arith_skolem_mod_by_zero);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -5034,29 +5037,30 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
   Unreachable();
 }
 
-Node TheoryArithPrivate::getArithSkolem(LogicRequest &logicRequest, ArithSkolemId asi )
+Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
+                                        ArithSkolemId asi)
 {
-  std::map< ArithSkolemId, Node >::iterator it = d_arith_skolem.find(asi);
-  if( it==d_arith_skolem.end() )
+  std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
+  if (it == d_arith_skolem.end())
   {
-    NodeManager * nm = NodeManager::currentNM();
-    
+    NodeManager* nm = NodeManager::currentNM();
+
     TypeNode tn;
     std::string name;
     std::string desc;
-    if( asi==arith_skolem_div_by_zero )
+    if (asi == arith_skolem_div_by_zero)
     {
       tn = nm->realType();
       name = std::string("divByZero");
       desc = std::string("partial real division");
     }
-    else if( asi==arith_skolem_int_div_by_zero )
+    else if (asi == arith_skolem_int_div_by_zero)
     {
       tn = nm->integerType();
       name = std::string("intDivByZero");
       desc = std::string("partial int division");
     }
-    else if( asi==arith_skolem_mod_by_zero )
+    else if (asi == arith_skolem_mod_by_zero)
     {
       tn = nm->integerType();
       name = std::string("modZero");
@@ -5064,21 +5068,18 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest &logicRequest, ArithSkolemI
     }
 
     Node skolem;
-    if( options::arithNoPartialFun() )
+    if (options::arithNoPartialFun())
     {
       // partial function: division
-      skolem =
-          nm->mkSkolem(name,tn,desc,
-                      NodeManager::SKOLEM_EXACT_NAME);
+      skolem = nm->mkSkolem(name, tn, desc, NodeManager::SKOLEM_EXACT_NAME);
     }
     else
     {
       // partial function: division
-      skolem =
-          nm->mkSkolem(name,
-                      nm->mkFunctionType(tn, tn),
-                      desc,
-                      NodeManager::SKOLEM_EXACT_NAME);
+      skolem = nm->mkSkolem(name,
+                            nm->mkFunctionType(tn, tn),
+                            desc,
+                            NodeManager::SKOLEM_EXACT_NAME);
       logicRequest.widenLogic(THEORY_UF);
     }
     d_arith_skolem[asi] = skolem;
@@ -5087,12 +5088,14 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest &logicRequest, ArithSkolemI
   return it->second;
 }
 
-Node TheoryArithPrivate::getArithSkolemApp(LogicRequest &logicRequest, Node n, ArithSkolemId asi)
+Node TheoryArithPrivate::getArithSkolemApp(LogicRequest& logicRequest,
+                                           Node n,
+                                           ArithSkolemId asi)
 {
-  Node skolem = getArithSkolem( logicRequest, asi );
-  if( !options::arithNoPartialFun() )
+  Node skolem = getArithSkolem(logicRequest, asi);
+  if (!options::arithNoPartialFun())
   {
-    skolem = NodeManager::currentNM()->mkNode( APPLY_UF, skolem, n );
+    skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
   }
   return skolem;
 }
