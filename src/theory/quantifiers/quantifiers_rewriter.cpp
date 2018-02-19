@@ -518,13 +518,17 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     // if it is a function definition, rewrite the body independently
     Node fbody = QuantAttributes::getFunDefBody( q );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
-    Assert( !fbody.isNull() );
-    Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );
-    Assert( new_vars.size()==h.getNumChildren() );
-    return Rewriter::rewrite( NodeManager::currentNM()->mkNode( EQUAL, h, r ) );
-  }else{
-    return computeProcessTerms2( body, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, options::elimExtArithQuant() );
+    if( !fbody.isNull() )
+    {
+      Node r = computeProcessTerms2( fbody, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, false );
+      Assert( new_vars.size()==h.getNumChildren() );
+      return Rewriter::rewrite( NodeManager::currentNM()->mkNode( EQUAL, h, r ) );
+    }
+    // It can happen that we can't infer the shape of the function definition,
+    // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
+    // forall xy. false.
   }
+  return computeProcessTerms2( body, true, true, curr_cond, 0, cache, icache, new_vars, new_conds, options::elimExtArithQuant() );
 }
 
 Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
