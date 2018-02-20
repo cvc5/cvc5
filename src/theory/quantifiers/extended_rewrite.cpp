@@ -166,6 +166,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     ret = extendedRewrite(new_ret);
   }
+  Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret << std::endl;
   d_ext_rewrite_cache[n] = ret;
   return ret;
 }
@@ -862,7 +863,6 @@ Node ExtendedRewriter::rewriteBvShift( Node ret )
       base = bchildren.size()==1 ? bchildren[0] : nm->mkNode( bk, bchildren );
     }
   }
-  std::sort( cchildren.begin(), cchildren.end() );
   new_ret = mkRightAssocChain( k, base, cchildren );
   if( new_ret!=ret )
   {
@@ -957,27 +957,45 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
   {
     // TODO
   }
-  if( a.getKind()==BITVECTOR_OR )
+  Kind ak = a.getKind();
+  Kind bk = b.getKind();
+  if( ak==BITVECTOR_OR || ( ak==BITVECTOR_NOT && a[0].getKind()==BITVECTOR_AND ) )
   {
-    for( const Node& ac : a )
+    Node arec = ak==BITVECTOR_NOT ? a[0] : a;
+    for( const Node& ac : arec )
     {
-      if( bitVectorSubsume( ac, b, strict ) )
+      Node acc = ak==BITVECTOR_NOT ? mkNegate( BITVECTOR_NOT, ac ) : ac;
+      if( bitVectorSubsume( acc, b, strict ) )
       {
         return true;
       }
     }
   }
-  else if( b.getKind()==BITVECTOR_AND )
+  else if( ak==BITVECTOR_NOT )
   {
-    for( const Node& bc : b )
+    if( a[0].getKind()==BITVECTOR_SHL )
     {
-      if( bitVectorSubsume( a, bc, strict ) )
+      // ~bvshl( x, y ) subsumes z if y>=z.
+      if( bitVectorArithComp( a[0][1], b ) )
+      {
+        return !strict;
+      }
+    }
+  }
+  
+  if( bk==BITVECTOR_AND || ( bk==BITVECTOR_NOT && b[0].getKind()==BITVECTOR_OR ) )
+  {
+    Node brec = bk==BITVECTOR_NOT ? b[0] : b;
+    for( const Node& bc : brec )
+    {
+      Node bcc = bk==BITVECTOR_NOT ? mkNegate( BITVECTOR_NOT, bc ) : bc;
+      if( bitVectorSubsume( a, bcc, strict ) )
       {
         return true;
       }
     }
   }
-  else if( b.getKind()==BITVECTOR_SHL )
+  else if( bk==BITVECTOR_SHL )
   {
     if( b[0].getKind()==BITVECTOR_LSHR )
     {
@@ -987,8 +1005,14 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
         return !strict;
       }
     }
+    Node anot = mkNegate( BITVECTOR_NOT, a );
+    // x subsumes bvshl( y, z ) if z>=(~x).
+    if( bitVectorArithComp( b[1], anot ) )
+    {
+      return !strict;
+    }
   }
-  else if( b.getKind()==BITVECTOR_LSHR )
+  else if( bk==BITVECTOR_LSHR )
   {
     if( b[0].getKind()==BITVECTOR_SHL )
     {
@@ -1006,6 +1030,7 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
 bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
 {
   Assert( a.getType()==b.getType() );
+  Trace("q-ext-rewrite-debug2") << "Arith comp " << a << " " << b << "?" << std::endl;
   if( bitVectorSubsume(a,b,strict) )
   {
     return true;
@@ -1022,6 +1047,20 @@ bool ExtendedRewriter::bitVectorArithComp( Node a, Node b, bool strict )
       return true;
     }
   }
+  else if( b.getKind() == BITVECTOR_NOT )
+  {
+    if( a.getKind() == BITVECTOR_NOT )
+    {
+      // flipped?
+    }
+  }
+  else if( b.getKind() == BITVECTOR_NEG )
+  {
+    if( a.getKind() == BITVECTOR_NEG )
+    {
+      return bitVectorArithComp( b[0], a[0], strict );
+    }
+  }
 
   return false;
 }
@@ -1033,39 +1072,19 @@ bool ExtendedRewriter::bitvectorDisjoint( Node a, Node b )
   {
     // TODO
   }
+  // must be dually subsuming
   for( unsigned r=0; r<2; r++ )
   {
     Node x = r==0 ? a : b;
     Node y = r==0 ? b : a;
-    
-    if( x.getKind()==BITVECTOR_NOT  )
+    x = mkNegate( BITVECTOR_NOT, x );
+    if( !bitVectorSubsume( x, y ) )
     {
-      if( x[0]==y )
-      {
-        return true;
-      }
-    }
-    if( x.getKind()==BITVECTOR_SHL )
-    {
-      // bvshl( x, y ) is disjoint from z if y>z.
-      if( bitVectorArithComp( x[1], y ) )
-      {
-        return true;
-      }
-    }
-    else if( x.getKind()==BITVECTOR_AND )
-    {
-      for( const Node& xc : x ) 
-      {
-        if( bitvectorDisjoint( xc, y ) )
-        {
-          return true;
-        }
-      }
+      return false;
     }
   }
   
-  return false;
+  return true;
 }
 
 Node ExtendedRewriter::decomposeRightAssocChain( Kind k, Node n, std::vector< Node >& children )
@@ -1083,9 +1102,14 @@ Node ExtendedRewriter::mkRightAssocChain( Kind k, Node base, std::vector< Node >
 {
   NodeManager * nm = NodeManager::currentNM();
   Node curr = base;
-  for( const Node& c : children )
+  if( !children.empty() )
   {
-    curr = nm->mkNode( k, curr, c );
+    // always sort
+    std::sort( children.begin(), children.end() );
+    for( const Node& c : children )
+    {
+      curr = nm->mkNode( k, curr, c );
+    }
   }
   return curr;
 }
@@ -1266,6 +1290,7 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
           }
           Assert( group_children.size()>1 );
           Node sgc = nm->mkNode( BITVECTOR_PLUS, group_children );
+          // FIXME : avoid this call
           sgc = extendedRewrite( sgc );
           sgc = nm->mkNode( fk, sgc, sl );
           msum_new[sgc] = bvone;
@@ -1367,8 +1392,6 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         unsigned sizez = bv::utils::getSize(n[nchildren-1]);
         Integer powsizez = Integer(1).multiplyByPow2(sizez);
         Node ccoeff = bv::utils::mkConst(size,powsizez);
-        
-        // FIXME : recurse as multiplication so that SHL and coeffs are uniform
         
         getBvMonomialSum( rec, n_msum );
         for( std::map< Node, Node >::iterator it = n_msum.begin(); it != n_msum.end(); ++it )
