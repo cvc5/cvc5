@@ -798,6 +798,14 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
         }
       }
     }
+    /*
+    // cancelling of AND/OR children
+    std::vector< Node > ret_children;
+    for( const Node& rc : ret )
+    {
+      ret_children.push_back( rc );
+    }
+    */
   }
   return Node::null();
 }
