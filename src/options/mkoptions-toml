@@ -1054,6 +1054,7 @@ function handle_alias {
     ERR "malformed \"alias\" command; expected option name"
   fi
   option="$1"
+  option_orig="$option"
   shift
   if [ "$1" != '=' ]; then
     ERR "malformed \"alias\" command; expected \`='"
@@ -1104,6 +1105,7 @@ function handle_alias {
   alias_links=""
   while [ $# -gt 0 ]; do
     linkopt="$1"
+    l="$1"
     # on the RHS, we're looking for =ARG, where "ARG" is *exactly* what
     # was given on the LHS
     if expr "$linkopt" : '.*=' &>/dev/null; then
@@ -1118,7 +1120,7 @@ function handle_alias {
     else
       linkarg=
     fi
-    alias_links="$alias_links, \"$linkopt\""
+    alias_links="$alias_links, \"$l\""
     links="$links
 #line $lineno \"$kf\"
       extender->pushBackPreemption(\"$linkopt\");"
@@ -1148,12 +1150,17 @@ function handle_alias {
     exit 1
   fi
 
+  if [ -n "$short_option" ]; then
+    echo "short alias found"
+    exit 1
+  fi
+
   echo ""
   echo "[[alias]]"
-  echo "  name       = \"$option\""
+#  echo "  name       = \"$option\""
   echo "  category   = \"$category\""
-  echo "  short      = \"$short_option\""
-  echo "  long       = \"$long_option\""
+#  echo "  short      = \"$short_option\""
+  echo "  long       = \"${option_orig:2}\""
   echo "  links      = [${alias_links:2}]"
 #  all_modules_option_handlers="$all_modules_option_handlers$cases$links
 #      break;

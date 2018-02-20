@@ -12,6 +12,7 @@ import toml
 # TODO: add error checking as done in mkoptions
 # TODO: bool options don't have handlers
 # TODO: check short options only one character
+# TODO: links and --no- options
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
 MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['options', 'aliases']
@@ -22,8 +23,8 @@ OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'handler', 'predicates', 'notifies', 'links', 'read_only'
 ]
 
-ALIAS_ATTR_REQ = ['name', 'category', 'links']
-ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help', 'short', 'long']
+ALIAS_ATTR_REQ = ['category', 'long', 'links']
+ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help']
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
@@ -244,7 +245,12 @@ def codegen_module(module):
                               defs='\n'.join(defs)))
 
 
-def strip_long_option(name):
+def long_get_arg(name):
+    l = name.split('=')
+    assert(len(l) <= 2)
+    return l[1] if len(l) == 2 else None
+
+def long_get_option(name):
     return name.split('=')[0]
 
 def is_numeric_type(t):
@@ -259,29 +265,29 @@ def format_include(include):
         return '#include {}'.format(include)
     return '#include "{}"'.format(include)
 
-def help_format_options(option):
+def help_format_options(short, long):
     opts = []
     arg = None
-    if option.long:
-        opts.append('--{}'.format(option.long))
-        l = option.long.split('=')
+    if long:
+        opts.append('--{}'.format(long))
+        l = long.split('=')
         if len(l) > 1:
             arg = l[1]
 
-    if option.short:
+    if short:
         if arg:
-            opts.append('-{} {}'.format(option.short, arg))
+            opts.append('-{} {}'.format(short, arg))
         else:
-            opts.append('-{}'.format(option.short))
+            opts.append('-{}'.format(short))
 
     return ' | '.join(opts)
 
-def help_format(option):
+def help_format(help, short, long):
     width = 80
     width_opt = 25
     text = \
-        textwrap.wrap(option.help.replace('"', '\\"'), width=width - width_opt)
-    text_opt = help_format_options(option)
+        textwrap.wrap(help.replace('"', '\\"'), width=width - width_opt)
+    text_opt = help_format_options(short, long)
     if len(text_opt) > width_opt - 3:
         lines = ['  {}'.format(text_opt)]
         lines.append(' ' * width_opt + text[0])
@@ -343,6 +349,8 @@ def codegen_all_modules(modules):
     option_value_cur = option_value_start
     for module in modules:
         headers_module.append(format_include(module.header))
+        # TODO: sort by name
+#        for option in sorted(module.options, key=lambda x: x.long if x.long else x.name):
         for option in module.options:
             assert(option.type != 'void' or option.name is None)
             assert(option.name or option.smt_name or option.short or option.long)
@@ -360,7 +368,7 @@ def codegen_all_modules(modules):
                 if not option.help:
                     print("no help for {} option {}".format(
                            option.category, option.name))
-                l.extend(help_format(option))
+                l.extend(help_format(option.help, option.short, option.long))
 
             ### generate handler call
             handler = None
@@ -403,19 +411,19 @@ def codegen_all_modules(modules):
                     'case {}:// --{}'.format(option_value_cur, option.long))
                 cmdline_options.append(
                     '{{ "{}", {}_argument, nullptr, {} }},'.format(
-                        strip_long_option(option.long),
+                        long_get_option(option.long),
                         'required' if argument_req else 'no',
                         option_value_cur))
                 option_value_cur += 1
 
             if len(cases) > 0:
-                if option.type == 'bool':
+                if option.type == 'bool' and option.name:
                     cases.append(
                         '  options->assignBool(options::{}, option, true);'.format(option.name))
-                elif option.type != 'void':
+                elif option.type != 'void' and option.name:
                     cases.append(
                         '  options->assign(options::{}, option, optionarg);'.format(option.name))
-                elif option.type == 'void' and handler:
+                elif handler:
                     cases.append('{};'.format(handler))
 
                 cases.extend(
@@ -434,28 +442,25 @@ def codegen_all_modules(modules):
                 option_value_cur += 1
                 cases.append(
                     '  options->assignBool(options::{}, option, false);'.format(option.name))
-#                cases.extend(
-#                    ['extender->pushBackPreemption("{}");'.format(x) \
-#                        for x in option.links])
                 cases.append('  break;\n')
 
                 options_handler.extend(cases)
 
                 cmdline_options.append(
                     '{{ "no-{}", {}_argument, nullptr, {} }},'.format(
-                        strip_long_option(option.long),
+                        long_get_option(option.long),
                         'required' if argument_req else 'no',
                         option_value_cur))
 
+            # collect SMT option names
+            if option.smt_name:
+                options_smt.append('"{}",'.format(option.smt_name))
 
             ### build opts for options::getOptions()
             if option.name:
                 optname = None
                 if option.smt_name:
                     optname = option.smt_name
-
-                    # collect SMT option names
-                    options_smt.append('"{}",'.format(option.smt_name))
                 else:
                     optname = option.long
 
@@ -514,8 +519,46 @@ def codegen_all_modules(modules):
                 defaults.append('{}({})'.format(option.name, default))
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
-    print('\n'.join(help_common))
-    print('\n'.join(help_others))
+
+#        for alias in sorted(module.aliases, key=lambda x: x.long):
+        for alias in module.aliases:
+            argument_req = '=' in alias.long
+
+            options_handler.append(
+                'case {}:// --{}'.format(option_value_cur, alias.long))
+
+            assert(len(alias.links) > 0)
+            arg = long_get_arg(alias.long)
+            for link in alias.links:
+                arg_link = long_get_arg(link)
+                if arg == arg_link:
+                    options_handler.append(
+                        'extender->pushBackPreemption("{}");'.format(long_get_option(link)))
+                    if argument_req:
+                        options_handler.append(
+                            'extender->pushBackPreemption(optionarg.c_str());')
+                else:
+                    options_handler.append(
+                        'extender->pushBackPreemption("{}");'.format(link))
+
+            options_handler.append('  break;\n')
+
+            cmdline_options.append(
+                '{{ "{}", {}_argument, nullptr, {} }},'.format(
+                    long_get_option(alias.long),
+                    'required' if argument_req else 'no',
+                    option_value_cur))
+            option_value_cur += 1
+
+            # generate help text
+            if alias.category != 'undocumented':
+                l = help_common if alias.category == 'common' else help_others
+                if not alias.help:
+                    print("no help for {} alias {}".format(
+                            alias.category, alias.long))
+                l.extend(help_format(alias.help, None, alias.long))
+
+
 
     write_file('options.cpp',
         tpl_options.format(
