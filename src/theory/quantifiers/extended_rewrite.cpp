@@ -798,12 +798,39 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
         }
       }
     }
-    /*
+    
     // cancelling of AND/OR children
-    std::vector< Node > ret_children;
+    /*
+    std::vector< Node > retc;
+    std::map< Node, bool > retc_pol;
     for( const Node& rc : ret )
     {
-      ret_children.push_back( rc );
+      bool pol = rc.getKind()!=BITVECTOR_NEG;
+      Node rca = rc.getKind()==BITVECTOR_NEG ? rc[0] : rc;
+      retc.insert( rca );
+      Assert( rca.getKind()!=BITVECTOR_NOT );
+      Assert( retc_pol.find(rca)==retc_pol.end() );
+      retc_pol[rca] = pol;
+    }
+    for( const Node& rc : retc )
+    {
+      // does AND/OR occur as child of PLUS?
+      Kind rck = rc.getKind();
+      if( rck==BITVECTOR_AND || rck==BITVECTOR_OR )
+      {
+        bool rcpol = retc_pol[rck];
+        // is there a child that cancels?
+        for( const Node& rcc : rc )
+        {
+          // check if it occurs under ret
+          std::map< Node, bool >::iterator itr = retc_pol.find( rcc );
+          if( itr!=retc_pol.end() )
+          {
+            // with opposite polarity?
+            
+          }
+        }
+      }
     }
     */
   }
