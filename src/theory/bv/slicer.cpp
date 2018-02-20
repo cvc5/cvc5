@@ -397,17 +397,18 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
   Debug("bv-slicer") << "                         " << term2.debugPrint() << endl;
   NormalForm nf1(term1.getBitwidth());
   NormalForm nf2(term2.getBitwidth());
-  
+
   getNormalForm(term1, nf1);
   getNormalForm(term2, nf2);
 
   Assert (nf1.base.getBitwidth() == nf2.base.getBitwidth());
-  
+
   // first check if the two have any common slices
-  std::vector<TermId> intersection; 
-  intersect(nf1.decomp, nf2.decomp, intersection); 
+  std::vector<TermId> intersection;
+  intersect(nf1.decomp, nf2.decomp, intersection);
   for (TermId id : intersection)
   {
+    /* handleCommonSlice() may change the normal form */
     handleCommonSlice(nf1.decomp, nf2.decomp, id);
   }
   // propagate cuts to a fixpoint 
