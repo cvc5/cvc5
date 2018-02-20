@@ -745,7 +745,8 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
     if( rcc.getKind()==BITVECTOR_NOT )
     {
       // ~x----> -(x+1)
-      rcc = nm->mkNode( BITVECTOR_NEG, nm->mkNode( BITVECTOR_PLUS, rcc[0], bv_one ) );
+      rcc = nm->mkNode( BITVECTOR_PLUS, rcc[0], bv_one );
+      isNeg = !isNeg;
       rchildrenChanged = true;
     }
     if( isNeg )
@@ -1155,6 +1156,121 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
     }
   }
   
+  // monomial normalization technqiues
+  
+  NodeManager * nm = NodeManager::currentNM();
+  
+  // group terms that have the same factors
+  for( unsigned r=0; r<2; r++ )
+  {
+    // the kind we are factoring
+    Kind fk = r==0 ? BITVECTOR_SHL : BITVECTOR_MULT;
+    std::vector< Node > fcts;
+    std::map< Node, std::unordered_set< Node, NodeHashFunction > > fct_ms;
+    std::map< Node, std::vector< Node > > ms_to_fct;
+    std::map< Node, Node > ms_to_base;
+    for( const std::pair< Node, Node >& m : msum )
+    {
+      Node v = m.first;
+      bool success = false;
+      if( r==0 )
+      {
+        // BITVECTOR_SHL is decomposed as right-associative chain
+        if( v.getKind()==fk )
+        {
+          ms_to_base[v] = decomposeRightAssocChain( fk, v, ms_to_fct[v] );
+          success = true;
+        }
+      }
+      else if( r==1 )
+      {
+        success = true;
+        // BITVECTOR_MULT is decomposed as children or self
+        if( v.getKind()==fk )
+        {
+          for( const Node& vc : v )
+          {
+            ms_to_fct[v].push_back( vc );
+          }
+        }
+        else
+        {
+          ms_to_fct[v].push_back( v );
+        }
+      }
+      if( success )
+      {
+        std::vector< Node >& mts = ms_to_fct[v];
+        for( const Node& sl : mts )
+        {
+          fct_ms[sl].insert( v );
+          if( std::find( fcts.begin(), fcts.end(), sl )==fcts.end() )
+          {
+            fcts.push_back( sl );
+          }
+        }
+      }
+    }
+    if( !fcts.empty() )
+    {
+      unsigned size = bv::utils::getSize(n);
+      Node bvone = bv::utils::mkOne(size);
+      std::sort( fcts.begin(), fcts.end() );
+      for( const Node& sl : fcts )
+      {
+        std::unordered_set< Node, NodeHashFunction >& sms = fct_ms[sl];
+        if( sms.size()>1 )
+        {
+          Trace("q-ext-rewrite-bvarith-debug") << "Factoring " << sl << std::endl;
+          // reconsturct the monomial
+          std::map< Node, Node > msum_new;
+          std::vector< Node > group_children;
+          for( const std::pair< Node, Node >& m : msum )
+          {
+            Node v = m.first;
+            if( sms.find(v)==sms.end() )
+            {
+              msum_new[v] = m.second;
+            }
+            else
+            {
+              // remove a factor (make a copy of vector here)
+              std::vector< Node > mts = ms_to_fct[v];
+              std::vector< Node >::iterator it = std::find( mts.begin(), mts.end(), sl );
+              Assert( it!=mts.end() );
+              mts.erase( it );
+              Node gc;
+              if( r==0 )
+              {
+                gc = mkRightAssocChain( fk, ms_to_base[v], mts );
+              }
+              else
+              {
+                gc = mts.empty() ? bvone : ( mts.size()==1 ? mts[0] : nm->mkNode( BITVECTOR_MULT, mts ) );
+              }
+              gc = nm->mkNode( BITVECTOR_MULT, gc, m.second );
+              Trace("q-ext-rewrite-bvarith-debug") << "...group child : " << gc << std::endl;
+              group_children.push_back( gc );
+            }
+          }
+          Assert( group_children.size()>1 );
+          Node sgc = nm->mkNode( BITVECTOR_PLUS, group_children );
+          sgc = extendedRewrite( sgc );
+          sgc = nm->mkNode( fk, sgc, sl );
+          msum_new[sgc] = bvone;
+          Node new_ret = mkNodeFromBvMonomial( n, msum_new );
+          new_ret = Rewriter::rewrite( new_ret );
+          if( new_ret!=n )
+          {
+            Trace("q-ext-rewrite-bvarith") << "Factored " << sl << " " << fk << " : " << n << " -> " << new_ret << std::endl;
+            return new_ret;
+          }
+        }
+      }
+    }
+  }
+  
+  
   Node new_ret = mkNodeFromBvMonomial( n, msum );
   Trace("q-ext-rewrite-bvarith") << "...got (pre-rewrite) : " << new_ret << std::endl;
   new_ret = Rewriter::rewrite( new_ret );
@@ -1240,6 +1356,8 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         unsigned sizez = bv::utils::getSize(n[nchildren-1]);
         Integer powsizez = Integer(1).multiplyByPow2(sizez);
         Node ccoeff = bv::utils::mkConst(size,powsizez);
+        
+        // FIXME : recurse as multiplication so that SHL and coeffs are uniform
         
         getBvMonomialSum( rec, n_msum );
         for( std::map< Node, Node >::iterator it = n_msum.begin(); it != n_msum.end(); ++it )
