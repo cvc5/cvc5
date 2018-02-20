@@ -4,8 +4,10 @@
 (set-info :status sat)
 (declare-fun x () Real)
 
-(assert (> (sin 1) 0.84))
-(assert (< (sin 1) 0.85))
+(assert (not (= (sin 1.0) 0.5)))
+(assert (not (= (sin 1.0) 0.8)))
+(assert (not (= (sin 1.0) 0.9)))
+(assert (not (= (sin 1.0) (- 0.84))))
 (assert (< (- x (sin 1)) 0.000001))
 (assert (< (- (sin 1) x) 0.000001))
 

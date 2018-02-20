@@ -4995,7 +4995,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
         Node lem;
         if (k == kind::SQRT)
         {
-          lem = nm->mkNode(kind::MULT, node[0], node[0]).eqNode(var);
+          lem = nm->mkNode(kind::MULT, var, var).eqNode(node[0]);
         }
         else
         {
