@@ -457,26 +457,6 @@ Node flattenAnd(std::vector<TNode>& queue)
 
 /* ------------------------------------------------------------------------- */
 
-// FIXME: dumb code
-void intersect(const std::vector<uint32_t>& v1,
-                      const std::vector<uint32_t>& v2,
-                      std::vector<uint32_t>& intersection) {
-  for (unsigned i = 0; i < v1.size(); ++i) {
-    bool found = false;
-    for (unsigned j = 0; j < v2.size(); ++j) {
-      if (v2[j] == v1[i]) {
-        found = true;
-        break;
-      }
-    }
-    if (found) {
-      intersection.push_back(v1[i]);
-    }
-  }
-}
-
-/* ------------------------------------------------------------------------- */
-
 }/* CVC4::theory::bv::utils namespace */
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */

@@ -20,13 +20,35 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 using namespace std; 
 
 
-const TermId CVC4::theory::bv::UndefinedId = -1; 
+namespace CVC4 {
+namespace theory {
+namespace bv {
+
+const TermId UndefinedId = -1;
+
+namespace {
+
+void intersect(const std::vector<TermId>& v1,
+               const std::vector<TermId>& v2,
+               std::vector<TermId>& intersection)
+{
+  for (const TermId id1 : v1)
+  {
+    for (const TermId id2 : v2)
+    {
+      if (id2 == id1)
+      {
+        intersection.push_back(id1);
+        break;
+      }
+    }
+  }
+}
+
+}  // namespace
 
 /**
  * Base
@@ -375,18 +397,19 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
   Debug("bv-slicer") << "                         " << term2.debugPrint() << endl;
   NormalForm nf1(term1.getBitwidth());
   NormalForm nf2(term2.getBitwidth());
-  
+
   getNormalForm(term1, nf1);
   getNormalForm(term2, nf2);
 
   Assert (nf1.base.getBitwidth() == nf2.base.getBitwidth());
-  
-  // first check if the two have any common slices 
-  std::vector<TermId> intersection; 
-  utils::intersect(nf1.decomp, nf2.decomp, intersection); 
-  for (unsigned i = 0; i < intersection.size(); ++i) {
-    // handle common slice may change the normal form 
-    handleCommonSlice(nf1.decomp, nf2.decomp, intersection[i]); 
+
+  // first check if the two have any common slices
+  std::vector<TermId> intersection;
+  intersect(nf1.decomp, nf2.decomp, intersection);
+  for (TermId id : intersection)
+  {
+    /* handleCommonSlice() may change the normal form */
+    handleCommonSlice(nf1.decomp, nf2.decomp, id);
   }
   // propagate cuts to a fixpoint 
   bool changed;
@@ -638,3 +661,7 @@ UnionFind::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_avgFindDepth);
   smtStatisticsRegistry()->unregisterStat(&d_numAddedEqualities);
 }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
