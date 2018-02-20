@@ -125,8 +125,7 @@ template<bool ref_count>
 Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 {
   std::set<TNode> all(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 0) { return mkTrue(); }
+  Assert(all.size() > 0);
 
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
@@ -145,8 +144,7 @@ template<bool ref_count>
 Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
 {
   std::set<TNode> all(nodes.begin(), nodes.end());
-
-  if (all.size() == 0) { return mkTrue(); }
+  Assert(all.size() > 0);
 
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
