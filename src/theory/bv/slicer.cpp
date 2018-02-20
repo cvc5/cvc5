@@ -48,23 +48,6 @@ void intersect(const std::vector<TermId>& v1,
   }
 }
 
-void intersectOld(const std::vector<uint32_t>& v1,
-                      const std::vector<uint32_t>& v2,
-                      std::vector<uint32_t>& intersection) {
-  for (unsigned i = 0; i < v1.size(); ++i) {
-    bool found = false;
-    for (unsigned j = 0; j < v2.size(); ++j) {
-      if (v2[j] == v1[i]) {
-        found = true;
-        break;
-      }
-    }
-    if (found) {
-      intersection.push_back(v1[i]);
-    }
-  }
-}
-
 }  // namespace
 
 /**
@@ -423,9 +406,6 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
   // first check if the two have any common slices
   std::vector<TermId> intersection; 
   intersect(nf1.decomp, nf2.decomp, intersection); 
-  std::vector<TermId> intersectionOld;
-  intersectOld(nf1.decomp, nf2.decomp, intersectionOld);
-  Assert(intersection == intersectionOld);
   for (TermId id : intersection)
   {
     handleCommonSlice(nf1.decomp, nf2.decomp, id);
