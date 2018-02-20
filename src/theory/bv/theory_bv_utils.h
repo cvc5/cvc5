@@ -62,9 +62,11 @@ unsigned isPow2Const(TNode node, bool& isNeg);
 bool isBvConstTerm(TNode node);
 /* Returns true if node is a predicate over bit-vector nodes. */
 bool isBVPredicate(TNode node);
-/* Returns true if given term is a THEORY_BV term.  */
+/* Returns true if given term is a THEORY_BV \Sigma_core term.
+ * \Sigma_core = { concat, extract, =, bv constants, bv variables } */
 bool isCoreTerm(TNode term, TNodeBoolMap& cache);
-/* Returns true if given term is a bv constant, variable or equality term.  */
+/* Returns true if given term is a THEORY_BV \Sigma_equality term.
+ * \Sigma_equality = { =, bv constants, bv variables }  */
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
 /* Returns true if given node is an atom that is bit-blasted.  */
 bool isBitblastAtom(Node lit);
