@@ -54,20 +54,28 @@ unsigned getSignExtendAmount(TNode node);
 
 /* Returns true if given node represents a zero bit-vector.  */
 bool isZero(TNode node);
+
 /* If node is a constant of the form 2^c or -2^c, then this function returns
  * c+1. Otherwise, this function returns 0. The flag isNeg is updated to
  * indicate whether node is negative.  */
 unsigned isPow2Const(TNode node, bool& isNeg);
+
 /* Returns true if node or all of its children is const. */
 bool isBvConstTerm(TNode node);
+
 /* Returns true if node is a predicate over bit-vector nodes. */
 bool isBVPredicate(TNode node);
-/* Returns true if given term is a THEORY_BV \Sigma_core term.
- * \Sigma_core = { concat, extract, =, bv constants, bv variables } */
+
+/* Returns true if given term is
+ *   - not a THEORY_BV term
+ *   - a THEORY_BV \Sigma_core term, where
+ *     \Sigma_core = { concat, extract, =, bv constants, bv variables } */
 bool isCoreTerm(TNode term, TNodeBoolMap& cache);
+
 /* Returns true if given term is a THEORY_BV \Sigma_equality term.
  * \Sigma_equality = { =, bv constants, bv variables }  */
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
+
 /* Returns true if given node is an atom that is bit-blasted.  */
 bool isBitblastAtom(Node lit);
 
