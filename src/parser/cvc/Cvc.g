@@ -705,7 +705,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   Expr f;
   SExpr sexpr;
   std::string id;
-  Type t;
+  Type t,t2,t3;
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
@@ -896,17 +896,26 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
   | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t, CHECK_DECLARED] EQUAL_TOK 
     LAMBDA 
-    LPAREN identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] RPAREN 
-    COLON 
-  {
+    LPAREN identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
+    {
     for(unsigned int i = 0; i < ids.size();i++){
       Debug("parser") <<"id "<<i<<ids[i]<<std::endl;
       typeIds.push_back(std::make_pair(ids[i], t));
+     }
     }
-    func = PARSER_STATE->mkDefineFunRec(id, typeIds, t, flattenVars);
-    PARSER_STATE->pushDefineFunRecScope(typeIds, func, flattenVars, bvs, true);
-  }
-  formula[f]
+    (COMMA identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED])*
+    {
+      for(unsigned int i = 0; i < ids.size();i++){
+      Debug("parser") <<"id "<<i<<ids[i]<<std::endl;
+      typeIds.push_back(std::make_pair(ids[i], t));
+     }
+    }
+    RPAREN 
+    {
+      func = PARSER_STATE->mkDefineFunRec(id, typeIds, t, flattenVars);
+      PARSER_STATE->pushDefineFunRecScope(typeIds, func, flattenVars, bvs, true);
+    }
+    COLON formula[f]
   {
     PARSER_STATE->popScope();
     cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
