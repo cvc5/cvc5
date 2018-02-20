@@ -670,7 +670,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       new_ret = normalizeBvMonomial( ret );
       if( !new_ret.isNull() )
       {
-        debugExtendedRewrite( ret, new_ret, "NEG-normalize" );
+        debugExtendedRewrite( ret, new_ret, "NEG-mnormalize" );
       }
     }
   }
@@ -691,7 +691,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     new_ret = normalizeBvMonomial( ret );
     if( !new_ret.isNull() )
     {
-      debugExtendedRewrite( ret, new_ret, "CONCAT-normalize" );
+      debugExtendedRewrite( ret, new_ret, "CONCAT-mnormalize" );
     }
   }
   return new_ret;
@@ -767,7 +767,7 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
   new_ret = normalizeBvMonomial( ret );
   if( !new_ret.isNull() )
   {
-    debugExtendedRewrite( ret, new_ret, "arith-normalize" );
+    debugExtendedRewrite( ret, new_ret, "arith-mnormalize" );
     return new_ret;
   }
   
@@ -869,6 +869,17 @@ Node ExtendedRewriter::rewriteBvShift( Node ret )
     debugExtendedRewrite( ret, new_ret, "shift-sort-arith" );
     return new_ret;
   }
+  
+  if( k == BITVECTOR_SHL )
+  {
+    new_ret = normalizeBvMonomial( ret );
+    if( !new_ret.isNull() )
+    {
+      debugExtendedRewrite( ret, new_ret, "SHL-mnormalize" );
+      return new_ret;
+    }
+  }
+  
   return Node::null();
 }
 
@@ -1425,6 +1436,26 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
       }
       Trace("q-ext-rewrite-debug2") << "...got " << v << " * " << coeff << std::endl;
       n_msum[v] = coeff;
+    }
+    else if( k==BITVECTOR_SHL )
+    {
+      std::vector< Node > shls;
+      Node nn = decomposeRightAssocChain( BITVECTOR_SHL, n, shls );
+      std::map< Node, Node > nn_msum;
+      getBvMonomialSum( nn, nn_msum );
+      if( nn_msum.size()==1 )
+      {
+        for( const std::pair< Node, Node >& nnc : nn_msum )
+        {
+          Node v = mkRightAssocChain( BITVECTOR_SHL, nnc.first, shls );
+          n_msum[v] = nnc.second;
+        }
+      }
+      else
+      {
+        // do not distribute
+        n_msum[n] = bv_one;
+      }
     }
     else 
     {
