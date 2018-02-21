@@ -126,7 +126,12 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
     }
   }
-  else
+  else if( ret.getKind()==AND || ret.getKind()==OR )
+  {
+    new_ret = extendedRewriteBcp( AND, OR, NOT, ret );
+  }
+  
+  if( new_ret.isNull() )
   {  
     // simple ITE pulling
     new_ret = extendedRewritePullIte(ret);
