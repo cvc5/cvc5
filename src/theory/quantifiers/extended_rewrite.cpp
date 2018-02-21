@@ -463,10 +463,9 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
         ccs = Rewriter::rewrite( ccs );
         Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs << std::endl;
         to_process.push_back( ccs );
-        // store this as a propagated node. This marks c so that it will not be 
-        // included in the final construction.
-        Node cp = c.getKind()==notk ? c[0] : c;
-        prop_clauses.insert( cp );
+        // store this as a node that propagation touched. This marks c so that
+        // it will not be included in the final construction.
+        prop_clauses.insert( ca );
       }
       else
       {
@@ -485,7 +484,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
     for( const std::pair< Node, Node >& l : assign )
     {
       Node a = l.first;
-      // if we did not propagate values on a
+      // if propagation did not touch a
       if( prop_clauses.find( a )==prop_clauses.end() )
       {
         Assert( l.second==truen || l.second==falsen );
