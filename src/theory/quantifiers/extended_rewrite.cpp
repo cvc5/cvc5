@@ -80,16 +80,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
                                << " (from " << n << ")" << std::endl;
   Node new_ret;
   
-  // theory-independent simple rewriting
-  if (ret.getKind() == kind::EQUAL)
-  {
-    if (new_ret.isNull())
-    {
-      // simple ITE pulling
-      new_ret = extendedRewritePullIte(ret);
-    }
-  }
-  else if (ret.getKind() == kind::ITE)
+  // theory-independent rewriting
+  if (ret.getKind() == kind::ITE)
   {
     Assert(ret[1] != ret[2]);
     if (ret[0].getKind() == NOT)
@@ -134,7 +126,13 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       }
     }
   }
+  else
+  {  
+    // simple ITE pulling
+    new_ret = extendedRewritePullIte(ret);
+  }
   
+  // theory-specific rewriting
   if( new_ret.isNull() )
   {
     Node atom = ret.getKind()==NOT ? ret[0] : ret;
@@ -181,6 +179,8 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
   if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
       || ret_atom.getKind() == GEQ)
   {
+    // ITE term removal in polynomials
+    // e.g. ite( x=0, x, y ) = x+1 ---> ( x=0 ^ y = x+1 )
     Trace("q-ext-rewrite-debug2")
         << "Compute monomial sum " << ret_atom << std::endl;
     // compute monomial sum
@@ -232,26 +232,31 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
 
 Node ExtendedRewriter::extendedRewritePullIte(Node n)
 {
-  // generalize this?
-  Assert(n.getNumChildren() == 2);
-  Assert(n.getType().isBoolean());
-  Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+  NodeManager * nm = NodeManager::currentNM();
+  TypeNode tn = n.getType();  
   std::vector<Node> children;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  bool hasOp = ( n.getMetaKind() == kind::metakind::PARAMETERIZED );
+  if(hasOp)
+  {
+    children.push_back( n.getOperator() );
+  }
+  unsigned nchildren = n.getNumChildren();
+  for (unsigned i = 0; i < nchildren; i++)
   {
     children.push_back(n[i]);
   }
-  for (unsigned i = 0; i < 2; i++)
+  for (unsigned i = 0; i < nchildren; i++)
   {
     if (n[i].getKind() == kind::ITE)
     {
+      unsigned ii = hasOp ? i+1 : i;
+      Node prev;
       for (unsigned j = 0; j < 2; j++)
       {
-        children[i] = n[i][j + 1];
-        Node eqr = extendedRewrite(
-            NodeManager::currentNM()->mkNode(n.getKind(), children));
-        children[i] = n[i];
-        if (eqr.isConst())
+        children[ii] = n[i][j + 1];
+        Node eqr = extendedRewrite(nm->mkNode(n.getKind(), children));
+        children[ii] = n[i];
+        if (eqr.isConst() && tn.isBoolean())
         {
           std::vector<Node> new_children;
           Kind new_k;
@@ -266,16 +271,24 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
             new_k = kind::AND;
             new_children.push_back(j == 0 ? n[i][0].negate() : n[i][0]);
           }
-          children[i] = n[i][2 - j];
-          Node rem_eq = NodeManager::currentNM()->mkNode(n.getKind(), children);
-          children[i] = n[i];
+          children[ii] = n[i][2 - j];
+          Node rem_eq = nm->mkNode(n.getKind(), children);
           new_children.push_back(rem_eq);
-          Node nc = NodeManager::currentNM()->mkNode(new_k, new_children);
+          Node nc = nm->mkNode(new_k, new_children);
           Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                                 << nc << " by simple ITE pulling."
+                                 << nc << " by ITE Boolean constant."
                                  << std::endl;
           return nc;
         }
+        else if( prev==eqr )
+        {
+          Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
+                                 << eqr << " by ITE invariance."
+                                 << std::endl;
+          // invariance
+          return eqr;
+        } 
+        prev = eqr;
       }
     }
   }

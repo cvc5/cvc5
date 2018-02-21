@@ -72,10 +72,9 @@ class ExtendedRewriter
   Node d_false;
   /** pull ITE
    * Do simple ITE pulling, e.g.:
-   *   C2 --->^E false
+   *   D=C2 ---> false
    * implies:
-   *  ite( C, C1, C2 ) --->^E  C ^ C1
-   * where ---->^E denotes extended rewriting.
+   *   D=ite( C, C1, C2 ) --->  C ^ D=C1
    */
   Node extendedRewritePullIte(Node n);
   /** rewrite bcp */
