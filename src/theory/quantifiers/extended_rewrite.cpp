@@ -455,8 +455,8 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
       }
       if( childChanged )
       {
-        if( c.getMetaKind() == kind::metakind::PARAMETERIZED ){
-          ccs_children.insert( ccs_children.begin(), c.getOperator() );
+        if( ca.getMetaKind() == kind::metakind::PARAMETERIZED ){
+          ccs_children.insert( ccs_children.begin(), ca.getOperator() );
         }
         Node ccs = nm->mkNode( ca.getKind(), ccs_children );
         ccs = cpol ? ccs : mkNegate( notk, ccs );
