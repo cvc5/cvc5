@@ -51,5 +51,14 @@ public:
     TS_ASSERT_EQUALS( "000000011010", b4.toString() );
     TS_ASSERT_EQUALS( "26", b4.toString(10) );
     TS_ASSERT_EQUALS( "1a", b4.toString(16) );
+
+    Integer i(-1);
+    BitVector b5(4, i);
+    Integer i2(2);
+    BitVector b6(4, i2);
+    TS_ASSERT_EQUALS("1111", b5.toString());
+    TS_ASSERT(b5.signedLessThan(b6));
+    TS_ASSERT_EQUALS(b5.toSignedInteger(), i);
+    TS_ASSERT_EQUALS(b6.toSignedInteger(), i2);
   }
 };
