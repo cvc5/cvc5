@@ -56,23 +56,41 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       children.push_back(n.getOperator());
     }
+    Kind k =n.getKind();
     bool childChanged = false;
+    bool isNonAdditive = TermUtil::isNonAdditive(k);
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       Node nc = extendedRewrite(n[i]);
       childChanged = nc != n[i] || childChanged;
-      children.push_back(nc);
+      if( isNonAdditive && std::find( children.begin(), children.end(), nc )!=children.end() )
+      {
+        childChanged = true;
+      }
+      else
+      {
+        children.push_back(nc);
+      }
     }
+    Assert( !children.empty() );
     // Some commutative operators have rewriters that are agnostic to order,
     // thus, we sort here.
-    if (TermUtil::isComm(n.getKind()) && (d_aggr || children.size() <= 5))
+    if (TermUtil::isComm(k) && (d_aggr || children.size() <= 5))
     {
       childChanged = true;
       std::sort(children.begin(), children.end());
     }
     if (childChanged)
     {
-      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+      if( isNonAdditive && children.size()==1 )
+      {
+        // we may have subsumed children down to one
+        ret = children[0];
+      }
+      else
+      {
+        ret = nm->mkNode(k, children);
+      }
     }
   }
   ret = Rewriter::rewrite(ret);
@@ -81,13 +99,12 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   Node new_ret;
   
   // theory-independent rewriting
-  if (ret.getKind() == kind::ITE)
+  if (ret.getKind() == ITE)
   {
     Assert(ret[1] != ret[2]);
     if (ret[0].getKind() == NOT)
     {
-      ret = NodeManager::currentNM()->mkNode(
-          kind::ITE, ret[0][0], ret[2], ret[1]);
+      ret = nm->mkNode( ITE, ret[0][0], ret[2], ret[1]);
     }
     if (ret[0].getKind() == kind::EQUAL)
     {
@@ -417,9 +434,11 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
     std::vector< Node > new_clauses;
     for( const Node& c : clauses )
     {
+      bool cpol = c.getKind()!=notk;
+      Node ca = c.getKind()==notk ? c[0] : c;
       bool childChanged = false;
       std::vector< Node > ccs_children;
-      for( const Node& cc : c )
+      for( const Node& cc : ca )
       {
         Node ccs = cc;
         if( bcp_kinds.empty() )
@@ -440,6 +459,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
           ccs_children.insert( ccs_children.begin(), c.getOperator() );
         }
         Node ccs = nm->mkNode( c.getKind(), ccs_children );
+        ccs = cpol ? ccs : mkNegate( notk, ccs );
         ccs = Rewriter::rewrite( ccs );
         Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs << std::endl;
         to_process.push_back( ccs );
