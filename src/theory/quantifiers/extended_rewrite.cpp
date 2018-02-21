@@ -230,7 +230,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       for( unsigned r=0; r<2; r++ )
       {
         Node curr = ret[r];
-        while( curr.getKind()==EQUAL && curr.getType().isBoolean() )
+        while( curr.getKind()==EQUAL && curr[0].getType().isBoolean() )
         {
           children.push_back( curr[0] );
           curr = curr[1];
