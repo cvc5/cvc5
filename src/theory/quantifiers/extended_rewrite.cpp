@@ -48,11 +48,77 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     return it->second;
   }
   
-  // TODO : NNF
-  
-  
   Node ret = n;
   NodeManager * nm = NodeManager::currentNM();
+    
+  Node pre_new_ret;
+  
+  //Boolean function elimination
+  if( ret.getKind()==IMPLIES )
+  {
+    pre_new_ret = nm->mkNode( OR, ret[0].negate(), ret[1] );
+  }
+  else if( ret.getKind()==XOR )
+  {
+    pre_new_ret = nm->mkNode( EQUAL, ret[0].negate(), ret[1] );
+  }
+  else if( ret.getKind()==NOT )
+  {
+    // NNF
+    Kind nk = ret[0].getKind();
+    bool neg_ch = false;
+    bool neg_ch_1 = false;
+    if( nk==AND || nk==OR )
+    {
+      pre_new_ret = ret;
+      neg_ch = true;
+      nk = nk==AND ? OR : AND;
+    }
+    else if( nk==IMPLIES )
+    {
+      pre_new_ret = ret;
+      neg_ch = true;
+      neg_ch_1 = true;
+      nk = AND;
+    }
+    else if( nk==ITE )
+    {
+      pre_new_ret = ret;
+      neg_ch = true;
+      neg_ch_1 = true;
+    }
+    else if( nk==XOR )
+    {
+      pre_new_ret = ret;
+      nk = EQUAL;
+    }
+    else if( nk==EQUAL && ret[0][0].getType().isBoolean() )
+    {
+      pre_new_ret = ret;
+      neg_ch_1 = true;
+    }
+    if( !pre_new_ret.isNull() )
+    {
+      std::vector< Node > new_children;
+      for( unsigned i=0, nchild = ret[0].getNumChildren(); i<nchild; i++ )
+      {
+        Node c = ret[0][i];
+        c = ( i==0 ? neg_ch_1 : false )!=neg_ch ? c.negate() : c;
+        new_children.push_back( c );
+      }
+      pre_new_ret = nm->mkNode( nk, new_children );
+      debugExtendedRewrite( n, pre_new_ret, "NNF" );
+    }
+  }
+    
+  if (!pre_new_ret.isNull())
+  {
+    ret = extendedRewrite(pre_new_ret);
+    Trace("q-ext-rewrite-debug") << "...ext-pre-rewrite : " << n << " -> " << pre_new_ret << std::endl;
+    d_ext_rewrite_cache[n] = ret;
+    return ret;
+  }
+  
   if (n.getNumChildren() > 0)
   {
     std::vector<Node> children;
@@ -141,9 +207,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
             if (retn != ret[1])
             {
               new_ret = nm->mkNode( kind::ITE, ret[0], retn, ret[2]);
-              Trace("q-ext-rewrite")
-                  << "sygus-extr : " << ret << " rewrites to " << new_ret
-                  << " due to simple ITE substitution." << std::endl;
+              debugExtendedRewrite( ret, new_ret, "ITE subs" );
             }
           }
         }
@@ -153,12 +217,23 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   else if( ret.getKind()==AND || ret.getKind()==OR )
   {
     new_ret = extendedRewriteBcp( AND, OR, NOT, ret );
+    debugExtendedRewrite( ret, new_ret, "Bool bcp" );
+  }
+  else if( ret.getKind()==EQUAL )
+  {
+    if( ret[0].getType().isBoolean() )
+    {
+      // sorting children of =
+      
+      
+    }
   }
   
   if( new_ret.isNull() )
   {  
     // simple ITE pulling
     new_ret = extendedRewritePullIte(ret);
+    debugExtendedRewrite( ret, new_ret, "ITE pull" );
   }
   
   // theory-specific rewriting
@@ -238,6 +313,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
               {
                 new_ret = new_ret.negate();
               }
+              debugExtendedRewrite( n, new_ret, "ITE pull arith" );
               break;
             }
           }
@@ -304,16 +380,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
           Node rem_eq = nm->mkNode(n.getKind(), children);
           new_children.push_back(rem_eq);
           Node nc = nm->mkNode(new_k, new_children);
-          Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                                 << nc << " by ITE Boolean constant."
-                                 << std::endl;
           return nc;
         }
         else if( prev==eqr )
         {
-          Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                                 << eqr << " by ITE invariance."
-                                 << std::endl;
           // invariance
           return eqr;
         } 
@@ -1651,10 +1721,16 @@ Node ExtendedRewriter::mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msu
   return nm->mkNode( BITVECTOR_PLUS, sum );
 }
 
-void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c )
+void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c ) const
 {
-  Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                          << ret << " due to " <<  c << "." << std::endl;
+  if( Trace.isOn("q-ext-rewrite") )
+  {
+    if( !ret.isNull() )
+    {
+      Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
+                              << ret << " due to " <<  c << "." << std::endl;
+    }
+  }
 }
 
 } /* CVC4::theory::quantifiers namespace */

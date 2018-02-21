@@ -91,7 +91,7 @@ class ExtendedRewriter
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
    */
-  void debugExtendedRewrite( Node n, Node ret, const char * c );
+  inline void debugExtendedRewrite( Node n, Node ret, const char * c ) const;
   //--------------------------------------end generic utilities
   
   //--------------------------------------theory-specific top-level calls
