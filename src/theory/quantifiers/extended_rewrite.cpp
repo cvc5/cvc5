@@ -221,11 +221,71 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   else if( ret.getKind()==EQUAL )
   {
+    // sort/cancelling for Boolean EQUAL-chains
     if( ret[0].getType().isBoolean() )
     {
-      // sorting children of =
+      // get the children on either side
+      bool gpol = true;
+      std::vector< Node > children;
+      for( unsigned r=0; r<2; r++ )
+      {
+        Node curr = ret[r];
+        while( curr.getKind()==EQUAL && curr.getType().isBoolean() )
+        {
+          children.push_back( curr[0] );
+          curr = curr[1];
+        }
+        children.push_back( curr );
+      }
       
+      std::map< Node, bool > cstatus;
+      // add children to status
+      for( const Node& c : children )
+      {
+        Node a = c;
+        if( a.getKind()==NOT )
+        {
+          gpol = !gpol;
+          a = a[0];
+        }
+        std::map< Node, bool >::iterator itc = cstatus.find(a);
+        if( itc==cstatus.end() )
+        {
+          cstatus[a] = true;
+        }
+        else
+        {
+          // cancels
+          cstatus.erase(a);
+        }
+      }
       
+      if( cstatus.empty() )
+      {
+        new_ret = nm->mkConst(gpol);
+      }
+      else
+      {
+        // sorted right associative chain
+        children.clear();
+        for( const std::pair< Node, bool >& cp : cstatus )
+        {
+          children.push_back( cp.first );
+        }
+        std::sort( children.begin(), children.end() );
+        if( !gpol )
+        {
+          children[0] = children[0].negate();
+        }
+        new_ret = children.back();
+        unsigned index = children.size()-1;
+        while( index>0 )
+        {
+          index--;
+          new_ret = nm->mkNode( EQUAL, children[index], new_ret );
+        }
+      }
+      debugExtendedRewrite( ret, new_ret, "Bool Eq simplify" );
     }
   }
   
