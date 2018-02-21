@@ -458,7 +458,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
         if( c.getMetaKind() == kind::metakind::PARAMETERIZED ){
           ccs_children.insert( ccs_children.begin(), c.getOperator() );
         }
-        Node ccs = nm->mkNode( c.getKind(), ccs_children );
+        Node ccs = nm->mkNode( ca.getKind(), ccs_children );
         ccs = cpol ? ccs : mkNegate( notk, ccs );
         ccs = Rewriter::rewrite( ccs );
         Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs << std::endl;
@@ -836,40 +836,76 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
       }
     }
     
-    // cancelling of AND/OR children
-    /*
-    std::vector< Node > retc;
-    std::map< Node, bool > retc_pol;
+    // cancelling of AND/OR children, handles these cases:
+    // s - ( s & t )  ---->  s & ~t
+    // s - ( s | t )  ---->  -( ~s & t )
+    // ( s & t ) - s  ---->  -( s & ~t )
+    // ( s | t ) - s  ---->  ~s & t    
+    std::map< Node, bool > retc;
     for( const Node& rc : ret )
     {
       bool pol = rc.getKind()!=BITVECTOR_NEG;
       Node rca = rc.getKind()==BITVECTOR_NEG ? rc[0] : rc;
-      retc.insert( rca );
       Assert( rca.getKind()!=BITVECTOR_NOT );
-      Assert( retc_pol.find(rca)==retc_pol.end() );
-      retc_pol[rca] = pol;
+      Assert( retc.find(rca)==retc.end() );
+      retc[rca] = pol;
     }
-    for( const Node& rc : retc )
+    for( const std::pair< Node, bool >& rcp : retc )
     {
       // does AND/OR occur as child of PLUS?
+      Node rc = rcp.first;
       Kind rck = rc.getKind();
       if( rck==BITVECTOR_AND || rck==BITVECTOR_OR )
       {
-        bool rcpol = retc_pol[rck];
+        bool rcpol = rcp.second;
         // is there a child that cancels?
-        for( const Node& rcc : rc )
+        unsigned nchild = rc.getNumChildren();
+        for( unsigned j=0; j<nchild; j++ )
         {
+          Node rcc = rc[j];
           // check if it occurs under ret
-          std::map< Node, bool >::iterator itr = retc_pol.find( rcc );
-          if( itr!=retc_pol.end() )
+          std::map< Node, bool >::iterator itr = retc.find( rcc );
+          if( itr!=retc.end() )
           {
             // with opposite polarity?
-            
+            if( rcpol!=itr->second )
+            {
+              // collect remainder
+              std::vector< Node > new_children;
+              for( unsigned k=0; k<nchild; k++ )
+              {
+                if( k!=j )
+                {
+                  new_children.push_back( rc[k] );
+                }
+              }
+              Node nc[2];
+              nc[0] = rc[j];
+              nc[1] = new_children.size()==1 ? new_children[0] : nm->mkNode( rck, new_children );
+              // determine the index to negate
+              unsigned nindex = rck==BITVECTOR_AND ? 1 : 0;         
+              nc[nindex] = mkNegate( BITVECTOR_NOT, nc[nindex] );
+              // combine the children
+              Node new_c = nm->mkNode( BITVECTOR_AND, nc[0], nc[1] );
+              new_c = rcpol==(rck==BITVECTOR_AND) ? mkNegate( BITVECTOR_NEG, new_c ) : new_c;
+              retc.erase( rc );
+              retc.erase( rcc );
+              std::vector< Node > sum;
+              for( const std::pair< Node, bool >& rcnp : retc )
+              {
+                Node rcn = rcnp.first;
+                Node rcnn = rcnp.second ? rcn : mkNegate( BITVECTOR_NEG, rcn );
+                sum.push_back( rcnn );
+              }
+              sum.push_back( new_c );
+              new_ret = sum.size()==1 ? sum[0] : nm->mkNode( BITVECTOR_PLUS, sum );
+              debugExtendedRewrite( ret, new_ret, "PLUS-AND/OR cancel" );
+              return new_ret;
+            }
           }
         }
       }
     }
-    */
   }
   return Node::null();
 }
