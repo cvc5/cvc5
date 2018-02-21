@@ -797,53 +797,58 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
           d_sampler[a].initializeSygus(d_tds, a, options::sygusSamples());
           its = d_sampler.find(a);
         }
-        Node sample_ret = its->second.registerTerm(bv);
-        d_cache[a].d_search_val_sample[nv] = sample_ret;
-        if (itsv != d_cache[a].d_search_val[tn].end())
+        Node bvr_sample_ret;
+        std::map< Node, Node >::iterator itsv = d_cache[a].d_search_val_sample.find(bvr);
+        if (itsv==d_cache[a].d_search_val_sample.end())
         {
-          // if the analog of this term and another term were rewritten to the
-          // same term, then they should be equivalent under examples.
-          Node prev = itsv->second;
-          Node prev_sample_ret = d_cache[a].d_search_val_sample[prev];
-          if (sample_ret != prev_sample_ret)
+          // initialize the sampler for the rewritten form of this node
+          bvr_sample_ret = its->second.registerTerm(bvr);
+          d_cache[a].d_search_val_sample[bvr] = bvr_sample_ret;
+        }
+        else
+        {
+          bvr_sample_ret = itsv->second;
+        }
+        
+        Node sample_ret = its->second.registerTerm(bv);
+        d_cache[a].d_search_val_sample[bv] = sample_ret;
+
+        // bv and bvr should be equivalent under examples
+        if (sample_ret != bvr_sample_ret)
+        {
+          // we have detected unsoundness in the rewriter
+          Options& nodeManagerOptions =
+              NodeManager::currentNM()->getOptions();
+          std::ostream* out = nodeManagerOptions.getOut();
+          (*out) << "(unsound-rewrite " << bv << " " << bvr << ")"
+                  << std::endl;
+          // debugging information
+          if (Trace.isOn("sygus-rr-debug"))
           {
-            Node prev_bv = d_tds->sygusToBuiltin(prev, tn);
-            // we have detected unsoundness in the rewriter
-            Options& nodeManagerOptions =
-                NodeManager::currentNM()->getOptions();
-            std::ostream* out = nodeManagerOptions.getOut();
-            (*out) << "(unsound-rewrite " << prev_bv << " " << bv << ")"
-                   << std::endl;
-            // debugging information
-            if (Trace.isOn("sygus-rr-debug"))
+            int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
+            if (pt_index >= 0)
             {
-              int pt_index = its->second.getDiffSamplePointIndex(bv, prev_bv);
-              if (pt_index >= 0)
+              Trace("sygus-rr-debug")
+                  << "; unsound: are not equivalent for : " << std::endl;
+              std::vector<Node> vars;
+              std::vector<Node> pt;
+              its->second.getSamplePoint(pt_index, vars, pt);
+              Assert(vars.size() == pt.size());
+              for (unsigned i = 0, size = pt.size(); i < size; i++)
               {
-                Trace("sygus-rr-debug")
-                    << "; unsound: both ext-rewrite to : " << bvr << std::endl;
-                Trace("sygus-rr-debug")
-                    << "; unsound: but are not equivalent for : " << std::endl;
-                std::vector<Node> vars;
-                std::vector<Node> pt;
-                its->second.getSamplePoint(pt_index, vars, pt);
-                Assert(vars.size() == pt.size());
-                for (unsigned i = 0, size = pt.size(); i < size; i++)
-                {
-                  Trace("sygus-rr-debug") << "; unsound:    " << vars[i]
-                                          << " -> " << pt[i] << std::endl;
-                }
-                Node bv_e = its->second.evaluate(bv, pt_index);
-                Node pbv_e = its->second.evaluate(prev_bv, pt_index);
-                Assert(bv_e != pbv_e);
-                Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
-                                        << pbv_e << " and " << bv_e
-                                        << std::endl;
+                Trace("sygus-rr-debug") << "; unsound:    " << vars[i]
+                                        << " -> " << pt[i] << std::endl;
               }
-              else
-              {
-                Assert(false);
-              }
+              Node bv_e = its->second.evaluate(bv, pt_index);
+              Node pbv_e = its->second.evaluate(bvr, pt_index);
+              Assert(bv_e != pbv_e);
+              Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
+                                      << pbv_e << " and " << bv_e
+                                      << std::endl;
+            }
+            else
+            {
+              Assert(false);
             }
           }
         }
@@ -1279,9 +1284,10 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
     if( it==d_lits.end() ){
       if (options::sygusAbortSize() != -1 &&
           static_cast<int>(s) > options::sygusAbortSize()) {
-        Message() << "Maximum term size (" << options::sygusAbortSize()
-                  << ") for enumerative SyGuS exceeded." << std::endl;
-        exit(1);
+        std::stringstream ss;
+        ss << "Maximum term size (" << options::sygusAbortSize()
+           << ") for enumerative SyGuS exceeded." << std::endl;
+        throw LogicException(ss.str());
       }
       Assert( !d_this.isNull() );
       Node c = NodeManager::currentNM()->mkConst( Rational( s ) );
