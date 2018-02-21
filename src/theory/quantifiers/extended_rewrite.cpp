@@ -634,7 +634,7 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
             Node cl = c[j];
             Node ca = cl.getKind()==notk ? cl[0] : cl;
             bool capol = cl.getKind()!=notk;
-            // if this already exists as a child
+            // if this already exists as a child of the equality chain
             std::map< Node, bool >::iterator itc = cstatus.find( ca );
             if( itc!=cstatus.end() && itc->second )
             {
