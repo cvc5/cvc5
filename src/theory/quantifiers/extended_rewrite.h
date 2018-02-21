@@ -70,15 +70,23 @@ class ExtendedRewriter
   /** true and false nodes */
   Node d_true;
   Node d_false;
-  /** pull ITE
-   * Do simple ITE pulling, e.g.:
-   *   D=C2 ---> false
-   * implies:
+  /** pull ITE, for example:
+   * 
+   *   D=C2 ---> false   
+   *     implies   
    *   D=ite( C, C1, C2 ) --->  C ^ D=C1
+   * 
+   *   f(t,t1) --> s  and  f(t,t2)---> s     
+   *     implies
+   *   f(t,ite(C,t1,t2)) ---> s
    */
   Node extendedRewritePullIte(Node n);
+  /** NNF */
+  Node extendedRewriteNnf(Node n);
   /** rewrite bcp */
-  Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node n );
+  Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::map< Kind, bool >& bcp_kinds, Node n );
+  /** extended rewrite equality chain */
+  Node extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn, Node n );
   /** */
   Node substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds );
   /** mk negate (NOT, BITVECTOR_NOT, BITVECTOR_NEG) */

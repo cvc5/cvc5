@@ -64,51 +64,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   else if( ret.getKind()==NOT )
   {
-    // NNF
-    Kind nk = ret[0].getKind();
-    bool neg_ch = false;
-    bool neg_ch_1 = false;
-    if( nk==AND || nk==OR )
-    {
-      pre_new_ret = ret;
-      neg_ch = true;
-      nk = nk==AND ? OR : AND;
-    }
-    else if( nk==IMPLIES )
-    {
-      pre_new_ret = ret;
-      neg_ch = true;
-      neg_ch_1 = true;
-      nk = AND;
-    }
-    else if( nk==ITE )
-    {
-      pre_new_ret = ret;
-      neg_ch = true;
-      neg_ch_1 = true;
-    }
-    else if( nk==XOR )
-    {
-      pre_new_ret = ret;
-      nk = EQUAL;
-    }
-    else if( nk==EQUAL && ret[0][0].getType().isBoolean() )
-    {
-      pre_new_ret = ret;
-      neg_ch_1 = true;
-    }
-    if( !pre_new_ret.isNull() )
-    {
-      std::vector< Node > new_children;
-      for( unsigned i=0, nchild = ret[0].getNumChildren(); i<nchild; i++ )
-      {
-        Node c = ret[0][i];
-        c = ( i==0 ? neg_ch_1 : false )!=neg_ch ? c.negate() : c;
-        new_children.push_back( c );
-      }
-      pre_new_ret = nm->mkNode( nk, new_children );
-      debugExtendedRewrite( n, pre_new_ret, "NNF" );
-    }
+    extendedRewriteNnf(ret);
+    debugExtendedRewrite( ret, pre_new_ret, "NNF" );
   }
     
   if (!pre_new_ret.isNull())
@@ -216,77 +173,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   else if( ret.getKind()==AND || ret.getKind()==OR )
   {
-    new_ret = extendedRewriteBcp( AND, OR, NOT, ret );
+    // all kinds are legal to substitute over : hence we give the empty map
+    std::map< Kind, bool > bcp_kinds;
+    new_ret = extendedRewriteBcp( AND, OR, NOT, bcp_kinds, ret );
     debugExtendedRewrite( ret, new_ret, "Bool bcp" );
   }
   else if( ret.getKind()==EQUAL )
   {
-    // sort/cancelling for Boolean EQUAL-chains
-    if( ret[0].getType().isBoolean() )
-    {
-      // get the children on either side
-      bool gpol = true;
-      std::vector< Node > children;
-      for( unsigned r=0; r<2; r++ )
-      {
-        Node curr = ret[r];
-        while( curr.getKind()==EQUAL && curr[0].getType().isBoolean() )
-        {
-          children.push_back( curr[0] );
-          curr = curr[1];
-        }
-        children.push_back( curr );
-      }
-      
-      std::map< Node, bool > cstatus;
-      // add children to status
-      for( const Node& c : children )
-      {
-        Node a = c;
-        if( a.getKind()==NOT )
-        {
-          gpol = !gpol;
-          a = a[0];
-        }
-        std::map< Node, bool >::iterator itc = cstatus.find(a);
-        if( itc==cstatus.end() )
-        {
-          cstatus[a] = true;
-        }
-        else
-        {
-          // cancels
-          cstatus.erase(a);
-        }
-      }
-      
-      if( cstatus.empty() )
-      {
-        new_ret = nm->mkConst(gpol);
-      }
-      else
-      {
-        // sorted right associative chain
-        children.clear();
-        for( const std::pair< Node, bool >& cp : cstatus )
-        {
-          children.push_back( cp.first );
-        }
-        std::sort( children.begin(), children.end() );
-        if( !gpol )
-        {
-          children[0] = children[0].negate();
-        }
-        new_ret = children.back();
-        unsigned index = children.size()-1;
-        while( index>0 )
-        {
-          index--;
-          new_ret = nm->mkNode( EQUAL, children[index], new_ret );
-        }
-      }
-      debugExtendedRewrite( ret, new_ret, "Bool Eq simplify" );
-    }
+    new_ret = extendedRewriteEqChain( EQUAL, NOT, ret.getType(), ret );
+    debugExtendedRewrite( ret, new_ret, "Bool eq-chain simplify" );
   }
   
   if( new_ret.isNull() )
@@ -467,7 +362,53 @@ bool addToAssignment( Node n, Node pol, std::map< Node, Node >& assign, std::vec
   return true;
 }
 
-Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node ret )
+Node ExtendedRewriter::extendedRewriteNnf(Node ret)
+{
+  Assert( ret.getKind()==NOT );
+  
+  Kind nk = ret[0].getKind();
+  bool neg_ch = false;
+  bool neg_ch_1 = false;
+  if( nk==AND || nk==OR )
+  {
+    neg_ch = true;
+    nk = nk==AND ? OR : AND;
+  }
+  else if( nk==IMPLIES )
+  {
+    neg_ch = true;
+    neg_ch_1 = true;
+    nk = AND;
+  }
+  else if( nk==ITE )
+  {
+    neg_ch = true;
+    neg_ch_1 = true;
+  }
+  else if( nk==XOR )
+  {
+    nk = EQUAL;
+  }
+  else if( nk==EQUAL && ret[0][0].getType().isBoolean() )
+  {
+    neg_ch_1 = true;
+  }
+  else
+  {
+    return Node::null();
+  }
+
+  std::vector< Node > new_children;
+  for( unsigned i=0, nchild = ret[0].getNumChildren(); i<nchild; i++ )
+  {
+    Node c = ret[0][i];
+    c = ( i==0 ? neg_ch_1 : false )!=neg_ch ? c.negate() : c;
+    new_children.push_back( c );
+  }
+  return NodeManager::currentNM()->mkNode( nk, new_children );
+}
+
+Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::map< Kind, bool >& bcp_kinds, Node ret )
 {
   Kind k = ret.getKind();
   Assert( k==andk || k==ork );
@@ -478,16 +419,6 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
   TypeNode tn = ret.getType();
   Node truen = TermUtil::mkTypeMaxValue(tn);
   Node falsen = TermUtil::mkTypeValue(tn, 0);
-  
-  // specify legal BCP kinds
-  std::map< Kind, bool > bcp_kinds;
-  if( tn.isBitVector() )
-  {
-    bcp_kinds[BITVECTOR_AND] = true;
-    bcp_kinds[BITVECTOR_OR] = true;
-    bcp_kinds[BITVECTOR_NOT] = true;
-    bcp_kinds[BITVECTOR_XOR] = true;
-  }
   
   // terms to process
   std::vector< Node > to_process;
@@ -637,6 +568,83 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, Node 
   return Node::null();
 }
 
+Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn, Node ret )
+{
+  Assert( ret.getKind()==eqk );
+  
+  NodeManager * nm = NodeManager::currentNM();
+  
+  // sort/cancelling for Boolean EQUAL-chains
+  if( ret[0].getType()==tn )
+  {
+    // get the children on either side
+    bool gpol = true;
+    std::vector< Node > children;
+    for( unsigned r=0; r<2; r++ )
+    {
+      Node curr = ret[r];
+      while( curr.getKind()==eqk && curr[0].getType()==tn )
+      {
+        children.push_back( curr[0] );
+        curr = curr[1];
+      }
+      children.push_back( curr );
+    }
+    
+    std::map< Node, bool > cstatus;
+    // add children to status
+    for( const Node& c : children )
+    {
+      Node a = c;
+      if( a.getKind()==notk )
+      {
+        gpol = !gpol;
+        a = a[0];
+      }
+      std::map< Node, bool >::iterator itc = cstatus.find(a);
+      if( itc==cstatus.end() )
+      {
+        cstatus[a] = true;
+      }
+      else
+      {
+        // cancels
+        cstatus.erase(a);
+      }
+    }
+    
+    // TODO : cancel AND/OR children if possible
+    
+    
+    if( cstatus.empty() )
+    {
+      return nm->mkConst(gpol);
+    }
+    // sorted right associative chain
+    children.clear();
+    for( const std::pair< Node, bool >& cp : cstatus )
+    {
+      children.push_back( cp.first );
+    }
+    std::sort( children.begin(), children.end() );
+    if( !gpol )
+    {
+      children[0] = mkNegate( notk, children[0] );
+    }
+    Node new_ret = children.back();
+    unsigned index = children.size()-1;
+    while( index>0 )
+    {
+      index--;
+      new_ret = nm->mkNode( eqk, children[index], new_ret );
+    }
+    if( new_ret!=ret )
+    {
+      return new_ret;
+    }
+  }
+  return Node::null();
+}
 
 Node ExtendedRewriter::substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds )
 {
@@ -1182,7 +1190,13 @@ Node ExtendedRewriter::rewriteBvBool( Node ret )
   // Boolean constraint propagation
   if( d_aggr )
   {
-    new_ret = extendedRewriteBcp( BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_NOT, ret );
+    // specify legal BCP kinds
+    std::map< Kind, bool > bcp_kinds;
+    bcp_kinds[BITVECTOR_AND] = true;
+    bcp_kinds[BITVECTOR_OR] = true;
+    bcp_kinds[BITVECTOR_NOT] = true;
+    bcp_kinds[BITVECTOR_XOR] = true;
+    new_ret = extendedRewriteBcp( BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_NOT, bcp_kinds, ret );
     if( !new_ret.isNull() )
     {
       debugExtendedRewrite( ret, new_ret, "BV bcp" );
