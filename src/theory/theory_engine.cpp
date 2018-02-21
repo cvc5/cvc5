@@ -1926,21 +1926,22 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions) {
   bool useSlicer = true;
   if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON) {
+    if (!d_logicInfo.isPure(theory::THEORY_BV))
+      throw ModalException("Slicer currently only supports pure BV formulas. Use --bv-eq-slicer=off");
     if (options::incrementalSolving())
       throw ModalException("Slicer does not currently support incremental mode. Use --bv-eq-slicer=off");
     if (options::produceModels())
       throw ModalException("Slicer does not currently support model generation. Use --bv-eq-slicer=off");
-    useSlicer = true;
 
   } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF) {
     return;
 
   } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO) {
-    if (options::incrementalSolving() ||
-        options::produceModels())
+    if (!d_logicInfo.isPure(theory::THEORY_BV)
+        || options::incrementalSolving()
+        || options::produceModels())
       return;
 
-    useSlicer = true;
     bv::utils::TNodeBoolMap cache;
     for (unsigned i = 0; i < assertions.size(); ++i) {
       useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
