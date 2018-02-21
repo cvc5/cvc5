@@ -1397,15 +1397,15 @@ bool ExtendedRewriter::isConstBv( Node n, bool isNot )
   return false;
 }
 
-Node ExtendedRewriter::mkNegate( Kind k, Node n )
+Node ExtendedRewriter::mkNegate( Kind notk, Node n )
 {
-  if( n.getKind()==k )
+  if( n.getKind()==notk )
   {
     return n[0];
   }
   else
   {
-    return NodeManager::currentNM()->mkNode( k, n );
+    return NodeManager::currentNM()->mkNode( notk, n );
   }
 }
 

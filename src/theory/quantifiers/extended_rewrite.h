@@ -85,15 +85,23 @@ class ExtendedRewriter
   Node extendedRewriteNnf(Node n);
   /** rewrite bcp */
   Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::map< Kind, bool >& bcp_kinds, Node n );
-  /** extended rewrite equality chain */
-  Node extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn, Node n );
   /** */
   Node substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds );
+  /** extended rewrite equality chain */
+  Node extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn, Node n );
   /** mk negate (NOT, BITVECTOR_NOT, BITVECTOR_NEG) */
-  Node mkNegate( Kind k, Node n );
-  /** decompose chain */
+  Node mkNegate( Kind notk, Node n );
+  /** decompose right associative chain 
+   * 
+   * For term f( ... f( f( base, tn ), t{n-1} ) ... t1 ), returns term base, and 
+   * appends t1...tn to children.
+   */
   Node decomposeRightAssocChain( Kind k, Node n, std::vector< Node >& children );
-  /** chain */
+  /** make right associative chain
+   * 
+   * Sorts children to obtain list { tn...t1 }, and returns the term
+   * f( ... f( f( base, tn ), t{n-1} ) ... t1 ).
+   */
   Node mkRightAssocChain( Kind k, Node base, std::vector< Node >& children );
   /** extended rewrite 
    * 
@@ -131,6 +139,8 @@ class ExtendedRewriter
    * Returns true if there are no bits where a and b are both 1.
    * That is, if this function returns true, then
    *   (bvand a b) = 0.
+   * Note that this function is equivalent to
+   *   bitvectorSubsume( ~a, b ) && bitvectorSubsume( ~b, a ).
    */
   bool bitvectorDisjoint( Node a, Node b );
   
