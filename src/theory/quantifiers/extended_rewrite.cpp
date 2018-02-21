@@ -47,6 +47,10 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     return it->second;
   }
+  
+  // TODO : NNF
+  
+  
   Node ret = n;
   NodeManager * nm = NodeManager::currentNM();
   if (n.getNumChildren() > 0)
@@ -63,6 +67,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       Node nc = extendedRewrite(n[i]);
       childChanged = nc != n[i] || childChanged;
+      // If the operator is non-additive, do not consider duplicates
       if( isNonAdditive && std::find( children.begin(), children.end(), nc )!=children.end() )
       {
         childChanged = true;
@@ -94,6 +99,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
   }
   ret = Rewriter::rewrite(ret);
+  
+  // now, do extended rewrite
   Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
                                << " (from " << n << ")" << std::endl;
   Node new_ret;
@@ -1106,31 +1113,36 @@ bool ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
       }
     }
   }
-  else if( bk==BITVECTOR_SHL )
+  
+  
+  if( !strict )
   {
-    if( b[0].getKind()==BITVECTOR_LSHR )
+    if( bk==BITVECTOR_SHL )
     {
-      if( b[0][0]==a && b[0][1]==b[1] )
+      if( b[0].getKind()==BITVECTOR_LSHR )
       {
-        // or strict and geq zero
-        return !strict;
+        if( b[0][0]==a && b[0][1]==b[1] )
+        {
+          // or strict and geq zero
+          return true;
+        }
+      }
+      Node anot = mkNegate( BITVECTOR_NOT, a );
+      // x subsumes bvshl( y, z ) if z>=(~x).
+      if( bitVectorArithComp( b[1], anot ) )
+      {
+        return true;
       }
     }
-    Node anot = mkNegate( BITVECTOR_NOT, a );
-    // x subsumes bvshl( y, z ) if z>=(~x).
-    if( bitVectorArithComp( b[1], anot ) )
+    else if( bk==BITVECTOR_LSHR )
     {
-      return !strict;
-    }
-  }
-  else if( bk==BITVECTOR_LSHR )
-  {
-    if( b[0].getKind()==BITVECTOR_SHL )
-    {
-      if( b[0][0]==a && b[0][1]==b[1] )
+      if( b[0].getKind()==BITVECTOR_SHL )
       {
-        // or strict and geq zero
-        return !strict;
+        if( b[0][0]==a && b[0][1]==b[1] )
+        {
+          // or strict and geq zero
+          return true;
+        }
       }
     }
   }
