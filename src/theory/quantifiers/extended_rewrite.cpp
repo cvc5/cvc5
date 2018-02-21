@@ -64,7 +64,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   else if( ret.getKind()==NOT )
   {
-    extendedRewriteNnf(ret);
+    pre_new_ret = extendedRewriteNnf(ret);
     debugExtendedRewrite( ret, pre_new_ret, "NNF" );
   }
     
@@ -180,7 +180,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   else if( ret.getKind()==EQUAL )
   {
-    new_ret = extendedRewriteEqChain( EQUAL, NOT, ret.getType(), ret );
+    new_ret = extendedRewriteEqChain( EQUAL, AND, OR, NOT, ret.getType(), ret );
     debugExtendedRewrite( ret, new_ret, "Bool eq-chain simplify" );
   }
   
@@ -568,7 +568,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::
   return Node::null();
 }
 
-Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn, Node ret )
+Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, TypeNode tn, Node ret )
 {
   Assert( ret.getKind()==eqk );
   
@@ -613,18 +613,70 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn,
       }
     }
     
-    // TODO : cancel AND/OR children if possible
-    
     
     if( cstatus.empty() )
     {
       return nm->mkConst(gpol);
     }
-    // sorted right associative chain
+    
+    // cancel AND/OR children if possible
     children.clear();
     for( const std::pair< Node, bool >& cp : cstatus )
     {
-      children.push_back( cp.first );
+      if( cp.second )
+      {
+        Node c = cp.first;
+        Kind ck = c.getKind();
+        if( ck==andk || ck==ork )
+        {
+          for( unsigned j=0, nchild = c.getNumChildren(); j<nchild; j++ )
+          {
+            Node cl = c[j];
+            Node ca = cl.getKind()==notk ? cl[0] : cl;
+            bool capol = cl.getKind()!=notk;
+            // if this already exists as a child
+            std::map< Node, bool >::iterator itc = cstatus.find( ca );
+            if( itc!=cstatus.end() && itc->second )
+            {
+              // cancel it
+              cstatus[ca] = false;
+              cstatus[c] = false;
+              // make new child
+              // x = ( y | ~x ) ---> y & x
+              // x = ( y | x ) ---> ~y | x
+              // x = ( y & x ) ---> y | ~x
+              // x = ( y & ~x ) ---> ~y & ~x
+              std::vector< Node > new_children;
+              for( unsigned k=0, nchild = c.getNumChildren(); k<nchild; k++ )
+              {
+                if( j!=k )
+                {
+                  new_children.push_back( c[k] );
+                }
+              }
+              Node nc[2];
+              nc[0] = c[j];
+              nc[1] = new_children.size()==1 ? new_children[0] : nm->mkNode( ck, new_children );
+              // negate the proper child 
+              unsigned nindex = (ck==andk)==capol ? 0 : 1;
+              nc[nindex] = mkNegate( notk, nc[nindex] );
+              Kind nk = capol ? ork : andk;
+              // store as new child
+              children.push_back( nm->mkNode(nk, nc[0], nc[1]) );
+            }
+          }
+        }
+      }
+    }
+    
+    
+    // sorted right associative chain
+    for( const std::pair< Node, bool >& cp : cstatus )
+    {
+      if( cp.second )
+      {
+        children.push_back( cp.first );
+      }
     }
     std::sort( children.begin(), children.end() );
     if( !gpol )

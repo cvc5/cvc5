@@ -88,7 +88,7 @@ class ExtendedRewriter
   /** */
   Node substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds );
   /** extended rewrite equality chain */
-  Node extendedRewriteEqChain( Kind eqk, Kind notk, TypeNode tn, Node n );
+  Node extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, TypeNode tn, Node n );
   /** mk negate (NOT, BITVECTOR_NOT, BITVECTOR_NEG) */
   Node mkNegate( Kind notk, Node n );
   /** decompose right associative chain 
