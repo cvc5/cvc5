@@ -543,7 +543,11 @@ function handle_option {
   echo ""
   echo "[[option]]"
   echo "  name       = \"$internal\""
-  echo "  smt_name   = \"$smtname\""
+  if [ "$smtname" != "$long_option" ]; then
+    echo "  smt_name   = \"${smtname}\""
+  else
+    echo "  smt_name   = \"\""
+  fi
   echo "  category   = \"$category\""
 
   short=""
@@ -596,6 +600,10 @@ function handle_option {
 #    else
 #      link="${option_links_smt:2}"
 #    fi
+  fi
+  if [ -n "$option_links_smt" ]; then
+    >&2 echo ":smt-link $option_links_smt"
+    >&2 echo ":link     $option_links"
   fi
 
   echo "  links      = [$link]"

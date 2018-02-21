@@ -47,13 +47,13 @@ option fallbackSequential  --fallback-sequential bool :default false
 option incrementalParallel --incremental-parallel bool :default false :link --incremental :link-smt incremental
  Use parallel solver even in incremental mode (may print 'unknown's at times)
 
-option interactive : --interactive bool :read-write
+option interactive --interactive bool :read-write
  force interactive/non-interactive mode
 undocumented-option interactivePrompt --interactive-prompt bool :default true
  interactive prompting while in interactive mode
 
 # error behaviors (--immediate-exit is default in cases we support, thus no options)
-option continuedExecution --continued-execution/ bool :default false :link "--interactive --no-interactive-prompt"/ :link-smt interactive :link-smt interactivePrompt \"false\"
+option continuedExecution --continued-execution/ bool :default false :link --interactive :link --no-interactive-prompt :link-smt interactive :link-smt interactive-prompt \"false\"
  continue executing commands, even on error
 
 option segvSpin --segv-spin bool :default false

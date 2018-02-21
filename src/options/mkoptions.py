@@ -13,6 +13,8 @@ import toml
 # TODO: bool options don't have handlers
 # TODO: check short options only one character
 # TODO: links and --no- options
+# TODO: if short option given, then also long option should be specified
+# TODO: check option name clashes. alias vs. option etc.
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
 MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['options', 'aliases']
@@ -28,6 +30,9 @@ ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help']
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
+g_long_to_opt = dict()  # TODO: this maps long options to options and
+                        # is needed to map links to links_smt for now
+                        # (workaround to produce the same code)
 
 class Module(object):
     def __init__(self, d):
@@ -104,32 +109,7 @@ def read_tpl(name):
 
 
 def codegen_module(module):
-    # <module.name>_options.h
-    #
-    # - #define __CVC4__OPTIONS__{module.id}_H
-    # - <module.include> set of all options includes
-    # - option holder spec #define macro for option holder
-    #   #define CVC4_OPTIONS__{module.id}__FOR_OPTION_HOLDER
-    #   {option.name}__option_t::type {option.name};
-    #   bool {option.name}__setByUser__;
-    # - module declarations in CVC4::options (for each option)
-    #   extern struct CVC4_PUBLIC {option.name}__option_t { typedef {option.type} type; type operator()() const; bool wasSetByUser() const; void set(const type& v); } {option.name} CVC4_PUBLIC;
-    # - module specializations in CVC4::
-    #   template <> void Options::set(options::{option.name}__option_t, const options::{option.name}__option_t::type& x);
-    #   template <> bool Options::wasSetByUser(options::{option.name}__option_t) const;
-    #   template <> void Options::assign(options::{option.name}__option_t, std::string option, std::string value);
-    # - module inlines in CVC4::options
-    #   inline {option.name}__option_t::type {option.name}__option_t::operator()() const { return (*Options::current())[*this]; }
-    #   inline bool {option.name}__option_t::wasSetByUser() const { return Options::current()->wasSetByUser(*this); }
-    #   inline void {option.name}__option_t::set(const {option.name}__option_t::type& v) { Options::current()->set(*this, v); }
-    #
-    # <module.name>_options.cpp
-    #
-    # - module accesors in namespace CVC4
-    #   template <> void Options::set(options::{option.name}__option_t, const options::{option.name}__option_t::type& x) { d_holder->{option.name} = x; }
-    #   template <> bool Options::wasSetByUser(options::{option.name}__option_t) const { return d_holder->{option.name}__setByUser__; }
-    # - module global def in namespace CVC4::options
-    #   struct {option.name}__option_t {option.name};
+    global g_long_to_opt
 
     tpl_module_h = read_tpl('module_template.h')
     tpl_module_cpp = read_tpl('module_template.cpp')
@@ -183,6 +163,9 @@ def codegen_module(module):
     holder_specs.append(tpl_h_holder_macro.format(id=module.id))
 
     for option in module.options:
+        if option.long:
+            g_long_to_opt[long_get_option(option.long)] = option
+
         if option.name is None:
             continue
 
@@ -244,6 +227,19 @@ def codegen_module(module):
                               accs='\n'.join(accs),
                               defs='\n'.join(defs)))
 
+def match_option(long):
+    global g_long_to_opt
+    assert(long.startswith('--'))
+    val = True
+    opt = None
+    long = long_get_option(long)
+    if long.startswith('--no-'):
+        val = False
+        opt = g_long_to_opt[long[5:]]
+    else:
+        opt = g_long_to_opt[long[2:]]
+    return (opt, val)
+
 
 def long_get_arg(name):
     l = name.split('=')
@@ -253,7 +249,7 @@ def long_get_arg(name):
 def long_get_option(name):
     return name.split('=')[0]
 
-def is_numeric_type(t):
+def is_numeric_cpp_type(t):
     if t in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
         return True
     elif re.match('u?int[0-9]+_t', t):
@@ -336,15 +332,15 @@ def codegen_all_modules(modules):
     options_short = []
     cmdline_options = []
     options_smt = []
-    options_getopts = []
+    options_getoptions = []
     options_handler = []
     defaults = []
     custom_handlers = []
     help_common = []
     help_others = []
 
-    options_smtget = [] # TODO
-    options_smtset = [] # TODO
+    setoption_handlers = [] # TODO
+    getoption_handlers = [] # TODO
 
     option_value_cur = option_value_start
     for module in modules:
@@ -433,6 +429,58 @@ def codegen_all_modules(modules):
 
                 options_handler.extend(cases)
 
+
+            ### generate handlers for setOption/getOption
+            if option.smt_name:
+                smtlinks = []
+                for link in option.links:
+                    m = match_option(link)
+                    assert(m)
+                    assert(m[0].smt_name)
+                    smtlinks.append('setOption(std::string("{smtname}"), ("{value}"));'.format(
+                        smtname=m[0].smt_name,
+                        value="true" if m[1] else "false"
+                        ))
+
+                smtname = option.smt_name if option.smt_name else long_get_option(option.long)
+
+                setoption_handlers.append('if(key == "{}") {{'.format(smtname))
+                if option.type == 'bool':
+                    setoption_handlers.append(
+                        'Options::current()->assignBool(options::{name}, "{smtname}", optionarg == "true");'.format(name=option.name, smtname=smtname))
+                elif argument_req and option.name:
+                    setoption_handlers.append(
+                        'Options::current()->assign(options::{name}, "{smtname}", optionarg);'.format(name=option.name, smtname=smtname))
+                elif option.handler:
+                    handler = 'handler->{handler}("{smtname}"'
+                    if argument_req:
+                        handler += ', optionarg'
+                    handler += ');'
+                    setoption_handlers.append(
+                        handler.format(handler=option.handler,
+                                           smtname=smtname))
+
+                if len(smtlinks) > 0:
+                    setoption_handlers.append('\n'.join(smtlinks))
+                setoption_handlers.append('return;')
+                setoption_handlers.append('}')
+
+                if option.name:
+                    getoption_handlers.append(
+                        'if (key == "{}") {{'.format(smtname))
+                    if option.type == 'bool':
+                        getoption_handlers.append(
+                            'return options::{}() ? "true" : "false";'.format(
+                                option.name))
+                    else:
+                        getoption_handlers.append('std::stringstream ss;')
+                        if is_numeric_cpp_type(option.type):
+                            getoption_handlers.append('ss << std::fixed << std::setprecision(8);')
+                        getoption_handlers.append('ss << options::{}();'.format(option.name))
+                        getoption_handlers.append('return ss.str();')
+                    getoption_handlers.append('}')
+
+
             # handle --no- case for boolean options
             if option.long and option.type == 'bool':
                 cases = []
@@ -472,14 +520,14 @@ def codegen_all_modules(modules):
                         s += 'opts.push_back(v); }'
                     else:
                         s  = '{ std::stringstream ss; '
-                        if is_numeric_type(option.type):
+                        if is_numeric_cpp_type(option.type):
                             s += 'ss << std::fixed << std::setprecision(8); '
                         s += 'ss << d_holder->{}; '.format(option.name)
                         s += 'std::vector<std::string> v; '
                         s += 'v.push_back("{}"); '.format(optname)
                         s += 'v.push_back(ss.str()); '
                         s += 'opts.push_back(v); }'
-                    options_getopts.append(s)
+                    options_getoptions.append(s)
 
 
             ### define runBoolPredicates/runHandlerAndPredicates
@@ -575,7 +623,9 @@ def codegen_all_modules(modules):
             option_value_begin=option_value_start,
             option_value_end=option_value_cur,
             options_smt='\n  '.join(options_smt),
-            options_getopts='\n  '.join(options_getopts)
+            options_getoptions='\n  '.join(options_getoptions),
+            setoption_handlers='\n'.join(setoption_handlers),
+            getoption_handlers='\n'.join(getoption_handlers)
         ))
 
 
