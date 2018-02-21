@@ -841,6 +841,9 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
     // s - ( s | t )  ---->  -( ~s & t )
     // ( s & t ) - s  ---->  -( s & ~t )
     // ( s | t ) - s  ---->  ~s & t    
+    
+    // TODO : s + ( ~s | t ) = ~( -( s & t ) )
+    
     std::map< Node, bool > retc;
     for( const Node& rc : ret )
     {
