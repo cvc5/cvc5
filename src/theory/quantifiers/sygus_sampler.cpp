@@ -668,7 +668,8 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // one of eq_n or n must be ordered
   bool eqor = isOrdered(eq_n);
   bool nor = isOrdered(n);
-  Trace("sygus-synth-rr-debug") << "Ordered? : " << nor << " " << eqor << std::endl;
+  Trace("sygus-synth-rr-debug")
+      << "Ordered? : " << nor << " " << eqor << std::endl;
   bool isUnique = false;
   if (eqor || nor)
   {

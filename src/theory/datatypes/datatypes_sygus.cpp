@@ -798,8 +798,9 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
           its = d_sampler.find(a);
         }
         Node bvr_sample_ret;
-        std::map< Node, Node >::iterator itsv = d_cache[a].d_search_val_sample.find(bvr);
-        if (itsv==d_cache[a].d_search_val_sample.end())
+        std::map<Node, Node>::iterator itsv =
+            d_cache[a].d_search_val_sample.find(bvr);
+        if (itsv == d_cache[a].d_search_val_sample.end())
         {
           // initialize the sampler for the rewritten form of this node
           bvr_sample_ret = its->second.registerTerm(bvr);
@@ -809,7 +810,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         {
           bvr_sample_ret = itsv->second;
         }
-        
+
         Node sample_ret = its->second.registerTerm(bv);
         d_cache[a].d_search_val_sample[bv] = sample_ret;
 
@@ -817,11 +818,9 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         if (sample_ret != bvr_sample_ret)
         {
           // we have detected unsoundness in the rewriter
-          Options& nodeManagerOptions =
-              NodeManager::currentNM()->getOptions();
+          Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
           std::ostream* out = nodeManagerOptions.getOut();
-          (*out) << "(unsound-rewrite " << bv << " " << bvr << ")"
-                  << std::endl;
+          (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
           // debugging information
           if (Trace.isOn("sygus-rr-debug"))
           {
@@ -836,15 +835,14 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
               Assert(vars.size() == pt.size());
               for (unsigned i = 0, size = pt.size(); i < size; i++)
               {
-                Trace("sygus-rr-debug") << "; unsound:    " << vars[i]
-                                        << " -> " << pt[i] << std::endl;
+                Trace("sygus-rr-debug") << "; unsound:    " << vars[i] << " -> "
+                                        << pt[i] << std::endl;
               }
               Node bv_e = its->second.evaluate(bv, pt_index);
               Node pbv_e = its->second.evaluate(bvr, pt_index);
               Assert(bv_e != pbv_e);
               Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
-                                      << pbv_e << " and " << bv_e
-                                      << std::endl;
+                                      << pbv_e << " and " << bv_e << std::endl;
             }
             else
             {
