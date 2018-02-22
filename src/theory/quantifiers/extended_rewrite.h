@@ -35,10 +35,14 @@ namespace quantifiers {
  *
  * This class extended the standard techniques for rewriting
  * with techniques, including but not limited to:
- * - ITE branch merging,
+ * - Redundant child elimination,
+ * - Sorting children of commutative operators,
+ * - Boolean constraint propagation,
+ * - Equality chain normalization,
+ * - Negation normal form,
+ * - Simple ITE pulling,
  * - ITE conditional variable elimination,
- * - ITE condition subsumption, and
- * - Aggressive rewriting for string equalities.
+ * - ITE condition subsumption.
  */
 class ExtendedRewriter
 {
@@ -63,14 +67,10 @@ class ExtendedRewriter
   bool d_aggr;
   /** cache for extendedRewrite */
   std::unordered_map<Node, Node, NodeHashFunction> d_ext_rewrite_cache;  
-  /** extended rewrite aggressive */
-  Node extendedRewriteAggr(Node n);
+
   
   //--------------------------------------generic utilities
-  /** true and false nodes */
-  Node d_true;
-  Node d_false;
-  /** pull ITE, for example:
+  /** Pull ITE, for example:
    * 
    *   D=C2 ---> false   
    *     implies   
@@ -79,30 +79,63 @@ class ExtendedRewriter
    *   f(t,t1) --> s  and  f(t,t2)---> s     
    *     implies
    *   f(t,ite(C,t1,t2)) ---> s
+   * 
+   * If this function returns a non-null node ret, then n ---> ret.
    */
   Node extendedRewritePullIte(Node n);
-  /** NNF */
+  /** Negation Normal Form (NNF), for example:
+   * 
+   *   ~( A & B ) ---> ( ~ A | ~B )
+   *   ~( ite( A, B, C ) ---> ite( A, ~B, ~C )
+   * 
+   * If this function returns a non-null node ret, then n ---> ret.
+   */
   Node extendedRewriteNnf(Node n);
-  /** rewrite bcp */
+  /** Boolean constraint propagation, for example:
+   * 
+   *   ~A & ( B V A ) ---> ~A & B
+   *   A & ( B = ( A V C ) ) ---> A & B
+   * 
+   * This function takes as arguments the kinds that specify AND, OR, and NOT.
+   * It additionally takes as argument a map bcp_kinds. If this map is 
+   * non-empty, then all terms that have a Kind that is *not* in this map should
+   * be treated as immutable. This is for instance to prevent propagation 
+   * beneath illegal terms. As an example:
+   *   (bvand A (bvor A B)) is equivalent to (bvand A (bvor 1...1 B)), but
+   *   (bvand A (bvplus A B)) is not equivalent to (bvand A (bvplus 1..1 B)),
+   * hence, BITVECTOR_AND is a bcp_kind, but BITVECTOR_PLUS is not.
+   * 
+   * If this function returns a non-null node ret, then n ---> ret.
+   */
   Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::map< Kind, bool >& bcp_kinds, Node n );
-  /** */
+  /** substitution for Boolean constraint  
+   */
   Node substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds );
-  /** extended rewrite equality chain */
+  /** Equality chain rewriting, for example:
+   * 
+   *   A = ( A = B ) ---> B
+   *   ( A = D ) = ( C = B ) ---> A = ( B = ( C = D ) )
+   *   A = ( A & B ) ---> ~A | B
+   * 
+   * If this function returns a non-null node ret, then n ---> ret.
+   */
   Node extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, TypeNode tn, Node n );
-  /** mk negate (NOT, BITVECTOR_NOT, BITVECTOR_NEG) */
+  /** Make negated term, returns the negation of n wrt Kind notk. */
   Node mkNegate( Kind notk, Node n );
-  /** decompose right associative chain 
+  /** Decompose right associative chain 
    * 
    * For term f( ... f( f( base, tn ), t{n-1} ) ... t1 ), returns term base, and 
    * appends t1...tn to children.
    */
   Node decomposeRightAssocChain( Kind k, Node n, std::vector< Node >& children );
-  /** make right associative chain
+  /** Make right associative chain
    * 
    * Sorts children to obtain list { tn...t1 }, and returns the term
    * f( ... f( f( base, tn ), t{n-1} ) ... t1 ).
    */
   Node mkRightAssocChain( Kind k, Node base, std::vector< Node >& children );
+  /** extended rewrite aggressive */
+  Node extendedRewriteAggr(Node n);
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
@@ -118,6 +151,7 @@ class ExtendedRewriter
   //--------------------------------------end theory-specific top-level calls
   
   
+  //--------------------------------------bit-vectors
   /** bitvector subsume 
    * 
    * Returns true if a's 1 bits are a superset of b's 1 bits.
@@ -169,6 +203,7 @@ class ExtendedRewriter
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
   /** mkNode */
   Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum );
+  //--------------------------------------end bit-vectors
   
 };
 

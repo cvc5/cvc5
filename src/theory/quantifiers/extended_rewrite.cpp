@@ -30,8 +30,6 @@ namespace quantifiers {
 
 ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 Node ExtendedRewriter::extendedRewrite(Node n)
@@ -50,24 +48,32 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   
   Node ret = n;
   NodeManager * nm = NodeManager::currentNM();
-    
+
+  //--------------------pre-rewrite  
   Node pre_new_ret;
-  
-  //Boolean function elimination
+  if( ret.getKind()==ITE )
+  {
+    if( ret[0].getKind()==NOT )
+    {
+      pre_new_ret = nm->mkNode( ITE, ret[0][0], ret[2], ret[1]);
+      debugExtendedRewrite( ret, pre_new_ret, "ITE flip" );
+    }
+  }
   if( ret.getKind()==IMPLIES )
   {
     pre_new_ret = nm->mkNode( OR, ret[0].negate(), ret[1] );
+    debugExtendedRewrite( ret, pre_new_ret, "IMPLIES elim" );
   }
   else if( ret.getKind()==XOR )
   {
     pre_new_ret = nm->mkNode( EQUAL, ret[0].negate(), ret[1] );
+    debugExtendedRewrite( ret, pre_new_ret, "XOR elim" );
   }
   else if( ret.getKind()==NOT )
   {
     pre_new_ret = extendedRewriteNnf(ret);
     debugExtendedRewrite( ret, pre_new_ret, "NNF" );
   }
-    
   if (!pre_new_ret.isNull())
   {
     ret = extendedRewrite(pre_new_ret);
@@ -75,7 +81,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     d_ext_rewrite_cache[n] = ret;
     return ret;
   }
+  //--------------------end pre-rewrite
   
+  //--------------------rewrite children
   if (n.getNumChildren() > 0)
   {
     std::vector<Node> children;
@@ -122,20 +130,18 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
   }
   ret = Rewriter::rewrite(ret);
+  //--------------------end rewrite children
+  
   
   // now, do extended rewrite
   Trace("q-ext-rewrite-debug") << "Do extended rewrite on : " << ret
                                << " (from " << n << ")" << std::endl;
   Node new_ret;
   
-  // theory-independent rewriting
+  //---------------------- theory-independent post-rewriting
   if (ret.getKind() == ITE)
   {
     Assert(ret[1] != ret[2]);
-    if (ret[0].getKind() == NOT)
-    {
-      ret = nm->mkNode( ITE, ret[0][0], ret[2], ret[1]);
-    }
     if (ret[0].getKind() == kind::EQUAL)
     {
       // simple invariant ITE
@@ -183,15 +189,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     new_ret = extendedRewriteEqChain( EQUAL, AND, OR, NOT, ret.getType(), ret );
     debugExtendedRewrite( ret, new_ret, "Bool eq-chain simplify" );
   }
-  
   if( new_ret.isNull() )
   {  
     // simple ITE pulling
     new_ret = extendedRewritePullIte(ret);
     debugExtendedRewrite( ret, new_ret, "ITE pull" );
   }
+  //----------------------end theory-independent post-rewriting
   
-  // theory-specific rewriting
+  //----------------------theory-specific post-rewriting
   if( new_ret.isNull() )
   {
     Node atom = ret.getKind()==NOT ? ret[0] : ret;
@@ -211,12 +217,14 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       new_ret = new_ret.negate();
     }
   }
+  //----------------------end theory-specific post-rewriting
 
-  // more expensive rewrites
+  //----------------------aggressive rewrites
   if (new_ret.isNull() && d_aggr)
   {
     new_ret = extendedRewriteAggr(ret);
   }
+  //----------------------end aggressive rewrites
 
   d_ext_rewrite_cache[n] = ret;
   if (!new_ret.isNull())
@@ -321,14 +329,13 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
         {
           std::vector<Node> new_children;
           Kind new_k;
-          if (pullr == d_true)
+          if (pullr.getConst<bool>())
           {
             new_k = kind::OR;
             new_children.push_back(j == 0 ? n[i][0] : n[i][0].negate());
           }
           else
           {
-            Assert(pullr == d_false);
             new_k = kind::AND;
             new_children.push_back(j == 0 ? n[i][0].negate() : n[i][0]);
           }
