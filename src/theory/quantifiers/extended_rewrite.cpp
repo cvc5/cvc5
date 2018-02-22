@@ -930,15 +930,49 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       new_ret = nm->mkNode( BITVECTOR_PLUS, c, max_bv );
       debugExtendedRewrite( ret, new_ret, "NOT-plus-miniscope" );
     }
-    // TODO miniscope
+    
+    // NNF
+    Kind nnfk = UNDEFINED_KIND;
+    bool neg_ch = true;
+    bool neg_ch_1 = false;
+    if( ck==BITVECTOR_EXTRACT || ck==BITVECTOR_CONCAT )
+    {
+      nnfk = ck;
+    }
+    else if( ck==BITVECTOR_AND )
+    {
+      nnfk = BITVECTOR_OR;
+    }
+    else if( ck==BITVECTOR_OR )
+    {
+      nnfk = BITVECTOR_AND;
+    }
+    else if( ck==BITVECTOR_XOR )
+    {
+      neg_ch_1 = true;
+      nnfk = ck;
+    }
+    if( nnfk!=UNDEFINED_KIND )
+    {
+      std::vector< Node > nnfc;
+      if (ret[0].getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        nnfc.push_back(ret[0].getOperator());
+      }
+      for( unsigned i=0, size=ret[0].getNumChildren(); i<size; i++ )
+      {
+        Node c = ret[0][i];
+        c = ( i==0 ? neg_ch_1 : false )!=neg_ch ? mkNegate( BITVECTOR_NOT, c ) : c;
+        nnfc.push_back( c );
+      }
+      new_ret = nm->mkNode( nnfk, nnfc );
+      debugExtendedRewrite( ret, new_ret, "NNF bv" );
+    }
   }
   else if( k == BITVECTOR_CONCAT )
   {
     new_ret = normalizeBvMonomial( ret );
-    if( !new_ret.isNull() )
-    {
-      debugExtendedRewrite( ret, new_ret, "CONCAT-mnormalize" );
-    }
+    debugExtendedRewrite( ret, new_ret, "CONCAT-mnormalize" );
   }
   return new_ret;
 }
