@@ -26,40 +26,43 @@ class BitVectorBlack : public CxxTest::TestSuite {
 
 
 public:
-  void setUp() {
-    zero = BitVector(4);
-    one = zero.setBit(0);
-    two = BitVector("0010", 2);
-    negOne = BitVector(4, Integer(-1));
+ void setUp()
+ {
+   zero = BitVector(4);
+   one = zero.setBit(0);
+   two = BitVector("0010", 2);
+   negOne = BitVector(4, Integer(-1));
+ }
+
+ void testStringConstructor()
+ {
+   BitVector b1("0101", 2);
+   TS_ASSERT_EQUALS(4u, b1.getSize());
+   TS_ASSERT_EQUALS("0101", b1.toString());
+   TS_ASSERT_EQUALS("5", b1.toString(10));
+   TS_ASSERT_EQUALS("5", b1.toString(16));
+
+   BitVector b2("000001", 2);
+   TS_ASSERT_EQUALS(6u, b2.getSize());
+   TS_ASSERT_EQUALS("000001", b2.toString());
+   TS_ASSERT_EQUALS("1", b2.toString(10));
+   TS_ASSERT_EQUALS("1", b2.toString(16));
+
+   BitVector b3("7f", 16);
+   TS_ASSERT_EQUALS(8u, b3.getSize());
+   TS_ASSERT_EQUALS("01111111", b3.toString());
+   TS_ASSERT_EQUALS("127", b3.toString(10));
+   TS_ASSERT_EQUALS("7f", b3.toString(16));
+
+   BitVector b4("01a", 16);
+   TS_ASSERT_EQUALS(12u, b4.getSize());
+   TS_ASSERT_EQUALS("000000011010", b4.toString());
+   TS_ASSERT_EQUALS("26", b4.toString(10));
+   TS_ASSERT_EQUALS("1a", b4.toString(16));
   }
 
-  void testStringConstructor() {
-    BitVector b1("0101",2);
-    TS_ASSERT_EQUALS( 4u, b1.getSize() );
-    TS_ASSERT_EQUALS( "0101", b1.toString() );
-    TS_ASSERT_EQUALS( "5", b1.toString(10) );
-    TS_ASSERT_EQUALS( "5", b1.toString(16) );
-
-    BitVector b2("000001", 2);
-    TS_ASSERT_EQUALS( 6u, b2.getSize() );
-    TS_ASSERT_EQUALS( "000001", b2.toString() );
-    TS_ASSERT_EQUALS( "1", b2.toString(10) );
-    TS_ASSERT_EQUALS( "1", b2.toString(16) );
-
-    BitVector b3("7f", 16);
-    TS_ASSERT_EQUALS( 8u, b3.getSize() );
-    TS_ASSERT_EQUALS( "01111111", b3.toString() );
-    TS_ASSERT_EQUALS( "127", b3.toString(10) );
-    TS_ASSERT_EQUALS( "7f", b3.toString(16) );
-
-    BitVector b4("01a", 16);
-    TS_ASSERT_EQUALS( 12u, b4.getSize() );
-    TS_ASSERT_EQUALS( "000000011010", b4.toString() );
-    TS_ASSERT_EQUALS( "26", b4.toString(10) );
-    TS_ASSERT_EQUALS( "1a", b4.toString(16) );
-  }
-
-  void testConversions() {
+  void testConversions()
+  {
     TS_ASSERT_EQUALS(two.toSignedInteger(), Integer(2));
     TS_ASSERT_EQUALS("1111", negOne.toString());
     TS_ASSERT_EQUALS(negOne.getValue(), Integer(15));
@@ -71,7 +74,8 @@ public:
     TS_ASSERT_DIFFERS(negOne.hash(), zero.hash());
   }
 
-  void testSetGetBit() {
+  void testSetGetBit()
+  {
     TS_ASSERT_EQUALS(one.setBit(1).setBit(2).setBit(3), negOne);
 
     TS_ASSERT(negOne.isBitSet(3));
@@ -83,14 +87,16 @@ public:
     TS_ASSERT_EQUALS(two.isPow2(), 2);
   }
 
-  void testConcatExtract() {
+  void testConcatExtract()
+  {
     BitVector b = one.concat(zero);
     TS_ASSERT_EQUALS(b.toString(), "00010000");
     TS_ASSERT_EQUALS(b.extract(7, 4), one);
     TS_ASSERT_EQUALS(b.concat(BitVector()), b);
   }
 
-  void testComparisons() {
+  void testComparisons()
+  {
     TS_ASSERT_DIFFERS(zero, one);
     TS_ASSERT(negOne > zero);
     TS_ASSERT(negOne >= zero);
@@ -106,14 +112,16 @@ public:
     TS_ASSERT(negOne.signedLessThanEq(negOne));
   }
 
-  void testBitwiseOps() {
+  void testBitwiseOps()
+  {
     TS_ASSERT_EQUALS((one ^ negOne).toString(), "1110");
     TS_ASSERT_EQUALS((two | one).toString(), "0011");
     TS_ASSERT_EQUALS((negOne & two).toString(), "0010");
     TS_ASSERT_EQUALS((~two).toString(), "1101");
   }
 
-  void testArithmetic() {
+  void testArithmetic()
+  {
     TS_ASSERT_EQUALS(negOne + one, zero);
     TS_ASSERT_EQUALS((negOne - one).getValue(), Integer(14));
     TS_ASSERT_EQUALS((-negOne).getValue(), Integer(1));
@@ -127,13 +135,15 @@ public:
     TS_ASSERT_EQUALS(negOne.unsignedRemTotal(two), one);
   }
 
-  void testExtendOps() {
+  void testExtendOps()
+  {
     TS_ASSERT_EQUALS(one.zeroExtend(4), zero.concat(one));
     TS_ASSERT_EQUALS(negOne.signExtend(4), negOne.concat(negOne));
     TS_ASSERT_EQUALS(one.signExtend(4), zero.concat(one));
   }
 
-  void testShifts() {
+  void testShifts()
+  {
     TS_ASSERT_EQUALS(one.leftShift(one), two);
     TS_ASSERT_EQUALS(one.leftShift(negOne), zero);
     TS_ASSERT_EQUALS(one.leftShift(zero), one);
@@ -147,7 +157,8 @@ public:
     TS_ASSERT_EQUALS(two.arithRightShift(negOne), zero);
   }
 
-  void testStaticHelpers() {
+  void testStaticHelpers()
+  {
     TS_ASSERT_EQUALS(BitVector::mkOnes(4), negOne);
     TS_ASSERT_EQUALS(BitVector::mkMinSigned(4).toSignedInteger(), Integer(-8));
     TS_ASSERT_EQUALS(BitVector::mkMaxSigned(4).toSignedInteger(), Integer(7));
