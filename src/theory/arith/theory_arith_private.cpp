@@ -64,7 +64,7 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ite_utilities.h"
-#include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -4995,7 +4995,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
         Node lem;
         if (k == kind::SQRT)
         {
-          lem = nm->mkNode(kind::MULT, node[0], node[0]).eqNode(var);
+          lem = nm->mkNode(kind::MULT, var, var).eqNode(node[0]);
         }
         else
         {

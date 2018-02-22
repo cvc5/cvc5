@@ -1,4 +1,4 @@
-SUBDIRS = regress0
+SUBDIRS = regress0 regress1
 DIST_SUBDIRS = regress0 regress1 regress2 regress3 regress4
 
 @mk_include@ @srcdir@/Makefile.levels

@@ -48,17 +48,14 @@ SMT_TESTS = \
 SMT2_TESTS = \
 	arrayinuf_declare.smt2 \
 	boolean-terms-kernel1.smt2 \
-	boolean-terms-kernel2.smt2 \
 	boolean-terms-bug-array.smt2 \
 	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
-	ite5.smt2 \
 	simple-lra.smt2 \
 	simple-rdl.smt2 \
 	simple-uf.smt2 \
-	simplification_bug4.smt2 \
 	parallel-let.smt2 \
 	get-value-incremental.smt2 \
 	get-value-reals.smt2 \
@@ -73,17 +70,13 @@ SMT2_TESTS = \
 	issue1063-overloading-dt-cons.smt2 \
 	issue1063-overloading-dt-sel.smt2 \
 	issue1063-overloading-dt-fun.smt2 \
-	non-fatal-errors.smt2 \
 	reset-assertions.smt2 \
-	sqrt2-sort-inf-unk.smt2 \
 	rec-fun-const-parse-bug.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
-	boolean.cvc \
 	boolean-prec.cvc \
 	boolean-terms.cvc \
-	hole6.cvc \
 	ite.cvc \
 	let.cvc \
 	logops.01.cvc \
@@ -118,7 +111,6 @@ CVC_TESTS = \
 	wiki.20.cvc \
 	wiki.21.cvc \
 	queries0.cvc \
-	trim.cvc \
 	print_lambda.cvc \
 	cvc3.userdoc.01.cvc \
 	cvc3.userdoc.02.cvc \
@@ -140,7 +132,6 @@ BUG_TESTS = \
 	bug167.smt \
 	bug168.smt \
 	bug187.smt2 \
-	bug216.smt2 \
 	bug217.smt2 \
 	bug220.smt2 \
 	bug239.smt \
@@ -148,7 +139,6 @@ BUG_TESTS = \
 	bug288.smt \
 	bug288b.smt \
 	bug288c.smt \
-	bug296.smt2 \
 	buggy-ite.smt2 \
 	bug303.smt2 \
 	bug310.cvc \
@@ -164,23 +154,17 @@ BUG_TESTS = \
 	bug480.smt2 \
 	bug484.smt2 \
 	bug486.cvc \
-	bug507.smt2 \
 	bug512.minimized.smt2 \
-	bug516.smt2 \
-	bug520.smt2 \
 	bug521.minimized.smt2 \
 	bug522.smt2 \
 	bug528a.smt2 \
 	bug541.smt2 \
-	bug543.smt2 \
 	bug544.smt2 \
 	bug548a.smt2 \
-	bug567.smt2 \
 	bug576.smt2 \
 	bug576a.smt2 \
 	bug578.smt2 \
 	bug586.cvc \
-	bug593.smt2 \
 	bug595.cvc \
 	bug596.cvc \
 	bug596b.cvc \
@@ -189,7 +173,6 @@ BUG_TESTS = \
 	bt-test-00.smt2 \
 	bt-test-01.smt2 \
 	bug1247.smt2
-#bug590.smt2
 
 TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
@@ -197,31 +180,12 @@ TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 # we have a minimized version still getting tested
 # bug639 -- still fails, reopened bug
 # bug585 -- contains subrange type (not supported)
-# issue1048-arrays-int-real.smt2 -- different errors on debug and production
-DISABLED_TESTS = \
-	bug512.smt2 \
-	bug585.cvc
 
-EXTRA_DIST = $(TESTS) \
-	simplification_bug4.smt2.expect \
-	bug216.smt2.expect \
-	bug590.smt2.expect
 
-if CVC4_BUILD_PROFILE_COMPETITION
-else
-TESTS += \
-	bug681.smt2 \
-	error.cvc \
-	errorcrash.smt2 \
-	arrayinuf_error.smt2
-endif
+EXTRA_DIST = $(TESTS)
 
 # and make sure to distribute it
-EXTRA_DIST += $(DISABLED_TESTS) \
-	subranges.cvc \
-	arrayinuf_error.smt2 \
-	errorcrash.smt2 \
-	error.cvc
+EXTRA_DIST += $(DISABLED_TESTS)
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

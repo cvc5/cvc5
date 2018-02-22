@@ -37,7 +37,6 @@ TESTS =	\
 	bvbool.smt2 \
 	bvcmp.smt2 \
 	bvconcat2.smt2 \
-	bvdiv2.smt2 \
 	bvext.smt2 \
 	bvite.smt2 \
 	bvmul2.smt2 \
@@ -70,7 +69,6 @@ TESTS =	\
 	leq.smt2 \
 	lt.smt2 \
 	uf1.smt2 \
-	uf2.smt2 \
 	xor.smt2 \
 	mult1.smt2
 

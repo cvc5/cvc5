@@ -115,7 +115,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::ARCTANGENT:
     case kind::ARCCOSECANT:
     case kind::ARCSECANT:
-    case kind::ARCCOTANGENT: return preRewriteTranscendental(t);
+    case kind::ARCCOTANGENT:
+    case kind::SQRT: return preRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
       return RewriteResponse(REWRITE_DONE, t);
@@ -179,7 +180,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::ARCTANGENT:
     case kind::ARCCOSECANT:
     case kind::ARCSECANT:
-    case kind::ARCCOTANGENT: return postRewriteTranscendental(t);
+    case kind::ARCCOTANGENT:
+    case kind::SQRT: return postRewriteTranscendental(t);
     case kind::INTS_DIVISION:
     case kind::INTS_MODULUS:
       return RewriteResponse(REWRITE_DONE, t);

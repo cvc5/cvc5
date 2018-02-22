@@ -18,7 +18,7 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS = \	
+TESTS = \
   cong.smt2 \
   ext-ho-nested-lambda-model.smt2 \
   declare-fun-variants.smt2 \
@@ -32,33 +32,14 @@ TESTS = \
   ite-apply-eq.smt2 \
   apply-collapse-unsat.smt2 \
   apply-collapse-sat.smt2 \
-  ho-exponential-model.smt2 \
   ext-sat-partial-eval.smt2 \
-  ho-std-fmf.smt2 \
-  fta0409.smt2 \
-  auth0068.smt2 \
   modulo-func-equality.smt2 \
   ho-matching-enum.smt2 \
-  ho-matching-enum-2.smt2 \
   ho-matching-nested-app.smt2 \
   simple-matching.smt2 \
   simple-matching-partial.smt2
   
 EXTRA_DIST = $(TESTS)
-
-# hoa0102.smt2
-
-
-#if CVC4_BUILD_PROFILE_COMPETITION
-#else
-#TESTS += \
-#	error.cvc
-#endif
-# 
-# and make sure to distribute it
-#EXTRA_DIST += \
-#	error.cvc
-
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test
