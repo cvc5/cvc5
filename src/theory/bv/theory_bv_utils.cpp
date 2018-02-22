@@ -126,75 +126,76 @@ bool isBVPredicate(TNode node)
          || k == kind::BITVECTOR_REDAND;
 }
 
+static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
+{
+  TNode t = term.getKind() == kind::NOT ? term[0] : term;
+
+  std::vector<TNode> stack;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  stack.push_back(t);
+
+  while (!stack.empty())
+  {
+    TNode n = stack.back();
+    stack.pop_back();
+
+    if (cache.find(n) != cache.end()) continue;
+
+    if (n.getNumChildren() == 0)
+    {
+      cache[n] = true;
+      visited[n] = true;
+      continue;
+    }
+
+    if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
+        == theory::THEORY_BV)
+    {
+      Kind k = n.getKind();
+      Assert(k != kind::CONST_BITVECTOR);
+      if (k != kind::EQUAL
+          && (iseq || k != kind::BITVECTOR_CONCAT)
+          && (iseq || k != kind::BITVECTOR_EXTRACT)
+          && n.getMetaKind() != kind::metakind::VARIABLE)
+      {
+        cache[n] = false;
+        continue;
+      }
+    }
+
+    if (!visited[n])
+    {
+      visited[n] = true;
+      stack.push_back(n);
+      stack.insert(stack.end(), n.begin(), n.end());
+    }
+    else
+    {
+      bool iseqt = true;
+      for (const Node& c : n)
+      {
+        Assert(cache.find(c) != cache.end());
+        if (!cache[c])
+        {
+          iseqt = false;
+          break;
+        }
+      }
+      cache[n] = iseqt;
+    }
+  }
+  Assert(cache.find(t) != cache.end());
+  return cache[t];
+}
+
 bool isCoreTerm(TNode term, TNodeBoolMap& cache)
 {
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-
-  if (term.getNumChildren() == 0) return true;
-
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
-  {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::BITVECTOR_CONCAT
-        && k != kind::BITVECTOR_EXTRACT && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isCoreTerm(term[i], cache))
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  cache[term] = true;
-  return true;
+  return isCoreEqTerm(false, term, cache);
 }
 
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
 {
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-
-  if (term.getNumChildren() == 0) return true;
-
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
-  {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isEqualityTerm(term[i], cache))
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  cache[term] = true;
-  return true;
+  return isCoreEqTerm(true, term, cache);
 }
 
 bool isBitblastAtom(Node lit)
@@ -452,26 +453,6 @@ Node flattenAnd(std::vector<TNode>& queue)
     children.push_back(*it);
   }
   return mkAnd(children);
-}
-
-/* ------------------------------------------------------------------------- */
-
-// FIXME: dumb code
-void intersect(const std::vector<uint32_t>& v1,
-                      const std::vector<uint32_t>& v2,
-                      std::vector<uint32_t>& intersection) {
-  for (unsigned i = 0; i < v1.size(); ++i) {
-    bool found = false;
-    for (unsigned j = 0; j < v2.size(); ++j) {
-      if (v2[j] == v1[i]) {
-        found = true;
-        break;
-      }
-    }
-    if (found) {
-      intersection.push_back(v1[i]);
-    }
-  }
 }
 
 /* ------------------------------------------------------------------------- */

@@ -63,7 +63,8 @@ TESTS =	\
 	sin2-lb.smt2 \
 	sin2-ub.smt2 \
 	sugar-ident.smt2 \
-	zero-subset.smt2
+	zero-subset.smt2 \
+	sin1-deq-sat.smt2
 
 EXTRA_DIST = $(TESTS)
 

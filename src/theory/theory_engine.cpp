@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1923,35 +1923,48 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     });
 }
 
-void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions) {
+void TheoryEngine::staticInitializeBVOptions(
+    const std::vector<Node>& assertions)
+{
   bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON) {
+  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON)
+  {
+    if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
+      throw ModalException(
+          "Slicer currently only supports pure QF_BV formulas. Use "
+          "--bv-eq-slicer=off");
     if (options::incrementalSolving())
-      throw ModalException("Slicer does not currently support incremental mode. Use --bv-eq-slicer=off");
+      throw ModalException(
+          "Slicer does not currently support incremental mode. Use "
+          "--bv-eq-slicer=off");
     if (options::produceModels())
-      throw ModalException("Slicer does not currently support model generation. Use --bv-eq-slicer=off");
-    useSlicer = true;
-
-  } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF) {
+      throw ModalException(
+          "Slicer does not currently support model generation. Use "
+          "--bv-eq-slicer=off");
+  }
+  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF)
+  {
     return;
-
-  } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO) {
-    if (options::incrementalSolving() ||
-        options::produceModels())
+  }
+  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO)
+  {
+    if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
+        || options::incrementalSolving()
+        || options::produceModels())
       return;
 
-    useSlicer = true;
     bv::utils::TNodeBoolMap cache;
-    for (unsigned i = 0; i < assertions.size(); ++i) {
+    for (unsigned i = 0; i < assertions.size(); ++i)
+    {
       useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
     }
   }
 
-  if (useSlicer) {
+  if (useSlicer)
+  {
     bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
     bv_theory->enableCoreTheorySlicer();
   }
-
 }
 
 void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {

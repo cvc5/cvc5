@@ -98,6 +98,12 @@ private:
   * Returns the rewritten form of n.
   */
   static Node rewriteReplace(Node n);
+  /** rewrite prefix/suffix
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.prefixof( s, t ) / str.suffixof( s, t )
+  * Returns the rewritten form of n.
+  */
+  static Node rewritePrefixSuffix(Node n);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:

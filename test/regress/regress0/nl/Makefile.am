@@ -35,7 +35,9 @@ TESTS =	\
   nta/tan-rewrite.smt2 \
   nta/exp1-ub.smt2 \
   nta/exp-n0.5-ub.smt2 \
-  nta/exp-n0.5-lb.smt2
+  nta/exp-n0.5-lb.smt2 \
+  nta/real-pi.smt2 \
+  nta/sqrt-simple.smt2
 
 # unsolved : garbage_collect.cvc
 
