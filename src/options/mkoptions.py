@@ -516,9 +516,6 @@ def codegen_all_modules(modules, src_dir, dst_dir):
                         'required' if argument_req else 'no',
                         option_value_cur))
 
-            # collect SMT option names
-            if option.smt_name:
-                options_smt.append('"{}",'.format(option.smt_name))
 
             ### build opts for options::getOptions()
             if option.name:
@@ -529,6 +526,9 @@ def codegen_all_modules(modules, src_dir, dst_dir):
                     optname = option.long
 
                 if optname:
+                    # collect SMT option names
+                    options_smt.append('"{}",'.format(option.smt_name))
+
                     if option.type == 'bool':
                         s  = '{ std::vector<std::string> v; '
                         s += 'v.push_back("{}"); '.format(optname)
