@@ -1088,6 +1088,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
                  const std::vector<std::string>& idList, bool topLevel]
 @init {
   Expr f;
+  Type t2;
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
     /* A variable declaration (or definition) */
@@ -1132,6 +1133,10 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
         }
       } else {
         // f is not null-- meaning this is a definition not a declaration
+        //Check if the formula f has the correct type, declared as t.
+        if(t != f.getType()){
+          PARSER_STATE->parseError("Type mimatch in definition");
+        }
         if(!topLevel) {
           // must be top-level; doesn't make sense to write something
           // like e.g. FORALL(x:INT = 4): [...]
