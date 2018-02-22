@@ -141,41 +141,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   //---------------------- theory-independent post-rewriting
   if (ret.getKind() == ITE)
   {
-    Assert(ret[1] != ret[2]);
-    if (ret[0].getKind() == kind::EQUAL)
-    {
-      // simple invariant ITE
-      for (unsigned i = 0; i < 2; i++)
-      {
-        if (ret[1] == ret[0][i] && ret[2] == ret[0][1 - i])
-        {
-          Trace("q-ext-rewrite")
-              << "sygus-extr : " << ret << " rewrites to " << ret[2]
-              << " due to simple invariant ITE." << std::endl;
-          new_ret = ret[2];
-          break;
-        }
-      }
-      // notice this is strictly more general than the above
-      if (new_ret.isNull())
-      {
-        // simple substitution
-        for (unsigned i = 0; i < 2; i++)
-        {
-          TNode r1 = ret[0][i];
-          TNode r2 = ret[0][1 - i];
-          if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
-          {
-            Node retn = ret[1].substitute(r1, r2);
-            if (retn != ret[1])
-            {
-              new_ret = nm->mkNode( kind::ITE, ret[0], retn, ret[2]);
-              debugExtendedRewrite( ret, new_ret, "ITE subs" );
-            }
-          }
-        }
-      }
-    }
+    new_ret = extendedRewriteIte( ret );
+    debugExtendedRewrite( ret, new_ret, "ITE rewriting" );
   }
   else if( ret.getKind()==AND || ret.getKind()==OR )
   {
@@ -298,6 +265,88 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
   return new_ret;
 }  
 
+Node ExtendedRewriter::extendedRewriteIte(Node n)
+{
+  Assert( n.getKind()==ITE );
+  Assert(n[1] != n[2]);
+  Assert(n[0].getKind()!=NOT );
+  
+  // get entailed equalities in the condition
+  std::vector< Node > eq_conds;
+  Kind ck = n[0].getKind();
+  if( ck==EQUAL )
+  {
+    eq_conds.push_back( n[0] );
+  }
+  else if( ck==AND )
+  {
+    for( const Node& cn : n[0] )
+    {
+      if( cn.getKind()==EQUAL )
+      {
+        eq_conds.push_back( cn );
+      }
+    }
+  }
+  
+  for( const Node& eq : eq_conds )
+  {
+    // simple invariant ITE
+    for (unsigned i = 0; i < 2; i++)
+    {
+      // ite( x = y ^ C, x, y ) ---> y
+      if (n[1] == eq[i] && n[2] == eq[1 - i])
+      {
+        return n[2];
+      }
+      /*
+      // ite( x = y.t1 ^ C, y.t2, x) ----> y.ite( x=y.t1, t1, t2 )
+      Node res;
+      if( n[1] == eq[i] && inferSplit(n[1],n[1],eq[1 - i], n[2],eq[1-i],res) )
+      {
+        return res;
+      }
+      */
+    }
+  }
+  
+  // make a substitution 
+  std::vector< Node > vars;
+  std::vector< Node > subs;
+  for( const Node& eq : eq_conds )
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {    
+      TNode r1 = eq[i];
+      TNode r2 = eq[1 - i];
+      if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
+      {
+        // TODO : union find
+        if( std::find( vars.begin(), vars.end(), r1 )==vars.end() )
+        {
+          vars.push_back( r1 );
+          subs.push_back( r2 );
+        }
+      }
+    }
+  }
+  
+  if( !vars.empty() )
+  {
+    // notice this is strictly more general than the above
+    Node nn = n[1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+    if (nn != n[1])
+    {
+      // ITE substitution
+      // if x is less than t based on term ordering, then
+      //   ite( x=t, s, r ) ---> ite( x=t, s{ x -> t }, r )
+      return NodeManager::currentNM()->mkNode( kind::ITE, n[0], nn, n[2]);
+    }
+  }
+
+  return Node::null();
+}
+  
 Node ExtendedRewriter::extendedRewritePullIte(Node n)
 {
   NodeManager * nm = NodeManager::currentNM();
@@ -766,6 +815,19 @@ Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+bool ExtendedRewriter::inferSplit( Node x, Node y, Node cond, Node t1, Node t2, Node& res )
+{
+  Assert( x.getType()==t1.getType() );
+  Assert( y.getType()==t2.getType() );
+  Assert( t1.getType()==t2.getType() );
+  Assert( cond.getType().isBoolean() );
+  
+  
+  
+  
+  return false;
 }
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )

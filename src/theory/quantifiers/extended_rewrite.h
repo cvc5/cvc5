@@ -70,6 +70,11 @@ class ExtendedRewriter
 
   
   //--------------------------------------generic utilities
+  /** Rewrite ITE, for example:
+   * 
+   * TODO
+   */
+  Node extendedRewriteIte(Node n);
   /** Pull ITE, for example:
    * 
    *   D=C2 ---> false   
@@ -147,6 +152,22 @@ class ExtendedRewriter
    * terms whose Kind appears in rec_kinds.
    */
   Node partialSubstitute( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& rkinds );
+  /** infer split
+   * 
+   * If this function returns true, then this function stores a term in res of
+   * the form: 
+   *   f( u1,...,un )
+   * where each ui is either g( x ) for some g, or ite( cond, s1, s2 ) for
+   * some s1, s2, and:
+   *   t1 is equivalent to f( u1,...,un ){ cond -> T, x -> t1, y -> t2 }, and
+   *   t2 is equivalent to f( u1,...,un ){ cond -> F, x -> t1, y -> t2 }.
+   * 
+   * For example, if t1 = #b00000 and t2 = #b00010, then we may update res to
+   *   (concat ((_ extract 4 2) x) 
+   *           (ite cond ((extract 1 1) x) ((_ extract 1 1) y)) 
+   *           ((_ extract 0 0) x))
+   */
+  bool inferSplit( Node x, Node y, Node cond, Node t1, Node t2, Node& res );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
