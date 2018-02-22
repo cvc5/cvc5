@@ -525,7 +525,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::
         else
         {
           // substitution is only applicable to compatible kinds
-          ccs = substituteBcp( ccs, assign, bcp_kinds );
+          ccs = partialSubstitute( ccs, assign, bcp_kinds );
         }
         childChanged = childChanged || ccs!=cc;
         ccs_children.push_back( ccs );
@@ -707,7 +707,7 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
   return Node::null();
 }
 
-Node ExtendedRewriter::substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds )
+Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& rkinds )
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -729,7 +729,7 @@ Node ExtendedRewriter::substituteBcp( Node n, std::map< Node, Node >& assign, st
       {
         // can only recurse on these kinds
         Kind k = n.getKind();
-        if( bcp_kinds.find( k )!=bcp_kinds.end() )
+        if( rkinds.find( k )!=rkinds.end() )
         {
           visited[cur] = Node::null();
           visit.push_back(cur);

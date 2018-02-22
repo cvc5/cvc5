@@ -103,14 +103,12 @@ class ExtendedRewriter
    * beneath illegal terms. As an example:
    *   (bvand A (bvor A B)) is equivalent to (bvand A (bvor 1...1 B)), but
    *   (bvand A (bvplus A B)) is not equivalent to (bvand A (bvplus 1..1 B)),
-   * hence, BITVECTOR_AND is a bcp_kind, but BITVECTOR_PLUS is not.
+   * hence, when using this function to do BCP for bit-vectors, we have that 
+   * BITVECTOR_AND is a bcp_kind, but BITVECTOR_PLUS is not.
    * 
    * If this function returns a non-null node ret, then n ---> ret.
    */
   Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::map< Kind, bool >& bcp_kinds, Node n );
-  /** substitution for Boolean constraint  
-   */
-  Node substituteBcp( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& bcp_kinds );
   /** Equality chain rewriting, for example:
    * 
    *   A = ( A = B ) ---> B
@@ -120,7 +118,16 @@ class ExtendedRewriter
    * If this function returns a non-null node ret, then n ---> ret.
    */
   Node extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, TypeNode tn, Node n );
-  /** Make negated term, returns the negation of n wrt Kind notk. */
+  /** extended rewrite aggressive 
+   * 
+   * All aggressive rewriting techniques (those that should be prioritized 
+   * at a lower level) go in this function.
+   */
+  Node extendedRewriteAggr(Node n);
+  /** 
+   * Make negated term, returns the negation of n wrt Kind notk, eliminating
+   * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
+   */
   Node mkNegate( Kind notk, Node n );
   /** Decompose right associative chain 
    * 
@@ -134,8 +141,12 @@ class ExtendedRewriter
    * f( ... f( f( base, tn ), t{n-1} ) ... t1 ).
    */
   Node mkRightAssocChain( Kind k, Node base, std::vector< Node >& children );
-  /** extended rewrite aggressive */
-  Node extendedRewriteAggr(Node n);
+  /** Partial substitute
+   * 
+   * Applies the substitution specified by assign to n, recursing only beneath
+   * terms whose Kind appears in rec_kinds.
+   */
+  Node partialSubstitute( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& rkinds );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
