@@ -91,22 +91,27 @@ def check_attribs(req_attribs, valid_attribs, d, type):
                 type, k, msg_for))
 
 def write_file(directory, name, s):
-    f = '{}/{}'.format(directory, name)
+    fname = '{}/{}'.format(directory, name)
     try:
-        f = open(f, 'w')
+        f = open(fname, 'r+')
     except IOError:
-        die("Could not write '{}'".format(f))
+        die("Could not write '{}'".format(fname))
     else:
-        with f:
-            f.write(s)
+
+        if s == f.read():
+            print('{} is up-to-date'.format(name))
+        else:
+            print('generating {}'.format(name))
+            with f:
+                f.write(s)
 
 
 def read_tpl(directory, name):
-    f = '{}/{}'.format(directory, name)
+    fname = '{}/{}'.format(directory, name)
     try:
-        f = open(f, 'r')
+        f = open(fname, 'r')
     except IOError:
-        die("Could not find '{}'. Aborting.".format(f))
+        die("Could not find '{}'. Aborting.".format(fname))
     else:
         # Escape { and } since we later use .format to add the generated code.
         # Further, strip ${ and }$ from placeholder variables in the template
