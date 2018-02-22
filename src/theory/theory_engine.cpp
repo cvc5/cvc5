@@ -1929,7 +1929,7 @@ void TheoryEngine::staticInitializeBVOptions(
   bool useSlicer = true;
   if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON)
   {
-    if (!d_logicInfo.isPure(theory::THEORY_BV) && !d_logicInfo.isQuantified())
+    if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
       throw ModalException(
           "Slicer currently only supports pure QF_BV formulas. Use "
           "--bv-eq-slicer=off");
@@ -1948,7 +1948,7 @@ void TheoryEngine::staticInitializeBVOptions(
   }
   else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO)
   {
-    if ((!d_logicInfo.isPure(theory::THEORY_BV) && !d_logicInfo.isQuantified())
+    if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
         || options::incrementalSolving()
         || options::produceModels())
       return;
