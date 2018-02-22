@@ -71,7 +71,7 @@ bool BitVector::isBitSet(uint32_t i) const
   return d_value.isBitSet(i);
 }
 
-unsigned BitVector::isPow2()
+unsigned BitVector::isPow2() const
 {
   return d_value.isPow2();
 }
@@ -94,7 +94,41 @@ BitVector BitVector::extract(unsigned high, unsigned low) const
                    d_value.extractBitRange(high - low + 1, low));
 }
 
+/* (Dis)Equality --------------------------------------------------------- */
+
+bool BitVector::operator==(const BitVector& y) const
+{
+  if (d_size != y.d_size) return false;
+  return d_value == y.d_value;
+}
+
+bool BitVector::operator!=(const BitVector& y) const
+{
+  if (d_size != y.d_size) return true;
+  return d_value != y.d_value;
+}
+
 /* Unsigned Inequality --------------------------------------------------- */
+
+bool BitVector::operator<(const BitVector& y) const
+{
+  return d_value < y.d_value;
+}
+
+bool BitVector::operator<=(const BitVector& y) const
+{
+  return d_value <= y.d_value;
+}
+
+bool BitVector::operator>(const BitVector& y) const
+{
+  return d_value > y.d_value;
+}
+
+bool BitVector::operator>=(const BitVector& y) const
+{
+  return d_value >= y.d_value;
+}
 
 bool BitVector::unsignedLessThan(const BitVector& y) const
 {
@@ -134,6 +168,31 @@ bool BitVector::signedLessThanEq(const BitVector& y) const
   Integer b = y.toSignedInteger();
 
   return a <= b;
+}
+
+/* Bit-wise operations --------------------------------------------------- */
+
+BitVector BitVector::operator^(const BitVector& y) const
+{
+  CheckArgument(d_size == y.d_size, y);
+  return BitVector(d_size, d_value.bitwiseXor(y.d_value));
+}
+
+BitVector BitVector::operator|(const BitVector& y) const
+{
+  CheckArgument(d_size == y.d_size, y);
+  return BitVector(d_size, d_value.bitwiseOr(y.d_value));
+}
+
+BitVector BitVector::operator&(const BitVector& y) const
+{
+  CheckArgument(d_size == y.d_size, y);
+  return BitVector(d_size, d_value.bitwiseAnd(y.d_value));
+}
+
+BitVector BitVector::operator~() const
+{
+  return BitVector(d_size, d_value.bitwiseNot());
 }
 
 /* Arithmetic operations ------------------------------------------------- */

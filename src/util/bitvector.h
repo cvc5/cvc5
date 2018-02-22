@@ -89,7 +89,7 @@ class CVC4_PUBLIC BitVector
   bool isBitSet(uint32_t i) const;
 
   /* Return k if the value of this is equal to 2^{k-1}, and zero otherwise. */
-  unsigned isPow2();
+  unsigned isPow2() const;
 
   /* -----------------------------------------------------------------------
    ** Operators
@@ -106,32 +106,24 @@ class CVC4_PUBLIC BitVector
   /* (Dis)Equality --------------------------------------------------------- */
 
   /* Return true if this is equal to 'y'. */
-  bool operator==(const BitVector& y) const
-  {
-    if (d_size != y.d_size) return false;
-    return d_value == y.d_value;
-  }
+  bool operator==(const BitVector& y) const;
 
   /* Return true if this is not equal to 'y'. */
-  bool operator!=(const BitVector& y) const
-  {
-    if (d_size != y.d_size) return true;
-    return d_value != y.d_value;
-  }
+  bool operator!=(const BitVector& y) const;
 
   /* Unsigned Inequality --------------------------------------------------- */
 
   /* Return true if this is unsigned less than bit-vector 'y'. */
-  bool operator<(const BitVector& y) const { return d_value < y.d_value; }
+  bool operator<(const BitVector& y) const;
 
   /* Return true if this is unsigned less than or equal to bit-vector 'y'. */
-  bool operator<=(const BitVector& y) const { return d_value <= y.d_value; }
+  bool operator<=(const BitVector& y) const;
 
   /* Return true if this is unsigned greater than bit-vector 'y'. */
-  bool operator>(const BitVector& y) const { return d_value > y.d_value; }
+  bool operator>(const BitVector& y) const;
 
   /* Return true if this is unsigned greater than or equal to bit-vector 'y'. */
-  bool operator>=(const BitVector& y) const { return d_value >= y.d_value; }
+  bool operator>=(const BitVector& y) const;
 
   /* Return true if this is unsigned less than bit-vector 'y'.
    * This function is a synonym for operator < but performs additional
@@ -154,31 +146,16 @@ class CVC4_PUBLIC BitVector
   /* Bit-wise operations --------------------------------------------------- */
 
   /* Return a bit-vector representing the bit-wise xor (this ^ y). */
-  BitVector operator^(const BitVector& y) const
-  {
-    CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseXor(y.d_value));
-  }
+  BitVector operator^(const BitVector& y) const;
 
   /* Return a bit-vector representing the bit-wise or (this | y). */
-  BitVector operator|(const BitVector& y) const
-  {
-    CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseOr(y.d_value));
-  }
+  BitVector operator|(const BitVector& y) const;
 
   /* Return a bit-vector representing the bit-wise and (this & y). */
-  BitVector operator&(const BitVector& y) const
-  {
-    CheckArgument(d_size == y.d_size, y);
-    return BitVector(d_size, d_value.bitwiseAnd(y.d_value));
-  }
+  BitVector operator&(const BitVector& y) const;
 
   /* Return a bit-vector representing the bit-wise not of this. */
-  BitVector operator~() const
-  {
-    return BitVector(d_size, d_value.bitwiseNot());
-  }
+  BitVector operator~() const;
 
   /* Arithmetic operations ------------------------------------------------- */
 
@@ -222,7 +199,7 @@ class CVC4_PUBLIC BitVector
   BitVector unsignedDivTotal(const BitVector& y) const;
 
   /* Total remainder function.
-   * Returns this when the denominator is zero, and the unsigned remained
+   * Returns this when the denominator is zero, and the unsigned remainder
    * (this % y), otherwise.  */
   BitVector unsignedRemTotal(const BitVector& y) const;
 
@@ -243,7 +220,8 @@ class CVC4_PUBLIC BitVector
   /* Return a bit-vector representing a logical right shift of this by 'y'. */
   BitVector logicalRightShift(const BitVector& y) const;
 
-  /* Return a bit-vecto representing an arithmetic right shift of this by 'y'.*/
+  /* Return a bit-vector representing an arithmetic right shift of this
+   * by 'y'.*/
   BitVector arithRightShift(const BitVector& y) const;
 
   /* -----------------------------------------------------------------------
