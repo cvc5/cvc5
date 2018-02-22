@@ -672,6 +672,7 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
               Kind nk = capol ? ork : andk;
               // store as new child
               children.push_back( nm->mkNode(nk, nc[0], nc[1]) );
+              break;
             }
           }
         }
