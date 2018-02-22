@@ -452,11 +452,12 @@ def codegen_all_modules(modules, src_dir, dst_dir):
                 for link in option.links:
                     m = match_option(link)
                     assert(m)
-                    if m[0].smt_name:
-                        smtlinks.append('setOption(std::string("{smtname}"), ("{value}"));'.format(
-                            smtname=m[0].smt_name,
-                            value="true" if m[1] else "false"
-                            ))
+                    smtname = m[0].smt_name if m[0].smt_name else long_get_option(m[0].long)
+                    assert(smtname)
+                    smtlinks.append('setOption(std::string("{smtname}"), ("{value}"));'.format(
+                        smtname=smtname,
+                        value="true" if m[1] else "false"
+                        ))
 
                 smtname = option.smt_name if option.smt_name else long_get_option(option.long)
 
@@ -503,7 +504,6 @@ def codegen_all_modules(modules, src_dir, dst_dir):
                 cases.append(
                     'case {}:// --no-{}'.format(
                         option_value_cur, option.long))
-                option_value_cur += 1
                 cases.append(
                     '  options->assignBool(options::{}, option, false);'.format(option.name))
                 cases.append('  break;\n')
@@ -515,6 +515,7 @@ def codegen_all_modules(modules, src_dir, dst_dir):
                         long_get_option(option.long),
                         'required' if argument_req else 'no',
                         option_value_cur))
+                option_value_cur += 1
 
 
             ### build opts for options::getOptions()
