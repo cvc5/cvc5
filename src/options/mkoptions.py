@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import ast
 import copy
 import os
 import re
 import sys
 import textwrap
-import toml
 
 # TODO: more checks for options, e.g., long options start with -- ...
 # TODO: documentation generation
@@ -60,7 +60,7 @@ class Option(object):
         self.read_only = False
         for (k, v) in d.items():
             assert(k in self.__dict__)
-            if k == 'read_only' or len(v) > 0:
+            if k == 'read_only' or v:
                 self.__dict__[k] = v
 
 class Alias(object):
@@ -93,19 +93,18 @@ def check_attribs(req_attribs, valid_attribs, d, type):
 def write_file(directory, name, s):
     fname = '{}/{}'.format(directory, name)
     try:
-        mode = 'w'
         if os.path.isfile(fname):
-            mode = 'r+'
-        f = open(fname, mode)
+            f = open(fname, 'r')
+            if s == f.read():
+                print('{} is up-to-date'.format(name))
+                return
+        f = open(fname, 'w')
     except IOError:
         die("Could not write '{}'".format(fname))
     else:
-        if mode == 'r+' and s == f.read():
-            print('{} is up-to-date'.format(name))
-        else:
-            print('generating {}'.format(name))
-            with f:
-                f.write(s)
+        print('generating {}'.format(name))
+        with f:
+            f.write(s)
 
 
 def read_tpl(directory, name):
@@ -127,9 +126,7 @@ def read_tpl(directory, name):
             lines = contents.split('\n')
             for i in range(len(lines)):
                 if lines[i].startswith('#line'):
-                    print(lines[i])
                     lines[i] = lines[i].format(line=i + 2, template=name)
-                    print(lines[i])
 
             return '\n'.join(lines)
 
@@ -668,13 +665,12 @@ def check(data):
 
     data_options = []
     data_aliases = []
-
-    if 'option' in data:
-        data_options = data['option']
-        del(data['option'])
-    if 'alias' in data:
-        data_aliases = data['alias']
-        del(data['alias'])
+    if 'options' in data:
+        data_options = data['options']
+        del(data['options'])
+    if 'aliases' in data:
+        data_aliases = data['aliases']
+        del(data['aliases'])
 
     check_attribs(MODULE_ATTR_REQ, MODULE_ATTR_ALL, data, 'module')
 
@@ -688,6 +684,93 @@ def check(data):
 
     return module
 
+def perr(line, msg):
+    die('option parse error at line {}: {}'.format(line + 1, msg))
+
+def parse_value(lineno, s):
+
+    if s[0] == '"':
+        if s[-1] != '"':
+            perr(lineno, 'missing closing " for string')
+        s = s.lstrip('"').rstrip('"').replace('\\"', '"')
+        return s if len(s) > 0 else None
+    elif s[0] == '[':
+        try:
+            l = ast.literal_eval(s)
+        except SyntaxError as e:
+            perr(lineno, 'parsing list: {}'.format(e.msg))
+        return l
+    elif s == 'true':
+        return True
+    elif s == 'false':
+        return False
+    else:
+        perr(lineno, "invalid value '{}'".format(s))
+
+# simple parser for the module options files
+def parse_module(file):
+    module = dict()
+    options = []
+    aliases = []
+    lines = [[x.strip() for x in line.split('=', maxsplit=1)] for line in file]
+    option = None
+    alias = None
+    for i in range(len(lines)):
+        assert(option is None or alias is None)
+        line = lines[i]
+        if len(line) == 1:
+            # parse new option/alias, save previously parsed
+            if line[0] in ['[[option]]', '[[alias]]']:
+                if option:
+                    options.append(option)
+                    option = None
+                if alias:
+                    aliases.append(alias)
+                    alias = None
+                if line[0] == '[[option]]':
+                    assert(alias is None)
+                    option = dict()
+                else:
+                    assert(line[0] == '[[alias]]')
+                    assert(option is None)
+                    alias = dict()
+            elif line[0] != '':
+                perr(i, "invalid attribute '{}'".format(line[0]))
+        elif len(line) == 2:
+            attrib = line[0]
+            value = parse_value(i, line[1])
+            if option is not None:
+                if attrib not in OPTION_ATTR_ALL:
+                    perr(i, "invalid option attribute '{}'".format(attrib))
+                if attrib in option:
+                    perr(i, "duplicate option attribute '{}'".format(attrib))
+                assert(option is not None)
+                option[attrib] = value
+            elif alias is not None:
+                if attrib not in ALIAS_ATTR_ALL:
+                    perr(i, "invalid alias attribute '{}'".format(attrib))
+                if attrib in alias:
+                    perr(i, "duplicate alias attribute '{}'".format(attrib))
+                assert(alias is not None)
+                alias[attrib] = value
+            else:
+                if attrib not in MODULE_ATTR_ALL:
+                    perr(i, "invalid module attribute '{}'".format(attrib))
+                if attrib in module:
+                    perr(i, "duplicate module attribute '{}'".format(attrib))
+                module[attrib] = value
+        else:
+            perr(i, "invalid attribute '{}'".format(line[0]))
+
+    # save previously parsed option/alias
+    if option:
+        options.append(option)
+    if alias:
+        aliases.append(alias)
+
+    module['options'] = options
+    module['aliases'] = aliases
+    return module
 
 if __name__ == "__main__":
 
@@ -708,7 +791,7 @@ if __name__ == "__main__":
     modules = []
     for filename in filenames:
         with open(filename, 'r') as f:
-            modules.append(check(toml.load(f)))
+            modules.append(check(parse_module(f)))
 
     for module in modules:
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
