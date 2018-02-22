@@ -1,0 +1,147 @@
+id     = "PROP"
+name   = "SAT layer"
+header = "options/prop_options.h"
+
+[[option]]
+  name       = "satRandomFreq"
+  smt_name   = "random-frequency"
+  category   = "regular"
+  short      = ""
+  long       = "random-freq=P"
+  type       = "double"
+  default    = "0.0"
+  handler    = ""
+  predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "sets the frequency of random decisions in the sat solver (P=0.0 by default)"
+
+[[option]]
+  name       = "satRandomSeed"
+  smt_name   = "random-seed"
+  category   = "regular"
+  short      = ""
+  long       = "random-seed=S"
+  type       = "uint32_t"
+  default    = "0"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "sets the random seed for the sat solver"
+
+[[option]]
+  name       = "satVarDecay"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = ""
+  type       = "double"
+  default    = "0.95"
+  handler    = ""
+  predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "variable activity decay factor for Minisat"
+
+[[option]]
+  name       = "satClauseDecay"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = ""
+  type       = "double"
+  default    = "0.999"
+  handler    = ""
+  predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "clause activity decay factor for Minisat"
+
+[[option]]
+  name       = "satRestartFirst"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "restart-int-base=N"
+  type       = "unsigned"
+  default    = "25"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "sets the base restart interval for the sat solver (N=25 by default)"
+
+[[option]]
+  name       = "satRestartInc"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "restart-int-inc=F"
+  type       = "double"
+  default    = "3.0"
+  handler    = ""
+  predicates = ["doubleGreaterOrEqual0"]
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "sets the restart interval increase factor for the sat solver (F=3.0 by default)"
+
+[[option]]
+  name       = "sat_refine_conflicts"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "refine-conflicts"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "refine theory conflict clauses (default false)"
+
+[[option]]
+  name       = "minisatUseElim"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "minisat-elimination"
+  type       = "bool"
+  default    = "true"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "use Minisat elimination"
+
+[[option]]
+  name       = "minisatDumpDimacs"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "minisat-dump-dimacs"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"

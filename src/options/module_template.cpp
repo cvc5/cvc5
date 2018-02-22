@@ -9,9 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Contains code for handling command-line options.
+ ** \brief Option template for option modules.
  **
- ** Contains code for handling command-line options
+ ** For each <module>_options.toml configuration file, mkoptions.py
+ ** expands this template and generates a <module>_options.cpp file.
  **/
 
 #include "options/options_holder.h"
@@ -20,9 +21,13 @@ namespace CVC4 {
 
 ${accs}$
 
+#line ${line}$ "${template}$"
+
 namespace options {
 
 ${defs}$
+
+#line ${line}$ "${template}$"
 
 }  // namespace options
 }  // namespace CVC4

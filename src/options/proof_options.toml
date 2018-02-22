@@ -1,0 +1,67 @@
+id     = "PROOF"
+name   = "Proof"
+header = "options/proof_options.h"
+
+[[option]]
+  name       = "lfscLetification"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "lfsc-letification"
+  type       = "bool"
+  default    = "true"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "turns on global letification in LFSC proofs"
+
+[[option]]
+  name       = "aggressiveCoreMin"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "aggressive-core-min"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "turns on aggressive unsat core minimization (experimental)"
+
+[[option]]
+  name       = "fewerPreprocessingHoles"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "fewer-preprocessing-holes"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "try to eliminate preprocessing holes in proofs"
+
+[[option]]
+  name       = "allowEmptyDependencies"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "allow-empty-dependencies"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "if unable to track the dependencies of a rewritten/preprocessed assertion, fail silently"

@@ -1,6 +1,6 @@
 /*********************                                                        */
-/*! \\file ${filename}$.h
- ** \\verbatim
+/*! \file ${filename}$.h
+ ** \verbatim
  ** Top contributors (to current version):
  **   Mathias Preiner
  ** This file is part of the CVC4 project.
@@ -9,9 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \\brief Contains code for handling command-line options.
+ ** \brief Contains code for handling command-line options.
  **
- ** Contains code for handling command-line options
+ ** For each <module>_options.toml configuration file, mkoptions.py
+ ** expands this template and generates a <module>_options.h file.
  **/
 
 #include "cvc4_private.h"
@@ -23,7 +24,11 @@
 
 ${includes}$
 
+#line ${line}$ "${template}$"
+
 ${holder_spec}$
+
+#line ${line}$ "${template}$"
 
 namespace CVC4 {
 
@@ -31,13 +36,19 @@ namespace options {
 
 ${decls}$
 
+#line ${line}$ "${template}$"
+
 }  // namespace options
 
 ${specs}$
 
+#line ${line}$ "${template}$"
+
 namespace options {
 
 ${inls}$
+
+#line ${line}$ "${template}$"
 
 }  // namespace options
 }  // namespace CVC4

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import copy
+import os
 import re
 import sys
 import textwrap
@@ -33,7 +34,6 @@ CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 g_long_to_opt = dict()  # TODO: this maps long options to options and
                         # is needed to map links to links_smt for now
                         # (workaround to produce the same code)
-
 
 
 tpl_holder_macro = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
@@ -93,12 +93,14 @@ def check_attribs(req_attribs, valid_attribs, d, type):
 def write_file(directory, name, s):
     fname = '{}/{}'.format(directory, name)
     try:
-        f = open(fname, 'r+')
+        mode = 'w'
+        if os.path.isfile(fname):
+            mode = 'r+'
+        f = open(fname, mode)
     except IOError:
         die("Could not write '{}'".format(fname))
     else:
-
-        if s == f.read():
+        if mode == 'r+' and s == f.read():
             print('{} is up-to-date'.format(name))
         else:
             print('generating {}'.format(name))
@@ -117,16 +119,24 @@ def read_tpl(directory, name):
         # Further, strip ${ and }$ from placeholder variables in the template
         # file.
         with f:
-            return f.read().replace('{', '{{').replace('}', '}}').\
-                            replace('${', '').replace('}$', '')
+            contents = \
+                f.read().replace('{', '{{').replace('}', '}}').\
+                         replace('${', '').replace('}$', '')
+
+            # insert correct line numbers and template name
+            lines = contents.split('\n')
+            for i in range(len(lines)):
+                if lines[i].startswith('#line'):
+                    print(lines[i])
+                    lines[i] = lines[i].format(line=i + 2, template=name)
+                    print(lines[i])
+
+            return '\n'.join(lines)
 
 
 
-def codegen_module(module, src_dir, dst_dir):
+def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     global g_long_to_opt
-
-    tpl_module_h = read_tpl(src_dir, 'module_template.h')
-    tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
 
     # {name} ... option.name
     tpl_h_holder_macro = '#define ' + tpl_holder_macro
@@ -225,21 +235,22 @@ def codegen_module(module, src_dir, dst_dir):
 
 
     filename=module.header.split('/')[1][:-2]
-    # TODO: template name
     write_file(dst_dir, '{}.h'.format(filename),
-        tpl_module_h.format(filename=filename,
-                            header=module.header,
-                            id=module.id,
-                            includes='\n'.join(sorted(list(includes))),
-                            holder_spec=' \\\n'.join(holder_specs),
-                            decls='\n'.join(decls),
-                            specs='\n'.join(specs),
-                            inls='\n'.join(inls)))
+        tpl_module_h.format(
+            filename=filename,
+            header=module.header,
+            id=module.id,
+            includes='\n'.join(sorted(list(includes))),
+            holder_spec=' \\\n'.join(holder_specs),
+            decls='\n'.join(decls),
+            specs='\n'.join(specs),
+            inls='\n'.join(inls)))
 
     write_file(dst_dir, '{}.cpp'.format(filename),
-        tpl_module_cpp.format(filename=filename,
-                              accs='\n'.join(accs),
-                              defs='\n'.join(defs)))
+        tpl_module_cpp.format(
+            filename=filename,
+            accs='\n'.join(accs),
+            defs='\n'.join(defs)))
 
 def match_option(long):
     global g_long_to_opt
@@ -306,7 +317,7 @@ def help_format(help, short, long):
     lines.extend([' ' * width_opt + l for l in text[1:]])
     return ['"{}\\n"'.format(x) for x in lines]
 
-def codegen_all_modules(modules, src_dir, dst_dir):
+def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
 
     option_value_start = 256
 
@@ -337,9 +348,6 @@ def codegen_all_modules(modules, src_dir, dst_dir):
   Trace(\"options\") << \"user assigned option {name}\" << std::endl;
   {notifications}
 }}"""
-
-    tpl_options = read_tpl(src_dir, 'options_template_new.cpp')
-    tpl_option_holder = read_tpl(src_dir, 'options_holder_template_new.h')
 
     headers_module = []
     headers_handler = set()
@@ -629,15 +637,13 @@ def codegen_all_modules(modules, src_dir, dst_dir):
                 l.extend(help_format(alias.help, None, alias.long))
 
     write_file(dst_dir, 'options_holder.h',
-        tpl_option_holder.format(
-            template='options_holder_template_new.h',
+        tpl_options_holder.format(
             headers_module='\n'.join(headers_module),
             macros_module='\n'.join(macros_module)
             ))
 
     write_file(dst_dir, 'options.cpp',
         tpl_options.format(
-            template='options_template_new.cpp',
             headers_module='\n'.join(headers_module),
             headers_handler='\n'.join(sorted(list(headers_handler))),
             custom_handlers='\n'.join(custom_handlers),
@@ -692,6 +698,12 @@ if __name__ == "__main__":
     dst_dir = sys.argv[2]
     filenames = sys.argv[3:]
 
+    # read template files
+    tpl_module_h = read_tpl(src_dir, 'module_template.h')
+    tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
+    tpl_options = read_tpl(src_dir, 'options_template_new.cpp')
+    tpl_options_holder = read_tpl(src_dir, 'options_holder_template_new.h')
+
     # parse files, check attributes and create module/option objects
     modules = []
     for filename in filenames:
@@ -699,8 +711,8 @@ if __name__ == "__main__":
             modules.append(check(toml.load(f)))
 
     for module in modules:
-        codegen_module(module, src_dir, dst_dir)
+        codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
-    codegen_all_modules(modules, src_dir, dst_dir)
+    codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder)
 
     sys.exit(0)

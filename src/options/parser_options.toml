@@ -1,0 +1,92 @@
+id     = "PARSER"
+name   = "Parser"
+header = "options/parser_options.h"
+
+[[option]]
+  name       = "strictParsing"
+  smt_name   = ""
+  category   = "common"
+  short      = ""
+  long       = "strict-parsing"
+  type       = "bool"
+  default    = ""
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "be less tolerant of non-conforming inputs"
+
+[[option]]
+  name       = "memoryMap"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "mmap"
+  type       = "bool"
+  default    = ""
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "memory map file input"
+
+[[option]]
+  name       = "semanticChecks"
+  smt_name   = "semantic-checks"
+  category   = "regular"
+  short      = ""
+  long       = ""
+  type       = "bool"
+  default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "disable ALL semantic checks, including type checks"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "no-checking"
+  links      = ["--no-type-checking"]
+
+[[option]]
+  name       = "globalDeclarations"
+  smt_name   = "global-declarations"
+  category   = "regular"
+  short      = ""
+  long       = ""
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "force all declarations and definitions to be global"
+
+[[option]]
+  name       = "filesystemAccess"
+  smt_name   = "filesystem-access"
+  category   = "undocumented"
+  short      = ""
+  long       = ""
+  type       = "bool"
+  default    = "true"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+
+[[alias]]
+  category   = "undocumented"
+  long       = "no-include-file"
+  links      = ["--no-filesystem-access"]

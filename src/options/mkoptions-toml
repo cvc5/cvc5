@@ -574,6 +574,9 @@ function handle_option {
       long="$long_option_alternate"
     fi
   fi
+  if [ "$long_option" == "trace=TAG" -o "$long_option" == "debug=TAG" ]; then
+    type="std::string"
+  fi
   echo "  long       = \"$long\""
   echo "  type       = \"$type\""
   echo "  default    = \"$default_value\""

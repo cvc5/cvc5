@@ -1,0 +1,365 @@
+id     = "DRIVER"
+name   = "Driver"
+header = "options/main_options.h"
+
+[[option]]
+  name       = "version"
+  smt_name   = ""
+  category   = "common"
+  short      = "V"
+  long       = "version"
+  type       = "bool"
+  default    = ""
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "identify this CVC4 binary"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "license"
+  links      = ["--version"]
+
+[[option]]
+  name       = "help"
+  smt_name   = ""
+  category   = "common"
+  short      = "h"
+  long       = "help"
+  type       = "bool"
+  default    = ""
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "full command line reference"
+
+[[option]]
+  name       = ""
+  smt_name   = ""
+  category   = "common"
+  short      = ""
+  long       = "show-config"
+  type       = "void"
+  default    = ""
+  handler    = "showConfiguration"
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "show CVC4 static configuration"
+
+[[option]]
+  name       = ""
+  smt_name   = ""
+  category   = "common"
+  short      = ""
+  long       = "copyright"
+  type       = "void"
+  default    = ""
+  handler    = "copyright"
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "show CVC4 copyright information"
+
+[[option]]
+  name       = "seed"
+  smt_name   = ""
+  category   = "common"
+  short      = "s"
+  long       = "seed"
+  type       = "uint64_t"
+  default    = "0"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "seed for random number generator"
+
+[[option]]
+  name       = ""
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "show-debug-tags"
+  type       = "void"
+  default    = ""
+  handler    = "showDebugTags"
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "show all available tags for debugging"
+
+[[option]]
+  name       = ""
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "show-trace-tags"
+  type       = "void"
+  default    = ""
+  handler    = "showTraceTags"
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "show all available tags for tracing"
+
+[[option]]
+  name       = "earlyExit"
+  smt_name   = ""
+  category   = "expert"
+  short      = ""
+  long       = "early-exit"
+  type       = "bool"
+  default    = "true"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "do not run destructors at exit; default on except in debug builds"
+
+[[option]]
+  name       = "threads"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "threads=N"
+  type       = "unsigned"
+  default    = "2"
+  handler    = ""
+  predicates = ["unsignedGreater0"]
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "Total number of threads for portfolio"
+
+[[option]]
+  name       = ""
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "threadN=string"
+  type       = "void"
+  default    = ""
+  handler    = "threadN"
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "configures portfolio thread N (0..#threads-1)"
+
+[[option]]
+  name       = "threadStackSize"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "thread-stack=N"
+  type       = "unsigned"
+  default    = "0"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "stack size for worker threads in MB (0 means use Boost/thread lib default)"
+
+[[option]]
+  name       = "threadArgv"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = ""
+  type       = "std::vector<std::string>"
+  default    = ""
+  handler    = ""
+  predicates = []
+  includes   = ["<vector>", "<string>"]
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "Thread configuration (a string to be passed to parseOptions)"
+
+[[option]]
+  name       = "thread_id"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = ""
+  type       = "int"
+  default    = "-1"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "Thread ID, for internal use in case of multi-threaded run"
+
+[[option]]
+  name       = "sharingFilterByLength"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "filter-lemma-length=N"
+  type       = "int"
+  default    = "-1"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "don't share (among portfolio threads) lemmas strictly longer than N"
+
+[[option]]
+  name       = "fallbackSequential"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "fallback-sequential"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "Switch to sequential mode (instead of printing an error) if it can't be solved in portfolio mode"
+
+[[option]]
+  name       = "incrementalParallel"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "incremental-parallel"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = ["--incremental"]
+  read_only  = true
+  help       = "Use parallel solver even in incremental mode (may print 'unknown's at times)"
+
+[[option]]
+  name       = "interactive"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "interactive"
+  type       = "bool"
+  default    = ""
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "force interactive/non-interactive mode"
+
+[[option]]
+  name       = "interactivePrompt"
+  smt_name   = ""
+  category   = "undocumented"
+  short      = ""
+  long       = "interactive-prompt"
+  type       = "bool"
+  default    = "true"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "interactive prompting while in interactive mode"
+
+[[option]]
+  name       = "continuedExecution"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "continued-execution"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = ["--interactive", "--no-interactive-prompt"]
+  read_only  = true
+  help       = "continue executing commands, even on error"
+
+[[option]]
+  name       = "segvSpin"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "segv-spin"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "spin on segfault/other crash waiting for gdb"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "segv-nospin"
+  links      = ["--no-segv-spin"]
+
+[[option]]
+  name       = "tearDownIncremental"
+  smt_name   = ""
+  category   = "expert"
+  short      = ""
+  long       = "tear-down-incremental=N"
+  type       = "int"
+  default    = "0"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
+
+[[option]]
+  name       = "waitToJoin"
+  smt_name   = ""
+  category   = "expert"
+  short      = ""
+  long       = "wait-to-join"
+  type       = "bool"
+  default    = "true"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "wait for other threads to join before quitting"
