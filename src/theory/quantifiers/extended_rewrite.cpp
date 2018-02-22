@@ -314,20 +314,21 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
       for (unsigned j = 0; j < 2; j++)
       {
         children[ii] = n[i][j + 1];
-        Node eqr = extendedRewrite(nm->mkNode(n.getKind(), children));
+        Node pull = nm->mkNode(n.getKind(), children);
+        Node pullr = Rewriter::rewrite(pull);
         children[ii] = n[i];
-        if (eqr.isConst() && tn.isBoolean())
+        if (pullr.isConst() && tn.isBoolean())
         {
           std::vector<Node> new_children;
           Kind new_k;
-          if (eqr == d_true)
+          if (pullr == d_true)
           {
             new_k = kind::OR;
             new_children.push_back(j == 0 ? n[i][0] : n[i][0].negate());
           }
           else
           {
-            Assert(eqr == d_false);
+            Assert(pullr == d_false);
             new_k = kind::AND;
             new_children.push_back(j == 0 ? n[i][0].negate() : n[i][0]);
           }
@@ -335,14 +336,15 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
           Node rem_eq = nm->mkNode(n.getKind(), children);
           new_children.push_back(rem_eq);
           Node nc = nm->mkNode(new_k, new_children);
+          // ITE Boolean simplification
           return nc;
         }
-        else if( prev==eqr )
+        else if( prev==pullr )
         {
-          // invariance
-          return eqr;
+          // ITE invariance
+          return pullr;
         } 
-        prev = eqr;
+        prev = pullr;
       }
     }
   }
