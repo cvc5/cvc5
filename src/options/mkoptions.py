@@ -784,8 +784,8 @@ if __name__ == "__main__":
     # read template files
     tpl_module_h = read_tpl(src_dir, 'module_template.h')
     tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
-    tpl_options = read_tpl(src_dir, 'options_template_new.cpp')
-    tpl_options_holder = read_tpl(src_dir, 'options_holder_template_new.h')
+    tpl_options = read_tpl(src_dir, 'options_template.cpp')
+    tpl_options_holder = read_tpl(src_dir, 'options_holder_template.h')
 
     # parse files, check attributes and create module/option objects
     modules = []

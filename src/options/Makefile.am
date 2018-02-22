@@ -40,8 +40,8 @@ OPTIONS_HEADS = $(OPTIONS_CONFIG_FILES:.toml=.cpp)
 CPP_TEMPLATE_FILES = \
 	module_template.h \
 	module_template.cpp \
-	options_holder_template_new.h \
-	options_template_new.cpp
+	options_holder_template.h \
+	options_template.cpp
 
 DOCUMENTATION_FILES = \
 	../../doc/cvc4.1 \
