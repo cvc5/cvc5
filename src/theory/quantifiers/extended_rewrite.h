@@ -165,20 +165,28 @@ class ExtendedRewriter
   //--------------------------------------bit-vectors
   /** bitvector subsume 
    * 
-   * Returns true if a's 1 bits are a superset of b's 1 bits.
-   * That is, if this function returns true, then 
-   *   (bvand (bvnot a) b) = 0.
-   * If strict is true, then it must be the case that at least one bit of a
-   * is 1 that is 0 in bit, that is:
-   *   (bvand a (bvnot b)) != 0.
+   * If this function returns 1, then a's 1 bits are a superset of b's 1 bits,
+   * in other words, (bvand (bvnot a) b) = 0 holds.
+   * 
+   * If this function returns 2, then additionally at least one bit of a
+   * is 1 that is 0 in bit, that is (bvand a (bvnot b)) != 0 holds.
+   * 
+   * Otherwise, this function returns 0.
+   * 
+   * If strict is false, then this function will only return 0 or 1.
    */
-  bool bitVectorSubsume( Node a, Node b, bool strict=false );
+  int bitVectorSubsume( Node a, Node b, bool strict=false );
   /** bitvector arithmetic compare 
    * 
-   * Returns true if bvugt( a, b ) is entailed, or bvuge( a, b ) if strict is
-   * false.
+   * If this function returns 1, then bvuge( a, b ) holds.
+   * 
+   * If this function returns 2, then bvugt( a, b ) holds.
+   * 
+   * Otherwise this function returns 0.
+   * 
+   * If strict is false, then this function will only return 0 or 1.
    */
-  bool bitVectorArithComp( Node a, Node b, bool strict=false );
+  int bitVectorArithComp( Node a, Node b, bool strict=false );
   /** bitvector disjoint
    * 
    * Returns true if there are no bits where a and b are both 1.
@@ -187,7 +195,7 @@ class ExtendedRewriter
    * Note that this function is equivalent to
    *   bitvectorSubsume( ~a, b ) && bitvectorSubsume( ~b, a ).
    */
-  bool bitvectorDisjoint( Node a, Node b );
+  bool bitVectorDisjoint( Node a, Node b );
   
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv( Node n, bool isNot );
