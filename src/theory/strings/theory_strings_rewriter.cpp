@@ -2135,8 +2135,8 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
       CVC4::String t = n[0].getConst<String>();
       if (s.size() >= t.size())
       {
-        if ((isPrefix && t == s.substr(0, t.size()))
-            || (!isPrefix && t == s.substr(s.size() - t.size(), t.size())))
+        if ((isPrefix && t == s.prefix(t.size()))
+            || (!isPrefix && t == s.suffix(t.size())))
         {
           ret = NodeManager::currentNM()->mkConst(true);
         }
