@@ -441,6 +441,38 @@ header = "options/smt_options.h"
   help       = "do the ite simplification pass again if repeating simplification"
 
 [[option]]
+  name       = "extRewPrep"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "ext-rew-prep"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "use extended rewriter as a preprocessing pass"
+
+[[option]]
+  name       = "extRewPrepAgg"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "ext-rew-prep-agg"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = false
+  help       = "use aggressive extended rewriter as a preprocessing pass"
+
+[[option]]
   name       = "simplifyWithCareEnabled"
   smt_name   = ""
   category   = "regular"

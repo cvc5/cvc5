@@ -1939,6 +1939,22 @@ header = "options/quantifiers_options.h"
   help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
 
 [[option]]
+  name       = "sygusRew"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "sygus-rr"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "use sygus to enumerate and verify correctness of rewrite rules via sampling"
+
+[[option]]
   name       = "sygusRewSynth"
   smt_name   = ""
   category   = "regular"
@@ -1951,7 +1967,7 @@ header = "options/quantifiers_options.h"
   includes   = []
   notifies   = []
   links      = []
-  read_only  = true
+  read_only  = false
   help       = "use sygus to enumerate candidate rewrite rules via sampling"
 
 [[option]]
@@ -1967,7 +1983,7 @@ header = "options/quantifiers_options.h"
   includes   = []
   notifies   = []
   links      = []
-  read_only  = true
+  read_only  = false
   help       = "use sygus to verify the correctness of rewrite rules via sampling"
 
 [[option]]
