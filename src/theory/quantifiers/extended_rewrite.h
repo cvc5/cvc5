@@ -74,7 +74,7 @@ class ExtendedRewriter
    * 
    * TODO
    */
-  Node extendedRewriteIte(Node n);
+  Node extendedRewriteIte(Kind itek, Node n, bool full=true);
   /** Pull ITE, for example:
    * 
    *   D=C2 ---> false   

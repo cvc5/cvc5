@@ -151,7 +151,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   //---------------------- theory-independent post-rewriting
   if (ret.getKind() == ITE)
   {
-    new_ret = extendedRewriteIte( ret );
+    new_ret = extendedRewriteIte( ITE, ret );
     debugExtendedRewrite( ret, new_ret, "ITE rewriting" );
   }
   else if( ret.getKind()==AND || ret.getKind()==OR )
@@ -275,9 +275,9 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
   return new_ret;
 }  
 
-Node ExtendedRewriter::extendedRewriteIte(Node n)
+Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
 {
-  Assert( n.getKind()==ITE );
+  Assert( n.getKind()==itek );
   Assert(n[1] != n[2]);
   Assert(n[0].getKind()!=NOT );
   
@@ -350,10 +350,27 @@ Node ExtendedRewriter::extendedRewriteIte(Node n)
     Node nn = n[1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     if (nn != n[1])
     {
-      // ITE substitution: if x is less than t based on term ordering, then
-      //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
-      // This is generalized to multiple x.
-      return nm->mkNode( kind::ITE, n[0], nn, n[2]);
+      if( !full )
+      {
+        // We are in a situation where we've made a copy of a term t in both 
+        // children n[1] and n[2]. We must show that one copy of t dissappears.
+        Node nn = Rewriter::rewrite( nn );
+        if( nn==n[2] )
+        {
+          return nn;
+        }
+        else if( !nn.isConst() )
+        {
+          nn = Node::null();
+        }
+      }
+      if( !nn.isNull() )
+      {
+        // ITE substitution: if x is less than t based on term ordering, then
+        //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
+        // This is generalized to multiple x.
+        return nm->mkNode( itek, n[0], nn, n[2]);
+      }
     }
   }
 
@@ -375,12 +392,12 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   {
     children.push_back(n[i]);
   }
+  std::map< unsigned, std::map< unsigned, Node > > ite_c;
   for (unsigned i = 0; i < nchildren; i++)
   {
     if (n[i].getKind() == itek)
     {
       unsigned ii = hasOp ? i+1 : i;
-      Node prev;
       for (unsigned j = 0; j < 2; j++)
       {
         children[ii] = n[i][j + 1];
@@ -396,15 +413,38 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
           // ITE single child invariance
           return nm->mkNode( itek, n[i][0], j==0 ? pullr : rem, j==0 ? rem : pullr );
         }
-        else if( prev==pullr )
+        else if( j==1 && ite_c[i][0]==pullr )
         {
           // ITE dual invariance
           return pullr;
-        } 
-        prev = pullr;
+        }
+        ite_c[i][j] = pullr;
       }
     }
   }
+  
+  for( std::pair< const unsigned, std::map< unsigned, Node > >& ip : ite_c )
+  {
+    Node nite = n[ip.first];
+    Assert( nite.getKind()==itek );
+    // now, simply pull the ITE and try ITE rewrites
+    Node pull_ite = nm->mkNode( itek, nite[0], ip.second[0], ip.second[1] );
+    pull_ite = Rewriter::rewrite( pull_ite );
+    if( pull_ite.getKind()==ITE )
+    {
+      Node new_pull_ite = extendedRewriteIte(itek,pull_ite, false );
+      if( !new_pull_ite.isNull() )
+      {
+        return new_pull_ite;
+      }
+    }
+    else
+    {
+      // a general rewrite could eliminate the ITE?
+      Assert( false );
+    }
+  }
+  
   return Node::null();
 }
 
@@ -608,7 +648,7 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::
   if( !prop_clauses.empty() )
   {
     std::vector< Node > children;
-    for( const std::pair< Node, Node >& l : assign )
+    for( std::pair< const Node, Node >& l : assign )
     {
       Node a = l.first;
       // if propagation did not touch a
@@ -680,7 +720,7 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
     
     // cancel AND/OR children if possible
     children.clear();
-    for( const std::pair< Node, bool >& cp : cstatus )
+    for( std::pair< const Node, bool >& cp : cstatus )
     {
       if( cp.second )
       {
@@ -731,7 +771,7 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
     
     
     // sorted right associative chain
-    for( const std::pair< Node, bool >& cp : cstatus )
+    for( std::pair< const Node, bool >& cp : cstatus )
     {
       if( cp.second )
       {
@@ -1229,7 +1269,7 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
       Assert( retc.find(rca)==retc.end() );
       retc[rca] = pol;
     }
-    for( const std::pair< Node, bool >& rcp : retc )
+    for( std::pair< const Node, bool >& rcp : retc )
     {
       // does AND/OR occur as child of PLUS?
       Node rc = rcp.first;
@@ -1270,7 +1310,7 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
               retc.erase( rc );
               retc.erase( rcc );
               std::vector< Node > sum;
-              for( const std::pair< Node, bool >& rcnp : retc )
+              for( std::pair< const Node, bool >& rcnp : retc )
               {
                 Node rcn = rcnp.first;
                 Node rcnn = rcnp.second ? rcn : mkNegate( BITVECTOR_NEG, rcn );
@@ -1798,7 +1838,7 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
   if( Trace.isOn("q-ext-rewrite-bvarith") )
   {
     Trace("q-ext-rewrite-bvarith") << "Monomial representation of " << n << " : " << std::endl;
-    for( const std::pair< Node, Node >& m : msum )
+    for( std::pair< const Node, Node >& m : msum )
     {
       Assert( !m.second.isNull() );
       Assert( m.second.getType()==m.first.getType() );
@@ -1821,7 +1861,7 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
     std::map< Node, std::unordered_set< Node, NodeHashFunction > > fct_ms;
     std::map< Node, std::vector< Node > > ms_to_fct;
     std::map< Node, Node > ms_to_base;
-    for( const std::pair< Node, Node >& m : msum )
+    for( std::pair< const Node, Node >& m : msum )
     {
       Node v = m.first;
       bool success = false;
@@ -1877,7 +1917,7 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
           // reconsturct the monomial
           std::map< Node, Node > msum_new;
           std::vector< Node > group_children;
-          for( const std::pair< Node, Node >& m : msum )
+          for( std::pair< const Node, Node >& m : msum )
           {
             Node v = m.first;
             if( sms.find(v)==sms.end() )
@@ -2039,7 +2079,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
         getBvMonomialSum( cnb, cn_msum );
         if( cn_msum.size()==1 )
         {
-          for( const std::pair< Node, Node >& mc : cn_msum )
+          for( std::pair< const Node, Node >& mc : cn_msum )
           {
             Trace("q-ext-rewrite-debug2") << ".....factor : ";
             if( !mc.first.isConst() )
@@ -2085,7 +2125,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
       getBvMonomialSum( nn, nn_msum );
       if( nn_msum.size()==1 )
       {
-        for( const std::pair< Node, Node >& nnc : nn_msum )
+        for( std::pair< const Node, Node >& nnc : nn_msum )
         {
           Node v = mkRightAssocChain( BITVECTOR_SHL, nnc.first, shls );
           n_msum[v] = nnc.second;
@@ -2105,7 +2145,7 @@ void ExtendedRewriter::getBvMonomialSum( Node n, std::map< Node, Node >& msum)
   // add the monomial sum for this node if we generated one
   if( !n_msum.empty() )
   {
-    for( const std::pair< Node, Node >& m : n_msum )
+    for( std::pair< const Node, Node >& m : n_msum )
     {
       Node v = m.first;
       Node coeff = m.second;
@@ -2126,7 +2166,7 @@ Node ExtendedRewriter::mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msu
 {
   NodeManager * nm = NodeManager::currentNM();
   std::vector< Node > sum;
-  for( const std::pair< Node, Node >& m : msum )
+  for( std::pair< const Node, Node >& m : msum )
   {
     Node v = m.first;
     Node c = Rewriter::rewrite( m.second );
