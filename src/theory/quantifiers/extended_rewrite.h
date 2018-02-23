@@ -87,7 +87,7 @@ class ExtendedRewriter
    * 
    * If this function returns a non-null node ret, then n ---> ret.
    */
-  Node extendedRewritePullIte(Node n);
+  Node extendedRewritePullIte(Kind itek, Node n);
   /** Negation Normal Form (NNF), for example:
    * 
    *   ~( A & B ) ---> ( ~ A | ~B )

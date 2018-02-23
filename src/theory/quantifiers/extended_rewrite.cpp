@@ -169,7 +169,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if( new_ret.isNull() && ret.getKind()!=ITE )
   {  
     // simple ITE pulling
-    new_ret = extendedRewritePullIte(ret);
+    new_ret = extendedRewritePullIte(ITE, ret);
     debugExtendedRewrite( ret, new_ret, "ITE pull" );
   }
   //----------------------end theory-independent post-rewriting
@@ -246,7 +246,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
             Trace("q-ext-rewrite-debug")
                 << "  have ITE relation, solved form : " << veq << std::endl;
             // try pulling ITE
-            new_ret = extendedRewritePullIte(veq);
+            new_ret = extendedRewritePullIte(ITE, veq);
             if (!new_ret.isNull())
             {
               if (!polarity)
@@ -360,7 +360,7 @@ Node ExtendedRewriter::extendedRewriteIte(Node n)
   return Node::null();
 }
   
-Node ExtendedRewriter::extendedRewritePullIte(Node n)
+Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
 {
   NodeManager * nm = NodeManager::currentNM();
   TypeNode tn = n.getType();  
@@ -377,7 +377,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
   }
   for (unsigned i = 0; i < nchildren; i++)
   {
-    if (n[i].getKind() == kind::ITE)
+    if (n[i].getKind() == itek)
     {
       unsigned ii = hasOp ? i+1 : i;
       Node prev;
@@ -394,7 +394,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
           children[ii] = n[i][2 - j];
           Node rem = nm->mkNode(n.getKind(), children);
           // ITE single child invariance
-          return nm->mkNode( ITE, n[i][0], j==0 ? pullr : rem, j==0 ? rem : pullr );
+          return nm->mkNode( itek, n[i][0], j==0 ? pullr : rem, j==0 ? rem : pullr );
         }
         else if( prev==pullr )
         {
@@ -963,10 +963,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     else 
     {
       new_ret = normalizeBvMonomial( ret );
-      if( !new_ret.isNull() )
-      {
-        debugExtendedRewrite( ret, new_ret, "NEG-mnormalize" );
-      }
+      debugExtendedRewrite( ret, new_ret, "NEG-mnormalize" );
     }
   }
   else if( k == BITVECTOR_NOT )
@@ -1038,16 +1035,77 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       new_ret = nm->mkNode( ITE, new_children );
       debugExtendedRewrite( ret, new_ret, "EXTRACT-miniscope" );
     }
+    else if( ret[0].getKind()==BITVECTOR_NEG )
+    {
+      if( bv::utils::getExtractHigh(ret)==0 && bv::utils::getExtractLow(ret)==0 )
+      {
+        new_ret = nm->mkNode(ret.getOperator(), ret[0][0] );
+        debugExtendedRewrite( ret, new_ret, "EXTRACT-NEG-0bit" );
+      }
+    }
   }
   
-  if( new_ret.isNull() )
+  if( !new_ret.isNull() )
+  {
+    return new_ret;
+  }
+    
+  // all kinds k that are bitwise go here
+  // k is bitwise if <k>( x, y )[n:m] = <k>( x[n:m], y[n:m] )
+  if( k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR )
   {
     // concat child pulling
-    
-    
-    
-    
-  }  
+    unsigned nchild = ret.getNumChildren();
+    std::vector< Node > children;
+    children.resize(nchild);
+    for( unsigned i=0; i<nchild; i++ )
+    {
+      if( ret[i].getKind()==BITVECTOR_CONCAT )
+      {
+        Trace("q-ext-rewrite-debug") << "Try concat pull " << i << " of " << ret << std::endl; 
+        std::vector< Node > new_children;
+        int copy_count = 0;
+        unsigned last = bv::utils::getSize( ret[i] )-1;
+        for( unsigned j=0, sizei = ret[i].getNumChildren(); j<sizei; j++ )
+        {
+          unsigned csize = bv::utils::getSize( ret[i][j] );
+          Assert( (last+1)>=csize );
+          Node eop = nm->mkConst<BitVectorExtract>(BitVectorExtract(last, (last+1)-csize));
+          for( unsigned l=0; l<nchild; l++ )
+          {
+            children[l] = l==i ? ret[i][j] : nm->mkNode( eop, ret[l] );
+          }
+          Node cc = nm->mkNode( k, children );
+          cc = extendedRewrite( cc );
+          // check if cc copies children of ret
+          if( !cc.isConst() && cc!=ret[i][j] )
+          {
+            Trace("q-ext-rewrite-debug") << "...copy : " << cc << std::endl;
+            copy_count++;
+            if( copy_count>1 )
+            {
+              // do not permit more than one copy
+              break;
+            }
+          }
+          new_children.push_back(cc);
+          // decrement last if not the last child
+          if( (j+1)<sizei )
+          {
+            Assert( last>=csize );
+            last = last-csize;
+          }
+        }
+        if( copy_count<=1 )
+        {
+          new_ret = nm->mkNode( BITVECTOR_CONCAT, new_children );
+          debugExtendedRewrite( ret, new_ret, "CONCAT pull" );
+          return new_ret;
+        }
+        Trace("q-ext-rewrite-debug") << "Failed concat pull " << i << " of " << ret << std::endl; 
+      }
+    }
+  }
   
   
   return new_ret;
@@ -1376,7 +1434,7 @@ Node ExtendedRewriter::rewriteBvBool( Node ret )
     }
   }
   
-  return ret;
+  return Node::null();
 }
 
 int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
