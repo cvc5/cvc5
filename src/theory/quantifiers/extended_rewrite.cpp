@@ -387,30 +387,18 @@ Node ExtendedRewriter::extendedRewritePullIte(Node n)
         Node pull = nm->mkNode(n.getKind(), children);
         Node pullr = Rewriter::rewrite(pull);
         children[ii] = n[i];
-        if (pullr.isConst() && tn.isBoolean())
+        if( pullr.isConst() || pullr==n[i][j + 1] )
         {
-          std::vector<Node> new_children;
-          Kind new_k;
-          if (pullr.getConst<bool>())
-          {
-            new_k = kind::OR;
-            new_children.push_back(j == 0 ? n[i][0] : n[i][0].negate());
-          }
-          else
-          {
-            new_k = kind::AND;
-            new_children.push_back(j == 0 ? n[i][0].negate() : n[i][0]);
-          }
+          // f( t1..s1..tn ) ---> c implies
+          // f( t1..ite( C, s1, s2 )..tn ) ---> ite( C, c, f( t1..s2..tn ) )
           children[ii] = n[i][2 - j];
-          Node rem_eq = nm->mkNode(n.getKind(), children);
-          new_children.push_back(rem_eq);
-          Node nc = nm->mkNode(new_k, new_children);
-          // ITE Boolean simplification
-          return nc;
+          Node rem = nm->mkNode(n.getKind(), children);
+          // ITE single child invariance
+          return nm->mkNode( ITE, n[i][0], j==0 ? pullr : rem, j==0 ? rem : pullr );
         }
         else if( prev==pullr )
         {
-          // ITE invariance
+          // ITE dual invariance
           return pullr;
         } 
         prev = pullr;
@@ -997,7 +985,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     Kind nnfk = UNDEFINED_KIND;
     bool neg_ch = true;
     bool neg_ch_1 = false;
-    if( ck==BITVECTOR_EXTRACT || ck==BITVECTOR_CONCAT )
+    if( ck==BITVECTOR_CONCAT )
     {
       nnfk = ck;
     }
@@ -1051,6 +1039,17 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
       debugExtendedRewrite( ret, new_ret, "EXTRACT-miniscope" );
     }
   }
+  
+  if( new_ret.isNull() )
+  {
+    // ITE/concat child canceling
+    
+    
+    
+    
+  }  
+  
+  
   return new_ret;
 }
 
