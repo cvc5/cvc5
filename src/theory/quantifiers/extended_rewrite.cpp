@@ -281,6 +281,8 @@ Node ExtendedRewriter::extendedRewriteIte(Node n)
   Assert(n[1] != n[2]);
   Assert(n[0].getKind()!=NOT );
   
+  NodeManager * nm = NodeManager::currentNM();
+  
   // get entailed equalities in the condition
   std::vector< Node > eq_conds;
   Kind ck = n[0].getKind();
@@ -302,24 +304,23 @@ Node ExtendedRewriter::extendedRewriteIte(Node n)
   for( const Node& eq : eq_conds )
   {
     // simple invariant ITE
-    for (unsigned i = 0; i < 2; i++)
+    for (unsigned i = 0; i <=1; i++)
     {
-      // ite( x = y ^ C, x, y ) ---> y
-      if (n[1] == eq[i] && n[2] == eq[1 - i])
+      // ite( x = y ^ C, y, x ) ---> x
+      if (n[2] == eq[i] && n[1] == eq[1-i])
       {
         return n[2];
       }
-      /*
-      // ite( x = y.t1.z ^ C, y.t2.z, x) ----> x.ite( x=y.t1.z ^ C, t1, t2 ).x
-      if( n[1] == eq[i] )
+      // ite( x = y ^ C, y[n..m], x[n...m] ) ---> x[n...m]
+      if( n[2].getKind()==BITVECTOR_EXTRACT && n[2][0]==eq[i] )
       {
-        Node res = inferSplit( n[2], n[2], n[0],  );
-        if( !res.isNull() )
+        Node ext = nm->mkNode( n[2].getOperator(), eq[1-i] );
+        ext = Rewriter::rewrite( ext );
+        if( ext==n[1] )
         {
-          return res;
+          return n[2];
         }
       }
-      */
     }
   }
   
@@ -346,14 +347,13 @@ Node ExtendedRewriter::extendedRewriteIte(Node n)
   
   if( !vars.empty() )
   {
-    // notice this is strictly more general than the above
     Node nn = n[1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     if (nn != n[1])
     {
-      // ITE substitution
-      // if x is less than t based on term ordering, then
-      //   ite( x=t, s, r ) ---> ite( x=t, s{ x -> t }, r )
-      return NodeManager::currentNM()->mkNode( kind::ITE, n[0], nn, n[2]);
+      // ITE substitution: if x is less than t based on term ordering, then
+      //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
+      // This is generalized to multiple x.
+      return nm->mkNode( kind::ITE, n[0], nn, n[2]);
     }
   }
 
@@ -830,58 +830,6 @@ Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign
   return visited[n];
 }
 
-Node ExtendedRewriter::inferSplit( Node x, Node y, Node cond, Node t1, Node t2 )
-{
-  Assert( x.getType()==t1.getType() );
-  Assert( y.getType()==t2.getType() );
-  Assert( t1.getType()==t2.getType() );
-  Assert( cond.getType().isBoolean() );
-  
-  if( t1==t2 )
-  {
-    return x;
-  }
-  
-  TypeNode tn = x.getType();
-  NodeManager * nm = NodeManager::currentNM();
-  if( tn.isBitVector() )
-  {
-    unsigned size = bv::utils::getSize(x);
-    if( t1.isConst() && t2.isConst() )
-    {
-      std::vector< Node > children;
-      unsigned last = size-1;
-      int curr = size-1;
-      while(curr>=0)
-      {
-        for( unsigned r=0; r<2; r++ )
-        {
-          while( curr>=0 && (bv::utils::getBit( t1, curr )==bv::utils::getBit( t2, curr ))==(r==0) )
-          {
-            curr--;
-          }
-          if( last>curr )
-          {
-            Node eop = nm->mkConst<BitVectorExtract>(BitVectorExtract(last, curr+1));
-            Node t = r==0 ? nm->mkNode(eop,x) : nm->mkNode( ITE, cond, nm->mkNode(eop,x), nm->mkNode(eop,y) );
-            children.push_back(t);
-            if( curr<0 )
-            {
-              break;
-            }
-            last = curr;
-          }
-        }
-      }
-      Assert( children.size()>1 );
-      return nm->mkNode( BITVECTOR_CONCAT, children );
-    }
-  }
-  
-  
-  return Node::null();
-}
-
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
 {
   Kind k = ret.getKind(); 
@@ -1087,6 +1035,21 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   {
     new_ret = normalizeBvMonomial( ret );
     debugExtendedRewrite( ret, new_ret, "CONCAT-mnormalize" );
+  }
+  else if( k == BITVECTOR_EXTRACT )
+  {
+    // miniscoping
+    if( ret[0].getKind()==ITE )
+    {
+      std::vector< Node > new_children;
+      for( unsigned i=0; i<3; i++ )
+      {
+        Node c = i==0 ? ret[0][i] : nm->mkNode(ret.getOperator(),ret[0][i] );
+        new_children.push_back( c );
+      }
+      new_ret = nm->mkNode( ITE, new_children );
+      debugExtendedRewrite( ret, new_ret, "EXTRACT-miniscope" );
+    }
   }
   return new_ret;
 }

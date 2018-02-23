@@ -152,21 +152,6 @@ class ExtendedRewriter
    * terms whose Kind appears in rec_kinds.
    */
   Node partialSubstitute( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& rkinds );
-  /** infer split
-   * 
-   * If possible, this function returns a node of the form: 
-   *   f( u1, ..., un )
-   * where 
-   *   t1 is equivalent to ret { cond -> T, x -> t1, y -> t2 }, and
-   *   t2 is equivalent to ret { cond -> F, x -> t1, y -> t2 }.
-   * Otherwise, this function returns Node::null.
-   * 
-   * For example, if t1 = #b00000 and t2 = #b00010, then we may update res to
-   *   (concat ((_ extract 4 2) x) 
-   *           (ite cond ((extract 1 1) x) ((_ extract 1 1) y)) 
-   *           ((_ extract 0 0) x))
-   */
-  Node inferSplit( Node x, Node y, Node cond, Node t1, Node t2 );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
