@@ -788,13 +788,12 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
 Node TermUtil::simpleNegate( Node n ){
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      children.push_back( simpleNegate( n[i] ) );
+    for( const Node& cn : n ){
+      children.push_back( simpleNegate( cn ) );
     }
     return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
-  }else{
-    return n.negate();
   }
+  return n.negate();
 }
 
 bool TermUtil::isAssoc( Kind k ) {

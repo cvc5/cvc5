@@ -53,9 +53,19 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   Node pre_new_ret;
   if( ret.getKind()==ITE )
   {
+    Node flip_cond;
     if( ret[0].getKind()==NOT )
     {
-      pre_new_ret = nm->mkNode( ITE, ret[0][0], ret[2], ret[1]);
+      flip_cond = ret[0][0];
+    }
+    else if( ret[0].getKind()==OR )
+    {
+      // a | b ---> ~( ~a & ~b )
+      flip_cond = TermUtil::simpleNegate( ret[0] );
+    }
+    if( !flip_cond.isNull() )
+    {
+      pre_new_ret = nm->mkNode( ITE, flip_cond, ret[2], ret[1]);
       debugExtendedRewrite( ret, pre_new_ret, "ITE flip" );
     }
   }
