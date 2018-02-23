@@ -160,37 +160,16 @@ class CVC4_PUBLIC BitVector
   /* Arithmetic operations ------------------------------------------------- */
 
   /* Return a bit-vector representing the addition (this + y). */
-  BitVector operator+(const BitVector& y) const
-  {
-    CheckArgument(d_size == y.d_size, y);
-    Integer sum = d_value + y.d_value;
-    return BitVector(d_size, sum);
-  }
+  BitVector operator+(const BitVector& y) const;
 
   /* Return a bit-vector representing the subtraction (this - y). */
-  BitVector operator-(const BitVector& y) const
-  {
-    CheckArgument(d_size == y.d_size, y);
-    // to maintain the invariant that we are only adding BitVectors of the
-    // same size
-    BitVector one(d_size, Integer(1));
-    return *this + ~y + one;
-  }
+  BitVector operator-(const BitVector& y) const;
 
   /* Return a bit-vector representing the negation of this. */
-  BitVector operator-() const
-  {
-    BitVector one(d_size, Integer(1));
-    return ~(*this) + one;
-  }
+  BitVector operator-() const;
 
   /* Return a bit-vector representing the multiplication (this * y). */
-  BitVector operator*(const BitVector& y) const
-  {
-    CheckArgument(d_size == y.d_size, y);
-    Integer prod = d_value * y.d_value;
-    return BitVector(d_size, prod);
-  }
+  BitVector operator*(const BitVector& y) const;
 
   /* Total division function.
    * Returns a bit-vector representing 2^d_size-1 (signed: -1) when the

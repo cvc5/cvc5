@@ -197,6 +197,35 @@ BitVector BitVector::operator~() const
 
 /* Arithmetic operations ------------------------------------------------- */
 
+BitVector BitVector::operator+(const BitVector& y) const
+{
+  CheckArgument(d_size == y.d_size, y);
+  Integer sum = d_value + y.d_value;
+  return BitVector(d_size, sum);
+}
+
+BitVector BitVector::operator-(const BitVector& y) const
+{
+  CheckArgument(d_size == y.d_size, y);
+  // to maintain the invariant that we are only adding BitVectors of the
+  // same size
+  BitVector one(d_size, Integer(1));
+  return *this + ~y + one;
+}
+
+BitVector BitVector::operator-() const
+{
+  BitVector one(d_size, Integer(1));
+  return ~(*this) + one;
+}
+
+BitVector BitVector::operator*(const BitVector& y) const
+{
+  CheckArgument(d_size == y.d_size, y);
+  Integer prod = d_value * y.d_value;
+  return BitVector(d_size, prod);
+}
+
 BitVector BitVector::unsignedDivTotal(const BitVector& y) const
 {
   CheckArgument(d_size == y.d_size, y);
