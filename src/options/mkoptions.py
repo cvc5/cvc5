@@ -7,34 +7,46 @@ import re
 import sys
 import textwrap
 
-# TODO: more checks for options, e.g., long options start with -- ...
 # TODO: documentation generation
-# TODO: long-options have --no- alternate if type is bool
-# TODO: add error checking as done in mkoptions
-# TODO: bool options don't have handlers
-# TODO: check short options only one character
-# TODO: links and --no- options
-# TODO: if short option given, then also long option should be specified
-# TODO: check option name clashes. alias vs. option etc.
 
-MODULE_ATTR_REQ = ['id', 'name', 'header']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['options', 'aliases']
+# TODO: missing checks (after parsing):
+#       - bool options don't have handlers
+#       - if short option given, then also long option should be specified
+#       - check that regular/common options/aliases have help text
+#       - check links if options are valid long options
 
-OPTION_ATTR_REQ = ['category', 'type']
-OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
+
+### allowed attributes for module/option/alias
+
+g_module_attr_req = ['id', 'name', 'header']
+g_module_attr_all = g_module_attr_req + ['options', 'aliases']
+
+g_option_attr_req = ['category', 'type']
+g_option_attr_all = g_option_attr_req + [
     'name', 'help', 'smt_name', 'short', 'long', 'default', 'includes',
     'handler', 'predicates', 'notifies', 'links', 'read_only'
 ]
 
-ALIAS_ATTR_REQ = ['category', 'long', 'links']
-ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help']
+g_alias_attr_req = ['category', 'long', 'links']
+g_alias_attr_all = g_alias_attr_req + ['help']
 
-CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
+g_category_values = ['common', 'expert', 'regular', 'undocumented']
 
-g_long_to_opt = dict()  # TODO: this maps long options to options and
+
+### other globals
+
+g_long_to_opt = dict()  # NOTE: this maps long options to options and
                         # is needed to map links to links_smt for now
                         # (workaround to produce the same code)
 
+g_module_id_cache = dict()   # cache to check if module ids are unique
+g_long_cache = dict()        # cache to check if long options are unique
+g_short_cache = dict()       # cache to check if short options are unique
+g_smt_cache = dict()         # cache to check if smt options are unique
+g_name_cache = dict()        # cache to check if option names are unique
+
+
+### source code templates
 
 tpl_holder_macro = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
@@ -42,7 +54,7 @@ tpl_holder_macro = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
 class Module(object):
     def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
+        self.__dict__ = dict((k, None) for k in g_module_attr_all)
         self.options = []
         self.aliases = []
         for (k, v) in d.items():
@@ -52,7 +64,7 @@ class Module(object):
 
 class Option(object):
     def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in OPTION_ATTR_ALL)
+        self.__dict__ = dict((k, None) for k in g_option_attr_all)
         self.includes = []
         self.predicates = []
         self.notifies = []
@@ -65,7 +77,7 @@ class Option(object):
 
 class Alias(object):
     def __init__(self, d):
-        self.__dict__ = dict((k, None) for k in ALIAS_ATTR_ALL)
+        self.__dict__ = dict((k, None) for k in g_alias_attr_all)
         self.links = []
         for (k, v) in d.items():
             assert(k in self.__dict__)
@@ -130,6 +142,76 @@ def read_tpl(directory, name):
 
             return '\n'.join(lines)
 
+
+def match_option(long):
+    global g_long_to_opt
+    assert(long.startswith('--'))
+    val = True
+    opt = None
+    long = long_get_option(long)
+    if long.startswith('--no-'):
+        val = False
+        opt = g_long_to_opt[long[5:]]
+    else:
+        opt = g_long_to_opt[long[2:]]
+    return (opt, val)
+
+
+def long_get_arg(name):
+    l = name.split('=')
+    assert(len(l) <= 2)
+    return l[1] if len(l) == 2 else None
+
+
+def long_get_option(name):
+    return name.split('=')[0]
+
+
+def is_numeric_cpp_type(t):
+    if t in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
+        return True
+    elif re.match('u?int[0-9]+_t', t):
+        return True
+    return False
+
+
+def format_include(include):
+    if '<' in include:
+        return '#include {}'.format(include)
+    return '#include "{}"'.format(include)
+
+
+def help_format_options(short, long):
+    opts = []
+    arg = None
+    if long:
+        opts.append('--{}'.format(long))
+        l = long.split('=')
+        if len(l) > 1:
+            arg = l[1]
+
+    if short:
+        if arg:
+            opts.append('-{} {}'.format(short, arg))
+        else:
+            opts.append('-{}'.format(short))
+
+    return ' | '.join(opts)
+
+
+def help_format(help, short, long):
+    width = 80
+    width_opt = 25
+    text = \
+        textwrap.wrap(help.replace('"', '\\"'), width=width - width_opt)
+    text_opt = help_format_options(short, long)
+    if len(text_opt) > width_opt - 3:
+        lines = ['  {}'.format(text_opt)]
+        lines.append(' ' * width_opt + text[0])
+    else:
+        lines = ['  {}{}'.format(text_opt.ljust(width_opt - 2), text[0])]
+    lines.extend([' ' * width_opt + l for l in text[1:]])
+    return ['"{}\\n"'.format(x) for x in lines]
 
 
 def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
@@ -249,70 +331,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             accs='\n'.join(accs),
             defs='\n'.join(defs)))
 
-def match_option(long):
-    global g_long_to_opt
-    assert(long.startswith('--'))
-    val = True
-    opt = None
-    long = long_get_option(long)
-    if long.startswith('--no-'):
-        val = False
-        opt = g_long_to_opt[long[5:]]
-    else:
-        opt = g_long_to_opt[long[2:]]
-    return (opt, val)
-
-
-def long_get_arg(name):
-    l = name.split('=')
-    assert(len(l) <= 2)
-    return l[1] if len(l) == 2 else None
-
-def long_get_option(name):
-    return name.split('=')[0]
-
-def is_numeric_cpp_type(t):
-    if t in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
-        return True
-    elif re.match('u?int[0-9]+_t', t):
-        return True
-    return False
-
-def format_include(include):
-    if '<' in include:
-        return '#include {}'.format(include)
-    return '#include "{}"'.format(include)
-
-def help_format_options(short, long):
-    opts = []
-    arg = None
-    if long:
-        opts.append('--{}'.format(long))
-        l = long.split('=')
-        if len(l) > 1:
-            arg = l[1]
-
-    if short:
-        if arg:
-            opts.append('-{} {}'.format(short, arg))
-        else:
-            opts.append('-{}'.format(short))
-
-    return ' | '.join(opts)
-
-def help_format(help, short, long):
-    width = 80
-    width_opt = 25
-    text = \
-        textwrap.wrap(help.replace('"', '\\"'), width=width - width_opt)
-    text_opt = help_format_options(short, long)
-    if len(text_opt) > width_opt - 3:
-        lines = ['  {}'.format(text_opt)]
-        lines.append(' ' * width_opt + text[0])
-    else:
-        lines = ['  {}{}'.format(text_opt.ljust(width_opt - 2), text[0])]
-    lines.extend([' ' * width_opt + l for l in text[1:]])
-    return ['"{}\\n"'.format(x) for x in lines]
 
 def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
 
@@ -661,38 +679,22 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
 
 
 
-def check(data):
-
-    data_options = []
-    data_aliases = []
-    if 'options' in data:
-        data_options = data['options']
-        del(data['options'])
-    if 'aliases' in data:
-        data_aliases = data['aliases']
-        del(data['aliases'])
-
-    check_attribs(MODULE_ATTR_REQ, MODULE_ATTR_ALL, data, 'module')
-
-    module = Module(data)
-    for attribs in data_options:
-        check_attribs(OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
-        module.options.append(Option(attribs))
-    for attribs in data_aliases:
-        check_attribs(ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
-        module.aliases.append(Alias(attribs))
-
-    return module
-
 def perr(line, msg):
     die('option parse error at line {}: {}'.format(line + 1, msg))
 
-def parse_value(lineno, s):
+def parse_value(lineno, attrib, s):
 
     if s[0] == '"':
         if s[-1] != '"':
             perr(lineno, 'missing closing " for string')
         s = s.lstrip('"').rstrip('"').replace('\\"', '"')
+
+        # for read_only we allow both true/false and "true"/"false"
+        if attrib == 'read_only':
+            if s == 'true':
+                return True
+            elif s == 'false':
+                return False
         return s if len(s) > 0 else None
     elif s[0] == '[':
         try:
@@ -707,8 +709,134 @@ def parse_value(lineno, s):
     else:
         perr(lineno, "invalid value '{}'".format(s))
 
+
+def check_unique(value, cache, attrib, lineno, filename):
+    if value in cache:
+        perr(lineno,
+             "{} '{}' already defined in '{}' at line {}".format(
+                 attrib, value, cache[value][0], cache[value][1]))
+    cache[value] = (filename, lineno + 1)
+
+
+def check_long(lineno, long, filename):
+    global g_long_cache
+    if long is None:
+        return
+    if long.startswith('--'):
+        perr(lineno, 'remove -- prefix from long option')
+    r = '[0-9a-zA-Z\-=]+'
+    if not re.fullmatch(r, long):
+        perr(lineno,
+             "long option '{}' does not match regex criteria '{}'".format(
+                long, r))
+    check_unique(long, g_long_cache, 'long', lineno, filename)
+
+def check_links(lineno, links):
+    pass
+
+def check_alias_attrib(lineno, attrib, value, filename):
+    if attrib not in g_alias_attr_all:
+        perr(lineno, "invalid alias attribute '{}'".format(attrib))
+    if attrib == 'category':
+        if value not in g_category_values:
+            perr(lineno, "invalid category value '{}'".format(value))
+    elif attrib == 'long':
+        check_long(lineno, value, filename)
+    elif attrib == 'links':
+        assert(isinstance(value, list))
+        if len(value) == 0:
+            perr(lineno, 'links list must not be empty')
+
+def check_option_attrib(lineno, attrib, value, filename):
+    global g_smt_cache, g_name_cache, g_short_cache
+
+    if attrib not in g_option_attr_all:
+        perr(lineno, "invalid option attribute '{}'".format(attrib))
+
+    if attrib == 'category':
+        if value not in g_category_values:
+            perr(lineno, "invalid category value '{}'".format(value))
+    elif attrib == 'type':
+        if len(value) == 0:
+            perr(lineno, 'type must not be empty'.format(value))
+    elif attrib == 'long':
+        check_long(lineno, value, filename)
+    elif attrib == 'name' and value:
+        r = '[a-zA-Z]+[0-9a-zA-Z_]*'
+        if not re.fullmatch(r, value):
+            perr(lineno,
+                 "name '{}' does not match regex criteria '{}'".format(
+                    value, r))
+        check_unique(value, g_name_cache, attrib, lineno, filename)
+    elif attrib == 'smt_name' and value:
+        r = '[a-zA-Z]+[0-9a-zA-Z\-_]*'
+        if not re.fullmatch(r, value):
+            perr(lineno,
+                 "smt_name '{}' does not match regex criteria '{}'".format(
+                    value, r))
+        check_unique(value, g_smt_cache, attrib, lineno, filename)
+    elif attrib == 'short' and value:
+        if value[0].startswith('-'):
+            perr(lineno, 'remove - prefix from short option')
+        if len(value) != 1:
+            perr(lineno, 'short option must be of length 1')
+        if not value.isalpha() and not value.isdigit():
+            perr(lineno, 'short option must be a character or a digit')
+        check_unique(value, g_short_cache, attrib, lineno, filename)
+    elif attrib == 'default':
+        pass
+    elif attrib == 'includes' and value:
+        if not isinstance(value, list):
+            perr(lineno, 'expected list for includes attribute')
+    elif attrib == 'handler':
+        pass
+    elif attrib == 'predicates' and value:
+        if not isinstance(value, list):
+            perr(lineno, 'expected list for predicates attribute')
+    elif attrib == 'notifies' and value:
+        if not isinstance(value, list):
+            perr(lineno, 'expected list for notifies attribute')
+    elif attrib == 'links' and value:
+        if not isinstance(value, list):
+            perr(lineno, 'expected list for links attribute')
+    elif attrib == 'read_only' and value:
+        if not isinstance(value, bool):
+            perr(lineno,
+                 "expected true/false instead of '{}' for read_only".format(
+                     value))
+
+def check_module_attrib(lineno, attrib, value, filename):
+    global g_module_id_cache
+    if attrib not in g_module_attr_all:
+        perr(lineno, "invalid module attribute '{}'".format(attrib))
+    if attrib == 'id':
+        if len(value) == 0:
+            perr(lineno, 'module id must not be empty')
+        if value in g_module_id_cache:
+            perr(lineno,
+                 "module id '{}' already defined in '{}' at line {}".format(
+                     value,
+                     g_module_id_cache[value][0],
+                     g_module_id_cache[value][1]))
+        g_module_id_cache[value] = (filename, lineno)
+        if not value.isalpha():
+            perr(lineno,
+                 "module id '{}' should only contain characters".format(value))
+    elif attrib == 'name':
+        if len(value) == 0:
+            perr(lineno, 'module name must not be empty')
+    elif attrib == 'header':
+        if len(value) == 0:
+            perr(lineno, 'module header must not be empty')
+        header_name = 'options/{}.h'.format(os.path.splitext(filename)[0])
+        if header_name != value:
+            perr(lineno,
+                 "expected module header '{}' instead of '{}'".format(
+                     header_name, value))
+
+
 # simple parser for the module options files
-def parse_module(file):
+def parse_module(filename, file):
     module = dict()
     options = []
     aliases = []
@@ -738,26 +866,23 @@ def parse_module(file):
                 perr(i, "invalid attribute '{}'".format(line[0]))
         elif len(line) == 2:
             attrib = line[0]
-            value = parse_value(i, line[1])
+            value = parse_value(i, attrib, line[1])
             if option is not None:
-                if attrib not in OPTION_ATTR_ALL:
-                    perr(i, "invalid option attribute '{}'".format(attrib))
+                check_option_attrib(i, attrib, value, filename)
                 if attrib in option:
                     perr(i, "duplicate option attribute '{}'".format(attrib))
                 assert(option is not None)
                 option[attrib] = value
             elif alias is not None:
-                if attrib not in ALIAS_ATTR_ALL:
-                    perr(i, "invalid alias attribute '{}'".format(attrib))
+                check_alias_attrib(i, attrib, value, filename)
                 if attrib in alias:
                     perr(i, "duplicate alias attribute '{}'".format(attrib))
                 assert(alias is not None)
                 alias[attrib] = value
             else:
-                if attrib not in MODULE_ATTR_ALL:
-                    perr(i, "invalid module attribute '{}'".format(attrib))
                 if attrib in module:
                     perr(i, "duplicate module attribute '{}'".format(attrib))
+                check_module_attrib(i, attrib, value, filename)
                 module[attrib] = value
         else:
             perr(i, "invalid attribute '{}'".format(line[0]))
@@ -768,20 +893,46 @@ def parse_module(file):
     if alias:
         aliases.append(alias)
 
-    module['options'] = options
-    module['aliases'] = aliases
-    return module
+    # check if required attributes and create module/option/alias objects
+    check_attribs(g_module_attr_req, g_module_attr_all, module, 'module')
+
+    res = Module(module)
+    for attribs in options:
+        check_attribs(g_option_attr_req, g_option_attr_all, attribs, 'option')
+        res.options.append(Option(attribs))
+    for attribs in aliases:
+        check_attribs(g_alias_attr_req, g_alias_attr_all, attribs, 'alias')
+        res.aliases.append(Alias(attribs))
+
+    return res
+
+
+def usage():
+    print('mkoptions.py <src> <dst> <toml>+')
+    print('')
+    print('  <src>     directory that contains all *_template.{cpp,h} files')
+    print('  <dst>     destination directory for the generated source files')
+    print('  <toml>+   one or more *_optios.toml files')
+
 
 if __name__ == "__main__":
 
     if len(sys.argv) < 4:
-        sys.exit("no TOML option file(s) given")
+        usage()
+        die('not enough arguments given')
 
     src_dir = sys.argv[1]
     dst_dir = sys.argv[2]
     filenames = sys.argv[3:]
 
-    # read template files
+    if not os.path.isdir(src_dir):
+        usage()
+        die('<src_dir> is not a directory')
+    if not os.path.isdir(dst_dir):
+        usage()
+        die('<dst_dir> is not a directory')
+
+    # read template files from source directory
     tpl_module_h = read_tpl(src_dir, 'module_template.h')
     tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
     tpl_options = read_tpl(src_dir, 'options_template.cpp')
@@ -791,11 +942,13 @@ if __name__ == "__main__":
     modules = []
     for filename in filenames:
         with open(filename, 'r') as f:
-            modules.append(check(parse_module(f)))
+            modules.append(parse_module(filename, f))
 
+    # create *_options.{h,cpp} in destination directory
     for module in modules:
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
+    # create options.cpp and options_holder.h in destination directory
     codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder)
 
     sys.exit(0)
