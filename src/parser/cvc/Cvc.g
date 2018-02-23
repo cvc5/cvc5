@@ -896,9 +896,21 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
+  |RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK 
+  {
+    if(!f.getType().isSubtypeOf(t)){
+      PARSER_STATE->parseError("Type mismatch in definition");
+    }
+    //If t.isFunction(), need to check whether f is a lambda
+    func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
+  }
+  formula[f]
+  {
+    cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
+  }
   /*
   REC-FUN fact : INT -> INT = LAMBDA (x : INT) : IF (x > 0) THEN x * fact (x - 1) ELSE 1 ENDIF;
-  */
+  
   | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t, CHECK_DECLARED] EQUAL_TOK 
     LAMBDA 
     LPAREN identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t2,CHECK_DECLARED]
@@ -949,7 +961,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       }
       PARSER_STATE->popScope();
       cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
-    }
+    }*/
   | toplevelDeclaration[cmd]
   ;
 
@@ -1146,7 +1158,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
       } else {
         // f is not null-- meaning this is a definition not a declaration
         //Check if the formula f has the correct type, declared as t.
-        if(t != f.getType()){
+        if(!f.getType().isSubtypeOf(t)){
           PARSER_STATE->parseError("Type mimatch in definition");
         }
         if(!topLevel) {
