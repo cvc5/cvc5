@@ -64,7 +64,7 @@ public:
   void testConversions()
   {
     TS_ASSERT_EQUALS(two.toSignedInteger(), Integer(2));
-    TS_ASSERT_EQUALS("1111", negOne.toString());
+    TS_ASSERT_EQUALS(negOne.toString(), "1111");
     TS_ASSERT_EQUALS(negOne.getValue(), Integer(15));
     TS_ASSERT_EQUALS(negOne.getSize(), 4);
     TS_ASSERT_EQUALS(negOne.toInteger(), Integer(15));
@@ -85,6 +85,7 @@ public:
     TS_ASSERT_EQUALS(zero.isPow2(), 0);
     TS_ASSERT_EQUALS(one.isPow2(), 1);
     TS_ASSERT_EQUALS(two.isPow2(), 2);
+    TS_ASSERT_EQUALS(negOne.isPow2(), 0);
   }
 
   void testConcatExtract()
@@ -101,6 +102,7 @@ public:
     TS_ASSERT(negOne > zero);
     TS_ASSERT(negOne >= zero);
     TS_ASSERT(negOne >= negOne);
+    TS_ASSERT(negOne == negOne);
     TS_ASSERT(zero.unsignedLessThan(negOne));
     TS_ASSERT(zero.unsignedLessThanEq(negOne));
     TS_ASSERT(zero.unsignedLessThanEq(zero));
