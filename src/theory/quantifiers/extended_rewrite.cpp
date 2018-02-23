@@ -300,11 +300,14 @@ Node ExtendedRewriter::extendedRewriteIte(Node n)
         return n[2];
       }
       /*
-      // ite( x = y.t1 ^ C, y.t2, x) ----> y.ite( x=y.t1, t1, t2 )
-      Node res;
-      if( n[1] == eq[i] && inferSplit(n[1],n[1],eq[1 - i], n[2],eq[1-i],res) )
+      // ite( x = y.t1.z ^ C, y.t2.z, x) ----> x.ite( x=y.t1.z ^ C, t1, t2 ).x
+      if( n[1] == eq[i] )
       {
-        return res;
+        Node res = inferSplit( n[2], n[2], n[0],  );
+        if( !res.isNull() )
+        {
+          return res;
+        }
       }
       */
     }
@@ -817,17 +820,56 @@ Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign
   return visited[n];
 }
 
-bool ExtendedRewriter::inferSplit( Node x, Node y, Node cond, Node t1, Node t2, Node& res )
+Node ExtendedRewriter::inferSplit( Node x, Node y, Node cond, Node t1, Node t2 )
 {
   Assert( x.getType()==t1.getType() );
   Assert( y.getType()==t2.getType() );
   Assert( t1.getType()==t2.getType() );
   Assert( cond.getType().isBoolean() );
   
+  if( t1==t2 )
+  {
+    return x;
+  }
+  
+  TypeNode tn = x.getType();
+  NodeManager * nm = NodeManager::currentNM();
+  if( tn.isBitVector() )
+  {
+    unsigned size = bv::utils::getSize(x);
+    if( t1.isConst() && t2.isConst() )
+    {
+      std::vector< Node > children;
+      unsigned last = size-1;
+      int curr = size-1;
+      while(curr>=0)
+      {
+        for( unsigned r=0; r<2; r++ )
+        {
+          while( curr>=0 && (bv::utils::getBit( t1, curr )==bv::utils::getBit( t2, curr ))==(r==0) )
+          {
+            curr--;
+          }
+          if( last>curr )
+          {
+            Node eop = nm->mkConst<BitVectorExtract>(BitVectorExtract(last, curr+1));
+            Node t = r==0 ? nm->mkNode(eop,x) : nm->mkNode( ITE, cond, nm->mkNode(eop,x), nm->mkNode(eop,y) );
+            children.push_back(t);
+            if( curr<0 )
+            {
+              break;
+            }
+            last = curr;
+          }
+        }
+      }
+      Assert( children.size()>1 );
+      return nm->mkNode( BITVECTOR_CONCAT, children );
+    }
+  }
   
   
-  
-  return false;
+  return Node::null();
 }
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
