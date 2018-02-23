@@ -166,7 +166,7 @@ class ExtendedRewriter
    *           (ite cond ((extract 1 1) x) ((_ extract 1 1) y)) 
    *           ((_ extract 0 0) x))
    */
-  bool inferSplit( Node x, Node y, Node cond, Node t1, Node t2, Node& res );
+  Node inferSplit( Node x, Node y, Node cond, Node t1, Node t2 );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
