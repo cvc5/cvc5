@@ -1340,13 +1340,28 @@ void TheoryStrings::checkExtfEval( int effort ) {
           getExtTheory()->markReduced( n );
           Trace("strings-extf-debug") << "  resolvable by evaluation..." << std::endl;
           std::vector< Node > exps;
+          // The following optimization gets the "symbolic definition" of
+          // an extended term. The symbolic definition of a term t is a term
+          // t' where constants are replaced by their corresponding proxy
+          // variables.
+          // For example, if lsym is a proxy variable for "", then
+          // str.replace( lsym, lsym, lsym ) is the symbolic definition for
+          // str.replace( "", "", "" ). It is generally better to use symbolic
+          // definitions when doing cd-rewriting for the purpose of minimizing
+          // clauses, e.g. we infer the unit equality:
+          //    str.replace( lsym, lsym, lsym ) == ""
+          // instead of making this inference multiple times:
+          //    x = "" => str.replace( x, x, x ) == ""
+          //    y = "" => str.replace( y, y, y ) == ""
           Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
           Node nrs = getSymbolicDefinition( sn, exps );
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
-            nrs = Rewriter::rewrite( nrs );
-            //ensure the symbolic form is non-trivial
-            if( nrs.isConst() ){
+            Node nrsr = Rewriter::rewrite(nrs);
+            // ensure the symbolic form is not rewritable
+            if (nrsr != nrs)
+            {
+              // we cannot use the symbolic definition if it rewrites
               Trace("strings-extf-debug") << "  symbolic definition is trivial..." << std::endl;
               nrs = Node::null();
             }
