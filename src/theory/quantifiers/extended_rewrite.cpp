@@ -166,7 +166,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     new_ret = extendedRewriteEqChain( EQUAL, AND, OR, NOT, ret.getType(), ret );
     debugExtendedRewrite( ret, new_ret, "Bool eq-chain simplify" );
   }
-  if( new_ret.isNull() )
+  if( new_ret.isNull() && ret.getKind()!=ITE )
   {  
     // simple ITE pulling
     new_ret = extendedRewritePullIte(ret);
@@ -1042,7 +1042,7 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   
   if( new_ret.isNull() )
   {
-    // ITE/concat child canceling
+    // concat child pulling
     
     
     
