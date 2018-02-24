@@ -1303,12 +1303,16 @@ inline bool RewriteRule<ZeroExtendUltConst>::applies(TNode node) {
       t = node[1][0];
       c = node[0];
     }
-    BitVector bv_c = c.getConst<BitVector>();
-    BitVector bv_max =
-        BitVector(utils::getSize(c)).setBit(utils::getSize(t) - 1);
 
-    BitVector c_hi = c.getConst<BitVector>().extract(utils::getSize(c) - 1,
-                                                     utils::getSize(t));
+    unsigned t_sz = utils::getSize(t);
+    unsigned c_sz = utils::getSize(c);
+    if (t_sz == c_sz)
+    {
+      return false;
+    }
+
+    BitVector bv_c = c.getConst<BitVector>();
+    BitVector c_hi = c.getConst<BitVector>().extract(c_sz - 1, t_sz);
     BitVector zero = BitVector(c_hi.getSize(), Integer(0));
 
     return c_hi == zero;
