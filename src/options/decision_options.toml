@@ -21,7 +21,7 @@ header = "options/decision_options.h"
 [[option]]
   name       = "decisionStopOnly"
   smt_name   = ""
-  category   = "regular"
+  category   = "undocumented"
   short      = ""
   long       = ""
   type       = "bool"
