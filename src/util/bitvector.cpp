@@ -90,6 +90,8 @@ BitVector BitVector::concat(const BitVector& other) const
 
 BitVector BitVector::extract(unsigned high, unsigned low) const
 {
+  CheckArgument(high < d_size, high);
+  CheckArgument(low <= high, low);
   return BitVector(high - low + 1,
                    d_value.extractBitRange(high - low + 1, low));
 }
