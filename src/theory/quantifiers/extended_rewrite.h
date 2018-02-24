@@ -134,6 +134,11 @@ class ExtendedRewriter
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
    */
   Node mkNegate( Kind notk, Node n );
+  /** 
+   * Make concat. Returns null if children empty, children[0] if size=1,
+   * or <k>( children ) otherwise.
+   */
+  Node mkConcat( Kind concatk, std::vector< Node >& children );
   /** Decompose right associative chain 
    * 
    * For term f( ... f( f( base, tn ), t{n-1} ) ... t1 ), returns term base, and 
@@ -152,6 +157,17 @@ class ExtendedRewriter
    * terms whose Kind appears in rec_kinds.
    */
   Node partialSubstitute( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& rkinds );
+  /** infer split 
+   * 
+   * If this function returns true, then t1 is updated to t1', t2 is updated to
+   * t2', and b and e are updated to terms such that:
+   *   t1 = b ++ t1' ++ e
+   *   t2 = b ++ t1' ++ e
+   * where ++ is a concatenation operator, Node::null() is implicitly the
+   * empty term. If this function returns false, then all arguments are left
+   * unchanged.
+   */
+  bool inferSplit( Node& t1, Node& t2, Node& b, Node& e );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.

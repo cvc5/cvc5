@@ -324,6 +324,35 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     }
   }
   
+  
+  Node new_ret;
+  Node b;
+  Node e;
+  Node t1 = n[1];
+  Node t2 = n[2];
+  bool did_splice = false;
+  /*
+  // miniscope over splittable terms
+  if( n[1].getType().isBitVector() )
+  {
+    if( inferSplit( t1, t2, b, e ) )
+    {
+      did_splice = true;
+      if( t1.isNull() || t2.isNull() )
+      {
+        // TODO ?
+        t1 = n[1];
+        t2 = n[2];
+        did_splice = false;
+      }
+      else if( full )
+      {
+        new_ret = nm->mkNode( ITE, n[0], t1, t2 );
+      }
+    }
+  }
+  */
+  
   // make a substitution 
   std::vector< Node > vars;
   std::vector< Node > subs;
@@ -347,34 +376,38 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   
   if( !vars.empty() )
   {
-    Node nn = n[1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-    if (nn != n[1])
+    Node nn = t1.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+    if (nn != t1)
     {
-      if( !full )
+      // We are in a situation where we've made a copy of a term t in both 
+      // children t1 and t2. We must show that at least one copy of t 
+      // dissappears.
+      nn = Rewriter::rewrite( nn );
+      if( nn==t2 )
       {
-        // We are in a situation where we've made a copy of a term t in both 
-        // children n[1] and n[2]. We must show that one copy of t dissappears.
-        Node nn = Rewriter::rewrite( nn );
-        if( nn==n[2] )
-        {
-          return nn;
-        }
-        else if( !nn.isConst() )
-        {
-          nn = Node::null();
-        }
+        new_ret = nn;
       }
-      if( !nn.isNull() )
+      else if( full || nn.isConst() )
       {
         // ITE substitution: if x is less than t based on term ordering, then
         //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
         // This is generalized to multiple x.
-        return nm->mkNode( itek, n[0], nn, n[2]);
+        new_ret = nm->mkNode( itek, n[0], nn, t2);
       }
     }
   }
 
-  return Node::null();
+  if( !new_ret.isNull() && did_splice )
+  {
+    Kind concatk = BITVECTOR_CONCAT;
+    std::vector< Node > cchildren;
+    cchildren.push_back( b );
+    cchildren.push_back( new_ret );
+    cchildren.push_back( e );
+    new_ret = mkConcat( concatk, cchildren );
+  }
+
+  return new_ret;
 }
   
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
@@ -856,6 +889,180 @@ Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
+{
+  Assert( t1.getType()==t2.getType() );
+  Assert( b.isNull() );
+  Assert( e.isNull() );
+  if( t1==t2 )
+  {
+    b = t1;
+    t1 = Node::null();
+    t2 = Node::null();
+    return true;
+  }
+  
+  TypeNode tn = t1.getType();
+  Kind concatk = UNDEFINED_KIND;
+  if( tn.isBitVector() )
+  {
+    concatk = BITVECTOR_CONCAT;
+  }
+  // TODO : Strings
+
+  
+  if( concatk!= UNDEFINED_KIND )
+  {
+    // get vectors for the two terms
+    std::vector< Node > tvec[2];
+    for( unsigned r=0; r<2; r++ )
+    {
+      Node t = r==0 ? t1 : t2;
+      if( t.getKind()==concatk )
+      {
+        for( const Node& ct : t )
+        {
+          tvec[r].push_back( ct );
+        }
+      }
+      else
+      {
+        tvec[r].push_back( t );
+      }
+    }
+    
+    // strip off full components
+    std::vector< Node > rem[2];
+    for( unsigned r=0; r<2; r++ )
+    {
+      unsigned i=0;
+      bool success;
+      do
+      {
+        success = false;
+        if( i<tvec[0].size() && i<tvec[1].size() )
+        {
+          unsigned i1 = r==0 ? i : (tvec[0].size()-(i+1));
+          unsigned i2 = r==0 ? i : (tvec[1].size()-(i+1));
+          if( tvec[0][i1]==tvec[1][i2] )
+          {
+            rem[r].push_back( tvec[0][i1] );
+            i++;
+            success = true;
+          }
+        }
+      }while( success );
+      // erase
+      if( i>0 )
+      {
+        for( unsigned j=0; j<2; j++ )
+        {
+          if( r==0 )
+          {
+            tvec[j].erase( tvec[j].begin(), tvec[j].begin()+i );
+          }
+          else
+          {
+            tvec[j].erase( tvec[j].end()-i, tvec[j].end() );
+          }
+        }
+      }
+      if( tvec[0].empty() || tvec[1].empty() )
+      {
+        break;
+      }
+      
+      Node c[2];
+      c[0] = tvec[0][ r==0 ? 0 : tvec[0].size()-1 ];
+      c[1] = tvec[1][ r==0 ? 0 : tvec[1].size()-1 ];
+      
+      if( tn.isBitVector() )
+      {
+        // splice constants
+        if( c[0].isConst() && c[1].isConst() )
+        {
+          unsigned size[2];
+          BitVector cb[2];
+          for( unsigned j=0; j<2; j++ )
+          {
+            size[i] = bv::utils::getSize(c[i]);
+            cb[i] = c[i].getConst<BitVector>();
+          }
+          unsigned min_size = size[0]<size[1] ? size[0] : size[1];
+          unsigned counter = 0;
+          bool success;
+          do
+          {
+            success = false;
+            unsigned i1 = r==0 ? (size[0]-(counter+1)) : counter;
+            unsigned i2 = r==0 ? (size[1]-(counter+1)) : counter;
+            Integer bit1 = cb[0].extract(i1, i1).getValue();
+            Integer bit2 = cb[1].extract(i2, i2).getValue();
+            if( bit1==bit2 )
+            {
+              counter++;
+              if( counter<min_size )
+              {
+                success = true;
+              }
+            }
+          }while(success);
+          
+          // if we spliced the constant
+          if( counter>0 )
+          {
+            Assert( counter<=size[0] );
+            BitVector rem = cb[0].extract(r==0 ? size[0]-1 : counter-1,r==0 ? size[0]-counter : 0);
+            Node remainder = bv::utils::mkConst( rem );
+            for( unsigned j=0; j<2; j++ )
+            {
+              if( counter==size[j] )
+              {
+                // completely remove the component
+                if( r==0 )
+                {
+                  tvec[j].erase( tvec[j].begin(), tvec[j].begin()+1 );
+                }
+                else
+                {
+                  tvec[j].erase( tvec[j].end()-1, tvec[j].end() );
+                }
+              }
+              else
+              {
+                // replace it with the spliced
+                BitVector spl = r==0 ?  cb[j].extract(size[j]-counter-1,0) : cb[j].extract(size[j]-1,counter);
+                tvec[j][ r==0 ? 0 : tvec[j].size()-1 ] = bv::utils::mkConst( spl );
+              }
+            }
+          }
+        }
+        
+        // bitvector extract
+        for( unsigned j=0; j<2; j++ )
+        {
+          if( c[j].getKind()==BITVECTOR_EXTRACT && c[j][0]==c[1-j] )
+          {
+            // TODO
+          }
+        }
+      }
+    }
+    
+    if( !rem[0].empty() || !rem[1].empty() )
+    {
+      t1 = mkConcat( concatk, tvec[0] );
+      t2 = mkConcat( concatk, tvec[1] );
+      b = mkConcat( concatk, rem[0] );
+      e = mkConcat( concatk, rem[1] );
+      return true;
+    }
+  }
+  
+  
+  return false;
 }
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
@@ -1793,10 +2000,30 @@ Node ExtendedRewriter::mkNegate( Kind notk, Node n )
   {
     return n[0];
   }
-  else
+  return NodeManager::currentNM()->mkNode( notk, n );
+}
+
+Node ExtendedRewriter::mkConcat( Kind concatk, std::vector< Node >& children )
+{
+  // remove the null children
+  std::vector< Node > new_children;
+  for( const Node& cn : children )
   {
-    return NodeManager::currentNM()->mkNode( notk, n );
+    if( !cn.isNull() )
+    {
+      new_children.push_back( cn );
+    }
   }
+  
+  if( new_children.empty() )
+  {
+    return Node::null();
+  }
+  else if( new_children.size()==1 )
+  {
+    return new_children[0];
+  }
+  return NodeManager::currentNM()->mkNode( concatk, new_children );
 }
 
 Node ExtendedRewriter::getConstBvChild( Node n, std::vector< Node >& nconst )
