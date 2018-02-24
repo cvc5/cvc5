@@ -59,27 +59,46 @@ tpl_holder_macro = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
 ## Templates for options.cpp
 
 tpl_run_handler_bool = \
-"""template <> void runBoolPredicates(options::{name}__option_t, std::string option, bool b, options::OptionsHandler* handler) {{
+"""template <> void runBoolPredicates(
+    options::{name}__option_t,
+    std::string option,
+    bool b,
+    options::OptionsHandler* handler)
+{{
   {predicates}
 }}"""
 
 tpl_run_handler = \
-"""template <> options::{name}__option_t::type runHandlerAndPredicates(options::{name}__option_t, std::string option, std::string optionarg, options::OptionsHandler* handler) {{
+"""template <> options::{name}__option_t::type runHandlerAndPredicates(
+    options::{name}__option_t,
+    std::string option,
+    std::string optionarg,
+    options::OptionsHandler* handler)
+{{
   options::{name}__option_t::type retval = {handler};
   {predicates}
   return retval;
 }}"""
 
 tpl_assign = \
-"""template <> void Options::assign(options::{name}__option_t, std::string option, std::string value) {{
-  d_holder->{name} = runHandlerAndPredicates(options::{name}, option, value, d_handler);
+"""template <> void Options::assign(
+    options::{name}__option_t,
+    std::string option,
+    std::string value)
+{{
+  d_holder->{name} =
+    runHandlerAndPredicates(options::{name}, option, value, d_handler);
   d_holder->{name}__setByUser__ = true;
   Trace("options") << "user assigned option {name}" << std::endl;
   {notifications}
 }}"""
 
 tpl_assign_bool = \
-"""template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value) {{
+"""template <> void Options::assignBool(
+    options::{name}__option_t,
+    std::string option,
+    bool value)
+{{
   runBoolPredicates(options::{name}, option, value, d_handler);
   d_holder->{name} = value;
   d_holder->{name}__setByUser__ = true;
@@ -91,39 +110,99 @@ tpl_assign_bool = \
 
 # {name} ... option.name
 tpl_h_holder_macro = '#define ' + tpl_holder_macro
-tpl_h_holder = "  {name}__option_t::type {name};\\\n  bool {name}__setByUser__;"
+tpl_h_holder_macro_attr  = "  {name}__option_t::type {name};\\\n"
+tpl_h_holder_macro_attr += "  bool {name}__setByUser__;"
 
 # {name} ... option.name, {type} ... option.type
-tpl_h_decl_rw  = "extern struct CVC4_PUBLIC {name}__option_t {{ "
-tpl_h_decl_rw += "typedef {type} type; type operator()() const; "
-tpl_h_decl_rw += "bool wasSetByUser() const; "
-tpl_h_decl_rw += "void set(const type& v); }} {name} CVC4_PUBLIC;"
+tpl_h_struct_rw  = \
+"""extern struct CVC4_PUBLIC {name}__option_t
+{{
+  typedef {type} type;
+  type operator()() const;
+  bool wasSetByUser() const;
+  void set(const type& v);
+}} {name} CVC4_PUBLIC;"""
 
-tpl_h_decl_ro  = "extern struct CVC4_PUBLIC {name}__option_t {{ "
-tpl_h_decl_ro += "typedef {type} type; type operator()() const; "
-tpl_h_decl_ro += "bool wasSetByUser() const; }} {name} CVC4_PUBLIC;"
+tpl_h_struct_ro  = \
+"""extern struct CVC4_PUBLIC {name}__option_t
+{{
+  typedef {type} type;
+  type operator()() const;
+  bool wasSetByUser() const;
+}} {name} CVC4_PUBLIC;"""
 
 # {name} ... option.name
-tpl_h_spec_s    = "template <> void Options::set(options::{name}__option_t, const options::{name}__option_t::type& x);"
-tpl_h_spec_o    = "template <> const options::{name}__option_t::type& Options::operator[](options::{name}__option_t) const;"
-tpl_h_spec_wsbu = "template <> bool Options::wasSetByUser(options::{name}__option_t) const;"
-tpl_h_spec_a    = "template <> void Options::assign(options::{name}__option_t, std::string option, std::string value);"
-tpl_h_spec_ab   = "template <> void Options::assignBool(options::{name}__option_t, std::string option, bool value);"
+tpl_h_spec_s    = \
+"""template <> void Options::set(
+    options::{name}__option_t,
+    const options::{name}__option_t::type& x);"""
+
+tpl_h_spec_o    = \
+"""template <> const options::{name}__option_t::type& Options::operator[](
+    options::{name}__option_t) const;"""
+
+tpl_h_spec_wsbu = \
+"""template <> bool Options::wasSetByUser(options::{name}__option_t) const;"""
+
+tpl_h_spec_a = \
+"""template <> void Options::assign(
+    options::{name}__option_t,
+    std::string option,
+    std::string value);"""
+
+tpl_h_spec_ab = \
+"""template <> void Options::assignBool(
+    options::{name}__option_t,
+    std::string option,
+    bool value);"""
 
 # {name} ... option.name
-tpl_h_inl_s    = "inline void {name}__option_t::set(const {name}__option_t::type& v) {{ Options::current()->set(*this, v); }}"
-tpl_h_inl_wsbu = "inline bool {name}__option_t::wasSetByUser() const {{ return Options::current()->wasSetByUser(*this); }}"
-tpl_h_inl_op   = "inline {name}__option_t::type {name}__option_t::operator()() const {{ return (*Options::current())[*this]; }}"
+tpl_h_impl_s = \
+"""inline void {name}__option_t::set(
+    const {name}__option_t::type& v)
+{{
+  Options::current()->set(*this, v);
+}}"""
+
+tpl_h_impl_wsbu = \
+"""inline bool {name}__option_t::wasSetByUser() const
+{{
+  return Options::current()->wasSetByUser(*this);
+}}"""
+
+tpl_h_impl_op = \
+"""inline {name}__option_t::type {name}__option_t::operator()() const
+{{
+  return (*Options::current())[*this];
+}}"""
 
 
 ## Templates for *_options.cpp
 
 # {name} ... option.name
-tpl_cpp_acc_s    = "template <> void Options::set(options::{name}__option_t, const options::{name}__option_t::type& x) {{ d_holder->{name} = x; }}"
-tpl_cpp_acc_o    = "template <> const options::{name}__option_t::type& Options::operator[](options::{name}__option_t) const {{ return d_holder->{name}; }}"
-tpl_cpp_acc_wsbu = "template <> bool Options::wasSetByUser(options::{name}__option_t) const {{ return d_holder->{name}__setByUser__; }}"
+tpl_c_acc_s = \
+"""template <> void Options::set(
+    options::{name}__option_t,
+    const options::{name}__option_t::type& x)
+{{
+  d_holder->{name} = x;
+}}"""
 
-tpl_cpp_def = "struct {name}__option_t {name};"
+tpl_c_acc_o = \
+"""template <> const options::{name}__option_t::type& Options::operator[](
+    options::{name}__option_t) const
+{{
+  return d_holder->{name};
+}}"""
+
+tpl_c_acc_wsbu = \
+"""template <> bool Options::wasSetByUser(
+    options::{name}__option_t) const
+{{
+  return d_holder->{name}__setByUser__;
+}}"""
+
+tpl_c_struct = "struct {name}__option_t {name};"
 
 
 
@@ -320,10 +399,10 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             includes.add(format_include(include))
 
         # Generate option holder macro
-        holder_specs.append(tpl_h_holder.format(name=option.name))
+        holder_specs.append(tpl_h_holder_macro_attr.format(name=option.name))
 
         # Generate module declaration
-        tpl_decl = tpl_h_decl_ro if option.read_only else tpl_h_decl_rw
+        tpl_decl = tpl_h_struct_ro if option.read_only else tpl_h_struct_rw
         decls.append(tpl_decl.format(name=option.name, type=option.type))
 
         # generate module specialization
@@ -338,22 +417,22 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             specs.append(tpl_h_spec_a.format(name=option.name))
 
         # generate module inlines
-        inls.append(tpl_h_inl_op.format(name=option.name))
-        inls.append(tpl_h_inl_wsbu.format(name=option.name))
+        inls.append(tpl_h_impl_op.format(name=option.name))
+        inls.append(tpl_h_impl_wsbu.format(name=option.name))
         if not option.read_only:
-            inls.append(tpl_h_inl_s.format(name=option.name))
+            inls.append(tpl_h_impl_s.format(name=option.name))
 
 
         ### generate code for {module.name}_options.cpp
 
         # accessors
         if not option.read_only:
-            accs.append(tpl_cpp_acc_s.format(name=option.name))
-        accs.append(tpl_cpp_acc_o.format(name=option.name))
-        accs.append(tpl_cpp_acc_wsbu.format(name=option.name))
+            accs.append(tpl_c_acc_s.format(name=option.name))
+        accs.append(tpl_c_acc_o.format(name=option.name))
+        accs.append(tpl_c_acc_wsbu.format(name=option.name))
 
         # global defintions
-        defs.append(tpl_cpp_def.format(name=option.name))
+        defs.append(tpl_c_struct.format(name=option.name))
 
 
     filename=module.header.split('/')[1][:-2]
@@ -743,6 +822,7 @@ def check_long(lineno, long, filename):
              "long option '{}' does not match regex criteria '{}'".format(
                 long, r))
     check_unique(long, g_long_cache, 'long', lineno, filename)
+
 
 def check_links(lineno, links):
     pass
