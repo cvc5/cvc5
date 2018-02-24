@@ -217,6 +217,9 @@ class Option(object):
         self.notifies = []
         self.links = []
         self.read_only = False
+        self.lineno = None
+        self.filename = None
+        self.add_alternative = True  # add --no- alternative for bool
         for (k, v) in d.items():
             assert(k in self.__dict__)
             if k == 'read_only' or v:
@@ -226,6 +229,8 @@ class Alias(object):
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in g_alias_attr_all)
         self.links = []
+        self.lineno = None
+        self.filename = None
         for (k, v) in d.items():
             assert(k in self.__dict__)
             if len(v) > 0:
@@ -236,6 +241,7 @@ def die(msg):
     sys.exit(msg)
 
 
+# TODO: pass filename, lineno
 def check_attribs(req_attribs, valid_attribs, d, type):
     msg_for = ""
     if 'name' in d:
@@ -293,15 +299,14 @@ def read_tpl(directory, name):
 
 def match_option(long):
     global g_long_to_opt
-    assert(long.startswith('--'))
     val = True
     opt = None
-    long = long_get_option(long)
-    if long.startswith('--no-'):
+    long = lstrip('--', long_get_option(long))
+    if long.startswith('no-'):
         val = False
-        opt = g_long_to_opt[long[5:]]
+        opt = g_long_to_opt.get(lstrip('no-', long))
     else:
-        opt = g_long_to_opt[long[2:]]
+        opt = g_long_to_opt.get(long)
     return (opt, val)
 
 
@@ -380,9 +385,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     holder_specs.append(tpl_h_holder_macro.format(id=module.id))
 
     for option in module.options:
-        if option.long:
-            g_long_to_opt[long_get_option(option.long)] = option
-
         if option.name is None:
             continue
 
@@ -611,8 +613,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     getoption_handlers.append('}')
 
 
-            # Add --no- options for boolean options
-            if option.long and option.type == 'bool':
+            # Add --no- alternative options for boolean options
+            if option.long and option.type == 'bool' and option.add_alternative:
                 cases = []
                 cases.append(
                     'case {}:// --no-{}'.format(
@@ -809,11 +811,11 @@ def check_unique(filename, lineno, value, cache, attrib):
     if value in cache:
         perr(filename, lineno,
              "'{}' already defined in '{}' at line {}".format(
-                 attrib, value, cache[value][0], cache[value][1]))
+                 value, cache[value][0], cache[value][1]))
     cache[value] = (filename, lineno + 1)
 
 
-def check_long(filename, lineno, long):
+def check_long(filename, lineno, long, type = None):
     global g_long_cache
     if long is None:
         return
@@ -824,16 +826,18 @@ def check_long(filename, lineno, long):
         perr(fielname, lineno,
              "long option '{}' does not match regex criteria '{}'".format(
                 long, r))
-    check_unique(filename, lineno, long_get_option(long), g_long_cache, 'long')
+    name = long_get_option(long)
+    check_unique(filename, lineno, name, g_long_cache, 'long')
+
+    if type == 'bool':
+        check_unique(filename, lineno,
+                     'no-{}'.format(name), g_long_cache, 'long')
 
 
 def check_links(filename, lineno, links):
     global g_long_cache
     for link in links:
-        print('link: {}'.format(link))
-        print('{}'.format(long_get_option(link)))
         long = lstrip('no-', lstrip('--', long_get_option(link)))
-        print('check {}'.format(long))
         if long not in g_long_cache:
             perr(filename, lineno,
                  "invalid long option '{}' in links list".format(link))
@@ -846,7 +850,7 @@ def check_alias_attrib(filename, lineno, attrib, value):
         if value not in g_category_values:
             perr(filename, lineno, "invalid category value '{}'".format(value))
     elif attrib == 'long':
-        check_long(filename, lineno, value)
+        pass # Will be checked after parsing is done
     elif attrib == 'links':
         assert(isinstance(value, list))
         if len(value) == 0:
@@ -866,7 +870,7 @@ def check_option_attrib(filename, lineno, attrib, value):
         if len(value) == 0:
             perr(filename, lineno, 'type must not be empty'.format(value))
     elif attrib == 'long':
-        check_long(filename, lineno, value)
+        pass # Will be checked after parsing is done
     elif attrib == 'name' and value:
         r = '[a-zA-Z]+[0-9a-zA-Z_]*'
         if not re.fullmatch(r, value):
@@ -1028,26 +1032,30 @@ def parse_module(filename, file):
 
     for i in range(len(options)):
         attribs = options[i]
+        lineno = option_lines[i]
         check_attribs(g_option_attr_req, g_option_attr_all, attribs, 'option')
         option = Option(attribs)
         if option.short and not option.long:
-            perr(filename, option_lines[i],
+            perr(filename, lineno,
                  "short option '{}' specified but no long option".format(
                     option.short))
         if option.type == 'bool' and option.handler:
-            perr(filename, option_lines[i],
+            perr(filename, lineno,
                  'specifying handlers for options of type bool is not allowed')
         if option.category != 'undocumented' and not option.help:
-            perr(filename, option_lines[i],
+            perr(filename, lineno,
                  'help text is required for {} options'.format(option.category))
+        option.lineno = option_lines[i]
+        option.filename = filename
         res.options.append(option)
 
     for i in range(len(aliases)):
         attribs = aliases[i]
         check_attribs(g_alias_attr_req, g_alias_attr_all, attribs, 'alias')
         alias = Alias(attribs)
+        alias.lineno = alias_lines[i]
+        alias.filename = filename
         res.aliases.append(alias)
-
     return res
 
 
@@ -1086,18 +1094,44 @@ if __name__ == "__main__":
     modules = []
     for filename in filenames:
         with open(filename, 'r') as f:
-            modules.append(parse_module(filename, f))
+            module = parse_module(filename, f)
+            # Check if long options are valid and unique.  First populate
+            # g_long_cache with option.long and --no- alternatives if
+            # applicable.
+            for option in module.options:
+                check_long(option.filename, option.lineno, option.long,
+                           option.type)
+                if option.long:
+                    g_long_to_opt[long_get_option(option.long)] = option
+
+            modules.append(module)
+
+    # Then check if alias.long is unique
+    for module in modules:
+        for alias in module.aliases:
+            # If an alias defines a --no- alternative for an existing boolean
+            # option, we do not create the alternative for the option, but use
+            # the alias instead.
+            # This can be useful, since we can define links for the alternative
+            # options, which would not be possible otherwise.
+            if alias.long.startswith('no-'):
+                m = match_option(alias.long)
+                if m[0] and m[0].type == 'bool':
+                    m[0].add_alternative = False
+                    del(g_long_cache[alias.long])
+            check_long(alias.filename, alias.lineno, alias.long)
+
+    # Check if long options in links lists are valid
+    # (that needs to be done after checking all long options)
+    for module in modules:
+        for option in module.options:
+            check_links(option.filename, option.lineno, option.links)
+        for alias in module.aliases:
+            check_links(alias.filename, alias.lineno, alias.links)
 
     # Create *_options.{h,cpp} in destination directory
     for module in modules:
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
-
-# TODO: missing checks (after parsing):
-#       - check links if options are valid long options
-
-#    check_links(filename, option_lines[i], option.links)
-#    check_links(filename, alias_lines[i], alias.links)
-
 
     # Create options.cpp and options_holder.h in destination directory
     codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder)

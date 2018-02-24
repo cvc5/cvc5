@@ -73,10 +73,10 @@ header = "options/parser_options.h"
 
 [[option]]
   name       = "filesystemAccess"
-  smt_name   = "filesystem-access"
+  smt_name   = ""
   category   = "undocumented"
   short      = ""
-  long       = ""
+  long       = "filesystem-access"
   type       = "bool"
   default    = "true"
   handler    = ""

@@ -83,10 +83,10 @@ header = "options/expr_options.h"
 
 [[option]]
   name       = "typeChecking"
-  smt_name   = "type-checking"
+  smt_name   = ""
   category   = "regular"
   short      = ""
-  long       = ""
+  long       = "type-checking"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   handler    = ""
@@ -100,4 +100,4 @@ header = "options/expr_options.h"
 [[alias]]
   category   = "undocumented"
   long       = "no-type-checking"
-  links      = ["--lazy-type-checking"]
+  links      = ["--no-eager-type-checking"]
