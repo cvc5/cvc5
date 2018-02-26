@@ -1861,12 +1861,12 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     }
   }
 
-  // len(x)-z < len(y) => indexof( x, y, z ) ----> -1
   Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
   Node len1 = nm->mkNode(kind::STRING_LENGTH, node[1]);
   Node len0m2 = nm->mkNode(kind::MINUS, len0, node[2]);
   if (checkEntailArith(len1, len0m2, true))
   {
+    // len(x)-z < len(y)  implies  indexof( x, y, z ) ----> -1
     Node negone = nm->mkConst(Rational(-1));
     return returnRewrite(node, negone, "idof-len");
   }
@@ -1881,6 +1881,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       CVC4::String fs = fstr.getConst<String>();
       if (fs.size() == 0)
       {
+        // substr( x, z, len(x) ) --> ""  implies str.indexof( x, y, z ) --> -1
         Node negone = nm->mkConst(Rational(-1));
         return returnRewrite(node, negone, "idof-base-len");
       }
@@ -1903,6 +1904,8 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
         int cc = componentContains(children0, children1, nb, ne, true, 1);
         if (cc != -1 && !ne.empty())
         {
+          // For example:
+          // str.indexof(str.++(x,y,z),y,0) ---> str.indexof(str.++(x,y),y,0)
           Node nn = mkConcat(kind::STRING_CONCAT, children0);
           Node ret = nm->mkNode(kind::STRING_STRIDOF, nn, node[1], node[2]);
           return returnRewrite(node, ret, "idof-def-ctn");
@@ -1921,6 +1924,11 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
         std::vector<Node> nr;
         if (stripSymbolicLength(children0, nr, 1, new_len))
         {
+          // For example:
+          // z>str.len( x1 ) and str.len( y )>0 and str.contains( x2, y )-->true
+          // implies
+          // str.indexof( str.++( x1, x2 ), y, z ) ---> 
+          // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
           Node nn = mkConcat(kind::STRING_CONCAT, children0);
           Node ret = nm->mkNode(
               kind::PLUS,
@@ -1932,6 +1940,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     }
     else
     {
+      //str.contains( x, y ) --> false  implies  str.indexof(x,y,z) --> -1
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-nctn");
     }
