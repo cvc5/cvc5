@@ -168,6 +168,8 @@ class ExtendedRewriter
    * unchanged.
    */
   bool inferSplit( Node& t1, Node& t2, Node& b, Node& e );
+  /** solve equality */
+  Node solveEquality( Node n );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.

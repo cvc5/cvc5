@@ -313,6 +313,20 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     }
   }
   
+  // process the equality conditions:
+  // for each t = s, see if they can be put into form x = y
+  for( unsigned i=0, size=eq_conds.size(); i<size; i++ )
+  {
+    Trace("ext-rew-ite") << "...equality cond : " << eq_conds[i] << std::endl;
+    Node slv_eq = solveEquality( eq_conds[i] );
+    if( !slv_eq.isNull() )
+    {
+      eq_conds[i] = slv_eq;
+      Trace("ext-rew-ite") << "   ...solved form : " << slv_eq << std::endl;
+    }
+  }
+  
+  
   Node new_ret;
   Node b;
   Node e;
@@ -1110,6 +1124,37 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
   
   
   return false;
+}
+
+
+Node ExtendedRewriter::solveEquality( Node n )
+{
+  Assert( n.getKind()==EQUAL );
+  
+  if( n[0].getType().isBitVector() )
+  {
+    for( unsigned i=0; i<2; i++ )
+    {
+      if( isConstBv( n[1-i], false ) )
+      {
+        // (bvadd x (bvneg y)) = 0 ---> x = y
+        if( n[i].getKind()==BITVECTOR_PLUS && n[i].getNumChildren()==2 )
+        {
+          for( unsigned j=0; j<2; j++ )
+          {
+            if( n[i][j].isVar() && n[i][1-j].getKind()==BITVECTOR_NEG && n[i][1-j][0].isVar() )
+            {
+              return n[i][j].eqNode( n[i][1-j][0] );
+            }
+          }
+        }
+      }
+    }
+    
+  }
+  
+  
+  return Node::null();
 }
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )
