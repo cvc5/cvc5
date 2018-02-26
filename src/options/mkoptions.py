@@ -949,10 +949,9 @@ def check_module_attrib(filename, lineno, attrib, value):
 
 # Parse options module file.
 #
-# NOTE: We could use an existing toml parser to parse the configuration files.
+# Note: We could use an existing toml parser to parse the configuration files.
 # However, since we only use a very restricted feature set of the toml format,
-# we chose to implement our own parser to have better error messages (and to
-# not have an additional Python module dependency).
+# we chose to implement our own parser to get better error messages.
 def parse_module(filename, file):
     module = dict()
     options = []
@@ -965,6 +964,9 @@ def parse_module(filename, file):
     for i in range(len(lines)):
         assert(option is None or alias is None)
         line = lines[i]
+        # skip comments
+        if line[0].startswith('#'):
+            continue
         if len(line) == 1:
             # parse new option/alias, save previously parsed
             if line[0] in ['[[option]]', '[[alias]]']:
@@ -1016,11 +1018,6 @@ def parse_module(filename, file):
         options.append(option)
     if alias:
         aliases.append(alias)
-
-# TODO: missing checks (after parsing):
-#       - bool options don't have handlers
-#       - if short option given, then also long option should be specified
-#       - check that regular/common options/aliases have help text
 
     # Check if required attributes are defined and create
     # module/option/alias objects
