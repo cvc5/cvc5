@@ -1822,8 +1822,19 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 
   if( node[2].isConst() && node[2].getConst<Rational>().sgn() < 0 )
   {
+    // z<0  implies  str.indexof( x, y, z ) --> -1
     Node negone = nm->mkConst(Rational(-1));
     return returnRewrite(node, negone, "idof-neg");
+  }
+  
+  if( node[1].isConst() )
+  {
+    if (node[1].getConst<String>().size() == 0)
+    {
+      // str.indexof( x, "", z ) --> -1
+      Node negone = nm->mkConst(Rational(-1));
+      return returnRewrite(node, negone, "idof-empty");
+    }
   }
   
   // evaluation and simple cases
@@ -1831,12 +1842,6 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC4::String t = node[1].getConst<String>();
-    if (t.size() == 0)
-    {
-      Node negone = nm->mkConst(Rational(-1));
-      return returnRewrite(node, negone, "idof-empty");
-    }
     CVC4::Rational RMAXINT(LONG_MAX);
     if (node[2].getConst<Rational>() > RMAXINT)
     {
@@ -1848,6 +1853,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     unsigned start =
         node[2].getConst<Rational>().getNumerator().toUnsignedInt();
     CVC4::String s = children0[0].getConst<String>();
+    CVC4::String t = node[1].getConst<String>();
     std::size_t ret = s.find(t, start);
     if (ret != std::string::npos)
     {
