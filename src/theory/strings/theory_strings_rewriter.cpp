@@ -1820,14 +1820,14 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   Assert(node.getKind() == kind::STRING_STRIDOF);
   NodeManager* nm = NodeManager::currentNM();
 
-  if( node[2].isConst() && node[2].getConst<Rational>().sgn() < 0 )
+  if (node[2].isConst() && node[2].getConst<Rational>().sgn() < 0)
   {
     // z<0  implies  str.indexof( x, y, z ) --> -1
     Node negone = nm->mkConst(Rational(-1));
     return returnRewrite(node, negone, "idof-neg");
   }
-  
-  if( node[1].isConst() )
+
+  if (node[1].isConst())
   {
     if (node[1].getConst<String>().size() == 0)
     {
@@ -1836,7 +1836,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       return returnRewrite(node, negone, "idof-empty");
     }
   }
-  
+
   // evaluation and simple cases
   std::vector<Node> children0;
   getConcat(node[0], children0);
@@ -1849,7 +1849,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-max");
     }
-    Assert( node[2].getConst<Rational>().sgn()>=0 );
+    Assert(node[2].getConst<Rational>().sgn() >= 0);
     unsigned start =
         node[2].getConst<Rational>().getNumerator().toUnsignedInt();
     CVC4::String s = children0[0].getConst<String>();
@@ -1933,7 +1933,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
           // For example:
           // z>str.len( x1 ) and str.len( y )>0 and str.contains( x2, y )-->true
           // implies
-          // str.indexof( str.++( x1, x2 ), y, z ) ---> 
+          // str.indexof( str.++( x1, x2 ), y, z ) --->
           // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
           Node nn = mkConcat(kind::STRING_CONCAT, children0);
           Node ret = nm->mkNode(
@@ -1946,7 +1946,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     }
     else
     {
-      //str.contains( x, y ) --> false  implies  str.indexof(x,y,z) --> -1
+      // str.contains( x, y ) --> false  implies  str.indexof(x,y,z) --> -1
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-nctn");
     }
