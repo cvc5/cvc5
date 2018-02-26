@@ -548,7 +548,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
       // A general rewrite could eliminate the ITE by pulling.
       // An example is:
       //   ~( ite( C, ~x, ~ite( C, y, x ) ) ) ---> 
-      //   ite( C, ~~x, ite( C, y, x ) --->
+      //   ite( C, ~~x, ite( C, y, x ) ) --->
       //   x
       // where ~ is bitvector negation.
       return pull_ite;
@@ -898,10 +898,17 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
   
   
   // sorted right associative chain
+  bool has_const = false;
+  unsigned const_index = 0;
   for( std::pair< const Node, bool >& cp : cstatus )
   {
     if( cp.second )
     {
+      if( cp.first.isConst() )
+      {
+        has_const = true;
+        const_index = children.size();
+      }
       children.push_back( cp.first );
     }
   }
@@ -910,7 +917,9 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
   Node new_ret;
   if( !gpol )
   {
-    children[0] = mkNegate( notk, children[0] );
+    // negate the constant child if it exists
+    unsigned nindex = has_const ? const_index : 0;    
+    children[nindex] = mkNegate( notk, children[nindex] );
   }
   new_ret = children.back();
   unsigned index = children.size()-1;
@@ -919,6 +928,7 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
     index--;
     new_ret = nm->mkNode( eqk, children[index], new_ret );
   }
+  new_ret = Rewriter::rewrite( new_ret );
   if( new_ret!=ret )
   {
     return new_ret;
