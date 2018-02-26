@@ -49,6 +49,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     return n;
   }
+  
+  //has it already been computed?
   if( n.hasAttribute(ExtRewriteAttribute()) )
   {
     return n.getAttribute(ExtRewriteAttribute());
@@ -320,6 +322,8 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         return n[2];
       }
       // ite( x = y ^ C, y[n..m], x[n...m] ) ---> x[n...m]
+      // TODO : generalize to:
+      // ite( x = y ^ C, t.y[n..m].s, t.x[n...m].s ) ---> t.x[n...m].s
       if( n[2].getKind()==BITVECTOR_EXTRACT && n[2][0]==eq[i] )
       {
         Node ext = nm->mkNode( n[2].getOperator(), eq[1-i] );
@@ -1125,23 +1129,63 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   Node new_ret;
   if( k==EQUAL )
   {
-    if( d_aggr )
+    // splicing
+    if( ret[0].getKind()==BITVECTOR_CONCAT || ret[1].getKind()==BITVECTOR_CONCAT )
     {
-      Assert( ret[0].getType().isBitVector() );
-      bool isZero = false;
-      for( unsigned i=0; i<2; i++ )
+      // get spliced forms
+      std::vector< Node > v1;
+      std::vector< Node > v2;
+      spliceBv( ret[0], ret[1], v1, v2 );
+      Assert( v1.size()>1 );
+      Assert( v1.size()==v2.size() );
+      unsigned nconst_count = 0;
+      int nconst_index = -1;
+      for( unsigned i=0, size=v1.size(); i<size; i++ )
       {
-        if( isConstBv( ret[0], false ) )
+        Node eeq = v1[i].eqNode( v2[i] );
+        eeq = Rewriter::rewrite( eeq );
+        if( eeq.isConst() )
         {
-          isZero = true;
-          break;
+          if( !eeq.getConst<bool>() )
+          {
+            new_ret = eeq;
+            debugExtendedRewrite( ret, new_ret, "CONCAT eq false" );
+            return new_ret;
+          }
+        }
+        else
+        {
+          nconst_count++;
+          nconst_index = i;
         }
       }
-      if( !isZero )
+      if( nconst_count==1 )
       {
-        new_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], mkNegate( BITVECTOR_NEG, ret[1] ) );
-        Node bv_zero = mkConstBv(ret[0],false);
-        new_ret = new_ret.eqNode(bv_zero);
+        new_ret = v1[nconst_index].eqNode(v2[nconst_index]);
+        debugExtendedRewrite( ret, new_ret, "CONCAT eq true" );
+        return new_ret;
+      }
+    }
+    
+    Assert( ret[0].getType().isBitVector() );
+    bool isZero = false;
+    for( unsigned i=0; i<2; i++ )
+    {
+      if( isConstBv( ret[0], false ) )
+      {
+        isZero = true;
+        break;
+      }
+    }
+    if( !isZero )
+    {
+      Node slv_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], mkNegate( BITVECTOR_NEG, ret[1] ) );
+      Node bv_zero = mkConstBv(ret[0],false);
+      slv_ret = slv_ret.eqNode(bv_zero);
+      slv_ret = Rewriter::rewrite( slv_ret );
+      if( d_aggr || slv_ret.isConst() )
+      {
+        new_ret = slv_ret;
         debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
       }
     }
@@ -2418,6 +2462,40 @@ Node ExtendedRewriter::mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msu
     return sum[0];
   }
   return nm->mkNode( BITVECTOR_PLUS, sum );
+}
+
+void ExtendedRewriter::spliceBv( Node a, Node b, std::vector< Node >& av, std::vector< Node >& bv )
+{
+  Assert( a.getType()==b.getType() );
+  if( a.getKind()==BITVECTOR_CONCAT || b.getKind()==BITVECTOR_CONCAT )
+  {
+    unsigned counter = bv::utils::getSize(a)-1;
+    bool reca = a.getKind()==BITVECTOR_CONCAT;
+    Node cterm = reca ? a : b;
+    Node oterm = reca ? b : a;
+    for( const Node& ctermc : cterm )
+    {
+      // extract relevant portion of other child
+      unsigned csize = bv::utils::getSize(ctermc);
+      Assert( (counter+1)>=csize );
+      Node extract = bv::utils::mkExtract(oterm,counter,(counter+1)-csize);
+      extract = Rewriter::rewrite( extract );
+      // recurse
+      Node c1 = reca ? ctermc : extract;
+      Node c2 = reca ? extract : ctermc, strict;
+      spliceBv( c1, c2, av, bv );
+      // decrement counter
+      if( counter>=csize )
+      {
+        counter = counter-csize;
+      }
+    }
+  }
+  else
+  {
+    av.push_back( a );
+    bv.push_back( b );
+  }
 }
 
 void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c ) const

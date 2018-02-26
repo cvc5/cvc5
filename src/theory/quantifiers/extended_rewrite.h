@@ -243,6 +243,8 @@ class ExtendedRewriter
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
   /** mkNode */
   Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum );
+  /** splice */
+  void spliceBv( Node n1, Node n2, std::vector< Node >& n1v, std::vector< Node >& n2v );
   //--------------------------------------end bit-vectors
   
 };
