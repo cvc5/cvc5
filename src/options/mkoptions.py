@@ -470,6 +470,10 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
         headers_module.append(format_include(module.header))
         macros_module.append(tpl_holder_macro.format(id=module.id))
 
+        if module.options or module.aliases:
+            help_others.append(
+                '"\\nFrom the {} module:\\n"'.format(module.name))
+
         # TODO: sort by name
 #        for option in sorted(module.options, key=lambda x: x.long if x.long else x.name):
         for option in module.options:
@@ -489,7 +493,12 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                 if not option.help:
                     print("no help for {} option {}".format(
                            option.category, option.name))
-                l.extend(help_format(option.help, option.short, option.long))
+                help = option.help
+                if option.category == 'expert':
+                    help += ' (EXPERTS only)'
+                if option.type == 'bool':
+                    help += ' [*]'
+                l.extend(help_format(help, option.short, option.long))
 
             ### Generate handler call
             handler = None
