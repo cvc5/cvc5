@@ -1820,6 +1820,13 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   Assert(node.getKind() == kind::STRING_STRIDOF);
   NodeManager* nm = NodeManager::currentNM();
 
+  if( node[2].isConst() && node[2].getConst<Rational>().sgn() < 0 )
+  {
+    Node negone = nm->mkConst(Rational(-1));
+    return returnRewrite(node, negone, "idof-neg");
+  }
+  
+  // evaluation and simple cases
   std::vector<Node> children0;
   getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
@@ -1837,11 +1844,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-max");
     }
-    else if (node[2].getConst<Rational>().sgn() < 0)
-    {
-      Node negone = nm->mkConst(Rational(-1));
-      return returnRewrite(node, negone, "idof-neg");
-    }
+    Assert( node[2].getConst<Rational>().sgn()>=0 );
     unsigned start =
         node[2].getConst<Rational>().getNumerator().toUnsignedInt();
     CVC4::String s = children0[0].getConst<String>();
@@ -1892,7 +1895,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     {
       if (node[2].isConst() && node[2].getConst<Rational>().sgn() == 0)
       {
-        // pass first definite contain, we can drop
+        // past the first position in node[0] that contains node[1], we can drop
         std::vector<Node> children1;
         getConcat(node[1], children1);
         std::vector<Node> nb;
