@@ -65,8 +65,8 @@ class ExtendedRewriter
    * may be applied as a preprocessing step.
    */
   bool d_aggr;
-  /** cache for extendedRewrite */
-  std::unordered_map<Node, Node, NodeHashFunction> d_ext_rewrite_cache;  
+  /** cache that the extended rewritten form of n is ret */
+  void setCache( Node n, Node ret );
 
   
   //--------------------------------------generic utilities

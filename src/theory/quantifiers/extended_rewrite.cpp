@@ -28,8 +28,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+struct ExtRewriteAttributeId {};
+typedef expr::Attribute<ExtRewriteAttributeId, Node> ExtRewriteAttribute;
+
+  
 ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
+}
+
+void ExtendedRewriter::setCache(Node n, Node ret)
+{
+  ExtRewriteAttribute era;
+  n.setAttribute(era,ret);
 }
 
 Node ExtendedRewriter::extendedRewrite(Node n)
@@ -39,11 +49,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     return n;
   }
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-      d_ext_rewrite_cache.find(n);
-  if (it != d_ext_rewrite_cache.end())
+  if( n.hasAttribute(ExtRewriteAttribute()) )
   {
-    return it->second;
+    return n.getAttribute(ExtRewriteAttribute());
   }
   
   Node ret = n;
@@ -88,7 +96,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     ret = extendedRewrite(pre_new_ret);
     Trace("q-ext-rewrite-debug") << "...ext-pre-rewrite : " << n << " -> " << pre_new_ret << std::endl;
-    d_ext_rewrite_cache[n] = ret;
+    setCache(n,ret);
     return ret;
   }
   //--------------------end pre-rewrite
@@ -203,13 +211,13 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   //----------------------end aggressive rewrites
 
-  d_ext_rewrite_cache[n] = ret;
+  setCache(n,ret);
   if (!new_ret.isNull())
   {
     ret = extendedRewrite(new_ret);
   }
   Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret << std::endl;
-  d_ext_rewrite_cache[n] = ret;
+  setCache(n,ret);
   return ret;
 }
 
