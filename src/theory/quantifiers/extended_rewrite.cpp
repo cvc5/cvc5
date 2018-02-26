@@ -720,10 +720,12 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::
         Node ccs = cc;
         if( bcp_kinds.empty() )
         {
+          Trace("ext-rew-bcp-debug") << "...do ordinary substitute" << std::endl;
           ccs = cc.substitute( avars.begin(), avars.end(), asubs.begin(), asubs.end() );
         }
         else
         {
+          Trace("ext-rew-bcp-debug") << "...do partial substitute" << std::endl;
           // substitution is only applicable to compatible kinds
           ccs = partialSubstitute( ccs, assign, bcp_kinds );
         }
@@ -737,8 +739,9 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::
         }
         Node ccs = nm->mkNode( ca.getKind(), ccs_children );
         ccs = cpol ? ccs : mkNegate( notk, ccs );
-        ccs = Rewriter::rewrite( ccs );
         Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs << std::endl;
+        ccs = Rewriter::rewrite( ccs );
+        Trace("ext-rew-bcp") << "BCP: rewritten to " << ccs << std::endl;
         to_process.push_back( ccs );
         // store this as a node that propagation touched. This marks c so that
         // it will not be included in the final construction.
@@ -944,7 +947,7 @@ Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign
       else
       {
         // can only recurse on these kinds
-        Kind k = n.getKind();
+        Kind k = cur.getKind();
         if( rkinds.find( k )!=rkinds.end() )
         {
           visited[cur] = Node::null();
