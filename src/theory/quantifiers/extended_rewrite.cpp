@@ -529,9 +529,12 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
     }
     else
     {
-      // a general rewrite could eliminate the ITE
-      // an example is:
-      //   ~( ite( C, x, ~ite( C, y, x ) ) ) ---> x
+      // A general rewrite could eliminate the ITE by pulling.
+      // An example is:
+      //   ~( ite( C, ~x, ~ite( C, y, x ) ) ) ---> 
+      //   ite( C, ~~x, ite( C, y, x ) --->
+      //   x
+      // where ~ is bitvector negation.
       return pull_ite;
     }
   }
