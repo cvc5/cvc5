@@ -326,6 +326,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   // we undo this miniscoping if the ITE cannot be eliminated.
   if( n[1].getType().isBitVector() )
   {
+    Trace("ext-rew-ite") << "Infer split..." << std::endl;
     if( inferSplit( t1, t2, b, e ) )
     {
       did_splice = true;
@@ -336,17 +337,24 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         t2 = n[2];
         did_splice = false;
       }
-      else if( Trace.isOn("ext-rew-ite") )
+      if( Trace.isOn("ext-rew-ite") )
       {
-        Trace("ext-rew-ite") << "Floating minscope : " << std::endl;
-        if( !b.isNull() )
+        if( did_splice )
         {
-          Trace("ext-rew-ite") << "  " << b << " ++ " << std::endl;
+          Trace("ext-rew-ite") << "Floating ITE miniscope : " << std::endl;
+          if( !b.isNull() )
+          {
+            Trace("ext-rew-ite") << "  " << b << " ++ " << std::endl;
+          }
+          Trace("ext-rew-ite") << "  (ite " << n[0] << " " << t1 << " " << t2 << ")" << std::endl;        
+          if( !e.isNull() )
+          {
+            Trace("ext-rew-ite") << "  " << " ++ " << e << std::endl;
+          }
         }
-        Trace("ext-rew-ite") << "  (ite " << n[0] << " " << t1 << " " << t2 << ")" << std::endl;        
-        if( !e.isNull() )
+        else
         {
-          Trace("ext-rew-ite") << "  " << " ++ " << e << std::endl;
+          Trace("ext-rew-ite") << "...no floating ITE miniscope." << std::endl;
         }
       }
     }
@@ -521,8 +529,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
     }
     else
     {
-      // a general rewrite could eliminate the ITE?
-      Assert( false );
+      // a general rewrite could eliminate the ITE
+      // an example is:
+      //   ~( ite( C, x, ~ite( C, y, x ) ) ) ---> x
+      return pull_ite;
     }
   }
   
@@ -965,44 +975,42 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
   {
     // get vectors for the two terms
     std::vector< Node > tvec[2];
-    
-    std::vector< Node > v1;
-    std::vector< Node > v2;
     spliceBv( t1, t2, tvec[0], tvec[1] );
+    Assert( tvec[0].size()==tvec[1].size() );
     
     // strip off full components
     std::vector< Node > rem[2];
     for( unsigned r=0; r<2; r++ )
     {
-      unsigned i=0;
+      unsigned index=0;
       bool success;
       do
       {
         success = false;
-        if( i<tvec[0].size() && i<tvec[1].size() )
+        if( index<tvec[0].size() )
         {
-          unsigned i1 = r==0 ? i : (tvec[0].size()-(i+1));
-          unsigned i2 = r==0 ? i : (tvec[1].size()-(i+1));
+          unsigned i1 = r==0 ? index : (tvec[0].size()-(index+1));
+          unsigned i2 = r==0 ? index : (tvec[1].size()-(index+1));
           if( tvec[0][i1]==tvec[1][i2] )
           {
             rem[r].push_back( tvec[0][i1] );
-            i++;
+            index++;
             success = true;
           }
         }
       }while( success );
       // erase
-      if( i>0 )
+      if( index>0 )
       {
         for( unsigned j=0; j<2; j++ )
         {
           if( r==0 )
           {
-            tvec[j].erase( tvec[j].begin(), tvec[j].begin()+i );
+            tvec[j].erase( tvec[j].begin(), tvec[j].begin()+index );
           }
           else
           {
-            tvec[j].erase( tvec[j].end()-i, tvec[j].end() );
+            tvec[j].erase( tvec[j].end()-index, tvec[j].end() );
           }
         }
       }
@@ -1025,7 +1033,7 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
           BitVector cb[2];
           for( unsigned j=0; j<2; j++ )
           {
-            cb[i] = c[i].getConst<BitVector>();
+            cb[j] = c[j].getConst<BitVector>();
           }
           unsigned counter = 0;
           bool success;
