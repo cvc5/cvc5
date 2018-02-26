@@ -139,12 +139,9 @@ EXTRA_DIST = \
 
 
 
-
-
 # Make sure the implicit rules never mistake a _template.cpp or _template.h file for source file.
 $(CPP_TEMPLATE_FILES):;
 
-$(OPTIONS_CPPS): options.cpp
 
 options.cpp: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES)
 	@srcdir@/mkoptions.py @abs_srcdir@ . $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))

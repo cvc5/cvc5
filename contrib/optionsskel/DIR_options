@@ -1,8 +1,8 @@
 #
 # Option specification file for CVC4
-# See src/options/base_options for a description of this file format
+# See src/options/README for a description of this file format
 #
 
-module $id "options/$dir_options.h" $camel
-
-endmodule
+id     = "$id"
+name   = "$camel"
+header = "options/$dir_options.h"
