@@ -338,38 +338,35 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   //    ite( C, t.x.s, t.y.s ) ---> t.ite( C, x, y ).s,
   // so that the following rewrites are more likely to eliminate the ite. 
   // However, we undo this miniscoping in the end if the ITE is not eliminated.
-  if( n[1].getType().isBitVector() )
+  Trace("ext-rew-ite") << "Infer split..." << std::endl;
+  if( inferSplit( t1, t2, b, e ) )
   {
-    Trace("ext-rew-ite") << "Infer split..." << std::endl;
-    if( inferSplit( t1, t2, b, e ) )
+    did_splice = true;
+    if( t1.isNull() || t2.isNull() )
     {
-      did_splice = true;
-      if( t1.isNull() || t2.isNull() )
+      // TODO ?
+      t1 = n[1];
+      t2 = n[2];
+      did_splice = false;
+    }
+    if( Trace.isOn("ext-rew-ite") )
+    {
+      if( did_splice )
       {
-        // TODO ?
-        t1 = n[1];
-        t2 = n[2];
-        did_splice = false;
+        Trace("ext-rew-ite") << "Floating ITE miniscope : " << std::endl;
+        if( !b.isNull() )
+        {
+          Trace("ext-rew-ite") << "  " << b << " ++ " << std::endl;
+        }
+        Trace("ext-rew-ite") << "  (ite " << n[0] << " " << t1 << " " << t2 << ")" << std::endl;        
+        if( !e.isNull() )
+        {
+          Trace("ext-rew-ite") << "  " << " ++ " << e << std::endl;
+        }
       }
-      if( Trace.isOn("ext-rew-ite") )
+      else
       {
-        if( did_splice )
-        {
-          Trace("ext-rew-ite") << "Floating ITE miniscope : " << std::endl;
-          if( !b.isNull() )
-          {
-            Trace("ext-rew-ite") << "  " << b << " ++ " << std::endl;
-          }
-          Trace("ext-rew-ite") << "  (ite " << n[0] << " " << t1 << " " << t2 << ")" << std::endl;        
-          if( !e.isNull() )
-          {
-            Trace("ext-rew-ite") << "  " << " ++ " << e << std::endl;
-          }
-        }
-        else
-        {
-          Trace("ext-rew-ite") << "...no floating ITE miniscope." << std::endl;
-        }
+        Trace("ext-rew-ite") << "...no floating ITE miniscope." << std::endl;
       }
     }
   }
@@ -381,23 +378,11 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     for (unsigned i = 0; i <=1; i++)
     {
       // ite( x = y ^ C, y, x ) ---> x
+      // this is subsumed by the rewrites below
       if (t2 == eq[i] && t1 == eq[1-i])
       {
         new_ret = t2;
         break;
-      }
-      // ite( x = y ^ C, y[n..m], x[n...m] ) ---> x[n...m]
-      // Due to the floating miniscope of ITE, this is generalized to:
-      // ite( x = y ^ C, t.y[n..m].s, t.x[n...m].s ) ---> t.x[n...m].s
-      if( t2.getKind()==BITVECTOR_EXTRACT && t2[0]==eq[i] )
-      {
-        Node ext = nm->mkNode( t2.getOperator(), eq[1-i] );
-        ext = Rewriter::rewrite( ext );
-        if( ext==t1 )
-        {
-          new_ret = t2;
-          break;
-        }
       }
     }
     if( new_ret.isNull() )
@@ -431,11 +416,23 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
 
     if( !vars.empty() )
     {
-      bool success = false;
-      do
+      // reverse substitution to opposite child
+      Node nn = t2.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+      if (nn != t2)
+      {
+        nn = Rewriter::rewrite( nn );
+        if( nn==t1 )
+        {
+          // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r
+          new_ret = nn;
+        }
+      }
+      
+      bool success = true;
+      while( success && new_ret.isNull() )
       {
         success = false;
-        Node nn = t1.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+        nn = t1.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
         if (nn != t1)
         {
           // We are in a situation where we've made a copy of a term t in both 
@@ -463,7 +460,6 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
           success = true;
         }
       }
-      while( success );
     }
   }
 
@@ -1011,20 +1007,21 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
   
   TypeNode tn = t1.getType();
   Kind concatk = UNDEFINED_KIND;
+  // get vectors for the two terms
+  std::vector< Node > tvec[2];
+  //--------------theory specific splitting operators
   if( tn.isBitVector() )
   {
-    concatk = BITVECTOR_CONCAT;
+    concatk = BITVECTOR_CONCAT;    
+    spliceBv( t1, t2, tvec[0], tvec[1] );
+    Assert( tvec[0].size()==tvec[1].size() );
   }
   // TODO : Strings
 
   
   if( concatk!= UNDEFINED_KIND )
   {
-    // get vectors for the two terms
-    std::vector< Node > tvec[2];
-    spliceBv( t1, t2, tvec[0], tvec[1] );
-    Assert( tvec[0].size()==tvec[1].size() );
-    
+    Assert( !tvec[0].empty() && !tvec[1].empty() );
     // strip off full components
     std::vector< Node > rem[2];
     for( unsigned r=0; r<2; r++ )
@@ -1036,6 +1033,7 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
         success = false;
         if( index<tvec[0].size() )
         {
+          Assert( index<tvec[1].size() );
           unsigned i1 = r==0 ? index : (tvec[0].size()-(index+1));
           unsigned i2 = r==0 ? index : (tvec[1].size()-(index+1));
           if( tvec[0][i1]==tvec[1][i2] )
@@ -1070,6 +1068,7 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
       c[0] = tvec[0][ r==0 ? 0 : tvec[0].size()-1 ];
       c[1] = tvec[1][ r==0 ? 0 : tvec[1].size()-1 ];
       
+      //----------------theory-specific constant splitting
       if( tn.isBitVector() )
       {
         // splice constants
