@@ -173,7 +173,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   else if( ret.getKind()==EQUAL )
   {
-    new_ret = extendedRewriteEqChain( EQUAL, AND, OR, NOT, ret.getType(), ret );
+    new_ret = extendedRewriteEqChain( EQUAL, AND, OR, NOT, ret );
     debugExtendedRewrite( ret, new_ret, "Bool eq-chain simplify" );
   }
   if( new_ret.isNull() && ret.getKind()!=ITE )
@@ -336,8 +336,8 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   // Floating miniscope of ITE
   // Conceptually, this function temporarily rewrites:
   //    ite( C, t.x.s, t.y.s ) ---> t.ite( C, x, y ).s,
-  // so that certain rewrites that eliminate the ite are more likely. However,
-  // we undo this miniscoping if the ITE cannot be eliminated.
+  // so that the following rewrites are more likely to eliminate the ite. 
+  // However, we undo this miniscoping in the end if the ITE is not eliminated.
   if( n[1].getType().isBitVector() )
   {
     Trace("ext-rew-ite") << "Infer split..." << std::endl;
@@ -510,7 +510,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         if( pullr.isConst() || pullr==n[i][j + 1] )
         {
           // f( t1..s1..tn ) ---> c implies
-          // f( t1..ite( C, s1, s2 )..tn ) ---> ite( C, c, f( t1..s2..tn ) )
+          // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, c, f( t1..s2..tn ) )
           children[ii] = n[i][2 - j];
           Node rem = nm->mkNode(n.getKind(), children);
           // ITE single child invariance
@@ -519,6 +519,8 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         else if( j==1 && ite_c[i][0]==pullr )
         {
           // ITE dual invariance
+          // f( t1..s1..tn ) ---> t  and  f( t1..s1..tn ) ---> t implies 
+          // f( t1..ite( A, s1, s2 )..tn ) ---> t
           return pullr;
         }
         ite_c[i][j] = pullr;
@@ -775,59 +777,70 @@ Node ExtendedRewriter::extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::
   return Node::null();
 }
 
-Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, TypeNode tn, Node ret )
+Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, Node ret, bool isXor )
 {
   Assert( ret.getKind()==eqk );
   
   NodeManager * nm = NodeManager::currentNM();
   
-  // sort/cancelling for Boolean EQUAL-chains
-  if( ret[0].getType()==tn )
+  TypeNode tn = ret[0].getType();
+  
+  // sort/cancelling for Boolean EQUAL/XOR-chains
+  Trace("ext-rew-eqchain") << "Eq-Chain : " << ret << std::endl;
+
+  // get the children on either side
+  bool gpol = true;
+  std::vector< Node > children;
+  for( unsigned r=0, size=ret.getNumChildren(); r<size; r++ )
   {
-    // get the children on either side
-    bool gpol = true;
-    std::vector< Node > children;
-    for( unsigned r=0; r<2; r++ )
+    Node curr = ret[r];
+    // assume, if necessary, right associative
+    while( curr.getKind()==eqk && curr[0].getType()==tn )
     {
-      Node curr = ret[r];
-      while( curr.getKind()==eqk && curr[0].getType()==tn )
-      {
-        children.push_back( curr[0] );
-        curr = curr[1];
-      }
-      children.push_back( curr );
+      children.push_back( curr[0] );
+      curr = curr[1];
     }
-    
-    std::map< Node, bool > cstatus;
-    // add children to status
-    for( const Node& c : children )
+    children.push_back( curr );
+  }
+  
+  std::map< Node, bool > cstatus;
+  // add children to status
+  for( const Node& c : children )
+  {
+    Node a = c;
+    if( a.getKind()==notk )
     {
-      Node a = c;
-      if( a.getKind()==notk )
-      {
-        gpol = !gpol;
-        a = a[0];
-      }
-      std::map< Node, bool >::iterator itc = cstatus.find(a);
-      if( itc==cstatus.end() )
-      {
-        cstatus[a] = true;
-      }
-      else
-      {
-        // cancels
-        cstatus.erase(a);
-      }
+      gpol = !gpol;
+      a = a[0];
     }
-    
-    
-    if( cstatus.empty() )
+    if( isXor )
     {
-      return nm->mkConst(gpol);
+      gpol = !gpol;
     }
-    
+    Trace("ext-rew-eqchain") << "...child : " << a << std::endl;
+    std::map< Node, bool >::iterator itc = cstatus.find(a);
+    if( itc==cstatus.end() )
+    {
+      cstatus[a] = true;
+    }
+    else
+    {
+      // cancels
+      cstatus.erase(a);
+    }
+  }
+  Trace("ext-rew-eqchain") << "Global polarity : " << gpol << std::endl;
+  
+  
+  if( cstatus.empty() )
+  {
+    return nm->mkConst(gpol);
+  }
+  
+  children.clear();
+  if( tn.isBoolean() )
+  {
     // cancel AND/OR children if possible
-    children.clear();
     for( std::pair< const Node, bool >& cp : cstatus )
     {
       if( cp.second )
@@ -876,32 +889,32 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
         }
       }
     }
-    
-    
-    // sorted right associative chain
-    for( std::pair< const Node, bool >& cp : cstatus )
+  }
+  
+  
+  // sorted right associative chain
+  for( std::pair< const Node, bool >& cp : cstatus )
+  {
+    if( cp.second )
     {
-      if( cp.second )
-      {
-        children.push_back( cp.first );
-      }
+      children.push_back( cp.first );
     }
-    std::sort( children.begin(), children.end() );
-    if( !gpol )
-    {
-      children[0] = mkNegate( notk, children[0] );
-    }
-    Node new_ret = children.back();
-    unsigned index = children.size()-1;
-    while( index>0 )
-    {
-      index--;
-      new_ret = nm->mkNode( eqk, children[index], new_ret );
-    }
-    if( new_ret!=ret )
-    {
-      return new_ret;
-    }
+  }
+  std::sort( children.begin(), children.end() );
+  if( !gpol )
+  {
+    children[0] = mkNegate( notk, children[0] );
+  }
+  Node new_ret = children.back();
+  unsigned index = children.size()-1;
+  while( index>0 )
+  {
+    index--;
+    new_ret = nm->mkNode( eqk, children[index], new_ret );
+  }
+  if( new_ret!=ret )
+  {
+    return new_ret;
   }
   return Node::null();
 }
@@ -1291,6 +1304,11 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
   {
     new_ret = rewriteBvBool( ret );
+  }
+  else if( k == BITVECTOR_XOR )
+  {
+    new_ret = extendedRewriteEqChain( BITVECTOR_XOR, BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_NOT, ret, true );
+    debugExtendedRewrite( ret, new_ret, "XOR chain simplify" );
   }
   else if( k == BITVECTOR_ULT )
   {

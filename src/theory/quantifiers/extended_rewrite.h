@@ -122,7 +122,7 @@ class ExtendedRewriter
    * 
    * If this function returns a non-null node ret, then n ---> ret.
    */
-  Node extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, TypeNode tn, Node n );
+  Node extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, Node n, bool isXor = false );
   /** extended rewrite aggressive 
    * 
    * All aggressive rewriting techniques (those that should be prioritized 
