@@ -1366,20 +1366,23 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     }
     else if( ck==BITVECTOR_AND || ck==BITVECTOR_OR )
     {
-      std::vector< Node > children;
-      for( const Node& cn : ret[0] )
+      if( ret[0].getNumChildren()==2 )
       {
-        children.push_back( cn );
-      }
-      Node cplus = nm->mkNode( BITVECTOR_PLUS, children );
-      cplus = Rewriter::rewrite( cplus );
-      if( isConstBv( cplus, false ) )
-      {
-        // if x+y=0, then 
-        // -( x and y ) ---> ( x or y )
-        // -( x or y ) ---> ( x and y )
-        new_ret = nm->mkNode( ck==BITVECTOR_AND ? BITVECTOR_OR : BITVECTOR_AND, children );
-        debugExtendedRewrite( ret, new_ret, "NEG-AND/OR-zero-miniscope" );
+        std::vector< Node > children;
+        for( const Node& cn : ret[0] )
+        {
+          children.push_back( cn );
+        }
+        Node cplus = nm->mkNode( BITVECTOR_PLUS, children );
+        cplus = Rewriter::rewrite( cplus );
+        if( isConstBv( cplus, false ) )
+        {
+          // if x+y=0, then 
+          // -( x and y ) ---> ( x or y )
+          // -( x or y ) ---> ( x and y )
+          new_ret = nm->mkNode( ck==BITVECTOR_AND ? BITVECTOR_OR : BITVECTOR_AND, children );
+          debugExtendedRewrite( ret, new_ret, "NEG-AND/OR-zero-miniscope" );
+        }
       }
     }
     else 
