@@ -162,7 +162,7 @@ class ExtendedRewriter
    * If this function returns true, then t1 is updated to t1', t2 is updated to
    * t2', and b and e are updated to terms such that:
    *   t1 = b ++ t1' ++ e
-   *   t2 = b ++ t1' ++ e
+   *   t2 = b ++ t2' ++ e
    * where ++ is a concatenation operator, Node::null() is implicitly the
    * empty term. If this function returns false, then all arguments are left
    * unchanged.
@@ -243,7 +243,12 @@ class ExtendedRewriter
   void getBvMonomialSum( Node n, std::map< Node, Node >& msum );
   /** mkNode */
   Node mkNodeFromBvMonomial( Node n, std::map< Node, Node >& msum );
-  /** splice */
+  /** splice 
+   * 
+   * Adds k (non-concat) terms to n1v and n2v such that:
+   *   n1 is equivalent to n1v[0] ++ ... ++ n1v[k] and
+   *   n2 is equivalent to n2v[0] ++ ... ++ n2v[k].
+   */
   void spliceBv( Node n1, Node n2, std::vector< Node >& n1v, std::vector< Node >& n2v );
   //--------------------------------------end bit-vectors
   

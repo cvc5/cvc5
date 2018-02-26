@@ -293,6 +293,8 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   
   NodeManager * nm = NodeManager::currentNM();
   
+  Trace("ext-rew-ite") << "Rewrite ITE : " << n << std::endl;
+  
   // get entailed equalities in the condition
   std::vector< Node > eq_conds;
   Kind ck = n[0].getKind();
@@ -311,40 +313,17 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     }
   }
   
-  for( const Node& eq : eq_conds )
-  {
-    // simple invariant ITE
-    for (unsigned i = 0; i <=1; i++)
-    {
-      // ite( x = y ^ C, y, x ) ---> x
-      if (n[2] == eq[i] && n[1] == eq[1-i])
-      {
-        return n[2];
-      }
-      // ite( x = y ^ C, y[n..m], x[n...m] ) ---> x[n...m]
-      // TODO : generalize to:
-      // ite( x = y ^ C, t.y[n..m].s, t.x[n...m].s ) ---> t.x[n...m].s
-      if( n[2].getKind()==BITVECTOR_EXTRACT && n[2][0]==eq[i] )
-      {
-        Node ext = nm->mkNode( n[2].getOperator(), eq[1-i] );
-        ext = Rewriter::rewrite( ext );
-        if( ext==n[1] )
-        {
-          return n[2];
-        }
-      }
-    }
-  }
-  
-  
   Node new_ret;
   Node b;
   Node e;
   Node t1 = n[1];
   Node t2 = n[2];
   bool did_splice = false;
-  /*
-  // miniscope over splittable terms
+  // Floating miniscope of ITE
+  // Conceptually, this function temporarily rewrites:
+  //    ite( C, t.x.s, t.y.s ) ---> t.ite( C, x, y ).s,
+  // so that certain rewrites that eliminate the ite are more likely. However,
+  // we undo this miniscoping if the ITE cannot be eliminated.
   if( n[1].getType().isBitVector() )
   {
     if( inferSplit( t1, t2, b, e ) )
@@ -357,55 +336,112 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         t2 = n[2];
         did_splice = false;
       }
-      else if( full )
+      else if( Trace.isOn("ext-rew-ite") )
       {
-        new_ret = nm->mkNode( ITE, n[0], t1, t2 );
-      }
-    }
-  }
-  */
-  
-  // make a substitution 
-  std::vector< Node > vars;
-  std::vector< Node > subs;
-  for( const Node& eq : eq_conds )
-  {
-    for (unsigned i = 0; i < 2; i++)
-    {    
-      TNode r1 = eq[i];
-      TNode r2 = eq[1 - i];
-      if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
-      {
-        // TODO : union find
-        if( std::find( vars.begin(), vars.end(), r1 )==vars.end() )
+        Trace("ext-rew-ite") << "Floating minscope : " << std::endl;
+        if( !b.isNull() )
         {
-          vars.push_back( r1 );
-          subs.push_back( r2 );
+          Trace("ext-rew-ite") << "  " << b << " ++ " << std::endl;
+        }
+        Trace("ext-rew-ite") << "  (ite " << n[0] << " " << t1 << " " << t2 << ")" << std::endl;        
+        if( !e.isNull() )
+        {
+          Trace("ext-rew-ite") << "  " << " ++ " << e << std::endl;
         }
       }
     }
   }
   
-  if( !vars.empty() )
+  
+  for( const Node& eq : eq_conds )
   {
-    Node nn = t1.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-    if (nn != t1)
+    // simple invariant ITE
+    for (unsigned i = 0; i <=1; i++)
     {
-      // We are in a situation where we've made a copy of a term t in both 
-      // children t1 and t2. We must show that at least one copy of t 
-      // dissappears.
-      nn = Rewriter::rewrite( nn );
-      if( nn==t2 )
+      // ite( x = y ^ C, y, x ) ---> x
+      if (t2 == eq[i] && t1 == eq[1-i])
       {
-        new_ret = nn;
+        new_ret = t2;
+        break;
       }
-      else if( full || nn.isConst() )
+      // ite( x = y ^ C, y[n..m], x[n...m] ) ---> x[n...m]
+      // Due to the floating miniscope of ITE, this is generalized to:
+      // ite( x = y ^ C, t.y[n..m].s, t.x[n...m].s ) ---> t.x[n...m].s
+      if( t2.getKind()==BITVECTOR_EXTRACT && t2[0]==eq[i] )
       {
-        // ITE substitution: if x is less than t based on term ordering, then
-        //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
-        // This is generalized to multiple x.
-        new_ret = nm->mkNode( itek, n[0], nn, t2);
+        Node ext = nm->mkNode( t2.getOperator(), eq[1-i] );
+        ext = Rewriter::rewrite( ext );
+        if( ext==t1 )
+        {
+          new_ret = t2;
+          break;
+        }
       }
+    }
+    if( new_ret.isNull() )
+    {
+      break;
+    }
+  }
+  
+  if( new_ret.isNull() )
+  {
+    // make a substitution 
+    std::vector< Node > vars;
+    std::vector< Node > subs;
+    for( const Node& eq : eq_conds )
+    {
+      for (unsigned i = 0; i < 2; i++)
+      {    
+        TNode r1 = eq[i];
+        TNode r2 = eq[1 - i];
+        if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
+        {
+          // TODO : union find
+          if( std::find( vars.begin(), vars.end(), r1 )==vars.end() )
+          {
+            vars.push_back( r1 );
+            subs.push_back( r2 );
+          }
+        }
+      }
+    }
+
+    if( !vars.empty() )
+    {
+      bool success = false;
+      do
+      {
+        success = false;
+        Node nn = t1.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+        if (nn != t1)
+        {
+          // We are in a situation where we've made a copy of a term t in both 
+          // children t1 and t2. We must show that at least one copy of t 
+          // dissappears.
+          nn = Rewriter::rewrite( nn );
+          if( nn==t2 )
+          {
+            new_ret = nn;
+          }
+          else if( !did_splice && ( full || nn.isConst() ) )
+          {
+            // ITE substitution: if x is less than t based on an ordering, then
+            //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
+            // This is generalized to multiple x.
+            new_ret = nm->mkNode( itek, n[0], nn, t2);
+          }
+        }
+        if( new_ret.isNull() && did_splice )
+        {
+          // we never miniscope ITE, now we undo the splice and retry
+          t1 = n[1];
+          t2 = n[2];
+          did_splice = false;
+          success = true;
+        }
+      }
+      while( success );
     }
   }
 
@@ -929,21 +965,10 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
   {
     // get vectors for the two terms
     std::vector< Node > tvec[2];
-    for( unsigned r=0; r<2; r++ )
-    {
-      Node t = r==0 ? t1 : t2;
-      if( t.getKind()==concatk )
-      {
-        for( const Node& ct : t )
-        {
-          tvec[r].push_back( ct );
-        }
-      }
-      else
-      {
-        tvec[r].push_back( t );
-      }
-    }
+    
+    std::vector< Node > v1;
+    std::vector< Node > v2;
+    spliceBv( t1, t2, tvec[0], tvec[1] );
     
     // strip off full components
     std::vector< Node > rem[2];
@@ -995,27 +1020,26 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
         // splice constants
         if( c[0].isConst() && c[1].isConst() )
         {
-          unsigned size[2];
+          unsigned size = bv::utils::getSize(c[0]);
+          Assert( bv::utils::getSize(c[1])==size );
           BitVector cb[2];
           for( unsigned j=0; j<2; j++ )
           {
-            size[i] = bv::utils::getSize(c[i]);
             cb[i] = c[i].getConst<BitVector>();
           }
-          unsigned min_size = size[0]<size[1] ? size[0] : size[1];
           unsigned counter = 0;
           bool success;
           do
           {
             success = false;
-            unsigned i1 = r==0 ? (size[0]-(counter+1)) : counter;
-            unsigned i2 = r==0 ? (size[1]-(counter+1)) : counter;
+            unsigned i1 = r==0 ? (size-(counter+1)) : counter;
+            unsigned i2 = r==0 ? (size-(counter+1)) : counter;
             Integer bit1 = cb[0].extract(i1, i1).getValue();
             Integer bit2 = cb[1].extract(i2, i2).getValue();
             if( bit1==bit2 )
             {
               counter++;
-              if( counter<min_size )
+              if( counter<size )
               {
                 success = true;
               }
@@ -1025,12 +1049,12 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
           // if we spliced the constant
           if( counter>0 )
           {
-            Assert( counter<=size[0] );
-            BitVector rem = cb[0].extract(r==0 ? size[0]-1 : counter-1,r==0 ? size[0]-counter : 0);
+            Assert( counter<=size );
+            BitVector rem = cb[0].extract(r==0 ? size-1 : counter-1,r==0 ? size-counter : 0);
             Node remainder = bv::utils::mkConst( rem );
             for( unsigned j=0; j<2; j++ )
             {
-              if( counter==size[j] )
+              if( counter==size )
               {
                 // completely remove the component
                 if( r==0 )
@@ -1045,7 +1069,7 @@ bool ExtendedRewriter::inferSplit( Node& t1, Node& t2, Node& b, Node& e )
               else
               {
                 // replace it with the spliced
-                BitVector spl = r==0 ?  cb[j].extract(size[j]-counter-1,0) : cb[j].extract(size[j]-1,counter);
+                BitVector spl = r==0 ?  cb[j].extract(size-counter-1,0) : cb[j].extract(size-1,counter);
                 tvec[j][ r==0 ? 0 : tvec[j].size()-1 ] = bv::utils::mkConst( spl );
               }
             }
@@ -1168,16 +1192,34 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     }
     
     Assert( ret[0].getType().isBitVector() );
-    bool isZero = false;
+    bool hasZero = false;
+    bool hasConst = false;
+    unsigned cindex = 0;
     for( unsigned i=0; i<2; i++ )
     {
-      if( isConstBv( ret[0], false ) )
+      if( ret[i].isConst() )
       {
-        isZero = true;
-        break;
+        hasConst = true;
+        cindex = i;
+        if( isConstBv( ret[i], false ) )
+        {
+          hasZero = true;
+          break;
+        }
       }
     }
-    if( !isZero )
+    if( hasConst )
+    {
+      // these can be flipped
+      Kind nck = ret[1-cindex].getKind();
+      if( nck==BITVECTOR_NOT || nck==BITVECTOR_NEG )
+      {
+        new_ret = ret[1-cindex][0].eqNode( nm->mkNode( nck, ret[cindex] ) );
+        debugExtendedRewrite( ret, new_ret, "EQUAL const" );
+        return new_ret;
+      }
+    }
+    if( !hasZero )
     {
       Node slv_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], mkNegate( BITVECTOR_NEG, ret[1] ) );
       Node bv_zero = mkConstBv(ret[0],false);
