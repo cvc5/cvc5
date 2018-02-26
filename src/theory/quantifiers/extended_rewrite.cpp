@@ -813,10 +813,6 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
       gpol = !gpol;
       a = a[0];
     }
-    if( isXor )
-    {
-      gpol = !gpol;
-    }
     Trace("ext-rew-eqchain") << "...child : " << a << std::endl;
     std::map< Node, bool >::iterator itc = cstatus.find(a);
     if( itc==cstatus.end() )
@@ -827,6 +823,10 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
     {
       // cancels
       cstatus.erase(a);
+      if( isXor )
+      {
+        gpol = !gpol;
+      }
     }
   }
   Trace("ext-rew-eqchain") << "Global polarity : " << gpol << std::endl;
@@ -834,57 +834,59 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
   
   if( cstatus.empty() )
   {
-    return nm->mkConst(gpol);
+    return mkConst(tn, gpol);
   }
   
   children.clear();
-  if( tn.isBoolean() )
+
+  // cancel AND/OR children if possible
+  for( std::pair< const Node, bool >& cp : cstatus )
   {
-    // cancel AND/OR children if possible
-    for( std::pair< const Node, bool >& cp : cstatus )
+    if( cp.second )
     {
-      if( cp.second )
+      Node c = cp.first;
+      Kind ck = c.getKind();
+      if( ck==andk || ck==ork )
       {
-        Node c = cp.first;
-        Kind ck = c.getKind();
-        if( ck==andk || ck==ork )
+        for( unsigned j=0, nchild = c.getNumChildren(); j<nchild; j++ )
         {
-          for( unsigned j=0, nchild = c.getNumChildren(); j<nchild; j++ )
+          Node cl = c[j];
+          Node ca = cl.getKind()==notk ? cl[0] : cl;
+          bool capol = cl.getKind()!=notk;
+          // if this already exists as a child of the equality chain
+          std::map< Node, bool >::iterator itc = cstatus.find( ca );
+          if( itc!=cstatus.end() && itc->second )
           {
-            Node cl = c[j];
-            Node ca = cl.getKind()==notk ? cl[0] : cl;
-            bool capol = cl.getKind()!=notk;
-            // if this already exists as a child of the equality chain
-            std::map< Node, bool >::iterator itc = cstatus.find( ca );
-            if( itc!=cstatus.end() && itc->second )
+            // cancel it
+            cstatus[ca] = false;
+            cstatus[c] = false;
+            // make new child
+            // x = ( y | ~x ) ---> y & x
+            // x = ( y | x ) ---> ~y | x
+            // x = ( y & x ) ---> y | ~x
+            // x = ( y & ~x ) ---> ~y & ~x
+            std::vector< Node > new_children;
+            for( unsigned k=0, nchild = c.getNumChildren(); k<nchild; k++ )
             {
-              // cancel it
-              cstatus[ca] = false;
-              cstatus[c] = false;
-              // make new child
-              // x = ( y | ~x ) ---> y & x
-              // x = ( y | x ) ---> ~y | x
-              // x = ( y & x ) ---> y | ~x
-              // x = ( y & ~x ) ---> ~y & ~x
-              std::vector< Node > new_children;
-              for( unsigned k=0, nchild = c.getNumChildren(); k<nchild; k++ )
+              if( j!=k )
               {
-                if( j!=k )
-                {
-                  new_children.push_back( c[k] );
-                }
+                new_children.push_back( c[k] );
               }
-              Node nc[2];
-              nc[0] = c[j];
-              nc[1] = new_children.size()==1 ? new_children[0] : nm->mkNode( ck, new_children );
-              // negate the proper child 
-              unsigned nindex = (ck==andk)==capol ? 0 : 1;
-              nc[nindex] = mkNegate( notk, nc[nindex] );
-              Kind nk = capol ? ork : andk;
-              // store as new child
-              children.push_back( nm->mkNode(nk, nc[0], nc[1]) );
-              break;
             }
+            Node nc[2];
+            nc[0] = c[j];
+            nc[1] = new_children.size()==1 ? new_children[0] : nm->mkNode( ck, new_children );
+            // negate the proper child 
+            unsigned nindex = (ck==andk)==capol ? 0 : 1;
+            nc[nindex] = mkNegate( notk, nc[nindex] );
+            Kind nk = capol ? ork : andk;
+            // store as new child
+            children.push_back( nm->mkNode(nk, nc[0], nc[1]) );
+            if( isXor )
+            {
+              gpol = !gpol;
+            }
+            break;
           }
         }
       }
@@ -901,11 +903,13 @@ Node ExtendedRewriter::extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Ki
     }
   }
   std::sort( children.begin(), children.end() );
+
+  Node new_ret;
   if( !gpol )
   {
     children[0] = mkNegate( notk, children[0] );
   }
-  Node new_ret = children.back();
+  new_ret = children.back();
   unsigned index = children.size()-1;
   while( index>0 )
   {
@@ -2162,6 +2166,20 @@ bool ExtendedRewriter::isConstBv( Node n, bool isNot )
   return false;
 }
 
+Node ExtendedRewriter::mkConst(TypeNode tn, bool isTrue)
+{
+  if( tn.isBoolean() )
+  {
+    return NodeManager::currentNM()->mkConst( isTrue );
+  }
+  else if( tn.isBitVector() )
+  {
+    unsigned size = tn.getBitVectorSize();
+    return isTrue ? bv::utils::mkOnes(size) : bv::utils::mkZero(size);
+  }
+  return Node::null();
+}
+  
 Node ExtendedRewriter::mkNegate( Kind notk, Node n )
 {
   if( n.getKind()==notk )

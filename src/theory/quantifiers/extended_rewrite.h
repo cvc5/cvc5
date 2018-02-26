@@ -129,6 +129,8 @@ class ExtendedRewriter
    * at a lower level) go in this function.
    */
   Node extendedRewriteAggr(Node n);
+  /** Make constant for type, returns true/false for Boolean, max/0 for BV. */
+  Node mkConst(TypeNode tn, bool isTrue);
   /** 
    * Make negated term, returns the negation of n wrt Kind notk, eliminating
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
