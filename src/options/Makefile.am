@@ -9,8 +9,6 @@
 VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
 
 OPTIONS_CONFIG_FILES = \
-	test_newalttheory_options.toml \
-	test_newtheory_options.toml \
 	arith_options.toml \
 	arrays_options.toml \
 	base_options.toml \
