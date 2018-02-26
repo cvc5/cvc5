@@ -30,15 +30,12 @@ g_category_values = ['common', 'expert', 'regular', 'undocumented']
 
 ### Other globals
 
-g_long_to_opt = dict()  # NOTE: this maps long options to options and
-                        # is needed to map links to links_smt for now
-                        # (workaround to produce the same code)
-
-g_module_id_cache = dict()   # cache to check if module ids are unique
-g_long_cache = dict()        # cache to check if long options are unique
-g_short_cache = dict()       # cache to check if short options are unique
-g_smt_cache = dict()         # cache to check if smt options are unique
-g_name_cache = dict()        # cache to check if option names are unique
+g_long_to_opt = dict()     # maps long options to option objects
+g_module_id_cache = dict() # maps ids to filename/lineno
+g_long_cache = dict()      # maps long options to filename/fileno
+g_short_cache = dict()     # maps short options to filename/fileno
+g_smt_cache = dict()       # maps smt options to filename/fileno
+g_name_cache = dict()      # maps option names to filename/fileno
 
 
 ### Source code templates
@@ -607,8 +604,10 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     else:
                         getoption_handlers.append('std::stringstream ss;')
                         if is_numeric_cpp_type(option.type):
-                            getoption_handlers.append('ss << std::fixed << std::setprecision(8);')
-                        getoption_handlers.append('ss << options::{}();'.format(option.name))
+                            getoption_handlers.append(
+                                'ss << std::fixed << std::setprecision(8);')
+                        getoption_handlers.append('ss << options::{}();'.format(
+                            option.name))
                         getoption_handlers.append('return ss.str();')
                     getoption_handlers.append('}')
 
@@ -620,7 +619,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     'case {}:// --no-{}'.format(
                         option_value_cur, option.long))
                 cases.append(
-                    '  options->assignBool(options::{}, option, false);'.format(option.name))
+                    '  options->assignBool(options::{}, option, false);'.format(
+                        option.name))
                 cases.append('  break;\n')
 
                 options_handler.extend(cases)
@@ -633,14 +633,10 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                 option_value_cur += 1
 
 
-            ### Build options for options::getOptions()
             if option.name:
-                optname = None
-                if option.smt_name:
-                    optname = option.smt_name
-                else:
-                    optname = option.long
+                optname = option.smt_name if option.smt_name else option.long
 
+                ### Build options for options::getOptions()
                 if optname:
                     # collect SMT option names
                     options_smt.append('"{}",'.format(long_get_option(optname)))
@@ -664,8 +660,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                     options_getoptions.append(s)
 
 
-            ### Define runBoolPredicates/runHandlerAndPredicates
-            if option.name:
+                ### Define runBoolPredicates/runHandlerAndPredicates
                 if option.type == 'bool':
                     if len(predicates) > 0:
                         assert(handler is None)
@@ -684,8 +679,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                             predicates='\n'.join(predicates)
                         ))
 
-            ### Define handler assign/assignBool
-            if option.name:
+                ### Define handler assign/assignBool
                 tpl = tpl_assign_bool if option.type == 'bool' else tpl_assign
                 if option.type == 'bool' \
                    or option.short or option.long or option.smt_name:
@@ -695,8 +689,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                                 notifications='\n'.join(notifications)
                             ))
 
-            # default option values
-            if option.name:
+                # default option values
                 default = option.default if option.default else ''
                 defaults.append('{}({})'.format(option.name, default))
                 defaults.append('{}__setByUser__(false)'.format(option.name))
@@ -1111,6 +1104,8 @@ if __name__ == "__main__":
             # the alias instead.
             # This can be useful, since we can define links for the alternative
             # options, which would not be possible otherwise.
+            # TODO: if we define an alternative for an existing long option we
+            #       still need to set the option to false
             if alias.long.startswith('no-'):
                 m = match_option(alias.long)
                 if m[0] and m[0].type == 'bool':
