@@ -9,6 +9,8 @@
 VPATH = $(if $(COVERAGE_ON), $(realpath @srcdir@), @srcdir@)
 
 OPTIONS_CONFIG_FILES = \
+	test_newalttheory_options.toml \
+	test_newtheory_options.toml \
 	arith_options.toml \
 	arrays_options.toml \
 	base_options.toml \
@@ -142,6 +144,7 @@ EXTRA_DIST = \
 # Make sure the implicit rules never mistake a _template.cpp or _template.h file for source file.
 $(CPP_TEMPLATE_FILES):;
 
+$(OPTIONS_CPPS): options.cpp
 
 options.cpp: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES)
 	@srcdir@/mkoptions.py @abs_srcdir@ . $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))

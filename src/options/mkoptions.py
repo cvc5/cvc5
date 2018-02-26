@@ -932,9 +932,11 @@ def check_module_attrib(filename, lineno, attrib, value):
                      g_module_id_cache[value][0],
                      g_module_id_cache[value][1]))
         g_module_id_cache[value] = (filename, lineno)
-        if not value.isalpha():
+        r = '[A-Z]+[A-Z_]*'
+        if not re.fullmatch(r, value):
             perr(filename, lineno,
-                 "module id '{}' should only contain characters".format(value))
+                 "module id '{}' does not match regex criteria '{}'".format(
+                    value, r))
     elif attrib == 'name':
         if len(value) == 0:
             perr(filename, lineno, 'module name must not be empty')
