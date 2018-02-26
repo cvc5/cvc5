@@ -2348,6 +2348,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   | FP_RTN_FULL_TOK { expr = MK_CONST(roundTowardNegative); }
   | FP_RTZ_FULL_TOK { expr = MK_CONST(roundTowardZero); }
 
+  | REAL_PI_TOK {
+      expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->realType(), kind::PI);
+    }
+
   | RENOSTR_TOK
     { std::vector< Expr > nvec;
       expr = MK_EXPR( CVC4::kind::REGEXP_EMPTY, nvec );
@@ -3190,6 +3194,8 @@ TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'tupSe
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
+
+REAL_PI_TOK : 'real.pi';
 
 FP_PINF_TOK : '+oo';
 FP_NINF_TOK : '-oo';

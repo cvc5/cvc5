@@ -2,7 +2,7 @@
 /*! \file theory_bv_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Tim King
+ **   Aina Niemetz, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -24,26 +24,6 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 namespace utils {
-
-/* ------------------------------------------------------------------------- */
-
-BitVector mkBitVectorOnes(unsigned size)
-{
-  Assert(size > 0);
-  return BitVector(1, Integer(1)).signExtend(size - 1);
-}
-
-BitVector mkBitVectorMinSigned(unsigned size)
-{
-  Assert(size > 0);
-  return BitVector(size).setBit(size - 1);
-}
-
-BitVector mkBitVectorMaxSigned(unsigned size)
-{
-  Assert(size > 0);
-  return ~mkBitVectorMinSigned(size);
-}
 
 /* ------------------------------------------------------------------------- */
 
@@ -146,75 +126,76 @@ bool isBVPredicate(TNode node)
          || k == kind::BITVECTOR_REDAND;
 }
 
+static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
+{
+  TNode t = term.getKind() == kind::NOT ? term[0] : term;
+
+  std::vector<TNode> stack;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  stack.push_back(t);
+
+  while (!stack.empty())
+  {
+    TNode n = stack.back();
+    stack.pop_back();
+
+    if (cache.find(n) != cache.end()) continue;
+
+    if (n.getNumChildren() == 0)
+    {
+      cache[n] = true;
+      visited[n] = true;
+      continue;
+    }
+
+    if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
+        == theory::THEORY_BV)
+    {
+      Kind k = n.getKind();
+      Assert(k != kind::CONST_BITVECTOR);
+      if (k != kind::EQUAL
+          && (iseq || k != kind::BITVECTOR_CONCAT)
+          && (iseq || k != kind::BITVECTOR_EXTRACT)
+          && n.getMetaKind() != kind::metakind::VARIABLE)
+      {
+        cache[n] = false;
+        continue;
+      }
+    }
+
+    if (!visited[n])
+    {
+      visited[n] = true;
+      stack.push_back(n);
+      stack.insert(stack.end(), n.begin(), n.end());
+    }
+    else
+    {
+      bool iseqt = true;
+      for (const Node& c : n)
+      {
+        Assert(cache.find(c) != cache.end());
+        if (!cache[c])
+        {
+          iseqt = false;
+          break;
+        }
+      }
+      cache[n] = iseqt;
+    }
+  }
+  Assert(cache.find(t) != cache.end());
+  return cache[t];
+}
+
 bool isCoreTerm(TNode term, TNodeBoolMap& cache)
 {
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-
-  if (term.getNumChildren() == 0) return true;
-
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
-  {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::BITVECTOR_CONCAT
-        && k != kind::BITVECTOR_EXTRACT && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isCoreTerm(term[i], cache))
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  cache[term] = true;
-  return true;
+  return isCoreEqTerm(false, term, cache);
 }
 
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache)
 {
-  term = term.getKind() == kind::NOT ? term[0] : term;
-  TNodeBoolMap::const_iterator it = cache.find(term);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-
-  if (term.getNumChildren() == 0) return true;
-
-  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV)
-  {
-    Kind k = term.getKind();
-    if (k != kind::CONST_BITVECTOR && k != kind::EQUAL
-        && term.getMetaKind() != kind::metakind::VARIABLE)
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
-  {
-    if (!isEqualityTerm(term[i], cache))
-    {
-      cache[term] = false;
-      return false;
-    }
-  }
-
-  cache[term] = true;
-  return true;
+  return isCoreEqTerm(true, term, cache);
 }
 
 bool isBitblastAtom(Node lit)
@@ -235,20 +216,34 @@ Node mkFalse()
   return NodeManager::currentNM()->mkConst<bool>(false);
 }
 
-Node mkOnes(unsigned size)
-{
-  BitVector val = mkBitVectorOnes(size);
-  return NodeManager::currentNM()->mkConst<BitVector>(val);
-}
-
 Node mkZero(unsigned size)
 {
+  Assert(size > 0);
   return mkConst(size, 0u);
 }
 
 Node mkOne(unsigned size)
 {
+  Assert(size > 0);
   return mkConst(size, 1u);
+}
+
+Node mkOnes(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkOnes(size));
+}
+
+Node mkMinSigned(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkMinSigned(size));
+}
+
+Node mkMaxSigned(unsigned size)
+{
+  Assert(size > 0);
+  return mkConst(BitVector::mkMaxSigned(size));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -278,33 +273,6 @@ Node mkVar(unsigned size)
   return nm->mkSkolem("BVSKOLEM$$",
                       nm->mkBitVectorType(size),
                       "is a variable created by the theory of bitvectors");
-}
-
-/* ------------------------------------------------------------------------- */
-
-Node mkNode(Kind kind, TNode child)
-{
-  return NodeManager::currentNM()->mkNode(kind, child);
-}
-
-Node mkNode(Kind kind, TNode child1, TNode child2)
-{
-  return NodeManager::currentNM()->mkNode(kind, child1, child2);
-}
-
-Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3)
-{
-  return NodeManager::currentNM()->mkNode(kind, child1, child2, child3);
-}
-
-Node mkNode(Kind kind, std::vector<Node>& children)
-{
-  Assert(children.size() > 0);
-  if (children.size() == 1)
-  {
-    return children[0];
-  }
-  return NodeManager::currentNM()->mkNode(kind, children);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -457,26 +425,6 @@ Node mkUmulo(TNode t1, TNode t2)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkConjunction(const std::vector<TNode>& nodes)
-{
-  NodeBuilder<> conjunction(kind::AND);
-  Node btrue = mkTrue();
-  for (const Node& n : nodes)
-  {
-    if (n != btrue)
-    {
-      Assert(isBVPredicate(n));
-      conjunction << n;
-    }
-  }
-  unsigned nchildren = conjunction.getNumChildren();
-  if (nchildren == 0) { return btrue; }
-  if (nchildren == 1) { return conjunction[0]; }
-  return conjunction;
-}
-
-/* ------------------------------------------------------------------------- */
-
 Node flattenAnd(std::vector<TNode>& queue)
 {
   TNodeSet nodes;
@@ -505,59 +453,6 @@ Node flattenAnd(std::vector<TNode>& queue)
     children.push_back(*it);
   }
   return mkAnd(children);
-}
-
-/* ------------------------------------------------------------------------- */
-
-// FIXME: dumb code
-void intersect(const std::vector<uint32_t>& v1,
-                      const std::vector<uint32_t>& v2,
-                      std::vector<uint32_t>& intersection) {
-  for (unsigned i = 0; i < v1.size(); ++i) {
-    bool found = false;
-    for (unsigned j = 0; j < v2.size(); ++j) {
-      if (v2[j] == v1[i]) {
-        found = true;
-        break;
-      }
-    }
-    if (found) {
-      intersection.push_back(v1[i]);
-    }
-  }
-}
-
-/* ------------------------------------------------------------------------- */
-
-uint64_t numNodes(TNode node, NodeSet& seen)
-{
-  if (seen.find(node) != seen.end()) return 0;
-
-  uint64_t size = 1;
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    size += numNodes(node[i], seen);
-  }
-  seen.insert(node);
-  return size;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void collectVariables(TNode node, NodeSet& vars)
-{
-  if (vars.find(node) != vars.end()) return;
-
-  if (Theory::isLeafOf(node, THEORY_BV)
-      && node.getKind() != kind::CONST_BITVECTOR)
-  {
-    vars.insert(node);
-    return;
-  }
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    collectVariables(node[i], vars);
-  }
 }
 
 /* ------------------------------------------------------------------------- */

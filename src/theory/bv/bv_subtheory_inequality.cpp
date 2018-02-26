@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_inequality.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Morgan Deters
+ **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -58,8 +58,9 @@ bool InequalitySolver::check(Theory::Effort e) {
       TNode b = fact[0][0];
       ok = addInequality(a, b, true, fact);
       // propagate
+      // NodeManager *nm = NodeManager::currentNM();
       // if (d_bv->isSharedTerm(a) && d_bv->isSharedTerm(b)) {
-      //   Node neq = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, a, b));
+      //   Node neq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, a, b));
       //   d_bv->storePropagation(neq, SUB_INEQUALITY);
       //   d_explanations[neq] = fact;
       // }
@@ -73,7 +74,7 @@ bool InequalitySolver::check(Theory::Effort e) {
       ok = addInequality(a, b, true, fact);
       // propagate
       // if (d_bv->isSharedTerm(a) && d_bv->isSharedTerm(b)) {
-      //   Node neq = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, a, b));
+      //   Node neq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, a, b));
       //   d_bv->storePropagation(neq, SUB_INEQUALITY);
       //   d_explanations[neq] = fact;
       // }
@@ -106,32 +107,39 @@ bool InequalitySolver::check(Theory::Effort e) {
   return true;
 }
 
-EqualityStatus InequalitySolver::getEqualityStatus(TNode a, TNode b) {
-  if (!isComplete())
-    return EQUALITY_UNKNOWN;
+EqualityStatus InequalitySolver::getEqualityStatus(TNode a, TNode b)
+{
+  if (!isComplete()) return EQUALITY_UNKNOWN;
 
-  Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
-  Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+  NodeManager* nm = NodeManager::currentNM();
+  Node a_lt_b = nm->mkNode(kind::BITVECTOR_ULT, a, b);
+  Node b_lt_a = nm->mkNode(kind::BITVECTOR_ULT, b, a);
 
   // if an inequality containing the terms has been asserted then we know
   // the equality is false
-  if (d_assertionSet.contains(a_lt_b) || d_assertionSet.contains(b_lt_a)) {
+  if (d_assertionSet.contains(a_lt_b) || d_assertionSet.contains(b_lt_a))
+  {
     return EQUALITY_FALSE;
   }
 
-  if (!d_inequalityGraph.hasValueInModel(a) ||
-      !d_inequalityGraph.hasValueInModel(b)) {
+  if (!d_inequalityGraph.hasValueInModel(a)
+      || !d_inequalityGraph.hasValueInModel(b))
+  {
     return EQUALITY_UNKNOWN;
   }
 
-  // TODO: check if this disequality is entailed by inequalities via transitivity
+  // TODO: check if this disequality is entailed by inequalities via
+  // transitivity
 
   BitVector a_val = d_inequalityGraph.getValueInModel(a);
   BitVector b_val = d_inequalityGraph.getValueInModel(b);
 
-  if (a_val == b_val) {
+  if (a_val == b_val)
+  {
     return EQUALITY_TRUE_IN_MODEL;
-  } else {
+  }
+  else
+  {
     return EQUALITY_FALSE_IN_MODEL;
   }
 }
@@ -222,13 +230,16 @@ void InequalitySolver::preRegister(TNode node) {
   }
 }
 
-bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact) {
+bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
+{
   bool ok = d_inequalityGraph.addInequality(a, b, strict, fact);
   if (!ok || !strict) return ok;
 
   Node one = utils::mkConst(utils::getSize(a), 1);
-  Node a_plus_one = Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_PLUS, a, one));
-  if (d_ineqTerms.find(a_plus_one) != d_ineqTerms.end()) {
+  Node a_plus_one = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, a, one));
+  if (d_ineqTerms.find(a_plus_one) != d_ineqTerms.end())
+  {
     ok = d_inequalityGraph.addInequality(a_plus_one, b, false, fact);
   }
   return ok;

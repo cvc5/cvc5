@@ -2,7 +2,7 @@
 /*! \file theory_bv_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Morgan Deters
+ **   Aina Niemetz, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -38,13 +38,6 @@ namespace utils {
 typedef std::unordered_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
-/* Create bit-vector of ones of given size. */
-BitVector mkBitVectorOnes(unsigned size);
-/* Create bit-vector representing the minimum signed value of given size. */
-BitVector mkBitVectorMinSigned(unsigned size);
-/* Create bit-vector representing the maximum signed value of given size. */
-BitVector mkBitVectorMaxSigned(unsigned size);
-
 /* Get the bit-width of given node. */
 unsigned getSize(TNode node);
 
@@ -61,18 +54,28 @@ unsigned getSignExtendAmount(TNode node);
 
 /* Returns true if given node represents a zero bit-vector.  */
 bool isZero(TNode node);
+
 /* If node is a constant of the form 2^c or -2^c, then this function returns
  * c+1. Otherwise, this function returns 0. The flag isNeg is updated to
  * indicate whether node is negative.  */
 unsigned isPow2Const(TNode node, bool& isNeg);
+
 /* Returns true if node or all of its children is const. */
 bool isBvConstTerm(TNode node);
+
 /* Returns true if node is a predicate over bit-vector nodes. */
 bool isBVPredicate(TNode node);
-/* Returns true if given term is a THEORY_BV term.  */
+
+/* Returns true if given term is
+ *   - not a THEORY_BV term
+ *   - a THEORY_BV \Sigma_core term, where
+ *     \Sigma_core = { concat, extract, =, bv constants, bv variables } */
 bool isCoreTerm(TNode term, TNodeBoolMap& cache);
-/* Returns true if given term is a bv constant, variable or equality term.  */
+
+/* Returns true if given term is a THEORY_BV \Sigma_equality term.
+ * \Sigma_equality = { =, bv constants, bv variables }  */
 bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
+
 /* Returns true if given node is an atom that is bit-blasted.  */
 bool isBitblastAtom(Node lit);
 
@@ -86,6 +89,10 @@ Node mkOnes(unsigned size);
 Node mkZero(unsigned size);
 /* Create bit-vector node representing a bit-vector value one of given size. */
 Node mkOne(unsigned size);
+/* Create bit-vector node representing the min signed value of given size. */
+Node mkMinSigned(unsigned size);
+/* Create bit-vector node representing the max signed value of given size. */
+Node mkMaxSigned(unsigned size);
 
 /* Create bit-vector constant of given size and value. */
 Node mkConst(unsigned size, unsigned int value);
@@ -96,16 +103,28 @@ Node mkConst(const BitVector& value);
 /* Create bit-vector variable. */
 Node mkVar(unsigned size);
 
-/* Create n-ary node of given kind.  */
-Node mkNode(Kind kind, TNode child);
-Node mkNode(Kind kind, TNode child1, TNode child2);
-Node mkNode(Kind kind, TNode child1, TNode child2, TNode child3);
-Node mkNode(Kind kind, std::vector<Node>& children);
-
 /* Create n-ary bit-vector node of kind BITVECTOR_AND, BITVECTOR_OR or
  * BITVECTOR_XOR where its children are sorted  */
 Node mkSortedNode(Kind kind, TNode child1, TNode child2);
 Node mkSortedNode(Kind kind, std::vector<Node>& children);
+
+/* Create n-ary node of associative/commutative kind.  */
+template<bool ref_count>
+Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
+{
+  Assert (k == kind::AND
+          || k == kind::OR
+          || k == kind::XOR
+          || k == kind::BITVECTOR_AND
+          || k == kind::BITVECTOR_OR
+          || k == kind::BITVECTOR_XOR
+          || k == kind::BITVECTOR_PLUS
+          || k == kind::BITVECTOR_SUB
+          || k == kind::BITVECTOR_MULT);
+
+  if (nodes.size() == 1) { return nodes[0]; }
+  return NodeManager::currentNM()->mkNode(k, nodes);
+}
 
 /* Create node of kind NOT. */
 Node mkNot(Node child);
@@ -116,8 +135,7 @@ template<bool ref_count>
 Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 {
   std::set<TNode> all(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 0) { return mkTrue(); }
+  Assert(all.size() > 0);
 
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
@@ -126,6 +144,9 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   for (const Node& n : all) { conjunction << n; }
   return conjunction;
 }
+
+/* ------------------------------------------------------------------------- */
+
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
 /* Create n-ary node of kind OR.  */
@@ -133,8 +154,7 @@ template<bool ref_count>
 Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
 {
   std::set<TNode> all(nodes.begin(), nodes.end());
-
-  if (all.size() == 0) { return mkTrue(); }
+  Assert(all.size() > 0);
 
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }
@@ -184,12 +204,6 @@ Node flattenAnd(std::vector<TNode>& queue);
 void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
-
-/* Determine the total number of nodes that a given node consists of.  */
-uint64_t numNodes(TNode node, NodeSet& seen);
-
-/* Collect all variables under a given a node.  */
-void collectVariables(TNode node, NodeSet& vars);
 
 }
 }

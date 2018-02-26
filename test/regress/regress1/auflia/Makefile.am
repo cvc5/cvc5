@@ -19,7 +19,8 @@ endif
 TESTS =	\
 	bug330.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS)  \
+	bug337.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress1 test

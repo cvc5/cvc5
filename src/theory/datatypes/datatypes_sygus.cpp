@@ -22,9 +22,9 @@
 #include "printer/printer.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/quantifiers/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus_explain.h"
-#include "theory/quantifiers/term_database_sygus.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_model.h"
 
@@ -821,23 +821,24 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
               if (pt_index >= 0)
               {
                 Trace("sygus-rr-debug")
-                    << "; both ext-rewrite to : " << bvr << std::endl;
+                    << "; unsound: both ext-rewrite to : " << bvr << std::endl;
                 Trace("sygus-rr-debug")
-                    << "; but are not equivalent for : " << std::endl;
+                    << "; unsound: but are not equivalent for : " << std::endl;
                 std::vector<Node> vars;
                 std::vector<Node> pt;
                 its->second.getSamplePoint(pt_index, vars, pt);
                 Assert(vars.size() == pt.size());
                 for (unsigned i = 0, size = pt.size(); i < size; i++)
                 {
-                  Trace("sygus-rr-debug")
-                      << ";   " << vars[i] << " -> " << pt[i] << std::endl;
+                  Trace("sygus-rr-debug") << "; unsound:    " << vars[i]
+                                          << " -> " << pt[i] << std::endl;
                 }
                 Node bv_e = its->second.evaluate(bv, pt_index);
                 Node pbv_e = its->second.evaluate(prev_bv, pt_index);
                 Assert(bv_e != pbv_e);
-                Trace("sygus-rr-debug") << "; where they evaluate to " << pbv_e
-                                        << " and " << bv_e << std::endl;
+                Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
+                                        << pbv_e << " and " << bv_e
+                                        << std::endl;
               }
               else
               {

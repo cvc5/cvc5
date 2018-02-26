@@ -430,6 +430,7 @@ Node SygusSampler::evaluate(Node n, unsigned index)
   // just a substitution
   std::vector<Node>& pt = d_samples[index];
   Node ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
+  Trace("sygus-sample-ev-debug") << "Rewrite : " << ev << std::endl;
   ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << "( " << n << ", " << index << " ) -> " << ev
                            << std::endl;
@@ -640,9 +641,24 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
+void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
+                                         Node f,
+                                         unsigned nsamples)
+{
+  SygusSampler::initializeSygus(qe->getTermDatabaseSygus(), f, nsamples);
+
+  // initialize the dynamic rewriter
+  std::stringstream ss;
+  ss << f;
+  d_drewrite =
+      std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+}
+
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
+  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
+                          << std::endl;
   if (eq_n == n)
   {
     return n;
@@ -665,6 +681,19 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       isUnique = containsFreeVariables(eq_n, n);
     }
   }
+  Trace("sygus-synth-rr-debug") << "AlphaEq unique: " << isUnique << std::endl;
+  bool rewRedundant = false;
+  if (d_drewrite != nullptr)
+  {
+    Trace("sygus-synth-rr-debug") << "Add rewrite..." << std::endl;
+    if (!d_drewrite->addRewrite(n, eq_n))
+    {
+      rewRedundant = isUnique;
+      // must be unique according to the dynamic rewriter
+      isUnique = false;
+    }
+  }
+  Trace("sygus-synth-rr-debug") << "Rewrite unique: " << isUnique << std::endl;
 
   if (isUnique)
   {
@@ -677,12 +706,16 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     }
     return eq_n;
   }
-  else
+  else if (Trace.isOn("sygus-synth-rr"))
   {
-    Trace("sygus-synth-rr") << "Alpha equivalent candidate rewrite : " << eq_n
-                            << " " << n << std::endl;
+    Trace("sygus-synth-rr") << "Redundant rewrite : " << eq_n << " " << n;
+    if (rewRedundant)
+    {
+      Trace("sygus-synth-rr") << " (by rewriting)";
+    }
+    Trace("sygus-synth-rr") << std::endl;
   }
-  return n;
+  return Node::null();
 }
 
 } /* CVC4::theory::quantifiers namespace */
