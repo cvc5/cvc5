@@ -813,7 +813,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
 
         // register the current node with the sampler
         Node sample_ret = its->second.registerTerm(bv);
-        
+
         // bv and bvr should be equivalent under examples
         if (sample_ret != bvr_sample_ret)
         {

@@ -86,7 +86,7 @@ private:
      * where r is the rewritten form of the builtin equivalent of t, and r'
      * is the term returned by d_sampler[a][tn].registerTerm( r ).
      */
-    std::map< TypeNode, std::map<Node, Node> > d_search_val_sample;
+    std::map<TypeNode, std::map<Node, Node>> d_search_val_sample;
     /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };
