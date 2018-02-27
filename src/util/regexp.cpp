@@ -371,7 +371,7 @@ bool String::isDigit(unsigned character)
   return c >= '0' && c <= '9';
 }
 
-long String::maxSize()
+size_t String::maxSize()
 {
   return std::numeric_limits<size_t>::max();
 }
