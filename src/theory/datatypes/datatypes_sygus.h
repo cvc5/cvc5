@@ -54,7 +54,7 @@ private:
   NodeSet d_active_terms;
   IntMap d_currTermSize;
   Node d_zero;
-private:
+ private:
   /** 
    * Map from terms (selector chains) to their anchors. The anchor of a 
    * selector chain S1( ... Sn( x ) ... ) is x.
