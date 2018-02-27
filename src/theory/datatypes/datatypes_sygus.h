@@ -80,11 +80,13 @@ private:
     std::map< TypeNode, std::map< Node, unsigned > > d_search_val_sz;
     /** search value sample
      *
-     * This is used for the sygusRewVerify() option. For each term we
-     * register in this cache, this stores the value returned by calling
-     * SygusSample::registerTerm(...) on it.
+     * This is used for the sygusRewVerify() option. For each sygus term t
+     * of type tn with anchor a that we register with this cache, we set:
+     *   d_search_val_sample[tn][r] = r'
+     * where r is the rewritten form of the builtin equivalent of t, and r'
+     * is the term returned by d_sampler[a][tn].registerTerm( r ).
      */
-    std::map<Node, Node> d_search_val_sample;
+    std::map< TypeNode, std::map<Node, Node> > d_search_val_sample;
     /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };

@@ -799,21 +799,21 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         }
         Node bvr_sample_ret;
         std::map<Node, Node>::iterator itsv =
-            d_cache[a].d_search_val_sample.find(bvr);
-        if (itsv == d_cache[a].d_search_val_sample.end())
+            d_cache[a].d_search_val_sample[tn].find(bvr);
+        if (itsv == d_cache[a].d_search_val_sample[tn].end())
         {
           // initialize the sampler for the rewritten form of this node
           bvr_sample_ret = its->second.registerTerm(bvr);
-          d_cache[a].d_search_val_sample[bvr] = bvr_sample_ret;
+          d_cache[a].d_search_val_sample[tn][bvr] = bvr_sample_ret;
         }
         else
         {
           bvr_sample_ret = itsv->second;
         }
 
+        // register the current node with the sampler
         Node sample_ret = its->second.registerTerm(bv);
-        d_cache[a].d_search_val_sample[bv] = sample_ret;
-
+        
         // bv and bvr should be equivalent under examples
         if (sample_ret != bvr_sample_ret)
         {
