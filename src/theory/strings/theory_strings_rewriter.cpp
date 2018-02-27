@@ -1842,7 +1842,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC4::Rational RMAXINT(std::numeric_limits<size_t>::max());
+    CVC4::Rational RMAXINT(CVC4::String::maxSize());
     if (node[2].getConst<Rational>() > RMAXINT)
     {
       // We know that, due to limitations on the size of string constants
