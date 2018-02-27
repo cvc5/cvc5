@@ -43,7 +43,8 @@ TESTS = \
   issue1189.smt2 \
   rewrites-v2.smt2 \
   substr-rewrites.smt2 \
-  repl-rewrites2.smt2
+  repl-rewrites2.smt2 \
+  idof-sem.smt2
 
 FAILING_TESTS =
 

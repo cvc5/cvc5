@@ -163,6 +163,11 @@ class CVC4_PUBLIC String {
   */
   static bool isDigit(unsigned character);
 
+  /**
+   * Returns the maximum length of string representable by this class.
+   * Corresponds to the maximum size of d_str.
+   */
+  static size_t maxSize();
  private:
   // guarded
   static unsigned char hexToDec(unsigned char c);
