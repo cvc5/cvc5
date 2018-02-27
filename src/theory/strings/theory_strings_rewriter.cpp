@@ -1842,10 +1842,12 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC4::Rational RMAXINT(LONG_MAX);
+    CVC4::Rational RMAXINT(std::numeric_limits<size_t>::max());
     if (node[2].getConst<Rational>() > RMAXINT)
     {
-      Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
+      // We know that, due to limitations on the size of string constants
+      // in our implementation, that accessing a position greater than
+      // RMAXINT is guaranteed to be out of bounds.
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-max");
     }
