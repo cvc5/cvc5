@@ -2157,13 +2157,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   if (n[1].isConst())
   {
     CVC4::String s = n[1].getConst<String>();
-    if (s.isEmptyString())
-    {
-      Assert(!n[0].isConst());
-      Node ret = n[0].eqNode(n[1]);
-      return returnRewrite(n, ret, "suf/prefix-empty");
-    }
-    else if (n[0].isConst())
+    if (n[0].isConst())
     {
       Node ret = NodeManager::currentNM()->mkConst(false);
       CVC4::String t = n[0].getConst<String>();
@@ -2176,6 +2170,11 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
         }
       }
       return returnRewrite(n, ret, "suf/prefix-const");
+    }
+    else if (s.isEmptyString())
+    {
+      Node ret = n[0].eqNode(n[1]);
+      return returnRewrite(n, ret, "suf/prefix-empty");
     }
     else if (s.size() == 1)
     {
