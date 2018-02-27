@@ -306,7 +306,7 @@ option sygusRewSynth --sygus-rr-synth bool :read-write :default false
   use sygus to enumerate candidate rewrite rules via sampling
 option sygusRewVerify --sygus-rr-verify bool :read-write :default false
   use sygus to verify the correctness of rewrite rules via sampling
-option sygusSamples --sygus-samples=N int :read-write :default 100 :read-write
+option sygusSamples --sygus-samples=N int :read-write :default 1000 :read-write
   number of points to consider when doing sygus rewriter sample testing
 option sygusSampleGrammar --sygus-sample-grammar bool :default true
   when applicable, use grammar for choosing sample points

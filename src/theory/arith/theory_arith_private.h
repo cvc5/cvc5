@@ -829,25 +829,43 @@ private:
 
   Statistics d_statistics;
 
+  enum ArithSkolemId
+  {
+    arith_skolem_div_by_zero,
+    arith_skolem_int_div_by_zero,
+    arith_skolem_mod_by_zero,
+  };
 
   /**
-   * Function symbol used to implement uninterpreted division-by-zero
-   * semantics.  Needed to deal with partial division function ("/").
+   * Function symbols used to implement:
+   * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
+   * division function ("/"),
+   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with
+   * partial function "div",
+   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial
+   * function "mod".
+   *
+   * If the option arithNoPartialFun() is enabled, then the range of this map
+   * stores Skolem constants instead of Skolem functions, meaning that the
+   * function-ness of e.g. division by zero is ignored.
    */
-  Node d_divByZero;
-
-  /**
-   * Function symbol used to implement uninterpreted
-   * int-division-by-zero semantics.  Needed to deal with partial
-   * function "div".
+  std::map<ArithSkolemId, Node> d_arith_skolem;
+  /** get arithmetic skolem
+   *
+   * Returns the Skolem in the above map for the given id, creating it if it
+   * does not already exist. If a Skolem function is created, the logic is
+   * widened to include UF.
    */
-  Node d_intDivByZero;
-
-  /**
-   * Function symbol used to implement uninterpreted mod-zero
-   * semantics.  Needed to deal with partial function "mod".
+  Node getArithSkolem(LogicRequest& logicRequest, ArithSkolemId asi);
+  /** get arithmetic skolem application
+   *
+   * By default, this returns the term f( n ), where f is the Skolem function
+   * for the identifier asi.
+   *
+   * If the option arithNoPartialFun is enabled, this returns f, where f is
+   * the Skolem constant for the identifier asi.
    */
-  Node d_modZero;
+  Node getArithSkolemApp(LogicRequest& logicRequest, Node n, ArithSkolemId asi);
 
   /**
    *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse

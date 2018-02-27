@@ -54,10 +54,37 @@ private:
   NodeSet d_active_terms;
   IntMap d_currTermSize;
   Node d_zero;
-private:
+
+ private:
+  /**
+   * Map from terms (selector chains) to their anchors. The anchor of a
+   * selector chain S1( ... Sn( x ) ... ) is x.
+   */
   std::map< Node, Node > d_term_to_anchor;
+  /**
+   * Map from terms (selector chains) to the conjecture that their anchor is
+   * associated with.
+   */
   std::map<Node, quantifiers::CegConjecture*> d_term_to_anchor_conj;
+  /**
+   * Map from terms (selector chains) to their depth. The depth of a selector
+   * chain S1( ... Sn( x ) ... ) is:
+   *   weight( S1 ) + ... + weight( Sn ),
+   * where weight is the selector weight of Si
+   * (see SygusTermDatabase::getSelectorWeight).
+   */
   std::map< Node, unsigned > d_term_to_depth;
+  /**
+   * Map from terms (selector chains) to whether they are the topmost term
+   * of their type. For example, if:
+   *   S1 : T1 -> T2
+   *   S2 : T2 -> T2
+   *   S3 : T2 -> T1
+   *   S4 : T1 -> T3
+   * Then, x, S1( x ), and S4( S3( S2( S1( x ) ) ) ) are top-level terms,
+   * whereas S2( S1( x ) ) and S3( S2( S1( x ) ) ) are not.
+   *
+   */
   std::map< Node, bool > d_is_top_level;
   void registerTerm( Node n, std::vector< Node >& lemmas );
   bool computeTopLevel( TypeNode tn, Node n );
@@ -80,22 +107,24 @@ private:
     std::map< TypeNode, std::map< Node, unsigned > > d_search_val_sz;
     /** search value sample
      *
-     * This is used for the sygusRewVerify() option. For each sygus term we
-     * register in this cache, this stores the value returned by calling
-     * SygusSample::registerTerm(...) on its analog.
+     * This is used for the sygusRewVerify() option. For each sygus term t
+     * of type tn with anchor a that we register with this cache, we set:
+     *   d_search_val_sample[tn][r] = r'
+     * where r is the rewritten form of the builtin equivalent of t, and r'
+     * is the term returned by d_sampler[a][tn].registerTerm( r ).
      */
-    std::map<Node, Node> d_search_val_sample;
+    std::map<TypeNode, std::map<Node, Node>> d_search_val_sample;
     /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };
   // anchor -> cache
   std::map< Node, SearchCache > d_cache;
-  /** a sygus sampler object for each anchor
+  /** a sygus sampler object for each (anchor, sygus type) pair
    *
    * This is used for the sygusRewVerify() option to verify the correctness of
    * the rewriter.
    */
-  std::map<Node, quantifiers::SygusSampler> d_sampler;
+  std::map<Node, std::map<TypeNode, quantifiers::SygusSampler>> d_sampler;
   Node d_null;
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
   // register search term
