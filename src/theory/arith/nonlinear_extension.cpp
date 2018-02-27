@@ -1137,9 +1137,12 @@ std::vector<Node> NonlinearExtension::checkModel(
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
-  // add bounds for PI
-  d_tf_check_model_bounds[d_pi] =
-      std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+  if (!d_pi.isNull())
+  {
+    // add bounds for PI
+    d_tf_check_model_bounds[d_pi] =
+        std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+  }
   for (const std::pair<const Node, std::pair<Node, Node> >& tfb :
        d_tf_check_model_bounds)
   {
@@ -1256,6 +1259,27 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
       return comp == d_true;
     }
   }
+  else if (atom.getKind() == EQUAL)
+  {
+    // x = a is ( x >= a ^ x <= a )
+    for (unsigned i = 0; i < 2; i++)
+    {
+      Node lit = nm->mkNode(GEQ, atom[i], atom[1 - i]);
+      if (!pol)
+      {
+        lit = lit.negate();
+      }
+      lit = Rewriter::rewrite(lit);
+      bool success = simpleCheckModelTfLit(lit);
+      if (success != pol)
+      {
+        // false != true -> one conjunct of equality is false, we fail
+        // true != false -> one disjunct of disequality is true, we succeed
+        return success;
+      }
+    }
+  }
+
   Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown literal."
                                         << std::endl;
   return false;
@@ -1300,6 +1324,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   // register the extended function terms
   std::map< Node, Node > mvarg_to_term;
   std::vector<Node> trig_no_base;
+  bool needPi = false;
   for( unsigned i=0; i<xts.size(); i++ ){
     Node a = xts[i];
     computeModelValue(a, 0);
@@ -1308,7 +1333,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                        << d_mv[0][a] << " ]" << std::endl;
     //Assert(d_mv[1][a].isConst());
     //Assert(d_mv[0][a].isConst());
-
     if (a.getKind() == NONLINEAR_MULT)
     {
       d_ms.push_back( a );
@@ -1349,11 +1373,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         if( d_trig_is_base.find( a )==d_trig_is_base.end() ){
           consider = false;
           trig_no_base.push_back(a);
-          if (d_pi.isNull())
-          {
-            mkPi();
-            getCurrentPiBounds(lemmas);
-          }
+          needPi = true;
         }
       }
       if( consider ){
@@ -1375,12 +1395,21 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     else if (a.getKind() == PI)
     {
-      //TODO?
-    }else{
+      needPi = true;
+      d_tf_rep_map[a.getKind()][a] = a;
+    }
+    else
+    {
       Assert( false );
     }
   }
-  
+  // initialize pi if necessary
+  if (needPi && d_pi.isNull())
+  {
+    mkPi();
+    getCurrentPiBounds(lemmas);
+  }
+
   lemmas_proc = flushLemmas(lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during registration." << std::endl;
@@ -1426,6 +1455,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     << " new lemmas SINE phase shifting." << std::endl;
     return lemmas_proc;
   }
+  Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
 
   // register constants
   registerMonomial(d_one);
@@ -1497,11 +1527,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   for (unsigned c = 0; c < 3; c++) {
     // c is effort level
     lemmas = checkMonomialMagnitude( c );
+    unsigned nlem = lemmas.size();
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc
-                      << " new lemmas (out of possible " << lemmas.size()
-                      << ")." << std::endl;
+                      << " new lemmas (out of possible " << nlem << ")."
+                      << std::endl;
       return lemmas_proc;
     }
   }
@@ -1678,9 +1709,8 @@ void NonlinearExtension::check(Theory::Effort e) {
             // the problem is that we cannot evaluate transcendental functions
             // (they don't have a rewriter that returns constants)
             // thus, the actual value in their model can be themselves, hence we
-            // have no reference
-            //   point to rule out the current model.  In this case, we may set
-            //   incomplete below.
+            // have no reference point to rule out the current model.  In this
+            // case, we may set incomplete below.
           }
         }
       }
@@ -2332,7 +2362,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
   }
   // remove redundant lemmas, e.g. if a > b, b > c, a > c were
   // inferred, discard lemma with conclusion a > c
-  Trace("nl-ext-comp") << "Compute redundand_cies for " << lemmas.size()
+  Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                        << " lemmas." << std::endl;
   // naive
   std::vector<Node> r_lemmas;
@@ -3101,15 +3131,24 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
   
   for( std::map< Kind, std::map< Node, Node > >::iterator it = d_tf_rep_map.begin(); it != d_tf_rep_map.end(); ++it ){
-    for( std::map< Node, Node >::iterator itt = it->second.begin(); itt != it->second.end(); ++itt ){
-      computeModelValue( itt->second[0], 1 );
-      Assert( d_mv[1].find( itt->second[0] )!=d_mv[1].end() );
-      if( d_mv[1][itt->second[0]].isConst() ){
-        Trace("nl-ext-tf-mono-debug") << "...tf term : " << itt->second[0] << std::endl;
-        sorted_tf_args[ it->first ].push_back( itt->second[0] );
-        tf_arg_to_term[ it->first ][ itt->second[0] ] = itt->second;
+    Kind k = it->first;
+    if (k == EXPONENTIAL || k == SINE)
+    {
+      for (std::map<Node, Node>::iterator itt = it->second.begin();
+           itt != it->second.end();
+           ++itt)
+      {
+        Node a = itt->second[0];
+        computeModelValue(a, 1);
+        Assert(d_mv[1].find(a) != d_mv[1].end());
+        if (d_mv[1][a].isConst())
+        {
+          Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
+          sorted_tf_args[k].push_back(a);
+          tf_arg_to_term[k][a] = itt->second;
+        }
       }
-    } 
+    }
   }
   
   SortNonlinearExtension smv;
@@ -3256,6 +3295,13 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
   {
     Kind k = tfs.first;
+    if (k == PI)
+    {
+      // We do not use Taylor approximation for PI currently.
+      // This is because the convergence is extremely slow, and hence an
+      // initial approximation is superior.
+      continue;
+    }
     Node tft = nm->mkNode(k, d_zero);
     Trace("nl-ext-tf-tplanes-debug") << "Taylor variables: " << std::endl;
     Trace("nl-ext-tf-tplanes-debug")
