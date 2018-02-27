@@ -100,7 +100,6 @@ void SygusSampler::initialize(TypeNode tn,
         << "Type id for " << sv << " is " << tnid << std::endl;
     d_var_index[sv] = d_type_vars[tnid].size();
     d_type_vars[tnid].push_back(sv);
-    d_type_ids[sv] = tnid;
   }
   initializeSamples(nsamples);
 }
@@ -177,7 +176,6 @@ void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
         << "Type id for " << sv << " is " << tnid << std::endl;
     d_var_index[sv] = d_type_vars[tnid].size();
     d_type_vars[tnid].push_back(sv);
-    d_type_ids[sv] = tnid;
   }
 
   initializeSamples(nsamples);
@@ -668,7 +666,6 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // one of eq_n or n must be ordered
   bool eqor = isOrdered(eq_n);
   bool nor = isOrdered(n);
-  Trace("sygus-synth-rr-debug") << "Ordered? : " << nor << " " << eqor << std::endl;
   bool isUnique = false;
   if (eqor || nor)
   {
