@@ -155,6 +155,8 @@ option ppAssertMaxSubSize --pp-assert-max-sub-size unsigned :default 2
 option maxReplayTree --max-replay-tree int :default 512
  threshold for attempting to replay a tree
 
+option arithNoPartialFun --arith-no-partial-fun bool :default false
+ do not use partial function semantics for arithmetic (not SMT LIB compliant)
 
 option pbRewrites --pb-rewrites bool :default false
  apply pseudo boolean rewrites
