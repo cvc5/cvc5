@@ -72,7 +72,8 @@ TESTS =	\
 	str001.smt2 \
 	str002.smt2 \
 	str007.smt2 \
-	rew-020618.smt2
+	rew-020618.smt2 \
+	double-replace.smt2
 
 EXTRA_DIST = $(TESTS)
 
