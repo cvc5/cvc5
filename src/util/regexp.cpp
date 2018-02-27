@@ -373,7 +373,8 @@ bool String::isDigit(unsigned character)
 
 size_t String::maxSize()
 {
-  return std::min(std::numeric_limits<size_t>::max(), std::vector<unsigned>::max_size());
+  return std::min(std::numeric_limits<size_t>::max(),
+                  std::vector<unsigned>::max_size());
 }
 
 int String::toNumber() const {
