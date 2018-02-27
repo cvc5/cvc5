@@ -313,20 +313,6 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     }
   }
   
-  // process the equality conditions:
-  // for each t = s, see if they can be put into form x = y
-  for( unsigned i=0, size=eq_conds.size(); i<size; i++ )
-  {
-    Trace("ext-rew-ite") << "...equality cond : " << eq_conds[i] << std::endl;
-    Node slv_eq = solveEquality( eq_conds[i] );
-    if( !slv_eq.isNull() )
-    {
-      eq_conds[i] = slv_eq;
-      Trace("ext-rew-ite") << "   ...solved form : " << slv_eq << std::endl;
-    }
-  }
-  
-  
   Node new_ret;
   Node b;
   Node e;
@@ -393,37 +379,25 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   
   if( new_ret.isNull() )
   {
-    // make a substitution 
+    // If x is less than t based on an ordering, then we use { x -> t } as a 
+    // substitution to the children of ite( x = t ^ C, s, t ) below.
     std::vector< Node > vars;
     std::vector< Node > subs;
     for( const Node& eq : eq_conds )
     {
-      for (unsigned i = 0; i < 2; i++)
-      {    
-        TNode r1 = eq[i];
-        TNode r2 = eq[1 - i];
-        if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
-        {
-          // TODO : union find
-          if( std::find( vars.begin(), vars.end(), r1 )==vars.end() )
-          {
-            vars.push_back( r1 );
-            subs.push_back( r2 );
-          }
-        }
-      }
+      inferSubstitution( eq, vars, subs );
     }
 
     if( !vars.empty() )
     {
       // reverse substitution to opposite child
+      // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r
       Node nn = t2.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       if (nn != t2)
       {
         nn = Rewriter::rewrite( nn );
         if( nn==t1 )
         {
-          // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r
           new_ret = nn;
         }
       }
@@ -432,12 +406,14 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       while( success && new_ret.isNull() )
       {
         success = false;
+        // ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
         nn = t1.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
         if (nn != t1)
         {
-          // We are in a situation where we've made a copy of a term t in both 
-          // children t1 and t2. We must show that at least one copy of t 
-          // dissappears.
+          // If full=false, then we've duplicated a term u in the children of n.
+          // For example, when ITE pulling, we have n is of the form:
+          //   ite( C, f( u, t1 ), f( u, t2 ) )
+          // We must show that at least one copy of u dissappears in this case.
           nn = Rewriter::rewrite( nn );
           if( nn==t2 )
           {
@@ -445,9 +421,6 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
           }
           else if( !did_splice && ( full || nn.isConst() ) )
           {
-            // ITE substitution: if x is less than t based on an ordering, then
-            //   ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
-            // This is generalized to multiple x.
             new_ret = nm->mkNode( itek, n[0], nn, t2);
           }
         }
@@ -1181,9 +1154,37 @@ Node ExtendedRewriter::solveEquality( Node n )
     }
     
   }
-  
-  
+
   return Node::null();
+}
+
+bool ExtendedRewriter::inferSubstitution( Node n, std::vector< Node >& vars, std::vector< Node >& subs )
+{
+  if( n.getKind()==EQUAL )
+  {
+    // see if it can be put into form x = y
+    Node slv_eq = solveEquality( n );
+    if( !slv_eq.isNull() )
+    {
+      n = slv_eq;
+    }
+    for (unsigned i = 0; i < 2; i++)
+    {    
+      TNode r1 = n[i];
+      TNode r2 = n[1 - i];
+      if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
+      {
+        // TODO : union find
+        if( std::find( vars.begin(), vars.end(), r1 )==vars.end() )
+        {
+          vars.push_back( r1 );
+          subs.push_back( r2 );
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 
 Node ExtendedRewriter::extendedRewriteArith( Node ret, bool& pol )

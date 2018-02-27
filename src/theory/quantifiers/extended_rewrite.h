@@ -172,6 +172,8 @@ class ExtendedRewriter
   bool inferSplit( Node& t1, Node& t2, Node& b, Node& e );
   /** solve equality */
   Node solveEquality( Node n );
+  /** infer substitution */
+  bool inferSubstitution( Node n, std::vector< Node >& vars, std::vector< Node >& subs );
   /** extended rewrite 
    * 
    * Prints debug information, indicating the rewrite n ---> ret was found.
