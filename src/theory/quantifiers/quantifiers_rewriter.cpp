@@ -1941,8 +1941,10 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   }else if( n.getKind()==kind::FORALL ){
     if (n.getNumChildren() == 3)
     {
-      // cannot pre-skolemize non-standard quantifiers
-      // like recursive function definitions, or sygus conjectures
+      // Do not pre-skolemize quantified formulas with three children.
+      // This includes non-standard quantified formulas
+      // like recursive function definitions, or sygus conjectures, and
+      // quantified formulas with triggers.
       return n;
     }
     else if (polarity)
