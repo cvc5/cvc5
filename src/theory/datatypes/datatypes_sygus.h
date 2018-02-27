@@ -90,12 +90,12 @@ private:
   };
   // anchor -> cache
   std::map< Node, SearchCache > d_cache;
-  /** a sygus sampler object for each anchor
+  /** a sygus sampler object for each (anchor, sygus type) pair
    *
    * This is used for the sygusRewVerify() option to verify the correctness of
    * the rewriter.
    */
-  std::map<Node, quantifiers::SygusSampler> d_sampler;
+  std::map<Node, std::map<TypeNode, quantifiers::SygusSampler >> d_sampler;
   Node d_null;
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
   // register search term

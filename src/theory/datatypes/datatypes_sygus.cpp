@@ -790,12 +790,12 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       if (options::sygusRewVerify())
       {
         // add to the sampler database object
-        std::map<Node, quantifiers::SygusSampler>::iterator its =
-            d_sampler.find(a);
-        if (its == d_sampler.end())
+        std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
+            d_sampler[a].find(tn);
+        if (its == d_sampler[a].end())
         {
-          d_sampler[a].initializeSygus(d_tds, a, options::sygusSamples());
-          its = d_sampler.find(a);
+          d_sampler[a][tn].initializeSygus(d_tds, nv, options::sygusSamples());
+          its = d_sampler[a].find(tn);
         }
         Node bvr_sample_ret;
         std::map<Node, Node>::iterator itsv =
