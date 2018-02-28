@@ -1328,14 +1328,14 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
       vector<SExpr> v;
       if (p.first.getKind() == kind::APPLY)
       {
-        v.emplace_back(SExpr(SExpr::Keyword(p.first.getOperator().toString())));
+        v.emplace_back(SExpr::Keyword(p.first.getOperator().toString()));
       }
       else
       {
-        v.emplace_back(SExpr(SExpr::Keyword(p.first.toString())));
+        v.emplace_back(SExpr::Keyword(p.first.toString()));
       }
-      v.emplace_back(SExpr(SExpr::Keyword(p.second.toString())));
-      sexprs.emplace_back(SExpr(v));
+      v.emplace_back(SExpr::Keyword(p.second.toString()));
+      sexprs.emplace_back(v);
     }
     d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();

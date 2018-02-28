@@ -5206,7 +5206,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
 
       Assert(as.getKind() == kind::APPLY || as.isVar());
       Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
-      res.emplace_back(make_pair(as.toExpr(), resultNode.toExpr()));
+      res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }
   return res;
