@@ -5148,7 +5148,8 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-CVC4::SExpr SmtEngine::getAssignment() {
+vector<pair<Expr, Expr>> SmtEngine::getAssignment()
+{
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -5170,50 +5171,45 @@ CVC4::SExpr SmtEngine::getAssignment() {
     throw RecoverableModalException(msg);
   }
 
-  if(d_assignments == NULL) {
-    return SExpr(vector<SExpr>());
-  }
+  vector<pair<Expr,Expr>> res;
+  if (d_assignments != nullptr)
+  {
+    TypeNode boolType = d_nodeManager->booleanType();
+    TheoryModel* m = d_theoryEngine->getModel();
+    for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
+                                     iend = d_assignments->key_end();
+         i != iend;
+         ++i)
+    {
+      Node as = *i;
+      Assert(as.getType() == boolType);
 
-  vector<SExpr> sexprs;
-  TypeNode boolType = d_nodeManager->booleanType();
-  TheoryModel* m = d_theoryEngine->getModel();
-  for(AssignmentSet::key_iterator i = d_assignments->key_begin(),
-        iend = d_assignments->key_end();
-      i != iend;
-      ++i) {
-    Assert((*i).getType() == boolType);
+      Trace("smt") << "--- getting value of " << as << endl;
 
-    Trace("smt") << "--- getting value of " << *i << endl;
+      // Expand, then normalize
+      unordered_map<Node, Node, NodeHashFunction> cache;
+      Node n = d_private->expandDefinitions(as, cache);
+      n = Rewriter::rewrite(n);
 
-    // Expand, then normalize
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    Node n = d_private->expandDefinitions(*i, cache);
-    n = Rewriter::rewrite(n);
+      Trace("smt") << "--- getting value of " << n << endl;
+      Node resultNode;
+      if (m != nullptr)
+      {
+        resultNode = m->getValue(n);
+      }
 
-    Trace("smt") << "--- getting value of " << n << endl;
-    Node resultNode;
-    if(m != NULL) {
-      resultNode = m->getValue(n);
+      // type-check the result we got
+      Assert(resultNode.isNull() || resultNode.getType() == boolType);
+
+      // ensure it's a constant
+      Assert(resultNode.isConst());
+
+      Assert(as.getKind() == kind::APPLY || as.isVar());
+      Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
-
-    // type-check the result we got
-    Assert(resultNode.isNull() || resultNode.getType() == boolType);
-
-    // ensure it's a constant
-    Assert(resultNode.isConst());
-
-    vector<SExpr> v;
-    if((*i).getKind() == kind::APPLY) {
-      Assert((*i).getNumChildren() == 0);
-      v.push_back(SExpr(SExpr::Keyword((*i).getOperator().toString())));
-    } else {
-      Assert((*i).isVar());
-      v.push_back(SExpr(SExpr::Keyword((*i).toString())));
-    }
-    v.push_back(SExpr(SExpr::Keyword(resultNode.toString())));
-    sexprs.push_back(SExpr(v));
   }
-  return SExpr(sexprs);
+  return res;
 }
 
 void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {

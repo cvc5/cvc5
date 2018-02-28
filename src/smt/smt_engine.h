@@ -598,7 +598,7 @@ class CVC4_PUBLIC SmtEngine {
    * INVALID query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */
-  CVC4::SExpr getAssignment();
+  std::vector<std::pair<Expr, Expr> > getAssignment();
 
   /**
    * Get the last proof (only if immediately preceded by an UNSAT
