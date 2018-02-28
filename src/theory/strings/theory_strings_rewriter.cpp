@@ -1831,8 +1831,8 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   {
     if (node[1].getConst<String>().size() == 0)
     {
-      // str.indexof( x, "", z ) --> -1
-      Node negone = nm->mkConst(Rational(-1));
+      // str.indexof( x, "", z ) --> 0
+      Node negone = nm->mkConst(Rational(0));
       return returnRewrite(node, negone, "idof-empty");
     }
   }
@@ -1960,9 +1960,14 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 
 Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   Assert(node.getKind() == kind::STRING_STRREPL);
-  if( node[1]==node[2] ){
+  NodeManager * nm = NodeManager::currentNM();
+  
+  if( node[1]==node[2] )
+  {
     return returnRewrite(node, node[0], "rpl-id");
   }
+  
+  /*
   if (node[0].isConst())
   {
     CVC4::String s = node[0].getConst<String>();
@@ -1976,10 +1981,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, node[0], "rpl-char-id");
     }
   }
-  if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
-  {
-    return returnRewrite(node, node[0], "rpl-rpl-empty");
-  }
+  */
 
   std::vector<Node> children0;
   getConcat(node[0], children0);
@@ -1988,6 +1990,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     CVC4::String s = children0[0].getConst<String>();
     CVC4::String t = node[1].getConst<String>();
+    if( t.isEmptyString() )
+    {
+      Node ret = nm->mkNode( STRING_CONCAT, node[2], node[0] );
+      return returnRewrite(node, node[0], "rpl-rpl-empty");
+    }
     std::size_t p = s.find(t);
     if (p == std::string::npos)
     {

@@ -72,6 +72,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   unsigned prev_new_nodes = new_nodes.size();
   Trace("strings-preprocess-debug") << "StringsPreprocess::simplify: " << t << std::endl;
   Node retNode = t;
+  NodeManager * nm = NodeManager::currentNM();
 
   if( t.getKind() == kind::STRING_SUBSTR ) {
     Node skt;
@@ -106,52 +107,63 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     new_nodes.push_back( lemma );
     retNode = skt;
   } else if( t.getKind() == kind::STRING_STRIDOF ) {
-    Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", NodeManager::currentNM()->stringType(), "created for indexof" );
-    Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
-    Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
+    // processing term:  indexof( x, y, n )
+    
     Node skk;
     if( options::stringUfReduct() ){
       skk = getUfAppForNode( kind::STRING_STRIDOF, t );
     }else{
-      skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
+      skk = nm->mkSkolem( "iok", nm->integerType(), "created for indexof" );
     }
-    Node st = NodeManager::currentNM()->mkNode( kind::STRING_SUBSTR, t[0], t[2], NodeManager::currentNM()->mkNode( kind::MINUS, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
-    //TODO: simplify this (only applies when idof != -1)
-    Node eq = st.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4 ) );
-    new_nodes.push_back( eq );
-    
-    //learn range of idof?
-    Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
-    Node krange = NodeManager::currentNM()->mkNode( kind::GEQ, skk, negone );
+
+    Node negone = nm->mkConst( ::CVC4::Rational(-1) );
+    Node krange = nm->mkNode( kind::GEQ, skk, negone );
+    // assert:   indeof( x, y, n ) >= -1 
     new_nodes.push_back( krange );
-    krange = NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk);
+    krange = nm->mkNode( kind::GT, nm->mkNode( kind::STRING_LENGTH, t[0] ), skk);
+    // assert:   len( x ) > indexof( x, y, z )
     new_nodes.push_back( krange );
 
-    // s2 = ""
-    Node c1 = t[1].eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
-    //~contain(t234, s2)
-    Node c3 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, st, t[1] ).negate();
-    //left
-    Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, c3 );
-    //t3 = s2
-    Node c4 = t[1].eqNode( sk3 );
-    //~contain(t2, s2)
-    Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN,
-                NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk2,
-                  NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, t[1], d_zero,
-                    NodeManager::currentNM()->mkNode(kind::MINUS,
-                      NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[1]),
-                      NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) )))),
+    // substr( x, n, len( x ) - n ) = str.++( io2, io3, io4 )
+    Node st = nm->mkNode( kind::STRING_SUBSTR, t[0], t[2], nm->mkNode( kind::MINUS, nm->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
+    Node io2 = nm->mkSkolem( "io2", nm->stringType(), "created for indexof" );
+    Node io3 = nm->mkSkolem( "io3", nm->stringType(), "created for indexof" );
+    Node io4 = nm->mkSkolem( "io4", nm->stringType(), "created for indexof" );
+    Node eq = st.eqNode( nm->mkNode( kind::STRING_CONCAT, io2, io3, io4 ) );
+    
+    // ~contains( substr( x, n, len( x ) - n ), y )
+    Node c3 = nm->mkNode( kind::STRING_STRCTN, st, t[1] ).negate();
+    
+    // y = io3
+    Node c4 = t[1].eqNode( io3 );
+    
+    // ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y )
+    Node c5 = nm->mkNode( kind::STRING_STRCTN,
+                nm->mkNode(kind::STRING_CONCAT, io2,
+                  nm->mkNode(kind::STRING_SUBSTR, t[1], d_zero,
+                    nm->mkNode(kind::MINUS,
+                      nm->mkNode(kind::STRING_LENGTH, t[1]),
+                      nm->mkConst( ::CVC4::Rational(1) )))),
                 t[1] ).negate();
-    //k=str.len(s2)
-    Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, t[2],
-                            NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 )) );
-    //right
-    Node right = NodeManager::currentNM()->mkNode( kind::AND, c4, c5, c6, c1.negate() );
-    Node cond = skk.eqNode( negone );
-    Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
+                
+    // skk = n + len( io2 )
+    Node c6 = skk.eqNode( nm->mkNode( kind::PLUS, t[2],
+                            nm->mkNode( kind::STRING_LENGTH, io2 )) );
+    
+    // assert:
+    // IF:   skk = -1
+    // THEN: ~contains( substr( x, n, len( x ) - n ), y )
+    // ELSE: substr( x, n, len( x ) - n ) = str.++( io2, io3, io4 ) ^
+    //       y = io3 ^ 
+    //       ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y ) ^
+    //       skk = n + len( io2 ) )
+    // for fresh io2, io3, io4.
+    Node rr = nm->mkNode( kind::ITE, skk.eqNode( negone ), c3, nm->mkNode( kind::AND, eq, c4, c5, c6 ) );
     new_nodes.push_back( rr );
+    
+    // Thus, indexof( x, y, n ) = skk.
     retNode = skk;
+    
   } else if( t.getKind() == kind::STRING_ITOS ) {
     //Node num = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE,
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
@@ -364,27 +376,42 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     new_nodes.push_back( conc );
     retNode = pret;
   } else if( t.getKind() == kind::STRING_STRREPL ) {
+    // we are processing replace( x, y, z )
     Node x = t[0];
     Node y = t[1];
     Node z = t[2];
-    Node sk1 = NodeManager::currentNM()->mkSkolem( "rp1", t[0].getType(), "created for replace" );
-    Node sk2 = NodeManager::currentNM()->mkSkolem( "rp2", t[0].getType(), "created for replace" );
-    Node skw = NodeManager::currentNM()->mkSkolem( "rpw", t[0].getType(), "created for replace" );
-    Node cond = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, x, y );
-    cond = NodeManager::currentNM()->mkNode( kind::AND, cond, NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), d_zero) );
-    Node c1 = x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, y, sk2 ) );
-    Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
-    Node c3 = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
-                NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk1,
-                   NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, y, d_zero,
-                      NodeManager::currentNM()->mkNode(kind::MINUS,
-                        NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y),
-                        NodeManager::currentNM()->mkConst(::CVC4::Rational(1))))), y).negate();
-    Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond,
-                                                NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3),
-                                                skw.eqNode(x) );
+    TypeNode tn = t[0].getType();
+    Node rp1 = nm->mkSkolem( "rp1", tn, "created for replace" );
+    Node rp2 = nm->mkSkolem( "rp2", tn, "created for replace" );
+    Node rpw = nm->mkSkolem( "rpw", tn, "created for replace" );
+    // contains( x, y )
+    Node cond = nm->mkNode( kind::STRING_STRCTN, x, y );
+    // x = str.++( rp1, y, rp2 )
+    Node c1 = x.eqNode( nm->mkNode( kind::STRING_CONCAT, rp1, y, rp2 ) );
+    // rpw = str.++( rp1, z, rp2 )
+    Node c2 = rpw.eqNode( nm->mkNode( kind::STRING_CONCAT, rp1, z, rp2 ) );
+    // ~contains( str.++( rp1, substr( y, 0, len(y)-1 ) ), y )
+    Node c3 = nm->mkNode(kind::STRING_STRCTN,
+                nm->mkNode(kind::STRING_CONCAT, rp1,
+                   nm->mkNode(kind::STRING_SUBSTR, y, d_zero,
+                      nm->mkNode(kind::MINUS,
+                        nm->mkNode(kind::STRING_LENGTH, y),
+                        nm->mkConst(::CVC4::Rational(1))))), y).negate();
+                        
+    // assert:
+    //   IF:   contains( x, y )
+    //   THEN: x = str.++( rp1, y, rp2 ) ^ 
+    //         rpw = str.++( rp1, z, rp2 ) ^
+    //         ~contains( str.++( rp1, substr( y, 0, len(y)-1 ) ), y ),
+    //   ELSE: rpw = x
+    // for fresh rp1, rp2, rpw
+    Node rr = nm->mkNode( kind::ITE, cond,
+                                                nm->mkNode( kind::AND, c1, c2, c3),
+                                                rpw.eqNode(x) );
     new_nodes.push_back( rr );
-    retNode = skw;
+    
+    // Thus, replace( x, y, z ) = rpw.
+    retNode = rpw;
   } else if( t.getKind() == kind::STRING_STRCTN ){
     Node x = t[0];
     Node s = t[1];
