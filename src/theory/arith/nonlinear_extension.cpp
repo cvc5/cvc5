@@ -1112,6 +1112,117 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   return sum;
 }
 
+bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
+{
+  Trace("nl-ext") << "Getting assertions..." << std::endl;
+  std::vector< Node > lemmas;
+  NodeManager * nm = NodeManager::currentNM();
+  // get the assertions
+  std::map< Node, Rational > init_bounds[2];
+  std::map< Node, Node > init_bounds_lit[2];
+  std::unordered_set< Node, NodeHashFunction > init_redundant;
+  for (Theory::assertions_iterator it = d_containing.facts_begin();
+        it != d_containing.facts_end();
+        ++it)
+  {
+    const Assertion& assertion = *it;
+    Node lit = assertion.assertion;
+    assertions.push_back(lit);
+    // check for concrete bounds
+    bool pol = lit.getKind()!=NOT;
+    Node atom = lit.getKind()==NOT ? lit[0] : lit;
+    // non-strict bounds only
+    if( atom.getKind()==GEQ || ( !pol && atom.getKind()==GT ) )
+    {
+      Node p = atom[0];
+      Assert( atom[1].isConst() );
+      Rational bound = atom[1].getConst<Rational>();
+      if( !pol )
+      {
+        if( atom[0].getType().isInteger() )
+        {
+          // ~( p >= c ) ---> (p <= c-1)
+          bound = bound-Rational(1);
+        }
+      }
+      unsigned bindex = pol ? 0 : 1;
+      bool setBound = true;
+      std::map< Node, Rational >::iterator itb = init_bounds[bindex].find(p);
+      if( itb!=init_bounds[ bindex ].end() )
+      {
+        setBound = pol ? itb->second<bound : itb->second>bound;
+        if( setBound )
+        {
+          // the bound is subsumed
+          init_redundant.insert( init_bounds_lit[bindex][p] );
+        }
+      }
+      if( setBound )
+      {
+        Trace("nl-ext-init") << (pol ? "Lower" : "Upper" ) << " bound for " << p << " : " << bound << std::endl;
+        init_bounds[ bindex ][p] = bound;
+        init_bounds_lit[bindex][p] = lit;
+      }
+    }
+  }
+  // for each bound that is the same, ensure we've inferred the equality
+  for( std::pair< const Node, Rational >& ib : init_bounds[0] )
+  {
+    Node p = ib.first;
+    std::map< Node, Rational >::iterator itb = init_bounds[1].find(p);
+    if( itb!=init_bounds[1].end() )
+    {
+      if( ib.second==itb->second )
+      {
+        Node eq = p.eqNode( nm->mkConst( ib.second ) );
+        eq = Rewriter::rewrite( eq );
+        Node lit1 = init_bounds_lit[0][p];
+        Node lit2 = init_bounds_lit[1][p];
+        if( std::find( assertions.begin(), assertions.end(), eq )==assertions.end() )
+        {
+          Trace("nl-ext-init") << "Equality based on bounds : " << eq << std::endl;
+          Node lem = nm->mkNode( OR, lit1.negate(), lit2.negate(), eq );
+          lemmas.push_back( lem );
+        }
+        else
+        {
+          // we've inferred the equality, thus these are redundant
+          init_redundant.insert( lit1 );
+          init_redundant.insert( lit2 );
+        }
+      }
+    }
+  }
+
+  if( !lemmas.empty() )
+  {
+    int lemmas_proc = flushLemmas(lemmas);
+    if (lemmas_proc > 0) {
+      Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during getAssertions." << std::endl;
+      return false;
+    }
+    // each lemma added to lemmas should not be implied by the current context
+    // and hence should not exist in the cache??
+    //Assert( false );
+  }
+  
+  if( !init_redundant.empty() )
+  {
+    Trace("nl-ext") << "..." << init_redundant.size() << " / " << assertions.size() << " assertions were redundant." << std::endl;
+    std::vector< Node > tmp_assertions = assertions;
+    assertions.clear();
+    for( const Node& a : tmp_assertions )
+    {
+      if( init_redundant.find( a )==init_redundant.end() )
+      {
+        assertions.push_back( a );
+      }
+    }
+  }
+  
+  return true;
+}
+  
 std::vector<Node> NonlinearExtension::checkModel(
     const std::vector<Node>& assertions)
 {
@@ -1634,26 +1745,25 @@ void NonlinearExtension::check(Theory::Effort e) {
       }
     }
   } else {
+    // get the assertions
+    std::vector<Node> assertions;
+    if( !getAssertions( assertions ) )
+    {
+      return;
+    }
+    
     bool needsRecheck;
     do
     {
       needsRecheck = false;
       Assert(e == Theory::EFFORT_LAST_CALL);
-      Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
-                         << std::endl;
+
       // reset cached information
       d_mv[0].clear();
       d_mv[1].clear();
-
-      // get the assertions
-      std::vector<Node> assertions;
-      for (Theory::assertions_iterator it = d_containing.facts_begin();
-           it != d_containing.facts_end();
-           ++it)
-      {
-        const Assertion& assertion = *it;
-        assertions.push_back(assertion.assertion);
-      }
+      
+      Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
+                         << std::endl;
       // get the assertions that are false in the model
       const std::vector<Node> false_asserts = checkModel(assertions);
 
