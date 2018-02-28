@@ -6,11 +6,6 @@ import re
 import sys
 import textwrap
 
-# TODO: missing documentation
-#       - manpage
-#       - doxygen
-#       - ??
-
 ### Allowed attributes for module/option/alias
 
 g_module_attr_req = ['id', 'name', 'header']
@@ -235,10 +230,9 @@ class Alias(object):
 
 
 def die(msg):
-    sys.exit(msg)
+    sys.exit('[error] {}'.format(msg))
 
 
-# TODO: pass filename, lineno
 def check_attribs(req_attribs, valid_attribs, d, type):
     msg_for = ""
     if 'name' in d:
@@ -317,6 +311,12 @@ def long_get_option(name):
     return name.split('=')[0]
 
 
+# if no smt_name is specified, return long option name
+def smt_name(option):
+    assert(option.smt_name or option.long)
+    return option.smt_name if option.smt_name else long_get_option(option.long)
+
+
 def is_numeric_cpp_type(t):
     if t in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
         return True
@@ -348,18 +348,16 @@ def help_format_options(short, long):
 
     return ' | '.join(opts)
 
-
-def help_format(help, short, long):
+def help_format(help, opts):
     width = 80
     width_opt = 25
     text = \
         textwrap.wrap(help.replace('"', '\\"'), width=width - width_opt)
-    text_opt = help_format_options(short, long)
-    if len(text_opt) > width_opt - 3:
-        lines = ['  {}'.format(text_opt)]
+    if len(opts) > width_opt - 3:
+        lines = ['  {}'.format(opts)]
         lines.append(' ' * width_opt + text[0])
     else:
-        lines = ['  {}{}'.format(text_opt.ljust(width_opt - 2), text[0])]
+        lines = ['  {}{}'.format(opts.ljust(width_opt - 2), text[0])]
     lines.extend([' ' * width_opt + l for l in text[1:]])
     return ['"{}\\n"'.format(x) for x in lines]
 
@@ -396,7 +394,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         tpl_decl = tpl_h_struct_ro if option.read_only else tpl_h_struct_rw
         decls.append(tpl_decl.format(name=option.name, type=option.type))
 
-        # generate module specialization
+        # Generate module specialization
         if not option.read_only:
             specs.append(tpl_h_spec_s.format(name=option.name))
         specs.append(tpl_h_spec_o.format(name=option.name))
@@ -407,22 +405,22 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         else:
             specs.append(tpl_h_spec_a.format(name=option.name))
 
-        # generate module inlines
+        # Generate module inlines
         inls.append(tpl_h_impl_op.format(name=option.name))
         inls.append(tpl_h_impl_wsbu.format(name=option.name))
         if not option.read_only:
             inls.append(tpl_h_impl_s.format(name=option.name))
 
 
-        ### generate code for {module.name}_options.cpp
+        ### Generate code for {module.name}_options.cpp
 
-        # accessors
+        # Accessors
         if not option.read_only:
             accs.append(tpl_c_acc_s.format(name=option.name))
         accs.append(tpl_c_acc_o.format(name=option.name))
         accs.append(tpl_c_acc_wsbu.format(name=option.name))
 
-        # global defintions
+        # Global defintions
         defs.append(tpl_c_struct.format(name=option.name))
 
 
@@ -436,17 +434,20 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             holder_spec=' \\\n'.join(holder_specs),
             decls='\n'.join(decls),
             specs='\n'.join(specs),
-            inls='\n'.join(inls)))
+            inls='\n'.join(inls)
+        ))
 
     write_file(dst_dir, '{}.cpp'.format(filename),
         tpl_module_cpp.format(
             filename=filename,
             accs='\n'.join(accs),
-            defs='\n'.join(defs)))
+            defs='\n'.join(defs)
+        ))
 
 
 # Generate code for all option modules (options.cpp, options_holder.h)
-def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
+def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
+                        doc_dir, tpl_man_cvc, tpl_man_smt, tpl_man_int):
 
     option_value_start = 256
 
@@ -465,6 +466,14 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
     setoption_handlers = []  # handlers for set-option command
     getoption_handlers = []  # handlers for get-option command
 
+    # other documentation
+    man_common = []
+    man_others = []
+    man_common_smt = []
+    man_others_smt = []
+    man_common_int = []
+    man_others_int = []
+
     option_value_cur = option_value_start
     for module in modules:
         headers_module.append(format_include(module.header))
@@ -473,6 +482,11 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
         if module.options or module.aliases:
             help_others.append(
                 '"\\nFrom the {} module:\\n"'.format(module.name))
+            man_others.append('.SH {} OPTIONS'.format(module.name.upper()))
+            man_others_smt.append(
+                '.TP\n.I "{} OPTIONS"'.format(module.name.upper()))
+            man_others_int.append(man_others_smt[-1])
+
 
         # TODO: sort by name
 #        for option in sorted(module.options, key=lambda x: x.long if x.long else x.name):
@@ -481,24 +495,59 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             assert(option.name or option.smt_name or option.short or option.long)
             argument_req = option.type not in ['bool', 'void']
 
-            # TODO: we can probably remove these includes since they are
+            # TODO: we can remove these includes since they are
             #       already included in 'headers_module' header files
             for include in option.includes:
                 headers_handler.add(format_include(include))
 
-            # Generate and format help text
-            if (option.short or option.long) \
-               and option.category != 'undocumented':
-                l = help_common if option.category == 'common' else help_others
-                if not option.help:
-                    print("no help for {} option {}".format(
-                           option.category, option.name))
-                help = option.help
-                if option.category == 'expert':
-                    help += ' (EXPERTS only)'
+            ### Generate documentation
+            if option.category == 'common':
+                doc_cmd = help_common
+                doc_man = man_common
+                doc_smt = man_common_smt
+                doc_int = man_common_int
+            else:
+                doc_cmd = help_others
+                doc_man = man_others
+                doc_smt = man_others_smt
+                doc_int = man_others_int
+
+            help = option.help if option.help else '[undocumented]'
+            if option.category == 'expert':
+                help += ' (EXPERTS only)'
+            assert(help)
+
+            opts = help_format_options(option.short, option.long)
+
+            # Generate documentation for cmdline options
+            if opts and option.category != 'undocumented':
+                help_cmd = help
                 if option.type == 'bool':
-                    help += ' [*]'
-                l.extend(help_format(help, option.short, option.long))
+                    help_cmd += ' [*]'
+                doc_cmd.extend(help_format(help_cmd, opts))
+
+                # Generate man page documentation for cmdline options
+                doc_man.append('.IP "{}"'.format(opts.replace('-', '\\-')))
+                doc_man.append(help_cmd.replace('-', '\\-'))
+
+            # Escape - with \- for man page documentation
+            help = help.replace('-', '\\-')
+
+            # Generate man page documentation for smt options
+            if option.smt_name or option.long:
+                doc_smt.append('.TP\n.B "{}"'.format(smt_name(option)))
+                doc_smt.append('({}) {}'.format(option.type, help))
+
+            # Generate man page documentation for internal options
+            if option.name:
+                doc_int.append('.TP\n.B "{}"'.format(option.name))
+                if option.default:
+                    doc_int.append('({}, default = {})'.format(
+                        option.type,
+                        option.default.replace('-', '\\-')))
+                else:
+                    doc_int.append('({})'.format(option.type))
+                doc_int.append('.br\n{}'.format(help))
 
             ### Generate handler call
             handler = None
@@ -573,14 +622,14 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                 for link in option.links:
                     m = match_option(link)
                     assert(m)
-                    smtname = m[0].smt_name if m[0].smt_name else long_get_option(m[0].long)
+                    smtname = smt_name(m[0])
                     assert(smtname)
                     smtlinks.append('setOption(std::string("{smtname}"), ("{value}"));'.format(
                         smtname=smtname,
                         value="true" if m[1] else "false"
                         ))
 
-                smtname = option.smt_name if option.smt_name else long_get_option(option.long)
+                smtname = smt_name(option)
 
                 setoption_handlers.append('if(key == "{}") {{'.format(smtname))
                 if option.type == 'bool':
@@ -648,7 +697,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
                 ### Build options for options::getOptions()
                 if optname:
                     # collect SMT option names
-                    options_smt.append('"{}",'.format(long_get_option(optname)))
+                    options_smt.append('"{}",'.format(optname))
 
                     if option.type == 'bool':
                         s  = '{ std::vector<std::string> v; '
@@ -739,15 +788,16 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             if alias.category != 'undocumented':
                 l = help_common if alias.category == 'common' else help_others
                 if not alias.help:
-                    print("no help for {} alias {}".format(
+                    die("no help for {} alias {}".format(
                             alias.category, alias.long))
-                l.extend(help_format(alias.help, None, alias.long))
+                l.extend(help_format(alias.help,
+                                     help_format_options(None, alias.long)))
 
     write_file(dst_dir, 'options_holder.h',
         tpl_options_holder.format(
             headers_module='\n'.join(headers_module),
             macros_module='\n'.join(macros_module)
-            ))
+        ))
 
     write_file(dst_dir, 'options.cpp',
         tpl_options.format(
@@ -766,6 +816,24 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder):
             options_getoptions='\n  '.join(options_getoptions),
             setoption_handlers='\n'.join(setoption_handlers),
             getoption_handlers='\n'.join(getoption_handlers)
+        ))
+
+    write_file(doc_dir, 'cvc4.1',
+        tpl_man_cvc.format(
+            man_common='\n'.join(man_common),
+            man_others='\n'.join(man_others)
+        ))
+
+    write_file(doc_dir, 'SmtEngine.3cvc',
+        tpl_man_smt.format(
+            man_common_smt='\n'.join(man_common_smt),
+            man_others_smt='\n'.join(man_others_smt)
+        ))
+
+    write_file(doc_dir, 'options.3cvc',
+        tpl_man_int.format(
+            man_common_internals='\n'.join(man_common_int),
+            man_others_internals='\n'.join(man_others_int)
         ))
 
 
@@ -1061,35 +1129,45 @@ def parse_module(filename, file):
 
 
 def usage():
-    print('mkoptions.py <src> <dst> <toml>+')
+    print('mkoptions.py <src> <dst> <doc> <toml>+')
     print('')
     print('  <src>     directory that contains all *_template.{cpp,h} files')
     print('  <dst>     destination directory for the generated source files')
+    print('  <doc>     directory that contains all *_template doc files')
     print('  <toml>+   one or more *_optios.toml files')
+    print('')
 
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         usage()
-        die('not enough arguments given')
+        die('missing arguments')
 
     src_dir = sys.argv[1]
     dst_dir = sys.argv[2]
-    filenames = sys.argv[3:]
+    doc_dir = sys.argv[3]
+    filenames = sys.argv[4:]
 
-    if not os.path.isdir(src_dir):
-        usage()
-        die("'{}' is not a directory".format(src_dir))
-    if not os.path.isdir(dst_dir):
-        usage()
-        die("'{}' is not a directory".format(dst_dir))
+    for dir in [src_dir, dst_dir, doc_dir]:
+        if not os.path.isdir(dir):
+            usage()
+            die("'{}' is not a directory".format(dir))
+
+    for file in filenames:
+        if not os.path.exists(file):
+            die("configuration file '{}' does not exist".format(file))
 
     # Read template files from source directory
     tpl_module_h = read_tpl(src_dir, 'module_template.h')
     tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
     tpl_options = read_tpl(src_dir, 'options_template.cpp')
     tpl_options_holder = read_tpl(src_dir, 'options_holder_template.h')
+
+    # Read documentation templates
+    tpl_man_cvc = read_tpl(doc_dir, 'cvc4.1_template')
+    tpl_man_smt = read_tpl(doc_dir, 'SmtEngine.3cvc_template')
+    tpl_man_int = read_tpl(doc_dir, 'options.3cvc_template')
 
     # Parse files, check attributes and create module/option objects
     modules = []
@@ -1104,10 +1182,9 @@ if __name__ == "__main__":
                            option.type)
                 if option.long:
                     g_long_to_opt[long_get_option(option.long)] = option
-
             modules.append(module)
 
-    # Then check if alias.long is unique
+    # Check if alias.long is unique
     for module in modules:
         for alias in module.aliases:
             # If an alias defines a --no- alternative for an existing boolean
@@ -1115,8 +1192,8 @@ if __name__ == "__main__":
             # the alias instead.
             # This can be useful, since we can define links for the alternative
             # options, which would not be possible otherwise.
-            # TODO: if we define an alternative for an existing long option we
-            #       still need to set the option to false
+            # FIXME: if we define an alternative for an existing long option we
+            #        still need to set the option to false
             if alias.long.startswith('no-'):
                 m = match_option(alias.long)
                 if m[0] and m[0].type == 'bool':
@@ -1124,7 +1201,7 @@ if __name__ == "__main__":
                     del(g_long_cache[alias.long])
             check_long(alias.filename, alias.lineno, alias.long)
 
-    # Check if long options in links lists are valid
+    # Check if long options in links are valid
     # (that needs to be done after checking all long options)
     for module in modules:
         for option in module.options:
@@ -1137,6 +1214,8 @@ if __name__ == "__main__":
         codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp)
 
     # Create options.cpp and options_holder.h in destination directory
-    codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder)
+    codegen_all_modules(modules,
+                        dst_dir, tpl_options, tpl_options_holder,
+                        doc_dir, tpl_man_cvc, tpl_man_smt, tpl_man_int)
 
     sys.exit(0)
