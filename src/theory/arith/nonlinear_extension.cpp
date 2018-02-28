@@ -1130,38 +1130,65 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
     assertions.push_back(lit);
     // check for concrete bounds
     bool pol = lit.getKind()!=NOT;
-    Node atom = lit.getKind()==NOT ? lit[0] : lit;
-    // non-strict bounds only
-    if( atom.getKind()==GEQ || ( !pol && atom.getKind()==GT ) )
+    Node atom_orig = lit.getKind()==NOT ? lit[0] : lit;
+    
+    std::vector< Node > atoms;
+    if( lit.getKind()==EQUAL )
     {
-      Node p = atom[0];
-      Assert( atom[1].isConst() );
-      Rational bound = atom[1].getConst<Rational>();
-      if( !pol )
+      // t = s  is ( t >= s ^ t <= s )
+      for( unsigned i=0; i<2; i++ )
       {
-        if( atom[0].getType().isInteger() )
-        {
-          // ~( p >= c ) ---> (p <= c-1)
-          bound = bound-Rational(1);
-        }
+        Node atom_new = nm->mkNode( i==0 ? GEQ : LEQ, atom_orig[0], atom_orig[1] );
+        atom_new = Rewriter::rewrite( atom_new );
+        atoms.push_back( atom_new );
       }
-      unsigned bindex = pol ? 0 : 1;
-      bool setBound = true;
-      std::map< Node, Rational >::iterator itb = init_bounds[bindex].find(p);
-      if( itb!=init_bounds[ bindex ].end() )
+    }
+    else
+    {
+      atoms.push_back( atom_orig );
+    }
+    
+    for( const Node& atom : atoms )
+    {
+      // non-strict bounds only
+      if( atom.getKind()==GEQ || ( !pol && atom.getKind()==GT ) )
       {
-        setBound = pol ? itb->second<bound : itb->second>bound;
+        Node p = atom[0];
+        Assert( atom[1].isConst() );
+        Rational bound = atom[1].getConst<Rational>();
+        if( !pol )
+        {
+          if( atom[0].getType().isInteger() )
+          {
+            // ~( p >= c ) ---> ( p <= c-1 )
+            bound = bound-Rational(1);
+          }
+        }
+        unsigned bindex = pol ? 0 : 1;
+        bool setBound = true;
+        std::map< Node, Rational >::iterator itb = init_bounds[bindex].find(p);
+        if( itb!=init_bounds[ bindex ].end() )
+        {
+          if( itb->second==bound )
+          {
+            setBound = atom_orig.getKind()==EQUAL;
+          }
+          else
+          {
+            setBound = pol ? itb->second<bound : itb->second>bound;
+          }
+          if( setBound )
+          {
+            // the bound is subsumed
+            init_redundant.insert( init_bounds_lit[bindex][p] );
+          }
+        }
         if( setBound )
         {
-          // the bound is subsumed
-          init_redundant.insert( init_bounds_lit[bindex][p] );
+          Trace("nl-ext-init") << (pol ? "Lower" : "Upper" ) << " bound for " << p << " : " << bound << std::endl;
+          init_bounds[ bindex ][p] = bound;
+          init_bounds_lit[bindex][p] = lit;
         }
-      }
-      if( setBound )
-      {
-        Trace("nl-ext-init") << (pol ? "Lower" : "Upper" ) << " bound for " << p << " : " << bound << std::endl;
-        init_bounds[ bindex ][p] = bound;
-        init_bounds_lit[bindex][p] = lit;
       }
     }
   }
@@ -1169,29 +1196,32 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
   for( std::pair< const Node, Rational >& ib : init_bounds[0] )
   {
     Node p = ib.first;
-    std::map< Node, Rational >::iterator itb = init_bounds[1].find(p);
-    if( itb!=init_bounds[1].end() )
+    Node lit1 = init_bounds_lit[0][p];
+    if( lit1.getKind()!=EQUAL )
     {
-      if( ib.second==itb->second )
+      std::map< Node, Rational >::iterator itb = init_bounds[1].find(p);
+      if( itb!=init_bounds[1].end() )
       {
-        Node eq = p.eqNode( nm->mkConst( ib.second ) );
-        eq = Rewriter::rewrite( eq );
-        Node lit1 = init_bounds_lit[0][p];
-        Node lit2 = init_bounds_lit[1][p];
-        if( std::find( assertions.begin(), assertions.end(), eq )==assertions.end() )
+        if( ib.second==itb->second )
         {
-          Node eqv = computeModelValue(eq);
-          Trace("nl-ext-init") << "Equality based on bounds : " << eq << ", value : " << eqv << std::endl;
-          if( eqv!=d_true )
+          Node eq = p.eqNode( nm->mkConst( ib.second ) );
+          eq = Rewriter::rewrite( eq );
+          Node lit2 = init_bounds_lit[1][p];
+          if( std::find( assertions.begin(), assertions.end(), eq )==assertions.end() )
           {
-            Node lem = nm->mkNode( OR, lit1.negate(), lit2.negate(), eq );
-            lemmas.push_back( lem );
+            Node eqv = computeModelValue(eq);
+            Trace("nl-ext-init") << "Equality based on bounds : " << eq << ", value : " << eqv << std::endl;
+            if( eqv!=d_true )
+            {
+              Node lem = nm->mkNode( OR, lit1.negate(), lit2.negate(), eq );
+              lemmas.push_back( lem );
+            }
+            assertions.push_back( eq );
           }
-          assertions.push_back( eq );
+          // we've inferred the equality, thus these are redundant
+          init_redundant.insert( lit1 );
+          init_redundant.insert( lit2 );
         }
-        // we've inferred the equality, thus these are redundant
-        init_redundant.insert( lit1 );
-        init_redundant.insert( lit2 );
       }
     }
   }
