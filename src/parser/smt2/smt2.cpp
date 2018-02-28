@@ -397,15 +397,12 @@ void Smt2::pushDefineFunRecScope(
 {
   pushScope(bindingLevel);
 
-  std::vector<Expr> f_app;
-  f_app.push_back(func);
   // bound variables are those that are explicitly named in the preamble
   // of the define-fun(s)-rec command, we define them here
   for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
   {
     Expr v = mkBoundVar(svn.first, svn.second);
     bvs.push_back(v);
-    f_app.push_back(v);
   }
 
   bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
