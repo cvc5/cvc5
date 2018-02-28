@@ -14,12 +14,13 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
-#include "theory/quantifiers_engine.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -145,6 +146,21 @@ Node QuantAttributes::getFunDefBody( Node q ) {
         return q[1][1];
       }else if( q[1][1]==h ){
         return q[1][0];
+      }
+      else if (q[1][0].getType().isReal())
+      {
+        // solve for h in the equality
+        std::map<Node, Node> msum;
+        if (ArithMSum::getMonomialSum(q[1], msum))
+        {
+          Node veq;
+          int res = ArithMSum::isolate(h, msum, veq, EQUAL);
+          if (res != 0)
+          {
+            Assert(veq.getKind() == EQUAL);
+            return res == 1 ? veq[0] : veq[1];
+          }
+        }
       }
     }else{
       Node atom = q[1].getKind()==NOT ? q[1][0] : q[1];
