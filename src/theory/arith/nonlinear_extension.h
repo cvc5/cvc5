@@ -713,7 +713,7 @@ private:
   *      that occur in the current context.
   */
   std::vector<Node> checkMonomialInferBounds(
-      std::vector<Node>& nt_lemmas, const std::vector<Node>& false_asserts);
+      std::vector<Node>& nt_lemmas, const std::vector< Node >& asserts, const std::vector<Node>& false_asserts);
 
   /** check factoring
   *
@@ -727,7 +727,7 @@ private:
   *   ...where k is fresh and x*z + y*z > t is a
   *      constraint that occurs in the current context.
   */
-  std::vector<Node> checkFactoring(const std::vector<Node>& false_asserts);
+  std::vector<Node> checkFactoring(const std::vector< Node >& asserts, const std::vector<Node>& false_asserts);
 
   /** check monomial infer resolution bounds
   *

@@ -1180,16 +1180,18 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
         Node lit2 = init_bounds_lit[1][p];
         if( std::find( assertions.begin(), assertions.end(), eq )==assertions.end() )
         {
-          Trace("nl-ext-init") << "Equality based on bounds : " << eq << std::endl;
-          Node lem = nm->mkNode( OR, lit1.negate(), lit2.negate(), eq );
-          lemmas.push_back( lem );
+          Node eqv = computeModelValue(eq);
+          Trace("nl-ext-init") << "Equality based on bounds : " << eq << ", value : " << eqv << std::endl;
+          if( eqv!=d_true )
+          {
+            Node lem = nm->mkNode( OR, lit1.negate(), lit2.negate(), eq );
+            lemmas.push_back( lem );
+          }
+          assertions.push_back( eq );
         }
-        else
-        {
-          // we've inferred the equality, thus these are redundant
-          init_redundant.insert( lit1 );
-          init_redundant.insert( lit2 );
-        }
+        // we've inferred the equality, thus these are redundant
+        init_redundant.insert( lit1 );
+        init_redundant.insert( lit2 );
       }
     }
   }
@@ -1201,9 +1203,10 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during getAssertions." << std::endl;
       return false;
     }
-    // each lemma added to lemmas should not be implied by the current context
-    // and hence should not exist in the cache??
-    //Assert( false );
+    // We may send no lemmas here if the equality conclusion of the inference:
+    //   t >= c ^ ~( t >= c+1 ) => t = c
+    // is not asserted back to arithmetic. In this case, we have added the 
+    // equality to assertions above and marked the inequalities as redundant.
   }
   
   if( !init_redundant.empty() )
@@ -1662,7 +1665,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //-----------------------------------inferred bounds lemmas
   //  e.g. x >= t => y*x >= y*t
   std::vector< Node > nt_lemmas;
-  lemmas = checkMonomialInferBounds( nt_lemmas, false_asserts );
+  lemmas = checkMonomialInferBounds( nt_lemmas, assertions, false_asserts );
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
@@ -1684,7 +1687,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //------------------------------------factoring lemmas
   //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
   if( options::nlExtFactor() ){
-    lemmas = checkFactoring( false_asserts );
+    lemmas = checkFactoring( assertions, false_asserts );
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
@@ -1746,7 +1749,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     }
   } else {
     // get the assertions
-    std::vector<Node> assertions;
+    std::vector< Node > assertions;
     if( !getAssertions( assertions ) )
     {
       return;
@@ -2609,15 +2612,13 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
 }
 
 std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
-    std::vector<Node>& nt_lemmas, const std::vector<Node>& false_asserts)
+    std::vector<Node>& nt_lemmas, const std::vector< Node >& asserts, const std::vector<Node>& false_asserts)
 {
   std::vector< Node > lemmas; 
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
-  for (context::CDList<Assertion>::const_iterator it =
-           d_containing.facts_begin();
-       it != d_containing.facts_end(); ++it) {
-    Node lit = (*it).assertion;
+  for( const Node& lit : asserts )
+  {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     registerConstraint(atom);
@@ -2874,14 +2875,12 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
 }
 
 std::vector<Node> NonlinearExtension::checkFactoring(
-    const std::vector<Node>& false_asserts)
+    const std::vector< Node >& asserts, const std::vector<Node>& false_asserts)
 {
   std::vector< Node > lemmas; 
   Trace("nl-ext") << "Get factoring lemmas..." << std::endl;
-  for (context::CDList<Assertion>::const_iterator it =
-           d_containing.facts_begin();
-       it != d_containing.facts_end(); ++it) {
-    Node lit = (*it).assertion;
+  for( const Node& lit : asserts )
+  {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     if (std::find(false_asserts.begin(), false_asserts.end(), lit)
