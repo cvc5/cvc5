@@ -896,16 +896,23 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
-  |RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK 
+  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK 
   {
-    if(!f.getType().isSubtypeOf(t)){
-      PARSER_STATE->parseError("Type mismatch in definition");
-    }
     //If t.isFunction(), need to check whether f is a lambda
     func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
   }
   formula[f]
   {
+    if(!f.getType().isSubtypeOf(t)){
+      PARSER_STATE->parseError("Type mismatch in definition");
+    }
+    //if( f.getKind()==LAMBDA ){
+      for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
+      {
+        bvs.push_back( f[0][i] );
+      }
+      f = f[1];
+    //}
     cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
   }
   /*
@@ -957,7 +964,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       std::cout<<"\nf.getType() = "<<f.getType();
       std::cout<<"\nt.getRangeType() = "<<FunctionType(t).getRangeType()<<"\n";
       if((args != FunctionType(t).getArgTypes()) || (f.getType() != FunctionType(t).getRangeType())){
-       PARSER_STATE->parseError("Type mimatch in recursive function definition");
+       PARSER_STATE->parseError("Type mismatch in recursive function definition");
       }
       PARSER_STATE->popScope();
       cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
@@ -1159,7 +1166,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
         // f is not null-- meaning this is a definition not a declaration
         //Check if the formula f has the correct type, declared as t.
         if(!f.getType().isSubtypeOf(t)){
-          PARSER_STATE->parseError("Type mimatch in definition");
+          PARSER_STATE->parseError("Type mismatch in definition");
         }
         if(!topLevel) {
           // must be top-level; doesn't make sense to write something
