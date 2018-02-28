@@ -1321,7 +1321,23 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->getAssignment();
+    std::vector<std::pair<Expr,Expr>> assignments  = smtEngine->getAssignment();
+    vector<SExpr> sexprs;
+    for (const auto& p : assignments)
+    {
+      vector<SExpr> v;
+      if (p.first.getKind() == kind::APPLY)
+      {
+        v.push_back(SExpr(SExpr::Keyword(p.first.getOperator().toString())));
+      }
+      else
+      {
+        v.push_back(SExpr(SExpr::Keyword(p.first.toString())));
+      }
+      v.push_back(SExpr(SExpr::Keyword(p.second.toString())));
+      sexprs.push_back(SExpr(v));
+    }
+    d_result = SExpr(sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
