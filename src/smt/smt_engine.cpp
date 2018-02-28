@@ -5148,7 +5148,8 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-vector<pair<Expr,Expr>> SmtEngine::getAssignment() {
+vector<pair<Expr, Expr>> SmtEngine::getAssignment()
+{
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -5192,7 +5193,7 @@ vector<pair<Expr,Expr>> SmtEngine::getAssignment() {
 
       Trace("smt") << "--- getting value of " << n << endl;
       Node resultNode;
-      if (m != NULL)
+      if (m != nullptr)
       {
         resultNode = m->getValue(n);
       }
@@ -5205,7 +5206,7 @@ vector<pair<Expr,Expr>> SmtEngine::getAssignment() {
 
       Assert(as.getKind() == kind::APPLY || as.isVar());
       Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
-      res.push_back(make_pair(as.toExpr(), resultNode.toExpr()));
+      res.emplace_back(make_pair(as.toExpr(), resultNode.toExpr()));
     }
   }
   return res;
