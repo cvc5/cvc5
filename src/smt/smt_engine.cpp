@@ -5172,7 +5172,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   }
 
   vector<pair<Expr,Expr>> res;
-  if (d_assignments != NULL)
+  if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
     TheoryModel* m = d_theoryEngine->getModel();
