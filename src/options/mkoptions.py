@@ -90,6 +90,17 @@ tpl_assign_bool = \
   {notifications}
 }}"""
 
+tpl_call_assign_bool  = \
+    '  options->assignBool(options::{name}, {option}, {value});'
+
+tpl_call_assign = '  options->assign(options::{name}, {option}, optionarg);'
+
+tpl_call_set_option = 'setOption(std::string("{smtname}"), ("{value}"));'
+
+tpl_getopt_long = '{{ "{}", {}_argument, nullptr, {} }},'
+
+tpl_pushback_preempt = 'extender->pushBackPreemption({});'
+
 ## Templates for *_options.h
 
 # {name} ... option.name
@@ -259,7 +270,7 @@ def write_file(directory, name, s):
     except IOError:
         die("Could not write '{}'".format(fname))
     else:
-        print('generating {}'.format(name))
+        print('generated {}'.format(name))
         with f:
             f.write(s)
 
@@ -568,12 +579,11 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                     predicates = \
                         ['handler->{}(option, b);'.format(x) \
                             for x in option.predicates]
-                elif option.type != 'void':
+                else:
+                    assert(option.type != 'void')
                     predicates = \
                         ['handler->{}(option, retval);'.format(x) \
                             for x in option.predicates]
-                else:
-                    assert(False)
 
             ### Generate notification calls
             notifications = \
@@ -592,7 +602,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 cases.append(
                     'case {}:// --{}'.format(option_value_cur, option.long))
                 cmdline_options.append(
-                    '{{ "{}", {}_argument, nullptr, {} }},'.format(
+                    tpl_getopt_long.format(
                         long_get_option(option.long),
                         'required' if argument_req else 'no',
                         option_value_cur))
@@ -601,15 +611,21 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
             if len(cases) > 0:
                 if option.type == 'bool' and option.name:
                     cases.append(
-                        '  options->assignBool(options::{}, option, true);'.format(option.name))
+                        tpl_call_assign_bool.format(
+                            name=option.name,
+                            option='option',
+                            value='true'))
                 elif option.type != 'void' and option.name:
                     cases.append(
-                        '  options->assign(options::{}, option, optionarg);'.format(option.name))
+                        tpl_call_assign.format(
+                            name=option.name,
+                            option='option',
+                            value='optionarg'))
                 elif handler:
                     cases.append('{};'.format(handler))
 
                 cases.extend(
-                    ['  extender->pushBackPreemption("{}");'.format(x) \
+                    [tpl_pushback_preempt.format('"{}"'.format(x)) \
                         for x in option.links])
                 cases.append('  break;\n')
 
@@ -624,9 +640,10 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                     assert(m)
                     smtname = smt_name(m[0])
                     assert(smtname)
-                    smtlinks.append('setOption(std::string("{smtname}"), ("{value}"));'.format(
-                        smtname=smtname,
-                        value="true" if m[1] else "false"
+                    smtlinks.append(
+                        tpl_call_set_option.format(
+                            smtname=smtname,
+                            value='true' if m[1] else 'false'
                         ))
 
                 smtname = smt_name(option)
@@ -634,10 +651,15 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 setoption_handlers.append('if(key == "{}") {{'.format(smtname))
                 if option.type == 'bool':
                     setoption_handlers.append(
-                        'Options::current()->assignBool(options::{name}, "{smtname}", optionarg == "true");'.format(name=option.name, smtname=smtname))
+                        tpl_call_assign_bool.format(
+                            name=option.name,
+                            option='"{}"'.format(smtname),
+                            value='optionarg == "true"'))
                 elif argument_req and option.name:
                     setoption_handlers.append(
-                        'Options::current()->assign(options::{name}, "{smtname}", optionarg);'.format(name=option.name, smtname=smtname))
+                        tpl_call_assign.format(
+                            name=option.name,
+                            option='"{}"'.format(smtname)))
                 elif option.handler:
                     handler = 'handler->{handler}("{smtname}"'
                     if argument_req:
@@ -645,7 +667,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                     handler += ');'
                     setoption_handlers.append(
                         handler.format(handler=option.handler,
-                                           smtname=smtname))
+                                       smtname=smtname))
 
                 if len(smtlinks) > 0:
                     setoption_handlers.append('\n'.join(smtlinks))
@@ -677,15 +699,15 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                     'case {}:// --no-{}'.format(
                         option_value_cur, option.long))
                 cases.append(
-                    '  options->assignBool(options::{}, option, false);'.format(
-                        option.name))
+                    tpl_call_assign_bool.format(
+                        name=option.name, option='option', value='false'))
                 cases.append('  break;\n')
 
                 options_handler.extend(cases)
 
                 cmdline_options.append(
-                    '{{ "no-{}", {}_argument, nullptr, {} }},'.format(
-                        long_get_option(option.long),
+                    tpl_getopt_long.format(
+                        'no-{}'.format(long_get_option(option.long)),
                         'required' if argument_req else 'no',
                         option_value_cur))
                 option_value_cur += 1
@@ -760,25 +782,27 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
             options_handler.append(
                 'case {}:// --{}'.format(option_value_cur, alias.long))
 
+            # FIXME: if alias is an alternate of an existing option we also have
+            #        to call the handler and set it to false
             assert(len(alias.links) > 0)
             arg = long_get_arg(alias.long)
             for link in alias.links:
                 arg_link = long_get_arg(link)
                 if arg == arg_link:
                     options_handler.append(
-                        'extender->pushBackPreemption("{}");'.format(
-                            long_get_option(link)))
+                        tpl_pushback_preempt.format(
+                            '"{}"'.format(long_get_option(link))))
                     if argument_req:
                         options_handler.append(
-                            'extender->pushBackPreemption(optionarg.c_str());')
+                            tpl_pushback_preempt.format('optionarg.c_str()'))
                 else:
                     options_handler.append(
-                        'extender->pushBackPreemption("{}");'.format(link))
+                        tpl_pushback_preempt.format('"{}"'.format(link)))
 
             options_handler.append('  break;\n')
 
             cmdline_options.append(
-                '{{ "{}", {}_argument, nullptr, {} }},'.format(
+                tpl_getopt_long.format(
                     long_get_option(alias.long),
                     'required' if argument_req else 'no',
                     option_value_cur))
