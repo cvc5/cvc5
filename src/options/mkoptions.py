@@ -244,18 +244,8 @@ def die(msg):
     sys.exit('[error] {}'.format(msg))
 
 
-def check_attribs(req_attribs, valid_attribs, d, type):
-    msg_for = ""
-    if 'name' in d:
-        msg_for = " for '{}'".format(d['name'])
-    for k in req_attribs:
-        if k not in d:
-            die("required {} attribute '{}' not specified{}".format(
-                type, k, msg_for))
-    for k in d:
-        if k not in valid_attribs:
-            die("invalid {} attribute '{}' specified{}".format(
-                type, k, msg_for))
+def perr(filename, lineno, msg):
+    die('parse error in {}:{}: {}'.format(filename, lineno + 1, msg))
 
 
 def write_file(directory, name, s):
@@ -322,7 +312,6 @@ def long_get_option(name):
     return name.split('=')[0]
 
 
-# if no smt_name is specified, return long option name
 def smt_name(option):
     assert(option.smt_name or option.long)
     return option.smt_name if option.smt_name else long_get_option(option.long)
@@ -648,7 +637,17 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
                 smtname = smt_name(option)
 
-                setoption_handlers.append('if(key == "{}") {{'.format(smtname))
+                # make smt_name and long name available via set/get-option
+                keys = []
+                if option.smt_name:
+                    keys.append(option.smt_name)
+                if option.long:
+                    keys.append(long_get_option(option.long))
+                assert(len(keys) > 0)
+
+                cond = ' || '.join(['key == "{}"'.format(x) for x in keys])
+
+                setoption_handlers.append('if({}) {{'.format(cond))
                 if option.type == 'bool':
                     setoption_handlers.append(
                         tpl_call_assign_bool.format(
@@ -676,7 +675,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
                 if option.name:
                     getoption_handlers.append(
-                        'if (key == "{}") {{'.format(smtname))
+                        'if ({}) {{'.format(cond))
                     if option.type == 'bool':
                         getoption_handlers.append(
                             'return options::{}() ? "true" : "false";'.format(
@@ -861,10 +860,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
         ))
 
 
-def perr(filename, lineno, msg):
-    die('parse error in {}:{}: {}'.format(filename, lineno + 1, msg))
-
-
 def lstrip(prefix, s):
     return s[len(prefix):] if s.startswith(prefix) else s
 
@@ -873,32 +868,20 @@ def rstrip(suffix, s):
     return s[:-len(suffix)] if s.endswith(suffix) else s
 
 
-def parse_value(filename, lineno, attrib, s):
-
-    if s[0] == '"':
-        if s[-1] != '"':
-            perr(filename, lineno, 'missing closing " for string')
-        s = s.lstrip('"').rstrip('"').replace('\\"', '"')
-
-        # for read_only/alternate we allow both true/false and "true"/"false"
-        if attrib in ['read_only', 'alternate']:
-            if s == 'true':
-                return True
-            elif s == 'false':
-                return False
-        return s if len(s) > 0 else None
-    elif s[0] == '[':
-        try:
-            l = ast.literal_eval(s)
-        except SyntaxError as e:
-            perr(filename, lineno, 'parsing list: {}'.format(e.msg))
-        return l
-    elif s == 'true':
-        return True
-    elif s == 'false':
-        return False
-    else:
-        perr(filename, lineno, "invalid value '{}'".format(s))
+def check_attribs(filename, lineno, req_attribs, valid_attribs, d, type):
+    msg_for = ""
+    if 'name' in d:
+        msg_for = " for '{}'".format(d['name'])
+    for k in req_attribs:
+        if k not in d:
+            perr(filename, lineno,
+                 "required {} attribute '{}' not specified{}".format(
+                    type, k, msg_for))
+    for k in d:
+        if k not in valid_attribs:
+            perr(filename, lineno,
+                "invalid {} attribute '{}' specified{}".format(
+                    type, k, msg_for))
 
 
 def check_unique(filename, lineno, value, cache, attrib):
@@ -1043,6 +1026,34 @@ def check_module_attrib(filename, lineno, attrib, value):
                      header_name, value))
 
 
+def parse_value(filename, lineno, attrib, s):
+
+    if s[0] == '"':
+        if s[-1] != '"':
+            perr(filename, lineno, 'missing closing " for string')
+        s = s.lstrip('"').rstrip('"').replace('\\"', '"')
+
+        # for read_only/alternate we allow both true/false and "true"/"false"
+        if attrib in ['read_only', 'alternate']:
+            if s == 'true':
+                return True
+            elif s == 'false':
+                return False
+        return s if len(s) > 0 else None
+    elif s[0] == '[':
+        try:
+            l = ast.literal_eval(s)
+        except SyntaxError as e:
+            perr(filename, lineno, 'parsing list: {}'.format(e.msg))
+        return l
+    elif s == 'true':
+        return True
+    elif s == 'false':
+        return False
+    else:
+        perr(filename, lineno, "invalid value '{}'".format(s))
+
+
 # Parse options module file.
 #
 # Note: We could use an existing toml parser to parse the configuration files.
@@ -1117,7 +1128,8 @@ def parse_module(filename, file):
 
     # Check if required attributes are defined and create
     # module/option/alias objects
-    check_attribs(g_module_attr_req, g_module_attr_all, module, 'module')
+    check_attribs(filename, 1,
+                  g_module_attr_req, g_module_attr_all, module, 'module')
     res = Module(module)
 
     assert(len(option_lines) == len(options))
@@ -1126,7 +1138,8 @@ def parse_module(filename, file):
     for i in range(len(options)):
         attribs = options[i]
         lineno = option_lines[i]
-        check_attribs(g_option_attr_req, g_option_attr_all, attribs, 'option')
+        check_attribs(filename, lineno,
+                      g_option_attr_req, g_option_attr_all, attribs, 'option')
         option = Option(attribs)
         if option.short and not option.long:
             perr(filename, lineno,
@@ -1138,15 +1151,17 @@ def parse_module(filename, file):
         if option.category != 'undocumented' and not option.help:
             perr(filename, lineno,
                  'help text is required for {} options'.format(option.category))
-        option.lineno = option_lines[i]
+        option.lineno = lineno
         option.filename = filename
         res.options.append(option)
 
     for i in range(len(aliases)):
         attribs = aliases[i]
-        check_attribs(g_alias_attr_req, g_alias_attr_all, attribs, 'alias')
+        lineno = alias_lines[i]
+        check_attribs(filename, lineno,
+                      g_alias_attr_req, g_alias_attr_all, attribs, 'alias')
         alias = Alias(attribs)
-        alias.lineno = alias_lines[i]
+        alias.lineno = lineno
         alias.filename = filename
         res.aliases.append(alias)
     return res
