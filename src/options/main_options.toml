@@ -16,6 +16,7 @@ header = "options/main_options.h"
   notifies   = []
   links      = []
   read_only  = true
+  alternate  = false
   help       = "identify this CVC4 binary"
 
 [[alias]]
@@ -37,6 +38,7 @@ header = "options/main_options.h"
   notifies   = []
   links      = []
   read_only  = true
+  alternate  = false
   help       = "full command line reference"
 
 [[option]]

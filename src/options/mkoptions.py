@@ -14,7 +14,7 @@ g_module_attr_all = g_module_attr_req + ['options', 'aliases']
 g_option_attr_req = ['category', 'type']
 g_option_attr_all = g_option_attr_req + [
     'name', 'help', 'smt_name', 'short', 'long', 'default', 'includes',
-    'handler', 'predicates', 'notifies', 'links', 'read_only'
+    'handler', 'predicates', 'notifies', 'links', 'read_only', 'alternate'
 ]
 
 g_alias_attr_req = ['category', 'long', 'links']
@@ -209,12 +209,12 @@ class Option(object):
         self.notifies = []
         self.links = []
         self.read_only = False
+        self.alternate = True    # add --no- alternative long option for bool
         self.lineno = None
         self.filename = None
-        self.add_alternative = True  # add --no- alternative for bool
         for (k, v) in d.items():
             assert(k in self.__dict__)
-            if k == 'read_only' or v:
+            if k in ['read_only', 'alternate'] or v:
                 self.__dict__[k] = v
 
 class Alias(object):
@@ -522,7 +522,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
             # Generate documentation for cmdline options
             if opts and option.category != 'undocumented':
                 help_cmd = help
-                if option.type == 'bool':
+                if option.type == 'bool' and option.alternate:
                     help_cmd += ' [*]'
                 doc_cmd.extend(help_format(help_cmd, opts))
 
@@ -671,7 +671,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
 
             # Add --no- alternative options for boolean options
-            if option.long and option.type == 'bool' and option.add_alternative:
+            if option.long and option.type == 'bool' and option.alternate:
                 cases = []
                 cases.append(
                     'case {}:// --no-{}'.format(
@@ -856,8 +856,8 @@ def parse_value(filename, lineno, attrib, s):
             perr(filename, lineno, 'missing closing " for string')
         s = s.lstrip('"').rstrip('"').replace('\\"', '"')
 
-        # for read_only we allow both true/false and "true"/"false"
-        if attrib == 'read_only':
+        # for read_only/alternate we allow both true/false and "true"/"false"
+        if attrib in ['read_only', 'alternate']:
             if s == 'true':
                 return True
             elif s == 'false':
@@ -979,11 +979,11 @@ def check_option_attrib(filename, lineno, attrib, value):
     elif attrib == 'links' and value:
         if not isinstance(value, list):
             perr(filename, lineno, 'expected list for links attribute')
-    elif attrib == 'read_only' and value:
+    elif attrib in ['read_only', 'alternate'] and value is not None:
         if not isinstance(value, bool):
             perr(filename, lineno,
-                 "expected true/false instead of '{}' for read_only".format(
-                     value))
+                 "expected true/false instead of '{}' for {}".format(
+                     value, attrib))
 
 
 def check_module_attrib(filename, lineno, attrib, value):
@@ -1197,7 +1197,7 @@ if __name__ == "__main__":
             if alias.long.startswith('no-'):
                 m = match_option(alias.long)
                 if m[0] and m[0].type == 'bool':
-                    m[0].add_alternative = False
+                    m[0].alternate = False
                     del(g_long_cache[alias.long])
             check_long(alias.filename, alias.lineno, alias.long)
 

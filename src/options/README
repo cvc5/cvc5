@@ -23,6 +23,7 @@ Optional attributes are:
   notifies   ... (list)   notifications to call when option is set
   links      ... (list)   additional options to set after this option is set
   read_only  ... (bool)   false if option can be set, true if option is read-only (default is false)
+  alternate  ... (bool)   create --no- alternative option for bool options (default is true)
   help       ... (string) documentation (required for if category is not undocumented)
 
 
