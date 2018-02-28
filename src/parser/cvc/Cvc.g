@@ -906,7 +906,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     if(!f.getType().isSubtypeOf(t)){
       PARSER_STATE->parseError("Type mismatch in definition");
     }
-    //if( f.getKind()==LAMBDA ){
+    if( f.getKind()==LAMBDA ){
       for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
       {
         bvs.push_back( f[0][i] );
@@ -1534,11 +1534,13 @@ prefixFormula[CVC4::Expr& f]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
-      std::string name = "lambda";
+      /*std::string name = "lambda";
       Expr func = PARSER_STATE->mkAnonymousFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       Command* cmd = new DefineFunctionCommand(name, func, terms, f);
       PARSER_STATE->preemptCommand(cmd);
-      f = func;
+      f = func;*/
+      Expr bvl = EXPR_MANAGER->mkExpr( kind::BOUND_VAR_LIST, terms );
+      f = EXPR_MANAGER->mkExpr( kind::LAMBDA, bvl, f );
     }
   ;
 
