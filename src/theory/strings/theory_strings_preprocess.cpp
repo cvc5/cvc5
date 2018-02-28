@@ -106,7 +106,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node lemma = NodeManager::currentNM()->mkNode( kind::ITE, cond, b1, b2 );
     new_nodes.push_back( lemma );
     retNode = skt;
-  } else if( t.getKind() == kind::STRING_STRIDOF ) {
+  } 
+  else if( t.getKind() == kind::STRING_STRIDOF ) 
+  {
     // processing term:  indexof( x, y, n )
     
     Node skk;
@@ -124,41 +126,58 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // assert:   len( x ) > indexof( x, y, z )
     new_nodes.push_back( krange );
 
-    // substr( x, n, len( x ) - n ) = str.++( io2, io3, io4 )
+    
+    // substr( x, n, len( x ) - n )
     Node st = nm->mkNode( kind::STRING_SUBSTR, t[0], t[2], nm->mkNode( kind::MINUS, nm->mkNode( kind::STRING_LENGTH, t[0] ), t[2] ) );
     Node io2 = nm->mkSkolem( "io2", nm->stringType(), "created for indexof" );
-    Node io3 = nm->mkSkolem( "io3", nm->stringType(), "created for indexof" );
     Node io4 = nm->mkSkolem( "io4", nm->stringType(), "created for indexof" );
-    Node eq = st.eqNode( nm->mkNode( kind::STRING_CONCAT, io2, io3, io4 ) );
+    
     
     // ~contains( substr( x, n, len( x ) - n ), y )
-    Node c3 = nm->mkNode( kind::STRING_STRCTN, st, t[1] ).negate();
+    Node c11 = nm->mkNode( kind::STRING_STRCTN, st, t[1] ).negate();
+    // n > len( x )
+    Node c12 = nm->mkNode( kind::GT, t[2], nm->mkNode( kind::STRING_LENGTH, t[0] ) );
+    // 0 > n 
+    Node c13 = nm->mkNode( kind::GT, nm->mkConst( CVC4::Rational(0) ), t[2] );
+    Node cond1 = nm->mkNode( kind::OR, c11, c12, c13 );
+    // skk = -1
+    Node cc1 = skk.eqNode( negone );
     
-    // y = io3
-    Node c4 = t[1].eqNode( io3 );
     
+    // y = ""
+    Node cond2 = t[1].eqNode( nm->mkConst( CVC4::String("") ) );
+    // skk = n
+    Node cc2 = skk.eqNode( t[2] );
+    
+    
+    // substr( x, n, len( x ) - n ) = str.++( io2, y, io4 )
+    Node c31 = st.eqNode( nm->mkNode( kind::STRING_CONCAT, io2, t[1], io4 ) );
     // ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y )
-    Node c5 = nm->mkNode( kind::STRING_STRCTN,
+    Node c32 = nm->mkNode( kind::STRING_STRCTN,
                 nm->mkNode(kind::STRING_CONCAT, io2,
                   nm->mkNode(kind::STRING_SUBSTR, t[1], d_zero,
                     nm->mkNode(kind::MINUS,
                       nm->mkNode(kind::STRING_LENGTH, t[1]),
                       nm->mkConst( ::CVC4::Rational(1) )))),
                 t[1] ).negate();
-                
     // skk = n + len( io2 )
-    Node c6 = skk.eqNode( nm->mkNode( kind::PLUS, t[2],
+    Node c33 = skk.eqNode( nm->mkNode( kind::PLUS, t[2],
                             nm->mkNode( kind::STRING_LENGTH, io2 )) );
+    Node cc3 = nm->mkNode( kind::AND, c31, c32, c33 );
+    
     
     // assert:
-    // IF:   skk = -1
-    // THEN: ~contains( substr( x, n, len( x ) - n ), y )
-    // ELSE: substr( x, n, len( x ) - n ) = str.++( io2, io3, io4 ) ^
-    //       y = io3 ^ 
+    // IF:   ~contains( substr( x, n, len( x ) - n ), y ) OR n > len(x) OR 0 > n
+    // THEN: skk = -1
+    // ELIF: y = ""
+    // THEN: skk = n
+    // ELSE: substr( x, n, len( x ) - n ) = str.++( io2, y, io4 ) ^
     //       ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y ) ^
-    //       skk = n + len( io2 ) )
-    // for fresh io2, io3, io4.
-    Node rr = nm->mkNode( kind::ITE, skk.eqNode( negone ), c3, nm->mkNode( kind::AND, eq, c4, c5, c6 ) );
+    //       skk = n + len( io2 )
+    // for fresh io2, io4.
+    Node rr = nm->mkNode( kind::ITE, cond1, cc1,
+                nm->mkNode( kind::ITE, cond2, cc2,           
+                          cc3 ) );
     new_nodes.push_back( rr );
     
     // Thus, indexof( x, y, n ) = skk.
@@ -375,8 +394,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
             NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2), cc3);
     new_nodes.push_back( conc );
     retNode = pret;
-  } else if( t.getKind() == kind::STRING_STRREPL ) {
-    // we are processing replace( x, y, z )
+  } 
+  else if( t.getKind() == kind::STRING_STRREPL ) 
+  {
+    // processing term: replace( x, y, z )
     Node x = t[0];
     Node y = t[1];
     Node z = t[2];
@@ -384,14 +405,20 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node rp1 = nm->mkSkolem( "rp1", tn, "created for replace" );
     Node rp2 = nm->mkSkolem( "rp2", tn, "created for replace" );
     Node rpw = nm->mkSkolem( "rpw", tn, "created for replace" );
+    
+    // y = ""
+    Node cond1 = y.eqNode( nm->mkConst( CVC4::String("") ) );
+    // rpw = str.++( z, w )
+    Node c1 = rpw.eqNode( nm->mkNode( kind::STRING_CONCAT, z, x ) );
+    
     // contains( x, y )
-    Node cond = nm->mkNode( kind::STRING_STRCTN, x, y );
+    Node cond2 = nm->mkNode( kind::STRING_STRCTN, x, y );
     // x = str.++( rp1, y, rp2 )
-    Node c1 = x.eqNode( nm->mkNode( kind::STRING_CONCAT, rp1, y, rp2 ) );
+    Node c21 = x.eqNode( nm->mkNode( kind::STRING_CONCAT, rp1, y, rp2 ) );
     // rpw = str.++( rp1, z, rp2 )
-    Node c2 = rpw.eqNode( nm->mkNode( kind::STRING_CONCAT, rp1, z, rp2 ) );
+    Node c22 = rpw.eqNode( nm->mkNode( kind::STRING_CONCAT, rp1, z, rp2 ) );
     // ~contains( str.++( rp1, substr( y, 0, len(y)-1 ) ), y )
-    Node c3 = nm->mkNode(kind::STRING_STRCTN,
+    Node c23 = nm->mkNode(kind::STRING_STRCTN,
                 nm->mkNode(kind::STRING_CONCAT, rp1,
                    nm->mkNode(kind::STRING_SUBSTR, y, d_zero,
                       nm->mkNode(kind::MINUS,
@@ -399,15 +426,18 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                         nm->mkConst(::CVC4::Rational(1))))), y).negate();
                         
     // assert:
-    //   IF:   contains( x, y )
+    //   IF    y=""
+    //   THEN: rpw = str.++( z, x )
+    //   ELIF: contains( x, y )
     //   THEN: x = str.++( rp1, y, rp2 ) ^ 
     //         rpw = str.++( rp1, z, rp2 ) ^
     //         ~contains( str.++( rp1, substr( y, 0, len(y)-1 ) ), y ),
     //   ELSE: rpw = x
     // for fresh rp1, rp2, rpw
-    Node rr = nm->mkNode( kind::ITE, cond,
-                                                nm->mkNode( kind::AND, c1, c2, c3),
-                                                rpw.eqNode(x) );
+    Node rr = nm->mkNode( kind::ITE, cond1, c1,
+                          nm->mkNode( kind::ITE, cond2,
+                                      nm->mkNode( kind::AND, c21, c22, c23),
+                                      rpw.eqNode(x) ) );
     new_nodes.push_back( rr );
     
     // Thus, replace( x, y, z ) = rpw.
