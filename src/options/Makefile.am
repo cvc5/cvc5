@@ -45,13 +45,11 @@ CPP_TEMPLATE_FILES = \
 
 DOCUMENTATION_FILES = \
 	../../doc/cvc4.1 \
-	../../doc/libcvc4.3 \
 	../../doc/SmtEngine.3cvc \
 	../../doc/options.3cvc
 
 DOCUMENTATION_TEMPLATE_FILES = \
 	../../doc/cvc4.1_template \
-	../../doc/libcvc4.3_template \
 	../../doc/SmtEngine.3cvc_template \
 	../../doc/options.3cvc_template
 
@@ -122,11 +120,13 @@ CLEANFILES = \
 	$(OPTIONS_HEADS) \
 	$(OPTIONS_CPPS) \
 	$(DOCUMENTATION_FILES) \
+	../../doc/libcvc4.3 \
 	options_holder.h
 
 
 EXTRA_DIST = \
 	$(DOCUMENTATION_FILES) \
+	../../doc/libcvc4.3 \
 	$(OPTIONS_CPPS) \
 	$(OPTIONS_HEADS) \
 	$(OPTIONS_CONFIG_FILES) \
