@@ -61,24 +61,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
 
   //--------------------pre-rewrite  
   Node pre_new_ret;
-  if( ret.getKind()==ITE )
-  {
-    Node flip_cond;
-    if( ret[0].getKind()==NOT )
-    {
-      flip_cond = ret[0][0];
-    }
-    else if( ret[0].getKind()==OR )
-    {
-      // a | b ---> ~( ~a & ~b )
-      flip_cond = TermUtil::simpleNegate( ret[0] );
-    }
-    if( !flip_cond.isNull() )
-    {
-      pre_new_ret = nm->mkNode( ITE, flip_cond, ret[2], ret[1]);
-      debugExtendedRewrite( ret, pre_new_ret, "ITE flip" );
-    }
-  }
   if( ret.getKind()==IMPLIES )
   {
     pre_new_ret = nm->mkNode( OR, ret[0].negate(), ret[1] );
@@ -289,11 +271,26 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
 {
   Assert( n.getKind()==itek );
   Assert(n[1] != n[2]);
-  Assert(n[0].getKind()!=NOT );
   
   NodeManager * nm = NodeManager::currentNM();
   
   Trace("ext-rew-ite") << "Rewrite ITE : " << n << std::endl;
+  
+  Node flip_cond;
+  if( n[0].getKind()==NOT )
+  {
+    flip_cond = n[0][0];
+  }
+  else if( n[0].getKind()==OR )
+  {
+    // a | b ---> ~( ~a & ~b )
+    flip_cond = TermUtil::simpleNegate( n[0] );
+  }
+  if( !flip_cond.isNull() )
+  {
+    Node new_ret = nm->mkNode( ITE, flip_cond, n[2], n[1]);
+    return new_ret;
+  }
   
   // get entailed equalities in the condition
   std::vector< Node > eq_conds;
@@ -398,7 +395,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         nn = Rewriter::rewrite( nn );
         if( nn==t1 )
         {
-          new_ret = nn;
+          new_ret = t2;
         }
       }
       
@@ -476,23 +473,41 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         Node pull = nm->mkNode(n.getKind(), children);
         Node pullr = Rewriter::rewrite(pull);
         children[ii] = n[i];
-        if( pullr.isConst() || pullr==n[i][j + 1] )
-        {
-          // f( t1..s1..tn ) ---> c implies
-          // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, c, f( t1..s2..tn ) )
-          children[ii] = n[i][2 - j];
-          Node rem = nm->mkNode(n.getKind(), children);
-          // ITE single child invariance
-          return nm->mkNode( itek, n[i][0], j==0 ? pullr : rem, j==0 ? rem : pullr );
-        }
-        else if( j==1 && ite_c[i][0]==pullr )
-        {
-          // ITE dual invariance
-          // f( t1..s1..tn ) ---> t  and  f( t1..s1..tn ) ---> t implies 
-          // f( t1..ite( A, s1, s2 )..tn ) ---> t
-          return pullr;
-        }
         ite_c[i][j] = pullr;
+      }
+      if( ite_c[i][0]==ite_c[i][1] )
+      {
+        // ITE dual invariance
+        // f( t1..s1..tn ) ---> t  and  f( t1..s1..tn ) ---> t implies 
+        // f( t1..ite( A, s1, s2 )..tn ) ---> t
+        return ite_c[i][0];
+      }
+      else
+      {
+        for( unsigned j=0; j<2; j++ )
+        {
+          Node pullr = ite_c[i][j];
+          if( pullr.isConst() || pullr==n[i][j + 1] )
+          {
+            // ITE single child invariance
+            // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
+            // implies
+            // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
+            if( tn.isBoolean() )
+            {
+              // remove false/true child immediately
+              bool pol = pullr.getConst<bool>();
+              std::vector< Node > new_children;
+              new_children.push_back((j == 0)==pol ? n[i][0] : n[i][0].negate());
+              new_children.push_back( ite_c[i][1-j] );
+              return nm->mkNode( pol ? OR : AND, new_children );
+            }
+            else
+            {
+              return nm->mkNode( itek, n[i][0], ite_c[i][0], ite_c[i][1] );
+            }
+          }
+        }
       }
     }
   }
