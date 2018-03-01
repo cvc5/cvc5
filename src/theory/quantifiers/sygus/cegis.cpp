@@ -13,12 +13,12 @@
  **/
 
 #include "theory/quantifiers/sygus/cegis.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 // FIXME : remove these includes (github issue #1156)
-#include "theory/theory_engine.h"
 #include "theory/bv/theory_bv_rewriter.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -43,7 +43,7 @@ bool Cegis::initialize(Node n,
     }
     d_base_body = d_base_body[0][1];
   }
-  
+
   // assign the cegis sampler if applicable
   if (options::cegisSample() != CEGIS_SAMPLE_NONE)
   {
@@ -52,7 +52,7 @@ bool Cegis::initialize(Node n,
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
-  
+
   // initialize an enumerator for each candidate
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0; i < candidates.size(); i++)
@@ -77,10 +77,10 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
 {
   candidate_values.insert(
       candidate_values.end(), enum_values.begin(), enum_values.end());
-  
+
   if (options::sygusDirectEval())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     bool addedEvalLemmas = false;
     if (options::sygusCRefEval())
     {
@@ -114,12 +114,15 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     for (unsigned j = 0, size = candidates.size(); j < size; j++)
     {
       Trace("cegqi-debug") << "  register " << candidates[j] << " -> "
-                          << candidate_values[j] << std::endl;
-      tds->registerModelValue(
-          candidates[j], candidate_values[j], eager_terms, eager_vals, eager_exps);
+                           << candidate_values[j] << std::endl;
+      tds->registerModelValue(candidates[j],
+                              candidate_values[j],
+                              eager_terms,
+                              eager_vals,
+                              eager_exps);
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()
-                        << " eager evaluation lemmas." << std::endl;
+                         << " eager evaluation lemmas." << std::endl;
 
     for (unsigned j = 0, size = eager_terms.size(); j < size; j++)
     {
@@ -144,18 +147,18 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       return false;
     }
   }
-  
+
   return true;
 }
 
-void Cegis::registerRefinementLemma( Node lem )
+void Cegis::registerRefinementLemma(Node lem)
 {
   d_refinement_lemmas.push_back(lem);
 }
 
 void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
-                                            const std::vector<Node>& ms,
-                                            std::vector<Node>& lems)
+                                    const std::vector<Node>& ms,
+                                    std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << getNumRefinementLemmas() << " refinement lemmas."
@@ -166,9 +169,9 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
     Assert(vs.size() == ms.size());
 
     TermDbSygus* tds = d_qe->getTermDatabaseSygus();
-    NodeManager * nm = NodeManager::currentNM();
-    
-    Node nfalse = nm->mkConst( false );
+    NodeManager* nm = NodeManager::currentNM();
+
+    Node nfalse = nm->mkConst(false);
     Node neg_guard = d_parent->getGuard().negate();
     for (unsigned i = 0; i <= nlemmas; i++)
     {
@@ -221,7 +224,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
           Trace("sygus-cref-eval2")
               << "...after unfolding is : " << lemcsu << std::endl;
-          if (lemcsu.isConst() && !lemcsu.getConst<bool>() )
+          if (lemcsu.isConst() && !lemcsu.getConst<bool>())
           {
             std::vector<Node> msu;
             std::vector<Node> mexp;
@@ -244,11 +247,9 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
             }
             if (!mexp.empty())
             {
-              Node en = mexp.size() == 1
-                            ? mexp[0]
-                            : nm->mkNode(kind::AND, mexp);
-              cre_lem = nm->mkNode(
-                  kind::OR, en.negate(), neg_guard);
+              Node en =
+                  mexp.size() == 1 ? mexp[0] : nm->mkNode(kind::AND, mexp);
+              cre_lem = nm->mkNode(kind::OR, en.negate(), neg_guard);
             }
             else
             {
@@ -270,10 +271,9 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   }
 }
 
-
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals,
-                                             std::vector<Node>& lems)
+                                     std::vector<Node>& lems)
 {
   if (Trace.isOn("cegis-sample"))
   {

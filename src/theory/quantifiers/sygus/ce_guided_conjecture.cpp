@@ -266,7 +266,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       terms, enum_values, d_candidates, candidate_values, lems);
 
   NodeManager* nm = NodeManager::currentNM();
-  
+
   //must get a counterexample to the value of the current candidate
   Node inst;
   if( constructed_cand ){
@@ -288,7 +288,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   }
   
   //check whether we will run CEGIS on inner skolem variables
-  bool sk_refine = ( !isGround() || d_refine_count==0 ) && constructed_cand;
+  bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
   if( sk_refine ){
     if (options::cegisSample() == CEGIS_SAMPLE_TRUST)
     {
@@ -419,7 +419,7 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
   base_lem = Rewriter::rewrite( base_lem );
-  d_master->registerRefinementLemma( base_lem );
+  d_master->registerRefinementLemma(base_lem);
 
   Node lem =
       NodeManager::currentNM()->mkNode(OR, getGuard().negate(), base_lem);
@@ -532,7 +532,8 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               // We will not refine the current candidate solution since it is a solution
               // thus, we clear information regarding the current refinement
               d_ce_sk.clear();
-              // However, we need to exclude the current solution using an explicit refinement
+              // However, we need to exclude the current solution using an
+              // explicit refinement
               // so that we proceed to the next solution.
               std::vector<Node> terms;
               d_master->getTermList(d_candidates, terms);

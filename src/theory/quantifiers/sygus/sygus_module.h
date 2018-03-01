@@ -30,11 +30,11 @@ class CegConjecture;
 /** SygusModule
  *
  * This is the base class of sygus modules, owned by CegConjecture.
- * 
+ *
  * An instance of the conjecture class (CegConjecture) creates the negated deep
  * embedding form of the synthesis conjecture, which assume is:
  *   forall d. exists x. P( d, x )
- * where d are of sygus datatype type. The "base instantiation" of this 
+ * where d are of sygus datatype type. The "base instantiation" of this
  * conjecture (see CegConjecture::d_base_inst) is the formula:
  *   exists y. P( k, y )
  * where k are the "candidate" variables for the conjecture.
@@ -73,7 +73,7 @@ class SygusModule
    *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
-   * to the synthesis conjecture in question. This candidate { v } will then be 
+   * to the synthesis conjecture in question. This candidate { v } will then be
    * tested by testing the (un)satisfiablity of P( v, k' ) for fresh k'.
    *
    * This function may also add lemmas to lems, which are sent out as lemmas
@@ -85,7 +85,7 @@ class SygusModule
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) = 0;
   /** register refinement lemma
-   * 
+   *
    * Assume this module, on a previous call to constructCandidates, added the
    * value { v } to candidate_values for candidates = { k }. This function is
    * called if the base instantiation of the synthesis conjecture has a value
@@ -93,7 +93,8 @@ class SygusModule
    * is called when the refinement lemma P( v, k' ) has a model. The argument
    * lem in the call to this function is P( v, k' ).
    */
-  virtual void registerRefinementLemma( Node lem ) {}
+  virtual void registerRefinementLemma(Node lem) {}
+
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;

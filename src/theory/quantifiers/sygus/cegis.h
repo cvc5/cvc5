@@ -33,7 +33,7 @@ namespace quantifiers {
  * It initializes a list of sygus enumerators that are one-to-one with
  * candidates, and returns a list of candidates that are the model values
  * of these enumerators on calls to constructCandidates.
- * 
+ *
  * It implements an optimization (getRefinementEvalLemmas) that evaluates all
  * previous refinement lemmas for a term before returning it as a candidate
  * in calls to constructCandidates.
@@ -57,20 +57,20 @@ class Cegis : public SygusModule
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) override;
   /** register refinement lemma */
-  virtual void registerRefinementLemma( Node lem ) override;
-private:
-  
+  virtual void registerRefinementLemma(Node lem) override;
+
+ private:
   /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**
-   * If CegConjecture::d_base_inst is exists y. P( d, y ), then this is the 
+   * If CegConjecture::d_base_inst is exists y. P( d, y ), then this is the
    * formula P( CegConjecture::d_candidates, y ).
    */
   Node d_base_body;
-  
+
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
-  std::vector< Node > d_refinement_lemmas;
+  std::vector<Node> d_refinement_lemmas;
   /** get number of refinement lemmas we have added so far */
   unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
   /** get refinement lemma
@@ -78,7 +78,7 @@ private:
    * If d_embed_quant is forall d. exists y. P( d, y ), then a refinement
    * lemma is one of the form ~P( d_candidates, c ) for some c.
    */
-  Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
+  Node getRefinementLemma(unsigned i) { return d_refinement_lemmas[i]; }
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that
@@ -89,8 +89,8 @@ private:
   bool sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                 const std::vector<Node>& vals,
                                 std::vector<Node>& lems);
-  //-----------------------------------end refinement lemmas 
-  
+  //-----------------------------------end refinement lemmas
+
   /** Get refinement evaluation lemmas
    *
    * Given a candidate solution ms for candidates vs, this function adds lemmas
