@@ -10,6 +10,7 @@ Modules
   A module defines 0 or more options and/or aliases.
 
   In general, each attribute/value pair is required to be in one line.
+  Comments start with # and are not allowed in attribute/value lines.
 
 
 Options
