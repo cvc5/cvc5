@@ -144,7 +144,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if (ret.getKind() == ITE)
   {
     new_ret = extendedRewriteIte( ITE, ret );
-    debugExtendedRewrite( ret, new_ret, "ITE rewriting" );
   }
   else if( ret.getKind()==AND || ret.getKind()==OR )
   {
@@ -162,7 +161,6 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {  
     // simple ITE pulling
     new_ret = extendedRewritePullIte(ITE, ret);
-    debugExtendedRewrite( ret, new_ret, "ITE pull" );
   }
   //----------------------end theory-independent post-rewriting
   
@@ -245,7 +243,6 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
               {
                 new_ret = new_ret.negate();
               }
-              debugExtendedRewrite( n, new_ret, "ITE pull arith" );
               break;
             }
           }
@@ -289,6 +286,10 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   if( !flip_cond.isNull() )
   {
     Node new_ret = nm->mkNode( ITE, flip_cond, n[2], n[1]);
+    if( full )
+    {
+      debugExtendedRewrite( n, new_ret, "ITE flip" );
+    }
     return new_ret;
   }
   
@@ -316,6 +317,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
   Node t1 = n[1];
   Node t2 = n[2];
   bool did_splice = false;
+  std::stringstream ss_reason;
   // Floating miniscope of ITE
   // Conceptually, this function temporarily rewrites:
   //    ite( C, t.x.s, t.y.s ) ---> t.ite( C, x, y ).s,
@@ -365,6 +367,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       if (t2 == eq[i] && t1 == eq[1-i])
       {
         new_ret = t2;
+        ss_reason << "ITE simple rev subs";
         break;
       }
     }
@@ -396,6 +399,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         if( nn==t1 )
         {
           new_ret = t2;
+          ss_reason << "ITE rev subs";
         }
       }
       
@@ -415,10 +419,12 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
           if( nn==t2 )
           {
             new_ret = nn;
+            ss_reason << "ITE subs invariant";
           }
           else if( !did_splice && ( full || nn.isConst() ) )
           {
             new_ret = nm->mkNode( itek, n[0], nn, t2);
+            ss_reason << "ITE subs";
           }
         }
         if( new_ret.isNull() && did_splice )
@@ -441,6 +447,11 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     cchildren.push_back( new_ret );
     cchildren.push_back( e );
     new_ret = mkConcat( concatk, cchildren );
+  }
+  
+  if( !new_ret.isNull() && full )
+  {
+    debugExtendedRewrite( n, new_ret, ss_reason.str().c_str() );
   }
 
   return new_ret;
@@ -480,6 +491,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         // ITE dual invariance
         // f( t1..s1..tn ) ---> t  and  f( t1..s1..tn ) ---> t implies 
         // f( t1..ite( A, s1, s2 )..tn ) ---> t
+        debugExtendedRewrite( n, ite_c[i][0], "ITE dual invariant" );
         return ite_c[i][0];
       }
       else
@@ -489,10 +501,11 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
           Node pullr = ite_c[i][j];
           if( pullr.isConst() || pullr==n[i][j + 1] )
           {
-            // ITE single child invariance
+            // ITE single child elimination
             // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
             // implies
             // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
+            Node new_ret;
             if( tn.isBoolean() )
             {
               // remove false/true child immediately
@@ -500,12 +513,14 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
               std::vector< Node > new_children;
               new_children.push_back((j == 0)==pol ? n[i][0] : n[i][0].negate());
               new_children.push_back( ite_c[i][1-j] );
-              return nm->mkNode( pol ? OR : AND, new_children );
+              new_ret = nm->mkNode( pol ? OR : AND, new_children );
             }
             else
             {
-              return nm->mkNode( itek, n[i][0], ite_c[i][0], ite_c[i][1] );
+              new_ret = nm->mkNode( itek, n[i][0], ite_c[i][0], ite_c[i][1] );
             }
+            debugExtendedRewrite( n, new_ret, "ITE single elim" );
+            return new_ret;
           }
         }
       }
@@ -524,6 +539,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
       Node new_pull_ite = extendedRewriteIte(itek,pull_ite, false );
       if( !new_pull_ite.isNull() )
       {
+        debugExtendedRewrite( n, new_pull_ite, "ITE pull rewrite" );
         return new_pull_ite;
       }
     }
@@ -535,6 +551,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
       //   ite( C, ~~x, ite( C, y, x ) ) --->
       //   x
       // where ~ is bitvector negation.
+      debugExtendedRewrite( n, pull_ite, "ITE pull basic elim" );
       return pull_ite;
     }
   }
@@ -2669,8 +2686,8 @@ void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c ) 
   {
     if( !ret.isNull() )
     {
-      Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to "
-                              << ret << " due to " <<  c << "." << std::endl;
+      Trace("q-ext-rewrite") << "sygus-extr : apply " << c << ":" << std::endl;
+      Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to " << ret << std::endl;
     }
   }
 }
