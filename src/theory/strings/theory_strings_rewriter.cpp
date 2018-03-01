@@ -1946,7 +1946,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     return returnRewrite(node, node[0], "rpl-id");
   }
-  
+
   if (node[0] == node[1])
   {
     return returnRewrite(node, node[2], "rpl-replace");
@@ -2070,7 +2070,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
   if (cmp_conr != cmp_con)
   {
-    if( checkEntailNonEmpty( node[1] ) )
+    if (checkEntailNonEmpty(node[1]))
     {
       // pull endpoints that can be stripped
       // for example,
@@ -2647,7 +2647,7 @@ bool TheoryStringsRewriter::componentContainsBase(
             {
               // we can only compute the remainder if start_pos and end_pos
               // are known to be non-negative.
-              if( !checkEntailArith(start_pos) || !checkEntailArith(end_pos) )
+              if (!checkEntailArith(start_pos) || !checkEntailArith(end_pos))
               {
                 return false;
               }
@@ -2856,11 +2856,11 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   return changed;
 }
 
-bool TheoryStringsRewriter::checkEntailNonEmpty(Node a) 
+bool TheoryStringsRewriter::checkEntailNonEmpty(Node a)
 {
-  Node len = NodeManager::currentNM()->mkNode( STRING_LENGTH, a );
-  len = Rewriter::rewrite( len );
-  return checkEntailArith( len, true );
+  Node len = NodeManager::currentNM()->mkNode(STRING_LENGTH, a);
+  len = Rewriter::rewrite(len);
+  return checkEntailArith(len, true);
 }
 
 bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)

@@ -269,27 +269,27 @@ private:
    * componentContainsBase(y, str.substr(y,0,5), n1rb, n1re, -1, true)
    *   returns true,
    *   n1re is set to str.substr(y,5,str.len(y)).
-   * 
-   * 
-   * Notice that this function may return false when it cannot compute a 
+   *
+   *
+   * Notice that this function may return false when it cannot compute a
    * remainder when it otherwise would have returned true. For example:
-   * 
+   *
    * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, false)
    *   returns true.
-   * 
+   *
    * Hence, we know that str.substr(y,x,z) is contained in y. However:
-   * 
+   *
    * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, true)
    *   returns false.
-   * 
+   *
    * The reason is since computeRemainder=true, it must be that
    *   y = str.++( n1rb, str.substr(y,x,z), n1re )
-   * for some n1rb, n1re. However, to construct such n1rb, n1re would require 
+   * for some n1rb, n1re. However, to construct such n1rb, n1re would require
    * e.g. the terms:
-   *   y = str.++( ite( z < 0 OR x < 0, y, str.substr(y,0,x) ), 
+   *   y = str.++( ite( z < 0 OR x < 0, y, str.substr(y,0,x) ),
    *               str.substr(y,x,z),
    *               str.substr(y,z,len(y)) )
-   * 
+   *
    * Since we do not wish to introduce ITE terms in the rewriter, we instead
    * return false, indicating that we cannot compute the remainder.
    */
@@ -329,7 +329,7 @@ private:
                                      std::vector<Node>& ne,
                                      int dir = 0);
   /** entail non-empty
-   * 
+   *
    * Checks whether string a is entailed to be non-empty. Is equivalent to
    * the call checkArithEntail( len( a ), true ).
    */
