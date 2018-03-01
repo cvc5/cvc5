@@ -377,7 +377,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     }
   }
   
-  if( new_ret.isNull() )
+  if( new_ret.isNull() && d_aggr )
   {
     // If x is less than t based on an ordering, then we use { x -> t } as a 
     // substitution to the children of ite( x = t ^ C, s, t ) below.
@@ -494,7 +494,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         debugExtendedRewrite( n, ite_c[i][0], "ITE dual invariant" );
         return ite_c[i][0];
       }
-      else
+      else if( d_aggr )
       {
         for( unsigned j=0; j<2; j++ )
         {
@@ -514,12 +514,13 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
               new_children.push_back((j == 0)==pol ? n[i][0] : n[i][0].negate());
               new_children.push_back( ite_c[i][1-j] );
               new_ret = nm->mkNode( pol ? OR : AND, new_children );
+              debugExtendedRewrite( n, new_ret, "ITE Bool single elim" );
             }
             else
             {
               new_ret = nm->mkNode( itek, n[i][0], ite_c[i][0], ite_c[i][1] );
+              debugExtendedRewrite( n, new_ret, "ITE single elim" );
             }
-            debugExtendedRewrite( n, new_ret, "ITE single elim" );
             return new_ret;
           }
         }
