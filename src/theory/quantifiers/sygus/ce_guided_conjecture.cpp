@@ -312,12 +312,13 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     std::vector<Node> eager_terms;
     std::vector<Node> eager_vals;
     std::vector<Node> eager_exps;
-    TermDbSygus * tds = d_qe->getTermDatabaseSygus();
+    TermDbSygus* tds = d_qe->getTermDatabaseSygus();
     for (unsigned j = 0, size = terms.size(); j < size; j++)
     {
       Trace("cegqi-debug") << "  register " << terms[j] << " -> "
                            << enum_values[j] << std::endl;
-      tds->registerModelValue(terms[j], enum_values[j], eager_terms, eager_vals, eager_exps);
+      tds->registerModelValue(
+          terms[j], enum_values[j], eager_terms, eager_vals, eager_exps);
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()
                          << " eager evaluation lemmas." << std::endl;
@@ -616,7 +617,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               // We will not refine the current candidate solution since it is a solution
               // thus, we clear information regarding the current refinement
               d_ce_sk.clear();
-              // However, we need to exclude the current solution using an explicit refinement 
+              // However, we need to exclude the current solution using an explicit refinement
               // so that we proceed to the next solution.
               std::vector<Node> terms;
               d_master->getTermList(d_candidates, terms);
