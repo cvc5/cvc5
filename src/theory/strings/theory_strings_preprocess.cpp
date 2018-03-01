@@ -424,18 +424,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c22 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, rp1, z, rp2));
     // ~contains( str.++( rp1, substr( y, 0, len(y)-1 ) ), y )
     Node c23 =
-        nm->mkNode(
-              kind::STRING_STRCTN,
-              nm->mkNode(
-                  kind::STRING_CONCAT,
-                  rp1,
-                  nm->mkNode(kind::STRING_SUBSTR,
-                             y,
-                             d_zero,
-                             nm->mkNode(kind::MINUS,
-                                        nm->mkNode(kind::STRING_LENGTH, y),
-                                        d_one))),
-              y)
+        nm->mkNode(kind::STRING_STRCTN,
+                   nm->mkNode(
+                       kind::STRING_CONCAT,
+                       rp1,
+                       nm->mkNode(kind::STRING_SUBSTR,
+                                  y,
+                                  d_zero,
+                                  nm->mkNode(kind::MINUS,
+                                             nm->mkNode(kind::STRING_LENGTH, y),
+                                             d_one))),
+                   y)
             .negate();
 
     // assert:
