@@ -1874,16 +1874,6 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   {
     fstr = nm->mkNode(kind::STRING_SUBSTR, node[0], node[2], len0);
     fstr = Rewriter::rewrite(fstr);
-    if (fstr.isConst())
-    {
-      //CVC4::String fs = fstr.getConst<String>();
-      //if (fs.size() == 0)
-      //{
-        // substr( x, z, len(x) ) --> ""  implies str.indexof( x, y, z ) --> -1
-        //Node negone = nm->mkConst(Rational(-1));
-        //return returnRewrite(node, negone, "idof-base-len");
-      //}
-    }
   }
 
   Node cmp_con = nm->mkNode(kind::STRING_STRCTN, fstr, node[1]);
