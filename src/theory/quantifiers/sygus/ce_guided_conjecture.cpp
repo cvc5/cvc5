@@ -303,44 +303,41 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
             addedEvalLemmas = true;
           }
         }
-        if (addedEvalLemmas)
-        {
-          // return;
-        }
+        // we could, but do not return here.
+        // experimentally, it is better to add the lemmas below as well,
+        // in parallel.
       }
     }
     Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
     std::vector<Node> eager_terms;
     std::vector<Node> eager_vals;
     std::vector<Node> eager_exps;
-    for (unsigned j = 0; j < terms.size(); j++)
+    TermDbSygus * tds = d_qe->getTermDatabaseSygus();
+    for (unsigned j = 0, size = terms.size(); j < size; j++)
     {
       Trace("cegqi-debug") << "  register " << terms[j] << " -> "
                            << enum_values[j] << std::endl;
-      d_qe->getTermDatabaseSygus()->registerModelValue(
-          terms[j], enum_values[j], eager_terms, eager_vals, eager_exps);
+      tds->registerModelValue(terms[j], enum_values[j], eager_terms, eager_vals, eager_exps);
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()
                          << " eager evaluation lemmas." << std::endl;
-    if (!eager_terms.empty())
+
+    for (unsigned j = 0, size = eager_terms.size(); j < size; j++)
     {
-      for (unsigned j = 0; j < eager_terms.size(); j++)
+      Node lem = nm->mkNode(kind::OR,
+                            eager_exps[j].negate(),
+                            eager_terms[j].eqNode(eager_vals[j]));
+      if (d_qe->getTheoryEngine()->isTheoryEnabled(THEORY_BV))
       {
-        Node lem = nm->mkNode(kind::OR,
-                              eager_exps[j].negate(),
-                              eager_terms[j].eqNode(eager_vals[j]));
-        if (d_qe->getTheoryEngine()->isTheoryEnabled(THEORY_BV))
-        {
-          // FIXME: hack to incorporate hacks from BV for division by zero
-          // (github issue #1156)
-          lem = bv::TheoryBVRewriter::eliminateBVSDiv(lem);
-        }
-        if (d_qe->addLemma(lem))
-        {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : evaluation : " << lem << std::endl;
-          addedEvalLemmas = true;
-        }
+        // FIXME: hack to incorporate hacks from BV for division by zero
+        // (github issue #1156)
+        lem = bv::TheoryBVRewriter::eliminateBVSDiv(lem);
+      }
+      if (d_qe->addLemma(lem))
+      {
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : evaluation : " << lem << std::endl;
+        addedEvalLemmas = true;
       }
     }
     if (addedEvalLemmas)
@@ -359,7 +356,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   if( constructed_cand ){
     if( Trace.isOn("cegqi-check")  ){
       Trace("cegqi-check") << "CegConjuncture : check candidate : " << std::endl;
-      for (unsigned i = 0; i < candidate_values.size(); i++)
+      for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
       {
         Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> "
                              << candidate_values[i] << std::endl;
