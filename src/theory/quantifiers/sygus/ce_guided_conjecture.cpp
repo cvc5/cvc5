@@ -130,6 +130,16 @@ void CegConjecture::assign( Node q ) {
   std::vector< Node > guarded_lemmas;
   if( !isSingleInvocation() ){
     d_ceg_proc->initialize(d_base_inst, d_candidates);
+    for( unsigned i=0, size = d_modules.size(); i<size; i++ )
+    {
+      if( d_modules[i]->initialize(d_base_inst,d_candidates,guarded_lemmas) )
+      {
+        d_master = d_modules[i];
+        break;
+      }
+    }
+    
+    
     if( options::sygusPbe() ){
       d_ceg_pbe->initialize(d_base_inst, d_candidates, guarded_lemmas);
     } else {
@@ -243,10 +253,8 @@ void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
 
 void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   std::vector< Node > model_terms;
-  std::vector< Node > clist;
-  getCandidateList( clist, true );
-  Assert( clist.size()==d_quant[0].getNumChildren() );
-  getModelValues( clist, model_terms );
+  Assert( d_candidates.size()==d_quant[0].getNumChildren() );
+  getModelValues( d_candidates, model_terms );
   if (d_qe->getInstantiate()->addInstantiation(d_quant, model_terms))
   {
     //record the instantiation
@@ -260,32 +268,23 @@ bool CegConjecture::needsRefinement() {
   return !d_ce_sk.empty();
 }
 
-void CegConjecture::getCandidateList( std::vector< Node >& clist, bool forceOrig ) {
-  if( d_ceg_pbe->isPbe() && !forceOrig ){
-    d_ceg_pbe->getCandidateList( d_candidates, clist );
-  }else{
-    clist.insert( clist.end(), d_candidates.begin(), d_candidates.end() );
-  }
-}
-
-bool CegConjecture::constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values, 
-                                         std::vector< Node >& lems ) {
-  Assert( clist.size()==model_values.size() );
+void CegConjecture::getTermList( std::vector< Node >& terms )
+{
   if( d_ceg_pbe->isPbe() ){
-    return d_ceg_pbe->constructCandidates( clist, model_values, d_candidates, candidate_values, lems );
+    d_ceg_pbe->getTermList( d_candidates, terms );
   }else{
-    Assert( model_values.size()==d_candidates.size() );
-    candidate_values.insert( candidate_values.end(), model_values.begin(), model_values.end() );
+    terms.insert( terms.end(), d_candidates.begin(), d_candidates.end() );
   }
-  return true;
 }
 
 void CegConjecture::doCheck(std::vector< Node >& lems) {
   //ignore return value here
-  std::vector< Node > clist;
-  getCandidateList( clist );
-  std::vector< Node > model_values;
-  getModelValues( clist, model_values );
+  std::vector< Node > terms;
+  getTermList( terms );
+  
+  std::vector< Node > enum_values;
+  getModelValues( terms, enum_values );
+  
   NodeManager * nm = NodeManager::currentNM();
   if( options::sygusDirectEval() ){
     bool addedEvalLemmas = false;
@@ -293,7 +292,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
       Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..." << std::endl;
       // see if any refinement lemma is refuted by evaluation
       std::vector< Node > cre_lems;
-      getRefinementEvalLemmas( clist, model_values, cre_lems );
+      getRefinementEvalLemmas( terms, enum_values, cre_lems );
       if( !cre_lems.empty() ){
         for( unsigned j=0; j<cre_lems.size(); j++ ){
           Node lem = cre_lems[j];
@@ -311,9 +310,9 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
     std::vector< Node > eager_terms; 
     std::vector< Node > eager_vals; 
     std::vector< Node > eager_exps;
-    for( unsigned j=0; j<clist.size(); j++ ){
-      Trace("cegqi-debug") << "  register " << clist[j] << " -> " << model_values[j] << std::endl;
-      d_qe->getTermDatabaseSygus()->registerModelValue( clist[j], model_values[j], eager_terms, eager_vals, eager_exps );
+    for( unsigned j=0; j<terms.size(); j++ ){
+      Trace("cegqi-debug") << "  register " << terms[j] << " -> " << enum_values[j] << std::endl;
+      d_qe->getTermDatabaseSygus()->registerModelValue( terms[j], enum_values[j], eager_terms, eager_vals, eager_exps );
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()  << " eager evaluation lemmas." << std::endl;
     if( !eager_terms.empty() ){
@@ -335,21 +334,30 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
   }
   
   
-  std::vector< Node > c_model_values;
+  std::vector< Node > candidate_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
-  bool constructed_cand = constructCandidates( clist, model_values, c_model_values, lems );
-
+  bool constructed_cand = false;
+  if( d_ceg_pbe->isPbe() ){
+    constructed_cand = d_ceg_pbe->constructCandidates( terms, enum_values, d_candidates, candidate_values, lems );
+  }else{
+    Assert( enum_values.size()==d_candidates.size() );
+    candidate_values.insert( candidate_values.end(), enum_values.begin(), enum_values.end() );
+    constructed_cand = true;
+  }
+  
+  
+  
   //must get a counterexample to the value of the current candidate
   Node inst;
   if( constructed_cand ){
     if( Trace.isOn("cegqi-check")  ){
       Trace("cegqi-check") << "CegConjuncture : check candidate : " << std::endl;
-      for( unsigned i=0; i<c_model_values.size(); i++ ){
-        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> " << c_model_values[i] << std::endl;
+      for( unsigned i=0; i<candidate_values.size(); i++ ){
+        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> " << candidate_values[i] << std::endl;
       }
     }
-    Assert( c_model_values.size()==d_candidates.size() );
-    inst = d_base_inst.substitute( d_candidates.begin(), d_candidates.end(), c_model_values.begin(), c_model_values.end() );
+    Assert( candidate_values.size()==d_candidates.size() );
+    inst = d_base_inst.substitute( d_candidates.begin(), d_candidates.end(), candidate_values.begin(), candidate_values.end() );
   }else{
     inst = d_base_inst;
   }
@@ -365,7 +373,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
       Node lem = nm->mkNode(OR, d_quant.negate(), nm->mkConst(false));
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
-      recordInstantiation(c_model_values);
+      recordInstantiation(candidate_values);
       return;
     }
     Assert( d_ce_sk.empty() );
@@ -415,7 +423,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
     }
     lem = getStreamGuardedLemma(lem);
     lems.push_back( lem );
-    recordInstantiation( c_model_values );
+    recordInstantiation( candidate_values );
   }
 }
         
@@ -600,12 +608,11 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               d_ce_sk.clear();
               // However, we need to exclude the current solution using an explicit refinement 
               // so that we proceed to the next solution. 
-              std::vector< Node > clist;
-              getCandidateList( clist );
+              std::vector< Node > terms;
+              getTermList( terms );
               Trace("cegqi-debug") << "getNextDecision : solution was : " << std::endl;
               std::vector< Node > exp;
-              for( unsigned i=0; i<clist.size(); i++ ){
-                Node cprog = clist[i];
+              for( const Node& cprog : terms ){
                 Node sol = cprog;
                 if( !d_cinfo[cprog].d_inst.empty() ){
                   sol = d_cinfo[cprog].d_inst.back();

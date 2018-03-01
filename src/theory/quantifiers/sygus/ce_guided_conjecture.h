@@ -30,37 +30,6 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-/** Base class for sygus modules 
- */
-class SygusModule 
-{
-public:
-  /** initialize 
-   * 
-   * TODO   
-   */
-  virtual bool initialize(Node n,
-                          std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas) = 0;
-  /** get enumerator list 
-   * 
-   * TODO  
-   */
-  virtual void getEnumeratorList(const std::vector<Node>& candidates,
-                                 std::vector<Node>& enums) = 0;
-  /** construct candidate
-   * 
-   * TODO  
-   */
-  virtual bool constructCandidates(const std::vector<Node>& enums,
-                                   const std::vector<Node>& enum_values,
-                                   const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems) = 0;
-};
-
-
   
 /** a synthesis conjecture
  * This class implements approaches for a synthesis conecjture, given by data
@@ -88,8 +57,6 @@ public:
   bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement();
-  /** get the list of candidates */
-  void getCandidateList( std::vector< Node >& clist, bool forceOrig = false );
   /** do single invocation check 
   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
   */
@@ -234,9 +201,11 @@ private:
   std::map< Node, CandidateInfo > d_cinfo;  
   /** number of times we have called doRefine */
   unsigned d_refine_count;
-  /** construct candidates */
-  bool constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, 
-                            std::vector< Node >& candidate_values, std::vector< Node >& lems );
+  /** get the list of enumerators
+   * 
+   * TODO
+   */
+  void getTermList( std::vector< Node >& terms );
   /** get candidadate */
   Node getCandidate( unsigned int i ) { return d_candidates[i]; }
   /** record instantiation (this is used to construct solutions later) */
@@ -305,7 +274,13 @@ private:
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
-public:
+  
+  /** set of modules */
+  std::vector< SygusModule * > d_modules;
+  /** master module */
+  SygusModule * d_master;
+  
+  
   /** Get refinement evaluation lemmas
    * 
    * TODO
