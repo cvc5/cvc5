@@ -28,6 +28,8 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+//FIXME : remove this include (github issue #1156)
+#include "theory/bv/theory_bv_rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -278,9 +280,61 @@ bool CegConjecture::constructCandidates( std::vector< Node >& clist, std::vector
   return true;
 }
 
-void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& model_values) {
+void CegConjecture::doCheck(std::vector< Node >& lems) {
+  //ignore return value here
   std::vector< Node > clist;
   getCandidateList( clist );
+  std::vector< Node > model_values;
+  getModelValues( clist, model_values );
+  NodeManager * nm = NodeManager::currentNM();
+  if( options::sygusDirectEval() ){
+    bool addedEvalLemmas = false;
+    if( options::sygusCRefEval() ){
+      Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..." << std::endl;
+      // see if any refinement lemma is refuted by evaluation
+      std::vector< Node > cre_lems;
+      getRefinementEvalLemmas( clist, model_values, cre_lems );
+      if( !cre_lems.empty() ){
+        for( unsigned j=0; j<cre_lems.size(); j++ ){
+          Node lem = cre_lems[j];
+          if( d_qe->addLemma( lem ) ){
+            Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem << std::endl;
+            addedEvalLemmas = true;
+          }
+        }
+        if( addedEvalLemmas ){
+          //return;
+        }
+      }
+    }
+    Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
+    std::vector< Node > eager_terms; 
+    std::vector< Node > eager_vals; 
+    std::vector< Node > eager_exps;
+    for( unsigned j=0; j<clist.size(); j++ ){
+      Trace("cegqi-debug") << "  register " << clist[j] << " -> " << model_values[j] << std::endl;
+      d_qe->getTermDatabaseSygus()->registerModelValue( clist[j], model_values[j], eager_terms, eager_vals, eager_exps );
+    }
+    Trace("cegqi-debug") << "...produced " << eager_terms.size()  << " eager evaluation lemmas." << std::endl;
+    if( !eager_terms.empty() ){
+      for( unsigned j=0; j<eager_terms.size(); j++ ){
+        Node lem = nm->mkNode( kind::OR, eager_exps[j].negate(), eager_terms[j].eqNode( eager_vals[j] ) );
+        if( d_qe->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
+          //FIXME: hack to incorporate hacks from BV for division by zero (github issue #1156)
+          lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
+        }
+        if( d_qe->addLemma( lem ) ){
+          Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem << std::endl;
+          addedEvalLemmas = true;
+        }
+      }
+    }
+    if( addedEvalLemmas ){
+      return;
+    }
+  }
+  
+  
   std::vector< Node > c_model_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
   bool constructed_cand = constructCandidates( clist, model_values, c_model_values, lems );
@@ -308,7 +362,6 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
       // we have that the current candidate passed a sample test
       // since we trust sampling in this mode, we assert there is no
       // counterexample to the conjecture here.
-      NodeManager* nm = NodeManager::currentNM();
       Node lem = nm->mkNode(OR, d_quant.negate(), nm->mkConst(false));
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
@@ -352,7 +405,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
     }
   }
   if( constructed_cand ){
-    Node lem = NodeManager::currentNM()->mkNode( OR, ic );
+    Node lem = nm->mkNode( OR, ic );
     lem = Rewriter::rewrite( lem );
     //eagerly unfold applications of evaluation function
     if( options::sygusDirectEval() ){
@@ -811,7 +864,7 @@ Node CegConjecture::getSymmetryBreakingPredicate(
   }
 }
 
-bool CegConjecture::sampleAddRefinementLemma(std::vector<Node>& vals,
+bool CegConjecture::sampleAddRefinementLemma(const std::vector<Node>& vals,
                                              std::vector<Node>& lems)
 {
   if (Trace.isOn("cegis-sample"))
@@ -890,7 +943,7 @@ bool CegConjecture::sampleAddRefinementLemma(std::vector<Node>& vals,
 }
 
 
-void CegConjecture::getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems ) {
+void CegConjecture::getRefinementEvalLemmas( const std::vector< Node >& vs, const std::vector< Node >& ms, std::vector< Node >& lems ) {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has " << getNumRefinementLemmas() << " refinement lemmas." << std::endl;
   unsigned nlemmas = getNumRefinementLemmas();
   if (nlemmas > 0 || options::cegisSample() != CEGIS_SAMPLE_NONE)

@@ -97,7 +97,7 @@ public:
   /** do syntax-guided enumerative check 
   * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
   */
-  void doCheck(std::vector< Node >& lems, std::vector< Node >& model_values);
+  void doCheck(std::vector< Node >& lems);
   /** do basic check 
   * This is called for non-SyGuS synthesis conjectures
   */
@@ -165,7 +165,7 @@ public:
    * refinement lemma to the lists d_refinement_lemmas that corresponds to that
    * sample point, and adds a lemma to lems if cegisSample mode is not trust.
    */
-  bool sampleAddRefinementLemma(std::vector<Node>& vals,
+  bool sampleAddRefinementLemma(const std::vector<Node>& vals,
                                 std::vector<Node>& lems);
   //-----------------------------------end refinement lemmas
 
@@ -306,8 +306,11 @@ private:
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
 public:
-  /** get refinement evaluation */
-  void getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems );
+  /** Get refinement evaluation lemmas
+   * 
+   * TODO
+   */
+  void getRefinementEvalLemmas( const std::vector< Node >& vs, const std::vector< Node >& ms, std::vector< Node >& lems );
 };
 
 } /* namespace CVC4::theory::quantifiers */

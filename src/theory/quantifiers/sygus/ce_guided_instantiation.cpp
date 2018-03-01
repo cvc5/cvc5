@@ -21,8 +21,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-//FIXME : remove this include (github issue #1156)
-#include "theory/bv/theory_bv_rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -126,61 +124,9 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         return;
       }
       
-      //ignore return value here
-      std::vector< Node > clist;
-      conj->getCandidateList( clist );
-      std::vector< Node > model_values;
-      conj->getModelValues( clist, model_values );
-      if( options::sygusDirectEval() ){
-        bool addedEvalLemmas = false;
-        if( options::sygusCRefEval() ){
-          Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..." << std::endl;
-          // see if any refinement lemma is refuted by evaluation
-          std::vector< Node > cre_lems;
-          conj->getCRefEvaluationLemmas( conj, clist, model_values, cre_lems );
-          if( !cre_lems.empty() ){
-            for( unsigned j=0; j<cre_lems.size(); j++ ){
-              Node lem = cre_lems[j];
-              if( d_quantEngine->addLemma( lem ) ){
-                Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem << std::endl;
-                addedEvalLemmas = true;
-              }
-            }
-            if( addedEvalLemmas ){
-              //return;
-            }
-          }
-        }
-        Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
-        std::vector< Node > eager_terms; 
-        std::vector< Node > eager_vals; 
-        std::vector< Node > eager_exps;
-        for( unsigned j=0; j<clist.size(); j++ ){
-          Trace("cegqi-debug") << "  register " << clist[j] << " -> " << model_values[j] << std::endl;
-          d_quantEngine->getTermDatabaseSygus()->registerModelValue( clist[j], model_values[j], eager_terms, eager_vals, eager_exps );
-        }
-        Trace("cegqi-debug") << "...produced " << eager_terms.size()  << " eager evaluation lemmas." << std::endl;
-        if( !eager_terms.empty() ){
-          for( unsigned j=0; j<eager_terms.size(); j++ ){
-            Node lem = NodeManager::currentNM()->mkNode( kind::OR, eager_exps[j].negate(), eager_terms[j].eqNode( eager_vals[j] ) );
-            if( d_quantEngine->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
-              //FIXME: hack to incorporate hacks from BV for division by zero (github issue #1156)
-              lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
-            }
-            if( d_quantEngine->addLemma( lem ) ){
-              Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem << std::endl;
-              addedEvalLemmas = true;
-            }
-          }
-        }
-        if( addedEvalLemmas ){
-          return;
-        }
-      }
-      
       Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
       std::vector< Node > cclems;
-      conj->doCheck( cclems, model_values );
+      conj->doCheck( cclems );
       bool addedLemma = false;
       for( unsigned i=0; i<cclems.size(); i++ ){
         Node lem = cclems[i];
