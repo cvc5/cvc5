@@ -251,6 +251,9 @@ def perr(filename, lineno, msg):
     die('parse error in {}:{}: {}'.format(filename, lineno + 1, msg))
 
 
+# Write string 's' to file directory/name. If the file already exists,
+# we first check if the contents of the file is different from 's' before
+# overwriting the file.
 def write_file(directory, name, s):
     fname = '{}/{}'.format(directory, name)
     try:
@@ -268,6 +271,13 @@ def write_file(directory, name, s):
             f.write(s)
 
 
+# Read a template file directory/name. The contents of the template file will
+# be read into a string, which will later be used to fill in the generated
+# code/documentation via format. Hence, we have to escape curly braces. All
+# placeholder variables in the template files are enclosed in ${placeholer}$
+# and will be {placeholder} in the returned string.
+# This also inserts the correct template name and the line numbers for the
+# preprocessor #line directives.
 def read_tpl(directory, name):
     fname = '{}/{}'.format(directory, name)
     try:
@@ -292,34 +302,45 @@ def read_tpl(directory, name):
             return '\n'.join(lines)
 
 
+# Lookup option by long option name. The function returns a tuple of
+# (option, bool), where the bool indicates the option value (true if
+# not alternate, false if alternate option).
 def match_option(long):
     global g_long_to_opt
     val = True
     opt = None
     long = lstrip('--', long_get_option(long))
     if long.startswith('no-'):
-        val = False
         opt = g_long_to_opt.get(lstrip('no-', long))
+        # Check if we generated an alternative option
+        if opt and opt.type == 'bool' and opt.alternate:
+            val = False
     else:
         opt = g_long_to_opt.get(long)
     return (opt, val)
 
 
+# Extract the argument part ARG of a long option long=ARG.
 def long_get_arg(name):
     l = name.split('=')
     assert(len(l) <= 2)
     return l[1] if len(l) == 2 else None
 
 
+# Extract the name of a given long option long=ARG
 def long_get_option(name):
     return name.split('=')[0]
 
 
+# Determine the name of the option used as SMT option name. If no smt_name is
+# given it defaults to the long option name.
 def smt_name(option):
     assert(option.smt_name or option.long)
     return option.smt_name if option.smt_name else long_get_option(option.long)
 
 
+# Check if given type is a numeric C++ type (this should cover the most common
+# cases).
 def is_numeric_cpp_type(t):
     if t in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
         return True
@@ -328,12 +349,14 @@ def is_numeric_cpp_type(t):
     return False
 
 
+# Generate the #include directive for a given header name.
 def format_include(include):
     if '<' in include:
         return '#include {}'.format(include)
     return '#include "{}"'.format(include)
 
 
+# Format short and long options for the cmdline documentation (--long | -short).
 def help_format_options(short, long):
     opts = []
     arg = None
@@ -351,6 +374,8 @@ def help_format_options(short, long):
 
     return ' | '.join(opts)
 
+
+# Format cmdline documentation (--help) to be 80 chars wide.
 def help_format(help, opts):
     width = 80
     width_opt = 25
@@ -447,6 +472,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         ))
 
 
+# Generate the documentation for --help and all man pages.
 def docgen(category, name, smt_name, short, long, type, default,
                  help, alternate,
                  help_common, man_common, man_common_smt, man_common_int,
@@ -507,6 +533,7 @@ def docgen(category, name, smt_name, short, long, type, default,
 
 
 
+# Generate documentation for options.
 def docgen_option(option,
                   help_common, man_common, man_common_smt, man_common_int,
                   help_others, man_others, man_others_smt, man_others_int):
@@ -517,6 +544,7 @@ def docgen_option(option,
            help_others, man_others, man_others_smt, man_others_int)
 
 
+# Generate documentation for aliases.
 def docgen_alias(alias,
                  help_common, man_common, man_common_smt, man_common_int,
                  help_others, man_others, man_others_smt, man_others_int):
@@ -527,6 +555,10 @@ def docgen_alias(alias,
            help_others, man_others, man_others_smt, man_others_int)
 
 
+# For each long option we need to add an instance of the option struct
+# in order to parse long options (command-line) with getopt_long. Each long
+# option is associated with a number that gets incremented by one each time we
+# add a new long option.
 def add_getopt_long(long, argument_req, getopt_long):
     value = g_getopt_long_start + len(getopt_long)
     getopt_long.append(
@@ -895,14 +927,18 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
         ))
 
 
+# Remove prefix from the beginning of string s.
 def lstrip(prefix, s):
     return s[len(prefix):] if s.startswith(prefix) else s
 
 
+# Remove suffix from the end of string s.
 def rstrip(suffix, s):
     return s[:-len(suffix)] if s.endswith(suffix) else s
 
 
+# Check if for a given module/option/alias the defined attributes are valid and
+# if all required attributes are defined.
 def check_attribs(filename, lineno, req_attribs, valid_attribs, d, type):
     msg_for = ""
     if 'name' in d:
@@ -919,6 +955,7 @@ def check_attribs(filename, lineno, req_attribs, valid_attribs, d, type):
                     type, k, msg_for))
 
 
+# Check if given name is unique in cache.
 def check_unique(filename, lineno, value, cache, attrib):
     if value in cache:
         perr(filename, lineno,
@@ -927,6 +964,7 @@ def check_unique(filename, lineno, value, cache, attrib):
     cache[value] = (filename, lineno + 1)
 
 
+# Check if given long option name is valid.
 def check_long(filename, lineno, long, type = None):
     global g_long_cache
     if long is None:
@@ -946,6 +984,7 @@ def check_long(filename, lineno, long, type = None):
                      'no-{}'.format(name), g_long_cache, 'long')
 
 
+# Check if long options defined in links are valid and correctly used.
 def check_links(filename, lineno, links):
     global g_long_cache, g_long_arguments
     for link in links:
@@ -959,6 +998,8 @@ def check_links(filename, lineno, links):
                  "linked option '{}' requires an argument".format(link))
 
 
+# Check alias attribute values. All attribute checks that can be done while
+# parsing should be done here.
 def check_alias_attrib(filename, lineno, attrib, value):
     if attrib not in g_alias_attr_all:
         perr(filename, lineno, "invalid alias attribute '{}'".format(attrib))
@@ -973,6 +1014,8 @@ def check_alias_attrib(filename, lineno, attrib, value):
             perr(filename, lineno, 'links list must not be empty')
 
 
+# Check option attribute values. All attribute checks that can be done while
+# parsing should be done here.
 def check_option_attrib(filename, lineno, attrib, value):
     global g_smt_cache, g_name_cache, g_short_cache
 
@@ -1032,6 +1075,8 @@ def check_option_attrib(filename, lineno, attrib, value):
                      value, attrib))
 
 
+# Check module attribute values. All attribute checks that can be done while
+# parsing should be done here.
 def check_module_attrib(filename, lineno, attrib, value):
     global g_module_id_cache
     if attrib not in g_module_attr_all:
@@ -1065,8 +1110,12 @@ def check_module_attrib(filename, lineno, attrib, value):
                      header_name, value))
 
 
+# Parse attribute values.
+# We only allow three types of values:
+#  - bool   (s either true/false or "true"/"false")
+#  - string (s starting with ")
+#  - lists  (s starting with [)
 def parse_value(filename, lineno, attrib, s):
-
     if s[0] == '"':
         if s[-1] != '"':
             perr(filename, lineno, 'missing closing " for string')
@@ -1110,11 +1159,12 @@ def parse_module(filename, file):
     for i in range(len(lines)):
         assert(option is None or alias is None)
         line = lines[i]
-        # skip comments
+        # Skip comments
         if line[0].startswith('#'):
             continue
+        # Check if a new option/alias starts.
         if len(line) == 1:
-            # parse new option/alias, save previously parsed
+            # Create a new option/alias object, save previously created
             if line[0] in ['[[option]]', '[[alias]]']:
                 if option:
                     options.append(option)
@@ -1122,20 +1172,27 @@ def parse_module(filename, file):
                 if alias:
                     aliases.append(alias)
                     alias = None
+                # Create new option dict and save line number where option
+                # was defined.
                 if line[0] == '[[option]]':
                     assert(alias is None)
                     option = dict()
                     option_lines.append(i)
                 else:
+                    # Create new alias dict and save line number where alias
+                    # was defined.
                     assert(line[0] == '[[alias]]')
                     assert(option is None)
                     alias = dict()
+                    # Save line number where alias was defined
                     alias_lines.append(i)
             elif line[0] != '':
                 perr(filename, i, "invalid attribute '{}'".format(line[0]))
+        # Parse module/option/alias attributes.
         elif len(line) == 2:
             attrib = line[0]
             value = parse_value(filename, i, attrib, line[1])
+            # All attributes we parse are part of the current option.
             if option is not None:
                 check_option_attrib(filename, i, attrib, value)
                 if attrib in option:
@@ -1143,6 +1200,7 @@ def parse_module(filename, file):
                          "duplicate option attribute '{}'".format(attrib))
                 assert(option is not None)
                 option[attrib] = value
+            # All attributes we parse are part of the current alias.
             elif alias is not None:
                 check_alias_attrib(filename, i, attrib, value)
                 if attrib in alias:
@@ -1150,6 +1208,7 @@ def parse_module(filename, file):
                          "duplicate alias attribute '{}'".format(attrib))
                 assert(alias is not None)
                 alias[attrib] = value
+            # All other attributes are part of the module.
             else:
                 if attrib in module:
                     perr(filename, i,
@@ -1165,15 +1224,17 @@ def parse_module(filename, file):
     if alias:
         aliases.append(alias)
 
-    # Check if required attributes are defined and create
-    # module/option/alias objects
+    # Check if parsed module attributes are valid and if all required
+    # attributes are defined.
     check_attribs(filename, 1,
                   g_module_attr_req, g_module_attr_all, module, 'module')
     res = Module(module)
 
+    # Check parsed option/alias attributes and create option/alias objects and
+    # associate file name and line number with options/aliases (required for
+    # better error reporting).
     assert(len(option_lines) == len(options))
     assert(len(alias_lines) == len(aliases))
-
     for i in range(len(options)):
         attribs = options[i]
         lineno = option_lines[i]
@@ -1203,6 +1264,7 @@ def parse_module(filename, file):
         alias.lineno = lineno
         alias.filename = filename
         res.aliases.append(alias)
+
     return res
 
 
@@ -1227,22 +1289,24 @@ if __name__ == "__main__":
     doc_dir = sys.argv[3]
     filenames = sys.argv[4:]
 
+    # Check if given directories exist.
     for dir in [src_dir, dst_dir, doc_dir]:
         if not os.path.isdir(dir):
             usage()
             die("'{}' is not a directory".format(dir))
 
+    # Check if given configuration files exist.
     for file in filenames:
         if not os.path.exists(file):
             die("configuration file '{}' does not exist".format(file))
 
-    # Read template files from source directory
+    # Read source code template files from source directory.
     tpl_module_h = read_tpl(src_dir, 'module_template.h')
     tpl_module_cpp = read_tpl(src_dir, 'module_template.cpp')
     tpl_options = read_tpl(src_dir, 'options_template.cpp')
     tpl_options_holder = read_tpl(src_dir, 'options_holder_template.h')
 
-    # Read documentation templates
+    # Read documentation template files from documentation directory.
     tpl_man_cvc = read_tpl(doc_dir, 'cvc4.1_template')
     tpl_man_smt = read_tpl(doc_dir, 'SmtEngine.3cvc_template')
     tpl_man_int = read_tpl(doc_dir, 'options.3cvc_template')
@@ -1265,14 +1329,13 @@ if __name__ == "__main__":
                         g_long_arguments.add(long_get_option(option.long))
             modules.append(module)
 
-    # Check if alias.long is unique
+    # Check if alias.long is unique and check if alias.long defines an alias
+    # for an alternate (--no-<long>) option for existing option <long>.
     for module in modules:
         for alias in module.aliases:
             # If an alias defines a --no- alternative for an existing boolean
             # option, we do not create the alternative for the option, but use
             # the alias instead.
-            # This can be useful, since we can define links for the alternative
-            # options, which would not be possible otherwise.
             if alias.long.startswith('no-'):
                 m = match_option(alias.long)
                 if m[0] and m[0].type == 'bool':
@@ -1284,8 +1347,8 @@ if __name__ == "__main__":
             if '=' in alias.long:
                 g_long_arguments.add(long_get_option(alias.long))
 
-    # Check if long options in links are valid
-    # (that needs to be done after checking all long options)
+    # Check if long options in links are valid (that needs to be done after all
+    # long options are available).
     for module in modules:
         for option in module.options:
             check_links(option.filename, option.lineno, option.links)
