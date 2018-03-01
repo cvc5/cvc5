@@ -1826,7 +1826,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     Node negone = nm->mkConst(Rational(-1));
     return returnRewrite(node, negone, "idof-neg");
   }
-  
+
   // evaluation and simple cases
   std::vector<Node> children0;
   getConcat(node[0], children0);
@@ -1940,19 +1940,19 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 
 Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   Assert(node.getKind() == kind::STRING_STRREPL);
-  NodeManager * nm = NodeManager::currentNM();
-  
-  if( node[1]==node[2] )
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (node[1] == node[2])
   {
     return returnRewrite(node, node[0], "rpl-id");
   }
-  
+
   if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
   {
-    Node ret = nm->mkNode( STRING_CONCAT, node[2], node[0] );
+    Node ret = nm->mkNode(STRING_CONCAT, node[2], node[0]);
     return returnRewrite(node, node[0], "rpl-rpl-empty");
   }
-  
+
   /*
   if (node[0].isConst())
   {
