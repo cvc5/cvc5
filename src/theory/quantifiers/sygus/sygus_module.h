@@ -30,10 +30,14 @@ class CegConjecture;
 /** SygusModule
  *
  * This is the base class of sygus modules, owned by CegConjecture.
- * An instance of the conjecture class (CegConjecture) contains a "candidate"
- * list, which are Skolem variables that are one-to-one with the functions to
- * synthesize, and whose (sygus) types correspond to the types of the variables
- * in the deep embedded form of the synthesis conjecture.
+ * 
+ * An instance of the conjecture class (CegConjecture) creates the negated deep
+ * embedding form of the synthesis conjecture, which assume is:
+ *   forall d. exists x. P( d, x )
+ * where d are of sygus datatype type. The "base instantiation" of this 
+ * conjecture (see CegConjecture::d_base_inst) is the formula:
+ *   exists y. P( k, y )
+ * where k are the "candidate" variables for the conjecture.
  *
  * Modules implement an initialize function, which determines whether the module
  * will take responsibility for the given conjecture.
@@ -69,8 +73,8 @@ class SygusModule
    *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
-   * to the synthesis conjecture in question. This candidate will then be tested
-   * by
+   * to the synthesis conjecture in question. This candidate { v } will then be 
+   * tested by testing the (un)satisfiablity of P( v, k' ) for fresh k'.
    *
    * This function may also add lemmas to lems, which are sent out as lemmas
    * on the output channel of QuantifiersEngine.
@@ -80,7 +84,16 @@ class SygusModule
                                    const std::vector<Node>& candidates,
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) = 0;
-
+  /** register refinement lemma
+   * 
+   * Assume this module, on a previous call to constructCandidates, added the
+   * value { v } to candidate_values for candidates = { k }. This function is
+   * called if the base instantiation of the synthesis conjecture has a value
+   * under this substitution. In particular, in the above example, this function
+   * is called when the refinement lemma P( v, k' ) has a model. The argument
+   * lem in the call to this function is P( v, k' ).
+   */
+  virtual void registerRefinementLemma( Node lem ) {}
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;

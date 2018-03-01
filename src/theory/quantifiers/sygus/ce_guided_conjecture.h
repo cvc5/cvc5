@@ -117,26 +117,6 @@ public:
   /** get model value for term n */
   Node getModelValue( Node n );
 
-  //-----------------------------------refinement lemmas
-  /** get number of refinement lemmas we have added so far */
-  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
-  /** get refinement lemma
-   *
-   * If d_embed_quant is forall d. exists y. P( d, y ), then a refinement
-   * lemma is one of the form ~P( d_candidates, c ) for some c.
-   */
-  Node getRefinementLemma( unsigned i ) { return d_refinement_lemmas[i]; }
-  /** sample add refinement lemma
-   *
-   * This function will check if there is a sample point in d_sampler that
-   * refutes the candidate solution (d_quant_vars->vals). If so, it adds a
-   * refinement lemma to the lists d_refinement_lemmas that corresponds to that
-   * sample point, and adds a lemma to lems if cegisSample mode is not trust.
-   */
-  bool sampleAddRefinementLemma(const std::vector<Node>& vals,
-                                std::vector<Node>& lems);
-  //-----------------------------------end refinement lemmas
-
   /** get program by examples utility */
   CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get utility for static preprocessing and analysis of conjectures */
@@ -180,13 +160,6 @@ private:
   * this is the formula  exists y. P( d_candidates, y ).
   */
   Node d_base_inst;
-  /** If d_base_inst is exists y. P( d, y ), then this is y. */
-  std::vector<Node> d_base_vars;
-  /**
-   * If d_base_inst is exists y. P( d, y ), then this is the formula
-   * P( d_candidates, y ).
-   */
-  Node d_base_body;
   /** expand base inst to disjuncts */
   std::vector< Node > d_base_disj;
   /** list of variables on inner quantification */
@@ -195,10 +168,6 @@ private:
   /** current extential quantifeirs whose couterexamples we must refine */
   std::vector< std::vector< Node > > d_ce_sk;
 
-  //-----------------------------------refinement lemmas
-  /** refinement lemmas */
-  std::vector< Node > d_refinement_lemmas;
-  //-----------------------------------end refinement lemmas
 
   /** the asserted (negated) conjecture */
   Node d_quant;
@@ -272,26 +241,6 @@ private:
    * rewrite rules.
    */
   std::map<Node, SygusSamplerExt> d_sampler;
-  /** sampler object for the option cegisSample()
-   *
-   * This samples points of the type of the inner variables of the synthesis
-   * conjecture (d_base_vars).
-   */
-  SygusSampler d_cegis_sampler;
-  /** cegis sample refine points
-   *
-   * Stores the list of indices of sample points in d_cegis_sampler we have
-   * added as refinement lemmas.
-   */
-  std::unordered_set<unsigned> d_cegis_sample_refine;
-
-  /** Get refinement evaluation lemmas
-   *
-   * TODO
-   */
-  void getRefinementEvalLemmas(const std::vector<Node>& vs,
-                               const std::vector<Node>& ms,
-                               std::vector<Node>& lems);
 };
 
 } /* namespace CVC4::theory::quantifiers */
