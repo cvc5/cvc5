@@ -22,40 +22,40 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-Cegis::Cegis( QuantifiersEngine * qe, CegConjecture* p ) : SygusModule(qe, p) {
 
-}
+Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p) : SygusModule(qe, p) {}
 
 bool Cegis::initialize(Node n,
-                        const std::vector<Node>& candidates,
-                        std::vector<Node>& lemmas) {
+                       const std::vector<Node>& candidates,
+                       std::vector<Node>& lemmas)
+{
   // initialize an enumerator for each candidate
-  TermDbSygus * tds = d_qe->getTermDatabaseSygus();
-  for( unsigned i=0; i<candidates.size(); i++ ){
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  for (unsigned i = 0; i < candidates.size(); i++)
+  {
     tds->registerEnumerator(candidates[i], candidates[i], d_parent);
   }
   return true;
 }
 
 void Cegis::getTermList(const std::vector<Node>& candidates,
-                          std::vector<Node>& enums)
+                        std::vector<Node>& enums)
 {
-  enums.insert( enums.end(), candidates.begin(), candidates.end() );
+  enums.insert(enums.end(), candidates.begin(), candidates.end());
 }
 
 /** construct candidate */
 bool Cegis::constructCandidates(const std::vector<Node>& enums,
-                                  const std::vector<Node>& enum_values,
-                                  const std::vector<Node>& candidates,
-                                  std::vector<Node>& candidate_values,
-                                  std::vector<Node>& lems) 
+                                const std::vector<Node>& enum_values,
+                                const std::vector<Node>& candidates,
+                                std::vector<Node>& candidate_values,
+                                std::vector<Node>& lems)
 {
-  
-  candidate_values.insert( candidate_values.end(), enum_values.begin(), enum_values.end() );
+  candidate_values.insert(
+      candidate_values.end(), enum_values.begin(), enum_values.end());
   return true;
 }
-                                   
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

@@ -20,10 +20,10 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-SygusModule::SygusModule( QuantifiersEngine * qe, CegConjecture* p ) : d_qe(qe), d_parent(p)
-{
 
+SygusModule::SygusModule(QuantifiersEngine* qe, CegConjecture* p)
+    : d_qe(qe), d_parent(p)
+{
 }
 
 } /* CVC4::theory::quantifiers namespace */

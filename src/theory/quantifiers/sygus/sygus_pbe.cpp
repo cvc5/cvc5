@@ -97,7 +97,8 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
 }
 
 CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
-    : SygusModule( qe, p ){
+    : SygusModule(qe, p)
+{
   d_tds = d_qe->getTermDatabaseSygus();
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -1070,7 +1071,9 @@ void CegConjecturePbe::staticLearnRedundantOps(
 
 // ------------------------------------------- solution construction from enumeration
 
-void CegConjecturePbe::getTermList( const std::vector< Node >& candidates, std::vector< Node >& terms ) {
+void CegConjecturePbe::getTermList(const std::vector<Node>& candidates,
+                                   std::vector<Node>& terms)
+{
   Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node v = candidates[i];
@@ -1083,16 +1086,19 @@ void CegConjecturePbe::getTermList( const std::vector< Node >& candidates, std::
         Node gstatus = valuation.getSatValue(it->second.d_active_guard);
         if (!gstatus.isNull() && gstatus.getConst<bool>())
         {
-          terms.push_back( e );
+          terms.push_back(e);
         }
       }
     }
   }
 }
 
-bool CegConjecturePbe::constructCandidates( const std::vector< Node >& enums, const std::vector< Node >& enum_values, 
-                                            const std::vector< Node >& candidates, std::vector< Node >& candidate_values, 
-                                            std::vector< Node >& lems ) {
+bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
+                                           const std::vector<Node>& enum_values,
+                                           const std::vector<Node>& candidates,
+                                           std::vector<Node>& candidate_values,
+                                           std::vector<Node>& lems)
+{
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){
     unsigned min_term_size = 0;

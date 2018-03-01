@@ -28,7 +28,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
-//FIXME : remove this include (github issue #1156)
+// FIXME : remove this include (github issue #1156)
 #include "theory/bv/theory_bv_rewriter.h"
 
 using namespace CVC4::kind;
@@ -56,14 +56,16 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_proc(new CegConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
-      d_ceg_cegis(new Cegis(qe,this)),
+      d_ceg_cegis(new Cegis(qe, this)),
       d_master(nullptr),
       d_refine_count(0),
-      d_syntax_guided(false) {
-  if( options::sygusPbe() ){
-    d_modules.push_back( d_ceg_pbe.get() );
+      d_syntax_guided(false)
+{
+  if (options::sygusPbe())
+  {
+    d_modules.push_back(d_ceg_pbe.get());
   }
-  d_modules.push_back( d_ceg_cegis.get() );
+  d_modules.push_back(d_ceg_cegis.get());
 }
 
 CegConjecture::~CegConjecture() {}
@@ -137,15 +139,15 @@ void CegConjecture::assign( Node q ) {
   std::vector< Node > guarded_lemmas;
   if( !isSingleInvocation() ){
     d_ceg_proc->initialize(d_base_inst, d_candidates);
-    for( unsigned i=0, size = d_modules.size(); i<size; i++ )
+    for (unsigned i = 0, size = d_modules.size(); i < size; i++)
     {
-      if( d_modules[i]->initialize(d_base_inst,d_candidates,guarded_lemmas) )
+      if (d_modules[i]->initialize(d_base_inst, d_candidates, guarded_lemmas))
       {
         d_master = d_modules[i];
         break;
       }
     }
-    Assert( d_master!=nullptr );
+    Assert(d_master != nullptr);
   }
 
   if (d_qe->getQuantAttributes()->isSygus(q))
@@ -251,8 +253,8 @@ void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
 
 void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   std::vector< Node > model_terms;
-  Assert( d_candidates.size()==d_quant[0].getNumChildren() );
-  getModelValues( d_candidates, model_terms );
+  Assert(d_candidates.size() == d_quant[0].getNumChildren());
+  getModelValues(d_candidates, model_terms);
   if (d_qe->getInstantiate()->addInstantiation(d_quant, model_terms))
   {
     //record the instantiation
@@ -266,81 +268,108 @@ bool CegConjecture::needsRefinement() {
   return !d_ce_sk.empty();
 }
 
-void CegConjecture::doCheck(std::vector< Node >& lems) {
-  Assert( d_master!=nullptr );
-  
-  //get the list of terms that the master strategy is interested in
-  std::vector< Node > terms;
-  d_master->getTermList( d_candidates, terms );
-  
+void CegConjecture::doCheck(std::vector<Node>& lems)
+{
+  Assert(d_master != nullptr);
+
+  // get the list of terms that the master strategy is interested in
+  std::vector<Node> terms;
+  d_master->getTermList(d_candidates, terms);
+
   // get their model value
-  std::vector< Node > enum_values;
-  getModelValues( terms, enum_values );
-  
-  NodeManager * nm = NodeManager::currentNM();
-  if( options::sygusDirectEval() ){
+  std::vector<Node> enum_values;
+  getModelValues(terms, enum_values);
+
+  NodeManager* nm = NodeManager::currentNM();
+  if (options::sygusDirectEval())
+  {
     bool addedEvalLemmas = false;
-    if( options::sygusCRefEval() ){
-      Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..." << std::endl;
+    if (options::sygusCRefEval())
+    {
+      Trace("cegqi-engine")
+          << "  *** Do conjecture refinement evaluation..." << std::endl;
       // see if any refinement lemma is refuted by evaluation
-      std::vector< Node > cre_lems;
-      getRefinementEvalLemmas( terms, enum_values, cre_lems );
-      if( !cre_lems.empty() ){
-        for( unsigned j=0; j<cre_lems.size(); j++ ){
+      std::vector<Node> cre_lems;
+      getRefinementEvalLemmas(terms, enum_values, cre_lems);
+      if (!cre_lems.empty())
+      {
+        for (unsigned j = 0; j < cre_lems.size(); j++)
+        {
           Node lem = cre_lems[j];
-          if( d_qe->addLemma( lem ) ){
-            Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem << std::endl;
+          if (d_qe->addLemma(lem))
+          {
+            Trace("cegqi-lemma")
+                << "Cegqi::Lemma : cref evaluation : " << lem << std::endl;
             addedEvalLemmas = true;
           }
         }
-        if( addedEvalLemmas ){
-          //return;
+        if (addedEvalLemmas)
+        {
+          // return;
         }
       }
     }
     Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
-    std::vector< Node > eager_terms; 
-    std::vector< Node > eager_vals; 
-    std::vector< Node > eager_exps;
-    for( unsigned j=0; j<terms.size(); j++ ){
-      Trace("cegqi-debug") << "  register " << terms[j] << " -> " << enum_values[j] << std::endl;
-      d_qe->getTermDatabaseSygus()->registerModelValue( terms[j], enum_values[j], eager_terms, eager_vals, eager_exps );
+    std::vector<Node> eager_terms;
+    std::vector<Node> eager_vals;
+    std::vector<Node> eager_exps;
+    for (unsigned j = 0; j < terms.size(); j++)
+    {
+      Trace("cegqi-debug") << "  register " << terms[j] << " -> "
+                           << enum_values[j] << std::endl;
+      d_qe->getTermDatabaseSygus()->registerModelValue(
+          terms[j], enum_values[j], eager_terms, eager_vals, eager_exps);
     }
-    Trace("cegqi-debug") << "...produced " << eager_terms.size()  << " eager evaluation lemmas." << std::endl;
-    if( !eager_terms.empty() ){
-      for( unsigned j=0; j<eager_terms.size(); j++ ){
-        Node lem = nm->mkNode( kind::OR, eager_exps[j].negate(), eager_terms[j].eqNode( eager_vals[j] ) );
-        if( d_qe->getTheoryEngine()->isTheoryEnabled(THEORY_BV) ){
-          //FIXME: hack to incorporate hacks from BV for division by zero (github issue #1156)
-          lem = bv::TheoryBVRewriter::eliminateBVSDiv( lem );
+    Trace("cegqi-debug") << "...produced " << eager_terms.size()
+                         << " eager evaluation lemmas." << std::endl;
+    if (!eager_terms.empty())
+    {
+      for (unsigned j = 0; j < eager_terms.size(); j++)
+      {
+        Node lem = nm->mkNode(kind::OR,
+                              eager_exps[j].negate(),
+                              eager_terms[j].eqNode(eager_vals[j]));
+        if (d_qe->getTheoryEngine()->isTheoryEnabled(THEORY_BV))
+        {
+          // FIXME: hack to incorporate hacks from BV for division by zero
+          // (github issue #1156)
+          lem = bv::TheoryBVRewriter::eliminateBVSDiv(lem);
         }
-        if( d_qe->addLemma( lem ) ){
-          Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem << std::endl;
+        if (d_qe->addLemma(lem))
+        {
+          Trace("cegqi-lemma")
+              << "Cegqi::Lemma : evaluation : " << lem << std::endl;
           addedEvalLemmas = true;
         }
       }
     }
-    if( addedEvalLemmas ){
+    if (addedEvalLemmas)
+    {
       return;
     }
   }
-  
-  
-  std::vector< Node > candidate_values;
+
+  std::vector<Node> candidate_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
-  bool constructed_cand = d_master->constructCandidates( terms, enum_values, d_candidates, candidate_values, lems );
-  
+  bool constructed_cand = d_master->constructCandidates(
+      terms, enum_values, d_candidates, candidate_values, lems);
+
   //must get a counterexample to the value of the current candidate
   Node inst;
   if( constructed_cand ){
     if( Trace.isOn("cegqi-check")  ){
       Trace("cegqi-check") << "CegConjuncture : check candidate : " << std::endl;
-      for( unsigned i=0; i<candidate_values.size(); i++ ){
-        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> " << candidate_values[i] << std::endl;
+      for (unsigned i = 0; i < candidate_values.size(); i++)
+      {
+        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> "
+                             << candidate_values[i] << std::endl;
       }
     }
-    Assert( candidate_values.size()==d_candidates.size() );
-    inst = d_base_inst.substitute( d_candidates.begin(), d_candidates.end(), candidate_values.begin(), candidate_values.end() );
+    Assert(candidate_values.size() == d_candidates.size());
+    inst = d_base_inst.substitute(d_candidates.begin(),
+                                  d_candidates.end(),
+                                  candidate_values.begin(),
+                                  candidate_values.end());
   }else{
     inst = d_base_inst;
   }
@@ -396,7 +425,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
     }
   }
   if( constructed_cand ){
-    Node lem = nm->mkNode( OR, ic );
+    Node lem = nm->mkNode(OR, ic);
     lem = Rewriter::rewrite( lem );
     //eagerly unfold applications of evaluation function
     if( options::sygusDirectEval() ){
@@ -406,7 +435,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
     }
     lem = getStreamGuardedLemma(lem);
     lems.push_back( lem );
-    recordInstantiation( candidate_values );
+    recordInstantiation(candidate_values);
   }
 }
         
@@ -577,7 +606,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
             return curr_stream_guard;
           }else{
             if( !value ){
-              Assert( d_master!=nullptr );
+              Assert(d_master != nullptr);
               Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
               // we have generated a solution, print it
               // get the current output stream
@@ -591,12 +620,13 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               // thus, we clear information regarding the current refinement
               d_ce_sk.clear();
               // However, we need to exclude the current solution using an explicit refinement 
-              // so that we proceed to the next solution. 
-              std::vector< Node > terms;
-              d_master->getTermList( d_candidates, terms );
+              // so that we proceed to the next solution.
+              std::vector<Node> terms;
+              d_master->getTermList(d_candidates, terms);
               Trace("cegqi-debug") << "getNextDecision : solution was : " << std::endl;
               std::vector< Node > exp;
-              for( const Node& cprog : terms ){
+              for (const Node& cprog : terms)
+              {
                 Node sol = cprog;
                 if( !d_cinfo[cprog].d_inst.empty() ){
                   sol = d_cinfo[cprog].d_inst.back();
@@ -933,13 +963,17 @@ bool CegConjecture::sampleAddRefinementLemma(const std::vector<Node>& vals,
   return false;
 }
 
-
-void CegConjecture::getRefinementEvalLemmas( const std::vector< Node >& vs, const std::vector< Node >& ms, std::vector< Node >& lems ) {
-  Trace("sygus-cref-eval") << "Cref eval : conjecture has " << getNumRefinementLemmas() << " refinement lemmas." << std::endl;
+void CegConjecture::getRefinementEvalLemmas(const std::vector<Node>& vs,
+                                            const std::vector<Node>& ms,
+                                            std::vector<Node>& lems)
+{
+  Trace("sygus-cref-eval") << "Cref eval : conjecture has "
+                           << getNumRefinementLemmas() << " refinement lemmas."
+                           << std::endl;
   unsigned nlemmas = getNumRefinementLemmas();
   if (nlemmas > 0 || options::cegisSample() != CEGIS_SAMPLE_NONE)
   {
-    Assert( vs.size()==ms.size() );
+    Assert(vs.size() == ms.size());
 
     TermDbSygus* tds = d_qe->getTermDatabaseSygus();
     Node nfalse = d_qe->getTermUtil()->d_false;
@@ -960,34 +994,48 @@ void CegConjecture::getRefinementEvalLemmas( const std::vector< Node >& vs, cons
         }
       }
       Node lem;
-      std::map< Node, Node > visited;
-      std::map< Node, std::vector< Node > > exp;
+      std::map<Node, Node> visited;
+      std::map<Node, std::vector<Node> > exp;
       lem = getRefinementLemma(i);
-      if( !lem.isNull() ){
-        std::vector< Node > lem_conj;
-        //break into conjunctions
-        if( lem.getKind()==kind::AND ){
-          for( unsigned i=0; i<lem.getNumChildren(); i++ ){
-            lem_conj.push_back( lem[i] );
+      if (!lem.isNull())
+      {
+        std::vector<Node> lem_conj;
+        // break into conjunctions
+        if (lem.getKind() == kind::AND)
+        {
+          for (unsigned i = 0; i < lem.getNumChildren(); i++)
+          {
+            lem_conj.push_back(lem[i]);
           }
-        }else{
-          lem_conj.push_back( lem );
+        }
+        else
+        {
+          lem_conj.push_back(lem);
         }
         EvalSygusInvarianceTest vsit;
-        for( unsigned j=0; j<lem_conj.size(); j++ ){
+        for (unsigned j = 0; j < lem_conj.size(); j++)
+        {
           Node lemc = lem_conj[j];
-          Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lemc << " against current model." << std::endl;
-          Trace("sygus-cref-eval2") << "Check refinement lemma conjunct " << lemc << " against current model." << std::endl;
+          Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lemc
+                                   << " against current model." << std::endl;
+          Trace("sygus-cref-eval2")
+              << "Check refinement lemma conjunct " << lemc
+              << " against current model." << std::endl;
           Node cre_lem;
-          Node lemcs = lemc.substitute( vs.begin(), vs.end(), ms.begin(), ms.end() );
-          Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs << std::endl;
+          Node lemcs =
+              lemc.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
+          Trace("sygus-cref-eval2")
+              << "...under substitution it is : " << lemcs << std::endl;
           Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
-          Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu << std::endl;
-          if( lemcsu==d_qe->getTermUtil()->d_false ){
-            std::vector< Node > msu;
-            std::vector< Node > mexp;
-            msu.insert( msu.end(), ms.begin(), ms.end() );
-            for( unsigned k=0; k<vs.size(); k++ ){
+          Trace("sygus-cref-eval2")
+              << "...after unfolding is : " << lemcsu << std::endl;
+          if (lemcsu == d_qe->getTermUtil()->d_false)
+          {
+            std::vector<Node> msu;
+            std::vector<Node> mexp;
+            msu.insert(msu.end(), ms.begin(), ms.end());
+            for (unsigned k = 0; k < vs.size(); k++)
+            {
               vsit.setUpdatedTerm(msu[k]);
               msu[k] = vs[k];
               // substitute for everything except this
@@ -1002,17 +1050,26 @@ void CegConjecture::getRefinementEvalLemmas( const std::vector< Node >& vs, cons
               tds->getExplain()->getExplanationFor(vs[k], ut, mexp, vsit);
               msu[k] = ut;
             }
-            if( !mexp.empty() ){
-              Node en = mexp.size()==1 ? mexp[0] : NodeManager::currentNM()->mkNode( kind::AND, mexp );
-              cre_lem = NodeManager::currentNM()->mkNode( kind::OR, en.negate(), neg_guard );
-            }else{
+            if (!mexp.empty())
+            {
+              Node en = mexp.size() == 1
+                            ? mexp[0]
+                            : NodeManager::currentNM()->mkNode(kind::AND, mexp);
+              cre_lem = NodeManager::currentNM()->mkNode(
+                  kind::OR, en.negate(), neg_guard);
+            }
+            else
+            {
               cre_lem = neg_guard;
             }
           }
-          if( !cre_lem.isNull() ){
-            if( std::find( lems.begin(), lems.end(), cre_lem )==lems.end() ){
-              Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem << std::endl;
-              lems.push_back( cre_lem );
+          if (!cre_lem.isNull())
+          {
+            if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
+            {
+              Trace("sygus-cref-eval")
+                  << "...produced lemma : " << cre_lem << std::endl;
+              lems.push_back(cre_lem);
             }
           }
         }

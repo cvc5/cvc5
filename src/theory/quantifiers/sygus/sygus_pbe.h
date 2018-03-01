@@ -158,7 +158,7 @@ class CegConjecture;
 * This class is not designed to work in incremental mode, since there is no way
 * to specify incremental problems in SyguS.
 */
-class CegConjecturePbe : public SygusModule 
+class CegConjecturePbe : public SygusModule
 {
  public:
   CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p);
@@ -176,12 +176,12 @@ class CegConjecturePbe : public SygusModule
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
   /** get term list
-   * 
+   *
   * Adds all active enumerators associated with functions-to-synthesize in
   * candidates to clist.
   */
   void getTermList(const std::vector<Node>& candidates,
-                        std::vector<Node>& clist) override;
+                   std::vector<Node>& clist) override;
   /** construct candidates */
   bool constructCandidates(const std::vector<Node>& terms,
                            const std::vector<Node>& term_values,

@@ -25,19 +25,19 @@ namespace theory {
 namespace quantifiers {
 
 /** Cegis
- * 
+ *
  * The default sygus module for synthesis, counterexample-guided inductive
  * synthesis (CEGIS).
- * 
- * It initializes a list of sygus enumerators that are one-to-one with 
+ *
+ * It initializes a list of sygus enumerators that are one-to-one with
  * candidates, and returns a list of candidates that are the model values
  * of these enumerators on calls to constructCandidates.
  */
 class Cegis : public SygusModule
 {
-public:
-  Cegis( QuantifiersEngine * qe, CegConjecture* p );
-  ~Cegis(){}
+ public:
+  Cegis(QuantifiersEngine* qe, CegConjecture* p);
+  ~Cegis() {}
   /** initialize */
   virtual bool initialize(Node n,
                           const std::vector<Node>& candidates,
@@ -52,7 +52,6 @@ public:
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) override;
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

@@ -26,35 +26,35 @@ namespace theory {
 namespace quantifiers {
 
 class CegConjecture;
-  
+
 /** SygusModule
- * 
- * This is the base class of sygus modules, owned by CegConjecture. 
+ *
+ * This is the base class of sygus modules, owned by CegConjecture.
  * An instance of the conjecture class (CegConjecture) contains a "candidate"
- * list, which are Skolem variables that are one-to-one with the functions to 
+ * list, which are Skolem variables that are one-to-one with the functions to
  * synthesize, and whose (sygus) types correspond to the types of the variables
  * in the deep embedded form of the synthesis conjecture.
- * 
+ *
  * Modules implement an initialize function, which determines whether the module
  * will take responsibility for the given conjecture.
  */
-class SygusModule 
+class SygusModule
 {
-public:
-  SygusModule( QuantifiersEngine * qe, CegConjecture* p );
-  ~SygusModule(){}
-  /** initialize 
-   * 
-   * n is the "base instantiation" of the deep-embedding version of the 
+ public:
+  SygusModule(QuantifiersEngine* qe, CegConjecture* p);
+  ~SygusModule() {}
+  /** initialize
+   *
+   * n is the "base instantiation" of the deep-embedding version of the
    * synthesis conjecture under candidates (see CegConjecture::d_base_inst).
-   * 
-   * This function returns true if this module will take responsibility for 
+   *
+   * This function returns true if this module will take responsibility for
    * constructing candidates for the given conjecture.
    */
   virtual bool initialize(Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas) = 0;
-  /** get term list 
+  /** get term list
    *
    * This gets the list of terms that will appear as arguments to a subsequent
    * call to constructCandidates.
@@ -62,16 +62,16 @@ public:
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& terms) = 0;
   /** construct candidate
-   * 
+   *
    * terms : the terms returned by a call to getTermList,
    * term_values : the current model values of terms,
    * candidates : the list of candidates.
-   * 
+   *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
    * to the synthesis conjecture in question. This candidate will then be tested
-   * by 
-   * 
+   * by
+   *
    * This function may also add lemmas to lems, which are sent out as lemmas
    * on the output channel of QuantifiersEngine.
    */
@@ -80,13 +80,13 @@ public:
                                    const std::vector<Node>& candidates,
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) = 0;
+
  protected:
   /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** reference to the parent conjecture */
-  CegConjecture * d_parent;
+  CegConjecture* d_parent;
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

@@ -126,7 +126,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       
       Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
       std::vector< Node > cclems;
-      conj->doCheck( cclems );
+      conj->doCheck(cclems);
       bool addedLemma = false;
       for( unsigned i=0; i<cclems.size(); i++ ){
         Node lem = cclems[i];

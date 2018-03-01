@@ -20,10 +20,10 @@
 
 #include <memory>
 
-#include "theory/quantifiers/sygus/sygus_pbe.h"
-#include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
+#include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
@@ -31,7 +31,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 /** a synthesis conjecture
  * This class implements approaches for a synthesis conecjture, given by data
  * member d_quant.
@@ -65,7 +65,7 @@ public:
   /** do syntax-guided enumerative check 
   * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
   */
-  void doCheck(std::vector< Node >& lems);
+  void doCheck(std::vector<Node>& lems);
   /** do basic check 
   * This is called for non-SyGuS synthesis conjectures
   */
@@ -155,22 +155,22 @@ private:
   std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
-  
+
   //------------------------modules
   /** program by examples module */
   std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
   /** CEGIS module */
-  std::unique_ptr<Cegis> d_ceg_cegis;  
+  std::unique_ptr<Cegis> d_ceg_cegis;
   /** the set of active modules (subset of the above list) */
-  std::vector< SygusModule * > d_modules;
+  std::vector<SygusModule*> d_modules;
   /** master module
    *
    * This is the module (one of those above) that takes sole responsibility
-   * for this conjecture, determined during assign(...). 
+   * for this conjecture, determined during assign(...).
    */
-  SygusModule * d_master;
+  SygusModule* d_master;
   //------------------------end modules
-  
+
   /** list of constants for quantified formula
   * The outer Skolems for the negation of d_embed_quant.
   */
@@ -284,12 +284,14 @@ private:
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
-  
+
   /** Get refinement evaluation lemmas
-   * 
+   *
    * TODO
    */
-  void getRefinementEvalLemmas( const std::vector< Node >& vs, const std::vector< Node >& ms, std::vector< Node >& lems );
+  void getRefinementEvalLemmas(const std::vector<Node>& vs,
+                               const std::vector<Node>& ms,
+                               std::vector<Node>& lems);
 };
 
 } /* namespace CVC4::theory::quantifiers */
