@@ -88,7 +88,7 @@ class SygusModule
    *
    * Assume this module, on a previous call to constructCandidates, added the
    * value { v } to candidate_values for candidates = { k }. This function is
-   * called if the base instantiation of the synthesis conjecture has a value
+   * called if the base instantiation of the synthesis conjecture has a model
    * under this substitution. In particular, in the above example, this function
    * is called when the refinement lemma P( v, k' ) has a model. The argument
    * lem in the call to this function is P( v, k' ).
