@@ -30,7 +30,7 @@ Cegis::Cegis( QuantifiersEngine * qe, CegConjecture* p ) : SygusModule(qe, p) {
 bool Cegis::initialize(Node n,
                         const std::vector<Node>& candidates,
                         std::vector<Node>& lemmas) {
-  // initialize the enumerators
+  // initialize an enumerator for each candidate
   TermDbSygus * tds = d_qe->getTermDatabaseSygus();
   for( unsigned i=0; i<candidates.size(); i++ ){
     tds->registerEnumerator(candidates[i], candidates[i], d_parent);

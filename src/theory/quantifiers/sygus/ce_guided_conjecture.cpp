@@ -53,11 +53,18 @@ void collectDisjuncts( Node n, std::vector< Node >& d ) {
 CegConjecture::CegConjecture(QuantifiersEngine* qe)
     : d_qe(qe),
       d_ceg_si(new CegConjectureSingleInv(qe, this)),
-      d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_proc(new CegConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_ceg_pbe(new CegConjecturePbe(qe, this)),
+      d_ceg_cegis(new Cegis(qe,this)),
+      d_master(nullptr),
       d_refine_count(0),
-      d_syntax_guided(false) {}
+      d_syntax_guided(false) {
+  if( options::sygusPbe() ){
+    d_modules.push_back( d_ceg_pbe.get() );
+  }
+  d_modules.push_back( d_ceg_cegis.get() );
+}
 
 CegConjecture::~CegConjecture() {}
 
@@ -138,16 +145,7 @@ void CegConjecture::assign( Node q ) {
         break;
       }
     }
-    
-    
-    if( options::sygusPbe() ){
-      d_ceg_pbe->initialize(d_base_inst, d_candidates, guarded_lemmas);
-    } else {
-      for (unsigned i = 0; i < d_candidates.size(); i++) {
-        Node e = d_candidates[i];
-        d_qe->getTermDatabaseSygus()->registerEnumerator(e, e, this);
-      }
-    }
+    Assert( d_master!=nullptr );
   }
 
   if (d_qe->getQuantAttributes()->isSygus(q))
@@ -268,20 +266,14 @@ bool CegConjecture::needsRefinement() {
   return !d_ce_sk.empty();
 }
 
-void CegConjecture::getTermList( std::vector< Node >& terms )
-{
-  if( d_ceg_pbe->isPbe() ){
-    d_ceg_pbe->getTermList( d_candidates, terms );
-  }else{
-    terms.insert( terms.end(), d_candidates.begin(), d_candidates.end() );
-  }
-}
-
 void CegConjecture::doCheck(std::vector< Node >& lems) {
-  //ignore return value here
-  std::vector< Node > terms;
-  getTermList( terms );
+  Assert( d_master!=nullptr );
   
+  //get the list of terms that the master strategy is interested in
+  std::vector< Node > terms;
+  d_master->getTermList( d_candidates, terms );
+  
+  // get their model value
   std::vector< Node > enum_values;
   getModelValues( terms, enum_values );
   
@@ -336,16 +328,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems) {
   
   std::vector< Node > candidate_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
-  bool constructed_cand = false;
-  if( d_ceg_pbe->isPbe() ){
-    constructed_cand = d_ceg_pbe->constructCandidates( terms, enum_values, d_candidates, candidate_values, lems );
-  }else{
-    Assert( enum_values.size()==d_candidates.size() );
-    candidate_values.insert( candidate_values.end(), enum_values.begin(), enum_values.end() );
-    constructed_cand = true;
-  }
-  
-  
+  bool constructed_cand = d_master->constructCandidates( terms, enum_values, d_candidates, candidate_values, lems );
   
   //must get a counterexample to the value of the current candidate
   Node inst;
@@ -594,6 +577,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
             return curr_stream_guard;
           }else{
             if( !value ){
+              Assert( d_master!=nullptr );
               Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
               // we have generated a solution, print it
               // get the current output stream
@@ -609,7 +593,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               // However, we need to exclude the current solution using an explicit refinement 
               // so that we proceed to the next solution. 
               std::vector< Node > terms;
-              getTermList( terms );
+              d_master->getTermList( d_candidates, terms );
               Trace("cegqi-debug") << "getNextDecision : solution was : " << std::endl;
               std::vector< Node > exp;
               for( const Node& cprog : terms ){

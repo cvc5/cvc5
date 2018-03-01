@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "theory/quantifiers/sygus/sygus_pbe.h"
+#include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
@@ -150,12 +151,26 @@ private:
   QuantifiersEngine * d_qe;
   /** single invocation utility */
   std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
-  /** program by examples utility */
-  std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
   /** utility for static preprocessing and analysis of conjectures */
   std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  
+  //------------------------modules
+  /** program by examples module */
+  std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
+  /** CEGIS module */
+  std::unique_ptr<Cegis> d_ceg_cegis;  
+  /** the set of active modules (subset of the above list) */
+  std::vector< SygusModule * > d_modules;
+  /** master module
+   *
+   * This is the module (one of those above) that takes sole responsibility
+   * for this conjecture, determined during assign(...). 
+   */
+  SygusModule * d_master;
+  //------------------------end modules
+  
   /** list of constants for quantified formula
   * The outer Skolems for the negation of d_embed_quant.
   */
@@ -201,11 +216,6 @@ private:
   std::map< Node, CandidateInfo > d_cinfo;  
   /** number of times we have called doRefine */
   unsigned d_refine_count;
-  /** get the list of enumerators
-   * 
-   * TODO
-   */
-  void getTermList( std::vector< Node >& terms );
   /** get candidadate */
   Node getCandidate( unsigned int i ) { return d_candidates[i]; }
   /** record instantiation (this is used to construct solutions later) */
@@ -274,12 +284,6 @@ private:
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
-  
-  /** set of modules */
-  std::vector< SygusModule * > d_modules;
-  /** master module */
-  SygusModule * d_master;
-  
   
   /** Get refinement evaluation lemmas
    * 

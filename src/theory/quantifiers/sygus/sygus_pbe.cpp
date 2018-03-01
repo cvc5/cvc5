@@ -233,13 +233,6 @@ bool CegConjecturePbe::initialize(Node n,
       }
     }
   }
-  if( !d_is_pbe ){
-    Trace("sygus-unif") << "Do not do PBE optimizations, register..." << std::endl;
-    for( unsigned i=0; i<candidates.size(); i++ ){
-      d_qe->getTermDatabaseSygus()->registerEnumerator(
-          candidates[i], candidates[i], d_parent);
-    }
-  }
   return d_is_pbe;
 }
 
