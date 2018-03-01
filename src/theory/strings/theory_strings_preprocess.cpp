@@ -120,10 +120,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     Node negone = nm->mkConst(::CVC4::Rational(-1));
     Node krange = nm->mkNode(kind::GEQ, skk, negone);
-    // assert:   indeof( x, y, n ) >= -1
+    // assert:   indexof( x, y, n ) >= -1
     new_nodes.push_back( krange );
-    krange = nm->mkNode(kind::GT, nm->mkNode(kind::STRING_LENGTH, t[0]), skk);
-    // assert:   len( x ) > indexof( x, y, z )
+    krange = nm->mkNode(kind::GEQ, nm->mkNode(kind::STRING_LENGTH, t[0]), skk);
+    // assert:   len( x ) >= indexof( x, y, z )
     new_nodes.push_back( krange );
 
     // substr( x, n, len( x ) - n )
@@ -141,7 +141,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c12 =
         nm->mkNode(kind::GT, t[2], nm->mkNode(kind::STRING_LENGTH, t[0]));
     // 0 > n
-    Node c13 = nm->mkNode(kind::GT, nm->mkConst(CVC4::Rational(0)), t[2]);
+    Node c13 = nm->mkNode(kind::GT, d_zero, t[2]);
     Node cond1 = nm->mkNode(kind::OR, c11, c12, c13);
     // skk = -1
     Node cc1 = skk.eqNode(negone);
@@ -165,7 +165,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                              d_zero,
                              nm->mkNode(kind::MINUS,
                                         nm->mkNode(kind::STRING_LENGTH, t[1]),
-                                        nm->mkConst(::CVC4::Rational(1))))),
+                                        d_one))),
               t[1])
             .negate();
     // skk = n + len( io2 )
@@ -413,7 +413,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // y = ""
     Node cond1 = y.eqNode(nm->mkConst(CVC4::String("")));
-    // rpw = str.++( z, w )
+    // rpw = str.++( z, x )
     Node c1 = rpw.eqNode(nm->mkNode(kind::STRING_CONCAT, z, x));
 
     // contains( x, y )
@@ -434,7 +434,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                              d_zero,
                              nm->mkNode(kind::MINUS,
                                         nm->mkNode(kind::STRING_LENGTH, y),
-                                        nm->mkConst(::CVC4::Rational(1))))),
+                                        d_one))),
               y)
             .negate();
 
