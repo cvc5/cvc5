@@ -33,9 +33,6 @@ private:
   CegConjecture * d_conj;
   /** last instantiation by single invocation module? */
   bool d_last_inst_si;
-private: //for direct evaluation
-  /** get refinement evaluation */
-  void getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );

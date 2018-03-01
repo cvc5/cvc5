@@ -1077,7 +1077,7 @@ void CegConjecturePbe::staticLearnRedundantOps(
 
 // ------------------------------------------- solution construction from enumeration
 
-void CegConjecturePbe::getCandidateList( std::vector< Node >& candidates, std::vector< Node >& clist ) {
+void CegConjecturePbe::getCandidateList( const std::vector< Node >& candidates, std::vector< Node >& clist ) {
   Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node v = candidates[i];
@@ -1097,8 +1097,8 @@ void CegConjecturePbe::getCandidateList( std::vector< Node >& candidates, std::v
   }
 }
 
-bool CegConjecturePbe::constructCandidates( std::vector< Node >& enums, std::vector< Node >& enum_values, 
-                                            std::vector< Node >& candidates, std::vector< Node >& candidate_values, 
+bool CegConjecturePbe::constructCandidates( const std::vector< Node >& enums, const std::vector< Node >& enum_values, 
+                                            const std::vector< Node >& candidates, std::vector< Node >& candidate_values, 
                                             std::vector< Node >& lems ) {
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){

@@ -31,6 +31,37 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** Base class for sygus modules 
+ */
+class SygusModule 
+{
+public:
+  /** initialize 
+   * 
+   * TODO   
+   */
+  virtual bool initialize(Node n,
+                          std::vector<Node>& candidates,
+                          std::vector<Node>& lemmas) = 0;
+  /** get enumerator list 
+   * 
+   * TODO  
+   */
+  virtual void getEnumeratorList(const std::vector<Node>& candidates,
+                                 std::vector<Node>& enums) = 0;
+  /** construct candidate
+   * 
+   * TODO  
+   */
+  virtual bool constructCandidates(const std::vector<Node>& enums,
+                                   const std::vector<Node>& enum_values,
+                                   const std::vector<Node>& candidates,
+                                   std::vector<Node>& candidate_values,
+                                   std::vector<Node>& lems) = 0;
+};
+
+
+  
 /** a synthesis conjecture
  * This class implements approaches for a synthesis conecjture, given by data
  * member d_quant.
@@ -274,6 +305,9 @@ private:
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
+public:
+  /** get refinement evaluation */
+  void getCRefEvaluationLemmas( CegConjecture * conj, std::vector< Node >& vs, std::vector< Node >& ms, std::vector< Node >& lems );
 };
 
 } /* namespace CVC4::theory::quantifiers */

@@ -182,7 +182,7 @@ class CegConjecturePbe {
   * Adds all active enumerators associated with functions-to-synthesize in
   * candidates to clist.
   */
-  void getCandidateList(std::vector<Node>& candidates,
+  void getCandidateList(const std::vector<Node>& candidates,
                         std::vector<Node>& clist);
   /** construct candidates
   * (1) Indicates that the list of enumerators in "enums" currently have model
@@ -195,9 +195,9 @@ class CegConjecturePbe {
   * During this class, this class may add auxiliary lemmas to "lems", which the
   * caller should send on the output channel via lemma(...).
   */
-  bool constructCandidates(std::vector<Node>& enums,
-                           std::vector<Node>& enum_values,
-                           std::vector<Node>& candidates,
+  bool constructCandidates(const std::vector<Node>& enums,
+                           const std::vector<Node>& enum_values,
+                           const std::vector<Node>& candidates,
                            std::vector<Node>& candidate_values,
                            std::vector<Node>& lems);
   /** is PBE enabled for any enumerator? */
