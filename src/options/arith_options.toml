@@ -691,6 +691,22 @@ header = "options/arith_options.h"
   help       = "threshold for attempting to replay a tree"
 
 [[option]]
+  name       = "arithNoPartialFun"
+  smt_name   = ""
+  category   = "regular"
+  short      = ""
+  long       = "arith-no-partial-fun"
+  type       = "bool"
+  default    = "false"
+  handler    = ""
+  predicates = []
+  includes   = []
+  notifies   = []
+  links      = []
+  read_only  = true
+  help       = "do not use partial function semantics for arithmetic (not SMT LIB compliant)"
+
+[[option]]
   name       = "pbRewrites"
   smt_name   = ""
   category   = "regular"

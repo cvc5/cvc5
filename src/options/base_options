@@ -155,17 +155,17 @@
 
 module BASE "options/base_options.h" Base
 
-option binary_name std::string
+undocumented-option binary_name std::string
 
-option in std::istream* :default &std::cin :include <iosfwd>
-option out std::ostream* :default &std::cout :include <iosfwd>
-option err std::ostream* :default &std::cerr :include <iosfwd>
+undocumented-option in std::istream* :default &std::cin :include <iosfwd>
+undocumented-option out std::ostream* :default &std::cout :include <iosfwd>
+undocumented-option err std::ostream* :default &std::cerr :include <iosfwd>
 
 common-option inputLanguage input-language -L --lang=LANG InputLanguage :handler stringToInputLanguage :include "options/language.h" :default language::input::LANG_AUTO :read-write
  force input language (default is "auto"; see --lang help)
 common-option outputLanguage output-language --output-lang=LANG OutputLanguage :handler stringToOutputLanguage :include "options/language.h" :default language::output::LANG_AUTO :read-write
  force output language (default is "auto"; see --output-lang help)
-option languageHelp bool
+undocumented-option languageHelp bool
 
 # Allow also --language and --output-language, it's a common mistake to
 # type these, but no need to document it.

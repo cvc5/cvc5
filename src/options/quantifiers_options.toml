@@ -1993,7 +1993,7 @@ header = "options/quantifiers_options.h"
   short      = ""
   long       = "sygus-samples=N"
   type       = "int"
-  default    = "100"
+  default    = "1000"
   handler    = ""
   predicates = []
   includes   = []
