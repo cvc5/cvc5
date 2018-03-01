@@ -141,9 +141,8 @@ EXTRA_DIST = \
 # Make sure the implicit rules never mistake a _template.cpp or _template.h file for source file.
 $(CPP_TEMPLATE_FILES):;
 
-# All source/doc files are generated in one pass with mkoptions.py with rule
-# options.cpp. Make noop here (distcheck requires rules for these).
-$(OPTIONS_CPPS) $(OPTIONS_HEADS) $(DOCUMENTATION_FILES):;
+# All source/doc files are generated in one pass with rule options.cpp
+$(OPTIONS_CPPS) $(OPTIONS_HEADS) $(DOCUMENTATION_FILES): options.cpp
 
 options.cpp: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES) $(DOCUMENTATION_TEMPLATE_FILES)
 	@srcdir@/mkoptions.py @abs_srcdir@ . ../../doc $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))
