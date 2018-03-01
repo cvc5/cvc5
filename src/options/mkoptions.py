@@ -31,6 +31,7 @@ g_long_cache = dict()      # maps long options to filename/fileno
 g_short_cache = dict()     # maps short options to filename/fileno
 g_smt_cache = dict()       # maps smt options to filename/fileno
 g_name_cache = dict()      # maps option names to filename/fileno
+g_long_arguments = set()   # set of long options that require an argument
 
 g_getopt_long_start = 256
 
@@ -573,16 +574,15 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
             man_others_int.append(man_others_smt[-1])
 
 
-        # TODO: sort by name
-#        for option in sorted(module.options, key=lambda x: x.long if x.long else x.name):
-        for option in module.options:
+        for option in \
+            sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert(option.type != 'void' or option.name is None)
             assert(option.name or option.smt_name or option.short or option.long)
             argument_req = option.type not in ['bool', 'void']
 
-            # TODO: we can remove these includes since they are
-            #       already included in 'headers_module' header files
-            headers_handler.update([format_include(x) for x in option.includes])
+            #Note: we don't need to add these includes since they are already
+            #      included in the corresponding module header files
+            #headers_handler.update([format_include(x) for x in option.includes])
 
             docgen_option(option,
                           help_common, man_common, man_common_smt,
@@ -810,8 +810,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
 
-#        for alias in sorted(module.aliases, key=lambda x: x.long):
-        for alias in module.aliases:
+        for alias in sorted(module.aliases, key=lambda x: x.long):
             argument_req = '=' in alias.long
 
             options_handler.append(
@@ -948,12 +947,16 @@ def check_long(filename, lineno, long, type = None):
 
 
 def check_links(filename, lineno, links):
-    global g_long_cache
+    global g_long_cache, g_long_arguments
     for link in links:
         long = lstrip('no-', lstrip('--', long_get_option(link)))
         if long not in g_long_cache:
             perr(filename, lineno,
                  "invalid long option '{}' in links list".format(link))
+        # check if long option requires an argument
+        if long in g_long_arguments and '=' not in link:
+            perr(filename, lineno,
+                 "linked option '{}' requires an argument".format(link))
 
 
 def check_alias_attrib(filename, lineno, attrib, value):
@@ -1257,6 +1260,9 @@ if __name__ == "__main__":
                            option.type)
                 if option.long:
                     g_long_to_opt[long_get_option(option.long)] = option
+                    # Add long option that requires an argument
+                    if option.type not in ['bool', 'void']:
+                        g_long_arguments.add(long_get_option(option.long))
             modules.append(module)
 
     # Check if alias.long is unique
@@ -1274,6 +1280,9 @@ if __name__ == "__main__":
                     alias.alternate_for = m[0]
                     del(g_long_cache[alias.long])
             check_long(alias.filename, alias.lineno, alias.long)
+            # Add long option that requires an argument
+            if '=' in alias.long:
+                g_long_arguments.add(long_get_option(alias.long))
 
     # Check if long options in links are valid
     # (that needs to be done after checking all long options)
