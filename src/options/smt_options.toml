@@ -216,6 +216,18 @@ header = "options/smt_options.h"
   help       = "dump the full unsat core, including unlabeled assertions"
 
 [[option]]
+  name       = "unsatAssumptions"
+  category   = "regular"
+  long       = "produce-unsat-assumptions"
+  type       = "bool"
+  default    = "false"
+  links      = ["--produce-unsat-cores"]
+  predicates = ["proofEnabledBuild"]
+  notifies   = ["notifyBeforeSearch"]
+  read_only  = true
+  help       = "turn on unsat assumptions generation"
+
+[[option]]
   name       = "checkSynthSol"
   category   = "regular"
   long       = "check-synth-sol"
