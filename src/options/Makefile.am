@@ -141,10 +141,11 @@ EXTRA_DIST = \
 # Make sure the implicit rules never mistake a _template.cpp or _template.h file for source file.
 $(CPP_TEMPLATE_FILES):;
 
-$(OPTIONS_CPPS) $(OPTIONS_HEADS) $(DOCUMENTATION_FILES) options.cpp: gen-all-files
+# All source/doc files are generated in one pass with mkoptions.py with rule
+# options.cpp. Make noop here (distcheck requires rules for these).
+$(OPTIONS_CPPS) $(OPTIONS_HEADS) $(DOCUMENTATION_FILES):;
 
-# mkoptiony.py generates all source code and documentation files in one pass
-gen-all-files: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES) $(DOCUMENTATION_TEMPLATE_FILES)
+options.cpp: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES) $(DOCUMENTATION_TEMPLATE_FILES)
 	@srcdir@/mkoptions.py @abs_srcdir@ . ../../doc $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))
 
 # This rule is ugly.  It's needed to ensure that automake's dependence
