@@ -1120,27 +1120,32 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
   // get the assertions
   std::map< Node, Rational > init_bounds[2];
   std::map< Node, Node > init_bounds_lit[2];
-  std::unordered_set< Node, NodeHashFunction > init_redundant;
+  unsigned nassertions = 0;
+  std::unordered_set< Node, NodeHashFunction > init_assertions;
   for (Theory::assertions_iterator it = d_containing.facts_begin();
         it != d_containing.facts_end();
         ++it)
   {
+    nassertions++;
     const Assertion& assertion = *it;
     Node lit = assertion.assertion;
-    assertions.push_back(lit);
+    init_assertions.insert(lit);
     // check for concrete bounds
     bool pol = lit.getKind()!=NOT;
     Node atom_orig = lit.getKind()==NOT ? lit[0] : lit;
     
     std::vector< Node > atoms;
-    if( lit.getKind()==EQUAL )
-    {
-      // t = s  is ( t >= s ^ t <= s )
-      for( unsigned i=0; i<2; i++ )
+    if( atom_orig.getKind()==EQUAL )
+    {        
+      if( pol )
       {
-        Node atom_new = nm->mkNode( i==0 ? GEQ : LEQ, atom_orig[0], atom_orig[1] );
-        atom_new = Rewriter::rewrite( atom_new );
-        atoms.push_back( atom_new );
+        // t = s  is ( t >= s ^ t <= s )
+        for( unsigned i=0; i<2; i++ )
+        {
+          Node atom_new = nm->mkNode( GEQ, atom_orig[i], atom_orig[1-i] );
+          atom_new = Rewriter::rewrite( atom_new );
+          atoms.push_back( atom_new );
+        }
       }
     }
     else
@@ -1180,7 +1185,7 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
           if( setBound )
           {
             // the bound is subsumed
-            init_redundant.insert( init_bounds_lit[bindex][p] );
+            init_assertions.erase( init_bounds_lit[bindex][p] );
           }
         }
         if( setBound )
@@ -1207,25 +1212,17 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
           Node eq = p.eqNode( nm->mkConst( ib.second ) );
           eq = Rewriter::rewrite( eq );
           Node lit2 = init_bounds_lit[1][p];
-          if( std::find( assertions.begin(), assertions.end(), eq )==assertions.end() )
-          {
-            Node eqv = computeModelValue(eq);
-            Trace("nl-ext-init") << "Equality based on bounds : " << eq << ", value : " << eqv << std::endl;
-            if( eqv!=d_true )
-            {
-              Node lem = nm->mkNode( OR, lit1.negate(), lit2.negate(), eq );
-              lemmas.push_back( lem );
-            }
-            assertions.push_back( eq );
-          }
-          // we've inferred the equality, thus these are redundant
-          init_redundant.insert( lit1 );
-          init_redundant.insert( lit2 );
+          Assert( lit2.getKind()!=EQUAL );
+          // use the equality instead, thus these are redundant
+          init_assertions.erase( lit1 );
+          init_assertions.erase( lit2 );
+          init_assertions.insert( eq );
         }
       }
     }
   }
 
+  // if we added lemmas, then send them here
   if( !lemmas.empty() )
   {
     int lemmas_proc = flushLemmas(lemmas);
@@ -1239,19 +1236,11 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
     // equality to assertions above and marked the inequalities as redundant.
   }
   
-  if( !init_redundant.empty() )
+  for( const Node& a : init_assertions )
   {
-    Trace("nl-ext") << "..." << init_redundant.size() << " / " << assertions.size() << " assertions were redundant." << std::endl;
-    std::vector< Node > tmp_assertions = assertions;
-    assertions.clear();
-    for( const Node& a : tmp_assertions )
-    {
-      if( init_redundant.find( a )==init_redundant.end() )
-      {
-        assertions.push_back( a );
-      }
-    }
+    assertions.push_back( a );
   }
+  Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions << " assertions." << std::endl;
   
   return true;
 }
