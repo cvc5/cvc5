@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -186,8 +186,8 @@ class CVC4_PUBLIC SmtEngine {
   std::vector<Command*> d_dumpCommands;
 
   /**
-   *A vector of command definitions to be imported in the new
-   *SmtEngine when checking unsat-cores.
+   * A vector of command definitions to be imported in the new
+   * SmtEngine when checking unsat-cores.
    */
   std::vector<Command*> d_defineCommands;
 
@@ -207,10 +207,10 @@ class CVC4_PUBLIC SmtEngine {
   unsigned d_pendingPops;
 
   /**
-   * Whether or not this SmtEngine has been fully initialized (that is,
-   * the ).  This post-construction initialization is automatically
-   * triggered by the use of the SmtEngine; e.g. when setLogic() is
-   * called, or the first assertion is made, etc.
+   * Whether or not this SmtEngine is fully initialized (post-construction).
+   * This post-construction initialization is automatically triggered by the
+   * use of the SmtEngine; e.g. when setLogic() is called, or the first
+   * assertion is made, etc.
    */
   bool d_fullyInited;
 
@@ -871,13 +871,13 @@ class CVC4_PUBLIC SmtEngine {
    * translation.
    */
   void setReplayStream(ExprStream* exprStream);
-  
+
   /** get expression name
   * Returns true if e has an expression name in the current context.
   * If it returns true, the name of e is stored in name.
   */
   bool getExpressionName(Expr e, std::string& name) const;
-  
+
   /** set expression name 
   * Sets the expression name of e to name.
   * This information is user-context-dependent.
