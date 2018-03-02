@@ -105,7 +105,10 @@ class SygusModule
    * is called when the refinement lemma P( v, k' ) has a model M. In calls to
    * this function, the argument vars is v and lem is P( v^M, k' ).
    */
-  virtual void registerRefinementLemma(const std::vector< Node >& vars, Node lem) {}
+  virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+  {
+  }
+
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;

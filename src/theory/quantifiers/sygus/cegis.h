@@ -57,7 +57,8 @@ class Cegis : public SygusModule
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) override;
   /** register refinement lemma */
-  virtual void registerRefinementLemma(const std::vector< Node >& vars, Node lem) override;
+  virtual void registerRefinementLemma(const std::vector<Node>& vars,
+                                       Node lem) override;
 
  private:
   /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */

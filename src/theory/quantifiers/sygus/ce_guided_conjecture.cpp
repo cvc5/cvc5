@@ -358,7 +358,7 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   }
   else
   {
-    Assert( d_inner_vars.empty() );
+    Assert(d_inner_vars.empty());
   }
 
   std::vector< Node > lem_c;

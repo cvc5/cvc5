@@ -150,7 +150,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   return true;
 }
 
-void Cegis::registerRefinementLemma(const std::vector< Node >& vars, Node lem)
+void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   d_refinement_lemmas.push_back(lem);
 }
