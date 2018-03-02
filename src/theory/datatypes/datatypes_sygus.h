@@ -54,7 +54,8 @@ private:
   NodeSet d_active_terms;
   IntMap d_currTermSize;
   Node d_zero;
-
+  /** the null node */
+  Node d_null;
  private:
   /**
    * Map from terms (selector chains) to their anchors. The anchor of a
@@ -125,15 +126,68 @@ private:
    * the rewriter.
    */
   std::map<Node, std::map<TypeNode, quantifiers::SygusSampler>> d_sampler;
-  Node d_null;
+  /** Assert tester internal 
+   * 
+   * TODO
+   */
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
-  // register search term
+  /** Register search term
+   * 
+   * This function is called when selector chain S_1( ... S_m( n ) ... ) is
+   * registered to the theory of datatypes, where tn is the type of n, 
+   * d indicates the depth of n (the sum of weights of the selectors S_1...S_m), 
+   * and topLevel is whether n is a top-level term (see d_is_top_level).
+   * 
+   * The purpose of this function is to notify this class that symmetry breaking
+   * lemmas should be instantiated for n. Any symmetry breaking lemmas that
+   * should be immediately applied for n are added to lemmas in this call.
+   */
   void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas );
+  /** Register search value 
+   * 
+   * This function is called when a selector chain n has been assigned a model
+   * value nv.
+   * a : the anchor of n,
+   * d : the depth of n.
+   * 
+   * This function determines if the value nv is equivalent via rewriting to
+   * any previously registered search values for anchor a. If so, we construct
+   * a symmetry breaking lemma template and register it in d_cache[a]. For
+   * example, for grammar:
+   *   A -> A+A | x | 0
+   * Registering search value d -> x followed by d -> +( x, 0 ) results in the
+   * construction of the symmetry breaking lemma template:
+   *   ~is_+( z ) V ~is_x( z.1 ) V ~is_0( z.2 )
+   * which is stored in d_cache[a].d_sb_lemmas. This lemma is instantiated with
+   * z -> t for all terms t of appropriate depth, including d.
+   * This function strengthens blocking clauses using generalization techniques
+   * described in Reynolds et al SYNT 2017.
+   */
   bool registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
-  void registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node e, std::vector< Node >& lemmas );
+  /** Register symmetry breaking lemma
+   * 
+   * This function adds the symmetry breaking lemma template lem for terms of 
+   * type tn with anchor a. This is added to d_cache[a].d_sb_lemmas. Notice that
+   * we use lem as a template with free variable x, e.g. our template is:
+   *   (lambda ((x tn)) lem)
+   * where x = getFreeVar( tn ). For all search terms t of the appropriate depth, 
+   * we add the lemma lem{ x -> t } to lemmas.
+   * 
+   * The argument sz indicates the size of terms that the lemma applies to, e.g.
+   *   ~is_+( z ) has size 1
+   *   ~is_+( z ) V ~is_x( z.1 ) V ~is_0( z.2 ) has size 1
+   *   ~is_+( z ) V ~is_+( z.1 ) has size 2
+   */
+  void registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas );
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node e, std::vector< Node >& lemmas );
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
-  void addSymBreakLemma( TypeNode tn, Node lem, TNode x, TNode n, unsigned lem_sz, unsigned n_depth, std::vector< Node >& lemmas );
+  /** add symmetry breaking lemma 
+   * 
+   * This adds the lemma R => lem{ x -> n } to lemmas, where R is a "relevancy
+   * condition" that states which contexts n is relevant in (contexts in which
+   * the selector chain n is specified).
+   */
+  void addSymBreakLemma( Node lem, TNode x, TNode n, std::vector< Node >& lemmas );
 private:
   std::map< Node, Node > d_rlv_cond;
   Node getRelevancyCondition( Node n );

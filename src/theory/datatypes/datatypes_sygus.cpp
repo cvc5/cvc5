@@ -928,7 +928,7 @@ void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz
       for( unsigned k=0; k<itt->second.size(); k++ ){
         TNode t = itt->second[k];  
         if( !options::sygusSymBreakLazy() || d_active_terms.find( t )!=d_active_terms.end() ){
-          addSymBreakLemma( tn, lem, x, t, sz, d, lemmas );
+          addSymBreakLemma( lem, x, t, lemmas );
         }
       }
     }
@@ -953,14 +953,14 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
       if( (int)it->first<=max_sz ){
         for( unsigned k=0; k<it->second.size(); k++ ){
           Node lem = it->second[k];
-          addSymBreakLemma( tn, lem, x, t, it->first, d, lemmas );
+          addSymBreakLemma( lem, x, t, lemmas );
         }
       }
     }
   }
 }
 
-void SygusSymBreakNew::addSymBreakLemma( TypeNode tn, Node lem, TNode x, TNode n, unsigned lem_sz, unsigned n_depth, std::vector< Node >& lemmas ) {
+void SygusSymBreakNew::addSymBreakLemma( Node lem, TNode x, TNode n, std::vector< Node >& lemmas ) {
   Assert( !options::sygusSymBreakLazy() || d_active_terms.find( n )!=d_active_terms.end() );
   // apply lemma
   Node slem = lem.substitute( x, n );
@@ -1124,7 +1124,7 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
               if( !options::sygusSymBreakLazy() || d_active_terms.find( t )!=d_active_terms.end() ){
                 for( unsigned j=0; j<it->second.size(); j++ ){
                   Node lem = it->second[j];
-                  addSymBreakLemma( tn, lem, x, t, sz, new_depth, lemmas );
+                  addSymBreakLemma( lem, x, t, lemmas );
                 }
               }
             }
