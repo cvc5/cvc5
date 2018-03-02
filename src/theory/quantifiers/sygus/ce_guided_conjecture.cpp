@@ -333,7 +333,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     // record the instantiation
     // this is used for remembering the solution
     recordInstantiation(candidate_values);
-    if( lem==d_quant.negate() && options::sygusStream() )
+    if (lem == d_quant.negate() && options::sygusStream())
     {
       // short circuit the check
       // instead, we immediately print the current solution.
@@ -343,7 +343,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     else
     {
       lem = getStreamGuardedLemma(lem);
-      lems.push_back( lem );
+      lems.push_back(lem);
     }
   }
 }
@@ -528,20 +528,21 @@ void CegConjecture::printAndContinueStream()
   // get the current output stream
   // this output stream should coincide with wherever --dump-synth is output on
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  printSynthSolution( *nodeManagerOptions.getOut(), false );
-  
+  printSynthSolution(*nodeManagerOptions.getOut(), false);
+
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_ce_sk.clear();
-  // However, we need to exclude the current solution using an explicit 
+  // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution.
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);
-  std::vector< Node > exp;
+  std::vector<Node> exp;
   for (const Node& cprog : terms)
   {
     Node sol = cprog;
-    if( !d_cinfo[cprog].d_inst.empty() ){
+    if (!d_cinfo[cprog].d_inst.empty())
+    {
       sol = d_cinfo[cprog].d_inst.back();
       // add to explanation of exclusion
       d_qe->getTermDatabaseSygus()
@@ -549,11 +550,14 @@ void CegConjecture::printAndContinueStream()
           ->getExplanationForConstantEquality(cprog, sol, exp);
     }
   }
-  Assert( !exp.empty() );
-  Node exc_lem = exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( kind::AND, exp );
+  Assert(!exp.empty());
+  Node exc_lem = exp.size() == 1
+                     ? exp[0]
+                     : NodeManager::currentNM()->mkNode(kind::AND, exp);
   exc_lem = exc_lem.negate();
-  Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : " << exc_lem << std::endl;
-  d_qe->getOutputChannel().lemma( exc_lem );
+  Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
+                       << exc_lem << std::endl;
+  d_qe->getOutputChannel().lemma(exc_lem);
 }
 
 void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation ) {
