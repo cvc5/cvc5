@@ -117,7 +117,7 @@ tokens {
   EXISTS_TOK = 'EXISTS';
   PATTERN_TOK = 'PATTERN';
 
-  LAMBDA = 'LAMBDA';
+  LAMBDA_TOK = 'LAMBDA';
 
   // Symbols
 
@@ -906,13 +906,13 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     if(!f.getType().isSubtypeOf(t)){
       PARSER_STATE->parseError("Type mismatch in definition");
     }
-    if( f.getKind()==LAMBDA ){
+    if( f.getKind()==kind::LAMBDA ){
       for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
       {
         bvs.push_back( f[0][i] );
       }
       f = f[1];
-    //}
+    }
     cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
   }
   /*
@@ -1529,7 +1529,7 @@ prefixFormula[CVC4::Expr& f]
     IN_TOK formula[f] { PARSER_STATE->popScope(); }
 
    /* lambda */
-  | LAMBDA { PARSER_STATE->pushScope(); } LPAREN
+  | LAMBDA_TOK { PARSER_STATE->pushScope(); } LPAREN
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
