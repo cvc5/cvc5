@@ -178,11 +178,33 @@ class CegConjecturePbe : public SygusModule
   /** get term list
    *
   * Adds all active enumerators associated with functions-to-synthesize in
-  * candidates to clist.
+  * candidates to terms.
   */
   void getTermList(const std::vector<Node>& candidates,
-                   std::vector<Node>& clist) override;
-  /** construct candidates */
+                   std::vector<Node>& terms) override;
+  /** construct candidates 
+   * 
+   * This function attempts to use unification-based approaches for constructing
+   * solutions for all functions-to-synthesize (indicated by candidates). These
+   * approaches include decision tree learning and a divide-and-conquer
+   * algorithm based on string concatenation. 
+   * 
+   * Calls to this function are such that terms is the list of active
+   * enumerators (returned by getTermList), and term_values are their current
+   * model values. This function registers { terms -> terms_values } in
+   * the database of values that have been enumerated, which are in turn used
+   * for constructing candidate solutions when possible.
+   * 
+   * This function also excludes models where (terms = terms_values) by adding
+   * blocking clauses to lems. For example, for grammar:
+   *   A -> A+A | x | 1 | 0
+   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
+   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
+   * to lems, where G is active guard of the enumerator d (see
+   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
+   * indicates that d should not be given the model value +( x, 1 ) anymore,
+   * since { d -> +( x, 1 ) } has now been added to the database of this class.
+   */
   bool constructCandidates(const std::vector<Node>& terms,
                            const std::vector<Node>& term_values,
                            const std::vector<Node>& candidates,

@@ -29,10 +29,13 @@ class CegConjecture;
 
 /** SygusModule
  *
- * This is the base class of sygus modules, owned by CegConjecture.
+ * This is the base class of sygus modules, owned by CegConjecture. The purpose
+ * of this class is to, when applicable, suggest candidate solutions for
+ * CegConjecture to test.
  *
- * An instance of the conjecture class (CegConjecture) creates the negated deep
- * embedding form of the synthesis conjecture, which assume is:
+ * In more detail, an instance of the conjecture class (CegConjecture) creates 
+ * the negated deep embedding form of the synthesis conjecture. In the 
+ * following, assume this is:
  *   forall d. exists x. P( d, x )
  * where d are of sygus datatype type. The "base instantiation" of this
  * conjecture (see CegConjecture::d_base_inst) is the formula:
@@ -51,6 +54,9 @@ class SygusModule
    *
    * n is the "base instantiation" of the deep-embedding version of the
    * synthesis conjecture under candidates (see CegConjecture::d_base_inst).
+   * 
+   * This function may add lemmas to the argument lemmas, which should be
+   * sent out on the output channel of quantifiers by the caller.
    *
    * This function returns true if this module will take responsibility for
    * constructing candidates for the given conjecture.
@@ -67,17 +73,23 @@ class SygusModule
                            std::vector<Node>& terms) = 0;
   /** construct candidate
    *
-   * terms : the terms returned by a call to getTermList,
-   * term_values : the current model values of terms,
-   * candidates : the list of candidates.
+   * This function takes as input:
+   *   terms : the terms returned by a call to getTermList,
+   *   term_values : the current model values of terms,
+   *   candidates : the list of candidates.
    *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
    * to the synthesis conjecture in question. This candidate { v } will then be
-   * tested by testing the (un)satisfiablity of P( v, k' ) for fresh k'.
+   * tested by testing the (un)satisfiablity of P( v, k' ) for fresh k' by the
+   * caller.
    *
    * This function may also add lemmas to lems, which are sent out as lemmas
-   * on the output channel of QuantifiersEngine.
+   * on the output channel of quantifiers by the caller. For an example of
+   * such lemmas, see SygusPbe::constructCandidates.
+   * 
+   * This function may return false if it does not have a candidate it wants
+   * to test on this iteration. In this case, lems should be non-empty.
    */
   virtual bool constructCandidates(const std::vector<Node>& terms,
                                    const std::vector<Node>& term_values,
