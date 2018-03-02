@@ -630,10 +630,10 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           ++(cei->d_statistics.d_candidate_rewrites);
           if (!eq_sol.isNull())
           {
-            // The analog of terms sol and eq_sol are equivalent under sample 
+            // The analog of terms sol and eq_sol are equivalent under sample
             // points but do not rewrite to the same term. Hence, this indicates
             // a candidatr rewrite.
-            Printer * p = Printer::getPrinter(options::outputLanguage());
+            Printer* p = Printer::getPrinter(options::outputLanguage());
             out << "(candidate-rewrite ";
             p->toStreamSygus(out, sol);
             out << " ";
@@ -644,9 +644,9 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             if (Trace.isOn("sygus-rr-debug"))
             {
               ExtendedRewriter* er = sygusDb->getExtRewriter();
-              Node solb = sygusDb->sygusToBuiltin( sol );
+              Node solb = sygusDb->sygusToBuiltin(sol);
               Node solbr = er->extendedRewrite(solb);
-              Node eq_solb = sygusDb->sygusToBuiltin( eq_sol );
+              Node eq_solb = sygusDb->sygusToBuiltin(eq_sol);
               Node eq_solr = er->extendedRewrite(eq_solb);
               Trace("sygus-rr-debug")
                   << "; candidate #1 ext-rewrites to: " << solbr << std::endl;

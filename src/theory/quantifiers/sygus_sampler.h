@@ -151,11 +151,14 @@ class SygusSampler : public LazyTrieEvaluator
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f,
    * nsamples : number of sample points this class will test,
-   * useSygusType : whether we will register terms with this sampler that have 
-   * the same type as f. If this flag is false, then we will be registering 
+   * useSygusType : whether we will register terms with this sampler that have
+   * the same type as f. If this flag is false, then we will be registering
    * terms of the analog of the type of f.
    */
-  void initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples, bool useSygusType);
+  void initializeSygus(TermDbSygus* tds,
+                       Node f,
+                       unsigned nsamples,
+                       bool useSygusType);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
@@ -228,7 +231,7 @@ class SygusSampler : public LazyTrieEvaluator
   /** whether we are registering terms of type d_ftn */
   bool d_use_sygus_type;
   /** map from builtin terms to the sygus term they correspond to */
-  std::map< Node, Node > d_builtin_to_sygus;
+  std::map<Node, Node> d_builtin_to_sygus;
   /** all variables we are sampling values for */
   std::vector<Node> d_vars;
   /** type variables
@@ -336,7 +339,10 @@ class SygusSamplerExt : public SygusSampler
 {
  public:
   /** initialize extended */
-  void initializeSygusExt(QuantifiersEngine* qe, Node f, unsigned nsamples, bool useSygusType);
+  void initializeSygusExt(QuantifiersEngine* qe,
+                          Node f,
+                          unsigned nsamples,
+                          bool useSygusType);
   /** register term n with this sampler database
    *
    * This returns either null, or a term ret with the same guarantees as

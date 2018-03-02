@@ -794,7 +794,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
             d_sampler[a].find(tn);
         if (its == d_sampler[a].end())
         {
-          d_sampler[a][tn].initializeSygus(d_tds, nv, options::sygusSamples(), false);
+          d_sampler[a][tn].initializeSygus(
+              d_tds, nv, options::sygusSamples(), false);
           its = d_sampler[a].find(tn);
         }
         Node bvr_sample_ret;

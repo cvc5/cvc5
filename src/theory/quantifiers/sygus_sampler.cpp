@@ -64,7 +64,10 @@ Node LazyTrie::add(Node n,
   return Node::null();
 }
 
-SygusSampler::SygusSampler() : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false) {}
+SygusSampler::SygusSampler()
+    : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+{
+}
 
 void SygusSampler::initialize(TypeNode tn,
                               std::vector<Node>& vars,
@@ -106,7 +109,10 @@ void SygusSampler::initialize(TypeNode tn,
   initializeSamples(nsamples);
 }
 
-void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples, bool useSygusType)
+void SygusSampler::initializeSygus(TermDbSygus* tds,
+                                   Node f,
+                                   unsigned nsamples,
+                                   bool useSygusType)
 {
   d_tds = tds;
   d_use_sygus_type = useSygusType;
@@ -286,19 +292,19 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
   {
     Node bn = n;
     // if this is a sygus type, get its builtin analog
-    if( d_use_sygus_type )
+    if (d_use_sygus_type)
     {
-      Assert( !d_ftn.isNull() );
+      Assert(!d_ftn.isNull());
       bn = d_tds->sygusToBuiltin(n);
-      bn = Rewriter::rewrite( bn );
+      bn = Rewriter::rewrite(bn);
       d_builtin_to_sygus[bn] = n;
     }
     Assert(bn.getType() == d_tn);
     Node res = d_trie.add(bn, this, 0, d_samples.size(), forceKeep);
-    if( d_use_sygus_type )
+    if (d_use_sygus_type)
     {
-      Assert( d_builtin_to_sygus.find( res )==d_builtin_to_sygus.end() );
-      res = res!=bn ? d_builtin_to_sygus[res] : n;
+      Assert(d_builtin_to_sygus.find(res) == d_builtin_to_sygus.end());
+      res = res != bn ? d_builtin_to_sygus[res] : n;
     }
     return res;
   }
@@ -662,9 +668,11 @@ void SygusSampler::registerSygusType(TypeNode tn)
 
 void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
                                          Node f,
-                                         unsigned nsamples, bool useSygusType)
+                                         unsigned nsamples,
+                                         bool useSygusType)
 {
-  SygusSampler::initializeSygus(qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
+  SygusSampler::initializeSygus(
+      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
 
   // initialize the dynamic rewriter
   std::stringstream ss;
