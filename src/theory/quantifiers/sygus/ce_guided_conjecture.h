@@ -226,6 +226,12 @@ private:
    * returned by getCurrentStreamGuard, otherwise this returns n.
    */
   Node getStreamGuardedLemma(Node n) const;
+  /** 
+   * Prints the current synthesis solution to the output stream indicated by
+   * the Options object, send a lemma blocking the current solution to the 
+   * output channel.
+   */
+  void printAndContinueStream();
   //-------------------------------- end sygus stream
   //-------------------------------- non-syntax guided (deprecated)
   /** Whether we are syntax-guided (e.g. was the input in SyGuS format).
