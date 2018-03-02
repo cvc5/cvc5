@@ -13,8 +13,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS__INV_SYNTH_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS__INV_SYNTH_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS__INVBE_H
+#define __CVC4__THEORY__QUANTIFIERS__SYGUS__INVBE_H
 
 #include <map>
 #include <string>
@@ -54,14 +54,14 @@ namespace quantifiers {
  *
  * This appoarch is inspired by Padhi et al. PLDI 2016
  */
-class InvSynth
+class InvBE
 {
  public:
-  InvSynth(QuantifiersEngine* qe)
+  InvBE(QuantifiersEngine* qe)
       : d_qe(qe)
   {
   }
-  ~InvSynth() {}
+  ~InvBE() {}
 
   /** initialize this class */
   void initialize(Node n);
