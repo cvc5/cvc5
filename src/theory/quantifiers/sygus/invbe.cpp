@@ -13,7 +13,7 @@
  ** synthesis
  **/
 
-#include "theory/quantifiers/sygus/inv_synth.h"
+#include "theory/quantifiers/sygus/invbe.h"
 
 namespace CVC4 {
 namespace theory {
