@@ -290,16 +290,14 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     }
   }
   
-  std::vector< Node > ic;
-  ic.push_back( d_quant.negate() );
-
   //immediately skolemize inner existentials
   Node instr = Rewriter::rewrite(inst);
+  Node lem;
   if (instr.getKind() == NOT && instr[0].getKind() == FORALL)
   {
     if (constructed_cand)
     {
-      ic.push_back(d_qe->getSkolemize()->getSkolemizedBody(instr[0]).negate());
+      lem = d_qe->getSkolemize()->getSkolemizedBody(instr[0]).negate();
     }
     if (sk_refine)
     {
@@ -312,7 +310,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     if (constructed_cand)
     {
       // use the instance itself
-      ic.push_back(instr);
+      lem = instr;
     }
     if (sk_refine)
     {
@@ -321,8 +319,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       d_ce_sk.push_back(Node::null());
     }
   }
-  if( constructed_cand ){
-    Node lem = nm->mkNode(OR, ic);
+  if( !lem.isNull() ){
     lem = Rewriter::rewrite( lem );
     //eagerly unfold applications of evaluation function
     if( options::sygusDirectEval() ){
@@ -333,7 +330,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     // record the instantiation
     // this is used for remembering the solution
     recordInstantiation(candidate_values);
-    if (lem == d_quant.negate() && options::sygusStream())
+    if (lem.isConst() && !lem.getConst<bool>() && options::sygusStream())
     {
       // short circuit the check
       // instead, we immediately print the current solution.
@@ -342,6 +339,10 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     }
     else
     {
+      // This is the "verification lemma", which states
+      // either this conjecture does not have a solution, or candidate_values
+      // is a solution for this conjecture.
+      lem = nm->mkNode(OR, d_quant.negate(), lem );
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
     }
