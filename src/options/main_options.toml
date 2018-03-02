@@ -110,7 +110,6 @@ header = "options/main_options.h"
   category   = "regular"
   type       = "std::vector<std::string>"
   includes   = ["<vector>", "<string>"]
-  read_only  = false
   help       = "Thread configuration (a string to be passed to parseOptions)"
 
 [[option]]
@@ -118,7 +117,6 @@ header = "options/main_options.h"
   category   = "regular"
   type       = "int"
   default    = "-1"
-  read_only  = false
   help       = "Thread ID, for internal use in case of multi-threaded run"
 
 [[option]]
@@ -127,7 +125,6 @@ header = "options/main_options.h"
   long       = "filter-lemma-length=N"
   type       = "int"
   default    = "-1"
-  read_only  = false
   help       = "don't share (among portfolio threads) lemmas strictly longer than N"
 
 [[option]]
@@ -154,7 +151,6 @@ header = "options/main_options.h"
   category   = "regular"
   long       = "interactive"
   type       = "bool"
-  read_only  = false
   help       = "force interactive/non-interactive mode"
 
 [[option]]

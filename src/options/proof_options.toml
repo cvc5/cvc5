@@ -26,7 +26,6 @@ header = "options/proof_options.h"
   long       = "fewer-preprocessing-holes"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "try to eliminate preprocessing holes in proofs"
 
 [[option]]

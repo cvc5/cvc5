@@ -8,7 +8,6 @@ header = "options/quantifiers_options.h"
   long       = "miniscope-quant"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "miniscope quantifiers"
 
 [[option]]
@@ -17,7 +16,6 @@ header = "options/quantifiers_options.h"
   long       = "miniscope-quant-fv"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "miniscope quantifiers for ground subformulas"
 
 [[option]]
@@ -26,7 +24,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-split"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "apply splitting to quantified formulas based on variable disjoint disjuncts"
 
 [[option]]
@@ -37,7 +34,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::PRENEX_QUANT_SIMPLE"
   handler    = "stringToPrenexQuantMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "prenex mode for quantified formulas"
 
 [[option]]
@@ -46,7 +42,6 @@ header = "options/quantifiers_options.h"
   long       = "prenex-quant-user"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "prenex quantified formulas with user patterns"
 
 [[option]]
@@ -84,7 +79,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::ITE_LIFT_QUANT_MODE_SIMPLE"
   handler    = "stringToIteLiftQuantMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "ite lifting mode for quantified formulas"
 
 [[option]]
@@ -111,7 +105,6 @@ header = "options/quantifiers_options.h"
   long       = "ite-dtt-split-quant"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "split ites with dt testers as conditions"
 
 [[option]]
@@ -120,7 +113,6 @@ header = "options/quantifiers_options.h"
   long       = "pre-skolem-quant"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "apply skolemization eagerly to bodies of quantified formulas"
 
 [[option]]
@@ -129,7 +121,6 @@ header = "options/quantifiers_options.h"
   long       = "pre-skolem-quant-nested"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "apply skolemization to nested quantified formulas"
 
 [[option]]
@@ -138,7 +129,6 @@ header = "options/quantifiers_options.h"
   long       = "pre-skolem-quant-agg"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "apply skolemization to quantified formulas aggressively"
 
 [[option]]
@@ -165,7 +155,6 @@ header = "options/quantifiers_options.h"
   long       = "elim-ext-arith-quant"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "eliminate extended arithmetic symbols in quantified formulas"
 
 [[option]]
@@ -183,7 +172,6 @@ header = "options/quantifiers_options.h"
   long       = "global-negate"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "do global negation of input formula"
 
 [[option]]
@@ -192,7 +180,6 @@ header = "options/quantifiers_options.h"
   long       = "e-matching"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "whether to do heuristic E-matching"
 
 [[option]]
@@ -203,7 +190,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::TERM_DB_ALL"
   handler    = "stringToTermDbMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "which ground terms to consider for instantiation"
 
 [[option]]
@@ -266,7 +252,6 @@ header = "options/quantifiers_options.h"
   long       = "purify-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
 
 [[option]]
@@ -275,7 +260,6 @@ header = "options/quantifiers_options.h"
   long       = "purify-dt-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "purify dt triggers, match all constructors of correct form instead of selectors"
 
 [[option]]
@@ -284,7 +268,6 @@ header = "options/quantifiers_options.h"
   long       = "pure-th-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use pure theory terms as single triggers"
 
 [[option]]
@@ -293,7 +276,6 @@ header = "options/quantifiers_options.h"
   long       = "partial-triggers"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use triggers that do not contain all free variables"
 
 [[option]]
@@ -340,7 +322,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::TRIGGER_SEL_MIN"
   handler    = "stringToTriggerSelMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "selection mode for triggers"
 
 [[option]]
@@ -351,7 +332,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL"
   handler    = "stringToTriggerActiveSelMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "selection mode to activate triggers"
 
 [[option]]
@@ -362,7 +342,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::USER_PAT_MODE_TRUST"
   handler    = "stringToUserPatMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "policy for handling user-provided patterns for quantifier instantiation"
 
 [[option]]
@@ -383,7 +362,6 @@ header = "options/quantifiers_options.h"
   handler    = "stringToInstWhenMode"
   predicates = ["checkInstWhenMode"]
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "when to apply instantiation"
 
 [[option]]
@@ -392,7 +370,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-when-strict-interleave"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "ensure theory combination and standard quantifier effort strategies take turns"
 
 [[option]]
@@ -401,7 +378,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-when-phase=N"
   type       = "int"
   default    = "2"
-  read_only  = false
   help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
 
 [[option]]
@@ -410,7 +386,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-when-tc-first"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "allow theory combination to happen once initially, before quantifier strategies are run"
 
 [[option]]
@@ -428,7 +403,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-max-level=N"
   type       = "int"
   default    = "-1"
-  read_only  = false
   help       = "maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)"
 
 [[option]]
@@ -448,7 +422,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::QUANT_REP_MODE_FIRST"
   handler    = "stringToQuantRepMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "selection mode for representatives in quantifiers engine"
 
 [[option]]
@@ -466,7 +439,6 @@ header = "options/quantifiers_options.h"
   long       = "full-saturate-quant"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown"
 
 [[option]]
@@ -505,7 +477,6 @@ header = "options/quantifiers_options.h"
   long       = "finite-model-find"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use finite model finding heuristic for quantifier instantiation"
 
 [[option]]
@@ -523,7 +494,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-fun"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "find models for recursively defined functions, assumes functions are admissible"
 
 [[option]]
@@ -553,7 +523,6 @@ header = "options/quantifiers_options.h"
   handler    = "stringToMbqiMode"
   predicates = ["checkMbqiMode"]
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "choose mode for model-based quantifier instantiation"
 
 [[option]]
@@ -562,7 +531,6 @@ header = "options/quantifiers_options.h"
   long       = "mbqi-one-inst-per-round"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "only add one instantiation per quantifier per round for mbqi"
 
 [[option]]
@@ -589,7 +557,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-inst-engine"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use instantiation engine in conjunction with finite model finding"
 
 [[option]]
@@ -634,7 +601,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-bound-int"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "finite model finding on bounded integer quantification"
 
 [[option]]
@@ -643,7 +609,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-bound"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "finite model finding on bounded quantification"
 
 [[option]]
@@ -652,7 +617,6 @@ header = "options/quantifiers_options.h"
   long       = "fmf-bound-lazy"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enforce bounds for bounded quantification lazily via use of proxy variables"
 
 [[option]]
@@ -672,7 +636,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-cf"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "enable conflict find mechanism for quantifiers"
 
 [[option]]
@@ -703,7 +666,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-tconstraint"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enable entailment checks for t-constraints in qcf algorithm"
 
 [[option]]
@@ -712,7 +674,6 @@ header = "options/quantifiers_options.h"
   long       = "qcf-all-conflict"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "add all available conflicting instances during conflict-based instantiation"
 
 [[option]]
@@ -739,7 +700,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-no-entail"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "do not consider instances of quantified formulas that are currently entailed"
 
 [[option]]
@@ -748,7 +708,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-no-model-true"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "do not consider instances of quantified formulas that are currently true in model, if it is available"
 
 [[option]]
@@ -757,7 +716,6 @@ header = "options/quantifiers_options.h"
   long       = "inst-prop"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "internal propagation for instantiations for selecting relevant instances"
 
 [[option]]
@@ -820,7 +778,6 @@ header = "options/quantifiers_options.h"
   long       = "dt-stc-ind"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "apply strengthening for existential quantification over datatypes based on structural induction"
 
 [[option]]
@@ -829,7 +786,6 @@ header = "options/quantifiers_options.h"
   long       = "int-wf-ind"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "apply strengthening for integers based on well-founded induction"
 
 [[option]]
@@ -838,7 +794,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-gen"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "generate candidate conjectures for inductive proofs"
 
 [[option]]
@@ -865,7 +820,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-filter-active-terms"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "filter based on active terms"
 
 [[option]]
@@ -874,7 +828,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-filter-canonical"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "filter based on canonicity"
 
 [[option]]
@@ -883,7 +836,6 @@ header = "options/quantifiers_options.h"
   long       = "conjecture-filter-model"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "filter based on model"
 
 [[option]]
@@ -919,7 +871,6 @@ header = "options/quantifiers_options.h"
   long       = "cegqi"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "counterexample-guided quantifier instantiation for sygus"
 
 [[option]]
@@ -930,7 +881,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::CEGQI_SI_MODE_NONE"
   handler    = "stringToCegqiSingleInvMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "mode for processing single invocation synthesis conjectures"
 
 [[option]]
@@ -993,7 +943,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-pbe"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "sygus advanced pruning based on examples"
 
 [[option]]
@@ -1112,7 +1061,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-stream"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
@@ -1123,7 +1071,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::CEGIS_SAMPLE_NONE"
   handler    = "stringToCegisSampleMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
 
 [[option]]
@@ -1141,7 +1088,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr-synth"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use sygus to enumerate candidate rewrite rules via sampling"
 
 [[option]]
@@ -1150,7 +1096,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr-verify"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use sygus to verify the correctness of rewrite rules via sampling"
 
 [[option]]
@@ -1159,7 +1104,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-samples=N"
   type       = "int"
   default    = "1000"
-  read_only  = false
   help       = "number of points to consider when doing sygus rewriter sample testing"
 
 [[option]]
@@ -1177,7 +1121,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "turns on counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1186,7 +1129,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-full"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
 
 [[option]]
@@ -1204,7 +1146,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-sat"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1213,7 +1154,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-model"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1222,7 +1162,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-all"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "apply counterexample-based instantiation to all quantified formulas"
 
 [[option]]
@@ -1231,7 +1170,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-multi-inst"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1240,7 +1178,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-repeat-lit"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "solve literals more than once in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1249,7 +1186,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-innermost"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "only process innermost quantified formulas in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1258,7 +1194,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-nested-qe"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1267,7 +1202,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-use-inf-int"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use integer infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1276,7 +1210,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-use-inf-real"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use real infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1285,7 +1218,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-prereg-inst"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "preregister ground instantiations in counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1312,7 +1244,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-midpoint"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
 
 [[option]]
@@ -1339,7 +1270,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-epr"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "infer whether in effectively propositional fragment, use for cbqi"
 
 [[option]]
@@ -1357,7 +1287,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-bv"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors"
 
 [[option]]
@@ -1366,7 +1295,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-bv-interleave-value"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "interleave model value instantiation with word-level inversion approach"
 
 [[option]]
@@ -1377,7 +1305,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY"
   handler    = "stringToCbqiBvIneqMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "choose mode for handling bit-vector inequalities with counterexample-guided instantiation"
 
 [[option]]
@@ -1386,7 +1313,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-bv-rm-extract"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "replaces extract terms with variables for counterexample-guided instantiation for bit-vectors"
 
 [[option]]
@@ -1395,7 +1321,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-bv-linear"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "linearize adder chains for variables"
 
 [[option]]
@@ -1404,7 +1329,6 @@ header = "options/quantifiers_options.h"
   long       = "cbqi-bv-concat-inv"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
 [[option]]
@@ -1449,7 +1373,6 @@ header = "options/quantifiers_options.h"
   long       = "macros-quant"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "perform quantifiers macro expansion"
 
 [[option]]
@@ -1471,7 +1394,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_NONE"
   handler    = "stringToQuantDSplitMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = false
   help       = "mode for dynamic quantifiers splitting"
 
 [[option]]
@@ -1480,7 +1402,6 @@ header = "options/quantifiers_options.h"
   long       = "quant-anti-skolem"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "perform anti-skolemization for quantified formulas"
 
 [[option]]
@@ -1525,5 +1446,4 @@ header = "options/quantifiers_options.h"
   long       = "track-inst-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"

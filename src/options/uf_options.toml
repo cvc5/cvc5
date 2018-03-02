@@ -9,7 +9,6 @@ header = "options/uf_options.h"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
@@ -146,7 +145,6 @@ header = "options/uf_options.h"
   long       = "uf-ss-fair-monotone"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
@@ -155,7 +153,6 @@ header = "options/uf_options.h"
   long       = "uf-ho"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enable support for higher-order reasoning"
 
 [[option]]
@@ -164,5 +161,4 @@ header = "options/uf_options.h"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "apply extensionality on function symbols"

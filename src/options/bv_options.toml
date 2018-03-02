@@ -12,7 +12,6 @@ header = "options/bv_options.h"
   handler    = "stringToSatSolver"
   predicates = ["satSolverEnabledBuild"]
   includes   = ["options/bv_bitblast_mode.h"]
-  read_only  = false
   help       = "choose which sat solver to use, see --bv-sat-solver=help"
 
 [[option]]
@@ -24,7 +23,6 @@ header = "options/bv_options.h"
   default    = "CVC4::theory::bv::BITBLAST_MODE_LAZY"
   handler    = "stringToBitblastMode"
   includes   = ["options/bv_bitblast_mode.h"]
-  read_only  = false
   help       = "choose bitblasting mode, see --bitblast=help"
 
 [[option]]
@@ -34,7 +32,6 @@ header = "options/bv_options.h"
   type       = "bool"
   default    = "false"
   predicates = ["abcEnabledBuild", "setBitblastAig"]
-  read_only  = false
   help       = "bitblast by first converting to AIG (implies --bitblast=eager)"
 
 [[option]]
@@ -44,7 +41,6 @@ header = "options/bv_options.h"
   type       = "std::string"
   predicates = ["abcEnabledBuild"]
   links      = ["--bitblast-aig"]
-  read_only  = false
   help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
 
 [[option]]
@@ -53,7 +49,6 @@ header = "options/bv_options.h"
   long       = "bv-propagate"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "use bit-vector propagation in the bit-blaster"
 
 [[option]]
@@ -62,7 +57,6 @@ header = "options/bv_options.h"
   long       = "bv-eq-solver"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
@@ -74,7 +68,6 @@ header = "options/bv_options.h"
   handler    = "stringToBvSlicerMode"
   includes   = ["options/bv_bitblast_mode.h"]
   links      = ["--bv-eq-solver"]
-  read_only  = false
   help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
@@ -83,7 +76,6 @@ header = "options/bv_options.h"
   long       = "bv-inequality-solver"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
@@ -92,7 +84,6 @@ header = "options/bv_options.h"
   long       = "bv-algebraic-solver"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
@@ -102,7 +93,6 @@ header = "options/bv_options.h"
   type       = "unsigned"
   default    = "1500"
   links      = ["--bv-algebraic-solver"]
-  read_only  = false
   help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
 
 [[option]]
@@ -111,7 +101,6 @@ header = "options/bv_options.h"
   long       = "bv-to-bool"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "lift bit-vectors of size 1 to booleans when possible"
 
 [[option]]
@@ -120,7 +109,6 @@ header = "options/bv_options.h"
   long       = "bool-to-bv"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "convert booleans to bit-vectors of size 1 when possible"
 
 [[option]]
@@ -129,7 +117,6 @@ header = "options/bv_options.h"
   long       = "bv-div-zero-const"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "always return -1 on division by zero"
 
 [[option]]
@@ -138,7 +125,6 @@ header = "options/bv_options.h"
   long       = "bv-extract-arith"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)"
 
 [[option]]
@@ -147,7 +133,6 @@ header = "options/bv_options.h"
   long       = "bv-abstraction"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "mcm benchmark abstraction"
 
 [[option]]
@@ -156,7 +141,6 @@ header = "options/bv_options.h"
   long       = "bv-skolemize"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)"
 
 [[option]]
@@ -174,7 +158,6 @@ header = "options/bv_options.h"
   long       = "bv-eager-explanations"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "compute bit-blasting propagation explanations eagerly"
 
 [[option]]
@@ -210,7 +193,6 @@ header = "options/bv_options.h"
   long       = "bv-lazy-rewrite-extf"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "lazily rewrite extended functions like bv2nat and int2bv"
 
 [[option]]
@@ -219,7 +201,6 @@ header = "options/bv_options.h"
   long       = "bv-lazy-reduce-extf"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "reduce extended functions like bv2nat and int2bv at last call instead of full effort"
 
 [[option]]
@@ -228,5 +209,4 @@ header = "options/bv_options.h"
   long       = "bv-alg-extf"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "algebraic inferences for extended functions"

@@ -41,7 +41,6 @@ header = "options/smt_options.h"
   default    = "SIMPLIFICATION_MODE_BATCH"
   handler    = "stringToSimplificationMode"
   includes   = ["options/simplification_mode.h"]
-  read_only  = false
   help       = "choose simplification mode, see --simplification=help"
 
 [[alias]]
@@ -128,7 +127,6 @@ header = "options/smt_options.h"
   predicates = ["LFSCEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
   links      = ["--proof"]
-  read_only  = false
   help       = "after UNSAT/VALID, machine-check the generated proof"
 
 [[option]]
@@ -158,7 +156,6 @@ header = "options/smt_options.h"
   default    = "SYGUS_SOL_OUT_STATUS_AND_DEF"
   handler    = "stringToSygusSolutionOutMode"
   includes   = ["options/sygus_out_mode.h"]
-  read_only  = false
   help       = "output mode for sygus"
 
 [[option]]
@@ -176,7 +173,6 @@ header = "options/smt_options.h"
   long       = "dump-synth"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
 
 [[option]]
@@ -195,7 +191,6 @@ header = "options/smt_options.h"
   long       = "check-unsat-cores"
   type       = "bool"
   links      = ["--produce-unsat-cores"]
-  read_only  = false
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
@@ -246,7 +241,6 @@ header = "options/smt_options.h"
   type       = "bool"
   predicates = ["setProduceAssertions"]
   notifies   = ["notifyBeforeSearch"]
-  read_only  = false
   help       = "deprecated name for produce-assertions"
 
 [[option]]
@@ -256,7 +250,6 @@ header = "options/smt_options.h"
   type       = "bool"
   predicates = ["setProduceAssertions"]
   notifies   = ["notifyBeforeSearch"]
-  read_only  = false
   help       = "keep an assertions list (enables get-assertions command)"
 
 [[option]]
@@ -264,7 +257,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "ite-simp"
   type       = "bool"
-  read_only  = false
   help       = "turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)"
 
 [[option]]
@@ -273,7 +265,6 @@ header = "options/smt_options.h"
   long       = "on-repeat-ite-simp"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "do the ite simplification pass again if repeating simplification"
 
 [[option]]
@@ -282,7 +273,6 @@ header = "options/smt_options.h"
   long       = "ext-rew-prep"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use extended rewriter as a preprocessing pass"
 
 [[option]]
@@ -291,7 +281,6 @@ header = "options/smt_options.h"
   long       = "ext-rew-prep-agg"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use aggressive extended rewriter as a preprocessing pass"
 
 [[option]]
@@ -300,7 +289,6 @@ header = "options/smt_options.h"
   long       = "simp-with-care"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enables simplifyWithCare in ite simplificiation"
 
 [[option]]
@@ -309,7 +297,6 @@ header = "options/smt_options.h"
   long       = "simp-ite-compress"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enables compressing ites after ite simplification"
 
 [[option]]
@@ -318,7 +305,6 @@ header = "options/smt_options.h"
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)"
 
 [[option]]
@@ -326,7 +312,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "repeat-simp"
   type       = "bool"
-  read_only  = false
   help       = "make multiple passes with nonclausal simplifier"
 
 [[option]]
@@ -344,7 +329,6 @@ header = "options/smt_options.h"
   long       = "sort-inference"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
 
 [[option]]

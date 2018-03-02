@@ -10,7 +10,6 @@ header = "options/printer_options.h"
   default    = "MODEL_FORMAT_MODE_DEFAULT"
   handler    = "stringToModelFormatMode"
   includes   = ["options/printer_modes.h"]
-  read_only  = false
   help       = "print format mode for models, see --model-format=help"
 
 [[option]]
@@ -21,5 +20,4 @@ header = "options/printer_options.h"
   default    = "INST_FORMAT_MODE_DEFAULT"
   handler    = "stringToInstFormatMode"
   includes   = ["options/printer_modes.h"]
-  read_only  = false
   help       = "print format mode for instantiations, see --inst-format=help"

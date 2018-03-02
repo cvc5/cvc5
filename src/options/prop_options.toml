@@ -20,7 +20,6 @@ header = "options/prop_options.h"
   long       = "random-seed=S"
   type       = "uint32_t"
   default    = "0"
-  read_only  = false
   help       = "sets the random seed for the sat solver"
 
 [[option]]
@@ -29,7 +28,6 @@ header = "options/prop_options.h"
   type       = "double"
   default    = "0.95"
   predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
-  read_only  = false
   help       = "variable activity decay factor for Minisat"
 
 [[option]]
@@ -38,7 +36,6 @@ header = "options/prop_options.h"
   type       = "double"
   default    = "0.999"
   predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
-  read_only  = false
   help       = "clause activity decay factor for Minisat"
 
 [[option]]
@@ -75,7 +72,6 @@ header = "options/prop_options.h"
   long       = "minisat-elimination"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "use Minisat elimination"
 
 [[option]]

@@ -8,7 +8,6 @@ header = "options/datatypes_options.h"
   long       = "dt-rewrite-error-sel"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "rewrite incorrectly applied selectors to arbitrary ground term"
 
 [[option]]
@@ -17,7 +16,6 @@ header = "options/datatypes_options.h"
   long       = "dt-force-assignment"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "force the datatypes solver to give specific values to all datatypes terms before answering sat"
 
 [[option]]

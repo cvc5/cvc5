@@ -11,14 +11,12 @@ header = "options/decision_options.h"
   default    = "decision::DECISION_STRATEGY_INTERNAL"
   handler    = "stringToDecisionMode"
   includes   = ["options/decision_mode.h"]
-  read_only  = false
   help       = "choose decision mode, see --decision=help"
 
 [[option]]
   name       = "decisionStopOnly"
   category   = "undocumented"
   type       = "bool"
-  read_only  = false
 
 [[option]]
   name       = "decisionThreshold"

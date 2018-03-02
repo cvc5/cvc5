@@ -11,7 +11,6 @@ header = "options/theory_options.h"
   default    = "CVC4::theory::THEORY_OF_TYPE_BASED"
   handler    = "stringToTheoryOfMode"
   includes   = ["options/theoryof_mode.h"]
-  read_only  = false
   help       = "mode for Theory::theoryof()"
 
 [[option]]

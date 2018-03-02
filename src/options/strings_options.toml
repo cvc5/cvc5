@@ -8,7 +8,6 @@ header = "options/strings_options.h"
   long       = "strings-exp"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "experimental features in the theory of strings"
 
 [[option]]
@@ -38,7 +37,6 @@ header = "options/strings_options.h"
   long       = "strings-fmf"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "the finite model finding used by the theory of strings"
 
 [[option]]

@@ -8,5 +8,4 @@ header = "options/idl_options.h"
   long       = "idl-rewrite-equalities"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "enable rewriting equalities into two inequalities in IDL solver (default is disabled)"

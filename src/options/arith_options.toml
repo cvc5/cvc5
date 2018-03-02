@@ -30,7 +30,6 @@ header = "options/arith_options.h"
   long       = "heuristic-pivots=N"
   type       = "int16_t"
   default    = "0"
-  read_only  = false
   help       = "the number of times to apply the heuristic pivot rule; if N < 0, this defaults to the number of variables; if this is unset, this is tuned by the logic selection"
 
 [[option]]
@@ -39,7 +38,6 @@ header = "options/arith_options.h"
   long       = "standard-effort-variable-order-pivots=N"
   type       = "int16_t"
   default    = "-1"
-  read_only  = false
   help       = "limits the number of pivots in a single invocation of check() at a non-full effort level using Bland's pivot rule"
 
 [[option]]
@@ -68,7 +66,6 @@ header = "options/arith_options.h"
   long       = "pivot-threshold=N"
   type       = "uint16_t"
   default    = "2"
-  read_only  = false
   help       = "sets the number of pivots using --pivot-rule per basic variable per simplex instance before using variable order"
 
 [[option]]
@@ -95,7 +92,6 @@ header = "options/arith_options.h"
   long       = "arith-rewrite-equalities"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "turns on the preprocessing rewrite turning equalities into a conjunction of inequalities"
 
 [[option]]
@@ -124,7 +120,6 @@ header = "options/arith_options.h"
   long       = "cut-all-bounded"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds"
 
 [[option]]
@@ -151,7 +146,6 @@ header = "options/arith_options.h"
   long       = "fc-penalties"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "turns on degenerate pivot penalties"
 
 [[option]]
@@ -160,7 +154,6 @@ header = "options/arith_options.h"
   long       = "use-fcsimplex"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use focusing and converging simplex (FMCAD 2013 submission)"
 
 [[option]]
@@ -169,7 +162,6 @@ header = "options/arith_options.h"
   long       = "use-soi"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use sum of infeasibility simplex (FMCAD 2013 submission)"
 
 [[option]]
@@ -178,7 +170,6 @@ header = "options/arith_options.h"
   long       = "restrict-pivots"
   type       = "bool"
   default    = "true"
-  read_only  = false
   help       = "have a pivot cap for simplex at effort levels below fullEffort"
 
 [[option]]
@@ -187,7 +178,6 @@ header = "options/arith_options.h"
   long       = "collect-pivot-stats"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "collect the pivot history"
 
 [[option]]
@@ -196,7 +186,6 @@ header = "options/arith_options.h"
   long       = "use-approx"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "attempt to use an approximate solver"
 
 [[option]]
@@ -205,7 +194,6 @@ header = "options/arith_options.h"
   long       = "approx-branch-depth"
   type       = "int16_t"
   default    = "200"
-  read_only  = false
   help       = "maximum branch depth the approximate solver is allowed to take"
 
 [[option]]
@@ -214,7 +202,6 @@ header = "options/arith_options.h"
   long       = "dio-decomps"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "let skolem variables for integer divisibility constraints leak from the dio solver"
 
 [[option]]
@@ -223,7 +210,6 @@ header = "options/arith_options.h"
   long       = "new-prop"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use the new row propagation system"
 
 [[option]]
@@ -232,7 +218,6 @@ header = "options/arith_options.h"
   long       = "arith-prop-clauses"
   type       = "uint16_t"
   default    = "8"
-  read_only  = false
   help       = "rows shorter than this are propagated as clauses"
 
 [[option]]
@@ -241,7 +226,6 @@ header = "options/arith_options.h"
   long       = "soi-qe"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "use quick explain to minimize the sum of infeasibility conflicts"
 
 [[option]]
@@ -250,7 +234,6 @@ header = "options/arith_options.h"
   long       = "rewrite-divk"
   type       = "bool"
   default    = "false"
-  read_only  = false
   help       = "rewrite division and mod when by a constant into linear terms"
 
 [[option]]
@@ -529,7 +512,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-tf-taylor-deg=N"
   type       = "int16_t"
   default    = "4"
-  read_only  = false
   help       = "initial degree of polynomials for Taylor approximation"
 
 [[option]]

@@ -6,7 +6,6 @@ header = "options/base_options.h"
   name       = "binary_name"
   category   = "undocumented"
   type       = "std::string"
-  read_only  = false
 
 [[option]]
   name       = "in"
@@ -14,7 +13,6 @@ header = "options/base_options.h"
   type       = "std::istream*"
   default    = "&std::cin"
   includes   = ["<iosfwd>"]
-  read_only  = false
 
 [[option]]
   name       = "out"
@@ -22,7 +20,6 @@ header = "options/base_options.h"
   type       = "std::ostream*"
   default    = "&std::cout"
   includes   = ["<iosfwd>"]
-  read_only  = false
 
 [[option]]
   name       = "err"
@@ -30,7 +27,6 @@ header = "options/base_options.h"
   type       = "std::ostream*"
   default    = "&std::cerr"
   includes   = ["<iosfwd>"]
-  read_only  = false
 
 [[option]]
   name       = "inputLanguage"
@@ -42,7 +38,6 @@ header = "options/base_options.h"
   default    = "language::input::LANG_AUTO"
   handler    = "stringToInputLanguage"
   includes   = ["options/language.h"]
-  read_only  = false
   help       = "force input language (default is \"auto\"; see --lang help)"
 
 [[option]]
@@ -54,14 +49,12 @@ header = "options/base_options.h"
   default    = "language::output::LANG_AUTO"
   handler    = "stringToOutputLanguage"
   includes   = ["options/language.h"]
-  read_only  = false
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 [[option]]
   name       = "languageHelp"
   category   = "undocumented"
   type       = "bool"
-  read_only  = false
 
 [[alias]]
   category   = "undocumented"
@@ -80,7 +73,6 @@ header = "options/base_options.h"
   type       = "int"
   default    = "0"
   predicates = ["setVerbosity"]
-  read_only  = false
   help       = "the verbosity level of CVC4"
 
 [[option]]
@@ -170,7 +162,6 @@ header = "options/base_options.h"
   category   = "regular"
   long       = "parse-only"
   type       = "bool"
-  read_only  = false
   help       = "exit after parsing input"
 
 [[option]]
