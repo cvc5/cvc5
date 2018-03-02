@@ -182,19 +182,19 @@ class CegConjecturePbe : public SygusModule
   */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& terms) override;
-  /** construct candidates 
-   * 
+  /** construct candidates
+   *
    * This function attempts to use unification-based approaches for constructing
    * solutions for all functions-to-synthesize (indicated by candidates). These
    * approaches include decision tree learning and a divide-and-conquer
-   * algorithm based on string concatenation. 
-   * 
+   * algorithm based on string concatenation.
+   *
    * Calls to this function are such that terms is the list of active
    * enumerators (returned by getTermList), and term_values are their current
    * model values. This function registers { terms -> terms_values } in
    * the database of values that have been enumerated, which are in turn used
    * for constructing candidate solutions when possible.
-   * 
+   *
    * This function also excludes models where (terms = terms_values) by adding
    * blocking clauses to lems. For example, for grammar:
    *   A -> A+A | x | 1 | 0

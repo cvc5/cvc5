@@ -29,7 +29,6 @@ namespace theory {
 namespace quantifiers {
 
 Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p) : SygusModule(qe, p) {}
-
 bool Cegis::initialize(Node n,
                        const std::vector<Node>& candidates,
                        std::vector<Node>& lemmas)
@@ -84,8 +83,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     bool addedEvalLemmas = false;
     if (options::sygusCRefEval())
     {
-      Trace("cegqi-engine")
-          << "  *** Do conjecture refinement evaluation..." << std::endl;
+      Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..."
+                            << std::endl;
       // see if any refinement lemma is refuted by evaluation
       std::vector<Node> cre_lems;
       getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
@@ -96,8 +95,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
           Node lem = cre_lems[j];
           if (d_qe->addLemma(lem))
           {
-            Trace("cegqi-lemma")
-                << "Cegqi::Lemma : cref evaluation : " << lem << std::endl;
+            Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem
+                                 << std::endl;
             addedEvalLemmas = true;
           }
         }
@@ -137,8 +136,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       }
       if (d_qe->addLemma(lem))
       {
-        Trace("cegqi-lemma")
-            << "Cegqi::Lemma : evaluation : " << lem << std::endl;
+        Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem
+                             << std::endl;
         addedEvalLemmas = true;
       }
     }
@@ -213,17 +212,17 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           Node lemc = lem_conj[j];
           Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lemc
                                    << " against current model." << std::endl;
-          Trace("sygus-cref-eval2")
-              << "Check refinement lemma conjunct " << lemc
-              << " against current model." << std::endl;
+          Trace("sygus-cref-eval2") << "Check refinement lemma conjunct "
+                                    << lemc << " against current model."
+                                    << std::endl;
           Node cre_lem;
           Node lemcs =
               lemc.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
-          Trace("sygus-cref-eval2")
-              << "...under substitution it is : " << lemcs << std::endl;
+          Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs
+                                    << std::endl;
           Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
-          Trace("sygus-cref-eval2")
-              << "...after unfolding is : " << lemcsu << std::endl;
+          Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu
+                                    << std::endl;
           if (lemcsu.isConst() && !lemcsu.getConst<bool>())
           {
             std::vector<Node> msu;
@@ -260,8 +259,8 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           {
             if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
             {
-              Trace("sygus-cref-eval")
-                  << "...produced lemma : " << cre_lem << std::endl;
+              Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
+                                       << std::endl;
               lems.push_back(cre_lem);
             }
           }
@@ -281,8 +280,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                           << std::endl;
     for (unsigned i = 0, size = vals.size(); i < size; i++)
     {
-      Trace("cegis-sample")
-          << "  " << candidates[i] << " -> " << vals[i] << std::endl;
+      Trace("cegis-sample") << "  " << candidates[i] << " -> " << vals[i]
+                            << std::endl;
     }
   }
   Assert(vals.size() == candidates.size());
@@ -301,8 +300,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
     if (d_cegis_sample_refine.find(i) == d_cegis_sample_refine.end())
     {
       Node ev = d_cegis_sampler.evaluate(sbody, i);
-      Trace("cegis-sample-debug")
-          << "...evaluate point #" << i << " to " << ev << std::endl;
+      Trace("cegis-sample-debug") << "...evaluate point #" << i << " to " << ev
+                                  << std::endl;
       Assert(ev.isConst());
       Assert(ev.getType().isBoolean());
       if (!ev.getConst<bool>())

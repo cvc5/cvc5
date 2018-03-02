@@ -33,8 +33,8 @@ class CegConjecture;
  * of this class is to, when applicable, suggest candidate solutions for
  * CegConjecture to test.
  *
- * In more detail, an instance of the conjecture class (CegConjecture) creates 
- * the negated deep embedding form of the synthesis conjecture. In the 
+ * In more detail, an instance of the conjecture class (CegConjecture) creates
+ * the negated deep embedding form of the synthesis conjecture. In the
  * following, assume this is:
  *   forall d. exists x. P( d, x )
  * where d are of sygus datatype type. The "base instantiation" of this
@@ -54,7 +54,7 @@ class SygusModule
    *
    * n is the "base instantiation" of the deep-embedding version of the
    * synthesis conjecture under candidates (see CegConjecture::d_base_inst).
-   * 
+   *
    * This function may add lemmas to the argument lemmas, which should be
    * sent out on the output channel of quantifiers by the caller.
    *
@@ -87,7 +87,7 @@ class SygusModule
    * This function may also add lemmas to lems, which are sent out as lemmas
    * on the output channel of quantifiers by the caller. For an example of
    * such lemmas, see SygusPbe::constructCandidates.
-   * 
+   *
    * This function may return false if it does not have a candidate it wants
    * to test on this iteration. In this case, lems should be non-empty.
    */
@@ -106,7 +106,6 @@ class SygusModule
    * lem in the call to this function is P( v, k' ).
    */
   virtual void registerRefinementLemma(Node lem) {}
-
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;

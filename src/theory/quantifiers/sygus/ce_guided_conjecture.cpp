@@ -247,7 +247,6 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
 bool CegConjecture::needsRefinement() { 
   return !d_ce_sk.empty();
 }
-
 void CegConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
