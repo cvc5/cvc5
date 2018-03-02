@@ -81,7 +81,7 @@ class SygusModule
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
    * to the synthesis conjecture in question. This candidate { v } will then be
-   * tested by testing the (un)satisfiablity of P( v, k' ) for fresh k' by the
+   * tested by testing the (un)satisfiablity of P( v, cex ) for fresh cex by the
    * caller.
    *
    * This function may also add lemmas to lems, which are sent out as lemmas
@@ -102,8 +102,8 @@ class SygusModule
    * value { v } to candidate_values for candidates = { k }. This function is
    * called if the base instantiation of the synthesis conjecture has a model
    * under this substitution. In particular, in the above example, this function
-   * is called when the refinement lemma P( v, k' ) has a model M. In calls to
-   * this function, the argument vars is v and lem is P( v^M, k' ).
+   * is called when the refinement lemma P( v, cex ) has a model M. In calls to
+   * this function, the argument vars is cex and lem is P( k, cex^M ).
    */
   virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem)
   {
