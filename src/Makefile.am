@@ -448,6 +448,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/single_inv_partition.h \
 	theory/quantifiers/skolemize.cpp \
 	theory/quantifiers/skolemize.h \
+	theory/quantifiers/sygus/cegis.cpp \
+	theory/quantifiers/sygus/cegis.h \
 	theory/quantifiers/sygus/ce_guided_conjecture.cpp \
 	theory/quantifiers/sygus/ce_guided_conjecture.h \
 	theory/quantifiers/sygus/ce_guided_instantiation.cpp \
@@ -468,6 +470,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_grammar_norm.h \
 	theory/quantifiers/sygus/sygus_grammar_red.cpp \
 	theory/quantifiers/sygus/sygus_grammar_red.h \
+	theory/quantifiers/sygus/sygus_module.cpp \
+	theory/quantifiers/sygus/sygus_module.h \
 	theory/quantifiers/sygus/sygus_process_conj.cpp \
 	theory/quantifiers/sygus/sygus_process_conj.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
