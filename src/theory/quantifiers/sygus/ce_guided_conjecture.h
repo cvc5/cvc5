@@ -163,8 +163,8 @@ private:
   /** list of variables on inner quantification */
   std::vector< Node > d_inner_vars;
   /**
-   * The set of current extentially quantified formulas whose couterexamples we
-   * must refine. This may be added to during calls to doCheck(). The model
+   * The set of current existentially quantified formulas whose couterexamples
+   * we must refine. This may be added to during calls to doCheck(). The model
    * values for skolems of these formulas are analyzed during doRefine().
    */
   std::vector<Node> d_ce_sk;

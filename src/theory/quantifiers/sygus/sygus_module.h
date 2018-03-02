@@ -102,10 +102,10 @@ class SygusModule
    * value { v } to candidate_values for candidates = { k }. This function is
    * called if the base instantiation of the synthesis conjecture has a model
    * under this substitution. In particular, in the above example, this function
-   * is called when the refinement lemma P( v, k' ) has a model. The argument
-   * lem in the call to this function is P( v, k' ).
+   * is called when the refinement lemma P( v, k' ) has a model M. In calls to
+   * this function, the argument vars is v and lem is P( v^M, k' ).
    */
-  virtual void registerRefinementLemma(Node lem) {}
+  virtual void registerRefinementLemma(const std::vector< Node >& vars, Node lem) {}
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
