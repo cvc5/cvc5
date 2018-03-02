@@ -150,9 +150,19 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   return true;
 }
 
-void Cegis::registerRefinementLemma(Node lem)
+void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
+                                    Node lem,
+                                    std::vector<Node>& lems)
 {
   d_refinement_lemmas.push_back(lem);
+  // Make the refinement lemma and add it to lems.
+  // This lemma is guarded by the parent's guard, which has the semantics
+  // "this conjecture has a solution", hence this lemma states:
+  // if the parent conjecture has a solution, it satisfies the specification
+  // for the given concrete point.
+  Node rlem =
+      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem);
+  lems.push_back(rlem);
 }
 
 void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
