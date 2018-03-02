@@ -896,9 +896,15 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
+  /*
+  Examples that should work:
+  REC-FUN fact : (INT) -> INT = LAMBDA (i : INT): IF (i > 0) THEN i * fact (i - 1) ELSE 1 ENDIF;
+  REC-FUN is-even : (INT) -> INT, is-odd : (INT) -> INT =
+  LAMBDA (x : INT): IF (x = 0) THEN 1 ELSE (IF (is-odd(x - 1) = 0) THEN 1 ELSE 0 ENDIF) ENDIF,
+  LAMBDA (y : INT): IF (y = 0) THEN 0 ELSE (IF (is-even(y - 1) = 0) THEN 1 ELSE 0 ENDIF) ENDIF;
+  */
   | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK 
   {
-    //If t.isFunction(), need to check whether f is a lambda
     func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
   }
   formula[f]
@@ -915,60 +921,6 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     }
     cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
   }
-  /*
-  REC-FUN fact : INT -> INT = LAMBDA (x : INT) : IF (x > 0) THEN x * fact (x - 1) ELSE 1 ENDIF;
-  
-  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t, CHECK_DECLARED] EQUAL_TOK 
-    LAMBDA 
-    LPAREN identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t2,CHECK_DECLARED]
-    {
-     //Check if t is an arrow type, if not error.
-     if(!t.isFunction()){
-       PARSER_STATE->parseError("REC-FUN can only be used to define a function type");
-     }
-     //Get the range of t for mkDefineFunRec
-     range = FunctionType(t).getRangeType();
-     std::cout<<"Entering identifier list of type "<<t2<<"\n";
-     for(unsigned int i = 0; i < ids.size();i++){
-      Debug("parser") <<"id "<<i<<ids[i]<<std::endl;
-      typeIds.push_back(std::make_pair(ids[i], t2));
-      args.push_back(t2);
-     }   
-    }
-    (COMMA identifierList[ids2,CHECK_NONE,SYM_VARIABLE] COLON type[t3,CHECK_DECLARED])*
-    {
-      std::cout<<"Entering identifier list of type "<<t3<<"\n";
-      for(unsigned int i = 0; i < ids2.size();i++){
-      Debug("parser") <<"id "<<i<<ids2[i]<<std::endl;
-      typeIds.push_back(std::make_pair(ids2[i], t3));
-      args.push_back(t3);
-     }
-    }
-    RPAREN 
-    {
-      func = PARSER_STATE->mkDefineFunRec(id, typeIds, range, flattenVars);
-      PARSER_STATE->pushDefineFunRecScope(typeIds, func, flattenVars, bvs, true);
-    }
-    COLON formula[f]
-    {
-      //Check that t is the same type as TypeIds -> f.getType()
-      std::cout<<"args = ";
-      for(int i = 0; i < args.size();i++){
-        std::cout<<i<<"."<<args[i]<<"\t";
-      }
-      std::cout<<"\nt.getArgTypes() = ";
-      std::vector<Type> args2 = FunctionType(t).getArgTypes();
-      for(int i = 0; i < args2.size();i++){
-        std::cout<<i<<"."<<args2[i]<<"\t";
-      }
-      std::cout<<"\nf.getType() = "<<f.getType();
-      std::cout<<"\nt.getRangeType() = "<<FunctionType(t).getRangeType()<<"\n";
-      if((args != FunctionType(t).getArgTypes()) || (f.getType() != FunctionType(t).getRangeType())){
-       PARSER_STATE->parseError("Type mismatch in recursive function definition");
-      }
-      PARSER_STATE->popScope();
-      cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
-    }*/
   | toplevelDeclaration[cmd]
   ;
 
