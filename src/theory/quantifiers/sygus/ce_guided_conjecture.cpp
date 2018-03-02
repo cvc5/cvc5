@@ -51,11 +51,20 @@ void collectDisjuncts( Node n, std::vector< Node >& d ) {
 CegConjecture::CegConjecture(QuantifiersEngine* qe)
     : d_qe(qe),
       d_ceg_si(new CegConjectureSingleInv(qe, this)),
-      d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_proc(new CegConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_ceg_pbe(new CegConjecturePbe(qe, this)),
+      d_ceg_cegis(new Cegis(qe, this)),
+      d_master(nullptr),
       d_refine_count(0),
-      d_syntax_guided(false) {}
+      d_syntax_guided(false)
+{
+  if (options::sygusPbe())
+  {
+    d_modules.push_back(d_ceg_pbe.get());
+  }
+  d_modules.push_back(d_ceg_cegis.get());
+}
 
 CegConjecture::~CegConjecture() {}
 
@@ -113,29 +122,21 @@ void CegConjecture::assign( Node q ) {
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
-  d_base_body = d_base_inst;
-  if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
-  {
-    for (const Node& v : d_base_body[0][0])
-    {
-      d_base_vars.push_back(v);
-    }
-    d_base_body = d_base_body[0][1];
-  }
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
   std::vector< Node > guarded_lemmas;
   if( !isSingleInvocation() ){
     d_ceg_proc->initialize(d_base_inst, d_candidates);
-    if( options::sygusPbe() ){
-      d_ceg_pbe->initialize(d_base_inst, d_candidates, guarded_lemmas);
-    } else {
-      for (unsigned i = 0; i < d_candidates.size(); i++) {
-        Node e = d_candidates[i];
-        d_qe->getTermDatabaseSygus()->registerEnumerator(e, e, this);
+    for (unsigned i = 0, size = d_modules.size(); i < size; i++)
+    {
+      if (d_modules[i]->initialize(d_base_inst, d_candidates, guarded_lemmas))
+      {
+        d_master = d_modules[i];
+        break;
       }
     }
+    Assert(d_master != nullptr);
   }
 
   if (d_qe->getQuantAttributes()->isSygus(q))
@@ -193,15 +194,6 @@ void CegConjecture::assign( Node q ) {
     d_qe->getOutputChannel().lemma( lem );
   }
 
-  // assign the cegis sampler if applicable
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE)
-  {
-    Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..."
-                          << std::endl;
-    TypeNode bt = d_base_body.getType();
-    d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
-  }
-
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
@@ -241,10 +233,8 @@ void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
 
 void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   std::vector< Node > model_terms;
-  std::vector< Node > clist;
-  getCandidateList( clist, true );
-  Assert( clist.size()==d_quant[0].getNumChildren() );
-  getModelValues( clist, model_terms );
+  Assert(d_candidates.size() == d_quant[0].getNumChildren());
+  getModelValues(d_candidates, model_terms);
   if (d_qe->getInstantiate()->addInstantiation(d_quant, model_terms))
   {
     //record the instantiation
@@ -257,62 +247,57 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
 bool CegConjecture::needsRefinement() { 
   return !d_ce_sk.empty();
 }
+void CegConjecture::doCheck(std::vector<Node>& lems)
+{
+  Assert(d_master != nullptr);
 
-void CegConjecture::getCandidateList( std::vector< Node >& clist, bool forceOrig ) {
-  if( d_ceg_pbe->isPbe() && !forceOrig ){
-    d_ceg_pbe->getCandidateList( d_candidates, clist );
-  }else{
-    clist.insert( clist.end(), d_candidates.begin(), d_candidates.end() );
-  }
-}
+  // get the list of terms that the master strategy is interested in
+  std::vector<Node> terms;
+  d_master->getTermList(d_candidates, terms);
 
-bool CegConjecture::constructCandidates( std::vector< Node >& clist, std::vector< Node >& model_values, std::vector< Node >& candidate_values, 
-                                         std::vector< Node >& lems ) {
-  Assert( clist.size()==model_values.size() );
-  if( d_ceg_pbe->isPbe() ){
-    return d_ceg_pbe->constructCandidates( clist, model_values, d_candidates, candidate_values, lems );
-  }else{
-    Assert( model_values.size()==d_candidates.size() );
-    candidate_values.insert( candidate_values.end(), model_values.begin(), model_values.end() );
-  }
-  return true;
-}
+  // get their model value
+  std::vector<Node> enum_values;
+  getModelValues(terms, enum_values);
 
-void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& model_values) {
-  std::vector< Node > clist;
-  getCandidateList( clist );
-  std::vector< Node > c_model_values;
+  std::vector<Node> candidate_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
-  bool constructed_cand = constructCandidates( clist, model_values, c_model_values, lems );
+  bool constructed_cand = d_master->constructCandidates(
+      terms, enum_values, d_candidates, candidate_values, lems);
+
+  NodeManager* nm = NodeManager::currentNM();
 
   //must get a counterexample to the value of the current candidate
   Node inst;
   if( constructed_cand ){
     if( Trace.isOn("cegqi-check")  ){
       Trace("cegqi-check") << "CegConjuncture : check candidate : " << std::endl;
-      for( unsigned i=0; i<c_model_values.size(); i++ ){
-        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> " << c_model_values[i] << std::endl;
+      for (unsigned i = 0, size = candidate_values.size(); i < size; i++)
+      {
+        Trace("cegqi-check") << "  " << i << " : " << d_candidates[i] << " -> "
+                             << candidate_values[i] << std::endl;
       }
     }
-    Assert( c_model_values.size()==d_candidates.size() );
-    inst = d_base_inst.substitute( d_candidates.begin(), d_candidates.end(), c_model_values.begin(), c_model_values.end() );
+    Assert(candidate_values.size() == d_candidates.size());
+    inst = d_base_inst.substitute(d_candidates.begin(),
+                                  d_candidates.end(),
+                                  candidate_values.begin(),
+                                  candidate_values.end());
   }else{
     inst = d_base_inst;
   }
   
   //check whether we will run CEGIS on inner skolem variables
-  bool sk_refine = ( !isGround() || d_refine_count==0 ) && ( !d_ceg_pbe->isPbe() || constructed_cand );
+  bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
   if( sk_refine ){
     if (options::cegisSample() == CEGIS_SAMPLE_TRUST)
     {
       // we have that the current candidate passed a sample test
       // since we trust sampling in this mode, we assert there is no
       // counterexample to the conjecture here.
-      NodeManager* nm = NodeManager::currentNM();
       Node lem = nm->mkNode(OR, d_quant.negate(), nm->mkConst(false));
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
-      recordInstantiation(c_model_values);
+      recordInstantiation(candidate_values);
       return;
     }
     Assert( d_ce_sk.empty() );
@@ -352,7 +337,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
     }
   }
   if( constructed_cand ){
-    Node lem = NodeManager::currentNM()->mkNode( OR, ic );
+    Node lem = nm->mkNode(OR, ic);
     lem = Rewriter::rewrite( lem );
     //eagerly unfold applications of evaluation function
     if( options::sygusDirectEval() ){
@@ -362,7 +347,7 @@ void CegConjecture::doCheck(std::vector< Node >& lems, std::vector< Node >& mode
     }
     lem = getStreamGuardedLemma(lem);
     lems.push_back( lem );
-    recordInstantiation( c_model_values );
+    recordInstantiation(candidate_values);
   }
 }
         
@@ -433,7 +418,7 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
   base_lem = Rewriter::rewrite( base_lem );
-  d_refinement_lemmas.push_back(base_lem);
+  d_master->registerRefinementLemma(base_lem);
 
   Node lem =
       NodeManager::currentNM()->mkNode(OR, getGuard().negate(), base_lem);
@@ -533,6 +518,7 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
             return curr_stream_guard;
           }else{
             if( !value ){
+              Assert(d_master != nullptr);
               Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
               // we have generated a solution, print it
               // get the current output stream
@@ -545,14 +531,15 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
               // We will not refine the current candidate solution since it is a solution
               // thus, we clear information regarding the current refinement
               d_ce_sk.clear();
-              // However, we need to exclude the current solution using an explicit refinement 
-              // so that we proceed to the next solution. 
-              std::vector< Node > clist;
-              getCandidateList( clist );
+              // However, we need to exclude the current solution using an
+              // explicit refinement
+              // so that we proceed to the next solution.
+              std::vector<Node> terms;
+              d_master->getTermList(d_candidates, terms);
               Trace("cegqi-debug") << "getNextDecision : solution was : " << std::endl;
               std::vector< Node > exp;
-              for( unsigned i=0; i<clist.size(); i++ ){
-                Node cprog = clist[i];
+              for (const Node& cprog : terms)
+              {
                 Node sol = cprog;
                 if( !d_cinfo[cprog].d_inst.empty() ){
                   sol = d_cinfo[cprog].d_inst.back();
@@ -809,84 +796,6 @@ Node CegConjecture::getSymmetryBreakingPredicate(
   {
     return Node::null();
   }
-}
-
-bool CegConjecture::sampleAddRefinementLemma(std::vector<Node>& vals,
-                                             std::vector<Node>& lems)
-{
-  if (Trace.isOn("cegis-sample"))
-  {
-    Trace("cegis-sample") << "Check sampling for candidate solution"
-                          << std::endl;
-    for (unsigned i = 0, size = vals.size(); i < size; i++)
-    {
-      Trace("cegis-sample")
-          << "  " << d_candidates[i] << " -> " << vals[i] << std::endl;
-    }
-  }
-  Assert(vals.size() == d_candidates.size());
-  Node sbody = d_base_body.substitute(
-      d_candidates.begin(), d_candidates.end(), vals.begin(), vals.end());
-  Trace("cegis-sample-debug") << "Sample " << sbody << std::endl;
-  // do eager unfolding
-  std::map<Node, Node> visited_n;
-  sbody = d_qe->getTermDatabaseSygus()->getEagerUnfold(sbody, visited_n);
-  Trace("cegis-sample") << "Sample (after unfolding): " << sbody << std::endl;
-
-  NodeManager* nm = NodeManager::currentNM();
-  for (unsigned i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size;
-       i++)
-  {
-    if (d_cegis_sample_refine.find(i) == d_cegis_sample_refine.end())
-    {
-      Node ev = d_cegis_sampler.evaluate(sbody, i);
-      Trace("cegis-sample-debug")
-          << "...evaluate point #" << i << " to " << ev << std::endl;
-      Assert(ev.isConst());
-      Assert(ev.getType().isBoolean());
-      if (!ev.getConst<bool>())
-      {
-        Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
-        // mark this as a CEGIS point (no longer sampled)
-        d_cegis_sample_refine.insert(i);
-        std::vector<Node> vars;
-        std::vector<Node> pt;
-        d_cegis_sampler.getSamplePoint(i, vars, pt);
-        Assert(d_base_vars.size() == pt.size());
-        Node rlem = d_base_body.substitute(
-            d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());
-        rlem = Rewriter::rewrite(rlem);
-        if (std::find(
-                d_refinement_lemmas.begin(), d_refinement_lemmas.end(), rlem)
-            == d_refinement_lemmas.end())
-        {
-          if (Trace.isOn("cegis-sample"))
-          {
-            Trace("cegis-sample") << "   false for point #" << i << " : ";
-            for (const Node& cn : pt)
-            {
-              Trace("cegis-sample") << cn << " ";
-            }
-            Trace("cegis-sample") << std::endl;
-          }
-          Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
-          d_refinement_lemmas.push_back(rlem);
-          // if trust, we are not interested in sending out refinement lemmas
-          if (options::cegisSample() != CEGIS_SAMPLE_TRUST)
-          {
-            Node lem = nm->mkNode(OR, getGuard().negate(), rlem);
-            lems.push_back(lem);
-          }
-          return true;
-        }
-        else
-        {
-          Trace("cegis-sample-debug") << "...duplicate." << std::endl;
-        }
-      }
-    }
-  }
-  return false;
 }
 
 }/* namespace CVC4::theory::quantifiers */
