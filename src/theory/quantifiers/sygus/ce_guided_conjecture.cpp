@@ -129,10 +129,12 @@ void CegConjecture::assign( Node q ) {
 
   if (d_qe->getQuantAttributes()->isSygus(q))
   {
-    //if the base instantiation is an existential, store its variables
-    if( d_base_inst.getKind()==NOT && d_base_inst[0].getKind()==FORALL ){
-      for( const Node& v : d_base_inst[0][0] ){
-        d_inner_vars.push_back( v );
+    // if the base instantiation is an existential, store its variables
+    if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
+    {
+      for (const Node& v : d_base_inst[0][0])
+      {
+        d_inner_vars.push_back(v);
       }
     }
     d_syntax_guided = true;
@@ -292,24 +294,33 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   ic.push_back( d_quant.negate() );
 
   //immediately skolemize inner existentials
-  Node dr = Rewriter::rewrite( inst );
-  if( dr.getKind()==NOT && dr[0].getKind()==FORALL ){
-    if( constructed_cand ){
+  Node dr = Rewriter::rewrite(inst);
+  if (dr.getKind() == NOT && dr[0].getKind() == FORALL)
+  {
+    if (constructed_cand)
+    {
       ic.push_back(d_qe->getSkolemize()->getSkolemizedBody(dr[0]).negate());
     }
-    if( sk_refine ){
-      Assert( !isGround() );
-      d_ce_sk.push_back( dr[0] );
+    if (sk_refine)
+    {
+      Assert(!isGround());
+      d_ce_sk.push_back(dr[0]);
     }
-  }else{
-    if( constructed_cand ){
-      ic.push_back( dr );
-      if( !d_inner_vars.empty() ){
-        Trace("cegqi-debug") << "*** quantified disjunct : " << inst << " simplifies to " << dr << std::endl;
+  }
+  else
+  {
+    if (constructed_cand)
+    {
+      ic.push_back(dr);
+      if (!d_inner_vars.empty())
+      {
+        Trace("cegqi-debug") << "*** quantified disjunct : " << inst
+                             << " simplifies to " << dr << std::endl;
       }
     }
-    if( sk_refine ){
-      d_ce_sk.push_back( Node::null() );
+    if (sk_refine)
+    {
+      d_ce_sk.push_back(Node::null());
     }
   }
   if( constructed_cand ){
@@ -337,43 +348,59 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   std::vector< Node > sk_subs;
   //collect the substitution over all disjuncts
   Node ce_q = d_ce_sk[0];
-  if( !ce_q.isNull() ){
+  if (!ce_q.isNull())
+  {
     std::vector<Node> skolems;
     d_qe->getSkolemize()->getSkolemConstants(ce_q, skolems);
     Assert(d_inner_vars.size() == skolems.size());
-    std::vector< Node > model_values;
+    std::vector<Node> model_values;
     getModelValues(skolems, model_values);
-    sk_vars.insert( sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end() );
-    sk_subs.insert( sk_subs.end(), model_values.begin(), model_values.end() );
-  }else{
-    if( !d_inner_vars.empty() ){
-      //denegrate case : quantified disjunct was trivially true and does not need to be refined
-      //add trivial substitution (in case we need substitution for previous cex's)
-      for( unsigned i=0; i<d_inner_vars.size(); i++ ){
-        sk_vars.push_back( d_inner_vars[i] );
-        sk_subs.push_back( getModelValue( d_inner_vars[i] ) ); // will return dummy value
+    sk_vars.insert(sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end());
+    sk_subs.insert(sk_subs.end(), model_values.begin(), model_values.end());
+  }
+  else
+  {
+    if (!d_inner_vars.empty())
+    {
+      // denegrate case : quantified disjunct was trivially true and does not
+      // need to be refined
+      // add trivial substitution (in case we need substitution for previous
+      // cex's)
+      for (unsigned i = 0; i < d_inner_vars.size(); i++)
+      {
+        sk_vars.push_back(d_inner_vars[i]);
+        sk_subs.push_back(
+            getModelValue(d_inner_vars[i]));  // will return dummy value
       }
     }
   }
-  
+
   //for conditional evaluation
   std::vector< Node > lem_c;
   std::vector< Node > inst_cond_c;
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..." << std::endl;
-  Trace("cegqi-refine-debug") << "  For counterexample point : " << ce_q << std::endl;
+  Trace("cegqi-refine-debug")
+      << "  For counterexample point : " << ce_q << std::endl;
   Node c_disj;
-  if( !ce_q.isNull() ){
-    Assert( d_base_inst.getKind()==kind::NOT && d_base_inst[0].getKind()==kind::FORALL );
+  if (!ce_q.isNull())
+  {
+    Assert(d_base_inst.getKind() == kind::NOT
+           && d_base_inst[0].getKind() == kind::FORALL);
     c_disj = d_base_inst[0][1];
-  }else{
-    if( d_inner_vars.empty() ){
+  }
+  else
+  {
+    if (d_inner_vars.empty())
+    {
       c_disj = d_base_inst.negate();
     }
   }
-  if( !c_disj.isNull() ){
-    //compute the body, inst_cond
-    //standard CEGIS refinement : plug in values, assert that d_candidates must satisfy entire specification
-    lem_c.push_back( c_disj );
+  if (!c_disj.isNull())
+  {
+    // compute the body, inst_cond
+    // standard CEGIS refinement : plug in values, assert that d_candidates must
+    // satisfy entire specification
+    lem_c.push_back(c_disj);
   }
   Assert( sk_vars.size()==sk_subs.size() );
   
