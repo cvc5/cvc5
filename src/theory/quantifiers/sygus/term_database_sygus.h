@@ -139,8 +139,6 @@ class TermDbSygus {
   std::map<Node, Node> d_enum_to_active_guard;
 
   //-----------------------------conversion from sygus to builtin
-  /** cache for sygusToBuiltin */
-  std::map<TypeNode, std::map<Node, Node> > d_sygus_to_builtin;
   /** a cache of fresh variables for each type
    *
    * We store two versions of this list:
