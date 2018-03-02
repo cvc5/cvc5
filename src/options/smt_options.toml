@@ -6,15 +6,9 @@ header = "options/smt_options.h"
   name       = "dumpModeString"
   smt_name   = "dump"
   category   = "common"
-  short      = ""
   long       = "dump=MODE"
   type       = "std::string"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyDumpMode"]
-  links      = []
   read_only  = true
   help       = "dump preprocessed assertions, etc., see --dump=help"
 
@@ -22,15 +16,9 @@ header = "options/smt_options.h"
   name       = "dumpToFileName"
   smt_name   = "dump-to"
   category   = "common"
-  short      = ""
   long       = "dump-to=FILE"
   type       = "std::string"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyDumpToFile"]
-  links      = []
   read_only  = true
   help       = "all dumping goes to FILE (instead of stdout)"
 
@@ -38,15 +26,9 @@ header = "options/smt_options.h"
   name       = "forceLogicString"
   smt_name   = "force-logic"
   category   = "expert"
-  short      = ""
   long       = "force-logic=LOGIC"
   type       = "std::string"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyForceLogic"]
-  links      = []
   read_only  = true
   help       = "set the logic, and override all further user attempts to change it"
 
@@ -54,15 +36,11 @@ header = "options/smt_options.h"
   name       = "simplificationMode"
   smt_name   = "simplification-mode"
   category   = "regular"
-  short      = ""
   long       = "simplification=MODE"
   type       = "SimplificationMode"
   default    = "SIMPLIFICATION_MODE_BATCH"
   handler    = "stringToSimplificationMode"
-  predicates = []
   includes   = ["options/simplification_mode.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "choose simplification mode, see --simplification=help"
 
@@ -74,17 +52,10 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "doStaticLearning"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "static-learning"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "use static learning (on by default)"
 
@@ -92,45 +63,27 @@ header = "options/smt_options.h"
   name       = "expandDefinitions"
   smt_name   = "expand-definitions"
   category   = "regular"
-  short      = ""
-  long       = ""
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "always expand symbol definitions in output"
 
 [[option]]
   name       = "produceModels"
-  smt_name   = ""
   category   = "common"
   short      = "m"
   long       = "produce-models"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
-  links      = []
   read_only  = true
   help       = "support the get-value and get-model commands"
 
 [[option]]
   name       = "checkModels"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "check-models"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
   links      = ["--produce-models", "--produce-assertions"]
   read_only  = true
@@ -138,33 +91,20 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "dumpModels"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "dump-models"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
   links      = ["--produce-models"]
   read_only  = true
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
   name       = "omitDontCares"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "omit-dont-cares"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "When producing a model, omit variables whose value does not matter"
 
@@ -172,29 +112,20 @@ header = "options/smt_options.h"
   name       = "proof"
   smt_name   = "produce-proofs"
   category   = "regular"
-  short      = ""
   long       = "proof"
   type       = "bool"
   default    = "false"
-  handler    = ""
   predicates = ["proofEnabledBuild"]
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
-  links      = []
   read_only  = true
   help       = "turn on proof generation"
 
 [[option]]
   name       = "checkProofs"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "check-proofs"
   type       = "bool"
-  default    = ""
-  handler    = ""
   predicates = ["LFSCEnabledBuild"]
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
   links      = ["--proof"]
   read_only  = false
@@ -202,127 +133,77 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "dumpProofs"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
   links      = ["--proof"]
   read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
   name       = "dumpInstantiations"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "dump-instantiations"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
 
 [[option]]
   name       = "sygusOut"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "sygus-out=MODE"
   type       = "SygusSolutionOutMode"
   default    = "SYGUS_SOL_OUT_STATUS_AND_DEF"
   handler    = "stringToSygusSolutionOutMode"
-  predicates = []
   includes   = ["options/sygus_out_mode.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "output mode for sygus"
 
 [[option]]
   name       = "sygusPrintCallbacks"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "sygus-print-callbacks"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
 
 [[option]]
   name       = "dumpSynth"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "dump-synth"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
 
 [[option]]
   name       = "unsatCores"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "produce-unsat-cores"
   type       = "bool"
-  default    = ""
-  handler    = ""
   predicates = ["proofEnabledBuild"]
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
-  links      = []
   read_only  = true
   help       = "turn on unsat core generation"
 
 [[option]]
   name       = "checkUnsatCores"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "check-unsat-cores"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
   links      = ["--produce-unsat-cores"]
   read_only  = false
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
   name       = "dumpUnsatCores"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "dump-unsat-cores"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
   links      = ["--produce-unsat-cores"]
   read_only  = true
@@ -330,15 +211,10 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "dumpUnsatCoresFull"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "dump-unsat-cores-full"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
   links      = ["--dump-unsat-cores"]
   read_only  = true
@@ -346,33 +222,20 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "checkSynthSol"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "checks whether produced solutions to functions-to-synthesize satisfy the conjecture"
 
 [[option]]
   name       = "produceAssignments"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "produce-assignments"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
-  links      = []
   read_only  = true
   help       = "support the get-assignment command"
 
@@ -380,239 +243,135 @@ header = "options/smt_options.h"
   name       = "interactiveMode"
   smt_name   = "interactive-mode"
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "bool"
-  default    = ""
-  handler    = ""
   predicates = ["setProduceAssertions"]
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
-  links      = []
   read_only  = false
   help       = "deprecated name for produce-assertions"
 
 [[option]]
   name       = "produceAssertions"
-  smt_name   = ""
   category   = "common"
-  short      = ""
   long       = "produce-assertions"
   type       = "bool"
-  default    = ""
-  handler    = ""
   predicates = ["setProduceAssertions"]
-  includes   = []
   notifies   = ["notifyBeforeSearch"]
-  links      = []
   read_only  = false
   help       = "keep an assertions list (enables get-assertions command)"
 
 [[option]]
   name       = "doITESimp"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "ite-simp"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)"
 
 [[option]]
   name       = "doITESimpOnRepeat"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "on-repeat-ite-simp"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "do the ite simplification pass again if repeating simplification"
 
 [[option]]
   name       = "extRewPrep"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "ext-rew-prep"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "use extended rewriter as a preprocessing pass"
 
 [[option]]
   name       = "extRewPrepAgg"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "ext-rew-prep-agg"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "use aggressive extended rewriter as a preprocessing pass"
 
 [[option]]
   name       = "simplifyWithCareEnabled"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "simp-with-care"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "enables simplifyWithCare in ite simplificiation"
 
 [[option]]
   name       = "compressItes"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "simp-ite-compress"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "enables compressing ites after ite simplification"
 
 [[option]]
   name       = "unconstrainedSimp"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)"
 
 [[option]]
   name       = "repeatSimp"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "repeat-simp"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "make multiple passes with nonclausal simplifier"
 
 [[option]]
   name       = "zombieHuntThreshold"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "simp-ite-hunt-zombies"
   type       = "uint32_t"
   default    = "524288"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
   name       = "sortInference"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "sort-inference"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
 
 [[option]]
   name       = "incrementalSolving"
-  smt_name   = ""
   category   = "common"
   short      = "i"
   long       = "incremental"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "enable incremental solving"
 
 [[option]]
   name       = "abstractValues"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
   name       = "modelUninterpDtEnum"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "model-u-dt-enum"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "in models, output uninterpreted sorts as datatype enumerations"
 
@@ -620,15 +379,8 @@ header = "options/smt_options.h"
   name       = "regularChannelName"
   smt_name   = "regular-output-channel"
   category   = "regular"
-  short      = ""
-  long       = ""
   type       = "std::string"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifySetRegularOutputChannel"]
-  links      = []
   read_only  = true
   help       = "set the regular output channel of the solver"
 
@@ -636,15 +388,8 @@ header = "options/smt_options.h"
   name       = "diagnosticChannelName"
   smt_name   = "diagnostic-output-channel"
   category   = "regular"
-  short      = ""
-  long       = ""
   type       = "std::string"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifySetDiagnosticOutputChannel"]
-  links      = []
   read_only  = true
   help       = "set the diagnostic output channel of the solver"
 
@@ -652,15 +397,10 @@ header = "options/smt_options.h"
   name       = "cumulativeMillisecondLimit"
   smt_name   = "tlimit"
   category   = "common"
-  short      = ""
   long       = "tlimit=MS"
   type       = "unsigned long"
-  default    = ""
   handler    = "tlimitHandler"
-  predicates = []
-  includes   = []
   notifies   = ["notifyTlimit"]
-  links      = []
   read_only  = true
   help       = "enable time limiting (give milliseconds)"
 
@@ -668,15 +408,10 @@ header = "options/smt_options.h"
   name       = "perCallMillisecondLimit"
   smt_name   = "tlimit-per"
   category   = "common"
-  short      = ""
   long       = "tlimit-per=MS"
   type       = "unsigned long"
-  default    = ""
   handler    = "tlimitPerHandler"
-  predicates = []
-  includes   = []
   notifies   = ["notifyTlimitPer"]
-  links      = []
   read_only  = true
   help       = "enable time limiting per query (give milliseconds)"
 
@@ -684,15 +419,10 @@ header = "options/smt_options.h"
   name       = "cumulativeResourceLimit"
   smt_name   = "rlimit"
   category   = "common"
-  short      = ""
   long       = "rlimit=N"
   type       = "unsigned long"
-  default    = ""
   handler    = "rlimitHandler"
-  predicates = []
-  includes   = []
   notifies   = ["notifyRlimit"]
-  links      = []
   read_only  = true
   help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
 
@@ -700,334 +430,190 @@ header = "options/smt_options.h"
   name       = "perCallResourceLimit"
   smt_name   = "reproducible-resource-limit"
   category   = "common"
-  short      = ""
   long       = "rlimit-per=N"
   type       = "unsigned long"
-  default    = ""
   handler    = "rlimitPerHandler"
-  predicates = []
-  includes   = []
   notifies   = ["notifyRlimitPer"]
-  links      = []
   read_only  = true
   help       = "enable resource limiting per query"
 
 [[option]]
   name       = "hardLimit"
-  smt_name   = ""
   category   = "common"
-  short      = ""
   long       = "hard-limit"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "the resource limit is hard potentially leaving the smtEngine in an unsafe state (should be destroyed and rebuild after resourcing out)"
 
 [[option]]
   name       = "cpuTime"
-  smt_name   = ""
   category   = "common"
-  short      = ""
   long       = "cpu-time"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "measures CPU time if set to true and wall time if false (default false)"
 
 [[option]]
   name       = "rewriteStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "rewrite-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each rewrite step"
 
 [[option]]
   name       = "theoryCheckStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "theory-check-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each theory check call"
 
 [[option]]
   name       = "decisionStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "decision-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of getNext decision calls in the decision engine"
 
 [[option]]
   name       = "bitblastStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "bitblast-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each bitblast step"
 
 [[option]]
   name       = "parseStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "parse-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each command/expression parsing"
 
 [[option]]
   name       = "lemmaStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "lemma-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent when adding lemmas"
 
 [[option]]
   name       = "restartStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "restart-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each theory restart"
 
 [[option]]
   name       = "cnfStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "cnf-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each call to cnf conversion"
 
 [[option]]
   name       = "preprocessStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "preprocess-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each preprocessing step in SmtEngine"
 
 [[option]]
   name       = "quantifierStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "quantifier-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for quantifier instantiations"
 
 [[option]]
   name       = "satConflictStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "sat-conflict-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each sat conflict (main sat solver)"
 
 [[option]]
   name       = "bvSatConflictStep"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "bv-sat-conflict-step"
   type       = "unsigned"
   default    = "1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "amount of resources spent for each sat conflict (bitvectors)"
 
 [[option]]
   name       = "rewriteApplyToConst"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "rewrite-apply-to-const"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
 
 [[option]]
   name       = "replayInputFilename"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
   long       = "replay=FILE"
   type       = "std::string"
-  default    = ""
   handler    = "checkReplayFilename"
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "replay decisions from file"
 
 [[option]]
   name       = "replayLogFilename"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
   long       = "replay-log=FILE"
   type       = "std::string"
-  default    = ""
   handler    = "checkReplayFilename"
-  predicates = []
-  includes   = []
   notifies   = ["notifySetReplayLogFilename", "notifyBeforeSearch"]
-  links      = []
   read_only  = true
   help       = "replay decisions from file"
 
 [[option]]
   name       = "forceNoLimitCpuWhileDump"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "force-no-limit-cpu-while-dump"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
   name       = "solveIntAsBV"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
   long       = "solve-int-as-bv"
   type       = "uint32_t"
   default    = "0"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
   name       = "solveRealAsInt"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as a integer problem (for non-linear)"

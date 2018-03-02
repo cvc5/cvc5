@@ -6,286 +6,163 @@ header = "options/uf_options.h"
   name       = "ufSymmetryBreaker"
   smt_name   = "uf-symmetry-breaker"
   category   = "regular"
-  short      = ""
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
   name       = "condenseFunctionValues"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "condense-function-values"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "condense models for functions rather than explicitly representing them"
 
 [[option]]
   name       = "ufssRegions"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-regions"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "disable region-based method for discovering cliques and splits in uf strong solver"
 
 [[option]]
   name       = "ufssEagerSplits"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-eager-split"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "add splits eagerly for uf strong solver"
 
 [[option]]
   name       = "ufssTotality"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-totality"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "always use totality axioms for enforcing cardinality constraints"
 
 [[option]]
   name       = "ufssTotalityLimited"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-totality-limited=N"
   type       = "int"
   default    = "-1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)"
 
 [[option]]
   name       = "ufssTotalitySymBreak"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-totality-sym-break"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "apply symmetry breaking for totality axioms"
 
 [[option]]
   name       = "ufssAbortCardinality"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-abort-card=N"
   type       = "int"
   default    = "-1"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
 
 [[option]]
   name       = "ufssExplainedCliques"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-explained-cliques"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "use explained clique lemmas for uf strong solver"
 
 [[option]]
   name       = "ufssSimpleCliques"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-simple-cliques"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "always use simple clique lemmas for uf strong solver"
 
 [[option]]
   name       = "ufssDiseqPropagation"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-deq-prop"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "eagerly propagate disequalities for uf strong solver"
 
 [[option]]
   name       = "ufssMode"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss=MODE"
   type       = "CVC4::theory::uf::UfssMode"
   default    = "CVC4::theory::uf::UF_SS_FULL"
   handler    = "stringToUfssMode"
-  predicates = []
   includes   = ["options/ufss_mode.h"]
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "mode of operation for uf strong solver."
 
 [[option]]
   name       = "ufssCliqueSplits"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-clique-splits"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "use cliques instead of splitting on demand to shrink model"
 
 [[option]]
   name       = "ufssSymBreak"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-sym-break"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "finite model finding symmetry breaking techniques"
 
 [[option]]
   name       = "ufssFairness"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-fair"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "use fair strategy for finite model finding multiple sorts"
 
 [[option]]
   name       = "ufssFairnessMonotone"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ss-fair-monotone"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
   name       = "ufHo"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ho"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "enable support for higher-order reasoning"
 
 [[option]]
   name       = "ufHoExt"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "apply extensionality on function symbols"

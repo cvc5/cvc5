@@ -4,32 +4,22 @@ header = "options/printer_options.h"
 
 [[option]]
   name       = "modelFormatMode"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "model-format=MODE"
   type       = "ModelFormatMode"
   default    = "MODEL_FORMAT_MODE_DEFAULT"
   handler    = "stringToModelFormatMode"
-  predicates = []
   includes   = ["options/printer_modes.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "print format mode for models, see --model-format=help"
 
 [[option]]
   name       = "instFormatMode"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "inst-format=MODE"
   type       = "InstFormatMode"
   default    = "INST_FORMAT_MODE_DEFAULT"
   handler    = "stringToInstFormatMode"
-  predicates = []
   includes   = ["options/printer_modes.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "print format mode for instantiations, see --inst-format=help"

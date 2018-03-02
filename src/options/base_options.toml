@@ -4,62 +4,32 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "binary_name"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "std::string"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
 
 [[option]]
   name       = "in"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "std::istream*"
   default    = "&std::cin"
-  handler    = ""
-  predicates = []
   includes   = ["<iosfwd>"]
-  notifies   = []
-  links      = []
   read_only  = false
 
 [[option]]
   name       = "out"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "std::ostream*"
   default    = "&std::cout"
-  handler    = ""
-  predicates = []
   includes   = ["<iosfwd>"]
-  notifies   = []
-  links      = []
   read_only  = false
 
 [[option]]
   name       = "err"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "std::ostream*"
   default    = "&std::cerr"
-  handler    = ""
-  predicates = []
   includes   = ["<iosfwd>"]
-  notifies   = []
-  links      = []
   read_only  = false
 
 [[option]]
@@ -71,10 +41,7 @@ header = "options/base_options.h"
   type       = "InputLanguage"
   default    = "language::input::LANG_AUTO"
   handler    = "stringToInputLanguage"
-  predicates = []
   includes   = ["options/language.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "force input language (default is \"auto\"; see --lang help)"
 
@@ -82,31 +49,18 @@ header = "options/base_options.h"
   name       = "outputLanguage"
   smt_name   = "output-language"
   category   = "common"
-  short      = ""
   long       = "output-lang=LANG"
   type       = "OutputLanguage"
   default    = "language::output::LANG_AUTO"
   handler    = "stringToOutputLanguage"
-  predicates = []
   includes   = ["options/language.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 [[option]]
   name       = "languageHelp"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
 
 [[alias]]
@@ -123,47 +77,27 @@ header = "options/base_options.h"
   name       = "verbosity"
   smt_name   = "verbosity"
   category   = "regular"
-  short      = ""
-  long       = ""
   type       = "int"
   default    = "0"
-  handler    = ""
   predicates = ["setVerbosity"]
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "the verbosity level of CVC4"
 
 [[option]]
-  name       = ""
-  smt_name   = ""
   category   = "common"
   short      = "v"
   long       = "verbose"
   type       = "void"
-  default    = ""
   handler    = "increaseVerbosity"
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
-  name       = ""
-  smt_name   = ""
   category   = "common"
   short      = "q"
   long       = "quiet"
   type       = "void"
-  default    = ""
   handler    = "decreaseVerbosity"
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "decrease verbosity (may be repeated)"
 
@@ -171,15 +105,9 @@ header = "options/base_options.h"
   name       = "statistics"
   smt_name   = "statistics"
   category   = "common"
-  short      = ""
   long       = "stats"
   type       = "bool"
-  default    = ""
-  handler    = ""
   predicates = ["statsEnabledBuild"]
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "give statistics on exit"
 
@@ -195,16 +123,10 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "statsEveryQuery"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "stats-every-query"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
   links      = ["--stats"]
   read_only  = true
   help       = "in incremental mode, print stats after every satisfiability or validity query"
@@ -221,17 +143,10 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "statsHideZeros"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "stats-hide-zeros"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "hide statistics which are zero"
 
@@ -252,81 +167,46 @@ header = "options/base_options.h"
 
 [[option]]
   name       = "parseOnly"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "parse-only"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "exit after parsing input"
 
 [[option]]
   name       = "preprocessOnly"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "preprocess-only"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "exit after preprocessing input"
 
 [[option]]
-  name       = ""
   smt_name   = "trace"
   category   = "regular"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
-  default    = ""
   handler    = "enableTraceTag"
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "trace something (e.g. -t pushpop), can repeat"
 
 [[option]]
-  name       = ""
   smt_name   = "debug"
   category   = "regular"
   short      = "d"
   long       = "debug=TAG"
   type       = "std::string"
-  default    = ""
   handler    = "enableDebugTag"
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "debug something (e.g. -d arith), can repeat"
 
 [[option]]
   name       = "printSuccess"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "print-success"
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifyPrintSuccess"]
-  links      = []
   read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"
 

@@ -4,17 +4,12 @@ header = "options/expr_options.h"
 
 [[option]]
   name       = "defaultExprDepth"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "default-expr-depth=N"
   type       = "int"
   default    = "0"
-  handler    = ""
   predicates = ["setDefaultExprDepthPredicate"]
-  includes   = []
   notifies   = ["notifySetDefaultExprDepth"]
-  links      = []
   read_only  = true
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
@@ -27,15 +22,11 @@ header = "options/expr_options.h"
   name       = "defaultDagThresh"
   smt_name   = "default-dag-thresh"
   category   = "regular"
-  short      = ""
   long       = "default-dag-thresh=N"
   type       = "int"
   default    = "1"
-  handler    = ""
   predicates = ["setDefaultDagThreshPredicate"]
-  includes   = []
   notifies   = ["notifySetDefaultDagThresh"]
-  links      = []
   read_only  = true
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
@@ -51,49 +42,29 @@ header = "options/expr_options.h"
 
 [[option]]
   name       = "printExprTypes"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "print-expr-types"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
   notifies   = ["notifySetPrintExprTypes"]
-  links      = []
   read_only  = true
   help       = "print types with variables when printing exprs"
 
 [[option]]
   name       = "earlyTypeChecking"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "eager-type-checking"
   type       = "bool"
   default    = "USE_EARLY_TYPE_CHECKING_BY_DEFAULT"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "type check expressions immediately on creation (debug builds only)"
 
 [[option]]
   name       = "typeChecking"
-  smt_name   = ""
   category   = "regular"
-  short      = ""
   long       = "type-checking"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "never type check expressions"
 

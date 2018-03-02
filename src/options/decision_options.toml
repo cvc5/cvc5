@@ -6,93 +6,54 @@ header = "options/decision_options.h"
   name       = "decisionMode"
   smt_name   = "decision-mode"
   category   = "regular"
-  short      = ""
   long       = "decision=MODE"
   type       = "decision::DecisionMode"
   default    = "decision::DECISION_STRATEGY_INTERNAL"
   handler    = "stringToDecisionMode"
-  predicates = []
   includes   = ["options/decision_mode.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "choose decision mode, see --decision=help"
 
 [[option]]
   name       = "decisionStopOnly"
-  smt_name   = ""
   category   = "undocumented"
-  short      = ""
-  long       = ""
   type       = "bool"
-  default    = ""
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = false
 
 [[option]]
   name       = "decisionThreshold"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "decision-threshold=N"
   type       = "decision::DecisionWeight"
   default    = "0"
-  handler    = ""
-  predicates = []
   includes   = ["options/decision_weight.h"]
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "ignore all nodes greater than threshold in first attempt to pick decision"
 
 [[option]]
   name       = "decisionUseWeight"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "decision-use-weight"
   type       = "bool"
   default    = "false"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "use the weight nodes (locally, by looking at children) to direct recursive search"
 
 [[option]]
   name       = "decisionRandomWeight"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "decision-random-weight=N"
   type       = "int"
   default    = "0"
-  handler    = ""
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "assign random weights to nodes between 0 and N-1 (0: disable)"
 
 [[option]]
   name       = "decisionWeightInternal"
-  smt_name   = ""
   category   = "expert"
-  short      = ""
   long       = "decision-weight-internal=HOW"
   type       = "decision::DecisionWeightInternal"
   default    = "decision::DECISION_WEIGHT_INTERNAL_OFF"
   handler    = "stringToDecisionWeightInternal"
-  predicates = []
-  includes   = []
-  notifies   = []
-  links      = []
   read_only  = true
   help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"

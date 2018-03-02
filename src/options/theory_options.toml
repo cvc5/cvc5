@@ -6,15 +6,11 @@ header = "options/theory_options.h"
   name       = "theoryOfMode"
   smt_name   = "theoryof-mode"
   category   = "expert"
-  short      = ""
   long       = "theoryof-mode=MODE"
   type       = "CVC4::theory::TheoryOfMode"
   default    = "CVC4::theory::THEORY_OF_TYPE_BASED"
   handler    = "stringToTheoryOfMode"
-  predicates = []
   includes   = ["options/theoryof_mode.h"]
-  notifies   = []
-  links      = []
   read_only  = false
   help       = "mode for Theory::theoryof()"
 
@@ -22,14 +18,9 @@ header = "options/theory_options.h"
   name       = "useTheoryList"
   smt_name   = "use-theory"
   category   = "regular"
-  short      = ""
   long       = "use-theory=NAME"
   type       = "std::string"
-  default    = ""
   handler    = "handleUseTheoryList"
-  predicates = []
-  includes   = []
   notifies   = ["notifyUseTheoryList"]
-  links      = []
   read_only  = true
   help       = "use alternate theory implementation NAME (--use-theory=help for a list). This option may be repeated or a comma separated list."
