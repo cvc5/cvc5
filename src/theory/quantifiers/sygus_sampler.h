@@ -153,7 +153,8 @@ class SygusSampler : public LazyTrieEvaluator
    * nsamples : number of sample points this class will test,
    * useSygusType : whether we will register terms with this sampler that have
    * the same type as f. If this flag is false, then we will be registering
-   * terms of the analog of the type of f.
+   * terms of the analog of the type of f, that is, the builtin type that
+   * f's type encodes in the deep embedding.
    */
   void initializeSygus(TermDbSygus* tds,
                        Node f,
