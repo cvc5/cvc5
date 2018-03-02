@@ -620,29 +620,34 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         if (its == d_sampler.end())
         {
           d_sampler[prog].initializeSygusExt(
-              d_qe, prog, options::sygusSamples());
+              d_qe, prog, options::sygusSamples(), true);
           its = d_sampler.find(prog);
         }
-        Node solb = sygusDb->sygusToBuiltin(sol, prog.getType());
-        Node eq_sol = its->second.registerTerm(solb);
+        Node eq_sol = its->second.registerTerm(sol);
         // eq_sol is a candidate solution that is equivalent to sol
-        if (eq_sol != solb)
+        if (eq_sol != sol)
         {
           ++(cei->d_statistics.d_candidate_rewrites);
           if (!eq_sol.isNull())
           {
-            // Terms solb and eq_sol are equivalent under sample points but do
-            // not rewrite to the same term. Hence, this indicates a candidate
-            // rewrite.
-            out << "(candidate-rewrite " << solb << " " << eq_sol << ")"
-                << std::endl;
+            // The analog of terms sol and eq_sol are equivalent under sample 
+            // points but do not rewrite to the same term. Hence, this indicates
+            // a candidatr rewrite.
+            Printer * p = Printer::getPrinter(options::outputLanguage());
+            out << "(candidate-rewrite ";
+            p->toStreamSygus(out, sol);
+            out << " ";
+            p->toStreamSygus(out, eq_sol);
+            out << ")" << std::endl;
             ++(cei->d_statistics.d_candidate_rewrites_print);
             // debugging information
             if (Trace.isOn("sygus-rr-debug"))
             {
               ExtendedRewriter* er = sygusDb->getExtRewriter();
+              Node solb = sygusDb->sygusToBuiltin( sol );
               Node solbr = er->extendedRewrite(solb);
-              Node eq_solr = er->extendedRewrite(eq_sol);
+              Node eq_solb = sygusDb->sygusToBuiltin( eq_sol );
+              Node eq_solr = er->extendedRewrite(eq_solb);
               Trace("sygus-rr-debug")
                   << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
               Trace("sygus-rr-debug")
