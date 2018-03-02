@@ -632,7 +632,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           {
             // The analog of terms sol and eq_sol are equivalent under sample
             // points but do not rewrite to the same term. Hence, this indicates
-            // a candidatr rewrite.
+            // a candidate rewrite.
             Printer* p = Printer::getPrinter(options::outputLanguage());
             out << "(candidate-rewrite ";
             p->toStreamSygus(out, sol);
