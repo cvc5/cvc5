@@ -56,8 +56,8 @@ class Cegis : public SygusModule
                                    const std::vector<Node>& candidates,
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems) override;
-  /** register refinement lemma 
-   * 
+  /** register refinement lemma
+   *
    * This function stores lem as a refinement lemma, and adds it to lems.
    */
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
