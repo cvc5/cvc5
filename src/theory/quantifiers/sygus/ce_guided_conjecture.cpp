@@ -319,7 +319,8 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       d_ce_sk.push_back(Node::null());
     }
   }
-  if( !lem.isNull() ){
+  if (!lem.isNull())
+  {
     lem = Rewriter::rewrite( lem );
     //eagerly unfold applications of evaluation function
     if( options::sygusDirectEval() ){
@@ -342,7 +343,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       // This is the "verification lemma", which states
       // either this conjecture does not have a solution, or candidate_values
       // is a solution for this conjecture.
-      lem = nm->mkNode(OR, d_quant.negate(), lem );
+      lem = nm->mkNode(OR, d_quant.negate(), lem);
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
     }
