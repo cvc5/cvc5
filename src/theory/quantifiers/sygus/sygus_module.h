@@ -104,8 +104,13 @@ class SygusModule
    * under this substitution. In particular, in the above example, this function
    * is called when the refinement lemma P( v, cex ) has a model M. In calls to
    * this function, the argument vars is cex and lem is P( k, cex^M ).
+   * 
+   * This function may also add lemmas to lems, which are sent out as lemmas
+   * on the output channel of quantifiers by the caller. For an example of
+   * such lemmas, see Cegis::registerRefinementLemma.
    */
-  virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+  virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem,
+                                   std::vector<Node>& lems)
   {
   }
 

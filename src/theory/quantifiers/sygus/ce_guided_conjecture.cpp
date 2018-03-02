@@ -383,11 +383,7 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
 
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
   base_lem = Rewriter::rewrite( base_lem );
-  d_master->registerRefinementLemma(sk_vars, base_lem);
-
-  Node lem =
-      NodeManager::currentNM()->mkNode(OR, getGuard().negate(), base_lem);
-  lems.push_back( lem );
+  d_master->registerRefinementLemma(sk_vars, base_lem, lems);
 
   d_ce_sk.clear();
 }
