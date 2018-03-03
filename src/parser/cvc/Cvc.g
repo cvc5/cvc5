@@ -82,7 +82,6 @@ tokens {
   CONTINUE_TOK = 'CONTINUE';
   RESTART_TOK = 'RESTART';
   RECURSIVE_FUNCTION_TOK = 'REC-FUN';
-  RECURSIVE_FUNCTIONS_TOK = 'REC-FUNS';
   /* operators */
 
   AND_TOK = 'AND';
@@ -702,9 +701,9 @@ options { backtrack = true; }
 mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   DeclarationCheck check;
-  Expr f;
+  Expr f,f2;
   SExpr sexpr;
-  std::string id;
+  std::string id,id2;
   Type t,t2,t3;
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
@@ -714,15 +713,14 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   Type& t1 = t;
   Expr& f1 = f;
   std::string& id1 = id;
-  std::vector<Expr> terms;
-  std::vector<Type> types;
   Expr func;
-  std::vector<Expr> flattenVars;
   std::vector<Expr> bvs;
-  std::vector<std::string> ids,ids2;
-  std::vector<std::pair<std::string, Type>> typeIds;
-  std::vector<Type> args;
-  Type range;
+  std::vector<Expr> bvs2;
+  std::vector<Expr> funcs;
+  std::vector<Expr> formulas;
+  std::vector<std::vector<Expr>> formals;
+  std::vector<std::string> ids;
+  std::vector<CVC4::Type> types;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -902,25 +900,77 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   REC-FUN is-even : (INT) -> INT, is-odd : (INT) -> INT =
   LAMBDA (x : INT): IF (x = 0) THEN 1 ELSE (IF (is-odd(x - 1) = 0) THEN 1 ELSE 0 ENDIF) ENDIF,
   LAMBDA (y : INT): IF (y = 0) THEN 0 ELSE (IF (is-even(y - 1) = 0) THEN 1 ELSE 0 ENDIF) ENDIF;
-  */
-  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] EQUAL_TOK 
-  {
-    func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
-  }
-  formula[f]
-  {
-    if(!f.getType().isSubtypeOf(t)){
-      PARSER_STATE->parseError("Type mismatch in definition");
+  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
+    EQUAL_TOK 
+    {
+      func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
     }
-    if( f.getKind()==kind::LAMBDA ){
-      for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
-      {
-        bvs.push_back( f[0][i] );
+    formula[f] 
+    {
+      if(!f.getType().isSubtypeOf(t)){
+        PARSER_STATE->parseError("Type mismatch in definition");
       }
-      f = f[1];
+      if( f.getKind()==kind::LAMBDA ){
+        for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
+        {
+          bvs.push_back( f[0][i] );
+        }
+        f = f[1];
+      }
+      cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
+    }*/
+  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
+    {
+      func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
+      ids.push_back(id);
+      types.push_back(t);
+      funcs.push_back(func);
     }
-    cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
-  }
+    (COMMA identifier[id2,CHECK_NONE,SYM_VARIABLE] COLON type[t2,CHECK_DECLARED])*
+    {
+      ids.push_back(id2);
+      types.push_back(t2);
+      func = PARSER_STATE->mkVar(id2, t2, ExprManager::VAR_FLAG_NONE, true);
+      funcs.push_back(func);
+    }
+    EQUAL_TOK formula[f]
+    {
+      if(!f.getType().isSubtypeOf(t)){
+        PARSER_STATE->parseError("Type mismatch in definition");
+      }
+      if( f.getKind()==kind::LAMBDA ){
+        for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
+        {
+          bvs.push_back( f[0][i] );
+        }
+        formals.push_back(bvs);
+        f = f[1];
+        formulas.push_back(f);
+      }
+    }
+    (COMMA formula[f2])*
+    {
+      std::cout<<"In the * case.\n";
+      for( unsigned i=0,size=f2[0].getNumChildren(); i<size; i++)
+      {
+        bvs2.push_back( f2[0][i] );
+      }
+      formals.push_back(bvs2);
+      bvs2.clear();
+      f2 = f2[1];
+      formulas.push_back(f2);
+    }
+    {
+      std::cout<<"funcs.size() = "<<funcs.size();
+      std::cout<<"\nformals.size() = "<<formals.size();
+      std::cout<<"\nformulas.size() = "<<formulas.size()<<"\n";
+      if((funcs.size()!=formals.size())||
+         (formals.size()!=formulas.size())||
+         (funcs.size()!=formulas.size())){
+        PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
+      }
+      cmd->reset(new DefineFunctionRecCommand(funcs,formals,formulas));
+    }
   | toplevelDeclaration[cmd]
   ;
 
