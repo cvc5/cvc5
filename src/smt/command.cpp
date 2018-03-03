@@ -346,6 +346,7 @@ Command* PopCommand::exportTo(ExprManager* exprManager,
 
 Command* PopCommand::clone() const { return new PopCommand(); }
 std::string PopCommand::getCommandName() const { return "pop"; }
+
 /* class CheckSatCommand */
 
 CheckSatCommand::CheckSatCommand() : d_expr() {}
@@ -398,6 +399,85 @@ Command* CheckSatCommand::clone() const
 }
 
 std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
+
+/* class CheckSatAssumingCommand */
+
+CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms()
+{
+  d_terms.push_back(term);
+}
+
+CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms,
+                                                 bool inUnsatCore)
+    : d_terms(terms), d_inUnsatCore(inUnsatCore)
+{
+  PrettyCheckArgument(
+      terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
+}
+
+const std::vector<Expr>& CheckSatAssumingCommand::getTerms() const
+{
+  return d_terms;
+}
+
+void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    d_result = smtEngine->checkSat(d_terms);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Result CheckSatAssumingCommand::getResult() const
+{
+  return d_result;
+}
+
+void CheckSatAssumingCommand::printResult(std::ostream& out,
+                                          uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    out << d_result << endl;
+  }
+}
+
+Command* CheckSatAssumingCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  vector<Expr> exportedTerms;
+  for (const Expr& e : d_terms)
+  {
+    exportedTerms.push_back(e.exportTo(exprManager, variableMap));
+  }
+  CheckSatAssumingCommand* c =
+      new CheckSatAssumingCommand(exportedTerms, d_inUnsatCore);
+  c->d_result = d_result;
+  return c;
+}
+
+Command* CheckSatAssumingCommand::clone() const
+{
+  CheckSatAssumingCommand* c =
+      new CheckSatAssumingCommand(d_terms, d_inUnsatCore);
+  c->d_result = d_result;
+  return c;
+}
+
+std::string CheckSatAssumingCommand::getCommandName() const
+{
+  return "check-sat-assuming";
+}
+
 /* class QueryCommand */
 
 QueryCommand::QueryCommand(const Expr& e, bool inUnsatCore)
@@ -979,7 +1059,7 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
     const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr> >& formals,
+    const std::vector<std::vector<Expr>>& formals,
     const std::vector<Expr>& formulas)
 {
   d_funcs.insert(d_funcs.end(), funcs.begin(), funcs.end());
@@ -992,7 +1072,7 @@ const std::vector<Expr>& DefineFunctionRecCommand::getFunctions() const
   return d_funcs;
 }
 
-const std::vector<std::vector<Expr> >& DefineFunctionRecCommand::getFormals()
+const std::vector<std::vector<Expr>>& DefineFunctionRecCommand::getFormals()
     const
 {
   return d_formals;
@@ -1026,7 +1106,7 @@ Command* DefineFunctionRecCommand::exportTo(
         exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
     funcs.push_back(func);
   }
-  std::vector<std::vector<Expr> > formals;
+  std::vector<std::vector<Expr>> formals;
   for (unsigned i = 0, size = d_formals.size(); i < size; i++)
   {
     std::vector<Expr> formals_c;
@@ -1240,15 +1320,13 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     vector<Expr> result;
     ExprManager* em = smtEngine->getExprManager();
     NodeManager* nm = NodeManager::fromExprManager(em);
-    for (std::vector<Expr>::const_iterator i = d_terms.begin();
-         i != d_terms.end();
-         ++i)
+    for (const Expr& e : d_terms)
     {
-      Assert(nm == NodeManager::fromExprManager((*i).getExprManager()));
+      Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
       smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(
-          options::expandDefinitions() ? smtEngine->expandDefinitions(*i) : *i);
-      Node value = Node::fromExpr(smtEngine->getValue(*i));
+          options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
+      Node value = Node::fromExpr(smtEngine->getValue(e));
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
         // Need to wrap in special marker so that output printers know this
@@ -1321,7 +1399,7 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    std::vector<std::pair<Expr,Expr>> assignments  = smtEngine->getAssignment();
+    std::vector<std::pair<Expr, Expr>> assignments = smtEngine->getAssignment();
     vector<SExpr> sexprs;
     for (const auto& p : assignments)
     {
@@ -2382,4 +2460,4 @@ std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
   }
 }
 
-} /* CVC4 namespace */
+}  // namespace CVC4

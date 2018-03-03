@@ -141,6 +141,16 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out, const Expr& e) CVC4_PUBLIC;
 
+/**
+ * Serialize a vector of expressions to given stream.
+ *
+ * @param out the output stream to use
+ * @param container the vector of expressions to output to the stream
+ * @return the stream
+ */
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<Expr>& container) CVC4_PUBLIC;
+
 // for hash_maps, hash_sets..
 struct ExprHashFunction {
   size_t operator()(CVC4::Expr e) const;

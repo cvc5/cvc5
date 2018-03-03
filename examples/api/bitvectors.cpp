@@ -107,5 +107,10 @@ int main() {
   cout << " Expect valid. " << endl;
   cout << " CVC4: " << smt.query(new_x_eq_new_x_) << endl;
 
+  Expr x_neq_x = em.mkExpr(kind::EQUAL, x, x).notExpr();
+  std::vector<Expr> v{new_x_eq_new_x_, x_neq_x};
+  cout << " Querying: " << v << endl;
+  cout << " Expect invalid. " << endl;
+  cout << " CVC4: " << smt.query(v) << endl;
   return 0;
 }

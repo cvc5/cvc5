@@ -565,6 +565,28 @@ class CVC4_PUBLIC CheckSatCommand : public Command
   std::string getCommandName() const override;
 }; /* class CheckSatCommand */
 
+class CVC4_PUBLIC CheckSatAssumingCommand : public Command
+{
+ protected:
+  std::vector<Expr> d_terms;
+  Result d_result;
+  bool d_inUnsatCore;
+
+ public:
+  CheckSatAssumingCommand(Expr term);
+  CheckSatAssumingCommand(const std::vector<Expr>& terms,
+                          bool inUnsatCore = true);
+
+  const std::vector<Expr>& getTerms() const;
+  Result getResult() const;
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class CheckSatAssumingCommand */
+
 class CVC4_PUBLIC QueryCommand : public Command
 {
  protected:

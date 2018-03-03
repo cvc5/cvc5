@@ -54,6 +54,12 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
   }
 }
 
+std::ostream& operator<<(std::ostream& out, const std::vector<Expr>& container)
+{
+  nodeContainerToOut(out, container);
+  return out;
+}
+
 TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
     : Exception(t.d_msg), d_expr(new Expr(t.getExpression()))
 {

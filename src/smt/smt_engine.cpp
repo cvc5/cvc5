@@ -4683,22 +4683,47 @@ void SmtEngine::ensureBoolean(const Expr& e)
 Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore)
 {
   return checkSatisfiability(ex, inUnsatCore, false);
-} /* SmtEngine::checkSat() */
+}
+
+Result SmtEngine::checkSat(const vector<Expr>& exprs, bool inUnsatCore)
+{
+  return checkSatisfiability(exprs, inUnsatCore, false);
+}
 
 Result SmtEngine::query(const Expr& ex, bool inUnsatCore)
 {
   Assert(!ex.isNull());
   return checkSatisfiability(ex, inUnsatCore, true);
-} /* SmtEngine::query() */
+}
 
-Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQuery) {
-  try {
-    Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
+Result SmtEngine::query(const vector<Expr>& exprs, bool inUnsatCore)
+{
+  return checkSatisfiability(exprs, inUnsatCore, true);
+}
+
+Result SmtEngine::checkSatisfiability(const Expr& expr,
+                                      bool inUnsatCore,
+                                      bool isQuery)
+{
+  vector<Expr> v; v.push_back(expr);
+  return checkSatisfiability(
+      expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
+      inUnsatCore,
+      isQuery);
+}
+
+Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
+                                      bool inUnsatCore,
+                                      bool isQuery)
+{
+  try
+  {
     SmtScope smts(this);
     finalOptionsAreSet();
     doPendingPops();
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "(" << ex << ")" << endl;
+    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+                 << exprs << ")" << endl;
 
     if(d_queryMade && !options::incrementalSolving()) {
       throw ModalException("Cannot make multiple queries unless "
@@ -4706,42 +4731,63 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
                            "(try --incremental)");
     }
 
-    Expr e;
-    if(!ex.isNull()) {
-      // Substitute out any abstract values in ex.
-      e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-      // Ensure expr is type-checked at this point.
-      ensureBoolean(e);
-    }
-
     // check to see if a postsolve() is pending
     if(d_needPostsolve) {
       d_theoryEngine->postsolve();
       d_needPostsolve = false;
     }
-
     // Note that a query has been made
     d_queryMade = true;
-
     // reset global negation
     d_globalNegation = false;
 
     bool didInternalPush = false;
-    // Add the formula
-    if(!e.isNull()) {
-      // Push the context
-      internalPush();
-      didInternalPush = true;
 
-      d_problemExtended = true;
-      Expr ea = isQuery ? e.notExpr() : e;
-      if(d_assertionList != NULL) {
-        d_assertionList->push_back(ea);
+    vector<Expr> t_exprs;
+    if (isQuery)
+    {
+      size_t size = exprs.size();
+      if (size > 1)
+      {
+        /* Assume: not (BIGAND exprs)  */
+        vector<Expr> tmp;
+        for (const Expr& e : exprs)
+        {
+          tmp.push_back(e.notExpr());
+        }
+        t_exprs.push_back(d_exprManager->mkExpr(kind::OR, tmp));
       }
-      d_private->addFormula(ea.getNode(), inUnsatCore);
+      else if (size == 1)
+      {
+        /* Assume: not expr  */
+        t_exprs.push_back(exprs[0].notExpr());
+      }
+    }
+    else
+    {
+      /* Assume: BIGAND exprs  */
+      t_exprs = exprs;
     }
 
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    for (Expr e : t_exprs)
+    {
+      // Substitute out any abstract values in ex.
+      e = d_private->substituteAbstractValues(Node::fromExpr(e)).toExpr();
+      Assert(e.getExprManager() == d_exprManager);
+      // Ensure expr is type-checked at this point.
+      ensureBoolean(e);
+
+      /* Add assumption  */
+      internalPush();
+      didInternalPush = true;
+      d_problemExtended = true;
+      if(d_assertionList != NULL) {
+        d_assertionList->push_back(e);
+      }
+      d_private->addFormula(e.getNode(), inUnsatCore);
+    }
+
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
 
     if ( ( options::solveRealAsInt() || options::solveIntAsBV() > 0 ) && r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
@@ -4773,12 +4819,16 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     d_needPostsolve = true;
 
     // Dump the query if requested
-    if(Dump.isOn("benchmark")) {
+    if (Dump.isOn("benchmark"))
+    {
       // the expr already got dumped out if assertion-dumping is on
-      if( isQuery ){
-        Dump("benchmark") << QueryCommand(ex);
-      }else{
-        Dump("benchmark") << CheckSatCommand(ex);
+      if (isQuery && exprs.size() == 1)
+      {
+        Dump("benchmark") << QueryCommand(exprs[0]);
+      }
+      else
+      {
+        Dump("benchmark") << CheckSatAssumingCommand(t_exprs, inUnsatCore);
       }
     }
 
@@ -4793,7 +4843,8 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
 
     d_problemExtended = false;
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "(" << e << ") => " << r << endl;
+    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+                 << exprs << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
