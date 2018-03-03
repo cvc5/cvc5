@@ -4782,7 +4782,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
       internalPush();
       didInternalPush = true;
       d_problemExtended = true;
-      if(d_assertionList != NULL) {
+      if (d_assertionList != NULL)
+      {
         d_assertionList->push_back(e);
       }
       d_private->addFormula(e.getNode(), inUnsatCore);
@@ -4790,7 +4791,9 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
 
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
 
-    if ( ( options::solveRealAsInt() || options::solveIntAsBV() > 0 ) && r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
     // flipped if we did a global negation
