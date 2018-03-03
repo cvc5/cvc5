@@ -20,22 +20,17 @@
 #include <string>
 #include <vector>
 
-#include "expr/datatype.h"
-#include "expr/node.h"
-#include "expr/type.h"
-#include "expr/type_node.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/sygus/sygus_module.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Synthesizes invariants
+/** Synthesizes invariants in a "by-examples" approach
  *
- * The primary approach consists of successively strengthening and weakining
- * candidate invariants based on counterexamples produced while verifying
- * that a candidate invariant satisfies the constraints
+ * Successively performs strengthening and weakining of candidate invariants
+ * based on counterexamples produced while verifying that a candidate invariant
+ * satisfies the constraints
  *
  * Synthesis is used for deriving "features", atomic expressions that are used
  * to separate "good", "bad", and "conditional" valuations to the state
@@ -52,25 +47,53 @@ namespace quantifiers {
  * independent of the candidate being derived, while conditional points are
  * those in which an specific candidate went from good points to bad points .
  *
- * This appoarch is inspired by Padhi et al. PLDI 2016
+ * This approach is inspired by Padhi et al. PLDI 2016
  */
-class InvBE
+class InvBE : public SygusModule
 {
  public:
-  InvBE(QuantifiersEngine* qe)
-      : d_qe(qe)
-  {
-  }
+  InvBE(QuantifiersEngine* qe, CegConjecture* p) : SygusModule(qe, p) {}
   ~InvBE() {}
+  /** initialize this class
+   *
+   * If n can be broken into an invariant synthesis problem, i.e. some processed
+   * form equisatisfiable to
+   *
+   *     Pre(x) => Inv(x)
+   * &&  Inv(x) && Trans(x, x') => Inv(x')
+   * &&  Inv(x) => Pos(x)
+   *
+   * then this module takes onwership of the conjecture.
 
-  /** initialize this class */
-  void initialize(Node n);
+ */
+  virtual void initialize(Node n,
+                          const std::vector<Node>& candidates,
+                          std::vector<Node>& lemmas) override;
+  /** get term list */
+  virtual void getTermList(const std::vector<Node>& candidates,
+                           std::vector<Node>& enums) override;
+  /** construct candidate */
+  virtual bool constructCandidates(const std::vector<Node>& enums,
+                                   const std::vector<Node>& enum_values,
+                                   const std::vector<Node>& candidates,
+                                   std::vector<Node>& candidate_values,
+                                   std::vector<Node>& lems) override;
+
+  /** register refinement lemma
+   *
+   * Performs conflict analysis to obtain the counterexamples to guide invariant
+   * synthesis
+   *
+   * This function does not modify lems since it does not require solutions to
+   * be blocked externally */
+  virtual void registerRefinementLemma(const std::vector<Node>& vars,
+                                       Node lem,
+                                       std::vector<Node>& lems) override;
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
 
-}; /* class InvSynth */
+
+}; /* class InvBE */
 
 }  // namespace quantifiers
 }  // namespace theory
