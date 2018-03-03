@@ -1533,7 +1533,7 @@ static void toStream(std::ostream& out, const QueryCommand* c, Variant v)
     }
     else
     {
-      out << CheckSatAssumingCommand({e.notExpr()}) << endl;
+      out << CheckSatAssumingCommand(e.notExpr()) << endl;
     }
   } else {
     out << "(check-sat)";
