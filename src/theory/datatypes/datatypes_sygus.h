@@ -128,7 +128,12 @@ private:
   std::map<Node, std::map<TypeNode, quantifiers::SygusSampler>> d_sampler;
   /** Assert tester internal 
    * 
-   * TODO
+   * This function is called when the tester with index tindex is asserted for
+   * n, exp is the tester predicate. For example, for grammar:
+   *   A -> A+A | x | 1 | 0
+   * when is_+( d ) is asserted, assertTesterInternal(0, d, is_+( d ),...) is
+   * called. This function may add lemmas to lemmas, which are sent out on the
+   * output channel of datatypes by the caller.
    */
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
   /** Register search term
