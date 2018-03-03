@@ -21,7 +21,6 @@
 
 ${headers_module}$
 
-#line ${line}$ "${template}$"
 
 namespace CVC4 {
 namespace options {
@@ -30,7 +29,6 @@ struct OptionsHolder {
   OptionsHolder();
 ${macros_module}$
 
-#line ${line}$ "${template}$"
 
 };/* struct OptionsHolder */
 

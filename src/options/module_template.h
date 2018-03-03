@@ -24,11 +24,9 @@
 
 ${includes}$
 
-#line ${line}$ "${template}$"
 
 ${holder_spec}$
 
-#line ${line}$ "${template}$"
 
 namespace CVC4 {
 
@@ -36,19 +34,16 @@ namespace options {
 
 ${decls}$
 
-#line ${line}$ "${template}$"
 
 }  // namespace options
 
 ${specs}$
 
-#line ${line}$ "${template}$"
 
 namespace options {
 
 ${inls}$
 
-#line ${line}$ "${template}$"
 
 }  // namespace options
 }  // namespace CVC4

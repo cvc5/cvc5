@@ -60,7 +60,6 @@ extern int optreset;
 
 ${headers_module}$
 
-#line ${line}$ "${template}$"
 
 #include "options/options_holder.h"
 #include "cvc4autoconfig.h"
@@ -68,7 +67,6 @@ ${headers_module}$
 
 ${headers_handler}$
 
-#line ${line}$ "${template}$"
 
 using namespace CVC4;
 using namespace CVC4::options;
@@ -390,7 +388,6 @@ Options::registerSetReplayLogFilename(
 
 ${custom_handlers}$
 
-#line ${line}$ "${template}$"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
@@ -409,20 +406,17 @@ options::OptionsHolder::OptionsHolder() :
 {
 }
 
-#line ${line}$ "${template}$"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:\n"
 ${help_common}$;
 
-#line ${line}$ "${template}$"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:\n"
 ${help_others}$;
 
-#line ${line}$ "${template}$"
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -504,7 +498,6 @@ static struct option cmdlineOptions[] = {
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line ${line}$ "${template}$"
 
 // static void preemptGetopt(int& argc, char**& argv, const char* opt) {
 
@@ -727,7 +720,6 @@ void Options::parseOptionsRecursive(Options* options,
     switch(c) {
 ${options_handler}$
 
-#line ${line}$ "${template}$"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -806,7 +798,6 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName)
 
 static const char* smtOptions[] = {
   ${options_smt}$
-#line ${line}$ "${template}$"
   NULL
 };/* smtOptions[] */
 
@@ -831,7 +822,6 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 
   ${options_getoptions}$
 
-#line ${line}$ "${template}$"
 
   return opts;
 }
@@ -845,7 +835,6 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
 
   ${setoption_handlers}$
 
-#line ${line}$ "${template}$"
 
   throw UnrecognizedOptionException(key);
 }
@@ -856,7 +845,6 @@ std::string Options::getOption(const std::string& key) const
 
   ${getoption_handlers}$
 
-#line ${line}$ "${template}$"
 
   throw UnrecognizedOptionException(key);
 }

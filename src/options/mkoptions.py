@@ -276,8 +276,6 @@ def write_file(directory, name, s):
 # code/documentation via format. Hence, we have to escape curly braces. All
 # placeholder variables in the template files are enclosed in ${placeholer}$
 # and will be {placeholder} in the returned string.
-# This also inserts the correct template name and the line numbers for the
-# preprocessor #line directives.
 def read_tpl(directory, name):
     fname = '{}/{}'.format(directory, name)
     try:
@@ -292,14 +290,7 @@ def read_tpl(directory, name):
             contents = \
                 f.read().replace('{', '{{').replace('}', '}}').\
                          replace('${', '').replace('}$', '')
-
-            # Insert correct line numbers and template name
-            lines = contents.split('\n')
-            for i in range(len(lines)):
-                if lines[i].startswith('#line'):
-                    lines[i] = lines[i].format(line=i + 2, template=name)
-
-            return '\n'.join(lines)
+            return contents
 
 
 # Lookup option by long option name. The function returns a tuple of

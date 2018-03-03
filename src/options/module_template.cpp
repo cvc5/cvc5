@@ -21,13 +21,11 @@ namespace CVC4 {
 
 ${accs}$
 
-#line ${line}$ "${template}$"
 
 namespace options {
 
 ${defs}$
 
-#line ${line}$ "${template}$"
 
 }  // namespace options
 }  // namespace CVC4
