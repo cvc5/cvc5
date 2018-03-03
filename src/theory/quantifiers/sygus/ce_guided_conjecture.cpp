@@ -43,6 +43,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
+      d_ceg_invbe(new InvBE(qe, this)),
       d_master(nullptr),
       d_refine_count(0),
       d_syntax_guided(false)
