@@ -30,6 +30,7 @@
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -151,7 +152,13 @@ private:
   /** Register search value 
    * 
    * This function is called when a selector chain n has been assigned a model
-   * value nv.
+   * value nv. This function calls itself recursively so that extensions of the
+   * selector chain n are registered with all the subterms of nv. For example,
+   * if we call this function with:
+   *   n = x, nv = +( 1(), x() )
+   * we make recursive calls with:
+   *   n = x.1, nv = 1() and n = x.2, nv = x()
+   * 
    * a : the anchor of n,
    * d : the depth of n.
    * 
@@ -159,7 +166,7 @@ private:
    * any previously registered search values for anchor a. If so, we construct
    * a symmetry breaking lemma template and register it in d_cache[a]. For
    * example, for grammar:
-   *   A -> A+A | x | 0
+   *   A -> A+A | x | 1 | 0
    * Registering search value d -> x followed by d -> +( x, 0 ) results in the
    * construction of the symmetry breaking lemma template:
    *   ~is_+( z ) V ~is_x( z.1 ) V ~is_0( z.2 )
@@ -169,6 +176,23 @@ private:
    * described in Reynolds et al SYNT 2017.
    */
   bool registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
+  /** Add symmetry breaking lemma for value 
+   * 
+   * This function adds a symmetry breaking lemma template for selector chains 
+   * with anchor a, that effectively states that val should never be a subterm
+   * of any value for a.
+   * 
+   * et : an "invariance test" (see sygus/sygus_invariance.h) which states a
+   * criteria that val meets that is the reason for its exclusion. This is used
+   * for generalizing the symmetry breaking lemma template.
+   * valr : if non-null, this states a value that should *not* be excluded by
+   * the symmetry breaking lemma template, which is a restriction to the above
+   * generalization.
+   * 
+   * This function may add instances of the symmetry breaking template for 
+   * existing search terms, which are added to lemmas.
+   */
+  void addSymBreakLemmaForValue( Node a, Node val, quantifiers::SygusInvarianceTest& et, Node valr, std::vector< Node >& lemmas );
   /** Register symmetry breaking lemma
    * 
    * This function adds the symmetry breaking lemma template lem for terms of 
@@ -184,7 +208,7 @@ private:
    *   ~is_+( z ) V ~is_+( z.1 ) has size 2
    */
   void registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas );
-  void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node e, std::vector< Node >& lemmas );
+  void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node a, std::vector< Node >& lemmas );
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
   /** add symmetry breaking lemma 
    * 
