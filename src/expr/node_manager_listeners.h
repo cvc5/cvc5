@@ -28,7 +28,7 @@ namespace expr {
 class TlimitListener : public Listener {
  public:
   TlimitListener(ResourceManager* rm) : d_rm(rm) {}
-  virtual void notify();
+  void notify() override;
  private:
   ResourceManager* d_rm;
 };
@@ -36,7 +36,7 @@ class TlimitListener : public Listener {
 class TlimitPerListener : public Listener {
  public:
   TlimitPerListener(ResourceManager* rm) : d_rm(rm) {}
-  virtual void notify();
+  void notify() override;
  private:
   ResourceManager* d_rm;
 };
@@ -44,7 +44,7 @@ class TlimitPerListener : public Listener {
 class RlimitListener : public Listener {
  public:
   RlimitListener(ResourceManager* rm) : d_rm(rm) {}
-  virtual void notify();
+  void notify() override;
  private:
   ResourceManager* d_rm;
 };
@@ -52,7 +52,7 @@ class RlimitListener : public Listener {
 class RlimitPerListener : public Listener {
  public:
   RlimitPerListener(ResourceManager* rm) : d_rm(rm) {}
-  virtual void notify();
+  void notify() override;
  private:
   ResourceManager* d_rm;
 };

@@ -39,43 +39,46 @@ public:
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
-  void initialize(context::Context* context, TheoryProxy* theoryProxy);
+  void initialize(context::Context* context, TheoryProxy* theoryProxy) override;
 
-  ClauseId addClause(SatClause& clause, bool removable);
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
+  ClauseId addClause(SatClause& clause, bool removable) override;
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  {
     Unreachable("Minisat does not support native XOR reasoning");
   }
 
-  SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
-  SatVariable trueVar() { return d_minisat->trueVar(); }
-  SatVariable falseVar() { return d_minisat->falseVar(); }
+  SatVariable newVar(bool isTheoryAtom,
+                     bool preRegister,
+                     bool canErase) override;
+  SatVariable trueVar() override { return d_minisat->trueVar(); }
+  SatVariable falseVar() override { return d_minisat->falseVar(); }
 
-  SatValue solve();
-  SatValue solve(long unsigned int&);
+  SatValue solve() override;
+  SatValue solve(long unsigned int&) override;
 
-  bool ok() const;
+  bool ok() const override;
   
-  void interrupt();
+  void interrupt() override;
 
-  SatValue value(SatLiteral l);
+  SatValue value(SatLiteral l) override;
 
-  SatValue modelValue(SatLiteral l);
+  SatValue modelValue(SatLiteral l) override;
 
-  bool properExplanation(SatLiteral lit, SatLiteral expl) const;
+  bool properExplanation(SatLiteral lit, SatLiteral expl) const override;
 
   /** Incremental interface */
 
-  unsigned getAssertionLevel() const;
+  unsigned getAssertionLevel() const override;
 
-  void push();
+  void push() override;
 
-  void pop();
+  void pop() override;
 
-  void requirePhase(SatLiteral lit);
+  void requirePhase(SatLiteral lit) override;
 
-  bool flipDecision();
+  bool flipDecision() override;
 
-  bool isDecision(SatVariable decn) const;
+  bool isDecision(SatVariable decn) const override;
 
 private:
 

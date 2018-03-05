@@ -76,7 +76,7 @@ private:
   class CacheInvalidator : public context::ContextNotifyObj {
     bool& d_cacheInvalidated;
   protected:
-    void contextNotifyPop() {
+    void contextNotifyPop() override {
       d_cacheInvalidated = true;
     }
   public:

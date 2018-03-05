@@ -203,7 +203,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   std::vector<std::pair<TermId, InequalityEdge> > d_undoStack;
   context::CDO<unsigned> d_undoStackIndex; 
   
-  void contextNotifyPop() {
+  void contextNotifyPop() override {
     backtrack();
   }
 

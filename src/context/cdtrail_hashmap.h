@@ -394,7 +394,7 @@ private:
    * the current sizes to a copy using the copy constructor,
    * The saved information is allocated using the ContextMemoryManager.
    */
-  ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override {
     ContextObj* data = new(pCMM) CDTrailHashMap<Key, Data, HashFcn>(*this);
     Debug("CDTrailHashMap") << "save " << this
                             << " at level " << this->getContext()->getLevel()
@@ -409,7 +409,7 @@ protected:
    * restores the previous size.  Note that the list pointer and the
    * allocated size are not changed.
    */
-  void restore(ContextObj* data) {
+  void restore(ContextObj* data) override {
     Debug("CDTrailHashMap") << "restore " << this
                             << " level " << this->getContext()->getLevel()
                             << " data == " << data

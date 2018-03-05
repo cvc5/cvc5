@@ -277,7 +277,7 @@ class TheoryArrays : public Theory {
   public:
     NotifyClass(TheoryArrays& arrays): d_arrays(arrays) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
@@ -287,7 +287,7 @@ class TheoryArrays : public Theory {
       }
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
@@ -297,7 +297,7 @@ class TheoryArrays : public Theory {
       }
     }
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) override {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         if (t1.getType().isArray()) {
@@ -318,19 +318,19 @@ class TheoryArrays : public Theory {
       return true;
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) { }
-    void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) {
+    void eqNotifyNewClass(TNode t) override { }
+    void eqNotifyPreMerge(TNode t1, TNode t2) override { }
+    void eqNotifyPostMerge(TNode t1, TNode t2) override {
       if (t1.getType().isArray()) {
         d_arrays.mergeArrays(t1, t2);
       }
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override { }
   };
 
   /** The notify class for d_equalityEngine */
@@ -386,7 +386,7 @@ class TheoryArrays : public Theory {
     context::Context* d_satContext;
     context::Context* d_contextToPop;
   protected:
-    void contextNotifyPop() {
+    void contextNotifyPop() override {
       if (d_contextToPop->getLevel() > d_satContext->getLevel()) {
         d_contextToPop->pop();
       }

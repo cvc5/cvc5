@@ -138,13 +138,13 @@ public:
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
-  int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
+  int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) override;
 
   Node getFunctionValue(FirstOrderModelFmc * fm, Node op, const char* argPrefix );
 
   /** process build model */  
-  bool preProcessBuildModel(TheoryModel* m); 
-  bool processBuildModel(TheoryModel* m);
+  bool preProcessBuildModel(TheoryModel* m) override; 
+  bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
 };/* class FullModelChecker */

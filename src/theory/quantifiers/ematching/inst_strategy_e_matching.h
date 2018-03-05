@@ -40,8 +40,8 @@ private:
   /** counter for quantifiers */
   std::map< Node, int > d_counter;
   /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
+  void processResetInstantiationRound( Theory::Effort effort ) override;
+  int process( Node f, Theory::Effort effort, int e ) override;
 public:
   InstStrategyUserPatterns( QuantifiersEngine* ie ) :
       InstStrategy( ie ){}
@@ -54,7 +54,7 @@ public:
   /** get user pattern */
   inst::Trigger* getUserGenerator( Node q, int i ) { return d_user_gen[q][ i ]; }
   /** identify */
-  std::string identify() const { return std::string("UserPatterns"); }
+  std::string identify() const override { return std::string("UserPatterns"); }
 };/* class InstStrategyUserPatterns */
 
 class InstStrategyAutoGenTriggers : public InstStrategy {
@@ -89,8 +89,8 @@ private:
   std::map< Node, Node > d_pat_to_mpat;
 private:
   /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node q, Theory::Effort effort, int e );
+  void processResetInstantiationRound( Theory::Effort effort ) override;
+  int process( Node q, Theory::Effort effort, int e ) override;
   /** generate triggers */
   void generateTriggers( Node q );
   void addPatternToPool( Node q, Node pat, unsigned num_fv, Node mpat );
@@ -106,7 +106,10 @@ public:
   /** get auto-generated trigger */
   inst::Trigger* getAutoGenTrigger( Node q );
   /** identify */
-  std::string identify() const { return std::string("AutoGenTriggers"); }
+  std::string identify() const override
+  {
+    return std::string("AutoGenTriggers");
+  }
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */

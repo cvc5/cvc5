@@ -221,7 +221,7 @@ private:
    * restored on a pop).  The saved information is allocated using the
    * ContextMemoryManager.
    */
-  ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
     Debug("CDInsertHashMap") << "save " << this
                             << " at level " << this->getContext()->getLevel()
@@ -237,7 +237,7 @@ protected:
    * of new pushFront calls have happened since saving.
    * The d_insertMap is untouched and d_pushFronts is also kept.
    */
-  void restore(ContextObj* data) {
+  void restore(ContextObj* data) override {
     Debug("CDInsertHashMap") << "restore " << this
                             << " level " << this->getContext()->getLevel()
                             << " data == " << data

@@ -40,16 +40,16 @@ public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
   ~CegInstantiation();
 public:
-  bool needsCheck( Theory::Effort e );
-  QEffort needsModel(Theory::Effort e);
+  bool needsCheck( Theory::Effort e ) override;
+  QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
-  void check(Theory::Effort e, QEffort quant_e);
+  void check(Theory::Effort e, QEffort quant_e) override;
   /* Called for new quantifiers */
-  void registerQuantifier( Node q );
+  void registerQuantifier( Node q ) override;
   /** get the next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
+  Node getNextDecisionRequest( unsigned& priority ) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const { return "CegInstantiation"; }
+  std::string identify() const override { return "CegInstantiation"; }
   /** print solution for synthesis conjectures */
   void printSynthSolution( std::ostream& out );
   /** get synth solutions

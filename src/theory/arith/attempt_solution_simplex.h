@@ -67,7 +67,7 @@ public:
 
   Result::Sat attempt(const ApproximateSimplex::Solution& sol);
 
-  Result::Sat findModel(bool exactResult){
+  Result::Sat findModel(bool exactResult) override {
     Unreachable();
   }
 

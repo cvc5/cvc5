@@ -56,7 +56,7 @@ public:
   }
 
 
-  bool needIteSkolemMap() { return true; }
+  bool needIteSkolemMap() override { return true; }
 
   virtual void addAssertions(const std::vector<Node> &assertions,
                              unsigned assertionsEnd,

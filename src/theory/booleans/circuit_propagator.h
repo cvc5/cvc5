@@ -79,7 +79,7 @@ private:
   class DataClearer : context::ContextNotifyObj {
     T& d_data;
   protected:
-    void contextNotifyPop() {
+    void contextNotifyPop() override {
       Trace("circuit-prop") << "CircuitPropagator::DataClearer: clearing data "
                             << "(size was " << d_data.size() << ")" << std::endl;
       d_data.clear();
