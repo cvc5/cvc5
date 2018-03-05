@@ -135,7 +135,7 @@ class TheorySep : public Theory {
    public:
     NotifyClass(TheorySep& sep) : d_sep(sep) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value)
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
     {
       Debug("sep::propagate")
           << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", "
@@ -151,7 +151,7 @@ class TheorySep : public Theory {
       }
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value)
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Unreachable();
     }
@@ -159,7 +159,7 @@ class TheorySep : public Theory {
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,
-                                     bool value)
+                                     bool value) override
     {
       Debug("sep::propagate")
           << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2
@@ -176,23 +176,23 @@ class TheorySep : public Theory {
       return true;
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2)
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
       Debug("sep::propagate") << "NotifyClass::eqNotifyConstantTermMerge(" << t1
                               << ", " << t2 << ")" << std::endl;
       d_sep.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) {}
-    void eqNotifyPreMerge(TNode t1, TNode t2)
+    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) override
     {
       d_sep.eqNotifyPreMerge(t1, t2);
     }
-    void eqNotifyPostMerge(TNode t1, TNode t2)
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
     {
       d_sep.eqNotifyPostMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
   /** The notify class for d_equalityEngine */

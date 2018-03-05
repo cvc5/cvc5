@@ -228,21 +228,21 @@ public:
   virtual const T& getDataRef() const = 0;
 
   /** Flush the value of the statistic to the given output stream. */
-  void flushInformation(std::ostream& out) const {
+  void flushInformation(std::ostream& out) const override
+  {
     if(__CVC4_USE_STATISTICS) {
       out << getData();
     }
   }
 
-  virtual void safeFlushInformation(int fd) const {
+  void safeFlushInformation(int fd) const override
+  {
     if (__CVC4_USE_STATISTICS) {
       safe_print<T>(fd, getDataRef());
     }
   }
 
-  SExpr getValue() const {
-    return mkSExpr(getData());
-  }
+  SExpr getValue() const override { return mkSExpr(getData()); }
 
 };/* class ReadOnlyDataStat<T> */
 
@@ -315,17 +315,18 @@ public:
   }
 
   /** Set this reference statistic to refer to the given data cell. */
-  void setData(const T& t) {
+  void setData(const T& t) override
+  {
     if(__CVC4_USE_STATISTICS) {
       d_data = &t;
     }
   }
 
   /** Get the value of the referenced data cell. */
-  virtual T getData() const { return *d_data; }
+  T getData() const override { return *d_data; }
 
   /** Get a reference to the value of the referenced data cell. */
-  virtual const T& getDataRef() const { return *d_data; }
+  const T& getDataRef() const override { return *d_data; }
 
 };/* class ReferenceStat<T> */
 
@@ -349,7 +350,8 @@ public:
   }
 
   /** Set the underlying data value to the given value. */
-  void setData(const T& t) {
+  void setData(const T& t) override
+  {
     if(__CVC4_USE_STATISTICS) {
       d_data = t;
     }
@@ -364,10 +366,10 @@ public:
   }
 
   /** Get the underlying data value. */
-  virtual T getData() const { return d_data; }
+  T getData() const override { return d_data; }
 
   /** Get a reference to the underlying data value. */
-  virtual const T& getDataRef() const { return d_data; }
+  const T& getDataRef() const override { return d_data; }
 
 };/* class BackedStat<T> */
 
@@ -406,21 +408,20 @@ public:
   }
 
   /** Get the data of the underlying (wrapped) statistic. */
-  virtual T getData() const { return d_stat.getData(); }
+  T getData() const override { return d_stat.getData(); }
 
   /** Get a reference to the data of the underlying (wrapped) statistic. */
-  virtual const T& getDataRef() const { return d_stat.getDataRef(); }
+  const T& getDataRef() const override { return d_stat.getDataRef(); }
 
-  virtual void safeFlushInformation(int fd) const {
+  void safeFlushInformation(int fd) const override
+  {
     // ReadOnlyDataStat uses getDataRef() to get the information to print,
     // which might not be appropriate for all wrapped statistics. Delegate the
     // printing to the wrapped statistic instead.
     d_stat.safeFlushInformation(fd);
   }
 
-  SExpr getValue() const {
-    return d_stat.getValue();
-  }
+  SExpr getValue() const override { return d_stat.getValue(); }
 
 };/* class WrappedStat<T> */
 
@@ -474,9 +475,7 @@ public:
     }
   }
 
-  SExpr getValue() const {
-    return SExpr(Integer(d_data));
-  }
+  SExpr getValue() const override { return SExpr(Integer(d_data)); }
 
 };/* class IntStat */
 
@@ -489,17 +488,17 @@ public:
     Stat(name), d_sized(sized) {}
   ~SizeStat() {}
 
-  void flushInformation(std::ostream& out) const {
+  void flushInformation(std::ostream& out) const override
+  {
     out << d_sized.size();
   }
 
-  void safeFlushInformation(int fd) const {
+  void safeFlushInformation(int fd) const override
+  {
     safe_print<uint64_t>(fd, d_sized.size());
   }
 
-  SExpr getValue() const {
-    return SExpr(Integer(d_sized.size()));
-  }
+  SExpr getValue() const override { return SExpr(Integer(d_sized.size())); }
 
 };/* class SizeStat */
 
@@ -538,7 +537,8 @@ public:
     }
   }
 
-  SExpr getValue() const {
+  SExpr getValue() const override
+  {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(8) << d_data;
     return SExpr(Rational::fromDecimal(ss.str()));
@@ -560,19 +560,19 @@ public:
   SExprStat(const std::string& name, const SExpr& init) :
     Stat(name), d_data(init){}
 
-  virtual void flushInformation(std::ostream& out) const {
+  void flushInformation(std::ostream& out) const override
+  {
     out << d_data << std::endl;
   }
 
-  virtual void safeFlushInformation(int fd) const {
+  void safeFlushInformation(int fd) const override
+  {
     // SExprStat is only used in statistics.cpp in copyFrom, which we cannot
     // do in a signal handler anyway.
     safe_print(fd, "<unsupported>");
   }
 
-  SExpr getValue() const {
-    return d_data;
-  }
+  SExpr getValue() const override { return d_data; }
 
 };/* class SExprStat */
 
@@ -587,7 +587,8 @@ public:
   HistogramStat(const std::string& name) : Stat(name) {}
   ~HistogramStat() {}
 
-  void flushInformation(std::ostream& out) const{
+  void flushInformation(std::ostream& out) const override
+  {
     if(__CVC4_USE_STATISTICS) {
       typename Histogram::const_iterator i = d_hist.begin();
       typename Histogram::const_iterator end =  d_hist.end();
@@ -605,7 +606,8 @@ public:
     }
   }
 
-  virtual void safeFlushInformation(int fd) const {
+  void safeFlushInformation(int fd) const override
+  {
     if (__CVC4_USE_STATISTICS) {
       typename Histogram::const_iterator i = d_hist.begin();
       typename Histogram::const_iterator end = d_hist.end();
@@ -665,18 +667,17 @@ public:
    * Set the name of this statistic registry, used as prefix during
    * output.  (This version overrides StatisticsBase::setPrefix().)
    */
-  void setPrefix(const std::string& name) {
-    d_prefix = d_name = name;
-  }
+  void setPrefix(const std::string& name) override { d_prefix = d_name = name; }
 
   /** Overridden to avoid the name being printed */
-  void flushStat(std::ostream &out) const;
+  void flushStat(std::ostream& out) const override;
 
-  virtual void flushInformation(std::ostream& out) const;
+  void flushInformation(std::ostream& out) const override;
 
-  virtual void safeFlushInformation(int fd) const;
+  void safeFlushInformation(int fd) const override;
 
-  SExpr getValue() const {
+  SExpr getValue() const override
+  {
     std::vector<SExpr> v;
     for(StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
       std::vector<SExpr> w;
@@ -734,9 +735,10 @@ public:
   /** If the timer is currently running */
   bool running() const;
 
-  virtual timespec getData() const;
+  timespec getData() const override;
 
-  virtual void safeFlushInformation(int fd) const {
+  void safeFlushInformation(int fd) const override
+  {
     // Overwrite the implementation in the superclass because we cannot use
     // getDataRef(): it might return stale data if the timer is currently
     // running.
@@ -744,7 +746,7 @@ public:
     safe_print<timespec>(fd, data);
   }
 
-  SExpr getValue() const;
+  SExpr getValue() const override;
 
 };/* class TimerStat */
 

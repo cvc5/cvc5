@@ -176,7 +176,7 @@ class SygusSampler : public LazyTrieEvaluator
                       std::vector<Node>& vars,
                       std::vector<Node>& pt);
   /** evaluate n on sample point index */
-  Node evaluate(Node n, unsigned index);
+  Node evaluate(Node n, unsigned index) override;
   /**
    * Returns the index of a sample point such that the evaluation of a and b
    * diverge, or -1 if no such sample point exists.
@@ -367,7 +367,7 @@ class SygusSamplerExt : public SygusSampler
    * from the set of all previous input/output pairs based on the
    * d_drewrite utility.
    */
-  virtual Node registerTerm(Node n, bool forceKeep = false) override;
+  Node registerTerm(Node n, bool forceKeep = false) override;
 
  private:
   /** dynamic rewriter class */

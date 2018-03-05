@@ -237,14 +237,35 @@ private:
     ConjectureGenerator& d_sg;
   public:
     NotifyClass(ConjectureGenerator& sg): d_sg(sg) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) { return true; }
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) { return true; }
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) { return true; }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) { }
-    void eqNotifyNewClass(TNode t) { d_sg.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) { d_sg.eqNotifyPreMerge(t1, t2); }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { d_sg.eqNotifyPostMerge(t1, t2); }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {d_sg.eqNotifyDisequal(t1, t2, reason); }
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
+      return true;
+    }
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
+      return true;
+    }
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
+      return true;
+    }
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
+    void eqNotifyNewClass(TNode t) override { d_sg.eqNotifyNewClass(t); }
+    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    {
+      d_sg.eqNotifyPreMerge(t1, t2);
+    }
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    {
+      d_sg.eqNotifyPostMerge(t1, t2);
+    }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    {
+      d_sg.eqNotifyDisequal(t1, t2, reason);
+    }
   };/* class ConjectureGenerator::NotifyClass */
   /** The notify class */
   NotifyClass d_notify;
@@ -401,18 +422,18 @@ public:
   ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
 
   /* needs check */
-  bool needsCheck( Theory::Effort e );
+  bool needsCheck(Theory::Effort e) override;
   /* reset at a round */
-  void reset_round( Theory::Effort e );
+  void reset_round(Theory::Effort e) override;
   /* Call during quantifier engine's check */
-  void check(Theory::Effort e, QEffort quant_e);
+  void check(Theory::Effort e, QEffort quant_e) override;
   /* Called for new quantifiers */
-  void registerQuantifier( Node q );
-  void assertNode( Node n );
+  void registerQuantifier(Node q) override;
+  void assertNode(Node n) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const { return "ConjectureGenerator"; }
-//options
-private:
+  std::string identify() const override { return "ConjectureGenerator"; }
+  // options
+ private:
   bool optReqDistinctVarPatterns();
   bool optFilterUnknown();
   int optFilterScoreThreshold();

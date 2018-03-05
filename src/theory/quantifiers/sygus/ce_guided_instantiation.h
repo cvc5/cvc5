@@ -40,31 +40,31 @@ public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
   ~CegInstantiation();
 public:
-  bool needsCheck( Theory::Effort e );
-  QEffort needsModel(Theory::Effort e);
-  /* Call during quantifier engine's check */
-  void check(Theory::Effort e, QEffort quant_e);
-  /* Called for new quantifiers */
-  void registerQuantifier( Node q );
-  /** get the next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const { return "CegInstantiation"; }
-  /** print solution for synthesis conjectures */
-  void printSynthSolution( std::ostream& out );
-  /** get synth solutions
-   *
-   * This function adds entries to sol_map that map functions-to-synthesize
-   * with their solutions, for all active conjectures (currently just the one
-   * assigned to d_conj). This should be called immediately after the solver
-   * answers unsat for sygus input.
-   *
-   * For details on what is added to sol_map, see
-   * CegConjecture::getSynthSolutions.
-   */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
-  /** preregister assertion (before rewrite) */
-  void preregisterAssertion( Node n );
+ bool needsCheck(Theory::Effort e) override;
+ QEffort needsModel(Theory::Effort e) override;
+ /* Call during quantifier engine's check */
+ void check(Theory::Effort e, QEffort quant_e) override;
+ /* Called for new quantifiers */
+ void registerQuantifier(Node q) override;
+ /** get the next decision request */
+ Node getNextDecisionRequest(unsigned& priority) override;
+ /** Identify this module (for debugging, dynamic configuration, etc..) */
+ std::string identify() const override { return "CegInstantiation"; }
+ /** print solution for synthesis conjectures */
+ void printSynthSolution(std::ostream& out);
+ /** get synth solutions
+  *
+  * This function adds entries to sol_map that map functions-to-synthesize
+  * with their solutions, for all active conjectures (currently just the one
+  * assigned to d_conj). This should be called immediately after the solver
+  * answers unsat for sygus input.
+  *
+  * For details on what is added to sol_map, see
+  * CegConjecture::getSynthSolutions.
+  */
+ void getSynthSolutions(std::map<Node, Node>& sol_map);
+ /** preregister assertion (before rewrite) */
+ void preregisterAssertion(Node n);
 public:
   class Statistics {
   public:
