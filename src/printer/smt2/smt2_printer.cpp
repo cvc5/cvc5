@@ -2,9 +2,9 @@
 /*! \file smt2_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Martin Brain
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1191,7 +1191,8 @@ void Smt2Printer::toStream(std::ostream& out,
   if (tryToStream<AssertCommand>(out, c) || tryToStream<PushCommand>(out, c)
       || tryToStream<PopCommand>(out, c)
       || tryToStream<CheckSatCommand>(out, c)
-      || tryToStream<QueryCommand>(out, c)
+      || tryToStream<CheckSatAssumingCommand>(out, c)
+      || tryToStream<QueryCommand>(out, c, d_variant)
       || tryToStream<ResetCommand>(out, c)
       || tryToStream<ResetAssertionsCommand>(out, c)
       || tryToStream<QuitCommand>(out, c)
@@ -1511,14 +1512,29 @@ static void toStream(std::ostream& out, const CheckSatCommand* c)
   }
 }
 
-static void toStream(std::ostream& out, const QueryCommand* c)
+static void toStream(std::ostream& out, const CheckSatAssumingCommand* c)
+{
+  out << "(check-sat-assuming ( ";
+  const vector<Expr>& terms = c->getTerms();
+  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, " "));
+  out << "))";
+}
+
+static void toStream(std::ostream& out, const QueryCommand* c, Variant v)
 {
   Expr e = c->getExpr();
   if(!e.isNull()) {
-    out << PushCommand() << endl
-        << AssertCommand(BooleanSimplification::negate(e)) << endl
-        << CheckSatCommand() << endl
-        << PopCommand();
+    if (v == smt2_0_variant)
+    {
+      out << PushCommand() << endl
+          << AssertCommand(BooleanSimplification::negate(e)) << endl
+          << CheckSatCommand() << endl
+          << PopCommand();
+    }
+    else
+    {
+      out << CheckSatAssumingCommand(e.notExpr()) << endl;
+    }
   } else {
     out << "(check-sat)";
   }
