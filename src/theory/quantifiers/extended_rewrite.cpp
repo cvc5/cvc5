@@ -1382,45 +1382,55 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
     new_ret = extendedRewriteEqChain( BITVECTOR_XOR, BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_NOT, ret, true );
     debugExtendedRewrite( ret, new_ret, "XOR chain simplify" );
   }
-  else if( k == BITVECTOR_ULT )
+  else if( k == BITVECTOR_ULT || k==BITVECTOR_SLT )
   {
+    Node zero = mkConstBv( ret[0], false );
     if( ret[0]==mkNegate( BITVECTOR_NEG, ret[1] ) )
     {
       // t <_u -t ---> 0 <_s t
-      new_ret = nm->mkNode( BITVECTOR_SLT, mkConstBv( ret[0], false ), ret[0] );
-      debugExtendedRewrite( ret, new_ret, "ULT-self-neg" );
+      // t <_s -t ---> 0 <_s -t
+      new_ret = nm->mkNode( BITVECTOR_SLT, zero, ret[k == BITVECTOR_ULT ? 0 : 1] );
+      debugExtendedRewrite( ret, new_ret, "Ineq-self-neg" );
       return new_ret;
     }
     else if( ret[0]==mkNegate( BITVECTOR_NOT, ret[1] ) )
     {
-      // t <_u ~t ---> ~ t <_s 0
-      new_ret = nm->mkNode( BITVECTOR_SLT, ret[0], mkConstBv( ret[0], false ) );
-      new_ret = mkNegate( NOT, new_ret );
-      debugExtendedRewrite( ret, new_ret, "ULT-self-not" );
-      return new_ret;
-    }
-    else if( bitVectorArithComp( ret[0], ret[1] ) )
-    {
-      new_ret = nm->mkConst(false);
-      debugExtendedRewrite( ret, new_ret, "ULT-arith" );
-      return new_ret;
-    }
-    if( d_aggr )
-    {
-      if( isConstBv( ret[0], false ) || isConstBv( ret[1], true ) )
+      // t <_u ~t ---> ~( t <_s 0 )
+      // t <_s ~t ---> ( t <_s 0 )
+      new_ret = nm->mkNode( BITVECTOR_SLT, ret[0], zero );
+      if( k == BITVECTOR_ULT )
       {
-        new_ret = ret[0].eqNode( ret[1] );
-        new_ret = new_ret.negate();
-        debugExtendedRewrite( ret, new_ret, "ULT-neq" );
+        new_ret = mkNegate( NOT, new_ret );
+      }
+      debugExtendedRewrite( ret, new_ret, "Ineq-self-not" );
+      return new_ret;
+    }
+    if( k == BITVECTOR_ULT )
+    {
+      if( bitVectorArithComp( ret[0], ret[1] ) )
+      {
+        new_ret = nm->mkConst(false);
+        debugExtendedRewrite( ret, new_ret, "ULT-arith" );
+        return new_ret;
+      }
+      if( d_aggr )
+      {
+        if( ret[0]==zero || isConstBv( ret[1], true ) )
+        {
+          new_ret = ret[0].eqNode( ret[1] );
+          new_ret = new_ret.negate();
+          debugExtendedRewrite( ret, new_ret, "ULT-neq" );
+        }
       }
     }
-  }
-  else if( k == BITVECTOR_SLT )
-  {
-    if( ret[0]==ret[1] )
+    else // k === BITVECTOR_SLT
     {
-      new_ret = nm->mkConst(false);
-      debugExtendedRewrite( ret, new_ret, "SLT-id" );
+      
+      if( ret[0]==ret[1] )
+      {
+        new_ret = nm->mkConst(false);
+        debugExtendedRewrite( ret, new_ret, "SLT-id" );
+      }
     }
   }
   else if( k == BITVECTOR_LSHR || k == BITVECTOR_SHL )
