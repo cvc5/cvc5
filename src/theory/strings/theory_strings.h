@@ -44,7 +44,7 @@ namespace strings {
  *
  */
 
-/** Types of inferences in the procedure
+/** Types of inferences used in the procedure
  *
  * These are variants of the inference rules in Figures 3-5 of Liang et al.
  * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
@@ -52,21 +52,43 @@ namespace strings {
 enum Inference
 {
   infer_none,
-  // string split constant propagation
+  // string split constant propagation, for example:
+  //     x = y, x = "abc", y = y1 ++ "b" ++ y2
+  //       implies y1 = "a" ++ y1'
   infer_ssplit_cst_prop,
-  // string split variable propagation
+  // string split variable propagation, for example:
+  //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 ) 
+  //       implies x1 = y1 ++ x1'
+  // This is inspired by Zheng et al CAV 2015.
   infer_ssplit_var_prop,
-  // length split
+  // length split, for example:
+  //     len( x1 ) = len( y1 ) V len( x1 ) != len( y1 )
+  // This is inferred when e.g. x = y, x = x1 ++ x2, y = y1 ++ y2.
   infer_len_split,
-  // length split empty
+  // length split empty, for example:
+  //     z = "" V z != ""
+  // This is inferred when, e.g. x = y, x = z ++ x2, y = y1 ++ z
   infer_len_split_emp,
-  // string split constant binary
+  // string split constant binary, for example:
+  //     x1 = "aaaa" ++ x1' V "aaaa" = x1 ++ x1'
+  // This is inferred when, e.g. x = y, x = x1 ++ x2, y = "aaaaaaaa" ++ y2.
+  // This inference is disabled by default and is enabled by stringBinaryCsp().
   infer_ssplit_cst_binary,
   // string split constant
+  //    x = y, x = "c" ++ x2, y = y1 ++ y2, y1 != ""
+  //      implies y1 = "c" ++ y1'
+  // This is a special case of F-Split in Figure 5 of Liang et al CAV 2014.
   infer_ssplit_cst,
-  // string split variable
+  // string split variable, for example:
+  //    x = y, x = x1 ++ x2, y = y1 ++ y2
+  //      implies x1 = y1 ++ x1' V y1 = x1 ++ y1'
+  // This is rule F-Split in Figure 5 of Liang et al CAV 2014.
   infer_ssplit_var,
-  // flat form loop
+  // flat form loop, for example:
+  //    x = y, x = x1 ++ z, y = z ++ y2
+  //      implies z = u2 ++ u1, u in ( u1 ++ u2 )*, x1 = u2 ++ u, y2 = u ++ u1
+  //        for fresh u, u1, u2.
+  // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   infer_floop,
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
