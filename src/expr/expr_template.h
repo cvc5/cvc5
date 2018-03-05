@@ -30,7 +30,10 @@ ${includes}
 #include <iosfwd>
 #include <iterator>
 #include <string>
+#include <map>
+#include <set>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "base/exception.h"
 #include "options/language.h"
@@ -140,6 +143,57 @@ std::ostream& operator<<(std::ostream& out,
  * @return the stream
  */
 std::ostream& operator<<(std::ostream& out, const Expr& e) CVC4_PUBLIC;
+
+/**
+ * Serialize a vector of expressions to given stream.
+ *
+ * @param out the output stream to use
+ * @param container the vector of expressions to output to the stream
+ * @return the stream
+ */
+std::ostream& operator<<(std::ostream& out, const std::vector<Expr>& container);
+
+/**
+ * Serialize a set of expressions to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the set of expressions to output to the stream
+ * @return the stream
+ */
+std::ostream& operator<<(std::ostream& out, const std::set<Expr>& container);
+
+/**
+ * Serialize an unordered_set of expressions to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the unordered_set of expressions to output to the stream
+ * @return the stream
+ */
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_set<Expr, ExprHashFunction>& container);
+
+/**
+ * Serialize a map of expressions to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the map of expressions to output to the stream
+ * @return the stream
+ */
+template <typename V>
+std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container);
+
+/**
+ * Serialize an unordered_map of expressions to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the unordered_map of expressions to output to the stream
+ * @return the stream
+ */
+template <typename V>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_map<Expr, V, ExprHashFunction>& container);
 
 // for hash_maps, hash_sets..
 struct ExprHashFunction {
