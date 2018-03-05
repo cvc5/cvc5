@@ -4705,7 +4705,6 @@ Result SmtEngine::checkSatisfiability(const Expr& expr,
                                       bool inUnsatCore,
                                       bool isQuery)
 {
-  vector<Expr> v; v.push_back(expr);
   return checkSatisfiability(
       expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
       inUnsatCore,
@@ -4750,12 +4749,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
       if (size > 1)
       {
         /* Assume: not (BIGAND exprs)  */
-        vector<Expr> tmp;
-        for (const Expr& e : exprs)
-        {
-          tmp.push_back(e.notExpr());
-        }
-        t_exprs.push_back(d_exprManager->mkExpr(kind::OR, tmp));
+        t_exprs.push_back(d_exprManager->mkExpr(kind::AND, exprs).notExpr());
       }
       else if (size == 1)
       {

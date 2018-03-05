@@ -1169,20 +1169,16 @@ static void toStream(std::ostream& out,
   {
     out << "PUSH; ";
   }
-  if (exprs.size() == 0)
+  out << "CHECKSAT";
+  if (exprs.size() > 0)
   {
-    out << "CHECKSAT;";
-  }
-  else
-  {
-    out << "CHECKSAT " << exprs[0];
-
+    out << " " << exprs[0];
     for (size_t i = 1, n = exprs.size(); i < n; ++i)
     {
       out << " AND " << exprs[i];
     }
-    out << ";";
   }
+  out << ";";
   if (cvc3Mode)
   {
     out << " POP;";
