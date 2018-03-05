@@ -201,8 +201,11 @@ class ExtendedRewriter
    * Otherwise, this function returns 0.
    * 
    * If strict is false, then this function will only return 0 or 1.
+   * 
+   * If tryNot is true, we will try to show the subsumption by calling
+   * bitVectorSubsume( ~b, ~a ).
    */
-  int bitVectorSubsume( Node a, Node b, bool strict=false );
+  int bitVectorSubsume( Node a, Node b, bool strict=false, bool tryNot=true );
   /** bitvector arithmetic compare 
    * 
    * If this function returns 1, then bvuge( a, b ) holds.

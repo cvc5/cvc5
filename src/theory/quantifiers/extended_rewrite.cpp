@@ -1734,7 +1734,9 @@ Node ExtendedRewriter::rewriteBvArith( Node ret )
     // ( s & t ) - s  ---->  -( s & ~t )
     // ( s | t ) - s  ---->  ~s & t    
     
-    // TODO : s + ( ~s | t ) = ~( -( s & t ) )
+    // TODO : 
+    // s + ( ~s | t ) = ~( -( s & t ) )
+    // s + ( t | -s ) = ( s & ~-t )
     
     std::map< Node, bool > retc;
     for( const Node& rc : ret )
@@ -1953,7 +1955,7 @@ Node ExtendedRewriter::rewriteBvBool( Node ret )
   return Node::null();
 }
 
-int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
+int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict, bool tryNot )
 {
   Assert( a.getType()==b.getType() );
   int max_ret = strict ? 2 : 1;
@@ -2035,26 +2037,20 @@ int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
   //---------------recurse BITVECTOR_AND/OR
   bool reca = false;
   Node rec;
-  Node orec;
-  if( ak==BITVECTOR_OR || ( ak==BITVECTOR_NOT && a[0].getKind()==BITVECTOR_AND ) )
+  if( ak==BITVECTOR_OR )
   {
     rec = a;
-    orec = b;
     reca = true;
   }
-  else if( bk==BITVECTOR_AND || ( bk==BITVECTOR_NOT && b[0].getKind()==BITVECTOR_OR ) )
+  else if( bk==BITVECTOR_AND )
   {
     rec = b;
-    orec = a;
   }
   if( !rec.isNull() )
   {
-    Kind rk = reca ? ak : bk;
-    Node rrec = rk==BITVECTOR_NOT ? rec[0] : rec;
-    for( const Node& rc : rrec )
+    for( const Node& rc : rec )
     {
-      Node rcc = rk==BITVECTOR_NOT ? mkNegate( BITVECTOR_NOT, rc ) : rc;
-      int cret = bitVectorSubsume( reca ? rcc : a, reca ? b : rcc, strict );
+      int cret = bitVectorSubsume( reca ? rc : a, reca ? b : rc, strict );
       if( cret==max_ret )
       {
         return max_ret;
@@ -2065,20 +2061,17 @@ int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
       }
     }
     rec = Node::null();
-    orec = Node::null();
   }
   
   //---------------recurse ITE
   if( ak==ITE )
   {
     rec = a;
-    orec = b;
     reca = true;
   }
   else if( bk==ITE )
   {
     rec = b;
-    orec = a;
     reca = false;
   }
   if( !rec.isNull() )
@@ -2096,24 +2089,7 @@ int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
         }
       }
     }
-  }
-  
-  //-----------------cases for a
-  if( ak==BITVECTOR_NOT )
-  {
-    if( a[0].getKind()==BITVECTOR_SHL )
-    {
-      // ~bvshl( x, y ) subsumes z if y>=z.
-      if( bitVectorArithComp( a[0][1], b ) )
-      {
-        curr_ret = 1;
-      }
-    }
-  }
-  
-  if( curr_ret==max_ret )
-  {
-    return max_ret;
+    rec = Node::null();
   }
   
   //-----------------cases for b
@@ -2123,6 +2099,7 @@ int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
     {
       if( b[0][0]==a && b[0][1]==b[1] )
       {
+        // x subsumes bvshl( bvlshr( x, y ), y )
         curr_ret =  1;
       }
     }
@@ -2139,12 +2116,28 @@ int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict )
     {
       if( b[0][0]==a && b[0][1]==b[1] )
       {
-        // y subsumes bvlshr( bvshl( x, y ), y )
+        // x subsumes bvlshr( bvshl( x, y ), y )
         curr_ret = 1;
       }
     }
   }
   
+  if( curr_ret==max_ret )
+  {
+    return max_ret;
+  }
+  
+  if( tryNot )
+  {
+    if( ak==BITVECTOR_NOT || bk==BITVECTOR_NOT )
+    {
+      int ret = bitVectorSubsume( mkNegate( BITVECTOR_NOT, b ), mkNegate( BITVECTOR_NOT, a ), strict, false );
+      if( ret>curr_ret )
+      {
+        curr_ret = ret;
+      }
+    }
+  } 
   
   return curr_ret;
 }
