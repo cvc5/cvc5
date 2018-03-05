@@ -547,9 +547,8 @@ void CegConjecture::printAndContinueStream()
     {
       sol = d_cinfo[cprog].d_inst.back();
       // add to explanation of exclusion
-      d_qe->getTermDatabaseSygus()
-          ->getExplain()
-          ->getExplanationForEquality(cprog, sol, exp);
+      d_qe->getTermDatabaseSygus()->getExplain()->getExplanationForEquality(
+          cprog, sol, exp);
     }
   }
   Assert(!exp.empty());
@@ -639,21 +638,23 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               Trace("sygus-rr-debug")
                   << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
             }
-            // add a symmetry breaking clause 
+            // add a symmetry breaking clause
             Node exc_sol = sol;
             unsigned sz = sygusDb->getSygusTermSize(sol);
             unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
-            if( eqsz>sz )
+            if (eqsz > sz)
             {
               sz = eqsz;
               exc_sol = eq_sol;
             }
             TypeNode ptn = prog.getType();
-            Node x = sygusDb->getFreeVar(ptn,0);
-            Node lem = sygusDb->getExplain()->getExplanationForEquality(x,exc_sol);
+            Node x = sygusDb->getFreeVar(ptn, 0);
+            Node lem =
+                sygusDb->getExplain()->getExplanationForEquality(x, exc_sol);
             lem = lem.negate();
-            Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem << std::endl;
-            sygusDb->registerSymBreakLemma(d_candidates[i],lem,ptn,sz);
+            Trace("sygus-rr-sb")
+                << "Symmetry breaking lemma : " << lem << std::endl;
+            sygusDb->registerSymBreakLemma(d_candidates[i], lem, ptn, sz);
           }
         }
       }

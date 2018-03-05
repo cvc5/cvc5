@@ -149,14 +149,12 @@ class SygusExplain
    *   is a chain of selectors applied to n, and
    * - exp => ( n = vn )
    */
-  void getExplanationForEquality(Node n,
-                                         Node vn,
-                                         std::vector<Node>& exp);
+  void getExplanationForEquality(Node n, Node vn, std::vector<Node>& exp);
   /** returns the conjunction of exp computed in the above function */
   Node getExplanationForEquality(Node n, Node vn);
 
   /** get explanation for equality
-   * 
+   *
    * This is identical to the above function except that we
    * take an additional argument cexc, which says which
    * children of vn should be excluded from the explanation.
@@ -167,13 +165,13 @@ class SygusExplain
    * where notice that the 0^th argument of vn is excluded.
    */
   void getExplanationForEquality(Node n,
-                                         Node vn,
-                                         std::vector<Node>& exp,
-                                         std::map<unsigned, bool>& cexc);
+                                 Node vn,
+                                 std::vector<Node>& exp,
+                                 std::map<unsigned, bool>& cexc);
   /** returns the conjunction of exp computed in the above function */
   Node getExplanationForEquality(Node n,
-                                         Node vn,
-                                         std::map<unsigned, bool>& cexc);
+                                 Node vn,
+                                 std::map<unsigned, bool>& cexc);
 
   /** get explanation for
    *

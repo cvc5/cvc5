@@ -915,10 +915,11 @@ std::vector< Node >& lemmas )
 
 void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas ) {
   // lem holds for all terms of type tn, and is applicable to terms of size sz
-  Trace("sygus-sb-debug") << "  register sym break lemma : " << lem << std::endl;
-  Trace("sygus-sb-debug") <<"     anchor : " << a << std::endl;
-  Trace("sygus-sb-debug") <<"     type : " << tn << std::endl;
-  Trace("sygus-sb-debug") <<"     size : " << sz << std::endl;
+  Trace("sygus-sb-debug") << "  register sym break lemma : " << lem
+                          << std::endl;
+  Trace("sygus-sb-debug") << "     anchor : " << a << std::endl;
+  Trace("sygus-sb-debug") << "     type : " << tn << std::endl;
+  Trace("sygus-sb-debug") << "     size : " << sz << std::endl;
   Assert( !a.isNull() );
   d_cache[a].d_sb_lemmas[tn][sz].push_back( lem );
   TNode x = getFreeVar( tn );

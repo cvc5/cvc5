@@ -111,18 +111,20 @@ Node TermRecBuild::build(unsigned d)
 }
 
 void SygusExplain::getExplanationForEquality(Node n,
-                                                     Node vn,
-                                                     std::vector<Node>& exp)
+                                             Node vn,
+                                             std::vector<Node>& exp)
 {
   std::map<unsigned, bool> cexc;
   getExplanationForEquality(n, vn, exp, cexc);
 }
 
-void SygusExplain::getExplanationForEquality(
-    Node n, Node vn, std::vector<Node>& exp, std::map<unsigned, bool>& cexc)
+void SygusExplain::getExplanationForEquality(Node n,
+                                             Node vn,
+                                             std::vector<Node>& exp,
+                                             std::map<unsigned, bool>& cexc)
 {
   Assert(n.getType() == vn.getType());
-  if( n==vn )
+  if (n == vn)
   {
     return;
   }
@@ -152,8 +154,9 @@ Node SygusExplain::getExplanationForEquality(Node n, Node vn)
   return getExplanationForEquality(n, vn, cexc);
 }
 
-Node SygusExplain::getExplanationForEquality(
-    Node n, Node vn, std::map<unsigned, bool>& cexc)
+Node SygusExplain::getExplanationForEquality(Node n,
+                                             Node vn,
+                                             std::map<unsigned, bool>& cexc)
 {
   std::vector<Node> exp;
   getExplanationForEquality(n, vn, exp, cexc);
