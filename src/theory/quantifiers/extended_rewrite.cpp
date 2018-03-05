@@ -2121,6 +2121,18 @@ int ExtendedRewriter::bitVectorSubsume( Node a, Node b, bool strict, bool tryNot
       }
     }
   }
+  else if( bk==BITVECTOR_NEG )
+  {
+    if( b[0].getKind()==BITVECTOR_SHL )
+    {
+      Node anot = mkNegate( BITVECTOR_NOT, a );
+      // x subsumes -bvshl( y, z ) if z>=(~x).
+      if( bitVectorArithComp( b[0][1], anot ) )
+      {
+        curr_ret = 1;
+      }
+    }
+  }
   
   if( curr_ret==max_ret )
   {
