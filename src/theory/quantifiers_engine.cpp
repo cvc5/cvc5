@@ -175,7 +175,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_ierCounter_lc = 0;
   d_ierCounterLastLc = 0;
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
-  
+
   bool needsBuilder = false;
   bool needsRelDom = false;
   //add quantifiers modules
@@ -276,7 +276,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   }
 }
 
-QuantifiersEngine::~QuantifiersEngine(){
+QuantifiersEngine::~QuantifiersEngine()
+{
   delete d_alpha_equiv;
   delete d_builder;
   delete d_qepr;
@@ -307,24 +308,26 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_inst_prop;
 }
 
-EqualityQuery* QuantifiersEngine::getEqualityQuery() {
-  return d_eq_query;
+EqualityQuery* QuantifiersEngine::getEqualityQuery() { return d_eq_query; }
+
+context::Context* QuantifiersEngine::getSatContext()
+{
+  return d_te->theoryOf(THEORY_QUANTIFIERS)->getSatContext();
 }
 
-context::Context* QuantifiersEngine::getSatContext(){
-  return d_te->theoryOf( THEORY_QUANTIFIERS )->getSatContext();
+context::UserContext* QuantifiersEngine::getUserContext()
+{
+  return d_te->theoryOf(THEORY_QUANTIFIERS)->getUserContext();
 }
 
-context::UserContext* QuantifiersEngine::getUserContext(){
-  return d_te->theoryOf( THEORY_QUANTIFIERS )->getUserContext();
-}
-
-OutputChannel& QuantifiersEngine::getOutputChannel(){
-  return d_te->theoryOf( THEORY_QUANTIFIERS )->getOutputChannel();
+OutputChannel& QuantifiersEngine::getOutputChannel()
+{
+  return d_te->theoryOf(THEORY_QUANTIFIERS)->getOutputChannel();
 }
 /** get default valuation for the quantifiers engine */
-Valuation& QuantifiersEngine::getValuation(){
-  return d_te->theoryOf( THEORY_QUANTIFIERS )->getValuation();
+Valuation& QuantifiersEngine::getValuation()
+{
+  return d_te->theoryOf(THEORY_QUANTIFIERS)->getValuation();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {

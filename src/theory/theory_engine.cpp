@@ -903,10 +903,13 @@ TheoryModel* TheoryEngine::getModel() {
 
 void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  if( d_quantEngine ){
+  if (d_quantEngine)
+  {
     d_quantEngine->getSynthSolutions(sol_map);
-  }else{
-    Assert( false );
+  }
+  else
+  {
+    Assert(false);
   }
 }
 
@@ -1483,7 +1486,7 @@ void TheoryEngine::printInstantiations( std::ostream& out ) {
     d_quantEngine->printInstantiations( out );
   }else{
     out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -1492,7 +1495,7 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     d_quantEngine->printSynthSolution( out );
   }else{
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
-    Assert( false );
+    Assert(false);
   }
 }
 
