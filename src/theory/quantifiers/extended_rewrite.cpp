@@ -1349,6 +1349,8 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
         {
           slv_ret = nm->mkNode( BITVECTOR_PLUS, ret[i], slv_ret );
         }
+        // FIXME : avoid this call?
+        slv_ret = extendedRewrite( slv_ret );
         slv_ret = slv_ret.eqNode(bv_zero);
         slv_ret = Rewriter::rewrite( slv_ret );
         if( slv_ret.isConst() )
@@ -1382,10 +1384,26 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
   }
   else if( k == BITVECTOR_ULT )
   {
-    if( bitVectorArithComp( ret[0], ret[1] ) )
+    if( ret[0]==mkNegate( BITVECTOR_NEG, ret[1] ) )
+    {
+      // t <_u -t ---> 0 <_s t
+      new_ret = nm->mkNode( BITVECTOR_SLT, mkConstBv( ret[0], false ), ret[0] );
+      debugExtendedRewrite( ret, new_ret, "ULT-self-neg" );
+      return new_ret;
+    }
+    else if( ret[0]==mkNegate( BITVECTOR_NOT, ret[1] ) )
+    {
+      // t <_u ~t ---> ~ t <_s 0
+      new_ret = nm->mkNode( BITVECTOR_SLT, ret[0], mkConstBv( ret[0], false ) );
+      new_ret = mkNegate( NOT, new_ret );
+      debugExtendedRewrite( ret, new_ret, "ULT-self-not" );
+      return new_ret;
+    }
+    else if( bitVectorArithComp( ret[0], ret[1] ) )
     {
       new_ret = nm->mkConst(false);
       debugExtendedRewrite( ret, new_ret, "ULT-arith" );
+      return new_ret;
     }
     if( d_aggr )
     {
@@ -2429,7 +2447,7 @@ Node ExtendedRewriter::normalizeBvMonomial( Node n )
           }
           Assert( group_children.size()>1 );
           Node sgc = nm->mkNode( BITVECTOR_PLUS, group_children );
-          // FIXME : avoid this call
+          // FIXME : avoid this call?
           sgc = extendedRewrite( sgc );
           sgc = nm->mkNode( fk, sgc, sl );
           msum_new[sgc] = bvone;
