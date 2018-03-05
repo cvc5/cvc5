@@ -216,9 +216,7 @@ private:
    * This function may add instances of the symmetry breaking template for 
    * existing search terms, which are added to lemmas.
    */
-  void registerSymBreakLemmaForValue( Node a, Node val, quantifiers::SygusInvarianceTest& et, Node valr, std::vector< Node >& lemmas );   
-  /** same as above, but without lemma generalization. */
-  void registerSymBreakLemmaForValue( Node a, Node val, std::vector< Node >& lemmas );     
+  void registerSymBreakLemmaForValue( Node a, Node val, quantifiers::SygusInvarianceTest& et, Node valr, std::vector< Node >& lemmas );    
   /** Add symmetry breaking lemmas for term
    * 
    * Adds all active symmetry breaking lemmas for selector chain t to lemmas. A

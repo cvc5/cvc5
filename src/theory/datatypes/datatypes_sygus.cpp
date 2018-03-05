@@ -892,6 +892,7 @@ void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, quantifi
   registerSymBreakLemma( tn, lem, sz, a, lemmas );
 }
 
+/*
 void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, std::vector< Node >& lemmas )
 {
   TypeNode tn = val.getType();
@@ -902,6 +903,7 @@ void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, std::vec
   lem = lem.negate();
   registerSymBreakLemma( tn, lem, sz, a, lemmas );
 }
+*/
 
 void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas ) {
   // lem holds for all terms of type tn, and is applicable to terms of size sz
@@ -1126,6 +1128,30 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
 
 void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   Trace("sygus-sb") << "SygusSymBreakNew::check" << std::endl;
+  
+  // check for externally registered symmetry breaking lemmas
+  std::vector< Node > anchors;
+  if( d_tds->hasSymBreakLemmas( anchors ) )
+  {
+    for( const Node& a : anchors )
+    {
+      std::vector< Node > sbl;
+      d_tds->getSymBreakLemmas( a, sbl );
+      for( const Node& lem : sbl )
+      {
+        TypeNode tn = d_tds->getTypeForSymBreakLemma( lem );
+        unsigned sz = d_tds->getSizeForSymBreakLemma( lem );
+        registerSymBreakLemma( tn, lem, sz, a, lemmas );
+      }
+    }
+    d_tds->clearSymBreakLemmas();
+    if( !lemmas.empty() )
+    {
+      return;
+    }
+  }
+  
+  // register search values, add symmetry breaking lemmas if applicable
   for( std::map< Node, bool >::iterator it = d_register_st.begin(); it != d_register_st.end(); ++it ){
     if( it->second ){
       Node prog = it->first;

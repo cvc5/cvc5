@@ -75,15 +75,29 @@ class TermDbSygus {
   Node getActiveGuardForEnumerator(Node e);
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
-  /** Register symmetry breaking lemma for value 
+  /** Register symmetry breaking lemma
    * 
-   * 
+   * This function registers lem as a symmetry breaking lemma for subterms
+   * of enumerator e. 
+   * tn : the (sygus datatype) type that lem applies to, i.e. the 
+   * type of terms that lem blocks models for,
+   * sz : the minimum size of terms that the lem blocks.
    */
-  void registerSymBreakLemmaForValue(Node e, Node v);
+  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);
+  /** Has symmetry breaking lemmas been added for any enumerator? */
+  bool hasSymBreakLemmas( std::vector< Node >& enums ) const;
   /** Get symmetry breaking lemmas 
    * 
+   * Returns the set of symmetry breaking lemmas that have been registered
+   * for enumerator e. It adds these to lemmas.
    */
-  bool getSymBreakLemmas( std::map< Node, std::vector< Node > >& lemmas );
+  void getSymBreakLemmas( Node e, std::vector< Node >& lemmas ) const;
+  /** Get the type of term symmetry breaking lemma lem applies to */
+  TypeNode getTypeForSymBreakLemma( Node lem ) const;
+  /** Get the minimum size of terms symmetry breaking lemma lem applies to */
+  unsigned getSizeForSymBreakLemma( Node lem ) const;
+  /** Clear information about symmetry breaking lemmas */
+  void clearSymBreakLemmas();
   //------------------------------end enumerators
   
   //-----------------------------conversion from sygus to builtin
@@ -160,6 +174,12 @@ class TermDbSygus {
    *   if G is true, then there are more values of e to enumerate".
    */
   std::map<Node, Node> d_enum_to_active_guard;
+  /** mapping from enumerators to symmetry breaking clauses for them */
+  std::map<Node, std::vector<Node> > d_enum_to_sb_lemmas;
+  /** mapping from symmetry breaking lemmas to type */
+  std::map<Node, TypeNode > d_sb_lemma_to_type;
+  /** mapping from symmetry breaking lemmas to size */
+  std::map<Node, unsigned > d_sb_lemma_to_size;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
