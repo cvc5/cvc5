@@ -1338,18 +1338,38 @@ Node ExtendedRewriter::extendedRewriteBv( Node ret, bool& pol )
         return new_ret;
       }
     }
-    if( !hasZero )
+    new_ret = ret;
+    Node bv_zero = mkConstBv(ret[0],false);
+    for( unsigned i=0; i<2; i++ )
     {
-      Node slv_ret = nm->mkNode( BITVECTOR_PLUS, ret[0], mkNegate( BITVECTOR_NEG, ret[1] ) );
-      Node bv_zero = mkConstBv(ret[0],false);
-      slv_ret = slv_ret.eqNode(bv_zero);
-      slv_ret = Rewriter::rewrite( slv_ret );
-      if( d_aggr || slv_ret.isConst() )
+      if( ret[1-i]!=bv_zero )
       {
-        new_ret = slv_ret;
-        debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
+        Node slv_ret  = mkNegate( BITVECTOR_NEG, ret[1-i] );
+        if( ret[i]!=bv_zero )
+        {
+          slv_ret = nm->mkNode( BITVECTOR_PLUS, ret[i], slv_ret );
+        }
+        slv_ret = slv_ret.eqNode(bv_zero);
+        slv_ret = Rewriter::rewrite( slv_ret );
+        if( slv_ret.isConst() )
+        {
+          new_ret = slv_ret;
+          break;
+        }
+        if( d_aggr )
+        {
+          if( ( !hasZero && i==0 ) || slv_ret<new_ret )
+          {
+            new_ret = slv_ret;
+          }
+        }
       }
     }
+    if( new_ret==ret )
+    {
+      new_ret = Node::null();
+    }
+    debugExtendedRewrite( ret, new_ret, "BV-eq-solve" );
   }
   else if( k == BITVECTOR_AND || k == BITVECTOR_OR )
   {
@@ -2687,8 +2707,8 @@ void ExtendedRewriter::debugExtendedRewrite( Node n, Node ret, const char * c ) 
   {
     if( !ret.isNull() )
     {
-      Trace("q-ext-rewrite") << "sygus-extr : apply " << c << ":" << std::endl;
-      Trace("q-ext-rewrite") << "sygus-extr : " << n << " rewrites to " << ret << std::endl;
+      Trace("q-ext-rewrite-apply") << "sygus-extr : apply " << c << std::endl;
+      Trace("q-ext-rewrite") << "sygus-extr : " << c << " : " << n << " rewrites to " << ret << std::endl;
     }
   }
 }
