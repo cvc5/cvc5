@@ -899,20 +899,6 @@ void SygusSymBreakNew::registerSymBreakLemmaForValue(
   registerSymBreakLemma(tn, lem, sz, a, lemmas);
 }
 
-/*
-void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val,
-std::vector< Node >& lemmas )
-{
-  TypeNode tn = val.getType();
-  Node x = getFreeVar( tn );
-  unsigned sz = d_tds->getSygusTermSize( val );
-  std::vector< Node > exp;
-  Node lem = d_tds->getExplain()->getExplanationForEquality(x, val);
-  lem = lem.negate();
-  registerSymBreakLemma( tn, lem, sz, a, lemmas );
-}
-*/
-
 void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas ) {
   // lem holds for all terms of type tn, and is applicable to terms of size sz
   Trace("sygus-sb-debug") << "  register sym break lemma : " << lem
