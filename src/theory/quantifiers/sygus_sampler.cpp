@@ -303,7 +303,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
     Node res = d_trie.add(bn, this, 0, d_samples.size(), forceKeep);
     if (d_use_sygus_type)
     {
-      Assert(d_builtin_to_sygus.find(res) == d_builtin_to_sygus.end());
+      Assert(d_builtin_to_sygus.find(res) != d_builtin_to_sygus.end());
       res = res != bn ? d_builtin_to_sygus[res] : n;
     }
     return res;
@@ -690,9 +690,16 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     return n;
   }
+  Node bn = n;
+  Node beq_n = eq_n;
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    beq_n = d_tds->sygusToBuiltin(eq_n);
+  }
   // one of eq_n or n must be ordered
-  bool eqor = isOrdered(eq_n);
-  bool nor = isOrdered(n);
+  bool eqor = isOrdered(beq_n);
+  bool nor = isOrdered(bn);
   Trace("sygus-synth-rr-debug")
       << "Ordered? : " << nor << " " << eqor << std::endl;
   bool isUnique = false;
@@ -703,11 +710,11 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // free variables of the other
     if (!eqor)
     {
-      isUnique = containsFreeVariables(n, eq_n);
+      isUnique = containsFreeVariables(bn, beq_n);
     }
     else if (!nor)
     {
-      isUnique = containsFreeVariables(eq_n, n);
+      isUnique = containsFreeVariables(beq_n, bn);
     }
   }
   Trace("sygus-synth-rr-debug") << "AlphaEq unique: " << isUnique << std::endl;
@@ -715,7 +722,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   if (d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite..." << std::endl;
-    if (!d_drewrite->addRewrite(n, eq_n))
+    if (!d_drewrite->addRewrite(bn, beq_n))
     {
       rewRedundant = isUnique;
       // must be unique according to the dynamic rewriter
@@ -731,7 +738,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // sampler database.
     if (!eqor)
     {
-      registerTerm(n, true);
+      SygusSampler::registerTerm(n, true);
     }
     return eq_n;
   }
