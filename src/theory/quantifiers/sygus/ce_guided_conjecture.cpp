@@ -638,7 +638,10 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               Trace("sygus-rr-debug")
                   << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
             }
-            // add a symmetry breaking clause
+            // Add a symmetry breaking clause that excludes the larger
+            // of sol and eq_sol. This effectively states that we no longer
+            // wish to enumerate any term that contains sol (resp. eq_sol) as
+            // a subterm.
             Node exc_sol = sol;
             unsigned sz = sygusDb->getSygusTermSize(sol);
             unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
