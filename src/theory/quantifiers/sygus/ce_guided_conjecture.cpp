@@ -549,7 +549,7 @@ void CegConjecture::printAndContinueStream()
       // add to explanation of exclusion
       d_qe->getTermDatabaseSygus()
           ->getExplain()
-          ->getExplanationForConstantEquality(cprog, sol, exp);
+          ->getExplanationForEquality(cprog, sol, exp);
     }
   }
   Assert(!exp.empty());
@@ -612,6 +612,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         if (eq_sol != sol)
         {
           ++(cei->d_statistics.d_candidate_rewrites);
+          // if eq_sol is null, then we have an uninteresting candidate rewrite,
+          // e.g. one that is alpha-equivalent to another.
           if (!eq_sol.isNull())
           {
             // The analog of terms sol and eq_sol are equivalent under sample
@@ -637,6 +639,21 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               Trace("sygus-rr-debug")
                   << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
             }
+            // add a symmetry breaking clause 
+            Node exc_sol = sol;
+            unsigned sz = sygusDb->getSygusTermSize(sol);
+            unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
+            if( eqsz>sz )
+            {
+              sz = eqsz;
+              exc_sol = eq_sol;
+            }
+            TypeNode ptn = prog.getType();
+            Node x = sygusDb->getFreeVar(ptn,0);
+            Node lem = sygusDb->getExplain()->getExplanationForEquality(x,exc_sol);
+            lem = lem.negate();
+            Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem << std::endl;
+            sygusDb->registerSymBreakLemma(d_candidates[i],lem,ptn,sz);
           }
         }
       }

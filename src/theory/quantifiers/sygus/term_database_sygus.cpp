@@ -1255,7 +1255,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         unsigned start = d_node_mv_args_proc[n][vn];
         // get explanation in terms of testers
         std::vector< Node > antec_exp;
-        d_syexp->getExplanationForConstantEquality(n, vn, antec_exp);
+        d_syexp->getExplanationForEquality(n, vn, antec_exp);
         Node antec = antec_exp.size()==1 ? antec_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
         //Node antec = n.eqNode( vn );
         TypeNode tn = n.getType();

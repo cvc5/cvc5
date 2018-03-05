@@ -303,7 +303,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
     Node res = d_trie.add(bn, this, 0, d_samples.size(), forceKeep);
     if (d_use_sygus_type)
     {
-      Assert(d_builtin_to_sygus.find(res) == d_builtin_to_sygus.end());
+      Assert(d_builtin_to_sygus.find(res) != d_builtin_to_sygus.end());
       res = res != bn ? d_builtin_to_sygus[res] : n;
     }
     return res;
