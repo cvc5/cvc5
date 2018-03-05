@@ -2,9 +2,9 @@
 /*! \file bitvectors.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Paul Meng
+ **   Liana Hadarean, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -107,5 +107,10 @@ int main() {
   cout << " Expect valid. " << endl;
   cout << " CVC4: " << smt.query(new_x_eq_new_x_) << endl;
 
+  Expr x_neq_x = em.mkExpr(kind::EQUAL, x, x).notExpr();
+  std::vector<Expr> v{new_x_eq_new_x_, x_neq_x};
+  cout << " Querying: " << v << endl;
+  cout << " Expect invalid. " << endl;
+  cout << " CVC4: " << smt.query(v) << endl;
   return 0;
 }
