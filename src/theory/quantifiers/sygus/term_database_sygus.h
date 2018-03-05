@@ -40,21 +40,32 @@ class TermDbSygus {
   std::string identify() const { return "TermDbSygus"; }
   /** register the sygus type */
   void registerSygusType(TypeNode tn);
-  /** register a variable e that we will do enumerative search on
-   * conj is the conjecture that the enumeration of e is for.
-   * f is the synth-fun that the enumeration of e is for.
-   * mkActiveGuard is whether we want to make an active guard for e 
+  
+  //------------------------------utilities
+  /** get the explanation utility */
+  SygusExplain* getExplain() { return d_syexp.get(); }
+  /** get the extended rewrite utility */
+  ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  //------------------------------end utilities
+  
+  
+  //------------------------------enumerators
+  /** 
+   * Register a variable e that we will do enumerative search on.
+   * conj : the conjecture that the enumeration of e is for.
+   * f : the synth-fun that the enumeration of e is for.
+   * mkActiveGuard : whether we want to make an active guard for e 
    * (see d_enum_to_active_guard).
    *
-   * Notice that enumerator e may not be equivalent
-   * to f in synthesis-through-unification approaches
-   * (e.g. decision tree construction for PBE synthesis).
+   * Notice that enumerator e may not be one-to-one with f in 
+   * synthesis-through-unification approaches (e.g. decision tree construction 
+   * for PBE synthesis).
    */
   void registerEnumerator(Node e,
                           Node f,
                           CegConjecture* conj,
                           bool mkActiveGuard = false);
-  /** is e an enumerator? */
+  /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
   CegConjecture* getConjectureForEnumerator(Node e);
@@ -64,10 +75,13 @@ class TermDbSygus {
   Node getActiveGuardForEnumerator(Node e);
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
-  /** get the explanation utility */
-  SygusExplain* getExplain() { return d_syexp.get(); }
-  /** get the extended rewrite utility */
-  ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  /** Register symmetry breaking lemma for value 
+   * 
+   * 
+   */
+  void registerSymBreakLemmaForValue(Node e, Node v);
+  //------------------------------end enumerators
+  
   //-----------------------------conversion from sygus to builtin
   /** get free variable
    *
@@ -121,10 +135,15 @@ class TermDbSygus {
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
+  
+  //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
   /** sygus explanation */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
+  //------------------------------end utilities
+  
+  //------------------------------enumerators
   /** mapping from enumerator terms to the conjecture they are associated with
    */
   std::map<Node, CegConjecture*> d_enum_to_conjecture;
@@ -137,6 +156,7 @@ class TermDbSygus {
    *   if G is true, then there are more values of e to enumerate".
    */
   std::map<Node, Node> d_enum_to_active_guard;
+  //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
   /** cache for sygusToBuiltin */

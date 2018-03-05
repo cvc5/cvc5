@@ -744,7 +744,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
     if( d_tds->involvesDivByZero( bvr ) ){
       quantifiers::DivByZeroSygusInvarianceTest dbzet;
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in " << d_tds->sygusToBuiltin( nv ) << std::endl;
-      addSymBreakLemmaForValue(a, nv, dbzet, Node::null(), lemmas);
+      registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), lemmas);
       return false;
     }else{
       std::map< Node, Node >::iterator itsv = d_cache[a].d_search_val[tn].find( bvr );
@@ -878,7 +878,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         eset.init(d_tds, tn, aconj, a, bvr);
         
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        addSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, lemmas);
+        registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, lemmas);
         return false;
       }
     }
@@ -886,7 +886,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
   return true;
 }
 
-void SygusSymBreakNew::addSymBreakLemmaForValue( Node a, Node val, quantifiers::SygusInvarianceTest& et, Node valr, std::vector< Node >& lemmas )
+void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, quantifiers::SygusInvarianceTest& et, Node valr, std::vector< Node >& lemmas )
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar( tn );
@@ -899,6 +899,16 @@ void SygusSymBreakNew::addSymBreakLemmaForValue( Node a, Node val, quantifiers::
   registerSymBreakLemma( tn, lem, sz, a, lemmas );
 }
 
+void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, std::vector< Node >& lemmas )
+{
+  TypeNode tn = val.getType();
+  Node x = getFreeVar( tn );
+  unsigned sz = d_tds->getSygusTermSize( val );
+  std::vector< Node > exp;
+  Node lem = d_tds->getExplain()->getExplanationForConstantEquality(x, val);
+  lem = lem.negate();
+  registerSymBreakLemma( tn, lem, sz, a, lemmas );
+}
 
 void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas ) {
   // lem holds for all terms of type tn, and is applicable to terms of size sz
