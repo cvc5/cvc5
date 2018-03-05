@@ -91,19 +91,24 @@ private:
   * Context-Dependent Rewriting", CAV 2017.
   */
   static Node rewriteContains(Node node);
+  /** rewrite indexof
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.indexof( s, t, n )
+  * Returns the rewritten form of node.
+  */
   static Node rewriteIndexof(Node node);
   /** rewrite replace
   * This is the entry point for post-rewriting terms n of the form
   *   str.replace( s, t, r )
-  * Returns the rewritten form of n.
+  * Returns the rewritten form of node.
   */
-  static Node rewriteReplace(Node n);
+  static Node rewriteReplace(Node node);
   /** rewrite prefix/suffix
   * This is the entry point for post-rewriting terms n of the form
   *   str.prefixof( s, t ) / str.suffixof( s, t )
-  * Returns the rewritten form of n.
+  * Returns the rewritten form of node.
   */
-  static Node rewritePrefixSuffix(Node n);
+  static Node rewritePrefixSuffix(Node node);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
@@ -286,9 +291,9 @@ private:
    *   y = str.++( n1rb, str.substr(y,x,z), n1re )
    * for some n1rb, n1re. However, to construct such n1rb, n1re would require
    * e.g. the terms:
-   *   y = str.++( ite( z < 0 OR x < 0, y, str.substr(y,0,x) ),
+   *   y = str.++( ite( x+z < 0 OR x < 0, y, str.substr(y,0,x) ),
    *               str.substr(y,x,z),
-   *               str.substr(y,z,len(y)) )
+   *               ite( x+z < 0 OR x < 0, "", str.substr(y,x+z,len(y)) ) )
    *
    * Since we do not wish to introduce ITE terms in the rewriter, we instead
    * return false, indicating that we cannot compute the remainder.
