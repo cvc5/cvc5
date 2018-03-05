@@ -181,11 +181,7 @@ std::ostream& operator<<(
  * @return the stream
  */
 template <typename V>
-std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container)
-{
-  container_to_stream(out, container);
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container);
 
 /**
  * Serialize an unordered_map of expressions to the given stream.
@@ -197,11 +193,7 @@ std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container)
 template <typename V>
 std::ostream& operator<<(
     std::ostream& out,
-    const std::unordered_map<Expr, V, ExprHashFunction>& container)
-{
-  container_to_stream(out, container);
-  return out;
-}
+    const std::unordered_map<Expr, V, ExprHashFunction>& container);
 
 // for hash_maps, hash_sets..
 struct ExprHashFunction {

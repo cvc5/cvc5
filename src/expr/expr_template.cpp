@@ -74,6 +74,22 @@ std::ostream& operator<<(
   return out;
 }
 
+template <typename V>
+std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+template <typename V>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_map<Expr, V, ExprHashFunction>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
 TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
     : Exception(t.d_msg), d_expr(new Expr(t.getExpression()))
 {
