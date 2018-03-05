@@ -44,17 +44,17 @@ namespace strings {
  *
  */
 
-/** Types of inferences in the procedure 
- * 
+/** Types of inferences in the procedure
+ *
  * These are variants of the inference rules in Figures 3-5 of Liang et al.
  * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
  */
-enum Inference 
+enum Inference
 {
   infer_none,
-  // string split constant propagation 
+  // string split constant propagation
   infer_ssplit_cst_prop,
-  // string split variable propagation 
+  // string split variable propagation
   infer_ssplit_var_prop,
   // length split
   infer_len_split,

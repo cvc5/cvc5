@@ -36,18 +36,20 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
-std::ostream& operator<<(std::ostream& out, Inference i) { 
-  switch( i ){
-  case infer_ssplit_cst_prop:out << "S-Split(CST-P)-prop";break;
-  case infer_ssplit_var_prop:out << "S-Split(VAR)-prop";break;
-  case infer_len_split:out << "Len-Split(Len)";break;
-  case infer_len_split_emp:out << "Len-Split(Emp)";break;
-  case infer_ssplit_cst_binary:out << "S-Split(CST-P)-binary";break;
-  case infer_ssplit_cst:out << "S-Split(CST-P)";break;
-  case infer_ssplit_var:out << "S-Split(VAR)";break;
-  case infer_floop:out << "F-Loop";break;
-  default:out << "?";break;
+
+std::ostream& operator<<(std::ostream& out, Inference i)
+{
+  switch (i)
+  {
+    case infer_ssplit_cst_prop: out << "S-Split(CST-P)-prop"; break;
+    case infer_ssplit_var_prop: out << "S-Split(VAR)-prop"; break;
+    case infer_len_split: out << "Len-Split(Len)"; break;
+    case infer_len_split_emp: out << "Len-Split(Emp)"; break;
+    case infer_ssplit_cst_binary: out << "S-Split(CST-P)-binary"; break;
+    case infer_ssplit_cst: out << "S-Split(CST-P)"; break;
+    case infer_ssplit_var: out << "S-Split(VAR)"; break;
+    case infer_floop: out << "F-Loop"; break;
+    default: out << "?"; break;
   }
   return out;
 }
@@ -2392,9 +2394,11 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
     Trace("strings-solve") << "Possible inferences (" << pinfer.size() << ") : " << std::endl;
     unsigned min_id = 9;
     unsigned max_index = 0;
-    for( unsigned i=0, size = pinfer.size(); i<size; i++ ){
+    for (unsigned i = 0, size = pinfer.size(); i < size; i++)
+    {
       Trace("strings-solve") << "From " << pinfer[i].d_i << " / " << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev << ") : ";
-      Trace("strings-solve") << pinfer[i].d_conc << " by " << pinfer[i].d_id << std::endl;
+      Trace("strings-solve")
+          << pinfer[i].d_conc << " by " << pinfer[i].d_id << std::endl;
       if( use_index==-1 || pinfer[i].d_id<min_id || ( pinfer[i].d_id==min_id && pinfer[i].d_index>max_index ) ){
         min_id = pinfer[i].d_id;
         max_index = pinfer[i].d_index;
@@ -2408,7 +2412,11 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
     }
     std::stringstream ssi;
     ssi << pinfer[use_index].d_id;
-    sendInference( pinfer[use_index].d_ant, pinfer[use_index].d_antn, pinfer[use_index].d_conc, ssi.str().c_str(), pinfer[use_index].sendAsLemma() );
+    sendInference(pinfer[use_index].d_ant,
+                  pinfer[use_index].d_antn,
+                  pinfer[use_index].d_conc,
+                  ssi.str().c_str(),
+                  pinfer[use_index].sendAsLemma());
     for( std::map< int, std::vector< Node > >::iterator it = pinfer[use_index].d_new_skolem.begin(); it != pinfer[use_index].d_new_skolem.end(); ++it ){
       for( unsigned i=0; i<it->second.size(); i++ ){
         if( it->first==0 ){
@@ -2692,7 +2700,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                       Trace("strings-csp") << "Const Split: " << firstChar << " is removed from " << const_str << " (serial) " << std::endl;
                       info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, firstChar ) : mkConcat(firstChar, sk) );
                       info.d_new_skolem[0].push_back( sk );
-                      info.d_id = infer_ssplit_cst;                    
+                      info.d_id = infer_ssplit_cst;
                       info_valid = true;
                     }
                   }
