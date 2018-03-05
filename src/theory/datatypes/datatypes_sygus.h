@@ -42,13 +42,13 @@ class TheoryDatatypes;
 
 class SygusSymBreakNew
 {
-private:
-  TheoryDatatypes * d_td;
-  quantifiers::TermDbSygus * d_tds;
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;  
+private:
+  TheoryDatatypes * d_td;
+  quantifiers::TermDbSygus * d_tds;
   IntMap d_testers;
   IntMap d_is_const;
   NodeMap d_testers_exp;
@@ -119,7 +119,7 @@ private:
     /** For each term, whether this cache has processed that term */
     std::map< Node, bool > d_search_val_proc;
   };
-  // anchor -> cache
+  /** An instance of the above cache, for each anchor */
   std::map< Node, SearchCache > d_cache;
   /** a sygus sampler object for each (anchor, sygus type) pair
    *
@@ -183,8 +183,8 @@ private:
    * of any value for a.
    * 
    * et : an "invariance test" (see sygus/sygus_invariance.h) which states a
-   * criteria that val meets that is the reason for its exclusion. This is used
-   * for generalizing the symmetry breaking lemma template.
+   * criteria that val meets, which is the reason for its exclusion. This is 
+   * used for generalizing the symmetry breaking lemma template.
    * valr : if non-null, this states a value that should *not* be excluded by
    * the symmetry breaking lemma template, which is a restriction to the above
    * generalization.
@@ -208,7 +208,15 @@ private:
    *   ~is_+( z ) V ~is_+( z.1 ) has size 2
    */
   void registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas );
+  /** 
+   * Adds all active symmetry breaking lemmas for selector chain t to lemmas.
+   * tn : the type of term t,
+   * a : the anchor of term t,
+   * d : the depth of term t (see d_term_to_depth). This affects which symmetry
+   * breaking lemmas are applicable to t in the current context.
+   */
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node a, std::vector< Node >& lemmas );
+  /** calls the above function where a is the anchor t */
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
   /** add symmetry breaking lemma 
    * 
