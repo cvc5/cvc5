@@ -98,7 +98,7 @@ echo "Setting up Boost..."
 echo
 ( mkdir boost-$BOOSTVERSION &&
   cd boost-$BOOSTVERSION &&
-  webget http://downloads.sourceforge.net/project/boost/boost/$BOOSTVERSION/$BOOSTBASE.tar.gz $BOOSTBASE.tar.gz &&
+  webget https://sourceforge.net/projects/boost/files/boost/$BOOSTVERSION/$BOOSTBASE.tar.gz/download $BOOSTBASE.tar.gz &&
   tar xfz $BOOSTBASE.tar.gz &&
   cd $BOOSTBASE &&
   ./bootstrap.sh --with-toolset=gcc --prefix=`pwd`/.. --with-libraries=thread &&
