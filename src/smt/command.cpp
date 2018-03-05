@@ -2,9 +2,9 @@
 /*! \file command.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Francois Bobot
+ **   Tim King, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -104,7 +104,25 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   return out;
 }
 
-/* class CommandPrintSuccess */
+
+/* output stream insertion operator for benchmark statuses */
+std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
+{
+  switch (status)
+  {
+    case SMT_SATISFIABLE: return out << "sat";
+
+    case SMT_UNSATISFIABLE: return out << "unsat";
+
+    case SMT_UNKNOWN: return out << "unknown";
+
+    default: return out << "BenchmarkStatus::[UNKNOWNSTATUS!]";
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* class CommandPrintSuccess                                                  */
+/* -------------------------------------------------------------------------- */
 
 void CommandPrintSuccess::applyPrintSuccess(std::ostream& out)
 {
@@ -127,7 +145,9 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
   return out;
 }
 
-/* class Command */
+/* -------------------------------------------------------------------------- */
+/* class Command                                                              */
+/* -------------------------------------------------------------------------- */
 
 Command::Command() : d_commandStatus(NULL), d_muted(false) {}
 Command::Command(const Command& cmd)
@@ -208,7 +228,9 @@ void Command::printResult(std::ostream& out, uint32_t verbosity) const
   }
 }
 
-/* class EmptyCommand */
+/* -------------------------------------------------------------------------- */
+/* class EmptyCommand                                                         */
+/* -------------------------------------------------------------------------- */
 
 EmptyCommand::EmptyCommand(std::string name) : d_name(name) {}
 std::string EmptyCommand::getName() const { return d_name; }
@@ -226,7 +248,10 @@ Command* EmptyCommand::exportTo(ExprManager* exprManager,
 
 Command* EmptyCommand::clone() const { return new EmptyCommand(d_name); }
 std::string EmptyCommand::getCommandName() const { return "empty"; }
-/* class EchoCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class EchoCommand                                                          */
+/* -------------------------------------------------------------------------- */
 
 EchoCommand::EchoCommand(std::string output) : d_output(output) {}
 std::string EchoCommand::getOutput() const { return d_output; }
@@ -254,7 +279,10 @@ Command* EchoCommand::exportTo(ExprManager* exprManager,
 
 Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
 std::string EchoCommand::getCommandName() const { return "echo"; }
-/* class AssertCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class AssertCommand                                                        */
+/* -------------------------------------------------------------------------- */
 
 AssertCommand::AssertCommand(const Expr& e, bool inUnsatCore)
     : d_expr(e), d_inUnsatCore(inUnsatCore)
@@ -292,7 +320,10 @@ Command* AssertCommand::clone() const
 }
 
 std::string AssertCommand::getCommandName() const { return "assert"; }
-/* class PushCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class PushCommand                                                          */
+/* -------------------------------------------------------------------------- */
 
 void PushCommand::invoke(SmtEngine* smtEngine)
 {
@@ -319,7 +350,10 @@ Command* PushCommand::exportTo(ExprManager* exprManager,
 
 Command* PushCommand::clone() const { return new PushCommand(); }
 std::string PushCommand::getCommandName() const { return "push"; }
-/* class PopCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class PopCommand                                                           */
+/* -------------------------------------------------------------------------- */
 
 void PopCommand::invoke(SmtEngine* smtEngine)
 {
@@ -347,7 +381,9 @@ Command* PopCommand::exportTo(ExprManager* exprManager,
 Command* PopCommand::clone() const { return new PopCommand(); }
 std::string PopCommand::getCommandName() const { return "pop"; }
 
-/* class CheckSatCommand */
+/* -------------------------------------------------------------------------- */
+/* class CheckSatCommand                                                      */
+/* -------------------------------------------------------------------------- */
 
 CheckSatCommand::CheckSatCommand() : d_expr() {}
 CheckSatCommand::CheckSatCommand(const Expr& expr, bool inUnsatCore)
@@ -400,7 +436,9 @@ Command* CheckSatCommand::clone() const
 
 std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 
-/* class CheckSatAssumingCommand */
+/* -------------------------------------------------------------------------- */
+/* class CheckSatAssumingCommand                                              */
+/* -------------------------------------------------------------------------- */
 
 CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms()
 {
@@ -478,7 +516,9 @@ std::string CheckSatAssumingCommand::getCommandName() const
   return "check-sat-assuming";
 }
 
-/* class QueryCommand */
+/* -------------------------------------------------------------------------- */
+/* class QueryCommand                                                         */
+/* -------------------------------------------------------------------------- */
 
 QueryCommand::QueryCommand(const Expr& e, bool inUnsatCore)
     : d_expr(e), d_inUnsatCore(inUnsatCore)
@@ -529,7 +569,10 @@ Command* QueryCommand::clone() const
 }
 
 std::string QueryCommand::getCommandName() const { return "query"; }
-/* class CheckSynthCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class CheckSynthCommand                                                    */
+/* -------------------------------------------------------------------------- */
 
 CheckSynthCommand::CheckSynthCommand() : d_expr() {}
 CheckSynthCommand::CheckSynthCommand(const Expr& expr) : d_expr(expr) {}
@@ -604,7 +647,10 @@ Command* CheckSynthCommand::clone() const
 }
 
 std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
-/* class ResetCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class ResetCommand                                                         */
+/* -------------------------------------------------------------------------- */
 
 void ResetCommand::invoke(SmtEngine* smtEngine)
 {
@@ -627,7 +673,10 @@ Command* ResetCommand::exportTo(ExprManager* exprManager,
 
 Command* ResetCommand::clone() const { return new ResetCommand(); }
 std::string ResetCommand::getCommandName() const { return "reset"; }
-/* class ResetAssertionsCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class ResetAssertionsCommand                                               */
+/* -------------------------------------------------------------------------- */
 
 void ResetAssertionsCommand::invoke(SmtEngine* smtEngine)
 {
@@ -658,7 +707,9 @@ std::string ResetAssertionsCommand::getCommandName() const
   return "reset-assertions";
 }
 
-/* class QuitCommand */
+/* -------------------------------------------------------------------------- */
+/* class QuitCommand                                                          */
+/* -------------------------------------------------------------------------- */
 
 void QuitCommand::invoke(SmtEngine* smtEngine)
 {
@@ -674,7 +725,10 @@ Command* QuitCommand::exportTo(ExprManager* exprManager,
 
 Command* QuitCommand::clone() const { return new QuitCommand(); }
 std::string QuitCommand::getCommandName() const { return "exit"; }
-/* class CommentCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class CommentCommand                                                       */
+/* -------------------------------------------------------------------------- */
 
 CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {}
 std::string CommentCommand::getComment() const { return d_comment; }
@@ -692,7 +746,10 @@ Command* CommentCommand::exportTo(ExprManager* exprManager,
 
 Command* CommentCommand::clone() const { return new CommentCommand(d_comment); }
 std::string CommentCommand::getCommandName() const { return "comment"; }
-/* class CommandSequence */
+
+/* -------------------------------------------------------------------------- */
+/* class CommandSequence                                                      */
+/* -------------------------------------------------------------------------- */
 
 CommandSequence::CommandSequence() : d_index(0) {}
 CommandSequence::~CommandSequence()
@@ -792,9 +849,10 @@ CommandSequence::iterator CommandSequence::end()
 }
 
 std::string CommandSequence::getCommandName() const { return "sequence"; }
-/* class DeclarationSequenceCommand */
 
-/* class DeclarationDefinitionCommand */
+/* -------------------------------------------------------------------------- */
+/* class DeclarationDefinitionCommand                                         */
+/* -------------------------------------------------------------------------- */
 
 DeclarationDefinitionCommand::DeclarationDefinitionCommand(
     const std::string& id)
@@ -803,7 +861,10 @@ DeclarationDefinitionCommand::DeclarationDefinitionCommand(
 }
 
 std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
-/* class DeclareFunctionCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class DeclareFunctionCommand                                               */
+/* -------------------------------------------------------------------------- */
 
 DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
                                                Expr func,
@@ -861,7 +922,9 @@ std::string DeclareFunctionCommand::getCommandName() const
   return "declare-fun";
 }
 
-/* class DeclareTypeCommand */
+/* -------------------------------------------------------------------------- */
+/* class DeclareTypeCommand                                                   */
+/* -------------------------------------------------------------------------- */
 
 DeclareTypeCommand::DeclareTypeCommand(const std::string& id,
                                        size_t arity,
@@ -894,7 +957,9 @@ std::string DeclareTypeCommand::getCommandName() const
   return "declare-sort";
 }
 
-/* class DefineTypeCommand */
+/* -------------------------------------------------------------------------- */
+/* class DefineTypeCommand                                                    */
+/* -------------------------------------------------------------------------- */
 
 DefineTypeCommand::DefineTypeCommand(const std::string& id, Type t)
     : DeclarationDefinitionCommand(id), d_params(), d_type(t)
@@ -937,7 +1002,10 @@ Command* DefineTypeCommand::clone() const
 }
 
 std::string DefineTypeCommand::getCommandName() const { return "define-sort"; }
-/* class DefineFunctionCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class DefineFunctionCommand                                                */
+/* -------------------------------------------------------------------------- */
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
@@ -1007,7 +1075,9 @@ std::string DefineFunctionCommand::getCommandName() const
   return "define-fun";
 }
 
-/* class DefineNamedFunctionCommand */
+/* -------------------------------------------------------------------------- */
+/* class DefineNamedFunctionCommand                                           */
+/* -------------------------------------------------------------------------- */
 
 DefineNamedFunctionCommand::DefineNamedFunctionCommand(
     const std::string& id,
@@ -1047,7 +1117,9 @@ Command* DefineNamedFunctionCommand::clone() const
   return new DefineNamedFunctionCommand(d_symbol, d_func, d_formals, d_formula);
 }
 
-/* class DefineFunctionRecCommand */
+/* -------------------------------------------------------------------------- */
+/* class DefineFunctionRecCommand                                             */
+/* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
     Expr func, const std::vector<Expr>& formals, Expr formula)
@@ -1135,7 +1207,9 @@ std::string DefineFunctionRecCommand::getCommandName() const
   return "define-fun-rec";
 }
 
-/* class SetUserAttribute */
+/* -------------------------------------------------------------------------- */
+/* class SetUserAttribute                                                     */
+/* -------------------------------------------------------------------------- */
 
 SetUserAttributeCommand::SetUserAttributeCommand(
     const std::string& attr,
@@ -1202,7 +1276,9 @@ std::string SetUserAttributeCommand::getCommandName() const
   return "set-user-attribute";
 }
 
-/* class SimplifyCommand */
+/* -------------------------------------------------------------------------- */
+/* class SimplifyCommand                                                      */
+/* -------------------------------------------------------------------------- */
 
 SimplifyCommand::SimplifyCommand(Expr term) : d_term(term) {}
 Expr SimplifyCommand::getTerm() const { return d_term; }
@@ -1253,7 +1329,10 @@ Command* SimplifyCommand::clone() const
 }
 
 std::string SimplifyCommand::getCommandName() const { return "simplify"; }
-/* class ExpandDefinitionsCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class ExpandDefinitionsCommand                                             */
+/* -------------------------------------------------------------------------- */
 
 ExpandDefinitionsCommand::ExpandDefinitionsCommand(Expr term) : d_term(term) {}
 Expr ExpandDefinitionsCommand::getTerm() const { return d_term; }
@@ -1298,7 +1377,9 @@ std::string ExpandDefinitionsCommand::getCommandName() const
   return "expand-definitions";
 }
 
-/* class GetValueCommand */
+/* -------------------------------------------------------------------------- */
+/* class GetValueCommand                                                      */
+/* -------------------------------------------------------------------------- */
 
 GetValueCommand::GetValueCommand(Expr term) : d_terms()
 {
@@ -1392,7 +1473,10 @@ Command* GetValueCommand::clone() const
 }
 
 std::string GetValueCommand::getCommandName() const { return "get-value"; }
-/* class GetAssignmentCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class GetAssignmentCommand                                                 */
+/* -------------------------------------------------------------------------- */
 
 GetAssignmentCommand::GetAssignmentCommand() {}
 void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
@@ -1466,7 +1550,9 @@ std::string GetAssignmentCommand::getCommandName() const
   return "get-assignment";
 }
 
-/* class GetModelCommand */
+/* -------------------------------------------------------------------------- */
+/* class GetModelCommand                                                      */
+/* -------------------------------------------------------------------------- */
 
 GetModelCommand::GetModelCommand() : d_result(nullptr), d_smtEngine(nullptr) {}
 void GetModelCommand::invoke(SmtEngine* smtEngine)
@@ -1527,7 +1613,10 @@ Command* GetModelCommand::clone() const
 }
 
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
-/* class GetProofCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class GetProofCommand                                                      */
+/* -------------------------------------------------------------------------- */
 
 GetProofCommand::GetProofCommand() : d_smtEngine(nullptr), d_result(nullptr) {}
 void GetProofCommand::invoke(SmtEngine* smtEngine)
@@ -1584,7 +1673,10 @@ Command* GetProofCommand::clone() const
 }
 
 std::string GetProofCommand::getCommandName() const { return "get-proof"; }
-/* class GetInstantiationsCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class GetInstantiationsCommand                                             */
+/* -------------------------------------------------------------------------- */
 
 GetInstantiationsCommand::GetInstantiationsCommand() : d_smtEngine(nullptr) {}
 void GetInstantiationsCommand::invoke(SmtEngine* smtEngine)
@@ -1635,7 +1727,9 @@ std::string GetInstantiationsCommand::getCommandName() const
   return "get-instantiations";
 }
 
-/* class GetSynthSolutionCommand */
+/* -------------------------------------------------------------------------- */
+/* class GetSynthSolutionCommand                                              */
+/* -------------------------------------------------------------------------- */
 
 GetSynthSolutionCommand::GetSynthSolutionCommand() : d_smtEngine(nullptr) {}
 void GetSynthSolutionCommand::invoke(SmtEngine* smtEngine)
@@ -1684,7 +1778,9 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
-/* class GetQuantifierEliminationCommand */
+/* -------------------------------------------------------------------------- */
+/* class GetQuantifierEliminationCommand                                      */
+/* -------------------------------------------------------------------------- */
 
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand() : d_expr() {}
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(
@@ -1744,7 +1840,9 @@ std::string GetQuantifierEliminationCommand::getCommandName() const
   return d_doFull ? "get-qe" : "get-qe-disjunct";
 }
 
-/* class GetUnsatCoreCommand */
+/* -------------------------------------------------------------------------- */
+/* class GetUnsatCoreCommand                                                  */
+/* -------------------------------------------------------------------------- */
 
 GetUnsatCoreCommand::GetUnsatCoreCommand() {}
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine)
@@ -1803,7 +1901,9 @@ std::string GetUnsatCoreCommand::getCommandName() const
   return "get-unsat-core";
 }
 
-/* class GetAssertionsCommand */
+/* -------------------------------------------------------------------------- */
+/* class GetAssertionsCommand                                                 */
+/* -------------------------------------------------------------------------- */
 
 GetAssertionsCommand::GetAssertionsCommand() {}
 void GetAssertionsCommand::invoke(SmtEngine* smtEngine)
@@ -1858,7 +1958,9 @@ std::string GetAssertionsCommand::getCommandName() const
   return "get-assertions";
 }
 
-/* class SetBenchmarkStatusCommand */
+/* -------------------------------------------------------------------------- */
+/* class SetBenchmarkStatusCommand                                            */
+/* -------------------------------------------------------------------------- */
 
 SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status)
     : d_status(status)
@@ -1902,7 +2004,9 @@ std::string SetBenchmarkStatusCommand::getCommandName() const
   return "set-info";
 }
 
-/* class SetBenchmarkLogicCommand */
+/* -------------------------------------------------------------------------- */
+/* class SetBenchmarkLogicCommand                                             */
+/* -------------------------------------------------------------------------- */
 
 SetBenchmarkLogicCommand::SetBenchmarkLogicCommand(std::string logic)
     : d_logic(logic)
@@ -1939,7 +2043,9 @@ std::string SetBenchmarkLogicCommand::getCommandName() const
   return "set-logic";
 }
 
-/* class SetInfoCommand */
+/* -------------------------------------------------------------------------- */
+/* class SetInfoCommand                                                       */
+/* -------------------------------------------------------------------------- */
 
 SetInfoCommand::SetInfoCommand(std::string flag, const SExpr& sexpr)
     : d_flag(flag), d_sexpr(sexpr)
@@ -1978,7 +2084,10 @@ Command* SetInfoCommand::clone() const
 }
 
 std::string SetInfoCommand::getCommandName() const { return "set-info"; }
-/* class GetInfoCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class GetInfoCommand                                                       */
+/* -------------------------------------------------------------------------- */
 
 GetInfoCommand::GetInfoCommand(std::string flag) : d_flag(flag) {}
 std::string GetInfoCommand::getFlag() const { return d_flag; }
@@ -2037,7 +2146,10 @@ Command* GetInfoCommand::clone() const
 }
 
 std::string GetInfoCommand::getCommandName() const { return "get-info"; }
-/* class SetOptionCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class SetOptionCommand                                                     */
+/* -------------------------------------------------------------------------- */
 
 SetOptionCommand::SetOptionCommand(std::string flag, const SExpr& sexpr)
     : d_flag(flag), d_sexpr(sexpr)
@@ -2075,7 +2187,10 @@ Command* SetOptionCommand::clone() const
 }
 
 std::string SetOptionCommand::getCommandName() const { return "set-option"; }
-/* class GetOptionCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class GetOptionCommand                                                     */
+/* -------------------------------------------------------------------------- */
 
 GetOptionCommand::GetOptionCommand(std::string flag) : d_flag(flag) {}
 std::string GetOptionCommand::getFlag() const { return d_flag; }
@@ -2126,7 +2241,10 @@ Command* GetOptionCommand::clone() const
 }
 
 std::string GetOptionCommand::getCommandName() const { return "get-option"; }
-/* class SetExpressionNameCommand */
+
+/* -------------------------------------------------------------------------- */
+/* class SetExpressionNameCommand                                             */
+/* -------------------------------------------------------------------------- */
 
 SetExpressionNameCommand::SetExpressionNameCommand(Expr expr, std::string name)
     : d_expr(expr), d_name(name)
@@ -2158,7 +2276,9 @@ std::string SetExpressionNameCommand::getCommandName() const
   return "set-expr-name";
 }
 
-/* class DatatypeDeclarationCommand */
+/* -------------------------------------------------------------------------- */
+/* class DatatypeDeclarationCommand                                           */
+/* -------------------------------------------------------------------------- */
 
 DatatypeDeclarationCommand::DatatypeDeclarationCommand(
     const DatatypeType& datatype)
@@ -2201,7 +2321,9 @@ std::string DatatypeDeclarationCommand::getCommandName() const
   return "declare-datatypes";
 }
 
-/* class RewriteRuleCommand */
+/* -------------------------------------------------------------------------- */
+/* class RewriteRuleCommand                                                   */
+/* -------------------------------------------------------------------------- */
 
 RewriteRuleCommand::RewriteRuleCommand(const std::vector<Expr>& vars,
                                        const std::vector<Expr>& guards,
@@ -2313,7 +2435,9 @@ std::string RewriteRuleCommand::getCommandName() const
   return "rewrite-rule";
 }
 
-/* class PropagateRuleCommand */
+/* -------------------------------------------------------------------------- */
+/* class PropagateRuleCommand                                                 */
+/* -------------------------------------------------------------------------- */
 
 PropagateRuleCommand::PropagateRuleCommand(const std::vector<Expr>& vars,
                                            const std::vector<Expr>& guards,
@@ -2444,20 +2568,4 @@ std::string PropagateRuleCommand::getCommandName() const
 {
   return "propagate-rule";
 }
-
-/* output stream insertion operator for benchmark statuses */
-std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
-{
-  switch (status)
-  {
-    case SMT_SATISFIABLE: return out << "sat";
-
-    case SMT_UNSATISFIABLE: return out << "unsat";
-
-    case SMT_UNKNOWN: return out << "unknown";
-
-    default: return out << "BenchmarkStatus::[UNKNOWNSTATUS!]";
-  }
-}
-
 }  // namespace CVC4

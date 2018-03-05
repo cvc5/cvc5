@@ -2,9 +2,9 @@
 /*! \file command.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Andres Noetzli
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -544,13 +544,12 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command
   const std::string d_str_value;
 }; /* class SetUserAttributeCommand */
 
+/**
+ * The command when parsing check-sat.
+ * This command will check satisfiability of the input formula.
+ */
 class CVC4_PUBLIC CheckSatCommand : public Command
 {
- protected:
-  Expr d_expr;
-  Result d_result;
-  bool d_inUnsatCore;
-
  public:
   CheckSatCommand();
   CheckSatCommand(const Expr& expr, bool inUnsatCore = true);
@@ -563,15 +562,20 @@ class CVC4_PUBLIC CheckSatCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-}; /* class CheckSatCommand */
 
-class CVC4_PUBLIC CheckSatAssumingCommand : public Command
-{
- protected:
-  std::vector<Expr> d_terms;
+ private:
+  Expr d_expr;
   Result d_result;
   bool d_inUnsatCore;
+}; /* class CheckSatCommand */
 
+/**
+ * The command when parsing check-sat-assuming.
+ * This command will assume a set of formulas and check satisfiability of the
+ * input formula under these assumptions.
+ */
+class CVC4_PUBLIC CheckSatAssumingCommand : public Command
+{
  public:
   CheckSatAssumingCommand(Expr term);
   CheckSatAssumingCommand(const std::vector<Expr>& terms,
@@ -585,6 +589,11 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+
+ private:
+  std::vector<Expr> d_terms;
+  Result d_result;
+  bool d_inUnsatCore;
 }; /* class CheckSatAssumingCommand */
 
 class CVC4_PUBLIC QueryCommand : public Command
