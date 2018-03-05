@@ -669,14 +669,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
 }
 
 TNode SygusSymBreakNew::getFreeVar( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator it = d_free_var.find( tn );
-  if( it==d_free_var.end() ){
-    Node x = NodeManager::currentNM()->mkSkolem( "x", tn );
-    d_free_var[tn] = x;
-    return x;
-  }else{
-    return it->second;
-  }
+  return d_tds->getFreeVar(tn,0);
 }
 
 unsigned SygusSymBreakNew::processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas ) {

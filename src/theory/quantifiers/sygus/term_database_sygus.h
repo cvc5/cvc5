@@ -80,6 +80,10 @@ class TermDbSygus {
    * 
    */
   void registerSymBreakLemmaForValue(Node e, Node v);
+  /** Get symmetry breaking lemmas 
+   * 
+   */
+  bool getSymBreakLemmas( std::map< Node, std::vector< Node > >& lemmas );
   //------------------------------end enumerators
   
   //-----------------------------conversion from sygus to builtin

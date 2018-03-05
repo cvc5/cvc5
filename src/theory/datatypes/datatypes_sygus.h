@@ -88,7 +88,10 @@ private:
    *
    */
   std::map< Node, bool > d_is_top_level;
-  void registerTerm( Node n, std::vector< Node >& lemmas );
+  /** 
+   * Returns true if the selector chain n is top-level based on the above 
+   * definition, when tn is the type of n.
+   */
   bool computeTopLevel( TypeNode tn, Node n );
 private:
   //list of all terms encountered in search at depth
@@ -137,6 +140,12 @@ private:
    * output channel of datatypes by the caller.
    */
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
+  /** 
+   * This function is called when term n is registered to the theory of
+   * datatypes. It makes the appropriate call to registerSearchTerm below,
+   * if applicable.
+   */
+  void registerTerm( Node n, std::vector< Node >& lemmas );
   /** Register search term
    * 
    * This function is called when selector chain S_1( ... S_m( n ) ... ) is
@@ -241,7 +250,6 @@ private:
   Node getRelevancyCondition( Node n );
 private:
   std::map< TypeNode, std::map< int, std::map< unsigned, Node > > > d_simple_sb_pred;
-  std::map< TypeNode, Node > d_free_var;
   // user-context dependent if sygus-incremental
   std::map< Node, unsigned > d_simple_proc;
   //get simple symmetry breaking predicate
