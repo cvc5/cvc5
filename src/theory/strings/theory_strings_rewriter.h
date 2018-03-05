@@ -291,9 +291,9 @@ private:
    *   y = str.++( n1rb, str.substr(y,x,z), n1re )
    * for some n1rb, n1re. However, to construct such n1rb, n1re would require
    * e.g. the terms:
-   *   y = str.++( ite( x+z < 0 OR x < 0, y, str.substr(y,0,x) ),
+   *   y = str.++( ite( x+z < 0 OR x < 0, "", str.substr(y,0,x) ),
    *               str.substr(y,x,z),
-   *               ite( x+z < 0 OR x < 0, "", str.substr(y,x+z,len(y)) ) )
+   *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
    *
    * Since we do not wish to introduce ITE terms in the rewriter, we instead
    * return false, indicating that we cannot compute the remainder.
