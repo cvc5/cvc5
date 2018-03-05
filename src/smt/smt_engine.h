@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -186,8 +186,8 @@ class CVC4_PUBLIC SmtEngine {
   std::vector<Command*> d_dumpCommands;
 
   /**
-   *A vector of command definitions to be imported in the new
-   *SmtEngine when checking unsat-cores.
+   * A vector of command definitions to be imported in the new
+   * SmtEngine when checking unsat-cores.
    */
   std::vector<Command*> d_defineCommands;
 
@@ -207,10 +207,10 @@ class CVC4_PUBLIC SmtEngine {
   unsigned d_pendingPops;
 
   /**
-   * Whether or not this SmtEngine has been fully initialized (that is,
-   * the ).  This post-construction initialization is automatically
-   * triggered by the use of the SmtEngine; e.g. when setLogic() is
-   * called, or the first assertion is made, etc.
+   * Whether or not this SmtEngine is fully initialized (post-construction).
+   * This post-construction initialization is automatically triggered by the
+   * use of the SmtEngine; e.g. when setLogic() is called, or the first
+   * assertion is made, etc.
    */
   bool d_fullyInited;
 
@@ -400,7 +400,12 @@ class CVC4_PUBLIC SmtEngine {
   SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
 
   //check satisfiability (for query and check-sat)
-  Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
+  Result checkSatisfiability(const Expr& expr,
+                             bool inUnsatCore,
+                             bool isQuery);
+  Result checkSatisfiability(const std::vector<Expr>& exprs,
+                             bool inUnsatCore,
+                             bool isQuery);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -535,13 +540,18 @@ class CVC4_PUBLIC SmtEngine {
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) /* throw(Exception) */;
+  Result query(const Expr& e = Expr(),
+               bool inUnsatCore = true) /* throw(Exception) */;
+  Result query(const std::vector<Expr>& exprs,
+               bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
   Result checkSat(const Expr& e = Expr(),
+                  bool inUnsatCore = true) /* throw(Exception) */;
+  Result checkSat(const std::vector<Expr>& exprs,
                   bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
@@ -871,13 +881,13 @@ class CVC4_PUBLIC SmtEngine {
    * translation.
    */
   void setReplayStream(ExprStream* exprStream);
-  
+
   /** get expression name
   * Returns true if e has an expression name in the current context.
   * If it returns true, the name of e is stored in name.
   */
   bool getExpressionName(Expr e, std::string& name) const;
-  
+
   /** set expression name 
   * Sets the expression name of e to name.
   * This information is user-context-dependent.

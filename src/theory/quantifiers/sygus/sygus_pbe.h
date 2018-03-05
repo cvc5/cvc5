@@ -18,7 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_PBE_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/sygus/sygus_module.h"
 
 namespace CVC4 {
 namespace theory {
@@ -158,16 +158,13 @@ class CegConjecture;
 * This class is not designed to work in incremental mode, since there is no way
 * to specify incremental problems in SyguS.
 */
-class CegConjecturePbe {
+class CegConjecturePbe : public SygusModule
+{
  public:
   CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p);
   ~CegConjecturePbe();
 
   /** initialize this class
-  *
-  * n is the "base instantiation" of the deep-embedding version of
-  *   the synthesis conjecture under "candidates".
-  *   (see CegConjecture::d_base_inst)
   *
   * This function may add lemmas to the vector lemmas corresponding
   * to initial lemmas regarding static analysis of enumerators it
@@ -175,31 +172,44 @@ class CegConjecturePbe {
   * of an enumerator is not ITE if it is being used to construct
   * return values for decision trees.
   */
-  void initialize(Node n,
-                  std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas);
-  /** get candidate list
+  bool initialize(Node n,
+                  const std::vector<Node>& candidates,
+                  std::vector<Node>& lemmas) override;
+  /** get term list
+   *
   * Adds all active enumerators associated with functions-to-synthesize in
-  * candidates to clist.
+  * candidates to terms.
   */
-  void getCandidateList(std::vector<Node>& candidates,
-                        std::vector<Node>& clist);
+  void getTermList(const std::vector<Node>& candidates,
+                   std::vector<Node>& terms) override;
   /** construct candidates
-  * (1) Indicates that the list of enumerators in "enums" currently have model
-  *     values "enum_values".
-  * (2) Asks whether based on these new enumerated values, we can construct a
-  *     solution for
-  *     the functions-to-synthesize in "candidates". If so, this function
-  *     returns "true" and
-  *     adds solutions for candidates into "candidate_values".
-  * During this class, this class may add auxiliary lemmas to "lems", which the
-  * caller should send on the output channel via lemma(...).
-  */
-  bool constructCandidates(std::vector<Node>& enums,
-                           std::vector<Node>& enum_values,
-                           std::vector<Node>& candidates,
+   *
+   * This function attempts to use unification-based approaches for constructing
+   * solutions for all functions-to-synthesize (indicated by candidates). These
+   * approaches include decision tree learning and a divide-and-conquer
+   * algorithm based on string concatenation.
+   *
+   * Calls to this function are such that terms is the list of active
+   * enumerators (returned by getTermList), and term_values are their current
+   * model values. This function registers { terms -> terms_values } in
+   * the database of values that have been enumerated, which are in turn used
+   * for constructing candidate solutions when possible.
+   *
+   * This function also excludes models where (terms = terms_values) by adding
+   * blocking clauses to lems. For example, for grammar:
+   *   A -> A+A | x | 1 | 0
+   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
+   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
+   * to lems, where G is active guard of the enumerator d (see
+   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
+   * indicates that d should not be given the model value +( x, 1 ) anymore,
+   * since { d -> +( x, 1 ) } has now been added to the database of this class.
+   */
+  bool constructCandidates(const std::vector<Node>& terms,
+                           const std::vector<Node>& term_values,
+                           const std::vector<Node>& candidates,
                            std::vector<Node>& candidate_values,
-                           std::vector<Node>& lems);
+                           std::vector<Node>& lems) override;
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
   /** is the enumerator e associated with I/O example pairs? */
@@ -243,15 +253,11 @@ class CegConjecturePbe {
   Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
 
  private:
-  /** quantifiers engine associated with this class */
-  QuantifiersEngine* d_qe;
   /** sygus term database of d_qe */
   quantifiers::TermDbSygus * d_tds;
   /** true and false nodes */
   Node d_true;
   Node d_false;
-  /** A reference to the conjecture that owns this class. */
-  CegConjecture* d_parent;
   /** is this a PBE conjecture for any function? */
   bool d_is_pbe;
   /** for each candidate variable f (a function-to-synthesize), whether the

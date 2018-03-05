@@ -97,8 +97,8 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
 }
 
 CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
-    : d_qe(qe),
-      d_parent(p){
+    : SygusModule(qe, p)
+{
   d_tds = d_qe->getTermDatabaseSygus();
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -176,8 +176,8 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
   }
 }
 
-void CegConjecturePbe::initialize(Node n,
-                                  std::vector<Node>& candidates,
+bool CegConjecturePbe::initialize(Node n,
+                                  const std::vector<Node>& candidates,
                                   std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
@@ -234,13 +234,7 @@ void CegConjecturePbe::initialize(Node n,
       }
     }
   }
-  if( !d_is_pbe ){
-    Trace("sygus-unif") << "Do not do PBE optimizations, register..." << std::endl;
-    for( unsigned i=0; i<candidates.size(); i++ ){
-      d_qe->getTermDatabaseSygus()->registerEnumerator(
-          candidates[i], candidates[i], d_parent);
-    }
-  }
+  return d_is_pbe;
 }
 
 Node CegConjecturePbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
@@ -1077,7 +1071,9 @@ void CegConjecturePbe::staticLearnRedundantOps(
 
 // ------------------------------------------- solution construction from enumeration
 
-void CegConjecturePbe::getCandidateList( std::vector< Node >& candidates, std::vector< Node >& clist ) {
+void CegConjecturePbe::getTermList(const std::vector<Node>& candidates,
+                                   std::vector<Node>& terms)
+{
   Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node v = candidates[i];
@@ -1090,16 +1086,19 @@ void CegConjecturePbe::getCandidateList( std::vector< Node >& candidates, std::v
         Node gstatus = valuation.getSatValue(it->second.d_active_guard);
         if (!gstatus.isNull() && gstatus.getConst<bool>())
         {
-          clist.push_back( e );
+          terms.push_back(e);
         }
       }
     }
   }
 }
 
-bool CegConjecturePbe::constructCandidates( std::vector< Node >& enums, std::vector< Node >& enum_values, 
-                                            std::vector< Node >& candidates, std::vector< Node >& candidate_values, 
-                                            std::vector< Node >& lems ) {
+bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
+                                           const std::vector<Node>& enum_values,
+                                           const std::vector<Node>& candidates,
+                                           std::vector<Node>& candidate_values,
+                                           std::vector<Node>& lems)
+{
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){
     unsigned min_term_size = 0;
