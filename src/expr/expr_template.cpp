@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,6 +52,42 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
     ExprManagerScope ems(*e.getExprManager());
     return out << e.getNode();
   }
+}
+
+std::ostream& operator<<(std::ostream& out, const std::vector<Expr>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const std::set<Expr>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_set<Expr, ExprHashFunction>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+template <typename V>
+std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+template <typename V>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_map<Expr, V, ExprHashFunction>& container)
+{
+  container_to_stream(out, container);
+  return out;
 }
 
 TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)

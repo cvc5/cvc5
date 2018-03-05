@@ -73,7 +73,7 @@ private:
   TheoryArithPrivate& d_arith;
 public:
   SetupLiteralCallBack(TheoryArithPrivate& ta);
-  void operator()(TNode lit);
+  void operator()(TNode lit) override;
 };
 
 class DeltaComputeCallback : public RationalCallBack {
@@ -81,7 +81,7 @@ private:
   const TheoryArithPrivate& d_ta;
 public:
   DeltaComputeCallback(const TheoryArithPrivate& ta);
-  Rational operator()() const;
+  Rational operator()() const override;
 };
 
 class BasicVarModelUpdateCallBack : public ArithVarCallBack{
@@ -89,7 +89,7 @@ private:
   TheoryArithPrivate& d_ta;
 public:
   BasicVarModelUpdateCallBack(TheoryArithPrivate& ta);
-  void operator()(ArithVar x);
+  void operator()(ArithVar x) override;
 };
 
 class TempVarMalloc : public ArithVarMalloc {
@@ -97,8 +97,8 @@ private:
   TheoryArithPrivate& d_ta;
 public:
   TempVarMalloc(TheoryArithPrivate& ta);
-  ArithVar request();
-  void release(ArithVar v);
+  ArithVar request() override;
+  void release(ArithVar v) override;
 };
 
 class RaiseConflict {

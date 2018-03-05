@@ -93,13 +93,13 @@ class Instantiate : public QuantifiersUtil
   ~Instantiate();
 
   /** reset */
-  virtual bool reset(Theory::Effort e) override;
+  bool reset(Theory::Effort e) override;
   /** register quantifier */
-  virtual void registerQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** identify */
-  virtual std::string identify() const override { return "Instantiate"; }
+  std::string identify() const override { return "Instantiate"; }
   /** check incomplete */
-  virtual bool checkComplete() override;
+  bool checkComplete() override;
 
   //--------------------------------------notify objects
   /** add instantiation notify

@@ -37,9 +37,9 @@ public:
   CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
   virtual ~CegqiOutputSingleInv() {}
   CegConjectureSingleInv * d_out;
-  bool doAddInstantiation( std::vector< Node >& subs );
-  bool isEligibleForInstantiation( Node n );
-  bool addLemma( Node lem );
+  bool doAddInstantiation(std::vector<Node>& subs) override;
+  bool isEligibleForInstantiation(Node n) override;
+  bool addLemma(Node lem) override;
 };
 
 class DetTrace {

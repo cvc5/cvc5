@@ -165,7 +165,8 @@ private:
    * restored on a pop).  The saved information is allocated using the
    * ContextMemoryManager.
    */
-  ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
     ContextObj* data = new(pCMM) CDList<T, CleanUp, Allocator>(*this);
     Debug("cdlist") << "save " << this
                     << " at level " << this->getContext()->getLevel()
@@ -182,17 +183,17 @@ protected:
    * restores the previous size.  Note that the list pointer and the
    * allocated size are not changed.
    */
-  void restore(ContextObj* data) {
-    Debug("cdlist") << "restore " << this
-                    << " level " << this->getContext()->getLevel()
-                    << " data == " << data
-                    << " call dtor == " << this->d_callDestructor
-                    << " d_list == " << this->d_list << std::endl;
-    truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
-    Debug("cdlist") << "restore " << this
-                    << " level " << this->getContext()->getLevel()
-                    << " size back to " << this->d_size
-                    << " sizeAlloc at " << this->d_sizeAlloc << std::endl;
+ void restore(ContextObj* data) override
+ {
+   Debug("cdlist") << "restore " << this << " level "
+                   << this->getContext()->getLevel() << " data == " << data
+                   << " call dtor == " << this->d_callDestructor
+                   << " d_list == " << this->d_list << std::endl;
+   truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
+   Debug("cdlist") << "restore " << this << " level "
+                   << this->getContext()->getLevel() << " size back to "
+                   << this->d_size << " sizeAlloc at " << this->d_sizeAlloc
+                   << std::endl;
   }
 
   /**

@@ -400,7 +400,12 @@ class CVC4_PUBLIC SmtEngine {
   SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
 
   //check satisfiability (for query and check-sat)
-  Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
+  Result checkSatisfiability(const Expr& expr,
+                             bool inUnsatCore,
+                             bool isQuery);
+  Result checkSatisfiability(const std::vector<Expr>& exprs,
+                             bool inUnsatCore,
+                             bool isQuery);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -535,13 +540,18 @@ class CVC4_PUBLIC SmtEngine {
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) /* throw(Exception) */;
+  Result query(const Expr& e = Expr(),
+               bool inUnsatCore = true) /* throw(Exception) */;
+  Result query(const std::vector<Expr>& exprs,
+               bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
   Result checkSat(const Expr& e = Expr(),
+                  bool inUnsatCore = true) /* throw(Exception) */;
+  Result checkSat(const std::vector<Expr>& exprs,
                   bool inUnsatCore = true) /* throw(Exception) */;
 
   /**

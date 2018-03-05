@@ -65,17 +65,17 @@ public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();
 
-  void  preRegister(TNode node);
-  bool  check(Theory::Effort e);
-  void  explain(TNode literal, std::vector<TNode>& assumptions);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
-  Node getModelValue(TNode node);
-  bool isComplete() { return true; }
+  void preRegister(TNode node) override;
+  bool check(Theory::Effort e) override;
+  void explain(TNode literal, std::vector<TNode>& assumptions) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  Node getModelValue(TNode node) override;
+  bool isComplete() override { return true; }
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module);
   uint64_t computeAtomWeight(TNode atom);
-  void setProofLog( BitVectorProof * bvp );
+  void setProofLog(BitVectorProof* bvp) override;
 };
 
 } /* namespace CVC4::theory::bv */

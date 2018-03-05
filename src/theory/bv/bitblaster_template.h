@@ -169,15 +169,15 @@ class TLazyBitblaster :  public TBitblaster<Node> {
 
   void addAtom(TNode atom);
   bool hasValue(TNode a);
-  Node getModelFromSatSolver(TNode a, bool fullModel);
+  Node getModelFromSatSolver(TNode a, bool fullModel) override;
 
-public:
-  void bbTerm(TNode node, Bits&  bits);
-  void bbAtom(TNode node);
-  Node getBBAtom(TNode atom) const;
-  void storeBBAtom(TNode atom, Node atom_bb);
-  void storeBBTerm(TNode node, const Bits& bits);
-  bool hasBBAtom(TNode atom) const; 
+ public:
+  void bbTerm(TNode node, Bits& bits) override;
+  void bbAtom(TNode node) override;
+  Node getBBAtom(TNode atom) const override;
+  void storeBBAtom(TNode atom, Node atom_bb) override;
+  void storeBBTerm(TNode node, const Bits& bits) override;
+  bool hasBBAtom(TNode atom) const override;
 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
   ~TLazyBitblaster();
@@ -219,7 +219,7 @@ public:
    *
    * @param var
    */
-  void makeVariable(TNode var, Bits& bits);
+  void makeVariable(TNode var, Bits& bits) override;
 
   bool isSharedTerm(TNode node);
   uint64_t computeAtomWeight(TNode node, NodeSet& seen);
@@ -274,7 +274,7 @@ class EagerBitblaster : public TBitblaster<Node> {
   // This is either an MinisatEmptyNotify or NULL.
   MinisatEmptyNotify* d_notify;
 
-  Node getModelFromSatSolver(TNode a, bool fullModel);
+  Node getModelFromSatSolver(TNode a, bool fullModel) override;
   bool isSharedTerm(TNode node);
 
 public:
@@ -282,14 +282,14 @@ public:
   ~EagerBitblaster();
 
   void addAtom(TNode atom);
-  void makeVariable(TNode node, Bits& bits);
-  void bbTerm(TNode node, Bits&  bits);
-  void bbAtom(TNode node);
-  Node getBBAtom(TNode node) const;
-  bool hasBBAtom(TNode atom) const;
+  void makeVariable(TNode node, Bits& bits) override;
+  void bbTerm(TNode node, Bits& bits) override;
+  void bbAtom(TNode node) override;
+  Node getBBAtom(TNode node) const override;
+  bool hasBBAtom(TNode atom) const override;
   void bbFormula(TNode formula);
-  void storeBBAtom(TNode atom, Node atom_bb);
-  void storeBBTerm(TNode node, const Bits& bits);
+  void storeBBAtom(TNode atom, Node atom_bb) override;
+  void storeBBTerm(TNode node, const Bits& bits) override;
 
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
@@ -303,7 +303,7 @@ public:
   BitblastingRegistrar(EagerBitblaster* bb)
     : d_bitblaster(bb)
   {}
-  void preRegister(Node n);
+  void preRegister(Node n) override;
 }; /* class Registrar */
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
@@ -322,9 +322,9 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
 
   void addAtom(TNode atom);
   void simplifyAig();
-  void storeBBAtom(TNode atom, Abc_Obj_t* atom_bb);
-  Abc_Obj_t* getBBAtom(TNode atom) const;
-  bool hasBBAtom(TNode atom) const;
+  void storeBBAtom(TNode atom, Abc_Obj_t* atom_bb) override;
+  Abc_Obj_t* getBBAtom(TNode atom) const override;
+  bool hasBBAtom(TNode atom) const override;
   void cacheAig(TNode node, Abc_Obj_t* aig);
   bool hasAig(TNode node);
   Abc_Obj_t* getAig(TNode node);
@@ -332,14 +332,18 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   bool hasInput(TNode input);
   void convertToCnfAndAssert();
   void assertToSatSolver(Cnf_Dat_t* pCnf);
-  Node getModelFromSatSolver(TNode a, bool fullModel) { Unreachable(); }
-public:
+  Node getModelFromSatSolver(TNode a, bool fullModel) override
+  {
+    Unreachable();
+  }
+
+ public:
   AigBitblaster();
   ~AigBitblaster();
 
-  void makeVariable(TNode node, Bits& bits);
-  void bbTerm(TNode node, Bits&  bits);
-  void bbAtom(TNode node);
+  void makeVariable(TNode node, Bits& bits) override;
+  void bbTerm(TNode node, Bits& bits) override;
+  void bbAtom(TNode node) override;
   Abc_Obj_t* bbFormula(TNode formula);
   bool solve(TNode query); 
   static Abc_Aig_t* currentAigM();

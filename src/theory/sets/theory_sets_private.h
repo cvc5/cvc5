@@ -253,14 +253,17 @@ private:
 
   public:
     NotifyClass(TheorySetsPrivate& theory): d_theory(theory) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value);
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t);
-    void eqNotifyPreMerge(TNode t1, TNode t2);
-    void eqNotifyPostMerge(TNode t1, TNode t2);
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override;
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
+    void eqNotifyNewClass(TNode t) override;
+    void eqNotifyPreMerge(TNode t1, TNode t2) override;
+    void eqNotifyPostMerge(TNode t1, TNode t2) override;
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
   } d_notify;
 
   /** Equality engine */

@@ -76,19 +76,19 @@ class InstantiationEngine : public QuantifiersModule {
  public:
   InstantiationEngine(QuantifiersEngine* qe);
   ~InstantiationEngine();
-  void presolve();
-  bool needsCheck(Theory::Effort e);
-  void reset_round(Theory::Effort e);
-  void check(Theory::Effort e, QEffort quant_e);
-  bool checkCompleteFor(Node q);
-  void preRegisterQuantifier(Node q);
-  void registerQuantifier(Node q);
+  void presolve() override;
+  bool needsCheck(Theory::Effort e) override;
+  void reset_round(Theory::Effort e) override;
+  void check(Theory::Effort e, QEffort quant_e) override;
+  bool checkCompleteFor(Node q) override;
+  void preRegisterQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   Node explain(TNode n) { return Node::null(); }
   /** add user pattern */
   void addUserPattern(Node q, Node pat);
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
-  std::string identify() const { return "InstEngine"; }
+  std::string identify() const override { return "InstEngine"; }
 }; /* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */
