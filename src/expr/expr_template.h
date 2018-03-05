@@ -151,7 +151,8 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) CVC4_PUBLIC;
  * @param container the vector of expressions to output to the stream
  * @return the stream
  */
-std::ostream& operator<<(std::ostream& out, const std::vector<Expr>& container);
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<Expr>& container) CVC4_PUBLIC;
 
 /**
  * Serialize a set of expressions to the given stream.
@@ -160,7 +161,8 @@ std::ostream& operator<<(std::ostream& out, const std::vector<Expr>& container);
  * @param container the set of expressions to output to the stream
  * @return the stream
  */
-std::ostream& operator<<(std::ostream& out, const std::set<Expr>& container);
+std::ostream& operator<<(std::ostream& out,
+                         const std::set<Expr>& container) CVC4_PUBLIC;
 
 /**
  * Serialize an unordered_set of expressions to the given stream.
@@ -171,7 +173,7 @@ std::ostream& operator<<(std::ostream& out, const std::set<Expr>& container);
  */
 std::ostream& operator<<(
     std::ostream& out,
-    const std::unordered_set<Expr, ExprHashFunction>& container);
+    const std::unordered_set<Expr, ExprHashFunction>& container) CVC4_PUBLIC;
 
 /**
  * Serialize a map of expressions to the given stream.
@@ -181,7 +183,8 @@ std::ostream& operator<<(
  * @return the stream
  */
 template <typename V>
-std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container);
+std::ostream& operator<<(std::ostream& out,
+                         const std::map<Expr, V>& container) CVC4_PUBLIC;
 
 /**
  * Serialize an unordered_map of expressions to the given stream.
@@ -193,7 +196,7 @@ std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container);
 template <typename V>
 std::ostream& operator<<(
     std::ostream& out,
-    const std::unordered_map<Expr, V, ExprHashFunction>& container);
+    const std::unordered_map<Expr, V, ExprHashFunction>& container) CVC4_PUBLIC;
 
 // for hash_maps, hash_sets..
 struct ExprHashFunction {
