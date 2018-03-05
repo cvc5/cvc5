@@ -55,7 +55,6 @@ public:
     DecisionStrategy(de, c) {
   }
 
-
   bool needIteSkolemMap() override { return true; }
 
   virtual void addAssertions(const std::vector<Node> &assertions,

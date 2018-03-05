@@ -42,8 +42,8 @@ public:
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /* Called for new quantifiers */
-  void registerQuantifier( Node q ) override {}
-  void assertNode( Node n ) override {}
+  void registerQuantifier(Node q) override {}
+  void assertNode(Node n) override {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "QuantAntiSkolem"; }
 

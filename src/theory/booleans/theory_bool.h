@@ -36,7 +36,7 @@ public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   //void check(Effort);
-  
+
   std::string identify() const override { return std::string("TheoryBool"); }
 };/* class TheoryBool */
 

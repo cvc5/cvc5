@@ -35,7 +35,7 @@ public:
 
 class NullRegistrar : public Registrar {
 public:
-  void preRegister(Node n) override {}
+ void preRegister(Node n) override {}
 
 };/* class NullRegistrar */
 

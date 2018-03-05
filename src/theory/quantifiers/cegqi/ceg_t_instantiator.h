@@ -72,18 +72,17 @@ class ArithInstantiator : public Instantiator {
                          SolvedForm& sf,
                          Node pv,
                          CegInstEffort effort) override;
-  bool needsPostProcessInstantiationForVariable(
-      CegInstantiator* ci,
-      SolvedForm& sf,
-      Node pv,
-      CegInstEffort effort) override;
-  bool postProcessInstantiationForVariable(
-      CegInstantiator* ci,
-      SolvedForm& sf,
-      Node pv,
-      CegInstEffort effort,
-      std::vector<Node>& lemmas) override;
+  bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
+                                                SolvedForm& sf,
+                                                Node pv,
+                                                CegInstEffort effort) override;
+  bool postProcessInstantiationForVariable(CegInstantiator* ci,
+                                           SolvedForm& sf,
+                                           Node pv,
+                                           CegInstEffort effort,
+                                           std::vector<Node>& lemmas) override;
   std::string identify() const override { return "Arith"; }
+
  private:
   Node d_vts_sym[2];
   std::vector<Node> d_mbp_bounds[2];
@@ -136,6 +135,7 @@ public:
                        std::vector<Node>& terms,
                        CegInstEffort effort) override;
   std::string identify() const override { return "Dt"; }
+
  private:
   Node solve_dt(Node v, Node a, Node b, Node sa, Node sb);
 };
@@ -162,6 +162,7 @@ class EprInstantiator : public Instantiator {
                          std::vector<Node>& eqc,
                          CegInstEffort effort) override;
   std::string identify() const override { return "Epr"; }
+
  private:
   std::vector<Node> d_equal_terms;
   void computeMatchScore(CegInstantiator* ci,

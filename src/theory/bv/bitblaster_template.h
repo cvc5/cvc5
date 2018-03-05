@@ -171,13 +171,13 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   bool hasValue(TNode a);
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
 
-public:
-  void bbTerm(TNode node, Bits&  bits) override;
+ public:
+  void bbTerm(TNode node, Bits& bits) override;
   void bbAtom(TNode node) override;
   Node getBBAtom(TNode atom) const override;
   void storeBBAtom(TNode atom, Node atom_bb) override;
   void storeBBTerm(TNode node, const Bits& bits) override;
-  bool hasBBAtom(TNode atom) const override; 
+  bool hasBBAtom(TNode atom) const override;
 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
   ~TLazyBitblaster();
@@ -283,7 +283,7 @@ public:
 
   void addAtom(TNode atom);
   void makeVariable(TNode node, Bits& bits) override;
-  void bbTerm(TNode node, Bits&  bits) override;
+  void bbTerm(TNode node, Bits& bits) override;
   void bbAtom(TNode node) override;
   Node getBBAtom(TNode node) const override;
   bool hasBBAtom(TNode atom) const override;
@@ -332,13 +332,17 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   bool hasInput(TNode input);
   void convertToCnfAndAssert();
   void assertToSatSolver(Cnf_Dat_t* pCnf);
-  Node getModelFromSatSolver(TNode a, bool fullModel) override { Unreachable(); }
-public:
+  Node getModelFromSatSolver(TNode a, bool fullModel) override
+  {
+    Unreachable();
+  }
+
+ public:
   AigBitblaster();
   ~AigBitblaster();
 
   void makeVariable(TNode node, Bits& bits) override;
-  void bbTerm(TNode node, Bits&  bits) override;
+  void bbTerm(TNode node, Bits& bits) override;
   void bbAtom(TNode node) override;
   Abc_Obj_t* bbFormula(TNode formula);
   bool solve(TNode query); 

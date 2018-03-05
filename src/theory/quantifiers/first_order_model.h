@@ -67,8 +67,9 @@ class QRepBoundExt : public RepBoundExt
   QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
   virtual ~QRepBoundExt() {}
   /** set bound */
-  RepSetIterator::RsiEnumType setBound(
-      Node owner, unsigned i, std::vector<Node>& elements) override;
+  RepSetIterator::RsiEnumType setBound(Node owner,
+                                       unsigned i,
+                                       std::vector<Node>& elements) override;
   /** reset index */
   bool resetIndex(RepSetIterator* rsi,
                   Node owner,
@@ -214,11 +215,11 @@ private:
 public:
   FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name);
 
-  FirstOrderModelIG * asFirstOrderModelIG() override { return this; }
+  FirstOrderModelIG* asFirstOrderModelIG() override { return this; }
   // initialize the model
-  void processInitialize( bool ispre ) override;
+  void processInitialize(bool ispre) override;
   //for initialize model
-  void processInitializeModelForTerm( Node n ) override;
+  void processInitializeModelForTerm(Node n) override;
   /** reset evaluation */
   void resetEvaluate();
   /** evaluate functions */

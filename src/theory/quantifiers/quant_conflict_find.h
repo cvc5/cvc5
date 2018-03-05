@@ -238,10 +238,11 @@ public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
 
   /** register quantifier */
-  void registerQuantifier( Node q ) override;
-public:
+  void registerQuantifier(Node q) override;
+
+ public:
   /** assert quantifier */
-  void assertNode( Node q ) override;
+  void assertNode(Node q) override;
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -249,9 +250,9 @@ public:
   /** assert disequal */
   void assertDisequal( Node a, Node b );
   /** needs check */
-  bool needsCheck( Theory::Effort level ) override;
+  bool needsCheck(Theory::Effort level) override;
   /** reset round */
-  void reset_round( Theory::Effort level ) override;
+  void reset_round(Theory::Effort level) override;
   /** check */
   void check(Theory::Effort level, QEffort quant_e) override;
 

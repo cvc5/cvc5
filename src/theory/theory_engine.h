@@ -157,14 +157,35 @@ class TheoryEngine {
     TheoryEngine& d_te;
   public:
     NotifyClass(TheoryEngine& te): d_te(te) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override { return true; }
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override { return true; }
-    bool eqNotifyTriggerTermEquality(theory::TheoryId tag, TNode t1, TNode t2, bool value) override { return true; }
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
+      return true;
+    }
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
+      return true;
+    }
+    bool eqNotifyTriggerTermEquality(theory::TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
+      return true;
+    }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override { d_te.eqNotifyPreMerge(t1, t2); }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override { d_te.eqNotifyPostMerge(t1, t2); }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override { d_te.eqNotifyDisequal(t1, t2, reason); }
+    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    {
+      d_te.eqNotifyPreMerge(t1, t2);
+    }
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    {
+      d_te.eqNotifyPostMerge(t1, t2);
+    }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    {
+      d_te.eqNotifyDisequal(t1, t2, reason);
+    }
   };/* class TheoryEngine::NotifyClass */
   NotifyClass d_masterEENotify;
 

@@ -143,22 +143,37 @@ public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
   {}
-  void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) override;
+  void printOwnedTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map) override;
   void printOwnedSort(Type type, std::ostream& os) override;
   void printTermBitblasting(Expr term, std::ostream& os) override;
   void printAtomBitblasting(Expr term, std::ostream& os, bool swap) override;
   void printAtomBitblastingToFalse(Expr term, std::ostream& os) override;
-  void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) override;
+  void printTheoryLemmaProof(std::vector<Expr>& lemma,
+                             std::ostream& os,
+                             std::ostream& paren,
+                             const ProofLetMap& map) override;
   void printSortDeclarations(std::ostream& os, std::ostream& paren) override;
   void printTermDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printDeferredDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) override;
+  void printDeferredDeclarations(std::ostream& os,
+                                 std::ostream& paren) override;
+  void printAliasingDeclarations(std::ostream& os,
+                                 std::ostream& paren,
+                                 const ProofLetMap& globalLetMap) override;
   void printBitblasting(std::ostream& os, std::ostream& paren) override;
-  void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) override;
+  void printResolutionProof(std::ostream& os,
+                            std::ostream& paren,
+                            ProofLetMap& letMap) override;
   void calculateAtomsInBitblastingProof() override;
   const std::set<Node>* getAtomsInBitblastingProof() override;
-  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) override;
-  void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) override;
+  void printConstantDisequalityProof(std::ostream& os,
+                                     Expr c1,
+                                     Expr c2,
+                                     const ProofLetMap& globalLetMap) override;
+  void printRewriteProof(std::ostream& os,
+                         const Node& n1,
+                         const Node& n2) override;
 };
 
 }/* CVC4 namespace */

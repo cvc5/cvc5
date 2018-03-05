@@ -57,8 +57,7 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
   context::CDO<unsigned> d_lastPropagation;
 
 protected:
-
-  void contextNotifyPop() override;
+ void contextNotifyPop() override;
 
 public:
 
@@ -69,13 +68,16 @@ public:
 
   ClauseId addClause(SatClause& clause, bool removable) override;
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override {
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  {
     Unreachable("Minisat does not support native XOR reasoning");
   }
-  
+
   SatValue propagate() override;
 
-  SatVariable newVar(bool isTheoryAtom = false, bool preRegister = false, bool canErase = true) override;
+  SatVariable newVar(bool isTheoryAtom = false,
+                     bool preRegister = false,
+                     bool canErase = true) override;
 
   SatVariable trueVar() override { return d_minisat->trueVar(); }
   SatVariable falseVar() override { return d_minisat->falseVar(); }
@@ -86,7 +88,7 @@ public:
 
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
-  bool ok() const override; 
+  bool ok() const override;
   void getUnsatCore(SatClause& unsatCore) override;
 
   SatValue value(SatLiteral l) override;
@@ -95,7 +97,6 @@ public:
   void unregisterVar(SatLiteral lit);
   void renewVar(SatLiteral lit, int level = -1);
   unsigned getAssertionLevel() const override;
-
 
   // helper methods for converting from the internal Minisat representation
 
@@ -113,10 +114,10 @@ public:
   SatValue assertAssumption(SatLiteral lit, bool propagate) override;
 
   void popAssumption() override;
-  
-  void setProofLog( BitVectorProof * bvp ) override;
 
-private:
+  void setProofLog(BitVectorProof* bvp) override;
+
+ private:
   /* Disable the default constructor. */
   BVMinisatSatSolver() CVC4_UNDEFINED;
 

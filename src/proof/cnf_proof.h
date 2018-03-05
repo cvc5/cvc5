@@ -176,7 +176,7 @@ public:
   void printAtomMapping(const std::set<Node>& atoms,
                         std::ostream& os,
                         std::ostream& paren,
-                        ProofLetMap &letMap) override;
+                        ProofLetMap& letMap) override;
 
   void printClause(const prop::SatClause& clause,
                    std::ostream& os,

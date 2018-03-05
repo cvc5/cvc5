@@ -65,7 +65,10 @@ private:
 
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) override;
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override;
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
     void eqNotifyNewClass(TNode t) override;

@@ -79,7 +79,8 @@ class SetToDefaultSourceListener : public Listener {
   SetToDefaultSourceListener(ManagedOstream* managedOstream)
       : d_managedOstream(managedOstream){}
 
-  void notify() override {
+  void notify() override
+  {
     d_managedOstream->set(d_managedOstream->defaultSource());
   }
 

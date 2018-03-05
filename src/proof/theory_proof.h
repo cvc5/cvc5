@@ -176,13 +176,18 @@ public:
                       std::ostream& os,
                       const ProofLetMap& map) override;
   void printAssertions(std::ostream& os, std::ostream& paren) override;
-  void printLemmaRewrites(NodePairSet& rewrites, std::ostream& os, std::ostream& paren);
-  void printDeferredDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) override;
-  void printTheoryLemmas(const IdToSatClause& lemmas,
-                                 std::ostream& os,
+  void printLemmaRewrites(NodePairSet& rewrites,
+                          std::ostream& os,
+                          std::ostream& paren);
+  void printDeferredDeclarations(std::ostream& os,
+                                 std::ostream& paren) override;
+  void printAliasingDeclarations(std::ostream& os,
                                  std::ostream& paren,
-                                 ProofLetMap& map) override;
+                                 const ProofLetMap& globalLetMap) override;
+  void printTheoryLemmas(const IdToSatClause& lemmas,
+                         std::ostream& os,
+                         std::ostream& paren,
+                         ProofLetMap& map) override;
   void printSort(Type type, std::ostream& os) override;
 
   void performExtraRegistrations();
@@ -319,16 +324,27 @@ public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
     : BooleanProof(proofEngine)
   {}
-  void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) override;
+  void printOwnedTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map) override;
   void printOwnedSort(Type type, std::ostream& os) override;
-  void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) override;
+  void printTheoryLemmaProof(std::vector<Expr>& lemma,
+                             std::ostream& os,
+                             std::ostream& paren,
+                             const ProofLetMap& map) override;
   void printSortDeclarations(std::ostream& os, std::ostream& paren) override;
   void printTermDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printDeferredDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) override;
+  void printDeferredDeclarations(std::ostream& os,
+                                 std::ostream& paren) override;
+  void printAliasingDeclarations(std::ostream& os,
+                                 std::ostream& paren,
+                                 const ProofLetMap& globalLetMap) override;
 
-  bool printsAsBool(const Node &n) override;
-  void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) override;
+  bool printsAsBool(const Node& n) override;
+  void printConstantDisequalityProof(std::ostream& os,
+                                     Expr c1,
+                                     Expr c2,
+                                     const ProofLetMap& globalLetMap) override;
 };
 
 } /* CVC4 namespace */

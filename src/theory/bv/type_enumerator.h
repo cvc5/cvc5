@@ -42,7 +42,8 @@ public:
     d_bits(0) {
   }
 
-  Node operator*() override {
+  Node operator*() override
+  {
     if(d_bits != d_bits.modByPow2(d_size)) {
       throw NoMoreValuesException(getType());
     }

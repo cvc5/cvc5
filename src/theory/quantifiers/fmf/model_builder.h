@@ -50,7 +50,7 @@ public:
   /** exist instantiation ? */
   virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
   //debug model
-  void debugModel( TheoryModel* m ) override;
+  void debugModel(TheoryModel* m) override;
   //statistics 
   unsigned getNumAddedLemmas() { return d_addedLemmas; }
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
@@ -88,7 +88,7 @@ class QModelBuilderIG : public QModelBuilder
   //whether inst gen was done
   bool d_didInstGen;
   /** process build model */
-  bool processBuildModel( TheoryModel* m ) override;
+  bool processBuildModel(TheoryModel* m) override;
 
  protected:
   //reset
@@ -144,7 +144,9 @@ class QModelBuilderIG : public QModelBuilder
   // is quantifier active?
   bool isQuantifierActive( Node f );
   //do exhaustive instantiation
-  int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) override;
+  int doExhaustiveInstantiation(FirstOrderModel* fm,
+                                Node f,
+                                int effort) override;
 
   //temporary stats
   int d_numQuantSat;

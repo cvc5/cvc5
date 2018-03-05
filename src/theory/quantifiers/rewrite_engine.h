@@ -50,11 +50,11 @@ private:
 public:
   RewriteEngine( context::Context* c, QuantifiersEngine* qe );
 
-  bool needsCheck( Theory::Effort e ) override;
+  bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
-  void registerQuantifier( Node f ) override;
-  void assertNode( Node n ) override;
-  bool checkCompleteFor( Node q ) override;
+  void registerQuantifier(Node f) override;
+  void assertNode(Node n) override;
+  bool checkCompleteFor(Node q) override;
   /** Identify this module */
   std::string identify() const override { return "RewriteEngine"; }
 };

@@ -85,7 +85,7 @@ public:
   bool isTheoryEnabled(Theory theory) const;
 
   bool logicIsSet() override;
-  
+
   /**
    * Returns the expression that name should be interpreted as. 
    */

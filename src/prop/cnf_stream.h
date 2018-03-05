@@ -286,8 +286,11 @@ class TseitinCnfStream : public CnfStream {
    * @param removable is this something that can be erased
    * @param negated true if negated
    */
-  void convertAndAssert(TNode node, bool removable, bool negated,
-                        ProofRule rule, TNode from = TNode::null()) override;
+  void convertAndAssert(TNode node,
+                        bool removable,
+                        bool negated,
+                        ProofRule rule,
+                        TNode from = TNode::null()) override;
 
  private:
   /**

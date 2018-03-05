@@ -82,7 +82,7 @@ class ArgumentExtenderImplementation : public ArgumentExtender {
   /** Returns true iff there is a pending preemption.*/
   bool hasPreemptions() const override;
 
-private:
+ private:
 
   typedef std::list< char* > CharPointerList;
 

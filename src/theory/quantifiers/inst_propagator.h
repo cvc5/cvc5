@@ -47,20 +47,21 @@ public:
   /** extends engine */
   bool extendsEngine() override { return true; }
   /** contains term */
-  bool hasTerm( Node a ) override;
+  bool hasTerm(Node a) override;
   /** get the representative of the equivalence class of a */
-  Node getRepresentative( Node a ) override;
+  Node getRepresentative(Node a) override;
   /** returns true if a and b are equal in the current context */
-  bool areEqual( Node a, Node b ) override;
+  bool areEqual(Node a, Node b) override;
   /** returns true is a and b are disequal in the current context */
-  bool areDisequal( Node a, Node b ) override;
+  bool areDisequal(Node a, Node b) override;
   /** get the equality engine associated with this query */
   eq::EqualityEngine* getEngine() override;
   /** get the equivalence class of a */
-  void getEquivalenceClass( Node a, std::vector< Node >& eqc ) override;
+  void getEquivalenceClass(Node a, std::vector<Node>& eqc) override;
   /** get congruent term */
-  TNode getCongruentTerm( Node f, std::vector< TNode >& args ) override;
-public:
+  TNode getCongruentTerm(Node f, std::vector<TNode>& args) override;
+
+ public:
   /** get the representative of the equivalence class of a, with explanation */
   Node getRepresentativeExp( Node a, std::vector< Node >& exp );
   /** returns true if a and b are equal in the current context */
@@ -118,7 +119,7 @@ private:
                              Node q,
                              Node lem,
                              std::vector<Node>& terms,
-                             Node body) override 
+                             Node body) override
     {
       return d_ip.notifyInstantiation( quant_e, q, lem, terms, body );
     }

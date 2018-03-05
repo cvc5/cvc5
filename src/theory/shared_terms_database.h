@@ -78,28 +78,35 @@ private:
     SharedTermsDatabase& d_sharedTerms;
   public:
     EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override {
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
       d_sharedTerms.propagateEquality(equality, value);
       return true;
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
       Unreachable();
       return true;
     }
 
-    bool eqNotifyTriggerTermEquality(theory::TheoryId tag, TNode t1, TNode t2, bool value) override {
+    bool eqNotifyTriggerTermEquality(theory::TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
       return d_sharedTerms.propagateSharedEquality(tag, t1, t2, value);
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
+    {
       d_sharedTerms.conflict(t1, t2, true);
     }
 
-    void eqNotifyNewClass(TNode t) override { }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override { }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override { }
+    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
   /** The notify class for d_equalityEngine */
@@ -245,9 +252,7 @@ protected:
   /**
    * This method gets called on backtracks from the context manager.
    */
-  void contextNotifyPop() override {
-    backtrack();
-  }
+ void contextNotifyPop() override { backtrack(); }
 };
 
 }

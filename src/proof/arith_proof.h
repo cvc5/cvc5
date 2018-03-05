@@ -75,13 +75,21 @@ public:
   LFSCArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine)
     : ArithProof(arith, proofEngine)
   {}
-  void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) override;
+  void printOwnedTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map) override;
   void printOwnedSort(Type type, std::ostream& os) override;
-  void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) override;
+  void printTheoryLemmaProof(std::vector<Expr>& lemma,
+                             std::ostream& os,
+                             std::ostream& paren,
+                             const ProofLetMap& map) override;
   void printSortDeclarations(std::ostream& os, std::ostream& paren) override;
   void printTermDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printDeferredDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) override;
+  void printDeferredDeclarations(std::ostream& os,
+                                 std::ostream& paren) override;
+  void printAliasingDeclarations(std::ostream& os,
+                                 std::ostream& paren,
+                                 const ProofLetMap& globalLetMap) override;
 };
 
 

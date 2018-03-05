@@ -57,7 +57,7 @@ public:
   SatValue solve(long unsigned int&) override;
 
   bool ok() const override;
-  
+
   void interrupt() override;
 
   SatValue value(SatLiteral l) override;
@@ -80,7 +80,7 @@ public:
 
   bool isDecision(SatVariable decn) const override;
 
-private:
+ private:
 
   /** The SatSolver used */
   Minisat::SimpSolver* d_minisat;

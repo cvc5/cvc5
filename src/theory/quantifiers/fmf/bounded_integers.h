@@ -142,14 +142,14 @@ private:
 public:
   BoundedIntegers( context::Context* c, QuantifiersEngine* qe );
   virtual ~BoundedIntegers();
-  
+
   void presolve() override;
-  bool needsCheck( Theory::Effort e ) override;
+  bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
-  void registerQuantifier( Node q ) override;
-  void preRegisterQuantifier( Node q ) override;
-  void assertNode( Node n ) override;
-  Node getNextDecisionRequest( unsigned& priority ) override;
+  void registerQuantifier(Node q) override;
+  void preRegisterQuantifier(Node q) override;
+  void assertNode(Node n) override;
+  Node getNextDecisionRequest(unsigned& priority) override;
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }
   unsigned getBoundVarType( Node q, Node v );
   unsigned getNumBoundVars( Node q ) { return d_set[q].size(); }

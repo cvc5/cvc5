@@ -298,7 +298,8 @@ struct SmtEngineStatistics {
 class SoftResourceOutListener : public Listener {
  public:
   SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override {
+  void notify() override
+  {
     SmtScope scope(d_smt);
     Assert(smt::smtEngineInScope());
     d_smt->interrupt();
@@ -311,7 +312,8 @@ class SoftResourceOutListener : public Listener {
 class HardResourceOutListener : public Listener {
  public:
   HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override {
+  void notify() override
+  {
     SmtScope scope(d_smt);
     theory::Rewriter::clearCaches();
   }
@@ -322,7 +324,8 @@ class HardResourceOutListener : public Listener {
 class SetLogicListener : public Listener {
  public:
   SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override {
+  void notify() override
+  {
     LogicInfo inOptions(options::forceLogicString());
     d_smt->setLogic(inOptions);
   }
@@ -333,9 +336,8 @@ class SetLogicListener : public Listener {
 class BeforeSearchListener : public Listener {
  public:
   BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override {
-    d_smt->beforeSearch();
-  }
+  void notify() override { d_smt->beforeSearch(); }
+
  private:
   SmtEngine* d_smt;
 }; /* class BeforeSearchListener */
@@ -346,7 +348,8 @@ class UseTheoryListListener : public Listener {
       : d_theoryEngine(theoryEngine)
   {}
 
-  void notify() override {
+  void notify() override
+  {
     std::stringstream commaList(options::useTheoryList());
     std::string token;
 
@@ -375,7 +378,8 @@ class UseTheoryListListener : public Listener {
 
 class SetDefaultExprDepthListener : public Listener {
  public:
-  void notify() override {
+  void notify() override
+  {
     int depth = options::defaultExprDepth();
     Debug.getStream() << expr::ExprSetDepth(depth);
     Trace.getStream() << expr::ExprSetDepth(depth);
@@ -389,7 +393,8 @@ class SetDefaultExprDepthListener : public Listener {
 
 class SetDefaultExprDagListener : public Listener {
  public:
-  void notify() override {
+  void notify() override
+  {
     int dag = options::defaultDagThresh();
     Debug.getStream() << expr::ExprDag(dag);
     Trace.getStream() << expr::ExprDag(dag);
@@ -403,7 +408,8 @@ class SetDefaultExprDagListener : public Listener {
 
 class SetPrintExprTypesListener : public Listener {
  public:
-  void notify() override {
+  void notify() override
+  {
     bool value = options::printExprTypes();
     Debug.getStream() << expr::ExprPrintTypes(value);
     Trace.getStream() << expr::ExprPrintTypes(value);
@@ -417,7 +423,8 @@ class SetPrintExprTypesListener : public Listener {
 
 class DumpModeListener : public Listener {
  public:
-  void notify() override {
+  void notify() override
+  {
     const std::string& value = options::dumpModeString();
     Dump.setDumpFromString(value);
   }
@@ -425,7 +432,8 @@ class DumpModeListener : public Listener {
 
 class PrintSuccessListener : public Listener {
  public:
-  void notify() override {
+  void notify() override
+  {
     bool value = options::printSuccess();
     Debug.getStream() << Command::printsuccess(value);
     Trace.getStream() << Command::printsuccess(value);
@@ -748,7 +756,8 @@ public:
     d_resourceManager->spendResource(amount);
   }
 
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override {
+  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
+  {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());
@@ -757,19 +766,22 @@ public:
     }
   }
 
-  void nmNotifyNewSortConstructor(TypeNode tn) override {
+  void nmNotifyNewSortConstructor(TypeNode tn) override
+  {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override {
+  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
+  {
     DatatypeDeclarationCommand c(dtts);
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewVar(TNode n, uint32_t flags) override {
+  void nmNotifyNewVar(TNode n, uint32_t flags) override
+  {
     DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
                              n.toExpr(),
                              n.getType().toType());

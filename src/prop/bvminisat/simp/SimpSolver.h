@@ -71,7 +71,6 @@ class SimpSolver : public Solver {
     //
     void garbageCollect() override;
 
-
     // Generate a (possibly simplified) DIMACS file:
     //
 #if 0
