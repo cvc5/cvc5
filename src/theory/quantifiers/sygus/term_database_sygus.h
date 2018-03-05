@@ -40,25 +40,24 @@ class TermDbSygus {
   std::string identify() const { return "TermDbSygus"; }
   /** register the sygus type */
   void registerSygusType(TypeNode tn);
-  
+
   //------------------------------utilities
   /** get the explanation utility */
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   //------------------------------end utilities
-  
-  
+
   //------------------------------enumerators
-  /** 
+  /**
    * Register a variable e that we will do enumerative search on.
    * conj : the conjecture that the enumeration of e is for.
    * f : the synth-fun that the enumeration of e is for.
-   * mkActiveGuard : whether we want to make an active guard for e 
+   * mkActiveGuard : whether we want to make an active guard for e
    * (see d_enum_to_active_guard).
    *
-   * Notice that enumerator e may not be one-to-one with f in 
-   * synthesis-through-unification approaches (e.g. decision tree construction 
+   * Notice that enumerator e may not be one-to-one with f in
+   * synthesis-through-unification approaches (e.g. decision tree construction
    * for PBE synthesis).
    */
   void registerEnumerator(Node e,
@@ -76,30 +75,30 @@ class TermDbSygus {
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
-   * 
+   *
    * This function registers lem as a symmetry breaking lemma for subterms
-   * of enumerator e. 
-   * tn : the (sygus datatype) type that lem applies to, i.e. the 
+   * of enumerator e.
+   * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
    * sz : the minimum size of terms that the lem blocks.
    */
   void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);
   /** Has symmetry breaking lemmas been added for any enumerator? */
-  bool hasSymBreakLemmas( std::vector< Node >& enums ) const;
-  /** Get symmetry breaking lemmas 
-   * 
+  bool hasSymBreakLemmas(std::vector<Node>& enums) const;
+  /** Get symmetry breaking lemmas
+   *
    * Returns the set of symmetry breaking lemmas that have been registered
    * for enumerator e. It adds these to lemmas.
    */
-  void getSymBreakLemmas( Node e, std::vector< Node >& lemmas ) const;
+  void getSymBreakLemmas(Node e, std::vector<Node>& lemmas) const;
   /** Get the type of term symmetry breaking lemma lem applies to */
-  TypeNode getTypeForSymBreakLemma( Node lem ) const;
+  TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
-  unsigned getSizeForSymBreakLemma( Node lem ) const;
+  unsigned getSizeForSymBreakLemma(Node lem) const;
   /** Clear information about symmetry breaking lemmas */
   void clearSymBreakLemmas();
   //------------------------------end enumerators
-  
+
   //-----------------------------conversion from sygus to builtin
   /** get free variable
    *
@@ -153,14 +152,14 @@ class TermDbSygus {
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
-  
+
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
   /** sygus explanation */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
   //------------------------------end utilities
-  
+
   //------------------------------enumerators
   /** mapping from enumerator terms to the conjecture they are associated with
    */
@@ -177,9 +176,9 @@ class TermDbSygus {
   /** mapping from enumerators to symmetry breaking clauses for them */
   std::map<Node, std::vector<Node> > d_enum_to_sb_lemmas;
   /** mapping from symmetry breaking lemmas to type */
-  std::map<Node, TypeNode > d_sb_lemma_to_type;
+  std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
-  std::map<Node, unsigned > d_sb_lemma_to_size;
+  std::map<Node, unsigned> d_sb_lemma_to_size;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin

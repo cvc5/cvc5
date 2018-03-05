@@ -669,7 +669,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
 }
 
 TNode SygusSymBreakNew::getFreeVar( TypeNode tn ) {
-  return d_tds->getFreeVar(tn,0);
+  return d_tds->getFreeVar(tn, 0);
 }
 
 unsigned SygusSymBreakNew::processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas ) {
@@ -869,7 +869,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         // do analysis of the evaluation  FIXME: does not work (evaluation is non-constant)
         quantifiers::EquivSygusInvarianceTest eset;
         eset.init(d_tds, tn, aconj, a, bvr);
-        
+
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
         registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, lemmas);
         return false;
@@ -879,21 +879,29 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
   return true;
 }
 
-void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, quantifiers::SygusInvarianceTest& et, Node valr, std::vector< Node >& lemmas )
+void SygusSymBreakNew::registerSymBreakLemmaForValue(
+    Node a,
+    Node val,
+    quantifiers::SygusInvarianceTest& et,
+    Node valr,
+    std::vector<Node>& lemmas)
 {
   TypeNode tn = val.getType();
-  Node x = getFreeVar( tn );
-  unsigned sz = d_tds->getSygusTermSize( val );
-  std::vector< Node > exp;
+  Node x = getFreeVar(tn);
+  unsigned sz = d_tds->getSygusTermSize(val);
+  std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, sz);
-  Node lem = exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( AND, exp );
+  Node lem =
+      exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
   lem = lem.negate();
-  Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz << std::endl;
-  registerSymBreakLemma( tn, lem, sz, a, lemmas );
+  Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz
+                        << std::endl;
+  registerSymBreakLemma(tn, lem, sz, a, lemmas);
 }
 
 /*
-void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val, std::vector< Node >& lemmas )
+void SygusSymBreakNew::registerSymBreakLemmaForValue( Node a, Node val,
+std::vector< Node >& lemmas )
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar( tn );
@@ -919,7 +927,7 @@ void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz
       for( unsigned k=0; k<itt->second.size(); k++ ){
         TNode t = itt->second[k];  
         if( !options::sygusSymBreakLazy() || d_active_terms.find( t )!=d_active_terms.end() ){
-          addSymBreakLemma( lem, x, t, lemmas );
+          addSymBreakLemma(lem, x, t, lemmas);
         }
       }
     }
@@ -944,14 +952,18 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
       if( (int)it->first<=max_sz ){
         for( unsigned k=0; k<it->second.size(); k++ ){
           Node lem = it->second[k];
-          addSymBreakLemma( lem, x, t, lemmas );
+          addSymBreakLemma(lem, x, t, lemmas);
         }
       }
     }
   }
 }
 
-void SygusSymBreakNew::addSymBreakLemma( Node lem, TNode x, TNode n, std::vector< Node >& lemmas ) {
+void SygusSymBreakNew::addSymBreakLemma(Node lem,
+                                        TNode x,
+                                        TNode n,
+                                        std::vector<Node>& lemmas)
+{
   Assert( !options::sygusSymBreakLazy() || d_active_terms.find( n )!=d_active_terms.end() );
   // apply lemma
   Node slem = lem.substitute( x, n );
@@ -1115,7 +1127,7 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
               if( !options::sygusSymBreakLazy() || d_active_terms.find( t )!=d_active_terms.end() ){
                 for( unsigned j=0; j<it->second.size(); j++ ){
                   Node lem = it->second[j];
-                  addSymBreakLemma( lem, x, t, lemmas );
+                  addSymBreakLemma(lem, x, t, lemmas);
                 }
               }
             }
@@ -1128,29 +1140,29 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
 
 void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   Trace("sygus-sb") << "SygusSymBreakNew::check" << std::endl;
-  
+
   // check for externally registered symmetry breaking lemmas
-  std::vector< Node > anchors;
-  if( d_tds->hasSymBreakLemmas( anchors ) )
+  std::vector<Node> anchors;
+  if (d_tds->hasSymBreakLemmas(anchors))
   {
-    for( const Node& a : anchors )
+    for (const Node& a : anchors)
     {
-      std::vector< Node > sbl;
-      d_tds->getSymBreakLemmas( a, sbl );
-      for( const Node& lem : sbl )
+      std::vector<Node> sbl;
+      d_tds->getSymBreakLemmas(a, sbl);
+      for (const Node& lem : sbl)
       {
-        TypeNode tn = d_tds->getTypeForSymBreakLemma( lem );
-        unsigned sz = d_tds->getSizeForSymBreakLemma( lem );
-        registerSymBreakLemma( tn, lem, sz, a, lemmas );
+        TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
+        unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
+        registerSymBreakLemma(tn, lem, sz, a, lemmas);
       }
     }
     d_tds->clearSymBreakLemmas();
-    if( !lemmas.empty() )
+    if (!lemmas.empty())
     {
       return;
     }
   }
-  
+
   // register search values, add symmetry breaking lemmas if applicable
   for( std::map< Node, bool >::iterator it = d_register_st.begin(); it != d_register_st.end(); ++it ){
     if( it->second ){

@@ -733,45 +733,49 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
   }
 }
 
-void TermDbSygus::registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz)
+void TermDbSygus::registerSymBreakLemma(Node e,
+                                        Node lem,
+                                        TypeNode tn,
+                                        unsigned sz)
 {
   d_enum_to_sb_lemmas[e].push_back(lem);
   d_sb_lemma_to_type[lem] = tn;
   d_sb_lemma_to_size[lem] = sz;
 }
 
-bool TermDbSygus::hasSymBreakLemmas( std::vector< Node >& enums ) const
+bool TermDbSygus::hasSymBreakLemmas(std::vector<Node>& enums) const
 {
-  if( !d_enum_to_sb_lemmas.empty() )
+  if (!d_enum_to_sb_lemmas.empty())
   {
-    for( std::pair< const Node, std::vector< Node > > sb : d_enum_to_sb_lemmas )
+    for (std::pair<const Node, std::vector<Node> > sb : d_enum_to_sb_lemmas)
     {
-      enums.push_back( sb.first );
+      enums.push_back(sb.first);
     }
     return true;
   }
   return false;
 }
 
-void TermDbSygus::getSymBreakLemmas( Node e, std::vector< Node >& lemmas ) const
+void TermDbSygus::getSymBreakLemmas(Node e, std::vector<Node>& lemmas) const
 {
-  std::map<Node, std::vector<Node> >::const_iterator itsb = d_enum_to_sb_lemmas.find(e);
-  if( itsb!=d_enum_to_sb_lemmas.end() )
+  std::map<Node, std::vector<Node> >::const_iterator itsb =
+      d_enum_to_sb_lemmas.find(e);
+  if (itsb != d_enum_to_sb_lemmas.end())
   {
-    lemmas.insert( lemmas.end(), itsb->second.begin(), itsb->second.end() );
+    lemmas.insert(lemmas.end(), itsb->second.begin(), itsb->second.end());
   }
 }
 
-TypeNode TermDbSygus::getTypeForSymBreakLemma( Node lem ) const
+TypeNode TermDbSygus::getTypeForSymBreakLemma(Node lem) const
 {
-  std::map<Node, TypeNode >::const_iterator it = d_sb_lemma_to_type.find(lem);
-  Assert( it!=d_sb_lemma_to_type.end() );
+  std::map<Node, TypeNode>::const_iterator it = d_sb_lemma_to_type.find(lem);
+  Assert(it != d_sb_lemma_to_type.end());
   return it->second;
 }
-unsigned TermDbSygus::getSizeForSymBreakLemma( Node lem ) const
+unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
 {
-  std::map<Node, unsigned >::const_iterator it = d_sb_lemma_to_size.find(lem);
-  Assert( it!=d_sb_lemma_to_size.end() );
+  std::map<Node, unsigned>::const_iterator it = d_sb_lemma_to_size.find(lem);
+  Assert(it != d_sb_lemma_to_size.end());
   return it->second;
 }
 
