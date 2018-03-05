@@ -57,7 +57,7 @@ enum Inference
   //       implies y1 = "a" ++ y1'
   infer_ssplit_cst_prop,
   // string split variable propagation, for example:
-  //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 ) 
+  //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 )
   //       implies x1 = y1 ++ x1'
   // This is inspired by Zheng et al CAV 2015.
   infer_ssplit_var_prop,
