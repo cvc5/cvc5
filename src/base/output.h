@@ -51,7 +51,7 @@ public:
    * stream.  Perhaps this is not so critical, but recommended; this
    * way the output stream looks like it's functioning, in a non-error
    * state. */
-  int overflow(int c) { return c; }
+ int overflow(int c) override { return c; }
 };/* class null_streambuf */
 
 /** A null stream-buffer singleton */

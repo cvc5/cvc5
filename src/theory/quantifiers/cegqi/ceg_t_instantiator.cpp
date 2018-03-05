@@ -934,11 +934,13 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   }
   ~CegInstantiatorBvInverterQuery() {}
   /** return the model value of n */
-  Node getModelValue( Node n ) {
-    return d_ci->getModelValue( n );
-  }
+  Node getModelValue(Node n) override { return d_ci->getModelValue(n); }
   /** get bound variable of type tn */
-  Node getBoundVariable(TypeNode tn) { return d_ci->getBoundVariable(tn); }
+  Node getBoundVariable(TypeNode tn) override
+  {
+    return d_ci->getBoundVariable(tn);
+  }
+
  protected:
   // pointer to class that is able to query model values
   CegInstantiator * d_ci;

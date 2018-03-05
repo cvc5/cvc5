@@ -238,10 +238,11 @@ public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
 
   /** register quantifier */
-  void registerQuantifier( Node q );
-public:
+  void registerQuantifier(Node q) override;
+
+ public:
   /** assert quantifier */
-  void assertNode( Node q );
+  void assertNode(Node q) override;
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -249,11 +250,11 @@ public:
   /** assert disequal */
   void assertDisequal( Node a, Node b );
   /** needs check */
-  bool needsCheck( Theory::Effort level );
+  bool needsCheck(Theory::Effort level) override;
   /** reset round */
-  void reset_round( Theory::Effort level );
+  void reset_round(Theory::Effort level) override;
   /** check */
-  void check(Theory::Effort level, QEffort quant_e);
+  void check(Theory::Effort level, QEffort quant_e) override;
 
  private:
   bool d_needs_computeRelEqr;
@@ -277,7 +278,7 @@ public:
   };
   Statistics d_statistics;
   /** Identify this module */
-  std::string identify() const { return "QcfEngine"; }
+  std::string identify() const override { return "QcfEngine"; }
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);

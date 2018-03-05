@@ -42,11 +42,11 @@ class QuantRelevance : public QuantifiersUtil
   QuantRelevance(bool cr) : d_computeRel(cr) {}
   ~QuantRelevance() {}
   /** reset */
-  virtual bool reset(Theory::Effort e) override { return true; }
+  bool reset(Theory::Effort e) override { return true; }
   /** register quantifier */
-  virtual void registerQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** identify */
-  virtual std::string identify() const override { return "QuantRelevance"; }
+  std::string identify() const override { return "QuantRelevance"; }
   /** set relevance of symbol s to r */
   void setRelevance(Node s, int r);
   /** get relevance of symbol s */

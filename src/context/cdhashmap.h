@@ -111,11 +111,13 @@ class CDOhash_map : public ContextObj {
   CDOhash_map* d_prev;
   CDOhash_map* d_next;
 
-  virtual ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
     return new(pCMM) CDOhash_map(*this);
   }
 
-  virtual void restore(ContextObj* data) {
+  void restore(ContextObj* data) override
+  {
     CDOhash_map* p = static_cast<CDOhash_map*>(data);
     if(d_map != NULL) {
       if(p->d_map == NULL) {
@@ -279,14 +281,10 @@ class CDHashMap : public ContextObj {
   Context* d_context;
 
   // Nothing to save; the elements take care of themselves
-  virtual ContextObj* save(ContextMemoryManager* pCMM) {
-    Unreachable();
-  }
+  ContextObj* save(ContextMemoryManager* pCMM) override { Unreachable(); }
 
   // Similarly, nothing to restore
-  virtual void restore(ContextObj* data) {
-    Unreachable();
-  }
+  void restore(ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
   CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
