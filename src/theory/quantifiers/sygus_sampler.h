@@ -207,7 +207,8 @@ class SygusSampler : public LazyTrieEvaluator
    * are those that occur in the range d_type_vars.
    */
   bool containsFreeVariables(Node a, Node b);
- private:
+
+ protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** samples */

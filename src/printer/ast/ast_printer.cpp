@@ -147,6 +147,7 @@ void AstPrinter::toStream(std::ostream& out,
      tryToStream<PushCommand>(out, c) ||
      tryToStream<PopCommand>(out, c) ||
      tryToStream<CheckSatCommand>(out, c) ||
+     tryToStream<CheckSatAssumingCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<ResetCommand>(out, c) ||
      tryToStream<ResetAssertionsCommand>(out, c) ||
@@ -235,6 +236,14 @@ static void toStream(std::ostream& out, const CheckSatCommand* c)
   } else {
     out << "CheckSat(" << e << ")";
   }
+}
+
+static void toStream(std::ostream& out, const CheckSatAssumingCommand* c)
+{
+  const vector<Expr>& terms = c->getTerms();
+  out << "CheckSatAssuming( << ";
+  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
+  out << ">> )";
 }
 
 static void toStream(std::ostream& out, const QueryCommand* c)
@@ -333,7 +342,7 @@ static void toStream(std::ostream& out, const GetValueCommand* c)
   out << "GetValue( << ";
   const vector<Expr>& terms = c->getTerms();
   copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
-  out << " >> )";
+  out << ">> )";
 }
 
 static void toStream(std::ostream& out, const GetModelCommand* c)
