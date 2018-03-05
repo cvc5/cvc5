@@ -76,15 +76,15 @@ class TermDbSygus {
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
    *
-   * This function registers lem as a symmetry breaking lemma template for 
+   * This function registers lem as a symmetry breaking lemma template for
    * subterms of enumerator e. For more information on symmetry breaking
    * lemma templates, see datatypes/datatypes_sygus.h.
-   * 
+   *
    * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
    * sz : the minimum size of terms that the lem blocks.
-   * 
-   * Notice that the symmetry breaking lemma template should be relative to x, 
+   *
+   * Notice that the symmetry breaking lemma template should be relative to x,
    * where x is returned by the call to getFreeVar( tn, 0 ) in this class.
    */
   void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);

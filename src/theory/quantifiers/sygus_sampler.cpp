@@ -692,7 +692,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   }
   Node bn = n;
   Node beq_n = eq_n;
-  if( d_use_sygus_type )
+  if (d_use_sygus_type)
   {
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
