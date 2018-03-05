@@ -44,6 +44,33 @@ namespace strings {
  *
  */
 
+/** Types of inferences in the procedure 
+ * 
+ * These are variants of the inference rules in Figures 3-5 of Liang et al.
+ * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
+ */
+enum Inference 
+{
+  infer_none,
+  // string split constant propagation 
+  infer_ssplit_cst_prop,
+  // string split variable propagation 
+  infer_ssplit_var_prop,
+  // length split
+  infer_len_split,
+  // length split empty
+  infer_len_split_emp,
+  // string split constant binary
+  infer_ssplit_cst_binary,
+  // string split constant
+  infer_ssplit_cst,
+  // string split variable
+  infer_ssplit_var,
+  // flat form loop
+  infer_floop,
+};
+std::ostream& operator<<(std::ostream& out, Inference i);
+
 struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
@@ -289,23 +316,9 @@ private:
     std::vector< Node > d_antn;
     std::map< int, std::vector< Node > > d_new_skolem;
     Node d_conc;
-    unsigned d_id;
+    Inference d_id;
     std::map< Node, bool > d_pending_phase;
     unsigned d_index;
-    const char * getId() { 
-      switch( d_id ){
-      case 1:return "S-Split(CST-P)-prop";break;
-      case 2:return "S-Split(VAR)-prop";break;
-      case 3:return "Len-Split(Len)";break;
-      case 4:return "Len-Split(Emp)";break;
-      case 5:return "S-Split(CST-P)-binary";break;
-      case 6:return "S-Split(CST-P)";break;
-      case 7:return "S-Split(VAR)";break;
-      case 8:return "F-Loop";break;
-      default:break;
-      }
-      return "";
-    }
     Node d_nf_pair[2];
     bool sendAsLemma();
   };
