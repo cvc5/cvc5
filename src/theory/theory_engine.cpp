@@ -214,12 +214,11 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
 }
 
 void TheoryEngine::finishInit() {
-  // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
-    d_quantEngine->finishInit();
+    // initialize the quantifiers engine
+    d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
     Assert(d_masterEqualityEngine == 0);
     d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master", false);
 
@@ -904,7 +903,14 @@ TheoryModel* TheoryEngine::getModel() {
 
 void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  d_quantEngine->getSynthSolutions(sol_map);
+  if (d_quantEngine)
+  {
+    d_quantEngine->getSynthSolutions(sol_map);
+  }
+  else
+  {
+    Assert(false);
+  }
 }
 
 bool TheoryEngine::presolve() {
@@ -1480,6 +1486,7 @@ void TheoryEngine::printInstantiations( std::ostream& out ) {
     d_quantEngine->printInstantiations( out );
   }else{
     out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
+    Assert(false);
   }
 }
 
@@ -1488,6 +1495,7 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     d_quantEngine->printSynthSolution( out );
   }else{
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
+    Assert(false);
   }
 }
 
