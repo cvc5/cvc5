@@ -135,17 +135,17 @@ private:
    * This function is called when the tester with index tindex is asserted for
    * n, exp is the tester predicate. For example, for grammar:
    *   A -> A+A | x | 1 | 0
-   * when is_+( d ) is asserted, 
-   * assertTesterInternal(0, s( d ), is_+( s( d ) ),...) is called. This 
-   * function may add lemmas to lemmas, which are sent out on the output 
-   * channel of datatypes by the caller. 
-   * 
+   * when is_+( d ) is asserted,
+   * assertTesterInternal(0, s( d ), is_+( s( d ) ),...) is called. This
+   * function may add lemmas to lemmas, which are sent out on the output
+   * channel of datatypes by the caller.
+   *
    * These lemmas are of various forms, including:
-   * (1) dynamic symmetry breaking clauses for subterms of n (those added to 
+   * (1) dynamic symmetry breaking clauses for subterms of n (those added to
    * lemmas on calls to addSymBreakLemmasFor, see function below),
-   * (2) static symmetry breaking clauses for subterms of n (those added to 
+   * (2) static symmetry breaking clauses for subterms of n (those added to
    * lemmas on getSimpleSymBreakPred, see function below),
-   * (3) conjecture-specific symmetry breaking lemmas, see 
+   * (3) conjecture-specific symmetry breaking lemmas, see
    * CegConjecture::getSymmetryBreakingPredicate,
    * (4) fairness conflicts if sygusFair() is SYGUS_FAIR_DIRECT, e.g.:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
@@ -167,7 +167,7 @@ private:
    *
    * The purpose of this function is to notify this class that symmetry breaking
    * lemmas should be instantiated for n. Any symmetry breaking lemmas that
-   * are active for n (see description of addSymBreakLemmasFor) are added to 
+   * are active for n (see description of addSymBreakLemmasFor) are added to
    * lemmas in this call.
    */
   void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas );
