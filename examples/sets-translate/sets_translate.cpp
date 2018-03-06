@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
             cout << SetBenchmarkLogicCommand(logicinfo.getLogicString()) << endl;
           }
         } else {
-          logicinfo.enableTheory(theory::THEORY_ARRAY);
+          logicinfo.enableTheory(theory::THEORY_ARRAYS);
           // we print logic string only for Quantifiers, for Z3 stuff
           // we don't set the logic
         }
