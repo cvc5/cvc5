@@ -310,6 +310,10 @@ option sygusSamples --sygus-samples=N int :read-write :default 1000 :read-write
   number of points to consider when doing sygus rewriter sample testing
 option sygusSampleGrammar --sygus-sample-grammar bool :default true
   when applicable, use grammar for choosing sample points
+option sygusRewSynthAccel --sygus-rr-synth-accel bool :default false
+  add dynamic symmetry breaking clauses based on candidate rewrites
+option sygusRewSynthCheck --sygus-rr-synth-check bool :default false
+  use satisfiability check to verify correctness of candidate rewrites
 
 # CEGQI applied to general quantified formulas
 option cbqi --cbqi bool :read-write :default false
