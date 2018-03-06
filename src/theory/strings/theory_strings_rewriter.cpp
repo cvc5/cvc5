@@ -1926,6 +1926,8 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   Trace("strings-rewrite-debug") << "For " << node << ", check " << cmp_con << std::endl;
   Node cmp_conr = Rewriter::rewrite(cmp_con);
   Trace("strings-rewrite-debug") << "...got " << cmp_conr << std::endl;
+  std::vector<Node> children1;
+  getConcat(node[1], children1);
   if (cmp_conr.isConst())
   {
     if (cmp_conr.getConst<bool>())
@@ -1933,8 +1935,6 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       if (node[2].isConst() && node[2].getConst<Rational>().sgn() == 0)
       {
         // past the first position in node[0] that contains node[1], we can drop
-        std::vector<Node> children1;
-        getConcat(node[1], children1);
         std::vector<Node> nb;
         std::vector<Node> ne;
         int cc = componentContains(children0, children1, nb, ne, true, 1);
@@ -1973,7 +1973,18 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       return returnRewrite(node, negone, "idof-nctn");
     }
   }
-
+  
+  std::vector<Node> cb;
+  std::vector<Node> ce;
+  if (stripConstantEndpoints(children0, children1, cb, ce, -1))
+  {
+    Node ret = mkConcat(kind::STRING_CONCAT, children0);
+    ret = nm->mkNode(STRING_STRIDOF,ret,node[1],node[2]);
+    //For example:
+    // str.indexof( str.++( x, "A" ), "B", z ) ---> str.indexof( x, "B", z )
+    return returnRewrite(node, ret, "rpl-pull-endpt");
+  }
+  
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
@@ -2726,7 +2737,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   // for ( forwards, backwards ) direction
   for (unsigned r = 0; r < 2; r++)
   {
-    if (dir == 0 || (r == 0 && dir == -1) || (r == 1 && dir == 1))
+    if (dir == 0 || (r == 0 && dir == 1) || (r == 1 && dir == -1))
     {
       unsigned index0 = r == 0 ? 0 : n1.size() - 1;
       unsigned index1 = r == 0 ? 0 : n2.size() - 1;
