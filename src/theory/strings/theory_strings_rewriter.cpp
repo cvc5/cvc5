@@ -1923,7 +1923,9 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   }
 
   Node cmp_con = nm->mkNode(kind::STRING_STRCTN, fstr, node[1]);
+  Trace("string-rewrite-debug") << "For " << node << ", check " << cmp_con << std::endl;
   Node cmp_conr = Rewriter::rewrite(cmp_con);
+  Trace("string-rewrite-debug") << "...got " << cmp_conr << std::endl;
   if (cmp_conr.isConst())
   {
     if (cmp_conr.getConst<bool>())
@@ -2737,12 +2739,16 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
       unsigned index0 = r == 0 ? 0 : n1.size() - 1;
       unsigned index1 = r == 0 ? 0 : n2.size() - 1;
       bool removeComponent = false;
+      Node n1cmp = n1[index0];
+      std::vector< Node > sss;
+      std::vector< Node > sls;
+      n1cmp = decomposeSubstrChain( n1cmp, sss, sls );
       Trace("strings-rewrite-debug2") << "stripConstantEndpoints : Compare "
-                                      << n1[index0] << " " << n2[index1]
+                                      << n1cmp << " " << n2[index1]
                                       << ", dir = " << dir << std::endl;
-      if (n1[index0].isConst())
+      if (n1cmp.isConst())
       {
-        CVC4::String s = n1[index0].getConst<String>();
+        CVC4::String s = n1cmp.getConst<String>();
         // overlap is an overapproximation of the number of characters
         // n2[index1] can match in s
         unsigned overlap = s.size();
@@ -2759,7 +2765,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
               //   str.contains( "", str.++( "ba", x ) )
               removeComponent = true;
             }
-            else
+            else if( sss.empty() ) // only if not substr
             {
               // check how much overlap there is
               // This is used to partially strip off the endpoint
@@ -2768,7 +2774,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
               overlap = r == 0 ? s.overlap(t) : t.overlap(s);
             }
           }
-          else
+          else if( sss.empty() ) // only if not substr
           {
             Assert(ret < s.size());
             // can strip off up to the find position, e.g.
@@ -2791,7 +2797,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             {
               break;
             }
-            else
+            else if( sss.empty() ) // only if not substr
             {
               // e.g. str.contains( str.++( "a", x ), int.to.str(y) ) -->
               // str.contains( x, int.to.str(y) )
@@ -2830,7 +2836,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
           }
         }
       }
-      else if (n1[index0].getKind() == kind::STRING_ITOS)
+      else if (n1cmp.getKind() == kind::STRING_ITOS)
       {
         if (n2[index1].isConst())
         {
@@ -3095,6 +3101,30 @@ bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
   }
 
   return false;
+}
+
+
+Node TheoryStringsRewriter::decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector< Node >& ls )
+{
+  while( s.getKind()==STRING_SUBSTR )
+  {
+    ss.push_back( s[1] );
+    ls.push_back( s[2] );
+    s = s[0];
+  }
+  std::reverse( ss.begin(), ss.end() );
+  std::reverse( ls.begin(), ls.end() );
+  return s;
+}
+
+Node TheoryStringsRewriter::mkSubstrChain(Node base, std::vector<Node>& ss, std::vector< Node >& ls )
+{
+  NodeManager * nm = NodeManager::currentNM();
+  for( unsigned i=0,size=ss.size(); i<size; i++ )
+  {
+    base = nm->mkNode( STRING_SUBSTR, base, ss[i], ls[i] );
+  }
+  return base;
 }
 
 Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
