@@ -83,7 +83,7 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
         return;
       }
 
-      if (id == theory::THEORY_ARRAY) {
+      if (id == theory::THEORY_ARRAYS) {
         d_theoryProofTable[id] = new LFSCArrayProof((theory::arrays::TheoryArrays*)th, this);
         return;
       }
@@ -169,9 +169,9 @@ void TheoryProofEngine::registerTerm(Expr term) {
 
   // A special case: the array theory needs to know of every skolem, even if
   // it belongs to another theory (e.g., a BV skolem)
-  if (ProofManager::getSkolemizationManager()->isSkolem(term) && theory_id != theory::THEORY_ARRAY) {
+  if (ProofManager::getSkolemizationManager()->isSkolem(term) && theory_id != theory::THEORY_ARRAYS) {
     Debug("pf::tp::register") << "TheoryProofEngine::registerTerm: registering a non-array skolem: " << term << std::endl;
-    getTheoryProof(theory::THEORY_ARRAY)->registerTerm(term);
+    getTheoryProof(theory::THEORY_ARRAYS)->registerTerm(term);
   }
 
   d_registrationCache.insert(term);
@@ -272,7 +272,7 @@ void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
   }
 
   if (type.isArray()) {
-    getTheoryProof(theory::THEORY_ARRAY)->printOwnedSort(type, os);
+    getTheoryProof(theory::THEORY_ARRAYS)->printOwnedSort(type, os);
     return;
   }
 
@@ -989,7 +989,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
                                   ProofManager::currentPM()->getLogicInfo(),
                                   "replay::");
-  } else if (d_theory->getId()==theory::THEORY_ARRAY) {
+  } else if (d_theory->getId()==theory::THEORY_ARRAYS) {
     th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
                                           ProofManager::currentPM()->getLogicInfo(),
                                           "replay::");
@@ -1067,7 +1067,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
 }
 
 bool TheoryProofEngine::supportedTheory(theory::TheoryId id) {
-  return (id == theory::THEORY_ARRAY ||
+  return (id == theory::THEORY_ARRAYS ||
           id == theory::THEORY_ARITH ||
           id == theory::THEORY_BV ||
           id == theory::THEORY_UF ||

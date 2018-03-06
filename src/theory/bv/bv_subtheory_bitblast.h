@@ -39,7 +39,7 @@ class BitblastSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
     IntStat d_numBBLemmas;
-    Statistics(const std::string &instanceName);
+    Statistics();
     ~Statistics();
   };
   /** Bitblaster */

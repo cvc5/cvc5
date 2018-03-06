@@ -260,26 +260,28 @@ void CommandExecutor::printStatsFilterZeros(std::ostream& out,
 
   std::getline(iss, statName, ',');
 
-  while( !iss.eof() ) {
-
+  while (!iss.eof())
+  {
     std::getline(iss, statValue, '\n');
 
-    double curFloat;
-    std::istringstream iss_stat_value (statValue);
-    iss_stat_value >> curFloat;
-    bool isFloat = iss_stat_value.good();
+    bool skip = (statValue == " \"0\"" || statValue == " \"[]\"");
+    try
+    {
+      double dval = std::stod(statValue);
+      int ival = std::stoi(statValue);
+      skip = skip || (dval == 0.0 || ival == 0);
+    }
+    // Value can not be converted, don't skip
+    catch (const std::invalid_argument&) {}
+    catch (const std::out_of_range&) {}
 
-    if( (isFloat && curFloat == 0) ||
-        statValue == " \"0\"" ||
-        statValue == " \"[]\"") {
-      // skip
-    } else {
+    if (!skip)
+    {
       out << statName << "," << statValue << std::endl;
     }
 
     std::getline(iss, statName, ',');
   }
-
 }
 
 void CommandExecutor::flushOutputStreams() {
