@@ -1858,10 +1858,56 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       return returnRewrite(node, negone, "idof-nfind");
     }
   }
+  
+  if( node[0]==node[1] )
+  {
+    // indexof( x, x, 0 ) --> 0
+    if( node[2].isConst() )
+    {
+      if( node[2].getConst<Rational>().sgn()==0 )
+      {
+        Node negone = nm->mkConst(Rational(0));
+        return returnRewrite(node, negone, "idof-eq-cst-start");
+      }
+      else 
+      {
+        Assert( node[2].getConst<Rational>().sgn()==1 );
+        Node negone = nm->mkConst(Rational(-1));
+        return returnRewrite(node, negone, "idof-eq-cst-nstart");
+      }
+    }
+    else if (checkEntailArith(node[2],true))
+    {
+      // y>0  implies  indexof( x, x, y ) --> -1
+      Node negone = nm->mkConst(Rational(-1));
+      return returnRewrite(node, negone, "idof-eq-nstart");
+    }
+    Node emp = nm->mkConst( CVC4::String("") );
+    if( node[0]!=emp )
+    {
+      // indexof( x, x, z ) ---> indexof( "", "", z )
+      Node ret = nm->mkNode( STRING_STRIDOF, emp, emp, node[2] );
+      return returnRewrite(node, ret, "idof-eq-norm");
+    }
+  }
 
-  Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
-  Node len1 = nm->mkNode(kind::STRING_LENGTH, node[1]);
-  Node len0m2 = nm->mkNode(kind::MINUS, len0, node[2]);
+  Node len0 = nm->mkNode(STRING_LENGTH, node[0]);
+  Node len1 = nm->mkNode(STRING_LENGTH, node[1]);
+  Node len0m2 = nm->mkNode(MINUS, len0, node[2]);
+  
+  if( node[1].isConst() )
+  {
+    CVC4::String t = node[1].getConst<String>();
+    if( t.size()==0 )
+    {
+      if( checkEntailArith(len0,node[2]) && checkEntailArith(node[2]) )
+      {
+        // len(x)>=z ^ z >=0 implies indexof( x, "", z ) ---> z
+        return returnRewrite(node, node[2], "idof-emp-idof");
+      }
+    }
+  }  
+
   if (checkEntailArith(len1, len0m2, true))
   {
     // len(x)-z < len(y)  implies  indexof( x, y, z ) ----> -1
