@@ -96,7 +96,7 @@ std::string getStatsPrefix(TheoryId theoryId) {
 ${theory_stats_prefixes}
 #line 98 "${template}"
   default:
-    return "unknown";
+    break;
   }
   return "unknown";
 }
