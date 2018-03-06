@@ -55,7 +55,8 @@ public:
   public:
     NotifyClass(TheoryUF& uf): d_uf(uf) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
       Debug("uf") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
       if (value) {
         return d_uf.propagate(equality);
@@ -65,7 +66,8 @@ public:
       }
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
       Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         return d_uf.propagate(predicate);
@@ -74,7 +76,11 @@ public:
       }
     }
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
       Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
         return d_uf.propagate(t1.eqNode(t2));
@@ -83,27 +89,32 @@ public:
       }
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) {
+    void eqNotifyNewClass(TNode t) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
-    void eqNotifyPreMerge(TNode t1, TNode t2) {
+    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.eqNotifyPreMerge(t1, t2);
     }
 
-    void eqNotifyPostMerge(TNode t1, TNode t2) {
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.eqNotifyPostMerge(t1, t2);
     }
 
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }

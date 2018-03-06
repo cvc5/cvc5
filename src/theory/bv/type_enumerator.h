@@ -42,20 +42,21 @@ public:
     d_bits(0) {
   }
 
-  Node operator*() {
+  Node operator*() override
+  {
     if(d_bits != d_bits.modByPow2(d_size)) {
       throw NoMoreValuesException(getType());
     }
     return utils::mkConst(d_size, d_bits);
   }
 
-  BitVectorEnumerator& operator++()
+  BitVectorEnumerator& operator++() override
   {
     d_bits += 1;
     return *this;
   }
 
-  bool isFinished() { return d_bits != d_bits.modByPow2(d_size); }
+  bool isFinished() override { return d_bits != d_bits.modByPow2(d_size); }
 };/* BitVectorEnumerator */
 
 }/* CVC4::theory::bv namespace */

@@ -64,13 +64,17 @@ Node LazyTrie::add(Node n,
   return Node::null();
 }
 
-SygusSampler::SygusSampler() : d_tds(nullptr), d_is_valid(false) {}
+SygusSampler::SygusSampler()
+    : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+{
+}
 
 void SygusSampler::initialize(TypeNode tn,
                               std::vector<Node>& vars,
                               unsigned nsamples)
 {
   d_tds = nullptr;
+  d_use_sygus_type = false;
   d_is_valid = true;
   d_tn = tn;
   d_ftn = TypeNode::null();
@@ -100,13 +104,18 @@ void SygusSampler::initialize(TypeNode tn,
         << "Type id for " << sv << " is " << tnid << std::endl;
     d_var_index[sv] = d_type_vars[tnid].size();
     d_type_vars[tnid].push_back(sv);
+    d_type_ids[sv] = tnid;
   }
   initializeSamples(nsamples);
 }
 
-void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
+void SygusSampler::initializeSygus(TermDbSygus* tds,
+                                   Node f,
+                                   unsigned nsamples,
+                                   bool useSygusType)
 {
   d_tds = tds;
+  d_use_sygus_type = useSygusType;
   d_is_valid = true;
   d_ftn = f.getType();
   Assert(d_ftn.isDatatype());
@@ -176,6 +185,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds, Node f, unsigned nsamples)
         << "Type id for " << sv << " is " << tnid << std::endl;
     d_var_index[sv] = d_type_vars[tnid].size();
     d_type_vars[tnid].push_back(sv);
+    d_type_ids[sv] = tnid;
   }
 
   initializeSamples(nsamples);
@@ -280,8 +290,23 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
   if (d_is_valid)
   {
-    Assert(n.getType() == d_tn);
-    return d_trie.add(n, this, 0, d_samples.size(), forceKeep);
+    Node bn = n;
+    // if this is a sygus type, get its builtin analog
+    if (d_use_sygus_type)
+    {
+      Assert(!d_ftn.isNull());
+      bn = d_tds->sygusToBuiltin(n);
+      bn = Rewriter::rewrite(bn);
+      d_builtin_to_sygus[bn] = n;
+    }
+    Assert(bn.getType() == d_tn);
+    Node res = d_trie.add(bn, this, 0, d_samples.size(), forceKeep);
+    if (d_use_sygus_type)
+    {
+      Assert(d_builtin_to_sygus.find(res) != d_builtin_to_sygus.end());
+      res = res != bn ? d_builtin_to_sygus[res] : n;
+    }
+    return res;
   }
   return n;
 }
@@ -643,9 +668,11 @@ void SygusSampler::registerSygusType(TypeNode tn)
 
 void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
                                          Node f,
-                                         unsigned nsamples)
+                                         unsigned nsamples,
+                                         bool useSygusType)
 {
-  SygusSampler::initializeSygus(qe->getTermDatabaseSygus(), f, nsamples);
+  SygusSampler::initializeSygus(
+      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
 
   // initialize the dynamic rewriter
   std::stringstream ss;
@@ -663,9 +690,18 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     return n;
   }
+  Node bn = n;
+  Node beq_n = eq_n;
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    beq_n = d_tds->sygusToBuiltin(eq_n);
+  }
   // one of eq_n or n must be ordered
-  bool eqor = isOrdered(eq_n);
-  bool nor = isOrdered(n);
+  bool eqor = isOrdered(beq_n);
+  bool nor = isOrdered(bn);
+  Trace("sygus-synth-rr-debug")
+      << "Ordered? : " << nor << " " << eqor << std::endl;
   bool isUnique = false;
   if (eqor || nor)
   {
@@ -674,11 +710,11 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // free variables of the other
     if (!eqor)
     {
-      isUnique = containsFreeVariables(n, eq_n);
+      isUnique = containsFreeVariables(bn, beq_n);
     }
     else if (!nor)
     {
-      isUnique = containsFreeVariables(eq_n, n);
+      isUnique = containsFreeVariables(beq_n, bn);
     }
   }
   Trace("sygus-synth-rr-debug") << "AlphaEq unique: " << isUnique << std::endl;
@@ -686,7 +722,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   if (d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite..." << std::endl;
-    if (!d_drewrite->addRewrite(n, eq_n))
+    if (!d_drewrite->addRewrite(bn, beq_n))
     {
       rewRedundant = isUnique;
       // must be unique according to the dynamic rewriter
@@ -702,7 +738,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // sampler database.
     if (!eqor)
     {
-      registerTerm(n, true);
+      SygusSampler::registerTerm(n, true);
     }
     return eq_n;
   }

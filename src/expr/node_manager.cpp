@@ -402,7 +402,7 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 TypeNode NodeManager::getType(TNode n, bool check)
 {
   // Many theories' type checkers call Node::getType() directly.  This
-  // is incorrect, since "this" might not be the caller's curent node
+  // is incorrect, since "this" might not be the caller's current node
   // manager.  Rather than force the individual typecheckers not to do
   // this (by policy, which would be imperfect and lead to
   // hard-to-find bugs, which it has in the past), we just set this

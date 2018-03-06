@@ -103,16 +103,16 @@ class InstStrategyCbqi : public QuantifiersModule {
   /** whether to do CBQI for quantifier q */
   bool doCbqi( Node q );
   /** process functions */
-  bool needsCheck( Theory::Effort e );
-  QEffort needsModel(Theory::Effort e);
-  void reset_round( Theory::Effort e );
-  void check(Theory::Effort e, QEffort quant_e);
-  bool checkComplete();
-  bool checkCompleteFor( Node q );
-  void preRegisterQuantifier( Node q );
-  void registerQuantifier( Node q );
+  bool needsCheck(Theory::Effort e) override;
+  QEffort needsModel(Theory::Effort e) override;
+  void reset_round(Theory::Effort e) override;
+  void check(Theory::Effort e, QEffort quant_e) override;
+  bool checkComplete() override;
+  bool checkCompleteFor(Node q) override;
+  void preRegisterQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
+  Node getNextDecisionRequest(unsigned& priority) override;
 };
 
 //generalized counterexample guided quantifier instantiation
@@ -123,9 +123,9 @@ class CegqiOutputInstStrategy : public CegqiOutput {
 public:
   CegqiOutputInstStrategy( InstStrategyCegqi * out ) : d_out( out ){}
   InstStrategyCegqi * d_out;
-  bool doAddInstantiation( std::vector< Node >& subs );
-  bool isEligibleForInstantiation( Node n );
-  bool addLemma( Node lem );
+  bool doAddInstantiation(std::vector<Node>& subs) override;
+  bool isEligibleForInstantiation(Node n) override;
+  bool addLemma(Node lem) override;
 };
 
 class InstStrategyCegqi : public InstStrategyCbqi {

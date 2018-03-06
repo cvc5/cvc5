@@ -224,16 +224,19 @@ public:
   AlgebraicSolver(context::Context* c, TheoryBV* bv);
   ~AlgebraicSolver();
 
-  void  preRegister(TNode node) {}
-  bool  check(Theory::Effort e);
-  void  explain(TNode literal, std::vector<TNode>& assumptions) {Unreachable("AlgebraicSolver does not propagate.\n");}
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
-  Node getModelValue(TNode node); 
-  bool isComplete();
-  virtual void assertFact(TNode fact);
+  void preRegister(TNode node) override {}
+  bool check(Theory::Effort e) override;
+  void explain(TNode literal, std::vector<TNode>& assumptions) override
+  {
+    Unreachable("AlgebraicSolver does not propagate.\n");
+  }
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  Node getModelValue(TNode node) override;
+  bool isComplete() override;
+  void assertFact(TNode fact) override;
 };
 
-}
-}
-}
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4

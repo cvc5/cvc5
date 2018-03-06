@@ -33,11 +33,11 @@ public:
       : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo)
   {}
 
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   //void check(Effort);
-  
-  std::string identify() const { return std::string("TheoryBool"); }
+
+  std::string identify() const override { return std::string("TheoryBool"); }
 };/* class TheoryBool */
 
 }/* CVC4::theory::booleans namespace */

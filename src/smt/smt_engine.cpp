@@ -2,9 +2,9 @@
 /*! \file smt_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -298,7 +298,8 @@ struct SmtEngineStatistics {
 class SoftResourceOutListener : public Listener {
  public:
   SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
+  void notify() override
+  {
     SmtScope scope(d_smt);
     Assert(smt::smtEngineInScope());
     d_smt->interrupt();
@@ -311,7 +312,8 @@ class SoftResourceOutListener : public Listener {
 class HardResourceOutListener : public Listener {
  public:
   HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
+  void notify() override
+  {
     SmtScope scope(d_smt);
     theory::Rewriter::clearCaches();
   }
@@ -322,7 +324,8 @@ class HardResourceOutListener : public Listener {
 class SetLogicListener : public Listener {
  public:
   SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
+  void notify() override
+  {
     LogicInfo inOptions(options::forceLogicString());
     d_smt->setLogic(inOptions);
   }
@@ -333,9 +336,8 @@ class SetLogicListener : public Listener {
 class BeforeSearchListener : public Listener {
  public:
   BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
-    d_smt->beforeSearch();
-  }
+  void notify() override { d_smt->beforeSearch(); }
+
  private:
   SmtEngine* d_smt;
 }; /* class BeforeSearchListener */
@@ -346,7 +348,8 @@ class UseTheoryListListener : public Listener {
       : d_theoryEngine(theoryEngine)
   {}
 
-  void notify() {
+  void notify() override
+  {
     std::stringstream commaList(options::useTheoryList());
     std::string token;
 
@@ -375,7 +378,8 @@ class UseTheoryListListener : public Listener {
 
 class SetDefaultExprDepthListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     int depth = options::defaultExprDepth();
     Debug.getStream() << expr::ExprSetDepth(depth);
     Trace.getStream() << expr::ExprSetDepth(depth);
@@ -389,7 +393,8 @@ class SetDefaultExprDepthListener : public Listener {
 
 class SetDefaultExprDagListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     int dag = options::defaultDagThresh();
     Debug.getStream() << expr::ExprDag(dag);
     Trace.getStream() << expr::ExprDag(dag);
@@ -403,7 +408,8 @@ class SetDefaultExprDagListener : public Listener {
 
 class SetPrintExprTypesListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     bool value = options::printExprTypes();
     Debug.getStream() << expr::ExprPrintTypes(value);
     Trace.getStream() << expr::ExprPrintTypes(value);
@@ -417,7 +423,8 @@ class SetPrintExprTypesListener : public Listener {
 
 class DumpModeListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     const std::string& value = options::dumpModeString();
     Dump.setDumpFromString(value);
   }
@@ -425,7 +432,8 @@ class DumpModeListener : public Listener {
 
 class PrintSuccessListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     bool value = options::printSuccess();
     Debug.getStream() << Command::printsuccess(value);
     Trace.getStream() << Command::printsuccess(value);
@@ -748,7 +756,8 @@ public:
     d_resourceManager->spendResource(amount);
   }
 
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) {
+  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
+  {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());
@@ -757,19 +766,22 @@ public:
     }
   }
 
-  void nmNotifyNewSortConstructor(TypeNode tn) {
+  void nmNotifyNewSortConstructor(TypeNode tn) override
+  {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) {
+  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
+  {
     DatatypeDeclarationCommand c(dtts);
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewVar(TNode n, uint32_t flags) {
+  void nmNotifyNewVar(TNode n, uint32_t flags) override
+  {
     DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
                              n.toExpr(),
                              n.getType().toType());
@@ -781,11 +793,12 @@ public:
     }
   }
 
-  void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) {
+  void nmNotifyNewSkolem(TNode n,
+                         const std::string& comment,
+                         uint32_t flags) override
+  {
     string id = n.getAttribute(expr::VarNameAttr());
-    DeclareFunctionCommand c(id,
-                             n.toExpr(),
-                             n.getType().toType());
+    DeclareFunctionCommand c(id, n.toExpr(), n.getType().toType());
     if(Dump.isOn("skolems") && comment != "") {
       Dump("skolems") << CommentCommand(id + " is " + comment);
     }
@@ -797,7 +810,7 @@ public:
     }
   }
 
-  void nmNotifyDeleteNode(TNode n) {}
+  void nmNotifyDeleteNode(TNode n) override {}
 
   Node applySubstitutions(TNode node) const {
     return Rewriter::rewrite(d_topLevelSubstitutions.apply(node));
@@ -4683,22 +4696,46 @@ void SmtEngine::ensureBoolean(const Expr& e)
 Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore)
 {
   return checkSatisfiability(ex, inUnsatCore, false);
-} /* SmtEngine::checkSat() */
+}
+
+Result SmtEngine::checkSat(const vector<Expr>& exprs, bool inUnsatCore)
+{
+  return checkSatisfiability(exprs, inUnsatCore, false);
+}
 
 Result SmtEngine::query(const Expr& ex, bool inUnsatCore)
 {
   Assert(!ex.isNull());
   return checkSatisfiability(ex, inUnsatCore, true);
-} /* SmtEngine::query() */
+}
 
-Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQuery) {
-  try {
-    Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
+Result SmtEngine::query(const vector<Expr>& exprs, bool inUnsatCore)
+{
+  return checkSatisfiability(exprs, inUnsatCore, true);
+}
+
+Result SmtEngine::checkSatisfiability(const Expr& expr,
+                                      bool inUnsatCore,
+                                      bool isQuery)
+{
+  return checkSatisfiability(
+      expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
+      inUnsatCore,
+      isQuery);
+}
+
+Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
+                                      bool inUnsatCore,
+                                      bool isQuery)
+{
+  try
+  {
     SmtScope smts(this);
     finalOptionsAreSet();
     doPendingPops();
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "(" << ex << ")" << endl;
+    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+                 << exprs << ")" << endl;
 
     if(d_queryMade && !options::incrementalSolving()) {
       throw ModalException("Cannot make multiple queries unless "
@@ -4706,45 +4743,64 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
                            "(try --incremental)");
     }
 
-    Expr e;
-    if(!ex.isNull()) {
-      // Substitute out any abstract values in ex.
-      e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-      // Ensure expr is type-checked at this point.
-      ensureBoolean(e);
-    }
-
     // check to see if a postsolve() is pending
     if(d_needPostsolve) {
       d_theoryEngine->postsolve();
       d_needPostsolve = false;
     }
-
     // Note that a query has been made
     d_queryMade = true;
-
     // reset global negation
     d_globalNegation = false;
 
     bool didInternalPush = false;
-    // Add the formula
-    if(!e.isNull()) {
-      // Push the context
-      internalPush();
-      didInternalPush = true;
 
-      d_problemExtended = true;
-      Expr ea = isQuery ? e.notExpr() : e;
-      if(d_assertionList != NULL) {
-        d_assertionList->push_back(ea);
+    vector<Expr> t_exprs;
+    if (isQuery)
+    {
+      size_t size = exprs.size();
+      if (size > 1)
+      {
+        /* Assume: not (BIGAND exprs)  */
+        t_exprs.push_back(d_exprManager->mkExpr(kind::AND, exprs).notExpr());
       }
-      d_private->addFormula(ea.getNode(), inUnsatCore);
+      else if (size == 1)
+      {
+        /* Assume: not expr  */
+        t_exprs.push_back(exprs[0].notExpr());
+      }
+    }
+    else
+    {
+      /* Assume: BIGAND exprs  */
+      t_exprs = exprs;
     }
 
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    for (Expr e : t_exprs)
+    {
+      // Substitute out any abstract values in ex.
+      e = d_private->substituteAbstractValues(Node::fromExpr(e)).toExpr();
+      Assert(e.getExprManager() == d_exprManager);
+      // Ensure expr is type-checked at this point.
+      ensureBoolean(e);
+
+      /* Add assumption  */
+      internalPush();
+      didInternalPush = true;
+      d_problemExtended = true;
+      if (d_assertionList != NULL)
+      {
+        d_assertionList->push_back(e);
+      }
+      d_private->addFormula(e.getNode(), inUnsatCore);
+    }
+
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
 
-    if ( ( options::solveRealAsInt() || options::solveIntAsBV() > 0 ) && r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
     // flipped if we did a global negation
@@ -4773,12 +4829,16 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     d_needPostsolve = true;
 
     // Dump the query if requested
-    if(Dump.isOn("benchmark")) {
+    if (Dump.isOn("benchmark"))
+    {
       // the expr already got dumped out if assertion-dumping is on
-      if( isQuery ){
-        Dump("benchmark") << QueryCommand(ex);
-      }else{
-        Dump("benchmark") << CheckSatCommand(ex);
+      if (isQuery && exprs.size() == 1)
+      {
+        Dump("benchmark") << QueryCommand(exprs[0]);
+      }
+      else
+      {
+        Dump("benchmark") << CheckSatAssumingCommand(t_exprs, inUnsatCore);
       }
     }
 
@@ -4793,7 +4853,8 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
 
     d_problemExtended = false;
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "(" << e << ") => " << r << endl;
+    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+                 << exprs << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -5148,7 +5209,8 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-CVC4::SExpr SmtEngine::getAssignment() {
+vector<pair<Expr, Expr>> SmtEngine::getAssignment()
+{
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -5170,50 +5232,45 @@ CVC4::SExpr SmtEngine::getAssignment() {
     throw RecoverableModalException(msg);
   }
 
-  if(d_assignments == NULL) {
-    return SExpr(vector<SExpr>());
-  }
+  vector<pair<Expr,Expr>> res;
+  if (d_assignments != nullptr)
+  {
+    TypeNode boolType = d_nodeManager->booleanType();
+    TheoryModel* m = d_theoryEngine->getModel();
+    for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
+                                     iend = d_assignments->key_end();
+         i != iend;
+         ++i)
+    {
+      Node as = *i;
+      Assert(as.getType() == boolType);
 
-  vector<SExpr> sexprs;
-  TypeNode boolType = d_nodeManager->booleanType();
-  TheoryModel* m = d_theoryEngine->getModel();
-  for(AssignmentSet::key_iterator i = d_assignments->key_begin(),
-        iend = d_assignments->key_end();
-      i != iend;
-      ++i) {
-    Assert((*i).getType() == boolType);
+      Trace("smt") << "--- getting value of " << as << endl;
 
-    Trace("smt") << "--- getting value of " << *i << endl;
+      // Expand, then normalize
+      unordered_map<Node, Node, NodeHashFunction> cache;
+      Node n = d_private->expandDefinitions(as, cache);
+      n = Rewriter::rewrite(n);
 
-    // Expand, then normalize
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    Node n = d_private->expandDefinitions(*i, cache);
-    n = Rewriter::rewrite(n);
+      Trace("smt") << "--- getting value of " << n << endl;
+      Node resultNode;
+      if (m != nullptr)
+      {
+        resultNode = m->getValue(n);
+      }
 
-    Trace("smt") << "--- getting value of " << n << endl;
-    Node resultNode;
-    if(m != NULL) {
-      resultNode = m->getValue(n);
+      // type-check the result we got
+      Assert(resultNode.isNull() || resultNode.getType() == boolType);
+
+      // ensure it's a constant
+      Assert(resultNode.isConst());
+
+      Assert(as.getKind() == kind::APPLY || as.isVar());
+      Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
-
-    // type-check the result we got
-    Assert(resultNode.isNull() || resultNode.getType() == boolType);
-
-    // ensure it's a constant
-    Assert(resultNode.isConst());
-
-    vector<SExpr> v;
-    if((*i).getKind() == kind::APPLY) {
-      Assert((*i).getNumChildren() == 0);
-      v.push_back(SExpr(SExpr::Keyword((*i).getOperator().toString())));
-    } else {
-      Assert((*i).isVar());
-      v.push_back(SExpr(SExpr::Keyword((*i).toString())));
-    }
-    v.push_back(SExpr(SExpr::Keyword(resultNode.toString())));
-    sexprs.push_back(SExpr(v));
   }
-  return SExpr(sexprs);
+  return res;
 }
 
 void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {

@@ -39,28 +39,29 @@ public:
   EqualityQueryInstProp( QuantifiersEngine* qe );
   ~EqualityQueryInstProp(){};
   /** reset */
-  virtual bool reset(Theory::Effort e);
+  bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
-  virtual void registerQuantifier(Node q) {}
+  void registerQuantifier(Node q) override {}
   /** identify */
-  virtual std::string identify() const { return "EqualityQueryInstProp"; }
+  std::string identify() const override { return "EqualityQueryInstProp"; }
   /** extends engine */
-  bool extendsEngine() { return true; }
+  bool extendsEngine() override { return true; }
   /** contains term */
-  bool hasTerm( Node a );
+  bool hasTerm(Node a) override;
   /** get the representative of the equivalence class of a */
-  Node getRepresentative( Node a );
+  Node getRepresentative(Node a) override;
   /** returns true if a and b are equal in the current context */
-  bool areEqual( Node a, Node b );
+  bool areEqual(Node a, Node b) override;
   /** returns true is a and b are disequal in the current context */
-  bool areDisequal( Node a, Node b );
+  bool areDisequal(Node a, Node b) override;
   /** get the equality engine associated with this query */
-  eq::EqualityEngine* getEngine();
+  eq::EqualityEngine* getEngine() override;
   /** get the equivalence class of a */
-  void getEquivalenceClass( Node a, std::vector< Node >& eqc );
+  void getEquivalenceClass(Node a, std::vector<Node>& eqc) override;
   /** get congruent term */
-  TNode getCongruentTerm( Node f, std::vector< TNode >& args );
-public:
+  TNode getCongruentTerm(Node f, std::vector<TNode>& args) override;
+
+ public:
   /** get the representative of the equivalence class of a, with explanation */
   Node getRepresentativeExp( Node a, std::vector< Node >& exp );
   /** returns true if a and b are equal in the current context */
@@ -114,15 +115,15 @@ private:
     InstPropagator& d_ip;
   public:
     InstantiationNotifyInstPropagator(InstPropagator& ip): d_ip(ip) {}
-    virtual bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
-                                     Node q,
-                                     Node lem,
-                                     std::vector<Node>& terms,
-                                     Node body)
+    bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
+                             Node q,
+                             Node lem,
+                             std::vector<Node>& terms,
+                             Node body) override
     {
       return d_ip.notifyInstantiation( quant_e, q, lem, terms, body );
     }
-    virtual void filterInstantiations() { d_ip.filterInstantiations(); }
+    void filterInstantiations() override { d_ip.filterInstantiations(); }
   };
   InstantiationNotifyInstPropagator d_notify;
   /** notify instantiation method */
@@ -173,11 +174,11 @@ public:
   InstPropagator( QuantifiersEngine* qe );
   ~InstPropagator(){}
   /** reset */
-  virtual bool reset(Theory::Effort e) override;
+  bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
-  virtual void registerQuantifier(Node q) override {}
+  void registerQuantifier(Node q) override {}
   /** identify */
-  virtual std::string identify() const override { return "InstPropagator"; }
+  std::string identify() const override { return "InstPropagator"; }
   /** get the notify mechanism */
   InstantiationNotify* getInstantiationNotify() { return &d_notify; }
 };

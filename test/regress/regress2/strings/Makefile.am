@@ -19,7 +19,8 @@ endif
 TESTS =	\
 	cmu-dis-0707-3.smt2 \
 	cmu-prereg-fmf.smt2 \
-	cmu-repl-len-nterm.smt2
+	cmu-repl-len-nterm.smt2 \
+	cmu-disagree-0707-dd.smt2
 
 
 EXTRA_DIST = $(TESTS) \
