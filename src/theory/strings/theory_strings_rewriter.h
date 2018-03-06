@@ -366,9 +366,15 @@ private:
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
-  /** decompose substr chain */
+  /** decompose substr chain
+   * 
+   * TODO
+   */
   static Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector< Node >& ls );
-  /** make substr chain */
+  /** make substr chain 
+   * 
+   * TODO
+   */
   static Node mkSubstrChain(Node base, std::vector<Node>& ss, std::vector< Node >& ls );
 };/* class TheoryStringsRewriter */
 
