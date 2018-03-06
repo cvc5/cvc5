@@ -1975,7 +1975,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     }
   }
 
-  if (checkEntailNonEmpty(node[1]))
+  if (node[2].isConst() && node[2].getConst<Rational>().sgn()==0)
   {
     std::vector<Node> cb;
     std::vector<Node> ce;
@@ -1984,7 +1984,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       Node ret = mkConcat(kind::STRING_CONCAT, children0);
       ret = nm->mkNode(STRING_STRIDOF, ret, node[1], node[2]);
       // For example:
-      // str.indexof( str.++( x, "A" ), "B", z ) ---> str.indexof( x, "B", z )
+      // str.indexof( str.++( x, "A" ), "B", 0 ) ---> str.indexof( x, "B", 0 )
       return returnRewrite(node, ret, "rpl-pull-endpt");
     }
   }
