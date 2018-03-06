@@ -67,7 +67,7 @@ enum Inference
   infer_len_split,
   // length split empty, for example:
   //     z = "" V z != ""
-  // This is inferred when, e.g. x = y, x = z ++ x2, y = y1 ++ z
+  // This is inferred when, e.g. x = y, x = z ++ x1, y = y1 ++ z
   infer_len_split_emp,
   // string split constant binary, for example:
   //     x1 = "aaaa" ++ x1' V "aaaa" = x1 ++ x1'
