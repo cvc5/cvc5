@@ -327,6 +327,10 @@ private:
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
   *   ne is updated to { "e" }
+  * stripConstantEndpoints({ "ad", substr("ccc",x,y) }, { "d" }, {}, {}, -1)
+  *   returns true,
+  *   n1 is updated to {"ad"}
+  *   ne is updated to { substr("ccc",x,y) }
   */
   static bool stripConstantEndpoints(std::vector<Node>& n1,
                                      std::vector<Node>& n2,
