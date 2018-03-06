@@ -264,16 +264,17 @@ void CommandExecutor::printStatsFilterZeros(std::ostream& out,
   {
     std::getline(iss, statValue, '\n');
 
-    bool skip = (statValue == " \"0\"" || statValue == " \"[]\"");
+    bool skip = false;
     try
     {
       double dval = std::stod(statValue);
-      int ival = std::stoi(statValue);
-      skip = skip || (dval == 0.0 || ival == 0);
+      skip = (dval == 0.0);
     }
     // Value can not be converted, don't skip
     catch (const std::invalid_argument&) {}
     catch (const std::out_of_range&) {}
+
+    skip = skip || (statValue == " \"0\"" || statValue == " \"[]\"");
 
     if (!skip)
     {
