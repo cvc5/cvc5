@@ -1975,15 +1975,18 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     }
   }
 
-  std::vector<Node> cb;
-  std::vector<Node> ce;
-  if (stripConstantEndpoints(children0, children1, cb, ce, -1))
+  if (checkEntailNonEmpty(node[1]))
   {
-    Node ret = mkConcat(kind::STRING_CONCAT, children0);
-    ret = nm->mkNode(STRING_STRIDOF, ret, node[1], node[2]);
-    // For example:
-    // str.indexof( str.++( x, "A" ), "B", z ) ---> str.indexof( x, "B", z )
-    return returnRewrite(node, ret, "rpl-pull-endpt");
+    std::vector<Node> cb;
+    std::vector<Node> ce;
+    if (stripConstantEndpoints(children0, children1, cb, ce, -1))
+    {
+      Node ret = mkConcat(kind::STRING_CONCAT, children0);
+      ret = nm->mkNode(STRING_STRIDOF, ret, node[1], node[2]);
+      // For example:
+      // str.indexof( str.++( x, "A" ), "B", z ) ---> str.indexof( x, "B", z )
+      return returnRewrite(node, ret, "rpl-pull-endpt");
+    }
   }
 
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
