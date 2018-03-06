@@ -25,7 +25,6 @@ TESTS =	\
 	bug768.smt2 \
 	bug799-min.smt2 \
 	chapman150408.smt2 \
-	cmu-disagree-0707-dd.smt2 \
 	cmu-inc-nlpp-071516.smt2 \
 	cmu-substr-rw.smt2 \
 	crash-1019.smt2 \
@@ -73,7 +72,8 @@ TESTS =	\
 	str002.smt2 \
 	str007.smt2 \
 	rew-020618.smt2 \
-	double-replace.smt2
+	double-replace.smt2 \
+	string-unsound-sem.smt2
 
 EXTRA_DIST = $(TESTS)
 

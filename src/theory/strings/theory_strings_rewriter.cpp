@@ -1827,16 +1827,6 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     return returnRewrite(node, negone, "idof-neg");
   }
 
-  if (node[1].isConst())
-  {
-    if (node[1].getConst<String>().size() == 0)
-    {
-      // str.indexof( x, "", z ) --> -1
-      Node negone = nm->mkConst(Rational(-1));
-      return returnRewrite(node, negone, "idof-empty");
-    }
-  }
-
   // evaluation and simple cases
   std::vector<Node> children0;
   getConcat(node[0], children0);
@@ -1884,16 +1874,6 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   {
     fstr = nm->mkNode(kind::STRING_SUBSTR, node[0], node[2], len0);
     fstr = Rewriter::rewrite(fstr);
-    if (fstr.isConst())
-    {
-      CVC4::String fs = fstr.getConst<String>();
-      if (fs.size() == 0)
-      {
-        // substr( x, z, len(x) ) --> ""  implies str.indexof( x, y, z ) --> -1
-        Node negone = nm->mkConst(Rational(-1));
-        return returnRewrite(node, negone, "idof-base-len");
-      }
-    }
   }
 
   Node cmp_con = nm->mkNode(kind::STRING_STRCTN, fstr, node[1]);
@@ -1960,25 +1940,22 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 
 Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   Assert(node.getKind() == kind::STRING_STRREPL);
-  if( node[1]==node[2] ){
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (node[1] == node[2])
+  {
     return returnRewrite(node, node[0], "rpl-id");
   }
-  if (node[0].isConst())
+
+  if (node[0] == node[1])
   {
-    CVC4::String s = node[0].getConst<String>();
-    if (s.isEmptyString())
-    {
-      return returnRewrite(node, node[0], "rpl-empty");
-    }
-    if (node[0] == node[2] && s.size() == 1)
-    {
-      // str.replace( "A", x, "A" ) -> "A"
-      return returnRewrite(node, node[0], "rpl-char-id");
-    }
+    return returnRewrite(node, node[2], "rpl-replace");
   }
+
   if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
   {
-    return returnRewrite(node, node[0], "rpl-rpl-empty");
+    Node ret = nm->mkNode(STRING_CONCAT, node[2], node[0]);
+    return returnRewrite(node, ret, "rpl-rpl-empty");
   }
 
   std::vector<Node> children0;
@@ -2047,26 +2024,13 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     if (cmp_conr.getConst<bool>())
     {
-      // currently by the semantics of replace, if the second argument is
-      // empty, then we return the first argument.
-      // hence, we test whether the second argument must be non-empty here.
-      // if it definitely non-empty, we can use rules that successfully replace
-      // node[1]->node[2] among those below.
-      Node l1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
-      Node zero = NodeManager::currentNM()->mkConst(CVC4::Rational(0));
-      bool is_non_empty = checkEntailArith(l1, zero, true);
-
-      if (node[0] == node[1] && is_non_empty)
-      {
-        return returnRewrite(node, node[2], "rpl-replace");
-      }
       // component-wise containment
       std::vector<Node> cb;
       std::vector<Node> ce;
       int cc = componentContains(children0, children1, cb, ce, true, 1);
       if (cc != -1)
       {
-        if (cc == 0 && children0[0] == children1[0] && is_non_empty)
+        if (cc == 0 && children0[0] == children1[0])
         {
           // definitely a prefix, can do the replace
           // for example,
@@ -2106,24 +2070,27 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
   if (cmp_conr != cmp_con)
   {
-    // pull endpoints that can be stripped
-    // for example,
-    //   str.replace( str.++( "b", x, "b" ), "a", y ) --->
-    //   str.++( "b", str.replace( x, "a", y ), "b" )
-    std::vector<Node> cb;
-    std::vector<Node> ce;
-    if (stripConstantEndpoints(children0, children1, cb, ce))
+    if (checkEntailNonEmpty(node[1]))
     {
-      std::vector<Node> cc;
-      cc.insert(cc.end(), cb.begin(), cb.end());
-      cc.push_back(NodeManager::currentNM()->mkNode(
-          kind::STRING_STRREPL,
-          mkConcat(kind::STRING_CONCAT, children0),
-          node[1],
-          node[2]));
-      cc.insert(cc.end(), ce.begin(), ce.end());
-      Node ret = mkConcat(kind::STRING_CONCAT, cc);
-      return returnRewrite(node, ret, "rpl-pull-endpt");
+      // pull endpoints that can be stripped
+      // for example,
+      //   str.replace( str.++( "b", x, "b" ), "a", y ) --->
+      //   str.++( "b", str.replace( x, "a", y ), "b" )
+      std::vector<Node> cb;
+      std::vector<Node> ce;
+      if (stripConstantEndpoints(children0, children1, cb, ce))
+      {
+        std::vector<Node> cc;
+        cc.insert(cc.end(), cb.begin(), cb.end());
+        cc.push_back(NodeManager::currentNM()->mkNode(
+            kind::STRING_STRREPL,
+            mkConcat(kind::STRING_CONCAT, children0),
+            node[1],
+            node[2]));
+        cc.insert(cc.end(), ce.begin(), ce.end());
+        Node ret = mkConcat(kind::STRING_CONCAT, cc);
+        return returnRewrite(node, ret, "rpl-pull-endpt");
+      }
     }
   }
 
@@ -2661,13 +2628,13 @@ bool TheoryStringsRewriter::componentContainsBase(
               NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n2[0]);
           if (dir == 1)
           {
-            // To be suffix, start + length must be greater than
+            // To be a suffix, start + length must be greater than
             // or equal to the length of the string.
             success = checkEntailArith(end_pos, len_n2s);
           }
           else if (dir == -1)
           {
-            // To be prefix, must literally start at 0, since
+            // To be a prefix, must literally start at 0, since
             //   if we knew it started at <0, it should be rewritten to "",
             //   if we knew it started at 0, then n2[1] should be rewritten to
             //   0.
@@ -2678,6 +2645,12 @@ bool TheoryStringsRewriter::componentContainsBase(
           {
             if (computeRemainder)
             {
+              // we can only compute the remainder if start_pos and end_pos
+              // are known to be non-negative.
+              if (!checkEntailArith(start_pos) || !checkEntailArith(end_pos))
+              {
+                return false;
+              }
               if (dir != 1)
               {
                 n1rb = NodeManager::currentNM()->mkNode(
@@ -2881,6 +2854,13 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
   //      which is larger that the upper bound for length of str.substr(y,0,3),
   //      which is 3.
   return changed;
+}
+
+bool TheoryStringsRewriter::checkEntailNonEmpty(Node a)
+{
+  Node len = NodeManager::currentNM()->mkNode(STRING_LENGTH, a);
+  len = Rewriter::rewrite(len);
+  return checkEntailArith(len, true);
 }
 
 bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)

@@ -843,7 +843,7 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
               Node pbv_e = its->second.evaluate(bvr, pt_index);
               Assert(bv_e != pbv_e);
               Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
-                                      << pbv_e << " and " << bv_e << std::endl;
+                                      << bv_e << " and " << pbv_e << std::endl;
             }
             else
             {
