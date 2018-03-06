@@ -56,8 +56,6 @@ class SygusSymBreakNew
   NodeSet d_active_terms;
   IntMap d_currTermSize;
   Node d_zero;
-  /** the null node */
-  Node d_null;
 
  private:
   /**
@@ -137,9 +135,21 @@ private:
    * This function is called when the tester with index tindex is asserted for
    * n, exp is the tester predicate. For example, for grammar:
    *   A -> A+A | x | 1 | 0
-   * when is_+( d ) is asserted, assertTesterInternal(0, d, is_+( d ),...) is
-   * called. This function may add lemmas to lemmas, which are sent out on the
-   * output channel of datatypes by the caller.
+   * when is_+( d ) is asserted, 
+   * assertTesterInternal(0, s( d ), is_+( s( d ) ),...) is called. This 
+   * function may add lemmas to lemmas, which are sent out on the output 
+   * channel of datatypes by the caller. 
+   * 
+   * These lemmas are of various forms, including:
+   * (1) dynamic symmetry breaking clauses for subterms of n (those added to 
+   * lemmas on calls to addSymBreakLemmasFor, see function below),
+   * (2) static symmetry breaking clauses for subterms of n (those added to 
+   * lemmas on getSimpleSymBreakPred, see function below),
+   * (3) conjecture-specific symmetry breaking lemmas, see 
+   * CegConjecture::getSymmetryBreakingPredicate,
+   * (4) fairness conflicts if sygusFair() is SYGUS_FAIR_DIRECT, e.g.:
+   *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
+   * where C1 and C2 are non-nullary constructors.
    */
   void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
   /**
@@ -157,7 +167,8 @@ private:
    *
    * The purpose of this function is to notify this class that symmetry breaking
    * lemmas should be instantiated for n. Any symmetry breaking lemmas that
-   * should be immediately applied for n are added to lemmas in this call.
+   * are active for n (see description of addSymBreakLemmasFor) are added to 
+   * lemmas in this call.
    */
   void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas );
   /** Register search value
@@ -201,6 +212,8 @@ private:
    *   ~is_+( z ) has size 1
    *   ~is_+( z ) V ~is_x( z.1 ) V ~is_0( z.2 ) has size 1
    *   ~is_+( z ) V ~is_+( z.1 ) has size 2
+   * This is equivalent to sum of weights of constructors corresponding to each
+   * tester, e.g. above + has weight 1, and x and 0 have weight 0.
    */
   void registerSymBreakLemma(
       TypeNode tn, Node lem, unsigned sz, Node a, std::vector<Node>& lemmas);
@@ -211,7 +224,7 @@ private:
    * of any value for a.
    *
    * et : an "invariance test" (see sygus/sygus_invariance.h) which states a
-   * criteria that val meets, which is the reason for its exclusion. This is
+   * criterion that val meets, which is the reason for its exclusion. This is
    * used for generalizing the symmetry breaking lemma template.
    * valr : if non-null, this states a value that should *not* be excluded by
    * the symmetry breaking lemma template, which is a restriction to the above
