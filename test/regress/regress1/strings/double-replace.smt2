@@ -1,4 +1,5 @@
 (set-logic SLIA)
+(set-option :strings-fmf true)
 (set-option :strings-exp true)
 (set-info :status sat)
 (declare-fun x () String)
