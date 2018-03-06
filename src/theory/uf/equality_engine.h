@@ -131,14 +131,26 @@ public:
  */
 class EqualityEngineNotifyNone : public EqualityEngineNotify {
 public:
-  bool eqNotifyTriggerEquality(TNode equality, bool value) { return true; }
-  bool eqNotifyTriggerPredicate(TNode predicate, bool value) { return true; }
-  bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) { return true; }
-  void eqNotifyConstantTermMerge(TNode t1, TNode t2) { }
-  void eqNotifyNewClass(TNode t) { }
-  void eqNotifyPreMerge(TNode t1, TNode t2) { }
-  void eqNotifyPostMerge(TNode t1, TNode t2) { }
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+ bool eqNotifyTriggerEquality(TNode equality, bool value) override
+ {
+   return true;
+ }
+ bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+ {
+   return true;
+ }
+ bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                  TNode t1,
+                                  TNode t2,
+                                  bool value) override
+ {
+   return true;
+ }
+ void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
+ void eqNotifyNewClass(TNode t) override {}
+ void eqNotifyPreMerge(TNode t1, TNode t2) override {}
+ void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+ void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
 };/* class EqualityEngineNotifyNone */
 
 /**
@@ -538,9 +550,7 @@ private:
   /**
    * This method gets called on backtracks from the context manager.
    */
-  void contextNotifyPop() {
-    backtrack();
-  }
+  void contextNotifyPop() override { backtrack(); }
 
   /**
    * Constructor initialization stuff.

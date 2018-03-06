@@ -103,7 +103,7 @@ public:
    */
   void addTheory(Theory theory);
 
-  bool logicIsSet();
+  bool logicIsSet() override;
 
   /**
    * Sets the logic for the current benchmark. Declares any logic and theory symbols.

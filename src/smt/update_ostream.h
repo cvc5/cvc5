@@ -73,50 +73,50 @@ public:
 
 class OptionsErrOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return *(options::err()); }
-  virtual void set(std::ostream* setTo) { return options::err.set(setTo); }
+  std::ostream& get() override { return *(options::err()); }
+  void set(std::ostream* setTo) override { return options::err.set(setTo); }
 };  /* class OptionsErrOstreamUpdate */
 
 class DumpOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Dump.getStream(); }
-  virtual void set(std::ostream* setTo) { Dump.setStream(setTo); }
+  std::ostream& get() override { return Dump.getStream(); }
+  void set(std::ostream* setTo) override { Dump.setStream(setTo); }
 };  /* class DumpOstreamUpdate */
 
 class DebugOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Debug.getStream(); }
-  virtual void set(std::ostream* setTo) { Debug.setStream(setTo); }
+  std::ostream& get() override { return Debug.getStream(); }
+  void set(std::ostream* setTo) override { Debug.setStream(setTo); }
 };  /* class DebugOstreamUpdate */
 
 class WarningOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Warning.getStream(); }
-  virtual void set(std::ostream* setTo) { Warning.setStream(setTo); }
+  std::ostream& get() override { return Warning.getStream(); }
+  void set(std::ostream* setTo) override { Warning.setStream(setTo); }
 };  /* class WarningOstreamUpdate */
 
 class MessageOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Message.getStream(); }
-  virtual void set(std::ostream* setTo) { Message.setStream(setTo); }
+  std::ostream& get() override { return Message.getStream(); }
+  void set(std::ostream* setTo) override { Message.setStream(setTo); }
 };  /* class MessageOstreamUpdate */
 
 class NoticeOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Notice.getStream(); }
-  virtual void set(std::ostream* setTo) { Notice.setStream(setTo); }
+  std::ostream& get() override { return Notice.getStream(); }
+  void set(std::ostream* setTo) override { Notice.setStream(setTo); }
 };  /* class NoticeOstreamUpdate */
 
 class ChatOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Chat.getStream(); }
-  virtual void set(std::ostream* setTo) { Chat.setStream(setTo); }
+  std::ostream& get() override { return Chat.getStream(); }
+  void set(std::ostream* setTo) override { Chat.setStream(setTo); }
 };  /* class ChatOstreamUpdate */
 
 class TraceOstreamUpdate : public OstreamUpdate {
  public:
-  virtual std::ostream& get() { return Trace.getStream(); }
-  virtual void set(std::ostream* setTo) { Trace.setStream(setTo); }
+  std::ostream& get() override { return Trace.getStream(); }
+  void set(std::ostream* setTo) override { Trace.setStream(setTo); }
 };  /* class TraceOstreamUpdate */
 
 }/* CVC4 namespace */
