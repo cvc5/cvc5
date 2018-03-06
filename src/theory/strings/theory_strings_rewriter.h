@@ -368,12 +368,14 @@ private:
   static Node getConstantArithBound(Node a, bool isLower = true);
   /** decompose substr chain
    * 
-   * TODO
+   * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this 
+   * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
    */
   static Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector< Node >& ls );
   /** make substr chain 
    * 
-   * TODO
+   * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+   * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
    */
   static Node mkSubstrChain(Node base, std::vector<Node>& ss, std::vector< Node >& ls );
 };/* class TheoryStringsRewriter */
