@@ -112,7 +112,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 
  protected:
   /** does d_conj{ d_var -> nvn } still rewrite to d_result? */
-  bool invariant(TermDbSygus* tds, Node nvn, Node x);
+  bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
   /** the formula we are evaluating */
@@ -170,7 +170,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 
  protected:
   /** checks whether the analog of nvn still rewrites to d_bvr */
-  bool invariant(TermDbSygus* tds, Node nvn, Node x);
+  bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
   /** the conjecture associated with the enumerator d_enum */
@@ -202,7 +202,7 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 
  protected:
   /** checks whether nvn involves division by zero. */
-  bool invariant(TermDbSygus* tds, Node nvn, Node x);
+  bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 };
 
 /** NegContainsSygusInvarianceTest
@@ -254,7 +254,7 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 
  protected:
   /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
-  bool invariant(TermDbSygus* tds, Node nvn, Node x);
+  bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
   /** The enumerator whose value we are considering in this invariance test */

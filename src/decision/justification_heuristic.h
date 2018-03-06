@@ -117,13 +117,13 @@ public:
 
   ~JustificationHeuristic();
 
-  prop::SatLiteral getNext(bool &stopSearch);
+  prop::SatLiteral getNext(bool &stopSearch) override;
 
   void addAssertions(const std::vector<Node> &assertions,
                      unsigned assertionsEnd,
-                     IteSkolemMap iteSkolemMap);
+                     IteSkolemMap iteSkolemMap) override;
 
-private:
+ private:
   /* getNext with an option to specify threshold */
   prop::SatLiteral getNextThresh(bool &stopSearch, DecisionWeight threshold);
 

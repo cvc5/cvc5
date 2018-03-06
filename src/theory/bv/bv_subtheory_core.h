@@ -53,14 +53,17 @@ class CoreSolver : public SubtheorySolver {
 
   public:
     NotifyClass(CoreSolver& solver): d_solver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value);
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t);
-    void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override;
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
+    void eqNotifyNewClass(TNode t) override;
+    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
 
@@ -100,17 +103,19 @@ class CoreSolver : public SubtheorySolver {
 public:
   CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();
-  bool  isComplete() { return d_isComplete; }
+  bool isComplete() override { return d_isComplete; }
   void  setMasterEqualityEngine(eq::EqualityEngine* eq);
-  void  preRegister(TNode node);
-  bool  check(Theory::Effort e);
-  void  explain(TNode literal, std::vector<TNode>& assumptions);
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
-  Node  getModelValue(TNode var);
-  void  addSharedTerm(TNode t) {
+  void preRegister(TNode node) override;
+  bool check(Theory::Effort e) override;
+  void explain(TNode literal, std::vector<TNode>& assumptions) override;
+  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+  Node getModelValue(TNode var) override;
+  void addSharedTerm(TNode t) override
+  {
     d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }
-  EqualityStatus getEqualityStatus(TNode a, TNode b) {
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override
+  {
     if (d_equalityEngine.areEqual(a, b)) {
       // The terms are implied to be equal
       return EQUALITY_TRUE;

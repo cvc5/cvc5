@@ -39,7 +39,8 @@ BUG_TESTS = \
 	inc-define.smt2 \
 	bug691.smt2 \
 	simple_unsat_cores.smt2 \
-	bug821.smt2
+	bug821.smt2 \
+	bug821-check_sat_assuming.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 

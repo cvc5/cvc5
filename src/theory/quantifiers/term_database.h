@@ -141,11 +141,11 @@ class TermDb : public QuantifiersUtil {
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
-  virtual bool reset(Theory::Effort effort) override;
+  bool reset(Theory::Effort effort) override;
   /** register quantified formula */
-  virtual void registerQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** identify */
-  virtual std::string identify() const override { return "TermDb"; }
+  std::string identify() const override { return "TermDb"; }
   /** get number of operators */
   unsigned getNumOperators();
   /** get operator at index i */
