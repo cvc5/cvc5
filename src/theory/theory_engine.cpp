@@ -2361,12 +2361,12 @@ bool TheoryEngine::useTheoryAlternative(const std::string& name) {
 
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
-    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
-    propagations(mkName("theory<", theory, ">::propagations"), 0),
-    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
-    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
-    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
-    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+    conflicts(getStatsPrefix(theory) + "::conflicts", 0),
+    propagations(getStatsPrefix(theory) + "::propagations", 0),
+    lemmas(getStatsPrefix(theory) + "::lemmas", 0),
+    requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
+    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
+    restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
