@@ -1303,7 +1303,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
   if (exp_exc.isNull())
   {
     // if we did not already explain why this should be excluded, use default
-    exp_exc = d_tds->getExplain()->getExplanationForConstantEquality(x, v);
+    exp_exc = d_tds->getExplain()->getExplanationForEquality(x, v);
   }
   Node exlem =
       NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());

@@ -117,7 +117,7 @@ class QuickXPlain {
     IntStat d_numConflictsMinimized;
     IntStat d_finalPeriod;
     AverageStat d_avgMinimizationRatio;
-    Statistics(const std::string&);
+    Statistics(const std::string& name);
     ~Statistics();
   };
   BVQuickCheck* d_solver;

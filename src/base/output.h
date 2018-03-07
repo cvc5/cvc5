@@ -107,10 +107,10 @@ public:
     return *this;
   }
 
-  bool isConnected() { return d_os != NULL; }
-  operator std::ostream&() { return isConnected() ? *d_os : null_os; }
+  bool isConnected() const { return d_os != NULL; }
+  operator std::ostream&() const { return isConnected() ? *d_os : null_os; }
 
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 
   template <class T>
   CVC4ostream& operator<<(T const& t) CVC4_PUBLIC;
@@ -175,9 +175,9 @@ CVC4ostream& CVC4ostream::operator<<(T const& t) {
  */
 class CVC4_PUBLIC NullC {
 public:
-  operator bool() { return false; }
-  operator CVC4ostream() { return CVC4ostream(); }
-  operator std::ostream&() { return null_os; }
+ operator bool() const { return false; }
+ operator CVC4ostream() const { return CVC4ostream(); }
+ operator std::ostream&() const { return null_os; }
 };/* class NullC */
 
 extern NullC nullCvc4Stream CVC4_PUBLIC;
@@ -190,17 +190,8 @@ class CVC4_PUBLIC DebugC {
 public:
   explicit DebugC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-
-  CVC4ostream operator()(const char* tag) {
-    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      return CVC4ostream(d_os);
-    } else {
-      return CVC4ostream();
-    }
-  }
-  CVC4ostream operator()(std::string tag) {
+  CVC4ostream operator()(const std::string& tag) const
+  {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return CVC4ostream(d_os);
     } else {
@@ -208,43 +199,50 @@ public:
     }
   }
 
-  bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
-  bool on (std::string tag) { d_tags.insert(tag); return true; }
-  bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
-  bool off(std::string tag) { d_tags.erase (tag); return false; }
+  bool on(const std::string& tag)
+  {
+    d_tags.insert(tag);
+    return true;
+  }
+  bool off(const std::string& tag)
+  {
+    d_tags.erase(tag);
+    return false;
+  }
   bool off()                { d_tags.clear(); return false; }
 
- bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
-  bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
+  bool isOn(const std::string& tag) const
+  {
+    return d_tags.find(tag) != d_tags.end();
+  }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 };/* class DebugC */
 
 /** The warning output class */
 class CVC4_PUBLIC WarningC {
-  std::set< std::pair<const char*, size_t> > d_alreadyWarned;
+  std::set<std::pair<std::string, size_t> > d_alreadyWarned;
   std::ostream* d_os;
 
 public:
   explicit WarningC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-
-  CVC4ostream operator()() { return CVC4ostream(d_os); }
+  CVC4ostream operator()() const { return CVC4ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 
   // This function supports the WarningOnce() macro, which allows you
   // to easily indicate that a warning should be emitted, but only
   // once for a given run of CVC4.
-  bool warnOnce(const char* file, size_t line) {
-    std::pair<const char*, size_t> pr = std::make_pair(file, line);
+  bool warnOnce(const std::string& file, size_t line)
+  {
+    std::pair<std::string, size_t> pr = std::make_pair(file, line);
     if(d_alreadyWarned.find(pr) != d_alreadyWarned.end()) {
       // signal caller not to warn again
       return false;
@@ -264,13 +262,11 @@ class CVC4_PUBLIC MessageC {
 public:
   explicit MessageC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-
-  CVC4ostream operator()() { return CVC4ostream(d_os); }
+  CVC4ostream operator()() const { return CVC4ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 };/* class MessageC */
@@ -282,13 +278,11 @@ class CVC4_PUBLIC NoticeC {
 public:
   explicit NoticeC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-
-  CVC4ostream operator()() { return CVC4ostream(d_os); }
+  CVC4ostream operator()() const { return CVC4ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 };/* class NoticeC */
@@ -300,13 +294,11 @@ class CVC4_PUBLIC ChatC {
 public:
   explicit ChatC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* fmt, ...) __attribute__ ((format(printf, 2, 3)));
-
-  CVC4ostream operator()() { return CVC4ostream(d_os); }
+  CVC4ostream operator()() const { return CVC4ostream(d_os); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 
   bool isOn() const { return d_os != &null_os; }
 };/* class ChatC */
@@ -319,10 +311,8 @@ class CVC4_PUBLIC TraceC {
 public:
   explicit TraceC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-
-  CVC4ostream operator()(const char* tag) {
+  CVC4ostream operator()(std::string tag) const
+  {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return CVC4ostream(d_os);
     } else {
@@ -330,26 +320,26 @@ public:
     }
   }
 
-  CVC4ostream operator()(std::string tag) {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return CVC4ostream(d_os);
-    } else {
-      return CVC4ostream();
-    }
+  bool on(const std::string& tag)
+  {
+    d_tags.insert(tag);
+    return true;
   }
-
-  bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
-  bool on (std::string tag) { d_tags.insert(tag); return true; }
-  bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
-  bool off(std::string tag) { d_tags.erase (tag); return false; }
+  bool off(const std::string& tag)
+  {
+    d_tags.erase(tag);
+    return false;
+  }
   bool off()                { d_tags.clear(); return false; }
 
-  bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
-  bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
+  bool isOn(const std::string& tag) const
+  {
+    return d_tags.find(tag) != d_tags.end();
+  }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 
 };/* class TraceC */
 
@@ -367,16 +357,6 @@ public:
 
   explicit DumpOutC(std::ostream* os) : d_os(os) {}
 
-  int printf(const char* tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-  int printf(std::string tag, const char* fmt, ...) __attribute__ ((format(printf, 3, 4)));
-
-  CVC4ostream operator()(const char* tag) {
-    if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      return CVC4ostream(d_os);
-    } else {
-      return CVC4ostream();
-    }
-  }
   CVC4ostream operator()(std::string tag) {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
       return CVC4ostream(d_os);
@@ -385,18 +365,23 @@ public:
     }
   }
 
-  bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
-  bool on (std::string tag) { d_tags.insert(tag); return true; }
-  bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }
-  bool off(std::string tag) { d_tags.erase (tag); return false; }
+  bool on(const std::string& tag)
+  {
+    d_tags.insert(tag);
+    return true;
+  }
+  bool off(const std::string& tag)
+  {
+    d_tags.erase(tag);
+    return false;
+  }
   bool off()                { d_tags.clear(); return false; }
 
-  bool isOn(const char* tag) { return d_tags.find(std::string(tag)) != d_tags.end(); }
-  bool isOn(std::string tag) { return d_tags.find(tag) != d_tags.end(); }
+  bool isOn(std::string tag) const { return d_tags.find(tag) != d_tags.end(); }
 
   std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() { return *d_os; }
-  std::ostream* getStreamPointer() { return d_os; }
+  std::ostream& getStream() const { return *d_os; }
+  std::ostream* getStreamPointer() const { return d_os; }
 };/* class DumpOutC */
 
 /** The debug output singleton */
@@ -425,25 +410,12 @@ extern DumpOutC DumpOutChannel CVC4_PUBLIC;
 #  define Trace ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::TraceChannel
 #  define DumpOut ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DumpOutChannel
 
-inline int DebugC::printf(const char* tag, const char* fmt, ...) { return 0; }
-inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
-inline int WarningC::printf(const char* fmt, ...) { return 0; }
-inline int MessageC::printf(const char* fmt, ...) { return 0; }
-inline int NoticeC::printf(const char* fmt, ...) { return 0; }
-inline int ChatC::printf(const char* fmt, ...) { return 0; }
-inline int TraceC::printf(const char* tag, const char* fmt, ...) { return 0; }
-inline int TraceC::printf(std::string tag, const char* fmt, ...) { return 0; }
-inline int DumpOutC::printf(const char* tag, const char* fmt, ...) { return 0; }
-inline int DumpOutC::printf(std::string tag, const char* fmt, ...) { return 0; }
-
 #else /* CVC4_MUZZLE */
 
 #  if defined(CVC4_DEBUG) && defined(CVC4_TRACING)
 #    define Debug ::CVC4::DebugChannel
 #  else /* CVC4_DEBUG && CVC4_TRACING */
 #    define Debug ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DebugChannel
-inline int DebugC::printf(const char* tag, const char* fmt, ...) { return 0; }
-inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
 #  endif /* CVC4_DEBUG && CVC4_TRACING */
 #  define Warning (! ::CVC4::WarningChannel.isOn()) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
 #  define WarningOnce (! ::CVC4::WarningChannel.isOn() || ! ::CVC4::WarningChannel.warnOnce(__FILE__,__LINE__)) ? ::CVC4::nullCvc4Stream : ::CVC4::WarningChannel
@@ -454,15 +426,11 @@ inline int DebugC::printf(std::string tag, const char* fmt, ...) { return 0; }
 #    define Trace ::CVC4::TraceChannel
 #  else /* CVC4_TRACING */
 #    define Trace ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::TraceChannel
-inline int TraceC::printf(const char* tag, const char* fmt, ...) { return 0; }
-inline int TraceC::printf(std::string tag, const char* fmt, ...) { return 0; }
 #  endif /* CVC4_TRACING */
 #  ifdef CVC4_DUMPING
 #    define DumpOut ::CVC4::DumpOutChannel
 #  else /* CVC4_DUMPING */
 #    define DumpOut ::CVC4::__cvc4_true() ? ::CVC4::nullCvc4Stream : ::CVC4::DumpOutChannel
-inline int DumpOutC::printf(const char* tag, const char* fmt, ...) { return 0; }
-inline int DumpOutC::printf(std::string tag, const char* fmt, ...) { return 0; }
 #  endif /* CVC4_DUMPING */
 
 #endif /* CVC4_MUZZLE */
@@ -498,16 +466,6 @@ public:
     }
   }
 
-  ScopedDebug(const char* tag, bool newSetting = true) :
-    d_tag(tag) {
-    d_oldSetting = Debug.isOn(d_tag);
-    if(newSetting) {
-      Debug.on(d_tag);
-    } else {
-      Debug.off(d_tag);
-    }
-  }
-
   ~ScopedDebug() {
     if(d_oldSetting) {
       Debug.on(d_tag);
@@ -522,7 +480,6 @@ public:
 class CVC4_PUBLIC ScopedDebug {
 public:
   ScopedDebug(std::string tag, bool newSetting = true) {}
-  ScopedDebug(const char* tag, bool newSetting = true) {}
 };/* class ScopedDebug */
 
 #endif /* CVC4_DEBUG && CVC4_TRACING */
@@ -536,16 +493,6 @@ class CVC4_PUBLIC ScopedTrace {
 public:
 
   ScopedTrace(std::string tag, bool newSetting = true) :
-    d_tag(tag) {
-    d_oldSetting = Trace.isOn(d_tag);
-    if(newSetting) {
-      Trace.on(d_tag);
-    } else {
-      Trace.off(d_tag);
-    }
-  }
-
-  ScopedTrace(const char* tag, bool newSetting = true) :
     d_tag(tag) {
     d_oldSetting = Trace.isOn(d_tag);
     if(newSetting) {
@@ -569,7 +516,6 @@ public:
 class CVC4_PUBLIC ScopedTrace {
 public:
   ScopedTrace(std::string tag, bool newSetting = true) {}
-  ScopedTrace(const char* tag, bool newSetting = true) {}
 };/* class ScopedTrace */
 
 #endif /* CVC4_TRACING */

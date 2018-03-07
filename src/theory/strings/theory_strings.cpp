@@ -63,7 +63,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       RMAXINT(LONG_MAX),
       d_notify( *this ),
-      d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings", true),
+      d_equalityEngine(d_notify, c, "theory::strings", true),
       d_conflict(c, false),
       d_infer(c),
       d_infer_exp(c),
@@ -3995,11 +3995,11 @@ Node TheoryStrings::ppRewrite(TNode atom) {
 
 // Stats
 TheoryStrings::Statistics::Statistics():
-  d_splits("TheoryStrings::NumOfSplitOnDemands", 0),
-  d_eq_splits("TheoryStrings::NumOfEqSplits", 0),
-  d_deq_splits("TheoryStrings::NumOfDiseqSplits", 0),
-  d_loop_lemmas("TheoryStrings::NumOfLoops", 0),
-  d_new_skolems("TheoryStrings::NumOfNewSkolems", 0)
+  d_splits("theory::strings::NumOfSplitOnDemands", 0),
+  d_eq_splits("theory::strings::NumOfEqSplits", 0),
+  d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
+  d_loop_lemmas("theory::strings::NumOfLoops", 0),
+  d_new_skolems("theory::strings::NumOfNewSkolems", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_splits);
   smtStatisticsRegistry()->registerStat(&d_eq_splits);

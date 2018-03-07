@@ -1502,7 +1502,7 @@ void SmtEngine::setDefaults() {
     d_logic = log;
     d_logic.lock();
   }
-  if(d_logic.isTheoryEnabled(THEORY_ARRAY) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_SETS)) {
+  if(d_logic.isTheoryEnabled(THEORY_ARRAYS) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_SETS)) {
     if(!d_logic.isTheoryEnabled(THEORY_UF)) {
       LogicInfo log(d_logic.getUnlockedCopy());
       Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << endl;
@@ -1528,9 +1528,9 @@ void SmtEngine::setDefaults() {
   }
 
   // If in arrays, set the UF handler to arrays
-  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && ( !d_logic.isQuantified() ||
+  if(d_logic.isTheoryEnabled(THEORY_ARRAYS) && ( !d_logic.isQuantified() ||
      (d_logic.isQuantified() && !d_logic.isTheoryEnabled(THEORY_UF)))) {
-    Theory::setUninterpretedSortOwner(THEORY_ARRAY);
+    Theory::setUninterpretedSortOwner(THEORY_ARRAYS);
   } else {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
@@ -1540,7 +1540,7 @@ void SmtEngine::setDefaults() {
   // QF_LIA logics. --K [2014/10/15]
   if(! options::doITESimp.wasSetByUser()) {
     bool qf_aufbv = !d_logic.isQuantified() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_UF) &&
       d_logic.isTheoryEnabled(THEORY_BV);
     bool qf_lia = !d_logic.isQuantified() &&
@@ -1566,7 +1566,7 @@ void SmtEngine::setDefaults() {
   }
   if(! options::simplifyWithCareEnabled.wasSetByUser() ){
     bool qf_aufbv = !d_logic.isQuantified() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_UF) &&
       d_logic.isTheoryEnabled(THEORY_BV);
 
@@ -1577,7 +1577,7 @@ void SmtEngine::setDefaults() {
   // Turn off array eager index splitting for QF_AUFLIA
   if(! options::arraysEagerIndexSplitting.wasSetByUser()) {
     if (not d_logic.isQuantified() &&
-        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+        d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
         d_logic.isTheoryEnabled(THEORY_UF) &&
         d_logic.isTheoryEnabled(THEORY_ARITH)) {
       Trace("smt") << "setting array eager index splitting to false" << endl;
@@ -1587,8 +1587,8 @@ void SmtEngine::setDefaults() {
   // Turn on model-based arrays for QF_AX (unless models are enabled)
   // if(! options::arraysModelBased.wasSetByUser()) {
   //   if (not d_logic.isQuantified() &&
-  //       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-  //       d_logic.isPure(THEORY_ARRAY) &&
+  //       d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
+  //       d_logic.isPure(THEORY_ARRAYS) &&
   //       !options::produceModels() &&
   //       !options::checkModels()) {
   //     Trace("smt") << "turning on model-based array solver" << endl;
@@ -1598,7 +1598,7 @@ void SmtEngine::setDefaults() {
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
-                      (d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+                      (d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
                       d_logic.isTheoryEnabled(THEORY_UF) &&
                       d_logic.isTheoryEnabled(THEORY_BV)) &&
                       !options::unsatCores();
@@ -1616,7 +1616,7 @@ void SmtEngine::setDefaults() {
                    !options::produceAssignments() &&
                    !options::checkModels() &&
                    !options::unsatCores() &&
-                   (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
+                   (d_logic.isTheoryEnabled(THEORY_ARRAYS) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting unconstrained simplification to " << uncSimp << endl;
     options::unconstrainedSimp.set(uncSimp);
   }
@@ -1657,7 +1657,7 @@ void SmtEngine::setDefaults() {
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_BV)) {
     Trace("smt") << "enabling eager bit-vector explanations " << endl;
     options::bvEagerExplanations.set(true);
@@ -1720,13 +1720,13 @@ void SmtEngine::setDefaults() {
           ) ||
         // QF_AUFBV or QF_ABV or QF_UFBV
         (not d_logic.isQuantified() &&
-         (d_logic.isTheoryEnabled(THEORY_ARRAY) ||
+         (d_logic.isTheoryEnabled(THEORY_ARRAYS) ||
           d_logic.isTheoryEnabled(THEORY_UF)) &&
          d_logic.isTheoryEnabled(THEORY_BV)
          ) ||
         // QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
         (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
          d_logic.isTheoryEnabled(THEORY_UF) &&
          d_logic.isTheoryEnabled(THEORY_ARITH)
          ) ||
@@ -1747,7 +1747,7 @@ void SmtEngine::setDefaults() {
       d_logic.hasEverything() || d_logic.isTheoryEnabled(THEORY_STRINGS) ? false :
       ( // QF_AUFLIA
         (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
          d_logic.isTheoryEnabled(THEORY_UF) &&
          d_logic.isTheoryEnabled(THEORY_ARITH)
          ) ||
