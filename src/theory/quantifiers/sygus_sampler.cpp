@@ -296,7 +296,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
     {
       Assert(!d_ftn.isNull());
       bn = d_tds->sygusToBuiltin(n);
-      bn = Rewriter::rewrite(bn);
+      Assert( d_builtin_to_sygus.find(bn)==d_builtin_to_sygus.end() || d_builtin_to_sygus[bn]==n );
       d_builtin_to_sygus[bn] = n;
     }
     Assert(bn.getType() == d_tn);
