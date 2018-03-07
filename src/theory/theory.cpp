@@ -337,12 +337,6 @@ EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
   : d_tid(tid) {
 }
 
-std::string Theory::getFullInstanceName() const {
-  std::stringstream ss;
-  ss << "theory<" << d_id << ">" << d_instanceName;
-  return ss.str();
-}
-
 EntailmentCheckParameters::~EntailmentCheckParameters(){}
 
 TheoryId EntailmentCheckParameters::getTheoryId() const {
