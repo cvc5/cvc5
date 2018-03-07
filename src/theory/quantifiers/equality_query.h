@@ -50,26 +50,26 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
   EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
-  virtual bool reset(Theory::Effort e);
+  bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
-  virtual void registerQuantifier(Node q) {}
+  void registerQuantifier(Node q) override {}
   /** identify */
-  virtual std::string identify() const { return "EqualityQueryQE"; }
+  std::string identify() const override { return "EqualityQueryQE"; }
   /** does the equality engine have term a */
-  bool hasTerm(Node a);
+  bool hasTerm(Node a) override;
   /** get the representative of a */
-  Node getRepresentative(Node a);
+  Node getRepresentative(Node a) override;
   /** are a and b equal? */
-  bool areEqual(Node a, Node b);
+  bool areEqual(Node a, Node b) override;
   /** are a and b disequal? */
-  bool areDisequal(Node a, Node b);
+  bool areDisequal(Node a, Node b) override;
   /** get equality engine
   * This may either be the master equality engine or the model's equality
   * engine.
   */
-  eq::EqualityEngine* getEngine();
+  eq::EqualityEngine* getEngine() override;
   /** get list of members in the equivalence class of a */
-  void getEquivalenceClass(Node a, std::vector<Node>& eqc);
+  void getEquivalenceClass(Node a, std::vector<Node>& eqc) override;
   /** get congruent term
   * If possible, returns a term n such that:
   * (1) n is a term in the equality engine from getEngine().
@@ -80,7 +80,7 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
   * Notice that f should be a "match operator", returned by
   * TermDb::getMatchOperator.
   */
-  TNode getCongruentTerm(Node f, std::vector<TNode>& args);
+  TNode getCongruentTerm(Node f, std::vector<TNode>& args) override;
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives

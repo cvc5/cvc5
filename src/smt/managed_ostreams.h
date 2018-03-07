@@ -79,7 +79,8 @@ class SetToDefaultSourceListener : public Listener {
   SetToDefaultSourceListener(ManagedOstream* managedOstream)
       : d_managedOstream(managedOstream){}
 
-  virtual void notify() {
+  void notify() override
+  {
     d_managedOstream->set(d_managedOstream->defaultSource());
   }
 
@@ -97,15 +98,15 @@ class ManagedDumpOStream : public ManagedOstream {
   ManagedDumpOStream(){}
   ~ManagedDumpOStream();
 
-  virtual const char* getName() const { return "dump-to"; }
-  virtual std::string defaultSource() const;
+  const char* getName() const override { return "dump-to"; }
+  std::string defaultSource() const override;
 
  protected:
   /** Initializes an output stream. Not necessarily managed. */
-  virtual void initialize(std::ostream* outStream);
+  void initialize(std::ostream* outStream) override;
 
   /** Adds special cases to an ostreamopener. */
-  virtual void addSpecialCases(OstreamOpener* opener) const;
+  void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedDumpOStream */
 
 /**
@@ -120,15 +121,15 @@ class ManagedRegularOutputChannel : public ManagedOstream {
   /** Assumes Options are in scope. */
   ~ManagedRegularOutputChannel();
 
-  virtual const char* getName() const { return "regular-output-channel"; }
-  virtual std::string defaultSource() const;
+  const char* getName() const override { return "regular-output-channel"; }
+  std::string defaultSource() const override;
 
  protected:
   /** Initializes an output stream. Not necessarily managed. */
-  virtual void initialize(std::ostream* outStream);
+  void initialize(std::ostream* outStream) override;
 
   /** Adds special cases to an ostreamopener. */
-  virtual void addSpecialCases(OstreamOpener* opener) const;
+  void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedRegularOutputChannel */
 
 
@@ -144,15 +145,15 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
   /** Assumes Options are in scope. */
   ~ManagedDiagnosticOutputChannel();
 
-  virtual const char* getName() const { return "diagnostic-output-channel"; }
-  virtual std::string defaultSource() const;
+  const char* getName() const override { return "diagnostic-output-channel"; }
+  std::string defaultSource() const override;
 
  protected:
   /** Initializes an output stream. Not necessarily managed. */
-  virtual void initialize(std::ostream* outStream);
+  void initialize(std::ostream* outStream) override;
 
   /** Adds special cases to an ostreamopener. */
-  virtual void addSpecialCases(OstreamOpener* opener) const;
+  void addSpecialCases(OstreamOpener* opener) const override;
 };/* class ManagedRegularOutputChannel */
 
 /** This controls the memory associated with replay-log. */
@@ -162,15 +163,15 @@ class ManagedReplayLogOstream : public ManagedOstream {
   ~ManagedReplayLogOstream();
 
   std::ostream* getReplayLog() const { return d_replayLog; }
-  virtual const char* getName() const { return "replay-log"; }
-  virtual std::string defaultSource() const;
+  const char* getName() const override { return "replay-log"; }
+  std::string defaultSource() const override;
 
  protected:
   /** Initializes an output stream. Not necessarily managed. */
-  virtual void initialize(std::ostream* outStream);
+  void initialize(std::ostream* outStream) override;
 
   /** Adds special cases to an ostreamopener. */
-  virtual void addSpecialCases(OstreamOpener* opener) const;
+  void addSpecialCases(OstreamOpener* opener) const override;
 
  private:
   std::ostream* d_replayLog;

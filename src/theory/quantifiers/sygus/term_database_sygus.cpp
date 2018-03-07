@@ -733,6 +733,59 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
   }
 }
 
+void TermDbSygus::registerSymBreakLemma(Node e,
+                                        Node lem,
+                                        TypeNode tn,
+                                        unsigned sz)
+{
+  d_enum_to_sb_lemmas[e].push_back(lem);
+  d_sb_lemma_to_type[lem] = tn;
+  d_sb_lemma_to_size[lem] = sz;
+}
+
+bool TermDbSygus::hasSymBreakLemmas(std::vector<Node>& enums) const
+{
+  if (!d_enum_to_sb_lemmas.empty())
+  {
+    for (std::pair<const Node, std::vector<Node> > sb : d_enum_to_sb_lemmas)
+    {
+      enums.push_back(sb.first);
+    }
+    return true;
+  }
+  return false;
+}
+
+void TermDbSygus::getSymBreakLemmas(Node e, std::vector<Node>& lemmas) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator itsb =
+      d_enum_to_sb_lemmas.find(e);
+  if (itsb != d_enum_to_sb_lemmas.end())
+  {
+    lemmas.insert(lemmas.end(), itsb->second.begin(), itsb->second.end());
+  }
+}
+
+TypeNode TermDbSygus::getTypeForSymBreakLemma(Node lem) const
+{
+  std::map<Node, TypeNode>::const_iterator it = d_sb_lemma_to_type.find(lem);
+  Assert(it != d_sb_lemma_to_type.end());
+  return it->second;
+}
+unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
+{
+  std::map<Node, unsigned>::const_iterator it = d_sb_lemma_to_size.find(lem);
+  Assert(it != d_sb_lemma_to_size.end());
+  return it->second;
+}
+
+void TermDbSygus::clearSymBreakLemmas()
+{
+  d_enum_to_sb_lemmas.clear();
+  d_sb_lemma_to_type.clear();
+  d_sb_lemma_to_size.clear();
+}
+
 bool TermDbSygus::isRegistered( TypeNode tn ) {
   return d_register.find( tn )!=d_register.end();
 }
@@ -1202,7 +1255,7 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
         unsigned start = d_node_mv_args_proc[n][vn];
         // get explanation in terms of testers
         std::vector< Node > antec_exp;
-        d_syexp->getExplanationForConstantEquality(n, vn, antec_exp);
+        d_syexp->getExplanationForEquality(n, vn, antec_exp);
         Node antec = antec_exp.size()==1 ? antec_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
         //Node antec = n.eqNode( vn );
         TypeNode tn = n.getType();

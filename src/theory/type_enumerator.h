@@ -84,7 +84,10 @@ public:
     TypeEnumeratorInterface(type) {
   }
 
-  TypeEnumeratorInterface* clone() const { return new T(static_cast<const T&>(*this)); }
+  TypeEnumeratorInterface* clone() const override
+  {
+    return new T(static_cast<const T&>(*this));
+  }
 
 };/* class TypeEnumeratorBase */
 

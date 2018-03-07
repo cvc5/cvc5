@@ -122,7 +122,7 @@ class HigherOrderTrigger : public Trigger
    * Extends Trigger::addInstantiations to also send
    * lemmas based on addHoTypeMatchPredicateLemmas.
    */
-  virtual int addInstantiations() override;
+  int addInstantiations() override;
 
  protected:
   /**

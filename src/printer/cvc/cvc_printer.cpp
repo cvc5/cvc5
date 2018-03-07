@@ -2,9 +2,9 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -955,6 +955,7 @@ void CvcPrinter::toStream(std::ostream& out,
      tryToStream<PushCommand>(out, c, d_cvc3Mode) ||
      tryToStream<PopCommand>(out, c, d_cvc3Mode) ||
      tryToStream<CheckSatCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<CheckSatAssumingCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QueryCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetAssertionsCommand>(out, c, d_cvc3Mode) ||
@@ -1155,6 +1156,31 @@ static void toStream(std::ostream& out, const CheckSatCommand* c, bool cvc3Mode)
     out << "CHECKSAT;";
   }
   if(cvc3Mode) {
+    out << " POP;";
+  }
+}
+
+static void toStream(std::ostream& out,
+                     const CheckSatAssumingCommand* c,
+                     bool cvc3Mode)
+{
+  const vector<Expr>& exprs = c->getTerms();
+  if (cvc3Mode)
+  {
+    out << "PUSH; ";
+  }
+  out << "CHECKSAT";
+  if (exprs.size() > 0)
+  {
+    out << " " << exprs[0];
+    for (size_t i = 1, n = exprs.size(); i < n; ++i)
+    {
+      out << " AND " << exprs[i];
+    }
+  }
+  out << ";";
+  if (cvc3Mode)
+  {
     out << " POP;";
   }
 }

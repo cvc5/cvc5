@@ -794,7 +794,7 @@ public:
   public:
     ExprStream(Parser* parser) : d_parser(parser) {}
     ~ExprStream() { delete d_parser; }
-    Expr nextExpr() { return d_parser->nextExpression(); }
+    Expr nextExpr() override { return d_parser->nextExpression(); }
   };/* class Parser::ExprStream */
   
   //------------------------ operator overloading
