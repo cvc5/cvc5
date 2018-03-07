@@ -349,6 +349,49 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
   }
 }
 
+Expr Smt2::mkDefineFunRec(
+  const std::string& fname,
+  const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+  Type t,
+  std::vector<Expr>& flattenVars)
+{
+std::vector<Type> sorts;
+for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
+{
+  sorts.push_back(svn.second);
+}
+
+// make the flattened function type, add bound variables
+// to flattenVars if the defined function was given a function return type.
+Type ft = mkFlatFunctionType(sorts, t, flattenVars);
+
+// allow overloading
+return mkVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+}
+
+void Smt2::pushDefineFunRecScope(
+  const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+  Expr func,
+  const std::vector<Expr>& flattenVars,
+  std::vector<Expr>& bvs,
+  bool bindingLevel)
+{
+pushScope(bindingLevel);
+
+std::vector<Expr> f_app;
+f_app.push_back(func);
+// bound variables are those that are explicitly named in the preamble
+// of the define-fun(s)-rec command, we define them here
+for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
+{
+  Expr v = mkBoundVar(svn.first, svn.second);
+  bvs.push_back(v);
+  f_app.push_back(v);
+}
+
+bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
+}
+
 void Smt2::reset() {
   d_logicSet = false;
   d_logic = LogicInfo();

@@ -721,6 +721,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<std::vector<Expr>> formals;
   std::vector<std::string> ids;
   std::vector<CVC4::Type> types;
+  bool readCommaId, readCommaForm;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -919,55 +920,37 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       }
       cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
     }*/
-  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
+  | RECURSIVE_FUNCTION_TOK (identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
+    (COMMA{readCommaId = true;})? 
     {
       func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
       ids.push_back(id);
       types.push_back(t);
       funcs.push_back(func);
-    }
-    (COMMA identifier[id2,CHECK_NONE,SYM_VARIABLE] COLON type[t2,CHECK_DECLARED])*
+      readCommaId = false;
+    })+
+    EQUAL_TOK (formula[f] (COMMA {readCommaForm = true;})?
     {
-      ids.push_back(id2);
-      types.push_back(t2);
-      func = PARSER_STATE->mkVar(id2, t2, ExprManager::VAR_FLAG_NONE, true);
-      funcs.push_back(func);
-    }
-    EQUAL_TOK formula[f]
-    {
-      if(!f.getType().isSubtypeOf(t)){
-        PARSER_STATE->parseError("Type mismatch in definition");
-      }
       if( f.getKind()==kind::LAMBDA ){
         for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
         {
           bvs.push_back( f[0][i] );
         }
         formals.push_back(bvs);
+        bvs.clear();
         f = f[1];
         formulas.push_back(f);
       }
-    }
-    (COMMA formula[f2])*
+      readCommaForm = false;
+    })+
     {
-      std::cout<<"In the * case.\n";
-      for( unsigned i=0,size=f2[0].getNumChildren(); i<size; i++)
-      {
-        bvs2.push_back( f2[0][i] );
-      }
-      formals.push_back(bvs2);
-      bvs2.clear();
-      f2 = f2[1];
-      formulas.push_back(f2);
-    }
-    {
-      std::cout<<"funcs.size() = "<<funcs.size();
-      std::cout<<"\nformals.size() = "<<formals.size();
-      std::cout<<"\nformulas.size() = "<<formulas.size()<<"\n";
-      if((funcs.size()!=formals.size())||
-         (formals.size()!=formulas.size())||
-         (funcs.size()!=formulas.size())){
+      if(funcs.size()!=formulas.size()){
         PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
+      }
+      for(unsigned int i = 0; i < funcs.size(); i++){
+        if(!funcs[i].getType().isSubtypeOf(types[i])){
+          PARSER_STATE->parseError("Type mismatch in definition");
+        }
       }
       cmd->reset(new DefineFunctionRecCommand(funcs,formals,formulas));
     }
