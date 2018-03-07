@@ -19,6 +19,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+void InvBE::getTermList(const std::vector<Node>& candidates,
+                        std::vector<Node>& enums)
+{
+  enums.insert(enums.end(), candidates.begin(), candidates.end());
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
