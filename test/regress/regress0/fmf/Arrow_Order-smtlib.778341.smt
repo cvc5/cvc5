@@ -1,5 +1,5 @@
-% COMMAND-LINE: --finite-model-find --mbqi=gen-ev
-% EXPECT: unsat
+; COMMAND-LINE: --finite-model-find --mbqi=gen-ev
+; EXPECT: unsat
 (benchmark Isabelle
 :status sat
 :logic AUFLIA

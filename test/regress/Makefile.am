@@ -11,7 +11,9 @@ TESTS = $(REG0_TESTS) $(REG1_TESTS) $(REG2_TESTS) $(REG3_TESTS) $(REG4_TESTS)
 @mk_empty@BINARY = cvc4
 end@mk_if@
 
-LOG_COMPILER = $(top_srcdir)/test/regress/run_regression
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+			 	 $(top_srcdir)/config/tap-driver.sh
+LOG_COMPILER = python @abs_top_srcdir@/test/regress/run_regression.py
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @abs_top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
 if AUTOMAKE_1_11
