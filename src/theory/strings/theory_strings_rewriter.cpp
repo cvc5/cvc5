@@ -1955,7 +1955,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
       if (stripSymbolicLength(children0, nr, 1, new_len))
       {
         // For example:
-        // z>str.len( x1 ) and str.len( y )>0 and str.contains( x2, y )-->true
+        // z>str.len( x1 ) and str.contains( x2, y )-->true
         // implies
         // str.indexof( str.++( x1, x2 ), y, z ) --->
         // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
