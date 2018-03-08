@@ -79,7 +79,7 @@ AM_CPPFLAGS = \
 	-D __STDC_FORMAT_MACROS \
 	$(ANTLR_INCLUDES) \
 	$(TEST_CPPFLAGS)
-AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(TEST_CXXFLAGS) -Wno-suggest-override
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS) $(READLINE_LIBS) $(LIBS)
 
 AM_CXXFLAGS_WHITE = -fno-access-control -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
