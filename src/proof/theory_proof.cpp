@@ -30,6 +30,7 @@
 #include "proof/proof_utils.h"
 #include "proof/sat_proof.h"
 #include "proof/uf_proof.h"
+#include "proof/simplify_boolean_node.h"
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -38,11 +39,11 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/output_channel.h"
 #include "theory/term_registration_visitor.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/proof.h"
+
 
 
 namespace CVC4 {
@@ -1263,5 +1264,298 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
   os << "))";
 }
+
+
+// Copied from uf_proof.cpp and array_proof.cpp
+// congrence matching term helper
+inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId) {
+  bool ufProof = (theoryId == theory::THEORY_UF);
+  Debug(ufProof? "pf::uf" : "mgd") << "match " << n1 << " " << n2 << std::endl;
+  if(ProofManager::currentPM()->hasOp(n1)) {
+    n1 = ProofManager::currentPM()->lookupOp(n1);
+  }
+  if(ProofManager::currentPM()->hasOp(n2)) {
+    n2 = ProofManager::currentPM()->lookupOp(n2);
+  }
+  Debug(ufProof? "pf::uf" : "mgd") << "+ match " << n1 << " " << n2 << std::endl;
+  if (!ufProof) {
+	Debug("pf::array") << "+ match: step 1" << std::endl;
+  }
+  if(n1 == n2) {
+    return true;
+  }
+
+  if(n1.getType().isFunction() && n2.hasOperator()) {
+    if(ProofManager::currentPM()->hasOp(n2.getOperator())) {
+      return n1 == ProofManager::currentPM()->lookupOp(n2.getOperator());
+    } else {
+      return n1 == n2.getOperator();
+    }
+  }
+
+  if(n2.getType().isFunction() && n1.hasOperator()) {
+    if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
+      return n2 == ProofManager::currentPM()->lookupOp(n1.getOperator());
+    } else {
+      return n2 == n1.getOperator();
+    }
+  }
+
+  if(n1.hasOperator() && n2.hasOperator() && n1.getOperator() != n2.getOperator()) {
+    if (ufProof || !((n1.getKind() == kind::SELECT && n2.getKind() == kind::PARTIAL_SELECT_0) ||
+          (n1.getKind() == kind::SELECT && n2.getKind() == kind::PARTIAL_SELECT_1) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_1 && n2.getKind() == kind::SELECT) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_1 && n2.getKind() == kind::PARTIAL_SELECT_0) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_0 && n2.getKind() == kind::SELECT) ||
+          (n1.getKind() == kind::PARTIAL_SELECT_0 && n2.getKind() == kind::PARTIAL_SELECT_1)
+          )) {
+      return false;
+    }
+  }
+
+  for(size_t i = 0; i < n1.getNumChildren() && i < n2.getNumChildren(); ++i) {
+    if(n1[i] != n2[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void TheoryProof::assertAndPrint(std::ostream& out,
+						  const theory::eq::EqProof& pf,
+						  const ProofLetMap& map,
+						  const theory::TheoryId theoryId,
+						  int* neg,
+						  std::shared_ptr<theory::eq::EqProof> subTrans, 
+						  theory::eq::EqProof::PrettyPrinter* pPrettyPrinter) {
+
+  //TODO this code assumes that the function is called either from uf or from arrays. How should I handle this assumptions?
+
+    std::string theoryName;
+    bool ufProof = (theoryId == theory::THEORY_UF);
+    if (ufProof) {
+      theoryName = "uf";
+    } else {
+      theoryName = "array";
+    }
+
+    pf.debug_print(("pf::" + theoryName).c_str(), 0, pPrettyPrinter);
+    Debug("pf::" + theoryName) << std::endl;
+    
+	Assert(pf.d_id == theory::eq::MERGED_THROUGH_TRANS);
+    Assert(!pf.d_node.isNull());
+    Assert(pf.d_children.size() >= 2);
+
+    subTrans->d_id = theory::eq::MERGED_THROUGH_TRANS;
+    subTrans->d_node = pf.d_node;
+
+    size_t i = 0;
+    while (i < pf.d_children.size()) {
+		//special treatment for uf and not for array
+		if (ufProof || pf.d_children[i]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE) {
+			pf.d_children[i]->d_node = simplifyBooleanNode(pf.d_children[i]->d_node);
+	  }
+
+      // Look for the negative clause, with which we will form a contradiction.
+      if(!pf.d_children[i]->d_node.isNull() && pf.d_children[i]->d_node.getKind() == kind::NOT) {
+        Assert(*neg < 0);
+        (*neg) = i;
+        ++i;
+      }
+
+      // Handle congruence closures over equalities.
+      else if (pf.d_children[i]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE && pf.d_children[i]->d_node.isNull()) {
+        Debug("pf::" + theoryName) << "Handling congruence over equalities" << std::endl;
+
+        // Gather the sequence of consecutive congruence closures.
+        std::vector<std::shared_ptr<const theory::eq::EqProof>> congruenceClosures;
+        unsigned count;
+        Debug("pf::" + theoryName) << "Collecting congruence sequence" << std::endl;
+        for (count = 0;
+             i + count < pf.d_children.size() &&
+               pf.d_children[i + count]->d_id==theory::eq::MERGED_THROUGH_CONGRUENCE &&
+               pf.d_children[i + count]->d_node.isNull();
+             ++count) {
+          Debug("pf::" + theoryName) << "Found a congruence: " << std::endl;
+          pf.d_children[i + count]->debug_print(("pf::" + theoryName).c_str(), 0, pPrettyPrinter);
+          congruenceClosures.push_back(pf.d_children[i + count]);
+        }
+
+        Debug("pf::" + theoryName) << "Total number of congruences found: " << congruenceClosures.size() << std::endl;
+
+        // Determine if the "target" of the congruence sequence appears right before or right after the sequence.
+        bool targetAppearsBefore = true;
+        bool targetAppearsAfter = true;
+
+        if ((i == 0) || (i == 1 && *neg == 0)) {
+          Debug("pf::" + theoryName) << "Target does not appear before" << std::endl;
+          targetAppearsBefore = false;
+        }
+
+        if ((i + count >= pf.d_children.size()) ||
+            (!pf.d_children[i + count]->d_node.isNull() &&
+             pf.d_children[i + count]->d_node.getKind() == kind::NOT)) {
+          Debug("pf::" + theoryName) << "Target does not appear after" << std::endl;
+          targetAppearsAfter = false;
+        }
+
+		//Flow changes between uf and array
+        if (ufProof) {
+			// Assert that we have precisely at least one possible clause.
+			Assert(targetAppearsBefore || targetAppearsAfter);
+
+			// If both are valid, assume the one after the sequence is correct
+			if (targetAppearsAfter && targetAppearsBefore) {
+				targetAppearsBefore = false;
+			}
+         
+		} else { // not a uf proof
+			// Assert that we have precisely one target clause.
+			Assert(targetAppearsBefore != targetAppearsAfter);
+		}
+
+        // Begin breaking up the congruences and ordering the equalities correctly.
+        std::vector<std::shared_ptr<theory::eq::EqProof>> orderedEqualities;
+
+        // Insert target clause first.
+        if (targetAppearsBefore) {
+          orderedEqualities.push_back(pf.d_children[i - 1]);
+          // The target has already been added to subTrans; remove it.
+          subTrans->d_children.pop_back();
+        } else {
+          orderedEqualities.push_back(pf.d_children[i + count]);
+        }
+
+        // Start with the congruence closure closest to the target clause, and work our way back/forward.
+        if (targetAppearsBefore) {
+          for (unsigned j = 0; j < count; ++j) {
+            if (pf.d_children[i + j]->d_children[0]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.begin(), pf.d_children[i + j]->d_children[0]);
+            if (pf.d_children[i + j]->d_children[1]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.end(), pf.d_children[i + j]->d_children[1]);
+          }
+        } else {
+          for (unsigned j = 0; j < count; ++j) {
+            if (pf.d_children[i + count - 1 - j]->d_children[0]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.begin(), pf.d_children[i + count - 1 - j]->d_children[0]);
+            if (pf.d_children[i + count - 1 - j]->d_children[1]->d_id != theory::eq::MERGED_THROUGH_REFLEXIVITY)
+              orderedEqualities.insert(orderedEqualities.end(), pf.d_children[i + count - 1 - j]->d_children[1]);
+          }
+        }
+
+        // Copy the result into the main transitivity proof.
+        subTrans->d_children.insert(subTrans->d_children.end(), orderedEqualities.begin(), orderedEqualities.end());
+
+        // Increase i to skip over the children that have been processed.
+        i += count;
+        if (targetAppearsAfter) {
+          ++i;
+        }
+      }
+
+      // Else, just copy the child proof as is
+      else {
+        subTrans->d_children.push_back(pf.d_children[i]);
+        ++i;
+      }
+    }
+
+	bool disequalityFound = (*neg >= 0);
+    if (!disequalityFound) {
+      Debug("pf::" + theoryName) << "A disequality was NOT found. UNSAT due to merged constants" << std::endl;
+      Debug("pf::" + theoryName) << "Proof for: " << pf.d_node << std::endl;
+      Assert(pf.d_node.getKind() == kind::EQUAL);
+      Assert(pf.d_node.getNumChildren() == 2);
+      Assert (pf.d_node[0].isConst() && pf.d_node[1].isConst());
+    }
+
+
+
+
+	
+
+}
+
+void TheoryProof::transitivityPrinterHelper(theory::TheoryId theoryId,
+				bool evenLengthSequence,
+				bool sequenceOver,	
+				int i,
+                                const theory::eq::EqProof& pf,
+				const ProofLetMap& map,
+				const Node& n2,
+				const std::string ss1String,
+				std::stringstream* ss,
+				Node& n1,
+				Node& nodeAfterEqualitySequence
+				) {
+	  
+		bool ufProof = (theoryId == theory::THEORY_UF);
+            std::string theoryName;
+	    if (theoryId == theory::THEORY_UF) {
+	      theoryName = "uf";
+	    } else {
+	      theoryName = "array";
+	    }
+            if (evenLengthSequence) {
+              // If the length is even, we need to apply transitivity for the "correct" hand of the equality.
+
+              Debug("pf::"+theoryName) << "Equality sequence of even length" << std::endl;
+              Debug("pf::"+theoryName) << "n1 is: " << n1 << std::endl;
+              Debug("pf::"+theoryName) << "n2 is: " << n2 << std::endl;
+              Debug("pf::"+theoryName) << "pf-d_node is: " << pf.d_node << std::endl;
+              Debug("pf::"+theoryName) << "Next node is: " << nodeAfterEqualitySequence << std::endl;
+
+              (*ss) << "(trans _ _ _ _ ";
+
+              // If the sequence is at the very end of the transitivity proof, use pf.d_node to guide us.
+              if (!sequenceOver) {
+                if (match(n1[0], pf.d_node[0], theoryId)) {
+                  n1 = eqNode(n1[0], n1[0]);
+                  (*ss) << ss1String << " (symm _ _ _ " << ss1String << ")";
+                } else if (match(n1[1], pf.d_node[1], theoryId)) {
+                  n1 = eqNode(n1[1], n1[1]);
+                  (*ss) << " (symm _ _ _ " << ss1String << ")" << ss1String;
+                } else {
+                  Debug("pf::"+theoryName) << "Error: identical equalities over, but hands don't match what we're proving."
+                                     << std::endl;
+                  Assert(false);
+                }
+              } else {
+                // We have a "next node". Use it to guide us.
+                if (!ufProof && nodeAfterEqualitySequence.getKind() == kind::NOT) {
+                  nodeAfterEqualitySequence = nodeAfterEqualitySequence[0];
+                }
+
+                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
+
+                if ((n1[0] == nodeAfterEqualitySequence[0]) || (n1[0] == nodeAfterEqualitySequence[1])) {
+
+                  // Eliminate n1[1]
+                  (*ss) << ss1String << " (symm _ _ _ " << ss1String << ")";
+                  n1 = eqNode(n1[0], n1[0]);
+
+                } else if ((n1[1] == nodeAfterEqualitySequence[0]) || (n1[1] == nodeAfterEqualitySequence[1])) {
+
+                  // Eliminate n1[0]
+                  (*ss) << " (symm _ _ _ " << ss1String << ")" << ss1String;
+                  n1 = eqNode(n1[1], n1[1]);
+
+                } else {
+                  Debug("pf::"+theoryName) << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
+                  Assert(false);
+                }
+              }
+
+              (*ss) << ")";
+
+            } else {
+              Debug("pf::"+theoryName) << "Equality sequence length is odd!" << std::endl;
+              (*ss).str(ss1String);
+            }
+
+            Debug("pf::"+theoryName) << "Have proven: " << n1 << std::endl;
+          } 
+
 
 } /* namespace CVC4 */
