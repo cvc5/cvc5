@@ -24,9 +24,6 @@
 
 namespace CVC4 {
 
-
-
-
 void ProofUF::toStream(std::ostream& out) const
 {
   ProofLetMap map;
@@ -59,10 +56,11 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
                               const ProofLetMap& map)
 {
   Debug("pf::uf") << std::endl
-                << std::endl
-                << "toStreamRecLFSC called. tb = " << tb
-                << " . proof:" << std::endl;
-   if (tb == 0) {
+                  << std::endl
+                  << "toStreamRecLFSC called. tb = " << tb
+                  << " . proof:" << std::endl;
+  if (tb == 0)
+  {
     // Special case: false was an input, so the proof is just "false".
     if (pf.d_id == theory::eq::MERGED_THROUGH_EQUALITY &&
         pf.d_node == NodeManager::currentNM()->mkConst(false)) {
@@ -71,27 +69,25 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       out << ")" << std::endl;
       return Node();
     }
-	
-	int neg = -1;
-	std::shared_ptr<theory::eq::EqProof> subTrans =
-			std::make_shared<theory::eq::EqProof>();
+
+    int neg = -1;
+    std::shared_ptr<theory::eq::EqProof> subTrans =
+        std::make_shared<theory::eq::EqProof>();
 
     tp->assertAndPrint(out, pf, map, theory::THEORY_UF, &neg, subTrans);
 
-
-
     Node n1;
-    std::stringstream ss,ss2;
+    std::stringstream ss, ss2;
     Debug("pf::uf") << "\nsubtrans has " << subTrans->d_children.size() << " children\n";
-	bool disequalityFound = (neg >= 0);
+    bool disequalityFound = (neg >= 0);
 
     if(!disequalityFound || subTrans->d_children.size() >= 2) {
       n1 = toStreamRecLFSC(ss, tp, *subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, *(subTrans->d_children[0]), 1, map);
-      Debug("pf::uf") << "\nsubTrans unique child " 
-			  << subTrans->d_children[0]->d_id 
-			  << " was proven\ngot: " << n1 << std::endl;
+      Debug("pf::uf") << "\nsubTrans unique child "
+                      << subTrans->d_children[0]->d_id
+                      << " was proven\ngot: " << n1 << std::endl;
     }
 
     Debug("pf::uf") << "\nhave proven: " << n1 << std::endl;
@@ -103,9 +99,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
       Debug("pf::uf") << "n2 is " << n2[0] << std::endl;
 
-
-
-	  if (n2[0].getNumChildren() > 0) { Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl; }
+      if (n2[0].getNumChildren() > 0)
+      {
+        Debug("pf::uf") << "\nn2[0]: " << n2[0][0] << std::endl;
+      }
       if (n1.getNumChildren() > 1) { Debug("pf::uf") << "n1[1]: " << n1[1] << std::endl; }
 
       if(n2[0].getKind() == kind::APPLY_UF) {
@@ -138,10 +135,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
       out << ss.str();
       out << " ";
-      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out, 
-					  n1[0].toExpr(), 
-					  n1[1].toExpr(), 
-					  map);
+      ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(
+          out, n1[0].toExpr(), n1[1].toExpr(), map);
       out << "))" << std::endl;
     }
 
@@ -157,11 +152,11 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
          pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE;
          pf2 = pf2->d_children[0].get()) {
       Assert(!pf2->d_node.isNull());
-      Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF || 
-					  pf2->d_node.getKind() == kind::BUILTIN || 
-					  pf2->d_node.getKind() == kind::APPLY_UF || 
-					  pf2->d_node.getKind() == kind::SELECT || 
-					  pf2->d_node.getKind() == kind::STORE);
+      Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF
+             || pf2->d_node.getKind() == kind::BUILTIN
+             || pf2->d_node.getKind() == kind::APPLY_UF
+             || pf2->d_node.getKind() == kind::SELECT
+             || pf2->d_node.getKind() == kind::STORE);
       Assert(pf2->d_children.size() == 2);
       out << "(cong _ _ _ _ _ _ ";
       stk.push(pf2);
@@ -181,7 +176,8 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
     Debug("pf::uf") << "           " << n1 << "\n";
     Debug("pf::uf") << "           " << n2 << "\n";
     int side = 0;
-    if(TheoryProof::match(pf2->d_node, n1[0], theory::THEORY_UF)) {
+    if (TheoryProof::match(pf2->d_node, n1[0], theory::THEORY_UF))
+    {
       //if(tb == 1) {
       Debug("pf::uf") << "SIDE IS 0\n";
       //}
@@ -190,19 +186,22 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       //if(tb == 1) {
       Debug("pf::uf") << "SIDE IS 1\n";
       //}
-      if(!TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_UF)) {
+      if (!TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_UF))
+      {
         Debug("pf::uf") << "IN BAD CASE, our first subproof is\n";
         pf2->d_children[0]->debug_print("pf::uf");
       }
       Assert(TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_UF));
       side = 1;
     }
-    if(n1[side].getKind() == kind::APPLY_UF || 
-					n1[side].getKind() == kind::PARTIAL_APPLY_UF || 
-					n1[side].getKind() == kind::SELECT || 
-					n1[side].getKind() == kind::STORE) {
-      if(n1[side].getKind() == kind::APPLY_UF || 
-					  n1[side].getKind() == kind::PARTIAL_APPLY_UF) {
+    if (n1[side].getKind() == kind::APPLY_UF
+        || n1[side].getKind() == kind::PARTIAL_APPLY_UF
+        || n1[side].getKind() == kind::SELECT
+        || n1[side].getKind() == kind::STORE)
+    {
+      if (n1[side].getKind() == kind::APPLY_UF
+          || n1[side].getKind() == kind::PARTIAL_APPLY_UF)
+      {
         b1 << n1[side].getOperator();
       } else {
         b1 << ProofManager::currentPM()->mkOp(n1[side].getOperator());
@@ -212,8 +211,9 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       b1 << n1[side];
     }
     if(n1[1-side].getKind() == kind::PARTIAL_APPLY_UF || n1[1-side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::STORE) {
-      if(n1[1-side].getKind() == kind::PARTIAL_APPLY_UF || 
-					  n1[1-side].getKind() == kind::APPLY_UF) {
+      if (n1[1 - side].getKind() == kind::PARTIAL_APPLY_UF
+          || n1[1 - side].getKind() == kind::APPLY_UF)
+      {
         b2 << n1[1-side].getOperator();
       } else {
         b2 << ProofManager::currentPM()->mkOp(n1[1-side].getOperator());
@@ -296,14 +296,16 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       b2.append(n2.begin(), n2.end());
       n2 = b2;
     }
-    Node n = (side == 0 ? TheoryProof::eqNode(n1, n2) : TheoryProof::eqNode(n2, n1));
+    Node n =
+        (side == 0 ? TheoryProof::eqNode(n1, n2) : TheoryProof::eqNode(n2, n1));
     if(tb == 1) {
       Debug("pf::uf") << "\ncong proved: " << n << "\n";
     }
     return n;
   }
 
-  case theory::eq::MERGED_THROUGH_REFLEXIVITY: {
+  case theory::eq::MERGED_THROUGH_REFLEXIVITY:
+  {
     Assert(!pf.d_node.isNull());
     Assert(pf.d_children.empty());
     out << "(refl _ ";
@@ -329,80 +331,109 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
     Node n1 = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
     Debug("pf::uf") << "\ndoing trans proof, got n1 " << n1 << "\n";
-	Node n2; 
+    Node n2;
     if(tb == 1) {
       Debug("pf::uf") << "\ntrans proof[0], got n1 " << n1 << "\n";
     }
-    
-	bool identicalEqualities = false;
+
+    bool identicalEqualities = false;
     bool evenLengthSequence;
     std::stringstream dontCare;
-	Node nodeAfterEqualitySequence =  toStreamRecLFSC(dontCare, tp, *(pf.d_children[0]), tb + 1, map );
-
+    Node nodeAfterEqualitySequence =
+        toStreamRecLFSC(dontCare, tp, *(pf.d_children[0]), tb + 1, map);
 
     std::map<size_t, Node> childToStream;
-	std::stringstream ss1(ss.str()), ss2;
+    std::stringstream ss1(ss.str()), ss2;
 
     for(size_t i = 1; i < pf.d_children.size(); ++i) {
-	      std::stringstream ss1(ss.str()), ss2;
-       ss.str("");
- 
-       pf.d_children[i]->d_node = simplifyBooleanNode(pf.d_children[i]->d_node);
- 
-       // It is possible that we've already converted the i'th child to stream. If so,
-       // use previously stored result. Otherwise, convert and store.
-       Node n2;
-       if (childToStream.find(i) != childToStream.end())
-         n2 = childToStream[i];
-       else {
-         n2 = toStreamRecLFSC(ss2, tp, *(pf.d_children[i]), tb + 1, map);
-         childToStream[i] = n2;
-       }
- 
-       // The following branch is dedicated to handling sequences of identical equalities,
-       // i.e. trans[ a=b, a=b, a=b ].
-       //
-       // There are two cases:
-       //    1. The number of equalities is odd. Then, the sequence can be collapsed to just one equality,
-       //       i.e. a=b.
-       //    2. The number of equalities is even. Now, we have two options: a=a or b=b. To determine this,
-       //       we look at the node after the equality sequence. If it needs a, we go for a=a; and if it needs
-       //       b, we go for b=b. If there is no following node, we look at the goal of the transitivity proof,
-       //       and use it to determine which option we need.
-       if(n2.getKind() == kind::EQUAL) {
-         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
-           // We are in a sequence of identical equalities
- 
-           Debug("pf::uf") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
- 
-           if (!identicalEqualities) {
-             // The sequence of identical equalities has started just now
-             identicalEqualities = true;
- 
-             Debug("pf::uf") << "The sequence is just beginning. Determining length..." << std::endl;
- 
-             // Determine whether the length of this sequence is odd or even.
-             evenLengthSequence = true;
-             bool sequenceOver = false;
-             size_t j = i + 1;
- 
-             while (j < pf.d_children.size() && !sequenceOver) {
-               std::stringstream dontCare;
-               nodeAfterEqualitySequence = toStreamRecLFSC(dontCare, tp, *(pf.d_children[j]), tb + 1, map );
- 
-               if (((nodeAfterEqualitySequence[0] == n1[0]) && (nodeAfterEqualitySequence[1] == n1[1])) ||
-                   ((nodeAfterEqualitySequence[0] == n1[1]) && (nodeAfterEqualitySequence[1] == n1[0]))) {
-                 evenLengthSequence = !evenLengthSequence;
-               } else {
-                 sequenceOver = true;
-               }
- 
-               ++j;
-             }
-  
-			
-	  tp->transitivityPrinterHelper(theory::THEORY_UF, evenLengthSequence, sequenceOver, i, pf, map, n2, ss1.str(), &ss, n1, nodeAfterEqualitySequence);
+      std::stringstream ss1(ss.str()), ss2;
+      ss.str("");
 
+      pf.d_children[i]->d_node = simplifyBooleanNode(pf.d_children[i]->d_node);
+
+      // It is possible that we've already converted the i'th child to stream.
+      // If so,
+      // use previously stored result. Otherwise, convert and store.
+      Node n2;
+      if (childToStream.find(i) != childToStream.end())
+        n2 = childToStream[i];
+      else
+      {
+        n2 = toStreamRecLFSC(ss2, tp, *(pf.d_children[i]), tb + 1, map);
+        childToStream[i] = n2;
+      }
+
+      // The following branch is dedicated to handling sequences of identical
+      // equalities,
+      // i.e. trans[ a=b, a=b, a=b ].
+      //
+      // There are two cases:
+      //    1. The number of equalities is odd. Then, the sequence can be
+      //    collapsed to just one equality,
+      //       i.e. a=b.
+      //    2. The number of equalities is even. Now, we have two options: a=a
+      //    or b=b. To determine this,
+      //       we look at the node after the equality sequence. If it needs a,
+      //       we go for a=a; and if it needs
+      //       b, we go for b=b. If there is no following node, we look at the
+      //       goal of the transitivity proof,
+      //       and use it to determine which option we need.
+      if (n2.getKind() == kind::EQUAL)
+      {
+        if (((n1[0] == n2[0]) && (n1[1] == n2[1]))
+            || ((n1[0] == n2[1]) && (n1[1] == n2[0])))
+        {
+          // We are in a sequence of identical equalities
+
+          Debug("pf::uf") << "Detected identical equalities: " << std::endl
+                          << "\t" << n1 << std::endl;
+
+          if (!identicalEqualities)
+          {
+            // The sequence of identical equalities has started just now
+            identicalEqualities = true;
+
+            Debug("pf::uf")
+                << "The sequence is just beginning. Determining length..."
+                << std::endl;
+
+            // Determine whether the length of this sequence is odd or even.
+            evenLengthSequence = true;
+            bool sequenceOver = false;
+            size_t j = i + 1;
+
+            while (j < pf.d_children.size() && !sequenceOver)
+            {
+              std::stringstream dontCare;
+              nodeAfterEqualitySequence = toStreamRecLFSC(
+                  dontCare, tp, *(pf.d_children[j]), tb + 1, map);
+
+              if (((nodeAfterEqualitySequence[0] == n1[0])
+                   && (nodeAfterEqualitySequence[1] == n1[1]))
+                  || ((nodeAfterEqualitySequence[0] == n1[1])
+                      && (nodeAfterEqualitySequence[1] == n1[0])))
+              {
+                evenLengthSequence = !evenLengthSequence;
+              }
+              else
+              {
+                sequenceOver = true;
+              }
+
+              ++j;
+            }
+
+            tp->transitivityPrinterHelper(theory::THEORY_UF,
+                                          evenLengthSequence,
+                                          sequenceOver,
+                                          i,
+                                          pf,
+                                          map,
+                                          n2,
+                                          ss1.str(),
+                                          &ss,
+                                          n1,
+                                          nodeAfterEqualitySequence);
           } else {
             ss.str(ss1.str());
           }
@@ -434,7 +465,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
           Debug("pf::uf") << (n1[1] == n2[0]) << "\n";
         }
       }
-
 
       ss << "(trans _ _ _ _ ";
 
@@ -572,8 +602,10 @@ void UFProof::registerTerm(Expr term) {
     if (term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
       // Ensure cnf literals
       Node asNode(term);
-      ProofManager::currentPM()->ensureLiteral(TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(true)));
-      ProofManager::currentPM()->ensureLiteral(TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(false)));
+      ProofManager::currentPM()->ensureLiteral(
+          TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(true)));
+      ProofManager::currentPM()->ensureLiteral(
+          TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(false)));
     }
   }
 

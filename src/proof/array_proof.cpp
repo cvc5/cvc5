@@ -102,24 +102,25 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                                  const ProofLetMap& map) const
 {
   Debug("pf::array") << std::endl
-                << std::endl
-                << "toStreamRecLFSC called. tb = " << tb
-                << " . proof:" << std::endl;
+                     << std::endl
+                     << "toStreamRecLFSC called. tb = " << tb
+                     << " . proof:" << std::endl;
   ArrayProofPrinter proofPrinter(d_reasonRow, d_reasonRow1, d_reasonExt);
   if(tb == 0) {
-	int neg= -1;
-	std::shared_ptr<theory::eq::EqProof> subTrans =
-			std::make_shared<theory::eq::EqProof>();
+    int neg = -1;
+    std::shared_ptr<theory::eq::EqProof> subTrans =
+        std::make_shared<theory::eq::EqProof>();
 
-	tp->assertAndPrint(out, pf, map, theory::THEORY_ARRAYS, &neg, subTrans, &proofPrinter);
-
+    tp->assertAndPrint(
+        out, pf, map, theory::THEORY_ARRAYS, &neg, subTrans, &proofPrinter);
 
     Node n1;
     std::stringstream ss, ss2;
     Debug("mgdx") << "\nsubtrans has " << subTrans->d_children.size() << " children\n";
-	bool disequalityFound = (neg >= 0);
+    bool disequalityFound = (neg >= 0);
 
-	if(!disequalityFound || pf.d_children.size() > 2) {
+    if (!disequalityFound || pf.d_children.size() > 2)
+    {
       n1 = toStreamRecLFSC(ss, tp, *subTrans, 1, map);
     } else {
       n1 = toStreamRecLFSC(ss, tp, *(subTrans->d_children[0]), 1, map);
@@ -181,59 +182,68 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return Node();
   }
 
-  switch (pf.d_id) {
-  case theory::eq::MERGED_THROUGH_CONGRUENCE: {
-    Debug("mgd") << "\nok, looking at congruence:\n";
-    pf.debug_print("mgd", 0, &proofPrinter);
-    std::stack<const theory::eq::EqProof*> stk;
-    for (const theory::eq::EqProof* pf2 = &pf;
-         pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE;
-         pf2 = pf2->d_children[0].get()) {
-      Debug("mgd") << "Looking at pf2 with d_node: " << pf2->d_node
-                   << std::endl;
-      Assert(!pf2->d_node.isNull());
-      Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF ||
-             pf2->d_node.getKind() == kind::BUILTIN ||
-             pf2->d_node.getKind() == kind::APPLY_UF ||
-             pf2->d_node.getKind() == kind::SELECT ||
-             pf2->d_node.getKind() == kind::PARTIAL_SELECT_0 ||
-             pf2->d_node.getKind() == kind::PARTIAL_SELECT_1 ||
-             pf2->d_node.getKind() == kind::STORE);
+  switch (pf.d_id)
+  {
+    case theory::eq::MERGED_THROUGH_CONGRUENCE:
+    {
+      Debug("mgd") << "\nok, looking at congruence:\n";
+      pf.debug_print("mgd", 0, &proofPrinter);
+      std::stack<const theory::eq::EqProof*> stk;
+      for (const theory::eq::EqProof* pf2 = &pf;
+           pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE;
+           pf2 = pf2->d_children[0].get())
+      {
+        Debug("mgd") << "Looking at pf2 with d_node: " << pf2->d_node
+                     << std::endl;
+        Assert(!pf2->d_node.isNull());
+        Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF
+               || pf2->d_node.getKind() == kind::BUILTIN
+               || pf2->d_node.getKind() == kind::APPLY_UF
+               || pf2->d_node.getKind() == kind::SELECT
+               || pf2->d_node.getKind() == kind::PARTIAL_SELECT_0
+               || pf2->d_node.getKind() == kind::PARTIAL_SELECT_1
+               || pf2->d_node.getKind() == kind::STORE);
 
-      Assert(pf2->d_children.size() == 2);
-      out << "(cong _ _ _ _ _ _ ";
-      stk.push(pf2);
-    }
-    Assert(stk.top()->d_children[0]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE);
-    //    NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
-    NodeBuilder<> b1, b2;
+        Assert(pf2->d_children.size() == 2);
+        out << "(cong _ _ _ _ _ _ ";
+        stk.push(pf2);
+      }
+      Assert(stk.top()->d_children[0]->d_id
+             != theory::eq::MERGED_THROUGH_CONGRUENCE);
+      //    NodeBuilder<> b1(kind::PARTIAL_APPLY_UF),
+      //    b2(kind::PARTIAL_APPLY_UF);
+      NodeBuilder<> b1, b2;
 
-    const theory::eq::EqProof* pf2 = stk.top();
-    stk.pop();
-    Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
-    Node n1 = toStreamRecLFSC(out, tp, *(pf2->d_children[0]), tb + 1, map);
-    out << " ";
-    std::stringstream ss;
-    Node n2 = toStreamRecLFSC(ss, tp, *(pf2->d_children[1]), tb + 1, map);
+      const theory::eq::EqProof* pf2 = stk.top();
+      stk.pop();
+      Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
+      Node n1 = toStreamRecLFSC(out, tp, *(pf2->d_children[0]), tb + 1, map);
+      out << " ";
+      std::stringstream ss;
+      Node n2 = toStreamRecLFSC(ss, tp, *(pf2->d_children[1]), tb + 1, map);
 
+      Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]"
+                   << "\n";
+      pf2->debug_print("mgd", 0, &proofPrinter);
+      // Temp
+      Debug("mgd") << "n1 is a proof for: " << pf2->d_children[0]->d_node
+                   << ". It is: " << n1 << std::endl;
+      Debug("mgd") << "n2 is a proof for: " << pf2->d_children[1]->d_node
+                   << ". It is: " << n2 << std::endl;
+      //
+      Debug("mgd") << "looking at " << pf2->d_node << "\n";
+      Debug("mgd") << "           " << n1 << "\n";
+      Debug("mgd") << "           " << n2 << "\n";
 
-    Debug("mgd") << "\nok, in FIRST cong[" << stk.size() << "]" << "\n";
-    pf2->debug_print("mgd", 0, &proofPrinter);
-    // Temp
-    Debug("mgd") << "n1 is a proof for: " << pf2->d_children[0]->d_node << ". It is: " << n1 << std::endl;
-    Debug("mgd") << "n2 is a proof for: " << pf2->d_children[1]->d_node << ". It is: " << n2 << std::endl;
-    //
-    Debug("mgd") << "looking at " << pf2->d_node << "\n";
-    Debug("mgd") << "           " << n1 << "\n";
-    Debug("mgd") << "           " << n2 << "\n";
-
-    int side = 0;
-    if(TheoryProof::match(pf2->d_node, n1[0], theory::THEORY_ARRAYS)) {
-      Debug("mgd") << "SIDE IS 0\n";
-      side = 0;
-    } else {
+      int side = 0;
+      if (TheoryProof::match(pf2->d_node, n1[0], theory::THEORY_ARRAYS))
+      {
+        Debug("mgd") << "SIDE IS 0\n";
+        side = 0;
+      } else {
       Debug("mgd") << "SIDE IS 1\n";
-      if(!TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_ARRAYS)) {
+      if (!TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_ARRAYS))
+      {
         Debug("mgd") << "IN BAD CASE, our first subproof is\n";
         pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
       }
@@ -411,14 +421,14 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       b2.append(n2.begin(), n2.end());
       n2 = b2;
     }
-    Node n = (side == 0 ? TheoryProof::eqNode(n1, n2) : TheoryProof::eqNode(n2, n1));
+    Node n =
+        (side == 0 ? TheoryProof::eqNode(n1, n2) : TheoryProof::eqNode(n2, n1));
 
     Debug("mgdx") << "\ncong proved: " << n << "\n";
     return n;
   }
-  case theory::eq::MERGED_THROUGH_REFLEXIVITY: {
-
-
+  case theory::eq::MERGED_THROUGH_REFLEXIVITY:
+  {
     Assert(!pf.d_node.isNull());
     Assert(pf.d_children.empty());
     out << "(refl _ ";
@@ -426,8 +436,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     out << ")";
     return TheoryProof::eqNode(pf.d_node, pf.d_node);
   }
-  case theory::eq::MERGED_THROUGH_EQUALITY: {
-
+  case theory::eq::MERGED_THROUGH_EQUALITY:
+  {
     Assert(!pf.d_node.isNull());
     Assert(pf.d_children.empty());
     Debug("pf::array") << "ArrayProof::toStream: getLitName( " << pf.d_node.negate() << " ) = " <<
@@ -436,11 +446,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     return pf.d_node;
   }
 
-    
-		case theory::eq::MERGED_THROUGH_TRANS: {
+  case theory::eq::MERGED_THROUGH_TRANS:
+  {
     bool firstNeg = false;
     bool secondNeg = false;
-	
+
     Assert(!pf.d_node.isNull());
     Assert(pf.d_children.size() >= 2);
     std::stringstream ss;
@@ -450,12 +460,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     pf.d_children[0]->d_node = simplifyBooleanNode(pf.d_children[0]->d_node);
 
-
-
-
-
     Node n1 = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
-	Node n2; 
+    Node n2;
     Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
     if(tb == 1) {
       Debug("mgdx") << "\ntrans proof[0], got n1 " << n1 << "\n";
@@ -464,115 +470,152 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     bool identicalEqualities = false;
     bool evenLengthSequence;
     std::stringstream dontCare;
-	Node nodeAfterEqualitySequence =  toStreamRecLFSC(dontCare, tp, *(pf.d_children[0]), tb + 1, map );
+    Node nodeAfterEqualitySequence =
+        toStreamRecLFSC(dontCare, tp, *(pf.d_children[0]), tb + 1, map);
 
     std::map<size_t, Node> childToStream;
 
-	std::stringstream ss1(ss.str()), ss2;
-    for(size_t i = 1; i < pf.d_children.size(); ++i) { 
-  std::stringstream ss1(ss.str()), ss2;
-       ss.str("");
- 
-       // In congruences, we can have something like a[x] - it's important to keep these,
-       // and not turn them into (a[x]=true), because that will mess up the congruence application
-       // later.
- 
-       if (pf.d_children[i]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE)
-         pf.d_children[i]->d_node = simplifyBooleanNode(pf.d_children[i]->d_node);
- 
-       // It is possible that we've already converted the i'th child to stream. If so,
-       // use previously stored result. Otherwise, convert and store.
-       Node n2;
-       if (childToStream.find(i) != childToStream.end())
-         n2 = childToStream[i];
-       else {
-         n2 = toStreamRecLFSC(ss2, tp, *(pf.d_children[i]), tb + 1, map);
-         childToStream[i] = n2;
-       }
- 
-       Debug("mgd") << "\ndoing trans proof, got (first) n2 " << n2 << "\n";
- 
-       // The following branch is dedicated to handling sequences of identical equalities,
-       // i.e. trans[ a=b, a=b, a=b ].
-       //
-       // There are two cases:
-       //    1. The number of equalities is odd. Then, the sequence can be collapsed to just one equality,
-       //       i.e. a=b.
-       //    2. The number of equalities is even. Now, we have two options: a=a or b=b. To determine this,
-       //       we look at the node after the equality sequence. If it needs a, we go for a=a; and if it needs
-       //       b, we go for b=b. If there is no following node, we look at the goal of the transitivity proof,
-       //       and use it to determine which option we need.
- 
-       if(n2.getKind() == kind::EQUAL) {
-         if (((n1[0] == n2[0]) && (n1[1] == n2[1])) || ((n1[0] == n2[1]) && (n1[1] == n2[0]))) {
-           // We are in a sequence of identical equalities
- 
-           Debug("pf::array") << "Detected identical equalities: " << std::endl << "\t" << n1 << std::endl;
- 
-           if (!identicalEqualities) {
-             // The sequence of identical equalities has started just now
-             identicalEqualities = true;
- 
-             Debug("pf::array") << "The sequence is just beginning. Determining length..." << std::endl;
- 
-             // Determine whether the length of this sequence is odd or even.
-             evenLengthSequence = true;
-             bool sequenceOver = false;
-             size_t j = i + 1;
- 
-             while (j < pf.d_children.size() && !sequenceOver) {
-               std::stringstream dontCare;
-               nodeAfterEqualitySequence = toStreamRecLFSC(dontCare, tp, *(pf.d_children[j]), tb + 1, map );
-               if (((nodeAfterEqualitySequence[0] == n1[0]) && (nodeAfterEqualitySequence[1] == n1[1])) ||
-                   ((nodeAfterEqualitySequence[0] == n1[1]) && (nodeAfterEqualitySequence[1] == n1[0]))) {
-                 evenLengthSequence = !evenLengthSequence;
-               } else {
-                 sequenceOver = true;
-               }
- 
-               ++j;
-             }
+    std::stringstream ss1(ss.str()), ss2;
+    for (size_t i = 1; i < pf.d_children.size(); ++i)
+    {
+      std::stringstream ss1(ss.str()), ss2;
+      ss.str("");
 
-	  tp->transitivityPrinterHelper(theory::THEORY_ARRAYS, evenLengthSequence, sequenceOver, i, pf, map, n2,
-	                 ss1.str(),
-	                 &ss,
-	                 n1,
-	                 nodeAfterEqualitySequence);
-		   }
-else {
-             ss.str(ss1.str());
-           }
- 
-           // Ignore the redundancy.
-           continue;
-         }
-       }
- 
-       if (identicalEqualities) {
-         // We were in a sequence of identical equalities, but it has now ended. Resume normal operation.
-         identicalEqualities = false;
-       }
- 
-       Debug("mgd") << "\ndoing trans proof, got n2 " << n2 << "\n";
-       if(tb == 1) {
-         Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
-         Debug("mgdx") << (n2.getKind() == kind::EQUAL) << "\n";
- 
-         if ((n1.getNumChildren() >= 2) && (n2.getNumChildren() >= 2)) {
-           Debug("mgdx") << n1[0].getId() << " " << n1[1].getId() << " / " << n2[0].getId() << " " << n2[1].getId() << "\n";
-           Debug("mgdx") << n1[0].getId() << " " << n1[0] << "\n";
-           Debug("mgdx") << n1[1].getId() << " " << n1[1] << "\n";
-           Debug("mgdx") << n2[0].getId() << " " << n2[0] << "\n";
-           Debug("mgdx") << n2[1].getId() << " " << n2[1] << "\n";
-           Debug("mgdx") << (n1[0] == n2[0]) << "\n";
-           Debug("mgdx") << (n1[1] == n2[1]) << "\n";
-           Debug("mgdx") << (n1[0] == n2[1]) << "\n";
-           Debug("mgdx") << (n1[1] == n2[0]) << "\n";
-         }
-       }
+      // In congruences, we can have something like a[x] - it's important to
+      // keep these,
+      // and not turn them into (a[x]=true), because that will mess up the
+      // congruence application
+      // later.
 
+      if (pf.d_children[i]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE)
+        pf.d_children[i]->d_node =
+            simplifyBooleanNode(pf.d_children[i]->d_node);
 
-      //YONI UNMERGABLE CODE BELOW
+      // It is possible that we've already converted the i'th child to stream.
+      // If so,
+      // use previously stored result. Otherwise, convert and store.
+      Node n2;
+      if (childToStream.find(i) != childToStream.end())
+        n2 = childToStream[i];
+      else
+      {
+        n2 = toStreamRecLFSC(ss2, tp, *(pf.d_children[i]), tb + 1, map);
+        childToStream[i] = n2;
+      }
+
+      Debug("mgd") << "\ndoing trans proof, got (first) n2 " << n2 << "\n";
+
+      // The following branch is dedicated to handling sequences of identical
+      // equalities,
+      // i.e. trans[ a=b, a=b, a=b ].
+      //
+      // There are two cases:
+      //    1. The number of equalities is odd. Then, the sequence can be
+      //    collapsed to just one equality,
+      //       i.e. a=b.
+      //    2. The number of equalities is even. Now, we have two options: a=a
+      //    or b=b. To determine this,
+      //       we look at the node after the equality sequence. If it needs a,
+      //       we go for a=a; and if it needs
+      //       b, we go for b=b. If there is no following node, we look at the
+      //       goal of the transitivity proof,
+      //       and use it to determine which option we need.
+
+      if (n2.getKind() == kind::EQUAL)
+      {
+        if (((n1[0] == n2[0]) && (n1[1] == n2[1]))
+            || ((n1[0] == n2[1]) && (n1[1] == n2[0])))
+        {
+          // We are in a sequence of identical equalities
+
+          Debug("pf::array") << "Detected identical equalities: " << std::endl
+                             << "\t" << n1 << std::endl;
+
+          if (!identicalEqualities)
+          {
+            // The sequence of identical equalities has started just now
+            identicalEqualities = true;
+
+            Debug("pf::array")
+                << "The sequence is just beginning. Determining length..."
+                << std::endl;
+
+            // Determine whether the length of this sequence is odd or even.
+            evenLengthSequence = true;
+            bool sequenceOver = false;
+            size_t j = i + 1;
+
+            while (j < pf.d_children.size() && !sequenceOver)
+            {
+              std::stringstream dontCare;
+              nodeAfterEqualitySequence = toStreamRecLFSC(
+                  dontCare, tp, *(pf.d_children[j]), tb + 1, map);
+              if (((nodeAfterEqualitySequence[0] == n1[0])
+                   && (nodeAfterEqualitySequence[1] == n1[1]))
+                  || ((nodeAfterEqualitySequence[0] == n1[1])
+                      && (nodeAfterEqualitySequence[1] == n1[0])))
+              {
+                evenLengthSequence = !evenLengthSequence;
+              }
+              else
+              {
+                sequenceOver = true;
+              }
+
+              ++j;
+            }
+
+            tp->transitivityPrinterHelper(theory::THEORY_ARRAYS,
+                                          evenLengthSequence,
+                                          sequenceOver,
+                                          i,
+                                          pf,
+                                          map,
+                                          n2,
+                                          ss1.str(),
+                                          &ss,
+                                          n1,
+                                          nodeAfterEqualitySequence);
+          }
+          else
+          {
+            ss.str(ss1.str());
+          }
+
+          // Ignore the redundancy.
+          continue;
+        }
+      }
+
+      if (identicalEqualities)
+      {
+        // We were in a sequence of identical equalities, but it has now ended.
+        // Resume normal operation.
+        identicalEqualities = false;
+      }
+
+      Debug("mgd") << "\ndoing trans proof, got n2 " << n2 << "\n";
+      if (tb == 1)
+      {
+        Debug("mgdx") << "\ntrans proof[" << i << "], got n2 " << n2 << "\n";
+        Debug("mgdx") << (n2.getKind() == kind::EQUAL) << "\n";
+
+        if ((n1.getNumChildren() >= 2) && (n2.getNumChildren() >= 2))
+        {
+          Debug("mgdx") << n1[0].getId() << " " << n1[1].getId() << " / "
+                        << n2[0].getId() << " " << n2[1].getId() << "\n";
+          Debug("mgdx") << n1[0].getId() << " " << n1[0] << "\n";
+          Debug("mgdx") << n1[1].getId() << " " << n1[1] << "\n";
+          Debug("mgdx") << n2[0].getId() << " " << n2[0] << "\n";
+          Debug("mgdx") << n2[1].getId() << " " << n2[1] << "\n";
+          Debug("mgdx") << (n1[0] == n2[0]) << "\n";
+          Debug("mgdx") << (n1[1] == n2[1]) << "\n";
+          Debug("mgdx") << (n1[0] == n2[1]) << "\n";
+          Debug("mgdx") << (n1[1] == n2[0]) << "\n";
+        }
+      }
+
+      // YONI UNMERGABLE CODE BELOW
       // We can hadnle one of the equalities being negative, but not both
       Assert((n1.getKind() != kind::NOT) || (n2.getKind() != kind::NOT));
 
@@ -676,7 +719,8 @@ else {
     return n1;
   }
 
-  case theory::eq::MERGED_THROUGH_CONSTANTS: {
+  case theory::eq::MERGED_THROUGH_CONSTANTS:
+  {
     Debug("pf::array") << "Proof for: " << pf.d_node << std::endl;
     Assert(pf.d_node.getKind() == kind::NOT);
     Node n = pf.d_node[0];
@@ -684,233 +728,282 @@ else {
     Assert(n.getNumChildren() == 2);
     Assert(n[0].isConst() && n[1].isConst());
 
-    ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(out,
-                                                                        n[0].toExpr(),
-                                                                        n[1].toExpr(),
-                                                                        map);
+    ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(
+        out, n[0].toExpr(), n[1].toExpr(), map);
     return pf.d_node;
   }
-  
-  default: {
-    if (pf.d_id == d_reasonRow) { 
-			Debug("mgd") << "row lemma: " << pf.d_node << std::endl;
-			Assert(pf.d_node.getKind() == kind::EQUAL);
 
+  default:
+  {
+    if (pf.d_id == d_reasonRow)
+    {
+      Debug("mgd") << "row lemma: " << pf.d_node << std::endl;
+      Assert(pf.d_node.getKind() == kind::EQUAL);
 
-			if (pf.d_node[1].getKind() == kind::SELECT) {
-			  // This is the case where ((a[i]:=t)[k] == a[k]), and the sub-proof explains why (i != k).
-			  TNode t1, t2, t3, t4;
-			  Node ret;
-			  if(pf.d_node[1].getKind() == kind::SELECT &&
-				 pf.d_node[1][0].getKind() == kind::STORE &&
-				 pf.d_node[0].getKind() == kind::SELECT &&
-				 pf.d_node[0][0] == pf.d_node[1][0][0] &&
-				 pf.d_node[0][1] == pf.d_node[1][1]) {
-				t2 = pf.d_node[1][0][1];
-				t3 = pf.d_node[1][1];
-				t1 = pf.d_node[0][0];
-				t4 = pf.d_node[1][0][2];
-				ret = pf.d_node[1].eqNode(pf.d_node[0]);
-				Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-			  } else {
-				Assert(pf.d_node[0].getKind() == kind::SELECT &&
-					   pf.d_node[0][0].getKind() == kind::STORE &&
-					   pf.d_node[1].getKind() == kind::SELECT &&
-					   pf.d_node[1][0] == pf.d_node[0][0][0] &&
-					   pf.d_node[1][1] == pf.d_node[0][1]);
-				t2 = pf.d_node[0][0][1];
-				t3 = pf.d_node[0][1];
-				t1 = pf.d_node[1][0];
-				t4 = pf.d_node[0][0][2];
-				ret = pf.d_node;
-				Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
-			  }
+      if (pf.d_node[1].getKind() == kind::SELECT)
+      {
+        // This is the case where ((a[i]:=t)[k] == a[k]), and the sub-proof
+        // explains why (i != k).
+        TNode t1, t2, t3, t4;
+        Node ret;
+        if (pf.d_node[1].getKind() == kind::SELECT
+            && pf.d_node[1][0].getKind() == kind::STORE
+            && pf.d_node[0].getKind() == kind::SELECT
+            && pf.d_node[0][0] == pf.d_node[1][0][0]
+            && pf.d_node[0][1] == pf.d_node[1][1])
+        {
+          t2 = pf.d_node[1][0][1];
+          t3 = pf.d_node[1][1];
+          t1 = pf.d_node[0][0];
+          t4 = pf.d_node[1][0][2];
+          ret = pf.d_node[1].eqNode(pf.d_node[0]);
+          Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3
+                       << "\nt4 " << t4 << "\n";
+        }
+        else
+        {
+          Assert(pf.d_node[0].getKind() == kind::SELECT
+                 && pf.d_node[0][0].getKind() == kind::STORE
+                 && pf.d_node[1].getKind() == kind::SELECT
+                 && pf.d_node[1][0] == pf.d_node[0][0][0]
+                 && pf.d_node[1][1] == pf.d_node[0][1]);
+          t2 = pf.d_node[0][0][1];
+          t3 = pf.d_node[0][1];
+          t1 = pf.d_node[1][0];
+          t4 = pf.d_node[0][0][2];
+          ret = pf.d_node;
+          Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3
+                       << "\nt4 " << t4 << "\n";
+        }
 
-			  // inner index != outer index
-			  // t3 is the outer index
+        // inner index != outer index
+        // t3 is the outer index
 
-			  Assert(pf.d_children.size() == 1);
-			  std::stringstream ss;
-			  Node subproof = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
+        Assert(pf.d_children.size() == 1);
+        std::stringstream ss;
+        Node subproof =
+            toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
 
-			  out << "(row _ _ ";
-			  tp->printTerm(t2.toExpr(), out, map);
-			  out << " ";
-			  tp->printTerm(t3.toExpr(), out, map);
-			  out << " ";
-			  tp->printTerm(t1.toExpr(), out, map);
-			  out << " ";
-			  tp->printTerm(t4.toExpr(), out, map);
-			  out << " ";
+        out << "(row _ _ ";
+        tp->printTerm(t2.toExpr(), out, map);
+        out << " ";
+        tp->printTerm(t3.toExpr(), out, map);
+        out << " ";
+        tp->printTerm(t1.toExpr(), out, map);
+        out << " ";
+        tp->printTerm(t4.toExpr(), out, map);
+        out << " ";
 
+        Debug("pf::array") << "pf.d_children[0]->d_node is: "
+                           << pf.d_children[0]->d_node << ". t3 is: " << t3
+                           << std::endl
+                           << "subproof is: " << subproof << std::endl;
 
-			  Debug("pf::array") << "pf.d_children[0]->d_node is: " << pf.d_children[0]->d_node
-								 << ". t3 is: " << t3 << std::endl
-								 << "subproof is: " << subproof << std::endl;
+        Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
 
-			  Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
+        // The subproof needs to show that t2 != t3. This can either be a direct
+        // disequality,
+        // or, if (wlog) t2 is constant, it can show that t3 is equal to another
+        // constant.
+        if (subproof.getKind() == kind::NOT)
+        {
+          // The subproof is for t2 != t3 (or t3 != t2)
+          if (subproof[0][1] == t3)
+          {
+            Debug("pf::array") << "Dont need symmetry!" << std::endl;
+            out << ss.str();
+          }
+          else
+          {
+            Debug("pf::array") << "Need symmetry!" << std::endl;
+            out << "(negsymm _ _ _ " << ss.str() << ")";
+          }
+        }
+        else
+        {
+          // Either t2 or t3 is a constant.
+          Assert(subproof.getKind() == kind::EQUAL);
+          Assert(subproof[0].isConst() || subproof[1].isConst());
+          Assert(t2.isConst() || t3.isConst());
+          Assert(!(t2.isConst() && t3.isConst()));
 
-			  // The subproof needs to show that t2 != t3. This can either be a direct disequality,
-			  // or, if (wlog) t2 is constant, it can show that t3 is equal to another constant.
-			  if (subproof.getKind() == kind::NOT) {
-				// The subproof is for t2 != t3 (or t3 != t2)
-				if (subproof[0][1] == t3) {
-				  Debug("pf::array") << "Dont need symmetry!" << std::endl;
-				  out << ss.str();
-				} else {
-				  Debug("pf::array") << "Need symmetry!" << std::endl;
-				  out << "(negsymm _ _ _ " << ss.str() << ")";
-				}
-			  } else {
-				// Either t2 or t3 is a constant.
-				Assert(subproof.getKind() == kind::EQUAL);
-				Assert(subproof[0].isConst() || subproof[1].isConst());
-				Assert(t2.isConst() || t3.isConst());
-				Assert(!(t2.isConst() && t3.isConst()));
+          bool t2IsConst = t2.isConst();
+          if (subproof[0].isConst())
+          {
+            if (t2IsConst)
+            {
+              // (t3 == subproof[1]) == subproof[0] != t2
+              // goal is t2 != t3
+              // subproof already shows constant = t3
+              Assert(t3 == subproof[1]);
+              out << "(negtrans _ _ _ _ ";
+              tp->printConstantDisequalityProof(
+                  out, t2.toExpr(), subproof[0].toExpr(), map);
+              out << " ";
+              out << ss.str();
+              out << ")";
+            }
+            else
+            {
+              Assert(t2 == subproof[1]);
+              out << "(negsymm _ _ _ ";
+              out << "(negtrans _ _ _ _ ";
+              tp->printConstantDisequalityProof(
+                  out, t3.toExpr(), subproof[0].toExpr(), map);
+              out << " ";
+              out << ss.str();
+              out << "))";
+            }
+          }
+          else
+          {
+            if (t2IsConst)
+            {
+              // (t3 == subproof[0]) == subproof[1] != t2
+              // goal is t2 != t3
+              // subproof already shows constant = t3
+              Assert(t3 == subproof[0]);
+              out << "(negtrans _ _ _ _ ";
+              tp->printConstantDisequalityProof(
+                  out, t2.toExpr(), subproof[1].toExpr(), map);
+              out << " ";
+              out << "(symm _ _ _ " << ss.str() << ")";
+              out << ")";
+            }
+            else
+            {
+              Assert(t2 == subproof[0]);
+              out << "(negsymm _ _ _ ";
+              out << "(negtrans _ _ _ _ ";
+              tp->printConstantDisequalityProof(
+                  out, t3.toExpr(), subproof[1].toExpr(), map);
+              out << " ";
+              out << "(symm _ _ _ " << ss.str() << ")";
+              out << "))";
+            }
+          }
+        }
 
-				bool t2IsConst = t2.isConst();
-				if (subproof[0].isConst()) {
-				  if (t2IsConst) {
-					// (t3 == subproof[1]) == subproof[0] != t2
-					// goal is t2 != t3
-					// subproof already shows constant = t3
-					Assert(t3 == subproof[1]);
-					out << "(negtrans _ _ _ _ ";
-					tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[0].toExpr(), map);
-					out << " ";
-					out << ss.str();
-					out << ")";
-				  } else {
-					Assert(t2 == subproof[1]);
-					out << "(negsymm _ _ _ ";
-					out << "(negtrans _ _ _ _ ";
-					tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[0].toExpr(), map);
-					out << " ";
-					out << ss.str();
-					out << "))";
-				  }
-				} else {
-				  if (t2IsConst) {
-					// (t3 == subproof[0]) == subproof[1] != t2
-					// goal is t2 != t3
-					// subproof already shows constant = t3
-					Assert(t3 == subproof[0]);
-					out << "(negtrans _ _ _ _ ";
-					tp->printConstantDisequalityProof(out, t2.toExpr(), subproof[1].toExpr(), map);
-					out << " ";
-					out << "(symm _ _ _ " << ss.str() << ")";
-					out << ")";
-				  } else {
-					Assert(t2 == subproof[0]);
-					out << "(negsymm _ _ _ ";
-					out << "(negtrans _ _ _ _ ";
-					tp->printConstantDisequalityProof(out, t3.toExpr(), subproof[1].toExpr(), map);
-					out << " ";
-					out << "(symm _ _ _ " << ss.str() << ")";
-					out << "))";
-				  }
-				}
-			  }
+        out << ")";
+        return ret;
+      }
+      else
+      {
+        Debug("pf::array") << "In the case of NEGATIVE ROW" << std::endl;
 
-			  out << ")";
-			  return ret;
-			} else {
-			  Debug("pf::array") << "In the case of NEGATIVE ROW" << std::endl;
+        Debug("pf::array") << "pf.d_children[0]->d_node is: "
+                           << pf.d_children[0]->d_node << std::endl;
 
-			  Debug("pf::array") << "pf.d_children[0]->d_node is: " << pf.d_children[0]->d_node << std::endl;
+        // This is the case where (i == k), and the sub-proof explains why
+        // ((a[i]:=t)[k] != a[k])
 
-			  // This is the case where (i == k), and the sub-proof explains why ((a[i]:=t)[k] != a[k])
+        // If we wanted to remove the need for "negativerow", we would need to
+        // prove i==k using a new satlem. We would:
+        // 1. Create a new satlem.
+        // 2. Assume that i != k
+        // 3. Apply ROW to show that ((a[i]:=t)[k] == a[k])
+        // 4. Contradict this with the fact that ((a[i]:=t)[k] != a[k]),
+        // obtaining our contradiction
 
-			  // If we wanted to remove the need for "negativerow", we would need to prove i==k using a new satlem. We would:
-			  // 1. Create a new satlem.
-			  // 2. Assume that i != k
-			  // 3. Apply ROW to show that ((a[i]:=t)[k] == a[k])
-			  // 4. Contradict this with the fact that ((a[i]:=t)[k] != a[k]), obtaining our contradiction
+        TNode t1, t2, t3, t4;
+        Node ret;
 
-			  TNode t1, t2, t3, t4;
-			  Node ret;
+        // pf.d_node is an equality, i==k.
+        t1 = pf.d_node[0];
+        t2 = pf.d_node[1];
 
-			  // pf.d_node is an equality, i==k.
-			  t1 = pf.d_node[0];
-			  t2 = pf.d_node[1];
+        // pf.d_children[0]->d_node will have the form: (not (= (select (store
+        // a_565 i7 e_566) i1) (select a_565 i1))),
+        // or its symmetrical version.
 
-			  // pf.d_children[0]->d_node will have the form: (not (= (select (store a_565 i7 e_566) i1) (select a_565 i1))),
-			  // or its symmetrical version.
+        unsigned side;
+        if (pf.d_children[0]->d_node[0][0].getKind() == kind::SELECT
+            && pf.d_children[0]->d_node[0][0][0].getKind() == kind::STORE)
+        {
+          side = 0;
+        }
+        else if (pf.d_children[0]->d_node[0][1].getKind() == kind::SELECT
+                 && pf.d_children[0]->d_node[0][1][0].getKind() == kind::STORE)
+        {
+          side = 1;
+        }
+        else
+        {
+          Unreachable();
+        }
 
-			  unsigned side;
-			  if (pf.d_children[0]->d_node[0][0].getKind() == kind::SELECT &&
-				  pf.d_children[0]->d_node[0][0][0].getKind() == kind::STORE) {
-				side = 0;
-			  } else if (pf.d_children[0]->d_node[0][1].getKind() == kind::SELECT &&
-						 pf.d_children[0]->d_node[0][1][0].getKind() == kind::STORE) {
-				side = 1;
-			  }
-			  else {
-				Unreachable();
-			  }
+        Debug("pf::array") << "Side is: " << side << std::endl;
 
-			  Debug("pf::array") << "Side is: " << side << std::endl;
+        // The array's index and element types will come from the subproof...
+        t3 = pf.d_children[0]->d_node[0][side][0][0];
+        t4 = pf.d_children[0]->d_node[0][side][0][2];
+        ret = pf.d_node;
 
-			  // The array's index and element types will come from the subproof...
-			  t3 = pf.d_children[0]->d_node[0][side][0][0];
-			  t4 = pf.d_children[0]->d_node[0][side][0][2];
-			  ret = pf.d_node;
+        // The order of indices needs to match; we might have to swap t1 and t2
+        // and then apply symmetry.
+        bool swap = (t2 == pf.d_children[0]->d_node[0][side][0][1]);
 
-			  // The order of indices needs to match; we might have to swap t1 and t2 and then apply symmetry.
-			  bool swap = (t2 == pf.d_children[0]->d_node[0][side][0][1]);
+        Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 "
+                     << t4 << "\n";
 
-			  Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 " << t4 << "\n";
+        Assert(pf.d_children.size() == 1);
+        std::stringstream ss;
+        Node subproof =
+            toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
 
-			  Assert(pf.d_children.size() == 1);
-			  std::stringstream ss;
-			  Node subproof = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
+        Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
 
-			  Debug("pf::array") << "Subproof is: " << ss.str() << std::endl;
+        if (swap)
+        {
+          out << "(symm _ _ _ ";
+        }
 
-			  if (swap) {
-				out << "(symm _ _ _ ";
-			  }
+        out << "(negativerow _ _ ";
+        tp->printTerm(swap ? t2.toExpr() : t1.toExpr(), out, map);
+        out << " ";
+        tp->printTerm(swap ? t1.toExpr() : t2.toExpr(), out, map);
+        out << " ";
+        tp->printTerm(t3.toExpr(), out, map);
+        out << " ";
+        tp->printTerm(t4.toExpr(), out, map);
+        out << " ";
 
-			  out << "(negativerow _ _ ";
-			  tp->printTerm(swap ? t2.toExpr() : t1.toExpr(), out, map);
-			  out << " ";
-			  tp->printTerm(swap ? t1.toExpr() : t2.toExpr(), out, map);
-			  out << " ";
-			  tp->printTerm(t3.toExpr(), out, map);
-			  out << " ";
-			  tp->printTerm(t4.toExpr(), out, map);
-			  out << " ";
+        if (side != 0)
+        {
+          out << "(negsymm _ _ _ " << ss.str() << ")";
+        }
+        else
+        {
+          out << ss.str();
+        }
 
-			  if (side != 0) {
-				out << "(negsymm _ _ _ " << ss.str() << ")";
-			  } else {
-				out << ss.str();
-			  }
+        out << ")";
 
-			  out << ")";
+        if (swap)
+        {
+          out << ") ";
+        }
 
-			  if (swap) {
-				out << ") ";
-			  }
-
-			  return ret;
-			}
-		  }
-  else if (pf.d_id == d_reasonRow1) {
-    Debug("mgd") << "row1 lemma: " << pf.d_node << std::endl;
-    Assert(pf.d_node.getKind() == kind::EQUAL);
-    TNode t1, t2, t3;
-    Node ret;
-    if(pf.d_node[1].getKind() == kind::SELECT &&
-       pf.d_node[1][0].getKind() == kind::STORE &&
-       pf.d_node[1][0][1] == pf.d_node[1][1] &&
-       pf.d_node[1][0][2] == pf.d_node[0]) {
-      t1 = pf.d_node[1][0][0];
-      t2 = pf.d_node[1][0][1];
-      t3 = pf.d_node[0];
-      ret = pf.d_node[1].eqNode(pf.d_node[0]);
-      Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    } else {
+        return ret;
+      }
+    }
+    else if (pf.d_id == d_reasonRow1)
+    {
+      Debug("mgd") << "row1 lemma: " << pf.d_node << std::endl;
+      Assert(pf.d_node.getKind() == kind::EQUAL);
+      TNode t1, t2, t3;
+      Node ret;
+      if (pf.d_node[1].getKind() == kind::SELECT
+          && pf.d_node[1][0].getKind() == kind::STORE
+          && pf.d_node[1][0][1] == pf.d_node[1][1]
+          && pf.d_node[1][0][2] == pf.d_node[0])
+      {
+        t1 = pf.d_node[1][0][0];
+        t2 = pf.d_node[1][0][1];
+        t3 = pf.d_node[0];
+        ret = pf.d_node[1].eqNode(pf.d_node[0]);
+        Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
+      } else {
       Assert(pf.d_node[0].getKind() == kind::SELECT &&
              pf.d_node[0][0].getKind() == kind::STORE &&
              pf.d_node[0][0][1] == pf.d_node[0][1] &&
@@ -964,7 +1057,7 @@ else {
     return pf.d_node;
   }
 }
-}
+  }
 }
 
 ArrayProof::ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* pe)
@@ -994,8 +1087,10 @@ void ArrayProof::registerTerm(Expr term) {
   if (term.getKind() == kind::SELECT && term.getType().isBoolean()) {
     // Ensure cnf literals
     Node asNode(term);
-    ProofManager::currentPM()->ensureLiteral(TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(true)));
-    ProofManager::currentPM()->ensureLiteral(TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(false)));
+    ProofManager::currentPM()->ensureLiteral(
+        TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(true)));
+    ProofManager::currentPM()->ensureLiteral(
+        TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(false)));
   }
 
   // recursively declare all other terms
