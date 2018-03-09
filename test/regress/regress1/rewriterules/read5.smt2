@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 (set-logic AUF)
 (set-info :source |
 Translated from old SVC processor verification benchmarks.  Contact Clark

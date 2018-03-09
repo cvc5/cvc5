@@ -13,10 +13,6 @@ TESTS_ENVIRONMENT = \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
-# models not supported with unconstrained simp
-override CVC4_REGRESSION_ARGS += --unconstrained-simp --no-check-models
-export CVC4_REGRESSION_ARGS
-
 MAKEFLAGS = -k
 
 # These are run for all build profiles.

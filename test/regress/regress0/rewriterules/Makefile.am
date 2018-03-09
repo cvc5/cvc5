@@ -13,9 +13,6 @@ TESTS_ENVIRONMENT = \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
-override CVC4_REGRESSION_ARGS += --rewrite-rules
-export CVC4_REGRESSION_ARGS
-
 MAKEFLAGS = -k
 
 # These are run for all build profiles.
