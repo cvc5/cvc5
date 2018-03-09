@@ -2144,6 +2144,12 @@ void SmtEngine::setDefaults() {
   }
 }
 
+void SmtEngine::setProblemExtended(bool value)
+{
+  d_problemExtended = value;
+  if (value) { d_assumptions.clear(); }
+}
+
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
 {
   SmtScope smts(this);
@@ -4693,25 +4699,25 @@ void SmtEngine::ensureBoolean(const Expr& e)
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore)
+Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
-  return checkSatisfiability(ex, inUnsatCore, false);
+  return checkSatisfiability(assumption, inUnsatCore, false);
 }
 
-Result SmtEngine::checkSat(const vector<Expr>& exprs, bool inUnsatCore)
+Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  return checkSatisfiability(exprs, inUnsatCore, false);
+  return checkSatisfiability(assumptions, inUnsatCore, false);
 }
 
-Result SmtEngine::query(const Expr& ex, bool inUnsatCore)
+Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
-  Assert(!ex.isNull());
-  return checkSatisfiability(ex, inUnsatCore, true);
+  Assert(!assumption.isNull());
+  return checkSatisfiability(assumption, inUnsatCore, true);
 }
 
-Result SmtEngine::query(const vector<Expr>& exprs, bool inUnsatCore)
+Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  return checkSatisfiability(exprs, inUnsatCore, true);
+  return checkSatisfiability(assumptions, inUnsatCore, true);
 }
 
 Result SmtEngine::checkSatisfiability(const Expr& expr,
@@ -4724,7 +4730,7 @@ Result SmtEngine::checkSatisfiability(const Expr& expr,
       isQuery);
 }
 
-Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
+Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                                       bool inUnsatCore,
                                       bool isQuery)
 {
@@ -4735,7 +4741,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
     doPendingPops();
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
-                 << exprs << ")" << endl;
+                 << assumptions << ")" << endl;
 
     if(d_queryMade && !options::incrementalSolving()) {
       throw ModalException("Cannot make multiple queries unless "
@@ -4755,29 +4761,29 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
 
     bool didInternalPush = false;
 
-    vector<Expr> t_exprs;
     if (isQuery)
     {
-      size_t size = exprs.size();
+      size_t size = assumptions.size();
       if (size > 1)
       {
-        /* Assume: not (BIGAND exprs)  */
-        t_exprs.push_back(d_exprManager->mkExpr(kind::AND, exprs).notExpr());
+        /* Assume: not (BIGAND assumptions)  */
+        d_assumptions.push_back(
+            d_exprManager->mkExpr(kind::AND, assumptions).notExpr());
       }
       else if (size == 1)
       {
         /* Assume: not expr  */
-        t_exprs.push_back(exprs[0].notExpr());
+        d_assumptions.push_back(assumptions[0].notExpr());
       }
     }
     else
     {
-      /* Assume: BIGAND exprs  */
-      t_exprs = exprs;
+      /* Assume: BIGAND assumptions  */
+      d_assumptions = assumptions;
     }
 
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-    for (Expr e : t_exprs)
+    for (Expr e : d_assumptions)
     {
       // Substitute out any abstract values in ex.
       e = d_private->substituteAbstractValues(Node::fromExpr(e)).toExpr();
@@ -4832,13 +4838,14 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
     if (Dump.isOn("benchmark"))
     {
       // the expr already got dumped out if assertion-dumping is on
-      if (isQuery && exprs.size() == 1)
+      if (isQuery && assumptions.size() == 1)
       {
-        Dump("benchmark") << QueryCommand(exprs[0]);
+        Dump("benchmark") << QueryCommand(assumptions[0]);
       }
       else
       {
-        Dump("benchmark") << CheckSatAssumingCommand(t_exprs, inUnsatCore);
+        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions,
+                                                     inUnsatCore);
       }
     }
 
@@ -4854,7 +4861,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
     d_problemExtended = false;
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
-                 << exprs << ") => " << r << endl;
+                 << assumptions << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -4891,6 +4898,40 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& exprs,
       Result::RESOURCEOUT : Result::TIMEOUT;
     return Result(Result::SAT_UNKNOWN, why, d_filename);
   }
+}
+
+vector<Expr> SmtEngine::getUnsatAssumptions(void)
+{
+  Trace("smt") << "SMT getUnsatAssumptions()" << endl;
+  SmtScope smts(this);
+  if (!options::unsatAssumptions())
+  {
+    throw ModalException(
+        "Cannot get unsat assumptions when produce-unsat-assumptions option "
+        "is off.");
+  }
+  if (d_status.isNull()
+      || d_status.asSatisfiabilityResult() != Result::UNSAT
+      || d_problemExtended)
+  {
+    throw RecoverableModalException(
+        "Cannot get unsat assumptions unless immediately preceded by "
+        "UNSAT/VALID response.");
+  }
+  finalOptionsAreSet();
+#if 0
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << GetUnsatCoreCommand();
+  }
+#endif
+  UnsatCore core = getUnsatCore();
+  vector<Expr> res;
+  for (const Expr& e : d_assumptions)
+  {
+    if (find(core.begin(), core.end(), e) != core.end()) { res.push_back(e); }
+  }
+  return res;
 }
 
 Result SmtEngine::checkSynth(const Expr& e)
