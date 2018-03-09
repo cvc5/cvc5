@@ -21,10 +21,12 @@
 #include "proof/clause_id.h"
 #include "proof/sat_proof.h"
 
-#include <cryptominisat4/cryptominisat.h>
+#include <cryptominisat5/cryptominisat.h>
 
 namespace CVC4 {
 namespace prop {
+
+using CMSatVar = unsigned;
 
 // helper functions
 namespace {
@@ -95,7 +97,7 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
   
   // ensure all sat literals have positive polarity by pushing
   // the negation on the result
-  std::vector<CMSat::Var> xor_clause;
+  std::vector<CMSatVar> xor_clause;
   for (unsigned i = 0; i < clause.size(); ++i) {
     xor_clause.push_back(toInternalLit(clause[i]).var());
     rhs ^= clause[i].isNegated();
@@ -166,7 +168,7 @@ SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
 
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
-  CMSat::Var var = l.getSatVariable();
+  CMSatVar var = l.getSatVariable();
   Assert (var < model.size());
   CMSat::lbool value = model[var];
   return toSatLiteralValue(value);

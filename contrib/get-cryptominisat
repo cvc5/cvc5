@@ -2,15 +2,15 @@
 #
 source "$(dirname "$0")/get-script-header.sh"
 
-if [ -e cryptominisat4 ]; then
-  echo 'error: file or directory "cryptominisat4" exists; please move it out of the way.' >&2
+if [ -e cryptominisat5 ]; then
+  echo 'error: file or directory "cryptominisat5" exists; please move it out of the way.' >&2
   exit 1
 fi
 
-version="4.2.0"
+version="5.0.2"
 
-mkdir cryptominisat4
-cd cryptominisat4
+mkdir cryptominisat5
+cd cryptominisat5
 CRYPTOMINISAT_PATH=`pwd`
 
 webget https://github.com/msoos/cryptominisat/archive/$version.tar.gz cryptominisat-$version.tar.gz
@@ -18,13 +18,15 @@ gunzip -f cryptominisat-$version.tar.gz
 tar xfv cryptominisat-$version.tar
 cd cryptominisat-$version
 
-patch -p0 < ../../contrib/cryptominisat-4.2.0.patch
-patch -p0 < ../../contrib/cryptominisat-4.2.0.second.patch 
-
 mkdir ../build
 cd ../build
 
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$CRYPTOMINISAT_PATH/install -DSTATICCOMPILE="ON" -DNOM4RI="ON"  ../cryptominisat-$version
+cmake -DENABLE_PYTHON_INTERFACE=OFF \
+      -DCMAKE_INSTALL_PREFIX:PATH=$CRYPTOMINISAT_PATH/install \
+      -DSTATICCOMPILE=ON \
+      -DNOM4RI=ON \
+      ../cryptominisat-$version
+
 make install -j$(nproc)
 
 cd ../
