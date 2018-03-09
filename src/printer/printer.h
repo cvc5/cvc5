@@ -2,9 +2,9 @@
 /*! \file printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,12 +30,13 @@
 
 namespace CVC4 {
 
-class Printer {
+class Printer
+{
   /** Printers for each OutputLanguage */
-  static Printer* d_printers[language::output::LANG_MAX];
+  static std::unique_ptr<Printer> d_printers[language::output::LANG_MAX];
 
   /** Make a Printer for a given OutputLanguage */
-  static Printer* makePrinter(OutputLanguage lang);
+  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
 
   // disallow copy, assignment
   Printer(const Printer&) CVC4_UNDEFINED;
@@ -44,7 +45,6 @@ class Printer {
 protected:
   // derived classes can construct, but no one else.
  Printer() {}
- virtual ~Printer() {}
 
  /** write model response to command */
  virtual void toStream(std::ostream& out,
@@ -58,9 +58,10 @@ protected:
                     const Command* c) const
  {
    getPrinter(lang)->toStream(out, m, c);
-  }
+ }
 
  public:
+ virtual ~Printer() {}
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang);
 
