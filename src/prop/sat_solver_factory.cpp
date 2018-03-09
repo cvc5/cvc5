@@ -16,11 +16,9 @@
 
 #include "prop/sat_solver_factory.h"
 
-// Cryptominisat header has to come first since there are name clashes for
-// var_Undef, l_True, ... (static const in Cryptominisat vs. #define in Minisat)
+#include "prop/bvminisat/bvminisat.h"
 #include "prop/cryptominisat.h"
 #include "prop/minisat/minisat.h"
-#include "prop/bvminisat/bvminisat.h"
 
 namespace CVC4 {
 namespace prop {

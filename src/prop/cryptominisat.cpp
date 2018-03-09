@@ -14,15 +14,49 @@
  ** Implementation of the cryptominisat for cvc4 (bitvectors).
  **/
 
+#ifdef CVC4_USE_CRYPTOMINISAT
+
 #include "prop/cryptominisat.h"
 
 #include "proof/clause_id.h"
 #include "proof/sat_proof.h"
 
-using namespace CVC4;
-using namespace prop;
+#include <cryptominisat4/cryptominisat.h>
 
-#ifdef CVC4_USE_CRYPTOMINISAT
+namespace CVC4 {
+namespace prop {
+
+// helper functions
+namespace {
+
+CMSat::Lit toInternalLit(SatLiteral lit)
+{
+  if (lit == undefSatLiteral)
+  {
+    return CMSat::lit_Undef;
+  }
+  return CMSat::Lit(lit.getSatVariable(), lit.isNegated());
+}
+
+SatValue toSatLiteralValue(CMSat::lbool res)
+{
+  if (res == CMSat::l_True) return SAT_VALUE_TRUE;
+  if (res == CMSat::l_Undef) return SAT_VALUE_UNKNOWN;
+  Assert(res == CMSat::l_False);
+  return SAT_VALUE_FALSE;
+}
+
+void toInternalClause(SatClause& clause,
+                      std::vector<CMSat::Lit>& internal_clause)
+{
+  for (unsigned i = 0; i < clause.size(); ++i)
+  {
+    internal_clause.push_back(toInternalLit(clause[i]));
+  }
+  Assert(clause.size() == internal_clause.size());
+}
+
+}  // helper functions
 
 CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
                                          const std::string& name)
@@ -147,56 +181,6 @@ unsigned CryptoMinisatSolver::getAssertionLevel() const {
   return -1; 
 }
 
-// converting from internal sat solver representation
-
-SatVariable CryptoMinisatSolver::toSatVariable(CMSat::Var var) {
-  if (var == CMSat::var_Undef) {
-    return undefSatVariable;
-  }
-  return SatVariable(var);
-}
-
-CMSat::Lit CryptoMinisatSolver::toInternalLit(SatLiteral lit) {
-  if (lit == undefSatLiteral) {
-    return CMSat::lit_Undef;
-  }
-  return CMSat::Lit(lit.getSatVariable(), lit.isNegated());
-}
-
-SatLiteral CryptoMinisatSolver::toSatLiteral(CMSat::Lit lit) {
-  Assert (lit != CMSat::lit_Error);
-  if (lit == CMSat::lit_Undef) {
-    return undefSatLiteral;
-  }
-
-  return SatLiteral(SatVariable(lit.var()),
-                    lit.sign());
-}
-
-SatValue CryptoMinisatSolver::toSatLiteralValue(CMSat::lbool res) {
-  if(res == CMSat::l_True) return SAT_VALUE_TRUE;
-  if(res == CMSat::l_Undef) return SAT_VALUE_UNKNOWN;
-  Assert(res == CMSat::l_False);
-  return SAT_VALUE_FALSE;
-}
-
-void CryptoMinisatSolver::toInternalClause(SatClause& clause,
-                                           std::vector<CMSat::Lit>& internal_clause) {
-  for (unsigned i = 0; i < clause.size(); ++i) {
-    internal_clause.push_back(toInternalLit(clause[i]));
-  }
-  Assert(clause.size() == internal_clause.size());
-}
-
-void CryptoMinisatSolver::toSatClause(std::vector<CMSat::Lit>& clause,
-                                       SatClause& sat_clause) {
-  for (unsigned i = 0; i < clause.size(); ++i) {
-    sat_clause.push_back(toSatLiteral(clause[i]));
-  }
-  Assert(clause.size() == sat_clause.size());
-}
-
-
 // Satistics for CryptoMinisatSolver
 
 CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry* registry,
@@ -225,4 +209,7 @@ CryptoMinisatSolver::Statistics::~Statistics() {
   d_registry->unregisterStat(&d_clausesAdded);
   d_registry->unregisterStat(&d_solveTime);
 }
+
+}  // namespace prop
+}  // namespace CVC4
 #endif
