@@ -14,8 +14,8 @@ EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
 
 
-def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary, command_line,
-                  benchmark_dir, benchmark_filename):
+def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
+                  command_line, benchmark_dir, benchmark_filename):
     bin_args = wrapper[:]
     bin_args.append(cvc4_binary)
 
@@ -72,8 +72,7 @@ def main(proof, dump, wrapper, cvc4_binary, benchmark_path):
         sys.exit(
             '"{}" does not exist or is not executable'.format(cvc4_binary))
     if not os.path.isfile(benchmark_path):
-        sys.exit(
-            '"{}" does not exist or is not a file'.format(benchmark_path))
+        sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
     basic_command_line_args = []
 
@@ -155,19 +154,20 @@ def main(proof, dump, wrapper, cvc4_binary, benchmark_path):
         elif expected_exit_status is None:
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.
-            sys.exit(
-                'Cannot determine status of "{}"'.format(benchmark_path))
+            sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
 
-    
-    if not proof and ('(get-unsat-cores)' in metadata_content or '(get-unsat-assumptions)' in metadata_content):
-        print('1..0 # Skipped: unsat cores not supported without proof support')
+    if not proof and ('(get-unsat-cores)' in metadata_content
+                      or '(get-unsat-assumptions)' in metadata_content):
+        print(
+            '1..0 # Skipped: unsat cores not supported without proof support')
         return
 
     if expected_exit_status is None:
         expected_exit_status = 0
 
     if 'CVC4_REGRESSION_ARGS' in os.environ:
-        basic_command_line_args += shlex.split(os.environ['CVC4_REGRESSION_ARGS'])
+        basic_command_line_args += shlex.split(
+            os.environ['CVC4_REGRESSION_ARGS'])
     basic_command_line_args += shlex.split(command_line)
     command_line_args_configs = [basic_command_line_args]
 
@@ -175,7 +175,7 @@ def main(proof, dump, wrapper, cvc4_binary, benchmark_path):
     if benchmark_ext == '.sy' and \
         '--no-check-synth-sol' not in basic_command_line_args and \
         '--check-synth-sol' not in basic_command_line_args:
-            extra_command_line_args = ['--check-synth-sol']
+        extra_command_line_args = ['--check-synth-sol']
     if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
        '--no-check-models' not in basic_command_line_args:
         extra_command_line_args = ['--check-models']
@@ -205,20 +205,26 @@ def main(proof, dump, wrapper, cvc4_binary, benchmark_path):
     print('1..{}'.format(len(command_line_args_configs)))
     for i, command_line_args in enumerate(command_line_args_configs):
         output, error, exit_status = run_benchmark(
-            dump, wrapper, scrubber, error_scrubber, cvc4_binary, command_line_args,
-            benchmark_dir, benchmark_basename)
+            dump, wrapper, scrubber, error_scrubber, cvc4_binary,
+            command_line_args, benchmark_dir, benchmark_basename)
         if output != expected_output:
-            print('not ok - Differences between expected and actual output on stdout - Flags: {}'.format(command_line_args))
+            print(
+                'not ok - Differences between expected and actual output on stdout - Flags: {}'.
+                format(command_line_args))
             for line in difflib.context_diff(output.splitlines(),
                                              expected_output.splitlines()):
                 print(line)
         elif error != expected_error:
-            print('not ok - Differences between expected and actual output on stderr - Flags: {}'.format(command_line_args))
+            print(
+                'not ok - Differences between expected and actual output on stderr - Flags: {}'.
+                format(command_line_args))
             for line in difflib.context_diff(error.splitlines(),
                                              expected_error.splitlines()):
                 print(line)
         elif expected_exit_status != exit_status:
-            print('not ok - Expected exit status "{}" but got "{}" - Flags: {}'.format(expected_exit_status, exit_status, command_line_args))
+            print(
+                'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
+                format(expected_exit_status, exit_status, command_line_args))
         else:
             print('ok - Flags: {}'.format(command_line_args))
 
