@@ -7,4 +7,3 @@
 (declare-fun i2 () Index)
 (assert (not (=> (= i1 i2) (= (select a i1) (select a i2)))))
 (check-sat)
-
