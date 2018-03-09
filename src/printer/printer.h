@@ -61,7 +61,13 @@ protected:
  }
 
  public:
- virtual ~Printer() {}
+
+  /**
+   * Since the printers are managed as unique_ptr, we need public acces to
+   * the virtual destructor.
+   */
+  virtual ~Printer() {}
+
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang);
 
