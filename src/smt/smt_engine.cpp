@@ -4920,12 +4920,10 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
         "UNSAT/VALID response.");
   }
   finalOptionsAreSet();
-#if 0
   if (Dump.isOn("benchmark"))
   {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
-#endif
   UnsatCore core = getUnsatCore();
   vector<Expr> res;
   for (const Expr& e : d_assumptions)
