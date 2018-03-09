@@ -31,4 +31,4 @@ cd ../
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-cryptominisat --with-cryptominisat-dir=`pwd`
+echo ./configure --with-cryptominisat
