@@ -32,41 +32,16 @@ namespace CVC4 {
 
 class Printer
 {
-  /** Printers for each OutputLanguage */
-  static std::unique_ptr<Printer> d_printers[language::output::LANG_MAX];
-
-  /** Make a Printer for a given OutputLanguage */
-  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
-
-  // disallow copy, assignment
-  Printer(const Printer&) CVC4_UNDEFINED;
-  Printer& operator=(const Printer&) CVC4_UNDEFINED;
-
-protected:
-  // derived classes can construct, but no one else.
- Printer() {}
-
- /** write model response to command */
- virtual void toStream(std::ostream& out,
-                       const Model& m,
-                       const Command* c) const = 0;
-
- /** write model response to command using another language printer */
- void toStreamUsing(OutputLanguage lang,
-                    std::ostream& out,
-                    const Model& m,
-                    const Command* c) const
- {
-   getPrinter(lang)->toStream(out, m, c);
- }
-
  public:
-
   /**
    * Since the printers are managed as unique_ptr, we need public acces to
    * the virtual destructor.
    */
   virtual ~Printer() {}
+
+  /** Disallow copy, assignment  */
+  Printer(const Printer&) CVC4_UNDEFINED;
+  Printer& operator=(const Printer&) CVC4_UNDEFINED;
 
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang);
@@ -109,8 +84,33 @@ protected:
    */
   virtual void toStreamSygus(std::ostream& out, TNode n) const;
 
-};/* class Printer */
+  /** Make a Printer for a given OutputLanguage */
+  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
 
-}/* CVC4 namespace */
+ protected:
+  /** Derived classes can construct, but no one else. */
+  Printer() {}
+
+  /** write model response to command */
+  virtual void toStream(std::ostream& out,
+                        const Model& m,
+                        const Command* c) const = 0;
+
+  /** write model response to command using another language printer */
+  void toStreamUsing(OutputLanguage lang,
+                     std::ostream& out,
+                     const Model& m,
+                     const Command* c) const
+  {
+    getPrinter(lang)->toStream(out, m, c);
+  }
+
+ private:
+  /** Printers for each OutputLanguage */
+  static std::unique_ptr<Printer> d_printers[language::output::LANG_MAX];
+
+}; /* class Printer */
+
+}  // namespace CVC4
 
 #endif /* __CVC4__PRINTER__PRINTER_H */
