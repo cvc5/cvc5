@@ -4761,6 +4761,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     bool didInternalPush = false;
 
+    setProblemExtended(true);
+
     if (isQuery)
     {
       size_t size = assumptions.size();
@@ -4794,7 +4796,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       /* Add assumption  */
       internalPush();
       didInternalPush = true;
-      d_problemExtended = true;
       if (d_assertionList != NULL)
       {
         d_assertionList->push_back(e);
@@ -4858,7 +4859,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     // Remember the status
     d_status = r;
 
-    d_problemExtended = false;
+    setProblemExtended(false);
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
@@ -5931,7 +5932,7 @@ void SmtEngine::push()
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmtric with pop.
-  d_problemExtended = true;
+  setProblemExtended(true);
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -5965,7 +5966,7 @@ void SmtEngine::pop() {
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  d_problemExtended = true;
+  setProblemExtended(true);
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
