@@ -228,6 +228,8 @@ bool Configuration::isBuiltWithAbc() {
   return IS_ABC_BUILD;
 }
 
+bool Configuration::isBuiltWithCadical() { return IS_CADICAL_BUILD; }
+
 bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }

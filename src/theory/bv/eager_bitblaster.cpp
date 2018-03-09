@@ -44,8 +44,10 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   d_bitblastingRegistrar = new BitblastingRegistrar(this);
   d_nullContext = new context::Context();
 
-  switch (options::bvSatSolver()) {
-    case SAT_SOLVER_MINISAT: {
+  switch (options::bvSatSolver())
+  {
+    case SAT_SOLVER_MINISAT:
+    {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext, smtStatisticsRegistry(), "EagerBitblaster");
@@ -54,12 +56,15 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
       d_satSolver = minisat;
       break;
     }
+    case SAT_SOLVER_CADICAL:
+      d_satSolver = prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "EagerBitblaster");
+      break;
     case SAT_SOLVER_CRYPTOMINISAT:
       d_satSolver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "EagerBitblaster");
       break;
-    default:
-      Unreachable("Unknown SAT solver type");
+    default: Unreachable("Unknown SAT solver type");
   }
 
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar,

@@ -1,0 +1,150 @@
+/*********************                                                        */
+/*! \file cadical.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Mathias Preiner
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Wrapper for CaDiCaL SAT Solver.
+ **
+ ** Implementation of the CaDiCaL SAT solver for CVC4 (bitvectors).
+ **/
+
+#include "prop/cadical.h"
+
+#ifdef CVC4_USE_CADICAL
+
+#include "proof/sat_proof.h"
+
+namespace CVC4 {
+namespace prop {
+
+using CadicalLit = int;
+using CadicalVar = int;
+
+// helper functions
+namespace {
+
+#if 0
+SatLiteral toSatLiteral(CadicalLit lit)
+{
+  return lit < 0 ? SatLiteral(-lit, true) : SatLiteral(lit);
+}
+#endif
+
+#if 0
+SatVariable toSatVariable(CadicalVar var)
+{
+  Assert(var > 0);
+  return SatVariable(var);
+}
+#endif
+
+SatValue toSatValue(int result)
+{
+  if (result == 10) return SAT_VALUE_TRUE;
+  if (result == 20) return SAT_VALUE_FALSE;
+  Assert(result == 0);
+  return SAT_VALUE_UNKNOWN;
+}
+
+SatValue toSatValueLit(int value)
+{
+  if (value == 1) return SAT_VALUE_TRUE;
+  Assert(value == -1);
+  return SAT_VALUE_FALSE;
+}
+
+CadicalLit toCadicalLit(SatLiteral lit)
+{
+  return lit.isNegated() ? -lit.getSatVariable() : lit.getSatVariable();
+}
+
+CadicalVar toCadicalVar(SatVariable var) { return var; }
+
+}  // namespace
+
+CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
+                             const std::string& name)
+    : d_solver(new CaDiCaL::Solver()), d_nextVarIdx(1)
+{
+  d_true = newVar();
+  d_false = newVar();
+
+  d_solver->add(toCadicalVar(d_true));
+  d_solver->add(0);
+  d_solver->add(-toCadicalVar(d_false));
+  d_solver->add(0);
+}
+
+CadicalSolver::~CadicalSolver() { delete d_solver; }
+
+ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
+{
+  for (SatLiteral lit : clause)
+  {
+    d_solver->add(toCadicalLit(lit));
+  }
+  d_solver->add(0);
+  return ClauseIdError;
+}
+
+ClauseId CadicalSolver::addXorClause(SatClause& clause,
+                                     bool rhs,
+                                     bool removable)
+{
+  Unreachable("CaDiCaL does not support adding XOR clauses.");
+}
+
+SatVariable CadicalSolver::newVar(bool isTheoryAtom,
+                                  bool preRegister,
+                                  bool canErase)
+{
+  return d_nextVarIdx++;
+}
+
+SatVariable CadicalSolver::trueVar() { return d_true; }
+
+SatVariable CadicalSolver::falseVar() { return d_false; }
+
+SatValue CadicalSolver::solve()
+{
+  SatValue res = toSatValue(d_solver->solve());
+  d_okay = (res == SAT_VALUE_TRUE);
+  return res;
+}
+
+SatValue CadicalSolver::solve(long unsigned int&)
+{
+  Unimplemented("Setting limits for CaDiCaL not supported yet");
+};
+
+void CadicalSolver::interrupt() { d_solver->terminate(); }
+
+SatValue CadicalSolver::value(SatLiteral l)
+{
+  Assert(d_okay);
+  return toSatValueLit(d_solver->val(toCadicalLit(l)));
+}
+
+SatValue CadicalSolver::modelValue(SatLiteral l)
+{
+  Assert(d_okay);
+  return value(l);
+}
+
+unsigned CadicalSolver::getAssertionLevel() const
+{
+  Unreachable("CaDiCal does not support assertion levels.");
+}
+
+bool CadicalSolver::ok() const { return d_okay; }
+
+}  // namespace prop
+}  // namespace CVC4
+
+#endif  // CVC4_USE_CADICAL
