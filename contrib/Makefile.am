@@ -9,7 +9,6 @@ EXTRA_DIST = \
 	addsourcedir \
 	new-theory \
 	configure-in-place \
-	cryptominisat-4.2.0.second.patch \
 	depgraph \
 	get-antlr-3.4 \
 	get-cryptominisat \
