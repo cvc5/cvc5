@@ -39,10 +39,6 @@ class Printer
    */
   virtual ~Printer() {}
 
-  /** Disallow copy, assignment  */
-  Printer(const Printer&) CVC4_UNDEFINED;
-  Printer& operator=(const Printer&) CVC4_UNDEFINED;
-
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang);
 
@@ -84,9 +80,6 @@ class Printer
    */
   virtual void toStreamSygus(std::ostream& out, TNode n) const;
 
-  /** Make a Printer for a given OutputLanguage */
-  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
-
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}
@@ -106,6 +99,13 @@ class Printer
   }
 
  private:
+  /** Disallow copy, assignment  */
+  Printer(const Printer&) CVC4_UNDEFINED;
+  Printer& operator=(const Printer&) CVC4_UNDEFINED;
+
+  /** Make a Printer for a given OutputLanguage */
+  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
+
   /** Printers for each OutputLanguage */
   static std::unique_ptr<Printer> d_printers[language::output::LANG_MAX];
 
