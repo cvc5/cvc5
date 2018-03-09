@@ -8,4 +8,3 @@
 (assert (not x))
 (assert z)
 (check-sat)
-
