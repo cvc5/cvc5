@@ -715,13 +715,11 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::string& id1 = id;
   Expr func;
   std::vector<Expr> bvs;
-  std::vector<Expr> bvs2;
   std::vector<Expr> funcs;
   std::vector<Expr> formulas;
   std::vector<std::vector<Expr>> formals;
   std::vector<std::string> ids;
   std::vector<CVC4::Type> types;
-  bool readCommaId, readCommaForm;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -895,41 +893,15 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
-  /*
-  Examples that should work:
-  REC-FUN fact : (INT) -> INT = LAMBDA (i : INT): IF (i > 0) THEN i * fact (i - 1) ELSE 1 ENDIF;
-  REC-FUN is-even : (INT) -> INT, is-odd : (INT) -> INT =
-  LAMBDA (x : INT): IF (x = 0) THEN 1 ELSE (IF (is-odd(x - 1) = 0) THEN 1 ELSE 0 ENDIF) ENDIF,
-  LAMBDA (y : INT): IF (y = 0) THEN 0 ELSE (IF (is-even(y - 1) = 0) THEN 1 ELSE 0 ENDIF) ENDIF;
-  | RECURSIVE_FUNCTION_TOK identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
-    EQUAL_TOK 
-    {
-      func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
-    }
-    formula[f] 
-    {
-      if(!f.getType().isSubtypeOf(t)){
-        PARSER_STATE->parseError("Type mismatch in definition");
-      }
-      if( f.getKind()==kind::LAMBDA ){
-        for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
-        {
-          bvs.push_back( f[0][i] );
-        }
-        f = f[1];
-      }
-      cmd->reset(new DefineFunctionRecCommand(func,bvs,f));
-    }*/
   | RECURSIVE_FUNCTION_TOK (identifier[id,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED] 
-    (COMMA{readCommaId = true;})? 
+    (COMMA)? 
     {
       func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
       ids.push_back(id);
       types.push_back(t);
       funcs.push_back(func);
-      readCommaId = false;
     })+
-    EQUAL_TOK (formula[f] (COMMA {readCommaForm = true;})?
+    EQUAL_TOK (formula[f] (COMMA)?
     {
       if( f.getKind()==kind::LAMBDA ){
         for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
@@ -941,7 +913,6 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
         f = f[1];
         formulas.push_back(f);
       }
-      readCommaForm = false;
     })+
     {
       if(funcs.size()!=formulas.size()){
