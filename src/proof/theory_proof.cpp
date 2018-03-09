@@ -1353,9 +1353,6 @@ void TheoryProof::assertAndPrint(
     std::shared_ptr<theory::eq::EqProof> subTrans,
     theory::eq::EqProof::PrettyPrinter* pPrettyPrinter)
 {
-  // TODO this code assumes that the function is called either from uf or from
-  // arrays. How should I handle this assumptions?
-
   std::string theoryName;
   bool ufProof = (theoryId == theory::THEORY_UF);
   if (ufProof)

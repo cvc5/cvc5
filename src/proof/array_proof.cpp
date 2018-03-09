@@ -615,7 +615,6 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         }
       }
 
-      // YONI UNMERGABLE CODE BELOW
       // We can hadnle one of the equalities being negative, but not both
       Assert((n1.getKind() != kind::NOT) || (n2.getKind() != kind::NOT));
 
