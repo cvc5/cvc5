@@ -387,8 +387,6 @@ class CVC4_PUBLIC SmtEngine {
   // to access d_modelCommands
   friend class ::CVC4::Model;
   friend class ::CVC4::theory::TheoryModel;
-  // to access getModel(), which is private (for now)
-  friend class GetModelCommand;
 
   StatisticsRegistry* d_statisticsRegistry;
 
@@ -402,13 +400,6 @@ class CVC4_PUBLIC SmtEngine {
    * that should be reported during a get-model call.
    */
   void addToModelCommandAndDump(const Command& c, uint32_t flags = 0, bool userVisible = true, const char* dumpTag = "declarations");
-
-  /**
-   * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if CVC4 was built with model
-   * support and produce-models is on.
-   */
-  Model* getModel();
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
@@ -487,6 +478,13 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
+
+  /**
+   * Get the model (only if immediately preceded by a SAT
+   * or INVALID query).  Only permitted if CVC4 was built with model
+   * support and produce-models is on.
+   */
+  Model* getModel();
 
   /**
    * Get an aspect of the current SMT execution environment.
