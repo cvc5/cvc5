@@ -33,7 +33,7 @@ OPTIONS_CONFIG_FILES = \
 	theory_options.toml \
 	uf_options.toml
 
-OPTIONS_HEADS = $(OPTIONS_CONFIG_FILES:.toml=.h)
+OPTIONS_HEADERS = $(OPTIONS_CONFIG_FILES:.toml=.h)
 
 OPTIONS_CPPS = $(OPTIONS_CONFIG_FILES:.toml=.cpp)
 
@@ -107,7 +107,7 @@ liboptions_la_SOURCES = \
 nodist_liboptions_la_SOURCES = \
 	options.cpp \
 	options_holder.h \
-	$(OPTIONS_HEADS) \
+	$(OPTIONS_HEADERS) \
 	$(OPTIONS_CPPS)
 
 
@@ -117,7 +117,7 @@ BUILT_SOURCES = \
 
 CLEANFILES = \
 	$(BUILT_SOURCES) \
-	$(OPTIONS_HEADS) \
+	$(OPTIONS_HEADERS) \
 	$(OPTIONS_CPPS) \
 	$(DOCUMENTATION_FILES) \
 	../../doc/libcvc4.3 \
@@ -128,7 +128,7 @@ EXTRA_DIST = \
 	$(DOCUMENTATION_FILES) \
 	../../doc/libcvc4.3 \
 	$(OPTIONS_CPPS) \
-	$(OPTIONS_HEADS) \
+	$(OPTIONS_HEADERS) \
 	$(OPTIONS_CONFIG_FILES) \
 	$(CPP_TEMPLATE_FILES) \
 	mkoptions.py \
@@ -138,11 +138,15 @@ EXTRA_DIST = \
 
 
 
-# Make sure the implicit rules never mistake a _template.cpp or _template.h file for source file.
+# Make sure the implicit rules never mistake a _template.cpp or _template.h
+# file for source file.
 $(CPP_TEMPLATE_FILES):;
 
-# All source/doc files are generated in one pass with rule options.cpp
-$(OPTIONS_CPPS) $(OPTIONS_HEADS) $(DOCUMENTATION_FILES): options.cpp
+# All source/doc files are generated in one pass with rule options.cpp. Note
+# that this is done incrementally since mkoptions.py checks if a generated file
+# changed before writing to the file. No global re-compilation of all generated
+# files happens if only individual files were modified.
+$(OPTIONS_CPPS) $(OPTIONS_HEADERS) $(DOCUMENTATION_FILES): options.cpp
 
 options.cpp: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES) $(DOCUMENTATION_TEMPLATE_FILES)
 	@srcdir@/mkoptions.py @abs_srcdir@ . ../../doc $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))
