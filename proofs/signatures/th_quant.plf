@@ -4,9 +4,9 @@
                   formula))))
 
 (program eqterm ((n1 term) (n2 term)) bool
-    (do (markvar n1)
-        (let s (ifmarked n2 tt ff)
-           (do (markvar n1) s))))
+    (do (markvar2 n1)
+        (let s (ifmarked2 n2 tt ff)
+           (do (markvar2 n1) s))))
 
 (program is_inst_t ((ti term) (t term) (k term)) bool
   (match t
