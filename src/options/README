@@ -29,9 +29,12 @@ Options
     smt_name   ... (string) alternative name to access option via
                             set-option/get-option commands
     short      ... (string) short option name consisting of one character
-                            (no - prefix required)
+                            (no '-' prefix required)
     long       ... (string) long option name (required if short is specified,
-                            no -- prefix required)
+                            no '--' prefix required).
+                            long option names may have a suffix '=XXX' where
+                            'XXX' can be used to indicate the type of the
+                            option value, e.g., '=MODE', '=LANG', '=N', ...
     default    ... (string) default value of type 'type'
     handler    ... (string) handler for parsing option values before setting
                             option
@@ -41,12 +44,12 @@ Options
                             handler/predicates/notifies
     notifies   ... (list)   notifications to call when option is set
     links      ... (list)   additional options to set after this option is set
-    read_only  ... (bool)   true: option is should not provide a ::set method,
+    read_only  ... (bool)   true: option should not provide a ::set method,
                             false (default): option should provide a ::set
                             method to set the option value
     alternate  ... (bool)   true (default): add --no-<long> alternative option
                             false: omit --no-<long> alternative option
-    help       ... (string) documentation (required for if category is not
+    help       ... (string) documentation (required if category is not
                             undocumented)
 
   Note that if an option defines a long option name with type 'bool',
@@ -77,7 +80,7 @@ Options
       help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 
-  If an alternate option is generated the linked options defined via attribute
+  If an alternate option is generated, the linked options defined via attribute
   links are not considered. If you want to define links for an alternate option
   --no-<long> for an existing option <long>, you can define an alias with long
   option no-<long>. This overwrites the default --no-<long> behaviour and
@@ -145,7 +148,7 @@ Further information (the old option package)
   The options/ package supports a wide range of operations for responding to
   an option being set. Roughly the three major concepts are:
 
-   - handler is to parse an option before setting its value.
+   - handler to parse an option before setting its value.
    - predicates to reject bad values for the option.
    - notifies for dynamic dispatch after an option is assigned.
 
@@ -179,7 +182,8 @@ Further information (the old option package)
    - predicates = [...]
 
     Predicates provide support for checking whether or not the value of an
-    is acceptable. Predicates are run after handlers and before notifications.
+    option is acceptable. Predicates are run after handlers and before
+    notifications.
     The signature for a predicate call is:
 
       void custom-predicate(std::string option, T value,
