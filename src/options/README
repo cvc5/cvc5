@@ -156,7 +156,7 @@ Further information (the old option package)
 
    - handler = ""
 
-    Handlers provide support for parsing custom types and parsing for options.
+    Handlers provide support for parsing custom option types.
     The signature for a handler call is:
 
        T custom-option-handler(std::string option, std::string optarg,
