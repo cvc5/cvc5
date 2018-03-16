@@ -816,9 +816,12 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 add_getopt_long('no-{}'.format(option.long), argument_req,
                                 getopt_long)
 
-            if option.name:
-                optname = option.smt_name if option.smt_name else option.long
+            optname = option.smt_name if option.smt_name else option.long
+            # collect options available to the SMT-frontend
+            if optname:
+                options_smt.append('"{}",'.format(optname))
 
+            if option.name:
                 # Build options for options::getOptions()
                 if optname:
                     # collect SMT option names
@@ -922,7 +925,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
     write_file(dst_dir, 'options_holder.h', tpl_options_holder.format(
         headers_module='\n'.join(headers_module),
-        macros_module='\n'.join(macros_module)
+        macros_module='\n  '.join(macros_module)
     ))
 
     write_file(dst_dir, 'options.cpp', tpl_options.format(
