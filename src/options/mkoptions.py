@@ -406,8 +406,9 @@ def help_format(help_msg, opts):
     """
     width = 80
     width_opt = 25
-    text = \
-        textwrap.wrap(help_msg.replace('"', '\\"'), width=width - width_opt)
+    wrapper = \
+        textwrap.TextWrapper(width=width - width_opt, break_on_hyphens=False)
+    text = wrapper.wrap(help_msg.replace('"', '\\"'))
     if len(opts) > width_opt - 3:
         lines = ['  {}'.format(opts)]
         lines.append(' ' * width_opt + text[0])
