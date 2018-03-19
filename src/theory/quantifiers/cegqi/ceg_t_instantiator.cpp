@@ -155,12 +155,10 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         }
         Trace("cegqi-arith-debug") << pv << " " << atom.getKind() << " " << val << std::endl;
       }
-      if( options::cbqiAll() ){
-        // when not pure LIA/LRA, we must check whether the lhs contains pv
-        if( TermUtil::containsTerm( val, pv ) ){
-          Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
-          return 0;
-        }
+      // when not pure LIA/LRA, we must check whether the lhs contains pv
+      if( TermUtil::containsTerm( val, pv ) ){
+        Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
+        return 0;
       }
       if( pvtn.isInteger() && ( ( !veq_c.isNull() && !veq_c.getType().isInteger() ) || !val.getType().isInteger() ) ){
         //redo, split integer/non-integer parts
