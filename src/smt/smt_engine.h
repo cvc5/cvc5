@@ -159,6 +159,14 @@ class CVC4_PUBLIC SmtEngine {
   AssertionList* d_assertionList;
 
   /**
+   * The list of assumptions from the previous call to checkSatisfiability.
+   * Note that if the last call to checkSatisfiability was a validity check,
+   * i.e., a call to query(a1, ..., an), then d_assumptions contains one single
+   * assumption ~(a1 AND ... AND an).
+   */
+  std::vector<Expr> d_assumptions;
+
+  /**
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
@@ -318,6 +326,13 @@ class CVC4_PUBLIC SmtEngine {
   void setDefaults();
 
   /**
+   * Sets d_problemExtended to the given value.
+   * If d_problemExtended is set to true, the list of assumptions from the
+   * previous call to checkSatisfiability is cleared.
+   */
+  void setProblemExtended(bool value);
+
+  /**
    * Create theory engine, prop engine, decision engine. Called by
    * finalOptionsAreSet()
    */
@@ -372,8 +387,6 @@ class CVC4_PUBLIC SmtEngine {
   // to access d_modelCommands
   friend class ::CVC4::Model;
   friend class ::CVC4::theory::TheoryModel;
-  // to access getModel(), which is private (for now)
-  friend class GetModelCommand;
 
   StatisticsRegistry* d_statisticsRegistry;
 
@@ -388,19 +401,17 @@ class CVC4_PUBLIC SmtEngine {
    */
   void addToModelCommandAndDump(const Command& c, uint32_t flags = 0, bool userVisible = true, const char* dumpTag = "declarations");
 
-  /**
-   * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if CVC4 was built with model
-   * support and produce-models is on.
-   */
-  Model* getModel();
-
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
   SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
 
   //check satisfiability (for query and check-sat)
-  Result checkSatisfiability(const Expr& e, bool inUnsatCore, bool isQuery);
+  Result checkSatisfiability(const Expr& assumption,
+                             bool inUnsatCore,
+                             bool isQuery);
+  Result checkSatisfiability(const std::vector<Expr>& assumptions,
+                             bool inUnsatCore,
+                             bool isQuery);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -469,6 +480,13 @@ class CVC4_PUBLIC SmtEngine {
       /* throw(OptionException, ModalException) */;
 
   /**
+   * Get the model (only if immediately preceded by a SAT
+   * or INVALID query).  Only permitted if CVC4 was built with model
+   * support and produce-models is on.
+   */
+  Model* getModel();
+
+  /**
    * Get an aspect of the current SMT execution environment.
    */
   CVC4::SExpr getOption(const std::string& key) const
@@ -535,14 +553,31 @@ class CVC4_PUBLIC SmtEngine {
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e, bool inUnsatCore = true) /* throw(Exception) */;
+  Result query(const Expr& assumption = Expr(),
+               bool inUnsatCore = true) /* throw(Exception) */;
+  Result query(const std::vector<Expr>& assumptions,
+               bool inUnsatCore = true) /* throw(Exception) */;
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const Expr& e = Expr(),
+  Result checkSat(const Expr& assumption = Expr(),
                   bool inUnsatCore = true) /* throw(Exception) */;
+  Result checkSat(const std::vector<Expr>& assumptions,
+                  bool inUnsatCore = true) /* throw(Exception) */;
+
+  /**
+   * Returns a set of so-called "failed" assumptions.
+   *
+   * The returned set is a subset of the set of assumptions of a previous
+   * (unsatisfiable) call to checkSatisfiability. Calling checkSatisfiability
+   * with this set of failed assumptions still produces an unsat answer.
+   *
+   * Note that the returned set of failed assumptions is not necessarily
+   * minimal.
+   */
+  std::vector<Expr> getUnsatAssumptions(void);
 
   /**
    * Assert a synthesis conjecture to the current context and call

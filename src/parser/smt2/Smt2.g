@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -431,7 +431,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
   | /* check-sat */
-    CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if( PARSER_STATE->sygus() ){
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
@@ -446,12 +446,25 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     | { expr = MK_CONST(bool(true)); }
     )
     { cmd->reset(new CheckSatCommand(expr)); }
+  | /* check-sat-assuming */
+    CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
+      { cmd->reset(new CheckSatAssumingCommand(terms)); }
+    | ~LPAREN_TOK
+      { PARSER_STATE->parseError("The check-sat-assuming command expects a "
+                                 "list of terms.  Perhaps you forgot a pair of "
+                                 "parentheses?");
+      }
+    )
   | /* get-assertions */
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssertionsCommand()); }
   | /* get-proof */
     GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetProofCommand()); }
+  | /* get-unsat-assumptions */
+    GET_UNSAT_ASSUMPTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetUnsatAssumptionsCommand); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatCoreCommand); }
@@ -1276,8 +1289,6 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       }
       cmd->reset( new DefineFunctionRecCommand(funcs,formals,func_defs));
     }
-  // CHECK_SAT_ASSUMING still being discussed
-  // GET_UNSAT_ASSUMPTIONS
   ;
 
 extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
@@ -1713,10 +1724,12 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 //  }
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
-  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK
+  | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
+        | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
         | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK
-        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK
+        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_ASSUMPTIONS_TOK
+        | GET_UNSAT_CORE_TOK | EXIT_TOK
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK
@@ -3064,7 +3077,8 @@ selector[CVC4::DatatypeConstructor& ctor]
 
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
-CHECKSAT_TOK : 'check-sat';
+CHECK_SAT_TOK : 'check-sat';
+CHECK_SAT_ASSUMING_TOK : 'check-sat-assuming';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 DEFINE_FUN_TOK : 'define-fun';
@@ -3075,6 +3089,7 @@ GET_VALUE_TOK : 'get-value';
 GET_ASSIGNMENT_TOK : 'get-assignment';
 GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
+GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
 RESET_TOK : { PARSER_STATE->v2_5(false) }? 'reset';

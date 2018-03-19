@@ -748,11 +748,11 @@ public:
   bool useModelValue(CegInstantiator* ci,
                      SolvedForm& sf,
                      Node pv,
-                     CegInstEffort effort)
+                     CegInstEffort effort) override
   {
     return true;
   }
-  std::string identify() const { return "ModelValue"; }
+  std::string identify() const override { return "ModelValue"; }
 };
 
 /** instantiator preprocess

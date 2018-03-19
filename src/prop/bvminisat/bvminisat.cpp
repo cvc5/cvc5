@@ -239,22 +239,18 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
 BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry* registry,
                                            const std::string& prefix)
     : d_registry(registry),
-      d_statStarts("theory::bv::" + prefix + "bvminisat::starts"),
-      d_statDecisions("theory::bv::" + prefix + "bvminisat::decisions"),
-      d_statRndDecisions("theory::bv::" + prefix + "bvminisat::rnd_decisions"),
-      d_statPropagations("theory::bv::" + prefix + "bvminisat::propagations"),
-      d_statConflicts("theory::bv::" + prefix + "bvminisat::conflicts"),
-      d_statClausesLiterals("theory::bv::" + prefix
-                            + "bvminisat::clauses_literals"),
-      d_statLearntsLiterals("theory::bv::" + prefix
-                            + "bvminisat::learnts_literals"),
-      d_statMaxLiterals("theory::bv::" + prefix + "bvminisat::max_literals"),
-      d_statTotLiterals("theory::bv::" + prefix + "bvminisat::tot_literals"),
-      d_statEliminatedVars("theory::bv::" + prefix
-                           + "bvminisat::eliminated_vars"),
-      d_statCallsToSolve("theory::bv::" + prefix
-                         + "bvminisat::calls_to_solve", 0),
-      d_statSolveTime("theory::bv::" + prefix + "bvminisat::solve_time"),
+      d_statStarts(prefix + "::bvminisat::starts"),
+      d_statDecisions(prefix + "::bvminisat::decisions"),
+      d_statRndDecisions(prefix + "::bvminisat::rnd_decisions"),
+      d_statPropagations(prefix + "::bvminisat::propagations"),
+      d_statConflicts(prefix + "::bvminisat::conflicts"),
+      d_statClausesLiterals(prefix + "::bvminisat::clauses_literals"),
+      d_statLearntsLiterals(prefix + "::bvminisat::learnts_literals"),
+      d_statMaxLiterals(prefix + "::bvminisat::max_literals"),
+      d_statTotLiterals(prefix + "::bvminisat::tot_literals"),
+      d_statEliminatedVars(prefix + "::bvminisat::eliminated_vars"),
+      d_statCallsToSolve(prefix + "::bvminisat::calls_to_solve", 0),
+      d_statSolveTime(prefix + "::bvminisat::solve_time"),
       d_registerStats(!prefix.empty())
 {
   if (!d_registerStats)

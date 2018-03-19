@@ -117,11 +117,11 @@ public:
   Node d_one;
 
   /** reset */
-  virtual bool reset(Theory::Effort e) override { return true; }
+  bool reset(Theory::Effort e) override { return true; }
   /** register quantifier */
-  virtual void registerQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** identify */
-  virtual std::string identify() const override { return "TermUtil"; }
+  std::string identify() const override { return "TermUtil"; }
   // for inst constant
  private:
   /** map from universal quantifiers to the list of variables */

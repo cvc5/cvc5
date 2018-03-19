@@ -2,9 +2,9 @@
 /*! \file smt_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -298,7 +298,8 @@ struct SmtEngineStatistics {
 class SoftResourceOutListener : public Listener {
  public:
   SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
+  void notify() override
+  {
     SmtScope scope(d_smt);
     Assert(smt::smtEngineInScope());
     d_smt->interrupt();
@@ -311,7 +312,8 @@ class SoftResourceOutListener : public Listener {
 class HardResourceOutListener : public Listener {
  public:
   HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
+  void notify() override
+  {
     SmtScope scope(d_smt);
     theory::Rewriter::clearCaches();
   }
@@ -322,7 +324,8 @@ class HardResourceOutListener : public Listener {
 class SetLogicListener : public Listener {
  public:
   SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
+  void notify() override
+  {
     LogicInfo inOptions(options::forceLogicString());
     d_smt->setLogic(inOptions);
   }
@@ -333,9 +336,8 @@ class SetLogicListener : public Listener {
 class BeforeSearchListener : public Listener {
  public:
   BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
-  virtual void notify() {
-    d_smt->beforeSearch();
-  }
+  void notify() override { d_smt->beforeSearch(); }
+
  private:
   SmtEngine* d_smt;
 }; /* class BeforeSearchListener */
@@ -346,7 +348,8 @@ class UseTheoryListListener : public Listener {
       : d_theoryEngine(theoryEngine)
   {}
 
-  void notify() {
+  void notify() override
+  {
     std::stringstream commaList(options::useTheoryList());
     std::string token;
 
@@ -375,7 +378,8 @@ class UseTheoryListListener : public Listener {
 
 class SetDefaultExprDepthListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     int depth = options::defaultExprDepth();
     Debug.getStream() << expr::ExprSetDepth(depth);
     Trace.getStream() << expr::ExprSetDepth(depth);
@@ -389,7 +393,8 @@ class SetDefaultExprDepthListener : public Listener {
 
 class SetDefaultExprDagListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     int dag = options::defaultDagThresh();
     Debug.getStream() << expr::ExprDag(dag);
     Trace.getStream() << expr::ExprDag(dag);
@@ -403,7 +408,8 @@ class SetDefaultExprDagListener : public Listener {
 
 class SetPrintExprTypesListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     bool value = options::printExprTypes();
     Debug.getStream() << expr::ExprPrintTypes(value);
     Trace.getStream() << expr::ExprPrintTypes(value);
@@ -417,7 +423,8 @@ class SetPrintExprTypesListener : public Listener {
 
 class DumpModeListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     const std::string& value = options::dumpModeString();
     Dump.setDumpFromString(value);
   }
@@ -425,7 +432,8 @@ class DumpModeListener : public Listener {
 
 class PrintSuccessListener : public Listener {
  public:
-  virtual void notify() {
+  void notify() override
+  {
     bool value = options::printSuccess();
     Debug.getStream() << Command::printsuccess(value);
     Trace.getStream() << Command::printsuccess(value);
@@ -748,7 +756,8 @@ public:
     d_resourceManager->spendResource(amount);
   }
 
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) {
+  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
+  {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());
@@ -757,19 +766,22 @@ public:
     }
   }
 
-  void nmNotifyNewSortConstructor(TypeNode tn) {
+  void nmNotifyNewSortConstructor(TypeNode tn) override
+  {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) {
+  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
+  {
     DatatypeDeclarationCommand c(dtts);
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewVar(TNode n, uint32_t flags) {
+  void nmNotifyNewVar(TNode n, uint32_t flags) override
+  {
     DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
                              n.toExpr(),
                              n.getType().toType());
@@ -781,11 +793,12 @@ public:
     }
   }
 
-  void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) {
+  void nmNotifyNewSkolem(TNode n,
+                         const std::string& comment,
+                         uint32_t flags) override
+  {
     string id = n.getAttribute(expr::VarNameAttr());
-    DeclareFunctionCommand c(id,
-                             n.toExpr(),
-                             n.getType().toType());
+    DeclareFunctionCommand c(id, n.toExpr(), n.getType().toType());
     if(Dump.isOn("skolems") && comment != "") {
       Dump("skolems") << CommentCommand(id + " is " + comment);
     }
@@ -797,7 +810,7 @@ public:
     }
   }
 
-  void nmNotifyDeleteNode(TNode n) {}
+  void nmNotifyDeleteNode(TNode n) override {}
 
   Node applySubstitutions(TNode node) const {
     return Rewriter::rewrite(d_topLevelSubstitutions.apply(node));
@@ -1489,7 +1502,7 @@ void SmtEngine::setDefaults() {
     d_logic = log;
     d_logic.lock();
   }
-  if(d_logic.isTheoryEnabled(THEORY_ARRAY) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_SETS)) {
+  if(d_logic.isTheoryEnabled(THEORY_ARRAYS) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_SETS)) {
     if(!d_logic.isTheoryEnabled(THEORY_UF)) {
       LogicInfo log(d_logic.getUnlockedCopy());
       Trace("smt") << "because a theory that permits Boolean terms is enabled, also enabling UF" << endl;
@@ -1515,9 +1528,9 @@ void SmtEngine::setDefaults() {
   }
 
   // If in arrays, set the UF handler to arrays
-  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && ( !d_logic.isQuantified() ||
+  if(d_logic.isTheoryEnabled(THEORY_ARRAYS) && ( !d_logic.isQuantified() ||
      (d_logic.isQuantified() && !d_logic.isTheoryEnabled(THEORY_UF)))) {
-    Theory::setUninterpretedSortOwner(THEORY_ARRAY);
+    Theory::setUninterpretedSortOwner(THEORY_ARRAYS);
   } else {
     Theory::setUninterpretedSortOwner(THEORY_UF);
   }
@@ -1527,7 +1540,7 @@ void SmtEngine::setDefaults() {
   // QF_LIA logics. --K [2014/10/15]
   if(! options::doITESimp.wasSetByUser()) {
     bool qf_aufbv = !d_logic.isQuantified() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_UF) &&
       d_logic.isTheoryEnabled(THEORY_BV);
     bool qf_lia = !d_logic.isQuantified() &&
@@ -1553,7 +1566,7 @@ void SmtEngine::setDefaults() {
   }
   if(! options::simplifyWithCareEnabled.wasSetByUser() ){
     bool qf_aufbv = !d_logic.isQuantified() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_UF) &&
       d_logic.isTheoryEnabled(THEORY_BV);
 
@@ -1564,7 +1577,7 @@ void SmtEngine::setDefaults() {
   // Turn off array eager index splitting for QF_AUFLIA
   if(! options::arraysEagerIndexSplitting.wasSetByUser()) {
     if (not d_logic.isQuantified() &&
-        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+        d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
         d_logic.isTheoryEnabled(THEORY_UF) &&
         d_logic.isTheoryEnabled(THEORY_ARITH)) {
       Trace("smt") << "setting array eager index splitting to false" << endl;
@@ -1574,8 +1587,8 @@ void SmtEngine::setDefaults() {
   // Turn on model-based arrays for QF_AX (unless models are enabled)
   // if(! options::arraysModelBased.wasSetByUser()) {
   //   if (not d_logic.isQuantified() &&
-  //       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-  //       d_logic.isPure(THEORY_ARRAY) &&
+  //       d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
+  //       d_logic.isPure(THEORY_ARRAYS) &&
   //       !options::produceModels() &&
   //       !options::checkModels()) {
   //     Trace("smt") << "turning on model-based array solver" << endl;
@@ -1585,7 +1598,7 @@ void SmtEngine::setDefaults() {
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
-                      (d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+                      (d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
                       d_logic.isTheoryEnabled(THEORY_UF) &&
                       d_logic.isTheoryEnabled(THEORY_BV)) &&
                       !options::unsatCores();
@@ -1603,7 +1616,7 @@ void SmtEngine::setDefaults() {
                    !options::produceAssignments() &&
                    !options::checkModels() &&
                    !options::unsatCores() &&
-                   (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
+                   (d_logic.isTheoryEnabled(THEORY_ARRAYS) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting unconstrained simplification to " << uncSimp << endl;
     options::unconstrainedSimp.set(uncSimp);
   }
@@ -1644,7 +1657,7 @@ void SmtEngine::setDefaults() {
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&
-      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_BV)) {
     Trace("smt") << "enabling eager bit-vector explanations " << endl;
     options::bvEagerExplanations.set(true);
@@ -1707,13 +1720,13 @@ void SmtEngine::setDefaults() {
           ) ||
         // QF_AUFBV or QF_ABV or QF_UFBV
         (not d_logic.isQuantified() &&
-         (d_logic.isTheoryEnabled(THEORY_ARRAY) ||
+         (d_logic.isTheoryEnabled(THEORY_ARRAYS) ||
           d_logic.isTheoryEnabled(THEORY_UF)) &&
          d_logic.isTheoryEnabled(THEORY_BV)
          ) ||
         // QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
         (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
          d_logic.isTheoryEnabled(THEORY_UF) &&
          d_logic.isTheoryEnabled(THEORY_ARITH)
          ) ||
@@ -1734,7 +1747,7 @@ void SmtEngine::setDefaults() {
       d_logic.hasEverything() || d_logic.isTheoryEnabled(THEORY_STRINGS) ? false :
       ( // QF_AUFLIA
         (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
          d_logic.isTheoryEnabled(THEORY_UF) &&
          d_logic.isTheoryEnabled(THEORY_ARITH)
          ) ||
@@ -2129,6 +2142,12 @@ void SmtEngine::setDefaults() {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
   }
+}
+
+void SmtEngine::setProblemExtended(bool value)
+{
+  d_problemExtended = value;
+  if (value) { d_assumptions.clear(); }
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -4680,25 +4699,49 @@ void SmtEngine::ensureBoolean(const Expr& e)
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex, bool inUnsatCore)
+Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
-  return checkSatisfiability(ex, inUnsatCore, false);
-} /* SmtEngine::checkSat() */
+  return checkSatisfiability(assumption, inUnsatCore, false);
+}
 
-Result SmtEngine::query(const Expr& ex, bool inUnsatCore)
+Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  Assert(!ex.isNull());
-  return checkSatisfiability(ex, inUnsatCore, true);
-} /* SmtEngine::query() */
+  return checkSatisfiability(assumptions, inUnsatCore, false);
+}
 
-Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQuery) {
-  try {
-    Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
+Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
+{
+  Assert(!assumption.isNull());
+  return checkSatisfiability(assumption, inUnsatCore, true);
+}
+
+Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
+{
+  return checkSatisfiability(assumptions, inUnsatCore, true);
+}
+
+Result SmtEngine::checkSatisfiability(const Expr& expr,
+                                      bool inUnsatCore,
+                                      bool isQuery)
+{
+  return checkSatisfiability(
+      expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
+      inUnsatCore,
+      isQuery);
+}
+
+Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
+                                      bool inUnsatCore,
+                                      bool isQuery)
+{
+  try
+  {
     SmtScope smts(this);
     finalOptionsAreSet();
     doPendingPops();
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "(" << ex << ")" << endl;
+    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+                 << assumptions << ")" << endl;
 
     if(d_queryMade && !options::incrementalSolving()) {
       throw ModalException("Cannot make multiple queries unless "
@@ -4706,45 +4749,65 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
                            "(try --incremental)");
     }
 
-    Expr e;
-    if(!ex.isNull()) {
-      // Substitute out any abstract values in ex.
-      e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-      // Ensure expr is type-checked at this point.
-      ensureBoolean(e);
-    }
-
     // check to see if a postsolve() is pending
     if(d_needPostsolve) {
       d_theoryEngine->postsolve();
       d_needPostsolve = false;
     }
-
     // Note that a query has been made
     d_queryMade = true;
-
     // reset global negation
     d_globalNegation = false;
 
     bool didInternalPush = false;
-    // Add the formula
-    if(!e.isNull()) {
-      // Push the context
-      internalPush();
-      didInternalPush = true;
 
-      d_problemExtended = true;
-      Expr ea = isQuery ? e.notExpr() : e;
-      if(d_assertionList != NULL) {
-        d_assertionList->push_back(ea);
+    setProblemExtended(true);
+
+    if (isQuery)
+    {
+      size_t size = assumptions.size();
+      if (size > 1)
+      {
+        /* Assume: not (BIGAND assumptions)  */
+        d_assumptions.push_back(
+            d_exprManager->mkExpr(kind::AND, assumptions).notExpr());
       }
-      d_private->addFormula(ea.getNode(), inUnsatCore);
+      else if (size == 1)
+      {
+        /* Assume: not expr  */
+        d_assumptions.push_back(assumptions[0].notExpr());
+      }
+    }
+    else
+    {
+      /* Assume: BIGAND assumptions  */
+      d_assumptions = assumptions;
     }
 
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    for (Expr e : d_assumptions)
+    {
+      // Substitute out any abstract values in ex.
+      e = d_private->substituteAbstractValues(Node::fromExpr(e)).toExpr();
+      Assert(e.getExprManager() == d_exprManager);
+      // Ensure expr is type-checked at this point.
+      ensureBoolean(e);
+
+      /* Add assumption  */
+      internalPush();
+      didInternalPush = true;
+      if (d_assertionList != NULL)
+      {
+        d_assertionList->push_back(e);
+      }
+      d_private->addFormula(e.getNode(), inUnsatCore);
+    }
+
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
 
-    if ( ( options::solveRealAsInt() || options::solveIntAsBV() > 0 ) && r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
     // flipped if we did a global negation
@@ -4773,12 +4836,17 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     d_needPostsolve = true;
 
     // Dump the query if requested
-    if(Dump.isOn("benchmark")) {
+    if (Dump.isOn("benchmark"))
+    {
       // the expr already got dumped out if assertion-dumping is on
-      if( isQuery ){
-        Dump("benchmark") << QueryCommand(ex);
-      }else{
-        Dump("benchmark") << CheckSatCommand(ex);
+      if (isQuery && assumptions.size() == 1)
+      {
+        Dump("benchmark") << QueryCommand(assumptions[0]);
+      }
+      else
+      {
+        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions,
+                                                     inUnsatCore);
       }
     }
 
@@ -4791,9 +4859,10 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
     // Remember the status
     d_status = r;
 
-    d_problemExtended = false;
+    setProblemExtended(false);
 
-    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "(" << e << ") => " << r << endl;
+    Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
+                 << assumptions << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -4830,6 +4899,38 @@ Result SmtEngine::checkSatisfiability(const Expr& ex, bool inUnsatCore, bool isQ
       Result::RESOURCEOUT : Result::TIMEOUT;
     return Result(Result::SAT_UNKNOWN, why, d_filename);
   }
+}
+
+vector<Expr> SmtEngine::getUnsatAssumptions(void)
+{
+  Trace("smt") << "SMT getUnsatAssumptions()" << endl;
+  SmtScope smts(this);
+  if (!options::unsatAssumptions())
+  {
+    throw ModalException(
+        "Cannot get unsat assumptions when produce-unsat-assumptions option "
+        "is off.");
+  }
+  if (d_status.isNull()
+      || d_status.asSatisfiabilityResult() != Result::UNSAT
+      || d_problemExtended)
+  {
+    throw RecoverableModalException(
+        "Cannot get unsat assumptions unless immediately preceded by "
+        "UNSAT/VALID response.");
+  }
+  finalOptionsAreSet();
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << GetUnsatCoreCommand();
+  }
+  UnsatCore core = getUnsatCore();
+  vector<Expr> res;
+  for (const Expr& e : d_assumptions)
+  {
+    if (find(core.begin(), core.end(), e) != core.end()) { res.push_back(e); }
+  }
+  return res;
 }
 
 Result SmtEngine::checkSynth(const Expr& e)
@@ -5829,7 +5930,7 @@ void SmtEngine::push()
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmtric with pop.
-  d_problemExtended = true;
+  setProblemExtended(true);
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -5863,7 +5964,7 @@ void SmtEngine::pop() {
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  d_problemExtended = true;
+  setProblemExtended(true);
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());

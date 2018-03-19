@@ -31,7 +31,7 @@ public:
                 OutputChannel& out, Valuation valuation,
                 const LogicInfo& logicInfo)
       : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo) {}
-  std::string identify() const { return std::string("TheoryBuiltin"); }
+  std::string identify() const override { return std::string("TheoryBuiltin"); }
 };/* class TheoryBuiltin */
 
 }/* CVC4::theory::builtin namespace */

@@ -67,7 +67,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.
    */
-  virtual bool buildModel(Model* m) override;
+  bool buildModel(Model* m) override;
   /** Debug check model.
    *
    * This throws an assertion failure if the model

@@ -171,20 +171,20 @@ public:
 
   void printAtomMapping(const std::set<Node>& atoms,
                         std::ostream& os,
-                        std::ostream& paren);
+                        std::ostream& paren) override;
 
   void printAtomMapping(const std::set<Node>& atoms,
                         std::ostream& os,
                         std::ostream& paren,
-                        ProofLetMap &letMap);
+                        ProofLetMap& letMap) override;
 
   void printClause(const prop::SatClause& clause,
                    std::ostream& os,
-                   std::ostream& paren);
+                   std::ostream& paren) override;
   void printCnfProofForClause(ClauseId id,
                               const prop::SatClause* clause,
                               std::ostream& os,
-                              std::ostream& paren);
+                              std::ostream& paren) override;
 };/* class LFSCCnfProof */
 
 } /* CVC4 namespace */

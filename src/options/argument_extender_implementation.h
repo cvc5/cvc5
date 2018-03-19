@@ -50,39 +50,39 @@ class ArgumentExtenderImplementation : public ArgumentExtender {
    * Preconditions:
    * - argc and argv are non-null.
    */
-  void getArguments(int* argc, char*** argv) const;
+  void getArguments(int* argc, char*** argv) const override;
 
   /** Returns the number of arguments that are . */
-  size_t numArguments() const;
+  size_t numArguments() const override;
 
   /**
    * Inserts a copy of element into the front of the arguments list.
    * Preconditions: element is non-null and 0 terminated.
    */
-  void pushFrontArgument(const char* element);
+  void pushFrontArgument(const char* element) override;
 
   /**
    * Inserts a copy of element into the back of the arguments list.
    * Preconditions: element is non-null and 0 terminated.
    */
-  void pushBackArgument(const char* element);
+  void pushBackArgument(const char* element) override;
 
   /** Removes the front of the arguments list.*/
-  void popFrontArgument();
+  void popFrontArgument() override;
 
   /** Adds a new preemption to the arguments list. */
-  void pushBackPreemption(const char* element);
+  void pushBackPreemption(const char* element) override;
 
   /**
    * Moves all of the preemptions into the front of the arguments
    * list.
    */
-  void movePreemptionsToArguments();
+  void movePreemptionsToArguments() override;
 
   /** Returns true iff there is a pending preemption.*/
-  bool hasPreemptions() const;
+  bool hasPreemptions() const override;
 
-private:
+ private:
 
   typedef std::list< char* > CharPointerList;
 

@@ -923,23 +923,6 @@ inline std::ostream& operator<<(std::ostream& out, TNode n) {
   return out;
 }
 
-namespace {
-
-template <typename T>
-void nodeContainerToOut(std::ostream& out, const T& container)
-{
-  out << "[";
-  bool is_first = true;
-  for (const auto& item : container)
-  {
-    out << (!is_first ? ", " : "") << item;
-    is_first = false;
-  }
-  out << "]";
-}
-
-}
-
 /**
  * Serialize a vector of nodes to given stream.
  *
@@ -951,7 +934,7 @@ template <bool RC>
 std::ostream& operator<<(std::ostream& out,
                          const std::vector<NodeTemplate<RC>>& container)
 {
-  nodeContainerToOut(out, container);
+  container_to_stream(out, container);
   return out;
 }
 
@@ -966,7 +949,7 @@ template <bool RC>
 std::ostream& operator<<(std::ostream& out,
                          const std::set<NodeTemplate<RC>>& container)
 {
-  nodeContainerToOut(out, container);
+  container_to_stream(out, container);
   return out;
 }
 
@@ -982,7 +965,7 @@ std::ostream& operator<<(
     std::ostream& out,
     const std::unordered_set<NodeTemplate<RC>, hash_function>& container)
 {
-  nodeContainerToOut(out, container);
+  container_to_stream(out, container);
   return out;
 }
 
@@ -998,7 +981,7 @@ std::ostream& operator<<(
     std::ostream& out,
     const std::map<NodeTemplate<RC>, V>& container)
 {
-  nodeContainerToOut(out, container);
+  container_to_stream(out, container);
   return out;
 }
 
@@ -1014,7 +997,7 @@ std::ostream& operator<<(
     std::ostream& out,
     const std::unordered_map<NodeTemplate<RC>, V, HF>& container)
 {
-  nodeContainerToOut(out, container);
+  container_to_stream(out, container);
   return out;
 }
 

@@ -49,18 +49,18 @@ public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
   virtual ~ModelEngine();
 public:
-  bool needsCheck( Theory::Effort e );
-  QEffort needsModel(Theory::Effort e);
-  void reset_round( Theory::Effort e );
-  void check(Theory::Effort e, QEffort quant_e);
-  bool checkComplete();
-  bool checkCompleteFor( Node q );
-  void registerQuantifier( Node f );
-  void assertNode( Node f );
-  Node explain(TNode n){ return Node::null(); }
-  void debugPrint( const char* c );
-  /** Identify this module */
-  std::string identify() const { return "ModelEngine"; }
+ bool needsCheck(Theory::Effort e) override;
+ QEffort needsModel(Theory::Effort e) override;
+ void reset_round(Theory::Effort e) override;
+ void check(Theory::Effort e, QEffort quant_e) override;
+ bool checkComplete() override;
+ bool checkCompleteFor(Node q) override;
+ void registerQuantifier(Node f) override;
+ void assertNode(Node f) override;
+ Node explain(TNode n) { return Node::null(); }
+ void debugPrint(const char* c);
+ /** Identify this module */
+ std::string identify() const override { return "ModelEngine"; }
 };/* class ModelEngine */
 
 }/* CVC4::theory::quantifiers namespace */

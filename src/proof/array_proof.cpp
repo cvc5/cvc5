@@ -1232,9 +1232,9 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
 }
 
 void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAY);
+  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
 
-  if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAY) {
+  if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAYS) {
     // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term
     // hiding as a subterm of an array term. In that case, send it back to the dispatcher.
     d_proofEngine->printBoundTerm(term, os, map);

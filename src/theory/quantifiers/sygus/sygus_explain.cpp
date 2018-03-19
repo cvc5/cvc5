@@ -110,19 +110,25 @@ Node TermRecBuild::build(unsigned d)
   return NodeManager::currentNM()->mkNode(d_kind[d], children);
 }
 
-void SygusExplain::getExplanationForConstantEquality(Node n,
-                                                     Node vn,
-                                                     std::vector<Node>& exp)
+void SygusExplain::getExplanationForEquality(Node n,
+                                             Node vn,
+                                             std::vector<Node>& exp)
 {
   std::map<unsigned, bool> cexc;
-  getExplanationForConstantEquality(n, vn, exp, cexc);
+  getExplanationForEquality(n, vn, exp, cexc);
 }
 
-void SygusExplain::getExplanationForConstantEquality(
-    Node n, Node vn, std::vector<Node>& exp, std::map<unsigned, bool>& cexc)
+void SygusExplain::getExplanationForEquality(Node n,
+                                             Node vn,
+                                             std::vector<Node>& exp,
+                                             std::map<unsigned, bool>& cexc)
 {
-  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   Assert(n.getType() == vn.getType());
+  if (n == vn)
+  {
+    return;
+  }
+  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
@@ -137,22 +143,23 @@ void SygusExplain::getExplanationForConstantEquality(
           kind::APPLY_SELECTOR_TOTAL,
           Node::fromExpr(dt[i].getSelectorInternal(tn.toType(), j)),
           n);
-      getExplanationForConstantEquality(sel, vn[j], exp);
+      getExplanationForEquality(sel, vn[j], exp);
     }
   }
 }
 
-Node SygusExplain::getExplanationForConstantEquality(Node n, Node vn)
+Node SygusExplain::getExplanationForEquality(Node n, Node vn)
 {
   std::map<unsigned, bool> cexc;
-  return getExplanationForConstantEquality(n, vn, cexc);
+  return getExplanationForEquality(n, vn, cexc);
 }
 
-Node SygusExplain::getExplanationForConstantEquality(
-    Node n, Node vn, std::map<unsigned, bool>& cexc)
+Node SygusExplain::getExplanationForEquality(Node n,
+                                             Node vn,
+                                             std::map<unsigned, bool>& cexc)
 {
   std::vector<Node> exp;
-  getExplanationForConstantEquality(n, vn, exp, cexc);
+  getExplanationForEquality(n, vn, exp, cexc);
   Assert(!exp.empty());
   return exp.size() == 1 ? exp[0]
                          : NodeManager::currentNM()->mkNode(kind::AND, exp);
@@ -250,7 +257,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
       // if excluded, we may need to add the explanation for this
       if (vnr_exp.isNull() && !vnr_c.isNull())
       {
-        vnr_exp = getExplanationForConstantEquality(sel, vnr[i]);
+        vnr_exp = getExplanationForEquality(sel, vnr[i]);
       }
     }
   }
@@ -264,7 +271,7 @@ void SygusExplain::getExplanationFor(Node n,
                                      unsigned& sz)
 {
   // naive :
-  // return getExplanationForConstantEquality( n, vn, exp );
+  // return getExplanationForEquality( n, vn, exp );
 
   // set up the recursion object
   std::map<TypeNode, int> var_count;
