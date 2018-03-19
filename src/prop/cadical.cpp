@@ -55,13 +55,16 @@ CadicalVar toCadicalVar(SatVariable var) { return var; }
 
 CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
                              const std::string& name)
-    // Note: CaDiCaL variables start with index 1 rather than 0 since
-    //       negated literals are represented as the negation of the index.
-    : d_solver(new CaDiCaL::Solver()), d_nextVarIdx(1)
+    : d_solver(new CaDiCaL::Solver()),
+      // Note: CaDiCaL variables start with index 1 rather than 0 since negated
+      //       literals are represented as the negation of the index.
+      d_nextVarIdx(1),
+      d_statistics(registry, name)
 {
   d_true = newVar();
   d_false = newVar();
 
+  d_solver->set("quiet", 1);  // CaDiCaL is verbose by default
   d_solver->add(toCadicalVar(d_true));
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
@@ -77,6 +80,7 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
     d_solver->add(toCadicalLit(lit));
   }
   d_solver->add(0);
+  ++d_statistics.d_numClauses;
   return ClauseIdError;
 }
 
@@ -91,6 +95,7 @@ SatVariable CadicalSolver::newVar(bool isTheoryAtom,
                                   bool preRegister,
                                   bool canErase)
 {
+  ++d_statistics.d_numVariables;
   return d_nextVarIdx++;
 }
 
@@ -100,8 +105,10 @@ SatVariable CadicalSolver::falseVar() { return d_false; }
 
 SatValue CadicalSolver::solve()
 {
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   SatValue res = toSatValue(d_solver->solve());
   d_okay = (res == SAT_VALUE_TRUE);
+  ++d_statistics.d_numSatCalls;
   return res;
 }
 
@@ -130,6 +137,27 @@ unsigned CadicalSolver::getAssertionLevel() const
 }
 
 bool CadicalSolver::ok() const { return d_okay; }
+
+CadicalSolver::Statistics::Statistics(StatisticsRegistry* registry,
+                                      const std::string& prefix)
+    : d_registry(registry),
+      d_numSatCalls("theory::bv::" + prefix + "::cadical::calls_to_solve", 0),
+      d_numVariables("theory::bv::" + prefix + "::cadical::variables", 0),
+      d_numClauses("theory::bv::" + prefix + "::cadical::clauses", 0),
+      d_solveTime("theory::bv::" + prefix + "::cadical::solve_time")
+{
+  d_registry->registerStat(&d_numSatCalls);
+  d_registry->registerStat(&d_numVariables);
+  d_registry->registerStat(&d_numClauses);
+  d_registry->registerStat(&d_solveTime);
+}
+
+CadicalSolver::Statistics::~Statistics() {
+  d_registry->unregisterStat(&d_numSatCalls);
+  d_registry->unregisterStat(&d_numVariables);
+  d_registry->unregisterStat(&d_numClauses);
+  d_registry->unregisterStat(&d_solveTime);
+}
 
 }  // namespace prop
 }  // namespace CVC4

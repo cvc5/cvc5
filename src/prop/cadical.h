@@ -30,14 +30,6 @@ namespace prop {
 
 class CadicalSolver : public SatSolver
 {
- private:
-  CaDiCaL::Solver* d_solver;
-
-  unsigned d_nextVarIdx;
-  bool d_okay;
-  SatVariable d_true;
-  SatVariable d_false;
-
  public:
   CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
 
@@ -69,20 +61,26 @@ class CadicalSolver : public SatSolver
 
   bool ok() const override;
 
-  //  class Statistics
-  //  {
-  //   public:
-  //    StatisticsRegistry* d_registry;
-  //    IntStat d_statCallsToSolve;
-  //    IntStat d_xorClausesAdded;
-  //    IntStat d_clausesAdded;
-  //    TimerStat d_solveTime;
-  //    bool d_registerStats;
-  //    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-  //    ~Statistics();
-  //  };
-  //
-  //  Statistics d_statistics;
+ private:
+  CaDiCaL::Solver* d_solver;
+
+  unsigned d_nextVarIdx;
+  bool d_okay;
+  SatVariable d_true;
+  SatVariable d_false;
+
+  struct Statistics
+  {
+    StatisticsRegistry* d_registry;
+    IntStat d_numSatCalls;
+    IntStat d_numVariables;
+    IntStat d_numClauses;
+    TimerStat d_solveTime;
+    Statistics(StatisticsRegistry* registry, const std::string& prefix);
+    ~Statistics();
+  };
+
+  Statistics d_statistics;
 };
 
 }  // namespace prop
