@@ -71,7 +71,7 @@ CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
   d_solver->add(0);
 }
 
-CadicalSolver::~CadicalSolver() { delete d_solver; }
+CadicalSolver::~CadicalSolver() {}
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {

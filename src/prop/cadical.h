@@ -62,7 +62,7 @@ class CadicalSolver : public SatSolver
   bool ok() const override;
 
  private:
-  CaDiCaL::Solver* d_solver;
+  std::unique_ptr<CaDiCaL::Solver> d_solver;
 
   unsigned d_nextVarIdx;
   bool d_okay;
@@ -86,5 +86,5 @@ class CadicalSolver : public SatSolver
 }  // namespace prop
 }  // namespace CVC4
 
-#endif  // CVC4_USE_CRYPTOMINISAT
+#endif  // CVC4_USE_CADICAL
 #endif  // __CVC4__PROP__CADICAL_H
