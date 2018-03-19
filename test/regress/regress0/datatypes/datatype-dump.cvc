@@ -1,14 +1,15 @@
 % This regression is the same as datatype.cvc but tests the
 % dumping infrastructure.
 %
-% COMMAND-LINE: --dump assertions
+% COMMAND-LINE: --dump raw-benchmark
 %
+% EXPECT: OPTION "incremental" false;
+% EXPECT: OPTION "logic" "ALL";
 % EXPECT: DATATYPE
 % EXPECT:   nat = succ(pred: nat) | zero
 % EXPECT: END;
 % EXPECT: x : nat;
-% EXPECT: ASSERT NOT(NOT(is_succ(x)) AND NOT(is_zero(x)));
-% EXPECT: CHECKSAT;
+% EXPECT: QUERY NOT(is_succ(x)) AND NOT(is_zero(x));
 % EXPECT: invalid
 %
 
