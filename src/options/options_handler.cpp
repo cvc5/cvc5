@@ -1092,7 +1092,8 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
         options::bitblastMode.wasSetByUser()) {
-      throw OptionException(std::string("Cryptominsat does not support lazy bit-blsating. \n\
+      throw OptionException(
+          std::string("Cryptominsat does not support lazy bit-blasting. \n\
                                          Try --bv-sat-solver=minisat"));
     }
     if (!options::bitvectorToBool.wasSetByUser()) {
@@ -1120,7 +1121,7 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
         && options::bitblastMode.wasSetByUser())
     {
       throw OptionException(
-          std::string("CaDiCaL does not support lazy bit-blsating. \n\
+          std::string("CaDiCaL does not support lazy bit-blasting. \n\
                                          Try --bv-sat-solver=minisat"));
     }
     if (!options::bitvectorToBool.wasSetByUser())
