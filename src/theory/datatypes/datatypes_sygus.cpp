@@ -222,7 +222,8 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
     bool success = false;
     if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
       registerTerm( n[0], lemmas );
-      std::unordered_map< Node, Node, NodeHashFunction >::iterator it = d_term_to_anchor.find( n[0] );
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
+          d_term_to_anchor.find(n[0]);
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
         unsigned sel_weight =
@@ -690,7 +691,8 @@ unsigned SygusSymBreakNew::processSelectorChain( Node n, std::map< TypeNode, Nod
 
 void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas ) {
   //register this term
-  std::unordered_map< Node, Node, NodeHashFunction >::iterator ita = d_term_to_anchor.find( n );
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
+      d_term_to_anchor.find(n);
   Assert( ita != d_term_to_anchor.end() );
   Node a = ita->second;
   Assert( !a.isNull() );
@@ -739,7 +741,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), lemmas);
       return false;
     }else{
-      std::unordered_map< Node, Node, NodeHashFunction >::iterator itsv = d_cache[a].d_search_val[tn].find( bvr );
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator itsv =
+          d_cache[a].d_search_val[tn].find(bvr);
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
@@ -1060,7 +1063,8 @@ void SygusSymBreakNew::notifySearchSize( Node m, unsigned s, Node exp, std::vect
 
 unsigned SygusSymBreakNew::getSearchSizeFor( Node n ) {
   Trace("sygus-sb-debug2") << "get search size for term : " << n << std::endl;
-  std::unordered_map< Node, Node, NodeHashFunction >::iterator ita = d_term_to_anchor.find( n );
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
+      d_term_to_anchor.find(n);
   Assert( ita != d_term_to_anchor.end() );
   return getSearchSizeForAnchor( ita->second );
 }

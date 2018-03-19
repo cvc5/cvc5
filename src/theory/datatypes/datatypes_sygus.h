@@ -46,15 +46,19 @@ class SygusSymBreakNew
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
  public:
-  SygusSymBreakNew( TheoryDatatypes * td, quantifiers::TermDbSygus * tds, context::Context* c );
+  SygusSymBreakNew(TheoryDatatypes* td,
+                   quantifiers::TermDbSygus* tds,
+                   context::Context* c);
   ~SygusSymBreakNew();
   /** add tester */
-  void assertTester( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
-  void assertFact( Node n, bool polarity, std::vector< Node >& lemmas );
-  void preRegisterTerm( TNode n, std::vector< Node >& lemmas  );
-  void check( std::vector< Node >& lemmas );
-  Node getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas );
+  void assertTester(int tindex, TNode n, Node exp, std::vector<Node>& lemmas);
+  void assertFact(Node n, bool polarity, std::vector<Node>& lemmas);
+  void preRegisterTerm(TNode n, std::vector<Node>& lemmas);
+  void check(std::vector<Node>& lemmas);
+  Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
+
  private:
   /** Pointer to the datatype theory that owns this class. */
   TheoryDatatypes* d_td;
@@ -70,7 +74,7 @@ class SygusSymBreakNew
    * Map from terms (selector chains) to their anchors. The anchor of a
    * selector chain S1( ... Sn( x ) ... ) is x.
    */
-  std::unordered_map< Node, Node, NodeHashFunction > d_term_to_anchor;
+  std::unordered_map<Node, Node, NodeHashFunction> d_term_to_anchor;
   /**
    * Map from anchors to the conjecture they are associated with.
    */
@@ -82,7 +86,7 @@ class SygusSymBreakNew
    * where weight is the selector weight of Si
    * (see SygusTermDatabase::getSelectorWeight).
    */
-  std::unordered_map< Node, unsigned, NodeHashFunction > d_term_to_depth;
+  std::unordered_map<Node, unsigned, NodeHashFunction> d_term_to_depth;
   /**
    * Map from terms (selector chains) to whether they are the topmost term
    * of their type. For example, if:
@@ -94,15 +98,16 @@ class SygusSymBreakNew
    * whereas S2( S1( x ) ) and S3( S2( S1( x ) ) ) are not.
    *
    */
-  std::unordered_map< Node, bool, NodeHashFunction > d_is_top_level;
+  std::unordered_map<Node, bool, NodeHashFunction> d_is_top_level;
   /**
    * Returns true if the selector chain n is top-level based on the above
    * definition, when tn is the type of n.
    */
   bool computeTopLevel( TypeNode tn, Node n );
 private:
-  /** This caches all information regarding symmetry breaking for an anchor. */
-  class SearchCache {
+ /** This caches all information regarding symmetry breaking for an anchor. */
+ class SearchCache
+ {
   public:
     SearchCache(){}
     /** A cache of all search terms for (types, sizes). */
@@ -116,11 +121,13 @@ private:
      * term. The range of this map can be updated if we later encounter a sygus
      * term that also rewrites to the builtin value but has a smaller term size.
      */
-    std::map< TypeNode, std::unordered_map< Node, Node, NodeHashFunction >  > d_search_val;
+    std::map<TypeNode, std::unordered_map<Node, Node, NodeHashFunction>>
+        d_search_val;
     /** the size of terms in the range of d_search val. */
-    std::map< TypeNode, std::unordered_map< Node, unsigned, NodeHashFunction > > d_search_val_sz;
+    std::map<TypeNode, std::unordered_map<Node, unsigned, NodeHashFunction>>
+        d_search_val_sz;
     /** For each term, whether this cache has processed that term */
-    std::unordered_set< Node, NodeHashFunction > d_search_val_proc;
+    std::unordered_set<Node, NodeHashFunction> d_search_val_proc;
   };
   /** An instance of the above cache, for each anchor */
   std::map< Node, SearchCache > d_cache;
@@ -158,7 +165,7 @@ private:
    * if applicable.
    */
   void registerTerm(Node n, std::vector<Node>& lemmas);
-  
+
   //------------------------dynamic symmetry breaking
   /** Register search term
    *
@@ -263,69 +270,70 @@ private:
   /** add symmetry breaking lemma
    *
    * This adds the lemma R => lem{ x -> n } to lemmas, where R is a "relevancy
-   * condition" that states which contexts n is relevant in (see 
+   * condition" that states which contexts n is relevant in (see
    * getRelevancyCondition).
    */
   void addSymBreakLemma(Node lem, TNode x, TNode n, std::vector<Node>& lemmas);
   //------------------------end dynamic symmetry breaking
-  
+
   /** Get relevancy condition
    *
    * This returns a predicate that holds in the contexts in which the selector
-   * chain n is specified. For example, the relevancy condition for 
+   * chain n is specified. For example, the relevancy condition for
    * sel_{C2,1}( sel_{C1,1}( d ) ) is is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ).
    * If shared selectors are enabled, this is a conjunction of disjunctions,
    * since shared selectors may apply to multiple constructors.
    */
   Node getRelevancyCondition( Node n );
   /** Cache of the above function */
-  std::map< Node, Node > d_rlv_cond;
-  
+  std::map<Node, Node> d_rlv_cond;
+
   //------------------------static symmetry breaking
   /** Get simple symmetry breakind predicate
-   * 
+   *
    * This function returns the "static" symmetry breaking lemma template for
    * terms with type tn and constructor index tindex, for the given depth. This
    * includes inferences about size with depth=0. Given grammar:
    *   A -> ite( B, A, A ) | A+A | x | 1 | 0
    *   B -> A = A
    * Examples of static symmetry breaking lemma templates are:
-   *   for +, depth 0: size(z)=size(z.1)+size(z.2) 
+   *   for +, depth 0: size(z)=size(z.1)+size(z.2)
    *   for +, depth 1: ~is-0( z.1 ) ^ ~is-0( z.2 ) ^ C
    *     where C ensures the constructor of z.1 is less than that of z.2 based
    *     on some ordering.
    *   for ite, depth 1: z.2 != z.3
    * These lemmas can be thought of as "hard-coded" cases of dynamic symmetry
-   * breaking lemma templates. Notice that the above lemma templates are in 
-   * terms of getFreeVar( tn ), hence only one is created per 
+   * breaking lemma templates. Notice that the above lemma templates are in
+   * terms of getFreeVar( tn ), hence only one is created per
    * (constructor, depth).
    */
   Node getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth );
   /** Cache of the above function */
-  std::map< TypeNode, std::map< int, std::map< unsigned, Node > > > d_simple_sb_pred;
-  /** 
+  std::map<TypeNode, std::map<int, std::map<unsigned, Node>>> d_simple_sb_pred;
+  /**
    * For each search term, this stores the maximum depth for which we have added
    * a static symmetry breaking lemma.
-   * 
+   *
    * This should be user context-dependent if sygus is updated to work in
    * incremental mode.
    */
-  std::unordered_map< Node, unsigned, NodeHashFunction > d_simple_proc;
+  std::unordered_map<Node, unsigned, NodeHashFunction> d_simple_proc;
   //------------------------end static symmetry breaking
-  
+
   /** Get the canonical free variable for type tn */
   TNode getFreeVar( TypeNode tn );
   Node getTermOrderPredicate( Node n1, Node n2 );
 private:
-  /** 
-   * Map from registered variables to whether they are a sygus enumerator.
-   * 
-   * This should be user context-dependent if sygus is updated to work in
-   * incremental mode.
-   */
-  std::map< Node, bool > d_register_st;
-  void registerSizeTerm( Node e, std::vector< Node >& lemmas );
-  class SearchSizeInfo {
+ /**
+  * Map from registered variables to whether they are a sygus enumerator.
+  *
+  * This should be user context-dependent if sygus is updated to work in
+  * incremental mode.
+  */
+ std::map<Node, bool> d_register_st;
+ void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+ class SearchSizeInfo
+ {
   public:
     SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
     Node d_this;
@@ -367,7 +375,6 @@ private:
   int getGuardStatus( Node g );
 private:
   void assertIsConst( Node n, bool polarity, std::vector< Node >& lemmas );
-
 };
 
 }
