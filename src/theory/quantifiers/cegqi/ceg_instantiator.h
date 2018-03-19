@@ -303,7 +303,8 @@ class CegInstantiator {
   * have total interpretations and are a part of the signature of
   * satisfaction complete theories (see Reynolds et al., CAV 2015).
   */
-  static bool isCbqiKind( Kind k );
+  static bool isCbqiKind(Kind k);
+
  private:
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
