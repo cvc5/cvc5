@@ -281,9 +281,9 @@ def write_file(directory, name, content):
                 if content == file.read():
                     print('{} is up-to-date'.format(name))
                     return
-            with open(fname, 'w') as file:
-                print('generated {}'.format(name))
-                file.write(content)
+        with open(fname, 'w') as file:
+            print('generated {}'.format(name))
+            file.write(content)
     except IOError:
         die("Could not write '{}'".format(fname))
 
