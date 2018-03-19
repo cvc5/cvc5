@@ -369,13 +369,13 @@ void TLazyBitblaster::getConflict(std::vector<TNode>& conflict)
 }
 
 TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
-  d_numTermClauses("theory::bv::"+prefix+"::NumberOfTermSatClauses", 0),
-  d_numAtomClauses("theory::bv::"+prefix+"::NumberOfAtomSatClauses", 0),
-  d_numTerms("theory::bv::"+prefix+"::NumberOfBitblastedTerms", 0),
-  d_numAtoms("theory::bv::"+prefix+"::NumberOfBitblastedAtoms", 0),
-  d_numExplainedPropagations("theory::bv::"+prefix+"::NumberOfExplainedPropagations", 0),
-  d_numBitblastingPropagations("theory::bv::"+prefix+"::NumberOfBitblastingPropagations", 0),
-  d_bitblastTimer("theory::bv::"+prefix+"::BitblastTimer")
+  d_numTermClauses(prefix + "::NumTermSatClauses", 0),
+  d_numAtomClauses(prefix + "::NumAtomSatClauses", 0),
+  d_numTerms(prefix + "::NumBitblastedTerms", 0),
+  d_numAtoms(prefix + "::NumBitblastedAtoms", 0),
+  d_numExplainedPropagations(prefix + "::NumExplainedPropagations", 0),
+  d_numBitblastingPropagations(prefix + "::NumBitblastingPropagations", 0),
+  d_bitblastTimer(prefix + "::BitblastTimer")
 {
   smtStatisticsRegistry()->registerStat(&d_numTermClauses);
   smtStatisticsRegistry()->registerStat(&d_numAtomClauses);

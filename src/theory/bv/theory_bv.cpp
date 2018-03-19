@@ -51,7 +51,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
     d_sharedTermsSet(c),
     d_subtheories(),
     d_subtheoryMap(),
-    d_statistics(getFullInstanceName()),
+    d_statistics(),
     d_staticLearnCache(),
     d_BVDivByZero(),
     d_BVRemByZero(),
@@ -64,7 +64,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
     d_eagerSolver(NULL),
-    d_abstractionModule(new AbstractionModule(getFullInstanceName())),
+    d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
     d_isCoreTheory(false),
     d_calledPreregister(false),
     d_needsLastCallCheck(false),
@@ -130,14 +130,14 @@ void TheoryBV::spendResource(unsigned amount)
   getOutputChannel().spendResource(amount);
 }
 
-TheoryBV::Statistics::Statistics(const std::string &name):
-  d_avgConflictSize(name + "theory::bv::AvgBVConflictSize"),
-  d_solveSubstitutions(name + "theory::bv::NumberOfSolveSubstitutions", 0),
-  d_solveTimer(name + "theory::bv::solveTimer"),
-  d_numCallsToCheckFullEffort(name + "theory::bv::NumberOfFullCheckCalls", 0),
-  d_numCallsToCheckStandardEffort(name + "theory::bv::NumberOfStandardCheckCalls", 0),
-  d_weightComputationTimer(name + "theory::bv::weightComputationTimer"),
-  d_numMultSlice(name + "theory::bv::NumMultSliceApplied", 0)
+TheoryBV::Statistics::Statistics():
+  d_avgConflictSize("theory::bv::AvgBVConflictSize"),
+  d_solveSubstitutions("theory::bv::NumSolveSubstitutions", 0),
+  d_solveTimer("theory::bv::solveTimer"),
+  d_numCallsToCheckFullEffort("theory::bv::NumFullCheckCalls", 0),
+  d_numCallsToCheckStandardEffort("theory::bv::NumStandardCheckCalls", 0),
+  d_weightComputationTimer("theory::bv::weightComputationTimer"),
+  d_numMultSlice("theory::bv::NumMultSliceApplied", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
   smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);

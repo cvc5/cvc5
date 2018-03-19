@@ -809,6 +809,21 @@ class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
   std::string getCommandName() const override;
 }; /* class GetQuantifierEliminationCommand */
 
+class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
+{
+ public:
+  GetUnsatAssumptionsCommand();
+  void invoke(SmtEngine* smtEngine) override;
+  std::vector<Expr> getResult() const;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+ protected:
+  std::vector<Expr> d_result;
+}; /* class GetUnsatAssumptionsCommand */
+
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command
 {
  public:

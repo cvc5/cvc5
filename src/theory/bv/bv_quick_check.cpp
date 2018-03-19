@@ -353,13 +353,13 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
 }
 
 QuickXPlain::Statistics::Statistics(const std::string& name)
-  : d_xplainTime("theory::bv::"+name+"::QuickXplain::Time")
-  , d_numSolved("theory::bv::"+name+"::QuickXplain::NumSolved", 0)
-  , d_numUnknown("theory::bv::"+name+"::QuickXplain::NumUnknown", 0)
-  , d_numUnknownWasUnsat("theory::bv::"+name+"::QuickXplain::NumUnknownWasUnsat", 0)
-  , d_numConflictsMinimized("theory::bv::"+name+"::QuickXplain::NumConflictsMinimized", 0)
-  , d_finalPeriod("theory::bv::"+name+"::QuickXplain::FinalPeriod", 0)
-  , d_avgMinimizationRatio("theory::bv::"+name+"::QuickXplain::AvgMinRatio")
+  : d_xplainTime(name + "::QuickXplain::Time")
+  , d_numSolved(name + "::QuickXplain::NumSolved", 0)
+  , d_numUnknown(name + "::QuickXplain::NumUnknown", 0)
+  , d_numUnknownWasUnsat(name + "::QuickXplain::NumUnknownWasUnsat", 0)
+  , d_numConflictsMinimized(name + "::QuickXplain::NumConflictsMinimized", 0)
+  , d_finalPeriod(name + "::QuickXplain::FinalPeriod", 0)
+  , d_avgMinimizationRatio(name + "::QuickXplain::AvgMinRatio")
 {
   smtStatisticsRegistry()->registerStat(&d_xplainTime);
   smtStatisticsRegistry()->registerStat(&d_numSolved);

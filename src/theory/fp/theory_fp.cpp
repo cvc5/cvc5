@@ -100,7 +100,7 @@ TheoryFp::TheoryFp(context::Context *c, context::UserContext *u,
                    const LogicInfo &logicInfo)
     : Theory(THEORY_FP, c, u, out, valuation, logicInfo),
       d_notification(*this),
-      d_equalityEngine(d_notification, c, "theory::fp::TheoryFp", true),
+      d_equalityEngine(d_notification, c, "theory::fp::ee", true),
       d_registeredTerms(u),
       d_conv(u),
       d_expansionRequested(false),
