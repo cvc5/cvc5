@@ -37,6 +37,23 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+std::ostream& operator<<(std::ostream& out, Inference i)
+{
+  switch (i)
+  {
+    case INFER_SSPLIT_CST_PROP: out << "S-Split(CST-P)-prop"; break;
+    case INFER_SSPLIT_VAR_PROP: out << "S-Split(VAR)-prop"; break;
+    case INFER_LEN_SPLIT: out << "Len-Split(Len)"; break;
+    case INFER_LEN_SPLIT_EMP: out << "Len-Split(Emp)"; break;
+    case INFER_SSPLIT_CST_BINARY: out << "S-Split(CST-P)-binary"; break;
+    case INFER_SSPLIT_CST: out << "S-Split(CST-P)"; break;
+    case INFER_SSPLIT_VAR: out << "S-Split(VAR)"; break;
+    case INFER_FLOOP: out << "F-Loop"; break;
+    default: out << "?"; break;
+  }
+  return out;
+}
+
 Node TheoryStrings::TermIndex::add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c ) {
   if( index==n.getNumChildren() ){
     if( d_data.isNull() ){
@@ -2377,9 +2394,11 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
     Trace("strings-solve") << "Possible inferences (" << pinfer.size() << ") : " << std::endl;
     unsigned min_id = 9;
     unsigned max_index = 0;
-    for( unsigned i=0; i<pinfer.size(); i++ ){
+    for (unsigned i = 0, size = pinfer.size(); i < size; i++)
+    {
       Trace("strings-solve") << "From " << pinfer[i].d_i << " / " << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev << ") : ";
-      Trace("strings-solve") << pinfer[i].d_conc << " by " << pinfer[i].getId() << std::endl;
+      Trace("strings-solve")
+          << pinfer[i].d_conc << " by " << pinfer[i].d_id << std::endl;
       if( use_index==-1 || pinfer[i].d_id<min_id || ( pinfer[i].d_id==min_id && pinfer[i].d_index>max_index ) ){
         min_id = pinfer[i].d_id;
         max_index = pinfer[i].d_index;
@@ -2391,7 +2410,13 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
       Assert( !pinfer[use_index].d_nf_pair[1].isNull() );
       addNormalFormPair( pinfer[use_index].d_nf_pair[0], pinfer[use_index].d_nf_pair[1] );
     }
-    sendInference( pinfer[use_index].d_ant, pinfer[use_index].d_antn, pinfer[use_index].d_conc, pinfer[use_index].getId(), pinfer[use_index].sendAsLemma() );
+    std::stringstream ssi;
+    ssi << pinfer[use_index].d_id;
+    sendInference(pinfer[use_index].d_ant,
+                  pinfer[use_index].d_antn,
+                  pinfer[use_index].d_conc,
+                  ssi.str().c_str(),
+                  pinfer[use_index].sendAsLemma());
     for( std::map< int, std::vector< Node > >::iterator it = pinfer[use_index].d_new_skolem.begin(); it != pinfer[use_index].d_new_skolem.end(); ++it ){
       for( unsigned i=0; i<it->second.size(); i++ ){
         if( it->first==0 ){
@@ -2565,7 +2590,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
             //set info
             info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, length_eq, length_eq.negate() );
             info.d_pending_phase[ length_eq ] = true;
-            info.d_id = 3;
+            info.d_id = INFER_LEN_SPLIT;
             info_valid = true;
           }else{
             Trace("strings-solve-debug") << "Non-simple Case 2 : must compare strings" << std::endl;
@@ -2591,7 +2616,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                   Node eq = other_str.eqNode( d_emptyString );
                   //set info
                   info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
-                  info.d_id = 4;
+                  info.d_id = INFER_LEN_SPLIT_EMP;
                   info_valid = true;
                 }else{
                   if( !isRev ){  //FIXME
@@ -2634,7 +2659,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                         //set info
                         info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, prea ) : mkConcat(prea, sk) );
                         info.d_new_skolem[0].push_back( sk );
-                        info.d_id = 1;
+                        info.d_id = INFER_SSPLIT_CST_PROP;
                         info_valid = true;
                       }
                       /*  FIXME for isRev, speculative
@@ -2666,7 +2691,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                                                                            sk.eqNode( d_emptyString ).negate(),
                                                                            c_firstHalf.eqNode( isRev ? mkConcat( sk, other_str ) : mkConcat( other_str, sk ) ) ) );
                       info.d_new_skolem[0].push_back( sk );
-                      info.d_id = 5;
+                      info.d_id = INFER_SSPLIT_CST_BINARY;
                       info_valid = true;
                     }else{
                       // normal v/c split
@@ -2675,7 +2700,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                       Trace("strings-csp") << "Const Split: " << firstChar << " is removed from " << const_str << " (serial) " << std::endl;
                       info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, firstChar ) : mkConcat(firstChar, sk) );
                       info.d_new_skolem[0].push_back( sk );
-                      info.d_id = 6;                    
+                      info.d_id = INFER_SSPLIT_CST;
                       info_valid = true;
                     }
                   }
@@ -2725,7 +2750,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                 if( lentTestSuccess!=-1 ){
                   info.d_antn.push_back( lentTestExp );
                   info.d_conc = lentTestSuccess==0 ? eq1 : eq2;
-                  info.d_id = 2;
+                  info.d_id = INFER_SSPLIT_VAR_PROP;
                   info_valid = true;
                 }else{
                   Node ldeq = NodeManager::currentNM()->mkNode( kind::EQUAL, length_term_i, length_term_j ).negate();
@@ -2736,7 +2761,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                   }
                   //set info
                   info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
-                  info.d_id = 7;
+                  info.d_id = INFER_SSPLIT_VAR;
                   info_valid = true;
                 }
               }
@@ -2845,7 +2870,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
       {
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
-        info.d_id = 4;
+        info.d_id = INFER_LEN_SPLIT_EMP;
         return true;
       }
       else
@@ -2965,7 +2990,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   if (options::stringProcessLoop())
   {
     info.d_conc = conc;
-    info.d_id = 8;
+    info.d_id = INFER_FLOOP;
     info.d_nf_pair[0] = normal_form_src[i];
     info.d_nf_pair[1] = normal_form_src[j];
     return true;
