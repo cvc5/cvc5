@@ -25,7 +25,6 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -484,13 +483,10 @@ bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visit
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if( n.getKind()!=BOUND_VARIABLE && TermUtil::hasBoundVarAttr( n ) ){
-      if( !inst::Trigger::isCbqiKind( n.getKind() ) ){
+      if( !CegInstantiator::isCbqiKind( n.getKind() ) ){
         Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
         return true;
-      }else if( n.getKind()==MULT && ( n.getNumChildren()!=2 || !n[0].isConst() ) ){
-        Trace("cbqi-debug2") << "Non-linear arithmetic : " << n << std::endl;
-        return true;
-      }else if( n.getKind()==FORALL ){
+      }else if( n.getKind()==FORALL || n.getKind()==CHOICE ){
         return hasNonCbqiOperator( n[1], visited );
       }else{
         for( unsigned i=0; i<n.getNumChildren(); i++ ){

@@ -297,6 +297,13 @@ class CegInstantiator {
   bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
+  /** Is k a kind for which counterexample-guided instantiation is possible?
+   *
+  * This typically corresponds to kinds that correspond to operators that
+  * have total interpretations and are a part of the signature of
+  * satisfaction complete theories (see Reynolds et al., CAV 2015).
+  */
+  static bool isCbqiKind( Kind k );
  private:
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
