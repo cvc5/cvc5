@@ -22,6 +22,8 @@ ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help']
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
+SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'long', 'float',
+                    'double', 'size_t', 'ssize_t']
 
 ### Other globals
 
@@ -208,14 +210,14 @@ class Module(object):
     """Options module.
 
     An options module represents a MODULE_options.toml option configuration
-    file and contains 0+ options and aliases.
+    file and contains lists of options and aliases.
     """
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in MODULE_ATTR_ALL)
         self.options = []
         self.aliases = []
         for (attr, val) in d.items():
-            assert attr in d
+            assert attr in self.__dict__
             if val:
                 self.__dict__[attr] = val
 
@@ -272,20 +274,18 @@ def write_file(directory, name, content):
     we first check if the contents of the file is different from 'content'
     before overwriting the file.
     """
-    fname = '{}/{}'.format(directory, name)
+    fname = os.path.join(directory, name)
     try:
         if os.path.isfile(fname):
-            file = open(fname, 'r')
-            if content == file.read():
-                print('{} is up-to-date'.format(name))
-                return
-        file = open(fname, 'w')
+            with open(fname, 'r') as file:
+                if content == file.read():
+                    print('{} is up-to-date'.format(name))
+                    return
+            with open(fname, 'w') as file:
+                print('generated {}'.format(name))
+                file.write(content)
     except IOError:
         die("Could not write '{}'".format(fname))
-    else:
-        print('generated {}'.format(name))
-        with file:
-            file.write(content)
 
 
 def read_tpl(directory, name):
@@ -296,49 +296,47 @@ def read_tpl(directory, name):
     placeholder variables in the template files are enclosed in ${placeholer}$
     and will be {placeholder} in the returned string.
     """
-    fname = '{}/{}'.format(directory, name)
+    fname = os.path.join(directory, name)
     try:
-        file = open(fname, 'r')
-    except IOError:
-        die("Could not find '{}'. Aborting.".format(fname))
-    else:
         # Escape { and } since we later use .format to add the generated code.
         # Further, strip ${ and }$ from placeholder variables in the template
         # file.
-        with file:
+        with open(fname, 'r') as file:
             contents = \
                 file.read().replace('{', '{{').replace('}', '}}').\
                             replace('${', '').replace('}$', '')
             return contents
+    except IOError:
+        die("Could not find '{}'. Aborting.".format(fname))
 
 
-def match_option(long):
+def match_option(long_name):
     """
-    Lookup option by long option name. The function returns a tuple of (option,
+    Lookup option by long_name option name. The function returns a tuple of (option,
     bool), where the bool indicates the option value (true if not alternate,
     false if alternate option).
     """
     global g_long_to_opt
     val = True
     opt = None
-    long = lstrip('--', long_get_option(long))
-    if long.startswith('no-'):
-        opt = g_long_to_opt.get(lstrip('no-', long))
+    long_name = lstrip('--', long_get_option(long_name))
+    if long_name.startswith('no-'):
+        opt = g_long_to_opt.get(lstrip('no-', long_name))
         # Check if we generated an alternative option
         if opt and opt.type == 'bool' and opt.alternate:
             val = False
     else:
-        opt = g_long_to_opt.get(long)
+        opt = g_long_to_opt.get(long_name)
     return (opt, val)
 
 
 def long_get_arg(name):
     """
-    Extract the argument part ARG of a long option long=ARG.
+    Extract the argument part ARG of a long_name option long_name=ARG.
     """
-    long = name.split('=')
-    assert len(long) <= 2
-    return long[1] if len(long) == 2 else None
+    long_name = name.split('=')
+    assert len(long_name) <= 2
+    return long_name[1] if len(long_name) == 2 else None
 
 
 def long_get_option(name):
@@ -362,7 +360,7 @@ def is_numeric_cpp_type(ctype):
     Check if given type is a numeric C++ type (this should cover the most
     common cases).
     """
-    if ctype in ['int', 'unsigned', 'unsigned long', 'long', 'float', 'double']:
+    if ctype in SUPPORTED_CTYPES:
         return True
     elif re.match('u?int[0-9]+_t', ctype):
         return True
@@ -378,24 +376,24 @@ def format_include(include):
     return '#include "{}"'.format(include)
 
 
-def help_format_options(short, long):
+def help_format_options(short_name, long_name):
     """
     Format short and long options for the cmdline documentation
     (--long | -short).
     """
     opts = []
     arg = None
-    if long:
-        opts.append('--{}'.format(long))
-        long_name = long.split('=')
+    if long_name:
+        opts.append('--{}'.format(long_name))
+        long_name = long_name.split('=')
         if len(long_name) > 1:
             arg = long_name[1]
 
-    if short:
+    if short_name:
         if arg:
-            opts.append('-{} {}'.format(short, arg))
+            opts.append('-{} {}'.format(short_name, arg))
         else:
-            opts.append('-{}'.format(short))
+            opts.append('-{}'.format(short_name))
 
     return ' | '.join(opts)
 
@@ -482,6 +480,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
 
     filename = module.header.split('/')[1][:-2]
+    filename = os.path.splitext(os.path.split(module.header)[1])[0]
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
         filename=filename,
         header=module.header,
@@ -500,7 +499,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     ))
 
 
-def docgen(category, name, smt_name, short, long, ctype, default,
+def docgen(category, name, smt_name, short_name, long_name, ctype, default,
            help_msg, alternate,
            help_common, man_common, man_common_smt, man_common_int,
            help_others, man_others, man_others_smt, man_others_int):
@@ -524,7 +523,7 @@ def docgen(category, name, smt_name, short, long, ctype, default,
     if category == 'expert':
         help_msg += ' (EXPERTS only)'
 
-    opts = help_format_options(short, long)
+    opts = help_format_options(short_name, long_name)
 
     # Generate documentation for cmdline options
     if opts and category != 'undocumented':
@@ -541,8 +540,8 @@ def docgen(category, name, smt_name, short, long, ctype, default,
     help_msg = help_msg.replace('-', '\\-')
 
     # Generate man page documentation for smt options
-    if smt_name or long:
-        smtname = smt_name if smt_name else long_get_option(long)
+    if smt_name or long_name:
+        smtname = smt_name if smt_name else long_get_option(long_name)
         doc_smt.append('.TP\n.B "{}"'.format(smtname))
         if ctype:
             doc_smt.append('({}) {}'.format(ctype, help_msg))
@@ -589,7 +588,7 @@ def docgen_alias(alias,
            help_others, man_others, man_others_smt, man_others_int)
 
 
-def add_getopt_long(long, argument_req, getopt_long):
+def add_getopt_long(long_name, argument_req, getopt_long):
     """
     For each long option we need to add an instance of the option struct in
     order to parse long options (command-line) with getopt_long. Each long
@@ -599,7 +598,8 @@ def add_getopt_long(long, argument_req, getopt_long):
     value = g_getopt_long_start + len(getopt_long)
     getopt_long.append(
         TPL_GETOPT_LONG.format(
-            long_get_option(long), 'required' if argument_req else 'no', value))
+            long_get_option(long_name),
+            'required' if argument_req else 'no', value))
 
 
 def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
@@ -649,10 +649,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
             assert option.type != 'void' or option.name is None
             assert option.name or option.smt_name or option.short or option.long
             argument_req = option.type not in ['bool', 'void']
-
-            #Note: we don't need to add these includes since they are already
-            #      included in the corresponding module header files
-            #headers_handler.update([format_include(x) for x in option.includes])
 
             docgen_option(option,
                           help_common, man_common, man_common_smt,
@@ -1007,21 +1003,21 @@ def check_unique(filename, lineno, value, cache):
     cache[value] = (filename, lineno + 1)
 
 
-def check_long(filename, lineno, long, ctype=None):
+def check_long(filename, lineno, long_name, ctype=None):
     """
     Check if given long option name is valid.
     """
     global g_long_cache
-    if long is None:
+    if long_name is None:
         return
-    if long.startswith('--'):
+    if long_name.startswith('--'):
         perr(filename, lineno, 'remove -- prefix from long option')
     r = r'[0-9a-zA-Z\-=]+'
-    if not re.fullmatch(r, long):
+    if not re.fullmatch(r, long_name):
         perr(filename, lineno,
              "long option '{}' does not match regex criteria '{}'".format(
-                 long, r))
-    name = long_get_option(long)
+                 long_name, r))
+    name = long_get_option(long_name)
     check_unique(filename, lineno, name, g_long_cache)
 
     if ctype == 'bool':
@@ -1034,12 +1030,12 @@ def check_links(filename, lineno, links):
     """
     global g_long_cache, g_long_arguments
     for link in links:
-        long = lstrip('no-', lstrip('--', long_get_option(link)))
-        if long not in g_long_cache:
+        long_name = lstrip('no-', lstrip('--', long_get_option(link)))
+        if long_name not in g_long_cache:
             perr(filename, lineno,
                  "invalid long option '{}' in links list".format(link))
         # check if long option requires an argument
-        if long in g_long_arguments and '=' not in link:
+        if long_name in g_long_arguments and '=' not in link:
             perr(filename, lineno,
                  "linked option '{}' requires an argument".format(link))
 
