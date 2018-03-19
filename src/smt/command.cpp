@@ -1841,6 +1841,67 @@ std::string GetQuantifierEliminationCommand::getCommandName() const
 }
 
 /* -------------------------------------------------------------------------- */
+/* class GetUnsatAssumptionsCommand                                           */
+/* -------------------------------------------------------------------------- */
+
+GetUnsatAssumptionsCommand::GetUnsatAssumptionsCommand() {}
+
+void GetUnsatAssumptionsCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    d_result = smtEngine->getUnsatAssumptions();
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+std::vector<Expr> GetUnsatAssumptionsCommand::getResult() const
+{
+  return d_result;
+}
+
+void GetUnsatAssumptionsCommand::printResult(std::ostream& out,
+                                             uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    out << d_result << endl;
+  }
+}
+
+Command* GetUnsatAssumptionsCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  GetUnsatAssumptionsCommand* c = new GetUnsatAssumptionsCommand;
+  c->d_result = d_result;
+  return c;
+}
+
+Command* GetUnsatAssumptionsCommand::clone() const
+{
+  GetUnsatAssumptionsCommand* c = new GetUnsatAssumptionsCommand;
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetUnsatAssumptionsCommand::getCommandName() const
+{
+  return "get-unsat-assumptions";
+}
+
+/* -------------------------------------------------------------------------- */
 /* class GetUnsatCoreCommand                                                  */
 /* -------------------------------------------------------------------------- */
 
