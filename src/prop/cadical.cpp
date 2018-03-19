@@ -29,21 +29,6 @@ using CadicalVar = int;
 // helper functions
 namespace {
 
-#if 0
-SatLiteral toSatLiteral(CadicalLit lit)
-{
-  return lit < 0 ? SatLiteral(-lit, true) : SatLiteral(lit);
-}
-#endif
-
-#if 0
-SatVariable toSatVariable(CadicalVar var)
-{
-  Assert(var > 0);
-  return SatVariable(var);
-}
-#endif
-
 SatValue toSatValue(int result)
 {
   if (result == 10) return SAT_VALUE_TRUE;
@@ -66,7 +51,7 @@ CadicalLit toCadicalLit(SatLiteral lit)
 
 CadicalVar toCadicalVar(SatVariable var) { return var; }
 
-}  // namespace
+}  // namespace helper functions
 
 CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
                              const std::string& name)
