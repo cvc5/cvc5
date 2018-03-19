@@ -33,7 +33,7 @@ class CadicalSolver : public SatSolver
  public:
   CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
 
-  ~CadicalSolver();
+  ~CadicalSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
 
