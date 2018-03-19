@@ -55,6 +55,8 @@ CadicalVar toCadicalVar(SatVariable var) { return var; }
 
 CadicalSolver::CadicalSolver(StatisticsRegistry* registry,
                              const std::string& name)
+    // Note: CaDiCaL variables start with index 1 rather than 0 since
+    //       negated literals are represented as the negation of the index.
     : d_solver(new CaDiCaL::Solver()), d_nextVarIdx(1)
 {
   d_true = newVar();
