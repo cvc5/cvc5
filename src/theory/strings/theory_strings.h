@@ -51,45 +51,45 @@ namespace strings {
  */
 enum Inference
 {
-  infer_none,
+  INFER_NONE,
   // string split constant propagation, for example:
   //     x = y, x = "abc", y = y1 ++ "b" ++ y2
   //       implies y1 = "a" ++ y1'
-  infer_ssplit_cst_prop,
+  INFER_SSPLIT_CST_PROP,
   // string split variable propagation, for example:
   //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 )
   //       implies x1 = y1 ++ x1'
   // This is inspired by Zheng et al CAV 2015.
-  infer_ssplit_var_prop,
+  INFER_SSPLIT_VAR_PROP,
   // length split, for example:
   //     len( x1 ) = len( y1 ) V len( x1 ) != len( y1 )
   // This is inferred when e.g. x = y, x = x1 ++ x2, y = y1 ++ y2.
-  infer_len_split,
+  INFER_LEN_SPLIT,
   // length split empty, for example:
   //     z = "" V z != ""
   // This is inferred when, e.g. x = y, x = z ++ x1, y = y1 ++ z
-  infer_len_split_emp,
+  INFER_LEN_SPLIT_EMP,
   // string split constant binary, for example:
   //     x1 = "aaaa" ++ x1' V "aaaa" = x1 ++ x1'
   // This is inferred when, e.g. x = y, x = x1 ++ x2, y = "aaaaaaaa" ++ y2.
   // This inference is disabled by default and is enabled by stringBinaryCsp().
-  infer_ssplit_cst_binary,
+  INFER_SSPLIT_CST_BINARY,
   // string split constant
   //    x = y, x = "c" ++ x2, y = y1 ++ y2, y1 != ""
   //      implies y1 = "c" ++ y1'
   // This is a special case of F-Split in Figure 5 of Liang et al CAV 2014.
-  infer_ssplit_cst,
+  INFER_SSPLIT_CST,
   // string split variable, for example:
   //    x = y, x = x1 ++ x2, y = y1 ++ y2
   //      implies x1 = y1 ++ x1' V y1 = x1 ++ y1'
   // This is rule F-Split in Figure 5 of Liang et al CAV 2014.
-  infer_ssplit_var,
+  INFER_SSPLIT_VAR,
   // flat form loop, for example:
   //    x = y, x = x1 ++ z, y = z ++ y2
   //      implies z = u2 ++ u1, u in ( u1 ++ u2 )*, x1 = u2 ++ u, y2 = u ++ u1
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
-  infer_floop,
+  INFER_FLOOP,
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
