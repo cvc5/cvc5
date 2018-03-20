@@ -168,6 +168,8 @@ class SygusSampler : public LazyTrieEvaluator
   virtual Node registerTerm(Node n, bool forceKeep = false);
   /** get number of sample points */
   unsigned getNumSamplePoints() const { return d_samples.size(); }
+  /** get variables, adds d_vars to vars */
+  void getVariables(std::vector<Node>& vars) const;
   /** get sample point
    *
    * Appends sample point #index to the vector pt, d_vars to vars.
@@ -175,6 +177,8 @@ class SygusSampler : public LazyTrieEvaluator
   void getSamplePoint(unsigned index,
                       std::vector<Node>& vars,
                       std::vector<Node>& pt);
+  /** Add pt to the set of sample points considered by this sampler */
+  void addSamplePoint(std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index) override;
   /**

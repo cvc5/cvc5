@@ -83,7 +83,8 @@ TESTS =	\
 	model-subterms-min.smt2 \
 	issue1433.smt2 \
         tuples-empty.smt2 \
-        tuples-multitype.smt2
+        tuples-multitype.smt2 \
+        datatype-dump.cvc
 
 # rec5 -- no longer support subrange types
 FAILING_TESTS = \
