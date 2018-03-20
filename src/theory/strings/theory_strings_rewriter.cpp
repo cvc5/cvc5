@@ -1861,22 +1861,16 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
 
   if (node[0] == node[1])
   {
-    // indexof( x, x, 0 ) --> 0
     if (node[2].isConst())
     {
       if (node[2].getConst<Rational>().sgn() == 0)
       {
-        Node negone = nm->mkConst(Rational(0));
-        return returnRewrite(node, negone, "idof-eq-cst-start");
-      }
-      else
-      {
-        Assert(node[2].getConst<Rational>().sgn() == 1);
-        Node negone = nm->mkConst(Rational(-1));
-        return returnRewrite(node, negone, "idof-eq-cst-nstart");
+        // indexof( x, x, 0 ) --> 0
+        Node zero = nm->mkConst(Rational(0));
+        return returnRewrite(node, zero, "idof-eq-cst-start");
       }
     }
-    else if (checkEntailArith(node[2], true))
+    if (checkEntailArith(node[2], true))
     {
       // y>0  implies  indexof( x, x, y ) --> -1
       Node negone = nm->mkConst(Rational(-1));
@@ -3114,6 +3108,8 @@ Node TheoryStringsRewriter::decomposeSubstrChain(Node s,
                                                  std::vector<Node>& ss,
                                                  std::vector<Node>& ls)
 {
+  Assert( ss.empty() );
+  Assert( ls.empty() );
   while (s.getKind() == STRING_SUBSTR)
   {
     ss.push_back(s[1]);
@@ -3126,8 +3122,8 @@ Node TheoryStringsRewriter::decomposeSubstrChain(Node s,
 }
 
 Node TheoryStringsRewriter::mkSubstrChain(Node base,
-                                          std::vector<Node>& ss,
-                                          std::vector<Node>& ls)
+                                          const std::vector<Node>& ss,
+                                          const std::vector<Node>& ls)
 {
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = ss.size(); i < size; i++)

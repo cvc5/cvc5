@@ -384,8 +384,8 @@ private:
    * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
    */
   static Node mkSubstrChain(Node base,
-                            std::vector<Node>& ss,
-                            std::vector<Node>& ls);
+                            const std::vector<Node>& ss,
+                            const std::vector<Node>& ls);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
