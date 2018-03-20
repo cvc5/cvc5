@@ -110,7 +110,7 @@ private:
  {
   public:
     SearchCache(){}
-    /** 
+    /**
      * A cache of all search terms for (types, sizes). See registerSearchTerm
      * for definition of search terms.
      */
@@ -172,10 +172,10 @@ private:
   //------------------------dynamic symmetry breaking
   /** Register search term
    *
-   * This function is called when selector chain n of the form 
-   * S_1( ... S_m( x ) ... ) is registered to the theory of datatypes, where 
-   * tn is the type of n, d indicates the depth of n (the sum of weights of the 
-   * selectors S_1...S_m), and topLevel is whether n is a top-level term 
+   * This function is called when selector chain n of the form
+   * S_1( ... S_m( x ) ... ) is registered to the theory of datatypes, where
+   * tn is the type of n, d indicates the depth of n (the sum of weights of the
+   * selectors S_1...S_m), and topLevel is whether n is a top-level term
    * (see d_is_top_level). We refer to n as a "search term".
    *
    * The purpose of this function is to notify this class that symmetry breaking
