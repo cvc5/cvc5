@@ -296,7 +296,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
     {
       Assert(!d_ftn.isNull());
       bn = d_tds->sygusToBuiltin(n);
-      Assert( d_builtin_to_sygus.find(bn)==d_builtin_to_sygus.end() || d_builtin_to_sygus[bn]==n );
+      bn = Rewriter::rewrite(bn);
       d_builtin_to_sygus[bn] = n;
     }
     Assert(bn.getType() == d_tn);
@@ -439,11 +439,6 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
   return true;
 }
 
-void SygusSampler::getVariables( std::vector< Node >& vars ) const
-{
-  vars.insert(vars.end(), d_vars.begin(), d_vars.end());
-}
-  
 void SygusSampler::getSamplePoint(unsigned index,
                                   std::vector<Node>& vars,
                                   std::vector<Node>& pt)
@@ -452,12 +447,6 @@ void SygusSampler::getSamplePoint(unsigned index,
   vars.insert(vars.end(), d_vars.begin(), d_vars.end());
   std::vector<Node>& spt = d_samples[index];
   pt.insert(pt.end(), spt.begin(), spt.end());
-}
-
-void SygusSampler::addSamplePoint(std::vector<Node>& pt)
-{
-  Assert( pt.size()==d_vars.size() );
-  d_samples.push_back(pt);
 }
 
 Node SygusSampler::evaluate(Node n, unsigned index)
