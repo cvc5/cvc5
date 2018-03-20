@@ -459,7 +459,8 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
 
     holder_specs.append(TPL_HOLDER_MACRO.format(id=module.id))
 
-    for option in module.options:
+    for option in \
+        sorted(module.options, key=lambda x: x.long if x.long else x.name):
         if option.name is None:
             continue
 
