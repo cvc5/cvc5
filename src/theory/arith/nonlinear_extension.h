@@ -250,7 +250,7 @@ class NonlinearExtension {
    * Let M be the set of assertions known by THEORY_ARITH. This function adds a
    * set of literals M' to assertions such that M' and M are equivalent.
    */
-  bool getAssertions(std::vector<Node>& assertions);
+  void getAssertions(std::vector<Node>& assertions);
   /** check model
    *
    * Returns the subset of assertions whose concrete values we cannot show are
