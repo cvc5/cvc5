@@ -2301,7 +2301,8 @@ bool CegConjecturePbe::UnifContext::updateContext( CegConjecturePbe * pbe, std::
   Node poln = pol ? d_true : d_false;
   for( unsigned i=0; i<vals.size(); i++ ){
     if( vals[i]!=poln ){
-      if( d_vals[i]==d_true ){
+      if (d_vals[i] == d_true)
+      {
         d_vals[i] = d_false;
         changed = true;
       }
@@ -2360,7 +2361,7 @@ void CegConjecturePbe::UnifContext::initialize( CegConjecturePbe * pbe, Node c )
   Assert( pbe->d_examples.find( c )!=pbe->d_examples.end() );
   unsigned sz = pbe->d_examples[c].size();
   for( unsigned i=0; i<sz; i++ ){
-    d_vals.push_back( d_true );
+    d_vals.push_back(d_true);
   }
   
   if( !pbe->d_examples_out[c].empty() ){

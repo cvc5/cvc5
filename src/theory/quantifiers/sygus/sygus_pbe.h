@@ -663,7 +663,9 @@ class CegConjecturePbe : public SygusModule
     * if pol=true, this method updates d_vals to d_vals & vals
     * if pol=false, this method updates d_vals to d_vals & ( ~vals )
     */
-    bool updateContext(CegConjecturePbe* pbe, std::vector<Node>& vals, bool pol);
+    bool updateContext(CegConjecturePbe* pbe,
+                       std::vector<Node>& vals,
+                       bool pol);
     //----------end for ITE strategy
 
     //----------for CONCAT strategies
@@ -692,7 +694,8 @@ class CegConjecturePbe : public SygusModule
     *
     * This method updates d_str_pos to d_str_pos + pos.
     */
-    bool updateStringPosition(CegConjecturePbe* pbe, std::vector<unsigned>& pos);
+    bool updateStringPosition(CegConjecturePbe* pbe,
+                              std::vector<unsigned>& pos);
     /** get current strings
     *
     * This returns the prefix/suffix of the string constants stored in vals
@@ -701,8 +704,8 @@ class CegConjecturePbe : public SygusModule
     * "d" and "de" to ex_vals.
     */
     void getCurrentStrings(CegConjecturePbe* pbe,
-                          const std::vector<Node>& vals,
-                          std::vector<String>& ex_vals);
+                           const std::vector<Node>& vals,
+                           std::vector<String>& ex_vals);
     /** get string increment
     *
     * If this method returns true, then inc and tot are updated such that
@@ -742,7 +745,7 @@ class CegConjecturePbe : public SygusModule
     /** unif context enumerator information */
     class UEnumInfo
     {
-    public:
+     public:
       UEnumInfo() {}
       /** map from conditions and branch positions to a solved node
       *
@@ -762,7 +765,7 @@ class CegConjecturePbe : public SygusModule
     /** map from enumerators to the above info class */
     std::map<Node, UEnumInfo> d_uinfo;
 
-  private:
+   private:
     /** true and false nodes */
     Node d_true;
     Node d_false;
