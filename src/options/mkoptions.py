@@ -1036,8 +1036,8 @@ def check_long(filename, lineno, long_name, ctype=None):
         return
     if long_name.startswith('--'):
         perr(filename, lineno, 'remove -- prefix from long option')
-    r = r'[0-9a-zA-Z\-=]+'
-    if not re.fullmatch(r, long_name):
+    r = r'^[0-9a-zA-Z\-=]+$'
+    if not re.match(r, long_name):
         perr(filename, lineno,
              "long option '{}' does not match regex criteria '{}'".format(
                  long_name, r))
@@ -1101,15 +1101,15 @@ def check_option_attrib(filename, lineno, attrib, value):
     elif attrib == 'long':
         pass # Will be checked after parsing is done
     elif attrib == 'name' and value:
-        r = r'[a-zA-Z]+[0-9a-zA-Z_]*'
-        if not re.fullmatch(r, value):
+        r = r'^[a-zA-Z]+[0-9a-zA-Z_]*$'
+        if not re.match(r, value):
             perr(filename, lineno,
                  "name '{}' does not match regex criteria '{}'".format(
                      value, r))
         check_unique(filename, lineno, value, g_name_cache)
     elif attrib == 'smt_name' and value:
-        r = r'[a-zA-Z]+[0-9a-zA-Z\-_]*'
-        if not re.fullmatch(r, value):
+        r = r'^[a-zA-Z]+[0-9a-zA-Z\-_]*$'
+        if not re.match(r, value):
             perr(filename, lineno,
                  "smt_name '{}' does not match regex criteria '{}'".format(
                      value, r))
@@ -1163,8 +1163,8 @@ def check_module_attrib(filename, lineno, attrib, value):
                      g_module_id_cache[value][0],
                      g_module_id_cache[value][1]))
         g_module_id_cache[value] = (filename, lineno)
-        r = r'[A-Z]+[A-Z_]*'
-        if not re.fullmatch(r, value):
+        r = r'^[A-Z]+[A-Z_]*$'
+        if not re.match(r, value):
             perr(filename, lineno,
                  "module id '{}' does not match regex criteria '{}'".format(
                      value, r))
@@ -1229,7 +1229,7 @@ def parse_module(filename, file):
     module = dict()
     options = []
     aliases = []
-    lines = [[x.strip() for x in line.split('=', maxsplit=1)] for line in file]
+    lines = [[x.strip() for x in line.split('=', 1)] for line in file]
     option = None
     alias = None
     option_lines = []
