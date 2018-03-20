@@ -40,8 +40,6 @@ elif test -n "$with_cadical"; then
     AC_MSG_FAILURE([either $CADICAL_HOME is not a CaDiCaL source tree or it's not yet built $CADICAL_HOME/build/libcadical.a])
   fi
 
-  CPPFLAGS="$CPPFLAGS -I$CADICAL_HOME/src"
-
   AC_MSG_CHECKING([how to link CaDiCaL])
 
   CVC4_TRY_CADICAL
@@ -74,6 +72,7 @@ if test -z "$CADICAL_LIBS"; then
   cvc4_save_CPPFLAGS="$CPPFLAGS"
 
   LDFLAGS="-L$CADICAL_HOME/build"
+  CPPFLAGS="$CPPFLAGS -I$CADICAL_HOME/src"
   LIBS="-lcadical"
 
   AC_LINK_IFELSE(
