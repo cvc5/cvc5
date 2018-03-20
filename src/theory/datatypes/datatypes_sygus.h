@@ -110,7 +110,10 @@ private:
  {
   public:
     SearchCache(){}
-    /** A cache of all search terms for (types, sizes). */
+    /** 
+     * A cache of all search terms for (types, sizes). See registerSearchTerm
+     * for definition of search terms.
+     */
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     /** A cache of all symmetry breaking lemma templates for (types, sizes). */
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sb_lemmas;
@@ -169,10 +172,11 @@ private:
   //------------------------dynamic symmetry breaking
   /** Register search term
    *
-   * This function is called when selector chain S_1( ... S_m( n ) ... ) is
-   * registered to the theory of datatypes, where tn is the type of n,
-   * d indicates the depth of n (the sum of weights of the selectors S_1...S_m),
-   * and topLevel is whether n is a top-level term (see d_is_top_level).
+   * This function is called when selector chain n of the form 
+   * S_1( ... S_m( x ) ... ) is registered to the theory of datatypes, where 
+   * tn is the type of n, d indicates the depth of n (the sum of weights of the 
+   * selectors S_1...S_m), and topLevel is whether n is a top-level term 
+   * (see d_is_top_level). We refer to n as a "search term".
    *
    * The purpose of this function is to notify this class that symmetry breaking
    * lemmas should be instantiated for n. Any symmetry breaking lemmas that
@@ -297,15 +301,19 @@ private:
    *   A -> ite( B, A, A ) | A+A | x | 1 | 0
    *   B -> A = A
    * Examples of static symmetry breaking lemma templates are:
-   *   for +, depth 0: size(z)=size(z.1)+size(z.2)
-   *   for +, depth 1: ~is-0( z.1 ) ^ ~is-0( z.2 ) ^ C
-   *     where C ensures the constructor of z.1 is less than that of z.2 based
+   *   for +, depth 0: size(z)=size(z.1)+size(z.2)+1
+   *   for +, depth 1: ~is-0( z.1 ) ^ ~is-0( z.2 ) ^ F
+   *     where F ensures the constructor of z.1 is less than that of z.2 based
    *     on some ordering.
    *   for ite, depth 1: z.2 != z.3
-   * These lemmas can be thought of as "hard-coded" cases of dynamic symmetry
+   * These templates can be thought of as "hard-coded" cases of dynamic symmetry
    * breaking lemma templates. Notice that the above lemma templates are in
    * terms of getFreeVar( tn ), hence only one is created per
-   * (constructor, depth).
+   * (constructor, depth). A static symmetry break lemma template F[z] for
+   * constructor C are included in lemmas of the form:
+   *   is-C( t ) => F[t]
+   * where t is a search term, see registerSearchTerm for definition of search
+   * term.
    */
   Node getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth );
   /** Cache of the above function */
