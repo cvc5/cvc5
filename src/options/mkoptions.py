@@ -1,4 +1,45 @@
 #!/usr/bin/env python3
+"""
+    Generate option handling code and documentation in one pass. The generated
+    files are only written to the destination file if the contents of the file
+    has changed (in order to avoid global re-compilation if only single option
+    files changed).
+
+    mkoptions.py <tpl-src> <tpl-doc> <dst> <toml>+
+
+      <tpl-src> location of all *_template.{cpp,h} files
+      <tpl-doc> location of all *_template documentation files
+      <dst>     destination directory for the generated source code files
+      <toml>+   one or more *_optios.toml files
+
+
+    Directory <tpl-src> must contain:
+        - options_template.cpp
+        - module_template.cpp
+        - options_holder_template.h
+        - module_template.h
+
+    Directory <tpl-doc> must contain:
+        - cvc4.1_template
+        - options.3cvc_template
+        - SmtEngine.3cvc_template
+    These files get generated during autogen.sh from the corresponding *.in
+    files in doc/. Note that for the generated documentation files tpl-doc is
+    also the destination directory.
+
+    <toml>+ must be the list of all *.toml option configuration files from
+    the src/options directory.
+
+
+    The script generates the following files:
+        - <dst>/MODULE_options.h
+        - <dst>/MODULE_options.cpp
+        - <dst>/options_holder.h
+        - <dst>/options.cpp
+        - <tpl-doc>/cvc4.1
+        - <tpl-doc>/options.3
+        - <tpl-doc>/SmtEngine.3
+"""
 
 import ast
 import os
@@ -23,7 +64,7 @@ ALIAS_ATTR_ALL = ALIAS_ATTR_REQ + ['help']
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
 
 SUPPORTED_CTYPES = ['int', 'unsigned', 'unsigned long', 'long', 'float',
-                    'double', 'size_t', 'ssize_t']
+                    'double']
 
 ### Other globals
 
@@ -39,12 +80,7 @@ g_getopt_long_start = 256
 
 ### Source code templates
 
-## Templates for options_holder.h
-
-# {id} ... module.id
-TPL_HOLDER_MACRO = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
-
-## Templates for options.cpp
+TPL_HOLDER_MACRO_NAME = 'CVC4_OPTIONS__{id}__FOR_OPTION_HOLDER'
 
 TPL_RUN_HANDLER = \
 """template <> options::{name}__option_t::type runHandlerAndPredicates(
@@ -58,11 +94,14 @@ TPL_RUN_HANDLER = \
   return retval;
 }}"""
 
-TPL_ASSIGN = \
+TPL_DECL_ASSIGN = \
 """template <> void Options::assign(
     options::{name}__option_t,
     std::string option,
-    std::string value)
+    std::string value);"""
+
+TPL_IMPL_ASSIGN = TPL_DECL_ASSIGN[:-1] + \
+"""
 {{
   d_holder->{name} =
     runHandlerAndPredicates(options::{name}, option, value, d_handler);
@@ -70,6 +109,7 @@ TPL_ASSIGN = \
   Trace("options") << "user assigned option {name}" << std::endl;
   {notifications}
 }}"""
+
 
 TPL_RUN_HANDLER_BOOL = \
 """template <> void runBoolPredicates(
@@ -81,11 +121,14 @@ TPL_RUN_HANDLER_BOOL = \
   {predicates}
 }}"""
 
-TPL_ASSIGN_BOOL = \
+TPL_DECL_ASSIGN_BOOL = \
 """template <> void Options::assignBool(
     options::{name}__option_t,
     std::string option,
-    bool value)
+    bool value);"""
+
+TPL_IMPL_ASSIGN_BOOL = TPL_DECL_ASSIGN_BOOL[:-1] + \
+"""
 {{
   runBoolPredicates(options::{name}, option, value, d_handler);
   d_holder->{name} = value;
@@ -105,15 +148,14 @@ TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
 
 TPL_PUSHBACK_PREEMPT = 'extender->pushBackPreemption({});'
 
-## Templates for *_options.h
 
-# {name} ... option.name
-TPL_H_HOLDER_MACRO = '#define ' + TPL_HOLDER_MACRO
-TPL_H_HOLDER_MACRO_ATTR = "  {name}__option_t::type {name};\\\n"
-TPL_H_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
+TPL_HOLDER_MACRO = '#define ' + TPL_HOLDER_MACRO_NAME
 
-# {name} ... option.name, {type} ... option.type
-TPL_H_STRUCT_RW = \
+TPL_HOLDER_MACRO_ATTR = "  {name}__option_t::type {name};\\\n"
+TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
+
+
+TPL_OPTION_STRUCT_RW = \
 """extern struct CVC4_PUBLIC {name}__option_t
 {{
   typedef {type} type;
@@ -122,7 +164,7 @@ TPL_H_STRUCT_RW = \
   void set(const type& v);
 }} {name} CVC4_PUBLIC;"""
 
-TPL_H_STRUCT_RO = \
+TPL_OPTION_STRUCT_RO = \
 """extern struct CVC4_PUBLIC {name}__option_t
 {{
   typedef {type} type;
@@ -130,79 +172,59 @@ TPL_H_STRUCT_RO = \
   bool wasSetByUser() const;
 }} {name} CVC4_PUBLIC;"""
 
-# {name} ... option.name
-TPL_H_SPEC_S = \
+
+TPL_DECL_SET = \
 """template <> void Options::set(
     options::{name}__option_t,
     const options::{name}__option_t::type& x);"""
 
-TPL_H_SPEC_O = \
+TPL_IMPL_SET = TPL_DECL_SET[:-1] + \
+"""
+{{
+  d_holder->{name} = x;
+}}"""
+
+
+TPL_DECL_OP_BRACKET = \
 """template <> const options::{name}__option_t::type& Options::operator[](
     options::{name}__option_t) const;"""
 
-TPL_H_SPEC_WSBU = \
+TPL_IMPL_OP_BRACKET = TPL_DECL_OP_BRACKET[:-1] + \
+"""
+{{
+  return d_holder->{name};
+}}"""
+
+
+TPL_DECL_WAS_SET_BY_USER = \
 """template <> bool Options::wasSetByUser(options::{name}__option_t) const;"""
 
-TPL_H_SPEC_A = \
-"""template <> void Options::assign(
-    options::{name}__option_t,
-    std::string option,
-    std::string value);"""
+TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
+"""
+{{
+  return d_holder->{name}__setByUser__;
+}}"""
 
-TPL_H_SPEC_AB = \
-"""template <> void Options::assignBool(
-    options::{name}__option_t,
-    std::string option,
-    bool value);"""
 
-# {name} ... option.name
-TPL_H_IMPL_S = \
-"""inline void {name}__option_t::set(
-    const {name}__option_t::type& v)
+# Option specific methods
+
+TPL_IMPL_OPTION_SET = \
+"""inline void {name}__option_t::set(const {name}__option_t::type& v)
 {{
   Options::current()->set(*this, v);
 }}"""
 
-TPL_H_IMPL_WSBU = \
-"""inline bool {name}__option_t::wasSetByUser() const
-{{
-  return Options::current()->wasSetByUser(*this);
-}}"""
-
-TPL_H_IMPL_OP = \
+TPL_IMPL_OP_PAR = \
 """inline {name}__option_t::type {name}__option_t::operator()() const
 {{
   return (*Options::current())[*this];
 }}"""
 
-
-## Templates for *_options.cpp
-
-# {name} ... option.name
-TPL_C_ACC_S = \
-"""template <> void Options::set(
-    options::{name}__option_t,
-    const options::{name}__option_t::type& x)
+TPL_IMPL_OPTION_WAS_SET_BY_USER = \
+"""inline bool {name}__option_t::wasSetByUser() const
 {{
-  d_holder->{name} = x;
+  return Options::current()->wasSetByUser(*this);
 }}"""
-
-TPL_C_ACC_O = \
-"""template <> const options::{name}__option_t::type& Options::operator[](
-    options::{name}__option_t) const
-{{
-  return d_holder->{name};
-}}"""
-
-TPL_C_ACC_WSBU = \
-"""template <> bool Options::wasSetByUser(
-    options::{name}__option_t) const
-{{
-  return d_holder->{name}__setByUser__;
-}}"""
-
-TPL_C_STRUCT = "struct {name}__option_t {name};"
-
 
 
 
@@ -220,6 +242,7 @@ class Module(object):
             assert attr in self.__dict__
             if val:
                 self.__dict__[attr] = val
+
 
 class Option(object):
     """Module option.
@@ -241,6 +264,7 @@ class Option(object):
             assert attr in self.__dict__
             if attr in ['read_only', 'alternate'] or val:
                 self.__dict__[attr] = val
+
 
 class Alias(object):
     """Module alias.
@@ -433,7 +457,7 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     accs = []
     defs = []
 
-    holder_specs.append(TPL_H_HOLDER_MACRO.format(id=module.id))
+    holder_specs.append(TPL_HOLDER_MACRO.format(id=module.id))
 
     for option in module.options:
         if option.name is None:
@@ -443,40 +467,40 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         includes.update([format_include(x) for x in option.includes])
 
         # Generate option holder macro
-        holder_specs.append(TPL_H_HOLDER_MACRO_ATTR.format(name=option.name))
+        holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(name=option.name))
 
         # Generate module declaration
-        tpl_decl = TPL_H_STRUCT_RO if option.read_only else TPL_H_STRUCT_RW
+        tpl_decl = TPL_OPTION_STRUCT_RO if option.read_only else TPL_OPTION_STRUCT_RW
         decls.append(tpl_decl.format(name=option.name, type=option.type))
 
         # Generate module specialization
         if not option.read_only:
-            specs.append(TPL_H_SPEC_S.format(name=option.name))
-        specs.append(TPL_H_SPEC_O.format(name=option.name))
-        specs.append(TPL_H_SPEC_WSBU.format(name=option.name))
+            specs.append(TPL_DECL_SET.format(name=option.name))
+        specs.append(TPL_DECL_OP_BRACKET.format(name=option.name))
+        specs.append(TPL_DECL_WAS_SET_BY_USER.format(name=option.name))
 
         if option.type == 'bool':
-            specs.append(TPL_H_SPEC_AB.format(name=option.name))
+            specs.append(TPL_DECL_ASSIGN_BOOL.format(name=option.name))
         else:
-            specs.append(TPL_H_SPEC_A.format(name=option.name))
+            specs.append(TPL_DECL_ASSIGN.format(name=option.name))
 
         # Generate module inlines
-        inls.append(TPL_H_IMPL_OP.format(name=option.name))
-        inls.append(TPL_H_IMPL_WSBU.format(name=option.name))
+        inls.append(TPL_IMPL_OP_PAR.format(name=option.name))
+        inls.append(TPL_IMPL_OPTION_WAS_SET_BY_USER.format(name=option.name))
         if not option.read_only:
-            inls.append(TPL_H_IMPL_S.format(name=option.name))
+            inls.append(TPL_IMPL_OPTION_SET.format(name=option.name))
 
 
         ### Generate code for {module.name}_options.cpp
 
         # Accessors
         if not option.read_only:
-            accs.append(TPL_C_ACC_S.format(name=option.name))
-        accs.append(TPL_C_ACC_O.format(name=option.name))
-        accs.append(TPL_C_ACC_WSBU.format(name=option.name))
+            accs.append(TPL_IMPL_SET.format(name=option.name))
+        accs.append(TPL_IMPL_OP_BRACKET.format(name=option.name))
+        accs.append(TPL_IMPL_WAS_SET_BY_USER.format(name=option.name))
 
-        # Global defintions
-        defs.append(TPL_C_STRUCT.format(name=option.name))
+        # Global definitions
+        defs.append('struct {name}__option_t {name};'.format(name=option.name))
 
 
     filename = module.header.split('/')[1][:-2]
@@ -633,7 +657,7 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
     for module in modules:
         headers_module.append(format_include(module.header))
-        macros_module.append(TPL_HOLDER_MACRO.format(id=module.id))
+        macros_module.append(TPL_HOLDER_MACRO_NAME.format(id=module.id))
 
         if module.options or module.aliases:
             help_others.append(
@@ -863,9 +887,9 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 # Define handler assign/assignBool
                 tpl = None
                 if option.type == 'bool':
-                    tpl = TPL_ASSIGN_BOOL
+                    tpl = TPL_IMPL_ASSIGN_BOOL
                 elif option.short or option.long or option.smt_name:
-                    tpl = TPL_ASSIGN
+                    tpl = TPL_IMPL_ASSIGN
                 if tpl:
                     custom_handlers.append(tpl.format(
                         name=option.name,
@@ -1323,11 +1347,11 @@ def parse_module(filename, file):
 
 
 def usage():
-    print('mkoptions.py <src> <dst> <doc> <toml>+')
+    print('mkoptions.py <tpl-src> <tpl-doc> <dst> <toml>+')
     print('')
-    print('  <src>     directory that contains all *_template.{cpp,h} files')
-    print('  <dst>     destination directory for the generated source files')
-    print('  <doc>     directory that contains all *_template doc files')
+    print('  <tpl-src> location of all *_template.{cpp,h} files')
+    print('  <tpl-doc> location of all *_template documentation files')
+    print('  <dst>     destination directory for the generated files')
     print('  <toml>+   one or more *_optios.toml files')
     print('')
 
@@ -1338,12 +1362,12 @@ def mkoptions_main():
         die('missing arguments')
 
     src_dir = sys.argv[1]
-    dst_dir = sys.argv[2]
-    doc_dir = sys.argv[3]
+    doc_dir = sys.argv[2]
+    dst_dir = sys.argv[3]
     filenames = sys.argv[4:]
 
     # Check if given directories exist.
-    for d in [src_dir, dst_dir, doc_dir]:
+    for d in [src_dir, doc_dir, dst_dir]:
         if not os.path.isdir(d):
             usage()
             die("'{}' is not a directory".format(d))
