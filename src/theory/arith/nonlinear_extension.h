@@ -249,6 +249,11 @@ class NonlinearExtension {
    *
    * Let M be the set of assertions known by THEORY_ARITH. This function adds a
    * set of literals M' to assertions such that M' and M are equivalent.
+   *
+   * Examples of how M' differs with M:
+   * (1) M' may not include t < c (in M) if t < c' is in M' for c' < c, where
+   * c and c' are constants,
+   * (2) M' may contain t = c if both t >= c and t <= c are in M.
    */
   void getAssertions(std::vector<Node>& assertions);
   /** check model
