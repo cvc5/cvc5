@@ -1112,10 +1112,9 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   return sum;
 }
 
-bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
+void NonlinearExtension::getAssertions( std::vector< Node >& assertions )
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
-  std::vector< Node > lemmas;
   NodeManager * nm = NodeManager::currentNM();
   // get the assertions
   std::map< Node, Rational > init_bounds[2];
@@ -1221,28 +1220,12 @@ bool NonlinearExtension::getAssertions( std::vector< Node >& assertions )
       }
     }
   }
-
-  // if we added lemmas, then send them here
-  if( !lemmas.empty() )
-  {
-    int lemmas_proc = flushLemmas(lemmas);
-    if (lemmas_proc > 0) {
-      Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas during getAssertions." << std::endl;
-      return false;
-    }
-    // We may send no lemmas here if the equality conclusion of the inference:
-    //   t >= c ^ ~( t >= c+1 ) => t = c
-    // is not asserted back to arithmetic. In this case, we have added the 
-    // equality to assertions above and marked the inequalities as redundant.
-  }
   
   for( const Node& a : init_assertions )
   {
     assertions.push_back( a );
   }
   Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions << " assertions." << std::endl;
-  
-  return true;
 }
   
 std::vector<Node> NonlinearExtension::checkModel(
@@ -1769,10 +1752,7 @@ void NonlinearExtension::check(Theory::Effort e) {
   } else {
     // get the assertions
     std::vector< Node > assertions;
-    if( !getAssertions( assertions ) )
-    {
-      return;
-    }
+    getAssertions( assertions );
     
     bool needsRecheck;
     do

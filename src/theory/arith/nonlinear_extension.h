@@ -247,15 +247,8 @@ class NonlinearExtension {
 
   /** get assertions 
    * 
-   * Let M be the set of assertions known by THEORY_ARITH. 
-   * 
-   * If this function returns true, it adds of subset M' of M to assertions 
-   * such that M' and M are equivalent.
-   * 
-   * If this function returns false, it adds a lemma to the output channel
-   * of the arithmetic theory. An example of such a lemma is:
-   *   t >= c ^ ~( t >= c+1 ) => t=c
-   * where t has Integer type.
+   * Let M be the set of assertions known by THEORY_ARITH. This function adds a
+   * set of literals M' to assertions such that M' and M are equivalent.
    */
   bool getAssertions( std::vector< Node >& assertions );
   /** check model
