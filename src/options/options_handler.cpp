@@ -1047,7 +1047,7 @@ void OptionsHandler::satSolverEnabledBuild(std::string option, bool value)
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CVC4 to be built with Cryptominisat or CaDiCaL";
+       << "' requires a CVC4 to be built with CryptoMiniSat or CaDiCaL";
     throw OptionException(ss.str());
   }
 #endif
@@ -1061,7 +1061,7 @@ void OptionsHandler::satSolverEnabledBuild(std::string option,
   {
     std::stringstream ss;
     ss << "option `" << option
-       << "' requires a CVC4 to be built with Cryptominisat or CaDiCaL";
+       << "' requires a CVC4 to be built with CryptoMiniSat or CaDiCaL";
     throw OptionException(ss.str());
   }
 #endif
@@ -1086,14 +1086,14 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     
     if (options::incrementalSolving() &&
         options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Cryptominsat does not support incremental mode. \n\
+      throw OptionException(std::string("CryptoMinSat does not support incremental mode. \n\
                                          Try --bv-sat-solver=minisat"));
     }
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
         options::bitblastMode.wasSetByUser()) {
       throw OptionException(
-          std::string("Cryptominsat does not support lazy bit-blasting. \n\
+          std::string("CryptoMiniSat does not support lazy bit-blasting. \n\
                                          Try --bv-sat-solver=minisat"));
     }
     if (!options::bitvectorToBool.wasSetByUser()) {

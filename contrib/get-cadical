@@ -7,12 +7,16 @@ if [ -e cadical ]; then
   exit 1
 fi
 
-git clone https://github.com/arminbiere/cadical cadical
+commit="b44ce4f0e64aa400358ae3a8adb45b24ae6e742c"
 
+git clone https://github.com/arminbiere/cadical cadical
 cd cadical
+git checkout $commit
 
 CXXFLAGS="-fPIC" ./configure && make -j$(nproc)
 
+echo
+echo "Using CaDiCaL commit $commit"
 echo
 echo ===================== Now configure CVC4 with =====================
 echo ./configure --with-cadical

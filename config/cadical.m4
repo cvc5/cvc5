@@ -62,7 +62,7 @@ fi
 
 ])# CVC4_CHECK_FOR_CADICAL
 
-# CVC4_TRY_STATIC_CADICAL_WITH(LIBS)
+# CVC4_TRY_CADICAL
 # ------------------------------
 # Try AC_CHECK_LIB(cadical) with the given linking libraries
 AC_DEFUN([CVC4_TRY_CADICAL], [
@@ -87,5 +87,5 @@ if test -z "$CADICAL_LIBS"; then
 
   AC_LANG_POP([C++])
 fi
-])# CVC4_TRY_CADICAL_WITH
+])# CVC4_TRY_CADICAL
 

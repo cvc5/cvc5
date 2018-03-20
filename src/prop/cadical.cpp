@@ -44,7 +44,7 @@ SatValue toSatValueLit(int value)
   return SAT_VALUE_FALSE;
 }
 
-CadicalLit toCadicalLit(SatLiteral lit)
+CadicalLit toCadicalLit(const SatLiteral lit)
 {
   return lit.isNegated() ? -lit.getSatVariable() : lit.getSatVariable();
 }
@@ -75,7 +75,7 @@ CadicalSolver::~CadicalSolver() {}
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {
-  for (SatLiteral lit : clause)
+  for (const SatLiteral& lit : clause)
   {
     d_solver->add(toCadicalLit(lit));
   }

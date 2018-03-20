@@ -83,7 +83,7 @@ CVC4 optionally links against the following libraries:
 
   ABC                (https://bitbucket.org/alanmi/abc)
   CaDiCaL            (https://github.com/arminbiere/cadical)
-  Cryptominisat      (https://github.com/msoos/cryptominisat)
+  CryptoMiniSat      (https://github.com/msoos/cryptominisat)
   LFSC checker       (https://github.com/CVC4/LFSC)
 
 Linking CVC4 against these libraries does not affect the license terms of the
