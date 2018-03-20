@@ -333,12 +333,13 @@ class CegConjecturePbe : public SygusModule
   *   For term x satisfies 0001,
   *   For term x+1 satisfies 1100,
   *   For term 2 satisfies 0100.
-  * Above, term 2 is subsumed by term x+1, since the set of I/O examples that x+1
+  * Above, term 2 is subsumed by term x+1, since the set of I/O examples that
+  * x+1
   * satisfies are a superset of those satisfied by 2.
   */
   class SubsumeTrie
   {
-  public:
+   public:
     SubsumeTrie() {}
     /**
     * Adds term t to the trie, removes all terms that are subsumed by t from the
@@ -346,25 +347,26 @@ class CegConjecturePbe : public SygusModule
     * is given by (pol ? vals : !vals).
     */
     Node addTerm(Node t,
-                std::vector<Node>& vals,
-                bool pol,
-                std::vector<Node>& subsumed);
+                 std::vector<Node>& vals,
+                 bool pol,
+                 std::vector<Node>& subsumed);
     /**
-    * Adds term c to the trie, without calculating/updating based on subsumption.
+    * Adds term c to the trie, without calculating/updating based on
+    * subsumption.
     */
     Node addCond(Node c, std::vector<Node>& vals, bool pol);
     /**
     * Returns the set of terms that are subsumed by (pol ? vals : !vals).
     */
     void getSubsumed(std::vector<Node>& vals,
-                    bool pol,
-                    std::vector<Node>& subsumed);
+                     bool pol,
+                     std::vector<Node>& subsumed);
     /**
     * Returns the set of terms that subsume (pol ? vals : !vals).
     */
     void getSubsumedBy(std::vector<Node>& vals,
-                      bool pol,
-                      std::vector<Node>& subsumed_by);
+                       bool pol,
+                       std::vector<Node>& subsumed_by);
     /**
     * Get the leaves of the trie, which we store in the map v.
     * v[-1] stores the children that always evaluate to !pol,
@@ -373,8 +375,8 @@ class CegConjecturePbe : public SygusModule
     * on example.
     */
     void getLeaves(std::vector<Node>& vals,
-                  bool pol,
-                  std::map<int, std::vector<Node> >& v);
+                   bool pol,
+                   std::map<int, std::vector<Node> >& v);
     /** is this trie empty? */
     bool isEmpty() { return d_term.isNull() && d_children.empty(); }
     /** clear this trie */
@@ -384,27 +386,27 @@ class CegConjecturePbe : public SygusModule
       d_children.clear();
     }
 
-  private:
+   private:
     /** the term at this node */
     Node d_term;
     /** the children nodes of this trie */
     std::map<Node, SubsumeTrie> d_children;
     /** helper function for above functions */
     Node addTermInternal(Node t,
-                        std::vector<Node>& vals,
-                        bool pol,
-                        std::vector<Node>& subsumed,
-                        bool spol,
-                        unsigned index,
-                        int status,
-                        bool checkExistsOnly,
-                        bool checkSubsume);
+                         std::vector<Node>& vals,
+                         bool pol,
+                         std::vector<Node>& subsumed,
+                         bool spol,
+                         unsigned index,
+                         int status,
+                         bool checkExistsOnly,
+                         bool checkSubsume);
     /** helper function for above functions */
     void getLeavesInternal(std::vector<Node>& vals,
-                          bool pol,
-                          std::map<int, std::vector<Node> >& v,
-                          unsigned index,
-                          int status);
+                           bool pol,
+                           std::map<int, std::vector<Node> >& v,
+                           unsigned index,
+                           int status);
   };
   // -------------------------------- end decision tree learning
 
@@ -422,7 +424,7 @@ class CegConjecturePbe : public SygusModule
   */
   class EnumInfo
   {
-  public:
+   public:
     EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
     /** initialize this class
     *
@@ -463,7 +465,8 @@ class CegConjecturePbe : public SygusModule
     Node d_active_guard;
     /**
     * Slave enumerators of this enumerator. These are other enumerators that
-    * have the same type, but a different role in the strategy tree. We generally
+    * have the same type, but a different role in the strategy tree. We
+    * generally
     * only use one enumerator per type, and hence these slaves are notified when
     * values are enumerated for this enumerator.
     */
@@ -474,7 +477,9 @@ class CegConjecturePbe : public SygusModule
     * Notify this class that the term v has been enumerated for this enumerator.
     * Its evaluation under the set of examples in pbe are stored in results.
     */
-    void addEnumValue(CegConjecturePbe* pbe, Node v, std::vector<Node>& results);
+    void addEnumValue(CegConjecturePbe* pbe,
+                      Node v,
+                      std::vector<Node>& results);
     /**
     * Notify this class that slv is the complete solution to the synthesis
     * conjecture. This occurs rarely, for instance, when during an ITE strategy
@@ -507,7 +512,7 @@ class CegConjecturePbe : public SygusModule
     */
     SubsumeTrie d_term_trie;
     //---------------------------end enumerated values
-  private:
+   private:
     /**
       * Whether an enumerated value for this conjecture has solved the entire
       * conjecture.
@@ -852,7 +857,7 @@ class CegConjecturePbe : public SygusModule
                                     std::map< Node, std::vector< unsigned > > incr,
                                     UnifContext& x );
   //------------------------------ end constructing solutions
-  
+
   /** represents a strategy for a SyGuS datatype type
    *
    * This represents a possible strategy to apply when processing a strategy
@@ -866,7 +871,8 @@ class CegConjecturePbe : public SygusModule
    * Then, the solution returned by this strategy is
    *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
    */
-  class EnumTypeInfoStrat {
+  class EnumTypeInfoStrat
+  {
    public:
     /** the type of strategy this represents */
     StrategyType d_this;

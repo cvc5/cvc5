@@ -1252,11 +1252,12 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
                 itv->second.setSolved( v );
                 // it subsumes everything
                 itv->second.d_term_trie.clear();
-                itv->second.d_term_trie.addTerm( v, results, true, subsume );
+                itv->second.d_term_trie.addTerm(v, results, true, subsume);
               }
               keep = true;
             }else{
-              Node val = itv->second.d_term_trie.addTerm( v, results, true, subsume );
+              Node val =
+                  itv->second.d_term_trie.addTerm(v, results, true, subsume);
               if( val==v ){
                 Trace("sygus-pbe-enum") << "  ...success"; 
                 if( !subsume.empty() ){
@@ -1474,14 +1475,14 @@ bool CegConjecturePbe::CandidateInfo::isNonTrivial() {
 
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
 Node CegConjecturePbe::SubsumeTrie::addTermInternal(Node t,
-                                  std::vector<Node>& vals,
-                                  bool pol,
-                                  std::vector<Node>& subsumed,
-                                  bool spol,
-                                  unsigned index,
-                                  int status,
-                                  bool checkExistsOnly,
-                                  bool checkSubsume)
+                                                    std::vector<Node>& vals,
+                                                    bool pol,
+                                                    std::vector<Node>& subsumed,
+                                                    bool spol,
+                                                    unsigned index,
+                                                    int status,
+                                                    bool checkExistsOnly,
+                                                    bool checkSubsume)
 {
   if (index == vals.size())
   {
@@ -1653,40 +1654,42 @@ Node CegConjecturePbe::SubsumeTrie::addTermInternal(Node t,
 }
 
 Node CegConjecturePbe::SubsumeTrie::addTerm(Node t,
-                          std::vector<Node>& vals,
-                          bool pol,
-                          std::vector<Node>& subsumed)
+                                            std::vector<Node>& vals,
+                                            bool pol,
+                                            std::vector<Node>& subsumed)
 {
   return addTermInternal(t, vals, pol, subsumed, true, 0, 0, false, true);
 }
 
-Node CegConjecturePbe::SubsumeTrie::addCond(Node c, std::vector<Node>& vals, bool pol)
+Node CegConjecturePbe::SubsumeTrie::addCond(Node c,
+                                            std::vector<Node>& vals,
+                                            bool pol)
 {
   std::vector<Node> subsumed;
   return addTermInternal(c, vals, pol, subsumed, true, 0, 0, false, false);
 }
 
 void CegConjecturePbe::SubsumeTrie::getSubsumed(std::vector<Node>& vals,
-                              bool pol,
-                              std::vector<Node>& subsumed)
+                                                bool pol,
+                                                std::vector<Node>& subsumed)
 {
   addTermInternal(Node::null(), vals, pol, subsumed, true, 0, 1, true, true);
 }
 
-void CegConjecturePbe::SubsumeTrie::getSubsumedBy(std::vector<Node>& vals,
-                                bool pol,
-                                std::vector<Node>& subsumed_by)
+void CegConjecturePbe::SubsumeTrie::getSubsumedBy(
+    std::vector<Node>& vals, bool pol, std::vector<Node>& subsumed_by)
 {
   // flip polarities
   addTermInternal(
       Node::null(), vals, !pol, subsumed_by, false, 0, 1, true, true);
 }
 
-void CegConjecturePbe::SubsumeTrie::getLeavesInternal(std::vector<Node>& vals,
-                                    bool pol,
-                                    std::map<int, std::vector<Node> >& v,
-                                    unsigned index,
-                                    int status)
+void CegConjecturePbe::SubsumeTrie::getLeavesInternal(
+    std::vector<Node>& vals,
+    bool pol,
+    std::map<int, std::vector<Node> >& v,
+    unsigned index,
+    int status)
 {
   if (index == vals.size())
   {
@@ -1722,9 +1725,8 @@ void CegConjecturePbe::SubsumeTrie::getLeavesInternal(std::vector<Node>& vals,
   }
 }
 
-void CegConjecturePbe::SubsumeTrie::getLeaves(std::vector<Node>& vals,
-                            bool pol,
-                            std::map<int, std::vector<Node> >& v)
+void CegConjecturePbe::SubsumeTrie::getLeaves(
+    std::vector<Node>& vals, bool pol, std::map<int, std::vector<Node> >& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
@@ -2038,7 +2040,7 @@ Node CegConjecturePbe::constructSolution(
         // get an eligible strategy index
         unsigned sindex = 0;
         while (sindex < snode.d_strats.size()
-               && !snode.d_strats[sindex]->isValid(this,x))
+               && !snode.d_strats[sindex]->isValid(this, x))
         {
           sindex++;
         }
@@ -2309,7 +2311,8 @@ Node CegConjecturePbe::constructSolution(
   return ret_dt;
 }
 
-bool CegConjecturePbe::EnumTypeInfoStrat::isValid(CegConjecturePbe* pbe, UnifContext& x)
+bool CegConjecturePbe::EnumTypeInfoStrat::isValid(CegConjecturePbe* pbe,
+                                                  UnifContext& x)
 {
   if (x.d_has_string_pos == role_string_prefix && d_this == strat_CONCAT_SUFFIX)
   {
