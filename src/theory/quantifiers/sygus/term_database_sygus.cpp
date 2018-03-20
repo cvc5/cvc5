@@ -161,42 +161,53 @@ Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
   return mkGeneric(dt, c, var_count, pre);
 }
 
+struct SygusToBuiltinAttributeId
+{
+};
+typedef expr::Attribute<SygusToBuiltinAttributeId, Node>
+    SygusToBuiltinAttribute;
+
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   Assert( n.getType()==tn );
   Assert( tn.isDatatype() );
-  std::map< Node, Node >::iterator it = d_sygus_to_builtin[tn].find( n );
-  if( it==d_sygus_to_builtin[tn].end() ){
-    Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n << ", type = " << tn << std::endl;
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    if( n.getKind()==APPLY_CONSTRUCTOR ){
-      unsigned i = Datatype::indexOf( n.getOperator().toExpr() );
-      Assert( n.getNumChildren()==dt[i].getNumArgs() );
-      std::map< TypeNode, int > var_count;
-      std::map< int, Node > pre;
-      for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
-      {
-        pre[j] = sygusToBuiltin( n[j], getArgType( dt[i], j ) );
-      }
-      Node ret = mkGeneric(dt, i, var_count, pre);
-      Trace("sygus-db-debug") << "SygusToBuiltin : Generic is " << ret << std::endl;
-      d_sygus_to_builtin[tn][n] = ret;
-      return ret;
-    }
-    if (n.hasAttribute(SygusPrintProxyAttribute()))
-    {
-      // this variable was associated by an attribute to a builtin node
-      return n.getAttribute(SygusPrintProxyAttribute());
-    }
-    Assert(isFreeVar(n));
-    // map to builtin variable type
-    int fv_num = getVarNum(n);
-    Assert(!dt.getSygusType().isNull());
-    TypeNode vtn = TypeNode::fromType(dt.getSygusType());
-    Node ret = getFreeVar(vtn, fv_num);
-    return ret;
-  }else{
-    return it->second;
+
+  // has it already been computed?
+  if (n.hasAttribute(SygusToBuiltinAttribute()))
+  {
+    return n.getAttribute(SygusToBuiltinAttribute());
   }
+
+  Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n
+                          << ", type = " << tn << std::endl;
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  if (n.getKind() == APPLY_CONSTRUCTOR)
+  {
+    unsigned i = Datatype::indexOf(n.getOperator().toExpr());
+    Assert(n.getNumChildren() == dt[i].getNumArgs());
+    std::map<TypeNode, int> var_count;
+    std::map<int, Node> pre;
+    for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
+    {
+      pre[j] = sygusToBuiltin(n[j], getArgType(dt[i], j));
+    }
+    Node ret = mkGeneric(dt, i, var_count, pre);
+    Trace("sygus-db-debug")
+        << "SygusToBuiltin : Generic is " << ret << std::endl;
+    n.setAttribute(SygusToBuiltinAttribute(), ret);
+    return ret;
+  }
+  if (n.hasAttribute(SygusPrintProxyAttribute()))
+  {
+    // this variable was associated by an attribute to a builtin node
+    return n.getAttribute(SygusPrintProxyAttribute());
+  }
+  Assert(isFreeVar(n));
+  // map to builtin variable type
+  int fv_num = getVarNum(n);
+  Assert(!dt.getSygusType().isNull());
+  TypeNode vtn = TypeNode::fromType(dt.getSygusType());
+  Node ret = getFreeVar(vtn, fv_num);
+  return ret;
 }
 
 Node TermDbSygus::sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args ) {
