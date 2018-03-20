@@ -104,10 +104,10 @@ int main() {
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Type sort = em.mkSort("T", ExprManager::SORT_FLAG_PLACEHOLDER);
-  Datatype paramConsListSpec("list", std::vector<Type>{sort}); // give the datatype a name
+  Datatype paramConsListSpec("list", std::vector<Type>{sort});
   DatatypeConstructor paramCons("cons");
   paramCons.addArg("head", sort);
-  paramCons.addArg("tail", DatatypeSelfType()); // a list
+  paramCons.addArg("tail", DatatypeSelfType());
   paramConsListSpec.addConstructor(paramCons);
 
   DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
