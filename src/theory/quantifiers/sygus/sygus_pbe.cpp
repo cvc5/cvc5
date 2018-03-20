@@ -1252,11 +1252,11 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
                 itv->second.setSolved( v );
                 // it subsumes everything
                 itv->second.d_term_trie.clear();
-                itv->second.d_term_trie.addTerm( this, v, results, true, subsume );
+                itv->second.d_term_trie.addTerm( v, results, true, subsume );
               }
               keep = true;
             }else{
-              Node val = itv->second.d_term_trie.addTerm( this, v, results, true, subsume );
+              Node val = itv->second.d_term_trie.addTerm( v, results, true, subsume );
               if( val==v ){
                 Trace("sygus-pbe-enum") << "  ...success"; 
                 if( !subsume.empty() ){
@@ -1275,7 +1275,7 @@ void CegConjecturePbe::addEnumeratedValue( Node x, Node v, std::vector< Node >& 
           }
         }else{
           // must be unique up to examples
-          Node val = itv->second.d_term_trie.addCond(this, v, results, true);
+          Node val = itv->second.d_term_trie.addCond(v, results, true);
           if (val == v)
           {
             Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : "
@@ -1473,238 +1473,260 @@ bool CegConjecturePbe::CandidateInfo::isNonTrivial() {
 }
 
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
-Node CegConjecturePbe::SubsumeTrie::addTermInternal( CegConjecturePbe * pbe, Node t, std::vector< Node >& vals, bool pol, 
-                                                     std::vector< Node >& subsumed, bool spol, IndexFilter * f, 
-                                                     unsigned index, int status, bool checkExistsOnly, bool checkSubsume ) {
-  if( index==vals.size() ){
-    if( status==0 ){
+Node CegConjecturePbe::SubsumeTrie::addTermInternal(Node t,
+                                  std::vector<Node>& vals,
+                                  bool pol,
+                                  std::vector<Node>& subsumed,
+                                  bool spol,
+                                  unsigned index,
+                                  int status,
+                                  bool checkExistsOnly,
+                                  bool checkSubsume)
+{
+  if (index == vals.size())
+  {
+    if (status == 0)
+    {
       // set the term if checkExistsOnly = false
-      if( d_term.isNull() && !checkExistsOnly ){
+      if (d_term.isNull() && !checkExistsOnly)
+      {
         d_term = t;
       }
-    }else if( status==1 ){
-      Assert( checkSubsume );
+    }
+    else if (status == 1)
+    {
+      Assert(checkSubsume);
       // found a subsumed term
-      if( !d_term.isNull() ){
-        subsumed.push_back( d_term );
-        if( !checkExistsOnly ){
+      if (!d_term.isNull())
+      {
+        subsumed.push_back(d_term);
+        if (!checkExistsOnly)
+        {
           // remove it if checkExistsOnly = false
           d_term = Node::null();
         }
       }
-    }else{
-      Assert( !checkExistsOnly && checkSubsume );
+    }
+    else
+    {
+      Assert(!checkExistsOnly && checkSubsume);
     }
     return d_term;
-  }else{
-    // the current value 
-    Assert( pol || ( vals[index].isConst() && vals[index].getType().isBoolean() ) );
-    Node cv = pol ? vals[index] : ( vals[index]==pbe->d_true ? pbe->d_false : pbe->d_true );
-    // if checkExistsOnly = false, check if the current value is subsumed if checkSubsume = true, if so, don't add
-    if( !checkExistsOnly && checkSubsume ){
-      std::vector< bool > check_subsumed_by;
-      if( status==0 ){
-        if( cv==pbe->d_false ){
-          check_subsumed_by.push_back( spol );
-        }
-      }else if( status==-1 ){
-        check_subsumed_by.push_back( spol );
-        if( cv==pbe->d_false ){
-          check_subsumed_by.push_back( !spol );
-        }
-      }
-      // check for subsumed nodes
-      for( unsigned i=0; i<check_subsumed_by.size(); i++ ){
-        Node csval = check_subsumed_by[i] ? pbe->d_true : pbe->d_false;
-        // check if subsumed
-        std::map< Node, SubsumeTrie >::iterator itc = d_children.find( csval );
-        if( itc!=d_children.end() ){
-          unsigned next_index = f ? f->next( index ) : index+1;
-          Node ret = itc->second.addTermInternal( pbe, t, vals, pol, subsumed, spol, f, next_index, -1, checkExistsOnly, checkSubsume );
-          // ret subsumes t
-          if( !ret.isNull() ){
-            return ret;
-          }
-        }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  // the current value
+  Assert(pol || (vals[index].isConst() && vals[index].getType().isBoolean()));
+  Node cv = pol ? vals[index] : nm->mkConst(!vals[index].getConst<bool>());
+  // if checkExistsOnly = false, check if the current value is subsumed if
+  // checkSubsume = true, if so, don't add
+  if (!checkExistsOnly && checkSubsume)
+  {
+    Assert(cv.isConst() && cv.getType().isBoolean());
+    std::vector<bool> check_subsumed_by;
+    if (status == 0)
+    {
+      if (!cv.getConst<bool>())
+      {
+        check_subsumed_by.push_back(spol);
       }
     }
-    Node ret;
-    std::vector< bool > check_subsume;
-    if( status==0 ){
-      unsigned next_index = f ? f->next( index ) : index+1;
-      if( checkExistsOnly ){
-        std::map< Node, SubsumeTrie >::iterator itc = d_children.find( cv );
-        if( itc!=d_children.end() ){
-          ret = itc->second.addTermInternal( pbe, t, vals, pol, subsumed, spol, f, next_index, 0, checkExistsOnly, checkSubsume );
-        }
-      }else{
-        Assert( spol );
-        ret = d_children[cv].addTermInternal( pbe, t, vals, pol, subsumed, spol, f, next_index, 0, checkExistsOnly, checkSubsume );
-        if( ret!=t ){
-          // we were subsumed by ret, return
+    else if (status == -1)
+    {
+      check_subsumed_by.push_back(spol);
+      if (!cv.getConst<bool>())
+      {
+        check_subsumed_by.push_back(!spol);
+      }
+    }
+    // check for subsumed nodes
+    for (unsigned i = 0, size = check_subsumed_by.size(); i < size; i++)
+    {
+      bool csbi = check_subsumed_by[i];
+      Node csval = nm->mkConst(csbi);
+      // check if subsumed
+      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(csval);
+      if (itc != d_children.end())
+      {
+        Node ret = itc->second.addTermInternal(t,
+                                               vals,
+                                               pol,
+                                               subsumed,
+                                               spol,
+                                               index + 1,
+                                               -1,
+                                               checkExistsOnly,
+                                               checkSubsume);
+        // ret subsumes t
+        if (!ret.isNull())
+        {
           return ret;
         }
       }
-      if( checkSubsume ){
-        // check for subsuming
-        if( cv==pbe->d_true ){
-          check_subsume.push_back( !spol );
-        }
-      }
-    }else if( status==1 ){
-      Assert( checkSubsume );
-      check_subsume.push_back( !spol );
-      if( cv==pbe->d_true ){
-        check_subsume.push_back( spol );
-      }
     }
-    if( checkSubsume ){
-      // check for subsumed terms
-      for( unsigned i=0; i<check_subsume.size(); i++ ){
-        Node csval = check_subsume[i] ? pbe->d_true : pbe->d_false;
-        std::map< Node, SubsumeTrie >::iterator itc = d_children.find( csval );
-        if( itc!=d_children.end() ){
-          unsigned next_index = f ? f->next( index ) : index+1;
-          itc->second.addTermInternal( pbe, t, vals, pol, subsumed, spol, f, next_index, 1, checkExistsOnly, checkSubsume );
-          // clean up
-          if( itc->second.isEmpty() ){
-            Assert( !checkExistsOnly );
-            d_children.erase( csval );
-          }
-        }
-      }
-    }
-    return ret;
   }
+  Node ret;
+  std::vector<bool> check_subsume;
+  if (status == 0)
+  {
+    if (checkExistsOnly)
+    {
+      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(cv);
+      if (itc != d_children.end())
+      {
+        ret = itc->second.addTermInternal(t,
+                                          vals,
+                                          pol,
+                                          subsumed,
+                                          spol,
+                                          index + 1,
+                                          0,
+                                          checkExistsOnly,
+                                          checkSubsume);
+      }
+    }
+    else
+    {
+      Assert(spol);
+      ret = d_children[cv].addTermInternal(t,
+                                           vals,
+                                           pol,
+                                           subsumed,
+                                           spol,
+                                           index + 1,
+                                           0,
+                                           checkExistsOnly,
+                                           checkSubsume);
+      if (ret != t)
+      {
+        // we were subsumed by ret, return
+        return ret;
+      }
+    }
+    if (checkSubsume)
+    {
+      Assert(cv.isConst() && cv.getType().isBoolean());
+      // check for subsuming
+      if (cv.getConst<bool>())
+      {
+        check_subsume.push_back(!spol);
+      }
+    }
+  }
+  else if (status == 1)
+  {
+    Assert(checkSubsume);
+    Assert(cv.isConst() && cv.getType().isBoolean());
+    check_subsume.push_back(!spol);
+    if (cv.getConst<bool>())
+    {
+      check_subsume.push_back(spol);
+    }
+  }
+  if (checkSubsume)
+  {
+    // check for subsumed terms
+    for (unsigned i = 0, size = check_subsume.size(); i < size; i++)
+    {
+      Node csval = nm->mkConst<bool>(check_subsume[i]);
+      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(csval);
+      if (itc != d_children.end())
+      {
+        itc->second.addTermInternal(t,
+                                    vals,
+                                    pol,
+                                    subsumed,
+                                    spol,
+                                    index + 1,
+                                    1,
+                                    checkExistsOnly,
+                                    checkSubsume);
+        // clean up
+        if (itc->second.isEmpty())
+        {
+          Assert(!checkExistsOnly);
+          d_children.erase(csval);
+        }
+      }
+    }
+  }
+  return ret;
 }
 
-Node CegConjecturePbe::SubsumeTrie::addTerm( CegConjecturePbe * pbe, Node t, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed, IndexFilter * f ) {
-  unsigned start_index = f ? f->start() : 0;
-  return addTermInternal( pbe, t, vals, pol, subsumed, true, f, start_index, 0, false, true );
+Node CegConjecturePbe::SubsumeTrie::addTerm(Node t,
+                          std::vector<Node>& vals,
+                          bool pol,
+                          std::vector<Node>& subsumed)
+{
+  return addTermInternal(t, vals, pol, subsumed, true, 0, 0, false, true);
 }
 
-Node CegConjecturePbe::SubsumeTrie::addCond( CegConjecturePbe * pbe, Node c, std::vector< Node >& vals, bool pol, IndexFilter * f ) {
-  unsigned start_index = f ? f->start() : 0;
-  std::vector< Node > subsumed;
-  return addTermInternal( pbe, c, vals, pol, subsumed, true, f, start_index, 0, false, false );
+Node CegConjecturePbe::SubsumeTrie::addCond(Node c, std::vector<Node>& vals, bool pol)
+{
+  std::vector<Node> subsumed;
+  return addTermInternal(c, vals, pol, subsumed, true, 0, 0, false, false);
 }
 
-void CegConjecturePbe::SubsumeTrie::getSubsumed( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed, IndexFilter * f ){
-  unsigned start_index = f ? f->start() : 0;
-  addTermInternal( pbe, Node::null(), vals, pol, subsumed, true, f, start_index, 1, true, true );
+void CegConjecturePbe::SubsumeTrie::getSubsumed(std::vector<Node>& vals,
+                              bool pol,
+                              std::vector<Node>& subsumed)
+{
+  addTermInternal(Node::null(), vals, pol, subsumed, true, 0, 1, true, true);
 }
 
-void CegConjecturePbe::SubsumeTrie::getSubsumedBy( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed_by, IndexFilter * f ){
+void CegConjecturePbe::SubsumeTrie::getSubsumedBy(std::vector<Node>& vals,
+                                bool pol,
+                                std::vector<Node>& subsumed_by)
+{
   // flip polarities
-  unsigned start_index = f ? f->start() : 0;
-  addTermInternal( pbe, Node::null(), vals, !pol, subsumed_by, false, f, start_index, 1, true, true );
+  addTermInternal(
+      Node::null(), vals, !pol, subsumed_by, false, 0, 1, true, true);
 }
 
-void CegConjecturePbe::SubsumeTrie::getLeavesInternal( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::map< int, std::vector< Node > >& v, 
-                                                       IndexFilter * f, unsigned index, int status ) {
-  if( index==vals.size() ){
-    Assert( !d_term.isNull() );
-    Assert( std::find( v[status].begin(), v[status].end(), d_term )==v[status].end() );
-    v[status].push_back( d_term );
-  }else{
-    Assert( vals[index].isConst() && vals[index].getType().isBoolean() );
-    // filter should be for cv
-    Assert( f==NULL || vals[index]==( pol ? pbe->d_true : pbe->d_false ) );
-    for( std::map< Node, SubsumeTrie >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
+void CegConjecturePbe::SubsumeTrie::getLeavesInternal(std::vector<Node>& vals,
+                                    bool pol,
+                                    std::map<int, std::vector<Node> >& v,
+                                    unsigned index,
+                                    int status)
+{
+  if (index == vals.size())
+  {
+    Assert(!d_term.isNull());
+    Assert(std::find(v[status].begin(), v[status].end(), d_term)
+           == v[status].end());
+    v[status].push_back(d_term);
+  }
+  else
+  {
+    Assert(vals[index].isConst() && vals[index].getType().isBoolean());
+    bool curr_val_true = vals[index].getConst<bool>() == pol;
+    for (std::map<Node, SubsumeTrie>::iterator it = d_children.begin();
+         it != d_children.end();
+         ++it)
+    {
       int new_status = status;
       // if the current value is true
-      if( vals[index]==( pol ? pbe->d_true : pbe->d_false ) ){
-        if( status!=0 ){
-          new_status = ( it->first == pbe->d_true ? 1 : -1 );
-          if( status!=-2 && new_status!=status ){
+      if (curr_val_true)
+      {
+        if (status != 0)
+        {
+          Assert(it->first.isConst() && it->first.getType().isBoolean());
+          new_status = (it->first.getConst<bool>() ? 1 : -1);
+          if (status != -2 && new_status != status)
+          {
             new_status = 0;
           }
         }
       }
-      unsigned next_index = f ? f->next( index ) : index+1;
-      it->second.getLeavesInternal( pbe, vals, pol, v, f, next_index, new_status );
+      it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
     }
   }
 }
 
-void CegConjecturePbe::SubsumeTrie::getLeaves( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::map< int, std::vector< Node > >& v, IndexFilter * f ) {
-  unsigned start_index = f ? f->start() : 0;
-  getLeavesInternal( pbe, vals, pol, v, f, start_index, -2 );
-}
-
-void CegConjecturePbe::IndexFilter::mk( std::vector< Node >& vals, bool pol ) {
-  Trace("sygus-pbe-debug") << "Make for : ";
-  print_val( "sygus-pbe-debug", vals, pol );
-  Trace("sygus-pbe-debug") << std::endl;
-  Node poln = NodeManager::currentNM()->mkConst( pol );
-  
-  unsigned curr_index = 0;
-  while( curr_index<vals.size() && vals[curr_index]!=poln ){
-    curr_index++;
-  }
-  d_next[0] = curr_index;
-  Trace("sygus-pbe-debug") << "0 -> " << curr_index << std::endl;
-  unsigned i = curr_index;
-  while( i<vals.size() ){
-    while( i<vals.size() && vals[i]!=poln ){
-      i++;
-    }
-    i++;
-    d_next[curr_index+1] = i;
-    Trace("sygus-pbe-debug") << curr_index+1 << " -> " << i << std::endl;
-    curr_index = i;
-  }
-  
-  // verify it is correct
-  unsigned j = start();
-  for( unsigned k=0; k<j; k++ ){
-    AlwaysAssert( vals[k]!=poln );
-  }
-  Trace("sygus-pbe-debug") << "...start : " << j << std::endl;
-  unsigned counter = 0;
-  while( j<vals.size() ){
-    Trace("sygus-pbe-debug") << "...at : " << j << std::endl;
-    AlwaysAssert( vals[j]==poln );
-    unsigned jj = next( j );
-    AlwaysAssert( jj>j );
-    for( unsigned k=(j+1); k<jj; k++ ){
-      AlwaysAssert( vals[k]!=poln );
-    }
-    AlwaysAssert( counter<=vals.size() );
-    counter++;
-    j = jj;
-  }
-  
-  
-}
-
-unsigned CegConjecturePbe::IndexFilter::start() {
-  std::map< unsigned, unsigned >::iterator it = d_next.find( 0 );
-  if( it==d_next.end() ){
-    return 0;
-  }else{
-    return it->second;
-  }
-}
-
-unsigned CegConjecturePbe::IndexFilter::next( unsigned i ) {
-  std::map< unsigned, unsigned >::iterator it = d_next.find( i+1 );
-  if( it==d_next.end() ){
-    return i+1;
-  }else{
-    return it->second;
-  }      
-}
-
-bool CegConjecturePbe::IndexFilter::isEq( std::vector< Node >& vals, Node v ) {
-  unsigned index = start();
-  while( index<vals.size() ){
-    if( vals[index]!=v ){
-      return false;
-    }
-    index = next( index );
-  }
-  return true;
+void CegConjecturePbe::SubsumeTrie::getLeaves(std::vector<Node>& vals,
+                            bool pol,
+                            std::map<int, std::vector<Node> >& v)
+{
+  getLeavesInternal(vals, pol, v, 0, -2);
 }
 
 Node CegConjecturePbe::constructSolution( Node c ){
@@ -1839,7 +1861,7 @@ Node CegConjecturePbe::constructSolution(
       {
         // could be conditionally solved
         std::vector<Node> subsumed_by;
-        einfo.d_term_trie.getSubsumedBy(this, x.d_vals, true, subsumed_by);
+        einfo.d_term_trie.getSubsumedBy(x.d_vals, true, subsumed_by);
         if (!subsumed_by.empty())
         {
           ret_dt = constructBestSolvedTerm(subsumed_by, x);
@@ -2016,7 +2038,7 @@ Node CegConjecturePbe::constructSolution(
         // get an eligible strategy index
         unsigned sindex = 0;
         while (sindex < snode.d_strats.size()
-               && !x.isValidStrategy(snode.d_strats[sindex]))
+               && !snode.d_strats[sindex]->isValid(this,x))
         {
           sindex++;
         }
@@ -2117,7 +2139,6 @@ Node CegConjecturePbe::constructSolution(
                     Node cond = einfo_child.d_enum_vals[k];
                     std::vector<Node> solved;
                     itnt->second.d_term_trie.getSubsumedBy(
-                        this,
                         einfo_child.d_enum_vals_res[k],
                         branch_pol,
                         solved);
@@ -2145,8 +2166,7 @@ Node CegConjecturePbe::constructSolution(
             // distinguishable
             std::map<int, std::vector<Node> > possible_cond;
             std::map<Node, int> solved_cond;  // stores branch
-            einfo_child.d_term_trie.getLeaves(
-                this, x.d_vals, true, possible_cond);
+            einfo_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
 
             std::map<int, std::vector<Node> >::iterator itpc =
                 possible_cond.find(0);
@@ -2289,6 +2309,19 @@ Node CegConjecturePbe::constructSolution(
   return ret_dt;
 }
 
+bool CegConjecturePbe::EnumTypeInfoStrat::isValid(CegConjecturePbe* pbe, UnifContext& x)
+{
+  if (x.d_has_string_pos == role_string_prefix && d_this == strat_CONCAT_SUFFIX)
+  {
+    return false;
+  }
+  if (x.d_has_string_pos == role_string_suffix && d_this == strat_CONCAT_PREFIX)
+  {
+    return false;
+  }
+  return true;
+}
+
 CegConjecturePbe::UnifContext::UnifContext() : d_has_string_pos(role_invalid)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -2337,20 +2370,6 @@ bool CegConjecturePbe::UnifContext::isReturnValueModified() {
     return true;
   }
   return false;
-}
-
-bool CegConjecturePbe::UnifContext::isValidStrategy(EnumTypeInfoStrat* etis)
-{
-  StrategyType st = etis->d_this;
-  if (d_has_string_pos == role_string_prefix && st == strat_CONCAT_SUFFIX)
-  {
-    return false;
-  }
-  if (d_has_string_pos == role_string_suffix && st == strat_CONCAT_PREFIX)
-  {
-    return false;
-  }
-  return true;
 }
 
 void CegConjecturePbe::UnifContext::initialize( CegConjecturePbe * pbe, Node c ) {

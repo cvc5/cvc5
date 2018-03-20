@@ -322,79 +322,110 @@ class CegConjecturePbe : public SygusModule
   //--------------------------------- end PBE search values
 
   // -------------------------------- decision tree learning
-  // index filter
-  class IndexFilter {
+  /** Subsumption trie
+  *
+  * This class manages a set of terms for a PBE sygus enumerator.
+  *
+  * In PBE sygus, we are interested, for each term t, the set of I/O examples
+  * that it satisfies, which can be represented by a vector of Booleans.
+  * For example, given conjecture:
+  *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1 ^ f( 5 ) = 5
+  *   For term x satisfies 0001,
+  *   For term x+1 satisfies 1100,
+  *   For term 2 satisfies 0100.
+  * Above, term 2 is subsumed by term x+1, since the set of I/O examples that x+1
+  * satisfies are a superset of those satisfied by 2.
+  */
+  class SubsumeTrie
+  {
   public:
-    IndexFilter(){}
-    void mk( std::vector< Node >& vals, bool pol = true );
-    std::map< unsigned, unsigned > d_next;
-    unsigned start();
-    unsigned next( unsigned i );
-    void clear() { d_next.clear(); }
-    bool isEq( std::vector< Node >& vs, Node v );
-  };
-  // subsumption trie
-  class SubsumeTrie {
-  public:
-    SubsumeTrie(){}
-    // adds term to the trie, removes based on subsumption
-    Node addTerm( CegConjecturePbe * pbe, Node t, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed, IndexFilter * f = NULL );
-    // adds condition to the trie (does not do subsumption)
-    Node addCond( CegConjecturePbe * pbe, Node c, std::vector< Node >& vals, bool pol, IndexFilter * f = NULL );
-    // returns the set of terms that are subsets of vals
-    void getSubsumed( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed, IndexFilter * f = NULL );
-    // returns the set of terms that are supersets of vals
-    void getSubsumedBy( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::vector< Node >& subsumed_by, IndexFilter * f = NULL );
-    // v[-1,1,0] -> children always false, always true, both
-    void getLeaves( CegConjecturePbe * pbe, std::vector< Node >& vals, bool pol, std::map< int, std::vector< Node > >& v, IndexFilter * f = NULL );
+    SubsumeTrie() {}
+    /**
+    * Adds term t to the trie, removes all terms that are subsumed by t from the
+    * trie and adds them to subsumed. The set of I/O examples that t satisfies
+    * is given by (pol ? vals : !vals).
+    */
+    Node addTerm(Node t,
+                std::vector<Node>& vals,
+                bool pol,
+                std::vector<Node>& subsumed);
+    /**
+    * Adds term c to the trie, without calculating/updating based on subsumption.
+    */
+    Node addCond(Node c, std::vector<Node>& vals, bool pol);
+    /**
+    * Returns the set of terms that are subsumed by (pol ? vals : !vals).
+    */
+    void getSubsumed(std::vector<Node>& vals,
+                    bool pol,
+                    std::vector<Node>& subsumed);
+    /**
+    * Returns the set of terms that subsume (pol ? vals : !vals).
+    */
+    void getSubsumedBy(std::vector<Node>& vals,
+                      bool pol,
+                      std::vector<Node>& subsumed_by);
+    /**
+    * Get the leaves of the trie, which we store in the map v.
+    * v[-1] stores the children that always evaluate to !pol,
+    * v[1] stores the children that always evaluate to pol,
+    * v[0] stores the children that both evaluate to true and false for at least
+    * on example.
+    */
+    void getLeaves(std::vector<Node>& vals,
+                  bool pol,
+                  std::map<int, std::vector<Node> >& v);
     /** is this trie empty? */
     bool isEmpty() { return d_term.isNull() && d_children.empty(); }
     /** clear this trie */
-    void clear() {
+    void clear()
+    {
       d_term = Node::null();
-      d_children.clear(); 
+      d_children.clear();
     }
 
-   private:
+  private:
     /** the term at this node */
     Node d_term;
     /** the children nodes of this trie */
     std::map<Node, SubsumeTrie> d_children;
     /** helper function for above functions */
-    Node addTermInternal(CegConjecturePbe* pbe,
-                         Node t,
-                         std::vector<Node>& vals,
-                         bool pol,
-                         std::vector<Node>& subsumed,
-                         bool spol,
-                         IndexFilter* f,
-                         unsigned index,
-                         int status,
-                         bool checkExistsOnly,
-                         bool checkSubsume);
+    Node addTermInternal(Node t,
+                        std::vector<Node>& vals,
+                        bool pol,
+                        std::vector<Node>& subsumed,
+                        bool spol,
+                        unsigned index,
+                        int status,
+                        bool checkExistsOnly,
+                        bool checkSubsume);
     /** helper function for above functions */
-    void getLeavesInternal(CegConjecturePbe* pbe,
-                           std::vector<Node>& vals,
-                           bool pol,
-                           std::map<int, std::vector<Node> >& v,
-                           IndexFilter* f,
-                           unsigned index,
-                           int status);
+    void getLeavesInternal(std::vector<Node>& vals,
+                          bool pol,
+                          std::map<int, std::vector<Node> >& v,
+                          unsigned index,
+                          int status);
   };
   // -------------------------------- end decision tree learning
 
   //------------------------------ representation of a enumeration strategy
-
-  /** information about an enumerator
-   *
-   * We say an enumerator is a master enumerator if it is the variable that
-   * we use to enumerate values for its sort. Master enumerators may have
-   * (possibly multiple) slave enumerators, stored in d_enum_slave,
-   */
-  class EnumInfo {
-   public:
+  /**
+  * This class stores information regarding an enumerator, including:
+  * - Information regarding the role of this enumerator (see EnumRole), its
+  * parent, whether it is templated, its slave enumerators, and so on, and
+  * - A database of values that have been enumerated for this enumerator.
+  *
+  * We say an enumerator is a master enumerator if it is the variable that
+  * we use to enumerate values for its sort. Master enumerators may have
+  * (possibly multiple) slave enumerators, stored in d_enum_slave.
+  *
+  */
+  class EnumInfo
+  {
+  public:
     EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
     /** initialize this class
+    *
     * c is the parent function-to-synthesize
     * role is the "role" the enumerator plays in the high-level strategy,
     *   which is one of enum_* above.
@@ -412,36 +443,75 @@ class CegConjecturePbe : public SygusModule
     void setConditional() { d_is_conditional = true; }
     /** is conditional */
     bool isConditional() { return d_is_conditional; }
-    void addEnumValue(CegConjecturePbe* pbe,
-                      Node v,
-                      std::vector<Node>& results);
-    void setSolved(Node slv);
-    bool isSolved() { return !d_enum_solved.isNull(); }
-    Node getSolved() { return d_enum_solved; }
+    /** get the role of this enumerator */
     EnumRole getRole() { return d_role; }
+    /**
+    * The candidate variable that this enumerator is for (see sygus_pbe.h).
+    */
     Node d_parent_candidate;
-    // for template
+    /** enumerator template
+    *
+    * If d_template non-null, enumerated values V are immediately transformed to
+    * d_template { d_template_arg -> V }.
+    */
     Node d_template;
     Node d_template_arg;
-
+    /**
+    * The active guard of this enumerator (see
+    * TermDbSygus::d_enum_to_active_guard).
+    */
     Node d_active_guard;
+    /**
+    * Slave enumerators of this enumerator. These are other enumerators that
+    * have the same type, but a different role in the strategy tree. We generally
+    * only use one enumerator per type, and hence these slaves are notified when
+    * values are enumerated for this enumerator.
+    */
     std::vector<Node> d_enum_slave;
-    /** values we have enumerated */
+
+    //---------------------------enumerated values
+    /**
+    * Notify this class that the term v has been enumerated for this enumerator.
+    * Its evaluation under the set of examples in pbe are stored in results.
+    */
+    void addEnumValue(CegConjecturePbe* pbe, Node v, std::vector<Node>& results);
+    /**
+    * Notify this class that slv is the complete solution to the synthesis
+    * conjecture. This occurs rarely, for instance, when during an ITE strategy
+    * we find that a single enumerated term covers all examples.
+    */
+    void setSolved(Node slv);
+    /** Have we been notified that a complete solution exists? */
+    bool isSolved() { return !d_enum_solved.isNull(); }
+    /** Get the complete solution to the synthesis conjecture. */
+    Node getSolved() { return d_enum_solved; }
+    /** Values that have been enumerated for this enumerator */
     std::vector<Node> d_enum_vals;
     /**
       * This either stores the values of f( I ) for inputs
       * or the value of f( I ) = O if d_role==enum_io
       */
     std::vector<std::vector<Node> > d_enum_vals_res;
-    std::vector<Node> d_enum_subsume;
-    std::map<Node, unsigned> d_enum_val_to_index;
-    SubsumeTrie d_term_trie;
-
-   private:
     /**
-     * Whether an enumerated value for this conjecture has solved the entire
-     * conjecture.
-     */
+    * The set of values in d_enum_vals that have been "subsumed" by others
+    * (see SubsumeTrie for explanation of subsumed).
+    */
+    std::vector<Node> d_enum_subsume;
+    /** Map from values to their index in d_enum_vals. */
+    std::map<Node, unsigned> d_enum_val_to_index;
+    /**
+    * A subsumption trie containing the values in d_enum_vals. Depending on the
+    * role of this enumerator, values may either be added to d_term_trie with
+    * subsumption (if role=enum_io), or without (if role=enum_ite_condition or
+    * enum_concat_term).
+    */
+    SubsumeTrie d_term_trie;
+    //---------------------------end enumerated values
+  private:
+    /**
+      * Whether an enumerated value for this conjecture has solved the entire
+      * conjecture.
+      */
     Node d_enum_solved;
     /** the role of this enumerator (one of enum_* above). */
     EnumRole d_role;
@@ -452,37 +522,7 @@ class CegConjecturePbe : public SygusModule
   std::map< Node, EnumInfo > d_einfo;
 
   class CandidateInfo;
-
-  /** represents a strategy for a SyGuS datatype type
-   *
-   * This represents a possible strategy to apply when processing a strategy
-   * node in constructSolution. When applying the strategy represented by this
-   * class, we may make recursive calls to the children of the strategy,
-   * given in d_cenum. If all recursive calls to constructSolution are
-   * successful, say:
-   *   constructSolution( c, d_cenum[1], ... ) = t1,
-   *    ...,
-   *   constructSolution( c, d_cenum[n], ... ) = tn,
-   * Then, the solution returned by this strategy is
-   *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
-   */
-  class EnumTypeInfoStrat {
-   public:
-    /** the type of strategy this represents */
-    StrategyType d_this;
-    /** the sygus datatype constructor that induced this strategy
-     *
-     * For example, this may be a sygus datatype whose sygus operator is ITE,
-     * if the strategy type above is strat_ITE.
-     */
-    Node d_cons;
-    /** children of this strategy */
-    std::vector<std::pair<Node, NodeRole> > d_cenum;
-    /** the arguments for the (templated) solution */
-    std::vector<Node> d_sol_templ_args;
-    /** the template for the solution */
-    Node d_sol_templ;
-  };
+  class EnumTypeInfoStrat;
 
   /** represents a node in the strategy graph
    *
@@ -812,6 +852,39 @@ class CegConjecturePbe : public SygusModule
                                     std::map< Node, std::vector< unsigned > > incr,
                                     UnifContext& x );
   //------------------------------ end constructing solutions
+  
+  /** represents a strategy for a SyGuS datatype type
+   *
+   * This represents a possible strategy to apply when processing a strategy
+   * node in constructSolution. When applying the strategy represented by this
+   * class, we may make recursive calls to the children of the strategy,
+   * given in d_cenum. If all recursive calls to constructSolution are
+   * successful, say:
+   *   constructSolution( c, d_cenum[1], ... ) = t1,
+   *    ...,
+   *   constructSolution( c, d_cenum[n], ... ) = tn,
+   * Then, the solution returned by this strategy is
+   *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
+   */
+  class EnumTypeInfoStrat {
+   public:
+    /** the type of strategy this represents */
+    StrategyType d_this;
+    /** the sygus datatype constructor that induced this strategy
+     *
+     * For example, this may be a sygus datatype whose sygus operator is ITE,
+     * if the strategy type above is strat_ITE.
+     */
+    Node d_cons;
+    /** children of this strategy */
+    std::vector<std::pair<Node, NodeRole> > d_cenum;
+    /** the arguments for the (templated) solution */
+    std::vector<Node> d_sol_templ_args;
+    /** the template for the solution */
+    Node d_sol_templ;
+    /** Returns true if argument is valid strategy in context x */
+    bool isValid(CegConjecturePbe* pbe, UnifContext& x);
+  };
 };
 
 }/* namespace CVC4::theory::quantifiers */
