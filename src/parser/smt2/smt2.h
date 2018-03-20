@@ -84,12 +84,12 @@ public:
 
   bool isTheoryEnabled(Theory theory) const;
 
-  bool logicIsSet();
-  
+  bool logicIsSet() override;
+
   /**
    * Returns the expression that name should be interpreted as. 
    */
-  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
+  Expr getExpressionForNameAndType(const std::string& name, Type t) override;
 
   /** Make function defined by a define-fun(s)-rec command.
   *
@@ -135,7 +135,7 @@ public:
       std::vector<Expr>& bvs,
       bool bindingLevel = false);
 
-  void reset();
+  void reset() override;
 
   void resetAssertions();
 

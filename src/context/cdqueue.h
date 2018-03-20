@@ -60,7 +60,8 @@ protected:
   /** Implementation of mandatory ContextObj method save:
    *  We assume that the base class do the job inside their copy constructor.
    */
-  ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
     ContextObj* data = new(pCMM) CDQueue<T, CleanUp, Allocator>(*this);
     // We save the d_size in d_lastsave and we should never destruct below this
     // indices before the corresponding restore.
@@ -80,7 +81,8 @@ protected:
    * restores the previous size, iter and lastsave indices. Note that
    * the list pointer and the allocated size are not changed.
    */
-  void restore(ContextObj* data) {
+  void restore(ContextObj* data) override
+  {
     CDQueue<T, CleanUp, Allocator>* qdata = static_cast<CDQueue<T, CleanUp, Allocator>*>(data);
     d_iter = qdata->d_iter;
     d_lastsave = qdata->d_lastsave;

@@ -37,9 +37,7 @@ public:
 
   TheoryRegistrar(TheoryEngine* te) : d_theoryEngine(te) { }
 
-  void preRegister(Node n) {
-    d_theoryEngine->preRegister(n);
-  }
+  void preRegister(Node n) override { d_theoryEngine->preRegister(n); }
 
 };/* class TheoryRegistrar */
 

@@ -950,6 +950,7 @@ CVC4_CXX_OPTION([-Wno-tautological-compare], [WNO_TAUTOLOGICAL_COMPARE])
 CVC4_CXX_OPTION([-Wno-parentheses], [WNO_PARENTHESES])
 CVC4_CXX_OPTION([-Wno-uninitialized], [WNO_UNINITIALIZED])
 CVC4_CXX_OPTION([-Wno-unused-variable], [WNO_UNUSED_VARIABLE])
+CVC4_CXX_OPTION([-Wsuggest-override], [W_SUGGEST_OVERRIDE])
 CVC4_CXX_OPTION([-fno-strict-aliasing], [FNO_STRICT_ALIASING])
 AC_SUBST([WERROR])
 AC_SUBST([WNO_CONVERSION_NULL])
@@ -957,7 +958,10 @@ AC_SUBST([WNO_TAUTOLOGICAL_COMPARE])
 AC_SUBST([WNO_PARENTHESES])
 AC_SUBST([WNO_UNINITIALIZED])
 AC_SUBST([WNO_UNUSED_VARIABLE])
+AC_SUBST([W_SUGGEST_OVERRIDE])
 AC_SUBST([FNO_STRICT_ALIASING])
+
+CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${W_SUGGEST_OVERRIDE}"
 
 # On Mac, we have to fix the visibility of standard library symbols.
 # Otherwise, exported template instantiations---even though explicitly

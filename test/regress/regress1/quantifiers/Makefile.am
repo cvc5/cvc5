@@ -79,7 +79,8 @@ TESTS =	\
 	RND-small.smt2 \
 	RNDPRE_4_1-dd-nqe.smt2 \
 	set8.smt2 \
-	z3.620661-no-fv-trigger.smt2
+	z3.620661-no-fv-trigger.smt2 \
+	arith-rec-fun.smt2
 
 # removed because they take more than 20s
 #		javafe.ast.ArrayInit.35.smt2

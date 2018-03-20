@@ -71,7 +71,9 @@ TESTS =	\
 	qbv-test-invert-concat-1.smt2 \
 	qbv-test-invert-sign-extend.smt2 \
 	clock-10.smt2 \
-	lra-triv-gn.smt2
+	lra-triv-gn.smt2 \
+	cegqi-nl-simp.cvc \
+	cegqi-nl-sq.smt2
 
 EXTRA_DIST = $(TESTS) \
 	bug291.smt2.expect

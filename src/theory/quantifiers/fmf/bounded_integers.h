@@ -102,10 +102,10 @@ private:
     context::CDO< bool > d_has_range;
     context::CDO< int > d_curr_range;
     IntBoolMap d_ranges_proxied;
-    void initialize();
-    void assertNode(Node n);
-    Node getNextDecisionRequest();
-    bool proxyCurrentRange();
+    void initialize() override;
+    void assertNode(Node n) override;
+    Node getNextDecisionRequest() override;
+    bool proxyCurrentRange() override;
   };
 private:
   //information for minimizing ranges
@@ -142,14 +142,14 @@ private:
 public:
   BoundedIntegers( context::Context* c, QuantifiersEngine* qe );
   virtual ~BoundedIntegers();
-  
-  void presolve();
-  bool needsCheck( Theory::Effort e );
-  void check(Theory::Effort e, QEffort quant_e);
-  void registerQuantifier( Node q );
-  void preRegisterQuantifier( Node q );
-  void assertNode( Node n );
-  Node getNextDecisionRequest( unsigned& priority );
+
+  void presolve() override;
+  bool needsCheck(Theory::Effort e) override;
+  void check(Theory::Effort e, QEffort quant_e) override;
+  void registerQuantifier(Node q) override;
+  void preRegisterQuantifier(Node q) override;
+  void assertNode(Node n) override;
+  Node getNextDecisionRequest(unsigned& priority) override;
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }
   unsigned getBoundVarType( Node q, Node v );
   unsigned getNumBoundVars( Node q ) { return d_set[q].size(); }
@@ -171,7 +171,7 @@ public:
   bool getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements );
 
   /** Identify this module */
-  std::string identify() const { return "BoundedIntegers"; }
+  std::string identify() const override { return "BoundedIntegers"; }
 };
 
 }

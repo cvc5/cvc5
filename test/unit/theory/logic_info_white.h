@@ -43,7 +43,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
@@ -60,7 +60,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
@@ -77,7 +77,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
@@ -94,7 +94,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -112,10 +112,10 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
-    TS_ASSERT( !info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
@@ -125,10 +125,10 @@ public:
     info = LogicInfo("QF_AUFBV");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
-    TS_ASSERT( !info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
@@ -138,10 +138,10 @@ public:
     info = LogicInfo("QF_AUFLIA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
-    TS_ASSERT( !info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
@@ -155,10 +155,10 @@ public:
     info = LogicInfo("QF_AX");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
-    TS_ASSERT( info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
@@ -168,10 +168,10 @@ public:
     info = LogicInfo("QF_BV");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
-    TS_ASSERT( !info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
@@ -181,7 +181,7 @@ public:
     info = LogicInfo("QF_IDL");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -198,7 +198,7 @@ public:
     info = LogicInfo("QF_LIA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -215,7 +215,7 @@ public:
     info = LogicInfo("QF_LRA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -232,7 +232,7 @@ public:
     info = LogicInfo("QF_NIA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -249,7 +249,7 @@ public:
     info = LogicInfo("QF_NRA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -266,7 +266,7 @@ public:
     info = LogicInfo("QF_RDL");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isPure( THEORY_ARITH ) );
@@ -284,7 +284,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( !info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -297,7 +297,7 @@ public:
     info = LogicInfo("QF_UFBV");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -311,7 +311,7 @@ public:
     info = LogicInfo("QF_UFIDL");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -328,7 +328,7 @@ public:
     info = LogicInfo("QF_UFLIA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -345,7 +345,7 @@ public:
     info = LogicInfo("QF_UFLRA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -361,7 +361,7 @@ public:
     info = LogicInfo("QF_UFNRA");
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -378,7 +378,7 @@ public:
     info = LogicInfo("UFLRA");
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -395,7 +395,7 @@ public:
     info = LogicInfo("UFNIA");
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.isSharingEnabled() );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isPure( THEORY_ARITH ) );
@@ -414,7 +414,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( !info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
@@ -432,7 +432,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
@@ -455,7 +455,7 @@ public:
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_BOOL ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_UF ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_ARITH ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_ARRAY ), CVC4::IllegalArgumentException );
+    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_ARRAYS ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_BV ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_DATATYPES ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_QUANTIFIERS ), CVC4::IllegalArgumentException );
@@ -463,7 +463,7 @@ public:
     TS_ASSERT_THROWS( ! info.isPure( THEORY_BOOL ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_UF ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_ARITH ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_ARRAY ), CVC4::IllegalArgumentException );
+    TS_ASSERT_THROWS( ! info.isPure( THEORY_ARRAYS ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_BV ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_DATATYPES ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_QUANTIFIERS ), CVC4::IllegalArgumentException );
@@ -480,7 +480,7 @@ public:
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_QUANTIFIERS ) );
@@ -488,7 +488,7 @@ public:
     TS_ASSERT( ! info.isPure( THEORY_BOOL ) );
     TS_ASSERT( ! info.isPure( THEORY_UF ) );
     TS_ASSERT( ! info.isPure( THEORY_ARITH ) );
-    TS_ASSERT( ! info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( ! info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( ! info.isPure( THEORY_BV ) );
     TS_ASSERT( ! info.isPure( THEORY_DATATYPES ) );
     TS_ASSERT( ! info.isPure( THEORY_QUANTIFIERS ) );
@@ -539,7 +539,7 @@ public:
     info.disableTheory(THEORY_SEP);
     info.lock();
     TS_ASSERT_EQUALS( info.getLogicString(), "QF_AX" );
-    TS_ASSERT( info.isPure( THEORY_ARRAY ) );
+    TS_ASSERT( info.isPure( THEORY_ARRAYS ) );
     TS_ASSERT( ! info.isQuantified() );
 
     // check all-excluded logic
@@ -551,7 +551,7 @@ public:
     TS_ASSERT( !info.isSharingEnabled() );
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isPure( THEORY_BOOL ) );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
@@ -570,7 +570,7 @@ public:
     TS_ASSERT( !info.isSharingEnabled() );
     TS_ASSERT( !info.isQuantified() );
     TS_ASSERT( info.isPure( THEORY_BOOL ) );
-    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( !info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
@@ -590,7 +590,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
@@ -609,7 +609,7 @@ public:
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
     TS_ASSERT( info.isSharingEnabled() );
     TS_ASSERT( info.isQuantified() );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAY ) );
+    TS_ASSERT( info.isTheoryEnabled( THEORY_ARRAYS ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_UF ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_ARITH ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );

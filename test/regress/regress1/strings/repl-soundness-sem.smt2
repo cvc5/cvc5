@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --strings-exp
-; EXPECT: sat
+; EXPECT: unsat
 (set-logic ALL)
-(set-info :status sat)
+(set-info :status unsat)
 (declare-fun x () String)
 (declare-fun y () String)
 (assert (and

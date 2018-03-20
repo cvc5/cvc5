@@ -214,12 +214,11 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
 }
 
 void TheoryEngine::finishInit() {
-  // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
-    d_quantEngine->finishInit();
+    // initialize the quantifiers engine
+    d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
     Assert(d_masterEqualityEngine == 0);
     d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master", false);
 
@@ -904,7 +903,14 @@ TheoryModel* TheoryEngine::getModel() {
 
 void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  d_quantEngine->getSynthSolutions(sol_map);
+  if (d_quantEngine)
+  {
+    d_quantEngine->getSynthSolutions(sol_map);
+  }
+  else
+  {
+    Assert(false);
+  }
 }
 
 bool TheoryEngine::presolve() {
@@ -1480,6 +1486,7 @@ void TheoryEngine::printInstantiations( std::ostream& out ) {
     d_quantEngine->printInstantiations( out );
   }else{
     out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
+    Assert(false);
   }
 }
 
@@ -1488,6 +1495,7 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     d_quantEngine->printSynthSolution( out );
   }else{
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
+    Assert(false);
   }
 }
 
@@ -2353,12 +2361,12 @@ bool TheoryEngine::useTheoryAlternative(const std::string& name) {
 
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
-    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
-    propagations(mkName("theory<", theory, ">::propagations"), 0),
-    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
-    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
-    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
-    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+    conflicts(getStatsPrefix(theory) + "::conflicts", 0),
+    propagations(getStatsPrefix(theory) + "::propagations", 0),
+    lemmas(getStatsPrefix(theory) + "::lemmas", 0),
+    requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
+    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
+    restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);

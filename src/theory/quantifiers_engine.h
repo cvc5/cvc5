@@ -277,8 +277,6 @@ public:
   /** is finite bound */
   bool isFiniteBound( Node q, Node v );
 public:
-  /** initialize */
-  void finishInit();
   /** presolve */
   void presolve();
   /** notify preprocessed assertion */

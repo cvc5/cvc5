@@ -155,12 +155,11 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         }
         Trace("cegqi-arith-debug") << pv << " " << atom.getKind() << " " << val << std::endl;
       }
-      if( options::cbqiAll() ){
-        // when not pure LIA/LRA, we must check whether the lhs contains pv
-        if( TermUtil::containsTerm( val, pv ) ){
-          Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
-          return 0;
-        }
+      // when not pure LIA/LRA, we must check whether the lhs contains pv
+      if (TermUtil::containsTerm(val, pv))
+      {
+        Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
+        return 0;
       }
       if( pvtn.isInteger() && ( ( !veq_c.isNull() && !veq_c.getType().isInteger() ) || !val.getType().isInteger() ) ){
         //redo, split integer/non-integer parts
@@ -934,11 +933,13 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   }
   ~CegInstantiatorBvInverterQuery() {}
   /** return the model value of n */
-  Node getModelValue( Node n ) {
-    return d_ci->getModelValue( n );
-  }
+  Node getModelValue(Node n) override { return d_ci->getModelValue(n); }
   /** get bound variable of type tn */
-  Node getBoundVariable(TypeNode tn) { return d_ci->getBoundVariable(tn); }
+  Node getBoundVariable(TypeNode tn) override
+  {
+    return d_ci->getBoundVariable(tn);
+  }
+
  protected:
   // pointer to class that is able to query model values
   CegInstantiator * d_ci;

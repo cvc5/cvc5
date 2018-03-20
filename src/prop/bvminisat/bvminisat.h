@@ -37,13 +37,16 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
 
    public:
     MinisatNotify(BVSatSolverInterface::Notify* notify) : d_notify(notify) {}
-    bool notify(BVMinisat::Lit lit)
+    bool notify(BVMinisat::Lit lit) override
     {
       return d_notify->notify(toSatLiteral(lit));
     }
-    void notify(BVMinisat::vec<BVMinisat::Lit>& clause);
-    void spendResource(unsigned amount) { d_notify->spendResource(amount); }
-    void safePoint(unsigned amount) { d_notify->safePoint(amount); }
+    void notify(BVMinisat::vec<BVMinisat::Lit>& clause) override;
+    void spendResource(unsigned amount) override
+    {
+      d_notify->spendResource(amount);
+    }
+    void safePoint(unsigned amount) override { d_notify->safePoint(amount); }
   };
 
   BVMinisat::SimpSolver* d_minisat;
@@ -54,45 +57,46 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
   context::CDO<unsigned> d_lastPropagation;
 
 protected:
-
-  void contextNotifyPop();
+ void contextNotifyPop() override;
 
 public:
 
   BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
   virtual ~BVMinisatSatSolver();
 
-  void setNotify(Notify* notify);
+  void setNotify(Notify* notify) override;
 
-  ClauseId addClause(SatClause& clause, bool removable);
+  ClauseId addClause(SatClause& clause, bool removable) override;
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  {
     Unreachable("Minisat does not support native XOR reasoning");
   }
-  
-  SatValue propagate();
 
-  SatVariable newVar(bool isTheoryAtom = false, bool preRegister = false, bool canErase = true);
+  SatValue propagate() override;
 
-  SatVariable trueVar() { return d_minisat->trueVar(); }
-  SatVariable falseVar() { return d_minisat->falseVar(); }
+  SatVariable newVar(bool isTheoryAtom = false,
+                     bool preRegister = false,
+                     bool canErase = true) override;
 
-  void markUnremovable(SatLiteral lit);
+  SatVariable trueVar() override { return d_minisat->trueVar(); }
+  SatVariable falseVar() override { return d_minisat->falseVar(); }
 
-  void interrupt();
+  void markUnremovable(SatLiteral lit) override;
 
-  SatValue solve();
-  SatValue solve(long unsigned int&);
-  bool ok() const; 
-  void getUnsatCore(SatClause& unsatCore);
+  void interrupt() override;
 
-  SatValue value(SatLiteral l);
-  SatValue modelValue(SatLiteral l);
+  SatValue solve() override;
+  SatValue solve(long unsigned int&) override;
+  bool ok() const override;
+  void getUnsatCore(SatClause& unsatCore) override;
+
+  SatValue value(SatLiteral l) override;
+  SatValue modelValue(SatLiteral l) override;
 
   void unregisterVar(SatLiteral lit);
   void renewVar(SatLiteral lit, int level = -1);
-  unsigned getAssertionLevel() const;
-
+  unsigned getAssertionLevel() const override;
 
   // helper methods for converting from the internal Minisat representation
 
@@ -103,17 +107,17 @@ public:
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);
   static void  toSatClause    (const BVMinisat::Clause& clause, SatClause& sat_clause);
-  void addMarkerLiteral(SatLiteral lit);
+  void addMarkerLiteral(SatLiteral lit) override;
 
-  void explain(SatLiteral lit, std::vector<SatLiteral>& explanation);
+  void explain(SatLiteral lit, std::vector<SatLiteral>& explanation) override;
 
-  SatValue assertAssumption(SatLiteral lit, bool propagate);
+  SatValue assertAssumption(SatLiteral lit, bool propagate) override;
 
-  void popAssumption();
-  
-  void setProofLog( BitVectorProof * bvp );
+  void popAssumption() override;
 
-private:
+  void setProofLog(BitVectorProof* bvp) override;
+
+ private:
   /* Disable the default constructor. */
   BVMinisatSatSolver() CVC4_UNDEFINED;
 

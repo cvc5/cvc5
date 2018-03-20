@@ -3,6 +3,10 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
+# This is a workaround for now to fix some warnings related to unsupported
+# compiler flags since we are compiling C code here. CXXFLAGS is set via
+# configure, however, we should actually set AM_CXXFLAGS.
+CXXFLAGS = $(AM_CXXFLAGS)
 
 noinst_LTLIBRARIES = libreplacements.la
 

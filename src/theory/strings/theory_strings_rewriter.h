@@ -91,19 +91,24 @@ private:
   * Context-Dependent Rewriting", CAV 2017.
   */
   static Node rewriteContains(Node node);
+  /** rewrite indexof
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.indexof( s, t, n )
+  * Returns the rewritten form of node.
+  */
   static Node rewriteIndexof(Node node);
   /** rewrite replace
   * This is the entry point for post-rewriting terms n of the form
   *   str.replace( s, t, r )
-  * Returns the rewritten form of n.
+  * Returns the rewritten form of node.
   */
-  static Node rewriteReplace(Node n);
+  static Node rewriteReplace(Node node);
   /** rewrite prefix/suffix
   * This is the entry point for post-rewriting terms n of the form
   *   str.prefixof( s, t ) / str.suffixof( s, t )
-  * Returns the rewritten form of n.
+  * Returns the rewritten form of node.
   */
-  static Node rewritePrefixSuffix(Node n);
+  static Node rewritePrefixSuffix(Node node);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
@@ -269,6 +274,29 @@ private:
    * componentContainsBase(y, str.substr(y,0,5), n1rb, n1re, -1, true)
    *   returns true,
    *   n1re is set to str.substr(y,5,str.len(y)).
+   *
+   *
+   * Notice that this function may return false when it cannot compute a
+   * remainder when it otherwise would have returned true. For example:
+   *
+   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, false)
+   *   returns true.
+   *
+   * Hence, we know that str.substr(y,x,z) is contained in y. However:
+   *
+   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, true)
+   *   returns false.
+   *
+   * The reason is since computeRemainder=true, it must be that
+   *   y = str.++( n1rb, str.substr(y,x,z), n1re )
+   * for some n1rb, n1re. However, to construct such n1rb, n1re would require
+   * e.g. the terms:
+   *   y = str.++( ite( x+z < 0 OR x < 0, "", str.substr(y,0,x) ),
+   *               str.substr(y,x,z),
+   *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
+   *
+   * Since we do not wish to introduce ITE terms in the rewriter, we instead
+   * return false, indicating that we cannot compute the remainder.
    */
   static bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
@@ -305,6 +333,12 @@ private:
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+  /** entail non-empty
+   *
+   * Checks whether string a is entailed to be non-empty. Is equivalent to
+   * the call checkArithEntail( len( a ), true ).
+   */
+  static bool checkEntailNonEmpty(Node a);
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
