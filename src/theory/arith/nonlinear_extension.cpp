@@ -1112,122 +1112,124 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   return sum;
 }
 
-void NonlinearExtension::getAssertions( std::vector< Node >& assertions )
+void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // get the assertions
-  std::map< Node, Rational > init_bounds[2];
-  std::map< Node, Node > init_bounds_lit[2];
+  std::map<Node, Rational> init_bounds[2];
+  std::map<Node, Node> init_bounds_lit[2];
   unsigned nassertions = 0;
-  std::unordered_set< Node, NodeHashFunction > init_assertions;
+  std::unordered_set<Node, NodeHashFunction> init_assertions;
   for (Theory::assertions_iterator it = d_containing.facts_begin();
-        it != d_containing.facts_end();
-        ++it)
+       it != d_containing.facts_end();
+       ++it)
   {
     nassertions++;
     const Assertion& assertion = *it;
     Node lit = assertion.assertion;
     init_assertions.insert(lit);
     // check for concrete bounds
-    bool pol = lit.getKind()!=NOT;
-    Node atom_orig = lit.getKind()==NOT ? lit[0] : lit;
-    
-    std::vector< Node > atoms;
-    if( atom_orig.getKind()==EQUAL )
-    {        
-      if( pol )
+    bool pol = lit.getKind() != NOT;
+    Node atom_orig = lit.getKind() == NOT ? lit[0] : lit;
+
+    std::vector<Node> atoms;
+    if (atom_orig.getKind() == EQUAL)
+    {
+      if (pol)
       {
         // t = s  is ( t >= s ^ t <= s )
-        for( unsigned i=0; i<2; i++ )
+        for (unsigned i = 0; i < 2; i++)
         {
-          Node atom_new = nm->mkNode( GEQ, atom_orig[i], atom_orig[1-i] );
-          atom_new = Rewriter::rewrite( atom_new );
-          atoms.push_back( atom_new );
+          Node atom_new = nm->mkNode(GEQ, atom_orig[i], atom_orig[1 - i]);
+          atom_new = Rewriter::rewrite(atom_new);
+          atoms.push_back(atom_new);
         }
       }
     }
     else
     {
-      atoms.push_back( atom_orig );
+      atoms.push_back(atom_orig);
     }
-    
-    for( const Node& atom : atoms )
+
+    for (const Node& atom : atoms)
     {
       // non-strict bounds only
-      if( atom.getKind()==GEQ || ( !pol && atom.getKind()==GT ) )
+      if (atom.getKind() == GEQ || (!pol && atom.getKind() == GT))
       {
         Node p = atom[0];
-        Assert( atom[1].isConst() );
+        Assert(atom[1].isConst());
         Rational bound = atom[1].getConst<Rational>();
-        if( !pol )
+        if (!pol)
         {
-          if( atom[0].getType().isInteger() )
+          if (atom[0].getType().isInteger())
           {
             // ~( p >= c ) ---> ( p <= c-1 )
-            bound = bound-Rational(1);
+            bound = bound - Rational(1);
           }
         }
         unsigned bindex = pol ? 0 : 1;
         bool setBound = true;
-        std::map< Node, Rational >::iterator itb = init_bounds[bindex].find(p);
-        if( itb!=init_bounds[ bindex ].end() )
+        std::map<Node, Rational>::iterator itb = init_bounds[bindex].find(p);
+        if (itb != init_bounds[bindex].end())
         {
-          if( itb->second==bound )
+          if (itb->second == bound)
           {
-            setBound = atom_orig.getKind()==EQUAL;
+            setBound = atom_orig.getKind() == EQUAL;
           }
           else
           {
-            setBound = pol ? itb->second<bound : itb->second>bound;
+            setBound = pol ? itb->second < bound : itb->second > bound;
           }
-          if( setBound )
+          if (setBound)
           {
             // the bound is subsumed
-            init_assertions.erase( init_bounds_lit[bindex][p] );
+            init_assertions.erase(init_bounds_lit[bindex][p]);
           }
         }
-        if( setBound )
+        if (setBound)
         {
-          Trace("nl-ext-init") << (pol ? "Lower" : "Upper" ) << " bound for " << p << " : " << bound << std::endl;
-          init_bounds[ bindex ][p] = bound;
+          Trace("nl-ext-init") << (pol ? "Lower" : "Upper") << " bound for "
+                               << p << " : " << bound << std::endl;
+          init_bounds[bindex][p] = bound;
           init_bounds_lit[bindex][p] = lit;
         }
       }
     }
   }
   // for each bound that is the same, ensure we've inferred the equality
-  for( std::pair< const Node, Rational >& ib : init_bounds[0] )
+  for (std::pair<const Node, Rational>& ib : init_bounds[0])
   {
     Node p = ib.first;
     Node lit1 = init_bounds_lit[0][p];
-    if( lit1.getKind()!=EQUAL )
+    if (lit1.getKind() != EQUAL)
     {
-      std::map< Node, Rational >::iterator itb = init_bounds[1].find(p);
-      if( itb!=init_bounds[1].end() )
+      std::map<Node, Rational>::iterator itb = init_bounds[1].find(p);
+      if (itb != init_bounds[1].end())
       {
-        if( ib.second==itb->second )
+        if (ib.second == itb->second)
         {
-          Node eq = p.eqNode( nm->mkConst( ib.second ) );
-          eq = Rewriter::rewrite( eq );
+          Node eq = p.eqNode(nm->mkConst(ib.second));
+          eq = Rewriter::rewrite(eq);
           Node lit2 = init_bounds_lit[1][p];
-          Assert( lit2.getKind()!=EQUAL );
+          Assert(lit2.getKind() != EQUAL);
           // use the equality instead, thus these are redundant
-          init_assertions.erase( lit1 );
-          init_assertions.erase( lit2 );
-          init_assertions.insert( eq );
+          init_assertions.erase(lit1);
+          init_assertions.erase(lit2);
+          init_assertions.insert(eq);
         }
       }
     }
   }
-  
-  for( const Node& a : init_assertions )
+
+  for (const Node& a : init_assertions)
   {
-    assertions.push_back( a );
+    assertions.push_back(a);
   }
-  Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions << " assertions." << std::endl;
+  Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
+                  << " assertions." << std::endl;
 }
-  
+
 std::vector<Node> NonlinearExtension::checkModel(
     const std::vector<Node>& assertions)
 {
@@ -1667,7 +1669,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //-----------------------------------inferred bounds lemmas
   //  e.g. x >= t => y*x >= y*t
   std::vector< Node > nt_lemmas;
-  lemmas = checkMonomialInferBounds( nt_lemmas, assertions, false_asserts );
+  lemmas = checkMonomialInferBounds(nt_lemmas, assertions, false_asserts);
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
@@ -1689,7 +1691,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //------------------------------------factoring lemmas
   //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
   if( options::nlExtFactor() ){
-    lemmas = checkFactoring( assertions, false_asserts );
+    lemmas = checkFactoring(assertions, false_asserts);
     lemmas_proc = flushLemmas(lemmas);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
@@ -1751,9 +1753,9 @@ void NonlinearExtension::check(Theory::Effort e) {
     }
   } else {
     // get the assertions
-    std::vector< Node > assertions;
-    getAssertions( assertions );
-    
+    std::vector<Node> assertions;
+    getAssertions(assertions);
+
     bool needsRecheck;
     do
     {
@@ -1763,7 +1765,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       // reset cached information
       d_mv[0].clear();
       d_mv[1].clear();
-      
+
       Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
                          << std::endl;
       // get the assertions that are false in the model
@@ -2611,12 +2613,14 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
 }
 
 std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
-    std::vector<Node>& nt_lemmas, const std::vector< Node >& asserts, const std::vector<Node>& false_asserts)
+    std::vector<Node>& nt_lemmas,
+    const std::vector<Node>& asserts,
+    const std::vector<Node>& false_asserts)
 {
   std::vector< Node > lemmas; 
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
-  for( const Node& lit : asserts )
+  for (const Node& lit : asserts)
   {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
@@ -2874,11 +2878,11 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
 }
 
 std::vector<Node> NonlinearExtension::checkFactoring(
-    const std::vector< Node >& asserts, const std::vector<Node>& false_asserts)
+    const std::vector<Node>& asserts, const std::vector<Node>& false_asserts)
 {
   std::vector< Node > lemmas; 
   Trace("nl-ext") << "Get factoring lemmas..." << std::endl;
-  for( const Node& lit : asserts )
+  for (const Node& lit : asserts)
   {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;

@@ -245,12 +245,12 @@ class NonlinearExtension {
   void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
                       unsigned orderType);
 
-  /** get assertions 
-   * 
+  /** get assertions
+   *
    * Let M be the set of assertions known by THEORY_ARITH. This function adds a
    * set of literals M' to assertions such that M' and M are equivalent.
    */
-  bool getAssertions( std::vector< Node >& assertions );
+  bool getAssertions(std::vector<Node>& assertions);
   /** check model
    *
    * Returns the subset of assertions whose concrete values we cannot show are
@@ -706,7 +706,9 @@ private:
   *      that occur in the current context.
   */
   std::vector<Node> checkMonomialInferBounds(
-      std::vector<Node>& nt_lemmas, const std::vector< Node >& asserts, const std::vector<Node>& false_asserts);
+      std::vector<Node>& nt_lemmas,
+      const std::vector<Node>& asserts,
+      const std::vector<Node>& false_asserts);
 
   /** check factoring
   *
@@ -720,7 +722,8 @@ private:
   *   ...where k is fresh and x*z + y*z > t is a
   *      constraint that occurs in the current context.
   */
-  std::vector<Node> checkFactoring(const std::vector< Node >& asserts, const std::vector<Node>& false_asserts);
+  std::vector<Node> checkFactoring(const std::vector<Node>& asserts,
+                                   const std::vector<Node>& false_asserts);
 
   /** check monomial infer resolution bounds
   *
