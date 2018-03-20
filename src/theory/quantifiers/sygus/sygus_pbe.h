@@ -334,8 +334,7 @@ class CegConjecturePbe : public SygusModule
   *   For term x+1 satisfies 1100,
   *   For term 2 satisfies 0100.
   * Above, term 2 is subsumed by term x+1, since the set of I/O examples that
-  * x+1
-  * satisfies are a superset of those satisfied by 2.
+  * x+1 satisfies are a superset of those satisfied by 2.
   */
   class SubsumeTrie
   {
