@@ -41,7 +41,8 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     exit_status = None
     if dump:
         dump_args = [
-            '--preprocess-only', '--dump=clauses', '--output-lang=smt2', '-qq'
+            '--preprocess-only', '--dump', 'raw-benchmark', '--output-lang=smt2',
+            '-qq'
         ]
         dump_process = subprocess.Popen(
             bin_args + command_line + dump_args + [benchmark_filename],
