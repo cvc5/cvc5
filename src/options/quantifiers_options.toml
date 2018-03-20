@@ -2,6 +2,9 @@ id     = "QUANTIFIERS"
 name   = "Quantifiers"
 header = "options/quantifiers_options.h"
 
+# Whether to mini-scope quantifiers.
+# For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
+# ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
 [[option]]
   name       = "miniscopeQuant"
   category   = "regular"
@@ -10,6 +13,9 @@ header = "options/quantifiers_options.h"
   default    = "true"
   help       = "miniscope quantifiers"
 
+# Whether to mini-scope quantifiers based on formulas with no free variables.
+# For example, forall x. ( P( x ) V Q ) will be rewritten to
+# ( forall x. P( x ) ) V Q
 [[option]]
   name       = "miniscopeQuantFreeVar"
   category   = "regular"
@@ -44,6 +50,9 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "prenex quantified formulas with user patterns"
 
+# Whether to variable-eliminate quantifiers.
+# For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
+#   forall y. P( c, y )
 [[option]]
   name       = "varElimQuant"
   category   = "regular"
@@ -107,6 +116,9 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "split ites with dt testers as conditions"
 
+# Whether to pre-skolemize quantifier bodies.
+# For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
+#   forall x. P( x ) => f( S( x ) ) = x
 [[option]]
   name       = "preSkolemQuant"
   category   = "regular"
@@ -173,6 +185,8 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "do global negation of input formula"
+
+#### E-matching options
 
 [[option]]
   name       = "eMatching"
@@ -471,6 +485,8 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "choose literal matching mode"
 
+### Finite model finding options
+
 [[option]]
   name       = "finiteModelFind"
   category   = "regular"
@@ -745,6 +761,8 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
+### Rewrite rules options 
+
 [[option]]
   name       = "quantRewriteRules"
   category   = "regular"
@@ -762,6 +780,8 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "add one instance of rewrite rule per round"
+
+### Induction options 
 
 [[option]]
   name       = "quantInduction"
@@ -864,6 +884,8 @@ header = "options/quantifiers_options.h"
   default    = "3"
   read_only  = true
   help       = "maximum depth of terms to consider for conjectures"
+
+### Synthesis options
 
 [[option]]
   name       = "ceGuidedInst"
@@ -1073,6 +1095,8 @@ header = "options/quantifiers_options.h"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
 
+# Internal uses of sygus
+
 [[option]]
   name       = "sygusRew"
   category   = "regular"
@@ -1114,6 +1138,9 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "when applicable, use grammar for choosing sample points"
+
+
+# CEGQI applied to general quantified formulas
 
 [[option]]
   name       = "cbqi"
@@ -1196,6 +1223,8 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation"
 
+# CEGQI for arithmetic
+
 [[option]]
   name       = "cbqiUseInfInt"
   category   = "regular"
@@ -1264,6 +1293,8 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation"
 
+# CEGQI for EPR
+
 [[option]]
   name       = "quantEpr"
   category   = "regular"
@@ -1280,6 +1311,8 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "use matching heuristics for EPR instantiation"
+
+# CEGQI for BV
 
 [[option]]
   name       = "cbqiBv"
@@ -1331,6 +1364,8 @@ header = "options/quantifiers_options.h"
   default    = "true"
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
+### Local theory extensions options
+
 [[option]]
   name       = "localTheoryExt"
   category   = "regular"
@@ -1357,6 +1392,8 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "treat arguments of inst closure as restricted terms for instantiation"
+
+### Reduction options
 
 [[option]]
   name       = "quantAlphaEquiv"
@@ -1404,6 +1441,8 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "perform anti-skolemization for quantified formulas"
 
+### e-unification options
+
 [[option]]
   name       = "quantEqualityEngine"
   category   = "regular"
@@ -1412,6 +1451,8 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "maintain congrunce closure over universal equalities"
+
+### Higher-order options
 
 [[option]]
   name       = "hoMatching"
@@ -1439,6 +1480,8 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "merge term indices modulo equality"
+
+### Proof options
 
 [[option]]
   name       = "trackInstLemmas"

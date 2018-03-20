@@ -568,6 +568,7 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
 
+# --replay is currently broken; don't document it for 1.0
 [[option]]
   name       = "replayInputFilename"
   category   = "undocumented"
@@ -577,6 +578,7 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "replay decisions from file"
 
+# --replay is currently broken; don't document it for 1.0
 [[option]]
   name       = "replayLogFilename"
   category   = "undocumented"

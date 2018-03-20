@@ -24,6 +24,10 @@ header = "options/arith_options.h"
   read_only  = true
   help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
 
+# The maximum number of difference pivots to do per invocation of simplex.
+# If this is negative, the number of pivots done is the number of variables.
+# If this is not set by the user, different logics are free to chose different
+# defaults.
 [[option]]
   name       = "arithHeuristicPivots"
   category   = "regular"
@@ -32,6 +36,11 @@ header = "options/arith_options.h"
   default    = "0"
   help       = "the number of times to apply the heuristic pivot rule; if N < 0, this defaults to the number of variables; if this is unset, this is tuned by the logic selection"
 
+
+# The maximum number of variable order pivots to do per invocation of simplex.
+# If this is negative, the number of pivots done is unlimited.
+# If this is not set by the user, different logics are free to chose different
+# defaults.
 [[option]]
   name       = "arithStandardCheckVarOrderPivots"
   category   = "expert"
@@ -51,6 +60,7 @@ header = "options/arith_options.h"
   read_only  = true
   help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
 
+# The number of pivots before simplex rechecks every basic variable for a conflict
 [[option]]
   name       = "arithSimplexCheckPeriod"
   category   = "regular"
@@ -60,6 +70,10 @@ header = "options/arith_options.h"
   read_only  = true
   help       = "the number of pivots to do in simplex before rechecking for a conflict on all variables"
 
+# This is the pivots per basic variable that can be done using heuristic choices
+# before variable order must be used.
+# If this is not set by the user, different logics are free to chose different
+# defaults.
 [[option]]
   name       = "arithPivotThreshold"
   category   = "regular"
@@ -86,6 +100,8 @@ header = "options/arith_options.h"
   read_only  = true
   help       = "turns on Linear Diophantine Equation solver (Griggio, JSAT 2012)"
 
+# Whether to split (= x y) into (and (<= x y) (>= x y)) in
+# arithmetic preprocessing.
 [[option]]
   name       = "arithRewriteEq"
   category   = "regular"
