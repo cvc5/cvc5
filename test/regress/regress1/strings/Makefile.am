@@ -73,7 +73,8 @@ TESTS =	\
 	str007.smt2 \
 	rew-020618.smt2 \
 	double-replace.smt2 \
-	string-unsound-sem.smt2
+	string-unsound-sem.smt2 \
+	goodAI.smt2
 
 EXTRA_DIST = $(TESTS)
 

@@ -1,4 +1,4 @@
-; to check, run : lfsc sat.plf smt.plf th_base.plf example.plf
+; to check, run : lfscc sat.plf smt.plf th_base.plf th_arrays.plf example-arrays.plf
 
 ; --------------------------------------------------------------------------------
 ; literals :
