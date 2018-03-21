@@ -717,45 +717,15 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // whether we will keep this pair
   bool keep = true;
 
-  // ----- check alpha equivalent based on ordering
-  bool eqor = isOrdered(beq_n);
-  bool nor = isOrdered(bn);
-  Trace("sygus-synth-rr-debug")
-      << "Ordered? : " << nor << " " << eqor << std::endl;
-  bool isAlphaEq = true;
-  if (eqor || nor)
-  {
-    isAlphaEq = false;
-    // if only one is ordered, then the ordered one must contain the
-    // free variables of the other
-    if (!eqor)
-    {
-      isAlphaEq = !containsFreeVariables(bn, beq_n);
-    }
-    else if (!nor)
-    {
-      isAlphaEq = !containsFreeVariables(beq_n, bn);
-    }
-  }
-  if (isAlphaEq)
-  {
-    Trace("sygus-synth-rr-debug")
-        << "...redundant (alpha-equivalent)" << std::endl;
-    keep = false;
-  }
-
   // ----- check matchable
-  if (keep)
+  // check whether the pair is matchable with a previous one
+  d_curr_pair_rhs = beq_n;
+  Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
+                      << "]..." << std::endl;
+  if (!d_match_trie.getMatches(bn, &d_ssenm))
   {
-    // check whether the pair is unifiable with a previous one
-    d_curr_pair_rhs = beq_n;
-    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
-                       << "]..." << std::endl;
-    if (!d_match_trie.getMatches(bn, &d_ssenm))
-    {
-      keep = false;
-      Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
-    }
+    keep = false;
+    Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
   }
   
   // ----- check rewriting redundancy
@@ -784,13 +754,6 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
         d_match_trie.addTerm(t);
       }
       d_pairs[t].insert(to);
-    }
-    // if the previous value stored was unordered, but this is
-    // ordered, we prefer this one. Thus, we force its addition to the
-    // sampler database.
-    if (!eqor)
-    {
-      SygusSampler::registerTerm(n, true);
     }
     return eq_n;
   }
