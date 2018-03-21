@@ -34,7 +34,7 @@ using namespace CVC4::theory::bv::utils;
 CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_notify(*this),
-    d_equalityEngine(d_notify, c, "theory::bv::TheoryBV", true),
+    d_equalityEngine(d_notify, c, "theory::bv::ee", true),
     d_slicer(new Slicer()),
     d_isComplete(c, true),
     d_lemmaThreshold(16),

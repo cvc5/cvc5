@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 ;; Back to the Future ... Shuvendu K.Lhiri, Shaz Qadeer
 (set-logic AUFLIA)
 (set-info :status unsat)

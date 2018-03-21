@@ -100,7 +100,7 @@ class TermRecBuild
  * (datatype) sygus term n is:
  *  (if (gt x 0) 0 0)
  * where if, gt, x, 0 are datatype constructors.
- * The explanation returned by getExplanationForConstantEquality
+ * The explanation returned by getExplanationForEquality
  * below for n and the above term is:
  *   { ((_ is if) n), ((_ is geq) n.0),
  *     ((_ is x) n.0.0), ((_ is 0) n.0.1),
@@ -142,20 +142,19 @@ class SygusExplain
  public:
   SygusExplain(TermDbSygus* tdb) : d_tdb(tdb) {}
   ~SygusExplain() {}
-  /** get explanation for constant equality
+  /** get explanation for equality
    *
    * This function constructs an explanation, stored in exp, such that:
    * - All formulas in exp are of the form ((_ is C) ns), where ns
    *   is a chain of selectors applied to n, and
    * - exp => ( n = vn )
    */
-  void getExplanationForConstantEquality(Node n,
-                                         Node vn,
-                                         std::vector<Node>& exp);
+  void getExplanationForEquality(Node n, Node vn, std::vector<Node>& exp);
   /** returns the conjunction of exp computed in the above function */
-  Node getExplanationForConstantEquality(Node n, Node vn);
+  Node getExplanationForEquality(Node n, Node vn);
 
-  /** get explanation for constant equality
+  /** get explanation for equality
+   *
    * This is identical to the above function except that we
    * take an additional argument cexc, which says which
    * children of vn should be excluded from the explanation.
@@ -165,14 +164,14 @@ class SygusExplain
    *   { ((_ is plus) n), ((_ is y) n.1) }
    * where notice that the 0^th argument of vn is excluded.
    */
-  void getExplanationForConstantEquality(Node n,
-                                         Node vn,
-                                         std::vector<Node>& exp,
-                                         std::map<unsigned, bool>& cexc);
+  void getExplanationForEquality(Node n,
+                                 Node vn,
+                                 std::vector<Node>& exp,
+                                 std::map<unsigned, bool>& cexc);
   /** returns the conjunction of exp computed in the above function */
-  Node getExplanationForConstantEquality(Node n,
-                                         Node vn,
-                                         std::map<unsigned, bool>& cexc);
+  Node getExplanationForEquality(Node n,
+                                 Node vn,
+                                 std::map<unsigned, bool>& cexc);
 
   /** get explanation for
    *

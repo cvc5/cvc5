@@ -264,7 +264,7 @@ std::string LogicInfo::getLogicString() const {
       if(!isQuantified()) {
         ss << "QF_";
       }
-      if(d_theories[THEORY_ARRAY]) {
+      if(d_theories[THEORY_ARRAYS]) {
         ss << (d_sharingTheories == 1 ? "AX" : "A");
         ++seen;
       }
@@ -385,11 +385,11 @@ void LogicInfo::setLogicString(std::string logicString)
       enableQuantifiers();
     }
     if(!strncmp(p, "AX", 2)) {
-      enableTheory(THEORY_ARRAY);
+      enableTheory(THEORY_ARRAYS);
       p += 2;
     } else {
       if(*p == 'A') {
-        enableTheory(THEORY_ARRAY);
+        enableTheory(THEORY_ARRAYS);
         ++p;
       }
       if(!strncmp(p, "UF", 2)) {

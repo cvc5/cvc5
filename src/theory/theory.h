@@ -343,13 +343,6 @@ public:
   }
 
   /**
-   * Returns a string that uniquely identifies this theory solver w.r.t. the
-   * SmtEngine.
-   */
-  std::string getFullInstanceName() const;
-
-
-  /**
    * Get the SAT context associated to this Theory.
    */
   context::Context* getSatContext() const {

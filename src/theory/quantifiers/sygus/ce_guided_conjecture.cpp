@@ -547,9 +547,8 @@ void CegConjecture::printAndContinueStream()
     {
       sol = d_cinfo[cprog].d_inst.back();
       // add to explanation of exclusion
-      d_qe->getTermDatabaseSygus()
-          ->getExplain()
-          ->getExplanationForConstantEquality(cprog, sol, exp);
+      d_qe->getTermDatabaseSygus()->getExplain()->getExplanationForEquality(
+          cprog, sol, exp);
     }
   }
   Assert(!exp.empty());
@@ -612,6 +611,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         if (eq_sol != sol)
         {
           ++(cei->d_statistics.d_candidate_rewrites);
+          // if eq_sol is null, then we have an uninteresting candidate rewrite,
+          // e.g. one that is alpha-equivalent to another.
           if (!eq_sol.isNull())
           {
             // The analog of terms sol and eq_sol are equivalent under sample
