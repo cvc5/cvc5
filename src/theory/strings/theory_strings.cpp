@@ -3142,13 +3142,20 @@ int TheoryStrings::processReverseDeq( std::vector< Node >& nfi, std::vector< Nod
 }
 
 int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev ){
-  //see if one side is constant, if so, we can approximate as containment
-  for( unsigned i=0; i<2; i++ ){
-    Node c = getConstantEqc( i==0 ? ni : nj );
-    if( !c.isNull() ){
-      int findex, lindex;
-      if( !TheoryStringsRewriter::canConstantContainList( c, i==0 ? nfj : nfi, findex, lindex ) ){
-        return 1;
+  // See if one side is constant, if so, the disequality ni != nj is satisfied
+  // since ni does not contain nj or vice versa.
+  // This is only valid when isRev is false, since when isRev=true, the contents
+  // of normal form vectors nfi and nfj are reversed.
+  if( !isRev )
+  {
+    for( unsigned i=0; i<2; i++ ){
+      Node c = getConstantEqc( i==0 ? ni : nj );
+      if( !c.isNull() ){
+        int findex, lindex;
+        if( !TheoryStringsRewriter::canConstantContainList( c, i==0 ? nfj : nfi, findex, lindex ) ){
+          Trace("strings-solve-debug") << "Disequality: constant cannot contain list" << std::endl;
+          return 1;
+        }
       }
     }
   }
