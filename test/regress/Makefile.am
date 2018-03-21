@@ -1,5 +1,3 @@
-DIST_SUBDIRS = regress0 regress1 regress2 regress3 regress4
-
 include Makefile.tests
 
 TESTS = $(REG0_TESTS) $(REG1_TESTS) $(REG2_TESTS) $(REG3_TESTS) $(REG4_TESTS)
