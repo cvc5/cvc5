@@ -3,17 +3,17 @@
                 (! f formula
                   formula))))
 
-(program eqterm ((n1 term) (n2 term)) bool
-    (do (markvar2 n1)
-        (let s (ifmarked2 n2 tt ff)
-           (do (markvar2 n1) s))))
+(program eqvar ((n1 term) (n2 term)) bool
+    (do (markvar n1)
+        (let s (ifmarked n2 tt ff)
+           (do (markvar n1) s))))
 
 
 
 ;This program recursively checks the instantiation. 
 ;If t is the variable that we are substituting ti for, we first unmark it, 
 ;and then (recursively) check that ti is an instance of k.
-;If t is not the variable that we are substituting ti for, we compare it to the variable in the instantiated formula using eqterm.  
+;If t is not the variable that we are substituting ti for, we compare it to the variable in the instantiated formula using eqvar.  
 (program is_inst_t ((ti term) (t term) (k term)) bool
   (match t
     ((apply s1 s2 t1 t2)
@@ -21,7 +21,7 @@
 		((apply s1 s2 t1 ti2) (is_inst_t ti2 t2 k))
         (default ff)))
 	(default 
-		(ifmarked t (do (markvar t) (let r (is_inst_t ti k k) (do (markvar t) r))) (eqterm ti t)))))
+		(ifmarked t (do (markvar t) (let r (is_inst_t ti k k) (do (markvar t) r))) (eqvar ti t)))))
 
 (program is_inst_f ((fi formula) (f formula) (k term)) bool
   (match f
