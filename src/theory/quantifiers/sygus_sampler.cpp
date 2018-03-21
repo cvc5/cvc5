@@ -767,7 +767,6 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     Trace("sse-match") << "SSE check matches : " << n << " (rhs = " << eq_n << ")..." << std::endl;
     if( !d_match_trie.getMatches( n, &d_ssenm ) )
     {
-      matchable = true;
       keep = false;
       Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
     }
@@ -831,6 +830,159 @@ bool SygusSamplerExt::notify( Node s, Node n, std::vector< Node >& vars, std::ve
     }
   }
   return true;
+}
+
+
+bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
+{
+  std::vector< Node > vars;
+  std::vector< Node > subs;
+  std::map< Node, Node > smap;
+  
+  std::vector< std::vector< Node > > visit;
+  std::vector< MatchTrie * > visit_trie;
+  std::vector< int > visit_var_index;
+  std::vector< bool > visit_bound_var;
+  
+  visit.push_back(std::vector< Node >{n});
+  visit_trie.push_back(this);
+  visit_var_index.push_back(-1);
+  visit_bound_var.push_back(false);
+  while( !visit.empty() )
+  {
+    std::vector< Node > cvisit = visit.back();
+    MatchTrie * curr = visit_trie.back();
+    if( cvisit.empty() )
+    {
+      Assert( n == curr->d_data.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() ) );
+      if( !ntm->notify(n, curr->d_data, vars, subs ) )
+      {
+        return false;
+      }
+      visit.pop_back();
+      visit_trie.pop_back();
+      visit_var_index.pop_back();
+      visit_bound_var.pop_back();
+    }
+    else
+    {
+      Node cn = cvisit.back();
+      unsigned index = visit.size()-1;
+      int vindex = visit_var_index[index];
+      if( vindex==-1 )
+      {
+        if( cn.hasOperator() )
+        {
+          Node op = cn.getOperator();
+          unsigned nchild = cn.getNumChildren();
+          std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
+          if( itu!=curr->d_children[op].end() )
+          {
+            // recurse on the operator
+            cvisit.pop_back();
+            for( const Node& cnc : cn )
+            {
+              cvisit.push_back( cnc );
+            }
+            visit.push_back( cvisit );
+            visit_trie.push_back( &itu->second );
+            visit_var_index.push_back( -1 );
+            visit_bound_var.push_back( false );
+          }
+        }
+        visit_var_index[index]++;
+      }
+      else 
+      {
+        // clean up if we previously bound a variable
+        if( visit_bound_var[index] )
+        {
+          Assert( !vars.empty() );
+          smap.erase(vars.back());
+          vars.pop_back();
+          subs.pop_back();
+        }
+        
+        if( vindex==static_cast<int>(curr->d_vars.size()) )
+        {
+          // finished
+          visit.pop_back();
+          visit_trie.pop_back();
+          visit_var_index.pop_back();
+          visit_bound_var.pop_back();
+        }
+        else
+        {
+          Assert( vindex<static_cast<int>(curr->d_vars.size()) );
+          // recurse on variable?
+          Node var = curr->d_vars[vindex];
+          // check if it is already bound
+          std::map< Node, Node >::iterator its = smap.find( var );
+          bool recurse = true;
+          if( its!=smap.end() )
+          {
+            if( its->second!=cn )
+            {
+              recurse = false;
+            }
+          }
+          else
+          {
+            vars.push_back( var );
+            subs.push_back( cn );
+            smap[var] = cn;
+            visit_bound_var[index] = true;
+          }
+          if( recurse )
+          {
+            cvisit.pop_back();
+            visit.push_back( cvisit );
+            visit_trie.push_back( &curr->d_children[var][0] );
+            visit_var_index.push_back( -1 );
+            visit_bound_var.push_back( false );
+          }
+          visit_var_index[index]++;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+void MatchTrie::addTerm( Node n )
+{
+  std::vector< Node > visit;
+  visit.push_back( n );
+  MatchTrie * curr = this;
+  while( !visit.empty() )
+  {
+    Node cn = visit.back();
+    visit.pop_back();
+    if( cn.hasOperator() )
+    {
+      curr = &(curr->d_children[cn.getOperator()][cn.getNumChildren()]);
+      for( const Node& cnc : cn )
+      {
+        visit.push_back( cnc );
+      }
+    }
+    else
+    {
+      if( cn.isVar() && std::find( curr->d_vars.begin(), curr->d_vars.end(), cn )==curr->d_vars.end() )
+      {
+        curr->d_vars.push_back( cn );
+      }
+      curr = &(curr->d_children[cn][0]);
+    }
+  }
+  curr->d_data = n;
+}
+
+void MatchTrie::clear() 
+{
+  d_children.clear();
+  d_vars.clear();
+  d_data = Node::null();
 }
 
 } /* CVC4::theory::quantifiers namespace */
