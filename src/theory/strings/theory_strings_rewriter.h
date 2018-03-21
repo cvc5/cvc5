@@ -327,6 +327,10 @@ private:
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
   *   ne is updated to { "e" }
+  * stripConstantEndpoints({ "ad", substr("ccc",x,y) }, { "d" }, {}, {}, -1)
+  *   returns true,
+  *   n1 is updated to {"ad"}
+  *   ne is updated to { substr("ccc",x,y) }
   */
   static bool stripConstantEndpoints(std::vector<Node>& n1,
                                      std::vector<Node>& n2,
@@ -366,6 +370,22 @@ private:
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
+  /** decompose substr chain
+   *
+   * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+   * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+   */
+  static Node decomposeSubstrChain(Node s,
+                                   std::vector<Node>& ss,
+                                   std::vector<Node>& ls);
+  /** make substr chain
+   *
+   * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+   * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+   */
+  static Node mkSubstrChain(Node base,
+                            const std::vector<Node>& ss,
+                            const std::vector<Node>& ls);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

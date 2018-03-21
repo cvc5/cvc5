@@ -114,6 +114,8 @@ libcvc4_la_SOURCES = \
 	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
+	prop/cadical.cpp \
+	prop/cadical.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
 	prop/cryptominisat.cpp \
@@ -559,6 +561,11 @@ endif
 if CVC4_USE_ABC
 libcvc4_la_LIBADD += $(ABC_LIBS)
 libcvc4_la_LDFLAGS += $(ABC_LDFLAGS)
+endif
+
+if CVC4_USE_CADICAL
+libcvc4_la_LIBADD += $(CADICAL_LIBS)
+libcvc4_la_LDFLAGS += $(CADICAL_LDFLAGS)
 endif
 
 if CVC4_USE_CRYPTOMINISAT

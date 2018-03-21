@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 (set-logic AUFLIA)
 (set-info :status unsat)
 
