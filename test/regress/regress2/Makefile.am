@@ -48,7 +48,9 @@ TESTS =	\
 	bug812.smt2 \
 	bug765.smt2 \
 	simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
-	bug674.smt2
+	bug674.smt2 \
+	javafe.ast.WhileStmt.447_no_forall.smt2 \
+	javafe.ast.StandardPrettyPrint.319_no_forall.smt2
  
 EXTRA_DIST = $(TESTS) \
 	FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2.expect \
