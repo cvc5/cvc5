@@ -66,6 +66,20 @@ bool DynamicRewriter::addRewrite(Node a, Node b)
   return true;
 }
 
+bool DynamicRewriter::areEqual(Node a, Node b)
+{
+  if (a == b)
+  {
+    return true;
+  }
+  // add to the equality engine
+  Node ai = toInternal(a);
+  Node bi = toInternal(b);
+  d_equalityEngine.addTerm(ai);
+  d_equalityEngine.addTerm(bi);
+  return d_equalityEngine.areEqual(ai,bi);
+}
+
 Node DynamicRewriter::toInternal(Node a)
 {
   std::map<Node, Node>::iterator it = d_term_to_internal.find(a);

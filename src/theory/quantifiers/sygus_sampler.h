@@ -404,22 +404,22 @@ class SygusSamplerExt : public SygusSampler
    * This returns either null, or a term ret with the same guarantees as
    * SygusSampler::registerTerm with the additional guarantee
    * that for all ret' returned by a previous call to registerTerm( n' ),
-   * we have that n = ret is not alpha-equivalent to n' = ret'
+   * we have that n = ret is not an instance of n' = ret'
    * modulo symmetry of equality, nor is n = ret derivable from the set of
    * all previous input/output pairs based on the d_drewrite utility.
-   * For example,
-   *   (t+0), t and (s+0), s
+   * For example:
+   * [1]  (t+0), t and (s+0), s
    * will not both be input/output pairs of this function since t+0=t is
    * alpha-equivalent to s+0=s.
-   *   s, t and s+0, t+0
+   * [2]  s, t and s+0, t+0
    * will not both be input/output pairs of this function since s+0=t+0 is
    * derivable from s=t.
    *
    * If this function returns null, then n is equivalent to a previously
-   * registered term ret, and the equality n = ret is either alpha-equivalent
+   * registered term ret, and the equality n = ret is either an instan
    * to a previous input/output pair n' = ret', or n = ret is derivable
    * from the set of all previous input/output pairs based on the
-   * d_drewrite utility.
+   * d_drewrite utility, or is an instance of a previous pair
    */
   Node registerTerm(Node n, bool forceKeep = false) override;
 
@@ -429,8 +429,7 @@ class SygusSamplerExt : public SygusSampler
 
   //----------------------------match filtering
   /**
-   * Stores all relevant "pairs" returned by this sampler.
-   *
+   * Stores all relevant "pairs" returned by this sampler. In detail:
    * For each call to registerTerm( t, ... ) that returns s, we say that
    * (t,s) and (s,t) are relevant pairs. In this case, we have:
    *   t in d_pairs[s] and s in d_pairs[t].
@@ -456,9 +455,22 @@ class SygusSamplerExt : public SygusSampler
   };
   /** Notify object used for reporting matches from d_match_trie */
   SygusSamplerExtNotifyMatch d_ssenm;
-  /** Called by the above class */
+  /** 
+   * Called by the above class during d_match_trie.getMatches( s ), when we
+   * find that s = n * { vars -> subs }, where n is a term that is stored in
+   * d_match_trie.
+   * 
+   * The goal of this function is to check whether ( s, d_curr_pair_rhs ) is
+   * an instance of previously relevant pair. If so, this function returns
+   * false.
+   */
   bool notify(Node s, Node n, std::vector<Node>& vars, std::vector<Node>& subs);
-  /** The current right hand side of the pair we are considering */
+  /** 
+   * In registerTerm, we are interested in whether a pair (s,t) is a relevant
+   * pair.
+   * This is set to one side of a pair we are considering in registerTerm. We
+   * compute matches using d_match_trie with the other side of this pair.
+   */
   Node d_curr_pair_rhs;
   //----------------------------end match filtering
 };
