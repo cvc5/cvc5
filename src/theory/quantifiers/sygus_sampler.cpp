@@ -678,6 +678,12 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
+SygusSamplerExt::SygusSamplerExt() :
+d_ssenm(*this)
+{
+  
+}
+
 void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
                                          Node f,
                                          unsigned nsamples,
@@ -691,6 +697,8 @@ void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
   ss << f;
   d_drewrite =
       std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+  d_pairs.clear();
+  d_match_trie.clear();
 }
 
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
@@ -700,6 +708,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
                           << std::endl;
   if (eq_n == n)
   {
+    // this is a unique term
     return n;
   }
   Node bn = n;
@@ -708,43 +717,77 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
-  }
-  // one of eq_n or n must be ordered
+  }  
+  // whether we will keep this pair
+  bool keep = true;
+  
+  // ----- check alpha equivalent based on ordering
   bool eqor = isOrdered(beq_n);
   bool nor = isOrdered(bn);
   Trace("sygus-synth-rr-debug")
       << "Ordered? : " << nor << " " << eqor << std::endl;
-  bool isUnique = false;
+  bool isAlphaEq = true;
   if (eqor || nor)
   {
-    isUnique = true;
+    isAlphaEq = false;
     // if only one is ordered, then the ordered one must contain the
     // free variables of the other
     if (!eqor)
     {
-      isUnique = containsFreeVariables(bn, beq_n);
+      isAlphaEq = !containsFreeVariables(bn, beq_n);
     }
     else if (!nor)
     {
-      isUnique = containsFreeVariables(beq_n, bn);
+      isAlphaEq = !containsFreeVariables(beq_n, bn);
     }
   }
-  Trace("sygus-synth-rr-debug") << "AlphaEq unique: " << isUnique << std::endl;
-  bool rewRedundant = false;
+  if( isAlphaEq )
+  {
+    Trace("sygus-synth-rr-debug") << "...redundant (alpha-equivalent)" << std::endl;
+    keep = false;
+  }
+  
+  // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
-    Trace("sygus-synth-rr-debug") << "Add rewrite..." << std::endl;
+    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
     if (!d_drewrite->addRewrite(bn, beq_n))
     {
-      rewRedundant = isUnique;
       // must be unique according to the dynamic rewriter
-      isUnique = false;
+      keep = false;
+      Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
     }
   }
-  Trace("sygus-synth-rr-debug") << "Rewrite unique: " << isUnique << std::endl;
-
-  if (isUnique)
+  
+  // ----- check matchable
+  if( keep )
   {
+    // check whether the pair is unifiable with a previous one
+    d_curr_pair_rhs = eq_n;
+    Trace("sse-match") << "SSE check matches : " << n << " (rhs = " << eq_n << ")..." << std::endl;
+    if( !d_match_trie.getMatches( n, &d_ssenm ) )
+    {
+      matchable = true;
+      keep = false;
+      Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
+    }
+  }
+  
+  if (keep)
+  {
+    // add to match information
+    for( unsigned r=0; r<2; r++ )
+    {
+      Node t = r==0 ? n : eq_n;
+      Node to = r==0 ? eq_n : n;
+      // insert in match trie if first time
+      if( d_pairs.find( t )==d_pairs.end() )
+      {
+        Trace("sse-match") << "SSE add term : " << t << std::endl;
+        d_match_trie.addTerm( t );
+      }
+      d_pairs[t].insert( to );
+    }
     // if the previous value stored was unordered, but this is
     // ordered, we prefer this one. Thus, we force its addition to the
     // sampler database.
@@ -756,14 +799,38 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   }
   else if (Trace.isOn("sygus-synth-rr"))
   {
-    Trace("sygus-synth-rr") << "Redundant rewrite : " << eq_n << " " << n;
-    if (rewRedundant)
-    {
-      Trace("sygus-synth-rr") << " (by rewriting)";
-    }
+    Trace("sygus-synth-rr") << "Redundant pair : " << eq_n << " " << n;
     Trace("sygus-synth-rr") << std::endl;
   }
   return Node::null();
+}
+
+bool SygusSamplerExt::notify( Node s, Node n, std::vector< Node >& vars, std::vector< Node >& subs )
+{
+  Assert( !d_curr_pair_rhs.isNull() );
+  std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator it = d_pairs.find( n );
+  if( Trace.isOn("sse-match") )
+  {
+    Trace("sse-match") << "  " << s << " matches " << n << " under:" << std::endl;
+    for( unsigned i=0,size=vars.size(); i<size; i++ )
+    {
+      Trace("sse-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
+    }
+  }
+  Assert( it!=d_pairs.end() );
+  for( const Node& nr : it->second )
+  {
+    Node nrs = nr.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+    if( nrs==d_curr_pair_rhs )
+    {
+      Trace("sse-match") << "*** Match, current pair: " << std::endl;
+      Trace("sse-match") << "  (" << s << ", " << d_curr_pair_rhs << ")" << std::endl;
+      Trace("sse-match") << "is an instance of previous pair:" << std::endl;
+      Trace("sse-match") << "  (" << n << ", " << nr << ")" << std::endl;
+      return false;
+    }
+  }
+  return true;
 }
 
 } /* CVC4::theory::quantifiers namespace */

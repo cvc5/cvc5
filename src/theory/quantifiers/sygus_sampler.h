@@ -340,10 +340,202 @@ class SygusSampler : public LazyTrieEvaluator
   void registerSygusType(TypeNode tn);
 };
 
+
+/** A virtual class for notifications regarding matches. */
+class NotifyMatch
+{
+public:
+  /** 
+   * A notification that s is equal to n * { vars -> subs }. This function
+   * should return false if we do not wish to be notified of further matches.
+   */
+  virtual bool notify( Node s, Node n, std::vector< Node >& vars, std::vector< Node >& subs ) = 0;
+};
+
+/** 
+ * A trie (discrimination tree) storing a set of terms S, that can be used to
+ * query, for a given term t, all terms from S that are matchable with t.
+ */
+class MatchTrie
+{
+public:
+  /** Get matches 
+   * 
+   * This calls ntm->notify( n, s, vars, subs ) for each term s stored in this
+   * trie that is matchable with n where s = n * { vars -> subs } for some 
+   * vars, subs. This function returns false if one of these calls to notify
+   * returns false.
+   */
+  bool getMatches( Node n, NotifyMatch * ntm )
+  {
+    std::vector< Node > vars;
+    std::vector< Node > subs;
+    std::map< Node, Node > smap;
+    
+    std::vector< std::vector< Node > > visit;
+    std::vector< MatchTrie * > visit_trie;
+    std::vector< int > visit_var_index;
+    std::vector< bool > visit_bound_var;
+    
+    visit.push_back(std::vector< Node >{n});
+    visit_trie.push_back(this);
+    visit_var_index.push_back(-1);
+    visit_bound_var.push_back(false);
+    while( !visit.empty() )
+    {
+      std::vector< Node > cvisit = visit.back();
+      MatchTrie * curr = visit_trie.back();
+      if( cvisit.empty() )
+      {
+        Assert( n == curr->d_data.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() ) );
+        if( !ntm->notify(n, curr->d_data, vars, subs ) )
+        {
+          return false;
+        }
+        visit.pop_back();
+        visit_trie.pop_back();
+        visit_var_index.pop_back();
+        visit_bound_var.pop_back();
+      }
+      else
+      {
+        Node cn = cvisit.back();
+        unsigned index = visit.size()-1;
+        int vindex = visit_var_index[index];
+        if( vindex==-1 )
+        {
+          if( cn.hasOperator() )
+          {
+            Node op = cn.getOperator();
+            unsigned nchild = cn.getNumChildren();
+            std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
+            if( itu!=curr->d_children[op].end() )
+            {
+              // recurse on the operator
+              cvisit.pop_back();
+              for( const Node& cnc : cn )
+              {
+                cvisit.push_back( cnc );
+              }
+              visit.push_back( cvisit );
+              visit_trie.push_back( &itu->second );
+              visit_var_index.push_back( -1 );
+              visit_bound_var.push_back( false );
+            }
+          }
+          visit_var_index[index]++;
+        }
+        else 
+        {
+          // clean up if we previously bound a variable
+          if( visit_bound_var[index] )
+          {
+            Assert( !vars.empty() );
+            smap.erase(vars.back());
+            vars.pop_back();
+            subs.pop_back();
+          }
+          
+          if( vindex==static_cast<int>(curr->d_vars.size()) )
+          {
+            // finished
+            visit.pop_back();
+            visit_trie.pop_back();
+            visit_var_index.pop_back();
+            visit_bound_var.pop_back();
+          }
+          else
+          {
+            Assert( vindex<static_cast<int>(curr->d_vars.size()) );
+            // recurse on variable?
+            Node var = curr->d_vars[vindex];
+            // check if it is already bound
+            std::map< Node, Node >::iterator its = smap.find( var );
+            bool recurse = true;
+            if( its!=smap.end() )
+            {
+              if( its->second!=cn )
+              {
+                recurse = false;
+              }
+            }
+            else
+            {
+              vars.push_back( var );
+              subs.push_back( cn );
+              smap[var] = cn;
+              visit_bound_var[index] = true;
+            }
+            if( recurse )
+            {
+              cvisit.pop_back();
+              visit.push_back( cvisit );
+              visit_trie.push_back( &curr->d_children[var][0] );
+              visit_var_index.push_back( -1 );
+              visit_bound_var.push_back( false );
+            }
+            visit_var_index[index]++;
+          }
+        }
+      }
+    }
+    return true;
+  }
+  /** Adds node n to this trie */
+  void addTerm( Node n )
+  {
+    std::vector< Node > visit;
+    visit.push_back( n );
+    MatchTrie * curr = this;
+    while( !visit.empty() )
+    {
+      Node cn = visit.back();
+      visit.pop_back();
+      if( cn.hasOperator() )
+      {
+        curr = &(curr->d_children[cn.getOperator()][cn.getNumChildren()]);
+        for( const Node& cnc : cn )
+        {
+          visit.push_back( cnc );
+        }
+      }
+      else
+      {
+        if( cn.isVar() && std::find( curr->d_vars.begin(), curr->d_vars.end(), cn )==curr->d_vars.end() )
+        {
+          curr->d_vars.push_back( cn );
+        }
+        curr = &(curr->d_children[cn][0]);
+      }
+    }
+    curr->d_data = n;
+  }
+  /** Clear this trie */
+  void clear() 
+  {
+    d_children.clear();
+    d_vars.clear();
+    d_data = Node::null();
+  }
+ private:
+  /** 
+   * The children of this node in the trie. Terms t are indexed by either:
+   * - (operator, #children) if t has an operator, or
+   * - (t, 0) if t does not have an operator.
+   */
+  std::map< Node, std::map< unsigned, MatchTrie > > d_children;
+  /** The set of variables in the domain of d_children */
+  std::vector< Node > d_vars;
+  /** The data of this node in the trie */
+  Node d_data;
+};
+
+
 /** Version of the above class with some additional features */
 class SygusSamplerExt : public SygusSampler
 {
  public:
+  SygusSamplerExt();
   /** initialize extended */
   void initializeSygusExt(QuantifiersEngine* qe,
                           Node f,
@@ -376,6 +568,36 @@ class SygusSamplerExt : public SygusSampler
  private:
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
+  
+  //----------------------------match filtering 
+  /** 
+   * Stores all relevant "pairs" returned by this sampler.
+   * 
+   * For each call to registerTerm( t, ... ) that returns s, we say that
+   * (t,s) and (s,t) are relevant pairs. In this case, we have:
+   *   t in d_pairs[s] and s in d_pairs[t].
+   */
+  std::map< Node, std::unordered_set< Node, NodeHashFunction > > d_pairs;
+  /** Match trie storing all terms in the domain of d_pairs. */
+  MatchTrie d_match_trie;
+  /** Notify class */
+  class SygusSamplerExtNotifyMatch : public NotifyMatch
+  {
+    SygusSamplerExt& d_sse;
+  public:
+    SygusSamplerExtNotifyMatch(SygusSamplerExt& sse): d_sse(sse) {}
+    /** notify match */
+    bool notify( Node n, Node s, std::vector< Node >& vars, std::vector< Node >& subs ) override{
+      return d_sse.notify( n, s, vars, subs );
+    }
+  };
+  /** Notify object used for reporting matches from d_match_trie */
+  SygusSamplerExtNotifyMatch d_ssenm;
+  /** Called by the above class */
+  bool notify( Node s, Node n, std::vector< Node >& vars, std::vector< Node >& subs );
+  /** The current right hand side of the pair we are considering */
+  Node d_curr_pair_rhs;
+  //----------------------------end match filtering 
 };
 
 } /* CVC4::theory::quantifiers namespace */
