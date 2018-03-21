@@ -1,0 +1,96 @@
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Theory of Equality and Congruence Closure
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; depends on : smt.plf
+
+; sorts :
+
+(declare arrow (! s1 sort (! s2 sort sort)))	; function constructor
+
+; functions :
+
+(declare apply (! s1 sort
+               (! s2 sort
+               (! t1 (term (arrow s1 s2))
+               (! t2 (term s1)
+                (term s2))))))
+
+
+; inference rules :
+
+(declare trust (th_holds false))	; temporary
+(declare trust_f (! f formula (th_holds f)))  ; temporary
+
+(declare refl
+  (! s sort
+  (! t (term s)
+    (th_holds (= s t t)))))
+
+(declare symm (! s sort
+              (! x (term s)
+              (! y (term s)
+              (! u (th_holds (= _ x y))
+                (th_holds (= _ y x)))))))
+
+(declare trans (! s sort
+               (! x (term s)
+               (! y (term s)
+               (! z (term s)
+               (! u (th_holds (= _ x y))
+               (! u (th_holds (= _ y z))
+                 (th_holds (= _ x z)))))))))
+
+(declare negsymm (! s sort
+              	 (! x (term s)
+              	 (! y (term s)
+              	 (! u (th_holds (not (= _ x y)))
+                   (th_holds (not (= _ y x))))))))
+
+(declare negtrans1 (! s sort
+                   (! x (term s)
+              	   (! y (term s)
+               	   (! z (term s)
+               	   (! u (th_holds (not (= _ x y)))
+               	   (! u (th_holds (= _ y z))
+                     (th_holds (not (= _ x z))))))))))
+
+(declare negtrans2 (! s sort
+                   (! x (term s)
+              	   (! y (term s)
+               	   (! z (term s)
+               	   (! u (th_holds (= _ x y))
+               	   (! u (th_holds (not (= _ y z)))
+                     (th_holds (not (= _ x z))))))))))
+
+(declare cong (! s1 sort
+              (! s2 sort
+              (! a1 (term (arrow s1 s2))
+              (! b1 (term (arrow s1 s2))
+              (! a2 (term s1)
+              (! b2 (term s1)
+              (! u1 (th_holds (= _ a1 b1))
+              (! u2 (th_holds (= _ a2 b2))
+                (th_holds (= _ (apply _ _ a1 a2) (apply _ _ b1 b2))))))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Examples
+
+; an example of "(p1 or p2(0)) and t1=t2(1)"
+;(! p1 (term Bool)
+;(! p2 (term (arrow Int Bool))
+;(! t1 (term Int)
+;(! t2 (term (arrow Int Int))
+;(! F (th_holds (and (or (p_app p1) (p_app (apply _ _ p2 0)))
+;                    (= _ t1 (apply _ _ t2 1))))
+;  ...
+
+; another example of "p3(a,b)"
+;(! a (term Int)
+;(! b (term Int)
+;(! p3 (term (arrow Int (arrow Int Bool)))	; arrow is right assoc.
+;(! F (th_holds (p_app (apply _ _ (apply _ _ p3 a) b))) ; apply is left assoc.
+;  ...

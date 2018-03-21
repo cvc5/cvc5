@@ -1,0 +1,79 @@
+(declare forall (! s sort
+                (! t (term s)
+                (! f formula
+                  formula))))
+
+(program eqterm ((n1 term) (n2 term)) bool
+    (do (markvar n1)
+        (let s (ifmarked n2 tt ff)
+           (do (markvar n1) s))))
+
+(program is_inst_t ((ti term) (t term) (k term)) bool
+  (match t
+    ((apply s1 s2 t1 t2)
+      (match ti
+        ((apply si1 si2 ti1 ti2) (match (is_inst_t ti1 t1 k) (tt (is_inst_t ti2 t2 k)) (ff ff)))
+        (default ff)))
+    (default (eqterm ti (ifmarked t k t)))))
+
+(program is_inst_f ((fi formula) (f formula) (k term)) bool
+  (match f
+    ((and f1 f2) (match fi
+    		   ((and fi1 fi2) (match (is_inst_f fi1 f1 k) (tt (is_inst_f fi2 f2 k)) (ff ff)))
+    		   (default ff)))
+    ((or f1 f2) (match fi
+    		   ((or fi1 fi2) (match (is_inst_f fi1 f1 k) (tt (is_inst_f fi2 f2 k)) (ff ff)))
+    		   (default ff)))
+    ((impl f1 f2) (match fi
+    		   ((impl fi1 fi2) (match (is_inst_f fi1 f1 k) (tt (is_inst_f fi2 f2 k)) (ff ff)))
+    		   (default ff)))
+    ((not f1) (match fi
+    		   ((not fi1) (is_inst_f fi1 f1 k))
+    		   (default ff)))
+    ((iff f1 f2) (match fi
+    		   ((iff fi1 fi2) (match (is_inst_f fi1 f1 k) (tt (is_inst_f fi2 f2 k)) (ff ff)))
+    		   (default ff)))
+    ((xor f1 f2) (match fi
+    		   ((xor fi1 fi2) (match (is_inst_f fi1 f1 k) (tt (is_inst_f fi2 f2 k)) (ff ff)))
+    		   (default ff)))
+    ((ifte f1 f2 f3) (match fi
+    		       ((ifte fi1 fi2 fi3) (match (is_inst_f fi1 f1 k)
+    		       			     (tt (match (is_inst_f fi2 f2 k) (tt (is_inst_f fi3 f3 k)) (ff ff)))
+    		       			     (ff ff)))
+    		       (default ff)))
+    ((= s t1 t2) (match fi
+    		   ((= s ti1 ti2) (match (is_inst_t ti1 t1 k) (tt (is_inst_t ti2 t2 k)) (ff ff)))
+    		   (default ff)))
+    ((forall s t1 f1) (match fi
+    		      ((forall s ti1 fi1) (is_inst_f fi1 f1 k))
+    		      (default ff)))
+    (default ff)))
+
+(program is_inst ((fi formula) (f formula) (t term) (k term)) bool
+  (do (markvar t)
+     (let f1 (is_inst_f fi f k)
+        (do (markvar t) f1))))
+
+(declare skolem
+  (! s sort
+  (! t (term s)
+  (! f formula
+  (! p (th_holds (not (forall s t f)))
+  (! u (! k (term s)
+       (! fi formula
+       (! p1 (th_holds (not fi))
+       (! r (^ (is_inst fi f t k) tt)
+         (holds cln)))))
+    (holds cln)))))))
+
+(declare inst
+  (! s sort
+  (! t (term s)
+  (! f formula
+  (! k (term s)
+  (! fi formula
+  (! p (th_holds (forall s t f))
+  (! r (^ (is_inst fi f t k) tt)
+  (! u (! p1 (th_holds fi)
+            (holds cln))
+    (holds cln))))))))))
