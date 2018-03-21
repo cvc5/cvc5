@@ -437,8 +437,8 @@ class SygusSamplerExt : public SygusSampler
 
   //----------------------------match filtering
   /**
-   * Stores all relevant "pairs" returned by this sampler. In detail, if
-   * (t,s) is a relevant pair, then t in d_pairs[s].
+   * Stores all relevant pairs returned by this sampler (see registerTerm). In
+   * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
    */
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
   /** Match trie storing all terms in the domain of d_pairs. */
