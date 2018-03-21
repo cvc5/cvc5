@@ -401,24 +401,32 @@ class SygusSamplerExt : public SygusSampler
                           bool useSygusType);
   /** register term n with this sampler database
    *
+   *  For each call to registerTerm( t, ... ) that returns s, we say that
+   * (t,s) and (s,t) are "relevant pairs".
+   *   
    * This returns either null, or a term ret with the same guarantees as
    * SygusSampler::registerTerm with the additional guarantee
-   * that for all ret' returned by a previous call to registerTerm( n' ),
+   * that for all previous relevant pairs ( n', nret' ),
    * we have that n = ret is not an instance of n' = ret'
    * modulo symmetry of equality, nor is n = ret derivable from the set of
-   * all previous input/output pairs based on the d_drewrite utility.
-   * For example:
-   * [1]  (t+0), t and (s+0), s
-   * will not both be input/output pairs of this function since t+0=t is
-   * alpha-equivalent to s+0=s.
-   * [2]  s, t and s+0, t+0
-   * will not both be input/output pairs of this function since s+0=t+0 is
+   * all previous relevant pairs. The latter is determined by the d_drewrite 
+   * utility. For example:
+   * [1]  ( t+0, t ) and ( x+0, x )
+   * will not both be relevant pairs of this function since t+0=t is
+   * an instance of x+0=x.
+   * [2]  ( s, t ) and ( s+0, t+0 )
+   * will not both be relevant pairs of this function since s+0=t+0 is
    * derivable from s=t.
+   * These two criteria may be combined, for example:
+   * [3] ( t+0, s ) is not a relevant pair if both ( x+0, x+s ) and ( t+s, s )
+   * are relevant pairs, since t+0 is an instance of x+0 where
+   * { x |-> t }, and x+s { x |-> t } = s is derivable, via the third pair 
+   * above (t+s = s).
    *
    * If this function returns null, then n is equivalent to a previously
-   * registered term ret, and the equality n = ret is either an instan
-   * to a previous input/output pair n' = ret', or n = ret is derivable
-   * from the set of all previous input/output pairs based on the
+   * registered term ret, and the equality ( n, ret ) is either an instance
+   * of a previous relevant pair ( n', ret' ), or n = ret is derivable
+   * from the set of all previous relevant pairs based on the
    * d_drewrite utility, or is an instance of a previous pair
    */
   Node registerTerm(Node n, bool forceKeep = false) override;
@@ -429,10 +437,8 @@ class SygusSamplerExt : public SygusSampler
 
   //----------------------------match filtering
   /**
-   * Stores all relevant "pairs" returned by this sampler. In detail:
-   * For each call to registerTerm( t, ... ) that returns s, we say that
-   * (t,s) and (s,t) are relevant pairs. In this case, we have:
-   *   t in d_pairs[s] and s in d_pairs[t].
+   * Stores all relevant "pairs" returned by this sampler. In detail, if
+   * (t,s) is a relevant pair, then t in d_pairs[s].
    */
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
   /** Match trie storing all terms in the domain of d_pairs. */
