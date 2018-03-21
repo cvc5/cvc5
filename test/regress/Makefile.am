@@ -40,7 +40,11 @@ regress4:
 	REGRESSION_LEVEL=4 $(MAKE) check
 
 EXTRA_DIST = \
-  $(TESTS) \
+  $(REG0_TESTS) \
+  $(REG1_TESTS) \
+  $(REG2_TESTS) \
+  $(REG3_TESTS) \
+  $(REG4_TESTS) \
   $(TESTS_EXPECT) \
 	regress0/uf/mkpidgeon \
 	regress0/tptp/Axioms/BOO004-0.ax \
