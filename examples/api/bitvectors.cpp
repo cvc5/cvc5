@@ -112,5 +112,16 @@ int main() {
   cout << " Querying: " << v << endl;
   cout << " Expect invalid. " << endl;
   cout << " CVC4: " << smt.query(v) << endl;
+
+  // Assert that a is odd 
+  Expr extract_op = em.mkConst(BitVectorExtract(0, 0));
+  Expr  lsb_of_a = em.mkExpr(extract_op, a);
+  cout << "Type of " << lsb_of_a << " is " << lsb_of_a.getType() << endl;
+  Expr a_odd = em.mkExpr(kind::EQUAL, lsb_of_a, em.mkConst(BitVector(1u, 1u)));
+  cout << "Assert " << a_odd << endl;
+  cout << "Check satisfiability." << endl;
+  smt.assertFormula(a_odd);
+  cout << " Expect sat. " << endl;
+  cout << " CVC4: " << smt.checkSat() << endl;
   return 0;
 }
