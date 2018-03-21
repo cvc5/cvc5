@@ -130,6 +130,7 @@ if test -z "${enable_optimized+set}" -a \
         -z "${with_cln+set}" -a \
         -z "${with_glpk+set}" -a \
         -z "${with_abc+set}" -a \
+        -z "${with_cadical+set}" -a \
         -z "${with_cryptominisat+set}" -a \
         -z "${with_lfsc+set}"; then
   custom_build_profile=no
@@ -233,6 +234,11 @@ fi
 if test -n "${with_abc+set}"; then
   if test "$with_abc" = yes; then
     btargs="$btargs abc"
+  fi
+fi
+if test -n "${with_cadical+set}"; then
+  if test "$with_cadical" = yes; then
+    btargs="$btargs cadical"
   fi
 fi
 if test -n "${with_cryptominisat+set}"; then
@@ -879,6 +885,19 @@ AM_CONDITIONAL([CVC4_USE_ABC], [test $have_libabc -eq 1])
 AC_SUBST([ABC_LDFLAGS])
 AC_SUBST([ABC_LIBS])
 
+
+# Build with libcadical
+AC_ARG_WITH([cadical],
+  [AS_HELP_STRING([--with-cadical],
+     [use the CaDiCaL SAT solver])], [], [with_cadical=])
+CVC4_CHECK_FOR_CADICAL
+if test $have_libcadical -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_CADICAL"
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$CADICAL_HOME/src"
+fi
+AM_CONDITIONAL([CVC4_USE_CADICAL], [test $have_libcadical -eq 1])
+AC_SUBST([CADICAL_LDFLAGS])
+AC_SUBST([CADICAL_LIBS])
 
 # Build with libcryptominisat
 AC_ARG_WITH([cryptominisat],
@@ -1566,6 +1585,7 @@ Multithreaded: $support_multithreaded
 Portfolio    : $with_portfolio
 
 ABC          : $with_abc
+CaDiCaL      : $with_cadical
 Cryptominisat: $with_cryptominisat
 GLPK         : $with_glpk
 LFSC         : $with_lfsc

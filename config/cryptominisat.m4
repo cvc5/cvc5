@@ -40,8 +40,6 @@ elif test -n "$with_cryptominisat"; then
     AC_MSG_FAILURE([either $CRYPTOMINISAT_HOME is not an cryptominisat install tree or it's not yet built])
   fi
 
-  CPPFLAGS="$CPPFLAGS -I$CRYPTOMINISAT_HOME/install/include"
-
   AC_MSG_CHECKING([how to link cryptominisat])
 
   dnl TODO FIXME:
@@ -77,6 +75,7 @@ if test -z "$CRYPTOMINISAT_LIBS"; then
   cvc4_save_CPPFLAGS="$CPPFLAGS"
 
   LDFLAGS="-L$CRYPTOMINISAT_HOME/install/lib"
+  CPPFLAGS="$CPPFLAGS -I$CRYPTOMINISAT_HOME/install/include"
   LIBS="-lcryptominisat5 $1"
 
   AC_LINK_IFELSE(
