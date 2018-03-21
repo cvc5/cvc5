@@ -504,7 +504,6 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         defs.append('struct {name}__option_t {name};'.format(name=option.name))
 
 
-    filename = module.header.split('/')[1][:-2]
     filename = os.path.splitext(os.path.split(module.header)[1])[0]
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
         filename=filename,
