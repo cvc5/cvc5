@@ -867,28 +867,29 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
     else
     {
       Node cn = cvisit.back();
+      Trace("sse-match-debug") << "traverse : " << cn << std::endl;
       unsigned index = visit.size()-1;
       int vindex = visit_var_index[index];
       if( vindex==-1 )
       {
-        if( cn.hasOperator() )
+        Node op = cn.hasOperator() ? cn.getOperator() : cn;
+        unsigned nchild = cn.hasOperator() ? cn.getNumChildren() : 0;
+        std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
+        if( itu!=curr->d_children[op].end() )
         {
-          Node op = cn.getOperator();
-          unsigned nchild = cn.getNumChildren();
-          std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
-          if( itu!=curr->d_children[op].end() )
+          // recurse on the operator or self
+          cvisit.pop_back();
+          if( cn.hasOperator() )
           {
-            // recurse on the operator
-            cvisit.pop_back();
             for( const Node& cnc : cn )
             {
               cvisit.push_back( cnc );
             }
-            visit.push_back( cvisit );
-            visit_trie.push_back( &itu->second );
-            visit_var_index.push_back( -1 );
-            visit_bound_var.push_back( false );
           }
+          visit.push_back( cvisit );
+          visit_trie.push_back( &itu->second );
+          visit_var_index.push_back( -1 );
+          visit_bound_var.push_back( false );
         }
         visit_var_index[index]++;
       }
@@ -916,22 +917,30 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
           Assert( vindex<static_cast<int>(curr->d_vars.size()) );
           // recurse on variable?
           Node var = curr->d_vars[vindex];
-          // check if it is already bound
-          std::map< Node, Node >::iterator its = smap.find( var );
           bool recurse = true;
-          if( its!=smap.end() )
+          if( var==cn )
           {
-            if( its->second!=cn )
-            {
-              recurse = false;
-            }
+            // already recursed above
+            recurse = false;
           }
           else
           {
-            vars.push_back( var );
-            subs.push_back( cn );
-            smap[var] = cn;
-            visit_bound_var[index] = true;
+            // check if it is already bound
+            std::map< Node, Node >::iterator its = smap.find( var );
+            if( its!=smap.end() )
+            {
+              if( its->second!=cn )
+              {
+                recurse = false;
+              }
+            }
+            else
+            {
+              vars.push_back( var );
+              subs.push_back( cn );
+              smap[var] = cn;
+              visit_bound_var[index] = true;
+            }
           }
           if( recurse )
           {
