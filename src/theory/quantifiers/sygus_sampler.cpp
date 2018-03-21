@@ -763,9 +763,9 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   if( keep )
   {
     // check whether the pair is unifiable with a previous one
-    d_curr_pair_rhs = eq_n;
-    Trace("sse-match") << "SSE check matches : " << n << " (rhs = " << eq_n << ")..." << std::endl;
-    if( !d_match_trie.getMatches( n, &d_ssenm ) )
+    d_curr_pair_rhs = beq_n;
+    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n << "]..." << std::endl;
+    if( !d_match_trie.getMatches( bn, &d_ssenm ) )
     {
       keep = false;
       Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
@@ -777,8 +777,8 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // add to match information
     for( unsigned r=0; r<2; r++ )
     {
-      Node t = r==0 ? n : eq_n;
-      Node to = r==0 ? eq_n : n;
+      Node t = r==0 ? bn : beq_n;
+      Node to = r==0 ? beq_n : bn;
       // insert in match trie if first time
       if( d_pairs.find( t )==d_pairs.end() )
       {
@@ -855,6 +855,7 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
     if( cvisit.empty() )
     {
       Assert( n == curr->d_data.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() ) );
+      Trace("sse-match-debug") << "notify : " << curr->d_data << std::endl;
       if( !ntm->notify(n, curr->d_data, vars, subs ) )
       {
         return false;
@@ -867,29 +868,33 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
     else
     {
       Node cn = cvisit.back();
-      Trace("sse-match-debug") << "traverse : " << cn << std::endl;
+      Trace("sse-match-debug") << "traverse : " << cn << " at depth " << visit.size() << std::endl;
       unsigned index = visit.size()-1;
       int vindex = visit_var_index[index];
       if( vindex==-1 )
       {
-        Node op = cn.hasOperator() ? cn.getOperator() : cn;
-        unsigned nchild = cn.hasOperator() ? cn.getNumChildren() : 0;
-        std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
-        if( itu!=curr->d_children[op].end() )
+        if( !cn.isVar() )
         {
-          // recurse on the operator or self
-          cvisit.pop_back();
-          if( cn.hasOperator() )
+          Node op = cn.hasOperator() ? cn.getOperator() : cn;
+          unsigned nchild = cn.hasOperator() ? cn.getNumChildren() : 0;
+          std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
+          if( itu!=curr->d_children[op].end() )
           {
-            for( const Node& cnc : cn )
+            // recurse on the operator or self
+            cvisit.pop_back();
+            if( cn.hasOperator() )
             {
-              cvisit.push_back( cnc );
+              for( const Node& cnc : cn )
+              {
+                cvisit.push_back( cnc );
+              }
             }
+            Trace("sse-match-debug") << "recurse op : " << op << std::endl;
+            visit.push_back( cvisit );
+            visit_trie.push_back( &itu->second );
+            visit_var_index.push_back( -1 );
+            visit_bound_var.push_back( false );
           }
-          visit.push_back( cvisit );
-          visit_trie.push_back( &itu->second );
-          visit_var_index.push_back( -1 );
-          visit_bound_var.push_back( false );
         }
         visit_var_index[index]++;
       }
@@ -906,6 +911,7 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
         
         if( vindex==static_cast<int>(curr->d_vars.size()) )
         {
+          Trace("sse-match-debug") << "finished checking " << curr->d_vars.size() << " variables at depth " << visit.size() << std::endl;
           // finished
           visit.pop_back();
           visit_trie.pop_back();
@@ -914,36 +920,30 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
         }
         else
         {
+          Trace("sse-match-debug") << "check variable #" << vindex << " at depth " << visit.size() << std::endl;
           Assert( vindex<static_cast<int>(curr->d_vars.size()) );
           // recurse on variable?
           Node var = curr->d_vars[vindex];
           bool recurse = true;
-          if( var==cn )
+          // check if it is already bound
+          std::map< Node, Node >::iterator its = smap.find( var );
+          if( its!=smap.end() )
           {
-            // already recursed above
-            recurse = false;
+            if( its->second!=cn )
+            {
+              recurse = false;
+            }
           }
           else
           {
-            // check if it is already bound
-            std::map< Node, Node >::iterator its = smap.find( var );
-            if( its!=smap.end() )
-            {
-              if( its->second!=cn )
-              {
-                recurse = false;
-              }
-            }
-            else
-            {
-              vars.push_back( var );
-              subs.push_back( cn );
-              smap[var] = cn;
-              visit_bound_var[index] = true;
-            }
+            vars.push_back( var );
+            subs.push_back( cn );
+            smap[var] = cn;
+            visit_bound_var[index] = true;
           }
           if( recurse )
           {
+            Trace("sse-match-debug") << "recurse var : " << var << std::endl;
             cvisit.pop_back();
             visit.push_back( cvisit );
             visit_trie.push_back( &curr->d_children[var][0] );
