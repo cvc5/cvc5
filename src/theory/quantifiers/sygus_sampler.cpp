@@ -678,11 +678,7 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-SygusSamplerExt::SygusSamplerExt() :
-d_ssenm(*this)
-{
-  
-}
+SygusSamplerExt::SygusSamplerExt() : d_ssenm(*this) {}
 
 void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
                                          Node f,
@@ -717,10 +713,10 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
-  }  
+  }
   // whether we will keep this pair
   bool keep = true;
-  
+
   // ----- check alpha equivalent based on ordering
   bool eqor = isOrdered(beq_n);
   bool nor = isOrdered(bn);
@@ -741,12 +737,13 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       isAlphaEq = !containsFreeVariables(beq_n, bn);
     }
   }
-  if( isAlphaEq )
+  if (isAlphaEq)
   {
-    Trace("sygus-synth-rr-debug") << "...redundant (alpha-equivalent)" << std::endl;
+    Trace("sygus-synth-rr-debug")
+        << "...redundant (alpha-equivalent)" << std::endl;
     keep = false;
   }
-  
+
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
@@ -758,34 +755,35 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
     }
   }
-  
+
   // ----- check matchable
-  if( keep )
+  if (keep)
   {
     // check whether the pair is unifiable with a previous one
     d_curr_pair_rhs = beq_n;
-    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n << "]..." << std::endl;
-    if( !d_match_trie.getMatches( bn, &d_ssenm ) )
+    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
+                       << "]..." << std::endl;
+    if (!d_match_trie.getMatches(bn, &d_ssenm))
     {
       keep = false;
       Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
     }
   }
-  
+
   if (keep)
   {
     // add to match information
-    for( unsigned r=0; r<2; r++ )
+    for (unsigned r = 0; r < 2; r++)
     {
-      Node t = r==0 ? bn : beq_n;
-      Node to = r==0 ? beq_n : bn;
+      Node t = r == 0 ? bn : beq_n;
+      Node to = r == 0 ? beq_n : bn;
       // insert in match trie if first time
-      if( d_pairs.find( t )==d_pairs.end() )
+      if (d_pairs.find(t) == d_pairs.end())
       {
         Trace("sse-match") << "SSE add term : " << t << std::endl;
-        d_match_trie.addTerm( t );
+        d_match_trie.addTerm(t);
       }
-      d_pairs[t].insert( to );
+      d_pairs[t].insert(to);
     }
     // if the previous value stored was unordered, but this is
     // ordered, we prefer this one. Thus, we force its addition to the
@@ -804,26 +802,33 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   return Node::null();
 }
 
-bool SygusSamplerExt::notify( Node s, Node n, std::vector< Node >& vars, std::vector< Node >& subs )
+bool SygusSamplerExt::notify(Node s,
+                             Node n,
+                             std::vector<Node>& vars,
+                             std::vector<Node>& subs)
 {
-  Assert( !d_curr_pair_rhs.isNull() );
-  std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator it = d_pairs.find( n );
-  if( Trace.isOn("sse-match") )
+  Assert(!d_curr_pair_rhs.isNull());
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
+      d_pairs.find(n);
+  if (Trace.isOn("sse-match"))
   {
-    Trace("sse-match") << "  " << s << " matches " << n << " under:" << std::endl;
-    for( unsigned i=0,size=vars.size(); i<size; i++ )
+    Trace("sse-match") << "  " << s << " matches " << n
+                       << " under:" << std::endl;
+    for (unsigned i = 0, size = vars.size(); i < size; i++)
     {
       Trace("sse-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
     }
   }
-  Assert( it!=d_pairs.end() );
-  for( const Node& nr : it->second )
+  Assert(it != d_pairs.end());
+  for (const Node& nr : it->second)
   {
-    Node nrs = nr.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-    if( nrs==d_curr_pair_rhs )
+    Node nrs =
+        nr.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    if (nrs == d_curr_pair_rhs)
     {
       Trace("sse-match") << "*** Match, current pair: " << std::endl;
-      Trace("sse-match") << "  (" << s << ", " << d_curr_pair_rhs << ")" << std::endl;
+      Trace("sse-match") << "  (" << s << ", " << d_curr_pair_rhs << ")"
+                         << std::endl;
       Trace("sse-match") << "is an instance of previous pair:" << std::endl;
       Trace("sse-match") << "  (" << n << ", " << nr << ")" << std::endl;
       return false;
@@ -832,31 +837,32 @@ bool SygusSamplerExt::notify( Node s, Node n, std::vector< Node >& vars, std::ve
   return true;
 }
 
-
-bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
+bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
 {
-  std::vector< Node > vars;
-  std::vector< Node > subs;
-  std::map< Node, Node > smap;
-  
-  std::vector< std::vector< Node > > visit;
-  std::vector< MatchTrie * > visit_trie;
-  std::vector< int > visit_var_index;
-  std::vector< bool > visit_bound_var;
-  
-  visit.push_back(std::vector< Node >{n});
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  std::map<Node, Node> smap;
+
+  std::vector<std::vector<Node> > visit;
+  std::vector<MatchTrie*> visit_trie;
+  std::vector<int> visit_var_index;
+  std::vector<bool> visit_bound_var;
+
+  visit.push_back(std::vector<Node>{n});
   visit_trie.push_back(this);
   visit_var_index.push_back(-1);
   visit_bound_var.push_back(false);
-  while( !visit.empty() )
+  while (!visit.empty())
   {
-    std::vector< Node > cvisit = visit.back();
-    MatchTrie * curr = visit_trie.back();
-    if( cvisit.empty() )
+    std::vector<Node> cvisit = visit.back();
+    MatchTrie* curr = visit_trie.back();
+    if (cvisit.empty())
     {
-      Assert( n == curr->d_data.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() ) );
+      Assert(n
+             == curr->d_data.substitute(
+                    vars.begin(), vars.end(), subs.begin(), subs.end()));
       Trace("sse-match-debug") << "notify : " << curr->d_data << std::endl;
-      if( !ntm->notify(n, curr->d_data, vars, subs ) )
+      if (!ntm->notify(n, curr->d_data, vars, subs))
       {
         return false;
       }
@@ -868,50 +874,54 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
     else
     {
       Node cn = cvisit.back();
-      Trace("sse-match-debug") << "traverse : " << cn << " at depth " << visit.size() << std::endl;
-      unsigned index = visit.size()-1;
+      Trace("sse-match-debug")
+          << "traverse : " << cn << " at depth " << visit.size() << std::endl;
+      unsigned index = visit.size() - 1;
       int vindex = visit_var_index[index];
-      if( vindex==-1 )
+      if (vindex == -1)
       {
-        if( !cn.isVar() )
+        if (!cn.isVar())
         {
           Node op = cn.hasOperator() ? cn.getOperator() : cn;
           unsigned nchild = cn.hasOperator() ? cn.getNumChildren() : 0;
-          std::map< unsigned, MatchTrie >::iterator itu = curr->d_children[op].find( nchild );
-          if( itu!=curr->d_children[op].end() )
+          std::map<unsigned, MatchTrie>::iterator itu =
+              curr->d_children[op].find(nchild);
+          if (itu != curr->d_children[op].end())
           {
             // recurse on the operator or self
             cvisit.pop_back();
-            if( cn.hasOperator() )
+            if (cn.hasOperator())
             {
-              for( const Node& cnc : cn )
+              for (const Node& cnc : cn)
               {
-                cvisit.push_back( cnc );
+                cvisit.push_back(cnc);
               }
             }
             Trace("sse-match-debug") << "recurse op : " << op << std::endl;
-            visit.push_back( cvisit );
-            visit_trie.push_back( &itu->second );
-            visit_var_index.push_back( -1 );
-            visit_bound_var.push_back( false );
+            visit.push_back(cvisit);
+            visit_trie.push_back(&itu->second);
+            visit_var_index.push_back(-1);
+            visit_bound_var.push_back(false);
           }
         }
         visit_var_index[index]++;
       }
-      else 
+      else
       {
         // clean up if we previously bound a variable
-        if( visit_bound_var[index] )
+        if (visit_bound_var[index])
         {
-          Assert( !vars.empty() );
+          Assert(!vars.empty());
           smap.erase(vars.back());
           vars.pop_back();
           subs.pop_back();
         }
-        
-        if( vindex==static_cast<int>(curr->d_vars.size()) )
+
+        if (vindex == static_cast<int>(curr->d_vars.size()))
         {
-          Trace("sse-match-debug") << "finished checking " << curr->d_vars.size() << " variables at depth " << visit.size() << std::endl;
+          Trace("sse-match-debug")
+              << "finished checking " << curr->d_vars.size()
+              << " variables at depth " << visit.size() << std::endl;
           // finished
           visit.pop_back();
           visit_trie.pop_back();
@@ -920,35 +930,36 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
         }
         else
         {
-          Trace("sse-match-debug") << "check variable #" << vindex << " at depth " << visit.size() << std::endl;
-          Assert( vindex<static_cast<int>(curr->d_vars.size()) );
+          Trace("sse-match-debug") << "check variable #" << vindex
+                                   << " at depth " << visit.size() << std::endl;
+          Assert(vindex < static_cast<int>(curr->d_vars.size()));
           // recurse on variable?
           Node var = curr->d_vars[vindex];
           bool recurse = true;
           // check if it is already bound
-          std::map< Node, Node >::iterator its = smap.find( var );
-          if( its!=smap.end() )
+          std::map<Node, Node>::iterator its = smap.find(var);
+          if (its != smap.end())
           {
-            if( its->second!=cn )
+            if (its->second != cn)
             {
               recurse = false;
             }
           }
           else
           {
-            vars.push_back( var );
-            subs.push_back( cn );
+            vars.push_back(var);
+            subs.push_back(cn);
             smap[var] = cn;
             visit_bound_var[index] = true;
           }
-          if( recurse )
+          if (recurse)
           {
             Trace("sse-match-debug") << "recurse var : " << var << std::endl;
             cvisit.pop_back();
-            visit.push_back( cvisit );
-            visit_trie.push_back( &curr->d_children[var][0] );
-            visit_var_index.push_back( -1 );
-            visit_bound_var.push_back( false );
+            visit.push_back(cvisit);
+            visit_trie.push_back(&curr->d_children[var][0]);
+            visit_var_index.push_back(-1);
+            visit_bound_var.push_back(false);
           }
           visit_var_index[index]++;
         }
@@ -958,28 +969,30 @@ bool MatchTrie::getMatches( Node n, NotifyMatch * ntm )
   return true;
 }
 
-void MatchTrie::addTerm( Node n )
+void MatchTrie::addTerm(Node n)
 {
-  std::vector< Node > visit;
-  visit.push_back( n );
-  MatchTrie * curr = this;
-  while( !visit.empty() )
+  std::vector<Node> visit;
+  visit.push_back(n);
+  MatchTrie* curr = this;
+  while (!visit.empty())
   {
     Node cn = visit.back();
     visit.pop_back();
-    if( cn.hasOperator() )
+    if (cn.hasOperator())
     {
       curr = &(curr->d_children[cn.getOperator()][cn.getNumChildren()]);
-      for( const Node& cnc : cn )
+      for (const Node& cnc : cn)
       {
-        visit.push_back( cnc );
+        visit.push_back(cnc);
       }
     }
     else
     {
-      if( cn.isVar() && std::find( curr->d_vars.begin(), curr->d_vars.end(), cn )==curr->d_vars.end() )
+      if (cn.isVar()
+          && std::find(curr->d_vars.begin(), curr->d_vars.end(), cn)
+                 == curr->d_vars.end())
       {
-        curr->d_vars.push_back( cn );
+        curr->d_vars.push_back(cn);
       }
       curr = &(curr->d_children[cn][0]);
     }
@@ -987,7 +1000,7 @@ void MatchTrie::addTerm( Node n )
   curr->d_data = n;
 }
 
-void MatchTrie::clear() 
+void MatchTrie::clear()
 {
   d_children.clear();
   d_vars.clear();

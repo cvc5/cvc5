@@ -340,52 +340,54 @@ class SygusSampler : public LazyTrieEvaluator
   void registerSygusType(TypeNode tn);
 };
 
-
 /** A virtual class for notifications regarding matches. */
 class NotifyMatch
 {
-public:
-  /** 
+ public:
+  /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.
    */
-  virtual bool notify( Node s, Node n, std::vector< Node >& vars, std::vector< Node >& subs ) = 0;
+  virtual bool notify(Node s,
+                      Node n,
+                      std::vector<Node>& vars,
+                      std::vector<Node>& subs) = 0;
 };
 
-/** 
+/**
  * A trie (discrimination tree) storing a set of terms S, that can be used to
  * query, for a given term t, all terms from S that are matchable with t.
  */
 class MatchTrie
 {
-public:
-  /** Get matches 
-   * 
+ public:
+  /** Get matches
+   *
    * This calls ntm->notify( n, s, vars, subs ) for each term s stored in this
-   * trie that is matchable with n where s = n * { vars -> subs } for some 
+   * trie that is matchable with n where s = n * { vars -> subs } for some
    * vars, subs. This function returns false if one of these calls to notify
    * returns false.
    */
-  bool getMatches( Node n, NotifyMatch * ntm );
+  bool getMatches(Node n, NotifyMatch* ntm);
   /** Adds node n to this trie */
-  void addTerm( Node n );
+  void addTerm(Node n);
   /** Clear this trie */
   void clear();
+
  private:
-  /** 
+  /**
    * The children of this node in the trie. Terms t are indexed by a
    * depth-first (right to left) traversal on its subterms, where the
    * top-symbol of t is indexed by:
    * - (operator, #children) if t has an operator, or
    * - (t, 0) if t does not have an operator.
    */
-  std::map< Node, std::map< unsigned, MatchTrie > > d_children;
+  std::map<Node, std::map<unsigned, MatchTrie> > d_children;
   /** The set of variables in the domain of d_children */
-  std::vector< Node > d_vars;
+  std::vector<Node> d_vars;
   /** The data of this node in the trie */
   Node d_data;
 };
-
 
 /** Version of the above class with some additional features */
 class SygusSamplerExt : public SygusSampler
@@ -424,36 +426,41 @@ class SygusSamplerExt : public SygusSampler
  private:
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
-  
-  //----------------------------match filtering 
-  /** 
+
+  //----------------------------match filtering
+  /**
    * Stores all relevant "pairs" returned by this sampler.
-   * 
+   *
    * For each call to registerTerm( t, ... ) that returns s, we say that
    * (t,s) and (s,t) are relevant pairs. In this case, we have:
    *   t in d_pairs[s] and s in d_pairs[t].
    */
-  std::map< Node, std::unordered_set< Node, NodeHashFunction > > d_pairs;
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
   /** Match trie storing all terms in the domain of d_pairs. */
   MatchTrie d_match_trie;
   /** Notify class */
   class SygusSamplerExtNotifyMatch : public NotifyMatch
   {
     SygusSamplerExt& d_sse;
-  public:
-    SygusSamplerExtNotifyMatch(SygusSamplerExt& sse): d_sse(sse) {}
+
+   public:
+    SygusSamplerExtNotifyMatch(SygusSamplerExt& sse) : d_sse(sse) {}
     /** notify match */
-    bool notify( Node n, Node s, std::vector< Node >& vars, std::vector< Node >& subs ) override{
-      return d_sse.notify( n, s, vars, subs );
+    bool notify(Node n,
+                Node s,
+                std::vector<Node>& vars,
+                std::vector<Node>& subs) override
+    {
+      return d_sse.notify(n, s, vars, subs);
     }
   };
   /** Notify object used for reporting matches from d_match_trie */
   SygusSamplerExtNotifyMatch d_ssenm;
   /** Called by the above class */
-  bool notify( Node s, Node n, std::vector< Node >& vars, std::vector< Node >& subs );
+  bool notify(Node s, Node n, std::vector<Node>& vars, std::vector<Node>& subs);
   /** The current right hand side of the pair we are considering */
   Node d_curr_pair_rhs;
-  //----------------------------end match filtering 
+  //----------------------------end match filtering
 };
 
 } /* CVC4::theory::quantifiers namespace */
