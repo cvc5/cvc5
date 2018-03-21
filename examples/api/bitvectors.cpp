@@ -122,6 +122,6 @@ int main() {
   cout << "Check satisfiability." << endl;
   smt.assertFormula(a_odd);
   cout << " Expect sat. " << endl;
-  cout << "CVC4: " << smt.checkSat() << endl;
+  cout << " CVC4: " << smt.checkSat() << endl;
   return 0;
 }
