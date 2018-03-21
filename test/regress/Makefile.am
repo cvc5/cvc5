@@ -22,7 +22,9 @@ endif
 MAKEFLAGS = -k
 
 export VERBOSE = 1
-.PHONY: regress0 regress1 regress2 regress3 regress4
+.PHONY: regress regress0 regress1 regress2 regress3 regress4
+
+regress: regress1
 
 regress0:
 	REGRESSION_LEVEL=0 $(MAKE) check
