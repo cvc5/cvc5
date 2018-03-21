@@ -12,9 +12,9 @@ options \- the options infrastructure
 .RS
 .TP 10
 .I "COMMON OPTIONS"
-${common_manpage_internals_documentation}
+${man_common_internals}$
 
-${remaining_manpage_internals_documentation}
+${man_others_internals}$
 .PD
 .RE
 
