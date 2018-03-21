@@ -3146,14 +3146,19 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
   // since ni does not contain nj or vice versa.
   // This is only valid when isRev is false, since when isRev=true, the contents
   // of normal form vectors nfi and nfj are reversed.
-  if( !isRev )
+  if (!isRev)
   {
-    for( unsigned i=0; i<2; i++ ){
-      Node c = getConstantEqc( i==0 ? ni : nj );
-      if( !c.isNull() ){
+    for (unsigned i = 0; i < 2; i++)
+    {
+      Node c = getConstantEqc(i == 0 ? ni : nj);
+      if (!c.isNull())
+      {
         int findex, lindex;
-        if( !TheoryStringsRewriter::canConstantContainList( c, i==0 ? nfj : nfi, findex, lindex ) ){
-          Trace("strings-solve-debug") << "Disequality: constant cannot contain list" << std::endl;
+        if (!TheoryStringsRewriter::canConstantContainList(
+                c, i == 0 ? nfj : nfi, findex, lindex))
+        {
+          Trace("strings-solve-debug")
+              << "Disequality: constant cannot contain list" << std::endl;
           return 1;
         }
       }
