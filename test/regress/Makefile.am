@@ -43,6 +43,10 @@ EXTRA_DIST = \
   $(TESTS) \
   $(TESTS_EXPECT) \
 	regress0/uf/mkpidgeon \
+	regress0/tptp/Axioms/BOO004-0.ax \
+	regress0/tptp/Axioms/SYN000+0.ax \
+	regress0/tptp/Axioms/SYN000-0.ax \
+	regress0/tptp/Axioms/SYN000_0.ax \
 	Makefile.levels \
 	Makefile.tests \
 	run_regression \
