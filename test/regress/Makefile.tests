@@ -7,7 +7,6 @@ REG0_TESTS = \
 	regress0/arith/arith.03.cvc \
 	regress0/arith/bug443.delta01.smt \
 	regress0/arith/bug547.2.smt2 \
-	regress0/arith/bug549.cvc \
 	regress0/arith/bug569.smt2 \
 	regress0/arith/delta-minimized-row-vector-bug.smt \
 	regress0/arith/div.01.smt2 \
@@ -16,10 +15,8 @@ REG0_TESTS = \
 	regress0/arith/div.05.smt2 \
 	regress0/arith/div.07.smt2 \
 	regress0/arith/fuzz_3-eq.smt \
-	regress0/arith/incorrect1.smt \
 	regress0/arith/integers/arith-int-042.cvc \
 	regress0/arith/integers/arith-int-042.min.cvc \
-	regress0/arith/integers/arith-interval.cvc \
 	regress0/arith/leq.01.smt \
 	regress0/arith/miplib.cvc \
 	regress0/arith/miplib2.cvc \
@@ -28,9 +25,6 @@ REG0_TESTS = \
 	regress0/arith/mod-simp.smt2 \
 	regress0/arith/mod.01.smt2 \
 	regress0/arith/mult.01.smt2 \
-	regress0/arr1.smt \
-	regress0/arr1.smt2 \
-	regress0/arr2.smt \
 	regress0/arrayinuf_declare.smt2 \
 	regress0/arrays/arrays0.smt2 \
 	regress0/arrays/arrays1.smt2 \
@@ -65,8 +59,6 @@ REG0_TESTS = \
 	regress0/aufbv/bug00.smt \
 	regress0/aufbv/bug338.smt2 \
 	regress0/aufbv/bug347.smt \
-	regress0/aufbv/bug348.smt \
-	regress0/aufbv/bug349.smt \
 	regress0/aufbv/bug451.smt \
 	regress0/aufbv/bug509.smt \
 	regress0/aufbv/bug580.delta.smt2 \
@@ -99,7 +91,6 @@ REG0_TESTS = \
 	regress0/aufbv/try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smt \
 	regress0/aufbv/wchains010ue.delta01.smt \
 	regress0/aufbv/wchains010ue.delta02.smt \
-	regress0/aufbv/wchains010ue.smt \
 	regress0/auflia/a17.smt \
 	regress0/auflia/bug336.smt2 \
 	regress0/auflia/error72.delta2.smt \
@@ -174,33 +165,21 @@ REG0_TESTS = \
 	regress0/bv/bv2nat-simp-range.smt2 \
 	regress0/bv/bvmul-pow2-only.smt2 \
 	regress0/bv/bvsimple.cvc \
-	regress0/bv/bvsmod.smt2 \
 	regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt \
 	regress0/bv/core/a78test0002.smt \
 	regress0/bv/core/a95test0002.smt \
 	regress0/bv/core/bitvec0.smt \
-	regress0/bv/core/bitvec1.smt \
 	regress0/bv/core/bitvec2.smt \
-	regress0/bv/core/bitvec3.smt \
 	regress0/bv/core/bitvec5.smt \
 	regress0/bv/core/bitvec7.smt \
 	regress0/bv/core/bv_eq_diamond10.smt \
-	regress0/bv/core/bv_eq_diamond11.smt \
-	regress0/bv/core/bv_eq_diamond12.smt \
-	regress0/bv/core/bv_eq_diamond13.smt \
-	regress0/bv/core/bv_eq_diamond14.smt \
-	regress0/bv/core/bv_eq_diamond15.smt \
-	regress0/bv/core/bv_eq_diamond16.smt \
-	regress0/bv/core/bv_eq_diamond17.smt \
 	regress0/bv/core/concat-merge-0.smt \
 	regress0/bv/core/concat-merge-1.smt \
 	regress0/bv/core/concat-merge-2.smt \
 	regress0/bv/core/concat-merge-3.smt \
-	regress0/bv/core/constant_core.smt2 \
 	regress0/bv/core/equality-00.smt \
 	regress0/bv/core/equality-01.smt \
 	regress0/bv/core/equality-02.smt \
-	regress0/bv/core/equality-04.smt \
 	regress0/bv/core/equality-05.smt \
 	regress0/bv/core/extract-concat-0.smt \
 	regress0/bv/core/extract-concat-1.smt \
@@ -318,13 +297,6 @@ REG0_TESTS = \
 	regress0/bv/fuzz40.delta01.smt \
 	regress0/bv/fuzz40.smt \
 	regress0/bv/fuzz41.smt \
-	regress0/bv/incorrect1.delta01.smt \
-	regress0/bv/inequality00.smt2 \
-	regress0/bv/inequality01.smt2 \
-	regress0/bv/inequality02.smt2 \
-	regress0/bv/inequality03.smt2 \
-	regress0/bv/inequality04.smt2 \
-	regress0/bv/inequality05.smt2 \
 	regress0/bv/mul-neg-unsat.smt2 \
 	regress0/bv/mul-negpow2.smt2 \
 	regress0/bv/mult-pow2-negative.smt2 \
@@ -333,7 +305,6 @@ REG0_TESTS = \
 	regress0/bv/unsound1-reduced.smt2 \
 	regress0/chained-equality.smt2 \
 	regress0/constant-rewrite.smt \
-	regress0/cvc3-bug15.cvc \
 	regress0/cvc3.userdoc.01.cvc \
 	regress0/cvc3.userdoc.02.cvc \
 	regress0/cvc3.userdoc.03.cvc \
@@ -1627,15 +1598,25 @@ REG4_TESTS = \
 # - regress1/quantifiers/subtype-param.smt2
 #
 # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
+#
+# regress0/aufbv/bug348 does not seem to terminate with proofs
 DISABLED_TESTS = \
+	regress0/arith/bug549.cvc \
+	regress0/arith/incorrect1.smt \
 	regress0/arith/integers/arith-int-014.cvc \
 	regress0/arith/integers/arith-int-015.cvc \
 	regress0/arith/integers/arith-int-021.cvc \
 	regress0/arith/integers/arith-int-023.cvc \
 	regress0/arith/integers/arith-int-025.cvc \
 	regress0/arith/integers/arith-int-079.cvc \
+	regress0/arith/integers/arith-interval.cvc \
 	regress0/arith/miplib-opt1217--27.smt \
 	regress0/arith/miplib-pp08a-3000.smt \
+	regress0/arr1.smt \
+	regress0/arr1.smt2 \
+	regress0/arr2.smt \
+	regress0/aufbv/bug348.smt \
+	regress0/aufbv/bug349.smt \
 	regress0/aufbv/bug493.smt \
 	regress0/aufbv/dubreva005ue.smt \
 	regress0/aufbv/fifo32bc06k08.smt \
@@ -1643,22 +1624,35 @@ DISABLED_TESTS = \
 	regress0/aufbv/fifo32in06k08.smt \
 	regress0/aufbv/no_init_multi_delete14.smt \
 	regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.smt \
+	regress0/aufbv/wchains010ue.smt \
 	regress0/auflia/fuzz01.smt \
 	regress0/bug2.smt \
 	regress0/bug374.delta01.smt \
 	regress0/bug374.smt \
 	regress0/bv/bug345.smt \
 	regress0/bv/bvcomp.cvc \
+	regress0/bv/bvsmod.smt2 \
 	regress0/bv/core/bitvec0.delta01.smt \
+	regress0/bv/core/bitvec1.smt \
+	regress0/bv/core/bitvec3.smt \
+	regress0/bv/core/bv_eq_diamond11.smt \
+	regress0/bv/core/bv_eq_diamond12.smt \
+	regress0/bv/core/bv_eq_diamond13.smt \
+	regress0/bv/core/bv_eq_diamond14.smt \
+	regress0/bv/core/bv_eq_diamond15.smt \
+	regress0/bv/core/bv_eq_diamond16.smt \
+	regress0/bv/core/bv_eq_diamond17.smt \
 	regress0/bv/core/concat-merge-0.cvc \
 	regress0/bv/core/concat-merge-1.cvc \
 	regress0/bv/core/concat-merge-2.cvc \
 	regress0/bv/core/concat-merge-3.cvc \
+	regress0/bv/core/constant_core.smt2 \
 	regress0/bv/core/equality-00.cvc \
 	regress0/bv/core/equality-01.cvc \
 	regress0/bv/core/equality-02.cvc \
 	regress0/bv/core/equality-03.cvc \
 	regress0/bv/core/equality-03.smt \
+	regress0/bv/core/equality-04.smt \
 	regress0/bv/core/equality-05.smt \
 	regress0/bv/core/ext_con_004_001_1024.smt \
 	regress0/bv/core/extract-concat-0.cvc \
@@ -1717,8 +1711,16 @@ DISABLED_TESTS = \
 	regress0/bv/fuzz15.smt \
 	regress0/bv/fuzz16.smt \
 	regress0/bv/fuzz17.smt \
+	regress0/bv/incorrect1.delta01.smt \
 	regress0/bv/incorrect1.smt \
+	regress0/bv/inequality00.smt2 \
+	regress0/bv/inequality01.smt2 \
+	regress0/bv/inequality02.smt2 \
+	regress0/bv/inequality03.smt2 \
+	regress0/bv/inequality04.smt2 \
+	regress0/bv/inequality05.smt2 \
 	regress0/bv/test00.smt \
+	regress0/cvc3-bug15.cvc \
 	regress0/decision/uflia-xs-09-16-3-4-1-5.smt \
 	regress0/decision/wchains010ue.smt \
 	regress0/incorrect1.smt \
