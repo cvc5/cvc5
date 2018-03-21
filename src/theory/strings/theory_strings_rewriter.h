@@ -352,6 +352,21 @@ private:
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+
+  /**
+   * Checks whether the conjunction of the equality eq and the arithmetic
+   * entailment of n is unsatisfiable (n >= 0 if strict is false or n > 0 if
+   * strict is true). At a high level, the function tries to derive a
+   * substitution from eq that can be used to show that n < 0 (if strict is
+   * false) or n <= 0 (if strict is true).
+   *
+   * E.g. if eq is x + (str.len y) = 0 and n is x, this function returns true
+   * because x = -(str.len y), so x <= 0.
+   *
+   * Note: eq has to be in rewritten form.
+   */
+  static bool checkEqAndEntailArithUnsat(Node eq, Node n, bool strict = false);
+
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
    * then ret is a rational constant and
