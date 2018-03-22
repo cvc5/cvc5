@@ -144,7 +144,7 @@ bool SygusInfer::simplify(std::vector<Node>& assertions)
   if( !qvars.empty() )
   {
     Node bvl = nm->mkNode( BOUND_VAR_LIST, qvars );
-    body = nm->mkNode( FORALL, bvl, body );
+    body = nm->mkNode( EXISTS, bvl, body.negate() );
   }
   
   // sygus attribute to mark the conjecture as a sygus conjecture
@@ -153,6 +153,12 @@ bool SygusInfer::simplify(std::vector<Node>& assertions)
   sygusVar.setAttribute( ca, true );
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
+  
+  Node fbvl = nm->mkNode( BOUND_VAR_LIST, ff_vars );
+  
+  body = nm->mkNode( FORALL, fbvl, body, instAttrList );
+  
+  Trace("sygus-infer") << "...return : " << body << std::endl;
   
   // replace all assertions except the first with true
   Node truen = nm->mkConst(true);
