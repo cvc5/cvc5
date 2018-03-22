@@ -18,8 +18,8 @@
 
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"
-#include "theory/bv/aig_bitblaster.h"
-#include "theory/bv/eager_bitblaster.h"
+#include "theory/bv/bitblast/aig_bitblaster.h"
+#include "theory/bv/bitblast/eager_bitblaster.h"
 
 using namespace std;
 

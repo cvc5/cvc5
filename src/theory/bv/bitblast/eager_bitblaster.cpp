@@ -16,7 +16,7 @@
 
 #include "cvc4_private.h"
 
-#include "theory/bv/eager_bitblaster.h"
+#include "theory/bv/bitblast/eager_bitblaster.h"
 
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"

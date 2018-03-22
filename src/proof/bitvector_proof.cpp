@@ -24,7 +24,7 @@
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
-#include "theory/bv/bitblaster.h"
+#include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 

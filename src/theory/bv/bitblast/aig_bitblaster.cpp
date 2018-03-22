@@ -16,7 +16,7 @@
 
 #include "cvc4_private.h"
 
-#include "theory/bv/aig_bitblaster.h"
+#include "theory/bv/bitblast/aig_bitblaster.h"
 
 #include "base/cvc4_check.h"
 #include "options/bv_options.h"

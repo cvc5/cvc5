@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY__BV__AIG_BITBLASTER_H
 #define __CVC4__THEORY__BV__AIG_BITBLASTER_H
 
-#include "theory/bv/bitblaster.h"
+#include "theory/bv/bitblast/bitblaster.h"
 
 #include "base/tls.h"
 

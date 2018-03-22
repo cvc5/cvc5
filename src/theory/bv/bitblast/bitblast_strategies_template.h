@@ -22,7 +22,7 @@
 
 #include "cvc4_private.h"
 #include "expr/node.h"
-#include "theory/bv/bitblast_utils.h"
+#include "theory/bv/bitblast/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 

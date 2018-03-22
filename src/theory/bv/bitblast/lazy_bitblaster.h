@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY__BV__LAZY_BITBLASTER_H
 #define __CVC4__THEORY__BV__LAZY_BITBLASTER_H
 
-#include "theory/bv/bitblaster.h"
+#include "theory/bv/bitblast/bitblaster.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"

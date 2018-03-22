@@ -292,11 +292,15 @@ libcvc4_la_SOURCES = \
 	theory/builtin/type_enumerator.h \
 	theory/bv/abstraction.cpp \
 	theory/bv/abstraction.h \
-	theory/bv/aig_bitblaster.h \
-	theory/bv/aig_bitblaster.cpp \
-	theory/bv/bitblast_strategies_template.h \
-	theory/bv/bitblast_utils.h \
-	theory/bv/bitblaster.h \
+	theory/bv/bitblast/aig_bitblaster.cpp \
+	theory/bv/bitblast/aig_bitblaster.h \
+	theory/bv/bitblast/bitblast_strategies_template.h \
+	theory/bv/bitblast/bitblast_utils.h \
+	theory/bv/bitblast/bitblaster.h \
+	theory/bv/bitblast/eager_bitblaster.cpp \
+	theory/bv/bitblast/eager_bitblaster.h \
+	theory/bv/bitblast/lazy_bitblaster.cpp \
+	theory/bv/bitblast/lazy_bitblaster.h \
 	theory/bv/bv_eager_solver.cpp \
 	theory/bv/bv_eager_solver.h \
 	theory/bv/bv_inequality_graph.cpp \
@@ -318,10 +322,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
-	theory/bv/eager_bitblaster.h \
-	theory/bv/eager_bitblaster.cpp \
-	theory/bv/lazy_bitblaster.h \
-	theory/bv/lazy_bitblaster.cpp \
 	theory/bv/slicer.cpp \
 	theory/bv/slicer.h \
 	theory/bv/theory_bv.cpp \

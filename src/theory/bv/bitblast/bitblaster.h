@@ -25,7 +25,7 @@
 
 #include "expr/node.h"
 #include "prop/sat_solver.h"
-#include "theory/bv/bitblast_strategies_template.h"
+#include "theory/bv/bitblast/bitblast_strategies_template.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"

@@ -21,9 +21,10 @@
 
 #include <unordered_set>
 
+#include "theory/bv/bitblast/bitblaster.h"
+
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
-#include "theory/bv/bitblaster.h"
 
 namespace CVC4 {
 namespace theory {

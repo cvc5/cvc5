@@ -16,7 +16,7 @@
 
 #include "cvc4_private.h"
 
-#include "theory/bv/lazy_bitblaster.h"
+#include "theory/bv/bitblast/lazy_bitblaster.h"
 
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
