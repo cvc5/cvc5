@@ -674,7 +674,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
               if (Trace.isOn("fmc-test-inst")) {
                 Node ev = d_quant_models[f].evaluate(fmfmc, inst);
                 if( ev==d_true ){
-                  Message() << "WARNING: instantiation was true! " << f << " " << d_quant_models[f].d_cond[i] << std::endl;
+                  Message() << "WARNING: instantiation was true! " << f << " "
+                            << d_quant_models[f].d_cond[i] << std::endl;
                   AlwaysAssert(false);
                 }else{
                   Trace("fmc-test-inst") << "...instantiation evaluated to false." << std::endl;

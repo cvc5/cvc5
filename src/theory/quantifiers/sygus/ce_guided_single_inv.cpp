@@ -300,7 +300,7 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
   }else{
     d_single_inv = Node::null();
     Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
-    if( options::cegqiSingleInvAbort() )
+    if (options::cegqiSingleInvAbort())
     {
       std::stringstream ss;
       ss << "Property is not single invocation." << std::endl;
@@ -561,7 +561,7 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
 
   if( Trace.isOn("csi-sol") ){
     //debug solution
-    if( !d_sol->debugSolution( d_solution ) )
+    if (!d_sol->debugSolution(d_solution))
     {
       Trace("csi-sol") << "WARNING : solution " << d_solution << " contains free constants." << std::endl;
     }

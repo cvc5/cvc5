@@ -1161,7 +1161,7 @@ void SortModel::allocateCardinality( OutputChannel* out ){
       d_aloc_cardinality >= options::ufssAbortCardinality()) {
     std::stringstream ss;
     ss << "Maximum cardinality (" << options::ufssAbortCardinality()
-              << ")  for finite model finding exceeded." << std::endl;
+       << ")  for finite model finding exceeded." << std::endl;
     throw LogicException(ss.str());
   }else{
     if( applyTotality( d_aloc_cardinality ) ){
