@@ -116,17 +116,17 @@ Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return Abc_AigMux(AigBitblaster::currentAigM(), cond, a, b); 
 }
 
-Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
+CVC4_THREAD_LOCAL Abc_Ntk_t* AigBitblaster::s_abcAigNetwork = NULL;
 
 Abc_Ntk_t* AigBitblaster::currentAigNtk() {
-  if (!AigBitblaster::abcAigNetwork) {
+  if (!AigBitblaster::s_abcAigNetwork) {
     Abc_Start();
-    abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1); 
+    s_abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
     char pName[] = "CVC4::theory::bv::AigNetwork";
-    abcAigNetwork->pName = Extra_UtilStrsav(pName);
+    s_abcAigNetwork->pName = Extra_UtilStrsav(pName);
   }
   
-  return abcAigNetwork;
+  return s_abcAigNetwork;
 }
 
 
@@ -167,9 +167,7 @@ AigBitblaster::AigBitblaster()
   d_satSolver = std::unique_ptr<prop::SatSolver>(solver);
 }
 
-AigBitblaster::~AigBitblaster() {
-  Assert (abcAigNetwork == NULL);
-}
+AigBitblaster::~AigBitblaster() {}
 
 Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
   Assert (node.getType().isBoolean());
@@ -367,7 +365,7 @@ void AigBitblaster::simplifyAig() {
     fprintf( stdout, "Cannot execute command \"%s\".\n", command );
     exit(-1); 
   }
-  abcAigNetwork = Abc_FrameReadNtk(pAbc); 
+  s_abcAigNetwork = Abc_FrameReadNtk(pAbc);
 }
 
 
@@ -384,7 +382,7 @@ void AigBitblaster::convertToCnfAndAssert() {
 
   // // free old network
   // Abc_NtkDelete(currentAigNtk());
-  // abcAigNetwork = NULL;
+  // s_abcAigNetwork = NULL;
   
   Assert (pMan != NULL);
   Assert (Aig_ManCheck(pMan));

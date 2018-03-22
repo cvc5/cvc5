@@ -21,6 +21,8 @@
 
 #include "theory/bv/bitblaster.h"
 
+#include "base/tls.h"
+
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
 
@@ -55,7 +57,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction> TNodeAigMap;
   typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction> NodeAigMap;
 
-  static Abc_Ntk_t* abcAigNetwork;
+  static CVC4_THREAD_LOCAL Abc_Ntk_t* s_abcAigNetwork;
   std::unique_ptr<context::Context> d_nullContext;
   std::unique_ptr<prop::SatSolver> d_satSolver;
   TNodeAigMap d_aigCache;
