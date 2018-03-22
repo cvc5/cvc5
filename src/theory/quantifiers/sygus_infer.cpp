@@ -95,7 +95,11 @@ bool SygusInfer::simplify(std::vector<Node>& assertions)
         visited.insert(cur);
         if (cur.getKind()==APPLY_UF )
         {
-          free_functions.push_back(cur.getOperator());
+          Node op = cur.getOperator();
+          if( std::find( free_functions.begin(), free_functions.end(), op )==free_functions.end() )
+          {
+            free_functions.push_back(op);
+          }
         }
         else if( cur.getKind()==FORALL )
         {
