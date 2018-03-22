@@ -2807,8 +2807,9 @@ bool TheoryStrings::detectLoop( std::vector< std::vector< Node > > &normal_forms
 bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                                  int i, int j, int loop_n_index, int other_n_index, int loop_index, int index, InferInfo& info ){
   if( options::stringAbortLoop() ){
-    Message() << "Looping word equation encountered." << std::endl;
-    exit( 1 );
+    std::stringstream ss;
+    ss << "Looping word equation encountered." << std::endl;
+    throw LogicException(ss.str());
   }
   NodeManager* nm = NodeManager::currentNM();
   Node conc;

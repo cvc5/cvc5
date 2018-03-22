@@ -101,10 +101,6 @@ int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>
     int minIndex = -1;
     if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && inst[index].getType().isInteger() ){
       for( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
-        //if( !m->isInterval( it->first ) ){
-        //  std::cout << "Not an interval during getGenIndex " << it->first << std::endl;
-        //  exit( 11 );
-        //}
         //check if it is in the range
         if( m->isInRange(inst[index], it->first )  ){
           int gindex = it->second.getGeneralizationIndex(m, inst, index+1);
@@ -678,8 +674,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
               if (Trace.isOn("fmc-test-inst")) {
                 Node ev = d_quant_models[f].evaluate(fmfmc, inst);
                 if( ev==d_true ){
-                  std::cout << "WARNING: instantiation was true! " << f << " " << d_quant_models[f].d_cond[i] << std::endl;
-                  exit(0);
+                  Message() << "WARNING: instantiation was true! " << f << " " << d_quant_models[f].d_cond[i] << std::endl;
+                  AlwaysAssert(false);
                 }else{
                   Trace("fmc-test-inst") << "...instantiation evaluated to false." << std::endl;
                 }
