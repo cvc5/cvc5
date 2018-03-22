@@ -22,11 +22,11 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
@@ -625,44 +625,49 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             bool success = true;
             bool verified = false;
             // verify it if applicable
-            if( options::sygusRewSynthCheck() )
+            if (options::sygusRewSynthCheck())
             {
               Trace("rr-check") << "Check candidate rewrite..." << std::endl;
               SmtEngine rrChecker(NodeManager::currentNM()->toExprManager());
-              //rrChecker.setOption("produce-models", SExpr("true"));
+              // rrChecker.setOption("produce-models", SExpr("true"));
               rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
               Node crr = solbr.eqNode(eq_solr).negate();
-              Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
+              Trace("rr-check")
+                  << "Check candidate rewrite : " << crr << std::endl;
               rrChecker.assertFormula(crr.toExpr());
               Result r = rrChecker.checkSat();
               Trace("rr-check") << "...result : " << r << std::endl;
-              if (r.asSatisfiabilityResult().isUnknown() || r.asSatisfiabilityResult().isSat())
+              if (r.asSatisfiabilityResult().isUnknown()
+                  || r.asSatisfiabilityResult().isSat())
               {
-                Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
+                Trace("rr-check")
+                    << "...rewrite does not hold for: " << std::endl;
                 success = false;
-                std::vector< Node > vars;
+                std::vector<Node> vars;
                 d_sampler[prog].getVariables(vars);
-                std::vector< Node > pt;
-                for( const Node& v : vars )
+                std::vector<Node> pt;
+                for (const Node& v : vars)
                 {
-                  Node val = Node::fromExpr( rrChecker.getValue(v.toExpr()) );
+                  Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
                   Trace("rr-check") << "  " << v << " -> " << val << std::endl;
-                  pt.push_back( val );
+                  pt.push_back(val);
                 }
                 d_sampler[prog].addSamplePoint(pt);
                 // readd the solution
                 Node eq_sol_new = its->second.registerTerm(sol);
-                Assert( !r.asSatisfiabilityResult().isSat() || eq_sol_new==sol );
+                Assert(!r.asSatisfiabilityResult().isSat()
+                       || eq_sol_new == sol);
               }
               else
               {
                 verified = true;
               }
             }
-            if( success )
+            if (success)
             {
               // The analog of terms sol and eq_sol are equivalent under sample
-              // points but do not rewrite to the same term. Hence, this indicates
+              // points but do not rewrite to the same term. Hence, this
+              // indicates
               // a candidate rewrite.
               Printer* p = Printer::getPrinter(options::outputLanguage());
               out << "(" << (verified ? "" : "candidate-") << "rewrite ";
@@ -677,14 +682,15 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 Trace("sygus-rr-debug")
                     << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
                 Trace("sygus-rr-debug")
-                    << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
+                    << "; candidate #2 ext-rewrites to: " << eq_solr
+                    << std::endl;
               }
-              if( options::sygusRewSynthAccel() )
+              if (options::sygusRewSynthAccel())
               {
                 // Add a symmetry breaking clause that excludes the larger
                 // of sol and eq_sol. This effectively states that we no longer
-                // wish to enumerate any term that contains sol (resp. eq_sol) as
-                // a subterm.
+                // wish to enumerate any term that contains sol (resp. eq_sol)
+                // as a subterm.
                 Node exc_sol = sol;
                 unsigned sz = sygusDb->getSygusTermSize(sol);
                 unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
@@ -695,8 +701,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 }
                 TypeNode ptn = prog.getType();
                 Node x = sygusDb->getFreeVar(ptn, 0);
-                Node lem =
-                    sygusDb->getExplain()->getExplanationForEquality(x, exc_sol);
+                Node lem = sygusDb->getExplain()->getExplanationForEquality(
+                    x, exc_sol);
                 lem = lem.negate();
                 Trace("sygus-rr-sb")
                     << "Symmetry breaking lemma : " << lem << std::endl;
