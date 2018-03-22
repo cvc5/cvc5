@@ -9,29 +9,35 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief 
+ ** \brief AIG bitblaster.
  **
- ** Bitblaster for the lazy bv solver. 
+ ** AIG bitblaster.
  **/
-
-#include "bitblaster_template.h"
 
 #include "cvc4_private.h"
 
+#include "theory/bv/aig_bitblaster.h"
+
 #include "base/cvc4_check.h"
 #include "options/bv_options.h"
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 
 #ifdef CVC4_USE_ABC
-// Function is defined as static in ABC. Not sure how else to do this. 
-static inline int Cnf_Lit2Var( int Lit ) { return (Lit & 1)? -(Lit >> 1)-1 : (Lit >> 1)+1;  }
 
 extern "C" {
-extern Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+#include "base/abc/abc.h"
+#include "base/main/main.h"
+#include "sat/cnf/cnf.h"
+
+extern Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);
 }
 
+// Function is defined as static in ABC. Not sure how else to do this.
+static inline int Cnf_Lit2Var(int Lit)
+{
+  return (Lit & 1) ? -(Lit >> 1) - 1 : (Lit >> 1) + 1;
+}
 
 namespace CVC4 {
 namespace theory {
@@ -109,15 +115,6 @@ template <> inline
 Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return Abc_AigMux(AigBitblaster::currentAigM(), cond, a, b); 
 }
-
-} /* CVC4::theory::bv */
-} /* CVC4::theory */
-} /* CVC4 */
-
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-
 
 Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
 
@@ -485,4 +482,8 @@ AigBitblaster::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
   smtStatisticsRegistry()->unregisterStat(&d_solveTime); 
 }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 #endif // CVC4_USE_ABC

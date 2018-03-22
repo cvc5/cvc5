@@ -16,24 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BITBLAST__UTILS_H
-#define __CVC4__BITBLAST__UTILS_H
+#ifndef __CVC4__THEORY__BV__BITBLAST_UTILS_H
+#define __CVC4__THEORY__BV__BITBLAST_UTILS_H
 
 
 #include <ostream>
 #include "expr/node.h"
 
-#ifdef CVC4_USE_ABC
-#include "base/main/main.h"
-#include "base/abc/abc.h"
-
-extern "C" {
-#include "sat/cnf/cnf.h"
-}
-#endif
-
 namespace CVC4 {
-
 namespace theory {
 namespace bv {
 
@@ -275,9 +265,8 @@ T inline sLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
   return res;
 }
 
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
-}
-}
-}
-
-#endif
+#endif  // __CVC4__THEORY__BV__BITBLAST_UTILS_H

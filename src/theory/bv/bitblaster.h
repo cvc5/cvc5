@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bitblaster_template.h
+/*! \file bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Clark Barrett
@@ -16,53 +16,26 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BITBLASTER_TEMPLATE_H
-#define __CVC4__BITBLASTER_TEMPLATE_H
+#ifndef __CVC4__THEORY__BV__BITBLASTER_H
+#define __CVC4__THEORY__BV__BITBLASTER_H
 
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include "bitblast_strategies_template.h"
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "prop/sat_solver.h"
+#include "theory/bv/bitblast_strategies_template.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
-class Abc_Obj_t_;
-typedef Abc_Obj_t_ Abc_Obj_t;
-
-class Abc_Ntk_t_;
-typedef Abc_Ntk_t_ Abc_Ntk_t;
-
-class Abc_Aig_t_;
-typedef Abc_Aig_t_ Abc_Aig_t;
-
-class Cnf_Dat_t_;
-typedef Cnf_Dat_t_ Cnf_Dat_t;
-
-
 namespace CVC4 {
-namespace prop {
-class CnfStream;
-class BVSatSolverInterface;
-class NullRegistrar;
-}
-
 namespace theory {
-class OutputChannel;
-class TheoryModel;
-
 namespace bv {
-
-class BitblastingRegistrar;
 
 typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-
-class AbstractionModule;
 
 /**
  * The Bitblaster that manages the mapping between Nodes
@@ -119,133 +92,6 @@ public:
 };
 
 
-class TheoryBV;
-
-class TLazyBitblaster :  public TBitblaster<Node> {
-  typedef std::vector<Node> Bits;
-  typedef context::CDList<prop::SatLiteral> AssertionList;
-  typedef context::CDHashMap<prop::SatLiteral, std::vector<prop::SatLiteral> , prop::SatLiteralHashFunction> ExplanationMap;
-  /** This class gets callbacks from minisat on propagations */
-  class MinisatNotify : public prop::BVSatSolverInterface::Notify {
-    prop::CnfStream* d_cnf;
-    TheoryBV *d_bv;
-    TLazyBitblaster* d_lazyBB;
-  public:
-    MinisatNotify(prop::CnfStream* cnf, TheoryBV *bv, TLazyBitblaster* lbv)
-    : d_cnf(cnf)
-    , d_bv(bv)
-    , d_lazyBB(lbv)
-    {}
-
-    bool notify(prop::SatLiteral lit) override;
-    void notify(prop::SatClause& clause) override;
-    void spendResource(unsigned amount) override;
-    void safePoint(unsigned amount) override;
-  };
-
-  TheoryBV *d_bv;
-  context::Context* d_ctx;
-
-  prop::NullRegistrar* d_nullRegistrar;
-  context::Context* d_nullContext;
-  // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface*         d_satSolver;
-  prop::BVSatSolverInterface::Notify* d_satSolverNotify;
-  prop::CnfStream*                    d_cnfStream;
-
-  AssertionList* d_assertedAtoms; /**< context dependent list storing the atoms
-                                     currently asserted by the DPLL SAT solver. */
-  ExplanationMap* d_explanations; /**< context dependent list of explanations for the propagated literals.
-                                    Only used when bvEagerPropagate option enabled. */
-  TNodeSet d_variables;
-  TNodeSet d_bbAtoms;
-  AbstractionModule* d_abstraction;
-  bool d_emptyNotify;
-
-  // The size of the fact queue when we most recently called solve() in the
-  // bit-vector SAT solver. This is the level at which we should have
-  // a full model in the bv SAT solver.
-  context::CDO<int> d_fullModelAssertionLevel;
-
-  void addAtom(TNode atom);
-  bool hasValue(TNode a);
-  Node getModelFromSatSolver(TNode a, bool fullModel) override;
-
- public:
-  void bbTerm(TNode node, Bits& bits) override;
-  void bbAtom(TNode node) override;
-  Node getBBAtom(TNode atom) const override;
-  void storeBBAtom(TNode atom, Node atom_bb) override;
-  void storeBBTerm(TNode node, const Bits& bits) override;
-  bool hasBBAtom(TNode atom) const override;
-
-  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
-  ~TLazyBitblaster();
-  /**
-   * Pushes the assumption literal associated with node to the SAT
-   * solver assumption queue. 
-   * 
-   * @param node assumption
-   * @param propagate run bcp or not
-   * 
-   * @return false if a conflict detected
-   */
-  bool assertToSat(TNode node, bool propagate = true);
-  bool propagate();
-  bool solve();
-  prop::SatValue solveWithBudget(unsigned long conflict_budget);
-  void getConflict(std::vector<TNode>& conflict);
-  void explain(TNode atom, std::vector<TNode>& explanation);
-  void setAbstraction(AbstractionModule* abs);
-  
-  theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
-
-  /**
-   * Adds a constant value for each bit-blasted variable in the model.
-   *
-   * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
-   */
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog( BitVectorProof * bvp );
-
-  typedef TNodeSet::const_iterator vars_iterator;
-  vars_iterator beginVars() { return d_variables.begin(); }
-  vars_iterator endVars() { return d_variables.end(); }
-
-  /**
-   * Creates the bits corresponding to the variable (or non-bv term). 
-   *
-   * @param var
-   */
-  void makeVariable(TNode var, Bits& bits) override;
-
-  bool isSharedTerm(TNode node);
-  uint64_t computeAtomWeight(TNode node, NodeSet& seen);
-  /** 
-   * Deletes SatSolver and CnfCache, but maintains bit-blasting
-   * terms cache. 
-   * 
-   */
-  void clearSolver(); 
-private:
-
-  class Statistics {
-  public:
-    IntStat d_numTermClauses, d_numAtomClauses;
-    IntStat d_numTerms, d_numAtoms;
-    IntStat d_numExplainedPropagations;
-    IntStat d_numBitblastingPropagations;
-    TimerStat d_bitblastTimer;
-    Statistics(const std::string& name);
-    ~Statistics();
-  };
-  std::string d_name;
-public:
-  Statistics d_statistics;
-};
-
 class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
 public:
   MinisatEmptyNotify() {}
@@ -256,113 +102,6 @@ public:
     NodeManager::currentResourceManager()->spendResource(amount);
   }
   void safePoint(unsigned amount) override {}
-};
-
-
-class EagerBitblaster : public TBitblaster<Node> {
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  // sat solver used for bitblasting and associated CnfStream
-  prop::SatSolver*                   d_satSolver;
-  BitblastingRegistrar*              d_bitblastingRegistrar;
-  context::Context*                  d_nullContext;
-  prop::CnfStream*                   d_cnfStream;
-
-  theory::bv::TheoryBV* d_bv;
-  TNodeSet d_bbAtoms;
-  TNodeSet d_variables;
-
-  // This is either an MinisatEmptyNotify or NULL.
-  MinisatEmptyNotify* d_notify;
-
-  Node getModelFromSatSolver(TNode a, bool fullModel) override;
-  bool isSharedTerm(TNode node);
-
-public:
-  EagerBitblaster(theory::bv::TheoryBV* theory_bv);
-  ~EagerBitblaster();
-
-  void addAtom(TNode atom);
-  void makeVariable(TNode node, Bits& bits) override;
-  void bbTerm(TNode node, Bits& bits) override;
-  void bbAtom(TNode node) override;
-  Node getBBAtom(TNode node) const override;
-  bool hasBBAtom(TNode atom) const override;
-  void bbFormula(TNode formula);
-  void storeBBAtom(TNode atom, Node atom_bb) override;
-  void storeBBTerm(TNode node, const Bits& bits) override;
-
-  bool assertToSat(TNode node, bool propagate = true);
-  bool solve();
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog( BitVectorProof * bvp );
-};
-
-class BitblastingRegistrar: public prop::Registrar {
-  EagerBitblaster* d_bitblaster;
-public:
-  BitblastingRegistrar(EagerBitblaster* bb)
-    : d_bitblaster(bb)
-  {}
-  void preRegister(Node n) override;
-}; /* class Registrar */
-
-class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
-  typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
-  typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
-  
-  static Abc_Ntk_t* abcAigNetwork;
-  context::Context* d_nullContext;
-  prop::SatSolver* d_satSolver;
-  TNodeAigMap d_aigCache;
-  NodeAigMap d_bbAtoms;
-  
-  NodeAigMap d_nodeToAigInput;
-  // the thing we are checking for sat
-  Abc_Obj_t* d_aigOutputNode;
-
-  void addAtom(TNode atom);
-  void simplifyAig();
-  void storeBBAtom(TNode atom, Abc_Obj_t* atom_bb) override;
-  Abc_Obj_t* getBBAtom(TNode atom) const override;
-  bool hasBBAtom(TNode atom) const override;
-  void cacheAig(TNode node, Abc_Obj_t* aig);
-  bool hasAig(TNode node);
-  Abc_Obj_t* getAig(TNode node);
-  Abc_Obj_t* mkInput(TNode input);
-  bool hasInput(TNode input);
-  void convertToCnfAndAssert();
-  void assertToSatSolver(Cnf_Dat_t* pCnf);
-  Node getModelFromSatSolver(TNode a, bool fullModel) override
-  {
-    Unreachable();
-  }
-
- public:
-  AigBitblaster();
-  ~AigBitblaster();
-
-  void makeVariable(TNode node, Bits& bits) override;
-  void bbTerm(TNode node, Bits& bits) override;
-  void bbAtom(TNode node) override;
-  Abc_Obj_t* bbFormula(TNode formula);
-  bool solve(TNode query); 
-  static Abc_Aig_t* currentAigM();
-  static Abc_Ntk_t* currentAigNtk();
-  
-private:
-  class Statistics {
-  public:
-    IntStat     d_numClauses;
-    IntStat     d_numVariables; 
-    TimerStat   d_simplificationTime;
-    TimerStat   d_cnfConversionTime;
-    TimerStat   d_solveTime; 
-    Statistics();
-    ~Statistics();
-  };
-
-  Statistics d_statistics;
-
 };
 
 
@@ -498,11 +237,8 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
   return value; 
 }
 
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
-} /* bv namespace */
-
-} /* theory namespace */
-
-} /* CVC4 namespace */
-
-#endif /* __CVC4__BITBLASTER_H */
+#endif /* __CVC4__THEORY__BV__BITBLASTER_H */

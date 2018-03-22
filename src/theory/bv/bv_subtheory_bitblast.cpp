@@ -14,18 +14,18 @@
  ** Algebraic solver.
  **/
 
+#include "theory/bv/bv_subtheory_bitblast.h"
 #include "decision/decision_attributes.h"
-#include "options/decision_options.h"
 #include "options/bv_options.h"
+#include "options/decision_options.h"
+#include "proof/bitvector_proof.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
-#include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/bv_subtheory_bitblast.h"
+#include "theory/bv/lazy_bitblaster.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "proof/proof_manager.h"
-#include "proof/bitvector_proof.h"
 
 using namespace std;
 using namespace CVC4::context;

@@ -14,8 +14,10 @@
  ** Bitblaster for the lazy bv solver.
  **/
 
-#include "bitblaster_template.h"
 #include "cvc4_private.h"
+
+#include "theory/bv/lazy_bitblaster.h"
+
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -598,6 +600,6 @@ void TLazyBitblaster::clearSolver() {
   d_satSolver->setNotify(d_satSolverNotify);
 }
 
-} /* namespace CVC4::theory::bv */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4

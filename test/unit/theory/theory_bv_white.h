@@ -22,7 +22,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/eager_bitblaster.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"

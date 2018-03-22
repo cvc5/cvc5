@@ -15,9 +15,11 @@
  **/
 
 #include "theory/bv/bv_eager_solver.h"
+
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/aig_bitblaster.h"
+#include "theory/bv/eager_bitblaster.h"
 
 using namespace std;
 

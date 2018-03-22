@@ -16,20 +16,19 @@
 
 #include "cvc4_private.h"
 
+#include "theory/bv/eager_bitblaster.h"
+
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bitblaster_template.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
-
-void BitblastingRegistrar::preRegister(Node n) { d_bitblaster->bbAtom(n); }
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
     : TBitblaster<Node>(),
@@ -264,6 +263,7 @@ bool EagerBitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();
 }
 
-} /* namespace CVC4::theory::bv; */
-} /* namespace CVC4::theory; */
-} /* namespace CVC4; */
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
