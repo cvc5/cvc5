@@ -19,12 +19,12 @@
   (match t
     ((apply s1 s2 t1 t2)
       (match ti
-				((apply s1 s2 t1 ti2) (is_inst_t ti2 t2 k))
+        ((apply s1 s2 t1 ti2) (is_inst_t ti2 t2 k))
         (default ff)))
-			(default
-		(ifmarked t
-				(do (markvar t) (let r (is_inst_t ti k k) (do (markvar t) r)))
-		(eqvar ti t)))))
+    (default
+        (ifmarked t
+            (do (markvar t) (let r (is_inst_t ti k k) (do (markvar t) r)))
+            (eqvar ti t)))))
 
 (program is_inst_f ((fi formula) (f formula) (k term)) bool
   (match f
