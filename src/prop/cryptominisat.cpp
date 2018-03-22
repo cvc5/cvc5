@@ -79,9 +79,7 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
 }
 
 
-CryptoMinisatSolver::~CryptoMinisatSolver() {
-  delete d_solver;
-}
+CryptoMinisatSolver::~CryptoMinisatSolver() {}
 
 ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
 				       bool rhs,

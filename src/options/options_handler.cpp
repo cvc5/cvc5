@@ -1042,31 +1042,37 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 
 void OptionsHandler::satSolverEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_USE_CRYPTOMINISAT
-  if(value) {
+#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
+  if (value)
+  {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an cryptominisat-enabled build of CVC4; this binary was not built with cryptominisat support";
+    ss << "option `" << option
+       << "' requires a CVC4 to be built with CryptoMiniSat or CaDiCaL";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_CRYPTOMINISAT */
+#endif
 }
 
 void OptionsHandler::satSolverEnabledBuild(std::string option,
                                            std::string value)
 {
-#ifndef CVC4_USE_CRYPTOMINISAT
-  if(!value.empty()) {
+#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
+  if (!value.empty())
+  {
     std::stringstream ss;
-    ss << "option `" << option << "' requires an cryptominisat-enabled build of CVC4; this binary was not built with cryptominisat support";
+    ss << "option `" << option
+       << "' requires a CVC4 to be built with CryptoMiniSat or CaDiCaL";
     throw OptionException(ss.str());
   }
-#endif /* CVC4_USE_CRYPTOMINISAT */
+#endif
 }
 
 const std::string OptionsHandler::s_bvSatSolverHelp = "\
 Sat solvers currently supported by the --bv-sat-solver option:\n\
 \n\
 minisat (default)\n\
+\n\
+cadical\n\
 \n\
 cryptominisat\n\
 ";
@@ -1080,13 +1086,14 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     
     if (options::incrementalSolving() &&
         options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Cryptominsat does not support incremental mode. \n\
+      throw OptionException(std::string("CryptoMinSat does not support incremental mode. \n\
                                          Try --bv-sat-solver=minisat"));
     }
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
         options::bitblastMode.wasSetByUser()) {
-      throw OptionException(std::string("Cryptominsat does not support lazy bit-blsating. \n\
+      throw OptionException(
+          std::string("CryptoMiniSat does not support lazy bit-blasting. \n\
                                          Try --bv-sat-solver=minisat"));
     }
     if (!options::bitvectorToBool.wasSetByUser()) {
@@ -1099,6 +1106,29 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     //   options::skolemizeArguments.set(true); 
     // }
     return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
+  }
+  else if (optarg == "cadical")
+  {
+    if (options::incrementalSolving()
+        && options::incrementalSolving.wasSetByUser())
+    {
+      throw OptionException(
+          std::string("CaDiCaL does not support incremental mode. \n\
+                                         Try --bv-sat-solver=minisat"));
+    }
+
+    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
+        && options::bitblastMode.wasSetByUser())
+    {
+      throw OptionException(
+          std::string("CaDiCaL does not support lazy bit-blasting. \n\
+                                         Try --bv-sat-solver=minisat"));
+    }
+    if (!options::bitvectorToBool.wasSetByUser())
+    {
+      options::bitvectorToBool.set(true);
+    }
+    return theory::bv::SAT_SOLVER_CADICAL;
   } else if(optarg == "help") {
     puts(s_bvSatSolverHelp.c_str());
     exit(1);
@@ -1658,6 +1688,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("abc", Configuration::isBuiltWithAbc());
   print_config_cond("cln", Configuration::isBuiltWithCln());
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
+  print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());

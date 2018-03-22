@@ -38,7 +38,7 @@ namespace prop {
 class CryptoMinisatSolver : public SatSolver {
 
 private:
-  CMSat::SATSolver* d_solver;
+  std::unique_ptr<CMSat::SATSolver> d_solver;
   unsigned d_numVariables;
   bool d_okay;
   SatVariable d_true;
