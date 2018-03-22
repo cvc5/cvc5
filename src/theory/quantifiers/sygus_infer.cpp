@@ -57,6 +57,7 @@ bool SygusInfer::simplify(std::vector<Node>& assertions)
     Node pas = as;
     if( as.getKind()==FORALL )
     {
+      pas = as[1];
       // infer prefix 
       for( const Node& v : as[0] )
       {
@@ -77,7 +78,7 @@ bool SygusInfer::simplify(std::vector<Node>& assertions)
       }
       if( !vars.empty() )
       {
-        pas = as[1].substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+        pas = pas.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       }
     }
     

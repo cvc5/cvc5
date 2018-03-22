@@ -100,6 +100,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/sygus_infer.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -1882,6 +1883,13 @@ void SmtEngine::setDefaults() {
   }
 
   //apply counterexample guided instantiation options
+  // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
+  if( options::sygusInfer() )
+  {
+    if( !options::ceGuidedInst.wasSetByUser() ){
+      options::ceGuidedInst.set( true );
+    }
+  }
   if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
     if( !options::ceGuidedInst.wasSetByUser() ){
       options::ceGuidedInst.set( true );
@@ -4235,9 +4243,19 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  // global negation of the formula
-  if (options::globalNegate())
+  if (options::sygusInfer())
   {
+    // try recast as sygus
+    quantifiers::SygusInfer si;
+    if( si.simplify(d_assertions.ref()) )
+    {
+      Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
+      d_smt.d_globalNegation = !d_smt.d_globalNegation;
+    }
+  }
+  else if (options::globalNegate())
+  {  
+    // global negation of the formula
     quantifiers::GlobalNegate gn;
     gn.simplify(d_assertions.ref());
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
