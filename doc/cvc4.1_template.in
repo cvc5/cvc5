@@ -48,9 +48,9 @@ is connected to a terminal, interactive mode is assumed.
 
 .IP "Each option marked with [*] has a \-\-no\-OPTIONNAME variant, which reverses the sense of the option."
 
-${common_manpage_documentation}
+${man_common}$
 
-${remaining_manpage_documentation}
+${man_others}$
 
 .IP "Each option marked with [*] has a \-\-no\-OPTIONNAME variant, which reverses the sense of the option."
 

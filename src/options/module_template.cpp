@@ -1,33 +1,31 @@
 /*********************                                                        */
-/*! \file base_options_template.cpp
+/*! \file ${filename}$.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
+ **   Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Contains code for handling command-line options.
+ ** \brief Option template for option modules.
  **
- ** Contains code for handling command-line options
+ ** For each <module>_options.toml configuration file, mkoptions.py
+ ** expands this template and generates a <module>_options.cpp file.
  **/
 
 #include "options/options_holder.h"
 
 namespace CVC4 {
 
-${module_accessors}
+${accs}$
 
-#line 24 "${template}"
 
 namespace options {
 
-${module_global_definitions}
+${defs}$
 
-#line 30 "${template}"
 
-}/* CVC4::options namespace */
-
-}/* CVC4 namespace */
+}  // namespace options
+}  // namespace CVC4

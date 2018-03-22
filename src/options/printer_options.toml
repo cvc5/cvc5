@@ -1,0 +1,23 @@
+id     = "PRINTER"
+name   = "Printing"
+header = "options/printer_options.h"
+
+[[option]]
+  name       = "modelFormatMode"
+  category   = "regular"
+  long       = "model-format=MODE"
+  type       = "ModelFormatMode"
+  default    = "MODEL_FORMAT_MODE_DEFAULT"
+  handler    = "stringToModelFormatMode"
+  includes   = ["options/printer_modes.h"]
+  help       = "print format mode for models, see --model-format=help"
+
+[[option]]
+  name       = "instFormatMode"
+  category   = "regular"
+  long       = "inst-format=MODE"
+  type       = "InstFormatMode"
+  default    = "INST_FORMAT_MODE_DEFAULT"
+  handler    = "stringToInstFormatMode"
+  includes   = ["options/printer_modes.h"]
+  help       = "print format mode for instantiations, see --inst-format=help"
