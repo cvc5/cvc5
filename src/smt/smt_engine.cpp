@@ -4866,9 +4866,9 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
-         (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
-        checkModel(/* hard failure iff */ ! r.isUnknown());
+      // TODO (#1693) check model when unknown result?
+      if(r.asSatisfiabilityResult().isSat() == Result::SAT ){
+        checkModel();
       }
     }
     // Check that UNSAT results generate a proof correctly.
