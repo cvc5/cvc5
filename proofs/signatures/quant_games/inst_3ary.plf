@@ -1,4 +1,5 @@
-(declare ternary (! s sort
+;check that ternary(y,x,y){z/x}=ternary(y,z,y)
+;(declare ternary (! s sort
 				 (term (arrow s (arrow s (arrow s s)) ))))
 
 (check
