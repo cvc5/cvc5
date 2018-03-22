@@ -1,0 +1,12 @@
+(declare ternary (! s sort
+				 (term (arrow s (arrow s (arrow s s)) ))))
+
+(check
+(% s sort
+(% x (term s)
+(% y (term s)
+(% z (term s)
+(% p (th_holds (forall s x (not (= s y (apply _ _ (apply _ _ (apply _ _ (ternary s) y) x) y)))))
+(% q (th_holds (= s y (apply _ _ (apply _ _ (apply _ _ (ternary s) y) z) y)))
+(: (holds cln)
+(inst s x (not (= s y (apply _ _ (apply _ _ (apply _ _ (ternary s) y) x) y))) z (not (= s y (apply _ _ (apply _ _ (apply _ _ (ternary s) y) z) y)))  p (\ p1 (clausify_false (contra (not (= s y (apply _ _ (apply _ _ (apply _ _ (ternary s) y) z) y))) p1 (not_not_intro (= s y (apply _ _ (apply _ _ (apply _ _ (ternary s) y) z) y)) q)))))))))))))
