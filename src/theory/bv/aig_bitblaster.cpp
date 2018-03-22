@@ -135,33 +135,40 @@ Abc_Aig_t* AigBitblaster::currentAigM() {
 }
 
 AigBitblaster::AigBitblaster()
-  : TBitblaster<Abc_Obj_t*>()
-  , d_aigCache()
-  , d_bbAtoms()
-  , d_aigOutputNode(NULL)
+    : TBitblaster<Abc_Obj_t*>(),
+      d_nullContext(new context::Context()),
+      d_aigCache(),
+      d_bbAtoms(),
+      d_aigOutputNode(NULL)
 {
-  d_nullContext = new context::Context();
-  switch(options::bvSatSolver()) {
-  case SAT_SOLVER_MINISAT: {
-    prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
-                                                                                smtStatisticsRegistry(),
-                                                                                "AigBitblaster");
-    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-    minisat->setNotify(notify);
-    d_satSolver = minisat;
-    break;
+  prop::SatSolver* solver = nullptr;
+  switch (options::bvSatSolver())
+  {
+    case SAT_SOLVER_MINISAT:
+    {
+      prop::BVSatSolverInterface* minisat =
+          prop::SatSolverFactory::createMinisat(
+              d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
+      MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+      minisat->setNotify(notify);
+      solver = minisat;
+      break;
+    }
+    case SAT_SOLVER_CADICAL:
+      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
+                                                     "AigBitblaster");
+      break;
+    case SAT_SOLVER_CRYPTOMINISAT:
+      solver = prop::SatSolverFactory::createCryptoMinisat(
+          smtStatisticsRegistry(), "AigBitblaster");
+      break;
+    default: CVC4_FATAL() << "Unknown SAT solver type";
   }
-  case SAT_SOLVER_CRYPTOMINISAT:
-    d_satSolver = prop::SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(),
-                                                              "AigBitblaster");
-    break;
-  default: CVC4_FATAL() << "Unknown SAT solver type";
-  }
+  d_satSolver = std::unique_ptr<prop::SatSolver>(solver);
 }
 
 AigBitblaster::~AigBitblaster() {
   Assert (abcAigNetwork == NULL);
-  delete d_nullContext;
 }
 
 Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {

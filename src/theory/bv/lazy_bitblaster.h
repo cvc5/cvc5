@@ -127,12 +127,12 @@ class TLazyBitblaster : public TBitblaster<Node>
   TheoryBV* d_bv;
   context::Context* d_ctx;
 
-  prop::NullRegistrar* d_nullRegistrar;
-  context::Context* d_nullContext;
+  std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
+  std::unique_ptr<context::Context> d_nullContext;
   // sat solver used for bitblasting and associated CnfStream
-  prop::BVSatSolverInterface* d_satSolver;
-  prop::BVSatSolverInterface::Notify* d_satSolverNotify;
-  prop::CnfStream* d_cnfStream;
+  std::unique_ptr<prop::BVSatSolverInterface> d_satSolver;
+  std::unique_ptr<prop::BVSatSolverInterface::Notify> d_satSolverNotify;
+  std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   AssertionList*
       d_assertedAtoms;            /**< context dependent list storing the atoms

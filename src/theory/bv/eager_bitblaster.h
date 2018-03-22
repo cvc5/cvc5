@@ -56,17 +56,17 @@ class EagerBitblaster : public TBitblaster<Node>
  private:
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
-  prop::SatSolver* d_satSolver;
-  BitblastingRegistrar* d_bitblastingRegistrar;
-  context::Context* d_nullContext;
-  prop::CnfStream* d_cnfStream;
+  std::unique_ptr<prop::SatSolver> d_satSolver;
+  std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
+  std::unique_ptr<context::Context> d_nullContext;
+  std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   TheoryBV* d_bv;
   TNodeSet d_bbAtoms;
   TNodeSet d_variables;
 
   // This is either an MinisatEmptyNotify or NULL.
-  MinisatEmptyNotify* d_notify;
+  std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
   bool isSharedTerm(TNode node);

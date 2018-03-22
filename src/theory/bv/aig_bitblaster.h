@@ -11,7 +11,7 @@
  **
  ** \brief AIG bitblaster.
  **
- ** AIG bitblaster.
+ ** AIG Bitblaster based on ABC.
  **/
 
 #include "cvc4_private.h"
@@ -56,8 +56,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction> NodeAigMap;
 
   static Abc_Ntk_t* abcAigNetwork;
-  context::Context* d_nullContext;
-  prop::SatSolver* d_satSolver;
+  std::unique_ptr<context::Context> d_nullContext;
+  std::unique_ptr<prop::SatSolver> d_satSolver;
   TNodeAigMap d_aigCache;
   NodeAigMap d_bbAtoms;
 
