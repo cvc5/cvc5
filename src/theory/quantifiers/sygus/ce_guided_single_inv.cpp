@@ -255,7 +255,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
             Trace("cegqi-inv") << "       template (pre-substitution) : " << templ << std::endl;
             Assert( !templ.isNull() );
             // subsitute the template arguments
-            Assert( prog_templ_vars.size())==prog_vars[prog].size() );
+            Assert( prog_templ_vars.size()==prog_vars[prog].size() );
             templ = templ.substitute( prog_templ_vars.begin(), prog_templ_vars.end(), prog_vars[prog].begin(), prog_vars[prog].end() );
             Trace("cegqi-inv") << "       template : " << templ << std::endl;
             d_templ[prog] = templ;
