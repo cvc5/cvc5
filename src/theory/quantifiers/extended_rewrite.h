@@ -128,6 +128,8 @@ class ExtendedRewriter
    *   A = ( A & B ) ---> ~A | B
    * 
    * If this function returns a non-null node ret, then n ---> ret.
+   * This function takes as arguments the kinds that specify EQUAL, AND, OR,
+   * and NOT. If the flag isXor is true, the eqk is treated as XOR.
    */
   Node extendedRewriteEqChain( Kind eqk, Kind andk, Kind ork, Kind notk, Node n, bool isXor = false );
   /** extended rewrite aggressive 
