@@ -105,20 +105,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
         preGrammarType = preGrammarType.getRangeType();
       }
     }
-    Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
-    if( sfvl.isNull() && sf.getType().isFunction() )
-    {
-      std::vector< TypeNode > argTypes = sf.getType().getArgTypes();
-      // make default variable list if none was specified by input
-      std::vector< Node > bvs;
-      for( unsigned j=0, size = argTypes.size(); j<size; j++ )
-      {
-        std::stringstream ss;
-        ss << "x" << j;
-        bvs.push_back( nm->mkBoundVar(ss.str(), argTypes[j] ) );
-      }
-      sfvl = nm->mkNode( BOUND_VAR_LIST, bvs );
-    }
+    Node sfvl = getSygusVarList( sf );
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;
 
@@ -716,6 +703,26 @@ TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg,
                                                      const std::string& fun ) {
   unsigned tcount = 0;
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
+}
+
+Node CegGrammarConstructor::getSygusVarList(Node f)
+{
+  Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
+  if( sfvl.isNull() && f.getType().isFunction() )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    std::vector< TypeNode > argTypes = f.getType().getArgTypes();
+    // make default variable list if none was specified by input
+    std::vector< Node > bvs;
+    for( unsigned j=0, size = argTypes.size(); j<size; j++ )
+    {
+      std::stringstream ss;
+      ss << "x" << j;
+      bvs.push_back( nm->mkBoundVar(ss.str(), argTypes[j] ) );
+    }
+    sfvl = nm->mkNode( BOUND_VAR_LIST, bvs );
+  }
+  return sfvl;
 }
 
 }/* namespace CVC4::theory::quantifiers */

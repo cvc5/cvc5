@@ -888,9 +888,9 @@ header = "options/quantifiers_options.h"
 ### Synthesis options
 
 [[option]]
-  name       = "sygusInfer"
+  name       = "sygusInference"
   category   = "regular"
-  long       = "sygus-infer"
+  long       = "sygus-inference"
   type       = "bool"
   default    = "false"
   read_only  = false

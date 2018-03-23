@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_infer.h
+/*! \file sygus_inference.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief sygus_infer
+ ** \brief sygus_inference
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INFER_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_INFER_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INFERENCE_H
+#define __CVC4__THEORY__QUANTIFIERS__SYGUS_INFERENCE_H
 
 #include <vector>
 #include "expr/node.h"
@@ -24,16 +24,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** SygusInfer
+/** SygusInference
  * 
  * A preprocessing utility to turn a set of (quantified) assertions into a 
  * single SyGuS conjecture.
  */
-class SygusInfer 
+class SygusInference 
 {
 public:
-  SygusInfer();
-  ~SygusInfer(){}
+  SygusInference();
+  ~SygusInference(){}
   /** simplify assertions
    *
    * Either replaces assertions with an equivalent SyGus conjecture and returns
@@ -47,4 +47,4 @@ public:
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_INFER_H */
+#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_INFERENCE_H */

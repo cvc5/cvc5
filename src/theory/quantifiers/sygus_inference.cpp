@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_infer.cpp
+/*! \file sygus_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sygus_infer
+ ** \brief Implementation of sygus_inference
  **/
 
-#include "theory/quantifiers/sygus_infer.h"
+#include "theory/quantifiers/sygus_inference.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace std;
@@ -22,11 +22,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
-SygusInfer::SygusInfer() {
+SygusInference::SygusInference() {
 
 }
 
-bool SygusInfer::simplify(std::vector<Node>& assertions)
+bool SygusInference::simplify(std::vector<Node>& assertions)
 {
   Trace("sygus-infer") << "Sygus inference : " << std::endl;
   

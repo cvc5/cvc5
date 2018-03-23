@@ -100,7 +100,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/sygus_infer.h"
+#include "theory/quantifiers/sygus_inference.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -1884,7 +1884,7 @@ void SmtEngine::setDefaults() {
 
   //apply counterexample guided instantiation options
   // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
-  if( options::sygusInfer() )
+  if( options::sygusInference() )
   {
     if( !options::ceGuidedInst.wasSetByUser() ){
       options::ceGuidedInst.set( true );
@@ -4243,10 +4243,10 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  if (options::sygusInfer())
+  if (options::sygusInference())
   {
     // try recast as sygus
-    quantifiers::SygusInfer si;
+    quantifiers::SygusInference si;
     if( si.simplify(d_assertions.ref()) )
     {
       Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
