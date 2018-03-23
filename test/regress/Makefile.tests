@@ -406,7 +406,6 @@ REG0_TESTS = \
 	regress0/flet.smt \
 	regress0/flet2.smt \
 	regress0/fmf/Arrow_Order-smtlib.778341.smt \
-	regress0/fmf/Hoare-z3.931718.smt \
 	regress0/fmf/QEpres-uf.855035.smt \
 	regress0/fmf/array_card.smt2 \
 	regress0/fmf/bounded_sets.smt2 \
@@ -1075,6 +1074,8 @@ REG1_TESTS = \
 	regress1/fmf/refcount24.cvc.smt2 \
 	regress1/fmf/sc-crash-052316.smt2 \
 	regress1/fmf/with-ind-104-core.smt2 \
+	regress1/fmf/Hoare-z3.931718.smt \
+	regress1/fmf/nlp042+1.smt2 \
 	regress1/gensys_brn001.smt2 \
 	regress1/ho/auth0068.smt2 \
 	regress1/ho/fta0409.smt2 \
@@ -1265,6 +1266,7 @@ REG1_TESTS = \
 	regress1/quantifiers/stream-x2014-09-18-unsat.smt2 \
 	regress1/quantifiers/symmetric_unsat_7.smt2 \
 	regress1/quantifiers/z3.620661-no-fv-trigger.smt2 \
+	regress1/quantifiers/smtlibe99bbe.smt2 \
 	regress1/rels/addr_book_1.cvc \
 	regress1/rels/addr_book_1_1.cvc \
 	regress1/rels/bv1-unit.cvc \
