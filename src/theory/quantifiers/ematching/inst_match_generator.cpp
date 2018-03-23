@@ -541,14 +541,6 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
   }
   Trace("var-trigger-debug") << "Is " << n << " a variable trigger?"
                              << std::endl;
-  if (Trigger::isBooleanTermTrigger(n))
-  {
-    VarMatchGeneratorBooleanTerm* vmg =
-        new VarMatchGeneratorBooleanTerm(n[0], n[1]);
-    Trace("var-trigger") << "Boolean term trigger : " << n << ", var = " << n[0]
-                         << std::endl;
-    return vmg;
-  }
   Node x;
   if (options::purifyTriggers())
   {
@@ -563,38 +555,6 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
     return vmg;
   }
   return new InstMatchGenerator(n);
-}
-
-VarMatchGeneratorBooleanTerm::VarMatchGeneratorBooleanTerm( Node var, Node comp ) :
-  InstMatchGenerator(), d_comp( comp ), d_rm_prev( false ) {
-  d_children_types.push_back(var.getAttribute(InstVarNumAttribute()));
-}
-
-int VarMatchGeneratorBooleanTerm::getNextMatch(Node q,
-                                               InstMatch& m,
-                                               QuantifiersEngine* qe,
-                                               Trigger* tparent)
-{
-  int ret_val = -1;
-  if( !d_eq_class.isNull() ){
-    Node s = NodeManager::currentNM()->mkConst(qe->getEqualityQuery()->areEqual( d_eq_class, d_pattern ));
-    d_eq_class = Node::null();
-    d_rm_prev = m.get(d_children_types[0]).isNull();
-    if (!m.set(qe->getEqualityQuery(), d_children_types[0], s))
-    {
-      return -1;
-    }else{
-      ret_val = continueNextMatch(q, m, qe, tparent);
-      if( ret_val>0 ){
-        return ret_val;
-      }
-    }
-  }
-  if( d_rm_prev ){
-    m.d_vals[d_children_types[0]] = Node::null();
-    d_rm_prev = false;
-  }
-  return ret_val;
 }
 
 VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs( Node var, Node subs ) :

@@ -262,9 +262,7 @@ bool Trigger::isUsable( Node n, Node q ){
       return true;
     }else{
       std::map< Node, Node > coeffs;
-      if( isBooleanTermTrigger( n ) ){
-        return true;
-      }else if( options::purifyTriggers() ){
+      if( options::purifyTriggers() ){
         Node x = getInversionVariable( n );
         if( !x.isNull() ){
           return true;
@@ -520,22 +518,6 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
       }
     }
   }
-}
-
-bool Trigger::isBooleanTermTrigger( Node n ) {
-  if( n.getKind()==ITE ){
-    //check for boolean term converted to ITE
-    if( n[0].getKind()==INST_CONSTANT &&
-        n[1].getKind()==CONST_BITVECTOR &&
-        n[2].getKind()==CONST_BITVECTOR ){
-      if( ((BitVectorType)n[1].getType().toType()).getSize()==1 &&
-          n[1].getConst<BitVector>().toInteger()==1 &&
-          n[2].getConst<BitVector>().toInteger()==0 ){
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 bool Trigger::isPureTheoryTrigger( Node n ) {

@@ -418,32 +418,6 @@ class InstMatchGenerator : public IMGenerator {
   static InstMatchGenerator* getInstMatchGenerator(Node q, Node n);
 };/* class InstMatchGenerator */
 
-/** match generator for Boolean term ITEs
-* This handles the special case of triggers that look like ite( x, BV1, BV0 ).
-*/
-class VarMatchGeneratorBooleanTerm : public InstMatchGenerator {
-public:
-  VarMatchGeneratorBooleanTerm( Node var, Node comp );
-
-  /** Reset */
-  bool reset(Node eqc, QuantifiersEngine* qe) override
-  {
-    d_eq_class = eqc; 
-    return true;
-  }
-  /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m,
-                   QuantifiersEngine* qe,
-                   Trigger* tparent) override;
-
- private:
-  /** stores the true branch of the Boolean ITE */
-  Node d_comp;
-  /** stores whether we have written a value for var in the current match. */
-  bool d_rm_prev;
-};
-
 /** match generator for purified terms
 * This handles the special case of invertible terms like x+1 (see
 * Trigger::getTermInversionVariable).
