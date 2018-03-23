@@ -1366,6 +1366,14 @@ void SmtEngine::setDefaults() {
     }
     */
   }
+  
+  // sygus inference may require datatypes
+  if (options::sygusInference())
+  {
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableTheory(THEORY_DATATYPES);
+    d_logic.lock();
+  }
 
   if ((options::checkModels() || options::checkSynthSol())
       && !options::produceAssertions())
