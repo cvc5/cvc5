@@ -406,8 +406,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fmf/model_builder.h \
 	theory/quantifiers/fmf/model_engine.cpp \
 	theory/quantifiers/fmf/model_engine.h \
-	theory/quantifiers/fun_def_engine.cpp \
-	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
 	theory/quantifiers/global_negate.cpp \
@@ -430,8 +428,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_epr.cpp \
 	theory/quantifiers/quant_epr.h \
-	theory/quantifiers/quant_equality_engine.cpp \
-	theory/quantifiers/quant_equality_engine.h \
 	theory/quantifiers/quant_relevance.cpp \
 	theory/quantifiers/quant_relevance.h \
 	theory/quantifiers/quant_split.cpp \

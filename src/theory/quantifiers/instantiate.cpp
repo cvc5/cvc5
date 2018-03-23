@@ -269,22 +269,6 @@ bool Instantiate::addInstantiation(
   }
 
   Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
-
-  // get relevancy conditions
-  if (options::instRelevantCond())
-  {
-    std::vector<Node> rlv_cond;
-    for (Node& t : terms)
-    {
-      quantifiers::TermUtil::getRelevancyCondition(t, rlv_cond);
-    }
-    if (!rlv_cond.empty())
-    {
-      rlv_cond.push_back(lem);
-      lem = NodeManager::currentNM()->mkNode(kind::OR, rlv_cond);
-    }
-  }
-
   lem = Rewriter::rewrite(lem);
 
   // check for lemma duplication
