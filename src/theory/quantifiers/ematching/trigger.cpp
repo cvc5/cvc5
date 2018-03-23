@@ -15,7 +15,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/candidate_generator.h"
+#include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/instantiate.h"

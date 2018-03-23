@@ -366,8 +366,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bv_inverter.cpp \
 	theory/quantifiers/bv_inverter.h \
-	theory/quantifiers/candidate_generator.cpp \
-	theory/quantifiers/candidate_generator.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
@@ -378,6 +376,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/conjecture_generator.h \
 	theory/quantifiers/dynamic_rewrite.cpp \
 	theory/quantifiers/dynamic_rewrite.h \
+	theory/quantifiers/ematching/candidate_generator.cpp \
+	theory/quantifiers/ematching/candidate_generator.h \
 	theory/quantifiers/ematching/ho_trigger.cpp \
 	theory/quantifiers/ematching/ho_trigger.h \
 	theory/quantifiers/ematching/inst_match_generator.cpp \
