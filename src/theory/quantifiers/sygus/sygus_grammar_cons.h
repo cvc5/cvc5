@@ -83,6 +83,11 @@ public:
   *   fun is for naming
   */
   static TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
+  /** 
+   * Returns true iff there are syntax restrictions on the 
+   * functions-to-synthesize of sygus conjecture q.
+   */
+  static bool hasSyntaxRestrictions(Node q);
 private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
