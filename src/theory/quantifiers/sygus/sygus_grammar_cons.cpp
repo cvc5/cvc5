@@ -36,6 +36,25 @@ CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
 {
 }
 
+bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
+{
+  Assert(q.getKind() == FORALL);
+  for (const Node& f : q[0])
+  {
+    Node gv = f.getAttribute(SygusSynthGrammarAttribute());
+    if (!gv.isNull())
+    {
+      TypeNode tn = gv.getType();
+      if (tn.isDatatype()
+          && static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus())
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts ){
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
