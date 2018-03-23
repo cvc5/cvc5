@@ -781,6 +781,15 @@ Node TermUtil::simpleNegate( Node n ){
   return n.negate();
 }
 
+Node TermUtil::mkNegate( Kind notk, Node n )
+{
+  if( n.getKind()==notk )
+  {
+    return n[0];
+  }
+  return NodeManager::currentNM()->mkNode( notk, n );
+}
+
 bool TermUtil::isAssoc( Kind k ) {
   return k==PLUS || k==MULT || k==AND || k==OR || 
          k==BITVECTOR_PLUS || k==BITVECTOR_MULT || k==BITVECTOR_AND || k==BITVECTOR_OR || k==BITVECTOR_XOR || k==BITVECTOR_XNOR || k==BITVECTOR_CONCAT ||
@@ -909,6 +918,11 @@ Node TermUtil::getTypeValueOffset(TypeNode tn,
   }
   status = d_type_value_offset_status[tn][val][offset];
   return it->second;
+}
+
+Node TermUtil::mkTypeConst(TypeNode tn, bool pol)
+{
+  return pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn);
 }
 
 bool TermUtil::isAntisymmetric(Kind k, Kind& dk)

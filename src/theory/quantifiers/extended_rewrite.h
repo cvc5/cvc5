@@ -72,7 +72,14 @@ class ExtendedRewriter
   //--------------------------------------generic utilities
   /** Rewrite ITE, for example:
    * 
-   * TODO
+   * ite( ~C, s, t ) ---> ite( C, t, s )
+   * ite( A or B, s, t ) ---> ite( ~A and ~B, t, s )
+   * ite( x = c, x, t ) --> ite( x = c, c, t )
+   * t * { x -> c } = s => ite( x = c, s, t ) ---> t
+   * 
+   * The parameter "full" indicates an effort level that this rewrite will
+   * take. If full is false, then we do only perform rewrites that
+   * strictly decrease the term size of n.
    */
   Node extendedRewriteIte(Kind itek, Node n, bool full=true);
   /** Pull ITE, for example:
@@ -96,7 +103,7 @@ class ExtendedRewriter
    * If this function returns a non-null node ret, then n ---> ret.
    */
   Node extendedRewriteNnf(Node n);
-  /** Boolean constraint propagation, for example:
+  /** (type-independent) Boolean constraint propagation, for example:
    * 
    *   ~A & ( B V A ) ---> ~A & B
    *   A & ( B = ( A V C ) ) ---> A & B
@@ -114,7 +121,7 @@ class ExtendedRewriter
    * If this function returns a non-null node ret, then n ---> ret.
    */
   Node extendedRewriteBcp( Kind andk, Kind ork, Kind notk, std::map< Kind, bool >& bcp_kinds, Node n );
-  /** Equality chain rewriting, for example:
+  /** (type-independent) Equality chain rewriting, for example:
    * 
    *   A = ( A = B ) ---> B
    *   ( A = D ) = ( C = B ) ---> A = ( B = ( C = D ) )
@@ -129,18 +136,6 @@ class ExtendedRewriter
    * at a lower level) go in this function.
    */
   Node extendedRewriteAggr(Node n);
-  /** Make constant for type, returns true/false for Boolean, max/0 for BV. */
-  Node mkConst(TypeNode tn, bool isTrue);
-  /** 
-   * Make negated term, returns the negation of n wrt Kind notk, eliminating
-   * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
-   */
-  Node mkNegate( Kind notk, Node n );
-  /** 
-   * Make concat. Returns null if children empty, children[0] if size=1,
-   * or <k>( children ) otherwise.
-   */
-  Node mkConcat( Kind concatk, std::vector< Node >& children );
   /** Decompose right associative chain 
    * 
    * For term f( ... f( f( base, tn ), t{n-1} ) ... t1 ), returns term base, and 
