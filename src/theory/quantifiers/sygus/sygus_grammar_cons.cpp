@@ -736,10 +736,11 @@ Node CegGrammarConstructor::getSygusVarList(Node f)
     for( unsigned j=0, size = argTypes.size(); j<size; j++ )
     {
       std::stringstream ss;
-      ss << "x" << j;
+      ss << "arg" << j;
       bvs.push_back( nm->mkBoundVar(ss.str(), argTypes[j] ) );
     }
     sfvl = nm->mkNode( BOUND_VAR_LIST, bvs );
+    f.setAttribute(SygusSynthFunVarListAttribute(),sfvl);
   }
   return sfvl;
 }
