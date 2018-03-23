@@ -348,7 +348,9 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
       Trace("ho-unif-debug2") << "finished." << std::endl;
     }
 
-    return sendInstantiation(m, 0);
+    bool ret = sendInstantiation(m, 0);
+    Trace("ho-unif-debug") << "Finished, success = " << ret << std::endl;
+    return ret;
   }
   else
   {
@@ -361,6 +363,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
 // occurring as pattern operators (very small)
 bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
 {
+  Trace("ho-unif-debug2") << "send inst " << var_index << " / " << d_ho_var_list.size() << std::endl;
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
@@ -394,13 +397,28 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
                                               Node lbvl,
                                               bool arg_changed)
 {
+  Trace("ho-unif-debug2") << "send inst arg " << arg_index << " / " << lbvl.getNumChildren() << std::endl;
   if (arg_index == lbvl.getNumChildren())
   {
     // construct the lambda
     if (arg_changed)
     {
-      Node body =
-          NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
+      NodeManager * nm =  NodeManager::currentNM();
+      Trace("ho-unif-debug2") << "make lambda from children: " << d_lchildren[vnum] << std::endl;
+      Node body;
+      if( d_lchildren[vnum][0].getKind()==HO_APPLY )
+      {
+        // must use HO_APPLY form since head is non-trivial
+        body = d_lchildren[vnum][0];
+        for( unsigned i=1, size = d_lchildren[vnum].size(); i<size; i++ )
+        {
+          body = nm->mkNode(kind::HO_APPLY, body, d_lchildren[vnum][i] );
+        }
+      }
+      else
+      {
+        body = nm->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
+      }
       Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
       m.d_vals[vnum] = lam;
       Trace("ho-unif-debug2") << "  try " << vnum << " -> " << lam << std::endl;
