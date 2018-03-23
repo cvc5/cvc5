@@ -30,7 +30,6 @@
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
-#include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
@@ -41,7 +40,6 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_epr.h"
-#include "theory/quantifiers/quant_equality_engine.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -162,8 +160,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_ceg_inst = NULL;
   d_lte_part_inst = NULL;
   d_alpha_equiv = NULL;
-  d_fun_def_engine = NULL;
-  d_uee = NULL;
   d_fs = NULL;
   d_rel_dom = NULL;
   d_bv_invert = NULL;
@@ -234,14 +230,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   if( options::quantAlphaEquiv() ){
     d_alpha_equiv = new quantifiers::AlphaEquivalence( this );
   }
-  //if( options::funDefs() ){
-  //  d_fun_def_engine = new quantifiers::FunDefEngine( this, c );
-  //  d_modules.push_back( d_fun_def_engine );
-  //}
-  if( options::quantEqualityEngine() ){
-    d_uee = new quantifiers::QuantEqualityEngine( this, c );
-    d_modules.push_back( d_uee );
-  }
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
     d_fs = new quantifiers::InstStrategyEnum(this);
@@ -299,8 +287,6 @@ QuantifiersEngine::~QuantifiersEngine()
   delete d_sg_gen;
   delete d_ceg_inst;
   delete d_lte_part_inst;
-  delete d_fun_def_engine;
-  delete d_uee;
   delete d_fs;
   delete d_i_cbqi;
   delete d_qsplit;
