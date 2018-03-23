@@ -690,21 +690,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
   }
 }
 
-void TermUtil::getRelevancyCondition( Node n, std::vector< Node >& cond ) {
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
-    // don't worry about relevancy conditions if using shared selectors
-    if( !options::dtSharedSelectors() ){
-      unsigned scindex = Datatype::cindexOf(n.getOperator().toExpr());
-      const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
-      Node rc = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[scindex].getTester() ), n[0] ).negate();
-      if( std::find( cond.begin(), cond.end(), rc )==cond.end() ){
-        cond.push_back( rc );
-      }
-      getRelevancyCondition( n[0], cond );
-    }
-  }
-}
-
 bool TermUtil::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
   if( n==t ){
     return true;

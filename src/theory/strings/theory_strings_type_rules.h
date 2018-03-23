@@ -235,14 +235,6 @@ public:
   }
 };
 
-class RegExpConstantTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    return nodeManager->regExpType();
-  }
-};
-
 class RegExpConcatTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
