@@ -42,7 +42,7 @@ sort STRING_TYPE \
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkNode(STRING_TO_REGEXP,NodeManager::currentNM()->mkConst(::CVC4::String()))" \
+        "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
         "util/regexp.h" \
     "RegExp type"
 
