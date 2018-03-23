@@ -91,7 +91,12 @@ public:
    * proper type otherwise. It will return null if f is not a function.
    */
   static Node getSygusVarList(Node f);
-private:
+  /**
+   * Returns true iff there are syntax restrictions on the
+   * functions-to-synthesize of sygus conjecture q.
+   */
+  static bool hasSyntaxRestrictions(Node q);
+ private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
   /** parent conjecture
