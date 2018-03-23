@@ -259,7 +259,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
           << "  failed to get monomial sum of " << n << std::endl;
     }
   }
-  // TODO (#1599) : conditional rewriting, condition merging
+  // TODO (#1706) : conditional rewriting, condition merging
   return new_ret;
 }
 
@@ -987,7 +987,7 @@ bool ExtendedRewriter::inferSubstitution(Node n,
       TNode r2 = n[1 - i];
       if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
       {
-        // TODO : union find
+        // TODO (#1706) : union find
         if (std::find(vars.begin(), vars.end(), r1) == vars.end())
         {
           vars.push_back(r1);
