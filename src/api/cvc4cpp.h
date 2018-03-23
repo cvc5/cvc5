@@ -757,6 +757,7 @@ enum CVC4_PUBLIC Kind
    * Pi constant.
    * Create with:
    *   mkPi()
+   *   mkTerm(Kind kind)
    */
   PI,
 
@@ -1880,10 +1881,11 @@ enum CVC4_PUBLIC Kind
   /* Separation Logic ------------------------------------------------------ */
 
   /**
-   * Separation logic nil constant.
+   * Separation logic nil term.
    * Parameters: 0
    * Create with:
-   *   mkConst(Kind kind)
+   *   mkSepNil(Sort sort)
+   *   mkTerm(Kind kind, Sort sort)
    */
   SEP_NIL,
   /**
@@ -2028,6 +2030,7 @@ enum CVC4_PUBLIC Kind
    * All set variables must be interpreted as subsets of it.
    * Create with:
    *   mkUniverseSet(Sort sort)
+   *   mkTerm(Kind kind, Sort sort)
    */
   UNIVERSE_SET,
   /**
@@ -2295,16 +2298,18 @@ enum CVC4_PUBLIC Kind
   REGEXP_LOOP,
   /**
    * Regexp empty.
-   * Parameters: ???
+   * Parameters: 0
    * Create with:
-   *   ???
+   *   mkRegexpEmpty()
+   *   mkTerm(Kind kind)
    */
   REGEXP_EMPTY,
   /**
    * Regexp all characters.
-   * Parameters: ???
+   * Parameters: 0
    * Create with:
-   *   ???
+   *   mkRegexpSigma()
+   *   mkTerm(Kind kind)
    */
   REGEXP_SIGMA,
 #if 0
@@ -3576,13 +3581,29 @@ class CVC4_PUBLIC Solver
     /* .................................................................... */
 
     /**
+     * Create 0-ary term of given kind.
+     * @param kind the kind of the term
+     * @return the Term
+     */
+    Term mkTerm(Kind kind) const;
+
+    /**
+     * Create 0-ary term of given kind and sort.
+     * @param kind the kind of the term
+     * @param sort the sort argument to this kind
+     * @return the Term
+     */
+    Term mkTerm(Kind kind,
+                Sort sort) const;
+
+    /**
      * Create a unary term of given kind.
      * @param kind the kind of the term
      * @param child the child of the term
      * @return the Term
      */
     Term mkTerm(Kind kind,
-                Term child);
+                Term child) const;
 
     /**
      * Create binary term of given kind.
@@ -3593,7 +3614,7 @@ class CVC4_PUBLIC Solver
      */
     Term mkTerm(Kind kind,
                 Term child1,
-                Term child2);
+                Term child2) const;
 
     /**
      * Create ternary term of given kind.
@@ -3606,7 +3627,7 @@ class CVC4_PUBLIC Solver
     Term mkTerm(Kind kind,
                 Term child1,
                 Term child2,
-                Term child3);
+                Term child3) const;
 
     /**
      * Create n-ary term of given kind.
@@ -3615,7 +3636,7 @@ class CVC4_PUBLIC Solver
      * @return the Term
      */
     Term mkTerm(Kind kind,
-                const std::vector<Term>& children);
+                const std::vector<Term>& children) const;
 
     /**
      * Create term with no children from a given operator term.
@@ -3879,11 +3900,30 @@ class CVC4_PUBLIC Solver
     Term mkRational(uint64_t num, uint64_t den) const;
 
     /**
+     * Create a regular expression empty term.
+     * @return the empty term
+     */
+    Term mkRegexpEmpty() const;
+
+    /**
+     * Create a regular expression sigma term.
+     * @return the sigma term
+     */
+    Term mkRegexpSigma() const;
+
+    /**
      * Create a constant representing an empty set of the given sort.
      * @param s the sort of the set elements.
      * @return the empty set constant
      */
     Term mkEmptySet(Sort s) const;
+
+    /**
+     * Create a separation logic nil term.
+     * @param sort the sort of the nil term
+     * @return the separation logic nil term
+     */
+    Term mkSepNil(Sort sort) const;
 
     /**
      * Create a String constant.
@@ -3958,15 +3998,6 @@ class CVC4_PUBLIC Solver
      * @return the bit-vector constant
      */
     Term mkBitVector(std::string& s, uint32_t base = 2) const;
-
-    /**
-     * Create constant of kind:
-     *   - REGEXP_EMPTY
-     *   - REGEXP_SIGMA
-     *   - SEP_NIL
-     * @param kind the kind of the constant
-     */
-    Term mkConst(Kind kind) const;
 
     /**
      * Create constant of kind:
