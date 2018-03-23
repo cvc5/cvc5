@@ -937,28 +937,6 @@ Node ExtendedRewriter::partialSubstitute( Node n, std::map< Node, Node >& assign
 Node ExtendedRewriter::solveEquality( Node n )
 {
   Assert( n.getKind()==EQUAL );
-  
-  if( n[0].getType().isBitVector() )
-  {
-    for( unsigned i=0; i<2; i++ )
-    {
-      if( isConstBv( n[1-i], false ) )
-      {
-        // (bvadd x (bvneg y)) = 0 ---> x = y
-        if( n[i].getKind()==BITVECTOR_PLUS && n[i].getNumChildren()==2 )
-        {
-          for( unsigned j=0; j<2; j++ )
-          {
-            if( n[i][j].isVar() && n[i][1-j].getKind()==BITVECTOR_NEG && n[i][1-j][0].isVar() )
-            {
-              return n[i][j].eqNode( n[i][1-j][0] );
-            }
-          }
-        }
-      }
-    }
-    
-  }
 
   return Node::null();
 }
