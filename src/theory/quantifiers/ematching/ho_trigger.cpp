@@ -419,6 +419,7 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
       {
         body = nm->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
       }
+      Trace("ho-unif-debug2") << "  got " << body << std::endl;
       Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
       m.d_vals[vnum] = lam;
       Trace("ho-unif-debug2") << "  try " << vnum << " -> " << lam << std::endl;
