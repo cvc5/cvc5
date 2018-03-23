@@ -1267,6 +1267,7 @@ REG1_TESTS = \
 	regress1/quantifiers/symmetric_unsat_7.smt2 \
 	regress1/quantifiers/z3.620661-no-fv-trigger.smt2 \
 	regress1/quantifiers/smtlibe99bbe.smt2 \
+	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/rels/addr_book_1.cvc \
 	regress1/rels/addr_book_1_1.cvc \
 	regress1/rels/bv1-unit.cvc \
