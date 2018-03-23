@@ -38,14 +38,16 @@ CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
 
 bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
 {
-  Assert( q.getKind()==FORALL );
-  for( const Node& f : q[0] )
+  Assert(q.getKind() == FORALL);
+  for (const Node& f : q[0])
   {
     Node gv = f.getAttribute(SygusSynthGrammarAttribute());
-    if( !gv.isNull() )
+    if (!gv.isNull())
     {
       TypeNode tn = gv.getType();
-      if( tn.isDatatype() && static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus() ){
+      if (tn.isDatatype()
+          && static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus())
+      {
         return true;
       }
     }
