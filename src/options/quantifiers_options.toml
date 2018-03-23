@@ -439,15 +439,6 @@ header = "options/quantifiers_options.h"
   help       = "selection mode for representatives in quantifiers engine"
 
 [[option]]
-  name       = "instRelevantCond"
-  category   = "regular"
-  long       = "inst-rlv-cond"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add relevancy conditions for instantiations"
-
-[[option]]
   name       = "fullSaturateQuant"
   category   = "regular"
   long       = "full-saturate-quant"
@@ -1449,17 +1440,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "perform anti-skolemization for quantified formulas"
-
-### e-unification options
-
-[[option]]
-  name       = "quantEqualityEngine"
-  category   = "regular"
-  long       = "quant-ee"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "maintain congrunce closure over universal equalities"
 
 ### Higher-order options
 
