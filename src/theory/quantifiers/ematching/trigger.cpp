@@ -262,7 +262,8 @@ bool Trigger::isUsable( Node n, Node q ){
       return true;
     }else{
       std::map< Node, Node > coeffs;
-      if( options::purifyTriggers() ){
+      if (options::purifyTriggers())
+      {
         Node x = getInversionVariable( n );
         if( !x.isNull() ){
           return true;
