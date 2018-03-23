@@ -144,10 +144,6 @@ void Region::setEqual( Node a, Node b ){
         if( !isDisequal( a, n, t ) ){
           setDisequal( a, n, t, true );
           nr->setDisequal( n, a, t, true );
-          //notify the disequality propagator
-          if( options::ufssDiseqPropagation() ){
-            d_cf->d_thss->getDisequalityPropagator()->assertDisequal(a, n, Node::null());
-          }
           if( options::ufssSymBreak() ){
             d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
           }
@@ -614,10 +610,6 @@ void SortModel::merge( Node a, Node b ){
       d_reps = d_reps - 1;
 
       if( !d_conflict ){
-        if( options::ufssDiseqPropagation() ){
-          //notify the disequality propagator
-          d_thss->getDisequalityPropagator()->merge(a, b);
-        }
         if( options::ufssSymBreak() ){
           d_thss->getSymmetryBreaker()->merge(a, b);
         }
@@ -669,10 +661,6 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
         }
 
         if( !d_conflict ){
-          if( options::ufssDiseqPropagation() ){
-            //notify the disequality propagator
-            d_thss->getDisequalityPropagator()->assertDisequal(a, b, Node::null());
-          }
           if( options::ufssSymBreak() ){
             d_thss->getSymmetryBreaker()->assertDisequal(a, b);
           }
@@ -1288,8 +1276,6 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
   std::vector< Node > eqs;
   for( unsigned i=0, size = clique.size(); i<size; i++ ){
     for( unsigned j=0; j<i; j++ ){
-      Node r1 = d_thss->getTheory()->d_equalityEngine.getRepresentative(clique[i]);
-      Node r2 = d_thss->getTheory()->d_equalityEngine.getRepresentative(clique[j]);
       eqs.push_back( clique[i].eqNode( clique[j] ) );
     }
   }
