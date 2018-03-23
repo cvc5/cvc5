@@ -4326,45 +4326,50 @@ void TheoryStrings::checkMemberships() {
           Node xr = getRepresentative( x );
           //Trace("strings-regexp") << xr << " is rep of " << x << std::endl;
           //Assert( d_normal_forms.find( xr )!=d_normal_forms.end() );
-          Trace("strings-regexp") << "Unroll/simplify membership of atomic term " << xr << std::endl;
-          //if so, do simple unrolling
-          std::vector< Node > nvec;
+          Trace("strings-regexp")
+              << "Unroll/simplify membership of atomic term " << xr
+              << std::endl;
+          // if so, do simple unrolling
+          std::vector<Node> nvec;
 
-          /*if(xr.isConst()) {
-            Node tmp = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, xr, r) );
-            if(tmp==d_true || tmp==d_false) {
-              if(!polarity) {
-                tmp = tmp==d_true? d_false : d_true;
-              }
-              nvec.push_back( tmp );
-            }
-          }*/
-
-          if(nvec.empty()) {
+          if (nvec.empty())
+          {
             d_regexp_opr.simplify(atom, nvec, polarity);
           }
           Node antec = assertion;
-          if(d_regexp_ant.find(assertion) != d_regexp_ant.end()) {
+          if (d_regexp_ant.find(assertion) != d_regexp_ant.end())
+          {
             antec = d_regexp_ant[assertion];
-            for(std::vector< Node >::const_iterator itr=nvec.begin(); itr<nvec.end(); itr++) {
-              if(itr->getKind() == kind::STRING_IN_REGEXP) {
-                if(d_regexp_ant.find( *itr ) == d_regexp_ant.end()) {
-                  d_regexp_ant[ *itr ] = antec;
+            for (std::vector<Node>::const_iterator itr = nvec.begin();
+                 itr < nvec.end();
+                 itr++)
+            {
+              if (itr->getKind() == kind::STRING_IN_REGEXP)
+              {
+                if (d_regexp_ant.find(*itr) == d_regexp_ant.end())
+                {
+                  d_regexp_ant[*itr] = antec;
                 }
               }
             }
           }
-          antec = NodeManager::currentNM()->mkNode(kind::AND, antec, mkExplain(rnfexp));
-          Node conc = nvec.size()==1 ? nvec[0] : NodeManager::currentNM()->mkNode(kind::AND, nvec);
+          antec = NodeManager::currentNM()->mkNode(
+              kind::AND, antec, mkExplain(rnfexp));
+          Node conc = nvec.size() == 1
+                          ? nvec[0]
+                          : NodeManager::currentNM()->mkNode(kind::AND, nvec);
           conc = Rewriter::rewrite(conc);
-          sendLemma( antec, conc, "REGEXP_Unfold" );
+          sendLemma(antec, conc, "REGEXP_Unfold");
           addedLemma = true;
-          if(changed) {
-            cprocessed.push_back( assertion );
-          } else {
-            processed.push_back( assertion );
+          if (changed)
+          {
+            cprocessed.push_back(assertion);
           }
-          //d_regexp_ucached[assertion] = true;
+          else
+          {
+            processed.push_back(assertion);
+          }
+          // d_regexp_ucached[assertion] = true;
         }
       }
       if(d_conflict) {

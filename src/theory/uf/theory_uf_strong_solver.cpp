@@ -1272,18 +1272,21 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
     clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
     addClique( d_cardinality, clique_vec );
   }
-  //add as lemma
-  std::vector< Node > eqs;
-  for( unsigned i=0, size = clique.size(); i<size; i++ ){
-    for( unsigned j=0; j<i; j++ ){
-      eqs.push_back( clique[i].eqNode( clique[j] ) );
+  // add as lemma
+  std::vector<Node> eqs;
+  for (unsigned i = 0, size = clique.size(); i < size; i++)
+  {
+    for (unsigned j = 0; j < i; j++)
+    {
+      eqs.push_back(clique[i].eqNode(clique[j]));
     }
   }
-  eqs.push_back( d_cardinality_literal[ d_cardinality ].notNode() );
-  Node lem = NodeManager::currentNM()->mkNode( OR, eqs );
-  if( doSendLemma( lem ) ){
+  eqs.push_back(d_cardinality_literal[d_cardinality].notNode());
+  Node lem = NodeManager::currentNM()->mkNode(OR, eqs);
+  if (doSendLemma(lem))
+  {
     Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
-    ++( d_thss->d_statistics.d_clique_lemmas );
+    ++(d_thss->d_statistics.d_clique_lemmas);
   }
 }
 
