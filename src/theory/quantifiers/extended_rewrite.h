@@ -159,17 +159,6 @@ class ExtendedRewriter
    * terms whose Kind appears in rec_kinds.
    */
   Node partialSubstitute( Node n, std::map< Node, Node >& assign, std::map< Kind, bool >& rkinds );
-  /** infer split 
-   * 
-   * If this function returns true, then t1 is updated to t1', t2 is updated to
-   * t2', and b and e are updated to terms such that:
-   *   t1 = b ++ t1' ++ e
-   *   t2 = b ++ t2' ++ e
-   * where ++ is a concatenation operator, Node::null() is implicitly the
-   * empty term. If this function returns false, then all arguments are left
-   * unchanged.
-   */
-  bool inferSplit( Node& t1, Node& t2, Node& b, Node& e );
   /** solve equality */
   Node solveEquality( Node n );
   /** infer substitution */
