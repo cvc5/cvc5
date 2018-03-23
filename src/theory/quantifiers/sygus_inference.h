@@ -36,8 +36,8 @@ class SygusInference
   ~SygusInference() {}
   /** simplify assertions
    *
-   * Either replaces assertions with an equivalent SyGus conjecture and returns
-   * true (if possible), or otherwise returns false.
+   * Either replaces assertions with the negation of an equivalent SyGuS
+   * conjecture and returns true, or otherwise returns false.
    */
   bool simplify(std::vector<Node>& assertions);
 };
