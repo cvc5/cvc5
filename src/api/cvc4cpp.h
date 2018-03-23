@@ -2214,17 +2214,6 @@ enum CVC4_PUBLIC Kind
    */
   CONST_STRING,
   /**
-   * Regular expression constant.
-   * Parameters:
-   *   See mkRegExp()
-   * Create with:
-   *   mkRegExp()
-   *   mkRegExp(int32_t type)
-   *   mkConst(Kind kind)
-   *   mkConst(Kind kind, int32_t arg)  ??? what is arg?
-   */
-  CONST_REGEXP,
-  /**
    * Conversion from string to regexp.
    * Parameters: 1
    *   -[1]: Term of sort String
@@ -3890,19 +3879,6 @@ class CVC4_PUBLIC Solver
     Term mkRational(uint64_t num, uint64_t den) const;
 
     /**
-     * Create a RegExp constant.
-     * @return the RegExp constant
-     */
-    Term mkRegExp() const;
-
-    /**
-     * Create a RegExp constant.
-     * @param type ???
-     * @return the RegExp constant
-     */
-    Term mkRegExp(int32_t type) const;
-
-    /**
      * Create a constant representing an empty set of the given sort.
      * @param s the sort of the set elements.
      * @return the empty set constant
@@ -3985,7 +3961,6 @@ class CVC4_PUBLIC Solver
 
     /**
      * Create constant of kind:
-     *   - CONST_REGEXP
      *   - REGEXP_EMPTY
      *   - REGEXP_SIGMA
      *   - SEP_NIL
@@ -4085,7 +4060,6 @@ class CVC4_PUBLIC Solver
      * Create constant of kind:
      *   - ABSTRACT_VALUE
      *   - CONST_RATIONAL (for integers, reals)
-     *   - CONST_REGEXP
      * See enum Kind for a description of the parameters.
      * @param kind the kind of the constant
      * @param arg the argument to this kind
