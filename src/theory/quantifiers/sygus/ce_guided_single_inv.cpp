@@ -120,19 +120,19 @@ void CegConjectureSingleInv::initialize( Node q ) {
   d_simp_quant = q;
   Trace("cegqi-si") << "CegConjectureSingleInv::initialize : " << q << std::endl;
   // infer single invocation-ness
-  
+
   // get the variables
   std::vector< Node > progs;
   std::map< Node, std::vector< Node > > prog_vars;
-  for( const Node& sf : q[0] )
+  for (const Node& sf : q[0])
   {
     progs.push_back( sf );
     Node sfvl = CegGrammarConstructor::getSygusVarList(sf);
-    if( !sfvl.isNull() )
+    if (!sfvl.isNull())
     {
-      for( const Node& sfv : sfvl )
+      for (const Node& sfv : sfvl)
       {
-        prog_vars[sf].push_back( sfv );
+        prog_vars[sf].push_back(sfv);
       }
     }
   }
@@ -278,7 +278,7 @@ void CegConjectureSingleInv::initialize( Node q ) {
             Trace("cegqi-inv") << "       template (pre-substitution) : " << templ << std::endl;
             Assert( !templ.isNull() );
             // subsitute the template arguments
-            Assert( prog_templ_vars.size()==prog_vars[prog].size() );
+            Assert(prog_templ_vars.size() == prog_vars[prog].size());
             templ = templ.substitute( prog_templ_vars.begin(), prog_templ_vars.end(), prog_vars[prog].begin(), prog_vars[prog].end() );
             Trace("cegqi-inv") << "       template : " << templ << std::endl;
             d_templ[prog] = templ;

@@ -25,15 +25,15 @@ namespace theory {
 namespace quantifiers {
 
 /** SygusInference
- * 
- * A preprocessing utility to turn a set of (quantified) assertions into a 
+ *
+ * A preprocessing utility to turn a set of (quantified) assertions into a
  * single SyGuS conjecture.
  */
-class SygusInference 
+class SygusInference
 {
-public:
+ public:
   SygusInference();
-  ~SygusInference(){}
+  ~SygusInference() {}
   /** simplify assertions
    *
    * Either replaces assertions with an equivalent SyGus conjecture and returns
@@ -41,7 +41,6 @@ public:
    */
   bool simplify(std::vector<Node>& assertions);
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

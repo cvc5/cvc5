@@ -93,14 +93,14 @@
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/global_negate.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus_inference.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -1366,7 +1366,7 @@ void SmtEngine::setDefaults() {
     }
     */
   }
-  
+
   // sygus inference may require datatypes
   if (options::sygusInference())
   {
@@ -1892,10 +1892,11 @@ void SmtEngine::setDefaults() {
 
   //apply counterexample guided instantiation options
   // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
-  if( options::sygusInference() )
+  if (options::sygusInference())
   {
-    if( !options::ceGuidedInst.wasSetByUser() ){
-      options::ceGuidedInst.set( true );
+    if (!options::ceGuidedInst.wasSetByUser())
+    {
+      options::ceGuidedInst.set(true);
     }
   }
   if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
@@ -4255,14 +4256,14 @@ void SmtEnginePrivate::processAssertions() {
   {
     // try recast as sygus
     quantifiers::SygusInference si;
-    if( si.simplify(d_assertions.ref()) )
+    if (si.simplify(d_assertions.ref()))
     {
       Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
       d_smt.d_globalNegation = !d_smt.d_globalNegation;
     }
   }
   else if (options::globalNegate())
-  {  
+  {
     // global negation of the formula
     quantifiers::GlobalNegate gn;
     gn.simplify(d_assertions.ref());
