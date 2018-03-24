@@ -264,7 +264,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
         // where k3 but not k2 should be an argument of the match.
         Node hmatch = ha.second[i];
         Trace("ho-unif-debug2") << "Match is " << hmatch << std::endl;
-        hmatch = hmatch.substitute( value, var );
+        hmatch = hmatch.substitute(value, var);
         Trace("ho-unif-debug2") << "Pre-subs match is " << hmatch << std::endl;
         Node f = uf::TheoryUfRewriter::decomposeHoApply(hmatch, args);
         // Assert( f==value );
@@ -373,7 +373,8 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
 // occurring as pattern operators (very small)
 bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
 {
-  Trace("ho-unif-debug2") << "send inst " << var_index << " / " << d_ho_var_list.size() << std::endl;
+  Trace("ho-unif-debug2") << "send inst " << var_index << " / "
+                          << d_ho_var_list.size() << std::endl;
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
@@ -407,14 +408,17 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
                                               Node lbvl,
                                               bool arg_changed)
 {
-  Trace("ho-unif-debug2") << "send inst arg " << arg_index << " / " << lbvl.getNumChildren() << std::endl;
+  Trace("ho-unif-debug2") << "send inst arg " << arg_index << " / "
+                          << lbvl.getNumChildren() << std::endl;
   if (arg_index == lbvl.getNumChildren())
   {
     // construct the lambda
     if (arg_changed)
     {
-      Trace("ho-unif-debug2") << "  make lambda from children: " << d_lchildren[vnum] << std::endl;
-      Node body = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
+      Trace("ho-unif-debug2")
+          << "  make lambda from children: " << d_lchildren[vnum] << std::endl;
+      Node body =
+          NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
       Trace("ho-unif-debug2") << "  got " << body << std::endl;
       Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
       m.d_vals[vnum] = lam;
