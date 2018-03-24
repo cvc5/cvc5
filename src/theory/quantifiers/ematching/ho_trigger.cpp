@@ -236,7 +236,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     {
       TNode var = ha.first;
       unsigned vnum = var.getAttribute(InstVarNumAttribute());
-      Node value = m.d_vals[vnum];
+      TNode value = m.d_vals[vnum];
       Trace("ho-unif-debug") << "  val[" << var << "] = " << value << std::endl;
 
       Trace("ho-unif-debug2") << "initialize lambda information..."
@@ -256,7 +256,17 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
       for (unsigned i = 0; i < ha.second.size(); i++)
       {
         std::vector<TNode> args;
-        Node f = uf::TheoryUfRewriter::decomposeHoApply(ha.second[i], args);
+        // must substitute the operator we matched with the original
+        // higher-order variable (var) that matched it. This ensures that the
+        // argument vector (args) below is of the proper length. This handles,
+        // for example, matches like:
+        //   (@ x y) with (@ (@ k1 k2) k3)
+        // where k3 but not k2 should be an argument of the match.
+        Node hmatch = ha.second[i];
+        Trace("ho-unif-debug2") << "Match is " << hmatch << std::endl;
+        hmatch = hmatch.substitute( value, var );
+        Trace("ho-unif-debug2") << "Pre-subs match is " << hmatch << std::endl;
+        Node f = uf::TheoryUfRewriter::decomposeHoApply(hmatch, args);
         // Assert( f==value );
         for (unsigned k = 0, size = args.size(); k < size; k++)
         {
@@ -403,22 +413,8 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
     // construct the lambda
     if (arg_changed)
     {
-      NodeManager * nm =  NodeManager::currentNM();
-      Trace("ho-unif-debug2") << "make lambda from children: " << d_lchildren[vnum] << std::endl;
-      Node body;
-      if( d_lchildren[vnum][0].getKind()==HO_APPLY )
-      {
-        // must use HO_APPLY form since head is non-trivial
-        body = d_lchildren[vnum][0];
-        for( unsigned i=1, size = d_lchildren[vnum].size(); i<size; i++ )
-        {
-          body = nm->mkNode(kind::HO_APPLY, body, d_lchildren[vnum][i] );
-        }
-      }
-      else
-      {
-        body = nm->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
-      }
+      Trace("ho-unif-debug2") << "  make lambda from children: " << d_lchildren[vnum] << std::endl;
+      Node body = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
       Trace("ho-unif-debug2") << "  got " << body << std::endl;
       Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
       m.d_vals[vnum] = lam;
