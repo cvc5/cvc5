@@ -1,0 +1,205 @@
+id     = "DRIVER"
+name   = "Driver"
+header = "options/main_options.h"
+
+[[option]]
+  name       = "version"
+  category   = "common"
+  short      = "V"
+  long       = "version"
+  type       = "bool"
+  read_only  = true
+  alternate  = false
+  help       = "identify this CVC4 binary"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "license"
+  links      = ["--version"]
+
+[[option]]
+  name       = "help"
+  category   = "common"
+  short      = "h"
+  long       = "help"
+  type       = "bool"
+  read_only  = true
+  alternate  = false
+  help       = "full command line reference"
+
+[[option]]
+  category   = "common"
+  long       = "show-config"
+  type       = "void"
+  handler    = "showConfiguration"
+  read_only  = true
+  help       = "show CVC4 static configuration"
+
+[[option]]
+  category   = "common"
+  long       = "copyright"
+  type       = "void"
+  handler    = "copyright"
+  read_only  = true
+  help       = "show CVC4 copyright information"
+
+[[option]]
+  name       = "seed"
+  category   = "common"
+  short      = "s"
+  long       = "seed"
+  type       = "uint64_t"
+  default    = "0"
+  read_only  = true
+  help       = "seed for random number generator"
+
+[[option]]
+  category   = "regular"
+  long       = "show-debug-tags"
+  type       = "void"
+  handler    = "showDebugTags"
+  read_only  = true
+  help       = "show all available tags for debugging"
+
+[[option]]
+  category   = "regular"
+  long       = "show-trace-tags"
+  type       = "void"
+  handler    = "showTraceTags"
+  read_only  = true
+  help       = "show all available tags for tracing"
+
+[[option]]
+  name       = "earlyExit"
+  category   = "expert"
+  long       = "early-exit"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "do not run destructors at exit; default on except in debug builds"
+
+[[option]]
+  name       = "threads"
+  category   = "regular"
+  long       = "threads=N"
+  type       = "unsigned"
+  default    = "2"
+  predicates = ["unsignedGreater0"]
+  read_only  = true
+  help       = "Total number of threads for portfolio"
+
+[[option]]
+  category   = "regular"
+  long       = "threadN=string"
+  type       = "void"
+  handler    = "threadN"
+  read_only  = true
+  help       = "configures portfolio thread N (0..#threads-1)"
+
+[[option]]
+  name       = "threadStackSize"
+  category   = "regular"
+  long       = "thread-stack=N"
+  type       = "unsigned"
+  default    = "0"
+  read_only  = true
+  help       = "stack size for worker threads in MB (0 means use Boost/thread lib default)"
+
+[[option]]
+  name       = "threadArgv"
+  category   = "regular"
+  type       = "std::vector<std::string>"
+  includes   = ["<vector>", "<string>"]
+  help       = "Thread configuration (a string to be passed to parseOptions)"
+
+[[option]]
+  name       = "thread_id"
+  category   = "regular"
+  type       = "int"
+  default    = "-1"
+  help       = "Thread ID, for internal use in case of multi-threaded run"
+
+[[option]]
+  name       = "sharingFilterByLength"
+  category   = "regular"
+  long       = "filter-lemma-length=N"
+  type       = "int"
+  default    = "-1"
+  help       = "don't share (among portfolio threads) lemmas strictly longer than N"
+
+[[option]]
+  name       = "fallbackSequential"
+  category   = "regular"
+  long       = "fallback-sequential"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Switch to sequential mode (instead of printing an error) if it can't be solved in portfolio mode"
+
+[[option]]
+  name       = "incrementalParallel"
+  category   = "regular"
+  long       = "incremental-parallel"
+  type       = "bool"
+  default    = "false"
+  links      = ["--incremental"]
+  read_only  = true
+  help       = "Use parallel solver even in incremental mode (may print 'unknown's at times)"
+
+[[option]]
+  name       = "interactive"
+  category   = "regular"
+  long       = "interactive"
+  type       = "bool"
+  help       = "force interactive/non-interactive mode"
+
+[[option]]
+  name       = "interactivePrompt"
+  category   = "undocumented"
+  long       = "interactive-prompt"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "interactive prompting while in interactive mode"
+
+[[option]]
+  name       = "continuedExecution"
+  category   = "regular"
+  long       = "continued-execution"
+  type       = "bool"
+  default    = "false"
+  links      = ["--interactive", "--no-interactive-prompt"]
+  read_only  = true
+  help       = "continue executing commands, even on error"
+
+[[option]]
+  name       = "segvSpin"
+  category   = "regular"
+  long       = "segv-spin"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "spin on segfault/other crash waiting for gdb"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "segv-nospin"
+  links      = ["--no-segv-spin"]
+
+[[option]]
+  name       = "tearDownIncremental"
+  category   = "expert"
+  long       = "tear-down-incremental=N"
+  type       = "int"
+  default    = "0"
+  read_only  = true
+  help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
+
+[[option]]
+  name       = "waitToJoin"
+  category   = "expert"
+  long       = "wait-to-join"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "wait for other threads to join before quitting"

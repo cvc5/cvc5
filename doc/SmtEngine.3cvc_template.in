@@ -24,9 +24,9 @@ use the following option keys.
 .RS
 .TP 10
 .I "COMMON OPTIONS"
-${common_manpage_smt_documentation}
+${man_common_smt}$
 
-${remaining_manpage_smt_documentation}
+${man_others_smt}$
 .PD
 .RE
 

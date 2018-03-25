@@ -127,7 +127,7 @@ EXTRA_DIST = \
 	doc/find_public_interface.sh \
 	doc/cvc4.1_template.in \
 	doc/cvc4.5.in \
-	doc/libcvc4.3_template.in \
+	doc/libcvc4.3.in \
 	doc/SmtEngine.3cvc_template.in \
 	doc/options.3cvc_template.in \
 	doc/libcvc4parser.3.in \
@@ -167,7 +167,6 @@ DISTCLEANFILES = \
 	doc/pcvc4.1 \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
-	doc/libcvc4.3_template \
 	doc/libcvc4compat.3 \
 	doc/libcvc4parser.3 \
 	doc/SmtEngine.3cvc \
