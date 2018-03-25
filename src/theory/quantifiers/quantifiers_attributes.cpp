@@ -16,7 +16,6 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/fun_def_engine.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/term_util.h"
@@ -221,7 +220,6 @@ void QuantAttributes::computeAttributes( Node q ) {
       AlwaysAssert(false);
     }
     d_fun_defs[f] = true;
-    d_quantEngine->setOwner( q, d_quantEngine->getFunDefEngine(), 2 );
   }
   if( d_qattr[q].d_sygus ){
     if( d_quantEngine->getCegInstantiation()==NULL ){

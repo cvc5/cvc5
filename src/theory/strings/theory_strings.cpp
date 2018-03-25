@@ -4104,164 +4104,6 @@ Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
   }
 }
 
-Node TheoryStrings::normalizeRegexp(Node r) {
-  if (d_nf_regexps.find(r) != d_nf_regexps.end()) {
-    return d_nf_regexps[r];
-  }
-  Assert(d_nf_regexps.count(r) == 0);
-  Node nf_r = r;
-  std::vector<Node> nf_exp;
-  if (!d_regexp_opr.checkConstRegExp(r)) {
-    switch (r.getKind()) {
-      case kind::REGEXP_EMPTY:
-      case kind::REGEXP_SIGMA: {
-        break;
-      }
-      case kind::STRING_TO_REGEXP: {
-        if (!r[0].isConst() &&
-            d_normal_forms.find(r[0]) != d_normal_forms.end()) {
-          nf_r = mkConcat(d_normal_forms[r[0]]);
-          Debug("regexp-nf")
-              << "Term: " << r[0] << " has a normal form " << nf_r << std::endl;
-          const std::vector<Node>& r0_exp = d_normal_forms_exp[r[0]];
-          nf_exp.insert(nf_exp.end(), r0_exp.begin(), r0_exp.end());
-          nf_r = Rewriter::rewrite(
-              NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, nf_r));
-       }
-        break;
-      }
-      case kind::REGEXP_CONCAT:
-      case kind::REGEXP_UNION:
-      case kind::REGEXP_INTER: {
-        bool flag = false;
-        std::vector<Node> vec_nodes;
-        for (unsigned i = 0; i < r.getNumChildren(); ++i) {
-          Node rtmp = normalizeRegexp(r[i]);
-          vec_nodes.push_back(rtmp);
-          if (rtmp != r[i]) {
-            flag = true;
-          }
-        }
-        if (flag) {
-          Node rtmp = vec_nodes.size() == 1 ? vec_nodes[0]
-                                            : NodeManager::currentNM()->mkNode(
-                                                  r.getKind(), vec_nodes);
-          nf_r = Rewriter::rewrite(rtmp);
-        }
-        break;
-      }
-      case kind::REGEXP_STAR: {
-        Node rtmp = normalizeRegexp(r[0]);
-        if (rtmp != r[0]) {
-          rtmp = NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, rtmp);
-          nf_r = Rewriter::rewrite(rtmp);
-        }
-        break;
-      }
-      default: { Unreachable(); }
-    }
-  }
-  d_nf_regexps[r] = nf_r;
-  d_nf_regexps_exp[r] = nf_exp;
-  return nf_r;
-}
-
-bool TheoryStrings::normalizePosMemberships(std::map< Node, std::vector< Node > > &memb_with_exps) {
-  std::map< Node, std::vector< Node > > unprocessed_x_exps;
-  std::map< Node, std::vector< Node > > unprocessed_memberships;
-  std::map< Node, std::vector< Node > > unprocessed_memberships_bases;
-  bool addLemma = false;
-
-  Trace("regexp-check") << "Normalizing Positive Memberships ... " << std::endl;
-
-  for( NodeIntMap::const_iterator itr_xr = d_pos_memberships.begin(); itr_xr != d_pos_memberships.end(); ++itr_xr ){
-    Node x = (*itr_xr).first;
-    Node nf_x = x;
-    std::vector< Node > nf_x_exp;
-    if(d_normal_forms.find( x ) != d_normal_forms.end()) {
-      //nf_x = mkConcat( d_normal_forms[x] );
-      nf_x_exp.insert(nf_x_exp.end(), d_normal_forms_exp[x].begin(), d_normal_forms_exp[x].end());
-      //Debug("regexp-nf") << "Term: " << x << " has a normal form " << ret << std::endl;
-    } else {
-      Assert(false);
-    }
-    Trace("regexp-nf") << "Checking Memberships for N(" << x << ") = " << nf_x << " :" << std::endl;
-
-    std::vector< Node > vec_x;
-    std::vector< Node > vec_r;
-    unsigned n_pmem = (*itr_xr).second;
-    Assert( getNumMemberships( x, true )==n_pmem );
-    for( unsigned k=0; k<n_pmem; k++ ){
-      Node r = getMembership( x, true, k );
-      Node nf_r = normalizeRegexp( r );  //AJR: fixed (was normalizing mem #0 always)
-      Node memb = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, nf_x, nf_r);
-      if(d_processed_memberships.find(memb) == d_processed_memberships.end()) {
-        if(d_regexp_opr.checkConstRegExp(nf_r)) {
-          vec_x.push_back(x);
-          vec_r.push_back(r);
-        } else {
-          Trace("regexp-nf") << "Handling Symbolic Regexp for N(" << r << ") = " << nf_r << std::endl;
-          //TODO: handle symbolic ones
-          addLemma = true;
-        }
-        d_processed_memberships.insert(memb);
-      }
-    }
-    if(!vec_x.empty()) {
-      if(unprocessed_x_exps.find(nf_x) == unprocessed_x_exps.end()) {
-        unprocessed_x_exps[nf_x] = nf_x_exp;
-        unprocessed_memberships[nf_x] = vec_r;
-        unprocessed_memberships_bases[nf_x] = vec_x;
-      } else {
-        unprocessed_x_exps[nf_x].insert(unprocessed_x_exps[nf_x].end(), nf_x_exp.begin(), nf_x_exp.end());
-        unprocessed_memberships[nf_x].insert(unprocessed_memberships[nf_x].end(), vec_r.begin(), vec_r.end());
-        unprocessed_memberships_bases[nf_x].insert(unprocessed_memberships_bases[nf_x].end(), vec_x.begin(), vec_x.end());
-      }
-    }
-  }
-  //Intersection
-  for(std::map< Node, std::vector< Node > >::const_iterator itr = unprocessed_memberships.begin();
-      itr != unprocessed_memberships.end(); ++itr) {
-    Node nf_x = itr->first;
-    std::vector< Node > exp( unprocessed_x_exps[nf_x] );
-    Node r = itr->second[0];
-    //get nf_r
-    Node inter_r = d_nf_regexps[r];
-    exp.insert(exp.end(), d_nf_regexps_exp[r].begin(), d_nf_regexps_exp[r].end());
-    Node x = unprocessed_memberships_bases[itr->first][0];
-    Node memb = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, r);
-    exp.push_back(memb);
-    for(std::size_t i=1; i < itr->second.size(); i++) {
-      //exps
-      Node r2 = itr->second[i];
-      Node inter_r2 = d_nf_regexps[r2];
-      exp.insert(exp.end(), d_nf_regexps_exp[r2].begin(), d_nf_regexps_exp[r2].end());
-      Node x2 = unprocessed_memberships_bases[itr->first][i];
-      memb = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x2, r2);
-      exp.push_back(memb);
-      //intersection
-      bool spflag = false;
-      inter_r = d_regexp_opr.intersect(inter_r, inter_r2, spflag);
-      if(inter_r == d_emptyRegexp) {
-        //conflict
-        Node conc;
-        sendInference( d_empty_vec, exp, conc, "INTERSECT CONFLICT", true );
-        addLemma = true;
-        break;
-      }
-    }
-    //infer
-    if(!d_conflict) {
-      memb = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, nf_x, inter_r) );
-      memb_with_exps[memb] = exp;
-    } else {
-      break;
-    }
-  }
-
-  return addLemma;
-}
-
 bool TheoryStrings::applyRConsume( CVC4::String &s, Node &r) {
   Trace("regexp-derivative") << "TheoryStrings::derivative: s=" << s << ", r= " << r << std::endl;
   Assert( d_regexp_opr.checkConstRegExp(r) );
@@ -4311,107 +4153,6 @@ bool TheoryStrings::applyRLen(std::map< Node, std::vector< Node > > &XinR_with_e
   } else  {
     return false;
   }
-}
-
-bool TheoryStrings::checkMembershipsWithoutLength(
-  std::map< Node, std::vector< Node > > &memb_with_exps,
-  std::map< Node, std::vector< Node > > &XinR_with_exps) {
-  for(std::map< Node, std::vector< Node > >::iterator itr = memb_with_exps.begin(); itr != memb_with_exps.end(); ++itr) {
-    Node memb = itr->first;
-    Node s = memb[0];
-    Node r = memb[1];
-    if(s.isConst()) {
-      memb = Rewriter::rewrite( memb );
-      if(memb == d_false) {
-        Node conc;
-        sendInference(d_empty_vec, itr->second, conc, "MEMBERSHIP CONFLICT", true);
-        //addLemma = true;
-        return true;
-      } else {
-        Assert(memb == d_true);
-      }
-    } else if(s.getKind() == kind::VARIABLE) {
-      //add to XinR
-      XinR_with_exps[itr->first] = itr->second;
-    } else {
-      Assert(s.getKind() == kind::STRING_CONCAT);
-      Node conc;
-      for( unsigned i=0; i<s.getNumChildren(); i++ ) {
-        if(s[i].isConst()) {
-          CVC4::String str( s[0].getConst< String >() );
-          //R-Consume, see Tianyi's thesis
-          if(!applyRConsume(str, r)) {
-            sendInference(d_empty_vec, itr->second, conc, "R-Consume CONFLICT", true);
-            //addLemma = true;
-            return true;
-          }
-        } else {
-          //R-Split, see Tianyi's thesis
-          if(i == s.getNumChildren() - 1) {
-            //add to XinR
-            Node memb2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s[i], r);
-            XinR_with_exps[itr->first] = itr->second;
-          } else {
-            Node s1 = s[i];
-            std::vector< Node > vec_s2;
-            for( unsigned j=i+1; j<s.getNumChildren(); j++ ) {
-              vec_s2.push_back(s[j]);
-            }
-            Node s2 = mkConcat(vec_s2);
-            conc = applyRSplit(s1, s2, r);
-            if(conc == d_true) {
-              break;
-            } else if(conc.isNull() || conc == d_false) {
-              conc = Node::null();
-              sendInference(d_empty_vec, itr->second, conc, "R-Split Conflict", true);
-              //addLemma = true;
-              return true;
-            } else {
-              sendInference(d_empty_vec, itr->second, conc, "R-Split", true);
-              //addLemma = true;
-              return true;
-            }
-          }
-        }
-      }
-    }
-  }
-  return false;
-}
-
-bool TheoryStrings::checkMemberships2() {
-  bool addedLemma = false;
-  d_nf_regexps.clear();
-  d_nf_regexps_exp.clear();
-  std::map< Node, std::vector< Node > > memb_with_exps;
-  std::map< Node, std::vector< Node > > XinR_with_exps;
-
-  addedLemma = normalizePosMemberships( memb_with_exps );
-  if(!d_conflict) {
-    // main procedure
-    addedLemma |= checkMembershipsWithoutLength( memb_with_exps, XinR_with_exps );
-    //TODO: check addlemma
-    if (!addedLemma && !d_conflict) {
-      for(std::map< Node, std::vector< Node > >::const_iterator itr = XinR_with_exps.begin();
-          itr != XinR_with_exps.end(); ++itr) {
-        std::vector<Node> vec_or;
-        d_regexp_opr.disjunctRegExp( itr->first, vec_or );
-        Node tmp = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_or);
-        Trace("regexp-process") << "Got r: " << itr->first << " to " << tmp << std::endl;
-        /*
-        if(r.getKind() == kind::REGEXP_STAR) {
-          //TODO: apply R-Len
-          addedLemma = applyRLen(XinR_with_exps);
-        } else {
-          //TODO: split
-        }
-        */ 
-      }
-      Assert(false); //TODO:tmp
-    }
-  }
-
-  return addedLemma;
 }
 
 void TheoryStrings::checkMemberships() {
@@ -4586,146 +4327,50 @@ void TheoryStrings::checkMemberships() {
           Node xr = getRepresentative( x );
           //Trace("strings-regexp") << xr << " is rep of " << x << std::endl;
           //Assert( d_normal_forms.find( xr )!=d_normal_forms.end() );
-          //TODO
-          if( true || r.getKind()!=kind::REGEXP_STAR || ( d_normal_forms[xr].size()==1 && x.getKind()!=kind::STRING_CONCAT ) ){
-            Trace("strings-regexp") << "Unroll/simplify membership of atomic term " << xr << std::endl;
-            //if so, do simple unrolling
-            std::vector< Node > nvec;
+          Trace("strings-regexp")
+              << "Unroll/simplify membership of atomic term " << xr
+              << std::endl;
+          // if so, do simple unrolling
+          std::vector<Node> nvec;
 
-            /*if(xr.isConst()) {
-              Node tmp = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, xr, r) );
-              if(tmp==d_true || tmp==d_false) {
-                if(!polarity) {
-                  tmp = tmp==d_true? d_false : d_true;
-                }
-                nvec.push_back( tmp );
-              }
-            }*/
-
-            if(nvec.empty()) {
-              d_regexp_opr.simplify(atom, nvec, polarity);
-            }
-            Node antec = assertion;
-            if(d_regexp_ant.find(assertion) != d_regexp_ant.end()) {
-              antec = d_regexp_ant[assertion];
-              for(std::vector< Node >::const_iterator itr=nvec.begin(); itr<nvec.end(); itr++) {
-                if(itr->getKind() == kind::STRING_IN_REGEXP) {
-                  if(d_regexp_ant.find( *itr ) == d_regexp_ant.end()) {
-                    d_regexp_ant[ *itr ] = antec;
-                  }
+          if (nvec.empty())
+          {
+            d_regexp_opr.simplify(atom, nvec, polarity);
+          }
+          Node antec = assertion;
+          if (d_regexp_ant.find(assertion) != d_regexp_ant.end())
+          {
+            antec = d_regexp_ant[assertion];
+            for (std::vector<Node>::const_iterator itr = nvec.begin();
+                 itr < nvec.end();
+                 itr++)
+            {
+              if (itr->getKind() == kind::STRING_IN_REGEXP)
+              {
+                if (d_regexp_ant.find(*itr) == d_regexp_ant.end())
+                {
+                  d_regexp_ant[*itr] = antec;
                 }
               }
-            }
-            antec = NodeManager::currentNM()->mkNode(kind::AND, antec, mkExplain(rnfexp));
-            Node conc = nvec.size()==1 ? nvec[0] : NodeManager::currentNM()->mkNode(kind::AND, nvec);
-            conc = Rewriter::rewrite(conc);
-            sendLemma( antec, conc, "REGEXP_Unfold" );
-            addedLemma = true;
-            if(changed) {
-              cprocessed.push_back( assertion );
-            } else {
-              processed.push_back( assertion );
-            }
-            //d_regexp_ucached[assertion] = true;
-          }else{
-            Trace("strings-regexp") << "Unroll/simplify membership of non-atomic term " << xr << " = ";
-            for( unsigned j=0; j<d_normal_forms[xr].size(); j++ ){
-              Trace("strings-regexp") << d_normal_forms[xr][j] << " ";
-            }
-            Trace("strings-regexp") << ", polarity = " << polarity << std::endl;
-            //otherwise, distribute unrolling over parts
-            Node p1;
-            Node p2;
-            if( d_normal_forms[xr].size()>1 ){
-              p1 = d_normal_forms[xr][0];
-              std::vector< Node > cc;
-              cc.insert( cc.begin(), d_normal_forms[xr].begin() + 1, d_normal_forms[xr].end() );
-              p2 = mkConcat( cc );
-            }
-
-            Trace("strings-regexp-debug") << "Construct antecedant..." << std::endl;
-            std::vector< Node > antec;
-            std::vector< Node > antecn;
-            antec.insert( antec.begin(), d_normal_forms_exp[xr].begin(), d_normal_forms_exp[xr].end() );
-            if( x!=xr ){
-              antec.push_back( x.eqNode( xr ) );
-            }
-            antecn.push_back( assertion );
-            Node ant = mkExplain( antec, antecn );
-            Trace("strings-regexp-debug") << "Construct conclusion..." << std::endl;
-            Node conc;
-            if( polarity ){
-              if( d_normal_forms[xr].size()==0 ){
-                conc = d_true;
-              }else if( d_normal_forms[xr].size()==1 ){
-                Trace("strings-regexp-debug") << "Case 1\n";
-                conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, d_normal_forms[xr][0], r);
-              }else{
-                Trace("strings-regexp-debug") << "Case 2\n";
-                std::vector< Node > conc_c;
-                Node s11 = mkSkolemS( "s11" );
-                Node s12 = mkSkolemS( "s12" );
-                Node s21 = mkSkolemS( "s21" );
-                Node s22 = mkSkolemS( "s22" );
-                conc = p1.eqNode( mkConcat(s11, s12) );
-                conc_c.push_back(conc);
-                conc = p2.eqNode( mkConcat(s21, s22) );
-                conc_c.push_back(conc);
-                conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s11, r);
-                conc_c.push_back(conc);
-                conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP,  mkConcat(s12, s21), r[0]);
-                conc_c.push_back(conc);
-                conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s22, r);
-                conc_c.push_back(conc);
-                conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, conc_c));
-                Node eqz = Rewriter::rewrite(x.eqNode(d_emptyString));
-                conc = NodeManager::currentNM()->mkNode(kind::OR, eqz, conc);
-                d_pending_req_phase[eqz] = true;
-              }
-            }else{
-              if( d_normal_forms[xr].size()==0 ){
-                conc = d_false;
-              }else if( d_normal_forms[xr].size()==1 ){
-                Trace("strings-regexp-debug") << "Case 3\n";
-                conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, d_normal_forms[xr][0], r).negate();
-              }else{
-                Trace("strings-regexp-debug") << "Case 4\n";
-                Node len1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, p1);
-                Node len2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, p2);
-                Node bi = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-                Node bj = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-                Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, bi, bj);
-                Node g1 = NodeManager::currentNM()->mkNode(kind::AND,
-                      NodeManager::currentNM()->mkNode(kind::GEQ, bi, d_zero),
-                      NodeManager::currentNM()->mkNode(kind::GEQ, len1, bi),
-                      NodeManager::currentNM()->mkNode(kind::GEQ, bj, d_zero),
-                      NodeManager::currentNM()->mkNode(kind::GEQ, len2, bj));
-                Node s11 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p1, d_zero, bi);
-                Node s12 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p1, bi, NodeManager::currentNM()->mkNode(kind::MINUS, len1, bi));
-                Node s21 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p2, d_zero, bj);
-                Node s22 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, p2, bj, NodeManager::currentNM()->mkNode(kind::MINUS, len2, bj));
-                Node cc1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s11, r).negate();
-                Node cc2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP,  mkConcat(s12, s21), r[0]).negate();
-                Node cc3 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s22, r).negate();
-                conc = NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2, cc3);
-                conc = NodeManager::currentNM()->mkNode(kind::IMPLIES, g1, conc);
-                conc = NodeManager::currentNM()->mkNode(kind::FORALL, b1v, conc);
-                conc = NodeManager::currentNM()->mkNode(kind::AND, x.eqNode(d_emptyString).negate(), conc);
-              }
-            }
-            if( conc!=d_true ){
-              ant = mkRegExpAntec(assertion, ant);
-              sendLemma(ant, conc, "REGEXP CSTAR");
-              addedLemma = true;
-              if( conc==d_false ){
-                d_regexp_ccached.insert( assertion );
-              }else{
-                cprocessed.push_back( assertion );
-              }
-            }else{
-              d_regexp_ccached.insert(assertion);
             }
           }
+          antec = NodeManager::currentNM()->mkNode(
+              kind::AND, antec, mkExplain(rnfexp));
+          Node conc = nvec.size() == 1
+                          ? nvec[0]
+                          : NodeManager::currentNM()->mkNode(kind::AND, nvec);
+          conc = Rewriter::rewrite(conc);
+          sendLemma(antec, conc, "REGEXP_Unfold");
+          addedLemma = true;
+          if (changed)
+          {
+            cprocessed.push_back(assertion);
+          }
+          else
+          {
+            processed.push_back(assertion);
+          }
+          // d_regexp_ucached[assertion] = true;
         }
       }
       if(d_conflict) {
