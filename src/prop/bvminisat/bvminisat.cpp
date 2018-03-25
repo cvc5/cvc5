@@ -33,7 +33,7 @@ BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry* registry, context::Co
   d_lastPropagation(mainSatContext, 0),
   d_statistics(registry, name)
 {
-  d_statistics.init(d_minisat);
+  d_statistics.init(d_minisat.get());
 }
 
 
@@ -53,7 +53,7 @@ void BVMinisatSatSolver::MinisatNotify::notify(
 
 void BVMinisatSatSolver::setNotify(Notify* notify) {
   d_minisatNotify.reset(new MinisatNotify(notify));
-  d_minisat->setNotify(d_minisatNotify);
+  d_minisat->setNotify(d_minisatNotify.get());
 }
 
 ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
