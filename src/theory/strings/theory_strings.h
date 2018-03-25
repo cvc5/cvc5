@@ -398,15 +398,10 @@ private:
 
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
-  Node normalizeRegexp(Node r);
-  bool normalizePosMemberships( std::map< Node, std::vector< Node > > &memb_with_exps );
   bool applyRConsume( CVC4::String &s, Node &r );
   Node applyRSplit( Node s1, Node s2, Node r );
   bool applyRLen( std::map< Node, std::vector< Node > > &XinR_with_exps );
-  bool checkMembershipsWithoutLength( std::map< Node, std::vector< Node > > &memb_with_exps, 
-                                      std::map< Node, std::vector< Node > > &XinR_with_exps);
   void checkMemberships();
-  bool checkMemberships2();
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
