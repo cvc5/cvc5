@@ -936,6 +936,9 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
         f = f[1];
         formulas.push_back(f);
       }
+      else {
+        formulas.push_back(f);
+      }
     })+
     {
       if(idCommaFlag){
