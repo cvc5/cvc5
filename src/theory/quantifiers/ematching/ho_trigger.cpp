@@ -457,35 +457,57 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
 
 int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 {
-  unsigned numLemmas = 0;
-  if (!d_ho_var_types.empty())
+  if (d_ho_var_types.empty())
   {
-    // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-    unsigned size = d_quantEngine->getTermDatabase()->getNumOperators();
-    for (unsigned j = 0; j < size; j++)
+    return 0;
+  }
+  Trace("ho-quant-trigger") << "addHoTypeMatchPredicateLemmas..." << std::endl;
+  unsigned numLemmas = 0;
+  // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
+  unsigned size = d_quantEngine->getTermDatabase()->getNumOperators();
+  quantifiers::TermUtil * tutil = d_quantEngine->getTermUtil();
+  NodeManager * nm = NodeManager::currentNM();
+  for (unsigned j = 0; j < size; j++)
+  {
+    Node f = d_quantEngine->getTermDatabase()->getOperator(j);
+    if (f.isVar())
     {
-      Node f = d_quantEngine->getTermDatabase()->getOperator(j);
-      if (f.isVar())
+      TypeNode tn = f.getType();
+      if( tn.isFunction() )
       {
-        TypeNode tn = f.getType();
-        if (d_ho_var_types.find(tn) != d_ho_var_types.end())
+        std::vector< TypeNode > argTypes = tn.getArgTypes();
+        Assert( argTypes.size()>0 );
+        TypeNode range = tn.getRangeType();
+        // for each function type suffix of the type of f, for example if
+        // f : (Int -> (Int -> Int))
+        // we iterate with stn = (Int -> (Int -> Int)) and (Int -> Int)
+        for( unsigned a=0, size = argTypes.size(); a<size; a++ )
         {
-          Node u = d_quantEngine->getTermUtil()->getHoTypeMatchPredicate(tn);
-          Node au = NodeManager::currentNM()->mkNode(kind::APPLY_UF, u, f);
-          if (d_quantEngine->addLemma(au))
+          std::vector< TypeNode > sargts;
+          sargts.insert( sargts.begin(), argTypes.begin()+a, argTypes.end() );
+          Assert( sargts.size()>0 );
+          TypeNode stn = nm->mkFunctionType( sargts, range );
+          Trace("ho-quant-trigger-debug") << "For " << f << ", check " << stn << "..." << std::endl;
+          // if a variable of this type occurs in this trigger
+          if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
-            // this forces f to be a first-class member of the quantifier-free
-            // equality engine,
-            //  which in turn forces the quantifier-free theory solver to expand
-            //  it to HO_APPLY
-            Trace("ho-quant") << "Added ho match predicate lemma : " << au
-                              << std::endl;
-            numLemmas++;
+            Node u = tutil->getHoTypeMatchPredicate(tn);
+            Node au = nm->mkNode(kind::APPLY_UF, u, f);
+            if (d_quantEngine->addLemma(au))
+            {
+              // this forces f to be a first-class member of the quantifier-free
+              // equality engine, which in turn forces the quantifier-free 
+              // theory solver to expand it to an HO_APPLY chain.
+              Trace("ho-quant") << "Added ho match predicate lemma : " << au
+                                << std::endl;
+              numLemmas++;
+            }
           }
         }
       }
     }
   }
+
   return numLemmas;
 }
 
