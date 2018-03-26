@@ -3073,7 +3073,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
 
   NodeManager* nm = NodeManager::currentNM();
 
-  if (assumption.getKind() != kind::EQUAL)
+  if (!assumption.isConst() && assumption.getKind() != kind::EQUAL)
   {
     // We rewrite inequality assumptions from x <= y to x + (str.len s) = y
     // where s is some fresh string variable. We use (str.len s) because
@@ -3100,7 +3100,24 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
   }
 
   Node diff = nm->mkNode(kind::MINUS, a, b);
-  return checkEntailArithWithEqAssumption(assumption, diff, strict);
+  bool res = false;
+  if (assumption.isConst())
+  {
+    bool assumptionBool = assumption.getConst<bool>();
+    if (assumptionBool)
+    {
+      res = checkEntailArith(diff, strict);
+    }
+    else
+    {
+      res = true;
+    }
+  }
+  else
+  {
+    res = checkEntailArithWithEqAssumption(assumption, diff, strict);
+  }
+  return res;
 }
 
 bool TheoryStringsRewriter::checkEntailArithWithAssumptions(
