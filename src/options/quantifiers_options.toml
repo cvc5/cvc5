@@ -439,15 +439,6 @@ header = "options/quantifiers_options.h"
   help       = "selection mode for representatives in quantifiers engine"
 
 [[option]]
-  name       = "instRelevantCond"
-  category   = "regular"
-  long       = "inst-rlv-cond"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add relevancy conditions for instantiations"
-
-[[option]]
   name       = "fullSaturateQuant"
   category   = "regular"
   long       = "full-saturate-quant"
@@ -1017,11 +1008,20 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-inv-templ=MODE"
   type       = "CVC4::theory::quantifiers::SygusInvTemplMode"
-  default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE"
+  default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_POST"
   handler    = "stringToSygusInvTemplMode"
   includes   = ["options/quantifiers_modes.h"]
   read_only  = true
-  help       = "template mode for sygus invariant synthesis"
+  help       = "template mode for sygus invariant synthesis (weaken pre-condition, strengthen post-condition, or none)"
+
+[[option]]
+  name       = "sygusInvTemplWhenSyntax"
+  category   = "regular"
+  long       = "sygus-inv-templ-when-sg"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "use invariant templates (with solution reconstruction) for syntax guided problems"
 
 [[option]]
   name       = "sygusInvAutoUnfold"
@@ -1440,17 +1440,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "perform anti-skolemization for quantified formulas"
-
-### e-unification options
-
-[[option]]
-  name       = "quantEqualityEngine"
-  category   = "regular"
-  long       = "quant-ee"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "maintain congrunce closure over universal equalities"
 
 ### Higher-order options
 

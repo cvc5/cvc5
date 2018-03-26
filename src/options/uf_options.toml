@@ -75,33 +75,6 @@ header = "options/uf_options.h"
   help       = "tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
 
 [[option]]
-  name       = "ufssExplainedCliques"
-  category   = "regular"
-  long       = "uf-ss-explained-cliques"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use explained clique lemmas for uf strong solver"
-
-[[option]]
-  name       = "ufssSimpleCliques"
-  category   = "regular"
-  long       = "uf-ss-simple-cliques"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "always use simple clique lemmas for uf strong solver"
-
-[[option]]
-  name       = "ufssDiseqPropagation"
-  category   = "regular"
-  long       = "uf-ss-deq-prop"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "eagerly propagate disequalities for uf strong solver"
-
-[[option]]
   name       = "ufssMode"
   category   = "regular"
   long       = "uf-ss=MODE"
