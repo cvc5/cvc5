@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 (set-logic AUFLIRA)
 
 ;; DATATYPE

@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -154,7 +155,26 @@ void CegConjectureSingleInv::initialize( Node q ) {
       //check if it is single invocation
       if (!d_sip->isPurelySingleInvocation())
       {
-        if( options::sygusInvTemplMode() != SYGUS_INV_TEMPL_MODE_NONE ){
+        SygusInvTemplMode tmode = options::sygusInvTemplMode();
+        if (tmode != SYGUS_INV_TEMPL_MODE_NONE)
+        {
+          // currently only works for single predicate synthesis
+          if (q[0].getNumChildren() > 1 || !q[0][0].getType().isPredicate())
+          {
+            tmode = SYGUS_INV_TEMPL_MODE_NONE;
+          }
+          else if (!options::sygusInvTemplWhenSyntax())
+          {
+            // only use invariant templates if no syntactic restrictions
+            if (CegGrammarConstructor::hasSyntaxRestrictions(q))
+            {
+              tmode = SYGUS_INV_TEMPL_MODE_NONE;
+            }
+          }
+        }
+
+        if (tmode != SYGUS_INV_TEMPL_MODE_NONE)
+        {
           //if we are doing invariant templates, then construct the template
           Trace("cegqi-si") << "- Do transition inference..." << std::endl;
           d_ti[q].process( qq );
@@ -234,12 +254,15 @@ void CegConjectureSingleInv::initialize( Node q ) {
                 }
               }
             }
+            Trace("cegqi-inv") << "Make the template... " << tmode << " "
+                               << templ << std::endl;
             if( templ.isNull() ){
-              if( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_PRE ){
+              if (tmode == SYGUS_INV_TEMPL_MODE_PRE)
+              {
                 //d_templ[prog] = NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( OR, d_trans_pre[prog], invariant ), d_trans_post[prog] );
                 templ = NodeManager::currentNM()->mkNode( OR, d_trans_pre[prog], d_templ_arg[prog] );
               }else{
-                Assert( options::sygusInvTemplMode() == SYGUS_INV_TEMPL_MODE_POST );
+                Assert(tmode == SYGUS_INV_TEMPL_MODE_POST);
                 //d_templ[prog] = NodeManager::currentNM()->mkNode( OR, d_trans_pre[prog], NodeManager::currentNM()->mkNode( AND, d_trans_post[prog], invariant ) );
                 templ = NodeManager::currentNM()->mkNode( AND, d_trans_post[prog], d_templ_arg[prog] );
               }
@@ -300,9 +323,11 @@ void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
   }else{
     d_single_inv = Node::null();
     Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
-    if( options::cegqiSingleInvAbort() ){
-      Notice() << "Property is not single invocation." << std::endl;
-      exit( 1 );
+    if (options::cegqiSingleInvAbort())
+    {
+      std::stringstream ss;
+      ss << "Property is not single invocation." << std::endl;
+      throw LogicException(ss.str());
     }
   }
 }
@@ -559,11 +584,9 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
 
   if( Trace.isOn("csi-sol") ){
     //debug solution
-    if( !d_sol->debugSolution( d_solution ) ){
+    if (!d_sol->debugSolution(d_solution))
+    {
       Trace("csi-sol") << "WARNING : solution " << d_solution << " contains free constants." << std::endl;
-      //exit( 47 );
-    }else{
-      //exit( 49 );
     }
   }
   if( Trace.isOn("cegqi-stats") ){

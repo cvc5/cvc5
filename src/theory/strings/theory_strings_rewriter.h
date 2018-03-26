@@ -327,6 +327,10 @@ private:
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
   *   ne is updated to { "e" }
+  * stripConstantEndpoints({ "ad", substr("ccc",x,y) }, { "d" }, {}, {}, -1)
+  *   returns true,
+  *   n1 is updated to {"ad"}
+  *   ne is updated to { substr("ccc",x,y) }
   */
   static bool stripConstantEndpoints(std::vector<Node>& n1,
                                      std::vector<Node>& n2,
@@ -352,6 +356,57 @@ private:
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= 0 (if strict is false) or
+   * assumption |= a > 0 (if strict is true), where assumption is an equality
+   * assumption. The assumption must be in rewritten form.
+   *
+   * Example:
+   *
+   * checkEntailArithWithEqAssumption(x + (str.len y) = 0, -x, false) = true
+   *
+   * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
+   */
+  static bool checkEntailArithWithEqAssumption(Node assumption,
+                                               Node a,
+                                               bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= b (if strict is false) or
+   * assumption |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumption
+   * must be in rewritten form. Assumption may be an equality or an inequality.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumption(x + (str.len y) = 0, 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumption(Node assumption,
+                                             Node a,
+                                             Node b,
+                                             bool strict = false);
+
+  /**
+   * Checks whether assumptions |= a >= b (if strict is false) or
+   * assumptions |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumptions
+   * must be in rewritten form. Assumptions may be an equalities or an
+   * inequalities.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumptions(std::vector<Node> assumptions,
+                                              Node a,
+                                              Node b,
+                                              bool strict = false);
+
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
    * then ret is a rational constant and
@@ -366,6 +421,22 @@ private:
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
+  /** decompose substr chain
+   *
+   * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+   * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+   */
+  static Node decomposeSubstrChain(Node s,
+                                   std::vector<Node>& ss,
+                                   std::vector<Node>& ls);
+  /** make substr chain
+   *
+   * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+   * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+   */
+  static Node mkSubstrChain(Node base,
+                            const std::vector<Node>& ss,
+                            const std::vector<Node>& ls);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

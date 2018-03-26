@@ -134,7 +134,10 @@ std::string Configuration::copyright() {
      << "\n\n";
 
   if (Configuration::isBuiltWithAbc()
-      || Configuration::isBuiltWithLfsc()) {
+      || Configuration::isBuiltWithLfsc()
+      || Configuration::isBuiltWithCadical()
+      || Configuration::isBuiltWithCryptominisat())
+  {
     ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
        << "third party libraries.\n\n";
     if (Configuration::isBuiltWithAbc()) {
@@ -147,21 +150,28 @@ std::string Configuration::copyright() {
          << "  See http://github.com/CVC4/LFSC for copyright and\n"
          << "  licensing information.\n\n";
     }
+    if (Configuration::isBuiltWithCadical())
+    {
+      ss << "  CaDiCaL - Simplified Satisfiability Solver\n"
+         << "  See https://github.com/arminbiere/cadical for copyright "
+         << "information.\n\n";
+    }
+    if (Configuration::isBuiltWithCryptominisat())
+    {
+      ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
+         << "  See https://github.com/msoos/cryptominisat for copyright "
+         << "information.\n\n";
+    }
   }
 
-  if (Configuration::isBuiltWithGmp()
-      || Configuration::isBuiltWithCryptominisat()) {
+  if (Configuration::isBuiltWithGmp())
+  {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
        << "See licenses/lgpl-3.0.txt for more information.\n\n";
     if (Configuration::isBuiltWithGmp()) {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
-    }
-    if (Configuration::isBuiltWithCryptominisat()) {
-      ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
-         << "  See http://github.com/msoos/cryptominisat for copyright "
-         << "information.\n\n";
     }
   }
 
@@ -227,6 +237,8 @@ bool Configuration::isBuiltWithGlpk() {
 bool Configuration::isBuiltWithAbc() {
   return IS_ABC_BUILD;
 }
+
+bool Configuration::isBuiltWithCadical() { return IS_CADICAL_BUILD; }
 
 bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;

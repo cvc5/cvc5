@@ -114,6 +114,8 @@ libcvc4_la_SOURCES = \
 	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
+	prop/cadical.cpp \
+	prop/cadical.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
 	prop/cryptominisat.cpp \
@@ -364,8 +366,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bv_inverter.cpp \
 	theory/quantifiers/bv_inverter.h \
-	theory/quantifiers/candidate_generator.cpp \
-	theory/quantifiers/candidate_generator.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
@@ -376,6 +376,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/conjecture_generator.h \
 	theory/quantifiers/dynamic_rewrite.cpp \
 	theory/quantifiers/dynamic_rewrite.h \
+	theory/quantifiers/ematching/candidate_generator.cpp \
+	theory/quantifiers/ematching/candidate_generator.h \
 	theory/quantifiers/ematching/ho_trigger.cpp \
 	theory/quantifiers/ematching/ho_trigger.h \
 	theory/quantifiers/ematching/inst_match_generator.cpp \
@@ -404,8 +406,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fmf/model_builder.h \
 	theory/quantifiers/fmf/model_engine.cpp \
 	theory/quantifiers/fmf/model_engine.h \
-	theory/quantifiers/fun_def_engine.cpp \
-	theory/quantifiers/fun_def_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
 	theory/quantifiers/global_negate.cpp \
@@ -428,8 +428,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_epr.cpp \
 	theory/quantifiers/quant_epr.h \
-	theory/quantifiers/quant_equality_engine.cpp \
-	theory/quantifiers/quant_equality_engine.h \
 	theory/quantifiers/quant_relevance.cpp \
 	theory/quantifiers/quant_relevance.h \
 	theory/quantifiers/quant_split.cpp \
@@ -559,6 +557,11 @@ endif
 if CVC4_USE_ABC
 libcvc4_la_LIBADD += $(ABC_LIBS)
 libcvc4_la_LDFLAGS += $(ABC_LDFLAGS)
+endif
+
+if CVC4_USE_CADICAL
+libcvc4_la_LIBADD += $(CADICAL_LIBS)
+libcvc4_la_LDFLAGS += $(CADICAL_LDFLAGS)
 endif
 
 if CVC4_USE_CRYPTOMINISAT

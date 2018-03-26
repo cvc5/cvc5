@@ -1,3 +1,4 @@
+; COMMAND-LINE: --unconstrained-simp --no-check-models
 (set-logic QF_AUFBV )
 (set-info :status sat)
 (declare-sort U 0)

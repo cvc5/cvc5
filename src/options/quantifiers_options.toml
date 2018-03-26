@@ -1,0 +1,1504 @@
+id     = "QUANTIFIERS"
+name   = "Quantifiers"
+header = "options/quantifiers_options.h"
+
+# Whether to mini-scope quantifiers.
+# For example, forall x. ( P( x ) ^ Q( x ) ) will be rewritten to
+# ( forall x. P( x ) ) ^ ( forall x. Q( x ) )
+[[option]]
+  name       = "miniscopeQuant"
+  category   = "regular"
+  long       = "miniscope-quant"
+  type       = "bool"
+  default    = "true"
+  help       = "miniscope quantifiers"
+
+# Whether to mini-scope quantifiers based on formulas with no free variables.
+# For example, forall x. ( P( x ) V Q ) will be rewritten to
+# ( forall x. P( x ) ) V Q
+[[option]]
+  name       = "miniscopeQuantFreeVar"
+  category   = "regular"
+  long       = "miniscope-quant-fv"
+  type       = "bool"
+  default    = "true"
+  help       = "miniscope quantifiers for ground subformulas"
+
+[[option]]
+  name       = "quantSplit"
+  category   = "regular"
+  long       = "quant-split"
+  type       = "bool"
+  default    = "true"
+  help       = "apply splitting to quantified formulas based on variable disjoint disjuncts"
+
+[[option]]
+  name       = "prenexQuant"
+  category   = "regular"
+  long       = "prenex-quant=MODE"
+  type       = "CVC4::theory::quantifiers::PrenexQuantMode"
+  default    = "CVC4::theory::quantifiers::PRENEX_QUANT_SIMPLE"
+  handler    = "stringToPrenexQuantMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "prenex mode for quantified formulas"
+
+[[option]]
+  name       = "prenexQuantUser"
+  category   = "regular"
+  long       = "prenex-quant-user"
+  type       = "bool"
+  default    = "false"
+  help       = "prenex quantified formulas with user patterns"
+
+# Whether to variable-eliminate quantifiers.
+# For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
+#   forall y. P( c, y )
+[[option]]
+  name       = "varElimQuant"
+  category   = "regular"
+  long       = "var-elim-quant"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "enable simple variable elimination for quantified formulas"
+
+[[option]]
+  name       = "varIneqElimQuant"
+  category   = "regular"
+  long       = "var-ineq-elim-quant"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "enable variable elimination based on infinite projection of unbound arithmetic variables"
+
+[[option]]
+  name       = "dtVarExpandQuant"
+  category   = "regular"
+  long       = "dt-var-exp-quant"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "expand datatype variables bound to one constructor in quantifiers"
+
+[[option]]
+  name       = "iteLiftQuant"
+  category   = "regular"
+  long       = "ite-lift-quant=MODE"
+  type       = "CVC4::theory::quantifiers::IteLiftQuantMode"
+  default    = "CVC4::theory::quantifiers::ITE_LIFT_QUANT_MODE_SIMPLE"
+  handler    = "stringToIteLiftQuantMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "ite lifting mode for quantified formulas"
+
+[[option]]
+  name       = "condVarSplitQuant"
+  category   = "regular"
+  long       = "cond-var-split-quant"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "split quantified formulas that lead to variable eliminations"
+
+[[option]]
+  name       = "condVarSplitQuantAgg"
+  category   = "regular"
+  long       = "cond-var-split-agg-quant"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "aggressive split quantified formulas that lead to variable eliminations"
+
+[[option]]
+  name       = "iteDtTesterSplitQuant"
+  category   = "regular"
+  long       = "ite-dtt-split-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "split ites with dt testers as conditions"
+
+# Whether to pre-skolemize quantifier bodies.
+# For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
+#   forall x. P( x ) => f( S( x ) ) = x
+[[option]]
+  name       = "preSkolemQuant"
+  category   = "regular"
+  long       = "pre-skolem-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "apply skolemization eagerly to bodies of quantified formulas"
+
+[[option]]
+  name       = "preSkolemQuantNested"
+  category   = "regular"
+  long       = "pre-skolem-quant-nested"
+  type       = "bool"
+  default    = "true"
+  help       = "apply skolemization to nested quantified formulas"
+
+[[option]]
+  name       = "preSkolemQuantAgg"
+  category   = "regular"
+  long       = "pre-skolem-quant-agg"
+  type       = "bool"
+  default    = "true"
+  help       = "apply skolemization to quantified formulas aggressively"
+
+[[option]]
+  name       = "aggressiveMiniscopeQuant"
+  category   = "regular"
+  long       = "ag-miniscope-quant"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "perform aggressive miniscoping for quantifiers"
+
+[[option]]
+  name       = "elimTautQuant"
+  category   = "regular"
+  long       = "elim-taut-quant"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "eliminate tautological disjuncts of quantified formulas"
+
+[[option]]
+  name       = "elimExtArithQuant"
+  category   = "regular"
+  long       = "elim-ext-arith-quant"
+  type       = "bool"
+  default    = "true"
+  help       = "eliminate extended arithmetic symbols in quantified formulas"
+
+[[option]]
+  name       = "condRewriteQuant"
+  category   = "regular"
+  long       = "cond-rewrite-quant"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "conditional rewriting of quantified formulas"
+
+[[option]]
+  name       = "globalNegate"
+  category   = "regular"
+  long       = "global-negate"
+  type       = "bool"
+  default    = "false"
+  help       = "do global negation of input formula"
+
+#### E-matching options
+
+[[option]]
+  name       = "eMatching"
+  category   = "regular"
+  long       = "e-matching"
+  type       = "bool"
+  default    = "true"
+  help       = "whether to do heuristic E-matching"
+
+[[option]]
+  name       = "termDbMode"
+  category   = "regular"
+  long       = "term-db-mode"
+  type       = "CVC4::theory::quantifiers::TermDbMode"
+  default    = "CVC4::theory::quantifiers::TERM_DB_ALL"
+  handler    = "stringToTermDbMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "which ground terms to consider for instantiation"
+
+[[option]]
+  name       = "registerQuantBodyTerms"
+  category   = "regular"
+  long       = "register-quant-body-terms"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "consider ground terms within bodies of quantified formulas for matching"
+
+[[option]]
+  name       = "inferArithTriggerEq"
+  category   = "regular"
+  long       = "infer-arith-trigger-eq"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "infer equalities for trigger terms based on solving arithmetic equalities"
+
+[[option]]
+  name       = "inferArithTriggerEqExp"
+  category   = "regular"
+  long       = "infer-arith-trigger-eq-exp"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "record explanations for inferArithTriggerEq"
+
+[[option]]
+  name       = "strictTriggers"
+  category   = "regular"
+  long       = "strict-triggers"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "only instantiate quantifiers with user patterns based on triggers"
+
+[[option]]
+  name       = "relevantTriggers"
+  category   = "regular"
+  long       = "relevant-triggers"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "prefer triggers that are more relevant based on SInE style analysis"
+
+[[option]]
+  name       = "relationalTriggers"
+  category   = "regular"
+  long       = "relational-triggers"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "choose relational triggers such as x = f(y), x >= f(y)"
+
+[[option]]
+  name       = "purifyTriggers"
+  category   = "regular"
+  long       = "purify-triggers"
+  type       = "bool"
+  default    = "false"
+  help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
+
+[[option]]
+  name       = "purifyDtTriggers"
+  category   = "regular"
+  long       = "purify-dt-triggers"
+  type       = "bool"
+  default    = "false"
+  help       = "purify dt triggers, match all constructors of correct form instead of selectors"
+
+[[option]]
+  name       = "pureThTriggers"
+  category   = "regular"
+  long       = "pure-th-triggers"
+  type       = "bool"
+  default    = "false"
+  help       = "use pure theory terms as single triggers"
+
+[[option]]
+  name       = "partialTriggers"
+  category   = "regular"
+  long       = "partial-triggers"
+  type       = "bool"
+  default    = "false"
+  help       = "use triggers that do not contain all free variables"
+
+[[option]]
+  name       = "multiTriggerWhenSingle"
+  category   = "regular"
+  long       = "multi-trigger-when-single"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "select multi triggers when single triggers exist"
+
+[[option]]
+  name       = "multiTriggerPriority"
+  category   = "regular"
+  long       = "multi-trigger-priority"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "only try multi triggers if single triggers give no instantiations"
+
+[[option]]
+  name       = "multiTriggerCache"
+  category   = "regular"
+  long       = "multi-trigger-cache"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "caching version of multi triggers"
+
+[[option]]
+  name       = "multiTriggerLinear"
+  category   = "regular"
+  long       = "multi-trigger-linear"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "implementation of multi triggers where maximum number of instantiations is linear wrt number of ground terms"
+
+[[option]]
+  name       = "triggerSelMode"
+  category   = "regular"
+  long       = "trigger-sel"
+  type       = "CVC4::theory::quantifiers::TriggerSelMode"
+  default    = "CVC4::theory::quantifiers::TRIGGER_SEL_MIN"
+  handler    = "stringToTriggerSelMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "selection mode for triggers"
+
+[[option]]
+  name       = "triggerActiveSelMode"
+  category   = "regular"
+  long       = "trigger-active-sel"
+  type       = "CVC4::theory::quantifiers::TriggerActiveSelMode"
+  default    = "CVC4::theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL"
+  handler    = "stringToTriggerActiveSelMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "selection mode to activate triggers"
+
+[[option]]
+  name       = "userPatternsQuant"
+  category   = "regular"
+  long       = "user-pat=MODE"
+  type       = "CVC4::theory::quantifiers::UserPatMode"
+  default    = "CVC4::theory::quantifiers::USER_PAT_MODE_TRUST"
+  handler    = "stringToUserPatMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "policy for handling user-provided patterns for quantifier instantiation"
+
+[[option]]
+  name       = "incrementTriggers"
+  category   = "regular"
+  long       = "increment-triggers"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "generate additional triggers as needed during search"
+
+[[option]]
+  name       = "instWhenMode"
+  category   = "regular"
+  long       = "inst-when=MODE"
+  type       = "CVC4::theory::quantifiers::InstWhenMode"
+  default    = "CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL"
+  handler    = "stringToInstWhenMode"
+  predicates = ["checkInstWhenMode"]
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "when to apply instantiation"
+
+[[option]]
+  name       = "instWhenStrictInterleave"
+  category   = "regular"
+  long       = "inst-when-strict-interleave"
+  type       = "bool"
+  default    = "true"
+  help       = "ensure theory combination and standard quantifier effort strategies take turns"
+
+[[option]]
+  name       = "instWhenPhase"
+  category   = "regular"
+  long       = "inst-when-phase=N"
+  type       = "int"
+  default    = "2"
+  help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
+
+[[option]]
+  name       = "instWhenTcFirst"
+  category   = "regular"
+  long       = "inst-when-tc-first"
+  type       = "bool"
+  default    = "true"
+  help       = "allow theory combination to happen once initially, before quantifier strategies are run"
+
+[[option]]
+  name       = "quantModelEe"
+  category   = "regular"
+  long       = "quant-model-ee"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use equality engine of model for last call effort"
+
+[[option]]
+  name       = "instMaxLevel"
+  category   = "regular"
+  long       = "inst-max-level=N"
+  type       = "int"
+  default    = "-1"
+  help       = "maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)"
+
+[[option]]
+  name       = "instLevelInputOnly"
+  category   = "regular"
+  long       = "inst-level-input-only"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "only input terms are assigned instantiation level zero"
+
+[[option]]
+  name       = "quantRepMode"
+  category   = "regular"
+  long       = "quant-rep-mode=MODE"
+  type       = "CVC4::theory::quantifiers::QuantRepMode"
+  default    = "CVC4::theory::quantifiers::QUANT_REP_MODE_FIRST"
+  handler    = "stringToQuantRepMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "selection mode for representatives in quantifiers engine"
+
+[[option]]
+  name       = "fullSaturateQuant"
+  category   = "regular"
+  long       = "full-saturate-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown"
+
+[[option]]
+  name       = "fullSaturateQuantRd"
+  category   = "regular"
+  long       = "full-saturate-quant-rd"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "whether to use relevant domain first for full saturation instantiation strategy"
+
+[[option]]
+  name       = "fullSaturateInterleave"
+  category   = "regular"
+  long       = "fs-interleave"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "interleave full saturate instantiation with other techniques"
+
+[[option]]
+  name       = "literalMatchMode"
+  category   = "regular"
+  long       = "literal-matching=MODE"
+  type       = "CVC4::theory::quantifiers::LiteralMatchMode"
+  default    = "CVC4::theory::quantifiers::LITERAL_MATCH_USE"
+  handler    = "stringToLiteralMatchMode"
+  predicates = ["checkLiteralMatchMode"]
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "choose literal matching mode"
+
+### Finite model finding options
+
+[[option]]
+  name       = "finiteModelFind"
+  category   = "regular"
+  long       = "finite-model-find"
+  type       = "bool"
+  default    = "false"
+  help       = "use finite model finding heuristic for quantifier instantiation"
+
+[[option]]
+  name       = "quantFunWellDefined"
+  category   = "regular"
+  long       = "quant-fun-wd"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "assume that function defined by quantifiers are well defined"
+
+[[option]]
+  name       = "fmfFunWellDefined"
+  category   = "regular"
+  long       = "fmf-fun"
+  type       = "bool"
+  default    = "false"
+  help       = "find models for recursively defined functions, assumes functions are admissible"
+
+[[option]]
+  name       = "fmfFunWellDefinedRelevant"
+  category   = "regular"
+  long       = "fmf-fun-rlv"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
+
+[[option]]
+  name       = "fmfEmptySorts"
+  category   = "regular"
+  long       = "fmf-empty-sorts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "allow finite model finding to assume sorts that do not occur in ground assertions are empty"
+
+[[option]]
+  name       = "mbqiMode"
+  category   = "regular"
+  long       = "mbqi=MODE"
+  type       = "CVC4::theory::quantifiers::MbqiMode"
+  default    = "CVC4::theory::quantifiers::MBQI_FMC"
+  handler    = "stringToMbqiMode"
+  predicates = ["checkMbqiMode"]
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "choose mode for model-based quantifier instantiation"
+
+[[option]]
+  name       = "fmfOneInstPerRound"
+  category   = "regular"
+  long       = "mbqi-one-inst-per-round"
+  type       = "bool"
+  default    = "false"
+  help       = "only add one instantiation per quantifier per round for mbqi"
+
+[[option]]
+  name       = "fmfOneQuantPerRound"
+  category   = "regular"
+  long       = "mbqi-one-quant-per-round"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "only add instantiations for one quantifier per round for mbqi"
+
+[[option]]
+  name       = "mbqiInterleave"
+  category   = "regular"
+  long       = "mbqi-interleave"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "interleave model-based quantifier instantiation with other techniques"
+
+[[option]]
+  name       = "fmfInstEngine"
+  category   = "regular"
+  long       = "fmf-inst-engine"
+  type       = "bool"
+  default    = "false"
+  help       = "use instantiation engine in conjunction with finite model finding"
+
+[[option]]
+  name       = "fmfInstGen"
+  category   = "regular"
+  long       = "fmf-inst-gen"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "enable Inst-Gen instantiation techniques for finite model finding"
+
+[[option]]
+  name       = "fmfInstGenOneQuantPerRound"
+  category   = "regular"
+  long       = "fmf-inst-gen-one-quant-per-round"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "only perform Inst-Gen instantiation techniques on one quantifier per round"
+
+[[option]]
+  name       = "fmfFreshDistConst"
+  category   = "regular"
+  long       = "fmf-fresh-dc"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use fresh distinguished representative when applying Inst-Gen techniques"
+
+[[option]]
+  name       = "fmfFmcSimple"
+  category   = "regular"
+  long       = "fmf-fmc-simple"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "simple models in full model check for finite model finding"
+
+[[option]]
+  name       = "fmfBoundInt"
+  category   = "regular"
+  long       = "fmf-bound-int"
+  type       = "bool"
+  default    = "false"
+  help       = "finite model finding on bounded integer quantification"
+
+[[option]]
+  name       = "fmfBound"
+  category   = "regular"
+  long       = "fmf-bound"
+  type       = "bool"
+  default    = "false"
+  help       = "finite model finding on bounded quantification"
+
+[[option]]
+  name       = "fmfBoundLazy"
+  category   = "regular"
+  long       = "fmf-bound-lazy"
+  type       = "bool"
+  default    = "false"
+  help       = "enforce bounds for bounded quantification lazily via use of proxy variables"
+
+[[option]]
+  name       = "fmfBoundMinMode"
+  category   = "regular"
+  long       = "fmf-bound-min-mode=MODE"
+  type       = "CVC4::theory::quantifiers::FmfBoundMinMode"
+  default    = "CVC4::theory::quantifiers::FMF_BOUND_MIN_INT_RANGE"
+  handler    = "stringToFmfBoundMinMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "mode for which types of bounds to minimize via first decision heuristics"
+
+[[option]]
+  name       = "quantConflictFind"
+  category   = "regular"
+  long       = "quant-cf"
+  type       = "bool"
+  default    = "true"
+  help       = "enable conflict find mechanism for quantifiers"
+
+[[option]]
+  name       = "qcfMode"
+  category   = "regular"
+  long       = "quant-cf-mode=MODE"
+  type       = "CVC4::theory::quantifiers::QcfMode"
+  default    = "CVC4::theory::quantifiers::QCF_PROP_EQ"
+  handler    = "stringToQcfMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "what effort to apply conflict find mechanism"
+
+[[option]]
+  name       = "qcfWhenMode"
+  category   = "regular"
+  long       = "quant-cf-when=MODE"
+  type       = "CVC4::theory::quantifiers::QcfWhenMode"
+  default    = "CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT"
+  handler    = "stringToQcfWhenMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "when to invoke conflict find mechanism for quantifiers"
+
+[[option]]
+  name       = "qcfTConstraint"
+  category   = "regular"
+  long       = "qcf-tconstraint"
+  type       = "bool"
+  default    = "false"
+  help       = "enable entailment checks for t-constraints in qcf algorithm"
+
+[[option]]
+  name       = "qcfAllConflict"
+  category   = "regular"
+  long       = "qcf-all-conflict"
+  type       = "bool"
+  default    = "false"
+  help       = "add all available conflicting instances during conflict-based instantiation"
+
+[[option]]
+  name       = "qcfNestedConflict"
+  category   = "regular"
+  long       = "qcf-nested-conflict"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "consider conflicts for nested quantifiers"
+
+[[option]]
+  name       = "qcfVoExp"
+  category   = "regular"
+  long       = "qcf-vo-exp"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "qcf experimental variable ordering"
+
+[[option]]
+  name       = "instNoEntail"
+  category   = "regular"
+  long       = "inst-no-entail"
+  type       = "bool"
+  default    = "true"
+  help       = "do not consider instances of quantified formulas that are currently entailed"
+
+[[option]]
+  name       = "instNoModelTrue"
+  category   = "regular"
+  long       = "inst-no-model-true"
+  type       = "bool"
+  default    = "false"
+  help       = "do not consider instances of quantified formulas that are currently true in model, if it is available"
+
+[[option]]
+  name       = "instPropagate"
+  category   = "regular"
+  long       = "inst-prop"
+  type       = "bool"
+  default    = "false"
+  help       = "internal propagation for instantiations for selecting relevant instances"
+
+[[option]]
+  name       = "qcfEagerTest"
+  category   = "regular"
+  long       = "qcf-eager-test"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "optimization, test qcf instances eagerly"
+
+[[option]]
+  name       = "qcfEagerCheckRd"
+  category   = "regular"
+  long       = "qcf-eager-check-rd"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "optimization, eagerly check relevant domain of matched position"
+
+[[option]]
+  name       = "qcfSkipRd"
+  category   = "regular"
+  long       = "qcf-skip-rd"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
+
+### Rewrite rules options 
+
+[[option]]
+  name       = "quantRewriteRules"
+  category   = "regular"
+  long       = "rewrite-rules"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use rewrite rules module"
+
+[[option]]
+  name       = "rrOneInstPerRound"
+  category   = "regular"
+  long       = "rr-one-inst-per-round"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "add one instance of rewrite rule per round"
+
+### Induction options 
+
+[[option]]
+  name       = "quantInduction"
+  category   = "regular"
+  long       = "quant-ind"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use all available techniques for inductive reasoning"
+
+[[option]]
+  name       = "dtStcInduction"
+  category   = "regular"
+  long       = "dt-stc-ind"
+  type       = "bool"
+  default    = "false"
+  help       = "apply strengthening for existential quantification over datatypes based on structural induction"
+
+[[option]]
+  name       = "intWfInduction"
+  category   = "regular"
+  long       = "int-wf-ind"
+  type       = "bool"
+  default    = "false"
+  help       = "apply strengthening for integers based on well-founded induction"
+
+[[option]]
+  name       = "conjectureGen"
+  category   = "regular"
+  long       = "conjecture-gen"
+  type       = "bool"
+  default    = "false"
+  help       = "generate candidate conjectures for inductive proofs"
+
+[[option]]
+  name       = "conjectureGenPerRound"
+  category   = "regular"
+  long       = "conjecture-gen-per-round=N"
+  type       = "int"
+  default    = "1"
+  read_only  = true
+  help       = "number of conjectures to generate per instantiation round"
+
+[[option]]
+  name       = "conjectureNoFilter"
+  category   = "regular"
+  long       = "conjecture-no-filter"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "do not filter conjectures"
+
+[[option]]
+  name       = "conjectureFilterActiveTerms"
+  category   = "regular"
+  long       = "conjecture-filter-active-terms"
+  type       = "bool"
+  default    = "true"
+  help       = "filter based on active terms"
+
+[[option]]
+  name       = "conjectureFilterCanonical"
+  category   = "regular"
+  long       = "conjecture-filter-canonical"
+  type       = "bool"
+  default    = "true"
+  help       = "filter based on canonicity"
+
+[[option]]
+  name       = "conjectureFilterModel"
+  category   = "regular"
+  long       = "conjecture-filter-model"
+  type       = "bool"
+  default    = "true"
+  help       = "filter based on model"
+
+[[option]]
+  name       = "conjectureGenGtEnum"
+  category   = "regular"
+  long       = "conjecture-gen-gt-enum=N"
+  type       = "int"
+  default    = "50"
+  read_only  = true
+  help       = "number of ground terms to generate for model filtering"
+
+[[option]]
+  name       = "conjectureUeeIntro"
+  category   = "regular"
+  long       = "conjecture-gen-uee-intro"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "more aggressive merging for universal equality engine, introduces terms"
+
+[[option]]
+  name       = "conjectureGenMaxDepth"
+  category   = "regular"
+  long       = "conjecture-gen-max-depth=N"
+  type       = "int"
+  default    = "3"
+  read_only  = true
+  help       = "maximum depth of terms to consider for conjectures"
+
+### Synthesis options
+
+[[option]]
+  name       = "ceGuidedInst"
+  category   = "regular"
+  long       = "cegqi"
+  type       = "bool"
+  default    = "false"
+  help       = "counterexample-guided quantifier instantiation for sygus"
+
+[[option]]
+  name       = "cegqiSingleInvMode"
+  category   = "regular"
+  long       = "cegqi-si=MODE"
+  type       = "CVC4::theory::quantifiers::CegqiSingleInvMode"
+  default    = "CVC4::theory::quantifiers::CEGQI_SI_MODE_NONE"
+  handler    = "stringToCegqiSingleInvMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for processing single invocation synthesis conjectures"
+
+[[option]]
+  name       = "cegqiSingleInvPartial"
+  category   = "regular"
+  long       = "cegqi-si-partial"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "combined techniques for synthesis conjectures that are partially single invocation"
+
+[[option]]
+  name       = "cegqiSingleInvReconstruct"
+  category   = "regular"
+  long       = "cegqi-si-reconstruct"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "reconstruct solutions for single invocation conjectures in original grammar"
+
+[[option]]
+  name       = "cegqiSolMinCore"
+  category   = "regular"
+  long       = "cegqi-si-sol-min-core"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "minimize solutions for single invocation conjectures based on unsat core"
+
+[[option]]
+  name       = "cegqiSolMinInst"
+  category   = "regular"
+  long       = "cegqi-si-sol-min-inst"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "minimize individual instantiations for single invocation conjectures based on unsat core"
+
+[[option]]
+  name       = "cegqiSingleInvReconstructConst"
+  category   = "regular"
+  long       = "cegqi-si-reconstruct-const"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
+
+[[option]]
+  name       = "cegqiSingleInvAbort"
+  category   = "regular"
+  long       = "cegqi-si-abort"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "abort if synthesis conjecture is not single invocation"
+
+[[option]]
+  name       = "sygusPbe"
+  category   = "regular"
+  long       = "sygus-pbe"
+  type       = "bool"
+  default    = "true"
+  help       = "sygus advanced pruning based on examples"
+
+[[option]]
+  name       = "sygusQePreproc"
+  category   = "regular"
+  long       = "sygus-qe-preproc"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use quantifier elimination as a preprocessing step for sygus"
+
+[[option]]
+  name       = "sygusMinGrammar"
+  category   = "regular"
+  long       = "sygus-min-grammar"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "statically minimize sygus grammars"
+
+[[option]]
+  name       = "sygusAddConstGrammar"
+  category   = "regular"
+  long       = "sygus-add-const-grammar"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "statically add constants appearing in conjecture to grammars"
+
+[[option]]
+  name       = "sygusGrammarNorm"
+  category   = "regular"
+  long       = "sygus-grammar-norm"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "statically normalize sygus grammars based on flattening (linearization)"
+
+[[option]]
+  name       = "sygusTemplEmbedGrammar"
+  category   = "regular"
+  long       = "sygus-templ-embed-grammar"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "embed sygus templates into grammars"
+
+[[option]]
+  name       = "sygusInvTemplMode"
+  category   = "regular"
+  long       = "sygus-inv-templ=MODE"
+  type       = "CVC4::theory::quantifiers::SygusInvTemplMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_POST"
+  handler    = "stringToSygusInvTemplMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "template mode for sygus invariant synthesis (weaken pre-condition, strengthen post-condition, or none)"
+
+[[option]]
+  name       = "sygusInvTemplWhenSyntax"
+  category   = "regular"
+  long       = "sygus-inv-templ-when-sg"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "use invariant templates (with solution reconstruction) for syntax guided problems"
+
+[[option]]
+  name       = "sygusInvAutoUnfold"
+  category   = "regular"
+  long       = "sygus-auto-unfold"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "enable approach which automatically unfolds transition systems for directly solving invariant synthesis problems"
+
+[[option]]
+  name       = "sygusUnifCondSol"
+  category   = "regular"
+  long       = "sygus-unif-csol"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "enable new approach which unifies conditional solutions"
+
+[[option]]
+  name       = "sygusDirectEval"
+  category   = "regular"
+  long       = "sygus-direct-eval"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "direct unfolding of evaluation functions"
+
+[[option]]
+  name       = "sygusUnfoldBool"
+  category   = "regular"
+  long       = "sygus-unfold-bool"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
+
+[[option]]
+  name       = "sygusCRefEval"
+  category   = "regular"
+  long       = "sygus-cref-eval"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "direct evaluation of refinement lemmas for conflict analysis"
+
+[[option]]
+  name       = "sygusCRefEvalMinExp"
+  category   = "regular"
+  long       = "sygus-cref-eval-min-exp"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use min explain for direct evaluation of refinement lemmas for conflict analysis"
+
+[[option]]
+  name       = "sygusStream"
+  category   = "regular"
+  long       = "sygus-stream"
+  type       = "bool"
+  default    = "false"
+  help       = "enumerate a stream of solutions instead of terminating after the first one"
+
+[[option]]
+  name       = "cegisSample"
+  category   = "regular"
+  long       = "cegis-sample=MODE"
+  type       = "CVC4::theory::quantifiers::CegisSampleMode"
+  default    = "CVC4::theory::quantifiers::CEGIS_SAMPLE_NONE"
+  handler    = "stringToCegisSampleMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
+
+# Internal uses of sygus
+
+[[option]]
+  name       = "sygusRew"
+  category   = "regular"
+  long       = "sygus-rr"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use sygus to enumerate and verify correctness of rewrite rules via sampling"
+
+[[option]]
+  name       = "sygusRewSynth"
+  category   = "regular"
+  long       = "sygus-rr-synth"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate candidate rewrite rules via sampling"
+
+[[option]]
+  name       = "sygusRewVerify"
+  category   = "regular"
+  long       = "sygus-rr-verify"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to verify the correctness of rewrite rules via sampling"
+
+[[option]]
+  name       = "sygusRewVerifyAbort"
+  category   = "regular"
+  long       = "sygus-rr-verify-abort"
+  type       = "bool"
+  default    = "true"
+  help       = "abort when sygus-rr-verify finds an instance of unsoundness"
+
+[[option]]
+  name       = "sygusSamples"
+  category   = "regular"
+  long       = "sygus-samples=N"
+  type       = "int"
+  default    = "1000"
+  help       = "number of points to consider when doing sygus rewriter sample testing"
+
+[[option]]
+  name       = "sygusSampleGrammar"
+  category   = "regular"
+  long       = "sygus-sample-grammar"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "when applicable, use grammar for choosing sample points"
+
+[[option]]
+  name       = "sygusRewSynthAccel"
+  category   = "regular"
+  long       = "sygus-rr-synth-accel"
+  type       = "bool"
+  default    = "false"
+  help       = "add dynamic symmetry breaking clauses based on candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthCheck"
+  category   = "regular"
+  long       = "sygus-rr-synth-check"
+  type       = "bool"
+  default    = "false"
+  help       = "use satisfiability check to verify correctness of candidate rewrites"
+
+# CEGQI applied to general quantified formulas
+
+[[option]]
+  name       = "cbqi"
+  category   = "regular"
+  long       = "cbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "turns on counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiFullEffort"
+  category   = "regular"
+  long       = "cbqi-full"
+  type       = "bool"
+  default    = "false"
+  help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
+
+[[option]]
+  name       = "recurseCbqi"
+  category   = "regular"
+  long       = "cbqi-recurse"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "turns on recursive counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiSat"
+  category   = "regular"
+  long       = "cbqi-sat"
+  type       = "bool"
+  default    = "true"
+  help       = "answer sat when quantifiers are asserted with counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiModel"
+  category   = "regular"
+  long       = "cbqi-model"
+  type       = "bool"
+  default    = "true"
+  help       = "guide instantiations by model values for counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiAll"
+  category   = "regular"
+  long       = "cbqi-all"
+  type       = "bool"
+  default    = "false"
+  help       = "apply counterexample-based instantiation to all quantified formulas"
+
+[[option]]
+  name       = "cbqiMultiInst"
+  category   = "regular"
+  long       = "cbqi-multi-inst"
+  type       = "bool"
+  default    = "false"
+  help       = "when applicable, do multi instantiations per quantifier per round in counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiRepeatLit"
+  category   = "regular"
+  long       = "cbqi-repeat-lit"
+  type       = "bool"
+  default    = "false"
+  help       = "solve literals more than once in counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiInnermost"
+  category   = "regular"
+  long       = "cbqi-innermost"
+  type       = "bool"
+  default    = "true"
+  help       = "only process innermost quantified formulas in counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiNestedQE"
+  category   = "regular"
+  long       = "cbqi-nested-qe"
+  type       = "bool"
+  default    = "false"
+  help       = "process nested quantified formulas with quantifier elimination in counterexample-based quantifier instantiation"
+
+# CEGQI for arithmetic
+
+[[option]]
+  name       = "cbqiUseInfInt"
+  category   = "regular"
+  long       = "cbqi-use-inf-int"
+  type       = "bool"
+  default    = "false"
+  help       = "use integer infinity for vts in counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiUseInfReal"
+  category   = "regular"
+  long       = "cbqi-use-inf-real"
+  type       = "bool"
+  default    = "false"
+  help       = "use real infinity for vts in counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiPreRegInst"
+  category   = "regular"
+  long       = "cbqi-prereg-inst"
+  type       = "bool"
+  default    = "false"
+  help       = "preregister ground instantiations in counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiMinBounds"
+  category   = "regular"
+  long       = "cbqi-min-bounds"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use minimally constrained lower/upper bound for counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiRoundUpLowerLia"
+  category   = "regular"
+  long       = "cbqi-round-up-lia"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "round up integer lower bounds in substitutions for counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiMidpoint"
+  category   = "regular"
+  long       = "cbqi-midpoint"
+  type       = "bool"
+  default    = "false"
+  help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiNopt"
+  category   = "regular"
+  long       = "cbqi-nopt"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "non-optimal bounds for counterexample-based quantifier instantiation"
+
+[[option]]
+  name       = "cbqiLitDepend"
+  category   = "regular"
+  long       = "cbqi-lit-dep"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "dependency lemmas for quantifier alternation in counterexample-based quantifier instantiation"
+
+# CEGQI for EPR
+
+[[option]]
+  name       = "quantEpr"
+  category   = "regular"
+  long       = "quant-epr"
+  type       = "bool"
+  default    = "false"
+  help       = "infer whether in effectively propositional fragment, use for cbqi"
+
+[[option]]
+  name       = "quantEprMatching"
+  category   = "regular"
+  long       = "quant-epr-match"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use matching heuristics for EPR instantiation"
+
+# CEGQI for BV
+
+[[option]]
+  name       = "cbqiBv"
+  category   = "regular"
+  long       = "cbqi-bv"
+  type       = "bool"
+  default    = "true"
+  help       = "use word-level inversion approach for counterexample-guided quantifier instantiation for bit-vectors"
+
+[[option]]
+  name       = "cbqiBvInterleaveValue"
+  category   = "regular"
+  long       = "cbqi-bv-interleave-value"
+  type       = "bool"
+  default    = "false"
+  help       = "interleave model value instantiation with word-level inversion approach"
+
+[[option]]
+  name       = "cbqiBvIneqMode"
+  category   = "regular"
+  long       = "cbqi-bv-ineq=MODE"
+  type       = "CVC4::theory::quantifiers::CbqiBvIneqMode"
+  default    = "CVC4::theory::quantifiers::CBQI_BV_INEQ_EQ_BOUNDARY"
+  handler    = "stringToCbqiBvIneqMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "choose mode for handling bit-vector inequalities with counterexample-guided instantiation"
+
+[[option]]
+  name       = "cbqiBvRmExtract"
+  category   = "regular"
+  long       = "cbqi-bv-rm-extract"
+  type       = "bool"
+  default    = "true"
+  help       = "replaces extract terms with variables for counterexample-guided instantiation for bit-vectors"
+
+[[option]]
+  name       = "cbqiBvLinearize"
+  category   = "regular"
+  long       = "cbqi-bv-linear"
+  type       = "bool"
+  default    = "true"
+  help       = "linearize adder chains for variables"
+
+[[option]]
+  name       = "cbqiBvConcInv"
+  category   = "regular"
+  long       = "cbqi-bv-concat-inv"
+  type       = "bool"
+  default    = "true"
+  help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
+
+### Local theory extensions options
+
+[[option]]
+  name       = "localTheoryExt"
+  category   = "regular"
+  long       = "local-t-ext"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "do instantiation based on local theory extensions"
+
+[[option]]
+  name       = "ltePartialInst"
+  category   = "regular"
+  long       = "lte-partial-inst"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "partially instantiate local theory quantifiers"
+
+[[option]]
+  name       = "lteRestrictInstClosure"
+  category   = "regular"
+  long       = "lte-restrict-inst-closure"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "treat arguments of inst closure as restricted terms for instantiation"
+
+### Reduction options
+
+[[option]]
+  name       = "quantAlphaEquiv"
+  category   = "regular"
+  long       = "quant-alpha-equiv"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "infer alpha equivalence between quantified formulas"
+
+[[option]]
+  name       = "macrosQuant"
+  category   = "regular"
+  long       = "macros-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "perform quantifiers macro expansion"
+
+[[option]]
+  name       = "macrosQuantMode"
+  category   = "regular"
+  long       = "macros-quant-mode=MODE"
+  type       = "CVC4::theory::quantifiers::MacrosQuantMode"
+  default    = "CVC4::theory::quantifiers::MACROS_QUANT_MODE_GROUND_UF"
+  handler    = "stringToMacrosQuantMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "mode for quantifiers macro expansion"
+
+[[option]]
+  name       = "quantDynamicSplit"
+  category   = "regular"
+  long       = "quant-dsplit-mode=MODE"
+  type       = "CVC4::theory::quantifiers::QuantDSplitMode"
+  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_NONE"
+  handler    = "stringToQuantDSplitMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for dynamic quantifiers splitting"
+
+[[option]]
+  name       = "quantAntiSkolem"
+  category   = "regular"
+  long       = "quant-anti-skolem"
+  type       = "bool"
+  default    = "false"
+  help       = "perform anti-skolemization for quantified formulas"
+
+### Higher-order options
+
+[[option]]
+  name       = "hoMatching"
+  category   = "regular"
+  long       = "ho-matching"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "do higher-order matching algorithm for triggers with variable operators"
+
+[[option]]
+  name       = "hoMatchingVarArgPriority"
+  category   = "regular"
+  long       = "ho-matching-var-priority"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "give priority to variable arguments over constant arguments"
+
+[[option]]
+  name       = "hoMergeTermDb"
+  category   = "regular"
+  long       = "ho-merge-term-db"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "merge term indices modulo equality"
+
+### Proof options
+
+[[option]]
+  name       = "trackInstLemmas"
+  category   = "regular"
+  long       = "track-inst-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
