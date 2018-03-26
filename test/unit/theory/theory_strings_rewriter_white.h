@@ -56,7 +56,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     delete d_em;
   }
 
-  void testCheckEqAndEntailArithUnsat()
+  void testCheckEntailArithWithAssumption()
   {
     TypeNode intType = d_nm->integerType();
     TypeNode strType = d_nm->stringType();
@@ -65,36 +65,34 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node y = d_nm->mkVar("y", strType);
     Node z = d_nm->mkVar("z", intType);
 
+    Node zero = d_nm->mkConst(Rational(0));
+
     Node slen_y = d_nm->mkNode(kind::STRING_LENGTH, y);
     Node x_plus_slen_y = d_nm->mkNode(kind::PLUS, x, slen_y);
-    Node x_plus_slen_y_eq_zero = Rewriter::rewrite(
-        d_nm->mkNode(kind::EQUAL, x_plus_slen_y, d_nm->mkConst(Rational(0))));
+    Node x_plus_slen_y_eq_zero =
+        Rewriter::rewrite(d_nm->mkNode(kind::EQUAL, x_plus_slen_y, zero));
 
-    // x + (str.len y) = 0 /\ x > 0 --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEqAndEntailArithUnsat(
-        x_plus_slen_y_eq_zero, x, true));
+    // x + (str.len y) = 0 /\ 0 >= x --> true
+    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_slen_y_eq_zero, zero, x, false));
 
-    // x + (str.len y) = 0 /\ x >= 0 --> false
-    TS_ASSERT(!TheoryStringsRewriter::checkEqAndEntailArithUnsat(
-        x_plus_slen_y_eq_zero, x, false));
+    // x + (str.len y) = 0 /\ 0 > x --> false
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_slen_y_eq_zero, zero, x, true));
 
-    Node x_plus_slen_y_plus_z_eq_zero = Rewriter::rewrite(
-        d_nm->mkNode(kind::EQUAL,
-                     d_nm->mkNode(kind::PLUS, x_plus_slen_y, z),
-                     d_nm->mkConst(Rational(0))));
+    Node x_plus_slen_y_plus_z_eq_zero = Rewriter::rewrite(d_nm->mkNode(
+        kind::EQUAL, d_nm->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
 
-    // x + (str.len y) + z = 0 /\ x > 0 --> false
-    TS_ASSERT(!TheoryStringsRewriter::checkEqAndEntailArithUnsat(
-        x_plus_slen_y_plus_z_eq_zero, x, true));
+    // x + (str.len y) + z = 0 /\ 0 > x --> false
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_slen_y_plus_z_eq_zero, zero, x, true));
 
-    Node x_plus_slen_y_plus_slen_y_eq_zero = Rewriter::rewrite(
-        d_nm->mkNode(kind::EQUAL,
-                     d_nm->mkNode(kind::PLUS, x_plus_slen_y, slen_y),
-                     d_nm->mkConst(Rational(0))));
+    Node x_plus_slen_y_plus_slen_y_eq_zero = Rewriter::rewrite(d_nm->mkNode(
+        kind::EQUAL, d_nm->mkNode(kind::PLUS, x_plus_slen_y, slen_y), zero));
 
-    // x + (str.len y) + (str.len y) = 0 /\ x > 0 --> true
-    TS_ASSERT(TheoryStringsRewriter::checkEqAndEntailArithUnsat(
-        x_plus_slen_y_plus_slen_y_eq_zero, x, true));
+    // x + (str.len y) + (str.len y) = 0 /\ 0 >= x --> true
+    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_slen_y_plus_slen_y_eq_zero, zero, x, false));
   }
 
   void testRewriteSubstr()

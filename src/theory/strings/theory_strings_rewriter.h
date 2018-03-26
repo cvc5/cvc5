@@ -354,18 +354,53 @@ private:
   static bool checkEntailArith(Node a, bool strict = false);
 
   /**
-   * Checks whether the conjunction of the equality eq and the arithmetic
-   * entailment of n is unsatisfiable (n >= 0 if strict is false or n > 0 if
-   * strict is true). At a high level, the function tries to derive a
-   * substitution from eq that can be used to show that n < 0 (if strict is
-   * false) or n <= 0 (if strict is true).
+   * Checks whether assumption |= a >= 0 (if strict is false) or
+   * assumption |= a > 0 (if strict is true), where assumption is an equality
+   * assumption. The assumption must be in rewritten form.
    *
-   * E.g. if eq is x + (str.len y) = 0 and n is x, this function returns true
-   * because x = -(str.len y), so x <= 0.
+   * Example:
    *
-   * Note: eq has to be in rewritten form.
+   * checkEntailArithWithEqAssumption(x + (str.len y) = 0, -x, false) = true
+   *
+   * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
    */
-  static bool checkEqAndEntailArithUnsat(Node eq, Node n, bool strict = false);
+  static bool checkEntailArithWithEqAssumption(Node assumption,
+                                               Node a,
+                                               bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= b (if strict is false) or
+   * assumption |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumption
+   * must be in rewritten form and an equality assumption.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumption(x + (str.len y) = 0, 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumption(Node assumption,
+                                             Node a,
+                                             Node b,
+                                             bool strict = false);
+
+  /**
+   * Checks whether assumptions |= a >= b (if strict is false) or
+   * assumptions |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumptions
+   * must be in rewritten form and must be equality assumptions.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumptions(std::vector<Node> assumptions,
+                                              Node a,
+                                              Node b,
+                                              bool strict = false);
 
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,

@@ -1524,7 +1524,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         Node n1_eq_zero =
             Rewriter::rewrite(nm->mkNode(kind::EQUAL, node[1], zero));
-        if (checkEqAndEntailArithUnsat(n1_eq_zero, node[2], true))
+        if (checkEntailArithWithAssumption(n1_eq_zero, zero, node[2], false))
         {
           Node ret = nm->mkConst(::CVC4::String(""));
           return returnRewrite(node, ret, "ss-len-one-unsat");
@@ -2943,18 +2943,16 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   }
 }
 
-bool TheoryStringsRewriter::checkEqAndEntailArithUnsat(Node eq,
-                                                       Node n,
-                                                       bool strict)
+bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
+                                                             Node a,
+                                                             bool strict)
 {
-  Assert(eq.getKind() == kind::EQUAL);
-  Assert(Rewriter::rewrite(eq) == eq);
-
-  NodeManager* nm = NodeManager::currentNM();
+  Assert(assumption.getKind() == kind::EQUAL);
+  Assert(Rewriter::rewrite(assumption) == assumption);
 
   // Find candidates variables to compute substitutions for
   std::unordered_set<Node, NodeHashFunction> candVars;
-  std::vector<Node> toVisit = {eq};
+  std::vector<Node> toVisit = {assumption};
   while (!toVisit.empty())
   {
     Node curr = toVisit.back();
@@ -2978,7 +2976,7 @@ bool TheoryStringsRewriter::checkEqAndEntailArithUnsat(Node eq,
   // Check if any of the candidate variables are in n
   Node v;
   Assert(toVisit.empty());
-  toVisit.push_back(n);
+  toVisit.push_back(a);
   while (!toVisit.empty())
   {
     Node curr = toVisit.back();
@@ -3004,15 +3002,51 @@ bool TheoryStringsRewriter::checkEqAndEntailArithUnsat(Node eq,
     return false;
   }
 
-  Node solution = ArithMSum::solveEqualityFor(eq, v);
+  Node solution = ArithMSum::solveEqualityFor(assumption, v);
   if (solution.isNull())
   {
     // Could not solve for v
     return false;
   }
 
-  n = n.substitute(TNode(v), TNode(solution));
-  return checkEntailArith(nm->mkConst(Rational(0)), n, !strict);
+  a = a.substitute(TNode(v), TNode(solution));
+  return checkEntailArith(a, strict);
+}
+
+bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
+                                                           Node a,
+                                                           Node b,
+                                                           bool strict)
+{
+  // TODO: Add support for inequality assumptions.
+  Assert(assumption.getKind() == kind::EQUAL);
+  Assert(Rewriter::rewrite(assumption) == assumption);
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node diff = nm->mkNode(kind::MINUS, a, b);
+  return checkEntailArithWithEqAssumption(assumption, diff, strict);
+}
+
+bool TheoryStringsRewriter::checkEntailArithWithAssumptions(
+    std::vector<Node> assumptions, Node a, Node b, bool strict)
+{
+  // TODO: We currently try to show the entailment with each assumption
+  // independently. In the future, we should make better use of multiple
+  // assumptions.
+  bool res = false;
+  for (const auto& assumption : assumptions)
+  {
+    Assert(assumption.getKind() == kind::EQUAL);
+    Assert(Rewriter::rewrite(assumption) == assumption);
+
+    if (checkEntailArithWithAssumption(assumption, a, b, strict))
+    {
+      res = true;
+      break;
+    }
+  }
+  return res;
 }
 
 Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
