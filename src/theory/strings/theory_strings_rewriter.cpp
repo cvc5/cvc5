@@ -3017,8 +3017,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
         toVisit.push_back(currChild);
       }
     }
-    else if (curr.getKind() == kind::VARIABLE
-             && Theory::theoryOf(curr) == THEORY_ARITH)
+    else if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH)
     {
       candVars.insert(curr);
     }
@@ -3038,8 +3037,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
       toVisit.push_back(currChild);
     }
 
-    if (curr.getKind() == kind::VARIABLE
-        && Theory::theoryOf(curr) == THEORY_ARITH
+    if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH
         && candVars.find(curr) != candVars.end())
     {
       v = curr;
