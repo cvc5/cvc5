@@ -376,7 +376,7 @@ private:
    * Checks whether assumption |= a >= b (if strict is false) or
    * assumption |= a > b (if strict is true). The function returns true if it
    * can be shown that the entailment holds and false otherwise. Assumption
-   * must be in rewritten form and an equality assumption.
+   * must be in rewritten form. Assumption may be an equality or an inequality.
    *
    * Example:
    *
@@ -393,7 +393,8 @@ private:
    * Checks whether assumptions |= a >= b (if strict is false) or
    * assumptions |= a > b (if strict is true). The function returns true if it
    * can be shown that the entailment holds and false otherwise. Assumptions
-   * must be in rewritten form and must be equality assumptions.
+   * must be in rewritten form. Assumptions may be an equalities or an
+   * inequalities.
    *
    * Example:
    *

@@ -72,27 +72,53 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node x_plus_slen_y_eq_zero =
         Rewriter::rewrite(d_nm->mkNode(kind::EQUAL, x_plus_slen_y, zero));
 
-    // x + (str.len y) = 0 /\ 0 >= x --> true
+    // x + (str.len y) = 0 |= 0 >= x --> true
     TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_eq_zero, zero, x, false));
 
-    // x + (str.len y) = 0 /\ 0 > x --> false
+    // x + (str.len y) = 0 |= 0 > x --> false
     TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_eq_zero, zero, x, true));
 
     Node x_plus_slen_y_plus_z_eq_zero = Rewriter::rewrite(d_nm->mkNode(
         kind::EQUAL, d_nm->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
 
-    // x + (str.len y) + z = 0 /\ 0 > x --> false
+    // x + (str.len y) + z = 0 |= 0 > x --> false
     TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_plus_z_eq_zero, zero, x, true));
 
     Node x_plus_slen_y_plus_slen_y_eq_zero = Rewriter::rewrite(d_nm->mkNode(
         kind::EQUAL, d_nm->mkNode(kind::PLUS, x_plus_slen_y, slen_y), zero));
 
-    // x + (str.len y) + (str.len y) = 0 /\ 0 >= x --> true
+    // x + (str.len y) + (str.len y) = 0 |= 0 >= x --> true
     TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
         x_plus_slen_y_plus_slen_y_eq_zero, zero, x, false));
+
+    Node five = d_nm->mkConst(Rational(5));
+    Node six = d_nm->mkConst(Rational(6));
+    Node x_plus_five = d_nm->mkNode(kind::PLUS, x, five);
+    Node x_plus_five_lt_six =
+        Rewriter::rewrite(d_nm->mkNode(kind::LT, x_plus_five, six));
+
+    // x + 5 < 6 |= 0 >= x --> true
+    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_five_lt_six, zero, x, false));
+
+    // x + 5 < 6 |= 0 > x --> false
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_five_lt_six, zero, x, true));
+
+    Node neg_x = d_nm->mkNode(kind::UMINUS, x);
+    Node x_plus_five_lt_five =
+        Rewriter::rewrite(d_nm->mkNode(kind::LT, x_plus_five, five));
+
+    // x + 5 < 5 |= -x >= 0 --> true
+    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_five_lt_five, neg_x, zero, false));
+
+    // x + 5 < 5 |= 0 > x --> true
+    TS_ASSERT(TheoryStringsRewriter::checkEntailArithWithAssumption(
+        x_plus_five_lt_five, zero, x, false));
   }
 
   void testRewriteSubstr()
@@ -102,6 +128,10 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     Node empty = d_nm->mkConst(::CVC4::String(""));
     Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node abcd = d_nm->mkConst(::CVC4::String("ABCD"));
+    Node two = d_nm->mkConst(Rational(2));
+    Node three = d_nm->mkConst(Rational(3));
+
     Node s = d_nm->mkVar("s", strType);
     Node x = d_nm->mkVar("x", intType);
     Node y = d_nm->mkVar("y", intType);
@@ -130,6 +160,18 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     // (str.substr "A" x y) -> (str.substr "A" x y)
     n = d_nm->mkNode(kind::STRING_SUBSTR, a, x, y);
+    res = TheoryStringsRewriter::rewriteSubstr(n);
+    TS_ASSERT_EQUALS(res, n);
+
+    // (str.substr "ABCD" (+ x 3) x) -> ""
+    n = d_nm->mkNode(
+        kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, three), x);
+    res = TheoryStringsRewriter::rewriteSubstr(n);
+    TS_ASSERT_EQUALS(res, empty);
+
+    // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
+    n = d_nm->mkNode(
+        kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, two), x);
     res = TheoryStringsRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
   }

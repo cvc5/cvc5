@@ -1520,15 +1520,13 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         }
       }
 
-      if (tot_len == nm->mkConst(Rational(1)))
+      // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
+      Node n1_lt_tot_len =
+          Rewriter::rewrite(nm->mkNode(kind::LT, node[1], tot_len));
+      if (checkEntailArithWithAssumption(n1_lt_tot_len, zero, node[2], false))
       {
-        Node n1_eq_zero =
-            Rewriter::rewrite(nm->mkNode(kind::EQUAL, node[1], zero));
-        if (checkEntailArithWithAssumption(n1_eq_zero, zero, node[2], false))
-        {
-          Node ret = nm->mkConst(::CVC4::String(""));
-          return returnRewrite(node, ret, "ss-len-one-unsat");
-        }
+        Node ret = nm->mkConst(::CVC4::String(""));
+        return returnRewrite(node, ret, "ss-start-entails-zero-len");
       }
     }
     if (!curr.isNull())
@@ -3019,8 +3017,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
         toVisit.push_back(currChild);
       }
     }
-    else if (curr.getKind() == kind::VARIABLE
-             && Theory::theoryOf(curr) == THEORY_ARITH)
+    else if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH)
     {
       candVars.insert(curr);
     }
@@ -3040,8 +3037,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
       toVisit.push_back(currChild);
     }
 
-    if (curr.getKind() == kind::VARIABLE
-        && Theory::theoryOf(curr) == THEORY_ARITH
+    if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH
         && candVars.find(curr) != candVars.end())
     {
       v = curr;
@@ -3071,14 +3067,55 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
                                                            Node b,
                                                            bool strict)
 {
-  // TODO: Add support for inequality assumptions.
-  Assert(assumption.getKind() == kind::EQUAL);
   Assert(Rewriter::rewrite(assumption) == assumption);
 
   NodeManager* nm = NodeManager::currentNM();
 
+  if (!assumption.isConst() && assumption.getKind() != kind::EQUAL)
+  {
+    // We rewrite inequality assumptions from x <= y to x + (str.len s) = y
+    // where s is some fresh string variable. We use (str.len s) because
+    // (str.len s) must be non-negative for the equation to hold.
+    Node x, y;
+    if (assumption.getKind() == kind::GEQ)
+    {
+      x = assumption[0];
+      y = assumption[1];
+    }
+    else
+    {
+      // (not (>= s t)) --> (>= (t - 1) s)
+      Assert(assumption.getKind() == kind::NOT
+             && assumption[0].getKind() == kind::GEQ);
+      x = nm->mkNode(kind::MINUS, assumption[0][1], nm->mkConst(Rational(1)));
+      y = assumption[0][0];
+    }
+
+    Node s = nm->mkBoundVar("s", nm->stringType());
+    Node slen = nm->mkNode(kind::STRING_LENGTH, s);
+    assumption = Rewriter::rewrite(
+        nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
+  }
+
   Node diff = nm->mkNode(kind::MINUS, a, b);
-  return checkEntailArithWithEqAssumption(assumption, diff, strict);
+  bool res = false;
+  if (assumption.isConst())
+  {
+    bool assumptionBool = assumption.getConst<bool>();
+    if (assumptionBool)
+    {
+      res = checkEntailArith(diff, strict);
+    }
+    else
+    {
+      res = true;
+    }
+  }
+  else
+  {
+    res = checkEntailArithWithEqAssumption(assumption, diff, strict);
+  }
+  return res;
 }
 
 bool TheoryStringsRewriter::checkEntailArithWithAssumptions(
@@ -3090,7 +3127,6 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumptions(
   bool res = false;
   for (const auto& assumption : assumptions)
   {
-    Assert(assumption.getKind() == kind::EQUAL);
     Assert(Rewriter::rewrite(assumption) == assumption);
 
     if (checkEntailArithWithAssumption(assumption, a, b, strict))
