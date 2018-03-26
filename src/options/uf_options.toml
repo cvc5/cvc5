@@ -1,0 +1,137 @@
+id     = "UF"
+name   = "Uninterpreted functions theory"
+header = "options/uf_options.h"
+
+[[option]]
+  name       = "ufSymmetryBreaker"
+  smt_name   = "uf-symmetry-breaker"
+  category   = "regular"
+  long       = "symmetry-breaker"
+  type       = "bool"
+  default    = "true"
+  help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
+
+[[option]]
+  name       = "condenseFunctionValues"
+  category   = "regular"
+  long       = "condense-function-values"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "condense models for functions rather than explicitly representing them"
+
+[[option]]
+  name       = "ufssRegions"
+  category   = "regular"
+  long       = "uf-ss-regions"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "disable region-based method for discovering cliques and splits in uf strong solver"
+
+[[option]]
+  name       = "ufssEagerSplits"
+  category   = "regular"
+  long       = "uf-ss-eager-split"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "add splits eagerly for uf strong solver"
+
+[[option]]
+  name       = "ufssTotality"
+  category   = "regular"
+  long       = "uf-ss-totality"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "always use totality axioms for enforcing cardinality constraints"
+
+[[option]]
+  name       = "ufssTotalityLimited"
+  category   = "regular"
+  long       = "uf-ss-totality-limited=N"
+  type       = "int"
+  default    = "-1"
+  read_only  = true
+  help       = "apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)"
+
+[[option]]
+  name       = "ufssTotalitySymBreak"
+  category   = "regular"
+  long       = "uf-ss-totality-sym-break"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "apply symmetry breaking for totality axioms"
+
+[[option]]
+  name       = "ufssAbortCardinality"
+  category   = "regular"
+  long       = "uf-ss-abort-card=N"
+  type       = "int"
+  default    = "-1"
+  read_only  = true
+  help       = "tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
+
+[[option]]
+  name       = "ufssMode"
+  category   = "regular"
+  long       = "uf-ss=MODE"
+  type       = "CVC4::theory::uf::UfssMode"
+  default    = "CVC4::theory::uf::UF_SS_FULL"
+  handler    = "stringToUfssMode"
+  includes   = ["options/ufss_mode.h"]
+  read_only  = true
+  help       = "mode of operation for uf strong solver."
+
+[[option]]
+  name       = "ufssCliqueSplits"
+  category   = "regular"
+  long       = "uf-ss-clique-splits"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use cliques instead of splitting on demand to shrink model"
+
+[[option]]
+  name       = "ufssSymBreak"
+  category   = "regular"
+  long       = "uf-ss-sym-break"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "finite model finding symmetry breaking techniques"
+
+[[option]]
+  name       = "ufssFairness"
+  category   = "regular"
+  long       = "uf-ss-fair"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use fair strategy for finite model finding multiple sorts"
+
+[[option]]
+  name       = "ufssFairnessMonotone"
+  category   = "regular"
+  long       = "uf-ss-fair-monotone"
+  type       = "bool"
+  default    = "false"
+  help       = "group monotone sorts when enforcing fairness for finite model finding"
+
+[[option]]
+  name       = "ufHo"
+  category   = "regular"
+  long       = "uf-ho"
+  type       = "bool"
+  default    = "false"
+  help       = "enable support for higher-order reasoning"
+
+[[option]]
+  name       = "ufHoExt"
+  category   = "regular"
+  long       = "uf-ho-ext"
+  type       = "bool"
+  default    = "true"
+  help       = "apply extensionality on function symbols"
