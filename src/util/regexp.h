@@ -197,35 +197,6 @@ struct CVC4_PUBLIC StringHashFunction {
 
 std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
-class CVC4_PUBLIC RegExp {
- public:
-  RegExp() : d_type(1) {}
-  explicit RegExp(const int t) : d_type(t) {}
-
-  bool operator==(const RegExp& y) const { return d_type == y.d_type; }
-  bool operator!=(const RegExp& y) const { return d_type != y.d_type; }
-  bool operator<(const RegExp& y) const { return d_type < y.d_type; }
-  bool operator>(const RegExp& y) const { return d_type > y.d_type; }
-  bool operator<=(const RegExp& y) const { return d_type <= y.d_type; }
-  bool operator>=(const RegExp& y) const { return d_type >= y.d_type; }
-
-  int getType() const { return d_type; }
-
- private:
-  int d_type;
-}; /* class RegExp */
-
-/**
- * Hash function for the RegExp constants.
- */
-struct CVC4_PUBLIC RegExpHashFunction {
-  inline size_t operator()(const RegExp& s) const {
-    return (size_t)s.getType();
-  }
-}; /* struct RegExpHashFunction */
-
-std::ostream& operator<<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
-
 }  // namespace CVC4
 
 #endif /* __CVC4__REGEXP_H */

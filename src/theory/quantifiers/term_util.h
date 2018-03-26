@@ -249,8 +249,6 @@ public:
   bool containsVtsInfinity( Node n, bool isFree = false );
   /** ensure type */
   static Node ensureType( Node n, TypeNode tn );
-  /** get relevancy condition */
-  static void getRelevancyCondition( Node n, std::vector< Node >& cond );
   
 //general utilities
   // TODO #1216 : promote these?
