@@ -628,8 +628,10 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             if (options::sygusRewSynthCheck())
             {
               Trace("rr-check") << "Check candidate rewrite..." << std::endl;
+              // Notice we don't set produce-models. rrChecker takes the same
+              // options as the SmtEngine we belong to, where we ensure that
+              // produce-models is set.
               SmtEngine rrChecker(NodeManager::currentNM()->toExprManager());
-              // rrChecker.setOption("produce-models", SExpr("true"));
               rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
               Node crr = solbr.eqNode(eq_solr).negate();
               Trace("rr-check")
@@ -653,7 +655,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                   pt.push_back(val);
                 }
                 d_sampler[prog].addSamplePoint(pt);
-                // readd the solution
+                // add the solution again
                 Node eq_sol_new = its->second.registerTerm(sol);
                 Assert(!r.asSatisfiabilityResult().isSat()
                        || eq_sol_new == sol);
@@ -667,8 +669,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             {
               // The analog of terms sol and eq_sol are equivalent under sample
               // points but do not rewrite to the same term. Hence, this
-              // indicates
-              // a candidate rewrite.
+              // indicates a candidate rewrite.
               Printer* p = Printer::getPrinter(options::outputLanguage());
               out << "(" << (verified ? "" : "candidate-") << "rewrite ";
               p->toStreamSygus(out, sol);
