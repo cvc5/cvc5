@@ -3058,7 +3058,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
     return false;
   }
 
-  a = Rewriter::rewrite(a.substitute(TNode(v), TNode(solution)));
+  a = a.substitute(TNode(v), TNode(solution));
   return checkEntailArith(a, strict);
 }
 
@@ -3091,7 +3091,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkSkolem("s", nm->stringType());
+    Node s = nm->mkBoundVar("s", nm->stringType());
     Node slen = nm->mkNode(kind::STRING_LENGTH, s);
     assumption = Rewriter::rewrite(
         nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
