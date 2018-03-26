@@ -1147,6 +1147,21 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "when applicable, use grammar for choosing sample points"
 
+[[option]]
+  name       = "sygusRewSynthAccel"
+  category   = "regular"
+  long       = "sygus-rr-synth-accel"
+  type       = "bool"
+  default    = "false"
+  help       = "add dynamic symmetry breaking clauses based on candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthCheck"
+  category   = "regular"
+  long       = "sygus-rr-synth-check"
+  type       = "bool"
+  default    = "false"
+  help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 # CEGQI applied to general quantified formulas
 
