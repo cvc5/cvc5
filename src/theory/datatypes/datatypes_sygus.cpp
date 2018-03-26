@@ -827,8 +827,15 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
             }
             else
             {
+              // no witness point found?
               Assert(false);
             }
+          }
+          if (options::sygusRewVerifyAbort())
+          {
+            AlwaysAssert(
+                false,
+                "--sygus-rr-verify detected unsoundness in the rewriter!");
           }
         }
       }
