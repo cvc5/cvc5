@@ -1123,6 +1123,14 @@ header = "options/quantifiers_options.h"
   help       = "use sygus to verify the correctness of rewrite rules via sampling"
 
 [[option]]
+  name       = "sygusRewVerifyAbort"
+  category   = "regular"
+  long       = "sygus-rr-verify-abort"
+  type       = "bool"
+  default    = "true"
+  help       = "abort when sygus-rr-verify finds an instance of unsoundness"
+
+[[option]]
   name       = "sygusSamples"
   category   = "regular"
   long       = "sygus-samples=N"
