@@ -937,6 +937,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
         formulas.push_back(f);
       }
       else {
+        formals.push_back(bvs);
         formulas.push_back(f);
       }
     })+
