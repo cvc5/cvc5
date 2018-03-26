@@ -1474,15 +1474,16 @@ bool CegConjecturePbe::CandidateInfo::isNonTrivial() {
 }
 
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
-Node CegConjecturePbe::SubsumeTrie::addTermInternal(Node t,
-                                                    const std::vector<Node>& vals,
-                                                    bool pol,
-                                                    std::vector<Node>& subsumed,
-                                                    bool spol,
-                                                    unsigned index,
-                                                    int status,
-                                                    bool checkExistsOnly,
-                                                    bool checkSubsume)
+Node CegConjecturePbe::SubsumeTrie::addTermInternal(
+    Node t,
+    const std::vector<Node>& vals,
+    bool pol,
+    std::vector<Node>& subsumed,
+    bool spol,
+    unsigned index,
+    int status,
+    bool checkExistsOnly,
+    bool checkSubsume)
 {
   if (index == vals.size())
   {
@@ -1726,7 +1727,9 @@ void CegConjecturePbe::SubsumeTrie::getLeavesInternal(
 }
 
 void CegConjecturePbe::SubsumeTrie::getLeaves(
-    const std::vector<Node>& vals, bool pol, std::map<int, std::vector<Node> >& v)
+    const std::vector<Node>& vals,
+    bool pol,
+    std::map<int, std::vector<Node> >& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
@@ -2314,8 +2317,10 @@ Node CegConjecturePbe::constructSolution(
 bool CegConjecturePbe::EnumTypeInfoStrat::isValid(CegConjecturePbe* pbe,
                                                   UnifContext& x)
 {
-  if( (x.d_has_string_pos == role_string_prefix && d_this == strat_CONCAT_SUFFIX)
-|| (x.d_has_string_pos == role_string_suffix && d_this == strat_CONCAT_PREFIX) )
+  if ((x.d_has_string_pos == role_string_prefix
+       && d_this == strat_CONCAT_SUFFIX)
+      || (x.d_has_string_pos == role_string_suffix
+          && d_this == strat_CONCAT_PREFIX))
   {
     return false;
   }

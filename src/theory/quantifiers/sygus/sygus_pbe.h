@@ -364,7 +364,7 @@ class CegConjecturePbe : public SygusModule
                      bool pol,
                      std::vector<Node>& subsumed);
     /**
-     * Returns the set of terms that subsume (pol ? vals : !vals). This 
+     * Returns the set of terms that subsume (pol ? vals : !vals). This
      * is for instance useful when determining whether there exists a term
      * that satisfies all active examples in the decision tree learning
      * algorithm.
