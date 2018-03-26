@@ -831,9 +831,11 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
               Assert(false);
             }
           }
-          if( options::sygusRewVerifyAbort() )
+          if (options::sygusRewVerifyAbort())
           {
-            AlwaysAssert( false, "--sygus-rr-verify detected unsoundness in the rewriter!" );
+            AlwaysAssert(
+                false,
+                "--sygus-rr-verify detected unsoundness in the rewriter!");
           }
         }
       }
