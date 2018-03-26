@@ -117,6 +117,7 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
+using namespace CVC4::preprocessing::passes;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
@@ -2520,10 +2521,8 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
-  d_preprocessingPassRegistry.registerPass(
-      "int-to-bv",
-      std::move(
-          std::make_unique<passes::IntToBV>(d_preprocessingPassContext.get())));
+  std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
