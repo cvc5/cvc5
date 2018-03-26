@@ -326,13 +326,14 @@ class CegConjecturePbe : public SygusModule
   *
   * This class manages a set of terms for a PBE sygus enumerator.
   *
-  * In PBE sygus, we are interested, for each term t, the set of I/O examples
+  * In PBE sygus, we are interested in, for each term t, the set of I/O examples
   * that it satisfies, which can be represented by a vector of Booleans.
   * For example, given conjecture:
   *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1 ^ f( 5 ) = 5
-  *   For term x satisfies 0001,
-  *   For term x+1 satisfies 1100,
-  *   For term 2 satisfies 0100.
+  * If solutions for f are of the form (lambda x. [term]), then:
+  *   Term x satisfies 0001,
+  *   Term x+1 satisfies 1100,
+  *   Term 2 satisfies 0100.
   * Above, term 2 is subsumed by term x+1, since the set of I/O examples that
   * x+1 satisfies are a superset of those satisfied by 2.
   */
@@ -346,24 +347,29 @@ class CegConjecturePbe : public SygusModule
     * is given by (pol ? vals : !vals).
     */
     Node addTerm(Node t,
-                 std::vector<Node>& vals,
+                 const std::vector<Node>& vals,
                  bool pol,
                  std::vector<Node>& subsumed);
     /**
     * Adds term c to the trie, without calculating/updating based on
-    * subsumption.
+    * subsumption. This is useful for using this class to store conditionals
+    * in ITE strategies, where any conditional whose set of vals is unique
+    * (as opposed to not subsumed) is useful.
     */
-    Node addCond(Node c, std::vector<Node>& vals, bool pol);
+    Node addCond(Node c, const std::vector<Node>& vals, bool pol);
     /**
-    * Returns the set of terms that are subsumed by (pol ? vals : !vals).
-    */
-    void getSubsumed(std::vector<Node>& vals,
+     * Returns the set of terms that are subsumed by (pol ? vals : !vals).
+     */
+    void getSubsumed(const std::vector<Node>& vals,
                      bool pol,
                      std::vector<Node>& subsumed);
     /**
-    * Returns the set of terms that subsume (pol ? vals : !vals).
-    */
-    void getSubsumedBy(std::vector<Node>& vals,
+     * Returns the set of terms that subsume (pol ? vals : !vals). This 
+     * is for instance useful when determining whether there exists a term
+     * that satisfies all active examples in the decision tree learning
+     * algorithm.
+     */
+    void getSubsumedBy(const std::vector<Node>& vals,
                        bool pol,
                        std::vector<Node>& subsumed_by);
     /**
@@ -373,7 +379,7 @@ class CegConjecturePbe : public SygusModule
     * v[0] stores the children that both evaluate to true and false for at least
     * on example.
     */
-    void getLeaves(std::vector<Node>& vals,
+    void getLeaves(const std::vector<Node>& vals,
                    bool pol,
                    std::map<int, std::vector<Node> >& v);
     /** is this trie empty? */
@@ -392,7 +398,7 @@ class CegConjecturePbe : public SygusModule
     std::map<Node, SubsumeTrie> d_children;
     /** helper function for above functions */
     Node addTermInternal(Node t,
-                         std::vector<Node>& vals,
+                         const std::vector<Node>& vals,
                          bool pol,
                          std::vector<Node>& subsumed,
                          bool spol,
@@ -401,7 +407,7 @@ class CegConjecturePbe : public SygusModule
                          bool checkExistsOnly,
                          bool checkSubsume);
     /** helper function for above functions */
-    void getLeavesInternal(std::vector<Node>& vals,
+    void getLeavesInternal(const std::vector<Node>& vals,
                            bool pol,
                            std::map<int, std::vector<Node> >& v,
                            unsigned index,
@@ -862,13 +868,14 @@ class CegConjecturePbe : public SygusModule
    * This represents a possible strategy to apply when processing a strategy
    * node in constructSolution. When applying the strategy represented by this
    * class, we may make recursive calls to the children of the strategy,
-   * given in d_cenum. If all recursive calls to constructSolution are
-   * successful, say:
+   * given in d_cenum. If all recursive calls to constructSolution for these
+   * children are successful, say:
    *   constructSolution( c, d_cenum[1], ... ) = t1,
    *    ...,
    *   constructSolution( c, d_cenum[n], ... ) = tn,
    * Then, the solution returned by this strategy is
    *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
+   * where * is application of substitution.
    */
   class EnumTypeInfoStrat
   {

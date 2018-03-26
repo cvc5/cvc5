@@ -1475,7 +1475,7 @@ bool CegConjecturePbe::CandidateInfo::isNonTrivial() {
 
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
 Node CegConjecturePbe::SubsumeTrie::addTermInternal(Node t,
-                                                    std::vector<Node>& vals,
+                                                    const std::vector<Node>& vals,
                                                     bool pol,
                                                     std::vector<Node>& subsumed,
                                                     bool spol,
@@ -1654,7 +1654,7 @@ Node CegConjecturePbe::SubsumeTrie::addTermInternal(Node t,
 }
 
 Node CegConjecturePbe::SubsumeTrie::addTerm(Node t,
-                                            std::vector<Node>& vals,
+                                            const std::vector<Node>& vals,
                                             bool pol,
                                             std::vector<Node>& subsumed)
 {
@@ -1662,14 +1662,14 @@ Node CegConjecturePbe::SubsumeTrie::addTerm(Node t,
 }
 
 Node CegConjecturePbe::SubsumeTrie::addCond(Node c,
-                                            std::vector<Node>& vals,
+                                            const std::vector<Node>& vals,
                                             bool pol)
 {
   std::vector<Node> subsumed;
   return addTermInternal(c, vals, pol, subsumed, true, 0, 0, false, false);
 }
 
-void CegConjecturePbe::SubsumeTrie::getSubsumed(std::vector<Node>& vals,
+void CegConjecturePbe::SubsumeTrie::getSubsumed(const std::vector<Node>& vals,
                                                 bool pol,
                                                 std::vector<Node>& subsumed)
 {
@@ -1677,7 +1677,7 @@ void CegConjecturePbe::SubsumeTrie::getSubsumed(std::vector<Node>& vals,
 }
 
 void CegConjecturePbe::SubsumeTrie::getSubsumedBy(
-    std::vector<Node>& vals, bool pol, std::vector<Node>& subsumed_by)
+    const std::vector<Node>& vals, bool pol, std::vector<Node>& subsumed_by)
 {
   // flip polarities
   addTermInternal(
@@ -1685,7 +1685,7 @@ void CegConjecturePbe::SubsumeTrie::getSubsumedBy(
 }
 
 void CegConjecturePbe::SubsumeTrie::getLeavesInternal(
-    std::vector<Node>& vals,
+    const std::vector<Node>& vals,
     bool pol,
     std::map<int, std::vector<Node> >& v,
     unsigned index,
@@ -1726,7 +1726,7 @@ void CegConjecturePbe::SubsumeTrie::getLeavesInternal(
 }
 
 void CegConjecturePbe::SubsumeTrie::getLeaves(
-    std::vector<Node>& vals, bool pol, std::map<int, std::vector<Node> >& v)
+    const std::vector<Node>& vals, bool pol, std::map<int, std::vector<Node> >& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
@@ -2314,11 +2314,8 @@ Node CegConjecturePbe::constructSolution(
 bool CegConjecturePbe::EnumTypeInfoStrat::isValid(CegConjecturePbe* pbe,
                                                   UnifContext& x)
 {
-  if (x.d_has_string_pos == role_string_prefix && d_this == strat_CONCAT_SUFFIX)
-  {
-    return false;
-  }
-  if (x.d_has_string_pos == role_string_suffix && d_this == strat_CONCAT_PREFIX)
+  if( (x.d_has_string_pos == role_string_prefix && d_this == strat_CONCAT_SUFFIX)
+|| (x.d_has_string_pos == role_string_suffix && d_this == strat_CONCAT_PREFIX) )
   {
     return false;
   }
