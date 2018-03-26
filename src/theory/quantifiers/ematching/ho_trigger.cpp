@@ -465,29 +465,30 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   unsigned numLemmas = 0;
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
   unsigned size = d_quantEngine->getTermDatabase()->getNumOperators();
-  quantifiers::TermUtil * tutil = d_quantEngine->getTermUtil();
-  NodeManager * nm = NodeManager::currentNM();
+  quantifiers::TermUtil* tutil = d_quantEngine->getTermUtil();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < size; j++)
   {
     Node f = d_quantEngine->getTermDatabase()->getOperator(j);
     if (f.isVar())
     {
       TypeNode tn = f.getType();
-      if( tn.isFunction() )
+      if (tn.isFunction())
       {
-        std::vector< TypeNode > argTypes = tn.getArgTypes();
-        Assert( argTypes.size()>0 );
+        std::vector<TypeNode> argTypes = tn.getArgTypes();
+        Assert(argTypes.size() > 0);
         TypeNode range = tn.getRangeType();
         // for each function type suffix of the type of f, for example if
         // f : (Int -> (Int -> Int))
         // we iterate with stn = (Int -> (Int -> Int)) and (Int -> Int)
-        for( unsigned a=0, size = argTypes.size(); a<size; a++ )
+        for (unsigned a = 0, size = argTypes.size(); a < size; a++)
         {
-          std::vector< TypeNode > sargts;
-          sargts.insert( sargts.begin(), argTypes.begin()+a, argTypes.end() );
-          Assert( sargts.size()>0 );
-          TypeNode stn = nm->mkFunctionType( sargts, range );
-          Trace("ho-quant-trigger-debug") << "For " << f << ", check " << stn << "..." << std::endl;
+          std::vector<TypeNode> sargts;
+          sargts.insert(sargts.begin(), argTypes.begin() + a, argTypes.end());
+          Assert(sargts.size() > 0);
+          TypeNode stn = nm->mkFunctionType(sargts, range);
+          Trace("ho-quant-trigger-debug") << "For " << f << ", check " << stn
+                                          << "..." << std::endl;
           // if a variable of this type occurs in this trigger
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
@@ -496,7 +497,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
             if (d_quantEngine->addLemma(au))
             {
               // this forces f to be a first-class member of the quantifier-free
-              // equality engine, which in turn forces the quantifier-free 
+              // equality engine, which in turn forces the quantifier-free
               // theory solver to expand it to an HO_APPLY chain.
               Trace("ho-quant") << "Added ho match predicate lemma : " << au
                                 << std::endl;
