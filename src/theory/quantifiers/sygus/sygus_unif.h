@@ -99,7 +99,7 @@ class SygusUnif;
   */
 class UnifContext
 {
-  public:
+ public:
   UnifContext();
   /** this intiializes this context for function-to-synthesize c */
   void initialize(SygusUnif* pbe, Node c);
@@ -118,9 +118,7 @@ class UnifContext
   * if pol=true, this method updates d_vals to d_vals & vals
   * if pol=false, this method updates d_vals to d_vals & ( ~vals )
   */
-  bool updateContext(SygusUnif* pbe,
-                      std::vector<Node>& vals,
-                      bool pol);
+  bool updateContext(SygusUnif* pbe, std::vector<Node>& vals, bool pol);
   //----------end for ITE strategy
 
   //----------for CONCAT strategies
@@ -149,8 +147,7 @@ class UnifContext
   *
   * This method updates d_str_pos to d_str_pos + pos.
   */
-  bool updateStringPosition(SygusUnif* pbe,
-                            std::vector<unsigned>& pos);
+  bool updateStringPosition(SygusUnif* pbe, std::vector<unsigned>& pos);
   /** get current strings
   *
   * This returns the prefix/suffix of the string constants stored in vals
@@ -159,8 +156,8 @@ class UnifContext
   * "d" and "de" to ex_vals.
   */
   void getCurrentStrings(SygusUnif* pbe,
-                          const std::vector<Node>& vals,
-                          std::vector<String>& ex_vals);
+                         const std::vector<Node>& vals,
+                         std::vector<String>& ex_vals);
   /** get string increment
   *
   * If this method returns true, then inc and tot are updated such that
@@ -200,7 +197,7 @@ class UnifContext
   /** unif context enumerator information */
   class UEnumInfo
   {
-    public:
+   public:
     UEnumInfo() {}
     /** map from conditions and branch positions to a solved node
     *
@@ -220,7 +217,7 @@ class UnifContext
   /** map from enumerators to the above info class */
   std::map<Node, UEnumInfo> d_uinfo;
 
-  private:
+ private:
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -243,7 +240,7 @@ class UnifContext
 */
 class SubsumeTrie
 {
-  public:
+ public:
   SubsumeTrie() {}
   /**
   * Adds term t to the trie, removes all terms that are subsumed by t from the
@@ -251,9 +248,9 @@ class SubsumeTrie
   * is given by (pol ? vals : !vals).
   */
   Node addTerm(Node t,
-                const std::vector<Node>& vals,
-                bool pol,
-                std::vector<Node>& subsumed);
+               const std::vector<Node>& vals,
+               bool pol,
+               std::vector<Node>& subsumed);
   /**
   * Adds term c to the trie, without calculating/updating based on
   * subsumption. This is useful for using this class to store conditionals
@@ -265,8 +262,8 @@ class SubsumeTrie
     * Returns the set of terms that are subsumed by (pol ? vals : !vals).
     */
   void getSubsumed(const std::vector<Node>& vals,
-                    bool pol,
-                    std::vector<Node>& subsumed);
+                   bool pol,
+                   std::vector<Node>& subsumed);
   /**
     * Returns the set of terms that subsume (pol ? vals : !vals). This
     * is for instance useful when determining whether there exists a term
@@ -274,8 +271,8 @@ class SubsumeTrie
     * algorithm.
     */
   void getSubsumedBy(const std::vector<Node>& vals,
-                      bool pol,
-                      std::vector<Node>& subsumed_by);
+                     bool pol,
+                     std::vector<Node>& subsumed_by);
   /**
   * Get the leaves of the trie, which we store in the map v.
   * v[-1] stores the children that always evaluate to !pol,
@@ -284,8 +281,8 @@ class SubsumeTrie
   * one example.
   */
   void getLeaves(const std::vector<Node>& vals,
-                  bool pol,
-                  std::map<int, std::vector<Node> >& v);
+                 bool pol,
+                 std::map<int, std::vector<Node> >& v);
   /** is this trie empty? */
   bool isEmpty() { return d_term.isNull() && d_children.empty(); }
   /** clear this trie */
@@ -295,67 +292,65 @@ class SubsumeTrie
     d_children.clear();
   }
 
-  private:
+ private:
   /** the term at this node */
   Node d_term;
   /** the children nodes of this trie */
   std::map<Node, SubsumeTrie> d_children;
   /** helper function for above functions */
   Node addTermInternal(Node t,
-                        const std::vector<Node>& vals,
-                        bool pol,
-                        std::vector<Node>& subsumed,
-                        bool spol,
-                        unsigned index,
-                        int status,
-                        bool checkExistsOnly,
-                        bool checkSubsume);
+                       const std::vector<Node>& vals,
+                       bool pol,
+                       std::vector<Node>& subsumed,
+                       bool spol,
+                       unsigned index,
+                       int status,
+                       bool checkExistsOnly,
+                       bool checkSubsume);
   /** helper function for above functions */
   void getLeavesInternal(const std::vector<Node>& vals,
-                          bool pol,
-                          std::map<int, std::vector<Node> >& v,
-                          unsigned index,
-                          int status);
+                         bool pol,
+                         std::map<int, std::vector<Node> >& v,
+                         unsigned index,
+                         int status);
 };
 
-
-/** Sygus unification utility 
- * 
+/** Sygus unification utility
+ *
  * This utility implements synthesis-by-unification style approaches for a
  * single function to synthesize f.
  * These approaches include a combination of:
  * (1) Decision tree learning, inspired by Alur et al TACAS 2017,
  * (2) Divide-and-conquer via string concatenation.
- * 
- * This class maintains: 
+ *
+ * This class maintains:
  * (1) A "strategy tree" based on the syntactic restrictions for f,
  * (2) A set of input/output examples that are the specification for f.
- * 
+ *
  * This class can be updated via calls to notifyEnumeration, where we notify
  * that new values have been enumerated via the sygus search.
  */
 class SygusUnif
 {
   friend class UnifContext;
+
  public:
   SygusUnif(QuantifiersEngine* qe);
   ~SygusUnif();
-  
-
 
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** sygus term database of d_qe */
-  quantifiers::TermDbSygus * d_tds;
+  quantifiers::TermDbSygus* d_tds;
   /** true and false nodes */
   Node d_true;
   Node d_false;
   /** input of I/O examples */
-  std::map< Node, std::vector< std::vector< Node > > > d_examples;
+  std::map<Node, std::vector<std::vector<Node> > > d_examples;
   /** output of I/O examples */
-  std::map< Node, std::vector< Node > > d_examples_out;
-  
+  std::map<Node, std::vector<Node> > d_examples_out;
+
   //------------------------------ representation of a enumeration strategy
   /**
   * This class stores information regarding an enumerator, including:
@@ -424,9 +419,7 @@ class SygusUnif
     * Notify this class that the term v has been enumerated for this enumerator.
     * Its evaluation under the set of examples in pbe are stored in results.
     */
-    void addEnumValue(SygusUnif* pbe,
-                      Node v,
-                      std::vector<Node>& results);
+    void addEnumValue(SygusUnif* pbe, Node v, std::vector<Node>& results);
     /**
     * Notify this class that slv is the complete solution to the synthesis
     * conjecture. This occurs rarely, for instance, when during an ITE strategy
@@ -471,7 +464,7 @@ class SygusUnif
     bool d_is_conditional;
   };
   /** maps enumerators to the information above */
-  std::map< Node, EnumInfo > d_einfo;
+  std::map<Node, EnumInfo> d_einfo;
 
   class CandidateInfo;
   class EnumTypeInfoStrat;
@@ -491,11 +484,12 @@ class SygusUnif
   };
 
   /** stores enumerators and strategies for a SyGuS datatype type */
-  class EnumTypeInfo {
-  public:
-    EnumTypeInfo() : d_parent( NULL ){}
+  class EnumTypeInfo
+  {
+   public:
+    EnumTypeInfo() : d_parent(NULL) {}
     /** the parent candidate info (see below) */
-    CandidateInfo * d_parent;
+    CandidateInfo* d_parent;
     /** the type that this information is for */
     TypeNode d_this_type;
     /** map from enum roles to enumerators for this type */
@@ -506,9 +500,10 @@ class SygusUnif
 
   /** stores strategy and enumeration information for a function-to-synthesize
    */
-  class CandidateInfo {
-  public:
-    CandidateInfo() : d_check_sol( false ), d_cond_count( 0 ){}
+  class CandidateInfo
+  {
+   public:
+    CandidateInfo() : d_check_sol(false), d_cond_count(0) {}
     Node d_this_candidate;
     /**
      * The root sygus datatype for the function-to-synthesize,
@@ -517,25 +512,25 @@ class SygusUnif
      */
     TypeNode d_root;
     /** Info for sygus datatype type occurring in a field of d_root */
-    std::map< TypeNode, EnumTypeInfo > d_tinfo;
+    std::map<TypeNode, EnumTypeInfo> d_tinfo;
     /** list of all enumerators for the function-to-synthesize */
-    std::vector< Node > d_esym_list;
+    std::vector<Node> d_esym_list;
     /**
      * Maps sygus datatypes to their search enumerator. This is the (single)
      * enumerator of that type that we enumerate values for.
      */
-    std::map< TypeNode, Node > d_search_enum;
+    std::map<TypeNode, Node> d_search_enum;
     bool d_check_sol;
     unsigned d_cond_count;
     Node d_solution;
-    void initialize( Node c );
-    void initializeType( TypeNode tn );
+    void initialize(Node c);
+    void initializeType(TypeNode tn);
     Node getRootEnumerator();
   };
   /** the candidate for this class */
   Node d_candidate;
   /** maps a function-to-synthesize to the above information */
-  std::map< Node, CandidateInfo > d_cinfo;
+  std::map<Node, CandidateInfo> d_cinfo;
 
   //------------------------------ representation of an enumeration strategy
   /** add enumerated value
@@ -546,7 +541,7 @@ class SygusUnif
    * to the input argument lems. These lemmas are used to rule out models where
    * x = v, to force that a new value is enumerated for x.
    */
-  void addEnumeratedValue( Node x, Node v, std::vector< Node >& lems );
+  void addEnumeratedValue(Node x, Node v, std::vector<Node>& lems);
   /** domain-specific enumerator exclusion techniques
    *
    * Returns true if the value v for x can be excluded based on a
@@ -558,7 +553,12 @@ class SygusUnif
    * exp : if this function returns true, then exp contains a (possibly
    * generalize) explanation for why v can be excluded.
    */
-  bool getExplanationForEnumeratorExclude( Node c, Node x, Node v, std::vector< Node >& results, EnumInfo& ei, std::vector< Node >& exp );
+  bool getExplanationForEnumeratorExclude(Node c,
+                                          Node x,
+                                          Node v,
+                                          std::vector<Node>& results,
+                                          EnumInfo& ei,
+                                          std::vector<Node>& exp);
   /** returns true if we can exlude values of x based on negative str.contains
    *
    * Values v for x may be excluded if we realize that the value of v under the
@@ -636,7 +636,7 @@ class SygusUnif
    * These approaches include the work of Alur et al. TACAS 2017.
    * If it cannot construct a solution, it returns the null node.
    */
-  Node constructSolution( Node c );
+  Node constructSolution(Node c);
   /** helper function for construct solution.
    *
    * Construct a solution based on enumerator e for function-to-synthesize c
@@ -648,26 +648,27 @@ class SygusUnif
       Node c, Node e, NodeRole nrole, UnifContext& x, int ind);
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
-  Node constructBestSolvedTerm( std::vector< Node >& solved, UnifContext& x );
+  Node constructBestSolvedTerm(std::vector<Node>& solved, UnifContext& x);
   /** Heuristically choose the best solved string term  from solved in context
    * x, currently  return the first. */
-  Node constructBestStringSolvedTerm( std::vector< Node >& solved, UnifContext& x );
+  Node constructBestStringSolvedTerm(std::vector<Node>& solved, UnifContext& x);
   /** Heuristically choose the best solved conditional term  from solved in
    * context x, currently random */
-  Node constructBestSolvedConditional( std::vector< Node >& solved, UnifContext& x );
+  Node constructBestSolvedConditional(std::vector<Node>& solved,
+                                      UnifContext& x);
   /** Heuristically choose the best conditional term  from conds in context x,
    * currently random */
-  Node constructBestConditional( std::vector< Node >& conds, UnifContext& x );
+  Node constructBestConditional(std::vector<Node>& conds, UnifContext& x);
   /** Heuristically choose the best string to concatenate from strs to the
   * solution in context x, currently random
   * incr stores the vector of indices that are incremented by this solution in
   * example outputs.
   * total_inc[x] is the sum of incr[x] for each x in strs.
   */
-  Node constructBestStringToConcat( std::vector< Node > strs,
-                                    std::map< Node, unsigned > total_inc, 
-                                    std::map< Node, std::vector< unsigned > > incr,
-                                    UnifContext& x );
+  Node constructBestStringToConcat(std::vector<Node> strs,
+                                   std::map<Node, unsigned> total_inc,
+                                   std::map<Node, std::vector<unsigned> > incr,
+                                   UnifContext& x);
   //------------------------------ end constructing solutions
 
   /** represents a strategy for a SyGuS datatype type
@@ -705,7 +706,6 @@ class SygusUnif
     bool isValid(SygusUnif* pbe, UnifContext& x);
   };
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

@@ -158,18 +158,15 @@ bool DivByZeroSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 }
 
 void NegContainsSygusInvarianceTest::init(Node e,
-                                          std::vector< std::vector< Node > >& ex,
+                                          std::vector<std::vector<Node> >& ex,
                                           std::vector<Node>& exo,
                                           std::vector<unsigned>& ncind)
 {
-
-  Assert( ex.size()==exo.size() );
+  Assert(ex.size() == exo.size());
   d_enum = e;
-  d_ex.insert(d_ex.end(), ex.begin(), ex.end() );
+  d_ex.insert(d_ex.end(), ex.begin(), ex.end());
   d_exo.insert(d_exo.end(), exo.begin(), exo.end());
-  d_neg_con_indices.insert(
-      d_neg_con_indices.end(), ncind.begin(), ncind.end());
-
+  d_neg_con_indices.insert(d_neg_con_indices.end(), ncind.begin(), ncind.end());
 }
 
 bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,

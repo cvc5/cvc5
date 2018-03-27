@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "util/random.h"
 
 using namespace std;
@@ -26,26 +26,35 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void indent( const char * c, int ind ) {
-  if( Trace.isOn(c) ){
-    for( int i=0; i<ind; i++ ){ 
-      Trace(c) << "  "; 
+void indent(const char* c, int ind)
+{
+  if (Trace.isOn(c))
+  {
+    for (int i = 0; i < ind; i++)
+    {
+      Trace(c) << "  ";
     }
-  } 
+  }
 }
 
-void print_val( const char * c, std::vector< Node >& vals, bool pol = true ){
-  if( Trace.isOn(c) ){
-    for( unsigned i=0; i<vals.size(); i++ ){
-      //Trace(c) << ( pol ? vals[i] : !vals[i] );
-      Trace(c) << ( ( pol ? vals[i].getConst<bool>() : !vals[i].getConst<bool>() ) ? "1" : "0" );
+void print_val(const char* c, std::vector<Node>& vals, bool pol = true)
+{
+  if (Trace.isOn(c))
+  {
+    for (unsigned i = 0; i < vals.size(); i++)
+    {
+      // Trace(c) << ( pol ? vals[i] : !vals[i] );
+      Trace(c) << ((pol ? vals[i].getConst<bool>() : !vals[i].getConst<bool>())
+                       ? "1"
+                       : "0");
     }
   }
 }
 
 std::ostream& operator<<(std::ostream& os, EnumRole r)
 {
-  switch(r){
+  switch (r)
+  {
     case enum_invalid: os << "INVALID"; break;
     case enum_io: os << "IO"; break;
     case enum_ite_condition: os << "CONDITION"; break;
@@ -94,19 +103,23 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
   return os;
 }
 
-
 UnifContext::UnifContext() : d_has_string_pos(role_invalid)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-bool UnifContext::updateContext( SygusUnif * pbe, std::vector< Node >& vals, bool pol ) {
-  Assert( d_vals.size()==vals.size() );
+bool UnifContext::updateContext(SygusUnif* pbe,
+                                std::vector<Node>& vals,
+                                bool pol)
+{
+  Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
-  for( unsigned i=0; i<vals.size(); i++ ){
-    if( vals[i]!=poln ){
+  for (unsigned i = 0; i < vals.size(); i++)
+  {
+    if (vals[i] != poln)
+    {
       if (d_vals[i] == d_true)
       {
         d_vals[i] = d_false;
@@ -121,11 +134,15 @@ bool UnifContext::updateContext( SygusUnif * pbe, std::vector< Node >& vals, boo
   return changed;
 }
 
-bool UnifContext::updateStringPosition( SygusUnif * pbe, std::vector< unsigned >& pos ) {
-  Assert( pos.size()==d_str_pos.size() );
+bool UnifContext::updateStringPosition(SygusUnif* pbe,
+                                       std::vector<unsigned>& pos)
+{
+  Assert(pos.size() == d_str_pos.size());
   bool changed = false;
-  for( unsigned i=0; i<pos.size(); i++ ){
-    if( pos[i]>0 ){
+  for (unsigned i = 0; i < pos.size(); i++)
+  {
+    if (pos[i] > 0)
+    {
       d_str_pos[i] += pos[i];
       changed = true;
     }
@@ -137,7 +154,8 @@ bool UnifContext::updateStringPosition( SygusUnif * pbe, std::vector< unsigned >
   return changed;
 }
 
-bool UnifContext::isReturnValueModified() {
+bool UnifContext::isReturnValueModified()
+{
   if (d_has_string_pos != role_invalid)
   {
     return true;
@@ -145,99 +163,118 @@ bool UnifContext::isReturnValueModified() {
   return false;
 }
 
-void UnifContext::initialize( SygusUnif * pbe, Node c ) {
-  Assert( d_vals.empty() );
-  Assert( d_str_pos.empty() );
-  
+void UnifContext::initialize(SygusUnif* pbe, Node c)
+{
+  Assert(d_vals.empty());
+  Assert(d_str_pos.empty());
+
   // initialize with #examples
-  Assert( pbe->d_examples.find( c )!=pbe->d_examples.end() );
+  Assert(pbe->d_examples.find(c) != pbe->d_examples.end());
   unsigned sz = pbe->d_examples[c].size();
-  for( unsigned i=0; i<sz; i++ ){
+  for (unsigned i = 0; i < sz; i++)
+  {
     d_vals.push_back(d_true);
   }
-  
-  if( !pbe->d_examples_out[c].empty() ){
+
+  if (!pbe->d_examples_out[c].empty())
+  {
     // output type of the examples
     TypeNode exotn = pbe->d_examples_out[c][0].getType();
-    
-    if( exotn.isString() ){
-      for( unsigned i=0; i<sz; i++ ){
-        d_str_pos.push_back( 0 );
+
+    if (exotn.isString())
+    {
+      for (unsigned i = 0; i < sz; i++)
+      {
+        d_str_pos.push_back(0);
       }
     }
   }
   d_visit_role.clear();
 }
 
-void UnifContext::getCurrentStrings(
-    SygusUnif* pbe,
-    const std::vector<Node>& vals,
-    std::vector<String>& ex_vals)
+void UnifContext::getCurrentStrings(SygusUnif* pbe,
+                                    const std::vector<Node>& vals,
+                                    std::vector<String>& ex_vals)
 {
   bool isPrefix = d_has_string_pos == role_string_prefix;
   String dummy;
-  for( unsigned i=0; i<vals.size(); i++ ){
-    if( d_vals[i]==pbe->d_true ){
-      Assert( vals[i].isConst() );
+  for (unsigned i = 0; i < vals.size(); i++)
+  {
+    if (d_vals[i] == pbe->d_true)
+    {
+      Assert(vals[i].isConst());
       unsigned pos_value = d_str_pos[i];
-      if( pos_value>0 ){
+      if (pos_value > 0)
+      {
         Assert(d_has_string_pos != role_invalid);
         String s = vals[i].getConst<String>();
-        Assert( pos_value<=s.size() );
-        ex_vals.push_back( isPrefix ? s.suffix( s.size()-pos_value ) : 
-                                      s.prefix( s.size()-pos_value ) );
-      }else{
-        ex_vals.push_back( vals[i].getConst<String>() );
+        Assert(pos_value <= s.size());
+        ex_vals.push_back(isPrefix ? s.suffix(s.size() - pos_value)
+                                   : s.prefix(s.size() - pos_value));
       }
-    }else{
+      else
+      {
+        ex_vals.push_back(vals[i].getConst<String>());
+      }
+    }
+    else
+    {
       // irrelevant, add dummy
-      ex_vals.push_back( dummy );
+      ex_vals.push_back(dummy);
     }
   }
 }
 
-bool UnifContext::getStringIncrement(
-    SygusUnif* pbe,
-    bool isPrefix,
-    const std::vector<String>& ex_vals,
-    const std::vector<Node>& vals,
-    std::vector<unsigned>& inc,
-    unsigned& tot)
+bool UnifContext::getStringIncrement(SygusUnif* pbe,
+                                     bool isPrefix,
+                                     const std::vector<String>& ex_vals,
+                                     const std::vector<Node>& vals,
+                                     std::vector<unsigned>& inc,
+                                     unsigned& tot)
 {
-  for( unsigned j=0; j<vals.size(); j++ ){
+  for (unsigned j = 0; j < vals.size(); j++)
+  {
     unsigned ival = 0;
-    if( d_vals[j]==pbe->d_true ){
+    if (d_vals[j] == pbe->d_true)
+    {
       // example is active in this context
-      Assert( vals[j].isConst() );
+      Assert(vals[j].isConst());
       String mystr = vals[j].getConst<String>();
       ival = mystr.size();
-      if( mystr.size()<=ex_vals[j].size() ){
-        if( !( isPrefix ? ex_vals[j].strncmp(mystr, ival) : ex_vals[j].rstrncmp(mystr, ival) ) ){
+      if (mystr.size() <= ex_vals[j].size())
+      {
+        if (!(isPrefix ? ex_vals[j].strncmp(mystr, ival)
+                       : ex_vals[j].rstrncmp(mystr, ival)))
+        {
           Trace("sygus-pbe-dt-debug") << "X";
           return false;
         }
-      }else{
+      }
+      else
+      {
         Trace("sygus-pbe-dt-debug") << "X";
         return false;
       }
     }
     Trace("sygus-pbe-dt-debug") << ival;
     tot += ival;
-    inc.push_back( ival );
+    inc.push_back(ival);
   }
   return true;
 }
-bool UnifContext::isStringSolved(
-    SygusUnif* pbe,
-    const std::vector<String>& ex_vals,
-    const std::vector<Node>& vals)
+bool UnifContext::isStringSolved(SygusUnif* pbe,
+                                 const std::vector<String>& ex_vals,
+                                 const std::vector<Node>& vals)
 {
-  for( unsigned j=0; j<vals.size(); j++ ){
-    if( d_vals[j]==pbe->d_true ){
+  for (unsigned j = 0; j < vals.size(); j++)
+  {
+    if (d_vals[j] == pbe->d_true)
+    {
       // example is active in this context
-      Assert( vals[j].isConst() );
+      Assert(vals[j].isConst());
       String mystr = vals[j].getConst<String>();
-      if( ex_vals[j]!=mystr ){
+      if (ex_vals[j] != mystr)
+      {
         return false;
       }
     }
@@ -245,19 +282,14 @@ bool UnifContext::isStringSolved(
   return true;
 }
 
-
-
-SygusUnif::SygusUnif(QuantifiersEngine* qe) :
-d_qe(qe)
+SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
 {
   d_tds = qe->getTermDatabaseSygus();
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-SygusUnif::~SygusUnif() {
-
-}
+SygusUnif::~SygusUnif() {}
 
 // ----------------------------- establishing enumeration types
 
@@ -287,24 +319,22 @@ void SygusUnif::registerEnumerator(
       }
       else
       {
-        Trace("sygus-unif-debug") << "Make " << et << " a slave of "
-                                  << itn->second << std::endl;
+        Trace("sygus-unif-debug")
+            << "Make " << et << " a slave of " << itn->second << std::endl;
         d_einfo[itn->second].d_enum_slave.push_back(et);
       }
     }
   }
 }
 
-void SygusUnif::collectEnumeratorTypes(Node e,
-                                              TypeNode tn,
-                                              NodeRole nrole)
+void SygusUnif::collectEnumeratorTypes(Node e, TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (d_cinfo[e].d_tinfo.find(tn) == d_cinfo[e].d_tinfo.end())
   {
     // register type
     Trace("sygus-unif") << "Register enumerating type : " << tn << std::endl;
-    d_cinfo[e].initializeType( tn );
+    d_cinfo[e].initializeType(tn);
   }
   EnumTypeInfo& eti = d_cinfo[e].d_tinfo[tn];
   std::map<NodeRole, StrategyNode>::iterator itsn = eti.d_snodes.find(nrole);
@@ -389,8 +419,8 @@ void SygusUnif::collectEnumeratorTypes(Node e,
       echildren.push_back(sbv);
     }
     Node eut = nm->mkNode(APPLY_UF, echildren);
-    Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
-                               << std::endl;
+    Trace("sygus-unif-debug2")
+        << "  Test evaluation of " << eut << "..." << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold(eut);
     Trace("sygus-unif-debug2") << "  ...got " << eut;
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
@@ -431,8 +461,8 @@ void SygusUnif::collectEnumeratorTypes(Node e,
             static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
         echildren[0] = Node::fromExpr(cdt.getSygusEvaluationFunc());
         echildren[1] = sks[k];
-        Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
-                                   << std::endl;
+        Trace("sygus-unif-debug2")
+            << "...set eval dt to " << sks[k] << std::endl;
         Node esk = nm->mkNode(APPLY_UF, echildren);
         vs.push_back(esk);
         Node tvar = nm->mkSkolem("templ", esk.getType());
@@ -440,12 +470,12 @@ void SygusUnif::collectEnumeratorTypes(Node e,
         Trace("sygus-unif-debug2") << "* template inference : looking for "
                                    << tvar << " for arg " << k << std::endl;
         ss.push_back(tvar);
-        Trace("sygus-unif-debug2") << "* substitute : " << esk << " -> " << tvar
-                                   << std::endl;
+        Trace("sygus-unif-debug2")
+            << "* substitute : " << esk << " -> " << tvar << std::endl;
       }
       eut = eut.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
-      Trace("sygus-unif-debug2") << "Constructor " << j << ", base term is "
-                                 << eut << std::endl;
+      Trace("sygus-unif-debug2")
+          << "Constructor " << j << ", base term is " << eut << std::endl;
       std::map<unsigned, Node> test_args;
       if (dt[j].isSygusIdFunc())
       {
@@ -461,8 +491,8 @@ void SygusUnif::collectEnumeratorTypes(Node e,
 
       // TODO : prefix grouping prefix/suffix
       bool isAssoc = TermUtil::isAssoc(eut.getKind());
-      Trace("sygus-unif-debug2") << eut.getKind() << " isAssoc = " << isAssoc
-                                 << std::endl;
+      Trace("sygus-unif-debug2")
+          << eut.getKind() << " isAssoc = " << isAssoc << std::endl;
       std::map<unsigned, std::vector<unsigned> > assoc_combine;
       std::vector<unsigned> assoc_waiting;
       int assoc_last_valid_index = -1;
@@ -538,8 +568,8 @@ void SygusUnif::collectEnumeratorTypes(Node e,
           for (std::pair<const unsigned, Node>& ta : test_args)
           {
             unsigned k = ta.first;
-            Trace("sygus-unif-debug2") << "- processing argument " << k << "..."
-                                       << std::endl;
+            Trace("sygus-unif-debug2")
+                << "- processing argument " << k << "..." << std::endl;
             if (templ_injection.find(k) != templ_injection.end())
             {
               unsigned sk_index = templ_injection[k];
@@ -549,9 +579,11 @@ void SygusUnif::collectEnumeratorTypes(Node e,
                   == cop_to_carg_list[cop].end())
               {
                 cop_to_carg_list[cop].push_back(sk_index);
-              }else{
-                Trace("sygus-unif-debug") << "...fail: duplicate argument used"
-                                          << std::endl;
+              }
+              else
+              {
+                Trace("sygus-unif-debug")
+                    << "...fail: duplicate argument used" << std::endl;
                 cop_to_strat.erase(cop);
                 break;
               }
@@ -587,8 +619,8 @@ void SygusUnif::collectEnumeratorTypes(Node e,
               }
               else
               {
-                Trace("sygus-unif-debug") << "  Arg " << k << ", index "
-                                          << sk_index << std::endl;
+                Trace("sygus-unif-debug")
+                    << "  Arg " << k << ", index " << sk_index << std::endl;
                 Assert(teut == ss[sk_index]);
               }
             }
@@ -638,9 +670,9 @@ void SygusUnif::collectEnumeratorTypes(Node e,
     for (std::pair<const Node, std::vector<StrategyType> >& cstr : cop_to_strat)
     {
       Node cop = cstr.first;
-      Trace("sygus-unif-debug") << "Constructor " << cop << " has "
-                                << cstr.second.size() << " strategies..."
-                                << std::endl;
+      Trace("sygus-unif-debug")
+          << "Constructor " << cop << " has " << cstr.second.size()
+          << " strategies..." << std::endl;
       for (unsigned s = 0, ssize = cstr.second.size(); s < ssize; s++)
       {
         EnumTypeInfoStrat* cons_strat = new EnumTypeInfoStrat;
@@ -648,9 +680,9 @@ void SygusUnif::collectEnumeratorTypes(Node e,
 
         cons_strat->d_this = strat;
         cons_strat->d_cons = cop;
-        Trace("sygus-unif-debug") << "Process strategy #" << s
-                                  << " for operator : " << cop << " : " << strat
-                                  << std::endl;
+        Trace("sygus-unif-debug")
+            << "Process strategy #" << s << " for operator : " << cop << " : "
+            << strat << std::endl;
         Assert(cop_to_child_types.find(cop) != cop_to_child_types.end());
         std::vector<TypeNode>& childTypes = cop_to_child_types[cop];
         Assert(cop_to_carg_list.find(cop) != cop_to_carg_list.end());
@@ -703,10 +735,11 @@ void SygusUnif::collectEnumeratorTypes(Node e,
             Trace("sygus-unif-debug")
                 << "...enumerate " << et << " of type "
                 << ((DatatypeType)ct.toType()).getDatatype().getName();
-            Trace("sygus-unif-debug")
-                << " for arg " << j << " of "
-                << static_cast<DatatypeType>(tn.toType()).getDatatype().getName()
-                << std::endl;
+            Trace("sygus-unif-debug") << " for arg " << j << " of "
+                                      << static_cast<DatatypeType>(tn.toType())
+                                             .getDatatype()
+                                             .getName()
+                                      << std::endl;
             registerEnumerator(et, e, ct, erole_c, true);
             d_einfo[et].d_template = cop_to_child_templ[cop][j];
             d_einfo[et].d_template_arg = cop_to_child_templ_arg[cop][j];
@@ -725,9 +758,9 @@ void SygusUnif::collectEnumeratorTypes(Node e,
                    != d_cinfo[e].d_tinfo[ct].d_enum.end());
             et = d_cinfo[e].d_tinfo[ct].d_enum[erole_c];
           }
-          Trace("sygus-unif-debug") << "Register child enumerator " << et
-                                    << ", arg " << j << " of " << cop
-                                    << ", role = " << erole_c << std::endl;
+          Trace("sygus-unif-debug")
+              << "Register child enumerator " << et << ", arg " << j << " of "
+              << cop << ", role = " << erole_c << std::endl;
           Assert(!et.isNull());
           cons_strat->d_cenum.push_back(std::pair<Node, NodeRole>(et, nrole_c));
         }
@@ -752,7 +785,10 @@ void SygusUnif::collectEnumeratorTypes(Node e,
         if (Trace.isOn("sygus-unif"))
         {
           Trace("sygus-unif") << "Initialized strategy " << strat;
-          Trace("sygus-unif") << " for " << static_cast<DatatypeType>(tn.toType()).getDatatype().getName() << ", operator " << cop;
+          Trace("sygus-unif")
+              << " for "
+              << static_cast<DatatypeType>(tn.toType()).getDatatype().getName()
+              << ", operator " << cop;
           Trace("sygus-unif") << ", #children = " << cons_strat->d_cenum.size()
                               << ", solution template = (lambda ( ";
           for (const Node& targ : cons_strat->d_sol_templ_args)
@@ -769,24 +805,38 @@ void SygusUnif::collectEnumeratorTypes(Node e,
   }
 }
 
-bool SygusUnif::inferTemplate( unsigned k, Node n, std::map< Node, unsigned >& templ_var_index, std::map< unsigned, unsigned >& templ_injection ){
-  if( n.getNumChildren()==0 ){
-    std::map< Node, unsigned >::iterator itt = templ_var_index.find( n );
-    if( itt!=templ_var_index.end() ){
+bool SygusUnif::inferTemplate(unsigned k,
+                              Node n,
+                              std::map<Node, unsigned>& templ_var_index,
+                              std::map<unsigned, unsigned>& templ_injection)
+{
+  if (n.getNumChildren() == 0)
+  {
+    std::map<Node, unsigned>::iterator itt = templ_var_index.find(n);
+    if (itt != templ_var_index.end())
+    {
       unsigned kk = itt->second;
-      std::map< unsigned, unsigned >::iterator itti = templ_injection.find( k );
-      if( itti==templ_injection.end() ){
-        Trace("sygus-unif-debug") << "...set template injection " << k <<  " -> " << kk << std::endl;
+      std::map<unsigned, unsigned>::iterator itti = templ_injection.find(k);
+      if (itti == templ_injection.end())
+      {
+        Trace("sygus-unif-debug")
+            << "...set template injection " << k << " -> " << kk << std::endl;
         templ_injection[k] = kk;
-      }else if( itti->second!=kk ){
+      }
+      else if (itti->second != kk)
+      {
         // two distinct variables in this term, we fail
         return false;
       }
     }
     return true;
-  }else{
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !inferTemplate( k, n[i], templ_var_index, templ_injection ) ){
+  }
+  else
+  {
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
+      if (!inferTemplate(k, n[i], templ_var_index, templ_injection))
+      {
         return false;
       }
     }
@@ -794,24 +844,32 @@ bool SygusUnif::inferTemplate( unsigned k, Node n, std::map< Node, unsigned >& t
   return true;
 }
 
-void SygusUnif::staticLearnRedundantOps( Node c, std::vector< Node >& lemmas ) {
-  for( unsigned i=0; i<d_cinfo[c].d_esym_list.size(); i++ ){
+void SygusUnif::staticLearnRedundantOps(Node c, std::vector<Node>& lemmas)
+{
+  for (unsigned i = 0; i < d_cinfo[c].d_esym_list.size(); i++)
+  {
     Node e = d_cinfo[c].d_esym_list[i];
-    std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
-    Assert( itn!=d_einfo.end() );
+    std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
+    Assert(itn != d_einfo.end());
     // see if there is anything we can eliminate
-    Trace("sygus-unif") << "* Search enumerator #" << i << " : type " << ((DatatypeType)e.getType().toType()).getDatatype().getName() << " : ";
-    Trace("sygus-unif") << e << " has " << itn->second.d_enum_slave.size() << " slaves:" << std::endl;
-    for( unsigned j=0; j<itn->second.d_enum_slave.size(); j++ ){
+    Trace("sygus-unif")
+        << "* Search enumerator #" << i << " : type "
+        << ((DatatypeType)e.getType().toType()).getDatatype().getName()
+        << " : ";
+    Trace("sygus-unif") << e << " has " << itn->second.d_enum_slave.size()
+                        << " slaves:" << std::endl;
+    for (unsigned j = 0; j < itn->second.d_enum_slave.size(); j++)
+    {
       Node es = itn->second.d_enum_slave[j];
-      std::map< Node, EnumInfo >::iterator itns = d_einfo.find( es );
-      Assert( itns!=d_einfo.end() );
+      std::map<Node, EnumInfo>::iterator itns = d_einfo.find(es);
+      Assert(itns != d_einfo.end());
       Trace("sygus-unif") << "  " << es << ", role = " << itns->second.getRole()
                           << std::endl;
     }
   }
   Trace("sygus-unif") << std::endl;
-  Trace("sygus-unif") << "Strategy for candidate " << c << " is : " << std::endl;
+  Trace("sygus-unif") << "Strategy for candidate " << c
+                      << " is : " << std::endl;
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
   staticLearnRedundantOps(c,
@@ -836,8 +894,8 @@ void SygusUnif::staticLearnRedundantOps( Node c, std::vector< Node >& lemmas ) {
             datatypes::DatatypesRewriter::mkTester(em, nc.first, dt).negate();
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {
-          Trace("sygus-unif") << "...can exclude based on  : " << tst
-                              << std::endl;
+          Trace("sygus-unif")
+              << "...can exclude based on  : " << tst << std::endl;
           lemmas.push_back(tst);
         }
       }
@@ -854,8 +912,8 @@ void SygusUnif::staticLearnRedundantOps(
     int ind,
     bool isCond)
 {
-  std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
-  Assert( itn!=d_einfo.end() );
+  std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
+  Assert(itn != d_einfo.end());
 
   if (visited[e].find(nrole) == visited[e].end()
       || (isCond && !itn->second.isConditional()))
@@ -877,17 +935,21 @@ void SygusUnif::staticLearnRedundantOps(
     }
     Trace("sygus-unif") << ", enum role : " << itn->second.getRole();
 
-    if( itn->second.isTemplated() ){
+    if (itn->second.isTemplated())
+    {
       Trace("sygus-unif") << ", templated : (lambda "
                           << itn->second.d_template_arg << " "
                           << itn->second.d_template << ")" << std::endl;
-    }else{
+    }
+    else
+    {
       Trace("sygus-unif") << std::endl;
       TypeNode etn = e.getType();
 
       // enumerator type info
-      std::map< TypeNode, EnumTypeInfo >::iterator itt = d_cinfo[c].d_tinfo.find( etn );
-      Assert( itt!=d_cinfo[c].d_tinfo.end() );
+      std::map<TypeNode, EnumTypeInfo>::iterator itt =
+          d_cinfo[c].d_tinfo.find(etn);
+      Assert(itt != d_cinfo[c].d_tinfo.end());
       EnumTypeInfo& tinfo = itt->second;
 
       // strategy info
@@ -958,17 +1020,21 @@ void SygusUnif::staticLearnRedundantOps(
         }
       }
     }
-  }else{
+  }
+  else
+  {
     indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " :: node role : " << nrole << std::endl;
   }
 }
 
-// ------------------------------------------- solution construction from enumeration
+// ------------------------------------------- solution construction from
+// enumeration
 
-void SygusUnif::addEnumeratedValue( Node x, Node v, std::vector< Node >& lems ) {
-  std::map< Node, EnumInfo >::iterator it = d_einfo.find( x );
-  Assert( it != d_einfo.end() );
+void SygusUnif::addEnumeratedValue(Node x, Node v, std::vector<Node>& lems)
+{
+  std::map<Node, EnumInfo>::iterator it = d_einfo.find(x);
+  Assert(it != d_einfo.end());
   Assert(
       std::find(it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v)
       == it->second.d_enum_vals.end());
@@ -1011,52 +1077,62 @@ void SygusUnif::addEnumeratedValue( Node x, Node v, std::vector< Node >& lems ) 
   else
   {
     // notify all slaves
-    Assert( !it->second.d_enum_slave.empty() );
-    //explanation for why this value should be excluded
-    for( unsigned s=0; s<it->second.d_enum_slave.size(); s++ ){
+    Assert(!it->second.d_enum_slave.empty());
+    // explanation for why this value should be excluded
+    for (unsigned s = 0; s < it->second.d_enum_slave.size(); s++)
+    {
       Node xs = it->second.d_enum_slave[s];
-      std::map< Node, EnumInfo >::iterator itv = d_einfo.find( xs );
-      Assert( itv!=d_einfo.end() );
+      std::map<Node, EnumInfo>::iterator itv = d_einfo.find(xs);
+      Assert(itv != d_einfo.end());
       Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
-      //bool prevIsCover = false;
+      // bool prevIsCover = false;
       if (itv->second.getRole() == enum_io)
       {
         Trace("sygus-pbe-enum") << "   IO-Eval of ";
-        //prevIsCover = itv->second.isFeasible();
-      }else{
+        // prevIsCover = itv->second.isFeasible();
+      }
+      else
+      {
         Trace("sygus-pbe-enum") << "Evaluation of ";
       }
-      Trace("sygus-pbe-enum")  << xs <<  " : ";
-      //evaluate all input/output examples
-      std::vector< Node > results;
+      Trace("sygus-pbe-enum") << xs << " : ";
+      // evaluate all input/output examples
+      std::vector<Node> results;
       Node templ = itv->second.d_template;
       TNode templ_var = itv->second.d_template_arg;
-      std::map< Node, bool > cond_vals;
+      std::map<Node, bool> cond_vals;
       for (unsigned j = 0, size = base_results.size(); j < size; j++)
       {
         Node res = base_results[j];
-        Assert( res.isConst() );
-        if( !templ.isNull() ){
+        Assert(res.isConst());
+        if (!templ.isNull())
+        {
           TNode tres = res;
-          res = templ.substitute( templ_var, res );
-          res = Rewriter::rewrite( res );
-          Assert( res.isConst() );
+          res = templ.substitute(templ_var, res);
+          res = Rewriter::rewrite(res);
+          Assert(res.isConst());
         }
         Node resb;
         if (itv->second.getRole() == enum_io)
         {
           Node out = itxo->second[j];
-          Assert( out.isConst() );
-          resb = res==out ? d_true : d_false;
-        }else{
+          Assert(out.isConst());
+          resb = res == out ? d_true : d_false;
+        }
+        else
+        {
           resb = res;
         }
         cond_vals[resb] = true;
-        results.push_back( resb );
-        if( Trace.isOn("sygus-pbe-enum") ){
-          if( resb.getType().isBoolean() ){
-            Trace("sygus-pbe-enum") << ( resb==d_true ? "1" : "0" );
-          }else{
+        results.push_back(resb);
+        if (Trace.isOn("sygus-pbe-enum"))
+        {
+          if (resb.getType().isBoolean())
+          {
+            Trace("sygus-pbe-enum") << (resb == d_true ? "1" : "0");
+          }
+          else
+          {
             Trace("sygus-pbe-enum") << "?";
           }
         }
@@ -1067,38 +1143,59 @@ void SygusUnif::addEnumeratedValue( Node x, Node v, std::vector< Node >& lems ) 
         // latter is the degenerate case of no examples
         if (cond_vals.find(d_true) != cond_vals.end() || cond_vals.empty())
         {
-          //check subsumbed/subsuming
-          std::vector< Node > subsume;
-          if( cond_vals.find( d_false )==cond_vals.end() ){
+          // check subsumbed/subsuming
+          std::vector<Node> subsume;
+          if (cond_vals.find(d_false) == cond_vals.end())
+          {
             // it is the entire solution, we are done
-            Trace("sygus-pbe-enum") << "  ...success, full solution added to PBE pool : " << d_tds->sygusToBuiltin( v ) << std::endl;
-            if( !itv->second.isSolved() ){
-              itv->second.setSolved( v );
+            Trace("sygus-pbe-enum")
+                << "  ...success, full solution added to PBE pool : "
+                << d_tds->sygusToBuiltin(v) << std::endl;
+            if (!itv->second.isSolved())
+            {
+              itv->second.setSolved(v);
               // it subsumes everything
               itv->second.d_term_trie.clear();
               itv->second.d_term_trie.addTerm(v, results, true, subsume);
             }
             keep = true;
-          }else{
+          }
+          else
+          {
             Node val =
                 itv->second.d_term_trie.addTerm(v, results, true, subsume);
-            if( val==v ){
-              Trace("sygus-pbe-enum") << "  ...success"; 
-              if( !subsume.empty() ){
-                itv->second.d_enum_subsume.insert( itv->second.d_enum_subsume.end(), subsume.begin(), subsume.end() );
-                Trace("sygus-pbe-enum") << " and subsumed " << subsume.size() << " terms";
+            if (val == v)
+            {
+              Trace("sygus-pbe-enum") << "  ...success";
+              if (!subsume.empty())
+              {
+                itv->second.d_enum_subsume.insert(
+                    itv->second.d_enum_subsume.end(),
+                    subsume.begin(),
+                    subsume.end());
+                Trace("sygus-pbe-enum")
+                    << " and subsumed " << subsume.size() << " terms";
               }
-              Trace("sygus-pbe-enum") << "!   add to PBE pool : " << d_tds->sygusToBuiltin( v ) << std::endl;
+              Trace("sygus-pbe-enum")
+                  << "!   add to PBE pool : " << d_tds->sygusToBuiltin(v)
+                  << std::endl;
               keep = true;
-            }else{
-              Assert( subsume.empty() );
+            }
+            else
+            {
+              Assert(subsume.empty());
               Trace("sygus-pbe-enum") << "  ...fail : subsumed" << std::endl;
             }
           }
-        }else{
-          Trace("sygus-pbe-enum") << "  ...fail : it does not satisfy examples." << std::endl;
         }
-      }else{
+        else
+        {
+          Trace("sygus-pbe-enum")
+              << "  ...fail : it does not satisfy examples." << std::endl;
+        }
+      }
+      else
+      {
         // must be unique up to examples
         Node val = itv->second.d_term_trie.addCond(v, results, true);
         if (val == v)
@@ -1106,16 +1203,19 @@ void SygusUnif::addEnumeratedValue( Node x, Node v, std::vector< Node >& lems ) 
           Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : "
                                   << d_tds->sygusToBuiltin(v) << std::endl;
           keep = true;
-        }else{
+        }
+        else
+        {
           Trace("sygus-pbe-enum")
               << "  ...fail : term is not unique" << std::endl;
         }
         itc->second.d_cond_count++;
       }
-      if( keep ){
+      if (keep)
+      {
         // notify the parent to retry the build of PBE
         itc->second.d_check_sol = true;
-        itv->second.addEnumValue( this, v, results );
+        itv->second.addEnumValue(this, v, results);
       }
     }
   }
@@ -1130,8 +1230,7 @@ void SygusUnif::addEnumeratedValue( Node x, Node v, std::vector< Node >& lems ) 
   Node exlem =
       NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());
   Trace("sygus-pbe-enum-lemma")
-      << "SygusUnif : enumeration exclude lemma : " << exlem
-      << std::endl;
+      << "SygusUnif : enumeration exclude lemma : " << exlem << std::endl;
   lems.push_back(exlem);
 }
 
@@ -1174,13 +1273,12 @@ bool SygusUnif::useStrContainsEnumeratorExclude(Node x, EnumInfo& ei)
   return false;
 }
 
-bool SygusUnif::getExplanationForEnumeratorExclude(
-    Node c,
-    Node x,
-    Node v,
-    std::vector<Node>& results,
-    EnumInfo& ei,
-    std::vector<Node>& exp)
+bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
+                                                   Node x,
+                                                   Node v,
+                                                   std::vector<Node>& results,
+                                                   EnumInfo& ei,
+                                                   std::vector<Node>& exp)
 {
   if (useStrContainsEnumeratorExclude(x, ei))
   {
@@ -1237,12 +1335,13 @@ bool SygusUnif::getExplanationForEnumeratorExclude(
   return false;
 }
 
-
-
-void SygusUnif::EnumInfo::addEnumValue( SygusUnif * pbe, Node v, std::vector< Node >& results ) {
+void SygusUnif::EnumInfo::addEnumValue(SygusUnif* pbe,
+                                       Node v,
+                                       std::vector<Node>& results)
+{
   d_enum_val_to_index[v] = d_enum_vals.size();
-  d_enum_vals.push_back( v );
-  d_enum_vals_res.push_back( results );
+  d_enum_vals.push_back(v);
+  d_enum_vals_res.push_back(results);
 }
 
 void SygusUnif::EnumInfo::initialize(Node c, EnumRole role)
@@ -1251,37 +1350,37 @@ void SygusUnif::EnumInfo::initialize(Node c, EnumRole role)
   d_role = role;
 }
 
-void SygusUnif::EnumInfo::setSolved( Node slv ) {
-  d_enum_solved = slv;
-}
-    
-void SygusUnif::CandidateInfo::initialize( Node c ) {
+void SygusUnif::EnumInfo::setSolved(Node slv) { d_enum_solved = slv; }
+
+void SygusUnif::CandidateInfo::initialize(Node c)
+{
   d_this_candidate = c;
   d_root = c.getType();
 }
 
-void SygusUnif::CandidateInfo::initializeType( TypeNode tn ) {
+void SygusUnif::CandidateInfo::initializeType(TypeNode tn)
+{
   d_tinfo[tn].d_this_type = tn;
   d_tinfo[tn].d_parent = this;
 }
 
-Node SygusUnif::CandidateInfo::getRootEnumerator() {
+Node SygusUnif::CandidateInfo::getRootEnumerator()
+{
   std::map<EnumRole, Node>::iterator it = d_tinfo[d_root].d_enum.find(enum_io);
-  Assert( it!=d_tinfo[d_root].d_enum.end() );
+  Assert(it != d_tinfo[d_root].d_enum.end());
   return it->second;
 }
 
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
-Node SubsumeTrie::addTermInternal(
-    Node t,
-    const std::vector<Node>& vals,
-    bool pol,
-    std::vector<Node>& subsumed,
-    bool spol,
-    unsigned index,
-    int status,
-    bool checkExistsOnly,
-    bool checkSubsume)
+Node SubsumeTrie::addTermInternal(Node t,
+                                  const std::vector<Node>& vals,
+                                  bool pol,
+                                  std::vector<Node>& subsumed,
+                                  bool spol,
+                                  unsigned index,
+                                  int status,
+                                  bool checkExistsOnly,
+                                  bool checkSubsume)
 {
   if (index == vals.size())
   {
@@ -1453,42 +1552,40 @@ Node SubsumeTrie::addTermInternal(
 }
 
 Node SubsumeTrie::addTerm(Node t,
-                                            const std::vector<Node>& vals,
-                                            bool pol,
-                                            std::vector<Node>& subsumed)
+                          const std::vector<Node>& vals,
+                          bool pol,
+                          std::vector<Node>& subsumed)
 {
   return addTermInternal(t, vals, pol, subsumed, true, 0, 0, false, true);
 }
 
-Node SubsumeTrie::addCond(Node c,
-                                            const std::vector<Node>& vals,
-                                            bool pol)
+Node SubsumeTrie::addCond(Node c, const std::vector<Node>& vals, bool pol)
 {
   std::vector<Node> subsumed;
   return addTermInternal(c, vals, pol, subsumed, true, 0, 0, false, false);
 }
 
 void SubsumeTrie::getSubsumed(const std::vector<Node>& vals,
-                                                bool pol,
-                                                std::vector<Node>& subsumed)
+                              bool pol,
+                              std::vector<Node>& subsumed)
 {
   addTermInternal(Node::null(), vals, pol, subsumed, true, 0, 1, true, true);
 }
 
-void SubsumeTrie::getSubsumedBy(
-    const std::vector<Node>& vals, bool pol, std::vector<Node>& subsumed_by)
+void SubsumeTrie::getSubsumedBy(const std::vector<Node>& vals,
+                                bool pol,
+                                std::vector<Node>& subsumed_by)
 {
   // flip polarities
   addTermInternal(
       Node::null(), vals, !pol, subsumed_by, false, 0, 1, true, true);
 }
 
-void SubsumeTrie::getLeavesInternal(
-    const std::vector<Node>& vals,
-    bool pol,
-    std::map<int, std::vector<Node> >& v,
-    unsigned index,
-    int status)
+void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
+                                    bool pol,
+                                    std::map<int, std::vector<Node> >& v,
+                                    unsigned index,
+                                    int status)
 {
   if (index == vals.size())
   {
@@ -1524,42 +1621,56 @@ void SubsumeTrie::getLeavesInternal(
   }
 }
 
-void SubsumeTrie::getLeaves(
-    const std::vector<Node>& vals,
-    bool pol,
-    std::map<int, std::vector<Node> >& v)
+void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
+                            bool pol,
+                            std::map<int, std::vector<Node> >& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-Node SygusUnif::constructSolution( Node c ){
-  std::map< Node, CandidateInfo >::iterator itc = d_cinfo.find( c );
-  Assert( itc!=d_cinfo.end() );
-  if( !itc->second.d_solution.isNull() ){
+Node SygusUnif::constructSolution(Node c)
+{
+  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
+  Assert(itc != d_cinfo.end());
+  if (!itc->second.d_solution.isNull())
+  {
     // already has a solution
     return itc->second.d_solution;
-  }else{
+  }
+  else
+  {
     // only check if an enumerator updated
-    if( itc->second.d_check_sol ){
-      Trace("sygus-pbe") << "Construct solution, #iterations = " << itc->second.d_cond_count << std::endl;
+    if (itc->second.d_check_sol)
+    {
+      Trace("sygus-pbe") << "Construct solution, #iterations = "
+                         << itc->second.d_cond_count << std::endl;
       itc->second.d_check_sol = false;
-      // try multiple times if we have done multiple conditions, due to non-determinism
+      // try multiple times if we have done multiple conditions, due to
+      // non-determinism
       Node vc;
-      for( unsigned i=0; i<=itc->second.d_cond_count; i++ ){
-        Trace("sygus-pbe-dt") << "ConstructPBE for candidate: " << c << std::endl;
+      for (unsigned i = 0; i <= itc->second.d_cond_count; i++)
+      {
+        Trace("sygus-pbe-dt")
+            << "ConstructPBE for candidate: " << c << std::endl;
         Node e = itc->second.getRootEnumerator();
         UnifContext x;
-        x.initialize( this, c );
+        x.initialize(this, c);
         Node vcc = constructSolution(c, e, role_equal, x, 1);
-        if( !vcc.isNull() ){
-          if( vc.isNull() || ( !vc.isNull() && d_tds->getSygusTermSize( vcc )<d_tds->getSygusTermSize( vc ) ) ){
-            Trace("sygus-pbe") << "**** PBE SOLVED : " << c << " = " << vcc << std::endl;
+        if (!vcc.isNull())
+        {
+          if (vc.isNull() || (!vc.isNull()
+                              && d_tds->getSygusTermSize(vcc)
+                                     < d_tds->getSygusTermSize(vc)))
+          {
+            Trace("sygus-pbe")
+                << "**** PBE SOLVED : " << c << " = " << vcc << std::endl;
             Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
             vc = vcc;
           }
         }
       }
-      if( !vc.isNull() ){
+      if (!vc.isNull())
+      {
         itc->second.d_solution = vc;
         return vc;
       }
@@ -1569,36 +1680,47 @@ Node SygusUnif::constructSolution( Node c ){
   }
 }
 
-Node SygusUnif::constructBestSolvedTerm( std::vector< Node >& solved, UnifContext& x ){
-  Assert( !solved.empty() );
+Node SygusUnif::constructBestSolvedTerm(std::vector<Node>& solved,
+                                        UnifContext& x)
+{
+  Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestStringSolvedTerm( std::vector< Node >& solved, UnifContext& x ) {
-  Assert( !solved.empty() );
+Node SygusUnif::constructBestStringSolvedTerm(std::vector<Node>& solved,
+                                              UnifContext& x)
+{
+  Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestSolvedConditional( std::vector< Node >& solved, UnifContext& x ){
-  Assert( !solved.empty() );
+Node SygusUnif::constructBestSolvedConditional(std::vector<Node>& solved,
+                                               UnifContext& x)
+{
+  Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestConditional( std::vector< Node >& conds, UnifContext& x ) {
-  Assert( !conds.empty() );
+Node SygusUnif::constructBestConditional(std::vector<Node>& conds,
+                                         UnifContext& x)
+{
+  Assert(!conds.empty());
   double r = Random::getRandom().pickDouble(0.0, 1.0);
-  unsigned cindex = r*conds.size();
-  if( cindex>conds.size() ){
+  unsigned cindex = r * conds.size();
+  if (cindex > conds.size())
+  {
     cindex = conds.size() - 1;
   }
   return conds[cindex];
 }
 
-Node SygusUnif::constructBestStringToConcat( std::vector< Node > strs,
-                                                    std::map< Node, unsigned > total_inc, 
-                                                    std::map< Node, std::vector< unsigned > > incr,
-                                                    UnifContext& x ) {
-  Assert( !strs.empty() );
+Node SygusUnif::constructBestStringToConcat(
+    std::vector<Node> strs,
+    std::map<Node, unsigned> total_inc,
+    std::map<Node, std::vector<unsigned> > incr,
+    UnifContext& x)
+{
+  Assert(!strs.empty());
   std::random_shuffle(strs.begin(), strs.end());
   // prefer one that has incremented by more than 0
   for (const Node& ns : strs)
@@ -1638,8 +1760,8 @@ Node SygusUnif::constructSolution(
   EnumTypeInfo& tinfo = itt->second;
 
   // get the enumerator information
-  std::map< Node, EnumInfo >::iterator itn = d_einfo.find( e );
-  Assert( itn!=d_einfo.end() );
+  std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
+  Assert(itn != d_einfo.end());
   EnumInfo& einfo = itn->second;
 
   Node ret_dt;
@@ -1686,11 +1808,14 @@ Node SygusUnif::constructSolution(
         std::map<Node, EnumInfo>::iterator itet;
         std::map<EnumRole, Node>::iterator itnt =
             tinfo.d_enum.find(enum_concat_term);
-        if( itnt != itt->second.d_enum.end() ){
+        if (itnt != itt->second.d_enum.end())
+        {
           Node et = itnt->second;
-          itet = d_einfo.find( et );
+          itet = d_einfo.find(et);
           Assert(itet != d_einfo.end());
-        }else{
+        }
+        else
+        {
           success = false;
         }
         if (success)
@@ -1725,8 +1850,8 @@ Node SygusUnif::constructSolution(
           else
           {
             indent("sygus-pbe-dt-debug", ind);
-            Trace("sygus-pbe-dt-debug") << "  ...not currently string solved."
-                                        << std::endl;
+            Trace("sygus-pbe-dt-debug")
+                << "  ...not currently string solved." << std::endl;
           }
         }
       }
@@ -1765,8 +1890,8 @@ Node SygusUnif::constructSolution(
       {
         Node val_t = einfo.d_enum_vals[i];
         indent("sygus-pbe-dt-debug", ind);
-        Trace("sygus-pbe-dt-debug") << "increment string values : " << val_t
-                                    << " : ";
+        Trace("sygus-pbe-dt-debug")
+            << "increment string values : " << val_t << " : ";
         Assert(einfo.d_enum_vals_res[i].size() == itx->second.size());
         unsigned tot = 0;
         bool exsuccess = x.getStringIncrement(this,
@@ -1784,8 +1909,8 @@ Node SygusUnif::constructSolution(
         {
           total_inc[val_t] = tot;
           inc_strs.push_back(val_t);
-          Trace("sygus-pbe-dt-debug") << "...success, total increment = " << tot
-                                      << std::endl;
+          Trace("sygus-pbe-dt-debug")
+              << "...success, total increment = " << tot << std::endl;
         }
       }
 
@@ -1794,14 +1919,16 @@ Node SygusUnif::constructSolution(
         ret_dt = constructBestStringToConcat(inc_strs, total_inc, incr, x);
         Assert(!ret_dt.isNull());
         indent("sygus-pbe-dt", ind);
-        Trace("sygus-pbe-dt") << "PBE: CONCAT strategy : choose "
-                              << (isPrefix ? "pre" : "suf") << "fix value "
-                              << d_tds->sygusToBuiltin(ret_dt) << std::endl;
+        Trace("sygus-pbe-dt")
+            << "PBE: CONCAT strategy : choose " << (isPrefix ? "pre" : "suf")
+            << "fix value " << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
         bool ret = x.updateStringPosition(this, incr[ret_dt]);
         AlwaysAssert(ret == (total_inc[ret_dt] > 0));
         x.d_has_string_pos = nrole;
-      }else{
+      }
+      else
+      {
         indent("sygus-pbe-dt", ind);
         Trace("sygus-pbe-dt") << "PBE: failed CONCAT strategy, no values are "
                               << (isPrefix ? "pre" : "suf")
@@ -1852,8 +1979,8 @@ Node SygusUnif::constructSolution(
     {
       StrategyType strat = etis->d_this;
       indent("sygus-pbe-dt", ind + 1);
-      Trace("sygus-pbe-dt") << "...try STRATEGY " << strat << "..."
-                            << std::endl;
+      Trace("sygus-pbe-dt")
+          << "...try STRATEGY " << strat << "..." << std::endl;
 
       std::map<unsigned, Node> look_ahead_solved_children;
       std::vector<Node> dt_children_cons;
@@ -1866,8 +1993,8 @@ Node SygusUnif::constructSolution(
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {
         indent("sygus-pbe-dt", ind + 1);
-        Trace("sygus-pbe-dt") << "construct PBE child #" << sc << "..."
-                              << std::endl;
+        Trace("sygus-pbe-dt")
+            << "construct PBE child #" << sc << "..." << std::endl;
         Node rec_c;
         std::map<unsigned, Node>::iterator itla =
             look_ahead_solved_children.find(sc);
@@ -1875,9 +2002,9 @@ Node SygusUnif::constructSolution(
         {
           rec_c = itla->second;
           indent("sygus-pbe-dt-debug", ind + 1);
-          Trace("sygus-pbe-dt-debug") << "ConstructPBE: look ahead solved : "
-                                      << d_tds->sygusToBuiltin(rec_c)
-                                      << std::endl;
+          Trace("sygus-pbe-dt-debug")
+              << "ConstructPBE: look ahead solved : "
+              << d_tds->sygusToBuiltin(rec_c) << std::endl;
         }
         else
         {
@@ -1938,9 +2065,7 @@ Node SygusUnif::constructSolution(
                     Node cond = einfo_child.d_enum_vals[k];
                     std::vector<Node> solved;
                     itnt->second.d_term_trie.getSubsumedBy(
-                        einfo_child.d_enum_vals_res[k],
-                        branch_pol,
-                        solved);
+                        einfo_child.d_enum_vals_res[k], branch_pol, solved);
                     Trace("sygus-pbe-dt-debug2")
                         << "  reg : PBE: " << d_tds->sygusToBuiltin(cond)
                         << " has " << solved.size() << " solutions in branch "
@@ -1980,8 +2105,8 @@ Node SygusUnif::constructSolution(
                 for (Node& cond : itpc->second)
                 {
                   indent("sygus-pbe-dt-debug", ind + 2);
-                  Trace("sygus-pbe-dt-debug") << d_tds->sygusToBuiltin(cond)
-                                              << std::endl;
+                  Trace("sygus-pbe-dt-debug")
+                      << d_tds->sygusToBuiltin(cond) << std::endl;
                 }
               }
 
@@ -2048,7 +2173,8 @@ Node SygusUnif::constructSolution(
                                        "cannot find a distinguishable condition"
                                     << std::endl;
             }
-            if( !rec_c.isNull() ){
+            if (!rec_c.isNull())
+            {
               Assert(einfo_child.d_enum_val_to_index.find(rec_c)
                      != einfo_child.d_enum_val_to_index.end());
               split_cond_res_index = einfo_child.d_enum_val_to_index[rec_c];
@@ -2092,24 +2218,26 @@ Node SygusUnif::constructSolution(
         indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "PBE: success : constructed for strategy " << strat << std::endl;
-      }else{
+      }
+      else
+      {
         indent("sygus-pbe-dt-debug", ind);
-        Trace("sygus-pbe-dt-debug") << "PBE: failed for strategy " << strat
-                                    << std::endl;
+        Trace("sygus-pbe-dt-debug")
+            << "PBE: failed for strategy " << strat << std::endl;
       }
     }
   }
 
-  if( !ret_dt.isNull() ){
-    Assert( ret_dt.getType()==e.getType() );
+  if (!ret_dt.isNull())
+  {
+    Assert(ret_dt.getType() == e.getType());
   }
   indent("sygus-pbe-dt", ind);
   Trace("sygus-pbe-dt") << "ConstructPBE: returned " << ret_dt << std::endl;
   return ret_dt;
 }
 
-bool SygusUnif::EnumTypeInfoStrat::isValid(SygusUnif* pbe,
-                                                  UnifContext& x)
+bool SygusUnif::EnumTypeInfoStrat::isValid(SygusUnif* pbe, UnifContext& x)
 {
   if ((x.d_has_string_pos == role_string_prefix
        && d_this == strat_CONCAT_SUFFIX)
