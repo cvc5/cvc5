@@ -788,13 +788,10 @@ bool SygusSamplerExt::notify(Node s,
     Node nrs =
         nr.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     bool areEqual = (nrs == d_curr_pair_rhs);
-    if( !areEqual )
+    if( !areEqual && d_drewrite != nullptr )
     {
       // if dynamic rewriter is available, consult it
-      if (d_drewrite != nullptr)
-      {
-        areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);
-      }
+      areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);
     }
     if (areEqual)
     {

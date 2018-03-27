@@ -462,22 +462,26 @@ class SygusSamplerExt : public SygusSampler
   /** Notify object used for reporting matches from d_match_trie */
   SygusSamplerExtNotifyMatch d_ssenm;
   /** 
-   * Called by the above class during d_match_trie.getMatches( s ), when we
-   * find that s = n * { vars -> subs }, where n is a term that is stored in
-   * d_match_trie.
-   * 
-   * The goal of this function is to check whether ( s, d_curr_pair_rhs ) is
-   * an instance of previously relevant pair. If so, this function returns
-   * false.
-   */
-  bool notify(Node s, Node n, std::vector<Node>& vars, std::vector<Node>& subs);
-  /** 
-   * In registerTerm, we are interested in whether a pair (s,t) is a relevant
-   * pair.
-   * This is set to one side of a pair we are considering in registerTerm. We
-   * compute matches using d_match_trie with the other side of this pair.
+   * Stores the current right hand side of a pair we are considering.
+   *
+   * In more detail, in registerTerm, we are interested in whether a pair (s,t)
+   * is a relevant pair. We do this by:
+   * (1) Setting the node d_curr_pair_rhs to t,
+   * (2) Using d_match_trie, compute all terms s1...sn that match s.
+   * For each si, where s = si * sigma for some substitution sigma, we check
+   * whether t = ti * sigma for some previously relevant pair (si,ti), in
+   * which case (s,t) is an instance of (si,ti).
    */
   Node d_curr_pair_rhs;
+  /**
+   * Called by the above class during d_match_trie.getMatches( s ), when we
+   * find that si = s * sigma, where si is a term that is stored in
+   * d_match_trie.
+   * 
+   * This function returns false if ( s, d_curr_pair_rhs ) is an instance of
+   * previously relevant pair.
+   */
+  bool notify(Node s, Node n, std::vector<Node>& vars, std::vector<Node>& subs);
   //----------------------------end match filtering
 };
 
