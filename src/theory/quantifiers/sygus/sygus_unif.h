@@ -382,7 +382,9 @@ class SygusUnif
   /** construct solution
    *
    * This attempts to construct a solution based on the current set of
-   * enumerated values. Returns null if it cannot.
+   * enumerated values. Returns null if it cannot (for example, if the
+   * set of enumerated values is insufficient, or if a non-deterministic
+   * strategy aborts).
    */
   Node constructSolution();
 
