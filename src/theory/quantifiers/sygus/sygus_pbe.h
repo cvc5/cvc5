@@ -216,6 +216,11 @@ class CegConjecturePbe : public SygusModule
   * search space pruning.
   */
   std::map< Node, bool > d_examples_out_invalid;
+  
+  /** map from candidates to sygus unif utility */
+  std::map< Node, SygusUnif > d_sygus_unif;
+  
+  
   /** for each candidate variable (function-to-synthesize), input of I/O
    * examples */
   std::map< Node, std::vector< std::vector< Node > > > d_examples;

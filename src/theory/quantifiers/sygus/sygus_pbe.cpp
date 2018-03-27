@@ -153,6 +153,9 @@ bool CegConjecturePbe::initialize(Node n,
       if( d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
         Assert( d_examples.find( c )!=d_examples.end() );
         Trace("sygus-unif") << "It is input/output examples..." << std::endl;
+        //std::vector< Node > enums;
+        //d_sygus_unif[c].initialize(c, enums, lemmas);
+        
         TypeNode ctn = c.getType();
         d_cinfo[c].initialize( c );
         // collect the enumerator types / form the strategy
