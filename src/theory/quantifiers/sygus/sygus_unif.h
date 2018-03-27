@@ -339,7 +339,7 @@ class SygusUnif
   friend class UnifContext;
 
  public:
-  SygusUnif(QuantifiersEngine* qe);
+  SygusUnif();
   ~SygusUnif();
 
   /** initialize
@@ -356,7 +356,7 @@ class SygusUnif
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
    */
-  void initialize(Node f, std::vector<Node>& enums, std::vector<Node>& lemmas);
+  void initialize(QuantifiersEngine* qe, Node f, std::vector<Node>& enums, std::vector<Node>& lemmas);
   /** reset examples
    *
    * Reset the specification for f.
@@ -586,15 +586,6 @@ class SygusUnif
   std::map<Node, CandidateInfo> d_cinfo;
 
   //------------------------------ representation of an enumeration strategy
-  /** add enumerated value
-   *
-   * We have enumerated the value v for x. This function adds x->v to the
-   * relevant data structures that are used for strategy-specific construction
-   * of solutions when necessary, and returns a set of lemmas, which are added
-   * to the input argument lems. These lemmas are used to rule out models where
-   * x = v, to force that a new value is enumerated for x.
-   */
-  void addEnumeratedValue(Node x, Node v, std::vector<Node>& lems);
   /** domain-specific enumerator exclusion techniques
    *
    * Returns true if the value v for x can be excluded based on a

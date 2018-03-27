@@ -514,20 +514,22 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
+SygusUnif::SygusUnif()
 {
-  d_tds = qe->getTermDatabaseSygus();
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 SygusUnif::~SygusUnif() {}
 
-void SygusUnif::initialize(Node f,
+void SygusUnif::initialize(QuantifiersEngine* qe, Node f,
                            std::vector<Node>& lemmas,
                            std::vector<Node>& enums)
 {
   d_candidate = f;
+  d_qe = qe;
+  d_tds = qe->getTermDatabaseSygus();
+  
   TypeNode tn = f.getType();
   d_cinfo[f].initialize( f );
   // collect the enumerator types and form the strategy
@@ -1626,12 +1628,11 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
         Trace("sygus-pbe-cterm-debug") << "...contained." << std::endl;
       }
     }
-    /* FIXME
     if (!cmp_indices.empty())
     {
       // we check invariance with respect to a negative contains test
       NegContainsSygusInvarianceTest ncset;
-      ncset.init(d_parent, x, itxo->second, cmp_indices);
+      ncset.init(x, d_examples[c], itxo->second, cmp_indices);
       // construct the generalized explanation
       d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
       Trace("sygus-pbe-cterm")
@@ -1639,7 +1640,6 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
           << " due to negative containment." << std::endl;
       return true;
     }
-    */
   }
   return false;
 }

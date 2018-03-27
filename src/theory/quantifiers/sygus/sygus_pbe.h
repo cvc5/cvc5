@@ -219,6 +219,15 @@ class CegConjecturePbe : public SygusModule
   
   /** map from candidates to sygus unif utility */
   std::map< Node, SygusUnif > d_sygus_unif;
+  /** 
+   * map from candidates to the list of enumerators that are being used to
+   * build solutions for that candidate by the above utility.
+   */
+  std::map< Node, std::vector< Node > > d_candidate_to_enum;
+  /** reverse map of above */
+  std::map< Node, Node > d_enum_to_candidate;
+  /** map from enumerators to active guards */
+  std::map< Node, Node > d_enum_to_active_guard;
   
   
   /** for each candidate variable (function-to-synthesize), input of I/O

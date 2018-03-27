@@ -153,19 +153,20 @@ bool CegConjecturePbe::initialize(Node n,
       if( d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
         Assert( d_examples.find( c )!=d_examples.end() );
         Trace("sygus-unif") << "It is input/output examples..." << std::endl;
-        //std::vector< Node > enums;
-        //d_sygus_unif[c].initialize(c, enums, lemmas);
-        
-        TypeNode ctn = c.getType();
-        d_cinfo[c].initialize( c );
-        // collect the enumerator types / form the strategy
-        collectEnumeratorTypes(c, ctn, role_equal);
-        // if we have non-trivial strategies, then use pbe
-        if( d_cinfo[c].isNonTrivial() ){
-          // static learning of redundant constructors
-          staticLearnRedundantOps( c, lemmas );
-          d_is_pbe = true;
+        d_sygus_unif[c].initialize(d_qe, c, d_candidate_to_enum[c], lemmas);
+        // initialize the enumerators
+        for( unsigned i=0,size=d_candidate_to_enum[c].size(); i<size; i++ )
+        {
+          Node e = d_candidate_to_enum[c][i];
+          Node g = d_qe->getTermDatabaseSygus()->getActiveGuardForEnumerator(e);
+          d_enum_to_active_guard[e] = g;
         }
+        // initialize the examples
+        for( unsigned i=0,nex=d_examples[c].size(); i<nex; i++ )
+        {
+          d_sygus_unif[c].addExample(d_examples[c][i],d_examples_out[c][i] );
+        }
+        d_is_pbe = true;
       }
     }
   }
@@ -1012,13 +1013,16 @@ void CegConjecturePbe::getTermList(const std::vector<Node>& candidates,
   Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node v = candidates[i];
-    std::map< Node, CandidateInfo >::iterator it = d_cinfo.find( v );
-    if( it!=d_cinfo.end() ){
-      for( unsigned j=0; j<it->second.d_esym_list.size(); j++ ){
-        Node e = it->second.d_esym_list[j];
-        std::map< Node, EnumInfo >::iterator it = d_einfo.find( e );
-        Assert( it != d_einfo.end() );
-        Node gstatus = valuation.getSatValue(it->second.d_active_guard);
+    std::map< Node, std::vector< Node > >::iterator it = d_candidate_to_enum.find( v );
+    if( it!=d_candidate_to_enum.end() ){
+      for( unsigned j=0; j<it->second.size(); j++ ){
+        Node e = it->second[j];
+        Assert( d_enum_to_active_guard.find(e)!=d_enum_to_active_guard.end() );
+        Node g = d_enum_to_active_guard[e];
+        // Get whether the active guard for this enumerator is true,
+        // if so, then there may exist more values for it, and hence we add it
+        // to terms.
+        Node gstatus = valuation.getSatValue(g);
         if (!gstatus.isNull() && gstatus.getConst<bool>())
         {
           terms.push_back(e);
@@ -1052,15 +1056,27 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     }
     // only consider the enumerators that are at minimum size (for fairness)
     Trace("sygus-pbe-enum") << "...register " << enum_consider.size() << " / " << enums.size() << std::endl;
-    for( unsigned i=0; i<enum_consider.size(); i++ ){
+    NodeManager * nm = NodeManager::currentNM();
+    for( unsigned i=0, ecsize = enum_consider.size(); i<ecsize; i++ ){
       unsigned j = enum_consider[i];
-      addEnumeratedValue( enums[j], enum_values[j], lems );
+      Node e = enums[j];
+      Node v = enum_values[j];
+      Assert( d_enum_to_candidate.find(e)!=d_enum_to_candidate.end() );
+      Node c = d_enum_to_candidate[e];
+      d_sygus_unif[c].notifyEnumeration(e,v,lems);
+      // the lemmas must be guarded by the active guard of the enumerator
+      Assert( d_enum_to_active_guard.find(e)!=d_enum_to_active_guard.end() );
+      Node g = d_enum_to_active_guard[e];
+      for( unsigned j=0,size=lems.size(); j<size; j++ )
+      {
+        lems[j] = nm->mkNode( OR, g.negate(), lems[j] );
+      }
     }
   }
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node c = candidates[i];
     //build decision tree for candidate
-    Node vc = constructSolution( c );
+    Node vc = d_sygus_unif[c].constructSolution();
     if( vc.isNull() ){     
       return false;
     }else{
