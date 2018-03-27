@@ -369,7 +369,7 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       Node v = enum_values[j];
       Assert(d_enum_to_candidate.find(e) != d_enum_to_candidate.end());
       Node c = d_enum_to_candidate[e];
-      std::vector< Node > enum_lems;
+      std::vector<Node> enum_lems;
       d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
       // the lemmas must be guarded by the active guard of the enumerator
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
@@ -378,7 +378,7 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       {
         enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
       }
-      lems.insert( lems.end(), enum_lems.begin(), enum_lems.end() );
+      lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
     }
   }
   for( unsigned i=0; i<candidates.size(); i++ ){

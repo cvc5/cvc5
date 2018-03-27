@@ -560,8 +560,8 @@ void SygusUnif::addExample(const std::vector<Node>& input, Node output)
 void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
   Node c = d_candidate;
-  Assert( !d_examples.empty() );
-  Assert( d_examples.size()==d_examples_out.size() );
+  Assert(!d_examples.empty());
+  Assert(d_examples.size() == d_examples_out.size());
   std::map<Node, EnumInfo>::iterator it = d_einfo.find(e);
   Assert(it != d_einfo.end());
   Assert(
@@ -1656,16 +1656,13 @@ void SygusUnif::EnumInfo::addEnumValue(SygusUnif* pbe,
                                        std::vector<Node>& results)
 {
   // should not have been enumerated before
-  Assert(d_enum_val_to_index.find(v)==d_enum_val_to_index.end());
+  Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
   d_enum_vals.push_back(v);
   d_enum_vals_res.push_back(results);
 }
 
-void SygusUnif::EnumInfo::initialize(EnumRole role)
-{
-  d_role = role;
-}
+void SygusUnif::EnumInfo::initialize(EnumRole role) { d_role = role; }
 
 void SygusUnif::EnumInfo::setSolved(Node slv) { d_enum_solved = slv; }
 
@@ -1897,7 +1894,7 @@ Node SygusUnif::constructSolution(
       for (unsigned i = 0, size = einfo.d_enum_vals.size(); i < size; i++)
       {
         Node val_t = einfo.d_enum_vals[i];
-        Assert( incr.find( val_t )==incr.end() );
+        Assert(incr.find(val_t) == incr.end());
         indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "increment string values : " << val_t << " : ";
