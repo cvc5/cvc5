@@ -149,9 +149,10 @@ bool CegConjecturePbe::initialize(Node n,
     if( candidates.size()==1 ){// conditional solutions for multiple function conjectures TODO?
       // collect a pool of types over which we will enumerate terms 
       Node c = candidates[0];
-      //specification must have at least one example, and must be in PBE form
-      if( d_examples.find(c)!=d_examples.end() && 
-          d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
+      // specification must have at least one example, and must be in PBE form
+      if (d_examples.find(c) != d_examples.end()
+          && d_examples_out_invalid.find(c) == d_examples_out_invalid.end())
+      {
         Assert( d_examples.find( c )!=d_examples.end() );
         Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                            << std::endl;

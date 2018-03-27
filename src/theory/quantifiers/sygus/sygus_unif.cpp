@@ -539,8 +539,8 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
   enums.insert(enums.end(),
                d_cinfo[f].d_esym_list.begin(),
                d_cinfo[f].d_esym_list.end());
-  // learn redundant ops 
-  staticLearnRedundantOps( f, lemmas );
+  // learn redundant ops
+  staticLearnRedundantOps(f, lemmas);
 }
 
 void SygusUnif::resetExamples()
