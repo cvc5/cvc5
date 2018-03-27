@@ -26,31 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void indent(const char* c, int ind)
-{
-  if (Trace.isOn(c))
-  {
-    for (int i = 0; i < ind; i++)
-    {
-      Trace(c) << "  ";
-    }
-  }
-}
-
-void print_val(const char* c, std::vector<Node>& vals, bool pol = true)
-{
-  if (Trace.isOn(c))
-  {
-    for (unsigned i = 0; i < vals.size(); i++)
-    {
-      // Trace(c) << ( pol ? vals[i] : !vals[i] );
-      Trace(c) << ((pol ? vals[i].getConst<bool>() : !vals[i].getConst<bool>())
-                       ? "1"
-                       : "0");
-    }
-  }
-}
-
 std::ostream& operator<<(std::ostream& os, EnumRole r)
 {
   switch (r)
@@ -2278,6 +2253,30 @@ SygusUnif::StrategyNode::~StrategyNode()
     delete d_strats[j];
   }
   d_strats.clear();
+}
+
+void SygusUnif::indent(const char* c, int ind)
+{
+  if (Trace.isOn(c))
+  {
+    for (int i = 0; i < ind; i++)
+    {
+      Trace(c) << "  ";
+    }
+  }
+}
+
+void SygusUnif::print_val(const char* c, std::vector<Node>& vals, bool pol)
+{
+  if (Trace.isOn(c))
+  {
+    for (unsigned i = 0; i < vals.size(); i++)
+    {
+      Trace(c) << ((pol ? vals[i].getConst<bool>() : !vals[i].getConst<bool>())
+                       ? "1"
+                       : "0");
+    }
+  }
 }
 
 } /* CVC4::theory::quantifiers namespace */

@@ -28,74 +28,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void indent( const char * c, int ind ) {
-  if( Trace.isOn(c) ){
-    for( int i=0; i<ind; i++ ){ 
-      Trace(c) << "  "; 
-    }
-  } 
-}
-
-void print_val( const char * c, std::vector< Node >& vals, bool pol = true ){
-  if( Trace.isOn(c) ){
-    for( unsigned i=0; i<vals.size(); i++ ){
-      //Trace(c) << ( pol ? vals[i] : !vals[i] );
-      Trace(c) << ( ( pol ? vals[i].getConst<bool>() : !vals[i].getConst<bool>() ) ? "1" : "0" );
-    }
-  }
-}
-
-std::ostream& operator<<(std::ostream& os, EnumRole r)
-{
-  switch(r){
-    case enum_invalid: os << "INVALID"; break;
-    case enum_io: os << "IO"; break;
-    case enum_ite_condition: os << "CONDITION"; break;
-    case enum_concat_term: os << "CTERM"; break;
-    default: os << "enum_" << static_cast<unsigned>(r); break;
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, NodeRole r)
-{
-  switch (r)
-  {
-    case role_equal: os << "equal"; break;
-    case role_string_prefix: os << "string_prefix"; break;
-    case role_string_suffix: os << "string_suffix"; break;
-    case role_ite_condition: os << "ite_condition"; break;
-    default: os << "role_" << static_cast<unsigned>(r); break;
-  }
-  return os;
-}
-
-EnumRole getEnumeratorRoleForNodeRole(NodeRole r)
-{
-  switch (r)
-  {
-    case role_equal: return enum_io; break;
-    case role_string_prefix: return enum_concat_term; break;
-    case role_string_suffix: return enum_concat_term; break;
-    case role_ite_condition: return enum_ite_condition; break;
-    default: break;
-  }
-  return enum_invalid;
-}
-
-std::ostream& operator<<(std::ostream& os, StrategyType st)
-{
-  switch (st)
-  {
-    case strat_ITE: os << "ITE"; break;
-    case strat_CONCAT_PREFIX: os << "CONCAT_PREFIX"; break;
-    case strat_CONCAT_SUFFIX: os << "CONCAT_SUFFIX"; break;
-    case strat_ID: os << "ID"; break;
-    default: os << "strat_" << static_cast<unsigned>(st); break;
-  }
-  return os;
-}
-
 CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
     : SygusModule(qe, p)
 {
@@ -971,7 +903,7 @@ void CegConjecturePbe::staticLearnRedundantOps(
     {
       itn->second.setConditional();
     }
-    indent("sygus-unif", ind);
+    SygusUnif::indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " :: node role : " << nrole;
     Trace("sygus-unif")
         << ", type : "
@@ -1012,7 +944,7 @@ void CegConjecturePbe::staticLearnRedundantOps(
         EnumTypeInfoStrat* etis = snode.d_strats[j];
         StrategyType strat = etis->d_this;
         bool newIsCond = isCond || strat == strat_ITE;
-        indent("sygus-unif", ind + 1);
+        SygusUnif::indent("sygus-unif", ind + 1);
         Trace("sygus-unif") << "Strategy : " << strat
                             << ", from cons : " << etis->d_cons << std::endl;
         int cindex = Datatype::indexOf(etis->d_cons.toExpr());
@@ -1064,7 +996,7 @@ void CegConjecturePbe::staticLearnRedundantOps(
       }
     }
   }else{
-    indent("sygus-unif", ind);
+    SygusUnif::indent("sygus-unif", ind);
     Trace("sygus-unif") << e << " :: node role : " << nrole << std::endl;
   }
 }
@@ -1823,10 +1755,10 @@ Node CegConjecturePbe::constructSolution(
   TypeNode etn = e.getType();
   if (Trace.isOn("sygus-pbe-dt-debug"))
   {
-    indent("sygus-pbe-dt-debug", ind);
+    SygusUnif::indent("sygus-pbe-dt-debug", ind);
     Trace("sygus-pbe-dt-debug") << "ConstructPBE: (" << e << ", " << nrole
                                 << ") for type " << etn << " in context ";
-    print_val("sygus-pbe-dt-debug", x.d_vals);
+    SygusUnif::print_val("sygus-pbe-dt-debug", x.d_vals);
     if (x.d_has_string_pos != role_invalid)
     {
       Trace("sygus-pbe-dt-debug") << ", string context [" << x.d_has_string_pos;
@@ -1857,7 +1789,7 @@ Node CegConjecturePbe::constructSolution(
       {
         // this type has a complete solution
         ret_dt = einfo.getSolved();
-        indent("sygus-pbe-dt", ind);
+        SygusUnif::indent("sygus-pbe-dt", ind);
         Trace("sygus-pbe-dt") << "return PBE: success : solved "
                               << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         Assert(!ret_dt.isNull());
@@ -1870,13 +1802,13 @@ Node CegConjecturePbe::constructSolution(
         if (!subsumed_by.empty())
         {
           ret_dt = constructBestSolvedTerm(subsumed_by, x);
-          indent("sygus-pbe-dt", ind);
+          SygusUnif::indent("sygus-pbe-dt", ind);
           Trace("sygus-pbe-dt") << "return PBE: success : conditionally solved"
                                 << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         }
         else
         {
-          indent("sygus-pbe-dt-debug", ind);
+          SygusUnif::indent("sygus-pbe-dt-debug", ind);
           Trace("sygus-pbe-dt-debug")
               << "  ...not currently conditionally solved." << std::endl;
         }
@@ -1924,13 +1856,13 @@ Node CegConjecturePbe::constructSolution(
           if (!str_solved.empty())
           {
             ret_dt = constructBestStringSolvedTerm(str_solved, x);
-            indent("sygus-pbe-dt", ind);
+            SygusUnif::indent("sygus-pbe-dt", ind);
             Trace("sygus-pbe-dt") << "return PBE: success : string solved "
                                   << d_tds->sygusToBuiltin(ret_dt) << std::endl;
           }
           else
           {
-            indent("sygus-pbe-dt-debug", ind);
+            SygusUnif::indent("sygus-pbe-dt-debug", ind);
             Trace("sygus-pbe-dt-debug") << "  ...not currently string solved."
                                         << std::endl;
           }
@@ -1954,11 +1886,11 @@ Node CegConjecturePbe::constructSolution(
       x.getCurrentStrings(this, itx->second, ex_vals);
       if (Trace.isOn("sygus-pbe-dt-debug"))
       {
-        indent("sygus-pbe-dt-debug", ind);
+        SygusUnif::indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug") << "current strings : " << std::endl;
         for (unsigned i = 0, size = ex_vals.size(); i < size; i++)
         {
-          indent("sygus-pbe-dt-debug", ind + 1);
+          SygusUnif::indent("sygus-pbe-dt-debug", ind + 1);
           Trace("sygus-pbe-dt-debug") << ex_vals[i] << std::endl;
         }
       }
@@ -1970,7 +1902,7 @@ Node CegConjecturePbe::constructSolution(
       for (unsigned i = 0, size = einfo.d_enum_vals.size(); i < size; i++)
       {
         Node val_t = einfo.d_enum_vals[i];
-        indent("sygus-pbe-dt-debug", ind);
+        SygusUnif::indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug") << "increment string values : " << val_t
                                     << " : ";
         Assert(einfo.d_enum_vals_res[i].size() == itx->second.size());
@@ -1999,7 +1931,7 @@ Node CegConjecturePbe::constructSolution(
       {
         ret_dt = constructBestStringToConcat(inc_strs, total_inc, incr, x);
         Assert(!ret_dt.isNull());
-        indent("sygus-pbe-dt", ind);
+        SygusUnif::indent("sygus-pbe-dt", ind);
         Trace("sygus-pbe-dt") << "PBE: CONCAT strategy : choose "
                               << (isPrefix ? "pre" : "suf") << "fix value "
                               << d_tds->sygusToBuiltin(ret_dt) << std::endl;
@@ -2008,7 +1940,7 @@ Node CegConjecturePbe::constructSolution(
         AlwaysAssert(ret == (total_inc[ret_dt] > 0));
         x.d_has_string_pos = nrole;
       }else{
-        indent("sygus-pbe-dt", ind);
+        SygusUnif::indent("sygus-pbe-dt", ind);
         Trace("sygus-pbe-dt") << "PBE: failed CONCAT strategy, no values are "
                               << (isPrefix ? "pre" : "suf")
                               << "fix of all examples." << std::endl;
@@ -2016,7 +1948,7 @@ Node CegConjecturePbe::constructSolution(
     }
     else
     {
-      indent("sygus-pbe-dt", ind);
+      SygusUnif::indent("sygus-pbe-dt", ind);
       Trace("sygus-pbe-dt")
           << "PBE: failed CONCAT strategy, prefix/suffix mismatch."
           << std::endl;
@@ -2057,7 +1989,7 @@ Node CegConjecturePbe::constructSolution(
     if (etis != nullptr)
     {
       StrategyType strat = etis->d_this;
-      indent("sygus-pbe-dt", ind + 1);
+      SygusUnif::indent("sygus-pbe-dt", ind + 1);
       Trace("sygus-pbe-dt") << "...try STRATEGY " << strat << "..."
                             << std::endl;
 
@@ -2071,7 +2003,7 @@ Node CegConjecturePbe::constructSolution(
 
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {
-        indent("sygus-pbe-dt", ind + 1);
+        SygusUnif::indent("sygus-pbe-dt", ind + 1);
         Trace("sygus-pbe-dt") << "construct PBE child #" << sc << "..."
                               << std::endl;
         Node rec_c;
@@ -2080,7 +2012,7 @@ Node CegConjecturePbe::constructSolution(
         if (itla != look_ahead_solved_children.end())
         {
           rec_c = itla->second;
-          indent("sygus-pbe-dt-debug", ind + 1);
+          SygusUnif::indent("sygus-pbe-dt-debug", ind + 1);
           Trace("sygus-pbe-dt-debug") << "ConstructPBE: look ahead solved : "
                                       << d_tds->sygusToBuiltin(rec_c)
                                       << std::endl;
@@ -2179,13 +2111,13 @@ Node CegConjecturePbe::constructSolution(
             {
               if (Trace.isOn("sygus-pbe-dt-debug"))
               {
-                indent("sygus-pbe-dt-debug", ind + 1);
+                SygusUnif::indent("sygus-pbe-dt-debug", ind + 1);
                 Trace("sygus-pbe-dt-debug")
                     << "PBE : We have " << itpc->second.size()
                     << " distinguishable conditionals:" << std::endl;
                 for (Node& cond : itpc->second)
                 {
-                  indent("sygus-pbe-dt-debug", ind + 2);
+                  SygusUnif::indent("sygus-pbe-dt-debug", ind + 2);
                   Trace("sygus-pbe-dt-debug") << d_tds->sygusToBuiltin(cond)
                                               << std::endl;
                 }
@@ -2216,7 +2148,7 @@ Node CegConjecturePbe::constructSolution(
                   if (!solved_cond[n].empty())
                   {
                     rec_c = constructBestSolvedConditional(solved_cond[n], x);
-                    indent("sygus-pbe-dt", ind + 1);
+                    SygusUnif::indent("sygus-pbe-dt", ind + 1);
                     Trace("sygus-pbe-dt")
                         << "PBE: ITE strategy : choose solved conditional "
                         << d_tds->sygusToBuiltin(rec_c) << " with " << n
@@ -2239,7 +2171,7 @@ Node CegConjecturePbe::constructSolution(
               {
                 rec_c = constructBestConditional(itpc->second, x);
                 Assert(!rec_c.isNull());
-                indent("sygus-pbe-dt", ind);
+                SygusUnif::indent("sygus-pbe-dt", ind);
                 Trace("sygus-pbe-dt")
                     << "PBE: ITE strategy : choose random conditional "
                     << d_tds->sygusToBuiltin(rec_c) << std::endl;
@@ -2249,7 +2181,7 @@ Node CegConjecturePbe::constructSolution(
             {
               // TODO (#1250) : degenerate case where children have different
               // types?
-              indent("sygus-pbe-dt", ind);
+              SygusUnif::indent("sygus-pbe-dt", ind);
               Trace("sygus-pbe-dt") << "return PBE: failed ITE strategy, "
                                        "cannot find a distinguishable condition"
                                     << std::endl;
@@ -2295,11 +2227,11 @@ Node CegConjecturePbe::constructSolution(
                                    etis->d_sol_templ_args.end(),
                                    dt_children_cons.begin(),
                                    dt_children_cons.end());
-        indent("sygus-pbe-dt-debug", ind);
+        SygusUnif::indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "PBE: success : constructed for strategy " << strat << std::endl;
       }else{
-        indent("sygus-pbe-dt-debug", ind);
+        SygusUnif::indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug") << "PBE: failed for strategy " << strat
                                     << std::endl;
       }
@@ -2309,7 +2241,7 @@ Node CegConjecturePbe::constructSolution(
   if( !ret_dt.isNull() ){
     Assert( ret_dt.getType()==e.getType() );
   }
-  indent("sygus-pbe-dt", ind);
+  SygusUnif::indent("sygus-pbe-dt", ind);
   Trace("sygus-pbe-dt") << "ConstructPBE: returned " << ret_dt << std::endl;
   return ret_dt;
 }
