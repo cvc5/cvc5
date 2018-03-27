@@ -884,6 +884,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
           smap.erase(vars.back());
           vars.pop_back();
           subs.pop_back();
+          visit_bound_var[index] = false;
         }
 
         if (vindex == static_cast<int>(curr->d_vars.size()))
