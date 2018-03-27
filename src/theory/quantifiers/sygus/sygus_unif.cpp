@@ -514,36 +514,250 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
+SygusUnif::SygusUnif()
 {
-  d_tds = qe->getTermDatabaseSygus();
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 SygusUnif::~SygusUnif() {}
 
-void SygusUnif::initialize(Node candidate,
-                           std::vector<Node>& lemmas,
-                           std::vector<Node>& enums)
+void SygusUnif::initialize(QuantifiersEngine* qe,
+                           Node f,
+                           std::vector<Node>& enums,
+                           std::vector<Node>& lemmas)
 {
-  d_candidate = candidate;
-  // TODO
+  d_candidate = f;
+  d_qe = qe;
+  d_tds = qe->getTermDatabaseSygus();
+
+  TypeNode tn = f.getType();
+  d_cinfo[f].initialize(f);
+  // collect the enumerator types and form the strategy
+  collectEnumeratorTypes(f, tn, role_equal);
+  // add the enumerators
+  enums.insert(enums.end(),
+               d_cinfo[f].d_esym_list.begin(),
+               d_cinfo[f].d_esym_list.end());
+  // learn redundant ops
+  staticLearnRedundantOps(f, lemmas);
 }
 
 void SygusUnif::resetExamples()
 {
+  d_examples.clear();
+  d_examples_out.clear();
+  // also clear information in strategy tree
   // TODO
 }
 
 void SygusUnif::addExample(const std::vector<Node>& input, Node output)
 {
-  // TODO
+  d_examples[d_candidate].push_back(input);
+  d_examples_out[d_candidate].push_back(output);
 }
 
 void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
-  // TODO
+  Node c = d_candidate;
+  Assert(!d_examples.empty());
+  Assert(d_examples.size() == d_examples_out.size());
+  std::map<Node, EnumInfo>::iterator it = d_einfo.find(e);
+  Assert(it != d_einfo.end());
+  Assert(
+      std::find(it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v)
+      == it->second.d_enum_vals.end());
+  // The explanation for why the current value should be excluded in future
+  // iterations.
+  Node exp_exc;
+
+  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
+  Assert(itc != d_cinfo.end());
+  TypeNode xtn = e.getType();
+  Node bv = d_tds->sygusToBuiltin(v, xtn);
+  std::map<Node, std::vector<std::vector<Node> > >::iterator itx =
+      d_examples.find(c);
+  std::map<Node, std::vector<Node> >::iterator itxo = d_examples_out.find(c);
+  Assert(itx != d_examples.end());
+  Assert(itxo != d_examples_out.end());
+  Assert(itx->second.size() == itxo->second.size());
+  std::vector<Node> base_results;
+  // compte the results
+  for (unsigned j = 0, size = itx->second.size(); j < size; j++)
+  {
+    Node res = d_tds->evaluateBuiltin(xtn, bv, itx->second[j]);
+    Trace("sygus-pbe-enum-debug")
+        << "...got res = " << res << " from " << bv << std::endl;
+    base_results.push_back(res);
+  }
+  // is it excluded for domain-specific reason?
+  std::vector<Node> exp_exc_vec;
+  if (getExplanationForEnumeratorExclude(
+          c, e, v, base_results, it->second, exp_exc_vec))
+  {
+    Assert(!exp_exc_vec.empty());
+    exp_exc = exp_exc_vec.size() == 1
+                  ? exp_exc_vec[0]
+                  : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
+    Trace("sygus-pbe-enum")
+        << "  ...fail : term is excluded (domain-specific)" << std::endl;
+  }
+  else
+  {
+    // notify all slaves
+    Assert(!it->second.d_enum_slave.empty());
+    // explanation for why this value should be excluded
+    for (unsigned s = 0; s < it->second.d_enum_slave.size(); s++)
+    {
+      Node xs = it->second.d_enum_slave[s];
+      std::map<Node, EnumInfo>::iterator itv = d_einfo.find(xs);
+      Assert(itv != d_einfo.end());
+      Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
+      // bool prevIsCover = false;
+      if (itv->second.getRole() == enum_io)
+      {
+        Trace("sygus-pbe-enum") << "   IO-Eval of ";
+        // prevIsCover = itv->second.isFeasible();
+      }
+      else
+      {
+        Trace("sygus-pbe-enum") << "Evaluation of ";
+      }
+      Trace("sygus-pbe-enum") << xs << " : ";
+      // evaluate all input/output examples
+      std::vector<Node> results;
+      Node templ = itv->second.d_template;
+      TNode templ_var = itv->second.d_template_arg;
+      std::map<Node, bool> cond_vals;
+      for (unsigned j = 0, size = base_results.size(); j < size; j++)
+      {
+        Node res = base_results[j];
+        Assert(res.isConst());
+        if (!templ.isNull())
+        {
+          TNode tres = res;
+          res = templ.substitute(templ_var, res);
+          res = Rewriter::rewrite(res);
+          Assert(res.isConst());
+        }
+        Node resb;
+        if (itv->second.getRole() == enum_io)
+        {
+          Node out = itxo->second[j];
+          Assert(out.isConst());
+          resb = res == out ? d_true : d_false;
+        }
+        else
+        {
+          resb = res;
+        }
+        cond_vals[resb] = true;
+        results.push_back(resb);
+        if (Trace.isOn("sygus-pbe-enum"))
+        {
+          if (resb.getType().isBoolean())
+          {
+            Trace("sygus-pbe-enum") << (resb == d_true ? "1" : "0");
+          }
+          else
+          {
+            Trace("sygus-pbe-enum") << "?";
+          }
+        }
+      }
+      bool keep = false;
+      if (itv->second.getRole() == enum_io)
+      {
+        // latter is the degenerate case of no examples
+        if (cond_vals.find(d_true) != cond_vals.end() || cond_vals.empty())
+        {
+          // check subsumbed/subsuming
+          std::vector<Node> subsume;
+          if (cond_vals.find(d_false) == cond_vals.end())
+          {
+            // it is the entire solution, we are done
+            Trace("sygus-pbe-enum")
+                << "  ...success, full solution added to PBE pool : "
+                << d_tds->sygusToBuiltin(v) << std::endl;
+            if (!itv->second.isSolved())
+            {
+              itv->second.setSolved(v);
+              // it subsumes everything
+              itv->second.d_term_trie.clear();
+              itv->second.d_term_trie.addTerm(v, results, true, subsume);
+            }
+            keep = true;
+          }
+          else
+          {
+            Node val =
+                itv->second.d_term_trie.addTerm(v, results, true, subsume);
+            if (val == v)
+            {
+              Trace("sygus-pbe-enum") << "  ...success";
+              if (!subsume.empty())
+              {
+                itv->second.d_enum_subsume.insert(
+                    itv->second.d_enum_subsume.end(),
+                    subsume.begin(),
+                    subsume.end());
+                Trace("sygus-pbe-enum")
+                    << " and subsumed " << subsume.size() << " terms";
+              }
+              Trace("sygus-pbe-enum")
+                  << "!   add to PBE pool : " << d_tds->sygusToBuiltin(v)
+                  << std::endl;
+              keep = true;
+            }
+            else
+            {
+              Assert(subsume.empty());
+              Trace("sygus-pbe-enum") << "  ...fail : subsumed" << std::endl;
+            }
+          }
+        }
+        else
+        {
+          Trace("sygus-pbe-enum")
+              << "  ...fail : it does not satisfy examples." << std::endl;
+        }
+      }
+      else
+      {
+        // must be unique up to examples
+        Node val = itv->second.d_term_trie.addCond(v, results, true);
+        if (val == v)
+        {
+          Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : "
+                                  << d_tds->sygusToBuiltin(v) << std::endl;
+          keep = true;
+        }
+        else
+        {
+          Trace("sygus-pbe-enum")
+              << "  ...fail : term is not unique" << std::endl;
+        }
+        itc->second.d_cond_count++;
+      }
+      if (keep)
+      {
+        // notify the parent to retry the build of PBE
+        itc->second.d_check_sol = true;
+        itv->second.addEnumValue(this, v, results);
+      }
+    }
+  }
+
+  // exclude this value on subsequent iterations
+  if (exp_exc.isNull())
+  {
+    // if we did not already explain why this should be excluded, use default
+    exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
+  }
+  exp_exc = exp_exc.negate();
+  Trace("sygus-pbe-enum-lemma")
+      << "SygusUnif : enumeration exclude lemma : " << exp_exc << std::endl;
+  lemmas.push_back(exp_exc);
 }
 
 Node SygusUnif::constructSolution()
@@ -611,7 +825,7 @@ void SygusUnif::registerEnumerator(
         << static_cast<DatatypeType>(tn.toType()).getDatatype().getName();
     Trace("sygus-unif-debug") << ", role = " << enum_role
                               << ", in search = " << inSearch << std::endl;
-    d_einfo[et].initialize(c, enum_role);
+    d_einfo[et].initialize(enum_role);
     // if we are actually enumerating this (could be a compound node in the
     // strategy)
     if (inSearch)
@@ -1336,209 +1550,7 @@ void SygusUnif::staticLearnRedundantOps(
   }
 }
 
-// ------------------------------------------- solution construction from
-// enumeration
-
-void SygusUnif::addEnumeratedValue(Node x, Node v, std::vector<Node>& lems)
-{
-  std::map<Node, EnumInfo>::iterator it = d_einfo.find(x);
-  Assert(it != d_einfo.end());
-  Assert(
-      std::find(it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v)
-      == it->second.d_enum_vals.end());
-  Node c = it->second.d_parent_candidate;
-  // The explanation for why the current value should be excluded in future
-  // iterations.
-  Node exp_exc;
-
-  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
-  Assert(itc != d_cinfo.end());
-  TypeNode xtn = x.getType();
-  Node bv = d_tds->sygusToBuiltin(v, xtn);
-  std::map<Node, std::vector<std::vector<Node> > >::iterator itx =
-      d_examples.find(c);
-  std::map<Node, std::vector<Node> >::iterator itxo = d_examples_out.find(c);
-  Assert(itx != d_examples.end());
-  Assert(itxo != d_examples_out.end());
-  Assert(itx->second.size() == itxo->second.size());
-  std::vector<Node> base_results;
-  // compte the results
-  for (unsigned j = 0, size = itx->second.size(); j < size; j++)
-  {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, itx->second[j]);
-    Trace("sygus-pbe-enum-debug")
-        << "...got res = " << res << " from " << bv << std::endl;
-    base_results.push_back(res);
-  }
-  // is it excluded for domain-specific reason?
-  std::vector<Node> exp_exc_vec;
-  if (getExplanationForEnumeratorExclude(
-          c, x, v, base_results, it->second, exp_exc_vec))
-  {
-    Assert(!exp_exc_vec.empty());
-    exp_exc = exp_exc_vec.size() == 1
-                  ? exp_exc_vec[0]
-                  : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
-    Trace("sygus-pbe-enum")
-        << "  ...fail : term is excluded (domain-specific)" << std::endl;
-  }
-  else
-  {
-    // notify all slaves
-    Assert(!it->second.d_enum_slave.empty());
-    // explanation for why this value should be excluded
-    for (unsigned s = 0; s < it->second.d_enum_slave.size(); s++)
-    {
-      Node xs = it->second.d_enum_slave[s];
-      std::map<Node, EnumInfo>::iterator itv = d_einfo.find(xs);
-      Assert(itv != d_einfo.end());
-      Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
-      // bool prevIsCover = false;
-      if (itv->second.getRole() == enum_io)
-      {
-        Trace("sygus-pbe-enum") << "   IO-Eval of ";
-        // prevIsCover = itv->second.isFeasible();
-      }
-      else
-      {
-        Trace("sygus-pbe-enum") << "Evaluation of ";
-      }
-      Trace("sygus-pbe-enum") << xs << " : ";
-      // evaluate all input/output examples
-      std::vector<Node> results;
-      Node templ = itv->second.d_template;
-      TNode templ_var = itv->second.d_template_arg;
-      std::map<Node, bool> cond_vals;
-      for (unsigned j = 0, size = base_results.size(); j < size; j++)
-      {
-        Node res = base_results[j];
-        Assert(res.isConst());
-        if (!templ.isNull())
-        {
-          TNode tres = res;
-          res = templ.substitute(templ_var, res);
-          res = Rewriter::rewrite(res);
-          Assert(res.isConst());
-        }
-        Node resb;
-        if (itv->second.getRole() == enum_io)
-        {
-          Node out = itxo->second[j];
-          Assert(out.isConst());
-          resb = res == out ? d_true : d_false;
-        }
-        else
-        {
-          resb = res;
-        }
-        cond_vals[resb] = true;
-        results.push_back(resb);
-        if (Trace.isOn("sygus-pbe-enum"))
-        {
-          if (resb.getType().isBoolean())
-          {
-            Trace("sygus-pbe-enum") << (resb == d_true ? "1" : "0");
-          }
-          else
-          {
-            Trace("sygus-pbe-enum") << "?";
-          }
-        }
-      }
-      bool keep = false;
-      if (itv->second.getRole() == enum_io)
-      {
-        // latter is the degenerate case of no examples
-        if (cond_vals.find(d_true) != cond_vals.end() || cond_vals.empty())
-        {
-          // check subsumbed/subsuming
-          std::vector<Node> subsume;
-          if (cond_vals.find(d_false) == cond_vals.end())
-          {
-            // it is the entire solution, we are done
-            Trace("sygus-pbe-enum")
-                << "  ...success, full solution added to PBE pool : "
-                << d_tds->sygusToBuiltin(v) << std::endl;
-            if (!itv->second.isSolved())
-            {
-              itv->second.setSolved(v);
-              // it subsumes everything
-              itv->second.d_term_trie.clear();
-              itv->second.d_term_trie.addTerm(v, results, true, subsume);
-            }
-            keep = true;
-          }
-          else
-          {
-            Node val =
-                itv->second.d_term_trie.addTerm(v, results, true, subsume);
-            if (val == v)
-            {
-              Trace("sygus-pbe-enum") << "  ...success";
-              if (!subsume.empty())
-              {
-                itv->second.d_enum_subsume.insert(
-                    itv->second.d_enum_subsume.end(),
-                    subsume.begin(),
-                    subsume.end());
-                Trace("sygus-pbe-enum")
-                    << " and subsumed " << subsume.size() << " terms";
-              }
-              Trace("sygus-pbe-enum")
-                  << "!   add to PBE pool : " << d_tds->sygusToBuiltin(v)
-                  << std::endl;
-              keep = true;
-            }
-            else
-            {
-              Assert(subsume.empty());
-              Trace("sygus-pbe-enum") << "  ...fail : subsumed" << std::endl;
-            }
-          }
-        }
-        else
-        {
-          Trace("sygus-pbe-enum")
-              << "  ...fail : it does not satisfy examples." << std::endl;
-        }
-      }
-      else
-      {
-        // must be unique up to examples
-        Node val = itv->second.d_term_trie.addCond(v, results, true);
-        if (val == v)
-        {
-          Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : "
-                                  << d_tds->sygusToBuiltin(v) << std::endl;
-          keep = true;
-        }
-        else
-        {
-          Trace("sygus-pbe-enum")
-              << "  ...fail : term is not unique" << std::endl;
-        }
-        itc->second.d_cond_count++;
-      }
-      if (keep)
-      {
-        // notify the parent to retry the build of PBE
-        itc->second.d_check_sol = true;
-        itv->second.addEnumValue(this, v, results);
-      }
-    }
-  }
-
-  // exclude this value on subsequent iterations
-  if (exp_exc.isNull())
-  {
-    // if we did not already explain why this should be excluded, use default
-    exp_exc = d_tds->getExplain()->getExplanationForEquality(x, v);
-  }
-  exp_exc = exp_exc.negate();
-  Trace("sygus-pbe-enum-lemma")
-      << "SygusUnif : enumeration exclude lemma : " << exp_exc << std::endl;
-  lems.push_back(exp_exc);
-}
+// ------------------------------------ solution construction from enumeration
 
 bool SygusUnif::useStrContainsEnumeratorExclude(Node x, EnumInfo& ei)
 {
@@ -1623,12 +1635,11 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
         Trace("sygus-pbe-cterm-debug") << "...contained." << std::endl;
       }
     }
-    /* FIXME
     if (!cmp_indices.empty())
     {
       // we check invariance with respect to a negative contains test
       NegContainsSygusInvarianceTest ncset;
-      ncset.init(d_parent, x, itxo->second, cmp_indices);
+      ncset.init(x, d_examples[c], itxo->second, cmp_indices);
       // construct the generalized explanation
       d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
       Trace("sygus-pbe-cterm")
@@ -1636,7 +1647,6 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
           << " due to negative containment." << std::endl;
       return true;
     }
-    */
   }
   return false;
 }
@@ -1645,16 +1655,14 @@ void SygusUnif::EnumInfo::addEnumValue(SygusUnif* pbe,
                                        Node v,
                                        std::vector<Node>& results)
 {
+  // should not have been enumerated before
+  Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
   d_enum_vals.push_back(v);
   d_enum_vals_res.push_back(results);
 }
 
-void SygusUnif::EnumInfo::initialize(Node c, EnumRole role)
-{
-  d_parent_candidate = c;
-  d_role = role;
-}
+void SygusUnif::EnumInfo::initialize(EnumRole role) { d_role = role; }
 
 void SygusUnif::EnumInfo::setSolved(Node slv) { d_enum_solved = slv; }
 
@@ -1886,6 +1894,7 @@ Node SygusUnif::constructSolution(
       for (unsigned i = 0, size = einfo.d_enum_vals.size(); i < size; i++)
       {
         Node val_t = einfo.d_enum_vals[i];
+        Assert(incr.find(val_t) == incr.end());
         indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "increment string values : " << val_t << " : ";
