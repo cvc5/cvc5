@@ -152,16 +152,20 @@ bool CegConjecturePbe::initialize(Node n,
       //the candidate must be input/output examples
       if( d_examples_out_invalid.find( c )==d_examples_out_invalid.end() ){
         Assert( d_examples.find( c )!=d_examples.end() );
-        Trace("sygus-unif") << "It is input/output examples..." << std::endl;
+        Trace("sygus-pbe") << "Initialize unif utility for " << c << "..." << std::endl;
         d_sygus_unif[c].initialize(d_qe, c, d_candidate_to_enum[c], lemmas);
+        Assert( !d_candidate_to_enum[c].empty() );
+        Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size() << " enumerators for " << c << "..." << std::endl;
         // initialize the enumerators
         for( unsigned i=0,size=d_candidate_to_enum[c].size(); i<size; i++ )
         {
-          Node e = d_candidate_to_enum[c][i];
-          Node g = d_qe->getTermDatabaseSygus()->getActiveGuardForEnumerator(e);
+          Node e = d_candidate_to_enum[c][i]; 
+          d_tds->registerEnumerator(e, c, d_parent, true);
+          Node g = d_tds->getActiveGuardForEnumerator(e);
           d_enum_to_active_guard[e] = g;
           d_enum_to_candidate[e] = c;
         }
+        Trace("sygus-pbe") << "Initialize " << d_examples[c].size() << " example points for " << c << "..." << std::endl;
         // initialize the examples
         for( unsigned i=0,nex=d_examples[c].size(); i<nex; i++ )
         {

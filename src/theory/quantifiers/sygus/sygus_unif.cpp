@@ -523,8 +523,8 @@ SygusUnif::SygusUnif()
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initialize(QuantifiersEngine* qe, Node f,
-                           std::vector<Node>& lemmas,
-                           std::vector<Node>& enums)
+                           std::vector<Node>& enums,
+                           std::vector<Node>& lemmas)
 {
   d_candidate = f;
   d_qe = qe;
