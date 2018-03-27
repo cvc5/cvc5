@@ -47,10 +47,10 @@ class CegConjecture;
 *     via Divide and Conquer" TACAS 2017. In particular, it may consider
 *     strategies for constructing decision trees when the grammar permits ITEs
 *     and a strategy for divide-and-conquer string synthesis when the grammar
-*     permits string concatenation. This is stored in a set of data structures
-*     within d_cinfo.
+*     permits string concatenation. This is managed through the SygusUnif
+*     utilities, d_sygus_unif.
 * (3) It makes (possibly multiple) calls to
-*     TermDatabaseSygus::registerMeasuredTerm(...) based
+*     TermDatabaseSygus::regstierEnumerator(...) based
 *     on the strategy, which inform the rest of the system to enumerate values
 *     of particular types in the grammar through use of fresh variables which
 *     we call "enumerators".
@@ -216,7 +216,11 @@ class CegConjecturePbe : public SygusModule
   * search space pruning.
   */
   std::map< Node, bool > d_examples_out_invalid;
-  /** map from candidates to sygus unif utility */
+  /** 
+   * Map from candidates to sygus unif utility. This class implements
+   * the core algorithm (e.g. decision tree learning) that this module relies
+   * upon. 
+   */
   std::map< Node, SygusUnif > d_sygus_unif;
   /** 
    * map from candidates to the list of enumerators that are being used to
