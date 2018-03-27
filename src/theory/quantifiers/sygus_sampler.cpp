@@ -717,15 +717,18 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // whether we will keep this pair
   bool keep = true;
 
-  // ----- check matchable
-  // check whether the pair is matchable with a previous one
-  d_curr_pair_rhs = beq_n;
-  Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
-                     << "]..." << std::endl;
-  if (!d_match_trie.getMatches(bn, &d_ssenm))
+  if( options::sygusRewSynthFilter() )
   {
-    keep = false;
-    Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
+    // ----- check matchable
+    // check whether the pair is matchable with a previous one
+    d_curr_pair_rhs = beq_n;
+    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
+                      << "]..." << std::endl;
+    if (!d_match_trie.getMatches(bn, &d_ssenm))
+    {
+      keep = false;
+      Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
+    }
   }
 
   // ----- check rewriting redundancy
