@@ -157,20 +157,19 @@ bool DivByZeroSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   return false;
 }
 
-void NegContainsSygusInvarianceTest::init(CegConjecture* conj,
-                                          Node e,
+void NegContainsSygusInvarianceTest::init(Node e,
+                                          std::vector< std::vector< Node > >& ex,
                                           std::vector<Node>& exo,
                                           std::vector<unsigned>& ncind)
 {
-  if (conj->getPbe()->hasExamples(e))
-  {
-    Assert(conj->getPbe()->getNumExamples(e) == exo.size());
-    d_enum = e;
-    d_exo.insert(d_exo.end(), exo.begin(), exo.end());
-    d_neg_con_indices.insert(
-        d_neg_con_indices.end(), ncind.begin(), ncind.end());
-    d_conj = conj;
-  }
+
+  Assert( ex.size()==exo.size() );
+  d_enum = e;
+  d_ex.insert(d_ex.end(), ex.begin(), ex.end() );
+  d_exo.insert(d_exo.end(), exo.begin(), exo.end());
+  d_neg_con_indices.insert(
+      d_neg_con_indices.end(), ncind.begin(), ncind.end());
+
 }
 
 bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
@@ -187,7 +186,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
     {
       unsigned ii = d_neg_con_indices[i];
       Assert(ii < d_exo.size());
-      Node nbvre = d_conj->getPbe()->evaluateBuiltin(tn, nbvr, d_enum, ii);
+      Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =
           NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, out, nbvre);
@@ -204,8 +203,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
                                    << std::endl;
           Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
           std::vector<Node> ex;
-          d_conj->getPbe()->getExample(d_enum, ii, ex);
-          for (unsigned j = 0; j < ex.size(); j++)
+          for (unsigned j = 0, size = d_ex[ii].size(); j < size; j++)
           {
             Trace("sygus-pbe-cterm") << ex[j] << " ";
           }

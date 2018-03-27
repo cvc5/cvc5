@@ -319,14 +319,20 @@ class SubsumeTrie
 };
 
 
-
-
-
-
 /** Sygus unification utility 
  * 
- * TODO
+ * This utility implements synthesis-by-unification style approaches for a
+ * single function to synthesize f.
+ * These approaches include a combination of:
+ * (1) Decision tree learning, inspired by Alur et al TACAS 2017,
+ * (2) Divide-and-conquer via string concatenation.
  * 
+ * This class maintains: 
+ * (1) A "strategy tree" based on the syntactic restrictions for f,
+ * (2) A set of input/output examples that are the specification for f.
+ * 
+ * This class can be updated via calls to notifyEnumeration, where we notify
+ * that new values have been enumerated via the sygus search.
  */
 class SygusUnif
 {
@@ -335,28 +341,6 @@ class SygusUnif
   SygusUnif(QuantifiersEngine* qe);
   ~SygusUnif();
   
-  /** initialize 
-   * 
-   * TODO
-   */
-  void initialize(Node candidate,
-                  std::vector<Node>& lemmas, 
-                  std::vector< Node >& enums);
-  /** reset examples 
-   * 
-   * TODO
-   */
-  void resetExamples();
-  /** add example 
-   * 
-   * TODO
-   */
-  void addExample(const std::vector< Node >& input, Node output);
-  
-  /** notify enumeration */
-  void notifyEnumeration( Node e, Node v, std::vector< Node >& lemmas );
-  /** construct solution */
-  Node constructSolution( std::vector< Node >& lems );
 
 
  private:
@@ -547,8 +531,9 @@ class SygusUnif
     void initialize( Node c );
     void initializeType( TypeNode tn );
     Node getRootEnumerator();
-    bool isNonTrivial();
   };
+  /** the candidate for this class */
+  Node d_candidate;
   /** maps a function-to-synthesize to the above information */
   std::map< Node, CandidateInfo > d_cinfo;
 

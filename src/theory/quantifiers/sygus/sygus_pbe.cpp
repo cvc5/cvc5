@@ -1402,7 +1402,7 @@ bool CegConjecturePbe::getExplanationForEnumeratorExclude(
     {
       // we check invariance with respect to a negative contains test
       NegContainsSygusInvarianceTest ncset;
-      ncset.init(d_parent, x, itxo->second, cmp_indices);
+      ncset.init(x, d_examples[c], itxo->second, cmp_indices);
       // construct the generalized explanation
       d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
       Trace("sygus-pbe-cterm")

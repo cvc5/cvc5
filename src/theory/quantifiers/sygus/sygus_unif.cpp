@@ -259,34 +259,6 @@ SygusUnif::~SygusUnif() {
 
 }
 
-void SygusUnif::initialize(Node candidate,
-                  std::vector<Node>& lemmas, 
-                  std::vector< Node >& enums)
-{
-  // TODO
-}
-
-void SygusUnif::resetExamples()
-{
-  // TODO
-}
-
-void SygusUnif::addExample(const std::vector< Node >& input, Node output)
-{
-  // TODO
-}
-
-void SygusUnif::notifyEnumeration( Node e, Node v, std::vector< Node >& lemmas )  
-{
-  // TODO
-}
-
-Node SygusUnif::constructSolution( std::vector< Node >& lems )
-{
-  // TODO
-  return Node::null();
-}
-
 // ----------------------------- establishing enumeration types
 
 void SygusUnif::registerEnumerator(
@@ -296,7 +268,7 @@ void SygusUnif::registerEnumerator(
   {
     Trace("sygus-unif-debug")
         << "...register " << et << " for "
-        << ((DatatypeType)tn.toType()).getDatatype().getName();
+        << static_cast<DatatypeType>(tn.toType()).getDatatype().getName();
     Trace("sygus-unif-debug") << ", role = " << enum_role
                               << ", in search = " << inSearch << std::endl;
     d_einfo[et].initialize(c, enum_role);
@@ -312,13 +284,6 @@ void SygusUnif::registerEnumerator(
         d_cinfo[c].d_search_enum[tn] = et;
         d_cinfo[c].d_esym_list.push_back(et);
         d_einfo[et].d_enum_slave.push_back(et);
-        // register measured term with database
-        //FIXME
-        /*
-        d_qe->getTermDatabaseSygus()->registerEnumerator(et, c, d_parent, true);
-        d_einfo[et].d_active_guard =
-            d_qe->getTermDatabaseSygus()->getActiveGuardForEnumerator(et);
-            */
       }
       else
       {
@@ -361,7 +326,7 @@ void SygusUnif::collectEnumeratorTypes(Node e,
     eti.d_enum[erole] = ee;
     Trace("sygus-unif-debug")
         << "...enumerator " << ee << " for "
-        << ((DatatypeType)tn.toType()).getDatatype().getName()
+        << static_cast<DatatypeType>(tn.toType()).getDatatype().getName()
         << ", role = " << erole << std::endl;
   }
   else
@@ -740,7 +705,7 @@ void SygusUnif::collectEnumeratorTypes(Node e,
                 << ((DatatypeType)ct.toType()).getDatatype().getName();
             Trace("sygus-unif-debug")
                 << " for arg " << j << " of "
-                << ((DatatypeType)tn.toType()).getDatatype().getName()
+                << static_cast<DatatypeType>(tn.toType()).getDatatype().getName()
                 << std::endl;
             registerEnumerator(et, e, ct, erole_c, true);
             d_einfo[et].d_template = cop_to_child_templ[cop][j];
@@ -787,7 +752,7 @@ void SygusUnif::collectEnumeratorTypes(Node e,
         if (Trace.isOn("sygus-unif"))
         {
           Trace("sygus-unif") << "Initialized strategy " << strat;
-          Trace("sygus-unif") << " for " << ((DatatypeType)tn.toType()).getDatatype().getName() << ", operator " << cop;
+          Trace("sygus-unif") << " for " << static_cast<DatatypeType>(tn.toType()).getDatatype().getName() << ", operator " << cop;
           Trace("sygus-unif") << ", #children = " << cons_strat->d_cenum.size()
                               << ", solution template = (lambda ( ";
           for (const Node& targ : cons_strat->d_sol_templ_args)
@@ -1304,11 +1269,6 @@ Node SygusUnif::CandidateInfo::getRootEnumerator() {
   std::map<EnumRole, Node>::iterator it = d_tinfo[d_root].d_enum.find(enum_io);
   Assert( it!=d_tinfo[d_root].d_enum.end() );
   return it->second;
-}
-
-bool SygusUnif::CandidateInfo::isNonTrivial() {
-  //TODO
-  return true;
 }
 
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
