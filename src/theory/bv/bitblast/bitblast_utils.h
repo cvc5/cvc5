@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST_UTILS_H
-#define __CVC4__THEORY__BV__BITBLAST_UTILS_H
+#ifndef __CVC4__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
+#define __CVC4__THEORY__BV__BITBLAST__BITBLAST_UTILS_H
 
 
 #include <ostream>
@@ -269,4 +269,4 @@ T inline sLessThanBB(const std::vector<T>&a, const std::vector<T>& b, bool orEqu
 }  // namespace theory
 }  // namespace CVC4
 
-#endif  // __CVC4__THEORY__BV__BITBLAST_UTILS_H
+#endif  // __CVC4__THEORY__BV__BITBLAST__BITBLAST_UTILS_H

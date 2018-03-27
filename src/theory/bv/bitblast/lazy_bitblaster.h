@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__LAZY_BITBLASTER_H
-#define __CVC4__THEORY__BV__LAZY_BITBLASTER_H
+#ifndef __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#define __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 
@@ -178,4 +178,4 @@ class TLazyBitblaster : public TBitblaster<Node>
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
-#endif  //  __CVC4__THEORY__BV__LAZY_BITBLASTER_H
+#endif  //  __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H

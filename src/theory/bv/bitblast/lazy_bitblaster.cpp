@@ -78,17 +78,17 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       d_name(name),
       d_statistics(name)
 {
-  d_satSolver = std::unique_ptr<prop::BVSatSolverInterface>(
+  d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
-  d_cnfStream = std::unique_ptr<prop::CnfStream>(
+  d_cnfStream.reset(
       new prop::TseitinCnfStream(d_satSolver.get(),
                                  d_nullRegistrar.get(),
                                  d_nullContext.get(),
                                  options::proof(),
                                  "LazyBitblaster"));
 
-  d_satSolverNotify = std::unique_ptr<prop::BVSatSolverInterface::Notify>(
+  d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
           : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(

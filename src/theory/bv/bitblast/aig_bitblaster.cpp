@@ -116,7 +116,7 @@ Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return Abc_AigMux(AigBitblaster::currentAigM(), cond, a, b); 
 }
 
-CVC4_THREAD_LOCAL Abc_Ntk_t* AigBitblaster::s_abcAigNetwork = NULL;
+CVC4_THREAD_LOCAL Abc_Ntk_t* AigBitblaster::s_abcAigNetwork = nullptr;
 
 Abc_Ntk_t* AigBitblaster::currentAigNtk() {
   if (!AigBitblaster::s_abcAigNetwork) {
@@ -149,8 +149,8 @@ AigBitblaster::AigBitblaster()
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
-      MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-      minisat->setNotify(notify);
+      MinisatEmptyNotify notify; // = new MinisatEmptyNotify();
+      minisat->setNotify(&notify);
       solver = minisat;
       break;
     }
@@ -164,7 +164,7 @@ AigBitblaster::AigBitblaster()
       break;
     default: CVC4_FATAL() << "Unknown SAT solver type";
   }
-  d_satSolver = std::unique_ptr<prop::SatSolver>(solver);
+  d_satSolver.reset(solver);
 }
 
 AigBitblaster::~AigBitblaster() {}

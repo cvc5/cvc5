@@ -49,7 +49,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext.get(), smtStatisticsRegistry(), "EagerBitblaster");
-      d_notify = std::unique_ptr<MinisatEmptyNotify>(new MinisatEmptyNotify());
+      d_notify.reset(new MinisatEmptyNotify());
       minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
@@ -64,8 +64,8 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
       break;
     default: Unreachable("Unknown SAT solver type");
   }
-  d_satSolver = std::unique_ptr<prop::SatSolver>(solver);
-  d_cnfStream = std::unique_ptr<prop::CnfStream>(
+  d_satSolver.reset(solver);
+  d_cnfStream.reset(
       new prop::TseitinCnfStream(d_satSolver.get(),
                                  d_bitblastingRegistrar.get(),
                                  d_nullContext.get(),

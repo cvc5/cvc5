@@ -14,13 +14,14 @@
  ** Implementation of bitblasting functions for various operators. 
  **/
 
-#ifndef __CVC4__BITBLAST__STRATEGIES_TEMPLATE_H
-#define __CVC4__BITBLAST__STRATEGIES_TEMPLATE_H
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#define __CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
 
 #include <cmath>
 #include <ostream>
 
-#include "cvc4_private.h"
 #include "expr/node.h"
 #include "theory/bv/bitblast/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"

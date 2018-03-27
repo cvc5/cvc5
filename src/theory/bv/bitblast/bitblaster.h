@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLASTER_H
-#define __CVC4__THEORY__BV__BITBLASTER_H
+#ifndef __CVC4__THEORY__BV__BITBLAST__BITBLASTER_H
+#define __CVC4__THEORY__BV__BITBLAST__BITBLASTER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -258,4 +258,4 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__BV__BITBLASTER_H */
+#endif /* __CVC4__THEORY__BV__BITBLAST__BITBLASTER_H */
