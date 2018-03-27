@@ -19,74 +19,11 @@
 
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
+#include "theory/quantifiers/sygus/sygus_unif.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-/** roles for enumerators
- *
- * This indicates the role of an enumerator that is allocated by approaches
- * for synthesis-by-unification (see details below).
- *   io : the enumerator should enumerate values that are overall solutions
- *        for the function-to-synthesize,
- *   ite_condition : the enumerator should enumerate values that are useful
- *                   in ite conditions in the ITE strategy,
- *   concat_term : the enumerator should enumerate values that are used as
- *                 components of string concatenation solutions.
- */
-enum EnumRole
-{
-  enum_invalid,
-  enum_io,
-  enum_ite_condition,
-  enum_concat_term,
-};
-std::ostream& operator<<(std::ostream& os, EnumRole r);
-
-/** roles for strategy nodes
- *
- * This indicates the role of a strategy node, which is a subprocedure of
- * CegConjecturePbe::constructSolution (see details below).
- *   equal : the node constructed must be equal to the overall solution for
- *           the function-to-synthesize,
- *   string_prefix/suffix : the node constructed must be a prefix/suffix
- *                          of the function-to-synthesize,
- *   ite_condition : the node constructed must be a condition that makes some
- *                   active input examples true and some input examples false.
- */
-enum NodeRole
-{
-  role_invalid,
-  role_equal,
-  role_string_prefix,
-  role_string_suffix,
-  role_ite_condition,
-};
-std::ostream& operator<<(std::ostream& os, NodeRole r);
-
-/** enumerator role for node role */
-EnumRole getEnumeratorRoleForNodeRole(NodeRole r);
-
-/** strategy types
- *
- * This indicates a strategy for synthesis-by-unification (see details below).
- *   ITE : strategy for constructing if-then-else solutions via decision
- *         tree learning techniques,
- *   CONCAT_PREFIX/SUFFIX : strategy for constructing string concatenation
- *         solutions via a divide and conquer approach,
- *   ID : identity strategy used for calling strategies on child type through
- *        an identity function.
- */
-enum StrategyType
-{
-  strat_INVALID,
-  strat_ITE,
-  strat_CONCAT_PREFIX,
-  strat_CONCAT_SUFFIX,
-  strat_ID,
-};
-std::ostream& operator<<(std::ostream& os, StrategyType st);
 
 class CegConjecture;
 
