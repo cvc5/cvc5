@@ -199,10 +199,9 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
                                    << tds->sygusToBuiltin(x) << " since "
                                    << std::endl;
           Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
-          std::vector<Node> ex;
           for (unsigned j = 0, size = d_ex[ii].size(); j < size; j++)
           {
-            Trace("sygus-pbe-cterm") << ex[j] << " ";
+            Trace("sygus-pbe-cterm") << d_ex[ii][j] << " ";
           }
           Trace("sygus-pbe-cterm") << std::endl;
           Trace("sygus-pbe-cterm")
