@@ -377,7 +377,7 @@ class CegConjecturePbe : public SygusModule
     * v[-1] stores the children that always evaluate to !pol,
     * v[1] stores the children that always evaluate to pol,
     * v[0] stores the children that both evaluate to true and false for at least
-    * on example.
+    * one example.
     */
     void getLeaves(const std::vector<Node>& vals,
                    bool pol,
@@ -424,8 +424,9 @@ class CegConjecturePbe : public SygusModule
   *
   * We say an enumerator is a master enumerator if it is the variable that
   * we use to enumerate values for its sort. Master enumerators may have
-  * (possibly multiple) slave enumerators, stored in d_enum_slave.
-  *
+  * (possibly multiple) slave enumerators, stored in d_enum_slave. We make
+  * the first enumerator for each type a master enumerator, and any additional
+  * ones slaves of it.
   */
   class EnumInfo
   {
