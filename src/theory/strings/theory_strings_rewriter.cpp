@@ -17,6 +17,7 @@
 #include "theory/strings/theory_strings_rewriter.h"
 
 #include <stdint.h>
+#include <algorithm>
 
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
@@ -348,6 +349,32 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   if( !preNode.isNull() && ( preNode.getKind()!=kind::CONST_STRING || !preNode.getConst<String>().isEmptyString() ) ){
     node_vec.push_back( preNode );
   }
+
+  // Sort adjacent operands in str.++ that all result in the same string or the
+  // empty string.
+  //
+  // E.g.: (str.++ ... (str.replace "A" x "") "A" (str.substr "A" 0 z) ...) -->
+  // (str.++ ... [sort those 3 arguments] ... )
+  size_t lastIdx = 0;
+  Node lastX;
+  for (size_t i = 0; i < node_vec.size(); i++)
+  {
+    Node s = getStringOrEmpty(node_vec[i]);
+    bool nextX = false;
+    if (s != lastX)
+    {
+      nextX = true;
+    }
+
+    if (nextX)
+    {
+      std::sort(node_vec.begin() + lastIdx, node_vec.begin() + i);
+      lastX = s;
+      lastIdx = i;
+    }
+  }
+  std::sort(node_vec.begin() + lastIdx, node_vec.end());
+
   retNode = mkConcat( kind::STRING_CONCAT, node_vec );
   Trace("strings-prerewrite") << "Strings::rewriteConcat end " << retNode
                               << std::endl;
@@ -3278,6 +3305,57 @@ Node TheoryStringsRewriter::mkSubstrChain(Node base,
     base = nm->mkNode(STRING_SUBSTR, base, ss[i], ls[i]);
   }
   return base;
+}
+
+Node TheoryStringsRewriter::getStringOrEmpty(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node res;
+  while (res.isNull())
+  {
+    switch (n.getKind())
+    {
+      case kind::STRING_STRREPL:
+      {
+        Node empty = nm->mkConst(::CVC4::String(""));
+        if (n[0] == empty)
+        {
+          // (str.replace "" x y) --> y
+          n = n[2];
+          break;
+        }
+
+        Node strlen = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n[0]));
+        if (strlen == nm->mkConst(Rational(1)) && n[2] == empty)
+        {
+          // (str.replace "A" x "") --> "A"
+          res = n[0];
+          break;
+        }
+
+        res = n;
+        break;
+      }
+      case kind::STRING_SUBSTR:
+      {
+        Node strlen = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n[0]));
+        if (strlen == nm->mkConst(Rational(1)))
+        {
+          // (str.substr "A" x y) --> "A"
+          res = n[0];
+          break;
+        }
+        res = n;
+          break;
+      }
+      default:
+      {
+        res = n;
+        break;
+      }
+    }
+  }
+  return res;
 }
 
 Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)

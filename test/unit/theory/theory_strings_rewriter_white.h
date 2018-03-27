@@ -175,4 +175,74 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     res = TheoryStringsRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
   }
+
+  void testRewriteConcat()
+  {
+    TypeNode intType = d_nm->integerType();
+    TypeNode strType = d_nm->stringType();
+
+    Node empty = d_nm->mkConst(::CVC4::String(""));
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node zero = d_nm->mkConst(Rational(0));
+    Node three = d_nm->mkConst(Rational(3));
+
+    Node i = d_nm->mkVar("i", intType);
+    Node s = d_nm->mkVar("s", strType);
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+
+    // Same normal form for:
+    //
+    // (str.++ (str.replace "A" x "") "A")
+    //
+    // (str.++ "A" (str.replace "A" x ""))
+    Node repl_a_x_e = d_nm->mkNode(kind::STRING_STRREPL, a, x, empty);
+    Node repl_a = d_nm->mkNode(kind::STRING_CONCAT, repl_a_x_e, a);
+    Node a_repl = d_nm->mkNode(kind::STRING_CONCAT, a, repl_a_x_e);
+    Node res_repl_a = Rewriter::rewrite(repl_a);
+    Node res_a_repl = Rewriter::rewrite(a_repl);
+    TS_ASSERT_EQUALS(res_repl_a, res_a_repl);
+
+    // Same normal form for:
+    //
+    // (str.++ y (str.replace "" x (str.substr y 0 3)) (str.substr y 0 3) "A" (str.substr y 0 3))
+    //
+    // (str.++ y (str.substr y 0 3) (str.replace "" x (str.substr y 0 3)) "A" (str.substr y 0 3))
+    Node z = d_nm->mkNode(kind::STRING_SUBSTR, y, zero, three);
+    Node repl_e_x_z = d_nm->mkNode(kind::STRING_STRREPL, empty, x, z);
+    repl_a = d_nm->mkNode(kind::STRING_CONCAT, y, repl_e_x_z, z, a, z);
+    a_repl = d_nm->mkNode(kind::STRING_CONCAT, y, z, repl_e_x_z, a, z);
+    res_repl_a = Rewriter::rewrite(repl_a);
+    res_a_repl = Rewriter::rewrite(a_repl);
+    TS_ASSERT_EQUALS(res_repl_a, res_a_repl);
+
+    // Same normal form for:
+    //
+    // (str.++ "A" (str.replace "A" x "") (str.substr "A" 0 i))
+    //
+    // (str.++ (str.substr "A" 0 i) (str.replace "A" x "") "A")
+    Node substr_a = d_nm->mkNode(kind::STRING_SUBSTR, a, zero, i);
+    Node a_substr_repl =
+        d_nm->mkNode(kind::STRING_CONCAT, a, substr_a, repl_a_x_e);
+    Node substr_repl_a =
+        d_nm->mkNode(kind::STRING_CONCAT, substr_a, repl_a_x_e, a);
+    Node res_a_substr_repl = Rewriter::rewrite(a_substr_repl);
+    Node res_substr_repl_a = Rewriter::rewrite(substr_repl_a);
+    TS_ASSERT_EQUALS(res_a_substr_repl, res_substr_repl_a);
+
+    // Same normal form for:
+    //
+    // (str.++ (str.replace "" x (str.substr "A" 0 i)) (str.substr "A" 0 i) (str.at "A" i))
+    //
+    // (str.++ (str.at "A" i) (str.replace "" x (str.substr "A" 0 i)) (str.substr "A" 0 i))
+    Node charat_a = d_nm->mkNode(kind::STRING_CHARAT, a, i);
+    Node repl_e_x_s = d_nm->mkNode(kind::STRING_STRREPL, empty, x, substr_a);
+    Node repl_substr_a =
+        d_nm->mkNode(kind::STRING_CONCAT, repl_e_x_s, substr_a, charat_a);
+    Node a_repl_substr =
+        d_nm->mkNode(kind::STRING_CONCAT, charat_a, repl_e_x_s, substr_a);
+    Node res_repl_substr_a = Rewriter::rewrite(repl_substr_a);
+    Node res_a_repl_substr = Rewriter::rewrite(a_repl_substr);
+    TS_ASSERT_EQUALS(res_repl_substr_a, res_a_repl_substr);
+  }
 };

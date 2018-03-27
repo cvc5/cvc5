@@ -437,6 +437,23 @@ private:
   static Node mkSubstrChain(Node base,
                             const std::vector<Node>& ss,
                             const std::vector<Node>& ls);
+
+  /**
+   * Overapproximates the possible values of node n. This overapproximation
+   * assumes that n can return a value x or the empty string and tries to find
+   * the simplest x such that this holds. In the general case, x is the same as
+   * the input n. This overapproximation can be used to sort terms with the
+   * same possible values in string concatenation for example.
+   *
+   * Example:
+   *
+   * getStringOrEmpty( (str.replace "" x y) ) --> y because (str.replace "" x y)
+   * either returns y or ""
+   *
+   * getStringOrEmpty( (str.substr "ABC" x y) ) --> (str.substr "ABC" x y)
+   * because the function could not compute a simpler
+   */
+  static Node getStringOrEmpty(Node n);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
