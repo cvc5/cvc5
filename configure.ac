@@ -1547,7 +1547,7 @@ CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/SmtEngine.3cvc_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/options.3cvc_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])

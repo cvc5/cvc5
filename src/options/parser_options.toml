@@ -1,0 +1,67 @@
+id     = "PARSER"
+name   = "Parser"
+header = "options/parser_options.h"
+
+[[option]]
+  name       = "strictParsing"
+  category   = "common"
+  long       = "strict-parsing"
+  type       = "bool"
+  read_only  = true
+  help       = "be less tolerant of non-conforming inputs"
+
+[[option]]
+  name       = "memoryMap"
+  category   = "regular"
+  long       = "mmap"
+  type       = "bool"
+  read_only  = true
+  help       = "memory map file input"
+
+[[option]]
+  name       = "semanticChecks"
+  smt_name   = "semantic-checks"
+  category   = "regular"
+  type       = "bool"
+  default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
+  read_only  = true
+  help       = "disable ALL semantic checks, including type checks"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "no-checking"
+  links      = ["--no-type-checking"]
+
+[[option]]
+  name       = "globalDeclarations"
+  smt_name   = "global-declarations"
+  category   = "regular"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "force all declarations and definitions to be global"
+
+# this is to support security in the online version, and in other similar
+# contexts (--no-include-file disables filesystem access in TPTP and SMT2
+# parsers) the name --no-include-file is legacy: it also now limits any
+# filesystem access (read or write) for example by using --dump-to (or the
+# equivalent set-option) or set-option
+# :regular-output-channel/:diagnostic-output-channel.  However, the main driver
+# is still permitted to read the input file given on the command-line if any.
+# creation/use of temp files are still permitted (but the paths aren't given by
+# the user).  Also note this is only safe for the version invoked through the
+# main driver, there are ways via the API to get the CVC4 library to open a file
+# for reading or writing and thus leak information from an existing file, or
+# overwrite an existing file with malicious content.
+[[option]]
+  name       = "filesystemAccess"
+  category   = "undocumented"
+  long       = "filesystem-access"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+
+[[alias]]
+  category   = "undocumented"
+  long       = "no-include-file"
+  links      = ["--no-filesystem-access"]
