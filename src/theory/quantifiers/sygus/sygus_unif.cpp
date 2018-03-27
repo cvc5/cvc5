@@ -282,6 +282,265 @@ bool UnifContext::isStringSolved(SygusUnif* pbe,
   return true;
 }
 
+
+// status : 0 : exact, -1 : vals is subset, 1 : vals is superset
+Node SubsumeTrie::addTermInternal(Node t,
+                                  const std::vector<Node>& vals,
+                                  bool pol,
+                                  std::vector<Node>& subsumed,
+                                  bool spol,
+                                  unsigned index,
+                                  int status,
+                                  bool checkExistsOnly,
+                                  bool checkSubsume)
+{
+  if (index == vals.size())
+  {
+    if (status == 0)
+    {
+      // set the term if checkExistsOnly = false
+      if (d_term.isNull() && !checkExistsOnly)
+      {
+        d_term = t;
+      }
+    }
+    else if (status == 1)
+    {
+      Assert(checkSubsume);
+      // found a subsumed term
+      if (!d_term.isNull())
+      {
+        subsumed.push_back(d_term);
+        if (!checkExistsOnly)
+        {
+          // remove it if checkExistsOnly = false
+          d_term = Node::null();
+        }
+      }
+    }
+    else
+    {
+      Assert(!checkExistsOnly && checkSubsume);
+    }
+    return d_term;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  // the current value
+  Assert(pol || (vals[index].isConst() && vals[index].getType().isBoolean()));
+  Node cv = pol ? vals[index] : nm->mkConst(!vals[index].getConst<bool>());
+  // if checkExistsOnly = false, check if the current value is subsumed if
+  // checkSubsume = true, if so, don't add
+  if (!checkExistsOnly && checkSubsume)
+  {
+    Assert(cv.isConst() && cv.getType().isBoolean());
+    std::vector<bool> check_subsumed_by;
+    if (status == 0)
+    {
+      if (!cv.getConst<bool>())
+      {
+        check_subsumed_by.push_back(spol);
+      }
+    }
+    else if (status == -1)
+    {
+      check_subsumed_by.push_back(spol);
+      if (!cv.getConst<bool>())
+      {
+        check_subsumed_by.push_back(!spol);
+      }
+    }
+    // check for subsumed nodes
+    for (unsigned i = 0, size = check_subsumed_by.size(); i < size; i++)
+    {
+      bool csbi = check_subsumed_by[i];
+      Node csval = nm->mkConst(csbi);
+      // check if subsumed
+      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(csval);
+      if (itc != d_children.end())
+      {
+        Node ret = itc->second.addTermInternal(t,
+                                               vals,
+                                               pol,
+                                               subsumed,
+                                               spol,
+                                               index + 1,
+                                               -1,
+                                               checkExistsOnly,
+                                               checkSubsume);
+        // ret subsumes t
+        if (!ret.isNull())
+        {
+          return ret;
+        }
+      }
+    }
+  }
+  Node ret;
+  std::vector<bool> check_subsume;
+  if (status == 0)
+  {
+    if (checkExistsOnly)
+    {
+      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(cv);
+      if (itc != d_children.end())
+      {
+        ret = itc->second.addTermInternal(t,
+                                          vals,
+                                          pol,
+                                          subsumed,
+                                          spol,
+                                          index + 1,
+                                          0,
+                                          checkExistsOnly,
+                                          checkSubsume);
+      }
+    }
+    else
+    {
+      Assert(spol);
+      ret = d_children[cv].addTermInternal(t,
+                                           vals,
+                                           pol,
+                                           subsumed,
+                                           spol,
+                                           index + 1,
+                                           0,
+                                           checkExistsOnly,
+                                           checkSubsume);
+      if (ret != t)
+      {
+        // we were subsumed by ret, return
+        return ret;
+      }
+    }
+    if (checkSubsume)
+    {
+      Assert(cv.isConst() && cv.getType().isBoolean());
+      // check for subsuming
+      if (cv.getConst<bool>())
+      {
+        check_subsume.push_back(!spol);
+      }
+    }
+  }
+  else if (status == 1)
+  {
+    Assert(checkSubsume);
+    Assert(cv.isConst() && cv.getType().isBoolean());
+    check_subsume.push_back(!spol);
+    if (cv.getConst<bool>())
+    {
+      check_subsume.push_back(spol);
+    }
+  }
+  if (checkSubsume)
+  {
+    // check for subsumed terms
+    for (unsigned i = 0, size = check_subsume.size(); i < size; i++)
+    {
+      Node csval = nm->mkConst<bool>(check_subsume[i]);
+      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(csval);
+      if (itc != d_children.end())
+      {
+        itc->second.addTermInternal(t,
+                                    vals,
+                                    pol,
+                                    subsumed,
+                                    spol,
+                                    index + 1,
+                                    1,
+                                    checkExistsOnly,
+                                    checkSubsume);
+        // clean up
+        if (itc->second.isEmpty())
+        {
+          Assert(!checkExistsOnly);
+          d_children.erase(csval);
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+Node SubsumeTrie::addTerm(Node t,
+                          const std::vector<Node>& vals,
+                          bool pol,
+                          std::vector<Node>& subsumed)
+{
+  return addTermInternal(t, vals, pol, subsumed, true, 0, 0, false, true);
+}
+
+Node SubsumeTrie::addCond(Node c, const std::vector<Node>& vals, bool pol)
+{
+  std::vector<Node> subsumed;
+  return addTermInternal(c, vals, pol, subsumed, true, 0, 0, false, false);
+}
+
+void SubsumeTrie::getSubsumed(const std::vector<Node>& vals,
+                              bool pol,
+                              std::vector<Node>& subsumed)
+{
+  addTermInternal(Node::null(), vals, pol, subsumed, true, 0, 1, true, true);
+}
+
+void SubsumeTrie::getSubsumedBy(const std::vector<Node>& vals,
+                                bool pol,
+                                std::vector<Node>& subsumed_by)
+{
+  // flip polarities
+  addTermInternal(
+      Node::null(), vals, !pol, subsumed_by, false, 0, 1, true, true);
+}
+
+void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
+                                    bool pol,
+                                    std::map<int, std::vector<Node> >& v,
+                                    unsigned index,
+                                    int status)
+{
+  if (index == vals.size())
+  {
+    Assert(!d_term.isNull());
+    Assert(std::find(v[status].begin(), v[status].end(), d_term)
+           == v[status].end());
+    v[status].push_back(d_term);
+  }
+  else
+  {
+    Assert(vals[index].isConst() && vals[index].getType().isBoolean());
+    bool curr_val_true = vals[index].getConst<bool>() == pol;
+    for (std::map<Node, SubsumeTrie>::iterator it = d_children.begin();
+         it != d_children.end();
+         ++it)
+    {
+      int new_status = status;
+      // if the current value is true
+      if (curr_val_true)
+      {
+        if (status != 0)
+        {
+          Assert(it->first.isConst() && it->first.getType().isBoolean());
+          new_status = (it->first.getConst<bool>() ? 1 : -1);
+          if (status != -2 && new_status != status)
+          {
+            new_status = 0;
+          }
+        }
+      }
+      it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
+    }
+  }
+}
+
+void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
+                            bool pol,
+                            std::map<int, std::vector<Node> >& v)
+{
+  getLeavesInternal(vals, pol, v, 0, -2);
+}
+
+
 SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
 {
   d_tds = qe->getTermDatabaseSygus();
@@ -290,6 +549,82 @@ SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
 }
 
 SygusUnif::~SygusUnif() {}
+
+void SygusUnif::initialize(Node candidate,
+                std::vector<Node>& lemmas, 
+                std::vector< Node >& enums)
+{
+  d_candidate = candidate;
+  // TODO
+}
+
+void SygusUnif::resetExamples()
+{
+  // TODO
+}
+
+void SygusUnif::addExample(const std::vector< Node >& input, Node output)
+{
+  // TODO
+}
+
+void SygusUnif::notifyEnumeration( Node e, Node v, std::vector< Node >& lemmas )  
+{
+  // TODO
+}
+
+Node SygusUnif::constructSolution()
+{
+  Node c = d_candidate;
+  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
+  Assert(itc != d_cinfo.end());
+  if (!itc->second.d_solution.isNull())
+  {
+    // already has a solution
+    return itc->second.d_solution;
+  }
+  else
+  {
+    // only check if an enumerator updated
+    if (itc->second.d_check_sol)
+    {
+      Trace("sygus-pbe") << "Construct solution, #iterations = "
+                         << itc->second.d_cond_count << std::endl;
+      itc->second.d_check_sol = false;
+      // try multiple times if we have done multiple conditions, due to
+      // non-determinism
+      Node vc;
+      for (unsigned i = 0; i <= itc->second.d_cond_count; i++)
+      {
+        Trace("sygus-pbe-dt")
+            << "ConstructPBE for candidate: " << c << std::endl;
+        Node e = itc->second.getRootEnumerator();
+        UnifContext x;
+        x.initialize(this, c);
+        Node vcc = constructSolution(c, e, role_equal, x, 1);
+        if (!vcc.isNull())
+        {
+          if (vc.isNull() || (!vc.isNull()
+                              && d_tds->getSygusTermSize(vcc)
+                                     < d_tds->getSygusTermSize(vc)))
+          {
+            Trace("sygus-pbe")
+                << "**** PBE SOLVED : " << c << " = " << vcc << std::endl;
+            Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
+            vc = vcc;
+          }
+        }
+      }
+      if (!vc.isNull())
+      {
+        itc->second.d_solution = vc;
+        return vc;
+      }
+      Trace("sygus-pbe") << "...failed to solve." << std::endl;
+    }
+    return Node::null();
+  }
+}
 
 // ----------------------------- establishing enumeration types
 
@@ -1221,17 +1556,15 @@ void SygusUnif::addEnumeratedValue(Node x, Node v, std::vector<Node>& lems)
   }
 
   // exclude this value on subsequent iterations
-  Node g = it->second.d_active_guard;
   if (exp_exc.isNull())
   {
     // if we did not already explain why this should be excluded, use default
     exp_exc = d_tds->getExplain()->getExplanationForEquality(x, v);
   }
-  Node exlem =
-      NodeManager::currentNM()->mkNode(OR, g.negate(), exp_exc.negate());
+  exp_exc = exp_exc.negate();
   Trace("sygus-pbe-enum-lemma")
-      << "SygusUnif : enumeration exclude lemma : " << exlem << std::endl;
-  lems.push_back(exlem);
+      << "SygusUnif : enumeration exclude lemma : " << exp_exc << std::endl;
+  lems.push_back(exp_exc);
 }
 
 bool SygusUnif::useStrContainsEnumeratorExclude(Node x, EnumInfo& ei)
@@ -1369,315 +1702,6 @@ Node SygusUnif::CandidateInfo::getRootEnumerator()
   std::map<EnumRole, Node>::iterator it = d_tinfo[d_root].d_enum.find(enum_io);
   Assert(it != d_tinfo[d_root].d_enum.end());
   return it->second;
-}
-
-// status : 0 : exact, -1 : vals is subset, 1 : vals is superset
-Node SubsumeTrie::addTermInternal(Node t,
-                                  const std::vector<Node>& vals,
-                                  bool pol,
-                                  std::vector<Node>& subsumed,
-                                  bool spol,
-                                  unsigned index,
-                                  int status,
-                                  bool checkExistsOnly,
-                                  bool checkSubsume)
-{
-  if (index == vals.size())
-  {
-    if (status == 0)
-    {
-      // set the term if checkExistsOnly = false
-      if (d_term.isNull() && !checkExistsOnly)
-      {
-        d_term = t;
-      }
-    }
-    else if (status == 1)
-    {
-      Assert(checkSubsume);
-      // found a subsumed term
-      if (!d_term.isNull())
-      {
-        subsumed.push_back(d_term);
-        if (!checkExistsOnly)
-        {
-          // remove it if checkExistsOnly = false
-          d_term = Node::null();
-        }
-      }
-    }
-    else
-    {
-      Assert(!checkExistsOnly && checkSubsume);
-    }
-    return d_term;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  // the current value
-  Assert(pol || (vals[index].isConst() && vals[index].getType().isBoolean()));
-  Node cv = pol ? vals[index] : nm->mkConst(!vals[index].getConst<bool>());
-  // if checkExistsOnly = false, check if the current value is subsumed if
-  // checkSubsume = true, if so, don't add
-  if (!checkExistsOnly && checkSubsume)
-  {
-    Assert(cv.isConst() && cv.getType().isBoolean());
-    std::vector<bool> check_subsumed_by;
-    if (status == 0)
-    {
-      if (!cv.getConst<bool>())
-      {
-        check_subsumed_by.push_back(spol);
-      }
-    }
-    else if (status == -1)
-    {
-      check_subsumed_by.push_back(spol);
-      if (!cv.getConst<bool>())
-      {
-        check_subsumed_by.push_back(!spol);
-      }
-    }
-    // check for subsumed nodes
-    for (unsigned i = 0, size = check_subsumed_by.size(); i < size; i++)
-    {
-      bool csbi = check_subsumed_by[i];
-      Node csval = nm->mkConst(csbi);
-      // check if subsumed
-      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(csval);
-      if (itc != d_children.end())
-      {
-        Node ret = itc->second.addTermInternal(t,
-                                               vals,
-                                               pol,
-                                               subsumed,
-                                               spol,
-                                               index + 1,
-                                               -1,
-                                               checkExistsOnly,
-                                               checkSubsume);
-        // ret subsumes t
-        if (!ret.isNull())
-        {
-          return ret;
-        }
-      }
-    }
-  }
-  Node ret;
-  std::vector<bool> check_subsume;
-  if (status == 0)
-  {
-    if (checkExistsOnly)
-    {
-      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(cv);
-      if (itc != d_children.end())
-      {
-        ret = itc->second.addTermInternal(t,
-                                          vals,
-                                          pol,
-                                          subsumed,
-                                          spol,
-                                          index + 1,
-                                          0,
-                                          checkExistsOnly,
-                                          checkSubsume);
-      }
-    }
-    else
-    {
-      Assert(spol);
-      ret = d_children[cv].addTermInternal(t,
-                                           vals,
-                                           pol,
-                                           subsumed,
-                                           spol,
-                                           index + 1,
-                                           0,
-                                           checkExistsOnly,
-                                           checkSubsume);
-      if (ret != t)
-      {
-        // we were subsumed by ret, return
-        return ret;
-      }
-    }
-    if (checkSubsume)
-    {
-      Assert(cv.isConst() && cv.getType().isBoolean());
-      // check for subsuming
-      if (cv.getConst<bool>())
-      {
-        check_subsume.push_back(!spol);
-      }
-    }
-  }
-  else if (status == 1)
-  {
-    Assert(checkSubsume);
-    Assert(cv.isConst() && cv.getType().isBoolean());
-    check_subsume.push_back(!spol);
-    if (cv.getConst<bool>())
-    {
-      check_subsume.push_back(spol);
-    }
-  }
-  if (checkSubsume)
-  {
-    // check for subsumed terms
-    for (unsigned i = 0, size = check_subsume.size(); i < size; i++)
-    {
-      Node csval = nm->mkConst<bool>(check_subsume[i]);
-      std::map<Node, SubsumeTrie>::iterator itc = d_children.find(csval);
-      if (itc != d_children.end())
-      {
-        itc->second.addTermInternal(t,
-                                    vals,
-                                    pol,
-                                    subsumed,
-                                    spol,
-                                    index + 1,
-                                    1,
-                                    checkExistsOnly,
-                                    checkSubsume);
-        // clean up
-        if (itc->second.isEmpty())
-        {
-          Assert(!checkExistsOnly);
-          d_children.erase(csval);
-        }
-      }
-    }
-  }
-  return ret;
-}
-
-Node SubsumeTrie::addTerm(Node t,
-                          const std::vector<Node>& vals,
-                          bool pol,
-                          std::vector<Node>& subsumed)
-{
-  return addTermInternal(t, vals, pol, subsumed, true, 0, 0, false, true);
-}
-
-Node SubsumeTrie::addCond(Node c, const std::vector<Node>& vals, bool pol)
-{
-  std::vector<Node> subsumed;
-  return addTermInternal(c, vals, pol, subsumed, true, 0, 0, false, false);
-}
-
-void SubsumeTrie::getSubsumed(const std::vector<Node>& vals,
-                              bool pol,
-                              std::vector<Node>& subsumed)
-{
-  addTermInternal(Node::null(), vals, pol, subsumed, true, 0, 1, true, true);
-}
-
-void SubsumeTrie::getSubsumedBy(const std::vector<Node>& vals,
-                                bool pol,
-                                std::vector<Node>& subsumed_by)
-{
-  // flip polarities
-  addTermInternal(
-      Node::null(), vals, !pol, subsumed_by, false, 0, 1, true, true);
-}
-
-void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
-                                    bool pol,
-                                    std::map<int, std::vector<Node> >& v,
-                                    unsigned index,
-                                    int status)
-{
-  if (index == vals.size())
-  {
-    Assert(!d_term.isNull());
-    Assert(std::find(v[status].begin(), v[status].end(), d_term)
-           == v[status].end());
-    v[status].push_back(d_term);
-  }
-  else
-  {
-    Assert(vals[index].isConst() && vals[index].getType().isBoolean());
-    bool curr_val_true = vals[index].getConst<bool>() == pol;
-    for (std::map<Node, SubsumeTrie>::iterator it = d_children.begin();
-         it != d_children.end();
-         ++it)
-    {
-      int new_status = status;
-      // if the current value is true
-      if (curr_val_true)
-      {
-        if (status != 0)
-        {
-          Assert(it->first.isConst() && it->first.getType().isBoolean());
-          new_status = (it->first.getConst<bool>() ? 1 : -1);
-          if (status != -2 && new_status != status)
-          {
-            new_status = 0;
-          }
-        }
-      }
-      it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
-    }
-  }
-}
-
-void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
-                            bool pol,
-                            std::map<int, std::vector<Node> >& v)
-{
-  getLeavesInternal(vals, pol, v, 0, -2);
-}
-
-Node SygusUnif::constructSolution(Node c)
-{
-  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
-  Assert(itc != d_cinfo.end());
-  if (!itc->second.d_solution.isNull())
-  {
-    // already has a solution
-    return itc->second.d_solution;
-  }
-  else
-  {
-    // only check if an enumerator updated
-    if (itc->second.d_check_sol)
-    {
-      Trace("sygus-pbe") << "Construct solution, #iterations = "
-                         << itc->second.d_cond_count << std::endl;
-      itc->second.d_check_sol = false;
-      // try multiple times if we have done multiple conditions, due to
-      // non-determinism
-      Node vc;
-      for (unsigned i = 0; i <= itc->second.d_cond_count; i++)
-      {
-        Trace("sygus-pbe-dt")
-            << "ConstructPBE for candidate: " << c << std::endl;
-        Node e = itc->second.getRootEnumerator();
-        UnifContext x;
-        x.initialize(this, c);
-        Node vcc = constructSolution(c, e, role_equal, x, 1);
-        if (!vcc.isNull())
-        {
-          if (vc.isNull() || (!vc.isNull()
-                              && d_tds->getSygusTermSize(vcc)
-                                     < d_tds->getSygusTermSize(vc)))
-          {
-            Trace("sygus-pbe")
-                << "**** PBE SOLVED : " << c << " = " << vcc << std::endl;
-            Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
-            vc = vcc;
-          }
-        }
-      }
-      if (!vc.isNull())
-      {
-        itc->second.d_solution = vc;
-        return vc;
-      }
-      Trace("sygus-pbe") << "...failed to solve." << std::endl;
-    }
-    return Node::null();
-  }
 }
 
 Node SygusUnif::constructBestSolvedTerm(std::vector<Node>& solved,
