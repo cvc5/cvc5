@@ -392,7 +392,9 @@ class SygusUnif
   /** print ind indentations on trace c */
   static void indent(const char* c, int ind);
   /** print (pol ? vals : !vals) as a bit-string on trace c  */
-  static void print_val(const char* c, std::vector<Node>& vals, bool pol = true);
+  static void print_val(const char* c,
+                        std::vector<Node>& vals,
+                        bool pol = true);
   //-----------------------end debug printing
  private:
   /** reference to quantifier engine */
