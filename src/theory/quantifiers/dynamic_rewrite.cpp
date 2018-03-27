@@ -77,7 +77,7 @@ bool DynamicRewriter::areEqual(Node a, Node b)
   Node bi = toInternal(b);
   d_equalityEngine.addTerm(ai);
   d_equalityEngine.addTerm(bi);
-  return d_equalityEngine.areEqual(ai,bi);
+  return d_equalityEngine.areEqual(ai, bi);
 }
 
 Node DynamicRewriter::toInternal(Node a)

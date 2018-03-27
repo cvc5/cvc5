@@ -721,13 +721,13 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // check whether the pair is matchable with a previous one
   d_curr_pair_rhs = beq_n;
   Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
-                      << "]..." << std::endl;
+                     << "]..." << std::endl;
   if (!d_match_trie.getMatches(bn, &d_ssenm))
   {
     keep = false;
     Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
   }
-  
+
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
@@ -788,7 +788,7 @@ bool SygusSamplerExt::notify(Node s,
     Node nrs =
         nr.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     bool areEqual = (nrs == d_curr_pair_rhs);
-    if( !areEqual && d_drewrite != nullptr )
+    if (!areEqual && d_drewrite != nullptr)
     {
       // if dynamic rewriter is available, consult it
       areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);

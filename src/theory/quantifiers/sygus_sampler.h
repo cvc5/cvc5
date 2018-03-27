@@ -403,13 +403,13 @@ class SygusSamplerExt : public SygusSampler
    *
    *  For each call to registerTerm( t, ... ) that returns s, we say that
    * (t,s) and (s,t) are "relevant pairs".
-   *   
+   *
    * This returns either null, or a term ret with the same guarantees as
    * SygusSampler::registerTerm with the additional guarantee
    * that for all previous relevant pairs ( n', nret' ),
    * we have that n = ret is not an instance of n' = ret'
    * modulo symmetry of equality, nor is n = ret derivable from the set of
-   * all previous relevant pairs. The latter is determined by the d_drewrite 
+   * all previous relevant pairs. The latter is determined by the d_drewrite
    * utility. For example:
    * [1]  ( t+0, t ) and ( x+0, x )
    * will not both be relevant pairs of this function since t+0=t is
@@ -420,7 +420,7 @@ class SygusSamplerExt : public SygusSampler
    * These two criteria may be combined, for example:
    * [3] ( t+0, s ) is not a relevant pair if both ( x+0, x+s ) and ( t+s, s )
    * are relevant pairs, since t+0 is an instance of x+0 where
-   * { x |-> t }, and x+s { x |-> t } = s is derivable, via the third pair 
+   * { x |-> t }, and x+s { x |-> t } = s is derivable, via the third pair
    * above (t+s = s).
    *
    * If this function returns null, then n is equivalent to a previously
@@ -461,7 +461,7 @@ class SygusSamplerExt : public SygusSampler
   };
   /** Notify object used for reporting matches from d_match_trie */
   SygusSamplerExtNotifyMatch d_ssenm;
-  /** 
+  /**
    * Stores the current right hand side of a pair we are considering.
    *
    * In more detail, in registerTerm, we are interested in whether a pair (s,t)
@@ -477,7 +477,7 @@ class SygusSamplerExt : public SygusSampler
    * Called by the above class during d_match_trie.getMatches( s ), when we
    * find that si = s * sigma, where si is a term that is stored in
    * d_match_trie.
-   * 
+   *
    * This function returns false if ( s, d_curr_pair_rhs ) is an instance of
    * previously relevant pair.
    */
