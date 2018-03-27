@@ -435,7 +435,7 @@ class SygusUnif
     * role is the "role" the enumerator plays in the high-level strategy,
     *   which is one of enum_* above.
     */
-    void initialize(Node c, EnumRole role);
+    void initialize(EnumRole role);
     /** is this enumerator associated with a template? */
     bool isTemplated() { return !d_template.isNull(); }
     /** set conditional
