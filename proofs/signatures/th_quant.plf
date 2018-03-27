@@ -15,16 +15,15 @@
 ;and then (recursively) check that ti is an instance of k.
 ;If t is not the variable that we are substituting ti for,
 ;we compare it to the variable in the instantiated formula using eqvar.
+
 (program is_inst_t ((ti term) (t term) (k term)) bool
-  (match t
-    ((apply s1 s2 t1 t2)
-      (match ti
-        ((apply s1 s2 t1 ti2) (is_inst_t ti2 t2 k))
-        (default ff)))
-    (default
-        (ifmarked t
-            (do (markvar t) (let r (is_inst_t ti k k) (do (markvar t) r)))
-            (eqvar ti t)))))
+ (match t
+   ((apply s1 s2 t1 t2)
+     (match ti
+       ((apply si1 si2 ti1 ti2) (match (is_inst_t ti1 t1 k) (tt (is_inst_t ti2 t2 k)) (ff ff)))
+       (default ff)))
+   (default (ifequal ti t tt (ifmarked t (ifequal ti k tt ff)ff)))))
+
 
 (program is_inst_f ((fi formula) (f formula) (k term)) bool
   (match f
