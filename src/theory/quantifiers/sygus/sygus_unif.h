@@ -356,7 +356,10 @@ class SygusUnif
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
    */
-  void initialize(QuantifiersEngine* qe, Node f, std::vector<Node>& enums, std::vector<Node>& lemmas);
+  void initialize(QuantifiersEngine* qe,
+                  Node f,
+                  std::vector<Node>& enums,
+                  std::vector<Node>& lemmas);
   /** reset examples
    *
    * Reset the specification for f.

@@ -522,20 +522,23 @@ SygusUnif::SygusUnif()
 
 SygusUnif::~SygusUnif() {}
 
-void SygusUnif::initialize(QuantifiersEngine* qe, Node f,
+void SygusUnif::initialize(QuantifiersEngine* qe,
+                           Node f,
                            std::vector<Node>& enums,
                            std::vector<Node>& lemmas)
 {
   d_candidate = f;
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
-  
+
   TypeNode tn = f.getType();
-  d_cinfo[f].initialize( f );
+  d_cinfo[f].initialize(f);
   // collect the enumerator types and form the strategy
   collectEnumeratorTypes(f, tn, role_equal);
   // add the enumerators
-  enums.insert(enums.end(),d_cinfo[f].d_esym_list.begin(),d_cinfo[f].d_esym_list.end());
+  enums.insert(enums.end(),
+               d_cinfo[f].d_esym_list.begin(),
+               d_cinfo[f].d_esym_list.end());
 }
 
 void SygusUnif::resetExamples()

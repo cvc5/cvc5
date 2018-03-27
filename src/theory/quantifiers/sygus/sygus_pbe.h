@@ -58,14 +58,14 @@ class CegConjecture;
 * Points (1)-(3) happen within a call to CegConjecturePbe::initialize(...).
 *
 * Notice that each enumerator is associated with a single
-* function-to-synthesize, but a function-to-sythesize may be mapped to multiple 
-* enumerators. Some public functions of this class expect an enumerator as 
-* input, which we map to a function-to-synthesize via 
+* function-to-synthesize, but a function-to-sythesize may be mapped to multiple
+* enumerators. Some public functions of this class expect an enumerator as
+* input, which we map to a function-to-synthesize via
 * TermDatabaseSygus::getSynthFunFor(e).
 *
 * An enumerator is initially "active" but may become inactive if the enumeration
 * exhausts all possible values in the datatype corresponding to syntactic
-* restrictions for it. The search may continue unless all enumerators become 
+* restrictions for it. The search may continue unless all enumerators become
 * inactive.
 *
 * (4) During search, the extension of quantifier-free datatypes procedure for
@@ -216,21 +216,21 @@ class CegConjecturePbe : public SygusModule
   * search space pruning.
   */
   std::map< Node, bool > d_examples_out_invalid;
-  /** 
+  /**
    * Map from candidates to sygus unif utility. This class implements
    * the core algorithm (e.g. decision tree learning) that this module relies
-   * upon. 
+   * upon.
    */
-  std::map< Node, SygusUnif > d_sygus_unif;
-  /** 
+  std::map<Node, SygusUnif> d_sygus_unif;
+  /**
    * map from candidates to the list of enumerators that are being used to
    * build solutions for that candidate by the above utility.
    */
-  std::map< Node, std::vector< Node > > d_candidate_to_enum;
+  std::map<Node, std::vector<Node> > d_candidate_to_enum;
   /** reverse map of above */
-  std::map< Node, Node > d_enum_to_candidate;
+  std::map<Node, Node> d_enum_to_candidate;
   /** map from enumerators to active guards */
-  std::map< Node, Node > d_enum_to_active_guard;
+  std::map<Node, Node> d_enum_to_active_guard;
   /** for each candidate variable (function-to-synthesize), input of I/O
    * examples */
   std::map< Node, std::vector< std::vector< Node > > > d_examples;
