@@ -559,12 +559,14 @@ void SygusUnif::addExample(const std::vector<Node>& input, Node output)
 
 void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
+  Node c = d_candidate;
+  Assert( !d_examples.empty() );
+  Assert( d_examples.size()==d_examples_out.size() );
   std::map<Node, EnumInfo>::iterator it = d_einfo.find(e);
   Assert(it != d_einfo.end());
   Assert(
       std::find(it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v)
       == it->second.d_enum_vals.end());
-  Node c = it->second.d_parent_candidate;
   // The explanation for why the current value should be excluded in future
   // iterations.
   Node exp_exc;
@@ -823,7 +825,7 @@ void SygusUnif::registerEnumerator(
         << static_cast<DatatypeType>(tn.toType()).getDatatype().getName();
     Trace("sygus-unif-debug") << ", role = " << enum_role
                               << ", in search = " << inSearch << std::endl;
-    d_einfo[et].initialize(c, enum_role);
+    d_einfo[et].initialize(enum_role);
     // if we are actually enumerating this (could be a compound node in the
     // strategy)
     if (inSearch)
@@ -1658,9 +1660,8 @@ void SygusUnif::EnumInfo::addEnumValue(SygusUnif* pbe,
   d_enum_vals_res.push_back(results);
 }
 
-void SygusUnif::EnumInfo::initialize(Node c, EnumRole role)
+void SygusUnif::EnumInfo::initialize(EnumRole role)
 {
-  d_parent_candidate = c;
   d_role = role;
 }
 

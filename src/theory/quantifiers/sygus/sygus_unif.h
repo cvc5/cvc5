@@ -450,10 +450,6 @@ class SygusUnif
     bool isConditional() { return d_is_conditional; }
     /** get the role of this enumerator */
     EnumRole getRole() { return d_role; }
-    /**
-    * The candidate variable that this enumerator is for (see sygus_pbe.h).
-    */
-    Node d_parent_candidate;
     /** enumerator template
     *
     * If d_template non-null, enumerated values V are immediately transformed to
