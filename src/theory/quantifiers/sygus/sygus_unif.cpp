@@ -1655,6 +1655,8 @@ void SygusUnif::EnumInfo::addEnumValue(SygusUnif* pbe,
                                        Node v,
                                        std::vector<Node>& results)
 {
+  // should not have been enumerated before
+  Assert(d_enum_val_to_index.find(v)==d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
   d_enum_vals.push_back(v);
   d_enum_vals_res.push_back(results);
@@ -1895,6 +1897,7 @@ Node SygusUnif::constructSolution(
       for (unsigned i = 0, size = einfo.d_enum_vals.size(); i < size; i++)
       {
         Node val_t = einfo.d_enum_vals[i];
+        Assert( incr.find( val_t )==incr.end() );
         indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "increment string values : " << val_t << " : ";

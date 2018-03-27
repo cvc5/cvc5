@@ -150,7 +150,7 @@ bool CegConjecturePbe::initialize(Node n,
       // collect a pool of types over which we will enumerate terms 
       Node c = candidates[0];
       // specification must have at least one example, and must be in PBE form
-      if (d_examples.find(c) != d_examples.end()
+      if (!d_examples[c].empty()
           && d_examples_out_invalid.find(c) == d_examples_out_invalid.end())
       {
         Assert( d_examples.find( c )!=d_examples.end() );
@@ -369,14 +369,16 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       Node v = enum_values[j];
       Assert(d_enum_to_candidate.find(e) != d_enum_to_candidate.end());
       Node c = d_enum_to_candidate[e];
-      d_sygus_unif[c].notifyEnumeration(e, v, lems);
+      std::vector< Node > enum_lems;
+      d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
       // the lemmas must be guarded by the active guard of the enumerator
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
-      for (unsigned j = 0, size = lems.size(); j < size; j++)
+      for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
       {
-        lems[j] = nm->mkNode(OR, g.negate(), lems[j]);
+        enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
       }
+      lems.insert( lems.end(), enum_lems.begin(), enum_lems.end() );
     }
   }
   for( unsigned i=0; i<candidates.size(); i++ ){
