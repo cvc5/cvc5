@@ -282,7 +282,6 @@ bool UnifContext::isStringSolved(SygusUnif* pbe,
   return true;
 }
 
-
 // status : 0 : exact, -1 : vals is subset, 1 : vals is superset
 Node SubsumeTrie::addTermInternal(Node t,
                                   const std::vector<Node>& vals,
@@ -540,7 +539,6 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-
 SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
 {
   d_tds = qe->getTermDatabaseSygus();
@@ -551,8 +549,8 @@ SygusUnif::SygusUnif(QuantifiersEngine* qe) : d_qe(qe)
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initialize(Node candidate,
-                std::vector<Node>& lemmas, 
-                std::vector< Node >& enums)
+                           std::vector<Node>& lemmas,
+                           std::vector<Node>& enums)
 {
   d_candidate = candidate;
   // TODO
@@ -563,12 +561,12 @@ void SygusUnif::resetExamples()
   // TODO
 }
 
-void SygusUnif::addExample(const std::vector< Node >& input, Node output)
+void SygusUnif::addExample(const std::vector<Node>& input, Node output)
 {
   // TODO
 }
 
-void SygusUnif::notifyEnumeration( Node e, Node v, std::vector< Node >& lemmas )  
+void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
   // TODO
 }

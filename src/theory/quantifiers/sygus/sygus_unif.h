@@ -328,10 +328,10 @@ class SubsumeTrie
  * constructed during initialize,
  * (2) A set of input/output examples that are the specification for f. This
  * can be updated via calls to resetExmaples/addExamples,
- * (3) A set of terms that have been enumerated for enumerators. This can be 
+ * (3) A set of terms that have been enumerated for enumerators. This can be
  * updated via calls to notifyEnumeration.
- * 
- * Based on the above, solutions can be constructed via calls to 
+ *
+ * Based on the above, solutions can be constructed via calls to
  * constructSolution.
  */
 class SygusUnif
@@ -341,53 +341,51 @@ class SygusUnif
  public:
   SygusUnif(QuantifiersEngine* qe);
   ~SygusUnif();
-  
-  /** initialize 
-   * 
+
+  /** initialize
+   *
    * This initializes this class with function-to-synthesize f. We also call
-   * f the candidate variable. 
-   * 
+   * f the candidate variable.
+   *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that
    * should be later given to calls to notifyEnumeration below.
-   * 
+   *
    * This also may result in lemmas being added to lemmas,
    * which correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
    */
-  void initialize(Node f,
-                  std::vector<Node>& enums,
-                  std::vector<Node>& lemmas);
-  /** reset examples 
-   * 
+  void initialize(Node f, std::vector<Node>& enums, std::vector<Node>& lemmas);
+  /** reset examples
+   *
    * Reset the specification for f.
-   * 
-   * Notice that this does not reset the 
+   *
+   * Notice that this does not reset the
    */
   void resetExamples();
-  /** add example 
-   * 
+  /** add example
+   *
    * This adds input -> output to the specification for f. The arity of
    * input should be equal to the number of arguments in the sygus variable
    * list of the grammar of f. That is, if we are searching for solutions for f
    * of the form (lambda v1...vn. t), then the arity of input should be n.
    */
-  void addExample(const std::vector< Node >& input, Node output);
-  
-  /** 
+  void addExample(const std::vector<Node>& input, Node output);
+
+  /**
    * Notify that the value v has been enumerated for enumerator e. This call
    * will add lemmas L to lemmas such that L entails e^M != v for all future
    * models M.
    */
-  void notifyEnumeration( Node e, Node v, std::vector< Node >& lemmas );
-  /** construct solution 
-   * 
+  void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas);
+  /** construct solution
+   *
    * This attempts to construct a solution based on the current set of
-   * enumerated values. Returns null if it cannot. 
+   * enumerated values. Returns null if it cannot.
    */
   Node constructSolution();
-  
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
