@@ -714,9 +714,9 @@ class SygusUnif
    * class, we may make recursive calls to the children of the strategy,
    * given in d_cenum. If all recursive calls to constructSolution for these
    * children are successful, say:
-   *   constructSolution( c, d_cenum[1], ... ) = t1,
+   *   constructSolution( d_cenum[1], ... ) = t1,
    *    ...,
-   *   constructSolution( c, d_cenum[n], ... ) = tn,
+   *   constructSolution( d_cenum[n], ... ) = tn,
    * Then, the solution returned by this strategy is
    *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
    * where * is application of substitution.
