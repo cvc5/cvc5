@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
@@ -117,10 +118,12 @@ public:
   /** get model value for term n */
   Node getModelValue( Node n );
 
-  /** get program by examples utility */
-  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get utility for static preprocessing and analysis of conjectures */
   CegConjectureProcess* getProcess() { return d_ceg_proc.get(); }
+  /** get constant repair utility */
+  SygusRepairConst* getConstRepair() { return d_sygus_rconst.get(); }
+  /** get program by examples module */
+  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
@@ -135,6 +138,8 @@ private:
   std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  /** repair constant utility */
+  std::unique_ptr<SygusRepairConst> d_sygus_rconst;
 
   //------------------------modules
   /** program by examples module */
