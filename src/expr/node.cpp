@@ -31,9 +31,20 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
     : Exception(message), d_node(new Node(node))
 {
 #ifdef CVC4_DEBUG
+  std::stringstream ss; 
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
+  Debug("pf::array") << std::endl << "panda 1" << std::endl;
   if(current != NULL){
-    current->setContents(toString().c_str());
+    Debug("pf::array") << std::endl << "panda2" << std::endl;
+    ss << message << " " << "node kind: " << node.getKind() << ". children: ";
+    int i=0;
+    for (const TNode& child : node) {
+        ss << "child " << i << ": " << child << ". ";
+        i++;
+    } 
+    string ssstring = ss.str();
+    Debug("pf::array") << std::endl << "panda 3 " << ssstring << std::endl;
+    current->setContents(ssstring.c_str());
   }
 #endif /* CVC4_DEBUG */
 }
@@ -41,7 +52,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
 
 void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const
-{
+{ 
   os << "Error during type checking: " << d_msg << std::endl << *d_node << endl << "The ill-typed expression: " << *d_node;
 }
 
