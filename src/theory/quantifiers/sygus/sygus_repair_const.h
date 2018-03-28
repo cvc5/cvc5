@@ -70,14 +70,26 @@ class SygusRepairConst
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the sygus term database of d_qe */
+  TermDbSygus * d_tds;
   /** 
    * The deep embedding form of the synthesis conjecture associated with this
    * class.
    */
   Node d_embed_quant;
-  /** whether any */
+  /** 
+   * whether any sygus type for the candidate variables of d_embed_quant (the 
+   * syntactic restrictions) allows all constants. If this flag is false, then
+   * this class is a no-op.
+   */
+  bool d_allow_constant_grammar;
   /** a cache of (failed) satisfiability queries that we have tried */
   std::unordered_set<Node, NodeHashFunction> d_unsat_queries;
+  /** 
+   * Register information for sygus type tn, tprocessed stores the set of 
+   * already registered types.
+   */
+  void registerSygusType(TypeNode tn, std::map<TypeNode, bool >& tprocessed);
 };
 
 } /* CVC4::theory::quantifiers namespace */
