@@ -24,52 +24,54 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 class CegConjecture;
 
 /** SygusRepairConst
- * 
+ *
  * This module is used to repair portions of candidate solutions. In particular,
  * given a synthesis conjecture:
  *   exists f. forall x. P( f, x )
  * and a candidate solution f = \x. t[x,c] where c are constants, this function
  * checks whether there exists a term of the form \x. t[x,c'] for some constants
  * c' such that:
- *   forall x. P( (\x. t[x,c']), x ) 
- * is satisfiable, where notice that the above formula after beta-reduction may 
- * be one in pure first-order logic in a decidable theory (say linear 
- * arithmetic). To check this, we invoke a separate instance of the SmtEngine 
+ *   forall x. P( (\x. t[x,c']), x )
+ * is satisfiable, where notice that the above formula after beta-reduction may
+ * be one in pure first-order logic in a decidable theory (say linear
+ * arithmetic). To check this, we invoke a separate instance of the SmtEngine
  * within repairSolution(...) below, which if, satisfiable gives us the
  * valuation for c'.
  */
-class SygusRepairConst 
+class SygusRepairConst
 {
-public:
-  SygusRepairConst(QuantifiersEngine * qe);
-  ~SygusRepairConst(){}
-  /** initialize 
+ public:
+  SygusRepairConst(QuantifiersEngine* qe);
+  ~SygusRepairConst() {}
+  /** initialize
    */
-  void initialize( Node q );
-  /** repair solution 
-   * 
-   * This function is called when candidates -> candidate_values is a (failed) 
+  void initialize(Node q);
+  /** repair solution
+   *
+   * This function is called when candidates -> candidate_values is a (failed)
    * candidate solution for the synthesis conjecture.
-   * 
+   *
    * If this function returns true, then this class adds to repair_cv the
-   * repaired version of the solution candidate_values for each candidate, 
+   * repaired version of the solution candidate_values for each candidate,
    * where for each index i, repair_cv[i] is obtained by replacing constant
    * subterms in candidate_values[i] with others. Moreover, it is the case that
    *    repair_cv[j] != candidate_values[j], for at least one j.
    */
-  bool repairSolution(const std::vector< Node >& candidates, const std::vector< Node >& candidate_values, std::vector< Node >& repair_cv);
-private:
+  bool repairSolution(const std::vector<Node>& candidates,
+                      const std::vector<Node>& candidate_values,
+                      std::vector<Node>& repair_cv);
+
+ private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** whether any */
   /** a cache of (failed) satisfiability queries that we have tried */
-  std::unordered_map< Node, NodeHashFunction > d_unsat_queries;
+  std::unordered_map<Node, NodeHashFunction> d_unsat_queries;
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
