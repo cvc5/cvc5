@@ -100,6 +100,11 @@ void CegConjecture::assign( Node q ) {
   {
     d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
   }
+  // initialize the sygus constant repair utility
+  if( options::sygusRepairConst() )
+  {
+    d_sygus_rconst->initialize(d_embed_quant);
+  }
 
   Assert( d_candidates.empty() );
   std::vector< Node > vars;

@@ -26,7 +26,20 @@ SygusRepairConst::SygusRepairConst(QuantifiersEngine* qe)
 {
 }
 
-void SygusRepairConst::initialize(Node q) {}
+void SygusRepairConst::initialize(Node q) 
+{
+  Assert( q.getKind()==FORALL );
+  d_embed_quant = q;
+  
+  // compute whether there are "allow all constant" types in the variables of q
+  std::map<TypeNode, bool > tprocessed;
+  for( const Node& v : q[0] )
+  {
+    TypeNode tn = v.getType();
+    // do the type traversal
+    
+  }
+}
 
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
@@ -35,7 +48,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   Assert(candidates.size() == candidate_values.size());
 
   // if no grammar type allows constants, no repair is possible
-  if (d_no_constant_grammar)
+  if (d_embed_quant.isNull() || d_no_constant_grammar)
   {
     return false;
   }

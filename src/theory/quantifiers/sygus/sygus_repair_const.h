@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
-#include <unordered_map>
+#include <unordered_set>
 #include "expr/node.h"
 #include "theory/quantifiers_engine.h"
 
@@ -48,6 +48,8 @@ class SygusRepairConst
   SygusRepairConst(QuantifiersEngine* qe);
   ~SygusRepairConst() {}
   /** initialize
+   * 
+   * Initialize this class 
    */
   void initialize(Node q);
   /** repair solution
@@ -68,9 +70,14 @@ class SygusRepairConst
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** 
+   * The deep embedding form of the synthesis conjecture associated with this
+   * class.
+   */
+  Node d_embed_quant;
   /** whether any */
   /** a cache of (failed) satisfiability queries that we have tried */
-  std::unordered_map<Node, NodeHashFunction> d_unsat_queries;
+  std::unordered_set<Node, NodeHashFunction> d_unsat_queries;
 };
 
 } /* CVC4::theory::quantifiers namespace */

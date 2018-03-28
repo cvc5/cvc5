@@ -162,7 +162,8 @@ private:
   std::vector< Node > d_candidates;
   /** base instantiation
   * If d_embed_quant is forall d. exists y. P( d, y ), then
-  * this is the formula  exists y. P( d_candidates, y ).
+  * this is the formula  exists y. P( d_candidates, y ). Notice that
+  * (exists y. F) is shorthand above for ~( forall y. ~F ).
   */
   Node d_base_inst;
   /** list of variables on inner quantification */
