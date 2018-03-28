@@ -85,6 +85,8 @@ class SygusRepairConst
    * this class is a no-op.
    */
   bool d_allow_constant_grammar;
+  /** map from skeleton variables to first-order variables */
+  std::map< Node, Node > d_sk_to_fo;
   /** a cache of (failed) satisfiability queries that we have tried */
   std::unordered_set<Node, NodeHashFunction> d_unsat_queries;
   /** 

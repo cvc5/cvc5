@@ -17,6 +17,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -203,7 +206,6 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     // now, we must replace all terms of the form eval( z_i, t1...tn ) with
     // a fresh first-order variable w_i, where z_i is a variable introduced in
     // the skeleton inference step above.
-    std::map< Node, Node > var_to_fovar;
     std::unordered_map<TNode, Node, TNodeHashFunction> visited;
     std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
     std::vector<TNode> visit;
@@ -221,12 +223,12 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
           Node v = cur[0];
           if( std::find( sk_vars.begin(), sk_vars.end(), v )!=sk_vars.end() )
           {
-            std::map< Node, Node >::iterator itf = var_to_fovar.find( v );
-            if( itf==var_to_fovar.end() )
+            std::map< Node, Node >::iterator itf = d_sk_to_fo.find( v );
+            if( itf==d_sk_to_fo.end() )
             {
               Node sk_fov = nm->mkSkolem("k",cur.getType() );
-              var_to_fovar[v] = sk_fov;
-              itf = var_to_fovar.find( v );
+              d_sk_to_fo[v] = sk_fov;
+              itf = d_sk_to_fo.find( v );
             }
             visited[cur] = itf->second;
           }
@@ -263,6 +265,30 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     Node fo_body = visited[body];
     Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
     
+    if( d_unsat_queries.find(fo_body)==d_unsat_queries.end() )
+    {
+      Trace("sygus-repair-const") << "Make satisfiabily query..." << std::endl;
+      // make the satisfiability query
+      SmtEngine repcChecker(nm->toExprManager());
+      repcChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
+      repcChecker.assertFormula(fo_body.toExpr());
+      Result r = repcChecker.checkSat();
+      Trace("sygus-repair-const") << "...got : " << r << std::endl;
+      if (r.asSatisfiabilityResult().isSat())
+      {
+        for( const Node& v : sk_vars )
+        {
+          Node fov = d_sk_to_fo[v];
+          Node fov_m = Node::fromExpr(repcChecker.getValue(fov.toExpr()));
+          Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
+        }
+        // convert back to sygus
+      }
+    }
+    else
+    {
+      Trace("sygus-repair-const") << "...duplicate query." << std::endl;
+    }
   }
 
   return false;
