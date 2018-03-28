@@ -21,18 +21,51 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
-SygusRepairConst::SygusRepairConst( QuantifiersEngine * qe, CegConjecture* p ) :
+SygusRepairConst::SygusRepairConst( QuantifiersEngine * qe ) :
 d_qe(qe),
-d_parent(p)
+d_no_constant_grammar(true)
 {
 
 }
 
-Node SygusRepairConst::repairSolution( Node sol )
+void SygusRepairConst::initialize( Node q )
 {
   
   
-  return Node::null();
+}
+
+bool SygusRepairConst::repairSolution(const std::vector< Node >& candidates, 
+                    const std::vector< Node >& candidate_values, 
+                    std::vector< Node >& repair_cv)
+{
+  Assert( candidates.size()==candidate_values.size() );
+  
+  // if no grammar type allows constants, no repair is possible 
+  if( d_no_constant_grammar )
+  {
+    return false;
+  }
+  
+  
+  
+  bool changed = false;
+  
+  for( unsigned i=0,size=candidates.size(); i<size; i++ )
+  {
+    Node cv = candidate_values[i];
+    // get the most general candidate skeleton
+    std::map<TypeNode, int> free_var_count;
+    
+    // TODO
+  
+  }
+  
+  if( changed )
+  {
+    
+  }
+  
+  return false;
 }
 
 

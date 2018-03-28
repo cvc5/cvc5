@@ -968,6 +968,14 @@ header = "options/quantifiers_options.h"
   help       = "use quantifier elimination as a preprocessing step for sygus"
 
 [[option]]
+  name       = "sygusRepairConst"
+  category   = "regular"
+  long       = "sygus-repair-const"
+  type       = "bool"
+  default    = "false"
+  help       = "use approach to repair constants"
+
+[[option]]
   name       = "sygusMinGrammar"
   category   = "regular"
   long       = "sygus-min-grammar"

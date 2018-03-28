@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
-#include <map>
+#include <unordered_map>
 #include "expr/node.h"
 #include "theory/quantifiers_engine.h"
 
@@ -36,28 +36,38 @@ class CegConjecture;
  * checks whether there exists a term of the form \x. t[x,c'] for some constants
  * c' such that:
  *   forall x. P( (\x. t[x,c']), x ) 
- * holds, where notice that the above formula after beta-reduction may be one
- * in pure first-order logic in a decidable theory (say linear arithmetic).
- * To check this, we invoke a separate instance of the SmtEngine within
- * repairSolution(...) below.
+ * is satisfiable, where notice that the above formula after beta-reduction may 
+ * be one in pure first-order logic in a decidable theory (say linear 
+ * arithmetic). To check this, we invoke a separate instance of the SmtEngine 
+ * within repairSolution(...) below, which if, satisfiable gives us the
+ * valuation for c'.
  */
 class SygusRepairConst 
 {
 public:
-  SygusRepairConst(QuantifiersEngine * qe, CegConjecture* p);
+  SygusRepairConst(QuantifiersEngine * qe);
   ~SygusRepairConst(){}
+  /** initialize 
+   */
+  void initialize( Node q );
   /** repair solution 
    * 
-   * If this function returns non-null sol', then sol' is obtained by replacing
-   * constants in sol with other constants, and sol' is a solution for the
-   * parent synthesis conjecture associated with this class.
+   * This function is called when candidates -> candidate_values is a (failed) 
+   * candidate solution for the synthesis conjecture.
+   * 
+   * If this function returns true, then this class adds to repair_cv the
+   * repaired version of the solution candidate_values for each candidate, 
+   * where for each index i, repair_cv[i] is obtained by replacing constant
+   * subterms in candidate_values[i] with others. Moreover, it is the case that
+   *    repair_cv[j] != candidate_values[j], for at least one j.
    */
-  Node repairSolution( Node sol );
+  bool repairSolution(const std::vector< Node >& candidates, const std::vector< Node >& candidate_values, std::vector< Node >& repair_cv);
 private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** the synthesis conjecture that this class is associated with */
-  CegConjecture* d_parent;
+  /** whether any */
+  /** a cache of (failed) satisfiability queries that we have tried */
+  std::unordered_map< Node, NodeHashFunction > d_unsat_queries;
 };
 
 
