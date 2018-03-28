@@ -1,8 +1,0 @@
-(check
-(% s sort
-(% t (term s)
-(% i (term s)
-(% a (term (Array s s))
-(% p (th_holds (forall s t (not (= s t t))))
-(: (holds cln)
-(inst s t (not (= s t t)) (apply _ _ (apply _ _ (read s s) a) i) (not (= s (apply _ _ (apply _ _ (read s s) a) i) (apply _ _ (apply _ _ (read s s) a) i))) p (\ p1 (clausify_false (contra (not (= s (apply _ _ (apply _ _ (read s s) a) i) (apply _ _ (apply _ _ (read s s) a) i))) p1 (not_not_intro (= s (apply _ _ (apply _ _ (read s s) a) i) (apply _ _ (apply _ _ (read s s) a) i)) (refl s (apply _ _ (apply _ _ (read s s) a) i))))))))))))))
