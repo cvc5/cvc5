@@ -149,7 +149,7 @@ AigBitblaster::AigBitblaster()
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
-      MinisatEmptyNotify notify; // = new MinisatEmptyNotify();
+      MinisatEmptyNotify notify;
       minisat->setNotify(&notify);
       solver = minisat;
       break;
