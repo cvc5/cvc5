@@ -152,6 +152,29 @@ class TermDbSygus {
   Node sygusToBuiltin(Node n, TypeNode tn);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
+  /** evaluate builtin 
+   *
+   * bn is a term of some sygus datatype tn. This function returns the rewritten
+   * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
+   * list for type tn (see Datatype::getSygusVarList).
+   */
+  Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
+  /** evaluate with unfolding 
+   * 
+   * n is any term that may involve sygus evaluation functions. This function
+   * returns the result of unfolding the evaluation functions within n and
+   * rewriting the result. For example, if eval_A is the evaluation function 
+   * for the datatype:
+   *   A -> C_0 | C_1 | C_x | C_+( C_A, C_A ) 
+   * corresponding to grammar:
+   *   A -> 0 | 1 | x | A + A
+   * then calling this function on eval( C_+( x, 1 ), 4 ) = y returns 5 = y.
+   * The node returned by this function is in (extended) rewritten form.
+   */
+  Node evaluateWithUnfolding( Node n );
+  /** same as above, but with a cache of visited nodes */
+  Node evaluateWithUnfolding(
+      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   //-----------------------------end conversion from sygus to builtin
 
  private:
@@ -316,13 +339,6 @@ public:
     return unfold( en, vtm, exp, false );
   }
   Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
-
-  // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
-  Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  // evaluate with unfolding
-  Node evaluateWithUnfolding(
-      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
-  Node evaluateWithUnfolding( Node n );
 };
 
 }/* CVC4::theory::quantifiers namespace */

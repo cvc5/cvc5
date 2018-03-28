@@ -49,9 +49,11 @@ class SygusRepairConst
   ~SygusRepairConst() {}
   /** initialize
    * 
-   * Initialize this class 
+   * Initialize this class with the base instantiation of the sygus conjecture 
+   * (see CegConjecture::d_base_inst) and its candidate variables (see
+   * CegConjecture::d_candidates).
    */
-  void initialize(Node q);
+  void initialize(Node base_inst, const std::vector< Node >& candidates);
   /** repair solution
    *
    * This function is called when candidates -> candidate_values is a (failed)
@@ -76,9 +78,9 @@ class SygusRepairConst
    * The deep embedding form of the synthesis conjecture associated with this
    * class.
    */
-  Node d_embed_quant;
+  Node d_base_inst;
   /** 
-   * whether any sygus type for the candidate variables of d_embed_quant (the 
+   * whether any sygus type for the candidate variables of d_base_inst (the 
    * syntactic restrictions) allows all constants. If this flag is false, then
    * this class is a no-op.
    */

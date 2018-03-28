@@ -47,6 +47,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
       d_master(nullptr),
+      d_repair_index(0),
       d_refine_count(0),
       d_syntax_guided(false)
 {
@@ -100,12 +101,7 @@ void CegConjecture::assign( Node q ) {
   {
     d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
   }
-  // initialize the sygus constant repair utility
-  if( options::sygusRepairConst() )
-  {
-    d_sygus_rconst->initialize(d_embed_quant);
-  }
-
+  
   Assert( d_candidates.empty() );
   std::vector< Node > vars;
   for( unsigned i=0; i<d_embed_quant[0].getNumChildren(); i++ ){
@@ -119,6 +115,12 @@ void CegConjecture::assign( Node q ) {
       d_embed_quant, vars, d_candidates));
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
+  // initialize the sygus constant repair utility
+  if( options::sygusRepairConst() )
+  {
+    d_sygus_rconst->initialize(d_base_inst, d_candidates);
+  }
+  
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
   std::vector< Node > guarded_lemmas;
@@ -245,23 +247,41 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);
+  
+  Assert( !d_candidates.empty() );
 
-  // get their model value
-  std::vector<Node> enum_values;
-  getModelValues(terms, enum_values);
-
-  std::vector<Node> candidate_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
+  std::vector<Node> candidate_values;
   bool constructed_cand = false;  
+  
   if( options::sygusRepairConst() )
   {
     // have we tried to repair the previous solution?
     // if not, call the repair constant utility
-    
+    unsigned ninst = d_cinfo[d_candidates[0]].d_inst.size();
+    if( d_repair_index<ninst )
+    {
+      std::vector< Node > fail_cvs;
+      for( const Node& cprog : d_candidates )
+      {
+        Assert(d_repair_index<d_cinfo[cprog].d_inst.size());
+        fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
+      }
+      d_repair_index++;
+      if( d_sygus_rconst->repairSolution(d_candidates,fail_cvs,candidate_values) )
+      {
+        constructed_cand = true;
+      }
+    }
   }
+  
+  // get the model value of the relevant terms from the master module
+  std::vector<Node> enum_values;
+  getModelValues(terms, enum_values);
   
   if( !constructed_cand )
   {
+    Assert( candidate_values.empty() );
     constructed_cand = d_master->constructCandidates(terms, enum_values, d_candidates, candidate_values, lems);
   }
 

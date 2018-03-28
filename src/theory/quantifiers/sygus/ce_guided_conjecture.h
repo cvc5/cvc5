@@ -188,7 +188,12 @@ private:
     /** list of terms we have instantiated candidates with */
     std::vector< Node > d_inst;
   };
-  std::map< Node, CandidateInfo > d_cinfo;  
+  std::map< Node, CandidateInfo > d_cinfo; 
+  /** 
+   * The first index of an instantiation in CandidateInfo::d_inst that we have
+   * not yet tried to repair.
+   */
+  unsigned d_repair_index;
   /** number of times we have called doRefine */
   unsigned d_refine_count;
   /** get candidadate */
