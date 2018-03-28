@@ -101,7 +101,7 @@ class UnifContext
 {
  public:
   UnifContext();
-  /** 
+  /**
    * This intiializes this context based on information in pbe regarding the
    * kinds of examples it contains.
    */
@@ -628,7 +628,7 @@ class SygusUnif
   void collectEnumeratorTypes(TypeNode tn, NodeRole nrole);
   /** register enumerator
    *
-   * This registers that et is an enumerator of type tn, having enumerator 
+   * This registers that et is an enumerator of type tn, having enumerator
    * role enum_role.
    *
    * inSearch is whether we will enumerate values based on this enumerator.
@@ -636,8 +636,10 @@ class SygusUnif
    * we may use enumerators for which this flag is false to represent strategy
    * nodes that have child strategies.
    */
-  void registerEnumerator(
-      Node et, TypeNode tn, EnumRole enum_role, bool inSearch);
+  void registerEnumerator(Node et,
+                          TypeNode tn,
+                          EnumRole enum_role,
+                          bool inSearch);
   /** infer template */
   bool inferTemplate(unsigned k,
                      Node n,
@@ -646,7 +648,7 @@ class SygusUnif
   /** static learn redundant operators
    *
    * This learns static lemmas for pruning enumerative space based on the
-   * strategy for the function-to-synthesize of this class, and stores these 
+   * strategy for the function-to-synthesize of this class, and stores these
    * into lemmas.
    */
   void staticLearnRedundantOps(std::vector<Node>& lemmas);
@@ -679,8 +681,7 @@ class SygusUnif
    *
    * ind is the term depth of the context (for debugging).
    */
-  Node constructSolution(
-      Node e, NodeRole nrole, UnifContext& x, int ind);
+  Node constructSolution(Node e, NodeRole nrole, UnifContext& x, int ind);
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   Node constructBestSolvedTerm(std::vector<Node>& solved, UnifContext& x);

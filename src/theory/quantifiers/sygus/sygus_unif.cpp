@@ -526,7 +526,7 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
                            std::vector<Node>& enums,
                            std::vector<Node>& lemmas)
 {
-  Assert( d_candidate.isNull() );
+  Assert(d_candidate.isNull());
   d_candidate = f;
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
@@ -536,9 +536,8 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
   // collect the enumerator types and form the strategy
   collectEnumeratorTypes(tn, role_equal);
   // add the enumerators
-  enums.insert(enums.end(),
-               d_cinfo.d_esym_list.begin(),
-               d_cinfo.d_esym_list.end());
+  enums.insert(
+      enums.end(), d_cinfo.d_esym_list.begin(), d_cinfo.d_esym_list.end());
   // learn redundant ops
   staticLearnRedundantOps(lemmas);
 }
@@ -805,8 +804,10 @@ Node SygusUnif::constructSolution()
 
 // ----------------------------- establishing enumeration types
 
-void SygusUnif::registerEnumerator(
-    Node et, TypeNode tn, EnumRole enum_role, bool inSearch)
+void SygusUnif::registerEnumerator(Node et,
+                                   TypeNode tn,
+                                   EnumRole enum_role,
+                                   bool inSearch)
 {
   if (d_einfo.find(et) == d_einfo.end())
   {
@@ -1383,12 +1384,8 @@ void SygusUnif::staticLearnRedundantOps(std::vector<Node>& lemmas)
                       << " is : " << std::endl;
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
-  staticLearnRedundantOps(d_cinfo.getRootEnumerator(),
-                          role_equal,
-                          visited,
-                          needs_cons,
-                          0,
-                          false);
+  staticLearnRedundantOps(
+      d_cinfo.getRootEnumerator(), role_equal, visited, needs_cons, 0, false);
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
@@ -1487,17 +1484,12 @@ void SygusUnif::staticLearnRedundantOps(
         for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
         {
           // recurse
-          staticLearnRedundantOps(cec.first,
-                                  cec.second,
-                                  visited,
-                                  needs_cons,
-                                  ind + 2,
-                                  newIsCond);
+          staticLearnRedundantOps(
+              cec.first, cec.second, visited, needs_cons, ind + 2, newIsCond);
         }
       }
       // get the master enumerator for the type of this enumerator
-      std::map<TypeNode, Node>::iterator itse =
-          d_cinfo.d_search_enum.find(etn);
+      std::map<TypeNode, Node>::iterator itse = d_cinfo.d_search_enum.find(etn);
       if (itse == d_cinfo.d_search_enum.end())
       {
         return;
@@ -1604,8 +1596,8 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node x,
     {
       Assert(results[i].isConst());
       Assert(d_examples_out[i].isConst());
-      Trace("sygus-pbe-cterm-debug")
-          << "  " << results[i] << " <> " << d_examples_out[i];
+      Trace("sygus-pbe-cterm-debug") << "  " << results[i] << " <> "
+                                     << d_examples_out[i];
       Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
       Node contr = Rewriter::rewrite(cont);
       if (contr == d_false)
@@ -1721,8 +1713,10 @@ Node SygusUnif::constructBestStringToConcat(
   return strs[0];
 }
 
-Node SygusUnif::constructSolution(
-    Node e, NodeRole nrole, UnifContext& x, int ind)
+Node SygusUnif::constructSolution(Node e,
+                                  NodeRole nrole,
+                                  UnifContext& x,
+                                  int ind)
 {
   TypeNode etn = e.getType();
   if (Trace.isOn("sygus-pbe-dt-debug"))
