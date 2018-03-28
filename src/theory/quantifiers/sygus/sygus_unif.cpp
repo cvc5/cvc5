@@ -138,23 +138,22 @@ bool UnifContext::isReturnValueModified()
   return false;
 }
 
-void UnifContext::initialize(SygusUnif* pbe, Node c)
+void UnifContext::initialize(SygusUnif* pbe)
 {
   Assert(d_vals.empty());
   Assert(d_str_pos.empty());
 
   // initialize with #examples
-  Assert(pbe->d_examples.find(c) != pbe->d_examples.end());
-  unsigned sz = pbe->d_examples[c].size();
+  unsigned sz = pbe->d_examples.size();
   for (unsigned i = 0; i < sz; i++)
   {
     d_vals.push_back(d_true);
   }
 
-  if (!pbe->d_examples_out[c].empty())
+  if (!pbe->d_examples_out.empty())
   {
     // output type of the examples
-    TypeNode exotn = pbe->d_examples_out[c][0].getType();
+    TypeNode exotn = pbe->d_examples_out[0].getType();
 
     if (exotn.isString())
     {
@@ -527,20 +526,21 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
                            std::vector<Node>& enums,
                            std::vector<Node>& lemmas)
 {
+  Assert( d_candidate.isNull() );
   d_candidate = f;
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
 
   TypeNode tn = f.getType();
-  d_cinfo[f].initialize(f);
+  d_cinfo.initialize(f);
   // collect the enumerator types and form the strategy
-  collectEnumeratorTypes(f, tn, role_equal);
+  collectEnumeratorTypes(tn, role_equal);
   // add the enumerators
   enums.insert(enums.end(),
-               d_cinfo[f].d_esym_list.begin(),
-               d_cinfo[f].d_esym_list.end());
+               d_cinfo.d_esym_list.begin(),
+               d_cinfo.d_esym_list.end());
   // learn redundant ops
-  staticLearnRedundantOps(f, lemmas);
+  staticLearnRedundantOps(lemmas);
 }
 
 void SygusUnif::resetExamples()
@@ -553,8 +553,8 @@ void SygusUnif::resetExamples()
 
 void SygusUnif::addExample(const std::vector<Node>& input, Node output)
 {
-  d_examples[d_candidate].push_back(input);
-  d_examples_out[d_candidate].push_back(output);
+  d_examples.push_back(input);
+  d_examples_out.push_back(output);
 }
 
 void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -571,21 +571,13 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   // iterations.
   Node exp_exc;
 
-  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
-  Assert(itc != d_cinfo.end());
   TypeNode xtn = e.getType();
   Node bv = d_tds->sygusToBuiltin(v, xtn);
-  std::map<Node, std::vector<std::vector<Node> > >::iterator itx =
-      d_examples.find(c);
-  std::map<Node, std::vector<Node> >::iterator itxo = d_examples_out.find(c);
-  Assert(itx != d_examples.end());
-  Assert(itxo != d_examples_out.end());
-  Assert(itx->second.size() == itxo->second.size());
   std::vector<Node> base_results;
   // compte the results
-  for (unsigned j = 0, size = itx->second.size(); j < size; j++)
+  for (unsigned j = 0, size = d_examples.size(); j < size; j++)
   {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, itx->second[j]);
+    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
     Trace("sygus-pbe-enum-debug")
         << "...got res = " << res << " from " << bv << std::endl;
     base_results.push_back(res);
@@ -593,7 +585,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
   if (getExplanationForEnumeratorExclude(
-          c, e, v, base_results, it->second, exp_exc_vec))
+          e, v, base_results, it->second, exp_exc_vec))
   {
     Assert(!exp_exc_vec.empty());
     exp_exc = exp_exc_vec.size() == 1
@@ -643,7 +635,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         Node resb;
         if (itv->second.getRole() == enum_io)
         {
-          Node out = itxo->second[j];
+          Node out = d_examples_out[j];
           Assert(out.isConst());
           resb = res == out ? d_true : d_false;
         }
@@ -737,12 +729,12 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           Trace("sygus-pbe-enum")
               << "  ...fail : term is not unique" << std::endl;
         }
-        itc->second.d_cond_count++;
+        d_cinfo.d_cond_count++;
       }
       if (keep)
       {
         // notify the parent to retry the build of PBE
-        itc->second.d_check_sol = true;
+        d_cinfo.d_check_sol = true;
         itv->second.addEnumValue(this, v, results);
       }
     }
@@ -763,32 +755,30 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 Node SygusUnif::constructSolution()
 {
   Node c = d_candidate;
-  std::map<Node, CandidateInfo>::iterator itc = d_cinfo.find(c);
-  Assert(itc != d_cinfo.end());
-  if (!itc->second.d_solution.isNull())
+  if (!d_cinfo.d_solution.isNull())
   {
     // already has a solution
-    return itc->second.d_solution;
+    return d_cinfo.d_solution;
   }
   else
   {
     // only check if an enumerator updated
-    if (itc->second.d_check_sol)
+    if (d_cinfo.d_check_sol)
     {
       Trace("sygus-pbe") << "Construct solution, #iterations = "
-                         << itc->second.d_cond_count << std::endl;
-      itc->second.d_check_sol = false;
+                         << d_cinfo.d_cond_count << std::endl;
+      d_cinfo.d_check_sol = false;
       // try multiple times if we have done multiple conditions, due to
       // non-determinism
       Node vc;
-      for (unsigned i = 0; i <= itc->second.d_cond_count; i++)
+      for (unsigned i = 0; i <= d_cinfo.d_cond_count; i++)
       {
         Trace("sygus-pbe-dt")
             << "ConstructPBE for candidate: " << c << std::endl;
-        Node e = itc->second.getRootEnumerator();
+        Node e = d_cinfo.getRootEnumerator();
         UnifContext x;
-        x.initialize(this, c);
-        Node vcc = constructSolution(c, e, role_equal, x, 1);
+        x.initialize(this);
+        Node vcc = constructSolution(e, role_equal, x, 1);
         if (!vcc.isNull())
         {
           if (vc.isNull() || (!vc.isNull()
@@ -804,7 +794,7 @@ Node SygusUnif::constructSolution()
       }
       if (!vc.isNull())
       {
-        itc->second.d_solution = vc;
+        d_cinfo.d_solution = vc;
         return vc;
       }
       Trace("sygus-pbe") << "...failed to solve." << std::endl;
@@ -816,7 +806,7 @@ Node SygusUnif::constructSolution()
 // ----------------------------- establishing enumeration types
 
 void SygusUnif::registerEnumerator(
-    Node et, Node c, TypeNode tn, EnumRole enum_role, bool inSearch)
+    Node et, TypeNode tn, EnumRole enum_role, bool inSearch)
 {
   if (d_einfo.find(et) == d_einfo.end())
   {
@@ -830,13 +820,12 @@ void SygusUnif::registerEnumerator(
     // strategy)
     if (inSearch)
     {
-      std::map<TypeNode, Node>::iterator itn =
-          d_cinfo[c].d_search_enum.find(tn);
-      if (itn == d_cinfo[c].d_search_enum.end())
+      std::map<TypeNode, Node>::iterator itn = d_cinfo.d_search_enum.find(tn);
+      if (itn == d_cinfo.d_search_enum.end())
       {
         // use this for the search
-        d_cinfo[c].d_search_enum[tn] = et;
-        d_cinfo[c].d_esym_list.push_back(et);
+        d_cinfo.d_search_enum[tn] = et;
+        d_cinfo.d_esym_list.push_back(et);
         d_einfo[et].d_enum_slave.push_back(et);
       }
       else
@@ -849,16 +838,16 @@ void SygusUnif::registerEnumerator(
   }
 }
 
-void SygusUnif::collectEnumeratorTypes(Node e, TypeNode tn, NodeRole nrole)
+void SygusUnif::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (d_cinfo[e].d_tinfo.find(tn) == d_cinfo[e].d_tinfo.end())
+  if (d_cinfo.d_tinfo.find(tn) == d_cinfo.d_tinfo.end())
   {
     // register type
     Trace("sygus-unif") << "Register enumerating type : " << tn << std::endl;
-    d_cinfo[e].initializeType(tn);
+    d_cinfo.initializeType(tn);
   }
-  EnumTypeInfo& eti = d_cinfo[e].d_tinfo[tn];
+  EnumTypeInfo& eti = d_cinfo.d_tinfo[tn];
   std::map<NodeRole, StrategyNode>::iterator itsn = eti.d_snodes.find(nrole);
   if (itsn != eti.d_snodes.end())
   {
@@ -890,7 +879,7 @@ void SygusUnif::collectEnumeratorTypes(Node e, TypeNode tn, NodeRole nrole)
   if (nrole == role_ite_condition)
   {
     Trace("sygus-unif-debug") << "...this register (non-io)" << std::endl;
-    registerEnumerator(ee, e, tn, erole, true);
+    registerEnumerator(ee, tn, erole, true);
     return;
   }
 
@@ -1180,7 +1169,7 @@ void SygusUnif::collectEnumeratorTypes(Node e, TypeNode tn, NodeRole nrole)
 
   // check whether we should also enumerate the current type
   Trace("sygus-unif-debug2") << "  register this enumerator..." << std::endl;
-  registerEnumerator(ee, e, tn, erole, search_this);
+  registerEnumerator(ee, tn, erole, search_this);
 
   if (cop_to_strat.empty())
   {
@@ -1262,7 +1251,7 @@ void SygusUnif::collectEnumeratorTypes(Node e, TypeNode tn, NodeRole nrole)
                                              .getDatatype()
                                              .getName()
                                       << std::endl;
-            registerEnumerator(et, e, ct, erole_c, true);
+            registerEnumerator(et, ct, erole_c, true);
             d_einfo[et].d_template = cop_to_child_templ[cop][j];
             d_einfo[et].d_template_arg = cop_to_child_templ_arg[cop][j];
             Assert(!d_einfo[et].d_template.isNull());
@@ -1274,11 +1263,11 @@ void SygusUnif::collectEnumeratorTypes(Node e, TypeNode tn, NodeRole nrole)
                 << "...child type enumerate "
                 << ((DatatypeType)ct.toType()).getDatatype().getName()
                 << ", node role = " << nrole_c << std::endl;
-            collectEnumeratorTypes(e, ct, nrole_c);
+            collectEnumeratorTypes(ct, nrole_c);
             // otherwise use the previous
-            Assert(d_cinfo[e].d_tinfo[ct].d_enum.find(erole_c)
-                   != d_cinfo[e].d_tinfo[ct].d_enum.end());
-            et = d_cinfo[e].d_tinfo[ct].d_enum[erole_c];
+            Assert(d_cinfo.d_tinfo[ct].d_enum.find(erole_c)
+                   != d_cinfo.d_tinfo[ct].d_enum.end());
+            et = d_cinfo.d_tinfo[ct].d_enum[erole_c];
           }
           Trace("sygus-unif-debug")
               << "Register child enumerator " << et << ", arg " << j << " of "
@@ -1366,11 +1355,11 @@ bool SygusUnif::inferTemplate(unsigned k,
   return true;
 }
 
-void SygusUnif::staticLearnRedundantOps(Node c, std::vector<Node>& lemmas)
+void SygusUnif::staticLearnRedundantOps(std::vector<Node>& lemmas)
 {
-  for (unsigned i = 0; i < d_cinfo[c].d_esym_list.size(); i++)
+  for (unsigned i = 0; i < d_cinfo.d_esym_list.size(); i++)
   {
-    Node e = d_cinfo[c].d_esym_list[i];
+    Node e = d_cinfo.d_esym_list[i];
     std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
     Assert(itn != d_einfo.end());
     // see if there is anything we can eliminate
@@ -1390,12 +1379,11 @@ void SygusUnif::staticLearnRedundantOps(Node c, std::vector<Node>& lemmas)
     }
   }
   Trace("sygus-unif") << std::endl;
-  Trace("sygus-unif") << "Strategy for candidate " << c
+  Trace("sygus-unif") << "Strategy for candidate " << d_candidate
                       << " is : " << std::endl;
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
-  staticLearnRedundantOps(c,
-                          d_cinfo[c].getRootEnumerator(),
+  staticLearnRedundantOps(d_cinfo.getRootEnumerator(),
                           role_equal,
                           visited,
                           needs_cons,
@@ -1426,7 +1414,6 @@ void SygusUnif::staticLearnRedundantOps(Node c, std::vector<Node>& lemmas)
 }
 
 void SygusUnif::staticLearnRedundantOps(
-    Node c,
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool> >& visited,
@@ -1470,8 +1457,8 @@ void SygusUnif::staticLearnRedundantOps(
 
       // enumerator type info
       std::map<TypeNode, EnumTypeInfo>::iterator itt =
-          d_cinfo[c].d_tinfo.find(etn);
-      Assert(itt != d_cinfo[c].d_tinfo.end());
+          d_cinfo.d_tinfo.find(etn);
+      Assert(itt != d_cinfo.d_tinfo.end());
       EnumTypeInfo& tinfo = itt->second;
 
       // strategy info
@@ -1500,8 +1487,7 @@ void SygusUnif::staticLearnRedundantOps(
         for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
         {
           // recurse
-          staticLearnRedundantOps(c,
-                                  cec.first,
+          staticLearnRedundantOps(cec.first,
                                   cec.second,
                                   visited,
                                   needs_cons,
@@ -1511,8 +1497,8 @@ void SygusUnif::staticLearnRedundantOps(
       }
       // get the master enumerator for the type of this enumerator
       std::map<TypeNode, Node>::iterator itse =
-          d_cinfo[c].d_search_enum.find(etn);
-      if (itse == d_cinfo[c].d_search_enum.end())
+          d_cinfo.d_search_enum.find(etn);
+      if (itse == d_cinfo.d_search_enum.end())
       {
         return;
       }
@@ -1591,8 +1577,7 @@ bool SygusUnif::useStrContainsEnumeratorExclude(Node x, EnumInfo& ei)
   return false;
 }
 
-bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
-                                                   Node x,
+bool SygusUnif::getExplanationForEnumeratorExclude(Node x,
                                                    Node v,
                                                    std::vector<Node>& results,
                                                    EnumInfo& ei,
@@ -1610,9 +1595,7 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
       Trace("sygus-pbe-enum") << std::endl;
     }
     // check if all examples had longer length that the output
-    std::map<Node, std::vector<Node> >::iterator itxo = d_examples_out.find(c);
-    Assert(itxo != d_examples_out.end());
-    Assert(itxo->second.size() == results.size());
+    Assert(d_examples_out.size() == results.size());
     Trace("sygus-pbe-cterm-debug")
         << "Check enumerator exclusion for " << x << " -> "
         << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
@@ -1620,10 +1603,10 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
       Assert(results[i].isConst());
-      Assert(itxo->second[i].isConst());
+      Assert(d_examples_out[i].isConst());
       Trace("sygus-pbe-cterm-debug")
-          << "  " << results[i] << " <> " << itxo->second[i];
-      Node cont = nm->mkNode(STRING_STRCTN, itxo->second[i], results[i]);
+          << "  " << results[i] << " <> " << d_examples_out[i];
+      Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
       Node contr = Rewriter::rewrite(cont);
       if (contr == d_false)
       {
@@ -1639,7 +1622,7 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node c,
     {
       // we check invariance with respect to a negative contains test
       NegContainsSygusInvarianceTest ncset;
-      ncset.init(x, d_examples[c], itxo->second, cmp_indices);
+      ncset.init(x, d_examples, d_examples_out, cmp_indices);
       // construct the generalized explanation
       d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
       Trace("sygus-pbe-cterm")
@@ -1739,7 +1722,7 @@ Node SygusUnif::constructBestStringToConcat(
 }
 
 Node SygusUnif::constructSolution(
-    Node c, Node e, NodeRole nrole, UnifContext& x, int ind)
+    Node e, NodeRole nrole, UnifContext& x, int ind)
 {
   TypeNode etn = e.getType();
   if (Trace.isOn("sygus-pbe-dt-debug"))
@@ -1760,8 +1743,8 @@ Node SygusUnif::constructSolution(
     Trace("sygus-pbe-dt-debug") << std::endl;
   }
   // enumerator type info
-  std::map<TypeNode, EnumTypeInfo>::iterator itt = d_cinfo[c].d_tinfo.find(etn);
-  Assert(itt != d_cinfo[c].d_tinfo.end());
+  std::map<TypeNode, EnumTypeInfo>::iterator itt = d_cinfo.d_tinfo.find(etn);
+  Assert(itt != d_cinfo.d_tinfo.end());
   EnumTypeInfo& tinfo = itt->second;
 
   // get the enumerator information
@@ -1826,11 +1809,8 @@ Node SygusUnif::constructSolution(
         if (success)
         {
           // get the current examples
-          std::map<Node, std::vector<Node> >::iterator itx =
-              d_examples_out.find(c);
-          Assert(itx != d_examples_out.end());
           std::vector<String> ex_vals;
-          x.getCurrentStrings(this, itx->second, ex_vals);
+          x.getCurrentStrings(this, d_examples_out, ex_vals);
           Assert(itn->second.d_enum_vals.size()
                  == itn->second.d_enum_vals_res.size());
 
@@ -1871,11 +1851,9 @@ Node SygusUnif::constructSolution(
       bool isPrefix = nrole == role_string_prefix;
       std::map<Node, unsigned> total_inc;
       std::vector<Node> inc_strs;
-      std::map<Node, std::vector<Node> >::iterator itx = d_examples_out.find(c);
-      Assert(itx != d_examples_out.end());
       // make the value of the examples
       std::vector<String> ex_vals;
-      x.getCurrentStrings(this, itx->second, ex_vals);
+      x.getCurrentStrings(this, d_examples_out, ex_vals);
       if (Trace.isOn("sygus-pbe-dt-debug"))
       {
         indent("sygus-pbe-dt-debug", ind);
@@ -1898,7 +1876,7 @@ Node SygusUnif::constructSolution(
         indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "increment string values : " << val_t << " : ";
-        Assert(einfo.d_enum_vals_res[i].size() == itx->second.size());
+        Assert(einfo.d_enum_vals_res[i].size() == d_examples_out.size());
         unsigned tot = 0;
         bool exsuccess = x.getStringIncrement(this,
                                               isPrefix,
@@ -2192,7 +2170,7 @@ Node SygusUnif::constructSolution(
           }
           else
           {
-            rec_c = constructSolution(c, cenum.first, cenum.second, x, ind + 2);
+            rec_c = constructSolution(cenum.first, cenum.second, x, ind + 2);
           }
 
           // undo update the context
