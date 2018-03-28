@@ -27,23 +27,16 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblastSolver::EagerBitblastSolver(TheoryBV* bv)
-    : d_assertionSet(),
-      d_bitblaster(nullptr),
-      d_aigBitblaster(nullptr),
+EagerBitblastSolver::EagerBitblastSolver(context::Context* c, TheoryBV* bv)
+    : d_assertionSet(c),
+      d_context(c),
+      d_bitblaster(),
+      d_aigBitblaster(),
       d_useAig(options::bitvectorAig()),
       d_bv(bv),
       d_bvp(nullptr) {}
 
-EagerBitblastSolver::~EagerBitblastSolver() {
-  if (d_useAig) {
-    Assert(d_bitblaster == nullptr);
-    delete d_aigBitblaster;
-  } else {
-    Assert(d_aigBitblaster == nullptr);
-    delete d_bitblaster;
-  }
-}
+EagerBitblastSolver::~EagerBitblastSolver() {}
 
 void EagerBitblastSolver::turnOffAig() {
   Assert(d_aigBitblaster == nullptr && d_bitblaster == nullptr);
@@ -54,15 +47,15 @@ void EagerBitblastSolver::initialize() {
   Assert(!isInitialized());
   if (d_useAig) {
 #ifdef CVC4_USE_ABC
-    d_aigBitblaster = new AigBitblaster();
+    d_aigBitblaster.reset(new AigBitblaster());
 #else
     Unreachable();
 #endif
   } else {
-    d_bitblaster = new EagerBitblaster(d_bv);
+    d_bitblaster.reset(new EagerBitblaster(d_bv));
     THEORY_PROOF(if (d_bvp) {
       d_bitblaster->setProofLog(d_bvp);
-      d_bvp->setBitblaster(d_bitblaster);
+      d_bvp->setBitblaster(d_bitblaster.get());
     });
   }
 }
@@ -87,8 +80,10 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
 #else
     Unreachable();
 #endif
-  } else {
-    d_bitblaster->bbFormula(formula);
+  }
+  else
+  {
+    d_bitblaster->bbFormula(formula, !options::incrementalSolving());
   }
 }
 
@@ -111,6 +106,15 @@ bool EagerBitblastSolver::checkSat() {
 #endif
   }
 
+  if (options::incrementalSolving())
+  {
+    std::vector<Node> assertions;
+    for (const Node& n : d_assertionSet)
+    {
+      assertions.push_back(n);
+    }
+    return d_bitblaster->solve(assertions);
+  }
   return d_bitblaster->solve();
 }
 

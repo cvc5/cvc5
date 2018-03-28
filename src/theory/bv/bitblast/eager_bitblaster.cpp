@@ -75,9 +75,19 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
 
 EagerBitblaster::~EagerBitblaster() {}
 
-void EagerBitblaster::bbFormula(TNode node) {
-  d_cnfStream->convertAndAssert(node, false, false, RULE_INVALID,
-                                TNode::null());
+void EagerBitblaster::bbFormula(TNode node, bool assertFormula)
+{
+  if (assertFormula)
+  {
+    Assert(!options::incrementalSolving());
+    d_cnfStream->convertAndAssert(
+        node, false, false, RULE_INVALID, TNode::null());
+  }
+  else
+  {
+    Assert(options::incrementalSolving());
+    d_cnfStream->ensureLiteral(node);
+  }
 }
 
 /**
@@ -183,6 +193,17 @@ bool EagerBitblaster::solve() {
   //   nm->reclaimZombiesUntil(options::zombieHuntThreshold());
   // }
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
+}
+
+bool EagerBitblaster::solve(const std::vector<Node>& assumptions)
+{
+  std::vector<prop::SatLiteral> assumpts;
+  for (const Node& assumption : assumptions)
+  {
+    Assert(d_cnfStream->hasLiteral(assumption));
+    assumpts.push_back(d_cnfStream->getLiteral(assumption));
+  }
+  return prop::SAT_VALUE_TRUE == d_satSolver->solve(assumpts);
 }
 
 /**

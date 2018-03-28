@@ -4160,7 +4160,8 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && !options::incrementalSolving())
   {
     d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
   }

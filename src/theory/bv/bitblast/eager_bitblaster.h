@@ -45,12 +45,13 @@ class EagerBitblaster : public TBitblaster<Node>
   void bbAtom(TNode node) override;
   Node getBBAtom(TNode node) const override;
   bool hasBBAtom(TNode atom) const override;
-  void bbFormula(TNode formula);
+  void bbFormula(TNode formula, bool assertFormula = true);
   void storeBBAtom(TNode atom, Node atom_bb) override;
   void storeBBTerm(TNode node, const Bits& bits) override;
 
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
+  bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
   void setProofLog(BitVectorProof* bvp);
 

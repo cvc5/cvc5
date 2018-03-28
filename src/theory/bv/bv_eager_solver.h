@@ -16,7 +16,8 @@
 
 #include "cvc4_private.h"
 
-#pragma once
+#ifndef __CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#define __CVC4__THEORY__BV__BV_EAGER_SOLVER_H
 
 #include <unordered_set>
 #include <vector>
@@ -37,7 +38,7 @@ class AigBitblaster;
  */
 class EagerBitblastSolver {
  public:
-  EagerBitblastSolver(theory::bv::TheoryBV* bv);
+  EagerBitblastSolver(context::Context* c, theory::bv::TheoryBV* bv);
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
@@ -51,11 +52,12 @@ class EagerBitblastSolver {
   void setProofLog(BitVectorProof* bvp);
 
  private:
-  typedef std::unordered_set<TNode, TNodeHashFunction> AssertionSet;
-  AssertionSet d_assertionSet;
+  context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
+  context::Context* d_context;
+
   /** Bitblasters */
-  EagerBitblaster* d_bitblaster;
-  AigBitblaster* d_aigBitblaster;
+  std::unique_ptr<EagerBitblaster> d_bitblaster;
+  std::unique_ptr<AigBitblaster> d_aigBitblaster;
   bool d_useAig;
 
   TheoryBV* d_bv;
@@ -65,3 +67,5 @@ class EagerBitblastSolver {
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
+
+#endif  // __CVC4__THEORY__BV__BV_EAGER_SOLVER_H
