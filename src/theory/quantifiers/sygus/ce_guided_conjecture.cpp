@@ -252,8 +252,18 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
 
   std::vector<Node> candidate_values;
   Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
-  bool constructed_cand = d_master->constructCandidates(
-      terms, enum_values, d_candidates, candidate_values, lems);
+  bool constructed_cand = false;  
+  if( options::sygusRepairConst() )
+  {
+    // have we tried to repair the previous solution?
+    // if not, call the repair constant utility
+    
+  }
+  
+  if( !constructed_cand )
+  {
+    constructed_cand = d_master->constructCandidates(terms, enum_values, d_candidates, candidate_values, lems);
+  }
 
   NodeManager* nm = NodeManager::currentNM();
 

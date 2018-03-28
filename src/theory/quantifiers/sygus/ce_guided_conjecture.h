@@ -121,7 +121,7 @@ public:
   /** get utility for static preprocessing and analysis of conjectures */
   CegConjectureProcess* getProcess() { return d_ceg_proc.get(); }
   /** get constant repair utility */
-  SygusRepairConst* getConstRepair() { return d_sygus_rconst.get(); }
+  SygusRepairConst* getRepairConst() { return d_sygus_rconst.get(); }
   /** get program by examples module */
   CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */

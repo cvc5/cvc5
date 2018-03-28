@@ -32,8 +32,8 @@ SygusRepairConst::SygusRepairConst(QuantifiersEngine* qe)
 void SygusRepairConst::initialize(Node q) 
 {
   Assert( q.getKind()==FORALL );
-  Trace("sygus-repair-cons") << "SygusRepairConst::initialize" << std::endl;
-  Trace("sygus-repair-cons") << "  conjecture : " << q << std::endl;
+  Trace("sygus-repair-const") << "SygusRepairConst::initialize" << std::endl;
+  Trace("sygus-repair-const") << "  conjecture : " << q << std::endl;
   d_embed_quant = q;
   
   // compute whether there are "allow all constant" types in the variables of q
@@ -44,7 +44,7 @@ void SygusRepairConst::initialize(Node q)
     // do the type traversal of the sygus type
     registerSygusType( tn, tprocessed );
   }
-  Trace("sygus-repair-cons") << "  allow constants : " << d_allow_constant_grammar << std::endl;
+  Trace("sygus-repair-const") << "  allow constants : " << d_allow_constant_grammar << std::endl;
 }
 
 // recursion depth bounded by number of types in grammar (small)
@@ -85,14 +85,14 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   {
     return false;
   }
-  if( Trace.isOn("sygus-repair-cons") )
+  if( Trace.isOn("sygus-repair-const") )
   {
-    Trace("sygus-repair-cons") << "Repair candidate solutions..." << std::endl;
+    Trace("sygus-repair-const") << "Repair candidate solutions..." << std::endl;
     for( unsigned i=0,size=candidates.size(); i<size; i++ )
     {
-      Trace("sygus-repair-cons") << "  " << candidates[i] << " -> " << candidate_values[i] << std::endl;
+      Trace("sygus-repair-const") << "  " << candidates[i] << " -> " << candidate_values[i] << std::endl;
     }
-    Trace("sygus-repair-cons") << "Getting candidate skeletons : " << std::endl;
+    Trace("sygus-repair-const") << "Getting candidate skeletons : " << std::endl;
   }
   bool changed = false;
   std::vector< Node > candidate_skeletons;
@@ -156,16 +156,16 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     Assert(visited.find(cv) != visited.end());
     Assert(!visited.find(cv)->second.isNull());
     Node skeleton = visited[cv];
-    if( Trace.isOn("sygus-repair-cons") )
+    if( Trace.isOn("sygus-repair-const") )
     {
-      Trace("sygus-repair-cons") << "Solution #" << i << " : " << cv << std::endl;
+      Trace("sygus-repair-const") << "Solution #" << i << " : " << cv << std::endl;
       if( skeleton==cv )
       {
-        Trace("sygus-repair-cons") << "...solution unchanged" << std::endl;
+        Trace("sygus-repair-const") << "...solution unchanged" << std::endl;
       }
       else
       {
-        Trace("sygus-repair-cons") << "...inferred skeleton : " << skeleton << std::endl;
+        Trace("sygus-repair-const") << "...inferred skeleton : " << skeleton << std::endl;
       }
     }
     candidate_skeletons.push_back( skeleton );
@@ -174,7 +174,13 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
 
   if (changed)
   {
-    //make the 
+    Trace("sygus-repair-const") << "Substitute solution skeletons..." << std::endl;
+    //make the quantified satisfiability query
+    Node body = d_embed_quant[1];
+    body = body.substitute( candidates.begin(), candidates.end(), candidate_skeletons.begin(), candidate_skeletons.end() );
+    Trace("sygus-repair-const") << "...got : " << body << std::endl;
+    //body = 
+    
     
   }
 

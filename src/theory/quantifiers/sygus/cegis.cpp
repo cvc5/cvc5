@@ -77,10 +77,10 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   candidate_values.insert(
       candidate_values.end(), enum_values.begin(), enum_values.end());
 
+  bool addedEvalLemmas = false;
   if (options::sygusDirectEval())
   {
     NodeManager* nm = NodeManager::currentNM();
-    bool addedEvalLemmas = false;
     if (options::sygusCRefEval())
     {
       Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..."
@@ -141,10 +141,18 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
         addedEvalLemmas = true;
       }
     }
-    if (addedEvalLemmas)
+  }
+  if (addedEvalLemmas)
+  {
+    // it may be repairable
+    SygusRepairConst* src = d_parent->getRepairConst();
+    std::vector< Node > fail_cvs = candidate_values;
+    candidate_values.clear();
+    if( src->repairSolution( candidates, fail_cvs, candidate_values) )
     {
-      return false;
+      return true;
     }
+    return false;
   }
 
   return true;
