@@ -626,6 +626,110 @@ struct CVC4_PUBLIC TermHashFunction
 
 
 /* -------------------------------------------------------------------------- */
+/* OpTerm                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A CVC4 operator term.
+ * An operator term is a term that represents certain operators, instantiated
+ * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ */
+class CVC4_PUBLIC OpTerm
+{
+  friend class Solver;
+  friend struct OpTermHashFunction;
+
+  public:
+    /**
+     * Constructor.
+     */
+    OpTerm();
+
+    /**
+     * Constructor.
+     * @param e the internal expression that is to be wrapped by this term
+     * @return the Term
+     */
+    OpTerm(const CVC4::Expr& e);
+
+    /**
+     * Copy constructor.
+     */
+    OpTerm(const OpTerm& t);
+
+    /**
+     * Destructor.
+     */
+    ~OpTerm();
+
+    /**
+     * Assignment operator, makes a copy of the given operator term.
+     * Both terms must belong to the same solver object.
+     * @param t the term to assign
+     * @return the reference to this operator term after assignment
+     */
+    OpTerm& operator=(const OpTerm& t);
+
+    /**
+     * Syntactic equality operator.
+     * Return true if both operator terms are syntactically identical.
+     * Both operator terms must belong to the same solver object.
+     * @param t the operator term to compare to for equality
+     * @return true if the operator terms are equal
+     */
+    bool operator==(const OpTerm& t) const;
+
+    /**
+     * Syntactic disequality operator.
+     * Return true if both operator terms differ syntactically.
+     * Both terms must belong to the same solver object.
+     * @param t the operator term to compare to for disequality
+     * @return true if operator terms are disequal
+     */
+    bool operator!=(const OpTerm& t) const;
+
+    /**
+     * @return the kind of this operator term
+     */
+    Kind getKind() const;
+
+    /**
+     * @return the sort of this operator term
+     */
+    Sort getSort() const;
+
+    /**
+     * @return true if this operator term is a null term
+     */
+    bool isNull() const;
+
+    /**
+     * @return a string representation of this operator term
+     */
+    std::string toString() const;
+  private:
+    /* The internal expression wrapped by this operator term. */
+    CVC4::Expr* d_expr;
+};
+
+/**
+ * Serialize an operator term to given stream.
+ * @param out the output stream
+ * @param t the operator term to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<< (std::ostream& out, const OpTerm& t) CVC4_PUBLIC;
+
+/**
+ * Hash function for OpTerms.
+ */
+struct CVC4_PUBLIC OpTermHashFunction
+{
+  size_t operator()(const OpTerm& t) const;
+};
+
+
+/* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
 /* -------------------------------------------------------------------------- */
 
@@ -1359,7 +1463,7 @@ class CVC4_PUBLIC Solver
      * @param the operator term
      * @return the Term
      */
-    Term mkTerm(Term opTerm) const;
+    Term mkTerm(OpTerm opTerm) const;
 
     /**
      * Create unary term from a given operator term.
@@ -1368,7 +1472,7 @@ class CVC4_PUBLIC Solver
      * @child the child of the term
      * @return the Term
      */
-    Term mkTerm(Term opTerm,
+    Term mkTerm(OpTerm opTerm,
                 Term child) const;
 
     /**
@@ -1379,7 +1483,7 @@ class CVC4_PUBLIC Solver
      * @child2 the second child of the term
      * @return the Term
      */
-    Term mkTerm(Term opTerm,
+    Term mkTerm(OpTerm opTerm,
                 Term child1,
                 Term child2) const;
 
@@ -1392,7 +1496,7 @@ class CVC4_PUBLIC Solver
      * @child3 the third child of the term
      * @return the Term
      */
-    Term mkTerm(Term opTerm,
+    Term mkTerm(OpTerm opTerm,
                 Term child1,
                 Term child2,
                 Term child3) const;
@@ -1404,7 +1508,7 @@ class CVC4_PUBLIC Solver
      * @children the children of the term
      * @return the Term
      */
-    Term mkTerm(Term opTerm,
+    Term mkTerm(OpTerm opTerm,
                 const std::vector<Term>& children) const;
 
     /* .................................................................... */
@@ -1418,7 +1522,7 @@ class CVC4_PUBLIC Solver
      * @param kind the kind of the operator
      * @param k the kind argument to this operator
      */
-    Term mkOpTerm(Kind kind, Kind k);
+    OpTerm mkOpTerm(Kind kind, Kind k);
 
     /**
      * Create operator of kind:
@@ -1427,7 +1531,7 @@ class CVC4_PUBLIC Solver
      * @param kind the kind of the operator
      * @param arg the string argument to this operator
      */
-    Term mkOpTerm(Kind kind, const std::string& arg);
+    OpTerm mkOpTerm(Kind kind, const std::string& arg);
 
     /**
      * Create operator of kind:
@@ -1447,7 +1551,7 @@ class CVC4_PUBLIC Solver
      * @param kind the kind of the operator
      * @param arg the uint32_t argument to this operator
      */
-    Term mkOpTerm(Kind kind, uint32_t arg);
+    OpTerm mkOpTerm(Kind kind, uint32_t arg);
 
     /**
      * Create operator of Kind:
@@ -1463,7 +1567,7 @@ class CVC4_PUBLIC Solver
      * @param arg1 the first uint32_t argument to this operator
      * @param arg2 the second uint32_t argument to this operator
      */
-    Term mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
+    OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
 
     /* .................................................................... */
     /* Create Constants                                                     */

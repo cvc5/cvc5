@@ -44,7 +44,7 @@ int main()
   slv.setLogic(string("QF_UFLIRA"));
 
   // Sorts
-  Sort u = slv.mkSortSort("u");
+  Sort u = slv.mkUninterpretedSort("u");
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
   Sort uToInt = slv.mkFunctionSort(u, integer);
