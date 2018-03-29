@@ -2890,13 +2890,14 @@ std::vector<Node> NonlinearExtension::checkFactoring(
     bool considerLit = false;
     if( d_skolem_atoms.find(atom) != d_skolem_atoms.end() )
     {
-      //always consider consider skolem literals
+      //always consider skolem literals
       considerLit = true;
     }
     else
     {
-      // only consider literals that evaluate to false in the model.
-      // this is a stronger restriction that (lit in false_asserts).
+      // Only consider literals that evaluate to false in the model.
+      // this is a stronger restriction than the restriction that lit is in
+      // false_asserts.
       // This excludes (most) literals that contain transcendental functions.
       considerLit = computeModelValue(lit)==d_false;
     }
