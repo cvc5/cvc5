@@ -75,18 +75,18 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
 
 EagerBitblaster::~EagerBitblaster() {}
 
-void EagerBitblaster::bbFormula(TNode node, bool assertFormula)
+void EagerBitblaster::bbFormula(TNode node)
 {
-  if (assertFormula)
+  /* Do not assert formula if incremental solving is enabled since we use
+   * solving under assumptions in this case. */
+  if (options::incrementalSolving())
   {
-    Assert(!options::incrementalSolving());
-    d_cnfStream->convertAndAssert(
-        node, false, false, RULE_INVALID, TNode::null());
+    d_cnfStream->ensureLiteral(node);
   }
   else
   {
-    Assert(options::incrementalSolving());
-    d_cnfStream->ensureLiteral(node);
+    d_cnfStream->convertAndAssert(
+        node, false, false, RULE_INVALID, TNode::null());
   }
 }
 

@@ -45,7 +45,7 @@ class EagerBitblaster : public TBitblaster<Node>
   void bbAtom(TNode node) override;
   Node getBBAtom(TNode node) const override;
   bool hasBBAtom(TNode atom) const override;
-  void bbFormula(TNode formula, bool assertFormula = true);
+  void bbFormula(TNode formula);
   void storeBBAtom(TNode atom, Node atom_bb) override;
   void storeBBTerm(TNode node, const Bits& bits) override;
 

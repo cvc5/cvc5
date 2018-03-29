@@ -83,7 +83,7 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   }
   else
   {
-    d_bitblaster->bbFormula(formula, !options::incrementalSolving());
+    d_bitblaster->bbFormula(formula);
   }
 }
 
