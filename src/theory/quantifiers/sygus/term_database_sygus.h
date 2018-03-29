@@ -132,7 +132,8 @@ class TermDbSygus {
    * 
    * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set 
    * to constant c. The type tn should be a sygus datatype type, and the type of
-   * c should be the analog type of tn.
+   * c should be the analog type of tn. The semantics of the returned node
+   * is "the variable of sygus datatype tn that encodes constant c".
    */
   Node getProxyVariable( TypeNode tn, Node c );
   /** make generic
