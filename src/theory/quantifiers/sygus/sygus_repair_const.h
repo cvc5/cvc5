@@ -62,7 +62,10 @@ class SygusRepairConst
    * If this function returns true, then this class adds to repair_cv the
    * repaired version of the solution candidate_values for each candidate,
    * where for each index i, repair_cv[i] is obtained by replacing constant
-   * subterms in candidate_values[i] with others. Moreover, it is the case that
+   * subterms in candidate_values[i] with others, and 
+   *    candidates -> repair_cv
+   * is a solution for the synthesis conjecture associated with this class.
+   * Moreover, it is the case that
    *    repair_cv[j] != candidate_values[j], for at least one j.
    */
   bool repairSolution(const std::vector<Node>& candidates,
@@ -75,8 +78,8 @@ class SygusRepairConst
   /** pointer to the sygus term database of d_qe */
   TermDbSygus * d_tds;
   /** 
-   * The deep embedding form of the synthesis conjecture associated with this
-   * class.
+   * The "base instantiation" of the deep embedding form of the synthesis
+   * conjecture associated with this class, see CegConjecture::d_base_inst.
    */
   Node d_base_inst;
   /** 
