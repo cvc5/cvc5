@@ -973,7 +973,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-repair-const"
   type       = "bool"
   default    = "false"
-  help       = "use approach to repair constants"
+  help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
   name       = "sygusMinGrammar"
