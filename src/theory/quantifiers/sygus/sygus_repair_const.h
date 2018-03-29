@@ -35,7 +35,7 @@ class CegConjecture;
  * and a candidate solution f = \x. t[x,c] where c are constants, this function
  * checks whether there exists a term of the form \x. t[x,c'] for some constants
  * c' such that:
- *   forall x. P( (\x. t[x,c']), x )
+ *   forall x. P( (\x. t[x,c']), x )  [***]
  * is satisfiable, where notice that the above formula after beta-reduction may
  * be one in pure first-order logic in a decidable theory (say linear
  * arithmetic). To check this, we invoke a separate instance of the SmtEngine
@@ -87,8 +87,8 @@ class SygusRepairConst
   bool d_allow_constant_grammar;
   /** map from skeleton variables to first-order variables */
   std::map< Node, Node > d_sk_to_fo;
-  /** a cache of (failed) satisfiability queries that we have tried */
-  std::unordered_set<Node, NodeHashFunction> d_unsat_queries;
+  /** a cache of satisfiability queries of the form [***] above we have tried */
+  std::unordered_set<Node, NodeHashFunction> d_queries;
   /** 
    * Register information for sygus type tn, tprocessed stores the set of 
    * already registered types.

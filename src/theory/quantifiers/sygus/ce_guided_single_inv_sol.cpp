@@ -1219,10 +1219,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
   // them, return a proxy
   if (!options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst())
   {
-    Node k = nm->mkSkolem("sy", tn, "sygus proxy");
-    SygusPrintProxyAttribute spa;
-    k.setAttribute(spa, c);
-    sc = k;
+    sc = tds->getProxyVariable(tn,c);
   }
   else
   {

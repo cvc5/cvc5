@@ -128,6 +128,13 @@ class TermDbSygus {
   int getVarNum(Node n) { return d_fv_num[n]; }
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
+  /** get sygus proxy variable 
+   * 
+   * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set 
+   * to constant c. The type tn should be a sygus datatype type, and the type of
+   * c should be the analog type of tn.
+   */
+  Node getProxyVariable( TypeNode tn, Node c );
   /** make generic
    *
    * This function returns a builtin term f( t1, ..., tn ) where f is the
@@ -224,6 +231,8 @@ class TermDbSygus {
   std::map<Node, int> d_fv_num;
   /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
   bool hasFreeVar(Node n, std::map<Node, bool>& visited);
+  /** cache of getProxyVariable */
+  std::map< TypeNode, std::map< Node, Node > > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
 
   // TODO :issue #1235 : below here needs refactor
