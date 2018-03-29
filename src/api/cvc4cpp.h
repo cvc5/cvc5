@@ -1282,7 +1282,7 @@ class CVC4_PUBLIC Solver
      * @param symbol the name of the sort
      * @return the uninterpreted sort
      */
-    Sort mkSortSort(const std::string& symbol) const;
+    Sort mkUninterpretedSort(const std::string& symbol) const;
 
     /**
      * Create a tuple sort.
