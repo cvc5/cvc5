@@ -217,13 +217,28 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   }
   d_queries.insert(fo_body);
   Trace("sygus-repair-const") << "Make satisfiabily query..." << std::endl;
+  // do miniscoping explicitly
+  if( fo_body.getKind()==FORALL )
+  {
+    if( fo_body[1].getKind()==AND )
+    {
+      Node bvl = fo_body[0];
+      std::vector< Node > children;
+      for( const Node& conj : fo_body[1] )
+      {
+        children.push_back( nm->mkNode( FORALL, bvl, conj ) );
+      }
+      fo_body = nm->mkNode( AND, children );
+    }
+  }
+  
   // make the satisfiability query
   SmtEngine repcChecker(nm->toExprManager());
   repcChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
   repcChecker.assertFormula(fo_body.toExpr());
   Result r = repcChecker.checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat())
+  if (r.asSatisfiabilityResult().isSat() && !r.asSatisfiabilityResult().isUnknown())
   {
     std::vector< Node > sk_sygus_m;
     for( const Node& v : sk_vars )
