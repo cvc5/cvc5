@@ -1210,7 +1210,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   Trace("sygus-sb") << " SygusSymBreakNew::check: finished." << std::endl;
   
   if( Trace.isOn("cegqi-engine") ){
-    if( lemmas.empty() ){
+    if( lemmas.empty() && !d_szinfo.empty() ){
       Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
       for( std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.begin(); it != d_szinfo.end(); ++it ){
         SearchSizeInfo * s = it->second;

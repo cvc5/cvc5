@@ -217,6 +217,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   }
   d_queries.insert(fo_body);
   Trace("sygus-repair-const") << "Make satisfiabily query..." << std::endl;
+  Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
   // do miniscoping explicitly
   if( fo_body.getKind()==FORALL )
   {
@@ -250,28 +251,38 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
       Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(),fov_m);
       sk_sygus_m.push_back(fov_m_to_sygus);
     }
-    Trace("sygus-repair-const") << "Repair constants in solution : " << std::endl;
+    std::stringstream ss;
     // convert back to sygus
     for( unsigned i=0,size=candidates.size(); i<size; i++ )
     {
       Node csk = candidate_skeletons[i];
       Node scsk = csk.substitute( sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
       repair_cv.push_back(scsk);
-      if( Trace.isOn("sygus-repair-const") )
+      if( Trace.isOn("sygus-repair-const") || Trace.isOn("cegqi-engine") )
       {
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, repair_cv[i]);
-        Trace("sygus-repair-const") << "  " << candidates[i] << " -> " << ss.str() << std::endl;
+        std::stringstream sss;
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(sss, repair_cv[i]);
+        ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
       }
     }
+    Trace("cegqi-engine") << "...success:" << std::endl;
+    Trace("cegqi-engine") << ss.str();
+    Trace("sygus-repair-const") << "Repaired constants in solution : " << std::endl;
+    Trace("sygus-repair-const") << ss.str();
     return true;
   }
+  
+  Trace("cegqi-engine") << "...failed" << std::endl;
 
   return false;
 }
 
 bool SygusRepairConst::isRepairableConstant( Node n )
 {
+  if( n.getKind()!=APPLY_CONSTRUCTOR )
+  {
+    return false;
+  }
   TypeNode tn = n.getType();
   Assert( tn.isDatatype() );
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
