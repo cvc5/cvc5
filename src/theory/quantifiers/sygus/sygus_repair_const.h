@@ -94,6 +94,21 @@ class SygusRepairConst
    * already registered types.
    */
   void registerSygusType(TypeNode tn, std::map<TypeNode, bool >& tprocessed);
+  /** 
+   * Returns true if n is a term of a sygus datatype type that allows all
+   * constants, and n encodes a constant. The term n must of a sygus datatype
+   * type.
+   */
+  bool isRepairableConstant( Node n );
+  /** get skeleton
+   * 
+   * Returns a skeleton for n, where the subterms of n that are repairable
+   * constants are replaced by free variables. Since we are interested in
+   * returning canonical skeletons, the free variables we use in this 
+   * replacement are taken from TermDbSygus, where we track indices
+   * in free_var_count. Variables we introduce in this way are added to sk_vars.
+   */
+  Node getSkeleton( Node n, std::map< TypeNode, int >& free_var_count, std::vector< Node >& sk_vars );
 };
 
 } /* CVC4::theory::quantifiers namespace */

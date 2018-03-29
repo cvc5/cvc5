@@ -109,72 +109,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
-    // get the most general candidate skeleton of cv
-    std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-    std::vector<TNode> visit;
-    TNode cur;
-    visit.push_back(cv);
-    do {
-      cur = visit.back();
-      visit.pop_back();
-      it = visited.find(cur);
-
-      if (it == visited.end()) {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        for (const Node& cn : cur) {
-          visit.push_back(cn);
-        }
-      } else if (it->second.isNull()) {
-        Node ret = cur;
-        bool childChanged = false;
-        std::vector<Node> children;
-        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
-          children.push_back(cur.getOperator());
-        }
-        for (const Node& cn : cur) {
-          Node child;
-          // if it is a constant over a type that allows all constants
-          TypeNode tn = cn.getType();
-          Assert( tn.isDatatype() );
-          const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-          Assert(dt.isSygus());
-          if( dt.getSygusAllowConst() )
-          {
-            Node op = cn.getOperator();
-            unsigned cindex = Datatype::indexOf( op.toExpr() );
-            if( dt[cindex].getNumArgs()==0 )
-            {
-              Node sygusOp = Node::fromExpr( dt[cindex].getSygusOp() );
-              if( sygusOp.isConst() )
-              {
-                Node sk_var = d_tds->getFreeVarInc(tn,free_var_count);
-                sk_vars.push_back( sk_var );
-                // replace it by the next free variable
-                child = sk_var;
-              }
-            }
-          }
-          if( child.isNull() )
-          {
-            it = visited.find(cn);
-            Assert(it != visited.end());
-            Assert(!it->second.isNull());
-            child = it->second;
-          }
-          childChanged = childChanged || cn != child;
-          children.push_back(child);
-        }
-        if (childChanged) {
-          ret = nm->mkNode(cur.getKind(), children);
-        }
-        visited[cur] = ret;
-      }
-    } while (!visit.empty());
-    Assert(visited.find(cv) != visited.end());
-    Assert(!visited.find(cv)->second.isNull());
-    Node skeleton = visited[cv];
+    Node skeleton = getSkeleton( cv, free_var_count, sk_vars );
     if( Trace.isOn("sygus-repair-const") )
     {
       Printer * p = Printer::getPrinter(options::outputLanguage());
@@ -198,6 +133,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
 
   if (!changed)
   {
+    Trace("sygus-repair-const") << "...no solutions repaired." << std::endl;
     return false;
   }
   
@@ -317,6 +253,91 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   }
 
   return false;
+}
+
+bool SygusRepairConst::isRepairableConstant( Node n )
+{
+  TypeNode tn = n.getType();
+  Assert( tn.isDatatype() );
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  Assert(dt.isSygus());
+  if( dt.getSygusAllowConst() )
+  {
+    Node op = n.getOperator();
+    unsigned cindex = Datatype::indexOf( op.toExpr() );
+    if( dt[cindex].getNumArgs()==0 )
+    {
+      Node sygusOp = Node::fromExpr( dt[cindex].getSygusOp() );
+      if( sygusOp.isConst() )
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+Node SygusRepairConst::getSkeleton( Node n, std::map< TypeNode, int >& free_var_count, std::vector< Node >& sk_vars )
+{
+  if( isRepairableConstant( n ) )
+  {
+    Node sk_var = d_tds->getFreeVarInc(n.getType(),free_var_count);
+    sk_vars.push_back( sk_var );
+    return sk_var;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  // get the most general candidate skeleton of n
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const Node& cn : cur) {
+        visit.push_back(cn);
+      }
+    } else if (it->second.isNull()) {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur) {
+        Node child;
+        // if it is a constant over a type that allows all constants
+        if( isRepairableConstant( cn ) )
+        {
+          // replace it by the next free variable
+          child = d_tds->getFreeVarInc(cn.getType(),free_var_count);
+          sk_vars.push_back( child );
+        }
+        else
+        {
+          it = visited.find(cn);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          child = it->second;
+        }
+        childChanged = childChanged || cn != child;
+        children.push_back(child);
+      }
+      if (childChanged) {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];  
 }
 
 } /* CVC4::theory::quantifiers namespace */
