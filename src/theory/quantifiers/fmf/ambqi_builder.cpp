@@ -605,10 +605,6 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
       construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
     }
     Assert( is_normalized() );
-    //if( !is_normalized() ){
-    //  std::cout << "NON NORMALIZED DEFINITION" << std::endl;
-    //  exit( 10 );
-    //}
     return true;
   }else if( varChCount==1 && ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) ){
     Trace("ambqi-check-debug2") << "Expand variable child..." << std::endl;
