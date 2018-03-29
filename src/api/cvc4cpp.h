@@ -377,11 +377,10 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   APPLY_UF,
-  /**
-   * Boolean term variable
-   * ???
-   */
+#if 0
+  /* Boolean term variable */
   BOOLEAN_TERM_VARIABLE,
+#endif
   /**
    * Cardinality constraint on sort S.
    * Parameters: 2
@@ -391,26 +390,11 @@ enum CVC4_PUBLIC Kind
    *   ???
    */
   CARDINALITY_CONSTRAINT,
-  /**
-   * Combined cardinality constraint.
-   * Parameters: 1
-   *   -[1]: a positive integer constant that bounds the sum of the
-   *         cardinalities of all sorts in the signature
-   * Create with:
-   *   ???
-   */
-  COMBINED_CARDINALITY_CONSTRAINT,
-  /**
-   * Partial uninterpreted function application.
-   * Parameters: n  ??? > 1 ???
-   *   -[1]..[n]: ???
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  PARTIAL_APPLY_UF,
 #if 0
+  /* Combined cardinality constraint.  */
+  COMBINED_CARDINALITY_CONSTRAINT,
+  /* Partial uninterpreted function application.  */
+  PARTIAL_APPLY_UF,
   /* cardinality value of sort S:
    * first parameter is (any) term of sort S */
    CARDINALITY_VALUE,
@@ -448,15 +432,10 @@ enum CVC4_PUBLIC Kind
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MULT,
-  /* Synonym for MULT.
-   * Parameters: n > 1
-   *   -[1]..[n]: Terms of Sort Integer, Real (sorts must match).
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
+#if 0
+  /* Synonym for MULT.  */
   NONLINEAR_MULT,
+#endif
   /**
    * Arithmetic subtraction.
    * Parameters: 2
@@ -2433,6 +2412,7 @@ struct CVC4_PUBLIC KindHashFunction
 {
   size_t operator()(Kind k) const;
 };
+
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
