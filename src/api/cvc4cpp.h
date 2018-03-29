@@ -139,7 +139,6 @@ std::ostream& operator<< (std::ostream& out, const Result& r) CVC4_PUBLIC;
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
-struct SortHashFunction;
 class Datatype;
 
 /**
@@ -343,8 +342,6 @@ struct CVC4_PUBLIC SortHashFunction
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
-
-struct TermHashFunction;
 
 /**
  * A CVC4 Term.
@@ -557,6 +554,14 @@ class CVC4_PUBLIC Term
 };
 
 /**
+ * Hash function for Terms.
+ */
+struct CVC4_PUBLIC TermHashFunction
+{
+  size_t operator()(const Term& t) const;
+};
+
+/**
  * Serialize a term to given stream.
  * @param out the output stream
  * @param t the term to be serialized to the given output stream
@@ -615,15 +620,6 @@ template <typename V>
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
                              unordered_map) CVC4_PUBLIC;
-
-/**
- * Hash function for Terms.
- */
-struct CVC4_PUBLIC TermHashFunction
-{
-  size_t operator()(const Term& t) const;
-};
-
 
 /* -------------------------------------------------------------------------- */
 /* OpTerm                                                                     */
