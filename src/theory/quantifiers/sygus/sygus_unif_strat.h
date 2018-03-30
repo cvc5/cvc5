@@ -90,7 +90,7 @@ enum StrategyType
 std::ostream& operator<<(std::ostream& os, StrategyType st);
 
 class UnifContext;
-  
+
 /**
 * This class stores information regarding an enumerator, including
 * information regarding the role of this enumerator (see EnumRole), its
@@ -98,13 +98,13 @@ class UnifContext;
 *
 * We say an enumerator is a master enumerator if it is the variable that
 * we use to enumerate values for its sort. Master enumerators may have
-* (possibly multiple) slave enumerators, stored in d_enum_slave. When 
-* constructing a sygus unifciation strategy, we make the first enumerator for 
+* (possibly multiple) slave enumerators, stored in d_enum_slave. When
+* constructing a sygus unifciation strategy, we make the first enumerator for
 * each type a master enumerator, and any additional ones slaves of it.
 */
 class EnumInfo
 {
-  public:
+ public:
   EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
   /** initialize this class
   *
@@ -141,6 +141,7 @@ class EnumInfo
   * values are enumerated for this enumerator.
   */
   std::vector<Node> d_enum_slave;
+
  private:
   /**
     * Whether an enumerated value for this conjecture has solved the entire
@@ -155,22 +156,22 @@ class EnumInfo
 
 class EnumTypeInfoStrat;
 
- /** represents a node in the strategy graph
-  *
-  * It contains a list of possible strategies which are tried during calls
-  * to constructSolution.
-  */
+/** represents a node in the strategy graph
+ *
+ * It contains a list of possible strategies which are tried during calls
+ * to constructSolution.
+ */
 class StrategyNode
 {
-  public:
+ public:
   StrategyNode() {}
   ~StrategyNode();
   /** the set of strategies to try at this node in the strategy graph */
   std::vector<EnumTypeInfoStrat*> d_strats;
 };
 
-/** 
- * Stores all enumerators and strategies for a SyGuS datatype type. 
+/**
+ * Stores all enumerators and strategies for a SyGuS datatype type.
  */
 class EnumTypeInfo
 {
@@ -219,10 +220,9 @@ class EnumTypeInfoStrat
   bool isValid(UnifContext* x);
 };
 
-
-/** 
+/**
  * Stores strategy and enumeration information for a function-to-synthesize.
- * 
+ *
  * When this class is initialized, we construct a "strategy tree" based on
  * the grammar of the function to synthesize f. This tree is represented by
  * the above classes.
@@ -231,7 +231,6 @@ class SygusUnifStrategy
 {
  public:
   SygusUnifStrategy() {}
-  
   /** initialize
    *
    * This initializes this class with function-to-synthesize f. We also call
@@ -254,9 +253,10 @@ class SygusUnifStrategy
   /** maps enumerators to relevant information */
   std::map<Node, EnumInfo> d_einfo;
   /** list of all enumerators for the function-to-synthesize */
-  std::vector<Node> d_esym_list;  
+  std::vector<Node> d_esym_list;
   /** Info for sygus datatype type occurring in a field of d_root */
-  std::map<TypeNode, EnumTypeInfo> d_tinfo;  
+  std::map<TypeNode, EnumTypeInfo> d_tinfo;
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -267,7 +267,7 @@ class SygusUnifStrategy
     * which encodes the overall syntactic restrictions on the space
     * of solutions.
     */
-  TypeNode d_root;  
+  TypeNode d_root;
   /**
     * Maps sygus datatypes to their master enumerator. This is the (single)
     * enumerator of that type that we enumerate values for.
@@ -275,12 +275,12 @@ class SygusUnifStrategy
   std::map<TypeNode, Node> d_master_enum;
   /** Initialize necessary information for (sygus) type tn */
   void initializeType(TypeNode tn);
-  
-   //-----------------------debug printing
+
+  //-----------------------debug printing
   /** print ind indentations on trace c */
   static void indent(const char* c, int ind);
-   //-----------------------end debug printing
-  
+  //-----------------------end debug printing
+
   //------------------------------ strategy registration
   /** collect enumerator types
    *
@@ -334,9 +334,8 @@ class SygusUnifStrategy
       std::map<Node, std::map<unsigned, bool> >& needs_cons,
       int ind,
       bool isCond);
-  //------------------------------ end strategy registration 
+  //------------------------------ end strategy registration
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

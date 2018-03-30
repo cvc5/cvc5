@@ -15,8 +15,8 @@
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
@@ -79,9 +79,9 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
 }
 
 void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
-                           Node f,
-                           std::vector<Node>& enums,
-                           std::vector<Node>& lemmas)
+                                   Node f,
+                                   std::vector<Node>& enums,
+                                   std::vector<Node>& lemmas)
 {
   Assert(d_candidate.isNull());
   d_candidate = f;
@@ -91,8 +91,7 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
   // collect the enumerator types and form the strategy
   collectEnumeratorTypes(d_root, role_equal);
   // add the enumerators
-  enums.insert(
-      enums.end(), d_esym_list.begin(), d_esym_list.end());
+  enums.insert(enums.end(), d_esym_list.begin(), d_esym_list.end());
   // learn redundant ops
   staticLearnRedundantOps(lemmas);
 }
@@ -112,9 +111,9 @@ Node SygusUnifStrategy::getRootEnumerator()
 // ----------------------------- establishing enumeration types
 
 void SygusUnifStrategy::registerEnumerator(Node et,
-                                   TypeNode tn,
-                                   EnumRole enum_role,
-                                   bool inSearch)
+                                           TypeNode tn,
+                                           EnumRole enum_role,
+                                           bool inSearch)
 {
   if (d_einfo.find(et) == d_einfo.end())
   {
@@ -138,8 +137,8 @@ void SygusUnifStrategy::registerEnumerator(Node et,
       }
       else
       {
-        Trace("sygus-unif-debug")
-            << "Make " << et << " a slave of " << itn->second << std::endl;
+        Trace("sygus-unif-debug") << "Make " << et << " a slave of "
+                                  << itn->second << std::endl;
         d_einfo[itn->second].d_enum_slave.push_back(et);
       }
     }
@@ -238,8 +237,8 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
       echildren.push_back(sbv);
     }
     Node eut = nm->mkNode(APPLY_UF, echildren);
-    Trace("sygus-unif-debug2")
-        << "  Test evaluation of " << eut << "..." << std::endl;
+    Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
+                               << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold(eut);
     Trace("sygus-unif-debug2") << "  ...got " << eut;
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
@@ -280,8 +279,8 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
             static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
         echildren[0] = Node::fromExpr(cdt.getSygusEvaluationFunc());
         echildren[1] = sks[k];
-        Trace("sygus-unif-debug2")
-            << "...set eval dt to " << sks[k] << std::endl;
+        Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
+                                   << std::endl;
         Node esk = nm->mkNode(APPLY_UF, echildren);
         vs.push_back(esk);
         Node tvar = nm->mkSkolem("templ", esk.getType());
@@ -289,12 +288,12 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
         Trace("sygus-unif-debug2") << "* template inference : looking for "
                                    << tvar << " for arg " << k << std::endl;
         ss.push_back(tvar);
-        Trace("sygus-unif-debug2")
-            << "* substitute : " << esk << " -> " << tvar << std::endl;
+        Trace("sygus-unif-debug2") << "* substitute : " << esk << " -> " << tvar
+                                   << std::endl;
       }
       eut = eut.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
-      Trace("sygus-unif-debug2")
-          << "Constructor " << j << ", base term is " << eut << std::endl;
+      Trace("sygus-unif-debug2") << "Constructor " << j << ", base term is "
+                                 << eut << std::endl;
       std::map<unsigned, Node> test_args;
       if (dt[j].isSygusIdFunc())
       {
@@ -310,8 +309,8 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
 
       // TODO : prefix grouping prefix/suffix
       bool isAssoc = TermUtil::isAssoc(eut.getKind());
-      Trace("sygus-unif-debug2")
-          << eut.getKind() << " isAssoc = " << isAssoc << std::endl;
+      Trace("sygus-unif-debug2") << eut.getKind() << " isAssoc = " << isAssoc
+                                 << std::endl;
       std::map<unsigned, std::vector<unsigned> > assoc_combine;
       std::vector<unsigned> assoc_waiting;
       int assoc_last_valid_index = -1;
@@ -387,8 +386,8 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
           for (std::pair<const unsigned, Node>& ta : test_args)
           {
             unsigned k = ta.first;
-            Trace("sygus-unif-debug2")
-                << "- processing argument " << k << "..." << std::endl;
+            Trace("sygus-unif-debug2") << "- processing argument " << k << "..."
+                                       << std::endl;
             if (templ_injection.find(k) != templ_injection.end())
             {
               unsigned sk_index = templ_injection[k];
@@ -401,8 +400,8 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
               }
               else
               {
-                Trace("sygus-unif-debug")
-                    << "...fail: duplicate argument used" << std::endl;
+                Trace("sygus-unif-debug") << "...fail: duplicate argument used"
+                                          << std::endl;
                 cop_to_strat.erase(cop);
                 break;
               }
@@ -438,8 +437,8 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
               }
               else
               {
-                Trace("sygus-unif-debug")
-                    << "  Arg " << k << ", index " << sk_index << std::endl;
+                Trace("sygus-unif-debug") << "  Arg " << k << ", index "
+                                          << sk_index << std::endl;
                 Assert(teut == ss[sk_index]);
               }
             }
@@ -489,9 +488,9 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
     for (std::pair<const Node, std::vector<StrategyType> >& cstr : cop_to_strat)
     {
       Node cop = cstr.first;
-      Trace("sygus-unif-debug")
-          << "Constructor " << cop << " has " << cstr.second.size()
-          << " strategies..." << std::endl;
+      Trace("sygus-unif-debug") << "Constructor " << cop << " has "
+                                << cstr.second.size() << " strategies..."
+                                << std::endl;
       for (unsigned s = 0, ssize = cstr.second.size(); s < ssize; s++)
       {
         EnumTypeInfoStrat* cons_strat = new EnumTypeInfoStrat;
@@ -499,9 +498,9 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
 
         cons_strat->d_this = strat;
         cons_strat->d_cons = cop;
-        Trace("sygus-unif-debug")
-            << "Process strategy #" << s << " for operator : " << cop << " : "
-            << strat << std::endl;
+        Trace("sygus-unif-debug") << "Process strategy #" << s
+                                  << " for operator : " << cop << " : " << strat
+                                  << std::endl;
         Assert(cop_to_child_types.find(cop) != cop_to_child_types.end());
         std::vector<TypeNode>& childTypes = cop_to_child_types[cop];
         Assert(cop_to_carg_list.find(cop) != cop_to_carg_list.end());
@@ -577,9 +576,9 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
                    != d_tinfo[ct].d_enum.end());
             et = d_tinfo[ct].d_enum[erole_c];
           }
-          Trace("sygus-unif-debug")
-              << "Register child enumerator " << et << ", arg " << j << " of "
-              << cop << ", role = " << erole_c << std::endl;
+          Trace("sygus-unif-debug") << "Register child enumerator " << et
+                                    << ", arg " << j << " of " << cop
+                                    << ", role = " << erole_c << std::endl;
           Assert(!et.isNull());
           cons_strat->d_cenum.push_back(std::pair<Node, NodeRole>(et, nrole_c));
         }
@@ -624,10 +623,11 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
   }
 }
 
-bool SygusUnifStrategy::inferTemplate(unsigned k,
-                              Node n,
-                              std::map<Node, unsigned>& templ_var_index,
-                              std::map<unsigned, unsigned>& templ_injection)
+bool SygusUnifStrategy::inferTemplate(
+    unsigned k,
+    Node n,
+    std::map<Node, unsigned>& templ_var_index,
+    std::map<unsigned, unsigned>& templ_injection)
 {
   if (n.getNumChildren() == 0)
   {
@@ -638,8 +638,8 @@ bool SygusUnifStrategy::inferTemplate(unsigned k,
       std::map<unsigned, unsigned>::iterator itti = templ_injection.find(k);
       if (itti == templ_injection.end())
       {
-        Trace("sygus-unif-debug")
-            << "...set template injection " << k << " -> " << kk << std::endl;
+        Trace("sygus-unif-debug") << "...set template injection " << k << " -> "
+                                  << kk << std::endl;
         templ_injection[k] = kk;
       }
       else if (itti->second != kk)
@@ -708,8 +708,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
             datatypes::DatatypesRewriter::mkTester(em, nc.first, dt).negate();
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {
-          Trace("sygus-unif")
-              << "...can exclude based on  : " << tst << std::endl;
+          Trace("sygus-unif") << "...can exclude based on  : " << tst
+                              << std::endl;
           lemmas.push_back(tst);
         }
       }
@@ -760,8 +760,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       TypeNode etn = e.getType();
 
       // enumerator type info
-      std::map<TypeNode, EnumTypeInfo>::iterator itt =
-          d_tinfo.find(etn);
+      std::map<TypeNode, EnumTypeInfo>::iterator itt = d_tinfo.find(etn);
       Assert(itt != d_tinfo.end());
       EnumTypeInfo& tinfo = itt->second;
 
@@ -836,7 +835,6 @@ void SygusUnifStrategy::staticLearnRedundantOps(
 }
 
 void EnumInfo::initialize(EnumRole role) { d_role = role; }
-
 bool EnumTypeInfoStrat::isValid(UnifContext* x)
 {
   if ((x->d_has_string_pos == role_string_prefix
@@ -868,7 +866,6 @@ void SygusUnifStrategy::indent(const char* c, int ind)
     }
   }
 }
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

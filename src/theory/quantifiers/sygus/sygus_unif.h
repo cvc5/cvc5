@@ -343,7 +343,7 @@ class SygusUnif
   std::vector<std::vector<Node> > d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
-  
+
   //-----------------------debug printing
   /** print ind indentations on trace c */
   static void indent(const char* c, int ind);
@@ -352,7 +352,7 @@ class SygusUnif
                         std::vector<Node>& vals,
                         bool pol = true);
   //-----------------------end debug printing
-  
+
   //------------------------------ representation of a enumeration strategy
   /**
   * This class stores information regarding an enumerator, including:
