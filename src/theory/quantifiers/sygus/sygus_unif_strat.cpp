@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_unif.cpp
+/*! \file sygus_unif_strat.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sygus_unif
+ ** \brief Implementation of sygus_unif_strat
  **/
 
-#include "theory/quantifiers/sygus/sygus_unif.h"
+#include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
