@@ -491,41 +491,16 @@ class SygusUnif
     std::map<NodeRole, StrategyNode> d_snodes;
   };
 
-  /** stores strategy and enumeration information for a function-to-synthesize
-   */
-  class CandidateInfo
-  {
-   public:
-    CandidateInfo() : d_check_sol(false), d_cond_count(0) {}
-    Node d_this_candidate;
-    /**
-     * The root sygus datatype for the function-to-synthesize,
-     * which encodes the overall syntactic restrictions on the space
-     * of solutions.
-     */
-    TypeNode d_root;
-    /** Info for sygus datatype type occurring in a field of d_root */
-    std::map<TypeNode, EnumTypeInfo> d_tinfo;
-    /** list of all enumerators for the function-to-synthesize */
-    std::vector<Node> d_esym_list;
-    /**
-     * Maps sygus datatypes to their search enumerator. This is the (single)
-     * enumerator of that type that we enumerate values for.
-     */
-    std::map<TypeNode, Node> d_search_enum;
+
     bool d_check_sol;
     unsigned d_cond_count;
     Node d_solution;
-    void initialize(Node c);
-    void initializeType(TypeNode tn);
-    Node getRootEnumerator();
-  };
+
   /** the candidate for this class */
   Node d_candidate;
   /** maps a function-to-synthesize to the above information */
-  CandidateInfo d_cinfo;
+  SygusUnifStrategy d_strategy;
 
-  //------------------------------ representation of an enumeration strategy
   /** domain-specific enumerator exclusion techniques
    *
    * Returns true if the value v for x can be excluded based on a
@@ -556,61 +531,6 @@ class SygusUnif
   bool useStrContainsEnumeratorExclude(Node x, EnumInfo& ei);
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
-
-  //------------------------------ strategy registration
-  /** collect enumerator types
-   *
-   * This builds the strategy for enumerated values of type tn for the given
-   * role of nrole, for solutions to function-to-synthesize of this class.
-   */
-  void collectEnumeratorTypes(TypeNode tn, NodeRole nrole);
-  /** register enumerator
-   *
-   * This registers that et is an enumerator of type tn, having enumerator
-   * role enum_role.
-   *
-   * inSearch is whether we will enumerate values based on this enumerator.
-   * A strategy node is represented by a (enumerator, node role) pair. Hence,
-   * we may use enumerators for which this flag is false to represent strategy
-   * nodes that have child strategies.
-   */
-  void registerEnumerator(Node et,
-                          TypeNode tn,
-                          EnumRole enum_role,
-                          bool inSearch);
-  /** infer template */
-  bool inferTemplate(unsigned k,
-                     Node n,
-                     std::map<Node, unsigned>& templ_var_index,
-                     std::map<unsigned, unsigned>& templ_injection);
-  /** static learn redundant operators
-   *
-   * This learns static lemmas for pruning enumerative space based on the
-   * strategy for the function-to-synthesize of this class, and stores these
-   * into lemmas.
-   */
-  void staticLearnRedundantOps(std::vector<Node>& lemmas);
-  /** helper for static learn redundant operators
-   *
-   * (e, nrole) specify the strategy node in the graph we are currently
-   * analyzing, visited stores the nodes we have already visited.
-   *
-   * This method builds the mapping needs_cons, which maps (master) enumerators
-   * to a map from the constructors that it needs.
-   *
-   * ind is the depth in the strategy graph we are at (for debugging).
-   *
-   * isCond is whether the current enumerator is conditional (beneath a
-   * conditional of an strat_ITE strategy).
-   */
-  void staticLearnRedundantOps(
-      Node e,
-      NodeRole nrole,
-      std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map<unsigned, bool> >& needs_cons,
-      int ind,
-      bool isCond);
-  //------------------------------ end strategy registration
 
   /** helper function for construct solution.
    *
@@ -644,41 +564,6 @@ class SygusUnif
                                    std::map<Node, std::vector<unsigned> > incr,
                                    UnifContext& x);
   //------------------------------ end constructing solutions
-
-  /** represents a strategy for a SyGuS datatype type
-   *
-   * This represents a possible strategy to apply when processing a strategy
-   * node in constructSolution. When applying the strategy represented by this
-   * class, we may make recursive calls to the children of the strategy,
-   * given in d_cenum. If all recursive calls to constructSolution for these
-   * children are successful, say:
-   *   constructSolution( d_cenum[1], ... ) = t1,
-   *    ...,
-   *   constructSolution( d_cenum[n], ... ) = tn,
-   * Then, the solution returned by this strategy is
-   *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
-   * where * is application of substitution.
-   */
-  class EnumTypeInfoStrat
-  {
-   public:
-    /** the type of strategy this represents */
-    StrategyType d_this;
-    /** the sygus datatype constructor that induced this strategy
-     *
-     * For example, this may be a sygus datatype whose sygus operator is ITE,
-     * if the strategy type above is strat_ITE.
-     */
-    Node d_cons;
-    /** children of this strategy */
-    std::vector<std::pair<Node, NodeRole> > d_cenum;
-    /** the arguments for the (templated) solution */
-    std::vector<Node> d_sol_templ_args;
-    /** the template for the solution */
-    Node d_sol_templ;
-    /** Returns true if argument is valid strategy in context x */
-    bool isValid(SygusUnif* pbe, UnifContext& x);
-  };
 };
 
 } /* CVC4::theory::quantifiers namespace */
