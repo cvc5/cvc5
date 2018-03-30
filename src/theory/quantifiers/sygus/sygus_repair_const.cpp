@@ -49,6 +49,10 @@ void SygusRepairConst::initialize(Node base_inst, const std::vector< Node >& can
     registerSygusType( tn, tprocessed );
   }
   Trace("sygus-repair-const") << "  allow constants : " << d_allow_constant_grammar << std::endl;
+  
+  // check if we are in a logic where we have an efficient procedure
+  // for quantified constraints.  TODO
+  //LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
 }
 
 // recursion depth bounded by number of types in grammar (small)
@@ -151,7 +155,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   // check whether it is not in the current logic, e.g. non-linear arithmetic.
   // if so, undo replacements until it is in the current logic.
   LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
-  if(logic. logic.isLinear())
+  if(logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
     fo_body = fitToLogic( logic, fo_body, candidates, candidate_skeletons, sk_vars, sk_vars_to_subs );
   }
@@ -354,6 +358,7 @@ Node SygusRepairConst::getFoQuery( const std::vector< Node >& candidates, const 
           {
             Node sk_fov = nm->mkSkolem("k",cur.getType() );
             d_sk_to_fo[v] = sk_fov;
+            d_fo_to_sk[sk_fov] = v;
             itf = d_sk_to_fo.find( v );
           }
           visited[cur] = itf->second;
@@ -394,11 +399,76 @@ Node SygusRepairConst::getFoQuery( const std::vector< Node >& candidates, const 
 }
 
 
-Node SygusRepairConst::fitToLogic( LogicInfo& logic, Node n, const std::vector< Node >& candidates, std::vector< Node >& candidate_skeletons, std::vector< Node >& sk_vars, std::map< Node, Node >& sk_vars_to_subs )
+Node SygusRepairConst::fitToLogic( LogicInfo& logic, Node n, const std::vector< Node >& candidates, std::vector< Node >& candidate_skeletons, std::vector< Node >& sk_vars, 
+                                   std::map< Node, Node >& sk_vars_to_subs )
 {
+  std::vector< Node > rm_var;
+  Node exc_var;
+  while( getFitToLogicExcludeVar(logic,n,exc_var) )
+  {
+    if(exc_var.isNull() )
+    {
+      return n;
+    }
+    TNode tvar = exc_var;
+    Assert( sk_vars_to_subs.find(exc_var)!=sk_vars_to_subs.end() );
+    TNode tsubs = sk_vars_to_subs[exc_var];
+    // revert the substitution
+    for( unsigned i=0,size=candidate_skeletons.size(); i<size; i++ )
+    {
+      candidate_skeletons[i] = candidate_skeletons[i].substitute( tvar, tsubs );
+    }
+    // remove the variable
+    sk_vars_to_subs.erase(exc_var);
+    std::vector< Node >::iterator it = std::find(sk_vars.begin(),sk_vars.end(),exc_var);
+    Assert( it != sk_vars.end() );
+    sk_vars.erase( it );
+    // reconstruct the query
+    n = getFoQuery(candidates, candidate_skeletons, sk_vars );
+  }
+  return Node::null();
+}
+
+bool SygusRepairConst::getFitToLogicExcludeVar( LogicInfo& logic, Node n, Node& exvar )
+{
+  bool restrictLA = logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear();
   
+  // should have at least one restriction
+  Assert( restrictLA );
   
-  return n;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited.insert(cur);
+      if( restrictLA && cur.getKind()==NONLINEAR_MULT )
+      {
+        for( const Node& ccur : cur )
+        {
+          std::map< Node, Node >::iterator itf = d_fo_to_sk.find(ccur);
+          if( itf!=d_fo_to_sk.end() )
+          {
+            exvar = itf->second;
+            return true;
+          }
+        }
+        return false;
+      }
+      for (const Node& ccur : cur)
+      {
+        visit.push_back(ccur);
+      }
+    }
+  } while (!visit.empty());  
+  
+  return true;
 }
 
 } /* CVC4::theory::quantifiers namespace */

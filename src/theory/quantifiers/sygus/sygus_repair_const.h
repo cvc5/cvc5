@@ -20,6 +20,7 @@
 #include <unordered_set>
 #include "expr/node.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/logic_info.h"
 
 namespace CVC4 {
 namespace theory {
@@ -90,6 +91,8 @@ class SygusRepairConst
   bool d_allow_constant_grammar;
   /** map from skeleton variables to first-order variables */
   std::map< Node, Node > d_sk_to_fo;
+  /** reverse map of d_sk_to_fo */
+  std::map< Node, Node > d_fo_to_sk;
   /** a cache of satisfiability queries of the form [***] above we have tried */
   std::unordered_set<Node, NodeHashFunction> d_queries;
   /** 
@@ -125,8 +128,14 @@ class SygusRepairConst
   Node getFoQuery( const std::vector< Node >& candidates, const std::vector< Node >& candidate_skeletons, const std::vector< Node >& sk_vars );
   /** fit to logic
    * 
+   * TODO
    */
   Node fitToLogic( LogicInfo& logic, Node n, const std::vector< Node >& candidates, std::vector< Node >& candidate_skeletons, std::vector< Node >& sk_vars, std::map< Node, Node >& sk_vars_to_subs );
+  /** get fit to logic exclusion variable 
+   * 
+   * TODO
+   */
+  bool getFitToLogicExcludeVar( LogicInfo& logic, Node n, Node& exvar );
 };
 
 } /* CVC4::theory::quantifiers namespace */
