@@ -110,8 +110,23 @@ class SygusRepairConst
    * returning canonical skeletons, the free variables we use in this 
    * replacement are taken from TermDbSygus, where we track indices
    * in free_var_count. Variables we introduce in this way are added to sk_vars.
+   * The mapping sk_vars_to_subs contains entries v -> c, where v is a
+   * variable in sk_vars, and c is the term in n that it replaced.
    */
-  Node getSkeleton( Node n, std::map< TypeNode, int >& free_var_count, std::vector< Node >& sk_vars );
+  Node getSkeleton( Node n, std::map< TypeNode, int >& free_var_count, std::vector< Node >& sk_vars, std::map< Node, Node >& sk_vars_to_subs );
+  /** get first-order query 
+   * 
+   * This function returns a formula that is equivalent to the negation of the 
+   * synthesis conjecture, where candidates are replaced by candidate_skeletons, 
+   * whose free variables are in the set sk_vars. The returned formula
+   * is a first-order (quantified) formula in the background logic, without UF,
+   * of the form [***] above.
+   */
+  Node getFoQuery( const std::vector< Node >& candidates, const std::vector< Node >& candidate_skeletons, const std::vector< Node >& sk_vars );
+  /** fit to logic
+   * 
+   */
+  Node fitToLogic( LogicInfo& logic, Node n, const std::vector< Node >& candidates, std::vector< Node >& candidate_skeletons, std::vector< Node >& sk_vars, std::map< Node, Node >& sk_vars_to_subs );
 };
 
 } /* CVC4::theory::quantifiers namespace */
