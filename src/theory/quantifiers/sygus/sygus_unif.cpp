@@ -26,58 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-std::ostream& operator<<(std::ostream& os, EnumRole r)
-{
-  switch (r)
-  {
-    case enum_invalid: os << "INVALID"; break;
-    case enum_io: os << "IO"; break;
-    case enum_ite_condition: os << "CONDITION"; break;
-    case enum_concat_term: os << "CTERM"; break;
-    default: os << "enum_" << static_cast<unsigned>(r); break;
-  }
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, NodeRole r)
-{
-  switch (r)
-  {
-    case role_equal: os << "equal"; break;
-    case role_string_prefix: os << "string_prefix"; break;
-    case role_string_suffix: os << "string_suffix"; break;
-    case role_ite_condition: os << "ite_condition"; break;
-    default: os << "role_" << static_cast<unsigned>(r); break;
-  }
-  return os;
-}
-
-EnumRole getEnumeratorRoleForNodeRole(NodeRole r)
-{
-  switch (r)
-  {
-    case role_equal: return enum_io; break;
-    case role_string_prefix: return enum_concat_term; break;
-    case role_string_suffix: return enum_concat_term; break;
-    case role_ite_condition: return enum_ite_condition; break;
-    default: break;
-  }
-  return enum_invalid;
-}
-
-std::ostream& operator<<(std::ostream& os, StrategyType st)
-{
-  switch (st)
-  {
-    case strat_ITE: os << "ITE"; break;
-    case strat_CONCAT_PREFIX: os << "CONCAT_PREFIX"; break;
-    case strat_CONCAT_SUFFIX: os << "CONCAT_SUFFIX"; break;
-    case strat_ID: os << "ID"; break;
-    default: os << "strat_" << static_cast<unsigned>(st); break;
-  }
-  return os;
-}
-
 UnifContext::UnifContext() : d_has_string_pos(role_invalid)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
