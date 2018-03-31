@@ -418,8 +418,7 @@ class SygusUnif
   /** maps enumerators to the information above */
   std::map<Node, EnumCache> d_ecache;
 
-
-  //TODO
+  // TODO
   bool d_check_sol;
   unsigned d_cond_count;
   Node d_solution;

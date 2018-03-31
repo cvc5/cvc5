@@ -479,7 +479,7 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
 
-  d_strategy.initialize(qe,f,enums,lemmas);
+  d_strategy.initialize(qe, f, enums, lemmas);
 }
 
 void SygusUnif::resetExamples()
@@ -540,7 +540,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     for (unsigned s = 0; s < it->second.d_enum_slave.size(); s++)
     {
       Node xs = it->second.d_enum_slave[s];
-      
+
       std::map<Node, EnumInfo>::iterator itiv = d_strategy.d_einfo.find(xs);
       Assert(itiv != d_strategy.d_einfo.end());
       EnumInfo& eiv = itiv->second;
@@ -548,7 +548,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       std::map<Node, EnumCache>::iterator itcv = d_ecache.find(xs);
       Assert(itcv != d_ecache.end());
       EnumCache& ecv = itcv->second;
-      
+
       Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
       // bool prevIsCover = false;
       if (eiv.getRole() == enum_io)
@@ -634,9 +634,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
               if (!subsume.empty())
               {
                 ecv.d_enum_subsume.insert(
-                    ecv.d_enum_subsume.end(),
-                    subsume.begin(),
-                    subsume.end());
+                    ecv.d_enum_subsume.end(), subsume.begin(), subsume.end());
                 Trace("sygus-pbe-enum")
                     << " and subsumed " << subsume.size() << " terms";
               }
@@ -709,8 +707,8 @@ Node SygusUnif::constructSolution()
     // only check if an enumerator updated
     if (d_check_sol)
     {
-      Trace("sygus-pbe") << "Construct solution, #iterations = "
-                         << d_cond_count << std::endl;
+      Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
+                         << std::endl;
       d_check_sol = false;
       // try multiple times if we have done multiple conditions, due to
       // non-determinism
@@ -759,10 +757,10 @@ bool SygusUnif::useStrContainsEnumeratorExclude(Node e)
     {
       return itx->second;
     }
-    Trace("sygus-pbe-enum-debug")
-        << "Is " << e << " is str.contains exclusion?" << std::endl;
+    Trace("sygus-pbe-enum-debug") << "Is " << e << " is str.contains exclusion?"
+                                  << std::endl;
     d_use_str_contains_eexc[e] = true;
-    std::map< Node, EnumInfo >::iterator itei = d_strategy.d_einfo.find(e);
+    std::map<Node, EnumInfo>::iterator itei = d_strategy.d_einfo.find(e);
     Assert(itei != d_strategy.d_einfo.end());
     EnumInfo& ei = itei->second;
     for (const Node& sn : ei.d_enum_slave)
@@ -809,9 +807,9 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node e,
     }
     // check if all examples had longer length that the output
     Assert(d_examples_out.size() == results.size());
-    Trace("sygus-pbe-cterm-debug")
-        << "Check enumerator exclusion for " << e << " -> "
-        << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
+    Trace("sygus-pbe-cterm-debug") << "Check enumerator exclusion for " << e
+                                   << " -> " << d_tds->sygusToBuiltin(v)
+                                   << " based on str.contains." << std::endl;
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
@@ -847,8 +845,7 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node e,
   return false;
 }
 
-void SygusUnif::EnumCache::addEnumValue(Node v,
-                                       std::vector<Node>& results)
+void SygusUnif::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 {
   // should not have been enumerated before
   Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
@@ -945,8 +942,8 @@ Node SygusUnif::constructSolution(Node e,
 
   std::map<Node, EnumCache>::iterator itc = d_ecache.find(e);
   Assert(itc != d_ecache.end());
-  EnumCache& ecache = itc->second;  
-  
+  EnumCache& ecache = itc->second;
+
   Node ret_dt;
   if (nrole == role_equal)
   {
@@ -1012,11 +1009,9 @@ Node SygusUnif::constructSolution(Node e,
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;
-          for (unsigned i = 0, size = ecache.d_enum_vals.size(); i < size;
-               i++)
+          for (unsigned i = 0, size = ecache.d_enum_vals.size(); i < size; i++)
           {
-            if (x.isStringSolved(
-                    this, ex_vals, ecache.d_enum_vals_res[i]))
+            if (x.isStringSolved(this, ex_vals, ecache.d_enum_vals_res[i]))
             {
               str_solved.push_back(ecache.d_enum_vals[i]);
             }
@@ -1214,10 +1209,11 @@ Node SygusUnif::constructSolution(Node e,
             Node ce = cenum.first;
 
             // register the condition enumerator
-            //std::map<Node, EnumInfo>::iterator itnc = d_strategy.d_einfo.find(ce);
-            //Assert(itnc != d_strategy.d_einfo.end());
-            //EnumInfo& einfo_child = itnc->second;
-            
+            // std::map<Node, EnumInfo>::iterator itnc =
+            // d_strategy.d_einfo.find(ce);
+            // Assert(itnc != d_strategy.d_einfo.end());
+            // EnumInfo& einfo_child = itnc->second;
+
             std::map<Node, EnumCache>::iterator itcc = d_ecache.find(ce);
             Assert(itnc != d_ecache.end());
             EnumCache& ecache_child = itcc->second;
