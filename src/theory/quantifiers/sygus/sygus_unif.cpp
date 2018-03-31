@@ -543,9 +543,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       Assert(itiv != d_strategy.d_einfo.end());
       EnumInfo& eiv = itiv->second;
 
-      std::map<Node, EnumCache>::iterator itcv = d_ecache.find(xs);
-      Assert(itcv != d_ecache.end());
-      EnumCache& ecv = itcv->second;
+      EnumCache& ecv = d_ecache[xs];
 
       Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
       // bool prevIsCover = false;
@@ -938,9 +936,7 @@ Node SygusUnif::constructSolution(Node e,
   Assert(itn != d_strategy.d_einfo.end());
   EnumInfo& einfo = itn->second;
 
-  std::map<Node, EnumCache>::iterator itc = d_ecache.find(e);
-  Assert(itc != d_ecache.end());
-  EnumCache& ecache = itc->second;
+  EnumCache& ecache = d_ecache[e];
 
   Node ret_dt;
   if (nrole == role_equal)
@@ -982,23 +978,13 @@ Node SygusUnif::constructSolution(Node e,
       {
         // check if a current value that closes all examples
         // get the term enumerator for this type
-        bool success = true;
-        std::map<Node, EnumCache>::iterator itet;
         std::map<EnumRole, Node>::iterator itnt =
             tinfo.d_enum.find(enum_concat_term);
         if (itnt != tinfo.d_enum.end())
         {
           Node et = itnt->second;
-          itet = d_ecache.find(et);
-          Assert(itet != d_ecache.end());
-        }
-        else
-        {
-          success = false;
-        }
-        if (success)
-        {
-          EnumCache& ecachet = itet->second;
+
+          EnumCache& ecachet = d_ecache[et];
           // get the current examples
           std::vector<String> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
@@ -1186,16 +1172,14 @@ Node SygusUnif::constructSolution(Node e,
           std::vector<Node> prev;
           if (strat == strat_ITE && sc > 0)
           {
-            std::map<Node, EnumCache>::iterator itnc =
-                d_ecache.find(split_cond_enum);
-            Assert(itnc != d_ecache.end());
+            EnumCache& ecache_cond = d_ecache[split_cond_enum];
             Assert(split_cond_res_index >= 0);
             Assert(split_cond_res_index
-                   < (int)itnc->second.d_enum_vals_res.size());
+                   < (int)ecache_cond.d_enum_vals_res.size());
             prev = x.d_vals;
             bool ret = x.updateContext(
                 this,
-                itnc->second.d_enum_vals_res[split_cond_res_index],
+                ecache_cond.d_enum_vals_res[split_cond_res_index],
                 sc == 1);
             AlwaysAssert(ret);
           }
@@ -1205,15 +1189,7 @@ Node SygusUnif::constructSolution(Node e,
           {
             Node ce = cenum.first;
 
-            // register the condition enumerator
-            // std::map<Node, EnumInfo>::iterator itnc =
-            // d_strategy.d_einfo.find(ce);
-            // Assert(itnc != d_strategy.d_einfo.end());
-            // EnumInfo& einfo_child = itnc->second;
-
-            std::map<Node, EnumCache>::iterator itcc = d_ecache.find(ce);
-            Assert(itcc != d_ecache.end());
-            EnumCache& ecache_child = itcc->second;
+            EnumCache& ecache_child = d_ecache[ce];
 
             // only used if the return value is not modified
             if (!x.isReturnValueModified())
@@ -1230,8 +1206,7 @@ Node SygusUnif::constructSolution(Node e,
                 {
                   std::pair<Node, NodeRole>& te_pair = etis->d_cenum[i];
                   Node te = te_pair.first;
-                  std::map<Node, EnumCache>::iterator itnt = d_ecache.find(te);
-                  Assert(itnt != d_ecache.end());
+                  EnumCache& ecache_te = d_ecache[te];
                   bool branch_pol = (i == 1);
                   // for each condition, get terms that satisfy it in this
                   // branch
@@ -1241,7 +1216,7 @@ Node SygusUnif::constructSolution(Node e,
                   {
                     Node cond = ecache_child.d_enum_vals[k];
                     std::vector<Node> solved;
-                    itnt->second.d_term_trie.getSubsumedBy(
+                    ecache_te.d_term_trie.getSubsumedBy(
                         ecache_child.d_enum_vals_res[k], branch_pol, solved);
                     Trace("sygus-pbe-dt-debug2")
                         << "  reg : PBE: " << d_tds->sygusToBuiltin(cond)
