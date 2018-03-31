@@ -128,12 +128,30 @@ class SygusRepairConst
   Node getFoQuery( const std::vector< Node >& candidates, const std::vector< Node >& candidate_skeletons, const std::vector< Node >& sk_vars );
   /** fit to logic
    * 
-   * TODO
+   * This function ensures that a query of the form [***] above fits the given
+   * logic. In our approach for constant repair, replacing constants by
+   * variables may introduce e.g. non-linearity. If non-linear arithmetic is
+   * not enabled, we must undo some of the variables we introduced when
+   * inferring candidate skeletons.
+   * 
+   * This function may remove variables from sk_vars and the map 
+   * sk_vars_to_subs. The skeletons candidate_skeletons are obtained by
+   * getSkeleton(...) on the resulting vectors. If this function returns a 
+   * non-null node n', then n' is getFoQuery(...) on the resulting vectors, and
+   * n' is in the given logic. The function may return null if it is not 
+   * possible to find a n' of this form.
    */
   Node fitToLogic( LogicInfo& logic, Node n, const std::vector< Node >& candidates, std::vector< Node >& candidate_skeletons, std::vector< Node >& sk_vars, std::map< Node, Node >& sk_vars_to_subs );
   /** get fit to logic exclusion variable 
    * 
-   * TODO
+   * If n is not in the given logic, then this method either returns false,
+   * or returns true and sets exvar to some variable in the domain of 
+   * d_fo_to_sk, that must be replaced by a constant for n to be in the given 
+   * logic. For example, for logic linear arithemic, for input:
+   *    x * y = 5
+   * where x is in the domain of d_fo_to_sk, this function returns true and sets
+   * exvar to x.
+   * If n is in the given logic, this method returns true.
    */
   bool getFitToLogicExcludeVar( LogicInfo& logic, Node n, Node& exvar );
 };
