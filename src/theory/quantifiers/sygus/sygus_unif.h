@@ -418,11 +418,11 @@ class SygusUnif
   /** maps enumerators to the information above */
   std::map<Node, EnumCache> d_ecache;
 
-  /** 
-   * Whether we will try to construct solution on the next call to 
+  /**
+   * Whether we will try to construct solution on the next call to
    * constructSolution. This flag is set to true when we successfully
    * register a new value for an enumerator.
-   */ 
+   */
   bool d_check_sol;
   /** The number of values we have enumerated for all enumerators. */
   unsigned d_cond_count;

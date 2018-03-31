@@ -979,7 +979,7 @@ Node SygusUnif::constructSolution(Node e,
           // get the current examples
           std::vector<String> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
-          Assert(ecache.d_enum_vals.size()== ecache.d_enum_vals_res.size());
+          Assert(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;

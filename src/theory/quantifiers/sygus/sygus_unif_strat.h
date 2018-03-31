@@ -245,12 +245,12 @@ class SygusUnifStrategy
                   std::vector<Node>& lemmas);
   /** Get the root enumerator for this class */
   Node getRootEnumerator();
-  /** 
+  /**
    * Get the enumerator info for enumerator e, where e must be an enumerator
    * initialized by this class (in enums after a call to initialize).
    */
   EnumInfo& getEnumInfo(Node e);
-  /** 
+  /**
    * Get the enumerator type info for sygus type t, where t must be the type
    * of some enumerator initialized by this class
    */
@@ -266,7 +266,7 @@ class SygusUnifStrategy
   /** list of all enumerators for the function-to-synthesize */
   std::vector<Node> d_esym_list;
   /** Info for sygus datatype type occurring in a field of d_root */
-  std::map<TypeNode, EnumTypeInfo> d_tinfo;  
+  std::map<TypeNode, EnumTypeInfo> d_tinfo;
   /**
     * The root sygus datatype for the function-to-synthesize,
     * which encodes the overall syntactic restrictions on the space
