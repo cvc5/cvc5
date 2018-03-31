@@ -143,11 +143,6 @@ class EnumInfo
   std::vector<Node> d_enum_slave;
 
  private:
-  /**
-    * Whether an enumerated value for this conjecture has solved the entire
-    * conjecture.
-    */
-  Node d_enum_solved;
   /** the role of this enumerator (one of enum_* above). */
   EnumRole d_role;
   /** is this enumerator conditional */

@@ -501,7 +501,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Node c = d_candidate;
   Assert(!d_examples.empty());
   Assert(d_examples.size() == d_examples_out.size());
-  std::map<Node, EnumInfo>::iterator it = d_einfo.find(e);
+  std::map<Node, EnumInfo>::iterator it = d_strategy.d_einfo.find(e);
   Assert(it != d_einfo.end());
   Assert(
       std::find(it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v)
@@ -523,8 +523,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   }
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
-  if (getExplanationForEnumeratorExclude(
-          e, v, base_results, it->second, exp_exc_vec))
+  if (getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
     Assert(!exp_exc_vec.empty());
     exp_exc = exp_exc_vec.size() == 1
@@ -541,14 +540,21 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     for (unsigned s = 0; s < it->second.d_enum_slave.size(); s++)
     {
       Node xs = it->second.d_enum_slave[s];
-      std::map<Node, EnumInfo>::iterator itv = d_einfo.find(xs);
-      Assert(itv != d_einfo.end());
+      
+      std::map<Node, EnumInfo>::iterator itiv = d_strategy.d_einfo.find(xs);
+      Assert(itiv != d_strategy.d_einfo.end());
+      EnumInfo& eiv = itiv->second;
+
+      std::map<Node, EnumCache>::iterator itcv = d_ecache.find(xs);
+      Assert(itcv != d_ecache.end());
+      EnumCache& ecv = itcv->second;
+      
       Trace("sygus-pbe-enum") << "Process " << xs << " from " << s << std::endl;
       // bool prevIsCover = false;
-      if (itv->second.getRole() == enum_io)
+      if (eiv.getRole() == enum_io)
       {
         Trace("sygus-pbe-enum") << "   IO-Eval of ";
-        // prevIsCover = itv->second.isFeasible();
+        // prevIsCover = eiv.isFeasible();
       }
       else
       {
@@ -557,8 +563,8 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       Trace("sygus-pbe-enum") << xs << " : ";
       // evaluate all input/output examples
       std::vector<Node> results;
-      Node templ = itv->second.d_template;
-      TNode templ_var = itv->second.d_template_arg;
+      Node templ = eiv.d_template;
+      TNode templ_var = eiv.d_template_arg;
       std::map<Node, bool> cond_vals;
       for (unsigned j = 0, size = base_results.size(); j < size; j++)
       {
@@ -572,7 +578,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           Assert(res.isConst());
         }
         Node resb;
-        if (itv->second.getRole() == enum_io)
+        if (eiv.getRole() == enum_io)
         {
           Node out = d_examples_out[j];
           Assert(out.isConst());
@@ -597,7 +603,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         }
       }
       bool keep = false;
-      if (itv->second.getRole() == enum_io)
+      if (eiv.getRole() == enum_io)
       {
         // latter is the degenerate case of no examples
         if (cond_vals.find(d_true) != cond_vals.end() || cond_vals.empty())
@@ -610,26 +616,25 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
             Trace("sygus-pbe-enum")
                 << "  ...success, full solution added to PBE pool : "
                 << d_tds->sygusToBuiltin(v) << std::endl;
-            if (!itv->second.isSolved())
+            if (!ecv.isSolved())
             {
-              itv->second.setSolved(v);
+              ecv.setSolved(v);
               // it subsumes everything
-              itv->second.d_term_trie.clear();
-              itv->second.d_term_trie.addTerm(v, results, true, subsume);
+              ecv.d_term_trie.clear();
+              ecv.d_term_trie.addTerm(v, results, true, subsume);
             }
             keep = true;
           }
           else
           {
-            Node val =
-                itv->second.d_term_trie.addTerm(v, results, true, subsume);
+            Node val = ecv.d_term_trie.addTerm(v, results, true, subsume);
             if (val == v)
             {
               Trace("sygus-pbe-enum") << "  ...success";
               if (!subsume.empty())
               {
-                itv->second.d_enum_subsume.insert(
-                    itv->second.d_enum_subsume.end(),
+                ecv.d_enum_subsume.insert(
+                    ecv.d_enum_subsume.end(),
                     subsume.begin(),
                     subsume.end());
                 Trace("sygus-pbe-enum")
@@ -656,7 +661,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       else
       {
         // must be unique up to examples
-        Node val = itv->second.d_term_trie.addCond(v, results, true);
+        Node val = ecv.d_term_trie.addCond(v, results, true);
         if (val == v)
         {
           Trace("sygus-pbe-enum") << "  ...success!   add to PBE pool : "
@@ -672,9 +677,9 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       }
       if (keep)
       {
-        // notify the parent to retry the build of PBE
+        // notify to retry the build of solution
         d_check_sol = true;
-        itv->second.addEnumValue(this, v, results);
+        ecv.addEnumValue(v, results);
       }
     }
   }
@@ -744,52 +749,54 @@ Node SygusUnif::constructSolution()
 
 // ------------------------------------ solution construction from enumeration
 
-bool SygusUnif::useStrContainsEnumeratorExclude(Node x, EnumInfo& ei)
+bool SygusUnif::useStrContainsEnumeratorExclude(Node e)
 {
-  TypeNode xbt = d_tds->sygusToBuiltinType(x.getType());
+  TypeNode xbt = d_tds->sygusToBuiltinType(e.getType());
   if (xbt.isString())
   {
-    std::map<Node, bool>::iterator itx = d_use_str_contains_eexc.find(x);
+    std::map<Node, bool>::iterator itx = d_use_str_contains_eexc.find(e);
     if (itx != d_use_str_contains_eexc.end())
     {
       return itx->second;
     }
     Trace("sygus-pbe-enum-debug")
-        << "Is " << x << " is str.contains exclusion?" << std::endl;
-    d_use_str_contains_eexc[x] = true;
+        << "Is " << e << " is str.contains exclusion?" << std::endl;
+    d_use_str_contains_eexc[e] = true;
+    std::map< Node, EnumInfo >::iterator itei = d_strategy.d_einfo.find(e);
+    Assert(itei != d_strategy.d_einfo.end());
+    EnumInfo& ei = itei->second;
     for (const Node& sn : ei.d_enum_slave)
     {
-      std::map<Node, EnumInfo>::iterator itv = d_einfo.find(sn);
+      std::map<Node, EnumInfo>::iterator itv = d_strategy.d_einfo.find(sn);
       EnumRole er = itv->second.getRole();
       if (er != enum_io && er != enum_concat_term)
       {
         Trace("sygus-pbe-enum-debug") << "  incompatible slave : " << sn
                                       << ", role = " << er << std::endl;
-        d_use_str_contains_eexc[x] = false;
+        d_use_str_contains_eexc[e] = false;
         return false;
       }
       if (itv->second.isConditional())
       {
         Trace("sygus-pbe-enum-debug")
             << "  conditional slave : " << sn << std::endl;
-        d_use_str_contains_eexc[x] = false;
+        d_use_str_contains_eexc[e] = false;
         return false;
       }
     }
     Trace("sygus-pbe-enum-debug")
         << "...can use str.contains exclusion." << std::endl;
-    return d_use_str_contains_eexc[x];
+    return d_use_str_contains_eexc[e];
   }
   return false;
 }
 
-bool SygusUnif::getExplanationForEnumeratorExclude(Node x,
+bool SygusUnif::getExplanationForEnumeratorExclude(Node e,
                                                    Node v,
                                                    std::vector<Node>& results,
-                                                   EnumInfo& ei,
                                                    std::vector<Node>& exp)
 {
-  if (useStrContainsEnumeratorExclude(x, ei))
+  if (useStrContainsEnumeratorExclude(e))
   {
     NodeManager* nm = NodeManager::currentNM();
     // This check whether the example evaluates to something that is larger than
@@ -803,7 +810,7 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node x,
     // check if all examples had longer length that the output
     Assert(d_examples_out.size() == results.size());
     Trace("sygus-pbe-cterm-debug")
-        << "Check enumerator exclusion for " << x << " -> "
+        << "Check enumerator exclusion for " << e << " -> "
         << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
@@ -828,9 +835,9 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node x,
     {
       // we check invariance with respect to a negative contains test
       NegContainsSygusInvarianceTest ncset;
-      ncset.init(x, d_examples, d_examples_out, cmp_indices);
+      ncset.init(e, d_examples, d_examples_out, cmp_indices);
       // construct the generalized explanation
-      d_tds->getExplain()->getExplanationFor(x, v, exp, ncset);
+      d_tds->getExplain()->getExplanationFor(e, v, exp, ncset);
       Trace("sygus-pbe-cterm")
           << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin(v)
           << " due to negative containment." << std::endl;
@@ -840,8 +847,7 @@ bool SygusUnif::getExplanationForEnumeratorExclude(Node x,
   return false;
 }
 
-void SygusUnif::EnumInfo::addEnumValue(SygusUnif* pbe,
-                                       Node v,
+void SygusUnif::EnumCache::addEnumValue(Node v,
                                        std::vector<Node>& results)
 {
   // should not have been enumerated before
@@ -933,19 +939,23 @@ Node SygusUnif::constructSolution(Node e,
   EnumTypeInfo& tinfo = itt->second;
 
   // get the enumerator information
-  std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
-  Assert(itn != d_einfo.end());
+  std::map<Node, EnumInfo>::iterator itn = d_strategy.d_einfo.find(e);
+  Assert(itn != d_strategy.d_einfo.end());
   EnumInfo& einfo = itn->second;
 
+  std::map<Node, EnumCache>::iterator itc = d_ecache.find(e);
+  Assert(itc != d_ecache.end());
+  EnumCache& ecache = itc->second;  
+  
   Node ret_dt;
   if (nrole == role_equal)
   {
     if (!x.isReturnValueModified())
     {
-      if (einfo.isSolved())
+      if (ecache.isSolved())
       {
         // this type has a complete solution
-        ret_dt = einfo.getSolved();
+        ret_dt = ecache.getSolved();
         indent("sygus-pbe-dt", ind);
         Trace("sygus-pbe-dt") << "return PBE: success : solved "
                               << d_tds->sygusToBuiltin(ret_dt) << std::endl;
@@ -955,7 +965,7 @@ Node SygusUnif::constructSolution(Node e,
       {
         // could be conditionally solved
         std::vector<Node> subsumed_by;
-        einfo.d_term_trie.getSubsumedBy(x.d_vals, true, subsumed_by);
+        ecache.d_term_trie.getSubsumedBy(x.d_vals, true, subsumed_by);
         if (!subsumed_by.empty())
         {
           ret_dt = constructBestSolvedTerm(subsumed_by, x);
@@ -978,14 +988,14 @@ Node SygusUnif::constructSolution(Node e,
         // check if a current value that closes all examples
         // get the term enumerator for this type
         bool success = true;
-        std::map<Node, EnumInfo>::iterator itet;
+        std::map<Node, EnumCache>::iterator itet;
         std::map<EnumRole, Node>::iterator itnt =
             tinfo.d_enum.find(enum_concat_term);
         if (itnt != itt->second.d_enum.end())
         {
           Node et = itnt->second;
-          itet = d_einfo.find(et);
-          Assert(itet != d_einfo.end());
+          itet = d_ecache.find(et);
+          Assert(itet != d_ecache.end());
         }
         else
         {
@@ -993,6 +1003,7 @@ Node SygusUnif::constructSolution(Node e,
         }
         if (success)
         {
+          EnumCache& ecache = itet->second;
           // get the current examples
           std::vector<String> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
@@ -1001,13 +1012,13 @@ Node SygusUnif::constructSolution(Node e,
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;
-          for (unsigned i = 0, size = itet->second.d_enum_vals.size(); i < size;
+          for (unsigned i = 0, size = ecache.d_enum_vals.size(); i < size;
                i++)
           {
             if (x.isStringSolved(
-                    this, ex_vals, itet->second.d_enum_vals_res[i]))
+                    this, ex_vals, ecache.d_enum_vals_res[i]))
             {
-              str_solved.push_back(itet->second.d_enum_vals[i]);
+              str_solved.push_back(ecache.d_enum_vals[i]);
             }
           }
           if (!str_solved.empty())
@@ -1052,21 +1063,21 @@ Node SygusUnif::constructSolution(Node e,
 
       // check if there is a value for which is a prefix/suffix of all active
       // examples
-      Assert(einfo.d_enum_vals.size() == einfo.d_enum_vals_res.size());
+      Assert(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
 
-      for (unsigned i = 0, size = einfo.d_enum_vals.size(); i < size; i++)
+      for (unsigned i = 0, size = ecache.d_enum_vals.size(); i < size; i++)
       {
-        Node val_t = einfo.d_enum_vals[i];
+        Node val_t = ecache.d_enum_vals[i];
         Assert(incr.find(val_t) == incr.end());
         indent("sygus-pbe-dt-debug", ind);
         Trace("sygus-pbe-dt-debug")
             << "increment string values : " << val_t << " : ";
-        Assert(einfo.d_enum_vals_res[i].size() == d_examples_out.size());
+        Assert(ecache.d_enum_vals_res[i].size() == d_examples_out.size());
         unsigned tot = 0;
         bool exsuccess = x.getStringIncrement(this,
                                               isPrefix,
                                               ex_vals,
-                                              einfo.d_enum_vals_res[i],
+                                              ecache.d_enum_vals_res[i],
                                               incr[val_t],
                                               tot);
         if (!exsuccess)
@@ -1133,7 +1144,7 @@ Node SygusUnif::constructSolution(Node e,
         // get an eligible strategy index
         unsigned sindex = 0;
         while (sindex < snode.d_strats.size()
-               && !snode.d_strats[sindex]->isValid(this, x))
+               && !snode.d_strats[sindex]->isValid(&x))
         {
           sindex++;
         }
@@ -1183,8 +1194,8 @@ Node SygusUnif::constructSolution(Node e,
           std::vector<Node> prev;
           if (strat == strat_ITE && sc > 0)
           {
-            std::map<Node, EnumInfo>::iterator itnc =
-                d_einfo.find(split_cond_enum);
+            std::map<Node, EnumCache>::iterator itnc =
+                d_ecache.find(split_cond_enum);
             Assert(itnc != d_einfo.end());
             Assert(split_cond_res_index >= 0);
             Assert(split_cond_res_index
@@ -1203,9 +1214,13 @@ Node SygusUnif::constructSolution(Node e,
             Node ce = cenum.first;
 
             // register the condition enumerator
-            std::map<Node, EnumInfo>::iterator itnc = d_einfo.find(ce);
-            Assert(itnc != d_einfo.end());
-            EnumInfo& einfo_child = itnc->second;
+            //std::map<Node, EnumInfo>::iterator itnc = d_strategy.d_einfo.find(ce);
+            //Assert(itnc != d_strategy.d_einfo.end());
+            //EnumInfo& einfo_child = itnc->second;
+            
+            std::map<Node, EnumCache>::iterator itcc = d_ecache.find(ce);
+            Assert(itnc != d_ecache.end());
+            EnumCache& ecache_child = itcc->second;
 
             // only used if the return value is not modified
             if (!x.isReturnValueModified())
@@ -1216,25 +1231,25 @@ Node SygusUnif::constructSolution(Node e,
                     << "  reg : PBE: Look for direct solutions for conditional "
                        "enumerator "
                     << ce << " ... " << std::endl;
-                Assert(einfo_child.d_enum_vals.size()
-                       == einfo_child.d_enum_vals_res.size());
+                Assert(ecache_child.d_enum_vals.size()
+                       == ecache_child.d_enum_vals_res.size());
                 for (unsigned i = 1; i <= 2; i++)
                 {
                   std::pair<Node, NodeRole>& te_pair = etis->d_cenum[i];
                   Node te = te_pair.first;
-                  std::map<Node, EnumInfo>::iterator itnt = d_einfo.find(te);
-                  Assert(itnt != d_einfo.end());
+                  std::map<Node, EnumCache>::iterator itnt = d_ecache.find(te);
+                  Assert(itnt != d_ecache.end());
                   bool branch_pol = (i == 1);
                   // for each condition, get terms that satisfy it in this
                   // branch
-                  for (unsigned k = 0, size = einfo_child.d_enum_vals.size();
+                  for (unsigned k = 0, size = ecache_child.d_enum_vals.size();
                        k < size;
                        k++)
                   {
-                    Node cond = einfo_child.d_enum_vals[k];
+                    Node cond = ecache_child.d_enum_vals[k];
                     std::vector<Node> solved;
                     itnt->second.d_term_trie.getSubsumedBy(
-                        einfo_child.d_enum_vals_res[k], branch_pol, solved);
+                        ecache_child.d_enum_vals_res[k], branch_pol, solved);
                     Trace("sygus-pbe-dt-debug2")
                         << "  reg : PBE: " << d_tds->sygusToBuiltin(cond)
                         << " has " << solved.size() << " solutions in branch "
@@ -1259,7 +1274,7 @@ Node SygusUnif::constructSolution(Node e,
             // distinguishable
             std::map<int, std::vector<Node> > possible_cond;
             std::map<Node, int> solved_cond;  // stores branch
-            einfo_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
+            ecache_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
 
             std::map<int, std::vector<Node> >::iterator itpc =
                 possible_cond.find(0);
@@ -1344,13 +1359,13 @@ Node SygusUnif::constructSolution(Node e,
             }
             if (!rec_c.isNull())
             {
-              Assert(einfo_child.d_enum_val_to_index.find(rec_c)
-                     != einfo_child.d_enum_val_to_index.end());
-              split_cond_res_index = einfo_child.d_enum_val_to_index[rec_c];
+              Assert(ecache_child.d_enum_val_to_index.find(rec_c)
+                     != ecache_child.d_enum_val_to_index.end());
+              split_cond_res_index = ecache_child.d_enum_val_to_index[rec_c];
               split_cond_enum = ce;
               Assert(split_cond_res_index >= 0);
               Assert(split_cond_res_index
-                     < (int)einfo_child.d_enum_vals_res.size());
+                     < (int)ecache_child.d_enum_vals_res.size());
             }
           }
           else

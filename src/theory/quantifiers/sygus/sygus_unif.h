@@ -366,59 +366,22 @@ class SygusUnif
   * the first enumerator for each type a master enumerator, and any additional
   * ones slaves of it.
   */
-  class EnumInfo
+  class EnumCache
   {
    public:
-    EnumInfo() : d_role(enum_io), d_is_conditional(false) {}
-    /** initialize this class
-    *
-    * c is the parent function-to-synthesize
-    * role is the "role" the enumerator plays in the high-level strategy,
-    *   which is one of enum_* above.
-    */
-    void initialize(EnumRole role);
-    /** is this enumerator associated with a template? */
-    bool isTemplated() { return !d_template.isNull(); }
-    /** set conditional
-      *
-      * This flag is set to true if this enumerator may not apply to all
-      * input/output examples. For example, if this enumerator is used
-      * as an output value beneath a conditional in an instance of strat_ITE,
-      * then this enumerator is conditional.
-      */
-    void setConditional() { d_is_conditional = true; }
-    /** is conditional */
-    bool isConditional() { return d_is_conditional; }
-    /** get the role of this enumerator */
-    EnumRole getRole() { return d_role; }
-    /** enumerator template
-    *
-    * If d_template non-null, enumerated values V are immediately transformed to
-    * d_template { d_template_arg -> V }.
-    */
-    Node d_template;
-    Node d_template_arg;
-    /**
-    * Slave enumerators of this enumerator. These are other enumerators that
-    * have the same type, but a different role in the strategy tree. We
-    * generally
-    * only use one enumerator per type, and hence these slaves are notified when
-    * values are enumerated for this enumerator.
-    */
-    std::vector<Node> d_enum_slave;
-
+    EnumCache() {}
     //---------------------------enumerated values
     /**
     * Notify this class that the term v has been enumerated for this enumerator.
     * Its evaluation under the set of examples in pbe are stored in results.
     */
-    void addEnumValue(SygusUnif* pbe, Node v, std::vector<Node>& results);
+    void addEnumValue(Node v, std::vector<Node>& results);
     /**
     * Notify this class that slv is the complete solution to the synthesis
     * conjecture. This occurs rarely, for instance, when during an ITE strategy
     * we find that a single enumerated term covers all examples.
     */
-    void setSolved(Node slv);
+    void setSolved(Node slv) { d_enum_solved = slv; }
     /** Have we been notified that a complete solution exists? */
     bool isSolved() { return !d_enum_solved.isNull(); }
     /** Get the complete solution to the synthesis conjecture. */
@@ -451,50 +414,15 @@ class SygusUnif
       * conjecture.
       */
     Node d_enum_solved;
-    /** the role of this enumerator (one of enum_* above). */
-    EnumRole d_role;
-    /** is this enumerator conditional */
-    bool d_is_conditional;
   };
   /** maps enumerators to the information above */
-  std::map<Node, EnumInfo> d_einfo;
-
-  class CandidateInfo;
-  class EnumTypeInfoStrat;
-
-  /** represents a node in the strategy graph
-   *
-   * It contains a list of possible strategies which are tried during calls
-   * to constructSolution.
-   */
-  class StrategyNode
-  {
-   public:
-    StrategyNode() {}
-    ~StrategyNode();
-    /** the set of strategies to try at this node in the strategy graph */
-    std::vector<EnumTypeInfoStrat*> d_strats;
-  };
-
-  /** stores enumerators and strategies for a SyGuS datatype type */
-  class EnumTypeInfo
-  {
-   public:
-    EnumTypeInfo() : d_parent(NULL) {}
-    /** the parent candidate info (see below) */
-    CandidateInfo* d_parent;
-    /** the type that this information is for */
-    TypeNode d_this_type;
-    /** map from enum roles to enumerators for this type */
-    std::map<EnumRole, Node> d_enum;
-    /** map from node roles to strategy nodes */
-    std::map<NodeRole, StrategyNode> d_snodes;
-  };
+  std::map<Node, EnumCache> d_ecache;
 
 
-    bool d_check_sol;
-    unsigned d_cond_count;
-    Node d_solution;
+  //TODO
+  bool d_check_sol;
+  unsigned d_cond_count;
+  Node d_solution;
 
   /** the candidate for this class */
   Node d_candidate;
@@ -503,32 +431,30 @@ class SygusUnif
 
   /** domain-specific enumerator exclusion techniques
    *
-   * Returns true if the value v for x can be excluded based on a
+   * Returns true if the value v for e can be excluded based on a
    * domain-specific exclusion technique like the ones below.
    *
    * results : the values of v under the input examples,
-   * ei : the enumerator information for x,
    * exp : if this function returns true, then exp contains a (possibly
    * generalize) explanation for why v can be excluded.
    */
-  bool getExplanationForEnumeratorExclude(Node x,
+  bool getExplanationForEnumeratorExclude(Node e,
                                           Node v,
                                           std::vector<Node>& results,
-                                          EnumInfo& ei,
                                           std::vector<Node>& exp);
-  /** returns true if we can exlude values of x based on negative str.contains
+  /** returns true if we can exlude values of e based on negative str.contains
    *
-   * Values v for x may be excluded if we realize that the value of v under the
+   * Values v for e may be excluded if we realize that the value of v under the
    * substitution for some input example will never be contained in some output
    * example. For details on this technique, see NegContainsSygusInvarianceTest
    * in sygus_invariance.h.
    *
-   * This function depends on whether x is being used to enumerate values
+   * This function depends on whether e is being used to enumerate values
    * for any node that is conditional in the strategy graph. For example,
    * nodes that are children of ITE strategy nodes are conditional. If any node
    * is conditional, then this function returns false.
    */
-  bool useStrContainsEnumeratorExclude(Node x, EnumInfo& ei);
+  bool useStrContainsEnumeratorExclude(Node e);
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
 
