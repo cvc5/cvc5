@@ -502,10 +502,8 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Assert(!d_examples.empty());
   Assert(d_examples.size() == d_examples_out.size());
   std::map<Node, EnumInfo>::iterator it = d_strategy.d_einfo.find(e);
-  Assert(it != d_einfo.end());
-  Assert(
-      std::find(it->second.d_enum_vals.begin(), it->second.d_enum_vals.end(), v)
-      == it->second.d_enum_vals.end());
+  Assert(it != d_strategy.d_einfo.end());
+  EnumInfo& ei = it->second;
   // The explanation for why the current value should be excluded in future
   // iterations.
   Node exp_exc;
@@ -535,11 +533,11 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   else
   {
     // notify all slaves
-    Assert(!it->second.d_enum_slave.empty());
+    Assert(!ei.d_enum_slave.empty());
     // explanation for why this value should be excluded
-    for (unsigned s = 0; s < it->second.d_enum_slave.size(); s++)
+    for (unsigned s = 0; s < ei.d_enum_slave.size(); s++)
     {
-      Node xs = it->second.d_enum_slave[s];
+      Node xs = ei.d_enum_slave[s];
 
       std::map<Node, EnumInfo>::iterator itiv = d_strategy.d_einfo.find(xs);
       Assert(itiv != d_strategy.d_einfo.end());
@@ -988,7 +986,7 @@ Node SygusUnif::constructSolution(Node e,
         std::map<Node, EnumCache>::iterator itet;
         std::map<EnumRole, Node>::iterator itnt =
             tinfo.d_enum.find(enum_concat_term);
-        if (itnt != itt->second.d_enum.end())
+        if (itnt != tinfo.d_enum.end())
         {
           Node et = itnt->second;
           itet = d_ecache.find(et);
@@ -1000,20 +998,19 @@ Node SygusUnif::constructSolution(Node e,
         }
         if (success)
         {
-          EnumCache& ecache = itet->second;
+          EnumCache& ecachet = itet->second;
           // get the current examples
           std::vector<String> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
-          Assert(itn->second.d_enum_vals.size()
-                 == itn->second.d_enum_vals_res.size());
+          Assert(ecache.d_enum_vals.size()== ecache.d_enum_vals_res.size());
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;
-          for (unsigned i = 0, size = ecache.d_enum_vals.size(); i < size; i++)
+          for (unsigned i = 0, size = ecachet.d_enum_vals.size(); i < size; i++)
           {
-            if (x.isStringSolved(this, ex_vals, ecache.d_enum_vals_res[i]))
+            if (x.isStringSolved(this, ex_vals, ecachet.d_enum_vals_res[i]))
             {
-              str_solved.push_back(ecache.d_enum_vals[i]);
+              str_solved.push_back(ecachet.d_enum_vals[i]);
             }
           }
           if (!str_solved.empty())
@@ -1191,7 +1188,7 @@ Node SygusUnif::constructSolution(Node e,
           {
             std::map<Node, EnumCache>::iterator itnc =
                 d_ecache.find(split_cond_enum);
-            Assert(itnc != d_einfo.end());
+            Assert(itnc != d_ecache.end());
             Assert(split_cond_res_index >= 0);
             Assert(split_cond_res_index
                    < (int)itnc->second.d_enum_vals_res.size());
@@ -1215,7 +1212,7 @@ Node SygusUnif::constructSolution(Node e,
             // EnumInfo& einfo_child = itnc->second;
 
             std::map<Node, EnumCache>::iterator itcc = d_ecache.find(ce);
-            Assert(itnc != d_ecache.end());
+            Assert(itcc != d_ecache.end());
             EnumCache& ecache_child = itcc->second;
 
             // only used if the return value is not modified
