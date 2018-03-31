@@ -501,9 +501,8 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Node c = d_candidate;
   Assert(!d_examples.empty());
   Assert(d_examples.size() == d_examples_out.size());
-  std::map<Node, EnumInfo>::iterator it = d_strategy.d_einfo.find(e);
-  Assert(it != d_strategy.d_einfo.end());
-  EnumInfo& ei = it->second;
+
+  EnumInfo& ei = d_strategy.getEnumInfo(e);
   // The explanation for why the current value should be excluded in future
   // iterations.
   Node exp_exc;
@@ -539,9 +538,7 @@ void SygusUnif::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     {
       Node xs = ei.d_enum_slave[s];
 
-      std::map<Node, EnumInfo>::iterator itiv = d_strategy.d_einfo.find(xs);
-      Assert(itiv != d_strategy.d_einfo.end());
-      EnumInfo& eiv = itiv->second;
+      EnumInfo& eiv = d_strategy.getEnumInfo(xs);
 
       EnumCache& ecv = d_ecache[xs];
 
@@ -756,13 +753,11 @@ bool SygusUnif::useStrContainsEnumeratorExclude(Node e)
     Trace("sygus-pbe-enum-debug") << "Is " << e << " is str.contains exclusion?"
                                   << std::endl;
     d_use_str_contains_eexc[e] = true;
-    std::map<Node, EnumInfo>::iterator itei = d_strategy.d_einfo.find(e);
-    Assert(itei != d_strategy.d_einfo.end());
-    EnumInfo& ei = itei->second;
+    EnumInfo& ei = d_strategy.getEnumInfo(e);
     for (const Node& sn : ei.d_enum_slave)
     {
-      std::map<Node, EnumInfo>::iterator itv = d_strategy.d_einfo.find(sn);
-      EnumRole er = itv->second.getRole();
+      EnumInfo& eis = d_strategy.getEnumInfo(sn);
+      EnumRole er = eis.getRole();
       if (er != enum_io && er != enum_concat_term)
       {
         Trace("sygus-pbe-enum-debug") << "  incompatible slave : " << sn
@@ -770,7 +765,7 @@ bool SygusUnif::useStrContainsEnumeratorExclude(Node e)
         d_use_str_contains_eexc[e] = false;
         return false;
       }
-      if (itv->second.isConditional())
+      if (eis.isConditional())
       {
         Trace("sygus-pbe-enum-debug")
             << "  conditional slave : " << sn << std::endl;
@@ -927,14 +922,10 @@ Node SygusUnif::constructSolution(Node e,
     Trace("sygus-pbe-dt-debug") << std::endl;
   }
   // enumerator type info
-  std::map<TypeNode, EnumTypeInfo>::iterator itt = d_strategy.d_tinfo.find(etn);
-  Assert(itt != d_strategy.d_tinfo.end());
-  EnumTypeInfo& tinfo = itt->second;
+  EnumTypeInfo& tinfo = d_strategy.getEnumTypeInfo(etn);
 
   // get the enumerator information
-  std::map<Node, EnumInfo>::iterator itn = d_strategy.d_einfo.find(e);
-  Assert(itn != d_strategy.d_einfo.end());
-  EnumInfo& einfo = itn->second;
+  EnumInfo& einfo = d_strategy.getEnumInfo(e);
 
   EnumCache& ecache = d_ecache[e];
 

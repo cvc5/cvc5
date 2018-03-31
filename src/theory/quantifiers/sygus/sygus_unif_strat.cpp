@@ -108,6 +108,19 @@ Node SygusUnifStrategy::getRootEnumerator()
   return it->second;
 }
 
+EnumInfo& SygusUnifStrategy::getEnumInfo(Node e)
+{
+  std::map<Node, EnumInfo>::iterator it = d_einfo.find(e);
+  Assert(it != d_einfo.end());
+  return it->second;
+}
+
+EnumTypeInfo& SygusUnifStrategy::getEnumTypeInfo(TypeNode tn)
+{
+  std::map<TypeNode, EnumTypeInfo>::iterator it = d_tinfo.find(tn);
+  Assert(it != d_tinfo.end());
+  return it->second;
+}
 // ----------------------------- establishing enumeration types
 
 void SygusUnifStrategy::registerEnumerator(Node et,

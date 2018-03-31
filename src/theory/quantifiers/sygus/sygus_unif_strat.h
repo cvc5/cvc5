@@ -245,18 +245,28 @@ class SygusUnifStrategy
                   std::vector<Node>& lemmas);
   /** Get the root enumerator for this class */
   Node getRootEnumerator();
-  /** maps enumerators to relevant information */
-  std::map<Node, EnumInfo> d_einfo;
-  /** list of all enumerators for the function-to-synthesize */
-  std::vector<Node> d_esym_list;
-  /** Info for sygus datatype type occurring in a field of d_root */
-  std::map<TypeNode, EnumTypeInfo> d_tinfo;
+  /** 
+   * Get the enumerator info for enumerator e, where e must be an enumerator
+   * initialized by this class (in enums after a call to initialize).
+   */
+  EnumInfo& getEnumInfo(Node e);
+  /** 
+   * Get the enumerator type info for sygus type t, where t must be the type
+   * of some enumerator initialized by this class
+   */
+  EnumTypeInfo& getEnumTypeInfo(TypeNode tn);
 
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** The candidate variable this strategy is for */
   Node d_candidate;
+  /** maps enumerators to relevant information */
+  std::map<Node, EnumInfo> d_einfo;
+  /** list of all enumerators for the function-to-synthesize */
+  std::vector<Node> d_esym_list;
+  /** Info for sygus datatype type occurring in a field of d_root */
+  std::map<TypeNode, EnumTypeInfo> d_tinfo;  
   /**
     * The root sygus datatype for the function-to-synthesize,
     * which encodes the overall syntactic restrictions on the space
