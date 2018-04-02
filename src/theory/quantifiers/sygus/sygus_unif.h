@@ -19,75 +19,12 @@
 
 #include <map>
 #include "expr/node.h"
+#include "theory/quantifiers/sygus/sygus_unif_strat.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-/** roles for enumerators
- *
- * This indicates the role of an enumerator that is allocated by approaches
- * for synthesis-by-unification (see details below).
- *   io : the enumerator should enumerate values that are overall solutions
- *        for the function-to-synthesize,
- *   ite_condition : the enumerator should enumerate values that are useful
- *                   in ite conditions in the ITE strategy,
- *   concat_term : the enumerator should enumerate values that are used as
- *                 components of string concatenation solutions.
- */
-enum EnumRole
-{
-  enum_invalid,
-  enum_io,
-  enum_ite_condition,
-  enum_concat_term,
-};
-std::ostream& operator<<(std::ostream& os, EnumRole r);
-
-/** roles for strategy nodes
- *
- * This indicates the role of a strategy node, which is a subprocedure of
- * SygusUnif::constructSolution (see details below).
- *   equal : the node constructed must be equal to the overall solution for
- *           the function-to-synthesize,
- *   string_prefix/suffix : the node constructed must be a prefix/suffix
- *                          of the function-to-synthesize,
- *   ite_condition : the node constructed must be a condition that makes some
- *                   active input examples true and some input examples false.
- */
-enum NodeRole
-{
-  role_invalid,
-  role_equal,
-  role_string_prefix,
-  role_string_suffix,
-  role_ite_condition,
-};
-std::ostream& operator<<(std::ostream& os, NodeRole r);
-
-/** enumerator role for node role */
-EnumRole getEnumeratorRoleForNodeRole(NodeRole r);
-
-/** strategy types
- *
- * This indicates a strategy for synthesis-by-unification (see details below).
- *   ITE : strategy for constructing if-then-else solutions via decision
- *         tree learning techniques,
- *   CONCAT_PREFIX/SUFFIX : strategy for constructing string concatenation
- *         solutions via a divide and conquer approach,
- *   ID : identity strategy used for calling strategies on child type through
- *        an identity function.
- */
-enum StrategyType
-{
-  strat_INVALID,
-  strat_ITE,
-  strat_CONCAT_PREFIX,
-  strat_CONCAT_SUFFIX,
-  strat_ID,
-};
-std::ostream& operator<<(std::ostream& os, StrategyType st);
 
 class SygusUnif;
 
@@ -101,8 +38,11 @@ class UnifContext
 {
  public:
   UnifContext();
-  /** this intiializes this context for function-to-synthesize c */
-  void initialize(SygusUnif* pbe, Node c);
+  /**
+   * This intiializes this context based on information in pbe regarding the
+   * kinds of examples it contains.
+   */
+  void initialize(SygusUnif* pbe);
 
   //----------for ITE strategy
   /** the value of the context conditional
@@ -391,14 +331,6 @@ class SygusUnif
    */
   Node constructSolution();
 
-  //-----------------------debug printing
-  /** print ind indentations on trace c */
-  static void indent(const char* c, int ind);
-  /** print (pol ? vals : !vals) as a bit-string on trace c  */
-  static void print_val(const char* c,
-                        std::vector<Node>& vals,
-                        bool pol = true);
-  //-----------------------end debug printing
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -408,9 +340,18 @@ class SygusUnif
   Node d_true;
   Node d_false;
   /** input of I/O examples */
-  std::map<Node, std::vector<std::vector<Node> > > d_examples;
+  std::vector<std::vector<Node> > d_examples;
   /** output of I/O examples */
-  std::map<Node, std::vector<Node> > d_examples_out;
+  std::vector<Node> d_examples_out;
+
+  //-----------------------debug printing
+  /** print ind indentations on trace c */
+  static void indent(const char* c, int ind);
+  /** print (pol ? vals : !vals) as a bit-string on trace c  */
+  static void print_val(const char* c,
+                        std::vector<Node>& vals,
+                        bool pol = true);
+  //-----------------------end debug printing
 
   //------------------------------ representation of a enumeration strategy
   /**
@@ -582,7 +523,7 @@ class SygusUnif
   /** the candidate for this class */
   Node d_candidate;
   /** maps a function-to-synthesize to the above information */
-  std::map<Node, CandidateInfo> d_cinfo;
+  CandidateInfo d_cinfo;
 
   //------------------------------ representation of an enumeration strategy
   /** domain-specific enumerator exclusion techniques
@@ -590,14 +531,12 @@ class SygusUnif
    * Returns true if the value v for x can be excluded based on a
    * domain-specific exclusion technique like the ones below.
    *
-   * c : the candidate variable that x is enumerating for,
-   * results : the values of v under the input examples of c,
+   * results : the values of v under the input examples,
    * ei : the enumerator information for x,
    * exp : if this function returns true, then exp contains a (possibly
    * generalize) explanation for why v can be excluded.
    */
-  bool getExplanationForEnumeratorExclude(Node c,
-                                          Node x,
+  bool getExplanationForEnumeratorExclude(Node x,
                                           Node v,
                                           std::vector<Node>& results,
                                           EnumInfo& ei,
@@ -622,21 +561,23 @@ class SygusUnif
   /** collect enumerator types
    *
    * This builds the strategy for enumerated values of type tn for the given
-   * role of nrole, for solutions to function-to-synthesize c.
+   * role of nrole, for solutions to function-to-synthesize of this class.
    */
-  void collectEnumeratorTypes(Node c, TypeNode tn, NodeRole nrole);
+  void collectEnumeratorTypes(TypeNode tn, NodeRole nrole);
   /** register enumerator
    *
-   * This registers that et is an enumerator for function-to-synthesize c
-   * of type tn, having enumerator role enum_role.
+   * This registers that et is an enumerator of type tn, having enumerator
+   * role enum_role.
    *
    * inSearch is whether we will enumerate values based on this enumerator.
    * A strategy node is represented by a (enumerator, node role) pair. Hence,
    * we may use enumerators for which this flag is false to represent strategy
    * nodes that have child strategies.
    */
-  void registerEnumerator(
-      Node et, Node c, TypeNode tn, EnumRole enum_role, bool inSearch);
+  void registerEnumerator(Node et,
+                          TypeNode tn,
+                          EnumRole enum_role,
+                          bool inSearch);
   /** infer template */
   bool inferTemplate(unsigned k,
                      Node n,
@@ -645,9 +586,10 @@ class SygusUnif
   /** static learn redundant operators
    *
    * This learns static lemmas for pruning enumerative space based on the
-   * strategy for the function-to-synthesize c, and stores these into lemmas.
+   * strategy for the function-to-synthesize of this class, and stores these
+   * into lemmas.
    */
-  void staticLearnRedundantOps(Node c, std::vector<Node>& lemmas);
+  void staticLearnRedundantOps(std::vector<Node>& lemmas);
   /** helper for static learn redundant operators
    *
    * (e, nrole) specify the strategy node in the graph we are currently
@@ -662,7 +604,6 @@ class SygusUnif
    * conditional of an strat_ITE strategy).
    */
   void staticLearnRedundantOps(
-      Node c,
       Node e,
       NodeRole nrole,
       std::map<Node, std::map<NodeRole, bool> >& visited,
@@ -673,13 +614,12 @@ class SygusUnif
 
   /** helper function for construct solution.
    *
-   * Construct a solution based on enumerator e for function-to-synthesize c
-   * with node role nrole in context x.
+   * Construct a solution based on enumerator e for function-to-synthesize of
+   * this class with node role nrole in context x.
    *
    * ind is the term depth of the context (for debugging).
    */
-  Node constructSolution(
-      Node c, Node e, NodeRole nrole, UnifContext& x, int ind);
+  Node constructSolution(Node e, NodeRole nrole, UnifContext& x, int ind);
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   Node constructBestSolvedTerm(std::vector<Node>& solved, UnifContext& x);
@@ -712,9 +652,9 @@ class SygusUnif
    * class, we may make recursive calls to the children of the strategy,
    * given in d_cenum. If all recursive calls to constructSolution for these
    * children are successful, say:
-   *   constructSolution( c, d_cenum[1], ... ) = t1,
+   *   constructSolution( d_cenum[1], ... ) = t1,
    *    ...,
-   *   constructSolution( c, d_cenum[n], ... ) = tn,
+   *   constructSolution( d_cenum[n], ... ) = tn,
    * Then, the solution returned by this strategy is
    *   d_sol_templ * { d_sol_templ_args -> (t1,...,tn) }
    * where * is application of substitution.

@@ -476,6 +476,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_repair_const.h \
 	theory/quantifiers/sygus/sygus_unif.cpp \
 	theory/quantifiers/sygus/sygus_unif.h \
+	theory/quantifiers/sygus/sygus_unif_strat.cpp \
+	theory/quantifiers/sygus/sygus_unif_strat.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \
