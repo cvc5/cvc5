@@ -1,7 +1,7 @@
 (benchmark pp_regfile.smt
   :source {
 Translated from old SVC processor verification benchmarks.  Contact Clark
-Barrett at barrett@cs.nyu.edu for more information.
+Barrett at barrett@cs.stanford.edu for more information.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite

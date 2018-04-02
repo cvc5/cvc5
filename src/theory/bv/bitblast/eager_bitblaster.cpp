@@ -16,12 +16,13 @@
 
 #include "cvc4_private.h"
 
+#include "theory/bv/bitblast/eager_bitblaster.h"
+
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bitblaster_template.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
@@ -29,58 +30,50 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-void BitblastingRegistrar::preRegister(Node n) { d_bitblaster->bbAtom(n); }
-
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
     : TBitblaster<Node>(),
-      d_satSolver(NULL),
-      d_bitblastingRegistrar(NULL),
-      d_nullContext(NULL),
-      d_cnfStream(NULL),
+      d_satSolver(),
+      d_bitblastingRegistrar(new BitblastingRegistrar(this)),
+      d_nullContext(new context::Context()),
+      d_cnfStream(),
       d_bv(theory_bv),
       d_bbAtoms(),
       d_variables(),
-      d_notify(NULL) {
-  d_bitblastingRegistrar = new BitblastingRegistrar(this);
-  d_nullContext = new context::Context();
-
+      d_notify()
+{
+  prop::SatSolver *solver = nullptr;
   switch (options::bvSatSolver())
   {
     case SAT_SOLVER_MINISAT:
     {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
-              d_nullContext, smtStatisticsRegistry(), "EagerBitblaster");
-      d_notify = new MinisatEmptyNotify();
-      minisat->setNotify(d_notify);
-      d_satSolver = minisat;
+              d_nullContext.get(), smtStatisticsRegistry(), "EagerBitblaster");
+      d_notify.reset(new MinisatEmptyNotify());
+      minisat->setNotify(d_notify.get());
+      solver = minisat;
       break;
     }
     case SAT_SOLVER_CADICAL:
-      d_satSolver = prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(), "EagerBitblaster");
+      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
+                                                     "EagerBitblaster");
       break;
     case SAT_SOLVER_CRYPTOMINISAT:
-      d_satSolver = prop::SatSolverFactory::createCryptoMinisat(
+      solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "EagerBitblaster");
       break;
     default: Unreachable("Unknown SAT solver type");
   }
-
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar,
-                                           d_nullContext, options::proof(),
-                                           "EagerBitblaster");
-
-  d_bvp = NULL;
+  d_satSolver.reset(solver);
+  d_cnfStream.reset(
+      new prop::TseitinCnfStream(d_satSolver.get(),
+                                 d_bitblastingRegistrar.get(),
+                                 d_nullContext.get(),
+                                 options::proof(),
+                                 "EagerBitblaster"));
 }
 
-EagerBitblaster::~EagerBitblaster() {
-  delete d_cnfStream;
-  delete d_satSolver;
-  delete d_notify;
-  delete d_nullContext;
-  delete d_bitblastingRegistrar;
-}
+EagerBitblaster::~EagerBitblaster() {}
 
 void EagerBitblaster::bbFormula(TNode node) {
   d_cnfStream->convertAndAssert(node, false, false, RULE_INVALID,
@@ -257,13 +250,14 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 void EagerBitblaster::setProofLog(BitVectorProof* bvp) {
   d_bvp = bvp;
   d_satSolver->setProofLog(bvp);
-  bvp->initCnfProof(d_cnfStream, d_nullContext);
+  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
 }
 
 bool EagerBitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();
 }
 
-} /* namespace CVC4::theory::bv; */
-} /* namespace CVC4::theory; */
-} /* namespace CVC4; */
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
