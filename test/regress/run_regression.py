@@ -26,9 +26,9 @@ COMMAND_LINE = 'COMMAND-LINE: '
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
                   command_line, benchmark_dir, benchmark_filename):
-    """Runs CVC4 on a benchmark file `benchmark_file` in the directory
-    `benchmark_dir` using the binary `cvc4_binary` with the command line
-    options `command_line`. The output is scrubbed using `scrubber` and
+    """Runs CVC4 on the file `benchmark_file` in the directory `benchmark_dir`
+    using the binary `cvc4_binary` with the command line options
+    `command_line`. The output is scrubbed using `scrubber` and
     `error_scrubber` for stdout and stderr, respectively. If dump is true, the
     function first uses CVC4 to read in and dump the benchmark file and then
     uses that as input."""
@@ -41,8 +41,8 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     exit_status = None
     if dump:
         dump_args = [
-            '--preprocess-only', '--dump', 'raw-benchmark', '--output-lang=smt2',
-            '-qq'
+            '--preprocess-only', '--dump', 'raw-benchmark',
+            '--output-lang=smt2', '-qq'
         ]
         dump_process = subprocess.Popen(
             bin_args + command_line + dump_args + [benchmark_filename],
@@ -68,14 +68,14 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
         exit_status = process.returncode
 
     # If a scrubber command has been specified then apply it to the output.
-    if scrubber is not None:
+    if scrubber:
         scrubber_process = subprocess.Popen(
             shlex.split(scrubber),
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
         output, _ = scrubber_process.communicate(input=output)
-    if error_scrubber is not None:
+    if error_scrubber:
         error_scrubber_process = subprocess.Popen(
             shlex.split(error_scrubber),
             stdin=subprocess.PIPE,
@@ -177,10 +177,10 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
     # the benchmark. Try to extract the information from the benchmark itself.
     if expected_output == '' and expected_error == '':
         match = None
-        if status_regex is not None:
+        if status_regex:
             match = re.search(status_regex, metadata_content)
 
-        if match is not None:
+        if match:
             expected_output = status_to_output(match.group(1))
         elif expected_exit_status is None:
             # If there is no expected output/error and the exit status has not
