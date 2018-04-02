@@ -582,19 +582,22 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      out << "(define-fun " << f << " ";
-      if( dt.getSygusVarList().isNull() ){
-        out << "() ";
-      }else{
-        out << dt.getSygusVarList() << " ";
+      if( !options::sygusSilent() )
+      {
+        out << "(define-fun " << f << " ";
+        if( dt.getSygusVarList().isNull() ){
+          out << "() ";
+        }else{
+          out << dt.getSygusVarList() << " ";
+        }
+        out << dt.getSygusType() << " ";
+        if( status==0 ){
+          out << sol;
+        }else{
+          Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
+        }
+        out << ")" << std::endl;
       }
-      out << dt.getSygusType() << " ";
-      if( status==0 ){
-        out << sol;
-      }else{
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
-      }
-      out << ")" << std::endl;
       CegInstantiation* cei = d_qe->getCegInstantiation();
       ++(cei->d_statistics.d_solutions);
 
@@ -667,16 +670,19 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             }
             if (success)
             {
-              // The analog of terms sol and eq_sol are equivalent under sample
-              // points but do not rewrite to the same term. Hence, this
-              // indicates a candidate rewrite.
-              Printer* p = Printer::getPrinter(options::outputLanguage());
-              out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-              p->toStreamSygus(out, sol);
-              out << " ";
-              p->toStreamSygus(out, eq_sol);
-              out << ")" << std::endl;
-              ++(cei->d_statistics.d_candidate_rewrites_print);
+              if( !options::sygusSilent() )
+              {
+                // The analog of terms sol and eq_sol are equivalent under
+                // sample points but do not rewrite to the same term. Hence,
+                // this indicates a candidate rewrite.
+                Printer* p = Printer::getPrinter(options::outputLanguage());
+                out << "(" << (verified ? "" : "candidate-") << "rewrite ";
+                p->toStreamSygus(out, sol);
+                out << " ";
+                p->toStreamSygus(out, eq_sol);
+                out << ")" << std::endl;
+                ++(cei->d_statistics.d_candidate_rewrites_print);
+              }
               // debugging information
               if (Trace.isOn("sygus-rr-debug"))
               {
