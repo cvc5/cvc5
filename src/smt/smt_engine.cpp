@@ -1469,7 +1469,8 @@ void SmtEngine::setDefaults() {
     options::boolToBitvector.set(false);
   }
 
-  if(options::produceAssignments() && !options::produceModels()) {
+  // whether we require produceModels
+  if(( options::produceAssignments() || options::sygusRepairConst() ) && !options::produceModels()) {
     Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << endl;
     setOption("produce-models", SExpr("true"));
   }
