@@ -2895,11 +2895,8 @@ std::vector<Node> NonlinearExtension::checkFactoring(
     }
     else
     {
-      // Only consider literals that evaluate to false in the model.
-      // this is a stronger restriction than the restriction that lit is in
-      // false_asserts.
-      // This excludes (most) literals that contain transcendental functions.
-      considerLit = computeModelValue(lit)==d_false;
+      // Only consider literals that are in false_asserts.
+      considerLit = std::find(false_asserts.begin(),false_asserts.end(),lit)!=false_asserts.end();
     }
 
     if (considerLit)
