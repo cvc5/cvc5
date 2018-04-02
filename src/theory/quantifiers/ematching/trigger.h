@@ -313,17 +313,8 @@ class Trigger {
   static bool isRelationalTrigger( Node n );
   /** Is k a relational trigger kind? */
   static bool isRelationalTriggerKind( Kind k );
-  /** Is k a kind for which counterexample-guided instantiation is possible?
-   *
-  * This typically corresponds to kinds that correspond to operators that
-  * have total interpretations and are a part of the signature of
-  * satisfaction complete theories (see Reynolds et al., CAV 2015).
-  */
-  static bool isCbqiKind( Kind k );
   /** is n a simple trigger (see inst_match_generator.h)? */
   static bool isSimpleTrigger( Node n );
-  /** is n a Boolean term trigger, e.g. ite( x, BV1, BV0 )? */
-  static bool isBooleanTermTrigger( Node n );
   /** is n a pure theory trigger, e.g. head( x )? */
   static bool isPureTheoryTrigger( Node n );
   /** get trigger weight

@@ -1,0 +1,75 @@
+id     = "ARRAYS"
+name   = "Arrays theory"
+header = "options/arrays_options.h"
+
+[[option]]
+  name       = "arraysOptimizeLinear"
+  category   = "regular"
+  long       = "arrays-optimize-linear"
+  type       = "bool"
+  default    = "true"
+  help       = "turn on optimization for linear array terms (see de Moura FMCAD 09 arrays paper)"
+
+[[option]]
+  name       = "arraysLazyRIntro1"
+  category   = "regular"
+  long       = "arrays-lazy-rintro1"
+  type       = "bool"
+  default    = "true"
+  help       = "turn on optimization to only perform RIntro1 rule lazily (see Jovanovic/Barrett 2012: Being Careful with Theory Combination)"
+
+[[option]]
+  name       = "arraysWeakEquivalence"
+  category   = "regular"
+  long       = "arrays-weak-equiv"
+  type       = "bool"
+  default    = "false"
+  help       = "use algorithm from Christ/Hoenicke (SMT 2014)"
+
+[[option]]
+  name       = "arraysModelBased"
+  category   = "regular"
+  long       = "arrays-model-based"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on model-based array solver"
+
+[[option]]
+  name       = "arraysEagerIndexSplitting"
+  category   = "regular"
+  long       = "arrays-eager-index"
+  type       = "bool"
+  default    = "true"
+  help       = "turn on eager index splitting for generated array lemmas"
+
+[[option]]
+  name       = "arraysEagerLemmas"
+  category   = "regular"
+  long       = "arrays-eager-lemmas"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on eager lemma generation for arrays"
+
+[[option]]
+  name       = "arraysConfig"
+  category   = "regular"
+  long       = "arrays-config"
+  type       = "int"
+  default    = "0"
+  help       = "set different array option configurations - for developers only"
+
+[[option]]
+  name       = "arraysReduceSharing"
+  category   = "regular"
+  long       = "arrays-reduce-sharing"
+  type       = "bool"
+  default    = "false"
+  help       = "use model information to reduce size of care graph for arrays"
+
+[[option]]
+  name       = "arraysPropagate"
+  category   = "regular"
+  long       = "arrays-prop"
+  type       = "int"
+  default    = "2"
+  help       = "propagation effort for arrays: 0 is none, 1 is some, 2 is full"

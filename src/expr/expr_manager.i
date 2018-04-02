@@ -71,7 +71,6 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RegExp>;
 #ifdef SWIGPYTHON
 /* The python bindings cannot differentiate between bool and other basic
  * types like enum and int. Therefore, we rename mkConst for the bool

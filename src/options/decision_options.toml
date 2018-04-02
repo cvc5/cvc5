@@ -1,0 +1,57 @@
+id     = "DECISION"
+name   = "Decision heuristics"
+header = "options/decision_options.h"
+
+[[option]]
+  name       = "decisionMode"
+  smt_name   = "decision-mode"
+  category   = "regular"
+  long       = "decision=MODE"
+  type       = "decision::DecisionMode"
+  default    = "decision::DECISION_STRATEGY_INTERNAL"
+  handler    = "stringToDecisionMode"
+  includes   = ["options/decision_mode.h"]
+  help       = "choose decision mode, see --decision=help"
+
+[[option]]
+  name       = "decisionStopOnly"
+  category   = "undocumented"
+  type       = "bool"
+
+[[option]]
+  name       = "decisionThreshold"
+  category   = "expert"
+  long       = "decision-threshold=N"
+  type       = "decision::DecisionWeight"
+  default    = "0"
+  includes   = ["options/decision_weight.h"]
+  read_only  = true
+  help       = "ignore all nodes greater than threshold in first attempt to pick decision"
+
+[[option]]
+  name       = "decisionUseWeight"
+  category   = "expert"
+  long       = "decision-use-weight"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use the weight nodes (locally, by looking at children) to direct recursive search"
+
+[[option]]
+  name       = "decisionRandomWeight"
+  category   = "expert"
+  long       = "decision-random-weight=N"
+  type       = "int"
+  default    = "0"
+  read_only  = true
+  help       = "assign random weights to nodes between 0 and N-1 (0: disable)"
+
+[[option]]
+  name       = "decisionWeightInternal"
+  category   = "expert"
+  long       = "decision-weight-internal=HOW"
+  type       = "decision::DecisionWeightInternal"
+  default    = "decision::DECISION_WEIGHT_INTERNAL_OFF"
+  handler    = "stringToDecisionWeightInternal"
+  read_only  = true
+  help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"

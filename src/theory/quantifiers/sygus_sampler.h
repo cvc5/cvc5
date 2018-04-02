@@ -168,6 +168,8 @@ class SygusSampler : public LazyTrieEvaluator
   virtual Node registerTerm(Node n, bool forceKeep = false);
   /** get number of sample points */
   unsigned getNumSamplePoints() const { return d_samples.size(); }
+  /** get variables, adds d_vars to vars */
+  void getVariables(std::vector<Node>& vars) const;
   /** get sample point
    *
    * Appends sample point #index to the vector pt, d_vars to vars.
@@ -175,6 +177,8 @@ class SygusSampler : public LazyTrieEvaluator
   void getSamplePoint(unsigned index,
                       std::vector<Node>& vars,
                       std::vector<Node>& pt);
+  /** Add pt to the set of sample points considered by this sampler */
+  void addSamplePoint(std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index) override;
   /**
@@ -336,10 +340,60 @@ class SygusSampler : public LazyTrieEvaluator
   void registerSygusType(TypeNode tn);
 };
 
+/** A virtual class for notifications regarding matches. */
+class NotifyMatch
+{
+ public:
+  /**
+   * A notification that s is equal to n * { vars -> subs }. This function
+   * should return false if we do not wish to be notified of further matches.
+   */
+  virtual bool notify(Node s,
+                      Node n,
+                      std::vector<Node>& vars,
+                      std::vector<Node>& subs) = 0;
+};
+
+/**
+ * A trie (discrimination tree) storing a set of terms S, that can be used to
+ * query, for a given term t, all terms from S that are matchable with t.
+ */
+class MatchTrie
+{
+ public:
+  /** Get matches
+   *
+   * This calls ntm->notify( n, s, vars, subs ) for each term s stored in this
+   * trie that is matchable with n where s = n * { vars -> subs } for some
+   * vars, subs. This function returns false if one of these calls to notify
+   * returns false.
+   */
+  bool getMatches(Node n, NotifyMatch* ntm);
+  /** Adds node n to this trie */
+  void addTerm(Node n);
+  /** Clear this trie */
+  void clear();
+
+ private:
+  /**
+   * The children of this node in the trie. Terms t are indexed by a
+   * depth-first (right to left) traversal on its subterms, where the
+   * top-symbol of t is indexed by:
+   * - (operator, #children) if t has an operator, or
+   * - (t, 0) if t does not have an operator.
+   */
+  std::map<Node, std::map<unsigned, MatchTrie> > d_children;
+  /** The set of variables in the domain of d_children */
+  std::vector<Node> d_vars;
+  /** The data of this node in the trie */
+  Node d_data;
+};
+
 /** Version of the above class with some additional features */
 class SygusSamplerExt : public SygusSampler
 {
  public:
+  SygusSamplerExt();
   /** initialize extended */
   void initializeSygusExt(QuantifiersEngine* qe,
                           Node f,
@@ -347,31 +401,88 @@ class SygusSamplerExt : public SygusSampler
                           bool useSygusType);
   /** register term n with this sampler database
    *
+   *  For each call to registerTerm( t, ... ) that returns s, we say that
+   * (t,s) and (s,t) are "relevant pairs".
+   *
    * This returns either null, or a term ret with the same guarantees as
    * SygusSampler::registerTerm with the additional guarantee
-   * that for all ret' returned by a previous call to registerTerm( n' ),
-   * we have that n = ret is not alpha-equivalent to n' = ret'
+   * that for all previous relevant pairs ( n', nret' ),
+   * we have that n = ret is not an instance of n' = ret'
    * modulo symmetry of equality, nor is n = ret derivable from the set of
-   * all previous input/output pairs based on the d_drewrite utility.
-   * For example,
-   *   (t+0), t and (s+0), s
-   * will not both be input/output pairs of this function since t+0=t is
-   * alpha-equivalent to s+0=s.
-   *   s, t and s+0, t+0
-   * will not both be input/output pairs of this function since s+0=t+0 is
+   * all previous relevant pairs. The latter is determined by the d_drewrite
+   * utility. For example:
+   * [1]  ( t+0, t ) and ( x+0, x )
+   * will not both be relevant pairs of this function since t+0=t is
+   * an instance of x+0=x.
+   * [2]  ( s, t ) and ( s+0, t+0 )
+   * will not both be relevant pairs of this function since s+0=t+0 is
    * derivable from s=t.
+   * These two criteria may be combined, for example:
+   * [3] ( t+0, s ) is not a relevant pair if both ( x+0, x+s ) and ( t+s, s )
+   * are relevant pairs, since t+0 is an instance of x+0 where
+   * { x |-> t }, and x+s { x |-> t } = s is derivable, via the third pair
+   * above (t+s = s).
    *
    * If this function returns null, then n is equivalent to a previously
-   * registered term ret, and the equality n = ret is either alpha-equivalent
-   * to a previous input/output pair n' = ret', or n = ret is derivable
-   * from the set of all previous input/output pairs based on the
-   * d_drewrite utility.
+   * registered term ret, and the equality ( n, ret ) is either an instance
+   * of a previous relevant pair ( n', ret' ), or n = ret is derivable
+   * from the set of all previous relevant pairs based on the
+   * d_drewrite utility, or is an instance of a previous pair
    */
   Node registerTerm(Node n, bool forceKeep = false) override;
 
  private:
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
+
+  //----------------------------match filtering
+  /**
+   * Stores all relevant pairs returned by this sampler (see registerTerm). In
+   * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
+   */
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
+  /** Match trie storing all terms in the domain of d_pairs. */
+  MatchTrie d_match_trie;
+  /** Notify class */
+  class SygusSamplerExtNotifyMatch : public NotifyMatch
+  {
+    SygusSamplerExt& d_sse;
+
+   public:
+    SygusSamplerExtNotifyMatch(SygusSamplerExt& sse) : d_sse(sse) {}
+    /** notify match */
+    bool notify(Node n,
+                Node s,
+                std::vector<Node>& vars,
+                std::vector<Node>& subs) override
+    {
+      return d_sse.notify(n, s, vars, subs);
+    }
+  };
+  /** Notify object used for reporting matches from d_match_trie */
+  SygusSamplerExtNotifyMatch d_ssenm;
+  /**
+   * Stores the current right hand side of a pair we are considering.
+   *
+   * In more detail, in registerTerm, we are interested in whether a pair (s,t)
+   * is a relevant pair. We do this by:
+   * (1) Setting the node d_curr_pair_rhs to t,
+   * (2) Using d_match_trie, compute all terms s1...sn that match s.
+   * For each si, where s = si * sigma for some substitution sigma, we check
+   * whether t = ti * sigma for some previously relevant pair (si,ti), in
+   * which case (s,t) is an instance of (si,ti).
+   */
+  Node d_curr_pair_rhs;
+  /**
+   * Called by the above class during d_match_trie.getMatches( s ), when we
+   * find that si = s * sigma, where si is a term that is stored in
+   * d_match_trie.
+   *
+   * This function returns false if ( s, d_curr_pair_rhs ) is an instance of
+   * previously relevant pair.
+   */
+  bool notify(Node s, Node n, std::vector<Node>& vars, std::vector<Node>& subs);
+  //----------------------------end match filtering
 };
 
 } /* CVC4::theory::quantifiers namespace */

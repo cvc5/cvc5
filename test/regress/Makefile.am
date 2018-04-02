@@ -1,5 +1,3 @@
-DIST_SUBDIRS = regress0 regress1 regress2 regress3 regress4
-
 include Makefile.tests
 
 TESTS = $(REG0_TESTS) $(REG1_TESTS) $(REG2_TESTS) $(REG3_TESTS) $(REG4_TESTS)
@@ -26,7 +24,9 @@ endif
 MAKEFLAGS = -k
 
 export VERBOSE = 1
-.PHONY: regress0 regress1 regress2 regress3 regress4
+.PHONY: regress regress0 regress1 regress2 regress3 regress4
+
+regress: regress1
 
 regress0:
 	REGRESSION_LEVEL=0 $(MAKE) check
@@ -44,9 +44,17 @@ regress4:
 	REGRESSION_LEVEL=4 $(MAKE) check
 
 EXTRA_DIST = \
-  $(TESTS) \
+  $(REG0_TESTS) \
+  $(REG1_TESTS) \
+  $(REG2_TESTS) \
+  $(REG3_TESTS) \
+  $(REG4_TESTS) \
   $(TESTS_EXPECT) \
 	regress0/uf/mkpidgeon \
+	regress0/tptp/Axioms/BOO004-0.ax \
+	regress0/tptp/Axioms/SYN000+0.ax \
+	regress0/tptp/Axioms/SYN000-0.ax \
+	regress0/tptp/Axioms/SYN000_0.ax \
 	Makefile.levels \
 	Makefile.tests \
 	run_regression \
