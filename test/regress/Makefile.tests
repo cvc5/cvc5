@@ -329,7 +329,6 @@ REG0_TESTS = \
 	regress0/datatypes/cdt-non-canon-stream.smt2 \
 	regress0/datatypes/coda_simp_model.smt2 \
 	regress0/datatypes/conqueue-dt-enum-iloop.smt2 \
-	regress0/datatypes/datatype-dump.cvc \
 	regress0/datatypes/datatype.cvc \
 	regress0/datatypes/datatype0.cvc \
 	regress0/datatypes/datatype1.cvc \
@@ -1603,6 +1602,7 @@ REG4_TESTS = \
 # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
 #
 # regress0/aufbv/bug348 does not seem to terminate with proofs
+# regress0/datatypes/datatype-dump.cvc (FIXME #1649)
 DISABLED_TESTS = \
 	regress0/arith/bug549.cvc \
 	regress0/arith/incorrect1.smt \
