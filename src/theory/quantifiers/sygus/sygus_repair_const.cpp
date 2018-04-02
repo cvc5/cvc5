@@ -260,6 +260,7 @@ Node SygusRepairConst::getSkeleton( Node n, std::map< TypeNode, int >& free_var_
     Node sk_var = d_tds->getFreeVarInc(n.getType(),free_var_count);
     sk_vars.push_back( sk_var );
     sk_vars_to_subs[sk_var] = n;
+    Trace("sygus-repair-const-debug") << "Var to subs : " << sk_var << " -> " << n << std::endl;
     return sk_var;
   }
   NodeManager * nm = NodeManager::currentNM();
@@ -296,6 +297,7 @@ Node SygusRepairConst::getSkeleton( Node n, std::map< TypeNode, int >& free_var_
           child = d_tds->getFreeVarInc(cn.getType(),free_var_count);
           sk_vars.push_back( child );
           sk_vars_to_subs[child] = cn;
+          Trace("sygus-repair-const-debug") << "Var to subs : " << child << " -> " << cn << std::endl;
         }
         else
         {
@@ -360,6 +362,7 @@ Node SygusRepairConst::getFoQuery( const std::vector< Node >& candidates, const 
             d_sk_to_fo[v] = sk_fov;
             d_fo_to_sk[sk_fov] = v;
             itf = d_sk_to_fo.find( v );
+            Trace("sygus-repair-const-debug") << "Map " << v << " -> " << sk_fov << std::endl;
           }
           visited[cur] = itf->second;
         }
@@ -410,6 +413,7 @@ Node SygusRepairConst::fitToLogic( LogicInfo& logic, Node n, const std::vector< 
     {
       return n;
     }
+    Trace("sygus-repair-const") << "...exclude " << exc_var << " due to logic restrictions." << std::endl;
     TNode tvar = exc_var;
     Assert( sk_vars_to_subs.find(exc_var)!=sk_vars_to_subs.end() );
     TNode tsubs = sk_vars_to_subs[exc_var];
@@ -425,6 +429,8 @@ Node SygusRepairConst::fitToLogic( LogicInfo& logic, Node n, const std::vector< 
     sk_vars.erase( it );
     // reconstruct the query
     n = getFoQuery(candidates, candidate_skeletons, sk_vars );
+    // reset the exclusion variable
+    exc_var = Node::null();
   }
   return Node::null();
 }
