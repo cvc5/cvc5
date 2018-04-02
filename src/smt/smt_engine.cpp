@@ -71,6 +71,8 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
+#include "preprocessing/passes/bool_to_bv.h"
+#include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -610,12 +612,6 @@ public:
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
 
-  // Lift bit-vectors of size 1 to booleans
-  void bvToBool();
-
-  // Convert booleans to bit-vectors of size 1
-  void boolToBv();
-
   // Abstract common structure over small domains to UF
   // return true if changes were made.
   void bvAbstraction();
@@ -748,6 +744,11 @@ public:
       d_propagatorNeedsFinish = false;
     }
     d_smt.d_nodeManager->unsubscribeEvents(this);
+  }
+
+  void unregisterPreprocessingPasses()
+  {
+    d_preprocessingPassRegistry.unregisterPasses();
   }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
@@ -1223,6 +1224,8 @@ SmtEngine::~SmtEngine()
 
     d_definedFunctions->deleteSelf();
     d_fmfRecFunctionsDefined->deleteSelf();
+
+    d_private->unregisterPreprocessingPasses();
 
     delete d_theoryEngine;
     d_theoryEngine = NULL;
@@ -2557,6 +2560,12 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
+  std::unique_ptr<BVToBool> bvToBool(
+      new BVToBool(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  std::unique_ptr<BoolToBV> boolToBv(
+      new BoolToBV(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -3240,25 +3249,6 @@ void SmtEnginePrivate::bvAbstraction() {
 }
 
 
-void SmtEnginePrivate::bvToBool() {
-  Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
-  spendResource(options::preprocessStep());
-  std::vector<Node> new_assertions;
-  d_smt.d_theoryEngine->ppBvToBool(d_assertions.ref(), new_assertions);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(new_assertions[i]));
-  }
-}
-
-void SmtEnginePrivate::boolToBv() {
-  Trace("bool-to-bv") << "SmtEnginePrivate::boolToBv()" << endl;
-  spendResource(options::preprocessStep());
-  std::vector<Node> new_assertions;
-  d_smt.d_theoryEngine->ppBoolToBv(d_assertions.ref(), new_assertions);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(new_assertions[i]));
-  }
-}
 
 bool SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
@@ -4176,7 +4166,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::bitvectorToBool()) {
     dumpAssertions("pre-bv-to-bool", d_assertions);
     Chat() << "...doing bvToBool..." << endl;
-    bvToBool();
+    d_preprocessingPassRegistry.getPass("bv-to-bool")->apply(&d_assertions);
     dumpAssertions("post-bv-to-bool", d_assertions);
     Trace("smt") << "POST bvToBool" << endl;
   }
@@ -4184,7 +4174,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::boolToBitvector()) {
     dumpAssertions("pre-bool-to-bv", d_assertions);
     Chat() << "...doing boolToBv..." << endl;
-    boolToBv();
+    d_preprocessingPassRegistry.getPass("bool-to-bv")->apply(&d_assertions);
     dumpAssertions("post-bool-to-bv", d_assertions);
     Trace("smt") << "POST boolToBv" << endl;
   }

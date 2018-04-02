@@ -68,6 +68,10 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/bool_to_bv.cpp \
+	preprocessing/passes/bool_to_bv.h \
+	preprocessing/passes/bv_to_bool.cpp \
+	preprocessing/passes/bv_to_bool.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -320,8 +324,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_core.h \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_subtheory_inequality.h \
-	theory/bv/bv_to_bool.cpp \
-	theory/bv/bv_to_bool.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
 	theory/bv/slicer.cpp \

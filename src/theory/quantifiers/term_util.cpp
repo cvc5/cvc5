@@ -20,6 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"

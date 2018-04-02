@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Clark Barrett, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,71 +16,64 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BV_TO_BOOL_H
-#define __CVC4__THEORY__BV__BV_TO_BOOL_H
+#ifndef __CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H
+#define __CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H
 
-#include <unordered_map>
-
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-namespace theory {
-namespace bv {
+namespace preprocessing {
+namespace passes {
 
 typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
 
-class BvToBoolPreprocessor {
-
-  struct Statistics {
+class BVToBool : public PreprocessingPass
+{
+  struct Statistics
+  {
     IntStat d_numTermsLifted;
     IntStat d_numAtomsLifted;
     IntStat d_numTermsForcedLifted;
-    IntStat d_numTermsLowered;
-    IntStat d_numAtomsLowered;
-    IntStat d_numTermsForcedLowered;
     Statistics();
     ~Statistics();
   };
-  
-  NodeNodeMap d_liftCache;
-  NodeNodeMap d_boolCache;
-  Node d_one;
-  Node d_zero;
 
+ public:
+  BVToBool(PreprocessingPassContext* preprocContext);
+
+ protected:
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
+
+ private:
   void addToBoolCache(TNode term, Node new_term);
   Node getBoolCache(TNode term) const;
-  bool hasBoolCache(TNode term) const; 
+  bool hasBoolCache(TNode term) const;
 
   void addToLiftCache(TNode term, Node new_term);
   Node getLiftCache(TNode term) const;
-  bool hasLiftCache(TNode term) const; 
-  
+  bool hasLiftCache(TNode term) const;
+
   bool isConvertibleBvTerm(TNode node);
   bool isConvertibleBvAtom(TNode node);
   Node convertBvAtom(TNode node);
   Node convertBvTerm(TNode node);
   Node liftNode(TNode current);
+  void liftBvToBool(const std::vector<Node>& assertions,
+                    std::vector<Node>& new_assertions);
+
   Statistics d_statistics;
+  NodeNodeMap d_liftCache;
+  NodeNodeMap d_boolCache;
+  Node d_one;
+  Node d_zero;
+};
 
-  NodeNodeMap d_lowerCache;
-  void addToLowerCache(TNode term, Node new_term);
-  Node getLowerCache(TNode term) const;
-  bool hasLowerCache(TNode term) const; 
-  Node lowerNode(TNode current, bool topLevel = false);
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
 
-public:
-  BvToBoolPreprocessor();
-  void liftBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-  void lowerBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-}; 
-
-
-
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-
-}/* CVC4 namespace */
-
-
-#endif /* __CVC4__THEORY__BV__BV_TO_BOOL_H */
+#endif /* __CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H */
