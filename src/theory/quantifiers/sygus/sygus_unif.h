@@ -265,11 +265,11 @@ class SubsumeTrie
  *
  * This class maintains:
  * (1) A "strategy tree" based on the syntactic restrictions for f that is
- * constructed during initialize,
+ * constructed during initialize (d_strategy),
  * (2) A set of input/output examples that are the specification for f. This
  * can be updated via calls to resetExmaples/addExamples,
- * (3) A set of terms that have been enumerated for enumerators. This can be
- * updated via calls to notifyEnumeration.
+ * (3) A set of terms that have been enumerated for enumerators (d_ecache). This
+ * can be updated via calls to notifyEnumeration.
  *
  * Based on the above, solutions can be constructed via calls to
  * constructSolution.
@@ -353,24 +353,14 @@ class SygusUnif
                         bool pol = true);
   //-----------------------end debug printing
 
-  //------------------------------ representation of a enumeration strategy
   /**
   * This class stores information regarding an enumerator, including:
-  * - Information regarding the role of this enumerator (see EnumRole), its
-  * parent, whether it is templated, its slave enumerators, and so on, and
-  * - A database of values that have been enumerated for this enumerator.
-  *
-  * We say an enumerator is a master enumerator if it is the variable that
-  * we use to enumerate values for its sort. Master enumerators may have
-  * (possibly multiple) slave enumerators, stored in d_enum_slave. We make
-  * the first enumerator for each type a master enumerator, and any additional
-  * ones slaves of it.
+  * a database of values that have been enumerated for this enumerator.
   */
   class EnumCache
   {
    public:
     EnumCache() {}
-    //---------------------------enumerated values
     /**
     * Notify this class that the term v has been enumerated for this enumerator.
     * Its evaluation under the set of examples in pbe are stored in results.
@@ -407,7 +397,6 @@ class SygusUnif
     * enum_concat_term).
     */
     SubsumeTrie d_term_trie;
-    //---------------------------end enumerated values
    private:
     /**
       * Whether an enumerated value for this conjecture has solved the entire
@@ -462,6 +451,7 @@ class SygusUnif
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
 
+  //------------------------------ constructing solutions
   /** helper function for construct solution.
    *
    * Construct a solution based on enumerator e for function-to-synthesize of
