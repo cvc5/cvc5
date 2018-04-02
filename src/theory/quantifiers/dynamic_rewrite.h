@@ -63,6 +63,10 @@ class DynamicRewriter
    * a = b based on the previous equalities it has seen.
    */
   bool addRewrite(Node a, Node b);
+  /**
+   * Check whether this class knows that the equality a = b holds.
+   */
+  bool areEqual(Node a, Node b);
 
  private:
   /** pointer to the quantifiers engine */
