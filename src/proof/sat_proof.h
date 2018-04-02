@@ -301,7 +301,7 @@ class TSatProof {
   void addToCnfProof(ClauseId id);
 
   // Internal data.
-  typename Solver::Solver* d_solver;
+  Solver* d_solver;
   context::Context* d_context;
   CnfProof* d_cnfProof;
 
@@ -396,13 +396,15 @@ class LFSCSatProof : public TSatProof<SatSolver> {
   LFSCSatProof(SatSolver* solver, context::Context* context,
                const std::string& name, bool checkRes = false)
     : TSatProof<SatSolver>(solver, context, name, checkRes) {}
-  virtual void printResolution(ClauseId id, std::ostream& out,
-                               std::ostream& paren);
-  virtual void printResolutions(std::ostream& out, std::ostream& paren);
-  virtual void printResolutionEmptyClause(std::ostream& out,
-                                          std::ostream& paren);
-  virtual void printAssumptionsResolution(ClauseId id, std::ostream& out,
-                                          std::ostream& paren);
+  void printResolution(ClauseId id,
+                       std::ostream& out,
+                       std::ostream& paren) override;
+  void printResolutions(std::ostream& out, std::ostream& paren) override;
+  void printResolutionEmptyClause(std::ostream& out,
+                                  std::ostream& paren) override;
+  void printAssumptionsResolution(ClauseId id,
+                                  std::ostream& out,
+                                  std::ostream& paren) override;
 }; /* class LFSCSatProof */
 
 template <class Solver>

@@ -37,11 +37,12 @@ namespace CVC4 {
 // operators for record update
 class CVC4_PUBLIC RecordUpdate {
   std::string d_field;
-public:
-  RecordUpdate(const std::string& field) throw() : d_field(field) { }
-  std::string getField() const throw() { return d_field; }
-  bool operator==(const RecordUpdate& t) const throw() { return d_field == t.d_field; }
-  bool operator!=(const RecordUpdate& t) const throw() { return d_field != t.d_field; }
+
+ public:
+  RecordUpdate(const std::string& field) : d_field(field) {}
+  std::string getField() const { return d_field; }
+  bool operator==(const RecordUpdate& t) const { return d_field == t.d_field; }
+  bool operator!=(const RecordUpdate& t) const { return d_field != t.d_field; }
 };/* class RecordUpdate */
 
 struct CVC4_PUBLIC RecordUpdateHashFunction {
@@ -54,7 +55,7 @@ std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
 
 // now an actual record definition
 class CVC4_PUBLIC Record {
-public:
+ public:
   // Type must stay as incomplete types throughout this header!
   // Everything containing a Type must be a pointer or a reference.
   typedef std::vector< std::pair<std::string, Type> > FieldVector;

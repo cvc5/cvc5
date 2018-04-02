@@ -193,7 +193,10 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
   return !cmd->fail();
 }
 
-void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString) {
+void printStatsIncremental(std::ostream& out,
+                           const std::string& prvsStatsString,
+                           const std::string& curStatsString)
+{
   if(prvsStatsString == "") {
     out << curStatsString;
     return;
@@ -229,9 +232,11 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
         (std::istringstream(curStatValue) >> curFloat);
 
       if(isFloat) {
+        const std::streamsize old_precision = out.precision();
         out << curStatName << ", " << curStatValue << " "
             << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
             << std::endl;
+        out.precision(old_precision);
       } else {
         out << curStatName << ", " << curStatValue << std::endl;
       }
@@ -255,26 +260,29 @@ void CommandExecutor::printStatsFilterZeros(std::ostream& out,
 
   std::getline(iss, statName, ',');
 
-  while( !iss.eof() ) {
-
+  while (!iss.eof())
+  {
     std::getline(iss, statValue, '\n');
 
-    double curFloat;
-    std::istringstream iss_stat_value (statValue);
-    iss_stat_value >> curFloat;
-    bool isFloat = iss_stat_value.good();
+    bool skip = false;
+    try
+    {
+      double dval = std::stod(statValue);
+      skip = (dval == 0.0);
+    }
+    // Value can not be converted, don't skip
+    catch (const std::invalid_argument&) {}
+    catch (const std::out_of_range&) {}
 
-    if( (isFloat && curFloat == 0) ||
-        statValue == " \"0\"" ||
-        statValue == " \"[]\"") {
-      // skip
-    } else {
+    skip = skip || (statValue == " \"0\"" || statValue == " \"[]\"");
+
+    if (!skip)
+    {
       out << statName << "," << statValue << std::endl;
     }
 
     std::getline(iss, statName, ',');
   }
-
 }
 
 void CommandExecutor::flushOutputStreams() {

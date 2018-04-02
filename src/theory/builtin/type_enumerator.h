@@ -34,11 +34,12 @@ class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortE
   Integer d_count;
   bool d_has_fixed_bound;
   Integer d_fixed_bound;
-public:
 
-  UninterpretedSortEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<UninterpretedSortEnumerator>(type),
-    d_count(0) {
+ public:
+  UninterpretedSortEnumerator(TypeNode type,
+                              TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<UninterpretedSortEnumerator>(type), d_count(0)
+  {
     Assert(type.getKind() == kind::SORT_TYPE);
     d_has_fixed_bound = false;
     Trace("uf-type-enum") << "UF enum " << type << ", tep = " << tep << std::endl;
@@ -54,19 +55,22 @@ public:
     }
   }
 
-  Node operator*() {
+  Node operator*() override
+  {
     if(isFinished()) {
       throw NoMoreValuesException(getType());
     }
     return NodeManager::currentNM()->mkConst(UninterpretedConstant(getType().toType(), d_count));
   }
 
-  UninterpretedSortEnumerator& operator++() throw() {
+  UninterpretedSortEnumerator& operator++() override
+  {
     d_count += 1;
     return *this;
   }
 
-  bool isFinished() throw() {
+  bool isFinished() override
+  {
     if( d_has_fixed_bound ){
       return d_count>=d_fixed_bound;
     }else{
@@ -87,9 +91,9 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
   /** Get the current term of the enumerator. */
   Node operator*() override;
   /** Increment the enumerator. */
-  FunctionEnumerator& operator++() throw() override;
+  FunctionEnumerator& operator++() override;
   /** is the enumerator finished? */
-  bool isFinished() throw() override { return d_arrayEnum.isFinished(); }
+  bool isFinished() override { return d_arrayEnum.isFinished(); }
  private:
   /** Enumerates arrays, which we convert to functions. */
   TypeEnumerator d_arrayEnum;

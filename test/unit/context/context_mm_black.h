@@ -40,7 +40,9 @@ public:
   }
 
   void testPushPop() {
-#ifdef CVC4_CONTEXT_MEMORY_MANAGER
+#ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
+#warning "Using the debug context memory manager, omitting unit tests"
+#else
     // Push, then allocate, then pop
     // We make sure that we don't allocate too much so that all the regions
     // should be reclaimed
@@ -91,8 +93,6 @@ public:
 
     // Try popping out of scope
     TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException);
-#else /* CVC4_CONTEXT_MEMORY_MANAGER */
-#warning "Context memory manager disabled, omitting unit tests"
 #endif /* __CVC4__CONTEXT__CONTEXT_MM_H */
   }
 

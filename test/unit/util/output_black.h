@@ -105,118 +105,6 @@ public:
 #endif /* CVC4_MUZZLE */
   }
 
-  void testPrintf() {
-
-#ifdef CVC4_MUZZLE
-
-    Debug.off("yo");
-    Debug.printf("yo", "hello %s", "world");
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-    d_debugStream.str("");
-    Debug.printf(string("yo"), "hello %s", "world");
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-    d_debugStream.str("");
-
-    Debug.on("yo");
-    Debug.printf("yo", "hello %s", "world");
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-    d_debugStream.str("");
-    Debug.printf(string("yo"), "hello %s", "world");
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-    d_debugStream.str("");
-
-    Trace.off("yo");
-    Trace.printf("yo", "hello %s", "world");
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-    d_traceStream.str("");
-    Trace.printf(string("yo"), "hello %s", "world");
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-    d_traceStream.str("");
-
-    Trace.on("yo");
-    Trace.printf("yo", "hello %s", "world");
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-    d_traceStream.str("");
-    Trace.printf(string("yo"), "hello %s", "world");
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-
-    Warning.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_warningStream.str(), string());
-
-    Chat.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_chatStream.str(), string());
-
-    Message.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_messageStream.str(), string());
-
-    Notice.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_noticeStream.str(), string());
-
-#else /* CVC4_MUZZLE */
-
-    Debug.off("yo");
-    Debug.printf("yo", "hello %s", "world");
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-    d_debugStream.str("");
-    Debug.printf(string("yo"), "hello %s", "world");
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-    d_debugStream.str("");
-
-    Debug.on("yo");
-    Debug.printf("yo", "hello %s", "world");
-#ifdef CVC4_DEBUG
-    TS_ASSERT_EQUALS(d_debugStream.str(), string("hello world"));
-#else /* CVC4_DEBUG */
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-#endif /* CVC4_DEBUG */
-    d_debugStream.str("");
-    Debug.printf(string("yo"), "hello %s", "world");
-#ifdef CVC4_DEBUG
-    TS_ASSERT_EQUALS(d_debugStream.str(), string("hello world"));
-#else /* CVC4_DEBUG */
-    TS_ASSERT_EQUALS(d_debugStream.str(), string());
-#endif /* CVC4_DEBUG */
-    d_debugStream.str("");
-
-    Trace.off("yo");
-    Trace.printf("yo", "hello %s", "world");
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-    d_traceStream.str("");
-    Trace.printf(string("yo"), "hello %s", "world");
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-    d_traceStream.str("");
-
-    Trace.on("yo");
-    Trace.printf("yo", "hello %s", "world");
-#ifdef CVC4_TRACING
-    TS_ASSERT_EQUALS(d_traceStream.str(), string("hello world"));
-#else /* CVC4_TRACING */
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-#endif /* CVC4_TRACING */
-    d_traceStream.str("");
-    Trace.printf(string("yo"), "hello %s", "world");
-#ifdef CVC4_TRACING
-    TS_ASSERT_EQUALS(d_traceStream.str(), string("hello world"));
-#else /* CVC4_TRACING */
-    TS_ASSERT_EQUALS(d_traceStream.str(), string());
-#endif /* CVC4_TRACING */
-
-    Warning.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_warningStream.str(), string("hello world"));
-
-    Chat.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_chatStream.str(), string("hello world"));
-
-    Message.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_messageStream.str(), string("hello world"));
-
-    Notice.printf("hello %s", "world");
-    TS_ASSERT_EQUALS(d_noticeStream.str(), string("hello world"));
-
-#endif /* CVC4_MUZZLE */
-
-  }
-
   static int failure() {
     // this represents an expensive function that should NOT be called
     // when debugging/tracing is turned off
@@ -229,25 +117,21 @@ public:
 #ifndef CVC4_DEBUG
     TS_ASSERT( !( Debug.isOn("foo") ) );
     Debug("foo") << failure() << endl;
-    Debug.printf("foo", "%d\n", failure());
 #else /* ! CVC4_DEBUG */
     TS_ASSERT( Debug.isOn("foo") );
 #endif /* ! CVC4_DEBUG */
     Debug.off("foo");
     //Debug("foo") << failure() << endl;
-    //Debug.printf("foo", "%d\n", failure());
 
     Trace.on("foo");
 #ifndef CVC4_TRACING
     TS_ASSERT( !( Trace.isOn("foo") ) );
     Trace("foo") << failure() << endl;
-    Trace.printf("foo", "%d\n", failure());
 #else /* ! CVC4_TRACING */
     TS_ASSERT( Trace.isOn("foo") );
 #endif /* ! CVC4_TRACING */
     Trace.off("foo");
     //Trace("foo") << failure() << endl;
-    //Trace.printf("foo", "%d\n", failure());
 
 #ifdef CVC4_MUZZLE
     TS_ASSERT( !( Debug.isOn("foo") ) );
@@ -269,19 +153,6 @@ public:
     Notice() << failure() << endl;
     cout << "chat" << std::endl;
     Chat() << failure() << endl;
-
-    cout << "debug:printf" << std::endl;
-    Debug.printf("foo", "%d\n", failure());
-    cout << "trace:printf" << std::endl;
-    Trace.printf("foo", "%d\n", failure());
-    cout << "warning:printf" << std::endl;
-    Warning.printf("%d\n", failure());
-    cout << "message:printf" << std::endl;
-    Message.printf("%d\n", failure());
-    cout << "notice:printf" << std::endl;
-    Notice.printf("%d\n", failure());
-    cout << "chat:printf" << std::endl;
-    Chat.printf("%d\n", failure());
 #endif /* CVC4_MUZZLE */
   }
 

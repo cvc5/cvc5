@@ -61,6 +61,17 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::SINE, "sin");
   addOperator(kind::COSINE, "cos");
   addOperator(kind::TANGENT, "tan");
+  addOperator(kind::COSECANT, "csc");
+  addOperator(kind::SECANT, "sec");
+  addOperator(kind::COTANGENT, "cot");
+  addOperator(kind::ARCSINE, "arcsin");
+  addOperator(kind::ARCCOSINE, "arccos");
+  addOperator(kind::ARCTANGENT, "arctan");
+  addOperator(kind::ARCCOSECANT, "arccsc");
+  addOperator(kind::ARCSECANT, "arcsec");
+  addOperator(kind::ARCCOTANGENT, "arccot");
+
+  addOperator(kind::SQRT, "sqrt");
 }
 
 void Smt2::addBitvectorOperators() {
@@ -240,14 +251,22 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INSERT, "insert");
     addOperator(kind::CARD, "card");
     addOperator(kind::COMPLEMENT, "complement");
+    addOperator(kind::JOIN, "join");
+    addOperator(kind::PRODUCT, "product");
+    addOperator(kind::TRANSPOSE, "transpose");
+    addOperator(kind::TCLOSURE, "tclosure");
     break;
 
   case THEORY_DATATYPES:
+  {
+    const std::vector<Type> types;
+    defineType("Tuple", getExprManager()->mkTupleType(types));
     Parser::addOperator(kind::APPLY_CONSTRUCTOR);
     Parser::addOperator(kind::APPLY_TESTER);
     Parser::addOperator(kind::APPLY_SELECTOR);
     Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
     break;
+  }
 
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
@@ -298,7 +317,7 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
 bool Smt2::isTheoryEnabled(Theory theory) const {
   switch(theory) {
   case THEORY_ARRAYS:
-    return d_logic.isTheoryEnabled(theory::THEORY_ARRAY);
+    return d_logic.isTheoryEnabled(theory::THEORY_ARRAYS);
   case THEORY_BITVECTORS:
     return d_logic.isTheoryEnabled(theory::THEORY_BV);
   case THEORY_CORE:
@@ -378,6 +397,7 @@ void Smt2::pushDefineFunRecScope(
 {
 pushScope(bindingLevel);
 
+<<<<<<< HEAD
 std::vector<Expr> f_app;
 f_app.push_back(func);
 // bound variables are those that are explicitly named in the preamble
@@ -388,6 +408,15 @@ for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
   bvs.push_back(v);
   f_app.push_back(v);
 }
+=======
+  // bound variables are those that are explicitly named in the preamble
+  // of the define-fun(s)-rec command, we define them here
+  for (const std::pair<std::string, CVC4::Type>& svn : sortedVarNames)
+  {
+    Expr v = mkBoundVar(svn.first, svn.second);
+    bvs.push_back(v);
+  }
+>>>>>>> cd41d9de391ea93736182e944c10b697d863c6a6
 
 bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
 }
@@ -461,7 +490,7 @@ void Smt2::setLogic(std::string name) {
     }
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAY)) {
+  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
     addTheory(THEORY_ARRAYS);
   }
 

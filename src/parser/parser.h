@@ -400,9 +400,10 @@ public:
    * @param notes notes to add to a parse error (if one is generated)
    * @throws ParserException if checks are enabled and the check fails
    */
-  void checkDeclaration(const std::string& name, DeclarationCheck check,
+  void checkDeclaration(const std::string& name,
+                        DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE,
-                        std::string notes = "") throw(ParserException);
+                        std::string notes = "");
 
   /**
    * Reserve a symbol at the assertion level.
@@ -418,7 +419,7 @@ public:
    * @throws ParserException if checks are enabled and fun is not
    * a function
    */
-  void checkFunctionLike(Expr fun) throw(ParserException);
+  void checkFunctionLike(Expr fun);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
@@ -428,7 +429,7 @@ public:
    * <code>kind</code> cannot be applied to <code>numArgs</code>
    * arguments.
    */
-  void checkArity(Kind kind, unsigned numArgs) throw(ParserException);
+  void checkArity(Kind kind, unsigned numArgs);
 
   /**
    * Check that <code>kind</code> is a legal operator in the current
@@ -439,7 +440,7 @@ public:
    * @throws ParserException if the parser mode is strict and the
    * operator <code>kind</code> has not been enabled
    */
-  void checkOperator(Kind kind, unsigned numArgs) throw(ParserException);
+  void checkOperator(Kind kind, unsigned numArgs);
 
   /** Create a new CVC4 variable expression of the given type. 
    *
@@ -671,26 +672,21 @@ public:
   bool isPredicate(const std::string& name);
 
   /** Parse and return the next command. */
-  Command* nextCommand() throw(ParserException, UnsafeInterruptException);
+  Command* nextCommand();
 
   /** Parse and return the next expression. */
-  Expr nextExpression() throw(ParserException, UnsafeInterruptException);
+  Expr nextExpression();
 
   /** Issue a warning to the user. */
-  inline void warning(const std::string& msg) {
-    d_input->warning(msg);
-  }
-
+  void warning(const std::string& msg) { d_input->warning(msg); }
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
 
   /** Raise a parse error with the given message. */
-  inline void parseError(const std::string& msg) throw(ParserException) {
-    d_input->parseError(msg);
-  }
-
+  inline void parseError(const std::string& msg) { d_input->parseError(msg); }
   /** Unexpectedly encountered an EOF */
-  inline void unexpectedEOF(const std::string& msg) throw(ParserException) {
+  inline void unexpectedEOF(const std::string& msg)
+  {
     d_input->parseError(msg, true);
   }
 
@@ -708,7 +704,8 @@ public:
    * support parsing quantifiers (just not doing anything with them).
    * So this mechanism gives you a way to do it with --parse-only.
    */
-  inline void unimplementedFeature(const std::string& msg) throw(ParserException) {
+  inline void unimplementedFeature(const std::string& msg)
+  {
     if(!d_parseOnly) {
       parseError("Unimplemented feature: " + msg);
     }
@@ -797,7 +794,7 @@ public:
   public:
     ExprStream(Parser* parser) : d_parser(parser) {}
     ~ExprStream() { delete d_parser; }
-    Expr nextExpr() { return d_parser->nextExpression(); }
+    Expr nextExpr() override { return d_parser->nextExpression(); }
   };/* class Parser::ExprStream */
   
   //------------------------ operator overloading

@@ -2,9 +2,9 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -955,6 +955,7 @@ void CvcPrinter::toStream(std::ostream& out,
      tryToStream<PushCommand>(out, c, d_cvc3Mode) ||
      tryToStream<PopCommand>(out, c, d_cvc3Mode) ||
      tryToStream<CheckSatCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<CheckSatAssumingCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QueryCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetAssertionsCommand>(out, c, d_cvc3Mode) ||
@@ -1010,121 +1011,121 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 }/* CvcPrinter::toStream(CommandStatus*) */
 
-void CvcPrinter::toStream(std::ostream& out,
-                          const Model& m,
-                          const Command* c) const
+namespace {
+
+void DeclareTypeCommandToStream(std::ostream& out,
+                                const theory::TheoryModel& model,
+                                const DeclareTypeCommand& command)
 {
-  const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
-  if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
-    TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    if (options::modelUninterpDtEnum() && tn.isSort())
+  TypeNode type_node = TypeNode::fromType(command.getType());
+  const std::vector<Node>* type_reps =
+      model.getRepSet()->getTypeRepsOrNull(type_node);
+  if (options::modelUninterpDtEnum() && type_node.isSort()
+      && type_reps != nullptr)
+  {
+    out << "DATATYPE" << std::endl;
+    out << "  " << command.getSymbol() << " = ";
+    for (size_t i = 0; i < type_reps->size(); i++)
     {
-      const theory::RepSet* rs = tm.getRepSet();
-      if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+      if (i > 0)
       {
-        out << "DATATYPE" << std::endl;
-        out << "  " << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol()
-            << " = ";
-        for (size_t i = 0; i < (*rs->d_type_reps.find(tn)).second.size(); i++)
-        {
-          if (i > 0)
-          {
-            out << "| ";
-          }
-          out << (*rs->d_type_reps.find(tn)).second[i] << " ";
-        }
-        out << std::endl << "END;" << std::endl;
+        out << "| ";
+      }
+      out << (*type_reps)[i] << " ";
+    }
+    out << std::endl << "END;" << std::endl;
+  }
+  else if (type_node.isSort() && type_reps != nullptr)
+  {
+    out << "% cardinality of " << type_node << " is " << type_reps->size()
+        << std::endl;
+    out << command << std::endl;
+    for (Node type_rep : *type_reps)
+    {
+      if (type_rep.isVar())
+      {
+        out << type_rep << " : " << type_node << ";" << std::endl;
       }
       else
       {
-        if (tn.isSort())
-        {
-          // print the cardinality
-          if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
-          {
-            out << "% cardinality of " << tn << " is "
-                << (*rs->d_type_reps.find(tn)).second.size() << std::endl;
-          }
-        }
-        out << c << std::endl;
-        if (tn.isSort())
-        {
-          // print the representatives
-          if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
-          {
-            for (size_t i = 0; i < (*rs->d_type_reps.find(tn)).second.size();
-                 i++)
-            {
-              if ((*rs->d_type_reps.find(tn)).second[i].isVar())
-              {
-                out << (*rs->d_type_reps.find(tn)).second[i] << " : " << tn
-                    << ";" << std::endl;
-              }
-              else
-              {
-                out << "% rep: " << (*rs->d_type_reps.find(tn)).second[i]
-                    << std::endl;
-              }
-            }
-          }
-        }
+        out << "% rep: " << type_rep << std::endl;
       }
     }
-  } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
-    Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
-    if(n.getKind() == kind::SKOLEM) {
-      // don't print out internal stuff
-      return;
-    }
-    TypeNode tn = n.getType();
-    out << n << " : ";
-    if( tn.isFunction() || tn.isPredicate() ){
-      out << "(";
-      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
-        if( i>0 ) out << ", ";
-        out << tn[i];
-      }
-      out << ") -> " << tn.getRangeType();
-    }else{
-      out << tn;
-    }
-    Node val = Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr()));
-    if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
-      const theory::RepSet* rs = tm.getRepSet();
-      TypeNode tn = val[1].getType();
-      if (tn.isSort() && rs->d_type_reps.find(tn) != rs->d_type_reps.end())
-      {
-        Cardinality indexCard((*rs->d_type_reps.find(tn)).second.size());
-        val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
-      }
-    }
-    out << " = " << val << ";" << std::endl;
+  }
+  else
+  {
+    out << command << std::endl;
+  }
+}
 
-/*
-    //for table format (work in progress)
-    bool printedModel = false;
-    if( tn.isFunction() ){
-      if( options::modelFormatMode()==MODEL_FORMAT_MODE_TABLE ){
-        //specialized table format for functions
-        RepSetIterator riter( &d_rep_set );
-        riter.setFunctionDomain( n );
-        while( !riter.isFinished() ){
-          std::vector< Node > children;
-          children.push_back( n );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            children.push_back( riter.getTerm( i ) );
-          }
-          Node nn = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-          Node val = getValue( nn );
-          out << val << " ";
-          riter.increment();
-        }
-        printedModel = true;
+void DeclareFunctionCommandToStream(std::ostream& out,
+                                    const theory::TheoryModel& model,
+                                    const DeclareFunctionCommand& command)
+{
+  Node n = Node::fromExpr(command.getFunction());
+  if (n.getKind() == kind::SKOLEM)
+  {
+    // don't print out internal stuff
+    return;
+  }
+  TypeNode tn = n.getType();
+  out << n << " : ";
+  if (tn.isFunction() || tn.isPredicate())
+  {
+    out << "(";
+    for (size_t i = 0; i < tn.getNumChildren() - 1; i++)
+    {
+      if (i > 0)
+      {
+        out << ", ";
+      }
+      out << tn[i];
+    }
+    out << ") -> " << tn.getRangeType();
+  }
+  else
+  {
+    out << tn;
+  }
+  Node val = Node::fromExpr(model.getSmtEngine()->getValue(n.toExpr()));
+  if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+  {
+    TypeNode type_node = val[1].getType();
+    if (tn.isSort())
+    {
+      if (const std::vector<Node>* type_reps =
+              model.getRepSet()->getTypeRepsOrNull(type_node))
+      {
+        Cardinality indexCard(type_reps->size());
+        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
+            val, indexCard);
       }
     }
-*/
-  }else{
-    out << c << std::endl;
+  }
+  out << " = " << val << ";" << std::endl;
+}
+
+}  // namespace
+
+void CvcPrinter::toStream(std::ostream& out,
+                          const Model& model,
+                          const Command* command) const
+{
+  const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
+  AlwaysAssert(theory_model != nullptr);
+  if (const auto* declare_type_command =
+          dynamic_cast<const DeclareTypeCommand*>(command))
+  {
+    DeclareTypeCommandToStream(out, *theory_model, *declare_type_command);
+  }
+  else if (const auto* dfc =
+               dynamic_cast<const DeclareFunctionCommand*>(command))
+  {
+    DeclareFunctionCommandToStream(out, *theory_model, *dfc);
+  }
+  else
+  {
+    out << command << std::endl;
   }
 }
 
@@ -1155,6 +1156,31 @@ static void toStream(std::ostream& out, const CheckSatCommand* c, bool cvc3Mode)
     out << "CHECKSAT;";
   }
   if(cvc3Mode) {
+    out << " POP;";
+  }
+}
+
+static void toStream(std::ostream& out,
+                     const CheckSatAssumingCommand* c,
+                     bool cvc3Mode)
+{
+  const vector<Expr>& exprs = c->getTerms();
+  if (cvc3Mode)
+  {
+    out << "PUSH; ";
+  }
+  out << "CHECKSAT";
+  if (exprs.size() > 0)
+  {
+    out << " " << exprs[0];
+    for (size_t i = 1, n = exprs.size(); i < n; ++i)
+    {
+      out << " AND " << exprs[i];
+    }
+  }
+  out << ";";
+  if (cvc3Mode)
+  {
     out << " POP;";
   }
 }

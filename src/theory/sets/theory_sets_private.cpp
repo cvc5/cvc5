@@ -49,7 +49,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_var_elim(u),
   d_external(external),
   d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate", true),
+  d_equalityEngine(d_notify, c, "theory::sets::ee", true),
   d_conflict(c)
 {
 
@@ -1911,16 +1911,19 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
 /******************** Model generation ********************/
 /******************** Model generation ********************/
 
-
-void TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
+bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
+{
   Trace("sets-model") << "Set collect model info" << std::endl;
   set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
   d_external.computeRelevantTerms(termSet);
   
   // Assert equalities and disequalities to the model
-  m->assertEqualityEngine(&d_equalityEngine,&termSet);
-  
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
+    return false;
+  }
+
   std::map< Node, Node > mvals;
   for( int i=(int)(d_set_eqc.size()-1); i>=0; i-- ){
     Node eqc = d_set_eqc[i];
@@ -1970,10 +1973,14 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m) {
       rep = Rewriter::rewrite( rep );
       Trace("sets-model") << "* Assign representative of " << eqc << " to " << rep << std::endl;
       mvals[eqc] = rep;
-      m->assertEquality( eqc, rep, true );
-      m->assertRepresentative( rep );
+      if (!m->assertEquality(eqc, rep, true))
+      {
+        return false;
+      }
+      m->assertSkeleton(rep);
     }
   }
+  return true;
 }
 
 /********************** Helper functions ***************************/

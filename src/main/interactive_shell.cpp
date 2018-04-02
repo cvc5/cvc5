@@ -176,7 +176,8 @@ InteractiveShell::~InteractiveShell() {
   delete d_parser;
 }
 
-Command* InteractiveShell::readCommand() throw (UnsafeInterruptException) {
+Command* InteractiveShell::readCommand()
+{
   char* lineBuf = NULL;
   string line = "";
 

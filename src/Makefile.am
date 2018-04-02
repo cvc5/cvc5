@@ -62,6 +62,12 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/preprocessing_pass.cpp \
+	preprocessing/preprocessing_pass.h \
+	preprocessing/preprocessing_pass_context.cpp \
+	preprocessing/preprocessing_pass_context.h \
+	preprocessing/preprocessing_pass_registry.cpp \
+	preprocessing/preprocessing_pass_registry.h \
 	printer/dagification_visitor.cpp \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
@@ -108,6 +114,8 @@ libcvc4_la_SOURCES = \
 	proof/uf_proof.h \
 	proof/unsat_core.cpp \
 	proof/unsat_core.h \
+	prop/cadical.cpp \
+	prop/cadical.h \
 	prop/cnf_stream.cpp \
 	prop/cnf_stream.h \
 	prop/cryptominisat.cpp \
@@ -309,7 +317,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bvgauss.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
-	theory/bv/cd_set_collection.h \
 	theory/bv/eager_bitblaster.cpp \
 	theory/bv/lazy_bitblaster.cpp \
 	theory/bv/slicer.cpp \
@@ -328,6 +335,7 @@ libcvc4_la_SOURCES = \
 	theory/bv/theory_bv_utils.cpp \
 	theory/bv/theory_bv_utils.h \
 	theory/bv/type_enumerator.h \
+	theory/datatypes/datatypes_rewriter.cpp \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/datatypes_sygus.cpp \
 	theory/datatypes/datatypes_sygus.h \
@@ -354,32 +362,32 @@ libcvc4_la_SOURCES = \
 	theory/idl/theory_idl.h \
 	theory/quantifiers/alpha_equivalence.cpp \
 	theory/quantifiers/alpha_equivalence.h \
-	theory/quantifiers/ambqi_builder.cpp \
-	theory/quantifiers/ambqi_builder.h \
 	theory/quantifiers/anti_skolem.cpp \
 	theory/quantifiers/anti_skolem.h \
-	theory/quantifiers/bounded_integers.cpp \
-	theory/quantifiers/bounded_integers.h \
 	theory/quantifiers/bv_inverter.cpp \
 	theory/quantifiers/bv_inverter.h \
-	theory/quantifiers/candidate_generator.cpp \
-	theory/quantifiers/candidate_generator.h \
-	theory/quantifiers/ce_guided_conjecture.cpp \
-	theory/quantifiers/ce_guided_conjecture.h \
-	theory/quantifiers/ce_guided_instantiation.cpp \
-	theory/quantifiers/ce_guided_instantiation.h \
-	theory/quantifiers/ce_guided_single_inv.cpp \
-	theory/quantifiers/ce_guided_single_inv.h \
-	theory/quantifiers/ce_guided_pbe.cpp \
-	theory/quantifiers/ce_guided_pbe.h \
-	theory/quantifiers/ce_guided_single_inv_sol.cpp \
-	theory/quantifiers/ce_guided_single_inv_sol.h \
-	theory/quantifiers/ceg_instantiator.cpp \
-	theory/quantifiers/ceg_instantiator.h \
-	theory/quantifiers/ceg_t_instantiator.cpp \
-	theory/quantifiers/ceg_t_instantiator.h \
+	theory/quantifiers/cegqi/ceg_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_instantiator.h \
+	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_t_instantiator.h \
+	theory/quantifiers/cegqi/inst_strategy_cbqi.cpp \
+	theory/quantifiers/cegqi/inst_strategy_cbqi.h \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
+	theory/quantifiers/dynamic_rewrite.cpp \
+	theory/quantifiers/dynamic_rewrite.h \
+	theory/quantifiers/ematching/candidate_generator.cpp \
+	theory/quantifiers/ematching/candidate_generator.h \
+	theory/quantifiers/ematching/ho_trigger.cpp \
+	theory/quantifiers/ematching/ho_trigger.h \
+	theory/quantifiers/ematching/inst_match_generator.cpp \
+	theory/quantifiers/ematching/inst_match_generator.h \
+	theory/quantifiers/ematching/inst_strategy_e_matching.cpp \
+	theory/quantifiers/ematching/inst_strategy_e_matching.h \
+	theory/quantifiers/ematching/instantiation_engine.cpp \
+	theory/quantifiers/ematching/instantiation_engine.h \
+	theory/quantifiers/ematching/trigger.cpp \
+	theory/quantifiers/ematching/trigger.h \
 	theory/quantifiers/equality_query.cpp \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
@@ -388,46 +396,38 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
 	theory/quantifiers/first_order_model.h \
-	theory/quantifiers/full_model_check.cpp \
-	theory/quantifiers/full_model_check.h \
-	theory/quantifiers/fun_def_engine.cpp \
-	theory/quantifiers/fun_def_engine.h \
+	theory/quantifiers/fmf/ambqi_builder.cpp \
+	theory/quantifiers/fmf/ambqi_builder.h \
+	theory/quantifiers/fmf/bounded_integers.cpp \
+	theory/quantifiers/fmf/bounded_integers.h \
+	theory/quantifiers/fmf/full_model_check.cpp \
+	theory/quantifiers/fmf/full_model_check.h \
+	theory/quantifiers/fmf/model_builder.cpp \
+	theory/quantifiers/fmf/model_builder.h \
+	theory/quantifiers/fmf/model_engine.cpp \
+	theory/quantifiers/fmf/model_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
-	theory/quantifiers/ho_trigger.cpp \
-	theory/quantifiers/ho_trigger.h \
+	theory/quantifiers/global_negate.cpp \
+	theory/quantifiers/global_negate.h \
 	theory/quantifiers/instantiate.cpp \
 	theory/quantifiers/instantiate.h \
 	theory/quantifiers/inst_match.cpp \
 	theory/quantifiers/inst_match.h \
 	theory/quantifiers/inst_match_trie.cpp \
 	theory/quantifiers/inst_match_trie.h \
-	theory/quantifiers/inst_match_generator.cpp \
-	theory/quantifiers/inst_match_generator.h \
 	theory/quantifiers/inst_propagator.cpp \
 	theory/quantifiers/inst_propagator.h \
-	theory/quantifiers/inst_strategy_cbqi.cpp \
-	theory/quantifiers/inst_strategy_cbqi.h \
-	theory/quantifiers/inst_strategy_e_matching.cpp \
-	theory/quantifiers/inst_strategy_e_matching.h \
 	theory/quantifiers/inst_strategy_enumerative.cpp \
 	theory/quantifiers/inst_strategy_enumerative.h \
-	theory/quantifiers/instantiation_engine.cpp \
-	theory/quantifiers/instantiation_engine.h \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/local_theory_ext.h \
 	theory/quantifiers/macros.cpp \
 	theory/quantifiers/macros.h \
-	theory/quantifiers/model_builder.cpp \
-	theory/quantifiers/model_builder.h \
-	theory/quantifiers/model_engine.cpp \
-	theory/quantifiers/model_engine.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_epr.cpp \
 	theory/quantifiers/quant_epr.h \
-	theory/quantifiers/quant_equality_engine.cpp \
-	theory/quantifiers/quant_equality_engine.h \
 	theory/quantifiers/quant_relevance.cpp \
 	theory/quantifiers/quant_relevance.h \
 	theory/quantifiers/quant_split.cpp \
@@ -446,22 +446,44 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/single_inv_partition.h \
 	theory/quantifiers/skolemize.cpp \
 	theory/quantifiers/skolemize.h \
-	theory/quantifiers/sygus_explain.cpp \
-	theory/quantifiers/sygus_explain.h \
-	theory/quantifiers/sygus_invariance.cpp \
-	theory/quantifiers/sygus_invariance.h \
-	theory/quantifiers/sygus_grammar_cons.cpp \
-	theory/quantifiers/sygus_grammar_cons.h \
-	theory/quantifiers/sygus_grammar_norm.cpp \
-	theory/quantifiers/sygus_grammar_norm.h \
-	theory/quantifiers/sygus_process_conj.cpp \
-	theory/quantifiers/sygus_process_conj.h \
+	theory/quantifiers/sygus/cegis.cpp \
+	theory/quantifiers/sygus/cegis.h \
+	theory/quantifiers/sygus/ce_guided_conjecture.cpp \
+	theory/quantifiers/sygus/ce_guided_conjecture.h \
+	theory/quantifiers/sygus/ce_guided_instantiation.cpp \
+	theory/quantifiers/sygus/ce_guided_instantiation.h \
+	theory/quantifiers/sygus/ce_guided_single_inv.cpp \
+	theory/quantifiers/sygus/ce_guided_single_inv.h \
+	theory/quantifiers/sygus/sygus_pbe.cpp \
+	theory/quantifiers/sygus/sygus_pbe.h \
+	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \
+	theory/quantifiers/sygus/ce_guided_single_inv_sol.h \
+	theory/quantifiers/sygus/sygus_explain.cpp \
+	theory/quantifiers/sygus/sygus_explain.h \
+	theory/quantifiers/sygus/sygus_invariance.cpp \
+	theory/quantifiers/sygus/sygus_invariance.h \
+	theory/quantifiers/sygus/sygus_grammar_cons.cpp \
+	theory/quantifiers/sygus/sygus_grammar_cons.h \
+	theory/quantifiers/sygus/sygus_grammar_norm.cpp \
+	theory/quantifiers/sygus/sygus_grammar_norm.h \
+	theory/quantifiers/sygus/sygus_grammar_red.cpp \
+	theory/quantifiers/sygus/sygus_grammar_red.h \
+	theory/quantifiers/sygus/sygus_module.cpp \
+	theory/quantifiers/sygus/sygus_module.h \
+	theory/quantifiers/sygus/sygus_process_conj.cpp \
+	theory/quantifiers/sygus/sygus_process_conj.h \
+	theory/quantifiers/sygus/sygus_unif.cpp \
+	theory/quantifiers/sygus/sygus_unif.h \
+	theory/quantifiers/sygus/sygus_unif_strat.cpp \
+	theory/quantifiers/sygus/sygus_unif_strat.h \
+	theory/quantifiers/sygus/term_database_sygus.cpp \
+	theory/quantifiers/sygus/term_database_sygus.h \
+	theory/quantifiers/sygus_sampler.cpp \
+	theory/quantifiers/sygus_sampler.h \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
-	theory/quantifiers/term_database_sygus.cpp \
-	theory/quantifiers/term_database_sygus.h \
 	theory/quantifiers/term_enumeration.cpp \
 	theory/quantifiers/term_enumeration.h \
 	theory/quantifiers/term_util.cpp \
@@ -469,8 +491,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/theory_quantifiers.cpp \
 	theory/quantifiers/theory_quantifiers.h \
 	theory/quantifiers/theory_quantifiers_type_rules.h \
-	theory/quantifiers/trigger.cpp \
-	theory/quantifiers/trigger.h \
 	theory/sep/theory_sep.cpp \
 	theory/sep/theory_sep.h \
 	theory/sep/theory_sep_rewriter.cpp \
@@ -541,6 +561,11 @@ endif
 if CVC4_USE_ABC
 libcvc4_la_LIBADD += $(ABC_LIBS)
 libcvc4_la_LDFLAGS += $(ABC_LDFLAGS)
+endif
+
+if CVC4_USE_CADICAL
+libcvc4_la_LIBADD += $(CADICAL_LIBS)
+libcvc4_la_LDFLAGS += $(CADICAL_LDFLAGS)
 endif
 
 if CVC4_USE_CRYPTOMINISAT

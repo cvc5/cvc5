@@ -93,7 +93,8 @@ ExprManager::ExprManager(const Options& options) :
 #endif
 }
 
-ExprManager::~ExprManager() throw() {
+ExprManager::~ExprManager()
+{
   NodeManagerScope nms(d_nodeManager);
 
   try {
@@ -128,7 +129,8 @@ const Options& ExprManager::getOptions() const {
   return d_nodeManager->getOptions();
 }
 
-ResourceManager* ExprManager::getResourceManager() throw() {
+ResourceManager* ExprManager::getResourceManager()
+{
   return d_nodeManager->getResourceManager();
 }
 
@@ -370,18 +372,11 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1,
 }
 
 Expr ExprManager::mkExpr(Expr opExpr) {
-  const unsigned n = 0;
-  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  const Kind kind = NodeManager::operatorToKind(opExpr.getNode());
   PrettyCheckArgument(
       opExpr.getKind() == kind::BUILTIN ||
       kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
       "This Expr constructor is for parameterized kinds only");
-  PrettyCheckArgument(
-      n >= minArity(kind) && n <= maxArity(kind), kind,
-      "Exprs with kind %s must have at least %u children and "
-      "at most %u children (the one under construction has %u)",
-      kind::kindToString(kind).c_str(),
-      minArity(kind), maxArity(kind), n);
   NodeManagerScope nms(d_nodeManager);
   try {
     INC_STAT(kind);
@@ -867,7 +862,8 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * @param check whether we should check the type as we compute it
  * (default: false)
  */
-Type ExprManager::getType(Expr e, bool check) throw (TypeCheckingException) {
+Type ExprManager::getType(Expr e, bool check)
+{
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
@@ -993,12 +989,13 @@ unsigned ExprManager::maxArity(Kind kind) {
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
 }
-
-Statistics ExprManager::getStatistics() const throw() {
+Statistics ExprManager::getStatistics() const
+{
   return Statistics(*d_nodeManager->getStatisticsRegistry());
 }
 
-SExpr ExprManager::getStatistic(const std::string& name) const throw() {
+SExpr ExprManager::getStatistic(const std::string& name) const
+{
   return d_nodeManager->getStatisticsRegistry()->getStatistic(name);
 }
 

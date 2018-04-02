@@ -70,8 +70,6 @@ namespace quantifiers {
   class CegInstantiation;
   class LtePartialInst;
   class AlphaEquivalence;
-  class FunDefEngine;
-  class QuantEqualityEngine;
   class InstStrategyEnum;
   class InstStrategyCbqi;
   class InstStrategyCegqi;
@@ -151,10 +149,6 @@ private:
   quantifiers::CegInstantiation * d_ceg_inst;
   /** lte partial instantiation */
   quantifiers::LtePartialInst * d_lte_part_inst;
-  /** function definitions engine */
-  quantifiers::FunDefEngine * d_fun_def_engine;
-  /** quantifiers equality engine */
-  quantifiers::QuantEqualityEngine * d_uee;
   /** full saturation */
   quantifiers::InstStrategyEnum* d_fs;
   /** counterexample-based quantifier instantiation */
@@ -251,10 +245,6 @@ public:
   quantifiers::CegInstantiation * getCegInstantiation() { return d_ceg_inst; }
   /** local theory ext partial inst */
   quantifiers::LtePartialInst * getLtePartialInst() { return d_lte_part_inst; }
-  /** function definition engine */
-  quantifiers::FunDefEngine * getFunDefEngine() { return d_fun_def_engine; }
-  /** quantifiers equality engine */
-  quantifiers::QuantEqualityEngine * getQuantEqualityEngine() { return d_uee; }
   /** get full saturation */
   quantifiers::InstStrategyEnum* getInstStrategyEnum() { return d_fs; }
   /** get inst strategy cbqi */
@@ -277,8 +267,6 @@ public:
   /** is finite bound */
   bool isFiniteBound( Node q, Node v );
 public:
-  /** initialize */
-  void finishInit();
   /** presolve */
   void presolve();
   /** notify preprocessed assertion */
@@ -399,6 +387,18 @@ public:
   void getExplanationForInstLemmas(const std::vector<Node>& lems,
                                    std::map<Node, Node>& quant,
                                    std::map<Node, std::vector<Node> >& tvec);
+
+  /** get synth solutions
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * For details on what is added to sol_map, see
+   * CegConjecture::getSynthSolutions.
+   */
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
+
   //----------end user interface for instantiations
 
   /** statistics class */

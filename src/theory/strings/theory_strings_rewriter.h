@@ -63,6 +63,12 @@ private:
 
   static inline void init() {}
   static inline void shutdown() {}
+  /** rewrite equality
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two strings, given by node.
+   */
+  static Node rewriteEquality(Node node);
   /** rewrite concat
   * This is the entry point for post-rewriting terms node of the form
   *   str.++( t1, .., tn )
@@ -85,13 +91,24 @@ private:
   * Context-Dependent Rewriting", CAV 2017.
   */
   static Node rewriteContains(Node node);
+  /** rewrite indexof
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.indexof( s, t, n )
+  * Returns the rewritten form of node.
+  */
   static Node rewriteIndexof(Node node);
   /** rewrite replace
   * This is the entry point for post-rewriting terms n of the form
   *   str.replace( s, t, r )
-  * Returns the rewritten form of n.
+  * Returns the rewritten form of node.
   */
-  static Node rewriteReplace(Node n);
+  static Node rewriteReplace(Node node);
+  /** rewrite prefix/suffix
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.prefixof( s, t ) / str.suffixof( s, t )
+  * Returns the rewritten form of node.
+  */
+  static Node rewritePrefixSuffix(Node node);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
@@ -257,6 +274,29 @@ private:
    * componentContainsBase(y, str.substr(y,0,5), n1rb, n1re, -1, true)
    *   returns true,
    *   n1re is set to str.substr(y,5,str.len(y)).
+   *
+   *
+   * Notice that this function may return false when it cannot compute a
+   * remainder when it otherwise would have returned true. For example:
+   *
+   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, false)
+   *   returns true.
+   *
+   * Hence, we know that str.substr(y,x,z) is contained in y. However:
+   *
+   * componentContainsBase(y, str.substr(y,x,z), n1rb, n1re, 0, true)
+   *   returns false.
+   *
+   * The reason is since computeRemainder=true, it must be that
+   *   y = str.++( n1rb, str.substr(y,x,z), n1re )
+   * for some n1rb, n1re. However, to construct such n1rb, n1re would require
+   * e.g. the terms:
+   *   y = str.++( ite( x+z < 0 OR x < 0, "", str.substr(y,0,x) ),
+   *               str.substr(y,x,z),
+   *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
+   *
+   * Since we do not wish to introduce ITE terms in the rewriter, we instead
+   * return false, indicating that we cannot compute the remainder.
    */
   static bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
@@ -287,12 +327,22 @@ private:
   *   n1 is updated to { "b", x, "d" }
   *   nb is updated to { "a" }
   *   ne is updated to { "e" }
+  * stripConstantEndpoints({ "ad", substr("ccc",x,y) }, { "d" }, {}, {}, -1)
+  *   returns true,
+  *   n1 is updated to {"ad"}
+  *   ne is updated to { substr("ccc",x,y) }
   */
   static bool stripConstantEndpoints(std::vector<Node>& n1,
                                      std::vector<Node>& n2,
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+  /** entail non-empty
+   *
+   * Checks whether string a is entailed to be non-empty. Is equivalent to
+   * the call checkArithEntail( len( a ), true ).
+   */
+  static bool checkEntailNonEmpty(Node a);
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
@@ -306,6 +356,57 @@ private:
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= 0 (if strict is false) or
+   * assumption |= a > 0 (if strict is true), where assumption is an equality
+   * assumption. The assumption must be in rewritten form.
+   *
+   * Example:
+   *
+   * checkEntailArithWithEqAssumption(x + (str.len y) = 0, -x, false) = true
+   *
+   * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
+   */
+  static bool checkEntailArithWithEqAssumption(Node assumption,
+                                               Node a,
+                                               bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= b (if strict is false) or
+   * assumption |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumption
+   * must be in rewritten form. Assumption may be an equality or an inequality.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumption(x + (str.len y) = 0, 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumption(Node assumption,
+                                             Node a,
+                                             Node b,
+                                             bool strict = false);
+
+  /**
+   * Checks whether assumptions |= a >= b (if strict is false) or
+   * assumptions |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumptions
+   * must be in rewritten form. Assumptions may be an equalities or an
+   * inequalities.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumptions(std::vector<Node> assumptions,
+                                              Node a,
+                                              Node b,
+                                              bool strict = false);
+
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
    * then ret is a rational constant and
@@ -320,6 +421,39 @@ private:
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
+  /** decompose substr chain
+   *
+   * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+   * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+   */
+  static Node decomposeSubstrChain(Node s,
+                                   std::vector<Node>& ss,
+                                   std::vector<Node>& ls);
+  /** make substr chain
+   *
+   * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+   * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+   */
+  static Node mkSubstrChain(Node base,
+                            const std::vector<Node>& ss,
+                            const std::vector<Node>& ls);
+
+  /**
+   * Overapproximates the possible values of node n. This overapproximation
+   * assumes that n can return a value x or the empty string and tries to find
+   * the simplest x such that this holds. In the general case, x is the same as
+   * the input n. This overapproximation can be used to sort terms with the
+   * same possible values in string concatenation for example.
+   *
+   * Example:
+   *
+   * getStringOrEmpty( (str.replace "" x y) ) --> y because (str.replace "" x y)
+   * either returns y or ""
+   *
+   * getStringOrEmpty( (str.substr "ABC" x y) ) --> (str.substr "ABC" x y)
+   * because the function could not compute a simpler
+   */
+  static Node getStringOrEmpty(Node n);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

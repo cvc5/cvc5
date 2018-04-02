@@ -47,7 +47,7 @@ LogicInfo::LogicInfo()
   }
 }
 
-LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException)
+LogicInfo::LogicInfo(std::string logicString)
     : d_logicString(""),
       d_theories(THEORY_LAST, false),
       d_sharingTheories(0),
@@ -63,7 +63,7 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException)
   lock();
 }
 
-LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException)
+LogicInfo::LogicInfo(const char* logicString)
     : d_logicString(""),
       d_theories(THEORY_LAST, false),
       d_sharingTheories(0),
@@ -264,7 +264,7 @@ std::string LogicInfo::getLogicString() const {
       if(!isQuantified()) {
         ss << "QF_";
       }
-      if(d_theories[THEORY_ARRAY]) {
+      if(d_theories[THEORY_ARRAYS]) {
         ss << (d_sharingTheories == 1 ? "AX" : "A");
         ++seen;
       }
@@ -327,7 +327,8 @@ std::string LogicInfo::getLogicString() const {
   return d_logicString;
 }
 
-void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentException) {
+void LogicInfo::setLogicString(std::string logicString)
+{
   PrettyCheckArgument(!d_locked, *this,
                       "This LogicInfo is locked, and cannot be modified");
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
@@ -384,11 +385,11 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
       enableQuantifiers();
     }
     if(!strncmp(p, "AX", 2)) {
-      enableTheory(THEORY_ARRAY);
+      enableTheory(THEORY_ARRAYS);
       p += 2;
     } else {
       if(*p == 'A') {
-        enableTheory(THEORY_ARRAY);
+        enableTheory(THEORY_ARRAYS);
         ++p;
       }
       if(!strncmp(p, "UF", 2)) {

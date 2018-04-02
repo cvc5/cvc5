@@ -20,6 +20,7 @@ libutil_la_SOURCES = \
 	abstract_value.h \
 	bin_heap.h \
 	bitvector.h \
+	bitvector.cpp \
 	bool.h \
 	cache.h \
 	cardinality.cpp \
@@ -38,6 +39,8 @@ libutil_la_SOURCES = \
 	index.h \
 	maybe.h \
 	ntuple.h \
+	ostream_util.cpp \
+	ostream_util.h \
 	proof.h \
 	regexp.cpp \
 	regexp.h \

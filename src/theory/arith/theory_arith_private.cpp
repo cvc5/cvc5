@@ -64,7 +64,7 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ite_utilities.h"
-#include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -85,67 +85,84 @@ namespace arith {
 static Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum);
 static bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap);
 
+TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
+                                       context::Context* c,
+                                       context::UserContext* u,
+                                       OutputChannel& out,
+                                       Valuation valuation,
+                                       const LogicInfo& logicInfo)
+    : d_containing(containing),
+      d_nlIncomplete(false),
+      d_rowTracking(),
+      d_constraintDatabase(
+          c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
+      d_qflraStatus(Result::SAT_UNKNOWN),
+      d_unknownsInARow(0),
+      d_hasDoneWorkSinceCut(false),
+      d_learner(u),
+      d_assertionsThatDoNotMatchTheirLiterals(c),
+      d_nextIntegerCheckVar(0),
+      d_constantIntegerVariables(c),
+      d_diseqQueue(c, false),
+      d_currentPropagationList(),
+      d_learnedBounds(c),
+      d_partialModel(c, DeltaComputeCallback(*this)),
+      d_errorSet(
+          d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
+      d_tableau(),
+      d_linEq(d_partialModel,
+              d_tableau,
+              d_rowTracking,
+              BasicVarModelUpdateCallBack(*this)),
+      d_diosolver(c),
+      d_restartsCounter(0),
+      d_tableauSizeHasBeenModified(false),
+      d_tableauResetDensity(1.6),
+      d_tableauResetPeriod(10),
+      d_conflicts(c),
+      d_blackBoxConflict(c, Node::null()),
+      d_congruenceManager(c,
+                          d_constraintDatabase,
+                          SetupLiteralCallBack(*this),
+                          d_partialModel,
+                          RaiseEqualityEngineConflict(*this)),
+      d_cmEnabled(c, true),
 
-TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  d_containing(containing),
-  d_nlIncomplete( false),
-  d_rowTracking(),
-  d_constraintDatabase(c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
-  d_qflraStatus(Result::SAT_UNKNOWN),
-  d_unknownsInARow(0),
-  d_hasDoneWorkSinceCut(false),
-  d_learner(u),
-  d_assertionsThatDoNotMatchTheirLiterals(c),
-  d_nextIntegerCheckVar(0),
-  d_constantIntegerVariables(c),
-  d_diseqQueue(c, false),
-  d_currentPropagationList(),
-  d_learnedBounds(c),
-  d_partialModel(c, DeltaComputeCallback(*this)),
-  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
-  d_tableau(),
-  d_linEq(d_partialModel, d_tableau, d_rowTracking, BasicVarModelUpdateCallBack(*this)),
-  d_diosolver(c),
-  d_restartsCounter(0),
-  d_tableauSizeHasBeenModified(false),
-  d_tableauResetDensity(1.6),
-  d_tableauResetPeriod(10),
-  d_conflicts(c),
-  d_blackBoxConflict(c, Node::null()),
-  d_congruenceManager(c, d_constraintDatabase, SetupLiteralCallBack(*this), d_partialModel, RaiseEqualityEngineConflict(*this)),
-  d_cmEnabled(c, true),
+      d_dualSimplex(
+          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+      d_fcSimplex(
+          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+      d_soiSimplex(
+          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+      d_attemptSolSimplex(
+          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+      d_nonlinearExtension(NULL),
+      d_pass1SDP(NULL),
+      d_otherSDP(NULL),
+      d_lastContextIntegerAttempted(c, -1),
 
-  d_dualSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-  d_fcSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-  d_soiSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-  d_attemptSolSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-  d_nonlinearExtension( NULL ),
-  d_pass1SDP(NULL),
-  d_otherSDP(NULL),
-  d_lastContextIntegerAttempted(c,-1),
-
-
-  d_DELTA_ZERO(0),
-  d_approxCuts(c),
-  d_fullCheckCounter(0),
-  d_cutCount(c, 0),
-  d_cutInContext(c),
-  d_likelyIntegerInfeasible(c, false),
-  d_guessedCoeffSet(c, false),
-  d_guessedCoeffs(),
-  d_treeLog(NULL),
-  d_replayVariables(),
-  d_replayConstraints(),
-  d_lhsTmp(),
-  d_approxStats(NULL),
-  d_attemptSolveIntTurnedOff(u, 0),
-  d_dioSolveResources(0),
-  d_solveIntMaybeHelp(0u),
-  d_solveIntAttempts(0u),
-  d_statistics(),
-  d_to_int_skolem(u),
-  d_div_skolem(u),
-  d_int_div_skolem(u)
+      d_DELTA_ZERO(0),
+      d_approxCuts(c),
+      d_fullCheckCounter(0),
+      d_cutCount(c, 0),
+      d_cutInContext(c),
+      d_likelyIntegerInfeasible(c, false),
+      d_guessedCoeffSet(c, false),
+      d_guessedCoeffs(),
+      d_treeLog(NULL),
+      d_replayVariables(),
+      d_replayConstraints(),
+      d_lhsTmp(),
+      d_approxStats(NULL),
+      d_attemptSolveIntTurnedOff(u, 0),
+      d_dioSolveResources(0),
+      d_solveIntMaybeHelp(0u),
+      d_solveIntAttempts(0u),
+      d_statistics(),
+      d_to_int_skolem(u),
+      d_div_skolem(u),
+      d_int_div_skolem(u),
+      d_nlin_inverse_skolem(u)
 {
   if( options::nlExt() ){
     d_nonlinearExtension = new NonlinearExtension(
@@ -311,13 +328,13 @@ void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_congruenceManager.setMasterEqualityEngine(eq);
 }
 
-TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg) throw (){
+TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
+{
   stringstream ss;
   ss << "Cannot construct a model for " << n << " as " << endl << msg;
   setMessage(ss.str());
 }
-TheoryArithPrivate::ModelException::~ModelException() throw (){ }
-
+TheoryArithPrivate::ModelException::~ModelException() {}
 
 TheoryArithPrivate::Statistics::Statistics()
   : d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0)
@@ -2228,18 +2245,12 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
 
   d_replayedLemmas = false;
 
-  std::vector<ConstraintCPVec> res;
-  try{
-    /* use the try block for the purpose of pushing the sat context */
-    context::Context::ScopedPush speculativePush(getSatContext());
-    d_cmEnabled = false;
-    res = replayLogRec(approx, tl.getRootId(), NullConstraint, 1);
-  }catch(RationalFromDoubleException& rfde){
-    turnOffApproxFor(options::replayNumericFailurePenalty());
-  }
+  /* use the try block for the purpose of pushing the sat context */
+  context::Context::ScopedPush speculativePush(getSatContext());
+  d_cmEnabled = false;
+  std::vector<ConstraintCPVec> res =
+      replayLogRec(approx, tl.getRootId(), NullConstraint, 1);
 
-
-  
   if(res.empty()){
     ++d_statistics.d_replayAttemptFailed;
   }else{
@@ -2359,7 +2370,9 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   return make_pair(newc, added);
 }
 
-std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(ApproximateSimplex* approx, const NodeLog& nl) throw(RationalFromDoubleException){
+std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
+    ApproximateSimplex* approx, const NodeLog& nl)
+{
   Assert(nl.isBranch());
   Assert(d_lhsTmp.empty());
 
@@ -2368,8 +2381,12 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(Approxi
     if(d_partialModel.hasNode(v)){
       d_lhsTmp.set(v, Rational(1));
       double dval = nl.branchValue();
-      Rational val = ApproximateSimplex::estimateWithCFE(dval);
-      Rational fl(val.floor());
+      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      if (!maybe_value)
+      {
+        return make_pair(NullConstraint, ARITHVAR_SENTINEL);
+      }
+      Rational fl(maybe_value.value().floor());
       pair<ConstraintP, ArithVar> p;
       p = replayGetConstraint(d_lhsTmp, kind::LEQ, fl, true);
       d_lhsTmp.purge();
@@ -2899,15 +2916,21 @@ ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
   return *d_approxStats;
 }
 
-Node TheoryArithPrivate::branchToNode(ApproximateSimplex*  approx, const NodeLog& bn) const throw(RationalFromDoubleException) {
+Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
+                                      const NodeLog& bn) const
+{
   Assert(bn.isBranch());
   ArithVar v = approx->getBranchVar(bn);
   if(v != ARITHVAR_SENTINEL && d_partialModel.isIntegerInput(v)){
     if(d_partialModel.hasNode(v)){
       Node n = d_partialModel.asNode(v);
       double dval = bn.branchValue();
-      Rational val = ApproximateSimplex::estimateWithCFE(dval);
-      Rational fl(val.floor());
+      Maybe<Rational> maybe_value = ApproximateSimplex::estimateWithCFE(dval);
+      if (!maybe_value)
+      {
+        return Node::null();
+      }
+      Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
       Node leq = nm->mkNode(kind::LEQ, n, mkRationalNode(fl));
       Node norm = Rewriter::rewrite(leq);
@@ -2935,7 +2958,6 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
 }
 
 bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
-  try{
     ++(d_statistics.d_mipReplayLemmaCalls);
     bool anythingnew = false;
 
@@ -2981,10 +3003,6 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
       }
     }
     return anythingnew;
-  }catch(RationalFromDoubleException& rfde){
-    turnOffApproxFor(options::replayNumericFailurePenalty());
-    return false;
-  }
 }
 
 void TheoryArithPrivate::turnOffApproxFor(int32_t rounds){
@@ -3047,7 +3065,6 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   ApproximateSimplex* approx =
     ApproximateSimplex::mkApproximateSimplexSolver(d_partialModel, tl, stats);
 
-  try{
     approx->setPivotLimit(mipLimit);
     if(!d_guessedCoeffSet){
       d_guessedCoeffs = approx->heuristicOptCoeffs();
@@ -3143,9 +3160,6 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         break;
       }
     }
-  }catch(RationalFromDoubleException& rfde){
-    turnOffApproxFor(options::replayNumericFailurePenalty());
-  }
   delete approx;
 
   if(!Theory::fullEffort(effortLevel)){
@@ -3295,7 +3309,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
       TimerStat::CodeTimer codeTimer(d_statistics.d_lpTimer);
       relaxRes = approxSolver->solveRelaxation();
     }
-    try{
       Debug("solveRealRelaxation") << "solve relaxation? " << endl;
       switch(relaxRes){
       case LinFeasible:
@@ -3326,9 +3339,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
         ++d_statistics.d_relaxOthers;
         break;
       }
-    }catch(RationalFromDoubleException& rfde){
-      turnOffApproxFor(options::replayNumericFailurePenalty());
-    }
     delete approxSolver;
 
   }
@@ -4127,7 +4137,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 }
 
 DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
-    throw(DeltaRationalException, ModelException) {
+{
   AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
   Debug("arith::value") << term << std::endl;
 
@@ -4252,7 +4262,8 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
+bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
+{
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
@@ -4288,7 +4299,10 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
 
-        m->assertEquality(term, qNode, true);
+        if (!m->assertEquality(term, qNode, true))
+        {
+          return false;
+        }
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
@@ -4301,6 +4315,7 @@ void TheoryArithPrivate::collectModelInfo( TheoryModel* m ){
   // m->assertEqualityEngine(&ee);
 
   Debug("arith::collectModelInfo") << "collectModelInfo() end " << endl;
+  return true;
 }
 
 bool TheoryArithPrivate::safeToReset() const {
@@ -4420,6 +4435,11 @@ void TheoryArithPrivate::presolve(){
     Node lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
     outputLemma(lem);
+  }
+
+  if (options::nlExt())
+  {
+    d_nonlinearExtension->presolve();
   }
 }
 
@@ -4865,73 +4885,220 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
   NodeManager* nm = NodeManager::currentNM();
 
-  // eliminate here since involves division
-  if( node.getKind()==kind::TANGENT ){
-    node = nm->mkNode(kind::DIVISION, nm->mkNode( kind::SINE, node[0] ), 
-                                      nm->mkNode( kind::COSINE, node[0] ) );
+  // eliminate here since the rewritten form of these may introduce division
+  Kind k = node.getKind();
+  if (k == kind::TANGENT || k == kind::COSECANT || k == kind::SECANT
+      || k == kind::COTANGENT)
+  {
+    node = Rewriter::rewrite(node);
+    k = node.getKind();
   }
 
-  switch(node.getKind()) {
-  case kind::DIVISION: {
-    // partial function: division
-    if(d_divByZero.isNull()) {
-      d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
-                                 "partial real division", NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
+  switch (k)
+  {
+    case kind::DIVISION:
+    {
+      TNode num = node[0], den = node[1];
+      Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
+      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+      {
+        Node divByZeroNum =
+            getArithSkolemApp(logicRequest, num, arith_skolem_div_by_zero);
+        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+        ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
+      }
+      return ret;
+      break;
     }
-    TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
-    Node divTotalNumDen = nm->mkNode(kind::DIVISION_TOTAL, num, den);
-    return nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    break;
-  }
 
-  case kind::INTS_DIVISION: {
-    // partial function: integer div
-    if(d_intDivByZero.isNull()) {
-      d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                                    "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
+    case kind::INTS_DIVISION:
+    {
+      // partial function: integer div
+      TNode num = node[0], den = node[1];
+      Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
+      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+      {
+        Node intDivByZeroNum =
+            getArithSkolemApp(logicRequest, num, arith_skolem_int_div_by_zero);
+        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+        ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
+      }
+      return ret;
+      break;
     }
-    TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-    Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
-    Node intDivTotalNumDen = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
-    return nm->mkNode(kind::ITE, den_eq_0, intDivByZeroNum, intDivTotalNumDen);
-    break;
-  }
 
-  case kind::INTS_MODULUS: {
-    // partial function: mod
-    if(d_modZero.isNull()) {
-      d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                               "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
-      logicRequest.widenLogic(THEORY_UF);
+    case kind::INTS_MODULUS:
+    {
+      // partial function: mod
+      TNode num = node[0], den = node[1];
+      Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
+      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
+      {
+        Node modZeroNum =
+            getArithSkolemApp(logicRequest, num, arith_skolem_mod_by_zero);
+        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+        ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
+      }
+      return ret;
+      break;
     }
-    TNode num = node[0], den = node[1];
-    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-    Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
-    Node modTotalNumDen = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-    return nm->mkNode(kind::ITE, den_eq_0, modZeroNum, modTotalNumDen);
-    break;
-  }
 
-  case kind::ABS: {
-    return nm->mkNode(kind::ITE, nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))), nm->mkNode(kind::UMINUS, node[0]), node[0]);
-    break;
-  }
+    case kind::ABS:
+    {
+      return nm->mkNode(kind::ITE,
+                        nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))),
+                        nm->mkNode(kind::UMINUS, node[0]),
+                        node[0]);
+      break;
+    }
+    case kind::SQRT:
+    case kind::ARCSINE:
+    case kind::ARCCOSINE:
+    case kind::ARCTANGENT:
+    case kind::ARCCOSECANT:
+    case kind::ARCSECANT:
+    case kind::ARCCOTANGENT:
+    {
+      // eliminate inverse functions here
+      NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
+      if (it == d_nlin_inverse_skolem.end())
+      {
+        Node var = nm->mkSkolem("nonlinearInv",
+                                nm->realType(),
+                                "the result of a non-linear inverse function");
+        d_nlin_inverse_skolem[node] = var;
+        Node lem;
+        if (k == kind::SQRT)
+        {
+          lem = nm->mkNode(kind::MULT, var, var).eqNode(node[0]);
+        }
+        else
+        {
+          Node pi = mkPi();
 
-  default:
-    return node;
-    break;
+          // range of the skolem
+          Node rlem;
+          if (k == kind::ARCSINE || k == ARCTANGENT || k == ARCCOSECANT)
+          {
+            Node half = nm->mkConst(Rational(1) / Rational(2));
+            Node pi2 = nm->mkNode(kind::MULT, half, pi);
+            Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
+            // -pi/2 < var <= pi/2
+            rlem = nm->mkNode(
+                AND, nm->mkNode(LT, npi2, var), nm->mkNode(LEQ, var, pi2));
+          }
+          else
+          {
+            // 0 <= var < pi
+            rlem = nm->mkNode(AND,
+                              nm->mkNode(LEQ, nm->mkConst(Rational(0)), var),
+                              nm->mkNode(LT, var, pi));
+          }
+          if (options::nlExt())
+          {
+            d_nonlinearExtension->addDefinition(rlem);
+          }
+
+          Kind rk = k == kind::ARCSINE
+                        ? kind::SINE
+                        : (k == kind::ARCCOSINE
+                               ? kind::COSINE
+                               : (k == kind::ARCTANGENT
+                                      ? kind::TANGENT
+                                      : (k == kind::ARCCOSECANT
+                                             ? kind::COSECANT
+                                             : (k == kind::ARCSECANT
+                                                    ? kind::SECANT
+                                                    : kind::COTANGENT))));
+          Node invTerm = nm->mkNode(rk, var);
+          // since invTerm may introduce division,
+          // we must also call expandDefinition on the result
+          invTerm = expandDefinition(logicRequest, invTerm);
+          lem = invTerm.eqNode(node[0]);
+        }
+        Assert(!lem.isNull());
+        if (options::nlExt())
+        {
+          d_nonlinearExtension->addDefinition(lem);
+        }
+        else
+        {
+          d_nlIncomplete = true;
+        }
+        return var;
+      }
+      return (*it).second;
+      break;
+    }
+
+    default: return node; break;
   }
 
   Unreachable();
 }
 
+Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
+                                        ArithSkolemId asi)
+{
+  std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
+  if (it == d_arith_skolem.end())
+  {
+    NodeManager* nm = NodeManager::currentNM();
 
+    TypeNode tn;
+    std::string name;
+    std::string desc;
+    if (asi == arith_skolem_div_by_zero)
+    {
+      tn = nm->realType();
+      name = std::string("divByZero");
+      desc = std::string("partial real division");
+    }
+    else if (asi == arith_skolem_int_div_by_zero)
+    {
+      tn = nm->integerType();
+      name = std::string("intDivByZero");
+      desc = std::string("partial int division");
+    }
+    else if (asi == arith_skolem_mod_by_zero)
+    {
+      tn = nm->integerType();
+      name = std::string("modZero");
+      desc = std::string("partial modulus");
+    }
 
+    Node skolem;
+    if (options::arithNoPartialFun())
+    {
+      // partial function: division
+      skolem = nm->mkSkolem(name, tn, desc, NodeManager::SKOLEM_EXACT_NAME);
+    }
+    else
+    {
+      // partial function: division
+      skolem = nm->mkSkolem(name,
+                            nm->mkFunctionType(tn, tn),
+                            desc,
+                            NodeManager::SKOLEM_EXACT_NAME);
+      logicRequest.widenLogic(THEORY_UF);
+    }
+    d_arith_skolem[asi] = skolem;
+    return skolem;
+  }
+  return it->second;
+}
+
+Node TheoryArithPrivate::getArithSkolemApp(LogicRequest& logicRequest,
+                                           Node n,
+                                           ArithSkolemId asi)
+{
+  Node skolem = getArithSkolem(logicRequest, asi);
+  if (!options::arithNoPartialFun())
+  {
+    skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
+  }
+  return skolem;
+}
 
 // InferBoundsResult TheoryArithPrivate::inferBound(TNode term, const InferBoundsParameters& param){
 //   Node t = Rewriter::rewrite(term);
@@ -5435,9 +5602,8 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
   enum ResultState {Unset, Inferred, NoBound, ReachedThreshold, ExhaustedRounds};
   ResultState finalState = Unset;
 
-  int maxRounds = param.getSimplexRounds().just()
-    ? param.getSimplexRounds().constValue()
-    : -1;
+  const int maxRounds =
+      param.getSimplexRounds().just() ? param.getSimplexRounds().value() : -1;
 
   Maybe<DeltaRational> threshold;
   // TODO: get this from the parameters
@@ -5563,7 +5729,8 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
     }
 
     if(threshold.just()){
-      if(d_partialModel.getAssignment(optVar) >= threshold.constValue()){
+      if (d_partialModel.getAssignment(optVar) >= threshold.value())
+      {
         finalState = ReachedThreshold;
         break;
       }

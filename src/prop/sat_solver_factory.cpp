@@ -16,26 +16,47 @@
 
 #include "prop/sat_solver_factory.h"
 
+#include "prop/bvminisat/bvminisat.h"
+#include "prop/cadical.h"
 #include "prop/cryptominisat.h"
 #include "prop/minisat/minisat.h"
-#include "prop/bvminisat/bvminisat.h"
 
 namespace CVC4 {
 namespace prop {
 
-BVSatSolverInterface* SatSolverFactory::createMinisat(context::Context* mainSatContext, StatisticsRegistry* registry, const std::string& name) {
+BVSatSolverInterface* SatSolverFactory::createMinisat(
+    context::Context* mainSatContext,
+    StatisticsRegistry* registry,
+    const std::string& name)
+{
   return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
 
-SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
-                                                   const std::string& name) {
-return new CryptoMinisatSolver(registry, name);
-}
-  
-
-DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(StatisticsRegistry* registry) {
+DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(
+    StatisticsRegistry* registry)
+{
   return new MinisatSatSolver(registry);
 }
 
-} /* CVC4::prop namespace */
-} /* CVC4 namespace */
+SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
+                                                 const std::string& name)
+{
+#ifdef CVC4_USE_CRYPTOMINISAT
+  return new CryptoMinisatSolver(registry, name);
+#else
+  Unreachable("CVC4 was not compiled with Cryptominisat support.");
+#endif
+}
+
+SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
+                                           const std::string& name)
+{
+#ifdef CVC4_USE_CADICAL
+  return new CadicalSolver(registry, name);
+#else
+  Unreachable("CVC4 was not compiled with CaDiCaL support.");
+#endif
+}
+
+}  // namespace prop
+}  // namespace CVC4

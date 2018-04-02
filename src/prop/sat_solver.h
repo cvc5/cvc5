@@ -116,8 +116,8 @@ public:
      * Notify about a learnt clause.
      */
     virtual void notify(SatClause& clause) = 0;
-    virtual void spendResource(unsigned ammount) = 0;
-    virtual void safePoint(unsigned ammount) = 0;
+    virtual void spendResource(unsigned amount) = 0;
+    virtual void safePoint(unsigned amount) = 0;
 
   };/* class BVSatSolverInterface::Notify */
 
@@ -137,10 +137,6 @@ public:
 
   virtual void popAssumption() = 0;
 
-  virtual bool ok() const = 0;
-  
-  virtual void setProofLog( BitVectorProof * bvp ) {}
-
 };/* class BVSatSolverInterface */
 
 
@@ -159,8 +155,6 @@ public:
   virtual bool flipDecision() = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-  
-  virtual bool ok() const = 0;
 };/* class DPLLSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {

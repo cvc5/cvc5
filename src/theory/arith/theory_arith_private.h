@@ -396,9 +396,9 @@ private:
   bool replayLog(ApproximateSimplex* approx);
 
   class ModelException : public Exception {
-  public:
-    ModelException(TNode n, const char* msg) throw ();
-    virtual ~ModelException() throw ();
+   public:
+    ModelException(TNode n, const char* msg);
+    ~ModelException() override;
   };
 
   /**
@@ -414,7 +414,7 @@ private:
    * precondition: The linear abstraction of the nodes must be satisfiable.
    */
   DeltaRational getDeltaValue(TNode term) const
-      throw(DeltaRationalException, ModelException);
+      /* throw(DeltaRationalException, ModelException) */;
 
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
@@ -444,7 +444,7 @@ public:
 
   Rational deltaValueForTotalOrder() const;
 
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m);
 
   void shutdown(){ }
 
@@ -590,8 +590,7 @@ private:
   void subsumption(std::vector<ConstraintCPVec>& confs) const;
 
   Node cutToLiteral(ApproximateSimplex*  approx, const CutInfo& cut) const;
-  Node branchToNode(ApproximateSimplex*  approx, const NodeLog& cut) const throw(RationalFromDoubleException);
-
+  Node branchToNode(ApproximateSimplex* approx, const NodeLog& cut) const;
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);
@@ -705,7 +704,8 @@ private:
   std::vector<ConstraintCPVec> replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth);
 
   std::pair<ConstraintP, ArithVar> replayGetConstraint(const CutInfo& info);
-  std::pair<ConstraintP, ArithVar> replayGetConstraint(ApproximateSimplex* approx, const NodeLog& nl) throw(RationalFromDoubleException);
+  std::pair<ConstraintP, ArithVar> replayGetConstraint(
+      ApproximateSimplex* approx, const NodeLog& nl);
   std::pair<ConstraintP, ArithVar> replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch);
 
   void replayAssert(ConstraintP c);
@@ -829,35 +829,54 @@ private:
 
   Statistics d_statistics;
 
+  enum ArithSkolemId
+  {
+    arith_skolem_div_by_zero,
+    arith_skolem_int_div_by_zero,
+    arith_skolem_mod_by_zero,
+  };
 
   /**
-   * Function symbol used to implement uninterpreted division-by-zero
-   * semantics.  Needed to deal with partial division function ("/").
+   * Function symbols used to implement:
+   * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
+   * division function ("/"),
+   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with
+   * partial function "div",
+   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial
+   * function "mod".
+   *
+   * If the option arithNoPartialFun() is enabled, then the range of this map
+   * stores Skolem constants instead of Skolem functions, meaning that the
+   * function-ness of e.g. division by zero is ignored.
    */
-  Node d_divByZero;
+  std::map<ArithSkolemId, Node> d_arith_skolem;
+  /** get arithmetic skolem
+   *
+   * Returns the Skolem in the above map for the given id, creating it if it
+   * does not already exist. If a Skolem function is created, the logic is
+   * widened to include UF.
+   */
+  Node getArithSkolem(LogicRequest& logicRequest, ArithSkolemId asi);
+  /** get arithmetic skolem application
+   *
+   * By default, this returns the term f( n ), where f is the Skolem function
+   * for the identifier asi.
+   *
+   * If the option arithNoPartialFun is enabled, this returns f, where f is
+   * the Skolem constant for the identifier asi.
+   */
+  Node getArithSkolemApp(LogicRequest& logicRequest, Node n, ArithSkolemId asi);
 
   /**
-   * Function symbol used to implement uninterpreted
-   * int-division-by-zero semantics.  Needed to deal with partial
-   * function "div".
-   */
-  Node d_intDivByZero;
-
-  /**
-   * Function symbol used to implement uninterpreted mod-zero
-   * semantics.  Needed to deal with partial function "mod".
-   */
-  Node d_modZero;
-  
-  /** 
-   *  Maps for Skolems for to-integer, real/integer div-by-k.
-   *  Introduced during ppRewriteTerms.
+   *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
+   *  non-linear operators that are introduced during ppRewriteTerms.
    */
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   NodeMap d_to_int_skolem;
   NodeMap d_div_skolem;
   NodeMap d_int_div_skolem;
-  
+  NodeMap d_nlin_inverse_skolem;
+
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

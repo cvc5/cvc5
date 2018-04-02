@@ -84,12 +84,12 @@ public:
 
   bool isTheoryEnabled(Theory theory) const;
 
-  bool logicIsSet();
-  
+  bool logicIsSet() override;
+
   /**
    * Returns the expression that name should be interpreted as. 
    */
-  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
+  Expr getExpressionForNameAndType(const std::string& name, Type t) override;
 
   /** Make function defined by a define-fun(s)-rec command.
    *
@@ -129,13 +129,13 @@ public:
    *     that defined this definition and stores it in bvs.
    */
   void pushDefineFunRecScope(
-    const std::vector<std::pair<std::string, Type> >& sortedVarNames,
-    Expr func,
-    const std::vector<Expr>& flattenVars,
-    std::vector<Expr>& bvs,
-    bool bindingLevel = false);
-    
-  void reset();
+      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+      Expr func,
+      const std::vector<Expr>& flattenVars,
+      std::vector<Expr>& bvs,
+      bool bindingLevel = false);
+
+  void reset() override;
 
   void resetAssertions();
 
@@ -278,9 +278,11 @@ public:
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.
    */
-  void checkDeclaration(const std::string& name, DeclarationCheck check,
+  void checkDeclaration(const std::string& name,
+                        DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE,
-                        std::string notes = "") throw(ParserException) {
+                        std::string notes = "")
+  {
     // if the symbol is something like "-1", we'll give the user a helpful
     // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
     if( check != CHECK_DECLARED ||
@@ -304,7 +306,8 @@ public:
     this->Parser::checkDeclaration(name, check, type, ss.str());
   }
 
-  void checkOperator(Kind kind, unsigned numArgs) throw(ParserException) {
+  void checkOperator(Kind kind, unsigned numArgs)
+  {
     Parser::checkOperator(kind, numArgs);
     // strict SMT-LIB mode enables extra checks for some bitvector operators
     // that CVC4 permits as N-ary but the standard requires is binary
@@ -328,7 +331,8 @@ public:
   }
 
   // Throw a ParserException with msg appended with the current logic.
-  inline void parseErrorLogic(const std::string& msg) throw(ParserException) {
+  inline void parseErrorLogic(const std::string& msg)
+  {
     const std::string withLogic = msg + getLogic().getLogicString();
     parseError(withLogic);
   }

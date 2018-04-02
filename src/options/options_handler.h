@@ -43,10 +43,14 @@
 namespace CVC4 {
 namespace options {
 
+/**
+ * Class that responds to command line options being set.
+ *
+ * Most functions can throw an OptionException on failure.
+ */
 class OptionsHandler {
 public:
   OptionsHandler(Options* options);
-  virtual ~OptionsHandler() {}
 
   void unsignedGreater0(const std::string& option, unsigned value) {
     options::greater(0)(option, value);
@@ -64,65 +68,78 @@ public:
     options::less_equal(1.0)(option, value);
   }
 
-  // DONE
-  // decision/options_handlers.h
-  // expr/options_handlers.h
-  // main/options_handlers.h
-  // options/base_options_handlers.h
-  // printer/options_handlers.h
-  // smt/options_handlers.h
-  // theory/options_handlers.h
-  // theory/booleans/options_handlers.h
-  // theory/uf/options_handlers.h
-  // theory/bv/options_handlers.h
-  // theory/quantifiers/options_handlers.h
   // theory/arith/options_handlers.h
-
-
-  // theory/arith/options_handlers.h
-  ArithUnateLemmaMode stringToArithUnateLemmaMode(std::string option, std::string optarg) throw(OptionException);
-  ArithPropagationMode stringToArithPropagationMode(std::string option, std::string optarg) throw(OptionException);
-  ErrorSelectionRule stringToErrorSelectionRule(std::string option, std::string optarg) throw(OptionException);
+  ArithUnateLemmaMode stringToArithUnateLemmaMode(std::string option,
+                                                  std::string optarg);
+  ArithPropagationMode stringToArithPropagationMode(std::string option,
+                                                    std::string optarg);
+  ErrorSelectionRule stringToErrorSelectionRule(std::string option,
+                                                std::string optarg);
 
   // theory/quantifiers/options_handlers.h
-  theory::quantifiers::InstWhenMode stringToInstWhenMode(std::string option, std::string optarg) throw(OptionException);
-  void checkInstWhenMode(std::string option, theory::quantifiers::InstWhenMode mode) throw(OptionException);
-  theory::quantifiers::LiteralMatchMode stringToLiteralMatchMode(std::string option, std::string optarg) throw(OptionException);
-  void checkLiteralMatchMode(std::string option, theory::quantifiers::LiteralMatchMode mode) throw(OptionException);
-  theory::quantifiers::MbqiMode stringToMbqiMode(std::string option, std::string optarg) throw(OptionException);
-  void checkMbqiMode(std::string option, theory::quantifiers::MbqiMode mode) throw(OptionException);
-  theory::quantifiers::QcfWhenMode stringToQcfWhenMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::QcfMode stringToQcfMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::UserPatMode stringToUserPatMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::TriggerSelMode stringToTriggerSelMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::TriggerActiveSelMode stringToTriggerActiveSelMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::TermDbMode stringToTermDbMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(std::string option, std::string optarg) throw(OptionException);
+  theory::quantifiers::InstWhenMode stringToInstWhenMode(std::string option,
+                                                         std::string optarg);
+  void checkInstWhenMode(std::string option,
+                         theory::quantifiers::InstWhenMode mode);
+  theory::quantifiers::LiteralMatchMode stringToLiteralMatchMode(
+      std::string option, std::string optarg);
+  void checkLiteralMatchMode(std::string option,
+                             theory::quantifiers::LiteralMatchMode mode);
+  theory::quantifiers::MbqiMode stringToMbqiMode(std::string option,
+                                                 std::string optarg);
+  void checkMbqiMode(std::string option, theory::quantifiers::MbqiMode mode);
+  theory::quantifiers::QcfWhenMode stringToQcfWhenMode(std::string option,
+                                                       std::string optarg);
+  theory::quantifiers::QcfMode stringToQcfMode(std::string option,
+                                               std::string optarg);
+  theory::quantifiers::UserPatMode stringToUserPatMode(std::string option,
+                                                       std::string optarg);
+  theory::quantifiers::TriggerSelMode stringToTriggerSelMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::TriggerActiveSelMode stringToTriggerActiveSelMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::TermDbMode stringToTermDbMode(std::string option,
+                                                     std::string optarg);
+  theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(
+      std::string option, std::string optarg);
   theory::quantifiers::CbqiBvIneqMode stringToCbqiBvIneqMode(
-      std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option, std::string optarg) throw(OptionException);
-  theory::quantifiers::FmfBoundMinMode stringToFmfBoundMinMode(std::string option, std::string optarg) throw(OptionException);
-  theory::SygusFairMode stringToSygusFairMode(std::string option, std::string optarg) throw(OptionException);
+      std::string option, std::string optarg);
+  theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(
+      std::string option, std::string optarg);
+  theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option,
+                                                         std::string optarg);
+  theory::quantifiers::FmfBoundMinMode stringToFmfBoundMinMode(
+      std::string option, std::string optarg);
+  theory::SygusFairMode stringToSygusFairMode(std::string option,
+                                              std::string optarg);
 
   // theory/bv/options_handlers.h
-  void abcEnabledBuild(std::string option, bool value) throw(OptionException);
-  void abcEnabledBuild(std::string option, std::string value) throw(OptionException);
-  void satSolverEnabledBuild(std::string option, bool value) throw(OptionException);
-  void satSolverEnabledBuild(std::string option, std::string optarg) throw(OptionException);
+  void abcEnabledBuild(std::string option, bool value);
+  void abcEnabledBuild(std::string option, std::string value);
+  void satSolverEnabledBuild(std::string option, bool value);
+  void satSolverEnabledBuild(std::string option, std::string optarg);
 
-  theory::bv::BitblastMode stringToBitblastMode(std::string option, std::string optarg) throw(OptionException);
-  theory::bv::BvSlicerMode stringToBvSlicerMode(std::string option, std::string optarg) throw(OptionException);
-  void setBitblastAig(std::string option, bool arg) throw(OptionException);
+  theory::bv::BitblastMode stringToBitblastMode(std::string option,
+                                                std::string optarg);
+  theory::bv::BvSlicerMode stringToBvSlicerMode(std::string option,
+                                                std::string optarg);
+  void setBitblastAig(std::string option, bool arg);
 
-  theory::bv::SatSolverMode stringToSatSolver(std::string option, std::string optarg) throw(OptionException);
-    
+  theory::bv::SatSolverMode stringToSatSolver(std::string option,
+                                              std::string optarg);
+
   // theory/uf/options_handlers.h
-  theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg) throw(OptionException);
+  theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
 
   // theory/options_handlers.h
   theory::TheoryOfMode stringToTheoryOfMode(std::string option, std::string optarg);
@@ -131,23 +148,31 @@ public:
 
 
   // printer/options_handlers.h
-  ModelFormatMode stringToModelFormatMode(std::string option, std::string optarg) throw(OptionException);
-  InstFormatMode stringToInstFormatMode(std::string option, std::string optarg) throw(OptionException);
+  ModelFormatMode stringToModelFormatMode(std::string option,
+                                          std::string optarg);
+  InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
 
   // decision/options_handlers.h
-  decision::DecisionMode stringToDecisionMode(std::string option, std::string optarg) throw(OptionException);
-  decision::DecisionWeightInternal stringToDecisionWeightInternal(std::string option, std::string optarg) throw(OptionException);
-
+  decision::DecisionMode stringToDecisionMode(std::string option,
+                                              std::string optarg);
+  decision::DecisionWeightInternal stringToDecisionWeightInternal(
+      std::string option, std::string optarg);
 
   /* smt/options_handlers.h */
   void notifyForceLogic(const std::string& option);
-  void notifyBeforeSearch(const std::string& option) throw(ModalException);
-  void notifyDumpMode(std::string option) throw(OptionException);
-  SimplificationMode stringToSimplificationMode(std::string option, std::string optarg) throw(OptionException);
-  SygusSolutionOutMode stringToSygusSolutionOutMode(
-      std::string option, std::string optarg) throw(OptionException);
-  void setProduceAssertions(std::string option, bool value) throw();
-  void proofEnabledBuild(std::string option, bool value) throw(OptionException);
+
+  /**
+   * Throws a ModalException if this option is being set after final
+   * initialization.
+   */
+  void notifyBeforeSearch(const std::string& option);
+  void notifyDumpMode(std::string option);
+  SimplificationMode stringToSimplificationMode(std::string option,
+                                                std::string optarg);
+  SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
+                                                    std::string optarg);
+  void setProduceAssertions(std::string option, bool value);
+  void proofEnabledBuild(std::string option, bool value);
   void LFSCEnabledBuild(std::string option, bool value);
   void notifyDumpToFile(std::string option);
   void notifySetRegularOutputChannel(std::string option);
@@ -155,12 +180,12 @@ public:
   std::string checkReplayFilename(std::string option, std::string optarg);
   void notifySetReplayLogFilename(std::string option);
 
-  void statsEnabledBuild(std::string option, bool value) throw(OptionException);
+  void statsEnabledBuild(std::string option, bool value);
 
-  unsigned long tlimitHandler(std::string option, std::string optarg) throw(OptionException);
-  unsigned long tlimitPerHandler(std::string option, std::string optarg) throw(OptionException);
-  unsigned long rlimitHandler(std::string option, std::string optarg) throw(OptionException);
-  unsigned long rlimitPerHandler(std::string option, std::string optarg) throw(OptionException);
+  unsigned long tlimitHandler(std::string option, std::string optarg);
+  unsigned long tlimitPerHandler(std::string option, std::string optarg);
+  unsigned long rlimitHandler(std::string option, std::string optarg);
+  unsigned long rlimitPerHandler(std::string option, std::string optarg);
 
   void notifyTlimit(const std::string& option);
   void notifyTlimitPer(const std::string& option);
@@ -183,20 +208,16 @@ public:
   void threadN(std::string option);
 
   /* options/base_options_handlers.h */
-  void setVerbosity(std::string option, int value) throw(OptionException);
+  void setVerbosity(std::string option, int value);
   void increaseVerbosity(std::string option);
   void decreaseVerbosity(std::string option);
-  OutputLanguage stringToOutputLanguage(std::string option, std::string optarg) throw(OptionException);
-  InputLanguage stringToInputLanguage(std::string option, std::string optarg) throw(OptionException);
-  void addTraceTag(std::string option, std::string optarg);
-  void addDebugTag(std::string option, std::string optarg);
+  OutputLanguage stringToOutputLanguage(std::string option, std::string optarg);
+  InputLanguage stringToInputLanguage(std::string option, std::string optarg);
+  void enableTraceTag(std::string option, std::string optarg);
+  void enableDebugTag(std::string option, std::string optarg);
   void notifyPrintSuccess(std::string option);
 
  private:
-
-  /* Helper utilities */
-  static std::string suggestTags(char const* const* validTags, std::string inputTag,
-                                 char const* const* additionalTags = NULL);
 
   /** Pointer to the containing Options object.*/
   Options* d_options;
@@ -224,6 +245,7 @@ public:
   static const std::string s_sygusSolutionOutModeHelp;
   static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
+  static const std::string s_cegisSampleHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_termDbModeHelp;
   static const std::string s_theoryOfModeHelp;

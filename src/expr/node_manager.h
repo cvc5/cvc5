@@ -391,10 +391,11 @@ public:
   }
 
   /** Get this node manager's resource manager */
-  ResourceManager* getResourceManager() throw() { return d_resourceManager; }
+  ResourceManager* getResourceManager() { return d_resourceManager; }
 
   /** Get this node manager's statistics registry */
-  StatisticsRegistry* getStatisticsRegistry() const throw() {
+  StatisticsRegistry* getStatisticsRegistry() const
+  {
     return d_statisticsRegistry;
   }
 
@@ -901,8 +902,7 @@ public:
    * @param check whether we should check the type as we compute it
    * (default: false)
    */
-  TypeNode getType(TNode n, bool check = false)
-    throw(TypeCheckingExceptionPrivate, AssertionException);
+  TypeNode getType(TNode n, bool check = false);
 
   /**
    * Convert a node to an expression.  Uses the ExprManager

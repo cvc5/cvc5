@@ -42,8 +42,6 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
     getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
     getExtTheory()->addFunctionKind(kind::SINE);
-    getExtTheory()->addFunctionKind(kind::COSINE);
-    getExtTheory()->addFunctionKind(kind::TANGENT);
     getExtTheory()->addFunctionKind(kind::PI);
   }
 }
@@ -106,9 +104,9 @@ bool TheoryArith::isExtfReduced( int effort, Node n, Node on, std::vector< Node 
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }
-
-void TheoryArith::collectModelInfo( TheoryModel* m ){
-  d_internal->collectModelInfo(m);
+bool TheoryArith::collectModelInfo(TheoryModel* m)
+{
+  return d_internal->collectModelInfo(m);
 }
 
 void TheoryArith::notifyRestart(){

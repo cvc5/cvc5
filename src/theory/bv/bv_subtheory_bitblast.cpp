@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_bitblast.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Tim King
+ **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,7 +29,6 @@
 
 using namespace std;
 using namespace CVC4::context;
-using namespace CVC4::theory::bv::utils;
 
 namespace CVC4 {
 namespace theory {
@@ -37,9 +36,9 @@ namespace bv {
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
-    d_bitblaster(new TLazyBitblaster(c, bv, bv->getFullInstanceName() + "lazy")),
+    d_bitblaster(new TLazyBitblaster(c, bv, "theory::bv::lazy")),
     d_bitblastQueue(c),
-    d_statistics(bv->getFullInstanceName()),
+    d_statistics(),
     d_validModelCache(c, true),
     d_lemmaAtomsQueue(c),
     d_useSatPropagation(options::bitvectorPropagate()),
@@ -55,9 +54,9 @@ BitblastSolver::~BitblastSolver() {
   delete d_bitblaster;
 }
 
-BitblastSolver::Statistics::Statistics(const std::string &instanceName)
-  : d_numCallstoCheck(instanceName + "theory::bv::BitblastSolver::NumCallsToCheck", 0)
-  , d_numBBLemmas(instanceName + "theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
+BitblastSolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
+  , d_numBBLemmas("theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
   smtStatisticsRegistry()->registerStat(&d_numBBLemmas);
@@ -118,7 +117,8 @@ void BitblastSolver::bitblastQueue() {
   }
 }
 
-bool BitblastSolver::check(Theory::Effort e) {
+bool BitblastSolver::check(Theory::Effort e)
+{
   Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
 
@@ -130,33 +130,40 @@ bool BitblastSolver::check(Theory::Effort e) {
   bitblastQueue();
 
   // Processing assertions
-  while (!done()) {
+  while (!done())
+  {
     TNode fact = get();
     d_validModelCache = false;
     Debug("bv-bitblast") << "  fact " << fact << ")\n";
 
-    if (options::bvAbstraction()) {
+    if (options::bvAbstraction())
+    {
       // skip atoms that are the result of abstraction lemmas
-      if (d_abstractionModule->isLemmaAtom(fact)) {
+      if (d_abstractionModule->isLemmaAtom(fact))
+      {
         d_lemmaAtomsQueue.push_back(fact);
         continue;
       }
     }
-    //skip facts involving integer equalities (from bv2nat)
-    if( !utils::isBitblastAtom( fact ) ){
+    // skip facts involving integer equalities (from bv2nat)
+    if (!utils::isBitblastAtom(fact))
+    {
       continue;
     }
 
-    if (!d_bv->inConflict() &&
-        (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST)) {
+    if (!d_bv->inConflict()
+        && (!d_bv->wasPropagatedBySubtheory(fact)
+            || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST))
+    {
       // Some atoms have not been bit-blasted yet
       d_bitblaster->bbAtom(fact);
       // Assert to sat
       bool ok = d_bitblaster->assertToSat(fact, d_useSatPropagation);
-      if (!ok) {
+      if (!ok)
+      {
         std::vector<TNode> conflictAtoms;
         d_bitblaster->getConflict(conflictAtoms);
-        setConflict(mkConjunction(conflictAtoms));
+        setConflict(utils::mkAnd(conflictAtoms));
         return false;
       }
     }
@@ -164,66 +171,73 @@ bool BitblastSolver::check(Theory::Effort e) {
 
   Debug("bv-bitblast-debug") << "...do propagation" << std::endl;
   // We need to ensure we are fully propagated, so propagate now
-  if (d_useSatPropagation) {
+  if (d_useSatPropagation)
+  {
     d_bv->spendResource(1);
     bool ok = d_bitblaster->propagate();
-    if (!ok) {
+    if (!ok)
+    {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      setConflict(mkConjunction(conflictAtoms));
+      setConflict(utils::mkAnd(conflictAtoms));
       return false;
     }
   }
 
   // Solving
   Debug("bv-bitblast-debug") << "...do solving" << std::endl;
-  if (e == Theory::EFFORT_FULL) {
+  if (e == Theory::EFFORT_FULL)
+  {
     Assert(!d_bv->inConflict());
-    Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
+    Debug("bitvector::bitblaster")
+        << "BitblastSolver::addAssertions solving. \n";
     bool ok = d_bitblaster->solve();
-    if (!ok) {
+    if (!ok)
+    {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      Node conflict = mkConjunction(conflictAtoms);
+      Node conflict = utils::mkAnd(conflictAtoms);
       setConflict(conflict);
       return false;
     }
   }
 
   Debug("bv-bitblast-debug") << "...do abs bb" << std::endl;
-  if (options::bvAbstraction() &&
-      e == Theory::EFFORT_FULL &&
-      d_lemmaAtomsQueue.size()) {
-
+  if (options::bvAbstraction() && e == Theory::EFFORT_FULL
+      && d_lemmaAtomsQueue.size())
+  {
     // bit-blast lemma atoms
-    while(!d_lemmaAtomsQueue.empty()) {
+    while (!d_lemmaAtomsQueue.empty())
+    {
       TNode lemma_atom = d_lemmaAtomsQueue.front();
       d_lemmaAtomsQueue.pop();
-      if( !utils::isBitblastAtom( lemma_atom ) ){
+      if (!utils::isBitblastAtom(lemma_atom))
+      {
         continue;
       }
       d_bitblaster->bbAtom(lemma_atom);
       // Assert to sat and check for conflicts
       bool ok = d_bitblaster->assertToSat(lemma_atom, d_useSatPropagation);
-      if (!ok) {
+      if (!ok)
+      {
         std::vector<TNode> conflictAtoms;
         d_bitblaster->getConflict(conflictAtoms);
-        setConflict(mkConjunction(conflictAtoms));
+        setConflict(utils::mkAnd(conflictAtoms));
         return false;
       }
     }
 
     Assert(!d_bv->inConflict());
     bool ok = d_bitblaster->solve();
-    if (!ok) {
+    if (!ok)
+    {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      Node conflict = mkConjunction(conflictAtoms);
+      Node conflict = utils::mkAnd(conflictAtoms);
       setConflict(conflict);
       ++(d_statistics.d_numBBLemmas);
       return false;
     }
-
   }
 
 
@@ -234,7 +248,8 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
 
-void BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   return d_bitblaster->collectModelInfo(m, fullModel);
 }
 

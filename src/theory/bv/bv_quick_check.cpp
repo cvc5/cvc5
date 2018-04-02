@@ -2,9 +2,9 @@
 /*! \file bv_quick_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Morgan Deters
+ **   Liana Hadarean, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,11 @@
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 using namespace CVC4::prop;
+
+namespace CVC4 {
+namespace theory {
+namespace bv {
 
 BVQuickCheck::BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv)
   : d_ctx()
@@ -39,11 +40,12 @@ uint64_t BVQuickCheck::computeAtomWeight(TNode node, NodeSet& seen) {
   return d_bitblaster->computeAtomWeight(node, seen);
 }
 
-void BVQuickCheck::setConflict() {
-  Assert (!inConflict());
+void BVQuickCheck::setConflict()
+{
+  Assert(!inConflict());
   std::vector<TNode> conflict;
   d_bitblaster->getConflict(conflict);
-  Node confl = utils::mkConjunction(conflict);
+  Node confl = utils::mkAnd(conflict);
   d_inConflict = true;
   d_conflict = confl;
 }
@@ -136,8 +138,9 @@ void BVQuickCheck::popToZero() {
   }
 }
 
-void BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel) {
-  d_bitblaster->collectModelInfo(model, fullModel);
+bool BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel)
+{
+  return d_bitblaster->collectModelInfo(model, fullModel);
 }
 
 BVQuickCheck::~BVQuickCheck() {
@@ -350,13 +353,13 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
 }
 
 QuickXPlain::Statistics::Statistics(const std::string& name)
-  : d_xplainTime("theory::bv::"+name+"::QuickXplain::Time")
-  , d_numSolved("theory::bv::"+name+"::QuickXplain::NumSolved", 0)
-  , d_numUnknown("theory::bv::"+name+"::QuickXplain::NumUnknown", 0)
-  , d_numUnknownWasUnsat("theory::bv::"+name+"::QuickXplain::NumUnknownWasUnsat", 0)
-  , d_numConflictsMinimized("theory::bv::"+name+"::QuickXplain::NumConflictsMinimized", 0)
-  , d_finalPeriod("theory::bv::"+name+"::QuickXplain::FinalPeriod", 0)
-  , d_avgMinimizationRatio("theory::bv::"+name+"::QuickXplain::AvgMinRatio")
+  : d_xplainTime(name + "::QuickXplain::Time")
+  , d_numSolved(name + "::QuickXplain::NumSolved", 0)
+  , d_numUnknown(name + "::QuickXplain::NumUnknown", 0)
+  , d_numUnknownWasUnsat(name + "::QuickXplain::NumUnknownWasUnsat", 0)
+  , d_numConflictsMinimized(name + "::QuickXplain::NumConflictsMinimized", 0)
+  , d_finalPeriod(name + "::QuickXplain::FinalPeriod", 0)
+  , d_avgMinimizationRatio(name + "::QuickXplain::AvgMinRatio")
 {
   smtStatisticsRegistry()->registerStat(&d_xplainTime);
   smtStatisticsRegistry()->registerStat(&d_numSolved);
@@ -376,3 +379,7 @@ QuickXPlain::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_finalPeriod);
   smtStatisticsRegistry()->unregisterStat(&d_avgMinimizationRatio);  
 }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4

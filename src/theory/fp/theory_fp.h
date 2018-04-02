@@ -38,21 +38,21 @@ class TheoryFp : public Theory {
   TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
            Valuation valuation, const LogicInfo& logicInfo);
 
-  Node expandDefinition(LogicRequest& lr, Node node);
+  Node expandDefinition(LogicRequest& lr, Node node) override;
 
-  void preRegisterTerm(TNode node);
-  void addSharedTerm(TNode node);
+  void preRegisterTerm(TNode node) override;
+  void addSharedTerm(TNode node) override;
 
-  void check(Effort);
+  void check(Effort) override;
 
-  Node getModelValue(TNode var);
-  void collectModelInfo(TheoryModel* m);
+  Node getModelValue(TNode var) override;
+  bool collectModelInfo(TheoryModel* m) override;
 
-  std::string identify() const { return "THEORY_FP"; }
+  std::string identify() const override { return "THEORY_FP"; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node explain(TNode n);
+  Node explain(TNode n) override;
 
  protected:
   /** Equality engine */
@@ -62,15 +62,17 @@ class TheoryFp : public Theory {
 
    public:
     NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value);
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2,
-                                     bool value);
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t) {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override;
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
+    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
   friend NotifyClass;
 

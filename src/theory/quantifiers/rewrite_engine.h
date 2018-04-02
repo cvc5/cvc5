@@ -20,7 +20,7 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers_engine.h"
 
@@ -49,15 +49,14 @@ private:
   int checkRewriteRule( Node f, Theory::Effort e );
 public:
   RewriteEngine( context::Context* c, QuantifiersEngine* qe );
-  ~RewriteEngine() throw() {}
 
-  bool needsCheck( Theory::Effort e );
-  void check(Theory::Effort e, QEffort quant_e);
-  void registerQuantifier( Node f );
-  void assertNode( Node n );
-  bool checkCompleteFor( Node q );
+  bool needsCheck(Theory::Effort e) override;
+  void check(Theory::Effort e, QEffort quant_e) override;
+  void registerQuantifier(Node f) override;
+  void assertNode(Node n) override;
+  bool checkCompleteFor(Node q) override;
   /** Identify this module */
-  std::string identify() const { return "RewriteEngine"; }
+  std::string identify() const override { return "RewriteEngine"; }
 };
 
 }

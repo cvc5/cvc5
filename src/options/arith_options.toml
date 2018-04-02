@@ -1,0 +1,540 @@
+id     = "ARITH"
+name   = "Arithmetic theory"
+header = "options/arith_options.h"
+
+[[option]]
+  name       = "arithUnateLemmaMode"
+  category   = "regular"
+  long       = "unate-lemmas=MODE"
+  type       = "ArithUnateLemmaMode"
+  default    = "ALL_PRESOLVE_LEMMAS"
+  handler    = "stringToArithUnateLemmaMode"
+  includes   = ["options/arith_unate_lemma_mode.h"]
+  read_only  = true
+  help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
+
+[[option]]
+  name       = "arithPropagationMode"
+  category   = "regular"
+  long       = "arith-prop=MODE"
+  type       = "ArithPropagationMode"
+  default    = "BOTH_PROP"
+  handler    = "stringToArithPropagationMode"
+  includes   = ["options/arith_propagation_mode.h"]
+  read_only  = true
+  help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
+
+# The maximum number of difference pivots to do per invocation of simplex.
+# If this is negative, the number of pivots done is the number of variables.
+# If this is not set by the user, different logics are free to chose different
+# defaults.
+[[option]]
+  name       = "arithHeuristicPivots"
+  category   = "regular"
+  long       = "heuristic-pivots=N"
+  type       = "int16_t"
+  default    = "0"
+  help       = "the number of times to apply the heuristic pivot rule; if N < 0, this defaults to the number of variables; if this is unset, this is tuned by the logic selection"
+
+
+# The maximum number of variable order pivots to do per invocation of simplex.
+# If this is negative, the number of pivots done is unlimited.
+# If this is not set by the user, different logics are free to chose different
+# defaults.
+[[option]]
+  name       = "arithStandardCheckVarOrderPivots"
+  category   = "expert"
+  long       = "standard-effort-variable-order-pivots=N"
+  type       = "int16_t"
+  default    = "-1"
+  help       = "limits the number of pivots in a single invocation of check() at a non-full effort level using Bland's pivot rule"
+
+[[option]]
+  name       = "arithErrorSelectionRule"
+  category   = "regular"
+  long       = "error-selection-rule=RULE"
+  type       = "ErrorSelectionRule"
+  default    = "MINIMUM_AMOUNT"
+  handler    = "stringToErrorSelectionRule"
+  includes   = ["options/arith_heuristic_pivot_rule.h"]
+  read_only  = true
+  help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
+
+# The number of pivots before simplex rechecks every basic variable for a conflict
+[[option]]
+  name       = "arithSimplexCheckPeriod"
+  category   = "regular"
+  long       = "simplex-check-period=N"
+  type       = "uint16_t"
+  default    = "200"
+  read_only  = true
+  help       = "the number of pivots to do in simplex before rechecking for a conflict on all variables"
+
+# This is the pivots per basic variable that can be done using heuristic choices
+# before variable order must be used.
+# If this is not set by the user, different logics are free to chose different
+# defaults.
+[[option]]
+  name       = "arithPivotThreshold"
+  category   = "regular"
+  long       = "pivot-threshold=N"
+  type       = "uint16_t"
+  default    = "2"
+  help       = "sets the number of pivots using --pivot-rule per basic variable per simplex instance before using variable order"
+
+[[option]]
+  name       = "arithPropagateMaxLength"
+  category   = "regular"
+  long       = "prop-row-length=N"
+  type       = "uint16_t"
+  default    = "16"
+  read_only  = true
+  help       = "sets the maximum row length to be used in propagation"
+
+[[option]]
+  name       = "arithDioSolver"
+  category   = "regular"
+  long       = "dio-solver"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "turns on Linear Diophantine Equation solver (Griggio, JSAT 2012)"
+
+# Whether to split (= x y) into (and (<= x y) (>= x y)) in
+# arithmetic preprocessing.
+[[option]]
+  name       = "arithRewriteEq"
+  category   = "regular"
+  long       = "arith-rewrite-equalities"
+  type       = "bool"
+  default    = "false"
+  help       = "turns on the preprocessing rewrite turning equalities into a conjunction of inequalities"
+
+[[option]]
+  name       = "arithMLTrick"
+  smt_name   = "miplib-trick"
+  category   = "regular"
+  long       = "miplib-trick"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "turns on the preprocessing step of attempting to infer bounds on miplib problems"
+
+[[option]]
+  name       = "arithMLTrickSubstitutions"
+  smt_name   = "miplib-trick-subs"
+  category   = "regular"
+  long       = "miplib-trick-subs=N"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "do substitution for miplib 'tmp' vars if defined in <= N eliminated vars"
+
+[[option]]
+  name       = "doCutAllBounded"
+  category   = "regular"
+  long       = "cut-all-bounded"
+  type       = "bool"
+  default    = "false"
+  help       = "turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds"
+
+[[option]]
+  name       = "maxCutsInContext"
+  category   = "regular"
+  long       = "maxCutsInContext"
+  type       = "unsigned"
+  default    = "65535"
+  read_only  = true
+  help       = "maximum cuts in a given context before signalling a restart"
+
+[[option]]
+  name       = "revertArithModels"
+  category   = "regular"
+  long       = "revert-arith-models-on-unsat"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "revert the arithmetic model to a known safe model on unsat if one is cached"
+
+[[option]]
+  name       = "havePenalties"
+  category   = "regular"
+  long       = "fc-penalties"
+  type       = "bool"
+  default    = "false"
+  help       = "turns on degenerate pivot penalties"
+
+[[option]]
+  name       = "useFC"
+  category   = "regular"
+  long       = "use-fcsimplex"
+  type       = "bool"
+  default    = "false"
+  help       = "use focusing and converging simplex (FMCAD 2013 submission)"
+
+[[option]]
+  name       = "useSOI"
+  category   = "regular"
+  long       = "use-soi"
+  type       = "bool"
+  default    = "false"
+  help       = "use sum of infeasibility simplex (FMCAD 2013 submission)"
+
+[[option]]
+  name       = "restrictedPivots"
+  category   = "regular"
+  long       = "restrict-pivots"
+  type       = "bool"
+  default    = "true"
+  help       = "have a pivot cap for simplex at effort levels below fullEffort"
+
+[[option]]
+  name       = "collectPivots"
+  category   = "regular"
+  long       = "collect-pivot-stats"
+  type       = "bool"
+  default    = "false"
+  help       = "collect the pivot history"
+
+[[option]]
+  name       = "useApprox"
+  category   = "regular"
+  long       = "use-approx"
+  type       = "bool"
+  default    = "false"
+  help       = "attempt to use an approximate solver"
+
+[[option]]
+  name       = "maxApproxDepth"
+  category   = "regular"
+  long       = "approx-branch-depth"
+  type       = "int16_t"
+  default    = "200"
+  help       = "maximum branch depth the approximate solver is allowed to take"
+
+[[option]]
+  name       = "exportDioDecompositions"
+  category   = "regular"
+  long       = "dio-decomps"
+  type       = "bool"
+  default    = "false"
+  help       = "let skolem variables for integer divisibility constraints leak from the dio solver"
+
+[[option]]
+  name       = "newProp"
+  category   = "regular"
+  long       = "new-prop"
+  type       = "bool"
+  default    = "false"
+  help       = "use the new row propagation system"
+
+[[option]]
+  name       = "arithPropAsLemmaLength"
+  category   = "regular"
+  long       = "arith-prop-clauses"
+  type       = "uint16_t"
+  default    = "8"
+  help       = "rows shorter than this are propagated as clauses"
+
+[[option]]
+  name       = "soiQuickExplain"
+  category   = "regular"
+  long       = "soi-qe"
+  type       = "bool"
+  default    = "false"
+  help       = "use quick explain to minimize the sum of infeasibility conflicts"
+
+[[option]]
+  name       = "rewriteDivk"
+  category   = "regular"
+  long       = "rewrite-divk"
+  type       = "bool"
+  default    = "false"
+  help       = "rewrite division and mod when by a constant into linear terms"
+
+[[option]]
+  name       = "trySolveIntStandardEffort"
+  category   = "regular"
+  long       = "se-solve-int"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "attempt to use the approximate solve integer method on standard effort"
+
+[[option]]
+  name       = "replayFailureLemma"
+  category   = "regular"
+  long       = "lemmas-on-replay-failure"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "attempt to use external lemmas if approximate solve integer failed"
+
+[[option]]
+  name       = "dioSolverTurns"
+  category   = "regular"
+  long       = "dio-turns"
+  type       = "int"
+  default    = "10"
+  read_only  = true
+  help       = "turns in a row dio solver cutting gets"
+
+[[option]]
+  name       = "rrTurns"
+  category   = "regular"
+  long       = "rr-turns"
+  type       = "int"
+  default    = "3"
+  read_only  = true
+  help       = "round robin turn"
+
+[[option]]
+  name       = "dioRepeat"
+  category   = "regular"
+  long       = "dio-repeat"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "handle dio solver constraints in mass or one at a time"
+
+[[option]]
+  name       = "replayEarlyCloseDepths"
+  category   = "regular"
+  long       = "replay-early-close-depth"
+  type       = "int"
+  default    = "1"
+  read_only  = true
+  help       = "multiples of the depths to try to close the approx log eagerly"
+
+[[option]]
+  name       = "replayFailurePenalty"
+  category   = "regular"
+  long       = "replay-failure-penalty"
+  type       = "int"
+  default    = "100"
+  read_only  = true
+  help       = "number of solve integer attempts to skips after a numeric failure"
+
+[[option]]
+  name       = "replayNumericFailurePenalty"
+  category   = "regular"
+  long       = "replay-num-err-penalty"
+  type       = "int"
+  default    = "4194304"
+  read_only  = true
+  help       = "number of solve integer attempts to skips after a numeric failure"
+
+[[option]]
+  name       = "replayRejectCutSize"
+  category   = "regular"
+  long       = "replay-reject-cut"
+  type       = "unsigned"
+  default    = "25500"
+  read_only  = true
+  help       = "maximum complexity of any coefficient while replaying cuts"
+
+[[option]]
+  name       = "lemmaRejectCutSize"
+  category   = "regular"
+  long       = "replay-lemma-reject-cut"
+  type       = "unsigned"
+  default    = "25500"
+  read_only  = true
+  help       = "maximum complexity of any coefficient while outputting replaying cut lemmas"
+
+[[option]]
+  name       = "soiApproxMajorFailure"
+  category   = "regular"
+  long       = "replay-soi-major-threshold"
+  type       = "double"
+  default    = ".01"
+  read_only  = true
+  help       = "threshold for a major tolerance failure by the approximate solver"
+
+[[option]]
+  name       = "soiApproxMajorFailurePen"
+  category   = "regular"
+  long       = "replay-soi-major-threshold-pen"
+  type       = "int"
+  default    = "50"
+  read_only  = true
+  help       = "threshold for a major tolerance failure by the approximate solver"
+
+[[option]]
+  name       = "soiApproxMinorFailure"
+  category   = "regular"
+  long       = "replay-soi-minor-threshold"
+  type       = "double"
+  default    = ".0001"
+  read_only  = true
+  help       = "threshold for a minor tolerance failure by the approximate solver"
+
+[[option]]
+  name       = "soiApproxMinorFailurePen"
+  category   = "regular"
+  long       = "replay-soi-minor-threshold-pen"
+  type       = "int"
+  default    = "10"
+  read_only  = true
+  help       = "threshold for a minor tolerance failure by the approximate solver"
+
+[[option]]
+  name       = "ppAssertMaxSubSize"
+  category   = "regular"
+  long       = "pp-assert-max-sub-size"
+  type       = "unsigned"
+  default    = "2"
+  read_only  = true
+  help       = "threshold for substituting an equality in ppAssert"
+
+[[option]]
+  name       = "maxReplayTree"
+  category   = "regular"
+  long       = "max-replay-tree"
+  type       = "int"
+  default    = "512"
+  read_only  = true
+  help       = "threshold for attempting to replay a tree"
+
+[[option]]
+  name       = "arithNoPartialFun"
+  category   = "regular"
+  long       = "arith-no-partial-fun"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "do not use partial function semantics for arithmetic (not SMT LIB compliant)"
+
+[[option]]
+  name       = "pbRewrites"
+  category   = "regular"
+  long       = "pb-rewrites"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "apply pseudo boolean rewrites"
+
+[[option]]
+  name       = "pbRewriteThreshold"
+  category   = "regular"
+  long       = "pb-rewrite-threshold"
+  type       = "int"
+  default    = "256"
+  read_only  = true
+  help       = "threshold of number of pseudoboolean variables to have before doing rewrites"
+
+[[option]]
+  name       = "sNormInferEq"
+  category   = "regular"
+  long       = "snorm-infer-eq"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "infer equalities based on Shostak normalization"
+
+[[option]]
+  name       = "nlExt"
+  category   = "regular"
+  long       = "nl-ext"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "extended approach to non-linear"
+
+[[option]]
+  name       = "nlExtResBound"
+  category   = "regular"
+  long       = "nl-ext-rbound"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use resolution-style inference for inferring new bounds"
+
+[[option]]
+  name       = "nlExtFactor"
+  category   = "regular"
+  long       = "nl-ext-factor"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use factoring inference in non-linear solver"
+
+[[option]]
+  name       = "nlExtTangentPlanes"
+  category   = "regular"
+  long       = "nl-ext-tplanes"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use non-terminating tangent plane strategy for non-linear"
+
+[[option]]
+  name       = "nlExtTfTangentPlanes"
+  category   = "regular"
+  long       = "nl-ext-tf-tplanes"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear"
+
+[[option]]
+  name       = "nlExtEntailConflicts"
+  category   = "regular"
+  long       = "nl-ext-ent-conf"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "check for entailed conflicts in non-linear solver"
+
+[[option]]
+  name       = "nlExtRewrites"
+  category   = "regular"
+  long       = "nl-ext-rewrite"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "do rewrites in non-linear solver"
+
+[[option]]
+  name       = "nlExtSolveSubs"
+  category   = "regular"
+  long       = "nl-ext-solve-subs"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "do solving for determining constant substitutions"
+
+[[option]]
+  name       = "nlExtPurify"
+  category   = "regular"
+  long       = "nl-ext-purify"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "purify non-linear terms at preprocess"
+
+[[option]]
+  name       = "nlExtSplitZero"
+  category   = "regular"
+  long       = "nl-ext-split-zero"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "intial splits on zero for all variables"
+
+[[option]]
+  name       = "nlExtTfTaylorDegree"
+  category   = "regular"
+  long       = "nl-ext-tf-taylor-deg=N"
+  type       = "int16_t"
+  default    = "4"
+  help       = "initial degree of polynomials for Taylor approximation"
+
+[[option]]
+  name       = "nlExtTfIncPrecision"
+  category   = "regular"
+  long       = "nl-ext-tf-inc-prec"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "whether to increment the precision for transcendental function constraints"
