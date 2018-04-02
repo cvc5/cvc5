@@ -12,4 +12,4 @@ libcvc4compat \- a CVC3 compatibility library interface for the CVC4 theorem pro
 
 Additionally, the CVC4 wiki contains useful information about the
 design and internals of CVC4.  It is maintained at
-.BR http://cvc4.cs.nyu.edu/wiki/ .
+.BR http://cvc4.cs.stanford.edu/wiki/ .
