@@ -616,7 +616,8 @@ Command* Parser::nextCommand()
       setDone();
       throw;
     } catch (exception& e) {
-      setDone();
+      setDone(); 
+      Debug("pf::array") << std::endl << "panda parser.cpp:620 " << e.what() << std::endl;
       parseError(e.what());
     }
   }
