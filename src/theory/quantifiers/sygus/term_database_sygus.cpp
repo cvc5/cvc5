@@ -663,6 +663,9 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
+          // ensure that terms that this constructor encodes are 
+          // of the type specified in the datatype. This will fail if
+          // e.g. bitvector-and is a constructor of an integer grammar.
           std::map<int, Node> pre;
           Node g = mkGeneric(dt,i,pre);
           TypeNode gtn = g.getType();
