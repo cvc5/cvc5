@@ -1115,6 +1115,14 @@ header = "options/quantifiers_options.h"
   help       = "use sygus to enumerate candidate rewrite rules via sampling"
 
 [[option]]
+  name       = "sygusRewSynthFilter"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on techniques like matching"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
