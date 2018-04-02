@@ -70,9 +70,8 @@ class CegConjecture;
 *
 * (4) During search, the extension of quantifier-free datatypes procedure for
 *     SyGuS datatypes may ask this class whether current candidates can be
-*     discarded based on
-*     inferring when two candidate solutions are equivalent up to examples.
-*     For example, the candidate solutions:
+*     discarded based on inferring when two candidate solutions are equivalent
+*     up to examples. For example, the candidate solutions:
 *     f = \x ite( x < 0, x+1, x ) and f = \x x
 *     are equivalent up to examples on the above conjecture, since they have the
 *     same value on the points x = 0,5,6. Hence, we need only consider one of
@@ -85,12 +84,11 @@ class CegConjecture;
 *     CegConjecturePbe::getCandidateList(...), where this class returns the list
 *     of active enumerators.
 * (6) The parent class subsequently calls
-*     CegConjecturePbe::constructValues(...), which
-*     informs this class that new values have been enumerated for active
-*     enumerators, as indicated by the current model. This call also requests
-*     that based on these
+*     CegConjecturePbe::constructValues(...), which informs this class that new
+*     values have been enumerated for active enumerators, as indicated by the
+*     current model. This call also requests that based on these
 *     newly enumerated values, whether this class is now able to construct a
-*     solution based on the high-level strategy (stored in d_c_info).
+*     solution based on the high-level strategy (stored in d_sygus_unif).
 *
 * This class is not designed to work in incremental mode, since there is no way
 * to specify incremental problems in SyguS.
@@ -248,18 +246,36 @@ class CegConjecturePbe : public SygusModule
   void collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol );
 
   //--------------------------------- PBE search values
-  /** this class is an index of candidate solutions for PBE synthesis */
+  /**
+   * This class is an index of candidate solutions for PBE synthesis and their
+   * (concrete) evaluation on the set of input examples. For example, if the
+   * set of input examples for (x,y) is (0,1), (1,3), then:
+   *   term x is indexed by 0,1
+   *   term x+y is indexed by 1,4
+   *   term 0 is indexed by 0,0.
+   */
   class PbeTrie {
    public:
     PbeTrie() {}
     ~PbeTrie() {}
+    /** the data for this node in the trie */
     Node d_lazy_child;
+    /** the children for this node in the trie */
     std::map<Node, PbeTrie> d_children;
+    /** clear this trie */
     void clear() { d_children.clear(); }
+    /**
+     * Add term b as a value enumerated for enumerator e to the trie.
+     *
+     * cpbe : reference to the parent pbe utility which stores the examples,
+     * index : the index of the example we are processing,
+     * ntotal : the total of the examples for enumerator e.
+     */
     Node addPbeExample(TypeNode etn, Node e, Node b, CegConjecturePbe* cpbe,
                        unsigned index, unsigned ntotal);
 
    private:
+    /** Helper function for above, called when we get the current example ex. */
     Node addPbeExampleEval(TypeNode etn, Node e, Node b, std::vector<Node>& ex,
                            CegConjecturePbe* cpbe, unsigned index,
                            unsigned ntotal);
