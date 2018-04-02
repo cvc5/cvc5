@@ -31,17 +31,19 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
     : Exception(message), d_node(new Node(node))
 {
 #ifdef CVC4_DEBUG
-  std::stringstream ss; 
+  std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
-    // Since this node is malformed, we cannot use toString(). 
+    // Since this node is malformed, we cannot use toString().
     // Instead, we print the kind and the children.
-    ss << message << " " << "node kind: " << node.getKind() << ". children: ";
-    int i=0;
-    for (const TNode& child : node) {
-        ss << "child " << i << ": " << child << ". ";
-        i++;
-    } 
+    ss << message << " "
+       << "node kind: " << node.getKind() << ". children: ";
+    int i = 0;
+    for (const TNode& child : node)
+    {
+      ss << "child " << i << ": " << child << ". ";
+      i++;
+    }
     string ssstring = ss.str();
     current->setContents(ssstring.c_str());
   }
@@ -51,7 +53,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
 
 void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const
-{ 
+{
   os << "Error during type checking: " << d_msg << std::endl << *d_node << endl << "The ill-typed expression: " << *d_node;
 }
 

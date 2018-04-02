@@ -616,7 +616,7 @@ Command* Parser::nextCommand()
       setDone();
       throw;
     } catch (exception& e) {
-      setDone(); 
+      setDone();
       parseError(e.what());
     }
   }
