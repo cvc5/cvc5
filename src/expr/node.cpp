@@ -33,9 +33,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
 #ifdef CVC4_DEBUG
   std::stringstream ss; 
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
-  Debug("pf::array") << std::endl << "panda 1" << std::endl;
   if(current != NULL){
-    Debug("pf::array") << std::endl << "panda2" << std::endl;
     ss << message << " " << "node kind: " << node.getKind() << ". children: ";
     int i=0;
     for (const TNode& child : node) {
@@ -43,7 +41,6 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
         i++;
     } 
     string ssstring = ss.str();
-    Debug("pf::array") << std::endl << "panda 3 " << ssstring << std::endl;
     current->setContents(ssstring.c_str());
   }
 #endif /* CVC4_DEBUG */

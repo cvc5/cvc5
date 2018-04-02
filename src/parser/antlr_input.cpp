@@ -509,7 +509,6 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
 
 void AntlrInput::parseError(const std::string& message, bool eofException)
 {
-  Debug("parser") << std::endl << "entering AntlrInput::parseError" << std::endl;
   string updatedMessage = parseErrorHelper((const char*)d_antlr3InputStream->getLineBuf(d_antlr3InputStream),
                                            d_lexer->getCharPositionInLine(d_lexer),
                                            message);
@@ -525,7 +524,6 @@ void AntlrInput::parseError(const std::string& message, bool eofException)
                                    d_lexer->getLine(d_lexer),
                                    d_lexer->getCharPositionInLine(d_lexer));
   } else {
-    Debug("parser") << std::endl << "AntlrInput::parseError:528" << std::endl;
     throw ParserException(updatedMessage,
                           (const char*)d_lexer->rec->state->tokSource->fileName->chars,
                           d_lexer->getLine(d_lexer),
