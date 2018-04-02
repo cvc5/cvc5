@@ -26,9 +26,9 @@ COMMAND_LINE = 'COMMAND-LINE: '
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
                   command_line, benchmark_dir, benchmark_filename):
-    """Runs CVC4 on the file `benchmark_file` in the directory `benchmark_dir`
-    using the binary `cvc4_binary` with the command line options
-    `command_line`. The output is scrubbed using `scrubber` and
+    """Runs CVC4 on the file `benchmark_filename` in the directory
+    `benchmark_dir` using the binary `cvc4_binary` with the command line
+    options `command_line`. The output is scrubbed using `scrubber` and
     `error_scrubber` for stdout and stderr, respectively. If dump is true, the
     function first uses CVC4 to read in and dump the benchmark file and then
     uses that as input."""
