@@ -1,8 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2009-2014  The CVC4 Project
+# Copyright (c) 2009-2018  The CVC4 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
