@@ -159,9 +159,20 @@ class ExtendedRewriter
   Node partialSubstitute(Node n,
                          std::map<Node, Node>& assign,
                          std::map<Kind, bool>& rkinds);
-  /** solve equality */
+  /** solve equality
+   *
+   * If this function returns a non-null node n', then n' is equivalent to n
+   * and is of the form that can be used by inferSubstitution below.
+   */
   Node solveEquality(Node n);
-  /** infer substitution */
+  /** infer substitution
+   *
+   * If n is an equality of the form x = t, where t is either:
+   * (1) a constant, or
+   * (2) a variable y such that x < y based on an ordering,
+   * then this method adds x to vars and y to subs and return true, otherwise
+   * it returns false.
+   */
   bool inferSubstitution(Node n,
                          std::vector<Node>& vars,
                          std::vector<Node>& subs);

@@ -369,7 +369,12 @@ public:
   static Node mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
   /** make max value, static version of get max value */
   static Node mkTypeMaxValue(TypeNode tn);
-  /** make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn) */
+  /**
+   * Make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn).
+   * In other words, this returns either the minimum element of tn if pol is
+   * true, and the maximum element in pol is false. The type tn should have
+   * minimum and maximum elements, for example tn is Bool or BitVector.
+   */
   static Node mkTypeConst(TypeNode tn, bool pol);
 
   // for higher-order

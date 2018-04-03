@@ -1091,7 +1091,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-ext-rew"
   type       = "bool"
   default    = "true"
-  help       = "experimental use of extended rewriter for sygus"
+  help       = "use extended rewriter for sygus"
 
 [[option]]
   name       = "sygusSilent"
