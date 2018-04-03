@@ -90,7 +90,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if (n.getNumChildren() > 0)
   {
     std::vector<Node> children;
-    if (n.getMetaKind() == metaPARAMETERIZED)
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
       children.push_back(n.getOperator());
     }
@@ -401,7 +401,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
   std::vector<Node> children;
-  bool hasOp = (n.getMetaKind() == metaPARAMETERIZED);
+  bool hasOp = (n.getMetaKind() == metakind::PARAMETERIZED);
   if (hasOp)
   {
     children.push_back(n.getOperator());
@@ -671,7 +671,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
       }
       if (childChanged)
       {
-        if (ca.getMetaKind() == metaPARAMETERIZED)
+        if (ca.getMetaKind() == metakind::PARAMETERIZED)
         {
           ccs_children.insert(ccs_children.begin(), ca.getOperator());
         }
