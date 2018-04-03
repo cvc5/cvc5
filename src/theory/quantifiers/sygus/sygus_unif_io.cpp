@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-UnifContextIo::UnifContextIo() : d_has_string_pos(role_invalid)
+UnifContextIo::UnifContextIo() : d_curr_role(role_invalid)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -34,7 +34,7 @@ UnifContextIo::UnifContextIo() : d_has_string_pos(role_invalid)
 
 NodeRole UnifContextIo::getCurrentRole()
 {
-  return d_has_string_pos;
+  return d_curr_role;
 }
 
 bool UnifContextIo::updateContext(SygusUnifIo* sui,
@@ -63,7 +63,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
 }
 
 bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                       std::vector<unsigned>& pos)
+                                       std::vector<unsigned>& pos, NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
   bool changed = false;
@@ -79,16 +79,8 @@ bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
   {
     d_visit_role.clear();
   }
+  d_curr_role = nrole;
   return changed;
-}
-
-bool UnifContextIo::isReturnValueModified()
-{
-  if (d_has_string_pos != role_invalid)
-  {
-    return true;
-  }
-  return false;
 }
 
 void UnifContextIo::initialize(SygusUnifIo* sui)
@@ -96,7 +88,7 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
   // clear previous data
   d_vals.clear();
   d_str_pos.clear();
-  d_has_string_pos = role_equal;
+  d_curr_role = role_equal;
   d_visit_role.clear();
   d_uinfo.clear();
 
@@ -127,7 +119,7 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
                                     const std::vector<Node>& vals,
                                     std::vector<String>& ex_vals)
 {
-  bool isPrefix = d_has_string_pos == role_string_prefix;
+  bool isPrefix = d_curr_role == role_string_prefix;
   String dummy;
   for (unsigned i = 0; i < vals.size(); i++)
   {
@@ -137,7 +129,7 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
       unsigned pos_value = d_str_pos[i];
       if (pos_value > 0)
       {
-        Assert(d_has_string_pos != role_invalid);
+        Assert(d_curr_role != role_invalid);
         String s = vals[i].getConst<String>();
         Assert(pos_value <= s.size());
         ex_vals.push_back(isPrefix ? s.suffix(s.size() - pos_value)
@@ -811,15 +803,17 @@ Node SygusUnifIo::constructSol(Node e,
     Trace("sygus-sui-dt-debug") << "ConstructPBE: (" << e << ", " << nrole
                                 << ") for type " << etn << " in context ";
     print_val("sygus-sui-dt-debug", x.d_vals);
-    if (x.d_has_string_pos != role_invalid)
+    NodeRole ctx_role = x.getCurrentRole();
+    Trace("sygus-sui-dt-debug") << ", context role [" << ctx_role;
+    if (ctx_role==role_string_prefix || ctx_role==role_string_suffix)
     {
-      Trace("sygus-sui-dt-debug") << ", string context [" << x.d_has_string_pos;
+      Trace("sygus-sui-dt-debug") << ", string pos : ";
       for (unsigned i = 0, size = x.d_str_pos.size(); i < size; i++)
       {
         Trace("sygus-sui-dt-debug") << " " << x.d_str_pos[i];
       }
-      Trace("sygus-sui-dt-debug") << "]";
     }
+    Trace("sygus-sui-dt-debug") << "]";
     Trace("sygus-sui-dt-debug") << std::endl;
   }
   // enumerator type info
@@ -911,7 +905,7 @@ Node SygusUnifIo::constructSol(Node e,
   else if (nrole == role_string_prefix || nrole == role_string_suffix)
   {
     // check if each return value is a prefix/suffix of all open examples
-    if (!x.isReturnValueModified() || x.d_has_string_pos == nrole)
+    if (!x.isReturnValueModified() || x.getCurrentRole() == nrole)
     {
       std::map<Node, std::vector<unsigned> > incr;
       bool isPrefix = nrole == role_string_prefix;
@@ -973,9 +967,8 @@ Node SygusUnifIo::constructSol(Node e,
             << "PBE: CONCAT strategy : choose " << (isPrefix ? "pre" : "suf")
             << "fix value " << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
-        bool ret = x.updateStringPosition(this, incr[ret_dt]);
+        bool ret = x.updateStringPosition(this, incr[ret_dt], nrole);
         AlwaysAssert(ret == (total_inc[ret_dt] > 0));
-        x.d_has_string_pos = nrole;
       }
       else
       {

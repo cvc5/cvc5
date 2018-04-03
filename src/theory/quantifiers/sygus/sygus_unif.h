@@ -161,25 +161,25 @@ class SygusUnif
   virtual Node constructSol(Node e, NodeRole nrole, int ind) = 0;
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
-  Node constructBestSolvedTerm(std::vector<Node>& solved);
+  virtual Node constructBestSolvedTerm(const std::vector<Node>& solved);
   /** Heuristically choose the best solved string term  from solved in context
    * x, currently  return the first. */
-  Node constructBestStringSolvedTerm(std::vector<Node>& solved);
+  virtual Node constructBestStringSolvedTerm(const std::vector<Node>& solved);
   /** Heuristically choose the best solved conditional term  from solved in
    * context x, currently random */
-  Node constructBestSolvedConditional(std::vector<Node>& solved);
+  virtual Node constructBestSolvedConditional(const std::vector<Node>& solved);
   /** Heuristically choose the best conditional term  from conds in context x,
    * currently random */
-  Node constructBestConditional(std::vector<Node>& conds);
+  virtual Node constructBestConditional(const std::vector<Node>& conds);
   /** Heuristically choose the best string to concatenate from strs to the
   * solution in context x, currently random
   * incr stores the vector of indices that are incremented by this solution in
   * example outputs.
   * total_inc[x] is the sum of incr[x] for each x in strs.
   */
-  Node constructBestStringToConcat(std::vector<Node> strs,
-                                   std::map<Node, unsigned> total_inc,
-                                   std::map<Node, std::vector<unsigned> > incr);
+  virtual Node constructBestStringToConcat(const std::vector<Node>& strs,
+                                   const std::map<Node, unsigned>& total_inc,
+                                   const std::map<Node, std::vector<unsigned> >& incr);
   //------------------------------ end constructing solutions
 };
 

@@ -92,25 +92,25 @@ Node SygusUnif::constructSolution()
   return Node::null();
 }
 
-Node SygusUnif::constructBestSolvedTerm(std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestStringSolvedTerm(std::vector<Node>& solved)
+Node SygusUnif::constructBestStringSolvedTerm(const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestSolvedConditional(std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedConditional(const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestConditional(std::vector<Node>& conds)
+Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
   double r = Random::getRandom().pickDouble(0.0, 1.0);
@@ -123,21 +123,23 @@ Node SygusUnif::constructBestConditional(std::vector<Node>& conds)
 }
 
 Node SygusUnif::constructBestStringToConcat(
-    std::vector<Node> strs,
-    std::map<Node, unsigned> total_inc,
-    std::map<Node, std::vector<unsigned> > incr)
+    const std::vector<Node>& strs,
+    const std::map<Node, unsigned>& total_inc,
+    const std::map<Node, std::vector<unsigned> >& incr)
 {
   Assert(!strs.empty());
-  std::random_shuffle(strs.begin(), strs.end());
+  std::vector<Node> strs_tmp = strs;
+  std::random_shuffle(strs_tmp.begin(), strs_tmp.end());
   // prefer one that has incremented by more than 0
-  for (const Node& ns : strs)
+  for (const Node& ns : strs_tmp)
   {
-    if (total_inc[ns] > 0)
+    const std::map<Node, unsigned>::const_iterator iti = total_inc.find(ns);
+    if (iti!=total_inc.end() && iti->second> 0)
     {
       return ns;
     }
   }
-  return strs[0];
+  return strs_tmp[0];
 }
 
 void SygusUnif::indent(const char* c, int ind)

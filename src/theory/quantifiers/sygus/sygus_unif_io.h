@@ -77,18 +77,12 @@ class UnifContextIo : public UnifContext
   *   str.++( "aa", "c" ) is a prefix of "aacd".
   */
   std::vector<unsigned> d_str_pos;
-  /** has string position
-  *
-  * Whether the solution positions indicate a prefix or suffix of the output
-  * examples. If this is role_invalid, then we have not updated the string
-  * position.
-  */
-  NodeRole d_has_string_pos;
   /** update the string examples
   *
-  * This method updates d_str_pos to d_str_pos + pos.
+  * This method updates d_str_pos to d_str_pos + pos, and updates the current
+  * role to nrole.
   */
-  bool updateStringPosition(SygusUnifIo* sui, std::vector<unsigned>& pos);
+  bool updateStringPosition(SygusUnifIo* sui, std::vector<unsigned>& pos, NodeRole nrole);
   /** get current strings
   *
   * This returns the prefix/suffix of the string constants stored in vals
@@ -121,13 +115,6 @@ class UnifContextIo : public UnifContext
                       const std::vector<Node>& vals);
   //----------end for CONCAT strategies
 
-  /** is return value modified?
-  *
-  * This returns true if we are currently in a state where the return value
-  * of the solution has been modified, e.g. by a previous node that solved
-  * for a prefix.
-  */
-  bool isReturnValueModified();
   /** visited role
   *
   * This is the current set of enumerator/node role pairs we are currently
@@ -161,7 +148,9 @@ class UnifContextIo : public UnifContext
  private:
   /** true and false nodes */
   Node d_true;
-  Node d_false;
+  Node d_false;  
+  /** current role (see getCurrentRole). */
+  NodeRole d_curr_role;
 };
 
 /** Subsumption trie
