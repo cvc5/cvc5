@@ -137,6 +137,57 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
   return getAttribute(HasBoundVarAttr());
 }
 
+template <bool ref_count>
+bool NodeTemplate<ref_count>::hasFreeVar()
+{
+  assertTNodeNotExpired();
+  std::unordered_set<TNode, TNodeHashFunction> bound_var;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(*this);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    // can skip if it doesn't have a bound variable
+    if( cur.hasBoundVar() )
+    {
+      bool isQuant = cur.getKind()==kind::FORALL || cur.getKind()==kind::EXISTS || cur.getKind()==kind::LAMBDA || cur.getKind()==kind::CHOICE;
+
+      if (visited.find(cur) == visited.end()) {
+        visited.insert(cur);
+        if( cur.getKind()==kind::BOUND_VARIABLE ){
+          if( bound_var.find(cur)==bound_var.end() )
+          {
+            return true;
+          }
+        }
+        else if( isQuant )
+        {
+          for (const TNode& cn : cur[0]) {
+            // should not shadow
+            Assert( bound_var.find(cn)==bound_var.end() );
+            bound_var.insert(cn);
+          }
+        }
+        for (const TNode& cn : cur) {
+          visit.push_back(cn);
+        }
+      }
+      else
+      {
+        if( isQuant )
+        {
+          for (const TNode& cn : cur[0]) {
+            bound_var.erase(cn);
+          }
+        }
+      }
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 template bool NodeTemplate<true>::hasBoundVar();

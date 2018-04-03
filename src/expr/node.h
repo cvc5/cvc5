@@ -434,6 +434,12 @@ public:
    * @return true iff this node contains a bound variable.
    */
   bool hasBoundVar();
+  
+  /**
+   * Returns true iff this node contains a free variable.
+   * @return true iff this node contains a free variable.
+   */
+  bool hasFreeVar();
 
   /**
    * Convert this Node into an Expr using the currently-in-scope
