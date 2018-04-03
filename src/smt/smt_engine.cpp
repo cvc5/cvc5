@@ -1899,13 +1899,13 @@ void SmtEngine::setDefaults() {
       options::ceGuidedInst.set(true);
     }
     // optimization: apply preskolemization, makes it succeed more often
-    if( !options::preSkolemQuant.wasSetByUser() )
+    if (!options::preSkolemQuant.wasSetByUser())
     {
-      options::preSkolemQuant.set( true );
+      options::preSkolemQuant.set(true);
     }
-    if( !options::preSkolemQuantNested.wasSetByUser() )
+    if (!options::preSkolemQuantNested.wasSetByUser())
     {
-      options::preSkolemQuantNested.set( true );
+      options::preSkolemQuantNested.set(true);
     }
   }
   if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){

@@ -53,14 +53,14 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     std::map<TypeNode, unsigned> type_count;
     Node pas = as;
     // rewrite
-    pas = Rewriter::rewrite( pas );
+    pas = Rewriter::rewrite(pas);
     Trace("sygus-infer") << "  " << pas << std::endl;
     if (pas.getKind() == FORALL)
     {
       // preprocess the quantified formula
       pas = quantifiers::QuantifiersRewriter::preprocess(pas);
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
-      
+
       pas = pas[1];
       // infer prefix
       for (const Node& v : pas[0])

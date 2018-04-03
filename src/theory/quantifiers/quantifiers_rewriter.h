@@ -101,7 +101,7 @@ public:
   static bool containsQuantifiers( Node n );
   static bool isPrenexNormalForm( Node n );
   /** preprocess
-   * 
+   *
    * This returns the result of applying simple quantifiers-specific
    * preprocessing to n, including but not limited to:
    * - rewrite rule elimination,
