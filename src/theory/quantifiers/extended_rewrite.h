@@ -256,8 +256,9 @@ class ExtendedRewriter
   /** splice
    *
    * Adds k (non-concat) terms to n1v and n2v such that:
-   *   n1 is equivalent to n1v[0] ++ ... ++ n1v[k] and
-   *   n2 is equivalent to n2v[0] ++ ... ++ n2v[k].
+   *   n1 is equivalent to n1v[0] ++ ... ++ n1v[k-1] and
+   *   n2 is equivalent to n2v[0] ++ ... ++ n2v[k-1],
+   * and n1v[i] and n2v[i] have equal width for i=0...k-1.
    */
   void spliceBv(Node n1,
                 Node n2,
