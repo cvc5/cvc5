@@ -251,9 +251,10 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         std::vector<Node> bvs;
         TermUtil::getBoundVars(cr, bvs);
         // bound variables must be contained in the single invocation variables
-        for( const Node& bv : bvs )
+        for (const Node& bv : bvs)
         {
-          if( std::find( d_si_vars.begin(), d_si_vars.end(), bv )==d_si_vars.end() )
+          if (std::find(d_si_vars.begin(), d_si_vars.end(), bv)
+              == d_si_vars.end())
           {
             // getBoundVars also collects functions in the rare case that we are
             // synthesizing a function with 0 arguments, take this into account
@@ -261,13 +262,14 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
             if (std::find(d_input_funcs.begin(), d_input_funcs.end(), bv)
                 == d_input_funcs.end())
             {
-              Trace("si-prt") << "...not ground single invocation." << std::endl;
+              Trace("si-prt")
+                  << "...not ground single invocation." << std::endl;
               ngroundSingleInvocation = true;
               singleInvocation = false;
             }
           }
         }
-        if( singleInvocation )
+        if (singleInvocation)
         {
           Trace("si-prt") << "...ground single invocation" << std::endl;
         }

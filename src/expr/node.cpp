@@ -146,41 +146,49 @@ bool NodeTemplate<ref_count>::hasFreeVar()
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(*this);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     // can skip if it doesn't have a bound variable
-    if( cur.hasBoundVar() )
+    if (cur.hasBoundVar())
     {
       Kind k = cur.getKind();
-      bool isQuant = k==kind::FORALL || k==kind::EXISTS || k==kind::LAMBDA || k==kind::CHOICE;
-      std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv = visited.find(cur);
-      if (itv == visited.end()) {
-        if( k==kind::BOUND_VARIABLE ){
-          if( bound_var.find(cur)==bound_var.end() )
+      bool isQuant = k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
+                     || k == kind::CHOICE;
+      std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
+          visited.find(cur);
+      if (itv == visited.end())
+      {
+        if (k == kind::BOUND_VARIABLE)
+        {
+          if (bound_var.find(cur) == bound_var.end())
           {
             return true;
           }
         }
-        else if( isQuant )
+        else if (isQuant)
         {
-          for (const TNode& cn : cur[0]) {
+          for (const TNode& cn : cur[0])
+          {
             // should not shadow
-            Assert( bound_var.find(cn)==bound_var.end() );
+            Assert(bound_var.find(cn) == bound_var.end());
             bound_var.insert(cn);
           }
           visit.push_back(cur);
         }
         // must visit quantifiers again to clean up below
         visited[cur] = !isQuant;
-        for (const TNode& cn : cur) {
+        for (const TNode& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
-      else if( !itv->second )
+      else if (!itv->second)
       {
-        Assert( isQuant );
-        for (const TNode& cn : cur[0]) {
+        Assert(isQuant);
+        for (const TNode& cn : cur[0])
+        {
           bound_var.erase(cn);
         }
         visited[cur] = true;
