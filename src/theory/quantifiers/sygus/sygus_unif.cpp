@@ -41,7 +41,7 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
   d_candidate = f;
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
-
+  // initialize the strategy
   d_strategy.initialize(qe, f, enums, lemmas);
 }
 
