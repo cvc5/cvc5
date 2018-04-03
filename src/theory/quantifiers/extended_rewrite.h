@@ -49,7 +49,6 @@ class ExtendedRewriter
  public:
   ExtendedRewriter(bool aggr = true);
   ~ExtendedRewriter() {}
-
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n);
 

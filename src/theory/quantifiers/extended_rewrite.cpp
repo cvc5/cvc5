@@ -36,7 +36,6 @@ typedef expr::Attribute<ExtRewriteAttributeId, Node> ExtRewriteAttribute;
 ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
 }
-
 void ExtendedRewriter::setCache(Node n, Node ret)
 {
   ExtRewriteAttribute era;
@@ -80,8 +79,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if (!pre_new_ret.isNull())
   {
     ret = extendedRewrite(pre_new_ret);
-    Trace("q-ext-rewrite-debug")
-        << "...ext-pre-rewrite : " << n << " -> " << pre_new_ret << std::endl;
+    Trace("q-ext-rewrite-debug") << "...ext-pre-rewrite : " << n << " -> "
+                                 << pre_new_ret << std::endl;
     setCache(n, ret);
     return ret;
   }
@@ -196,8 +195,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   {
     ret = extendedRewrite(new_ret);
   }
-  Trace("q-ext-rewrite-debug")
-      << "...ext-rewrite : " << n << " -> " << ret << std::endl;
+  Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
+                               << std::endl;
   setCache(n, ret);
   return ret;
 }
@@ -606,8 +605,8 @@ Node ExtendedRewriter::extendedRewriteBcp(
           // add it to the assignment
           Node val = gpol == pol ? truen : falsen;
           std::map<Node, Node>::iterator it = assign.find(cln);
-          Trace("ext-rew-bcp")
-              << "BCP: assign " << cln << " -> " << val << std::endl;
+          Trace("ext-rew-bcp") << "BCP: assign " << cln << " -> " << val
+                               << std::endl;
           if (it != assign.end())
           {
             if (val != it->second)
@@ -656,8 +655,8 @@ Node ExtendedRewriter::extendedRewriteBcp(
         Node ccs = cc;
         if (bcp_kinds.empty())
         {
-          Trace("ext-rew-bcp-debug")
-              << "...do ordinary substitute" << std::endl;
+          Trace("ext-rew-bcp-debug") << "...do ordinary substitute"
+                                     << std::endl;
           ccs = cc.substitute(
               avars.begin(), avars.end(), asubs.begin(), asubs.end());
         }
@@ -678,8 +677,8 @@ Node ExtendedRewriter::extendedRewriteBcp(
         }
         Node ccs = nm->mkNode(ca.getKind(), ccs_children);
         ccs = cpol ? ccs : TermUtil::mkNegate(notk, ccs);
-        Trace("ext-rew-bcp")
-            << "BCP: propagated " << c << " -> " << ccs << std::endl;
+        Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs
+                             << std::endl;
         ccs = Rewriter::rewrite(ccs);
         Trace("ext-rew-bcp") << "BCP: rewritten to " << ccs << std::endl;
         to_process.push_back(ccs);
