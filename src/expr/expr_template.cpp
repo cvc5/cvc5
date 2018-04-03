@@ -530,7 +530,7 @@ bool Expr::isConst() const {
   return d_node->isConst();
 }
 
-bool Expr::hasFreeVariable() const 
+bool Expr::hasFreeVariable() const
 {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
