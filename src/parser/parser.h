@@ -638,7 +638,7 @@ public:
    * type, the expression returned by this method will not be well typed.
    */
   Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
-  
+
   /**
    * Add an operator to the current legal set.
    *

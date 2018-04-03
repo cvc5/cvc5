@@ -700,19 +700,15 @@ options { backtrack = true; }
 
 mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
-  DeclarationCheck check;
-  Expr f,f2;
+  Expr f;
   SExpr sexpr;
-  std::string id,id2;
+  std::string id;
   Type t,t2,t3;
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
   SymbolType st;
   SymbolType& s1 = st;
-  Type& t1 = t;
-  Expr& f1 = f;
-  std::string& id1 = id;
   Expr func;
   std::vector<Expr> bvs;
   std::vector<Expr> funcs;
@@ -1108,7 +1104,6 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
                  const std::vector<std::string>& idList, bool topLevel]
 @init {
   Expr f;
-  Type t2;
   Debug("parser-extra") << "declType: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
     /* A variable declaration (or definition) */
@@ -1481,7 +1476,6 @@ prefixFormula[CVC4::Expr& f]
   Type t;
   Kind k;
   Expr ipl;
-  std::vector<Expr> flattenVars;
 }
     /* quantifiers */
   : ( FORALL_TOK { k = kind::FORALL; } | EXISTS_TOK { k = kind::EXISTS; } )
@@ -1523,11 +1517,6 @@ prefixFormula[CVC4::Expr& f]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
-      /*std::string name = "lambda";
-      Expr func = PARSER_STATE->mkAnonymousFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
-      Command* cmd = new DefineFunctionCommand(name, func, terms, f);
-      PARSER_STATE->preemptCommand(cmd);
-      f = func;*/
       Expr bvl = EXPR_MANAGER->mkExpr( kind::BOUND_VAR_LIST, terms );
       f = EXPR_MANAGER->mkExpr( kind::LAMBDA, bvl, f );
     }

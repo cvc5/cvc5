@@ -54,6 +54,7 @@ CvcInput::CvcInput(AntlrInputStream& inputStream) :
   setAntlr3Parser(d_pCvcParser->pParser);
 }
 
+
 CvcInput::~CvcInput() {
   d_pCvcLexer->free(d_pCvcLexer);
   d_pCvcParser->free(d_pCvcParser);
