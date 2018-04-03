@@ -329,7 +329,6 @@ REG0_TESTS = \
 	regress0/datatypes/cdt-non-canon-stream.smt2 \
 	regress0/datatypes/coda_simp_model.smt2 \
 	regress0/datatypes/conqueue-dt-enum-iloop.smt2 \
-	regress0/datatypes/datatype-dump.cvc \
 	regress0/datatypes/datatype.cvc \
 	regress0/datatypes/datatype0.cvc \
 	regress0/datatypes/datatype1.cvc \
@@ -406,7 +405,6 @@ REG0_TESTS = \
 	regress0/flet.smt \
 	regress0/flet2.smt \
 	regress0/fmf/Arrow_Order-smtlib.778341.smt \
-	regress0/fmf/Hoare-z3.931718.smt \
 	regress0/fmf/QEpres-uf.855035.smt \
 	regress0/fmf/array_card.smt2 \
 	regress0/fmf/bounded_sets.smt2 \
@@ -1064,12 +1062,14 @@ REG1_TESTS = \
 	regress1/fmf/fore19-exp2-core.smt2 \
 	regress1/fmf/german169.smt2 \
 	regress1/fmf/german73.smt2 \
+	regress1/fmf/Hoare-z3.931718.smt \
 	regress1/fmf/issue916-fmf-or.smt2 \
 	regress1/fmf/jasmin-cdt-crash.smt2 \
 	regress1/fmf/ko-bound-set.cvc \
 	regress1/fmf/loopy_coda.smt2 \
 	regress1/fmf/lst-no-self-rev-exp.smt2 \
 	regress1/fmf/memory_model-R_cpp-dd.cvc \
+	regress1/fmf/nlp042+1.smt2 \
 	regress1/fmf/nun-0208-to.smt2 \
 	regress1/fmf/pow2-bool.smt2 \
 	regress1/fmf/refcount24.cvc.smt2 \
@@ -1087,6 +1087,7 @@ REG1_TESTS = \
 	regress1/lemmas/pursuit-safety-8.smt \
 	regress1/lemmas/simple_startup_9nodes.abstract.base.smt \
 	regress1/nl/NAVIGATION2.smt2 \
+	regress1/nl/arctan2-expdef.smt2 \
 	regress1/nl/arrowsmith-050317.smt2 \
 	regress1/nl/bad-050217.smt2 \
 	regress1/nl/bug698.smt2 \
@@ -1225,6 +1226,7 @@ REG1_TESTS = \
 	regress1/quantifiers/florian-case-ax.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
+	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
 	regress1/quantifiers/is-even.smt2 \
 	regress1/quantifiers/javafe.ast.StmtVec.009.smt2 \
@@ -1261,6 +1263,7 @@ REG1_TESTS = \
 	regress1/quantifiers/small-pipeline-fixpoint-3.smt2 \
 	regress1/quantifiers/smtlib384a03.smt2 \
 	regress1/quantifiers/smtlib46f14a.smt2 \
+	regress1/quantifiers/smtlibe99bbe.smt2 \
 	regress1/quantifiers/smtlibf957ea.smt2 \
 	regress1/quantifiers/stream-x2014-09-18-unsat.smt2 \
 	regress1/quantifiers/sygus-infer-nested.smt2 \
@@ -1601,6 +1604,7 @@ REG4_TESTS = \
 # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
 #
 # regress0/aufbv/bug348 does not seem to terminate with proofs
+# regress0/datatypes/datatype-dump.cvc (FIXME #1649)
 DISABLED_TESTS = \
 	regress0/arith/bug549.cvc \
 	regress0/arith/incorrect1.smt \

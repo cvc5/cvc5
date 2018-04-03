@@ -17,7 +17,7 @@
 #include "theory/bv/bv_quick_check.h"
 
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/lazy_bitblaster.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4::prop;

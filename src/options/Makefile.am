@@ -120,7 +120,6 @@ CLEANFILES = \
 	$(OPTIONS_GEN_H) \
 	$(OPTIONS_GEN_CPP) \
 	$(DOCUMENTATION_FILES) \
-	../../doc/libcvc4.3 \
 	options_holder.h
 
 
@@ -132,7 +131,6 @@ EXTRA_DIST = \
 	$(OPTIONS_CONFIG_FILES) \
 	$(CPP_TEMPLATE_FILES) \
 	$(DOCUMENTATION_FILES) \
-	../../doc/libcvc4.3 \
 	mkoptions.py \
 	language.i \
 	option_exception.i \

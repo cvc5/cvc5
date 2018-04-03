@@ -216,8 +216,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing) {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_def_lemmas(containing.getUserContext()),
-      d_lemmas(containing.getUserContext()),
+    : d_lemmas(containing.getUserContext()),
       d_zero_split(containing.getUserContext()),
       d_skolem_atoms(containing.getUserContext()),
       d_containing(containing),
@@ -1905,22 +1904,9 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
 }
 
-void NonlinearExtension::addDefinition(Node lem)
-{
-  Trace("nl-ext") << "NonlinearExtension::addDefinition : " << lem << std::endl;
-  d_def_lemmas.insert(lem);
-}
-
 void NonlinearExtension::presolve()
 {
-  Trace("nl-ext") << "NonlinearExtension::presolve, #defs = "
-                  << d_def_lemmas.size() << std::endl;
-  for (NodeSet::const_iterator it = d_def_lemmas.begin();
-       it != d_def_lemmas.end();
-       ++it)
-  {
-    flushLemma(*it);
-  }
+  Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
 }
 
 void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
@@ -2886,9 +2872,21 @@ std::vector<Node> NonlinearExtension::checkFactoring(
   {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    if (std::find(false_asserts.begin(), false_asserts.end(), lit)
-            != false_asserts.end()
-        || d_skolem_atoms.find(atom) != d_skolem_atoms.end())
+    Node litv = computeModelValue(lit);
+    bool considerLit = false;
+    if( d_skolem_atoms.find(atom) != d_skolem_atoms.end() )
+    {
+      //always consider skolem literals
+      considerLit = true;
+    }
+    else
+    {
+      // Only consider literals that are in false_asserts.
+      considerLit = std::find(false_asserts.begin(), false_asserts.end(), lit)
+                    != false_asserts.end();
+    }
+
+    if (considerLit)
     {
       std::map<Node, Node> msum;
       if (ArithMSum::getMonomialSumLit(atom, msum))

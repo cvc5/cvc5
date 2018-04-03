@@ -20,14 +20,13 @@
 
 #include <unordered_map>
 
-#include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class LazyBitblaster;
+class TLazyBitblaster;
 class AbstractionModule;
 class BVQuickCheck;
 class QuickXPlain;
