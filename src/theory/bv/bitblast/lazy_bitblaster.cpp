@@ -14,8 +14,10 @@
  ** Bitblaster for the lazy bv solver.
  **/
 
-#include "bitblaster_template.h"
 #include "cvc4_private.h"
+
+#include "theory/bv/bitblast/lazy_bitblaster.h"
+
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -57,38 +59,42 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 }
 
+TLazyBitblaster::TLazyBitblaster(context::Context* c,
+                                 bv::TheoryBV* bv,
+                                 const std::string name,
+                                 bool emptyNotify)
+    : TBitblaster<Node>(),
+      d_bv(bv),
+      d_ctx(c),
+      d_nullRegistrar(new prop::NullRegistrar()),
+      d_nullContext(new context::Context()),
+      d_assertedAtoms(new (true) context::CDList<prop::SatLiteral>(c)),
+      d_explanations(new (true) ExplanationMap(c)),
+      d_variables(),
+      d_bbAtoms(),
+      d_abstraction(NULL),
+      d_emptyNotify(emptyNotify),
+      d_fullModelAssertionLevel(c, 0),
+      d_name(name),
+      d_statistics(name)
+{
+  d_satSolver.reset(
+      prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
-TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv,
-                                 const std::string name, bool emptyNotify)
-  : TBitblaster<Node>()
-  , d_bv(bv)
-  , d_ctx(c)
-  , d_assertedAtoms(new(true) context::CDList<prop::SatLiteral>(c))
-  , d_explanations(new(true) ExplanationMap(c))
-  , d_variables()
-  , d_bbAtoms()
-  , d_abstraction(NULL)
-  , d_emptyNotify(emptyNotify)
-  , d_fullModelAssertionLevel(c, 0)
-  , d_name(name)
-  , d_statistics(name) {
+  d_cnfStream.reset(
+      new prop::TseitinCnfStream(d_satSolver.get(),
+                                 d_nullRegistrar.get(),
+                                 d_nullContext.get(),
+                                 options::proof(),
+                                 "LazyBitblaster"));
 
-  d_satSolver = prop::SatSolverFactory::createMinisat(
-      c, smtStatisticsRegistry(), name);
-  d_nullRegistrar = new prop::NullRegistrar();
-  d_nullContext = new context::Context();
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
-                                           d_nullRegistrar,
-                                           d_nullContext,
-                                           options::proof(),
-                                           "LazyBitblaster");
+  d_satSolverNotify.reset(
+      d_emptyNotify
+          ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
+          : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(
+                d_cnfStream.get(), bv, this));
 
-  d_satSolverNotify = d_emptyNotify ?
-    (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
-    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv,
-                                                            this);
-
-  d_satSolver->setNotify(d_satSolverNotify);
+  d_satSolver->setNotify(d_satSolverNotify.get());
 }
 
 void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
@@ -97,11 +103,6 @@ void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
 
 TLazyBitblaster::~TLazyBitblaster()
 {
-  delete d_cnfStream;
-  delete d_nullRegistrar;
-  delete d_nullContext;
-  delete d_satSolver;
-  delete d_satSolverNotify;
   d_assertedAtoms->deleteSelf();
   d_explanations->deleteSelf();
 }
@@ -568,14 +569,11 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 void TLazyBitblaster::setProofLog( BitVectorProof * bvp ){
   d_bvp = bvp;
   d_satSolver->setProofLog( bvp );
-  bvp->initCnfProof(d_cnfStream, d_nullContext);
+  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
 }
 
 void TLazyBitblaster::clearSolver() {
   Assert (d_ctx->getLevel() == 0);
-  delete d_satSolver;
-  delete d_satSolverNotify;
-  delete d_cnfStream;
   d_assertedAtoms->deleteSelf();
   d_assertedAtoms = new(true) context::CDList<prop::SatLiteral>(d_ctx);
   d_explanations->deleteSelf();
@@ -586,18 +584,18 @@ void TLazyBitblaster::clearSolver() {
 
   invalidateModelCache();
   // recreate sat solver
-  d_satSolver = prop::SatSolverFactory::createMinisat(
-      d_ctx, smtStatisticsRegistry());
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_nullRegistrar,
-                                           d_nullContext);
-
-  d_satSolverNotify = d_emptyNotify ?
-    (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
-    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv,
-                                                            this);
-  d_satSolver->setNotify(d_satSolverNotify);
+  d_satSolver.reset(
+      prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
+  d_cnfStream.reset(new prop::TseitinCnfStream(
+      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get()));
+  d_satSolverNotify.reset(
+      d_emptyNotify
+          ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
+          : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(
+                d_cnfStream.get(), d_bv, this));
+  d_satSolver->setNotify(d_satSolverNotify.get());
 }
 
-} /* namespace CVC4::theory::bv */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4

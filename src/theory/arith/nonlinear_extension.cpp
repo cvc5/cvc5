@@ -2886,9 +2886,23 @@ std::vector<Node> NonlinearExtension::checkFactoring(
   {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    if (std::find(false_asserts.begin(), false_asserts.end(), lit)
-            != false_asserts.end()
-        || d_skolem_atoms.find(atom) != d_skolem_atoms.end())
+    Node litv = computeModelValue(lit);
+    bool considerLit = false;
+    if( d_skolem_atoms.find(atom) != d_skolem_atoms.end() )
+    {
+      //always consider skolem literals
+      considerLit = true;
+    }
+    else
+    {
+      // Only consider literals that evaluate to false in the model.
+      // this is a stronger restriction than the restriction that lit is in
+      // false_asserts.
+      // This excludes (most) literals that contain transcendental functions.
+      considerLit = computeModelValue(lit)==d_false;
+    }
+
+    if (considerLit)
     {
       std::map<Node, Node> msum;
       if (ArithMSum::getMonomialSumLit(atom, msum))

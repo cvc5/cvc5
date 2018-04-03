@@ -1147,9 +1147,10 @@ void SortModel::allocateCardinality( OutputChannel* out ){
   //check for abort case
   if (options::ufssAbortCardinality() != -1 &&
       d_aloc_cardinality >= options::ufssAbortCardinality()) {
-    Message() << "Maximum cardinality (" << options::ufssAbortCardinality()
-              << ")  for finite model finding exceeded." << std::endl;
-    exit( 1 );
+    std::stringstream ss;
+    ss << "Maximum cardinality (" << options::ufssAbortCardinality()
+       << ")  for finite model finding exceeded." << std::endl;
+    throw LogicException(ss.str());
   }else{
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
@@ -1231,7 +1232,7 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
       }
       if( ss==b_t ){
         Message() << "Bad split " << s << std::endl;
-        exit( 16 );
+        AlwaysAssert(false);
       }
     }
     if( options::sortInference()) {

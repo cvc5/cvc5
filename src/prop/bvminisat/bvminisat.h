@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "context/cdo.h"
 #include "proof/clause_id.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
@@ -49,8 +51,8 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
     void safePoint(unsigned amount) override { d_notify->safePoint(amount); }
   };
 
-  BVMinisat::SimpSolver* d_minisat;
-  MinisatNotify* d_minisatNotify;
+	std::unique_ptr<BVMinisat::SimpSolver> d_minisat;
+	std::unique_ptr<MinisatNotify> d_minisatNotify;
 
   unsigned d_assertionsCount;
   context::CDO<unsigned> d_assertionsRealCount;

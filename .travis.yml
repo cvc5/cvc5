@@ -77,7 +77,7 @@ script:
      exit 1;
    }
    makeDistcheck() {
-     make V=1 -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' ||
+     make V=1 -j2 distcheck REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' ||
        error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
    }
    makeCheck() {
