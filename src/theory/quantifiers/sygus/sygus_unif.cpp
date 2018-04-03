@@ -70,17 +70,16 @@ Node SygusUnif::constructSolution()
       initializeConstructSol();
       // call the virtual construct solution method
       Node vcc = constructSol(e, role_equal, 1);
-      if (!vcc.isNull())
+      // if we constructed the solution, and we either did not previously have
+      // a solution, or the new solution is better (smaller).
+      if (!vcc.isNull() && (vc.isNull()
+          || (!vc.isNull()
+              && d_tds->getSygusTermSize(vcc) < d_tds->getSygusTermSize(vc))))
       {
-        if (vc.isNull()
-            || (!vc.isNull()
-                && d_tds->getSygusTermSize(vcc) < d_tds->getSygusTermSize(vc)))
-        {
-          Trace("sygus-pbe")
-              << "**** SygusUnif SOLVED : " << c << " = " << vcc << std::endl;
-          Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
-          vc = vcc;
-        }
+        Trace("sygus-pbe")
+            << "**** SygusUnif SOLVED : " << c << " = " << vcc << std::endl;
+        Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
+        vc = vcc;
       }
     }
     if (!vc.isNull())

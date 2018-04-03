@@ -30,7 +30,7 @@ class SygusUnifIo;
   *
   * This class maintains state information during calls to
   * SygusUnifIo::constructSolution, which implements unification-based
-  * approaches for construction solutions to synthesis conjectures.
+  * approaches for constructing solutions to synthesis conjectures.
   */
 class UnifContextIo : public UnifContext
 {
