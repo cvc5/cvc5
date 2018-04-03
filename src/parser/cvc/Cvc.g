@@ -707,8 +707,6 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
-  SymbolType st;
-  SymbolType& s1 = st;
   Expr func;
   std::vector<Expr> bvs;
   std::vector<Expr> funcs;
