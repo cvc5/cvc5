@@ -2882,7 +2882,8 @@ std::vector<Node> NonlinearExtension::checkFactoring(
     else
     {
       // Only consider literals that are in false_asserts.
-      considerLit = std::find(false_asserts.begin(),false_asserts.end(),lit)!=false_asserts.end();
+      considerLit = std::find(false_asserts.begin(), false_asserts.end(), lit)
+                    != false_asserts.end();
     }
 
     if (considerLit)

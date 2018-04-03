@@ -5004,10 +5004,10 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
                                                     ? kind::SECANT
                                                     : kind::COTANGENT))));
           Node invTerm = nm->mkNode(rk, var);
-          lem = nm->mkNode( AND, rlem, invTerm.eqNode(node[0]) );
+          lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
         Assert(!lem.isNull());
-        Node ret = nm->mkNode( CHOICE, nm->mkNode( BOUND_VAR_LIST, var ), lem );
+        Node ret = nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, var), lem);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }
