@@ -331,7 +331,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         break;
       }
     }
-    if (new_ret.isNull())
+    if (!new_ret.isNull())
     {
       break;
     }
