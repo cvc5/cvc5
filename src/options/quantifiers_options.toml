@@ -1086,6 +1086,14 @@ header = "options/quantifiers_options.h"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
+  name       = "sygusExtRew"
+  category   = "regular"
+  long       = "sygus-ext-rew"
+  type       = "bool"
+  default    = "true"
+  help       = "use extended rewriter for sygus"
+
+[[option]]
   name       = "cegisSample"
   category   = "regular"
   long       = "cegis-sample=MODE"
@@ -1115,12 +1123,28 @@ header = "options/quantifiers_options.h"
   help       = "use sygus to enumerate candidate rewrite rules via sampling"
 
 [[option]]
+  name       = "sygusRewSynthFilter"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on techniques like matching"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
   type       = "bool"
   default    = "false"
   help       = "use sygus to verify the correctness of rewrite rules via sampling"
+
+[[option]]
+  name       = "sygusRewVerifyAbort"
+  category   = "regular"
+  long       = "sygus-rr-verify-abort"
+  type       = "bool"
+  default    = "true"
+  help       = "abort when sygus-rr-verify finds an instance of unsoundness"
 
 [[option]]
   name       = "sygusSamples"
@@ -1139,6 +1163,21 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "when applicable, use grammar for choosing sample points"
 
+[[option]]
+  name       = "sygusRewSynthAccel"
+  category   = "regular"
+  long       = "sygus-rr-synth-accel"
+  type       = "bool"
+  default    = "false"
+  help       = "add dynamic symmetry breaking clauses based on candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthCheck"
+  category   = "regular"
+  long       = "sygus-rr-synth-check"
+  type       = "bool"
+  default    = "false"
+  help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 # CEGQI applied to general quantified formulas
 

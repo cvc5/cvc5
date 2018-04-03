@@ -4329,7 +4329,7 @@ void SmtEnginePrivate::processAssertions() {
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such as
-      // http://cvc4.cs.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
+      // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
       removeITEs();
       applySubstitutionsToAssertions();
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
@@ -4632,9 +4632,10 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
-         (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
-        checkModel(/* hard failure iff */ ! r.isUnknown());
+      // TODO (#1693) check model when unknown result?
+      if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+      {
+        checkModel();
       }
     }
     // Check that UNSAT results generate a proof correctly.
