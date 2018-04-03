@@ -530,6 +530,13 @@ bool Expr::isConst() const {
   return d_node->isConst();
 }
 
+bool Expr::hasFreeVariable() const 
+{
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->hasFreeVar();
+}
+
 void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
                     OutputLanguage language) const {
   ExprManagerScope ems(*this);

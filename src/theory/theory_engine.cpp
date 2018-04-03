@@ -393,6 +393,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         d_sharedTerms.addEqualityToPropagate(preprocessed);
       }
 
+      // the atom should not have free variables
+      Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);

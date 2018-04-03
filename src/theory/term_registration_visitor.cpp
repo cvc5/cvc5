@@ -137,7 +137,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   
   Theory::Set visitedTheories = d_visited[current];
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
-  Assert(!current.hasFreeVar());
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(currentTheoryId, visitedTheories);
     d_visited[current] = visitedTheories;
