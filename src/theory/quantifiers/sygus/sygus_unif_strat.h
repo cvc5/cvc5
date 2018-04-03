@@ -89,7 +89,16 @@ enum StrategyType
 };
 std::ostream& operator<<(std::ostream& os, StrategyType st);
 
-class UnifContext;
+/** virtual base class for context in synthesis-by-unification approaches */
+class UnifContext
+{
+ public:
+  /** Get the current role 
+   * 
+   * TODO
+   */
+  virtual NodeRole getCurrentRole() = 0;
+};
 
 /**
 * This class stores information regarding an enumerator, including
@@ -212,7 +221,7 @@ class EnumTypeInfoStrat
   /** the template for the solution */
   Node d_sol_templ;
   /** Returns true if argument is valid strategy in unification context x */
-  bool isValid(UnifContext* x);
+  bool isValid(UnifContext& x);
 };
 
 /**
