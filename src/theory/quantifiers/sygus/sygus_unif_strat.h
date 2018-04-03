@@ -93,11 +93,11 @@ std::ostream& operator<<(std::ostream& os, StrategyType st);
 class UnifContext
 {
  public:
-  /** Get the current role 
-   * 
+  /** Get the current role
+   *
    * In a particular context when constructing solutions in synthesis by
    * unification, we may be solving based on a modified role. For example,
-   * if we are currently synthesizing x in a solution ("a" ++ x), we are 
+   * if we are currently synthesizing x in a solution ("a" ++ x), we are
    * synthesizing the string suffix of the overall solution. In this case, this
    * function returns role_string_suffix.
    */
@@ -108,7 +108,7 @@ class UnifContext
    * of the solution has been modified, e.g. by a previous node that solved
    * for a string prefix.
    */
-  bool isReturnValueModified() { return getCurrentRole()!=role_equal; }
+  bool isReturnValueModified() { return getCurrentRole() != role_equal; }
 };
 
 /**

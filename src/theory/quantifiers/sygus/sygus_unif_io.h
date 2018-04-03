@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 class SygusUnifIo;
 
 /** Unification context
@@ -38,7 +38,7 @@ class UnifContextIo : public UnifContext
   UnifContextIo();
   /** get current role */
   virtual NodeRole getCurrentRole() override;
-  
+
   /**
    * This intiializes this context based on information in sui regarding the
    * kinds of examples it contains.
@@ -82,7 +82,9 @@ class UnifContextIo : public UnifContext
   * This method updates d_str_pos to d_str_pos + pos, and updates the current
   * role to nrole.
   */
-  bool updateStringPosition(SygusUnifIo* sui, std::vector<unsigned>& pos, NodeRole nrole);
+  bool updateStringPosition(SygusUnifIo* sui,
+                            std::vector<unsigned>& pos,
+                            NodeRole nrole);
   /** get current strings
   *
   * This returns the prefix/suffix of the string constants stored in vals
@@ -148,7 +150,7 @@ class UnifContextIo : public UnifContext
  private:
   /** true and false nodes */
   Node d_true;
-  Node d_false;  
+  Node d_false;
   /** current role (see getCurrentRole). */
   NodeRole d_curr_role;
 };
@@ -254,18 +256,21 @@ class SubsumeTrie
 class SygusUnifIo : public SygusUnif
 {
   friend class UnifContextIo;
+
  public:
   SygusUnifIo();
   ~SygusUnifIo();
 
   /** initialize */
   virtual void initialize(QuantifiersEngine* qe,
-                  Node f,
-                  std::vector<Node>& enums,
-                  std::vector<Node>& lemmas) override;
+                          Node f,
+                          std::vector<Node>& enums,
+                          std::vector<Node>& lemmas) override;
   /** Notify enumeration */
-  virtual void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
-  
+  virtual void notifyEnumeration(Node e,
+                                 Node v,
+                                 std::vector<Node>& lemmas) override;
+
   /** add example
    *
    * This adds input -> output to the specification for f. The arity of
@@ -328,6 +333,7 @@ class SygusUnifIo : public SygusUnif
     * enum_concat_term).
     */
     SubsumeTrie d_term_trie;
+
    private:
     /**
       * Whether an enumerated value for this conjecture has solved the entire

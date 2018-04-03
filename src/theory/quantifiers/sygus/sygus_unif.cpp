@@ -57,14 +57,14 @@ Node SygusUnif::constructSolution()
   if (d_check_sol)
   {
     Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
-                        << std::endl;
+                       << std::endl;
     d_check_sol = false;
-    // try multiple times if we have done multiple conditions, due to non-determinism
+    // try multiple times if we have done multiple conditions, due to
+    // non-determinism
     Node vc;
     for (unsigned i = 0; i <= d_cond_count; i++)
     {
-      Trace("sygus-pbe-dt")
-          << "ConstructPBE for candidate: " << c << std::endl;
+      Trace("sygus-pbe-dt") << "ConstructPBE for candidate: " << c << std::endl;
       Node e = d_strategy.getRootEnumerator();
       // initialize a call to construct solution
       initializeConstructSol();
@@ -72,11 +72,12 @@ Node SygusUnif::constructSolution()
       Node vcc = constructSol(e, role_equal, 1);
       if (!vcc.isNull())
       {
-        if (vc.isNull() || (!vc.isNull()
-                            && d_tds->getSygusTermSize(vcc)
-                                    < d_tds->getSygusTermSize(vc)))
+        if (vc.isNull()
+            || (!vc.isNull()
+                && d_tds->getSygusTermSize(vcc) < d_tds->getSygusTermSize(vc)))
         {
-          Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = " << vcc << std::endl;
+          Trace("sygus-pbe")
+              << "**** SygusUnif SOLVED : " << c << " = " << vcc << std::endl;
           Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
           vc = vcc;
         }
@@ -134,7 +135,7 @@ Node SygusUnif::constructBestStringToConcat(
   for (const Node& ns : strs_tmp)
   {
     const std::map<Node, unsigned>::const_iterator iti = total_inc.find(ns);
-    if (iti!=total_inc.end() && iti->second> 0)
+    if (iti != total_inc.end() && iti->second > 0)
     {
       return ns;
     }

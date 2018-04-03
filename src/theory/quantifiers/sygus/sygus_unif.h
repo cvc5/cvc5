@@ -25,7 +25,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 /** Sygus unification utility
  *
  * This utility implements synthesis-by-unification style approaches for a
@@ -146,8 +146,8 @@ class SygusUnif
   std::map<Node, bool> d_use_str_contains_eexc;
 
   //------------------------------ constructing solutions
-  /** implementation-dependent initialize construct solution 
-   * 
+  /** implementation-dependent initialize construct solution
+   *
    * Called once before each attempt to construct solutions.
    */
   virtual void initializeConstructSol() = 0;
@@ -177,9 +177,10 @@ class SygusUnif
   * example outputs.
   * total_inc[x] is the sum of incr[x] for each x in strs.
   */
-  virtual Node constructBestStringToConcat(const std::vector<Node>& strs,
-                                   const std::map<Node, unsigned>& total_inc,
-                                   const std::map<Node, std::vector<unsigned> >& incr);
+  virtual Node constructBestStringToConcat(
+      const std::vector<Node>& strs,
+      const std::map<Node, unsigned>& total_inc,
+      const std::map<Node, std::vector<unsigned> >& incr);
   //------------------------------ end constructing solutions
 };
 

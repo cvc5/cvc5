@@ -32,14 +32,11 @@ UnifContextIo::UnifContextIo() : d_curr_role(role_invalid)
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-NodeRole UnifContextIo::getCurrentRole()
-{
-  return d_curr_role;
-}
+NodeRole UnifContextIo::getCurrentRole() { return d_curr_role; }
 
 bool UnifContextIo::updateContext(SygusUnifIo* sui,
-                                std::vector<Node>& vals,
-                                bool pol)
+                                  std::vector<Node>& vals,
+                                  bool pol)
 {
   Assert(d_vals.size() == vals.size());
   bool changed = false;
@@ -63,7 +60,8 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
 }
 
 bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                       std::vector<unsigned>& pos, NodeRole nrole)
+                                         std::vector<unsigned>& pos,
+                                         NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
   bool changed = false;
@@ -116,8 +114,8 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
 }
 
 void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
-                                    const std::vector<Node>& vals,
-                                    std::vector<String>& ex_vals)
+                                      const std::vector<Node>& vals,
+                                      std::vector<String>& ex_vals)
 {
   bool isPrefix = d_curr_role == role_string_prefix;
   String dummy;
@@ -149,11 +147,11 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
 }
 
 bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
-                                     bool isPrefix,
-                                     const std::vector<String>& ex_vals,
-                                     const std::vector<Node>& vals,
-                                     std::vector<unsigned>& inc,
-                                     unsigned& tot)
+                                       bool isPrefix,
+                                       const std::vector<String>& ex_vals,
+                                       const std::vector<Node>& vals,
+                                       std::vector<unsigned>& inc,
+                                       unsigned& tot)
 {
   for (unsigned j = 0; j < vals.size(); j++)
   {
@@ -186,8 +184,8 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
   return true;
 }
 bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
-                                 const std::vector<String>& ex_vals,
-                                 const std::vector<Node>& vals)
+                                   const std::vector<String>& ex_vals,
+                                   const std::vector<Node>& vals)
 {
   for (unsigned j = 0; j < vals.size(); j++)
   {
@@ -471,14 +469,14 @@ SygusUnifIo::SygusUnifIo()
 SygusUnifIo::~SygusUnifIo() {}
 
 void SygusUnifIo::initialize(QuantifiersEngine* qe,
-                           Node f,
-                           std::vector<Node>& enums,
-                           std::vector<Node>& lemmas)
+                             Node f,
+                             std::vector<Node>& enums,
+                             std::vector<Node>& lemmas)
 {
   d_examples.clear();
   d_examples_out.clear();
   d_ecache.clear();
-  SygusUnif::initialize(qe,f,enums,lemmas);
+  SygusUnif::initialize(qe, f, enums, lemmas);
 }
 
 void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
@@ -489,7 +487,8 @@ void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
 
 void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
-  Trace("sygus-sui-enum") << "Notify enumeration for " << e << " : " << v << std::endl;
+  Trace("sygus-sui-enum") << "Notify enumeration for " << e << " : " << v
+                          << std::endl;
   Node c = d_candidate;
   Assert(!d_examples.empty());
   Assert(d_examples.size() == d_examples_out.size());
@@ -691,8 +690,8 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
     {
       return itx->second;
     }
-    Trace("sygus-sui-enum-debug") << "Is " << e << " is str.contains exclusion?"
-                                  << std::endl;
+    Trace("sygus-sui-enum-debug")
+        << "Is " << e << " is str.contains exclusion?" << std::endl;
     d_use_str_contains_eexc[e] = true;
     EnumInfo& ei = d_strategy.getEnumInfo(e);
     for (const Node& sn : ei.d_enum_slave)
@@ -722,9 +721,9 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
 }
 
 bool SygusUnifIo::getExplanationForEnumeratorExclude(Node e,
-                                                   Node v,
-                                                   std::vector<Node>& results,
-                                                   std::vector<Node>& exp)
+                                                     Node v,
+                                                     std::vector<Node>& results,
+                                                     std::vector<Node>& exp)
 {
   if (useStrContainsEnumeratorExclude(e))
   {
@@ -739,16 +738,16 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(Node e,
     }
     // check if all examples had longer length that the output
     Assert(d_examples_out.size() == results.size());
-    Trace("sygus-sui-cterm-debug") << "Check enumerator exclusion for " << e
-                                   << " -> " << d_tds->sygusToBuiltin(v)
-                                   << " based on str.contains." << std::endl;
+    Trace("sygus-sui-cterm-debug")
+        << "Check enumerator exclusion for " << e << " -> "
+        << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
       Assert(results[i].isConst());
       Assert(d_examples_out[i].isConst());
-      Trace("sygus-sui-cterm-debug") << "  " << results[i] << " <> "
-                                     << d_examples_out[i];
+      Trace("sygus-sui-cterm-debug")
+          << "  " << results[i] << " <> " << d_examples_out[i];
       Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
       Node contr = Rewriter::rewrite(cont);
       if (contr == d_false)
@@ -786,14 +785,9 @@ void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
   d_enum_vals_res.push_back(results);
 }
 
-void SygusUnifIo::initializeConstructSol()
-{
-  d_context.initialize(this);
-}
+void SygusUnifIo::initializeConstructSol() { d_context.initialize(this); }
 
-Node SygusUnifIo::constructSol(Node e,
-                                  NodeRole nrole,
-                                  int ind)
+Node SygusUnifIo::constructSol(Node e, NodeRole nrole, int ind)
 {
   UnifContextIo& x = d_context;
   TypeNode etn = e.getType();
@@ -805,7 +799,7 @@ Node SygusUnifIo::constructSol(Node e,
     print_val("sygus-sui-dt-debug", x.d_vals);
     NodeRole ctx_role = x.getCurrentRole();
     Trace("sygus-sui-dt-debug") << ", context role [" << ctx_role;
-    if (ctx_role==role_string_prefix || ctx_role==role_string_suffix)
+    if (ctx_role == role_string_prefix || ctx_role == role_string_suffix)
     {
       Trace("sygus-sui-dt-debug") << ", string pos : ";
       for (unsigned i = 0, size = x.d_str_pos.size(); i < size; i++)
