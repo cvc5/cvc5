@@ -19,7 +19,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
 
-using namespace std;
 using namespace CVC4::kind;
 
 namespace CVC4 {
