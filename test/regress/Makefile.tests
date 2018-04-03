@@ -1087,6 +1087,7 @@ REG1_TESTS = \
 	regress1/lemmas/pursuit-safety-8.smt \
 	regress1/lemmas/simple_startup_9nodes.abstract.base.smt \
 	regress1/nl/NAVIGATION2.smt2 \
+	regress1/nl/arctan2-expdef.smt2 \
 	regress1/nl/arrowsmith-050317.smt2 \
 	regress1/nl/bad-050217.smt2 \
 	regress1/nl/bug698.smt2 \
