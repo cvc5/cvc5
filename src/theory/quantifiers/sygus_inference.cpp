@@ -43,19 +43,19 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
 
   std::vector<TNode> visit;
   std::unordered_set<TNode, TNodeHashFunction> visited;
-  
+
   // add top-level conjuncts to eassertions
-  std::vector< Node > assertions_proc = assertions;
-  std::vector< Node > eassertions;
+  std::vector<Node> assertions_proc = assertions;
+  std::vector<Node> eassertions;
   unsigned index = 0;
-  while( index<assertions_proc.size() )
+  while (index < assertions_proc.size())
   {
     Node ca = assertions_proc[index];
-    if( ca.getKind()==AND )
+    if (ca.getKind() == AND)
     {
-      for( const Node& ai : ca )
+      for (const Node& ai : ca)
       {
-        assertions_proc.push_back( ai );
+        assertions_proc.push_back(ai);
       }
     }
     else
