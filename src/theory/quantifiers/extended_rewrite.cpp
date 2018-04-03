@@ -920,7 +920,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == metaPARAMETERIZED)
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
         children.push_back(cur.getOperator());
       }
