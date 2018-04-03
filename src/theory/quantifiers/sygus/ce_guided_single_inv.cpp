@@ -14,8 +14,6 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"

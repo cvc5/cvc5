@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/sygus_inference.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 
-using namespace std;
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -47,17 +47,23 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   std::vector<Node> processed_assertions;
   for (const Node& as : assertions)
   {
-    Trace("sygus-infer") << "  " << as << std::endl;
     // substitution for this assertion
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::map<TypeNode, unsigned> type_count;
     Node pas = as;
-    if (as.getKind() == FORALL)
+    // rewrite
+    pas = Rewriter::rewrite( pas );
+    Trace("sygus-infer") << "  " << pas << std::endl;
+    if (pas.getKind() == FORALL)
     {
-      pas = as[1];
+      // preprocess the quantified formula
+      pas = quantifiers::QuantifiersRewriter::preprocess(pas);
+      Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
+      
+      pas = pas[1];
       // infer prefix
-      for (const Node& v : as[0])
+      for (const Node& v : pas[0])
       {
         TypeNode tnv = v.getType();
         unsigned vnum = type_count[tnv];
@@ -80,6 +86,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
             pas.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       }
     }
+    Trace("sygus-infer-debug") << "  ...substituted to " << pas << std::endl;
 
     // collect free functions, ensure no quantified formulas
     TNode cur = pas;
