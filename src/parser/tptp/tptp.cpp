@@ -257,9 +257,9 @@ Expr Tptp::convertRatToUnsorted(Expr expr) {
 
 Expr Tptp::convertStrToUnsorted(std::string str) {
   Expr& e = d_distinct_objects[str];
-  if (e.isNull()) 
+  if (e.isNull())
   {
-    e = getExprManager()->mkVar(str,d_unsorted);
+    e = getExprManager()->mkVar(str, d_unsorted);
   }
   return e;
 }
@@ -327,14 +327,14 @@ Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
 
 Expr Tptp::getAssertionDistinctConstants()
 {
-  std::vector< Expr > constants;
-  for( std::pair< const std::string, Expr >& cs : d_distinct_objects )
+  std::vector<Expr> constants;
+  for (std::pair<const std::string, Expr>& cs : d_distinct_objects)
   {
     constants.push_back(cs.second);
   }
-  if( constants.size()>1 )
+  if (constants.size() > 1)
   {
-    return getExprManager()->mkExpr(kind::DISTINCT,constants);
+    return getExprManager()->mkExpr(kind::DISTINCT, constants);
   }
   return d_nullExpr;
 }
