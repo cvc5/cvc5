@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
+#include "base/cvc4_check.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -662,6 +663,15 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
+          // ensure that terms that this constructor encodes are
+          // of the type specified in the datatype. This will fail if
+          // e.g. bitvector-and is a constructor of an integer grammar.
+          std::map<int, Node> pre;
+          Node g = mkGeneric(dt, i, pre);
+          TypeNode gtn = g.getType();
+          CVC4_CHECK(gtn.isSubtypeOf(btn))
+              << "Sygus datatype " << dt.getName()
+              << " encodes terms that are not of type " << btn << std::endl;
         }
         //register connected types
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
