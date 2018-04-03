@@ -162,7 +162,7 @@ class ExtendedRewriter
   /** solve equality
    *
    * If this function returns a non-null node n', then n' is equivalent to n
-   * and is of the form tthat can be used by inferSubstitution below.
+   * and is of the form that can be used by inferSubstitution below.
    */
   Node solveEquality(Node n);
   /** infer substitution

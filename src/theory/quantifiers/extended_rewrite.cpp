@@ -91,7 +91,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if (n.getNumChildren() > 0)
   {
     std::vector<Node> children;
-    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (n.getMetaKind() == metaPARAMETERIZED)
     {
       children.push_back(n.getOperator());
     }
@@ -402,7 +402,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
   std::vector<Node> children;
-  bool hasOp = (n.getMetaKind() == kind::metakind::PARAMETERIZED);
+  bool hasOp = (n.getMetaKind() == metaPARAMETERIZED);
   if (hasOp)
   {
     children.push_back(n.getOperator());
@@ -429,7 +429,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
       if (ite_c[i][0] == ite_c[i][1])
       {
         // ITE dual invariance
-        // f( t1..s1..tn ) ---> t  and  f( t1..s1..tn ) ---> t implies
+        // f( t1..s1..tn ) ---> t  and  f( t1..s2..tn ) ---> t implies
         // f( t1..ite( A, s1, s2 )..tn ) ---> t
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
@@ -499,23 +499,6 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   }
 
   return Node::null();
-}
-
-bool addToAssignment(Node n,
-                     Node pol,
-                     std::map<Node, Node>& assign,
-                     std::vector<Node>& avars,
-                     std::vector<Node>& asubs)
-{
-  std::map<Node, Node>::iterator it = assign.find(n);
-  if (it != assign.end())
-  {
-    return pol == it->second;
-  }
-  assign[n] = pol;
-  avars.push_back(n);
-  asubs.push_back(pol);
-  return true;
 }
 
 Node ExtendedRewriter::extendedRewriteNnf(Node ret)
@@ -689,7 +672,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
       }
       if (childChanged)
       {
-        if (ca.getMetaKind() == kind::metakind::PARAMETERIZED)
+        if (ca.getMetaKind() == metaPARAMETERIZED)
         {
           ccs_children.insert(ccs_children.begin(), ca.getOperator());
         }
@@ -938,7 +921,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      if (cur.getMetaKind() == metaPARAMETERIZED)
       {
         children.push_back(cur.getOperator());
       }
@@ -964,6 +947,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 
 Node ExtendedRewriter::solveEquality(Node n)
 {
+  // TODO (#1706) : implement
   Assert(n.getKind() == EQUAL);
 
   return Node::null();
@@ -1010,7 +994,7 @@ Node ExtendedRewriter::extendedRewriteArith(Node ret, bool& pol)
     // rewrite as though total
     std::vector<Node> children;
     bool all_const = true;
-    for (unsigned i = 0; i < ret.getNumChildren(); i++)
+    for (unsigned i = 0, size = ret.getNumChildren(); i < size; i++)
     {
       if (ret[i].isConst())
       {
