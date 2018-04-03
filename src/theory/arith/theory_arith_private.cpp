@@ -4963,10 +4963,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
       if (it == d_nlin_inverse_skolem.end())
       {
-        Node var = nm->mkSkolem("nonlinearInv",
-                                nm->realType(),
-                                "the result of a non-linear inverse function");
-        d_nlin_inverse_skolem[node] = var;
+        Node var = nm->mkBoundVar(nm->realType());
         Node lem;
         if (k == kind::SQRT)
         {
@@ -4994,10 +4991,6 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
                               nm->mkNode(LEQ, nm->mkConst(Rational(0)), var),
                               nm->mkNode(LT, var, pi));
           }
-          if (options::nlExt())
-          {
-            d_nonlinearExtension->addDefinition(rlem);
-          }
 
           Kind rk = k == kind::ARCSINE
                         ? kind::SINE
@@ -5011,21 +5004,12 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
                                                     ? kind::SECANT
                                                     : kind::COTANGENT))));
           Node invTerm = nm->mkNode(rk, var);
-          // since invTerm may introduce division,
-          // we must also call expandDefinition on the result
-          invTerm = expandDefinition(logicRequest, invTerm);
-          lem = invTerm.eqNode(node[0]);
+          lem = nm->mkNode( AND, rlem, invTerm.eqNode(node[0]) );
         }
         Assert(!lem.isNull());
-        if (options::nlExt())
-        {
-          d_nonlinearExtension->addDefinition(lem);
-        }
-        else
-        {
-          d_nlIncomplete = true;
-        }
-        return var;
+        Node ret = nm->mkNode( CHOICE, nm->mkNode( BOUND_VAR_LIST, var ), lem );
+        d_nlin_inverse_skolem[node] = ret;
+        return ret;
       }
       return (*it).second;
       break;
