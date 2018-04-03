@@ -688,8 +688,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 out << " ";
                 p->toStreamSygus(out, eq_sol);
                 out << ")" << std::endl;
-                ++(cei->d_statistics.d_candidate_rewrites_print);
               }
+              ++(cei->d_statistics.d_candidate_rewrites_print);
               // debugging information
               if (Trace.isOn("sygus-rr-debug"))
               {
