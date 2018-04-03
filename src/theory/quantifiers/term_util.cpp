@@ -773,21 +773,22 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
 Node TermUtil::simpleNegate( Node n ){
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
-    for( const Node& cn : n ){
-      children.push_back( simpleNegate( cn ) );
+    for (const Node& cn : n)
+    {
+      children.push_back(simpleNegate(cn));
     }
     return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
   }
   return n.negate();
 }
 
-Node TermUtil::mkNegate( Kind notk, Node n )
+Node TermUtil::mkNegate(Kind notk, Node n)
 {
-  if( n.getKind()==notk )
+  if (n.getKind() == notk)
   {
     return n[0];
   }
-  return NodeManager::currentNM()->mkNode( notk, n );
+  return NodeManager::currentNM()->mkNode(notk, n);
 }
 
 bool TermUtil::isAssoc( Kind k ) {
@@ -922,7 +923,7 @@ Node TermUtil::getTypeValueOffset(TypeNode tn,
 
 Node TermUtil::mkTypeConst(TypeNode tn, bool pol)
 {
-  return pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn);
+  return pol ? mkTypeValue(tn, 0) : mkTypeMaxValue(tn);
 }
 
 bool TermUtil::isAntisymmetric(Kind k, Kind& dk)

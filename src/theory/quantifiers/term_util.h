@@ -289,7 +289,7 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
-  /** 
+  /**
    * Make negated term, returns the negation of n wrt Kind notk, eliminating
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
    */
@@ -371,7 +371,7 @@ public:
   static Node mkTypeMaxValue(TypeNode tn);
   /** make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn) */
   static Node mkTypeConst(TypeNode tn, bool pol);
-  
+
   // for higher-order
  private:
   /** dummy predicate that states terms should be considered first-class members of equality engine */

@@ -582,19 +582,26 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      if( !options::sygusSilent() )
+      if (!options::sygusSilent())
       {
         out << "(define-fun " << f << " ";
-        if( dt.getSygusVarList().isNull() ){
+        if (dt.getSygusVarList().isNull())
+        {
           out << "() ";
-        }else{
+        }
+        else
+        {
           out << dt.getSygusVarList() << " ";
         }
         out << dt.getSygusType() << " ";
-        if( status==0 ){
+        if (status == 0)
+        {
           out << sol;
-        }else{
-          Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
+        }
+        else
+        {
+          Printer::getPrinter(options::outputLanguage())
+              ->toStreamSygus(out, sol);
         }
         out << ")" << std::endl;
       }
@@ -670,7 +677,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             }
             if (success)
             {
-              if( !options::sygusSilent() )
+              if (!options::sygusSilent())
               {
                 // The analog of terms sol and eq_sol are equivalent under
                 // sample points but do not rewrite to the same term. Hence,
