@@ -142,7 +142,7 @@ bool NodeTemplate<ref_count>::hasFreeVar()
 {
   assertTNodeNotExpired();
   std::unordered_set<TNode, TNodeHashFunction> bound_var;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(*this);
@@ -152,11 +152,11 @@ bool NodeTemplate<ref_count>::hasFreeVar()
     // can skip if it doesn't have a bound variable
     if( cur.hasBoundVar() )
     {
-      bool isQuant = cur.getKind()==kind::FORALL || cur.getKind()==kind::EXISTS || cur.getKind()==kind::LAMBDA || cur.getKind()==kind::CHOICE;
-
-      if (visited.find(cur) == visited.end()) {
-        visited.insert(cur);
-        if( cur.getKind()==kind::BOUND_VARIABLE ){
+      Kind k = cur.getKind();
+      bool isQuant = k==kind::FORALL || k==kind::EXISTS || k==kind::LAMBDA || k==kind::CHOICE;
+      std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv = visited.find(cur);
+      if (itv == visited.end()) {
+        if( k==kind::BOUND_VARIABLE ){
           if( bound_var.find(cur)==bound_var.end() )
           {
             return true;
@@ -169,19 +169,21 @@ bool NodeTemplate<ref_count>::hasFreeVar()
             Assert( bound_var.find(cn)==bound_var.end() );
             bound_var.insert(cn);
           }
+          visit.push_back(cur);
         }
+        // must visit quantifiers again to clean up below
+        visited[cur] = !isQuant;
         for (const TNode& cn : cur) {
           visit.push_back(cn);
         }
       }
-      else
+      else if( !itv->second )
       {
-        if( isQuant )
-        {
-          for (const TNode& cn : cur[0]) {
-            bound_var.erase(cn);
-          }
+        Assert( isQuant );
+        for (const TNode& cn : cur[0]) {
+          bound_var.erase(cn);
         }
+        visited[cur] = true;
       }
     }
   } while (!visit.empty());
@@ -192,5 +194,7 @@ template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 template bool NodeTemplate<true>::hasBoundVar();
 template bool NodeTemplate<false>::hasBoundVar();
+template bool NodeTemplate<true>::hasFreeVar();
+template bool NodeTemplate<false>::hasFreeVar();
 
 }/* CVC4 namespace */
