@@ -93,12 +93,12 @@
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/global_negate.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -4469,10 +4469,11 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if( options::symmetryDetect() ){
+  if (options::symmetryDetect())
+  {
     SymmetryDetect symd;
-    vector< vector< Node > > part;
-    symd.getPartition( part, d_assertions.ref() );
+    vector<vector<Node>> part;
+    symd.getPartition(part, d_assertions.ref());
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
