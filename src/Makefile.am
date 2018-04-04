@@ -176,6 +176,8 @@ libcvc4_la_SOURCES = \
 	theory/sort_inference.h \
 	theory/substitutions.cpp \
 	theory/substitutions.h \
+	theory/symmetry_detect.cpp \
+	theory/symmetry_detect.h \	
 	theory/term_registration_visitor.cpp \
 	theory/term_registration_visitor.h \
 	theory/theory.cpp \

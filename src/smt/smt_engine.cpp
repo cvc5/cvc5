@@ -103,6 +103,7 @@
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
+#include "theory/symmetry_detect.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
@@ -4467,6 +4468,12 @@ void SmtEnginePrivate::processAssertions() {
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
+
+  if( options::symmetryDetect() ){
+    SymmetryDetect symd;
+    vector< vector< Node > > part;
+    symd.getPartition( part, d_assertions.ref() );
+  }
 
   dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {
