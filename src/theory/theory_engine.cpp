@@ -639,7 +639,12 @@ void TheoryEngine::check(Theory::Effort effort) {
         AlwaysAssert(d_curr_model->isBuiltSuccess());
         if (options::produceModels())
         {
-          d_curr_model_builder->debugCheckModel(d_curr_model);
+          // if we are incomplete, there is no guarantee on the model.
+          // thus, we do not check the model here. (related to #1693)
+          if (!d_incomplete)
+          {
+            d_curr_model_builder->debugCheckModel(d_curr_model);
+          }
           // Do post-processing of model from the theories (used for THEORY_SEP
           // to construct heap model)
           postProcessModel(d_curr_model);
