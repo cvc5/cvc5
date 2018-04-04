@@ -7,11 +7,15 @@ UNIT_TESTS = \
 if WHITE_AND_BLACK_TESTS
 UNIT_TESTS += \
 	theory/logic_info_white \
-	theory/theory_engine_white \
-	theory/theory_black \
-	theory/theory_white \
 	theory/theory_arith_white \
+	theory/theory_black \
+	theory/theory_bv_bvgauss_white \
 	theory/theory_bv_white \
+	theory/theory_engine_white \
+	theory/theory_quantifiers_bv_instantiator_white \
+	theory/theory_quantifiers_bv_inverter_white \
+	theory/theory_strings_rewriter_white \
+	theory/theory_white \
 	theory/type_enumerator_white \
 	expr/node_white \
 	expr/node_black \
@@ -33,12 +37,12 @@ UNIT_TESTS += \
 	context/context_mm_black \
 	context/cdo_black \
 	context/cdlist_black \
-	context/cdlist_context_memory_black \
 	context/cdmap_black \
 	context/cdmap_white \
 	context/cdvector_black \
 	util/array_store_all_black \
 	util/assert_white \
+	util/check_white \
 	util/binary_heap_black \
 	util/bitvector_black \
 	util/datatype_black \
@@ -78,6 +82,7 @@ AM_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(TEST_CXXFLAGS)
 AM_LDFLAGS = $(TEST_LDFLAGS) $(READLINE_LIBS) $(LIBS)
+CXXFLAGS=-Wno-suggest-override
 
 AM_CXXFLAGS_WHITE = -fno-access-control -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
 AM_CXXFLAGS_BLACK = -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST

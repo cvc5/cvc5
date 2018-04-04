@@ -55,7 +55,8 @@ public:
   public:
     NotifyClass(TheoryUF& uf): d_uf(uf) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
       Debug("uf") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
       if (value) {
         return d_uf.propagate(equality);
@@ -65,7 +66,8 @@ public:
       }
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
       Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         return d_uf.propagate(predicate);
@@ -74,7 +76,11 @@ public:
       }
     }
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
       Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
         return d_uf.propagate(t1.eqNode(t2));
@@ -83,27 +89,32 @@ public:
       }
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) {
+    void eqNotifyNewClass(TNode t) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_uf.eqNotifyNewClass(t);
     }
 
-    void eqNotifyPreMerge(TNode t1, TNode t2) {
+    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.eqNotifyPreMerge(t1, t2);
     }
 
-    void eqNotifyPostMerge(TNode t1, TNode t2) {
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_uf.eqNotifyPostMerge(t1, t2);
     }
 
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    {
       Debug("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
@@ -234,34 +245,30 @@ public:
 
   ~TheoryUF();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
-  void finishInit();
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  void finishInit() override;
 
-  void check(Effort);  
-  Node expandDefinition(LogicRequest &logicRequest, Node node);
-  void preRegisterTerm(TNode term);
-  Node explain(TNode n);
+  void check(Effort) override;
+  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  void preRegisterTerm(TNode term) override;
+  Node explain(TNode n) override;
 
-  void collectModelInfo( TheoryModel* m );
+  bool collectModelInfo(TheoryModel* m) override;
 
-  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
-  void presolve();
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
+  void presolve() override;
 
-  void addSharedTerm(TNode n);
-  void computeCareGraph();
+  void addSharedTerm(TNode n) override;
+  void computeCareGraph() override;
 
-  void propagate(Effort effort);
-  Node getNextDecisionRequest( unsigned& priority );
+  void propagate(Effort effort) override;
+  Node getNextDecisionRequest(unsigned& priority) override;
 
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  std::string identify() const {
-    return "THEORY_UF";
-  }
+  std::string identify() const override { return "THEORY_UF"; }
 
-  eq::EqualityEngine* getEqualityEngine() {
-    return &d_equalityEngine;
-  }
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   StrongSolverTheoryUF* getStrongSolver() {
     return d_thss;

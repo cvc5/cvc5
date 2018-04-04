@@ -2,9 +2,9 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,7 +42,9 @@ namespace CVC4 {
 namespace printer {
 namespace cvc {
 
-void CvcPrinter::toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw() {
+void CvcPrinter::toStream(
+    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+{
   if(dag != 0) {
     DagificationVisitor dv(dag);
     NodeVisitor<DagificationVisitor> visitor;
@@ -72,7 +74,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int toDepth, bool types, s
   }
 }
 
-void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, bool bracket) const throw() {
+void CvcPrinter::toStream(
+    std::ostream& out, TNode n, int depth, bool types, bool bracket) const
+{
   if (depth == 0) {
     out << "(...)";
   } else {
@@ -935,10 +939,14 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
 }/* CvcPrinter::toStream(TNode) */
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode) throw();
+static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode);
 
-void CvcPrinter::toStream(std::ostream& out, const Command* c,
-                           int toDepth, bool types, size_t dag) const throw() {
+void CvcPrinter::toStream(std::ostream& out,
+                          const Command* c,
+                          int toDepth,
+                          bool types,
+                          size_t dag) const
+{
   expr::ExprSetDepth::Scope sdScope(out, toDepth);
   expr::ExprPrintTypes::Scope ptScope(out, types);
   expr::ExprDag::Scope dagScope(out, dag);
@@ -947,6 +955,7 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<PushCommand>(out, c, d_cvc3Mode) ||
      tryToStream<PopCommand>(out, c, d_cvc3Mode) ||
      tryToStream<CheckSatCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<CheckSatAssumingCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QueryCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetAssertionsCommand>(out, c, d_cvc3Mode) ||
@@ -984,10 +993,12 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
 }/* CvcPrinter::toStream(Command*) */
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s, bool cvc3Mode) throw();
+static bool tryToStream(std::ostream& out,
+                        const CommandStatus* s,
+                        bool cvc3Mode);
 
-void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw() {
-
+void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
+{
   if(tryToStream<CommandSuccess>(out, s, d_cvc3Mode) ||
      tryToStream<CommandFailure>(out, s, d_cvc3Mode) ||
      tryToStream<CommandUnsupported>(out, s, d_cvc3Mode) ||
@@ -1000,134 +1011,141 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
 }/* CvcPrinter::toStream(CommandStatus*) */
 
-void CvcPrinter::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
-  const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
-  if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
-    TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    if (options::modelUninterpDtEnum() && tn.isSort())
+namespace {
+
+void DeclareTypeCommandToStream(std::ostream& out,
+                                const theory::TheoryModel& model,
+                                const DeclareTypeCommand& command)
+{
+  TypeNode type_node = TypeNode::fromType(command.getType());
+  const std::vector<Node>* type_reps =
+      model.getRepSet()->getTypeRepsOrNull(type_node);
+  if (options::modelUninterpDtEnum() && type_node.isSort()
+      && type_reps != nullptr)
+  {
+    out << "DATATYPE" << std::endl;
+    out << "  " << command.getSymbol() << " = ";
+    for (size_t i = 0; i < type_reps->size(); i++)
     {
-      const theory::RepSet* rs = tm.getRepSet();
-      if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
+      if (i > 0)
       {
-        out << "DATATYPE" << std::endl;
-        out << "  " << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol()
-            << " = ";
-        for (size_t i = 0; i < (*rs->d_type_reps.find(tn)).second.size(); i++)
-        {
-          if (i > 0)
-          {
-            out << "| ";
-          }
-          out << (*rs->d_type_reps.find(tn)).second[i] << " ";
-        }
-        out << std::endl << "END;" << std::endl;
+        out << "| ";
+      }
+      out << (*type_reps)[i] << " ";
+    }
+    out << std::endl << "END;" << std::endl;
+  }
+  else if (type_node.isSort() && type_reps != nullptr)
+  {
+    out << "% cardinality of " << type_node << " is " << type_reps->size()
+        << std::endl;
+    out << command << std::endl;
+    for (Node type_rep : *type_reps)
+    {
+      if (type_rep.isVar())
+      {
+        out << type_rep << " : " << type_node << ";" << std::endl;
       }
       else
       {
-        if (tn.isSort())
-        {
-          // print the cardinality
-          if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
-          {
-            out << "% cardinality of " << tn << " is "
-                << (*rs->d_type_reps.find(tn)).second.size() << std::endl;
-          }
-        }
-        out << c << std::endl;
-        if (tn.isSort())
-        {
-          // print the representatives
-          if (rs->d_type_reps.find(tn) != rs->d_type_reps.end())
-          {
-            for (size_t i = 0; i < (*rs->d_type_reps.find(tn)).second.size();
-                 i++)
-            {
-              if ((*rs->d_type_reps.find(tn)).second[i].isVar())
-              {
-                out << (*rs->d_type_reps.find(tn)).second[i] << " : " << tn
-                    << ";" << std::endl;
-              }
-              else
-              {
-                out << "% rep: " << (*rs->d_type_reps.find(tn)).second[i]
-                    << std::endl;
-              }
-            }
-          }
-        }
+        out << "% rep: " << type_rep << std::endl;
       }
     }
-  } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
-    Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
-    if(n.getKind() == kind::SKOLEM) {
-      // don't print out internal stuff
-      return;
-    }
-    TypeNode tn = n.getType();
-    out << n << " : ";
-    if( tn.isFunction() || tn.isPredicate() ){
-      out << "(";
-      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
-        if( i>0 ) out << ", ";
-        out << tn[i];
-      }
-      out << ") -> " << tn.getRangeType();
-    }else{
-      out << tn;
-    }
-    Node val = Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr()));
-    if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
-      const theory::RepSet* rs = tm.getRepSet();
-      TypeNode tn = val[1].getType();
-      if (tn.isSort() && rs->d_type_reps.find(tn) != rs->d_type_reps.end())
-      {
-        Cardinality indexCard((*rs->d_type_reps.find(tn)).second.size());
-        val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
-      }
-    }
-    out << " = " << val << ";" << std::endl;
-
-/*
-    //for table format (work in progress)
-    bool printedModel = false;
-    if( tn.isFunction() ){
-      if( options::modelFormatMode()==MODEL_FORMAT_MODE_TABLE ){
-        //specialized table format for functions
-        RepSetIterator riter( &d_rep_set );
-        riter.setFunctionDomain( n );
-        while( !riter.isFinished() ){
-          std::vector< Node > children;
-          children.push_back( n );
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            children.push_back( riter.getTerm( i ) );
-          }
-          Node nn = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-          Node val = getValue( nn );
-          out << val << " ";
-          riter.increment();
-        }
-        printedModel = true;
-      }
-    }
-*/
-  }else{
-    out << c << std::endl;
+  }
+  else
+  {
+    out << command << std::endl;
   }
 }
 
-static void toStream(std::ostream& out, const AssertCommand* c, bool cvc3Mode) throw() {
+void DeclareFunctionCommandToStream(std::ostream& out,
+                                    const theory::TheoryModel& model,
+                                    const DeclareFunctionCommand& command)
+{
+  Node n = Node::fromExpr(command.getFunction());
+  if (n.getKind() == kind::SKOLEM)
+  {
+    // don't print out internal stuff
+    return;
+  }
+  TypeNode tn = n.getType();
+  out << n << " : ";
+  if (tn.isFunction() || tn.isPredicate())
+  {
+    out << "(";
+    for (size_t i = 0; i < tn.getNumChildren() - 1; i++)
+    {
+      if (i > 0)
+      {
+        out << ", ";
+      }
+      out << tn[i];
+    }
+    out << ") -> " << tn.getRangeType();
+  }
+  else
+  {
+    out << tn;
+  }
+  Node val = Node::fromExpr(model.getSmtEngine()->getValue(n.toExpr()));
+  if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+  {
+    TypeNode type_node = val[1].getType();
+    if (tn.isSort())
+    {
+      if (const std::vector<Node>* type_reps =
+              model.getRepSet()->getTypeRepsOrNull(type_node))
+      {
+        Cardinality indexCard(type_reps->size());
+        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
+            val, indexCard);
+      }
+    }
+  }
+  out << " = " << val << ";" << std::endl;
+}
+
+}  // namespace
+
+void CvcPrinter::toStream(std::ostream& out,
+                          const Model& model,
+                          const Command* command) const
+{
+  const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
+  AlwaysAssert(theory_model != nullptr);
+  if (const auto* declare_type_command =
+          dynamic_cast<const DeclareTypeCommand*>(command))
+  {
+    DeclareTypeCommandToStream(out, *theory_model, *declare_type_command);
+  }
+  else if (const auto* dfc =
+               dynamic_cast<const DeclareFunctionCommand*>(command))
+  {
+    DeclareFunctionCommandToStream(out, *theory_model, *dfc);
+  }
+  else
+  {
+    out << command << std::endl;
+  }
+}
+
+static void toStream(std::ostream& out, const AssertCommand* c, bool cvc3Mode)
+{
   out << "ASSERT " << c->getExpr() << ";";
 }
 
-static void toStream(std::ostream& out, const PushCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const PushCommand* c, bool cvc3Mode)
+{
   out << "PUSH;";
 }
 
-static void toStream(std::ostream& out, const PopCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const PopCommand* c, bool cvc3Mode)
+{
   out << "POP;";
 }
 
-static void toStream(std::ostream& out, const CheckSatCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const CheckSatCommand* c, bool cvc3Mode)
+{
   Expr e = c->getExpr();
   if(cvc3Mode) {
     out << "PUSH; ";
@@ -1142,7 +1160,33 @@ static void toStream(std::ostream& out, const CheckSatCommand* c, bool cvc3Mode)
   }
 }
 
-static void toStream(std::ostream& out, const QueryCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const CheckSatAssumingCommand* c,
+                     bool cvc3Mode)
+{
+  const vector<Expr>& exprs = c->getTerms();
+  if (cvc3Mode)
+  {
+    out << "PUSH; ";
+  }
+  out << "CHECKSAT";
+  if (exprs.size() > 0)
+  {
+    out << " " << exprs[0];
+    for (size_t i = 1, n = exprs.size(); i < n; ++i)
+    {
+      out << " AND " << exprs[i];
+    }
+  }
+  out << ";";
+  if (cvc3Mode)
+  {
+    out << " POP;";
+  }
+}
+
+static void toStream(std::ostream& out, const QueryCommand* c, bool cvc3Mode)
+{
   Expr e = c->getExpr();
   if(cvc3Mode) {
     out << "PUSH; ";
@@ -1157,19 +1201,25 @@ static void toStream(std::ostream& out, const QueryCommand* c, bool cvc3Mode) th
   }
 }
 
-static void toStream(std::ostream& out, const ResetCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const ResetCommand* c, bool cvc3Mode)
+{
   out << "RESET;";
 }
 
-static void toStream(std::ostream& out, const ResetAssertionsCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const ResetAssertionsCommand* c,
+                     bool cvc3Mode)
+{
   out << "RESET ASSERTIONS;";
 }
 
-static void toStream(std::ostream& out, const QuitCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const QuitCommand* c, bool cvc3Mode)
+{
   //out << "EXIT;";
 }
 
-static void toStream(std::ostream& out, const CommandSequence* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const CommandSequence* c, bool cvc3Mode)
+{
   for(CommandSequence::const_iterator i = c->begin();
       i != c->end();
       ++i) {
@@ -1177,7 +1227,10 @@ static void toStream(std::ostream& out, const CommandSequence* c, bool cvc3Mode)
   }
 }
 
-static void toStream(std::ostream& out, const DeclarationSequence* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DeclarationSequence* c,
+                     bool cvc3Mode)
+{
   DeclarationSequence::const_iterator i = c->begin();
   for(;;) {
     DeclarationDefinitionCommand* dd =
@@ -1191,11 +1244,17 @@ static void toStream(std::ostream& out, const DeclarationSequence* c, bool cvc3M
   }
 }
 
-static void toStream(std::ostream& out, const DeclareFunctionCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DeclareFunctionCommand* c,
+                     bool cvc3Mode)
+{
   out << c->getSymbol() << " : " << c->getType() << ";";
 }
 
-static void toStream(std::ostream& out, const DefineFunctionCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DefineFunctionCommand* c,
+                     bool cvc3Mode)
+{
   Expr func = c->getFunction();
   const vector<Expr>& formals = c->getFormals();
   Expr formula = c->getFormula();
@@ -1214,7 +1273,10 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c, bool cvc
   out << formula << ";";
 }
 
-static void toStream(std::ostream& out, const DeclareTypeCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DeclareTypeCommand* c,
+                     bool cvc3Mode)
+{
   if(c->getArity() > 0) {
     //TODO?
     out << "ERROR: Don't know how to print parameterized type declaration "
@@ -1224,7 +1286,10 @@ static void toStream(std::ostream& out, const DeclareTypeCommand* c, bool cvc3Mo
   }
 }
 
-static void toStream(std::ostream& out, const DefineTypeCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DefineTypeCommand* c,
+                     bool cvc3Mode)
+{
   if(c->getParameters().size() > 0) {
     out << "ERROR: Don't know how to print parameterized type definition "
            "in CVC language:" << endl << c->toString() << endl;
@@ -1233,15 +1298,20 @@ static void toStream(std::ostream& out, const DefineTypeCommand* c, bool cvc3Mod
   }
 }
 
-static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DefineNamedFunctionCommand* c,
+                     bool cvc3Mode)
+{
   toStream(out, static_cast<const DefineFunctionCommand*>(c), cvc3Mode);
 }
 
-static void toStream(std::ostream& out, const SimplifyCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const SimplifyCommand* c, bool cvc3Mode)
+{
   out << "TRANSFORM " << c->getTerm() << ";";
 }
 
-static void toStream(std::ostream& out, const GetValueCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const GetValueCommand* c, bool cvc3Mode)
+{
   const vector<Expr>& terms = c->getTerms();
   Assert(!terms.empty());
   out << "GET_VALUE ";
@@ -1249,35 +1319,53 @@ static void toStream(std::ostream& out, const GetValueCommand* c, bool cvc3Mode)
   out << terms.back() << ";";
 }
 
-static void toStream(std::ostream& out, const GetModelCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const GetModelCommand* c, bool cvc3Mode)
+{
   out << "COUNTERMODEL;";
 }
 
-static void toStream(std::ostream& out, const GetAssignmentCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const GetAssignmentCommand* c,
+                     bool cvc3Mode)
+{
   out << "% (get-assignment)";
 }
 
-static void toStream(std::ostream& out, const GetAssertionsCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const GetAssertionsCommand* c,
+                     bool cvc3Mode)
+{
   out << "WHERE;";
 }
 
-static void toStream(std::ostream& out, const GetProofCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const GetProofCommand* c, bool cvc3Mode)
+{
   out << "DUMP_PROOF;";
 }
 
-static void toStream(std::ostream& out, const GetUnsatCoreCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const GetUnsatCoreCommand* c,
+                     bool cvc3Mode)
+{
   out << "DUMP_UNSAT_CORE;";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const SetBenchmarkStatusCommand* c,
+                     bool cvc3Mode)
+{
   out << "% (set-info :status " << c->getStatus() << ")";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const SetBenchmarkLogicCommand* c,
+                     bool cvc3Mode)
+{
   out << "OPTION \"logic\" \"" << c->getLogic() << "\";";
 }
 
-static void toStream(std::ostream& out, const SetInfoCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const SetInfoCommand* c, bool cvc3Mode)
+{
   out << "% (set-info " << c->getFlag() << " ";
   OutputLanguage language =
       cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
@@ -1285,21 +1373,31 @@ static void toStream(std::ostream& out, const SetInfoCommand* c, bool cvc3Mode) 
   out << ")";
 }
 
-static void toStream(std::ostream& out, const GetInfoCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const GetInfoCommand* c, bool cvc3Mode)
+{
   out << "% (get-info " << c->getFlag() << ")";
 }
 
-static void toStream(std::ostream& out, const SetOptionCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const SetOptionCommand* c,
+                     bool cvc3Mode)
+{
   out << "OPTION \"" << c->getFlag() << "\" ";
   SExpr::toStream(out, c->getSExpr(), language::output::LANG_CVC4);
   out << ";";
 }
 
-static void toStream(std::ostream& out, const GetOptionCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const GetOptionCommand* c,
+                     bool cvc3Mode)
+{
   out << "% (get-option " << c->getFlag() << ")";
 }
 
-static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const DatatypeDeclarationCommand* c,
+                     bool cvc3Mode)
+{
   const vector<DatatypeType>& datatypes = c->getDatatypes();
   //do not print tuple/datatype internal declarations
   if( datatypes.size()!=1 || ( !datatypes[0].getDatatype().isTuple() && !datatypes[0].getDatatype().isRecord() ) ){
@@ -1358,19 +1456,21 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c, boo
   }
 }
 
-static void toStream(std::ostream& out, const CommentCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const CommentCommand* c, bool cvc3Mode)
+{
   out << "% " << c->getComment();
 }
 
-static void toStream(std::ostream& out, const EmptyCommand* c, bool cvc3Mode) throw() {
-}
+static void toStream(std::ostream& out, const EmptyCommand* c, bool cvc3Mode) {}
 
-static void toStream(std::ostream& out, const EchoCommand* c, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const EchoCommand* c, bool cvc3Mode)
+{
   out << "ECHO \"" << c->getOutput() << "\";";
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode) throw() {
+static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode)
+{
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c), cvc3Mode);
     return true;
@@ -1378,26 +1478,37 @@ static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode) thro
   return false;
 }
 
-static void toStream(std::ostream& out, const CommandSuccess* s, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const CommandSuccess* s, bool cvc3Mode)
+{
   if(Command::printsuccess::getPrintSuccess(out)) {
     out << "OK" << endl;
   }
 }
 
-static void toStream(std::ostream& out, const CommandUnsupported* s, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const CommandUnsupported* s,
+                     bool cvc3Mode)
+{
   out << "UNSUPPORTED" << endl;
 }
 
-static void toStream(std::ostream& out, const CommandInterrupted* s, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out,
+                     const CommandInterrupted* s,
+                     bool cvc3Mode)
+{
   out << "INTERRUPTED" << endl;
 }
 
-static void toStream(std::ostream& out, const CommandFailure* s, bool cvc3Mode) throw() {
+static void toStream(std::ostream& out, const CommandFailure* s, bool cvc3Mode)
+{
   out << s->getMessage() << endl;
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s, bool cvc3Mode) throw() {
+static bool tryToStream(std::ostream& out,
+                        const CommandStatus* s,
+                        bool cvc3Mode)
+{
   if(typeid(*s) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(s), cvc3Mode);
     return true;

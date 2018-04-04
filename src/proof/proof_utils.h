@@ -2,9 +2,9 @@
 /*! \file proof_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Andres Noetzli
+ **   Liana Hadarean, Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -118,10 +118,6 @@ inline Expr mkTrue() {
 inline Expr mkFalse() {
   return NodeManager::currentNM()->toExprManager()->mkConst<bool>(false);
 }
-inline BitVector mkBitVectorOnes(unsigned size) {
-  Assert(size > 0);
-  return BitVector(1, Integer(1)).signExtend(size - 1);
-}
 
 inline Expr mkExpr(Kind k , Expr expr) {
   return NodeManager::currentNM()->toExprManager()->mkExpr(k, expr);
@@ -135,7 +131,7 @@ inline Expr mkExpr(Kind k , std::vector<Expr>& children) {
 
 
 inline Expr mkOnes(unsigned size) {
-  BitVector val = mkBitVectorOnes(size);
+  BitVector val = BitVector::mkOnes(size);
   return NodeManager::currentNM()->toExprManager()->mkConst<BitVector>(val);
 }
 

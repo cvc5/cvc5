@@ -29,56 +29,6 @@ test "X$(AM_COLOR_TESTS)" != Xno \
 }
 
 subdirs_to_check = \
-	regress/regress0 \
-	regress/regress0/arith \
-	regress/regress0/arith/integers \
-	regress/regress0/arrays \
-	regress/regress0/aufbv \
-	regress/regress0/auflia \
-	regress/regress0/bv \
-	regress/regress0/bv/core \
-	regress/regress0/datatypes \
-	regress/regress0/decision \
-	regress/regress0/expect \
-	regress/regress0/fmf \
-	regress/regress0/lemmas \
-	regress/regress0/nl \
-	regress/regress0/parser \
-	regress/regress0/precedence \
-	regress/regress0/preprocess \
-	regress/regress0/push-pop \
-	regress/regress0/push-pop/arith \
-	regress/regress0/push-pop/boolean \
-	regress/regress0/quantifiers \
-	regress/regress0/rels \
-	regress/regress0/rewriterules \
-	regress/regress0/sep \
-	regress/regress0/sets \
-	regress/regress0/strings \
-	regress/regress0/sygus \
-	regress/regress0/tptp \
-	regress/regress0/uf \
-	regress/regress0/uflia \
-	regress/regress0/uflra \
-	regress/regress0/unconstrained \
-	regress/regress1 \
-	regress/regress1/aufbv \
-	regress/regress1/auflia \
-	regress/regress1/bv \
-	regress/regress1/datatypes \
-	regress/regress1/decision \
-	regress/regress1/fmf \
-	regress/regress1/lemmas \
-	regress/regress1/rewriterules \
-	regress/regress1/sep \
-	regress/regress1/sets \
-	regress/regress1/strings \
-	regress/regress1/sygus \
-	regress/regress1/quantifiers \
-	regress/regress2 \
-	regress/regress2/arith \
-	regress/regress3 \
-	regress/regress4 \
 	system \
 	unit
 
@@ -86,6 +36,7 @@ check-recursive: check-pre
 .PHONY: check-pre
 check-pre:
 	@rm -f $(subdirs_to_check:=/test-suite.log)
+	@find regress -name '*.trs' -exec rm {} \;
 
 if HAVE_CXXTESTGEN
 HANDLE_UNIT_TEST_SUMMARY = \
@@ -107,18 +58,7 @@ check-local:
 	if test -s "system/test-suite.log"; then :; else \
 		echo "$${red}System tests did not run; maybe there were compilation problems ?$$std"; \
 	fi; \
-	for dir in $(subdirs_to_check); do \
-		log=$$dir/test-suite.log; \
-		if test -s "$$log"; then \
-			status="`head -n 5 $$log | tail -1`"; \
-			if echo "$$status" | grep -q failed; then \
-				echo "$$red$$status"; \
-				echo "    @abs_builddir@/$$log$$std"; \
-			else \
-				printf "$$grn%-30s in $$dir$$std\\n" "$$status"; \
-			fi; \
-		fi; \
-	done; \
+	echo $${red}Upgrade to a newer version of Automake to get a more detailed summary; \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std
 else
 # automake 1.12 version
@@ -143,6 +83,34 @@ check-local:
 				echo "$$red$$nicestatus"; \
 				echo "    @abs_builddir@/$$log$$std"; \
 			fi; \
+		fi; \
+	done; \
+	for dir in `find regress -not -empty -type d`; do \
+		status_info=`grep -d skip ":test-result: " $$dir/*`; \
+		total=`echo "$$status_info" | grep ":test-result: " | wc -l`; \
+		if [ $$total -ne 0 ]; then \
+			status="$${std}$$total TOTAL"; \
+			pass=`echo "$$status_info" | grep " PASS" | wc -l`; \
+			if [ $$pass -ne 0 ]; then \
+				status="$$status $${grn}$$pass PASS"; \
+			fi; \
+			fail=`echo "$$status_info" | grep " FAIL" | wc -l`; \
+			if [ $$fail -ne 0 ]; then \
+				status="$$status $${red}$$fail FAIL"; \
+			fi; \
+			xpass=`echo "$$status_info" | grep " XPASS" | wc -l`; \
+			if [ $$xpass -ne 0 ]; then \
+				status="$$status $${red}$$xpass XPASS"; \
+			fi; \
+			error=`echo "$$status_info" | grep " ERROR" | wc -l`; \
+			if [ $$error -ne 0 ]; then \
+				status="$$status $${red}$$error ERROR"; \
+			fi; \
+			skip=`echo "$$status_info" | grep " SKIP" | wc -l`; \
+			if [ $$skip -ne 0 ]; then \
+				status="$$status $${blu}$$skip SKIP"; \
+			fi; \
+			printf "$$grn%-30s in $$dir\\n" "$$status"; \
 		fi; \
 	done; \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std

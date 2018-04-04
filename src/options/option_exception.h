@@ -30,9 +30,10 @@ namespace CVC4 {
  * class, below) should be used instead.
  */
 class CVC4_PUBLIC OptionException : public CVC4::Exception {
-public:
-  OptionException(const std::string& s) throw() :
-    CVC4::Exception("Error in option parsing: " + s) {
+ public:
+  OptionException(const std::string& s)
+      : CVC4::Exception("Error in option parsing: " + s)
+  {
   }
 };/* class OptionException */
 
@@ -41,7 +42,7 @@ public:
  * unrecognized or unsupported option key.
  */
 class CVC4_PUBLIC UnrecognizedOptionException : public CVC4::OptionException {
-public:
+ public:
   UnrecognizedOptionException() :
     CVC4::OptionException("Unrecognized informational or option key or setting") {
   }

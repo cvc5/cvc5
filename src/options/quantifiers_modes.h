@@ -87,19 +87,65 @@ enum QcfMode {
   QCF_PARTIAL,
 };
 
-enum UserPatMode {
-  /** use but do not trust */
+/** User pattern mode.
+*
+* These modes determine how user provided patterns (triggers) are
+* used during E-matching. The modes vary on when instantiation based on
+* user-provided triggers is combined with instantiation based on
+* automatically selected triggers.
+*/
+enum UserPatMode
+{
+  /** First instantiate based on user-provided triggers. If no instantiations
+  * are produced, use automatically selected triggers.
+  */
   USER_PAT_MODE_USE,
-  /** default, if patterns are supplied for a quantifier, use only those */
+  /** Default, if triggers are supplied for a quantifier, use only those. */
   USER_PAT_MODE_TRUST,
-  /** resort to user patterns only when necessary */
+  /** Resort to user triggers only when no instantiations are
+  * produced by automatically selected triggers
+  */
   USER_PAT_MODE_RESORT,
-  /** ignore user patterns */
+  /** Ignore user patterns. */
   USER_PAT_MODE_IGNORE,
-  /** interleave use/resort for user patterns */
+  /** Interleave use/resort modes for quantified formulas with user patterns. */
   USER_PAT_MODE_INTERLEAVE,
 };
 
+/** Trigger selection mode.
+*
+* These modes are used for determining which terms to select
+* as triggers for quantified formulas, when necessary, during E-matching.
+* In the following, note the following terminology. A trigger is a set of terms,
+* where a single trigger is a singleton set and a multi-trigger is a set of more
+* than one term.
+*
+* TRIGGER_SEL_MIN selects single triggers of minimal term size.
+* TRIGGER_SEL_MAX selects single triggers of maximal term size.
+*
+* For example, consider the quantified formula :
+*   forall xy. P( f( g( x, y ) ) ) V Q( f( x ), y )
+*
+* TRIGGER_SEL_MIN will select g( x, y ) and Q( f( x ), y ).
+* TRIGGER_SEL_MAX will select P( f( g( x ) ) ) and Q( f( x ), y ).
+*
+* The remaining three trigger selections make a difference for multi-triggers
+* only. For quantified formulas that require multi-triggers, we build a set of
+* partial triggers that don't contain all variables, call this set S. Then,
+* multi-triggers are built by taking a random subset of S that collectively
+* contains all variables.
+*
+* Consider the quantified formula :
+*   forall xyz. P( h( x ), y ) V Q( y, z )
+*
+* For TRIGGER_SEL_ALL and TRIGGER_SEL_MIN_SINGLE_ALL,
+*   S = { h( x ), P( h( x ), y ), Q( y, z ) }.
+* For TRIGGER_SEL_MIN_SINGLE_MAX,
+*   S = { P( h( x ), y ), Q( y, z ) }.
+*
+* Furthermore, TRIGGER_SEL_MIN_SINGLE_ALL and TRIGGER_SEL_MIN_SINGLE_MAX, when
+* selecting single triggers, only select terms of minimal size.
+*/
 enum TriggerSelMode {
   /** only consider minimal terms for triggers */
   TRIGGER_SEL_MIN,
@@ -168,6 +214,16 @@ enum CegqiSingleInvMode {
   CEGQI_SI_MODE_ALL_ABORT,
   /** always use single invocation techniques */
   CEGQI_SI_MODE_ALL,
+};
+
+enum CegisSampleMode
+{
+  /** do not use samples for CEGIS */
+  CEGIS_SAMPLE_NONE,
+  /** use samples for CEGIS */
+  CEGIS_SAMPLE_USE,
+  /** trust samples for CEGQI */
+  CEGIS_SAMPLE_TRUST,
 };
 
 enum SygusInvTemplMode {

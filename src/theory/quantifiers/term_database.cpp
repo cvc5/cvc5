@@ -19,7 +19,7 @@
 #include "options/uf_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -186,7 +186,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
                    << std::endl;
     if (options::instMaxLevel() != -1)
     {
-      QuantifiersEngine::setInstantiationLevelAttr(k, 0);
+      QuantAttributes::setInstantiationLevelAttr(k, 0);
     }
     d_type_fv[tn] = k;
     return k;

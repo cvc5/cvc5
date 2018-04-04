@@ -39,7 +39,7 @@ Node FunctionEnumerator::operator*()
   return TheoryBuiltinRewriter::getLambdaForArrayRepresentation(a, d_bvl);
 }
 
-FunctionEnumerator& FunctionEnumerator::operator++() throw()
+FunctionEnumerator& FunctionEnumerator::operator++()
 {
   ++d_arrayEnum;
   return *this;

@@ -286,11 +286,15 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 
   // mark as built
   tm->d_modelBuilt = true;
+  tm->d_modelBuiltSuccess = false;
 
   // Collect model info from the theories
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..."
                          << std::endl;
-  d_te->collectModelInfo(tm);
+  if (!d_te->collectModelInfo(tm))
+  {
+    return false;
+  }
 
   // model-builder specific initialization
   if (!preProcessBuildModel(tm))
@@ -350,11 +354,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   }
   // AJR: build ordered list of types that ensures that base types are
   // enumerated first.
-  //   (I think) this is only strictly necessary for finite model finding +
-  //   parametric types
-  //   instantiated with uninterpreted sorts, but is probably a good idea to do
-  //   in general
-  //   since it leads to models with smaller term sizes.
+  // (I think) this is only strictly necessary for finite model finding +
+  // parametric types instantiated with uninterpreted sorts, but is probably
+  // a good idea to do in general since it leads to models with smaller term
+  // sizes.
   std::vector<TypeNode> type_list;
   eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   for (; !eqcs_i.isFinished(); ++eqcs_i)
@@ -396,7 +399,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                                << std::endl;
       }
       // model-specific processing of the term
-      tm->addTerm(n);
+      tm->addTermInternal(n);
     }
 
     // Assign representative for this EC
@@ -800,6 +803,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   }
   else
   {
+    tm->d_modelBuiltSuccess = true;
     return true;
   }
 }

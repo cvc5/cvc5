@@ -3,6 +3,7 @@
 #if SWIG_VERSION < 0x030000
 %define final %enddef
 %define override %enddef
+%define noexcept %enddef
 #endif
 
 %import "bindings/swig.h"
@@ -172,8 +173,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %typemap(throws) UnsafeInterruptException = CVC4::Exception;
 %typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
 %typemap(throws) CVC4::parser::ParserException = CVC4::Exception;
-
-%typemap(throws) CVC4::RationalFromDoubleException = Exception;
 
 // Generate an error if the mapping from C++ CVC4 Exception to Java CVC4 Exception doesn't exist above
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{

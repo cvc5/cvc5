@@ -61,8 +61,8 @@ public:
    */
   virtual void notify(vec<Lit>& learnt) = 0;
 
-  virtual void spendResource(unsigned ammount) = 0;
-  virtual void safePoint(unsigned ammount) = 0;
+  virtual void spendResource(unsigned amount) = 0;
+  virtual void safePoint(unsigned amount) = 0;
 };
 
 //=================================================================================================
@@ -344,7 +344,7 @@ protected:
     CRef     reason           (Var x) const;
     int      level            (Var x) const;
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
-    bool     withinBudget     (uint64_t ammount)      const;
+    bool     withinBudget     (uint64_t amount)      const;
 
     // Static helpers:
     //

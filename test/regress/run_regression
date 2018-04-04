@@ -134,7 +134,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   # If this test case requires unsat cores but CVC4 is not built with proof
   # support, skip it. Note: checking $CVC4_REGRESSION_ARGS instead of $proof
   # here because $proof is not set for the second run.
-  requires_proof=`grep '(get-unsat-core)' "$benchmark"`
+  requires_proof=`grep '(get-unsat-core)\|(get-unsat-assumptions)' "$benchmark"`
   if [[ ! "$CVC4_REGRESSION_ARGS" = *"--proof"* ]] && [ -n "$requires_proof" ]; then
     exit 77
   fi
@@ -146,9 +146,6 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark.expect" | sed 's,^% COMMAND-LINE: ,,'`
-    if [ -z "$expected_exit_status" ]; then
-      expected_exit_status=0
-    fi
   elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\|SCRUBBER\|ERROR-SCRUBBER\): ' "$benchmark" "$benchmark" &>/dev/null; then
     scrubber=`grep '^; SCRUBBER: ' "$benchmark" | sed 's,^; SCRUBBER: ,,'`
     errscrubber=`grep '^; ERROR-SCRUBBER: ' "$benchmark" | sed 's,^; ERROR-SCRUBBER: ,,'`
@@ -156,19 +153,28 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_error=`grep '^; EXPECT-ERROR: ' "$benchmark" | sed 's,^; EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^; EXIT: ' "$benchmark" | perl -pe 's,^; EXIT: ,,;s,\r,,'`
     command_line=`grep '^; COMMAND-LINE: ' "$benchmark" | sed 's,^; COMMAND-LINE: ,,'`
-    if [ -z "$expected_exit_status" ]; then
-      expected_exit_status=0
+  fi
+
+  # If expected output/error was not given, try to determine the status from
+  # the commands.
+  if [ -z "$expected_output" -a -z "$expected_error" ]; then
+    if grep '^ *( *set-info  *:status  *sat' "$benchmark" &>/dev/null; then
+      expected_output=sat
+    elif grep '^ *( *set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
+      expected_output=unsat
     fi
-  elif grep '^ *( *set-info  *:status  *sat' "$benchmark" &>/dev/null; then
-    expected_output=sat
+  fi
+
+  # A valid test case needs at least an expected output (explicit or through
+  # SMT2 commands) or an expected exit status.
+  if [ -z "$expected_output" -a -z "$expected_error" -a -z "$expected_exit_status" ]; then
+      error "cannot determine status of \`$benchmark'"
+  fi
+
+  # If no explicit expected exit status was given, we assume that the solver is
+  # supposed to succeed.
+  if [ -z "$expected_exit_status" ]; then
     expected_exit_status=0
-    command_line=
-  elif grep '^ *( *set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
-    expected_output=unsat
-    expected_exit_status=0
-    command_line=
-  else
-    error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   lang=cvc4
@@ -262,6 +268,13 @@ else
   echo "$expected_output" >"$expoutfile"
 fi
 
+if [ "$lang" = sygus ]; then
+  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-synth-sol' &>/dev/null &&
+     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-synth-sol' &>/dev/null; then
+    # later on, we'll run another test with --check-models on
+    command_line="$command_line --check-synth-sol"
+  fi
+fi
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
   if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
@@ -406,5 +419,6 @@ if $check_models || $check_proofs || $check_unsat_cores; then
     exitcode=1
   fi
 fi
+
 
 exit $exitcode

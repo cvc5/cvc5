@@ -371,6 +371,11 @@ bool String::isDigit(unsigned character)
   return c >= '0' && c <= '9';
 }
 
+size_t String::maxSize()
+{
+  return std::numeric_limits<size_t>::max();
+}
+
 int String::toNumber() const {
   if (isNumber()) {
     int ret = 0;
@@ -397,10 +402,6 @@ unsigned char String::hexToDec(unsigned char c) {
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString(true) << "\"";
-}
-
-std::ostream &operator<<(std::ostream &out, const RegExp &s) {
-  return out << "regexp(" << s.getType() << ')';
 }
 
 }  // namespace CVC4

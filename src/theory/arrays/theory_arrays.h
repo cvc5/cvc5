@@ -143,9 +143,9 @@ class TheoryArrays : public Theory {
                std::string name = "");
   ~TheoryArrays();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  std::string identify() const { return std::string("TheoryArrays"); }
+  std::string identify() const override { return std::string("TheoryArrays"); }
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
@@ -174,17 +174,15 @@ class TheoryArrays : public Theory {
   bool ppDisequal(TNode a, TNode b);
   Node solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck);
 
-  public:
-
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+ public:
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  Node ppRewrite(TNode atom) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-
+ private:
   /** Literals to propagate */
   context::CDList<Node> d_literalsToPropagate;
 
@@ -204,19 +202,17 @@ class TheoryArrays : public Theory {
   /** Helper for preRegisterTerm, also used internally */
   void preRegisterTermInternal(TNode n);
 
-  public:
-
-  void preRegisterTerm(TNode n);
-  void propagate(Effort e);
+ public:
+  void preRegisterTerm(TNode n) override;
+  void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
-  Node explain(TNode n);
+  Node explain(TNode n) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // SHARING
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-
+ private:
   class MayEqualNotifyClass {
   public:
     bool notify(TNode propagation) { return true; }
@@ -232,47 +228,40 @@ class TheoryArrays : public Theory {
   // Helper for computeCareGraph
   void checkPair(TNode r1, TNode r2);
 
-  public:
-
-  void addSharedTerm(TNode t);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void computeCareGraph();
+ public:
+  void addSharedTerm(TNode t) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  void computeCareGraph() override;
   bool isShared(TNode t)
-    { return (d_sharedArrays.find(t) != d_sharedArrays.end()); }
-
+  {
+    return (d_sharedArrays.find(t) != d_sharedArrays.end());
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-
-  public:
-
-  void collectModelInfo(TheoryModel* m);
+ public:
+  bool collectModelInfo(TheoryModel* m) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS
   /////////////////////////////////////////////////////////////////////////////
 
-  private:
-  public:
+ public:
+  Node getNextDecisionRequest(unsigned& priority) override;
 
-  Node getNextDecisionRequest( unsigned& priority );
-
-  void presolve();
-  void shutdown() { }
+  void presolve() override;
+  void shutdown() override {}
 
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
 
-  public:
+ public:
+  void check(Effort e) override;
 
-  void check(Effort e);
-
-  private:
-
+ private:
   TNode weakEquivGetRep(TNode node);
   TNode weakEquivGetRepIndex(TNode node, TNode index);
   void visitAllLeaves(TNode reason, std::vector<TNode>& conjunctions);
@@ -288,7 +277,8 @@ class TheoryArrays : public Theory {
   public:
     NotifyClass(TheoryArrays& arrays): d_arrays(arrays) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
@@ -298,7 +288,8 @@ class TheoryArrays : public Theory {
       }
     }
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
@@ -308,7 +299,11 @@ class TheoryArrays : public Theory {
       }
     }
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         if (t1.getType().isArray()) {
@@ -329,19 +324,21 @@ class TheoryArrays : public Theory {
       return true;
     }
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
+    {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_arrays.conflict(t1, t2);
     }
 
-    void eqNotifyNewClass(TNode t) { }
-    void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) {
+    void eqNotifyNewClass(TNode t) override {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    {
       if (t1.getType().isArray()) {
         d_arrays.mergeArrays(t1, t2);
       }
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
   /** The notify class for d_equalityEngine */
@@ -397,10 +394,12 @@ class TheoryArrays : public Theory {
     context::Context* d_satContext;
     context::Context* d_contextToPop;
   protected:
-    void contextNotifyPop() {
-      if (d_contextToPop->getLevel() > d_satContext->getLevel()) {
-        d_contextToPop->pop();
-      }
+   void contextNotifyPop() override
+   {
+     if (d_contextToPop->getLevel() > d_satContext->getLevel())
+     {
+       d_contextToPop->pop();
+     }
     }
   public:
     ContextPopper(context::Context* context, context::Context* contextToPop)
@@ -455,11 +454,8 @@ class TheoryArrays : public Theory {
   /** An equality-engine callback for proof reconstruction */
   ArrayProofReconstruction d_proofReconstruction;
 
-  public:
-
-  eq::EqualityEngine* getEqualityEngine() {
-    return &d_equalityEngine;
-  }
+ public:
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
 };/* class TheoryArrays */
 

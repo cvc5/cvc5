@@ -2,9 +2,9 @@
 /*! \file node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -66,44 +66,39 @@ class NodeTemplate;
  * thrown by node.getType().
  */
 class TypeCheckingExceptionPrivate : public Exception {
-
-private:
-
+ private:
   /** The node responsible for the failure */
   NodeTemplate<true>* d_node;
 
-public:
-
+ public:
   /**
    * Construct the exception with the problematic node and the message
    * @param node the problematic node
    * @param message the message explaining the failure
    */
-  TypeCheckingExceptionPrivate(NodeTemplate<false> node, std::string message) throw();
+  TypeCheckingExceptionPrivate(NodeTemplate<false> node, std::string message);
 
   /** Destructor */
-  ~TypeCheckingExceptionPrivate() throw ();
+  ~TypeCheckingExceptionPrivate() override;
 
   /**
    * Get the Node that caused the type-checking to fail.
    * @return the node
    */
-  NodeTemplate<true> getNode() const throw();
+  NodeTemplate<true> getNode() const;
 
   /**
    * Returns the message corresponding to the type-checking failure.
    * We prefer toStream() to toString() because that keeps the expr-depth
    * and expr-language settings present in the stream.
    */
-  void toStream(std::ostream& out) const throw();
+  void toStream(std::ostream& out) const override;
 
 };/* class TypeCheckingExceptionPrivate */
 
 class UnknownTypeException : public TypeCheckingExceptionPrivate {
-public:
-
-  UnknownTypeException(NodeTemplate<false> node) throw();
-
+ public:
+  UnknownTypeException(NodeTemplate<false> node);
 };/* class UnknownTypeException */
 
 /**
@@ -233,7 +228,10 @@ class NodeTemplate {
    */
   void assignNodeValue(expr::NodeValue* ev);
 
-  inline void assertTNodeNotExpired() const throw(AssertionException) {
+  // May throw an AssertionException if the Node is not live, i.e. the ref count
+  // is not positive.
+  inline void assertTNodeNotExpired() const
+  {
     if(!ref_count) {
       Assert( d_nv->d_rc > 0, "TNode pointing to an expired NodeValue" );
     }
@@ -530,8 +528,7 @@ public:
    * @param check whether we should check the type as we compute it
    * (default: false)
    */
-  TypeNode getType(bool check = false) const
-    throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException);
+  TypeNode getType(bool check = false) const;
 
   /**
    * Substitution of Nodes.
@@ -927,23 +924,82 @@ inline std::ostream& operator<<(std::ostream& out, TNode n) {
 }
 
 /**
- * Serializes a vector of node to the given stream.
+ * Serialize a vector of nodes to given stream.
  *
  * @param out the output stream to use
- * @param ns the vector of nodes to output to the stream
+ * @param container the vector of nodes to output to the stream
  * @return the stream
  */
-template<bool ref_count>
-inline std::ostream& operator<<(std::ostream& out,
-                                const std::vector< NodeTemplate<ref_count> > & ns) {
-  for(typename std::vector< NodeTemplate<ref_count> >::const_iterator
-        i=ns.begin(), end=ns.end();
-      i != end; ++i){
-    out << *i;
-  }
+template <bool RC>
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<NodeTemplate<RC>>& container)
+{
+  container_to_stream(out, container);
   return out;
 }
 
+/**
+ * Serialize a set of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the set of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC>
+std::ostream& operator<<(std::ostream& out,
+                         const std::set<NodeTemplate<RC>>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+/**
+ * Serialize an unordered_set of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the unordered_set of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC, typename hash_function>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_set<NodeTemplate<RC>, hash_function>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+/**
+ * Serialize a map of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the map of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC, typename V>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::map<NodeTemplate<RC>, V>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+/**
+ * Serialize an unordered_map of nodes to the given stream.
+ *
+ * @param out the output stream to use
+ * @param container the unordered_map of nodes to output to the stream
+ * @return the stream
+ */
+template <bool RC, typename V, typename HF>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_map<NodeTemplate<RC>, V, HF>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
 
 }/* CVC4 namespace */
 
@@ -1276,7 +1332,7 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 
 template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
-  throw (CVC4::TypeCheckingExceptionPrivate, CVC4::AssertionException) {
+{
   Assert( NodeManager::currentNM() != NULL,
           "There is no current CVC4::NodeManager associated to this thread.\n"
           "Perhaps a public-facing function is missing a NodeManagerScope ?" );

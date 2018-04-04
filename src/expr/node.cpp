@@ -27,32 +27,47 @@ using namespace std;
 namespace CVC4 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
-                                                           std::string message) throw() :
-  Exception(message),
-  d_node(new Node(node)) {
+                                                           std::string message)
+    : Exception(message), d_node(new Node(node))
+{
 #ifdef CVC4_DEBUG
+  std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
-    current->setContents(toString().c_str());
+    // Since this node is malformed, we cannot use toString().
+    // Instead, we print the kind and the children.
+    ss << "node kind: " << node.getKind() << ". children: ";
+    int i = 0;
+    for (const TNode& child : node)
+    {
+      ss << "child[" << i << "]: " << child << ". ";
+      i++;
+    }
+    string ssstring = ss.str();
+    current->setContents(ssstring.c_str());
   }
 #endif /* CVC4_DEBUG */
 }
 
-TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() throw () {
-  delete d_node;
-}
+TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
 
-void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const throw() {
+void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const
+{
   os << "Error during type checking: " << d_msg << std::endl << *d_node << endl << "The ill-typed expression: " << *d_node;
 }
 
-NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const throw() {
+NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const
+{
   return *d_node;
 }
 
-UnknownTypeException::UnknownTypeException(TNode n) throw() :
-  TypeCheckingExceptionPrivate(n, "this expression contains an element of unknown type (such as an abstract value);"
-                               " its type cannot be computed until it is substituted away") {
+UnknownTypeException::UnknownTypeException(TNode n)
+    : TypeCheckingExceptionPrivate(
+          n,
+          "this expression contains an element of unknown type (such as an "
+          "abstract value);"
+          " its type cannot be computed until it is substituted away")
+{
 }
 
 /** Is this node constant? (and has that been computed yet?) */

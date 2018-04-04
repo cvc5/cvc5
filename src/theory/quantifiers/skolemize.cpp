@@ -15,6 +15,7 @@
 #include "theory/quantifiers/skolemize.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/sort_inference.h"
@@ -286,7 +287,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
   // if it has an instantiation level, set the skolemized body to that level
   if (f.hasAttribute(InstLevelAttribute()))
   {
-    theory::QuantifiersEngine::setInstantiationLevelAttr(
+    QuantAttributes::setInstantiationLevelAttr(
         ret, f.getAttribute(InstLevelAttribute()));
   }
 

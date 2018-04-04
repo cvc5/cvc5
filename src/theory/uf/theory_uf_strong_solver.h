@@ -17,7 +17,6 @@
 #ifndef __CVC4__THEORY_UF_STRONG_SOLVER_H
 #define __CVC4__THEORY_UF_STRONG_SOLVER_H
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"
@@ -30,7 +29,6 @@ namespace theory {
 class SubsortSymmetryBreaker;
 namespace uf {
 class TheoryUF;
-class DisequalityPropagator;
 } /* namespace CVC4::theory::uf */
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
@@ -372,8 +370,6 @@ public:
   ~StrongSolverTheoryUF();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** disequality propagator */
-  DisequalityPropagator* getDisequalityPropagator() { return d_deq_prop; }
   /** symmetry breaker */
   SubsortSymmetryBreaker* getSymmetryBreaker() { return d_sym_break; }
   /** get sort inference module */
@@ -472,42 +468,10 @@ public:
   context::CDO<int> d_min_pos_tn_master_card;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
-  /** disequality propagator */
-  DisequalityPropagator* d_deq_prop;
   /** symmetry breaking techniques */
   SubsortSymmetryBreaker* d_sym_break;
 }; /* class StrongSolverTheoryUF */
 
-class DisequalityPropagator {
-public:
-  DisequalityPropagator(QuantifiersEngine* qe, StrongSolverTheoryUF* ufss);
-  /** merge */
-  void merge( Node a, Node b );
-  /** assert terms are disequal */
-  void assertDisequal( Node a, Node b, Node reason );
-  /** assert predicate */
-  void assertPredicate( Node p, bool polarity );
-
-  class Statistics {
-  public:
-    IntStat d_propagations;
-    Statistics();
-    ~Statistics();
-  };
-  /** statistics class */
-  Statistics d_statistics;
-
-private:
-  /** quantifiers engine */
-  QuantifiersEngine* d_qe;
-  /** strong solver */
-  StrongSolverTheoryUF* d_ufss;
-  /** true,false */
-  Node d_true;
-  Node d_false;
-  /** check term t against equivalence class that t is disequal from */
-  void checkEquivalenceClass( Node t, Node eqc );
-}; /* class DisequalityPropagator */
 
 }/* CVC4::theory namespace::uf */
 }/* CVC4::theory namespace */

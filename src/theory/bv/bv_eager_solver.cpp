@@ -15,9 +15,11 @@
  **/
 
 #include "theory/bv/bv_eager_solver.h"
+
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/aig_bitblaster.h"
+#include "theory/bv/bitblast/eager_bitblaster.h"
 
 using namespace std;
 
@@ -123,9 +125,10 @@ bool EagerBitblastSolver::hasAssertions(const std::vector<TNode>& formulas) {
   return true;
 }
 
-void EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   AlwaysAssert(!d_useAig && d_bitblaster);
-  d_bitblaster->collectModelInfo(m, fullModel);
+  return d_bitblaster->collectModelInfo(m, fullModel);
 }
 
 void EagerBitblastSolver::setProofLog(BitVectorProof* bvp) { d_bvp = bvp; }

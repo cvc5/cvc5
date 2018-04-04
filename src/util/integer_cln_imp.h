@@ -52,11 +52,13 @@ private:
    * Constructs an Integer by copying a CLN C++ primitive.
    */
   Integer(const cln::cl_I& val) : d_value(val) {}
+  // Throws a std::invalid_argument on invalid input `s` for the given base.
+  void readInt(const cln::cl_read_flags& flags,
+               const std::string& s,
+               unsigned base);
 
-  void readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument);
-
-  void parseInt(const std::string& s, unsigned base) throw(std::invalid_argument);
-
+  // Throws a std::invalid_argument on invalid inputs.
+  void parseInt(const std::string& s, unsigned base);
 
   // These constants are to help with CLN conversion in 32 bit.
   // See http://www.ginac.de/CLN/cln.html#Conversions
@@ -81,11 +83,13 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  explicit Integer(const char* sp, unsigned base = 10) throw (std::invalid_argument) {
+  explicit Integer(const char* sp, unsigned base = 10)
+  {
     parseInt(std::string(sp), base);
   }
 
-  explicit Integer(const std::string& s, unsigned base = 10) throw (std::invalid_argument) {
+  explicit Integer(const std::string& s, unsigned base = 10)
+  {
     parseInt(s, base);
   }
 

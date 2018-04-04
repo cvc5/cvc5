@@ -245,6 +245,16 @@ public:
     case kind::SINE:
     case kind::COSINE:
     case kind::TANGENT:
+    case kind::COSECANT:
+    case kind::SECANT:
+    case kind::COTANGENT:
+    case kind::ARCSINE:
+    case kind::ARCCOSINE:
+    case kind::ARCTANGENT:
+    case kind::ARCCOSECANT:
+    case kind::ARCSECANT:
+    case kind::ARCCOTANGENT:
+    case kind::SQRT:
     case kind::PI:
       return isTranscendentalMember(n);      
     case kind::ABS:

@@ -66,7 +66,7 @@ class SumOfInfeasibilitiesSPD : public SimplexDecisionProcedure {
 public:
   SumOfInfeasibilitiesSPD(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
 
-  Result::Sat findModel(bool exactResult);
+  Result::Sat findModel(bool exactResult) override;
 
   // other error variables are dropping
   WitnessImprovement dualLikeImproveError(ArithVar evar);

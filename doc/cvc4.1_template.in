@@ -48,9 +48,9 @@ is connected to a terminal, interactive mode is assumed.
 
 .IP "Each option marked with [*] has a \-\-no\-OPTIONNAME variant, which reverses the sense of the option."
 
-${common_manpage_documentation}
+${man_common}$
 
-${remaining_manpage_documentation}
+${man_others}$
 
 .IP "Each option marked with [*] has a \-\-no\-OPTIONNAME variant, which reverses the sense of the option."
 
@@ -129,4 +129,4 @@ contributors.
 
 Additionally, the CVC4 wiki contains useful information about the
 design and internals of CVC4.  It is maintained at
-.BR http://cvc4.cs.nyu.edu/wiki/ .
+.BR http://cvc4.cs.stanford.edu/wiki/ .

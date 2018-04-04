@@ -448,6 +448,58 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
   }
 }
 
+Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
+                                Type range,
+                                std::vector<Expr>& flattenVars)
+{
+  if (range.isFunction())
+  {
+    std::vector<Type> domainTypes =
+        (static_cast<FunctionType>(range)).getArgTypes();
+    for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
+    {
+      sorts.push_back(domainTypes[i]);
+      // the introduced variable is internal (not parsable)
+      std::stringstream ss;
+      ss << "__flatten_var_" << i;
+      Expr v = d_exprManager->mkBoundVar(ss.str(), domainTypes[i]);
+      flattenVars.push_back(v);
+    }
+    range = static_cast<FunctionType>(range).getRangeType();
+  }
+  if (sorts.empty())
+  {
+    return range;
+  }
+  return d_exprManager->mkFunctionType(sorts, range);
+}
+
+Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
+{
+  if (sorts.empty())
+  {
+    // no difference
+    return range;
+  }
+  while (range.isFunction())
+  {
+    std::vector<Type> domainTypes =
+        static_cast<FunctionType>(range).getArgTypes();
+    sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
+    range = static_cast<FunctionType>(range).getRangeType();
+  }
+  return d_exprManager->mkFunctionType(sorts, range);
+}
+
+Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex)
+{
+  for (unsigned i = startIndex; i < args.size(); i++)
+  {
+    expr = d_exprManager->mkExpr(HO_APPLY, expr, args[i]);
+  }
+  return expr;
+}
+
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
     case SYM_VARIABLE:
@@ -466,8 +518,10 @@ void Parser::reserveSymbolAtAssertionLevel(const std::string& varName) {
 }
 
 void Parser::checkDeclaration(const std::string& varName,
-                              DeclarationCheck check, SymbolType type,
-                              std::string notes) throw(ParserException) {
+                              DeclarationCheck check,
+                              SymbolType type,
+                              std::string notes)
+{
   if (!d_checksEnabled) {
     return;
   }
@@ -497,7 +551,8 @@ void Parser::checkDeclaration(const std::string& varName,
   }
 }
 
-void Parser::checkFunctionLike(Expr fun) throw(ParserException) {
+void Parser::checkFunctionLike(Expr fun)
+{
   if (d_checksEnabled && !isFunctionLike(fun)) {
     stringstream ss;
     ss << "Expecting function-like symbol, found '";
@@ -507,7 +562,8 @@ void Parser::checkFunctionLike(Expr fun) throw(ParserException) {
   }
 }
 
-void Parser::checkArity(Kind kind, unsigned numArgs) throw(ParserException) {
+void Parser::checkArity(Kind kind, unsigned numArgs)
+{
   if (!d_checksEnabled) {
     return;
   }
@@ -529,7 +585,8 @@ void Parser::checkArity(Kind kind, unsigned numArgs) throw(ParserException) {
   }
 }
 
-void Parser::checkOperator(Kind kind, unsigned numArgs) throw(ParserException) {
+void Parser::checkOperator(Kind kind, unsigned numArgs)
+{
   if (d_strictMode && d_logicOperators.find(kind) == d_logicOperators.end()) {
     parseError("Operator is not defined in the current logic: " +
                kindToString(kind));
@@ -540,9 +597,8 @@ void Parser::checkOperator(Kind kind, unsigned numArgs) throw(ParserException) {
 void Parser::addOperator(Kind kind) { d_logicOperators.insert(kind); }
 
 void Parser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
-
-Command* Parser::nextCommand() throw(ParserException,
-                                     UnsafeInterruptException) {
+Command* Parser::nextCommand()
+{
   Debug("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
   if (!d_commandQueue.empty()) {
@@ -575,7 +631,8 @@ Command* Parser::nextCommand() throw(ParserException,
   return cmd;
 }
 
-Expr Parser::nextExpression() throw(ParserException, UnsafeInterruptException) {
+Expr Parser::nextExpression()
+{
   Debug("parser") << "nextExpression()" << std::endl;
   const Options& options = d_exprManager->getOptions();
   d_resourceManager->spendResource(options.getParseStep());

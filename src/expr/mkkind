@@ -75,6 +75,7 @@ seen_theory_builtin=false
 
 theory_enum=
 theory_descriptions=
+theory_stats_prefixes=
 
 function theory {
   # theory ID T header
@@ -108,6 +109,9 @@ function theory {
   theory_enum="${theory_enum}  $1,
 "
   theory_descriptions="${theory_descriptions}  case ${theory_id}: out << \"${theory_id}\"; break;
+"
+  prefix=$(echo "$theory_id" | tr '[:upper:]' '[:lower:]')
+  theory_stats_prefixes="${theory_stats_prefixes}  case ${theory_id}: return \"theory::${prefix#theory_}\"; break;
 "
 }
 
@@ -416,6 +420,7 @@ for var in \
     type_constant_groundterms \
     type_properties_includes \
     theory_descriptions \
+    theory_stats_prefixes \
     template \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"

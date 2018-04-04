@@ -11,7 +11,7 @@ dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT
 
 AC_PREREQ([2.61])
-AC_INIT([cvc4], _CVC4_RELEASE_STRING, [cvc-bugs@cs.nyu.edu])
+AC_INIT([cvc4], _CVC4_RELEASE_STRING, [cvc4-bugs@cs.stanford.edu])
 AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
@@ -130,6 +130,7 @@ if test -z "${enable_optimized+set}" -a \
         -z "${with_cln+set}" -a \
         -z "${with_glpk+set}" -a \
         -z "${with_abc+set}" -a \
+        -z "${with_cadical+set}" -a \
         -z "${with_cryptominisat+set}" -a \
         -z "${with_lfsc+set}"; then
   custom_build_profile=no
@@ -233,6 +234,11 @@ fi
 if test -n "${with_abc+set}"; then
   if test "$with_abc" = yes; then
     btargs="$btargs abc"
+  fi
+fi
+if test -n "${with_cadical+set}"; then
+  if test "$with_cadical" = yes; then
+    btargs="$btargs cadical"
   fi
 fi
 if test -n "${with_cryptominisat+set}"; then
@@ -500,6 +506,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_DEBUG"
@@ -516,6 +523,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=optional         ; fi
     ;;
   default) # moderately optimized, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }"
@@ -533,6 +541,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=yes               ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=yes               ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     ;;
   competition) # maximally optimized, no assertions, no tracing, no dumping, muzzled
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_COMPETITION_MODE"
@@ -550,6 +559,7 @@ case "$with_build" in
     if test -z "${enable_tracing+set}"      ; then enable_tracing=no                ; fi
     if test -z "${enable_dumping+set}"      ; then enable_dumping=no                ; fi
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=yes                ; fi
+    if test -z "${enable_valgrind+set}"     ; then enable_valgrind=no               ; fi
     if test -z "${user_specified_enable_or_disable_shared}"; then enable_shared=no; fi
     if test -z "${user_specified_enable_or_disable_static}"; then enable_static=yes; fi
     if test -z "${enable_static_binary+set}"; then enable_static_binary=yes         ; fi
@@ -643,6 +653,47 @@ AC_MSG_RESULT([$enable_debug_symbols])
 if test "$enable_debug_symbols" = yes; then
   CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }-ggdb3"
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-ggdb3"
+fi
+
+AC_MSG_CHECKING([whether to enable Valgrind instrumentation])
+
+AC_ARG_ENABLE([valgrind],
+  [AS_HELP_STRING([--enable-valgrind],
+     [enable Valgrind instrumentation])])
+
+if test -z "${enable_valgrind+set}"; then
+  enable_valgrind=no
+fi
+
+AC_MSG_RESULT([$enable_valgrind])
+
+if test "$enable_valgrind" != no; then
+  # Valgrind instrumentation is either explicitly enabled (enable_valgrind=yes)
+  # or enabled if available (enable_valgrind=optional)
+  AC_CHECK_HEADER([valgrind/memcheck.h],
+                  [CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_VALGRIND"],
+                  [if test "$enable_valgrind" = yes; then
+                    AC_MSG_ERROR([Need valgrind/memcheck.h to enable Valgrind instrumentation])
+                   else
+                    AC_MSG_NOTICE([valgrind/memcheck.h missing, Valgrind instrumentation disabled])
+                   fi
+                  ])
+fi
+
+AC_MSG_CHECKING([whether to use the debug context memory manager])
+
+AC_ARG_ENABLE([debug-context-memory-manager],
+  [AS_HELP_STRING([--enable-debug-context-memory-manager],
+     [use the debug context memory manager])])
+
+if test -z "${enable_debug_context_memory_manager+set}"; then
+  enable_debug_context_memory_manager=no
+fi
+
+AC_MSG_RESULT([$enable_debug_context_memory_manager])
+
+if test "$enable_debug_context_memory_manager" = yes; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_DEBUG_CONTEXT_MEMORY_MANAGER"
 fi
 
 AC_MSG_CHECKING([whether to include statistics are turned on in libcvc4])
@@ -835,6 +886,19 @@ AC_SUBST([ABC_LDFLAGS])
 AC_SUBST([ABC_LIBS])
 
 
+# Build with libcadical
+AC_ARG_WITH([cadical],
+  [AS_HELP_STRING([--with-cadical],
+     [use the CaDiCaL SAT solver])], [], [with_cadical=])
+CVC4_CHECK_FOR_CADICAL
+if test $have_libcadical -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_CADICAL"
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$CADICAL_HOME/src"
+fi
+AM_CONDITIONAL([CVC4_USE_CADICAL], [test $have_libcadical -eq 1])
+AC_SUBST([CADICAL_LDFLAGS])
+AC_SUBST([CADICAL_LIBS])
+
 # Build with libcryptominisat
 AC_ARG_WITH([cryptominisat],
   [AS_HELP_STRING([--with-cryptominisat],
@@ -905,6 +969,7 @@ CVC4_CXX_OPTION([-Wno-tautological-compare], [WNO_TAUTOLOGICAL_COMPARE])
 CVC4_CXX_OPTION([-Wno-parentheses], [WNO_PARENTHESES])
 CVC4_CXX_OPTION([-Wno-uninitialized], [WNO_UNINITIALIZED])
 CVC4_CXX_OPTION([-Wno-unused-variable], [WNO_UNUSED_VARIABLE])
+CVC4_CXX_OPTION([-Wsuggest-override], [W_SUGGEST_OVERRIDE])
 CVC4_CXX_OPTION([-fno-strict-aliasing], [FNO_STRICT_ALIASING])
 AC_SUBST([WERROR])
 AC_SUBST([WNO_CONVERSION_NULL])
@@ -912,7 +977,10 @@ AC_SUBST([WNO_TAUTOLOGICAL_COMPARE])
 AC_SUBST([WNO_PARENTHESES])
 AC_SUBST([WNO_UNINITIALIZED])
 AC_SUBST([WNO_UNUSED_VARIABLE])
+AC_SUBST([W_SUGGEST_OVERRIDE])
 AC_SUBST([FNO_STRICT_ALIASING])
+
+CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${W_SUGGEST_OVERRIDE}"
 
 # On Mac, we have to fix the visibility of standard library symbols.
 # Otherwise, exported template instantiations---even though explicitly
@@ -1479,7 +1547,7 @@ CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/SmtEngine.3cvc_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/options.3cvc_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])
@@ -1517,6 +1585,7 @@ Multithreaded: $support_multithreaded
 Portfolio    : $with_portfolio
 
 ABC          : $with_abc
+CaDiCaL      : $with_cadical
 Cryptominisat: $with_cryptominisat
 GLPK         : $with_glpk
 LFSC         : $with_lfsc
