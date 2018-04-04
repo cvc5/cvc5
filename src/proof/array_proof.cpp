@@ -112,7 +112,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         std::make_shared<theory::eq::EqProof>();
 
     tp->assertAndPrint(
-        out, pf, map, theory::THEORY_ARRAYS, &neg, subTrans, &proofPrinter);
+        pf, map, theory::THEORY_ARRAYS, &neg, subTrans, &proofPrinter);
 
     Node n1;
     std::stringstream ss, ss2;
@@ -422,7 +422,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       n2 = b2;
     }
     Node n =
-        (side == 0 ? TheoryProof::eqNode(n1, n2) : TheoryProof::eqNode(n2, n1));
+        (side == 0 ? n1.eqNode(n2) : n2.eqNode(n1));
 
     Debug("mgdx") << "\ncong proved: " << n << "\n";
     return n;
@@ -434,7 +434,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     out << "(refl _ ";
     tp->printTerm(NodeManager::currentNM()->toExpr(pf.d_node), out, map);
     out << ")";
-    return TheoryProof::eqNode(pf.d_node, pf.d_node);
+    return pf.d_node.eqNode(pf.d_node);
   }
   case theory::eq::MERGED_THROUGH_EQUALITY:
   {
@@ -565,7 +565,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
               ++j;
             }
 
-            tp->transitivityPrinterHelper(theory::THEORY_ARRAYS,
+            tp->identicalEqualitiesPrinterHelper(theory::THEORY_ARRAYS,
                                           evenLengthSequence,
                                           sequenceOver,
                                           i,
@@ -642,29 +642,29 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       {
         if(n1[0] == n2[0]) {
           if(tb == 1) { Debug("mgdx") << "case 1\n"; }
-          n1 = TheoryProof::eqNode(n1[1], n2[1]);
+          n1 = n1[1].eqNode(n2[1]);
           ss << (firstNeg ? "(negsymm _ _ _ " : "(symm _ _ _ ") << ss1.str() << ") " << ss2.str();
         } else if(n1[1] == n2[1]) {
           if(tb == 1) { Debug("mgdx") << "case 2\n"; }
-          n1 = TheoryProof::eqNode(n1[0], n2[0]);
+          n1 = n1[0].eqNode(n2[0]);
           ss << ss1.str() << (secondNeg ? " (negsymm _ _ _ " : " (symm _ _ _ " ) << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
           if(tb == 1) { Debug("mgdx") << "case 3\n"; }
           if(!firstNeg && !secondNeg) {
-            n1 = TheoryProof::eqNode(n2[0], n1[1]);
+            n1 = n2[0].eqNode(n1[1]);
             ss << ss2.str() << " " << ss1.str();
           } else if (firstNeg) {
-            n1 = TheoryProof::eqNode(n1[1], n2[0]);
+            n1 = n1[1].eqNode(n2[0]);
             ss << " (negsymm _ _ _ " << ss1.str() << ") (symm _ _ _ " << ss2.str() << ")";
           } else {
             Assert(secondNeg);
-            n1 = TheoryProof::eqNode(n1[1], n2[0]);
+            n1 = n1[1].eqNode(n2[0]);
             ss << " (symm _ _ _ " << ss1.str() << ") (negsymm _ _ _ " << ss2.str() << ")";
           }
           if(tb == 1) { Debug("mgdx") << "++ proved " << n1 << "\n"; }
         } else if(n1[1] == n2[0]) {
           if(tb == 1) { Debug("mgdx") << "case 4\n"; }
-          n1 = TheoryProof::eqNode(n1[0], n2[1]);
+          n1 = n1[0].eqNode(n2[1]);
           ss << ss1.str() << " " << ss2.str();
         } else {
           Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
@@ -1086,10 +1086,8 @@ void ArrayProof::registerTerm(Expr term) {
   if (term.getKind() == kind::SELECT && term.getType().isBoolean()) {
     // Ensure cnf literals
     Node asNode(term);
-    ProofManager::currentPM()->ensureLiteral(
-        TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(true)));
-    ProofManager::currentPM()->ensureLiteral(
-        TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(false)));
+    ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(true)));
+    ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(false)));
   }
 
   // recursively declare all other terms

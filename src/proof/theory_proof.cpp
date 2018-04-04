@@ -1263,8 +1263,7 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   os << "))";
 }
 
-// Copied from uf_proof.cpp and array_proof.cpp
-// congrence matching term helper
+
 inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId)
 {
   bool ufProof = (theoryId == theory::THEORY_UF);
@@ -1345,7 +1344,6 @@ inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId)
 }
 
 void TheoryProof::assertAndPrint(
-    std::ostream& out,
     const theory::eq::EqProof& pf,
     const ProofLetMap& map,
     const theory::TheoryId theoryId,
@@ -1544,7 +1542,7 @@ void TheoryProof::assertAndPrint(
   }
 }
 
-void TheoryProof::transitivityPrinterHelper(theory::TheoryId theoryId,
+void TheoryProof::identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
                                             bool evenLengthSequence,
                                             bool sequenceOver,
                                             int i,
@@ -1587,12 +1585,12 @@ void TheoryProof::transitivityPrinterHelper(theory::TheoryId theoryId,
     {
       if (match(n1[0], pf.d_node[0], theoryId))
       {
-        n1 = eqNode(n1[0], n1[0]);
+        n1 = n1[0].eqNode(n1[0]);
         (*ss) << ss1String << " (symm _ _ _ " << ss1String << ")";
       }
       else if (match(n1[1], pf.d_node[1], theoryId))
       {
-        n1 = eqNode(n1[1], n1[1]);
+        n1 = n1[1].eqNode(n1[1]);
         (*ss) << " (symm _ _ _ " << ss1String << ")" << ss1String;
       }
       else
@@ -1618,14 +1616,14 @@ void TheoryProof::transitivityPrinterHelper(theory::TheoryId theoryId,
       {
         // Eliminate n1[1]
         (*ss) << ss1String << " (symm _ _ _ " << ss1String << ")";
-        n1 = eqNode(n1[0], n1[0]);
+        n1 = n1[0].eqNode(n1[0]);
       }
       else if ((n1[1] == nodeAfterEqualitySequence[0])
                || (n1[1] == nodeAfterEqualitySequence[1]))
       {
         // Eliminate n1[0]
         (*ss) << " (symm _ _ _ " << ss1String << ")" << ss1String;
-        n1 = eqNode(n1[1], n1[1]);
+        n1 = n1[1].eqNode(n1[1]);
       }
       else
       {

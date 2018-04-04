@@ -239,22 +239,22 @@ public:
     d_proofEngine->printSort(type, os);
   }
 
-  // Copied from uf_proof.cpp and array_proof.cpp
+  // congrence matching term helper
   inline static bool match(TNode n1, TNode n2, theory::TheoryId);
-
-  // Copied from uf_proof.cpp and array_proof.cpp
-  inline static Node eqNode(TNode n1, TNode n2)
-  {
-    return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
-  }
 
   /**
    * Helper function for ProofUF::toStreamRecLFSC and
    * ProofArray::toStreamRecLFSC
-   */
-
+   * Inputs:
+   *    - pf: equality engine proof
+   *    - map: A map for the let-expressions in the proof
+   *    - theoryId: e.g. theory::THEORY_ARRAYS
+   *    - pPrettyPrinter: optional pretty printer for sub-proofs
+   * Outputs:
+   *    - neg: the index of the contradicting node in pf.
+   *    - subTrans: main transitivity proof part
+   *    */
   void assertAndPrint(
-      std::ostream& out,
       const theory::eq::EqProof& pf,
       const ProofLetMap& map,
       const theory::TheoryId theoryId,
@@ -265,8 +265,23 @@ public:
   /**
    * Helper function for ProofUF::toStreamRecLFSC and
    * ProofArray::toStreamRecLFSC
+   * Inputs:
+   *    - theoryId: e.g. theory::THEORY_ARRAYS
+   *    - evenLengthSequence: true iff the length of the sequence
+   *                          of the identical equalities is even.
+   *    - sequenceOver: have we reached the last equality of this sequence?
+   *    - i: index of current son of pf (in the main loop that calls this function)
+   *    - pf: equality engine proof
+   *    - map: A map for the let-expressions in the proof
+   *    - n2: transitivity sub-proof
+   *    - ss1String: current stringstream content
+   * Outputs:
+   *    - ss: output stream to which the proof is printed
+   *    - n1: transitivity sub-proof
+   *    - nodeAfterEqualitySequence: The node after the identical sequence.
+   * 
    */
-  void transitivityPrinterHelper(theory::TheoryId theoryId,
+  void identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
                                  bool evenLengthSequence,
                                  bool sequenceOver,
                                  int i,

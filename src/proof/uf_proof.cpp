@@ -74,7 +74,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
     std::shared_ptr<theory::eq::EqProof> subTrans =
         std::make_shared<theory::eq::EqProof>();
 
-    tp->assertAndPrint(out, pf, map, theory::THEORY_UF, &neg, subTrans);
+    tp->assertAndPrint(pf, map, theory::THEORY_UF, &neg, subTrans);
 
     Node n1;
     std::stringstream ss, ss2;
@@ -297,7 +297,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       n2 = b2;
     }
     Node n =
-        (side == 0 ? TheoryProof::eqNode(n1, n2) : TheoryProof::eqNode(n2, n1));
+        (side == 0 ? n1.eqNode(n2) : n2.eqNode(n1));
     if(tb == 1) {
       Debug("pf::uf") << "\ncong proved: " << n << "\n";
     }
@@ -311,7 +311,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
     out << "(refl _ ";
     tp->printTerm(NodeManager::currentNM()->toExpr(pf.d_node), out, map);
     out << ")";
-    return TheoryProof::eqNode(pf.d_node, pf.d_node);
+    return pf.d_node.eqNode(pf.d_node);
   }
   case theory::eq::MERGED_THROUGH_EQUALITY:
     Assert(!pf.d_node.isNull());
@@ -423,7 +423,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
               ++j;
             }
 
-            tp->transitivityPrinterHelper(theory::THEORY_UF,
+            tp->identicalEqualitiesPrinterHelper(theory::THEORY_UF,
                                           evenLengthSequence,
                                           sequenceOver,
                                           i,
@@ -473,20 +473,20 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       {
         if(n1[0] == n2[0]) {
           if(tb == 1) { Debug("pf::uf") << "case 1\n"; }
-          n1 = TheoryProof::eqNode(n1[1], n2[1]);
+          n1 = n1[1].eqNode(n2[1]);
           ss << "(symm _ _ _ " << ss1.str() << ") " << ss2.str();
         } else if(n1[1] == n2[1]) {
           if(tb == 1) { Debug("pf::uf") << "case 2\n"; }
-          n1 = TheoryProof::eqNode(n1[0], n2[0]);
+          n1 = n1[0].eqNode(n2[0]);
           ss << ss1.str() << " (symm _ _ _ " << ss2.str() << ")";
         } else if(n1[0] == n2[1]) {
           if(tb == 1) { Debug("pf::uf") << "case 3\n"; }
-          n1 = TheoryProof::eqNode(n2[0], n1[1]);
+          n1 = n2[0].eqNode(n1[1]);
           ss << ss2.str() << " " << ss1.str();
           if(tb == 1) { Debug("pf::uf") << "++ proved " << n1 << "\n"; }
         } else if(n1[1] == n2[0]) {
           if(tb == 1) { Debug("pf::uf") << "case 4\n"; }
-          n1 = TheoryProof::eqNode(n1[0], n2[1]);
+          n1 = n1[0].eqNode(n2[1]);
           ss << ss1.str() << " " << ss2.str();
         } else {
           Warning() << "\n\ntrans proof failure at step " << i << "\n\n";
@@ -602,10 +602,8 @@ void UFProof::registerTerm(Expr term) {
     if (term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
       // Ensure cnf literals
       Node asNode(term);
-      ProofManager::currentPM()->ensureLiteral(
-          TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(true)));
-      ProofManager::currentPM()->ensureLiteral(
-          TheoryProof::eqNode(term, NodeManager::currentNM()->mkConst(false)));
+      ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(true)));
+      ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(false)));
     }
   }
 
