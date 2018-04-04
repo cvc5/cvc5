@@ -329,7 +329,6 @@ REG0_TESTS = \
 	regress0/datatypes/cdt-non-canon-stream.smt2 \
 	regress0/datatypes/coda_simp_model.smt2 \
 	regress0/datatypes/conqueue-dt-enum-iloop.smt2 \
-	regress0/datatypes/datatype-dump.cvc \
 	regress0/datatypes/datatype.cvc \
 	regress0/datatypes/datatype0.cvc \
 	regress0/datatypes/datatype1.cvc \
@@ -1089,6 +1088,7 @@ REG1_TESTS = \
 	regress1/lemmas/pursuit-safety-8.smt \
 	regress1/lemmas/simple_startup_9nodes.abstract.base.smt \
 	regress1/nl/NAVIGATION2.smt2 \
+	regress1/nl/arctan2-expdef.smt2 \
 	regress1/nl/arrowsmith-050317.smt2 \
 	regress1/nl/bad-050217.smt2 \
 	regress1/nl/bug698.smt2 \
@@ -1267,6 +1267,7 @@ REG1_TESTS = \
 	regress1/quantifiers/smtlibe99bbe.smt2 \
 	regress1/quantifiers/smtlibf957ea.smt2 \
 	regress1/quantifiers/stream-x2014-09-18-unsat.smt2 \
+	regress1/quantifiers/sygus-infer-nested.smt2 \
 	regress1/quantifiers/symmetric_unsat_7.smt2 \
 	regress1/quantifiers/z3.620661-no-fv-trigger.smt2 \
 	regress1/rels/addr_book_1.cvc \
@@ -1604,6 +1605,7 @@ REG4_TESTS = \
 # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
 #
 # regress0/aufbv/bug348 does not seem to terminate with proofs
+# regress0/datatypes/datatype-dump.cvc (FIXME #1649)
 DISABLED_TESTS = \
 	regress0/arith/bug549.cvc \
 	regress0/arith/incorrect1.smt \
