@@ -154,7 +154,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     return false;
   }
 
-  Assert( !processed_assertions.empty() );
+  Assert(!processed_assertions.empty());
   // conjunction of the assertions
   Trace("sygus-infer") << "Construct body..." << std::endl;
   Node body;
