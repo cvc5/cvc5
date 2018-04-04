@@ -24,8 +24,6 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-using namespace std;
-
 namespace CVC4 {
 
 /**
@@ -34,6 +32,30 @@ namespace CVC4 {
 class SymmetryDetect
 {
  public:
+  /**
+   * Constructor
+   * */
+  SymmetryDetect()
+  {
+    d_trueNode = NodeManager::currentNM()->mkConst<bool>(true);
+    d_falseNode = NodeManager::currentNM()->mkConst<bool>(false);
+  }
+
+  /**
+   * Destructor
+   * */
+  ~SymmetryDetect() {}
+
+  /** Get the final partition after symmetry detection */
+  void getPartition(std::vector<std::vector<Node> >& parts, std::vector<Node>& assertions);
+
+  /** Pretty print a vector of nodes */
+  static std::string printNodeVector(std::vector<Node> nodes);
+
+  /** Pretty print a set of nodes */
+  static std::string printNodeSet(std::unordered_set<Node, NodeHashFunction> nodes);
+
+ private:
   /**
    * This is the class to store the partition,
    * where d_term store the term corresponding to the partition,
@@ -51,7 +73,7 @@ class SymmetryDetect
     std::map<Node, Node> d_var_to_subvar;
 
     /** Mapping between the substitute variable and variables w-> { x, y, z } */
-    std::map<Node, vector<Node> > d_subvar_to_vars;
+    std::map<Node, std::vector<Node> > d_subvar_to_vars;
   };
 
   /**
@@ -70,27 +92,21 @@ class SymmetryDetect
 
     /** Add variable v to the trie, indexed by
      * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. */
-    void addNode(Node v, vector<Partition>& parts);
-    void addNode(Node v, vector<Node>& subs);
+    void addNode(Node v, std::vector<Partition>& parts);
+    void addNode(Node v, std::vector<Node>& subs);
 
     /** Get all the new regions of a partition and store in part */
     void getNewPartition(Partition& part);
     void getNewPartition(Partition& part, PartitionTrie& pt);
   };
 
-  /**
-   * Constructor
-   * */
-  SymmetryDetect()
-  {
-    d_trueNode = NodeManager::currentNM()->mkConst<bool>(true);
-    d_falseNode = NodeManager::currentNM()->mkConst<bool>(false);
-  }
 
-  /**
-   * Destructor
-   * */
-  ~SymmetryDetect() {}
+  /** True and false constant nodes */
+  Node d_trueNode;
+  Node d_falseNode;
+
+  /** Cache for partitions */
+  std::map<Node, Partition> d_term_partition;
 
   /** detect
    *
@@ -99,24 +115,7 @@ class SymmetryDetect
    * such that for each set S in P, then all automorphisms for S applied to
    * assertions result in an equisatisfiable formula.
    */
-  Partition detect(vector<Node>& assertions);
-
-  /** Get the final partition after symmetry detection */
-  void getPartition(vector<vector<Node> >& parts, vector<Node>& assertions);
-
-  /** Pretty print a vector of nodes */
-  static string printNodeVector(vector<Node> nodes);
-
-  /** Pretty print a set of nodes */
-  static string printNodeSet(unordered_set<Node, NodeHashFunction> nodes);
-
- private:
-  /** True and false constant nodes */
-  Node d_trueNode;
-  Node d_falseNode;
-
-  /** Cache for partitions */
-  std::map<Node, Partition> d_term_partition;
+  Partition detect(std::vector<Node>& assertions);
 
   /** Find symmetries in node */
   SymmetryDetect::Partition findPartitions(Node node);
@@ -126,24 +125,24 @@ class SymmetryDetect
    *  We might need optimizations here, such as rewriting the input to negation
    * normal form.
    * */
-  void collectChildren(Node node, vector<Node>& children);
-  void collectChildren(Node node, Kind k, vector<Node>& children);
+  void collectChildren(Node node, std::vector<Node>& children);
+  void collectChildren(Node node, Kind k, std::vector<Node>& children);
 
   /** Print a partition */
   void printPartition(Partition p);
 
   /** Get all variables from partitions */
-  void getVariables(vector<Partition>& partitions,
-                    unordered_set<Node, NodeHashFunction>& vars);
+  void getVariables(std::vector<Partition>& partitions,
+                    std::unordered_set<Node, NodeHashFunction>& vars);
 
   /** Process singleton partitions and add all variables to vars */
-  void processSingletonPartitions(vector<Partition>& partitions,
-                                  unordered_set<Node, NodeHashFunction>& vars);
+  void processSingletonPartitions(std::vector<Partition>& partitions,
+                                  std::unordered_set<Node, NodeHashFunction>& vars);
 
   /** Do matches on singleton partitions */
-  void matches(vector<Partition>& partitions,
-               map<Node, Node>& subvar_to_var,
-               map<Node, Node>& subvar_to_expr);
+  void matches(std::vector<Partition>& partitions,
+               std::map<Node, Node>& subvar_to_var,
+               std::map<Node, Node>& subvar_to_expr);
 };
 
 }  // namespace CVC4
