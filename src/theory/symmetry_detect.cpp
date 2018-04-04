@@ -289,17 +289,16 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 {
   if (theory::quantifiers::TermUtil::isAssoc(node.getKind()))
   {
-    // for(const Node& n : node)
-    for (unsigned int i = 0; i < node.getNumChildren(); ++i)
+    for(const Node& n : node)
     {
-      collectChildren(node[i], node.getKind(), children);
+      collectChildren(n, node.getKind(), children);
     }
   }
   else
   {
-    for (unsigned int i = 0; i < node.getNumChildren(); ++i)
+    for(const Node& n : node)
     {
-      children.push_back(node[i]);
+      children.push_back(n);
     }
   }
 }
@@ -308,9 +307,9 @@ void SymmetryDetect::collectChildren(Node node, Kind k, vector<Node>& children)
 {
   if (node.getKind() == k)
   {
-    for (unsigned int i = 0; i < node.getNumChildren(); ++i)
+    for(const Node& n : node)
     {
-      collectChildren(node[i], k, children);
+      collectChildren(n, k, children);
     }
   }
   else

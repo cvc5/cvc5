@@ -28,6 +28,9 @@ using namespace std;
 
 namespace CVC4 {
 
+/**
+ * This is the class to detect symmetries from input based on terms equality.
+ * */
 class SymmetryDetect
 {
  public:
@@ -133,7 +136,7 @@ class SymmetryDetect
   void getVariables(vector<Partition>& partitions,
                     unordered_set<Node, NodeHashFunction>& vars);
 
-  /** Start processing singleton partitions and add all variables to vars */
+  /** Process singleton partitions and add all variables to vars */
   void processSingletonPartitions(vector<Partition>& partitions,
                                   unordered_set<Node, NodeHashFunction>& vars);
 
