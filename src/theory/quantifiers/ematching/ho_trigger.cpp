@@ -487,8 +487,8 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           sargts.insert(sargts.begin(), argTypes.begin() + a, argTypes.end());
           Assert(sargts.size() > 0);
           TypeNode stn = nm->mkFunctionType(sargts, range);
-          Trace("ho-quant-trigger-debug") << "For " << f << ", check " << stn
-                                          << "..." << std::endl;
+          Trace("ho-quant-trigger-debug")
+              << "For " << f << ", check " << stn << "..." << std::endl;
           // if a variable of this type occurs in this trigger
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
@@ -499,8 +499,8 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
               // this forces f to be a first-class member of the quantifier-free
               // equality engine, which in turn forces the quantifier-free
               // theory solver to expand it to an HO_APPLY chain.
-              Trace("ho-quant") << "Added ho match predicate lemma : " << au
-                                << std::endl;
+              Trace("ho-quant")
+                  << "Added ho match predicate lemma : " << au << std::endl;
               numLemmas++;
             }
           }

@@ -319,7 +319,8 @@ void TermDb::computeUfTerms( TNode f ) {
       //Assert( !options::ufHo() || ee->areEqual( ff, f ) );
       std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( ff );
       if( it!=d_op_map.end() ){
-        Trace("term-db-debug") << "Adding terms for operator " << ff << std::endl;
+        Trace("term-db-debug")
+            << "Adding terms for operator " << ff << std::endl;
         for( unsigned i=0; i<it->second.size(); i++ ){
           Node n = it->second[i];
           //to be added to term index, term must be relevant, and exist in EE
@@ -857,16 +858,21 @@ bool TermDb::reset( Theory::Effort effort ){
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
-          if( n.isVar() )
+          if (n.isVar())
           {
-            if( d_op_map.find( n )!=d_op_map.end() ){
-              if( first.isNull() ){
+            if (d_op_map.find(n) != d_op_map.end())
+            {
+              if (first.isNull())
+              {
                 first = n;
                 d_ho_op_rep[n] = n;
-              }else{
-                Trace("quant-ho") << "  have : " << n << " == " << first << ", type = " << n.getType() << std::endl;
+              }
+              else
+              {
+                Trace("quant-ho") << "  have : " << n << " == " << first
+                                  << ", type = " << n.getType() << std::endl;
                 d_ho_op_rep[n] = first;
-                d_ho_op_rep_slaves[first].push_back( n );
+                d_ho_op_rep_slaves[first].push_back(n);
               }
             }
           }
