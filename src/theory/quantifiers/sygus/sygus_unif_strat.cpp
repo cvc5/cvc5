@@ -848,11 +848,11 @@ void SygusUnifStrategy::staticLearnRedundantOps(
 }
 
 void EnumInfo::initialize(EnumRole role) { d_role = role; }
-bool EnumTypeInfoStrat::isValid(UnifContext* x)
+bool EnumTypeInfoStrat::isValid(UnifContext& x)
 {
-  if ((x->d_has_string_pos == role_string_prefix
+  if ((x.getCurrentRole() == role_string_prefix
        && d_this == strat_CONCAT_SUFFIX)
-      || (x->d_has_string_pos == role_string_suffix
+      || (x.getCurrentRole() == role_string_suffix
           && d_this == strat_CONCAT_PREFIX))
   {
     return false;
