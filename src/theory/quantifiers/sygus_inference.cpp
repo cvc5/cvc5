@@ -62,6 +62,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     {
       eassertions.push_back(ca);
     }
+    index++;
   }
 
   // process eassertions
