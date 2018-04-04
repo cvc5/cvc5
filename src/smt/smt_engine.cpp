@@ -101,6 +101,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus_inference.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -1369,6 +1370,14 @@ void SmtEngine::setDefaults() {
     */
   }
 
+  // sygus inference may require datatypes
+  if (options::sygusInference())
+  {
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableTheory(THEORY_DATATYPES);
+    d_logic.lock();
+  }
+
   if ((options::checkModels() || options::checkSynthSol())
       && !options::produceAssertions())
   {
@@ -1885,6 +1894,23 @@ void SmtEngine::setDefaults() {
   }
 
   //apply counterexample guided instantiation options
+  // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
+  if (options::sygusInference())
+  {
+    if (!options::ceGuidedInst.wasSetByUser())
+    {
+      options::ceGuidedInst.set(true);
+    }
+    // optimization: apply preskolemization, makes it succeed more often
+    if (!options::preSkolemQuant.wasSetByUser())
+    {
+      options::preSkolemQuant.set(true);
+    }
+    if (!options::preSkolemQuantNested.wasSetByUser())
+    {
+      options::preSkolemQuantNested.set(true);
+    }
+  }
   if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
     if( !options::ceGuidedInst.wasSetByUser() ){
       options::ceGuidedInst.set( true );
@@ -4005,9 +4031,19 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  // global negation of the formula
-  if (options::globalNegate())
+  if (options::sygusInference())
   {
+    // try recast as sygus
+    quantifiers::SygusInference si;
+    if (si.simplify(d_assertions.ref()))
+    {
+      Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
+      d_smt.d_globalNegation = !d_smt.d_globalNegation;
+    }
+  }
+  else if (options::globalNegate())
+  {
+    // global negation of the formula
     quantifiers::GlobalNegate gn;
     gn.simplify(d_assertions.ref());
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
