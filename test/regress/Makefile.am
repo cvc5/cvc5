@@ -57,5 +57,5 @@ EXTRA_DIST = \
 	regress0/tptp/Axioms/SYN000_0.ax \
 	Makefile.levels \
 	Makefile.tests \
-	run_regression.py \
-	README
+  run_regression.py \
+	README.md
