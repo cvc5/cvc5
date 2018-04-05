@@ -27,6 +27,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusUnif::SygusUnif()
+    : d_qe(nullptr), d_tds(nullptr), d_check_sol(false), d_cond_count(0)
 {
 }
 
