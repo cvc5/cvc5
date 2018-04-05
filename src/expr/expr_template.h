@@ -527,9 +527,9 @@ public:
   bool isConst() const;
 
   /**
-   * Returns true iff this expression contains a free variable.
+   * Check if this expression contains a free variable.
    *
-   * @return true iff this node contains a free variable.
+   * @return true if this node contains a free variable.
    */
   bool hasFreeVariable() const;
 
