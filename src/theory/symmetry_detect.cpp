@@ -104,7 +104,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   Trace("sym-dt") << "[sym-dt] collectChildren for: " << node
                   << " with operator " << node.getKind() << endl;
   collectChildren(node, children);
-  Trace("sym-dt") << "[sym-dt] children: " << (cout, children)
+  Trace("sym-dt") << "[sym-dt] children: " << children
                   << endl;
 
   // Create partitions for children
@@ -438,7 +438,7 @@ void SymmetryDetect::PartitionTrie::addNode(Node v,
   }
 
   Trace("sym-dt") << "[sym-dt] Substitution variables for the variable " << v
-                  << ": " << (cout, subvars) << endl;
+                  << ": " << subvars << endl;
 
   if (subvars.size() >= 1)
   {
