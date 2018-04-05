@@ -201,7 +201,7 @@ Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
   if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
-      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER || k==SEP_PTO || k==HO_APPLY ){
+      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER || k==SEP_PTO ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();
@@ -215,6 +215,8 @@ Node TermDb::getMatchOperator( Node n ) {
     Trace("par-op") << "Parametric operator : " << k << ", " << n.getOperator() << ", " << tn << " : " << n << std::endl;
     d_par_op_map[op][tn] = n;
     return n;
+  }else if( k==HO_APPLY ){
+    return n[0];
   }else if( inst::Trigger::isAtomicTriggerKind( k ) ){
     return n.getOperator();
   }else{
@@ -261,10 +263,19 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
 }
 
 void TermDb::computeArgReps( TNode n ) {
-  if( d_arg_reps.find( n )==d_arg_reps.end() ){
+  if( d_arg_reps.find( n )==d_arg_reps.end() )
+  {
     eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
-    for( unsigned j=0; j<n.getNumChildren(); j++ ){
-      TNode r = ee->hasTerm( n[j] ) ? ee->getRepresentative( n[j] ) : n[j];
+    if( n.getKind()==HO_APPLY )
+    {
+      TNode nc = n[1];
+      TNode r = ee->hasTerm( nc ) ? ee->getRepresentative( nc ) : nc;
+      d_arg_reps[n].push_back( r );
+      return;
+    }
+    for( const TNode& nc : n )
+    {
+      TNode r = ee->hasTerm( nc ) ? ee->getRepresentative( nc ) : nc;
       d_arg_reps[n].push_back( r );
     }
   }
@@ -272,26 +283,26 @@ void TermDb::computeArgReps( TNode n ) {
 
 void TermDb::computeUfEqcTerms( TNode f ) {
   Assert( f==getOperatorRepresentative( f ) );
-  if( d_func_map_eqc_trie.find( f )==d_func_map_eqc_trie.end() ){
-    d_func_map_eqc_trie[f].clear();
-    // get the matchable operators in the equivalence class of f
-    std::vector< TNode > ops;
-    ops.push_back( f );
-    if( options::ufHo() ){
-      ops.insert( ops.end(), d_ho_op_rep_slaves[f].begin(), d_ho_op_rep_slaves[f].end() );
-    }
-    eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
-    for( unsigned j=0; j<ops.size(); j++ ){
-      Node ff = ops[j];
-      //Assert( !options::ufHo() || ee->areEqual( ff, f ) );
-      for( unsigned i=0; i<d_op_map[ff].size(); i++ ){
-        TNode n = d_op_map[ff][i];
-        if( hasTermCurrent( n ) ){
-          if( isTermActive( n ) ){
-            computeArgReps( n );
-            TNode r = ee->hasTerm( n ) ? ee->getRepresentative( n ) : n;
-            d_func_map_eqc_trie[f].d_data[r].addTerm( n, d_arg_reps[n] );
-          }
+  if( d_func_map_eqc_trie.find( f )!=d_func_map_eqc_trie.end() ){
+    return;
+  }
+  d_func_map_eqc_trie[f].clear();
+  // get the matchable operators in the equivalence class of f
+  std::vector< TNode > ops;
+  ops.push_back( f );
+  if( options::ufHo() ){
+    ops.insert( ops.end(), d_ho_op_rep_slaves[f].begin(), d_ho_op_rep_slaves[f].end() );
+  }
+  eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
+  for( const Node& ff : ops )
+  {
+    for( const TNode& n : d_op_map[ff] )
+    {
+      if( hasTermCurrent( n ) ){
+        if( isTermActive( n ) ){
+          computeArgReps( n );
+          TNode r = ee->hasTerm( n ) ? ee->getRepresentative( n ) : n;
+          d_func_map_eqc_trie[f].d_data[r].addTerm( n, d_arg_reps[n] );
         }
       }
     }
@@ -314,15 +325,13 @@ void TermDb::computeUfTerms( TNode f ) {
     unsigned alreadyCongruentCount = 0;
     unsigned relevantCount = 0;
     eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
-    for( unsigned j=0; j<ops.size(); j++ ){
-      Node ff = ops[j];
+    for( const Node& ff : ops ){
       //Assert( !options::ufHo() || ee->areEqual( ff, f ) );
       std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( ff );
       if( it!=d_op_map.end() ){
         Trace("term-db-debug")
             << "Adding terms for operator " << ff << std::endl;
-        for( unsigned i=0; i<it->second.size(); i++ ){
-          Node n = it->second[i];
+        for( const Node& n : it->second ){
           //to be added to term index, term must be relevant, and exist in EE
           if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
             relevantCount++;
@@ -858,22 +867,19 @@ bool TermDb::reset( Theory::Effort effort ){
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
-          if (n.isVar())
+          if (d_op_map.find(n) != d_op_map.end())
           {
-            if (d_op_map.find(n) != d_op_map.end())
+            if (first.isNull())
             {
-              if (first.isNull())
-              {
-                first = n;
-                d_ho_op_rep[n] = n;
-              }
-              else
-              {
-                Trace("quant-ho") << "  have : " << n << " == " << first
-                                  << ", type = " << n.getType() << std::endl;
-                d_ho_op_rep[n] = first;
-                d_ho_op_rep_slaves[first].push_back(n);
-              }
+              first = n;
+              d_ho_op_rep[n] = n;
+            }
+            else
+            {
+              Trace("quant-ho") << "  have : " << n << " == " << first
+                                << ", type = " << n.getType() << std::endl;
+              d_ho_op_rep[n] = first;
+              d_ho_op_rep_slaves[first].push_back(n);
             }
           }
           ++eqc_i;

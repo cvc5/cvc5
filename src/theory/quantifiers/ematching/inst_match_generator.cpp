@@ -1044,8 +1044,10 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     //convert to actual used terms
     for( std::map< int, int >::iterator it = d_var_num.begin(); it != d_var_num.end(); ++it ){
       if( it->second>=0 ){
-        Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
-        m.setValue( it->second, t[it->first] );
+        Assert( it->second==0 || t.getKind()!=HO_APPLY );
+        unsigned index = t.getKind()==HO_APPLY ? 1 : it->first;
+        Debug("simple-trigger") << "...set " << it->second << " " << t[index] << std::endl;
+        m.setValue( it->second, t[index] );
       }
     }
     // we do not need the trigger parent for simple triggers (no post-processing
