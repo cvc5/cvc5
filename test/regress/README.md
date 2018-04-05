@@ -79,10 +79,10 @@ executing CVC4, for example:
 ```
 
 Sometimes, the expected output or error output may need some processing. This
-is done with the `SCRUBBER` and `ERROR-SCRUBBER` directives.  The command
+is done with the `SCRUBBER` and `ERROR-SCRUBBER` directives. The command
 specified by the `SCRUBBER`/`ERROR-SCRUBBER` directive is applied to the output
-before the the output is matched against the `EXPECT`/`EXPECT-ERROR`
-directives. For example:
+before the the output is matched against the `EXPECT`/`EXPECT-ERROR` directives
+respectively. For example:
 
 ```
 ; SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/' -e 's/in a linear logic: .*$/in a linear logic: TERM/'
