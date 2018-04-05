@@ -443,6 +443,7 @@ REG0_TESTS = \
 	regress0/ho/ext-ho.smt2 \
 	regress0/ho/ext-sat-partial-eval.smt2 \
 	regress0/ho/ext-sat.smt2 \
+	regress0/ho/ho-match-fun-suffix.smt2 \
 	regress0/ho/ho-matching-enum.smt2 \
 	regress0/ho/ho-matching-nested-app.smt2 \
 	regress0/ho/ite-apply-eq.smt2 \
@@ -1266,6 +1267,7 @@ REG1_TESTS = \
 	regress1/quantifiers/smtlibe99bbe.smt2 \
 	regress1/quantifiers/smtlibf957ea.smt2 \
 	regress1/quantifiers/stream-x2014-09-18-unsat.smt2 \
+	regress1/quantifiers/sygus-infer-nested.smt2 \
 	regress1/quantifiers/symmetric_unsat_7.smt2 \
 	regress1/quantifiers/z3.620661-no-fv-trigger.smt2 \
 	regress1/rels/addr_book_1.cvc \

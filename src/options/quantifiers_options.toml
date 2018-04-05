@@ -879,6 +879,15 @@ header = "options/quantifiers_options.h"
 ### Synthesis options
 
 [[option]]
+  name       = "sygusInference"
+  category   = "regular"
+  long       = "sygus-inference"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
+
+[[option]]
   name       = "ceGuidedInst"
   category   = "regular"
   long       = "cegqi"

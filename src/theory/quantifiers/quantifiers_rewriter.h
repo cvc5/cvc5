@@ -100,6 +100,18 @@ public:
   static Node rewriteRewriteRule( Node r );
   static bool containsQuantifiers( Node n );
   static bool isPrenexNormalForm( Node n );
+  /** preprocess
+   *
+   * This returns the result of applying simple quantifiers-specific
+   * preprocessing to n, including but not limited to:
+   * - rewrite rule elimination,
+   * - pre-skolemization,
+   * - aggressive prenexing.
+   * The argument isInst is set to true if n is an instance of a previously
+   * registered quantified formula. If this flag is true, we do not apply
+   * certain steps like pre-skolemization since we know they will have no
+   * effect.
+   */
   static Node preprocess( Node n, bool isInst = false );
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );

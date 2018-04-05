@@ -49,7 +49,7 @@ class SygusUnif
 {
  public:
   SygusUnif();
-  ~SygusUnif();
+  virtual ~SygusUnif();
 
   /** initialize
    *

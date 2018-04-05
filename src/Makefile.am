@@ -62,6 +62,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/passes/int_to_bv.cpp \
+	preprocessing/passes/int_to_bv.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -483,6 +485,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_unif_strat.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
 	theory/quantifiers/sygus/term_database_sygus.h \
+	theory/quantifiers/sygus_inference.cpp \
+	theory/quantifiers/sygus_inference.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
 	theory/quantifiers/symmetry_breaking.cpp \
