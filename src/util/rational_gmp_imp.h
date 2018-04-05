@@ -32,13 +32,9 @@
 
 #include "base/exception.h"
 #include "util/integer.h"
+#include "util/maybe.h"
 
 namespace CVC4 {
-
-class CVC4_PUBLIC RationalFromDoubleException : public Exception {
-public:
-  RationalFromDoubleException(double d) throw();
-};
 
 /**
  ** A multi-precision rational constant.
@@ -88,6 +84,7 @@ public:
 
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
+   *
    * Throws std::invalid_argument if the string is not a valid rational.
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
@@ -192,7 +189,7 @@ public:
     return Integer(d_value.get_den());
   }
 
-  static Rational fromDouble(double d) throw(RationalFromDoubleException);
+  static Maybe<Rational> fromDouble(double d);
 
   /**
    * Get a double representation of this Rational, which is

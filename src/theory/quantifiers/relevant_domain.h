@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__RELEVANT_DOMAIN_H
 
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,11 +43,11 @@ class RelevantDomain : public QuantifiersUtil
   RelevantDomain(QuantifiersEngine* qe);
   virtual ~RelevantDomain();
   /** Reset. */
-  virtual bool reset(Theory::Effort e) override;
+  bool reset(Theory::Effort e) override;
   /** Register the quantified formula q */
-  virtual void registerQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** identify */
-  virtual std::string identify() const override { return "RelevantDomain"; }
+  std::string identify() const override { return "RelevantDomain"; }
   /** Compute the relevant domain */
   void compute();
   /** Relevant domain representation.

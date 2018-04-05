@@ -1,0 +1,229 @@
+id     = "STRINGS"
+name   = "Strings theory"
+header = "options/strings_options.h"
+
+[[option]]
+  name       = "stringExp"
+  category   = "regular"
+  long       = "strings-exp"
+  type       = "bool"
+  default    = "false"
+  help       = "experimental features in the theory of strings"
+
+[[option]]
+  name       = "stringLB"
+  smt_name   = "strings-lb"
+  category   = "regular"
+  long       = "strings-lb=N"
+  type       = "unsigned"
+  default    = "0"
+  predicates = ["unsignedLessEqual2"]
+  read_only  = true
+  help       = "the strategy of LB rule application: 0-lazy, 1-eager, 2-no"
+
+[[option]]
+  name       = "stdASCII"
+  category   = "regular"
+  long       = "strings-std-ascii"
+  type       = "bool"
+  default    = "true"
+  predicates = ["unsignedLessEqual2"]
+  read_only  = true
+  help       = "the alphabet contains only characters from the standard ASCII or the extended one"
+
+[[option]]
+  name       = "stringFMF"
+  category   = "regular"
+  long       = "strings-fmf"
+  type       = "bool"
+  default    = "false"
+  help       = "the finite model finding used by the theory of strings"
+
+[[option]]
+  name       = "stringEager"
+  category   = "regular"
+  long       = "strings-eager"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "strings eager check"
+
+[[option]]
+  name       = "stringEIT"
+  category   = "regular"
+  long       = "strings-eit"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "the eager intersection used by the theory of strings"
+
+[[option]]
+  name       = "stringOpt1"
+  category   = "regular"
+  long       = "strings-opt1"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "internal option1 for strings: normal form"
+
+[[option]]
+  name       = "stringOpt2"
+  category   = "regular"
+  long       = "strings-opt2"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "internal option2 for strings: constant regexp splitting"
+
+[[option]]
+  name       = "stringIgnNegMembership"
+  category   = "regular"
+  long       = "strings-inm"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "internal for strings: ignore negative membership constraints (fragment checking is needed, left to users for now)"
+
+[[option]]
+  name       = "stringLazyPreproc"
+  category   = "regular"
+  long       = "strings-lazy-pp"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "perform string preprocessing lazily"
+
+[[option]]
+  name       = "stringLenGeqZ"
+  category   = "regular"
+  long       = "strings-len-geqz"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "strings length greater than zero lemmas"
+
+[[option]]
+  name       = "stringLenNorm"
+  category   = "regular"
+  long       = "strings-len-norm"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "strings length normalization lemma"
+
+[[option]]
+  name       = "stringSplitEmp"
+  category   = "regular"
+  long       = "strings-sp-emp"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "strings split on empty string"
+
+[[option]]
+  name       = "stringInferSym"
+  category   = "regular"
+  long       = "strings-infer-sym"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "strings split on empty string"
+
+[[option]]
+  name       = "stringEagerLen"
+  category   = "regular"
+  long       = "strings-eager-len"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "strings eager length lemmas"
+
+[[option]]
+  name       = "stringCheckEntailLen"
+  category   = "regular"
+  long       = "strings-check-entail-len"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "check entailment between length terms to reduce splitting"
+
+[[option]]
+  name       = "stringProcessLoop"
+  category   = "regular"
+  long       = "strings-process-loop"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "reduce looping word equations to regular expressions"
+
+[[option]]
+  name       = "stringAbortLoop"
+  category   = "regular"
+  long       = "strings-abort-loop"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "abort when a looping word equation is encountered"
+
+[[option]]
+  name       = "stringInferAsLemmas"
+  category   = "regular"
+  long       = "strings-infer-as-lemmas"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "always send lemmas out instead of making internal inferences"
+
+[[option]]
+  name       = "stringRExplainLemmas"
+  category   = "regular"
+  long       = "strings-rexplain-lemmas"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "regression explanations for string lemmas"
+
+[[option]]
+  name       = "stringMinPrefixExplain"
+  category   = "regular"
+  long       = "strings-min-prefix-explain"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "minimize explanations for prefix of normal forms in strings"
+
+[[option]]
+  name       = "stringGuessModel"
+  category   = "regular"
+  long       = "strings-guess-model"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use model guessing to avoid string extended function reductions"
+
+[[option]]
+  name       = "stringUfReduct"
+  category   = "regular"
+  long       = "strings-uf-reduct"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use uninterpreted functions when applying extended function reductions"
+
+[[option]]
+  name       = "stringBinaryCsp"
+  category   = "regular"
+  long       = "strings-binary-csp"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use binary search when splitting strings"
+
+[[option]]
+  name       = "stringLenPropCsp"
+  category   = "regular"
+  long       = "strings-lprop-csp"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "do length propagation based on constant splits"

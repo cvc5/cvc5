@@ -1,14 +1,21 @@
 # This Makefile fragment allows one to use "make check" but also specify
 # a regression level.
-ifeq ($(REGRESSION_LEVEL),1)
-SUBDIRS += regress1
+
+# Regression level 1 is the default
+ALL_TESTS = $(REG0_TESTS) $(REG1_TESTS)
+
+ifeq ($(REGRESSION_LEVEL),0)
+ALL_TESTS = $(REG0_TESTS)
 endif
 ifeq ($(REGRESSION_LEVEL),2)
-SUBDIRS += regress1 regress2
+ALL_TESTS = $(REG0_TESTS) $(REG1_TESTS) $(REG2_TESTS)
 endif
 ifeq ($(REGRESSION_LEVEL),3)
-SUBDIRS += regress1 regress2 regress3
+ALL_TESTS = $(REG0_TESTS) $(REG1_TESTS) $(REG2_TESTS) $(REG3_TESTS)
 endif
 ifeq ($(REGRESSION_LEVEL),4)
-SUBDIRS += regress1 regress2 regress3 regress4
+ALL_TESTS = $(REG0_TESTS) $(REG1_TESTS) $(REG2_TESTS) $(REG3_TESTS) $(REG4_TESTS)
 endif
+
+TEST_REGEX ?= ".*"
+TESTS = $(shell echo $(ALL_TESTS) | tr ' ' '\n' | grep $(TEST_REGEX) | tr '\n' ' ')

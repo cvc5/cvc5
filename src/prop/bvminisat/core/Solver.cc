@@ -675,7 +675,10 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
             if (reason(x) == CRef_Undef) {
               assert(marker[x] == 2);
               assert(level(x) > 0);
-              out_conflict.push(~trail[i]);
+              if (~trail[i] != p)
+              {
+                out_conflict.push(~trail[i]);
+              }
             } else {
               Clause& c = ca[reason(x)];
               if(d_bvp){
@@ -1469,10 +1472,10 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* p
 }
 
 void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
-
-bool Solver::withinBudget(uint64_t ammount) const {
+bool Solver::withinBudget(uint64_t amount) const
+{
   AlwaysAssert(d_notify);
-  d_notify->spendResource(ammount);
+  d_notify->spendResource(amount);
   d_notify->safePoint(0);
 
   return !asynch_interrupt &&

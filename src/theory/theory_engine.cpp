@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,7 +40,7 @@
 #include "theory/care_graph.h"
 #include "theory/ite_utilities.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -214,12 +214,11 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
 }
 
 void TheoryEngine::finishInit() {
-  // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
   //initialize the quantifiers engine, master equality engine, model, model builder
   if( d_logicInfo.isQuantified() ) {
-    d_quantEngine->finishInit();
+    // initialize the quantifiers engine
+    d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
     Assert(d_masterEqualityEngine == 0);
     d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master", false);
 
@@ -370,10 +369,7 @@ TheoryEngine::~TheoryEngine() {
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
-void TheoryEngine::interrupt() throw(ModalException) {
-  d_interrupted = true;
-}
-
+void TheoryEngine::interrupt() { d_interrupted = true; }
 void TheoryEngine::preRegister(TNode preprocessed) {
 
   Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")" << std::endl;
@@ -605,8 +601,6 @@ void TheoryEngine::check(Theory::Effort effort) {
             if( theory->needsCheckLastEffort() ){
               if( !d_curr_model->isBuilt() ){
                 if( !d_curr_model_builder->buildModel(d_curr_model) ){
-                  //model building should fail only if the model builder adds lemmas
-                  Assert( needCheck() );
                   break;
                 }
               }
@@ -617,10 +611,14 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if( ! d_inConflict && ! needCheck() ){
         if(d_logicInfo.isQuantified()) {
-          // quantifiers engine must pass effort last call check
+          // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
-          // if returning incomplete or SAT, we have ensured that d_curr_model has been built
-        } else if(options::produceModels() && !d_curr_model->isBuilt()) {
+        }
+      }
+      if (!d_inConflict && !needCheck())
+      {
+        if (options::produceModels() && !d_curr_model->isBuilt())
+        {
           // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
         }
@@ -631,14 +629,21 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      //we will answer SAT
+      // case where we are about to answer SAT
       if( d_masterEqualityEngine != NULL ){
         AlwaysAssert(d_masterEqualityEngine->consistent());
       }
-      if( options::produceModels() ){
-        d_curr_model_builder->debugCheckModel(d_curr_model);  
-        // Do post-processing of model from the theories (used for THEORY_SEP to construct heap model)
-        postProcessModel(d_curr_model);
+      if (d_curr_model->isBuilt())
+      {
+        // model construction should always succeed unless lemmas were added
+        AlwaysAssert(d_curr_model->isBuiltSuccess());
+        if (options::produceModels())
+        {
+          d_curr_model_builder->debugCheckModel(d_curr_model);
+          // Do post-processing of model from the theories (used for THEORY_SEP
+          // to construct heap model)
+          postProcessModel(d_curr_model);
+        }
       }
     }
   } catch(const theory::Interrupted&) {
@@ -846,7 +851,8 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
-void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
+bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
+{
   //have shared term engine collectModelInfo
   //  d_sharedTerms.collectModelInfo( m );
   // Consult each active theory to get all relevant information
@@ -854,7 +860,10 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
       Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId << endl;
-      d_theoryTable[theoryId]->collectModelInfo( m );
+      if (!d_theoryTable[theoryId]->collectModelInfo(m))
+      {
+        return false;
+      }
     }
   }
   // Get the Boolean variables
@@ -870,8 +879,12 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
       value = false;
     }
     Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
-    m->assertPredicate(var, value);
+    if (!m->assertPredicate(var, value))
+    {
+      return false;
+    }
   }
+  return true;
 }
 
 void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
@@ -886,6 +899,18 @@ void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
 /* get model */
 TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
+}
+
+void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+{
+  if (d_quantEngine)
+  {
+    d_quantEngine->getSynthSolutions(sol_map);
+  }
+  else
+  {
+    Assert(false);
+  }
 }
 
 bool TheoryEngine::presolve() {
@@ -1461,6 +1486,7 @@ void TheoryEngine::printInstantiations( std::ostream& out ) {
     d_quantEngine->printInstantiations( out );
   }else{
     out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
+    Assert(false);
   }
 }
 
@@ -1469,6 +1495,7 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     d_quantEngine->printSynthSolution( out );
   }else{
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
+    Assert(false);
   }
 }
 
@@ -1904,35 +1931,48 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     });
 }
 
-void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions) {
+void TheoryEngine::staticInitializeBVOptions(
+    const std::vector<Node>& assertions)
+{
   bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON) {
+  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON)
+  {
+    if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
+      throw ModalException(
+          "Slicer currently only supports pure QF_BV formulas. Use "
+          "--bv-eq-slicer=off");
     if (options::incrementalSolving())
-      throw ModalException("Slicer does not currently support incremental mode. Use --bv-eq-slicer=off");
+      throw ModalException(
+          "Slicer does not currently support incremental mode. Use "
+          "--bv-eq-slicer=off");
     if (options::produceModels())
-      throw ModalException("Slicer does not currently support model generation. Use --bv-eq-slicer=off");
-    useSlicer = true;
-
-  } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF) {
+      throw ModalException(
+          "Slicer does not currently support model generation. Use "
+          "--bv-eq-slicer=off");
+  }
+  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF)
+  {
     return;
-
-  } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO) {
-    if (options::incrementalSolving() ||
-        options::produceModels())
+  }
+  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO)
+  {
+    if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
+        || options::incrementalSolving()
+        || options::produceModels())
       return;
 
-    useSlicer = true;
     bv::utils::TNodeBoolMap cache;
-    for (unsigned i = 0; i < assertions.size(); ++i) {
+    for (unsigned i = 0; i < assertions.size(); ++i)
+    {
       useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
     }
   }
 
-  if (useSlicer) {
+  if (useSlicer)
+  {
     bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
     bv_theory->enableCoreTheorySlicer();
   }
-
 }
 
 void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
@@ -2193,8 +2233,11 @@ void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
   d_unconstrainedSimp->processAssertions(assertions);
 }
 
-
-void TheoryEngine::setUserAttribute(const std::string& attr, Node n, std::vector<Node>& node_values, std::string str_value) {
+void TheoryEngine::setUserAttribute(const std::string& attr,
+                                    Node n,
+                                    const std::vector<Node>& node_values,
+                                    const std::string& str_value)
+{
   Trace("te-attr") << "set user attribute " << attr << " " << n << endl;
   if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
     for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){
@@ -2300,8 +2343,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, T
   }
 }
 
-void TheoryEngine::spendResource(unsigned ammount) {
-  d_resourceManager->spendResource(ammount);
+void TheoryEngine::spendResource(unsigned amount)
+{
+  d_resourceManager->spendResource(amount);
 }
 
 void TheoryEngine::enableTheoryAlternative(const std::string& name){
@@ -2317,12 +2361,12 @@ bool TheoryEngine::useTheoryAlternative(const std::string& name) {
 
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
-    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
-    propagations(mkName("theory<", theory, ">::propagations"), 0),
-    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
-    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
-    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
-    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+    conflicts(getStatsPrefix(theory) + "::conflicts", 0),
+    propagations(getStatsPrefix(theory) + "::propagations", 0),
+    lemmas(getStatsPrefix(theory) + "::lemmas", 0),
+    requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
+    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
+    restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);

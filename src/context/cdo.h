@@ -57,7 +57,8 @@ protected:
    * current data to a copy using the copy constructor.  Memory is allocated
    * using the ContextMemoryManager.
    */
-  virtual ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
     Debug("context") << "save cdo " << this;
     ContextObj* p = new(pCMM) CDO<T>(*this);
     Debug("context") << " to " << p << std::endl;
@@ -68,7 +69,8 @@ protected:
    * Implementation of mandatory ContextObj method restore: simply copies the
    * saved data back from the saved copy using operator= for T.
    */
-  virtual void restore(ContextObj* pContextObj) {
+  void restore(ContextObj* pContextObj) override
+  {
     //Debug("context") << "restore cdo " << this;
     CDO<T>* p = static_cast<CDO<T>*>(pContextObj);
     d_data = p->d_data;

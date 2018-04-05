@@ -30,16 +30,15 @@ namespace booleans {
 class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
   enum { FALSE, TRUE, DONE } d_value;
 
-public:
-
-  BooleanEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<BooleanEnumerator>(type),
-    d_value(FALSE) {
+ public:
+  BooleanEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<BooleanEnumerator>(type), d_value(FALSE)
+  {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == BOOLEAN_TYPE);
   }
 
-  Node operator*() {
+  Node operator*() override {
     switch(d_value) {
     case FALSE:
       return NodeManager::currentNM()->mkConst(false);
@@ -50,7 +49,8 @@ public:
     }
   }
 
-  BooleanEnumerator& operator++() throw() {
+  BooleanEnumerator& operator++() override
+  {
     // sequence is FALSE, TRUE
     if(d_value == FALSE) {
       d_value = TRUE;
@@ -60,10 +60,7 @@ public:
     return *this;
   }
 
-  bool isFinished() throw() {
-    return d_value == DONE;
-  }
-
+  bool isFinished() override { return d_value == DONE; }
 };/* class BooleanEnumerator */
 
 }/* CVC4::theory::booleans namespace */

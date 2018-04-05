@@ -32,9 +32,9 @@ namespace theory {
 namespace builtin {
 
 class ApplyTypeRule {
-  public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     TNode f = n.getOperator();
     TypeNode fType = f.getType(check);
     if( !fType.isFunction() && n.getNumChildren() > 0 ) {
@@ -70,15 +70,20 @@ class ApplyTypeRule {
 
 
 class EqualityTypeRule {
-  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) throw (TypeCheckingExceptionPrivate, AssertionException) {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
     TypeNode booleanType = nodeManager->booleanType();
 
-    if( check ) {
+    if (check)
+    {
       TypeNode lhsType = n[0].getType(check);
       TypeNode rhsType = n[1].getType(check);
-      
-      if ( TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull() ) {
+
+      if (TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull())
+      {
         std::stringstream ss;
         ss << "Subexpressions must have a common base type:" << std::endl;
         ss << "Equation: " << n << std::endl;
@@ -95,7 +100,7 @@ class EqualityTypeRule {
 
 
 class DistinctTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     if( check ) {
       TNode::iterator child_it = n.begin();
@@ -114,7 +119,7 @@ public:
 };/* class DistinctTypeRule */
 
 class SExprTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     std::vector<TypeNode> types;
     for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
@@ -127,14 +132,14 @@ public:
 };/* class SExprTypeRule */
 
 class UninterpretedConstantTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     return TypeNode::fromType(n.getConst<UninterpretedConstant>().getType());
   }
 };/* class UninterpretedConstantTypeRule */
 
 class AbstractValueTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     // An UnknownTypeException means that this node has no type.  For now,
     // only abstract values are like this---and then, only if they are created
@@ -145,7 +150,7 @@ public:
 };/* class AbstractValueTypeRule */
 
 class LambdaTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     if( n[0].getType(check) != nodeManager->boundVarListType() ) {
       std::stringstream ss;
@@ -162,7 +167,7 @@ public:
   }
   // computes whether a lambda is a constant value, via conversion to array representation
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
-    throw (AssertionException) {
+  {
     Assert(n.getKind() == kind::LAMBDA);
     //get array representation of this function, if possible
     Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda( n, true );
@@ -228,7 +233,7 @@ class ChoiceTypeRule
 }; /* class ChoiceTypeRule */
 
 class ChainTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     Assert(n.getKind() == kind::CHAIN);
 
@@ -276,7 +281,7 @@ public:
 };/* class ChainTypeRule */
 
 class ChainedOperatorTypeRule {
-public:
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     Assert(n.getKind() == kind::CHAIN_OP);
     return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
@@ -284,7 +289,7 @@ public:
 };/* class ChainedOperatorTypeRule */
 
 class SortProperties {
-public:
+ public:
   inline static bool isWellFounded(TypeNode type) {
     return true;
   }
@@ -295,7 +300,7 @@ public:
 };/* class SortProperties */
 
 class FunctionProperties {
-public:
+ public:
   inline static Cardinality computeCardinality(TypeNode type) {
     // Don't assert this; allow other theories to use this cardinality
     // computation.
@@ -315,7 +320,7 @@ public:
 };/* class FuctionProperties */
 
 class SExprProperties {
-public:
+ public:
   inline static Cardinality computeCardinality(TypeNode type) {
     // Don't assert this; allow other theories to use this cardinality
     // computation.

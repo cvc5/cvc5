@@ -2,9 +2,9 @@
 /*! \file bv_inverter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Mathias Preiner, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,34 +37,68 @@ class BvInverterQuery
 {
  public:
   BvInverterQuery() {}
-  ~BvInverterQuery() {}
+  virtual ~BvInverterQuery() {}
   /** returns the current model value of n */
   virtual Node getModelValue(Node n) = 0;
   /** returns a bound variable of type tn */
   virtual Node getBoundVariable(TypeNode tn) = 0;
 };
 
-// class for storing information about the solved status
-class BvInverterStatus {
- public:
-  BvInverterStatus() : d_status(0) {}
-  ~BvInverterStatus() {}
-  int d_status;
-  // TODO : may not need this (conditions now appear explicitly in solved
-  // forms) side conditions
-  std::vector<Node> d_conds;
-};
-
 // inverter class
 // TODO : move to theory/bv/ if generally useful?
-class BvInverter {
+class BvInverter
+{
  public:
   BvInverter() {}
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
 
-  /** get inversion node
+  /**
+   * Get path to pv in lit, replace that occurrence by sv and all others by
+   * pvs (if pvs is non-null). If return value R is non-null, then :
+   *   lit.path = pv R.path = sv
+   *   R.path' = pvs for all lit.path' = pv, where path' != path
+   */
+  Node getPathToPv(
+      Node lit, Node pv, Node sv, Node pvs, std::vector<unsigned>& path);
+
+  /**
+   * Same as above, but does not linearize lit for pv.
+   * Use this version if we know lit is linear wrt pv.
+   */
+  Node getPathToPv(Node lit, Node pv, std::vector<unsigned>& path)
+  {
+    return getPathToPv(lit, pv, pv, Node::null(), path);
+  }
+
+  /** solveBvLit
+   *
+   * Solve for sv in lit, where lit.path = sv. If this function returns a
+   * non-null node t, then sv = t is the solved form of lit.
+   *
+   * If the BvInverterQuery provided to this function call is null, then
+   * the solution returned by this call will not contain CHOICE expressions.
+   * If the solved form for lit requires introducing a CHOICE expression,
+   * then this call will return null.
+   */
+  Node solveBvLit(Node sv,
+                  Node lit,
+                  std::vector<unsigned>& path,
+                  BvInverterQuery* m);
+
+ private:
+  /** Dummy variables for each type */
+  std::map<TypeNode, Node> d_solve_var;
+
+  /** Helper function for getPathToPv */
+  Node getPathToPv(Node lit,
+                   Node pv,
+                   Node sv,
+                   std::vector<unsigned>& path,
+                   std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+  /** Helper function for getInv.
    *
    * This expects a condition cond where:
    *   (exists x. cond)
@@ -74,41 +108,15 @@ class BvInverter {
    *   (choice y. cond { x -> y })
    * where y is a bound variable and x is getSolveVariable( tn ).
    *
-   * In some cases, we may return a term t
-   * if cond implies an equality on the solve variable.
-   * For example, if cond is x = t where x is
-   * getSolveVariable( tn ), then we return t
-   * instead of introducing the choice function.
+   * In some cases, we may return a term t if cond implies an equality on
+   * the solve variable. For example, if cond is x = t where x is
+   * getSolveVariable(tn), then we return t instead of introducing the choice
+   * function.
+   *
+   * This function will return the null node if the BvInverterQuery m provided
+   * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
-
-  /** Get path to pv in lit, replace that occurrence by sv and all others by
-   * pvs. If return value R is non-null, then : lit.path = pv R.path = sv
-   *   R.path' = pvs for all lit.path' = pv, where path' != path
-   */
-  Node getPathToPv(Node lit, Node pv, Node sv, Node pvs,
-                   std::vector<unsigned>& path);
-
-  /** solve_bv_lit
-   * solve for sv in lit, where lit.path = sv
-   * status accumulates side conditions
-   */
-  Node solve_bv_lit(Node sv,
-                    Node lit,
-                    std::vector<unsigned>& path,
-                    BvInverterQuery* m,
-                    BvInverterStatus& status);
-
- private:
-  /** dummy variables for each type */
-  std::map<TypeNode, Node> d_solve_var;
-
-  /** helper function for getPathToPv */
-  Node getPathToPv(Node lit, Node pv, Node sv, std::vector<unsigned>& path,
-                   std::unordered_set<TNode, TNodeHashFunction>& visited);
-
-  // is operator k invertible?
-  bool isInvertible(Kind k, unsigned index);
 };
 
 }  // namespace quantifiers

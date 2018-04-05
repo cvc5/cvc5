@@ -38,10 +38,8 @@ class FunctionType;
 namespace parser {
 
 class CVC4_PUBLIC InputStreamException : public Exception {
-
-public:
+ public:
   InputStreamException(const std::string& msg);
-  virtual ~InputStreamException() throw() { }
 };
 
 /** Wrapper around an input stream. */
@@ -54,16 +52,14 @@ class CVC4_PUBLIC InputStream {
     * delete on exit. */
   bool d_fileIsTemporary;
 
-protected:
-
+ protected:
   /** Initialize the input stream with a name. */
   InputStream(std::string name, bool isTemporary=false) :
     d_name(name),
     d_fileIsTemporary(isTemporary) {
   }
 
-public:
-
+ public:
   /** Destructor. */
   virtual ~InputStream() {
     if( d_fileIsTemporary ) {
@@ -97,8 +93,7 @@ class CVC4_PUBLIC Input {
   Input(const Input& input) CVC4_UNDEFINED;
   Input& operator=(const Input& input) CVC4_UNDEFINED;
 
-public:
-
+ public:
   /** Create an input for the given file.
     *
     * @param lang the input language
@@ -107,8 +102,7 @@ public:
     */
   static Input* newFileInput(InputLanguage lang,
                              const std::string& filename,
-                             bool useMmap = false)
-    throw (InputStreamException);
+                             bool useMmap = false);
 
   /** Create an input for the given stream.
    *
@@ -122,8 +116,7 @@ public:
   static Input* newStreamInput(InputLanguage lang,
                                std::istream& input,
                                const std::string& name,
-                               bool lineBuffered = false)
-    throw (InputStreamException);
+                               bool lineBuffered = false);
 
   /** Create an input for the given string
    *
@@ -133,23 +126,17 @@ public:
    */
   static Input* newStringInput(InputLanguage lang,
                                const std::string& input,
-                               const std::string& name)
-    throw (InputStreamException);
-
+                               const std::string& name);
 
   /** Destructor. Frees the input stream and closes the input. */
   virtual ~Input();
 
   /** Get the language that this Input is reading. */
-  virtual InputLanguage getLanguage() const throw() = 0;
+  virtual InputLanguage getLanguage() const = 0;
 
   /** Retrieve the name of the input stream */
-  const std::string getInputStreamName(){
-    return getInputStream()->getName();
-  }
-
-protected:
-
+  const std::string getInputStreamName() { return getInputStream()->getName(); }
+ protected:
   /** Create an input.
    *
    * @param inputStream the input stream
@@ -175,8 +162,8 @@ protected:
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  virtual void parseError(const std::string& msg, bool eofException = false)
-    throw (ParserException) = 0;
+  virtual void parseError(const std::string& msg,
+                          bool eofException = false) = 0;
 
   /** Parse an expression from the input by invoking the
    * implementation-specific parsing method. Returns a null

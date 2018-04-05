@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_core.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Tim King
+ **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,7 @@ using namespace CVC4::theory::bv::utils;
 CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_notify(*this),
-    d_equalityEngine(d_notify, c, "theory::bv::TheoryBV", true),
+    d_equalityEngine(d_notify, c, "theory::bv::ee", true),
     d_slicer(new Slicer()),
     d_isComplete(c, true),
     d_lemmaThreshold(16),
@@ -211,19 +211,24 @@ bool CoreSolver::check(Theory::Effort e) {
   return true;
 }
 
-void CoreSolver::buildModel() {
+void CoreSolver::buildModel()
+{
   Debug("bv-core") << "CoreSolver::buildModel() \n";
+  NodeManager* nm = NodeManager::currentNM();
   d_modelValues.clear();
   TNodeSet constants;
   TNodeSet constants_in_eq_engine;
   // collect constants in equality engine
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
-  while (!eqcs_i.isFinished()) {
+  while (!eqcs_i.isFinished())
+  {
     TNode repr = *eqcs_i;
-    if  (repr.getKind() == kind::CONST_BITVECTOR) {
+    if (repr.getKind() == kind::CONST_BITVECTOR)
+    {
       // must check if it's just the constant
       eq::EqClassIterator it(repr, &d_equalityEngine);
-      if (!(++it).isFinished() || true) {
+      if (!(++it).isFinished() || true)
+      {
         constants.insert(repr);
         constants_in_eq_engine.insert(repr);
       }
@@ -234,74 +239,97 @@ void CoreSolver::buildModel() {
   // build repr to value map
 
   eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
-  while (!eqcs_i.isFinished()) {
+  while (!eqcs_i.isFinished())
+  {
     TNode repr = *eqcs_i;
     ++eqcs_i;
 
-    if (!repr.isVar() &&
-        repr.getKind() != kind::CONST_BITVECTOR &&
-        !d_bv->isSharedTerm(repr)) {
+    if (!repr.isVar() && repr.getKind() != kind::CONST_BITVECTOR
+        && !d_bv->isSharedTerm(repr))
+    {
       continue;
     }
 
     TypeNode type = repr.getType();
-    if (type.isBitVector() && repr.getKind()!= kind::CONST_BITVECTOR) {
-      Debug("bv-core-model") << "   processing " << repr <<"\n";
+    if (type.isBitVector() && repr.getKind() != kind::CONST_BITVECTOR)
+    {
+      Debug("bv-core-model") << "   processing " << repr << "\n";
       // we need to assign a value for it
       TypeEnumerator te(type);
       Node val;
-      do {
+      do
+      {
         val = *te;
         ++te;
         // Debug("bv-core-model") << "  trying value " << val << "\n";
-        // Debug("bv-core-model") << "  is in set? " << constants.count(val) << "\n";
-        // Debug("bv-core-model") << "  enumerator done? " << te.isFinished() << "\n";
+        // Debug("bv-core-model") << "  is in set? " << constants.count(val) <<
+        // "\n"; Debug("bv-core-model") << "  enumerator done? " <<
+        // te.isFinished() << "\n";
       } while (constants.count(val) != 0 && !(te.isFinished()));
 
-      if (te.isFinished() && constants.count(val) != 0) {
-        // if we cannot enumerate anymore values we just return the lemma stating that
-        // at least two of the representatives are equal.
+      if (te.isFinished() && constants.count(val) != 0)
+      {
+        // if we cannot enumerate anymore values we just return the lemma
+        // stating that at least two of the representatives are equal.
         std::vector<TNode> representatives;
         representatives.push_back(repr);
 
         for (TNodeSet::const_iterator it = constants_in_eq_engine.begin();
-             it != constants_in_eq_engine.end(); ++it) {
+             it != constants_in_eq_engine.end();
+             ++it)
+        {
           TNode constant = *it;
-          if (utils::getSize(constant) == utils::getSize(repr)) {
+          if (utils::getSize(constant) == utils::getSize(repr))
+          {
             representatives.push_back(constant);
           }
         }
-        for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
+        for (ModelValue::const_iterator it = d_modelValues.begin();
+             it != d_modelValues.end();
+             ++it)
+        {
           representatives.push_back(it->first);
         }
         std::vector<Node> equalities;
-        for (unsigned i = 0; i < representatives.size(); ++i) {
-          for (unsigned j = i + 1; j < representatives.size(); ++j) {
+        for (unsigned i = 0; i < representatives.size(); ++i)
+        {
+          for (unsigned j = i + 1; j < representatives.size(); ++j)
+          {
             TNode a = representatives[i];
             TNode b = representatives[j];
-            if (a.getKind() == kind::CONST_BITVECTOR &&
-                b.getKind() == kind::CONST_BITVECTOR) {
-              Assert (a != b);
+            if (a.getKind() == kind::CONST_BITVECTOR
+                && b.getKind() == kind::CONST_BITVECTOR)
+            {
+              Assert(a != b);
               continue;
             }
-            if (utils::getSize(a) == utils::getSize(b)) {
-              equalities.push_back(utils::mkNode(kind::EQUAL, a, b));
+            if (utils::getSize(a) == utils::getSize(b))
+            {
+              equalities.push_back(nm->mkNode(kind::EQUAL, a, b));
             }
           }
         }
         // better off letting the SAT solver split on values
-        if (equalities.size() > d_lemmaThreshold) {
+        if (equalities.size() > d_lemmaThreshold)
+        {
           d_isComplete = false;
           return;
         }
 
-        Node lemma = utils::mkOr(equalities);
-        d_bv->lemma(lemma);
-        Debug("bv-core") << "  lemma: " << lemma << "\n";
+        if (equalities.size() == 0)
+        {
+          Debug("bv-core") << "  lemma: true (no equalities)" << std::endl;
+        }
+        else
+        {
+          Node lemma = utils::mkOr(equalities);
+          d_bv->lemma(lemma);
+          Debug("bv-core") << "  lemma: " << lemma << std::endl;
+        }
         return;
       }
-    
-      Debug("bv-core-model") << "   " << repr << " => " << val <<"\n" ;
+
+      Debug("bv-core-model") << "   " << repr << " => " << val << "\n";
       constants.insert(val);
       d_modelValues[repr] = val;
     }
@@ -396,7 +424,8 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   return utils::isEqualityTerm(term, seen); 
 }
 
-void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+{
   if (d_useSlicer) {
     Unreachable(); 
   }
@@ -409,17 +438,24 @@ void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   }
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
-  m->assertEqualityEngine(&d_equalityEngine, &termSet);
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
+    return false;
+  }
   if (isComplete()) {
     Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
       Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
-                               << a << " => " << b <<")\n"; 
-      m->assertEquality(a, b, true);
+                               << a << " => " << b <<")\n";
+      if (!m->assertEquality(a, b, true))
+      {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 Node CoreSolver::getModelValue(TNode var) {

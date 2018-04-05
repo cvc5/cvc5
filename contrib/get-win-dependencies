@@ -36,7 +36,7 @@ if [ -z "$HOST" ]; then
   echo "WARNING:"
 fi
 
-GMPVERSION=5.1.0
+GMPVERSION=6.1.2
 BOOSTVERSION=1.55.0
 BOOSTBASE=boost_1_55_0
 
@@ -84,7 +84,7 @@ echo
   gmpprefix=`pwd` &&
   mkdir src &&
   cd src &&
-  webget ftp://ftp.gmplib.org/pub/gmp-$GMPVERSION/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
+  webget https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
   tar xfj gmp-$GMPVERSION.tar.bz2 &&
   cd gmp-$GMPVERSION &&
   ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx ${BUILD_TYPE} &&
@@ -98,7 +98,7 @@ echo "Setting up Boost..."
 echo
 ( mkdir boost-$BOOSTVERSION &&
   cd boost-$BOOSTVERSION &&
-  webget http://downloads.sourceforge.net/project/boost/boost/$BOOSTVERSION/$BOOSTBASE.tar.gz $BOOSTBASE.tar.gz &&
+  webget https://sourceforge.net/projects/boost/files/boost/$BOOSTVERSION/$BOOSTBASE.tar.gz/download $BOOSTBASE.tar.gz &&
   tar xfz $BOOSTBASE.tar.gz &&
   cd $BOOSTBASE &&
   ./bootstrap.sh --with-toolset=gcc --prefix=`pwd`/.. --with-libraries=thread &&

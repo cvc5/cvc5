@@ -19,6 +19,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
@@ -112,10 +113,19 @@ Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) 
 Node TermUtil::getInstConstAttr( Node n ) {
   if (!n.hasAttribute(InstConstantAttribute()) ){
     Node q;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      q = getInstConstAttr(n[i]);
-      if( !q.isNull() ){
-        break;
+    if (n.hasOperator())
+    {
+      q = getInstConstAttr(n.getOperator());
+    }
+    if (q.isNull())
+    {
+      for (const Node& nc : n)
+      {
+        q = getInstConstAttr(nc);
+        if (!q.isNull())
+        {
+          break;
+        }
       }
     }
     InstConstantAttribute ica;
@@ -276,6 +286,10 @@ void TermUtil::computeVarContains2( Node n, Kind k, std::vector< Node >& varCont
         varContains.push_back( n );
       }
     }else{
+      if (n.hasOperator())
+      {
+        computeVarContains2(n.getOperator(), k, varContains, visited);
+      }
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         computeVarContains2( n[i], k, varContains, visited );
       }
@@ -301,116 +315,6 @@ void TermUtil::getVarContainsNode( Node f, Node n, std::vector< Node >& varConta
       }
     }
   }
-}
-
-int TermUtil::isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 ){
-  if( n1==n2 ){
-    return 1;
-  }else if( n1.getKind()==n2.getKind() ){
-    if( n1.getKind()==APPLY_UF ){
-      if( n1.getOperator()==n2.getOperator() ){
-        int result = 0;
-        for( int i=0; i<(int)n1.getNumChildren(); i++ ){
-          if( n1[i]!=n2[i] ){
-            int cResult = isInstanceOf2( n1[i], n2[i], varContains1, varContains2 );
-            if( cResult==0 ){
-              return 0;
-            }else if( cResult!=result ){
-              if( result!=0 ){
-                return 0;
-              }else{
-                result = cResult;
-              }
-            }
-          }
-        }
-        return result;
-      }
-    }
-    return 0;
-  }else if( n2.getKind()==INST_CONSTANT ){
-    //if( std::find( d_var_contains[ n1 ].begin(), d_var_contains[ n1 ].end(), n2 )!=d_var_contains[ n1 ].end() ){
-    //  return 1;
-    //}
-    if( varContains1.size()==1 && varContains1[ 0 ]==n2 ){
-      return 1;
-    }
-  }else if( n1.getKind()==INST_CONSTANT ){
-    //if( std::find( d_var_contains[ n2 ].begin(), d_var_contains[ n2 ].end(), n1 )!=d_var_contains[ n2 ].end() ){
-    //  return -1;
-    //}
-    if( varContains2.size()==1 && varContains2[ 0 ]==n1 ){
-      return 1;
-    }
-  }
-  return 0;
-}
-
-int TermUtil::isInstanceOf( Node n1, Node n2 ){
-  std::vector< Node > varContains1;
-  std::vector< Node > varContains2;
-  computeVarContains( n1, varContains1 );
-  computeVarContains( n1, varContains2 );
-  return isInstanceOf2( n1, n2, varContains1, varContains2 );
-}
-
-bool TermUtil::isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs ){
-  if( n1==n2 ){
-    return true;
-  }else if( n2.getKind()==INST_CONSTANT ){
-    //if( !node_contains( n1, n2 ) ){
-    //  return false;
-    //}
-    if( subs.find( n2 )==subs.end() ){
-      subs[n2] = n1;
-    }else if( subs[n2]!=n1 ){
-      return false;
-    }
-    return true;
-  }else if( n1.getKind()==n2.getKind() && n1.getMetaKind()==kind::metakind::PARAMETERIZED ){
-    if( n1.getOperator()!=n2.getOperator() ){
-      return false;
-    }
-    for( int i=0; i<(int)n1.getNumChildren(); i++ ){
-      if( !isUnifiableInstanceOf( n1[i], n2[i], subs ) ){
-        return false;
-      }
-    }
-    return true;
-  }else{
-    return false;
-  }
-}
-
-void TermUtil::filterInstances( std::vector< Node >& nodes ){
-  std::vector< bool > active;
-  active.resize( nodes.size(), true );
-  std::map< int, std::vector< Node > > varContains;
-  for( unsigned i=0; i<nodes.size(); i++ ){
-    computeVarContains( nodes[i], varContains[i] );
-  }
-  for( unsigned i=0; i<nodes.size(); i++ ){
-    for( unsigned j=i+1; j<nodes.size(); j++ ){
-      if( active[i] && active[j] ){
-        int result = isInstanceOf2( nodes[i], nodes[j], varContains[i], varContains[j] );
-        if( result==1 ){
-          Trace("filter-instances") << nodes[j] << " is an instance of " << nodes[i] << std::endl;
-          active[j] = false;
-        }else if( result==-1 ){
-          Trace("filter-instances") << nodes[i] << " is an instance of " << nodes[j] << std::endl;
-          active[i] = false;
-        }
-      }
-    }
-  }
-  std::vector< Node > temp;
-  for( unsigned i=0; i<nodes.size(); i++ ){
-    if( active[i] ){
-      temp.push_back( nodes[i] );
-    }
-  }
-  nodes.clear();
-  nodes.insert( nodes.begin(), temp.begin(), temp.end() );
 }
 
 int TermUtil::getIdForOperator( Node op ) {
@@ -675,16 +579,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     }
     if( !rew_vts_inf.isNull()  || rew_delta ){
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSumLit( n, msum ) ){
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
         if( Trace.isOn("quant-vts-debug") ){
           Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-          QuantArith::debugPrintMonomialSum( msum, "quant-vts-debug" );
+          ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
         }
         Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
         Assert( !vts_sym.isNull() );
         Node iso_n;
         Node nlit;
-        int res = QuantArith::isolate( vts_sym, msum, iso_n, n.getKind(), true );
+        int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
         if( res!=0 ){
           Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
           Node slv = iso_n[res==1 ? 1 : 0];
@@ -785,21 +690,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
   }
 }
 
-void TermUtil::getRelevancyCondition( Node n, std::vector< Node >& cond ) {
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
-    // don't worry about relevancy conditions if using shared selectors
-    if( !options::dtSharedSelectors() ){
-      unsigned scindex = Datatype::cindexOf(n.getOperator().toExpr());
-      const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
-      Node rc = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[scindex].getTester() ), n[0] ).negate();
-      if( std::find( cond.begin(), cond.end(), rc )==cond.end() ){
-        cond.push_back( rc );
-      }
-      getRelevancyCondition( n[0], cond );
-    }
-  }
-}
-
 bool TermUtil::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
   if( n==t ){
     return true;
@@ -883,13 +773,22 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
 Node TermUtil::simpleNegate( Node n ){
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      children.push_back( simpleNegate( n[i] ) );
+    for (const Node& cn : n)
+    {
+      children.push_back(simpleNegate(cn));
     }
     return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
-  }else{
-    return n.negate();
   }
+  return n.negate();
+}
+
+Node TermUtil::mkNegate(Kind notk, Node n)
+{
+  if (n.getKind() == notk)
+  {
+    return n[0];
+  }
+  return NodeManager::currentNM()->mkNode(notk, n);
 }
 
 bool TermUtil::isAssoc( Kind k ) {
@@ -1020,6 +919,11 @@ Node TermUtil::getTypeValueOffset(TypeNode tn,
   }
   status = d_type_value_offset_status[tn][val][offset];
   return it->second;
+}
+
+Node TermUtil::mkTypeConst(TypeNode tn, bool pol)
+{
+  return pol ? mkTypeValue(tn, 0) : mkTypeMaxValue(tn);
 }
 
 bool TermUtil::isAntisymmetric(Kind k, Kind& dk)

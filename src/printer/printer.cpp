@@ -2,9 +2,9 @@
 /*! \file printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,55 +29,62 @@ using namespace std;
 
 namespace CVC4 {
 
-Printer* Printer::d_printers[language::output::LANG_MAX];
+unique_ptr<Printer> Printer::d_printers[language::output::LANG_MAX];
 
-Printer* Printer::makePrinter(OutputLanguage lang) throw() {
+unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
+{
   using namespace CVC4::language::output;
 
   switch(lang) {
   case LANG_SMTLIB_V1: // TODO the printer
-    return new printer::smt1::Smt1Printer();
+    return unique_ptr<Printer>(new printer::smt1::Smt1Printer());
 
   case LANG_SMTLIB_V2_0:
-    return new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant);
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant));
 
   case LANG_SMTLIB_V2_5:
-    return new printer::smt2::Smt2Printer();
-    
+    return unique_ptr<Printer>(new printer::smt2::Smt2Printer());
+
   case LANG_SMTLIB_V2_6:
-    return new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant);
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
   case LANG_TPTP:
-    return new printer::tptp::TptpPrinter();
+    return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
   case LANG_CVC4:
-    return new printer::cvc::CvcPrinter();
+    return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
   case LANG_Z3STR:
-    return new printer::smt2::Smt2Printer(printer::smt2::z3str_variant);
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::z3str_variant));
 
   case LANG_SYGUS:
-    return new printer::smt2::Smt2Printer(printer::smt2::sygus_variant);
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
 
   case LANG_AST:
-    return new printer::ast::AstPrinter();
+    return unique_ptr<Printer>(new printer::ast::AstPrinter());
 
   case LANG_CVC3:
-    return new printer::cvc::CvcPrinter(/* cvc3-mode = */ true);
+    return unique_ptr<Printer>(
+        new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
 
   default:
     Unhandled(lang);
   }
-}/* Printer::makePrinter() */
+}
 
-void Printer::toStreamSygus(std::ostream& out, TNode n) const throw()
+void Printer::toStreamSygus(std::ostream& out, TNode n) const
 {
   // no sygus-specific printing associated with this printer,
   // just print the original term
   toStream(out, n, -1, false, 1);
 }
 
-void Printer::toStream(std::ostream& out, const Model& m) const throw() {
+void Printer::toStream(std::ostream& out, const Model& m) const
+{
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     const Command* cmd = m.getCommand(i);
     const DeclareFunctionCommand* dfc = dynamic_cast<const DeclareFunctionCommand*>(cmd);
@@ -88,7 +95,8 @@ void Printer::toStream(std::ostream& out, const Model& m) const throw() {
   }
 }/* Printer::toStream(Model) */
 
-void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
+void Printer::toStream(std::ostream& out, const UnsatCore& core) const
+{
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     AssertCommand cmd(*i);
     toStream(out, &cmd, -1, false, -1);
@@ -96,7 +104,8 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
   }
 }/* Printer::toStream(UnsatCore) */
 
-Printer* Printer::getPrinter(OutputLanguage lang) throw() {
+Printer* Printer::getPrinter(OutputLanguage lang)
+{
   if(lang == language::output::LANG_AUTO) {
   // Infer the language to use for output.
   //
@@ -117,7 +126,7 @@ Printer* Printer::getPrinter(OutputLanguage lang) throw() {
   if(d_printers[lang] == NULL) {
     d_printers[lang] = makePrinter(lang);
   }
-  return d_printers[lang];
+  return d_printers[lang].get();
 }
 
 

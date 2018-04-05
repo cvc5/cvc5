@@ -615,63 +615,74 @@ SymbolTable::SymbolTable()
     : d_implementation(new SymbolTable::Implementation()) {}
 
 SymbolTable::~SymbolTable() {}
-
-bool SymbolTable::bind(const string& name, Expr obj, bool levelZero,
-                       bool doOverload) throw() {
+bool SymbolTable::bind(const string& name,
+                       Expr obj,
+                       bool levelZero,
+                       bool doOverload)
+{
   return d_implementation->bind(name, obj, levelZero, doOverload);
 }
 
-bool SymbolTable::bindDefinedFunction(const string& name, Expr obj,
-                                      bool levelZero, bool doOverload) throw() {
+bool SymbolTable::bindDefinedFunction(const string& name,
+                                      Expr obj,
+                                      bool levelZero,
+                                      bool doOverload)
+{
   return d_implementation->bindDefinedFunction(name, obj, levelZero,
                                                doOverload);
 }
 
-void SymbolTable::bindType(const string& name, Type t, bool levelZero) throw() {
+void SymbolTable::bindType(const string& name, Type t, bool levelZero)
+{
   d_implementation->bindType(name, t, levelZero);
 }
 
-void SymbolTable::bindType(const string& name, const vector<Type>& params,
-                           Type t, bool levelZero) throw() {
+void SymbolTable::bindType(const string& name,
+                           const vector<Type>& params,
+                           Type t,
+                           bool levelZero)
+{
   d_implementation->bindType(name, params, t, levelZero);
 }
 
-bool SymbolTable::isBound(const string& name) const throw() {
+bool SymbolTable::isBound(const string& name) const
+{
   return d_implementation->isBound(name);
 }
 
-bool SymbolTable::isBoundDefinedFunction(const string& name) const throw() {
+bool SymbolTable::isBoundDefinedFunction(const string& name) const
+{
   return d_implementation->isBoundDefinedFunction(name);
 }
 
-bool SymbolTable::isBoundDefinedFunction(Expr func) const throw() {
+bool SymbolTable::isBoundDefinedFunction(Expr func) const
+{
   return d_implementation->isBoundDefinedFunction(func);
 }
-bool SymbolTable::isBoundType(const string& name) const throw() {
+bool SymbolTable::isBoundType(const string& name) const
+{
   return d_implementation->isBoundType(name);
 }
-Expr SymbolTable::lookup(const string& name) const throw() {
+Expr SymbolTable::lookup(const string& name) const
+{
   return d_implementation->lookup(name);
 }
-Type SymbolTable::lookupType(const string& name) const throw() {
+Type SymbolTable::lookupType(const string& name) const
+{
   return d_implementation->lookupType(name);
 }
 
 Type SymbolTable::lookupType(const string& name,
-                             const vector<Type>& params) const throw() {
+                             const vector<Type>& params) const
+{
   return d_implementation->lookupType(name, params);
 }
 size_t SymbolTable::lookupArity(const string& name) {
   return d_implementation->lookupArity(name);
 }
-void SymbolTable::popScope() throw(ScopeException) {
-  d_implementation->popScope();
-}
-
-void SymbolTable::pushScope() throw() { d_implementation->pushScope(); }
-size_t SymbolTable::getLevel() const throw() {
-  return d_implementation->getLevel();
-}
+void SymbolTable::popScope() { d_implementation->popScope(); }
+void SymbolTable::pushScope() { d_implementation->pushScope(); }
+size_t SymbolTable::getLevel() const { return d_implementation->getLevel(); }
 void SymbolTable::reset() { d_implementation->reset(); }
 
 }  // namespace CVC4

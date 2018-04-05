@@ -90,14 +90,14 @@ public:
    * Throws an IllegalArgumentException if the logic string cannot
    * be interpreted.
    */
-  LogicInfo(std::string logicString) throw(IllegalArgumentException);
+  LogicInfo(std::string logicString);
 
   /**
    * Construct a LogicInfo from an SMT-LIB-like logic string.
    * Throws an IllegalArgumentException if the logic string cannot
    * be interpreted.
    */
-  LogicInfo(const char* logicString) throw(IllegalArgumentException);
+  LogicInfo(const char* logicString);
 
   // ACCESSORS
 
@@ -157,7 +157,7 @@ public:
    * Throws an IllegalArgumentException if the string can't be
    * interpreted.
    */
-  void setLogicString(std::string logicString) throw(IllegalArgumentException);
+  void setLogicString(std::string logicString);
 
   /**
    * Enable all functionality.  All theories, plus quantifiers, will be

@@ -206,17 +206,17 @@ public:
     return RewriteResponse(REWRITE_DONE, n);
   }
 
-  std::string identify() const throw() {
+  std::string identify() const override {
     return "Fake" + d_id;
   }
 
-  void presolve() { Unimplemented(); }
+  void presolve() override { Unimplemented(); }
 
-  void preRegisterTerm(TNode) { Unimplemented(); }
+  void preRegisterTerm(TNode) override { Unimplemented(); }
   void registerTerm(TNode) { Unimplemented(); }
-  void check(Theory::Effort) { Unimplemented(); }
-  void propagate(Theory::Effort) { Unimplemented(); }
-  Node explain(TNode) { Unimplemented(); }
+  void check(Theory::Effort) override { Unimplemented(); }
+  void propagate(Theory::Effort) override { Unimplemented(); }
+  Node explain(TNode) override { Unimplemented(); }
   Node getValue(TNode n) { return Node::null(); }
 };/* class FakeTheory */
 
@@ -241,7 +241,7 @@ class TheoryEngineWhite : public CxxTest::TestSuite {
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_em = new ExprManager();
     d_smt = new SmtEngine(d_em);
     d_nm = NodeManager::fromExprManager(d_em);
@@ -263,11 +263,11 @@ public:
     d_theoryEngine->addTheory< FakeTheory<THEORY_BOOL> >(THEORY_BOOL);
     d_theoryEngine->addTheory< FakeTheory<THEORY_UF> >(THEORY_UF);
     d_theoryEngine->addTheory< FakeTheory<THEORY_ARITH> >(THEORY_ARITH);
-    d_theoryEngine->addTheory< FakeTheory<THEORY_ARRAY> >(THEORY_ARRAY);
+    d_theoryEngine->addTheory< FakeTheory<THEORY_ARRAYS> >(THEORY_ARRAYS);
     d_theoryEngine->addTheory< FakeTheory<THEORY_BV> >(THEORY_BV);
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_nullChannel;
 
     delete d_scope;

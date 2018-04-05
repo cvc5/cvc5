@@ -1,0 +1,617 @@
+id     = "SMT"
+name   = "SMT layer"
+header = "options/smt_options.h"
+
+[[option]]
+  name       = "dumpModeString"
+  smt_name   = "dump"
+  category   = "common"
+  long       = "dump=MODE"
+  type       = "std::string"
+  notifies   = ["notifyDumpMode"]
+  read_only  = true
+  help       = "dump preprocessed assertions, etc., see --dump=help"
+
+[[option]]
+  name       = "dumpToFileName"
+  smt_name   = "dump-to"
+  category   = "common"
+  long       = "dump-to=FILE"
+  type       = "std::string"
+  notifies   = ["notifyDumpToFile"]
+  read_only  = true
+  help       = "all dumping goes to FILE (instead of stdout)"
+
+[[option]]
+  name       = "forceLogicString"
+  smt_name   = "force-logic"
+  category   = "expert"
+  long       = "force-logic=LOGIC"
+  type       = "std::string"
+  notifies   = ["notifyForceLogic"]
+  read_only  = true
+  help       = "set the logic, and override all further user attempts to change it"
+
+[[option]]
+  name       = "simplificationMode"
+  smt_name   = "simplification-mode"
+  category   = "regular"
+  long       = "simplification=MODE"
+  type       = "SimplificationMode"
+  default    = "SIMPLIFICATION_MODE_BATCH"
+  handler    = "stringToSimplificationMode"
+  includes   = ["options/simplification_mode.h"]
+  help       = "choose simplification mode, see --simplification=help"
+
+[[alias]]
+  category   = "regular"
+  long       = "no-simplification"
+  links      = ["--simplification=none"]
+  help       = "turn off all simplification (same as --simplification=none)"
+
+[[option]]
+  name       = "doStaticLearning"
+  category   = "regular"
+  long       = "static-learning"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use static learning (on by default)"
+
+[[option]]
+  name       = "expandDefinitions"
+  smt_name   = "expand-definitions"
+  category   = "regular"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "always expand symbol definitions in output"
+
+[[option]]
+  name       = "produceModels"
+  category   = "common"
+  short      = "m"
+  long       = "produce-models"
+  type       = "bool"
+  default    = "false"
+  notifies   = ["notifyBeforeSearch"]
+  read_only  = true
+  help       = "support the get-value and get-model commands"
+
+[[option]]
+  name       = "checkModels"
+  category   = "regular"
+  long       = "check-models"
+  type       = "bool"
+  notifies   = ["notifyBeforeSearch"]
+  links      = ["--produce-models", "--produce-assertions"]
+  read_only  = true
+  help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
+
+[[option]]
+  name       = "dumpModels"
+  category   = "regular"
+  long       = "dump-models"
+  type       = "bool"
+  default    = "false"
+  links      = ["--produce-models"]
+  read_only  = true
+  help       = "output models after every SAT/INVALID/UNKNOWN response"
+
+[[option]]
+  name       = "omitDontCares"
+  category   = "regular"
+  long       = "omit-dont-cares"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "When producing a model, omit variables whose value does not matter"
+
+[[option]]
+  name       = "proof"
+  smt_name   = "produce-proofs"
+  category   = "regular"
+  long       = "proof"
+  type       = "bool"
+  default    = "false"
+  predicates = ["proofEnabledBuild"]
+  notifies   = ["notifyBeforeSearch"]
+  read_only  = true
+  help       = "turn on proof generation"
+
+[[option]]
+  name       = "checkProofs"
+  category   = "regular"
+  long       = "check-proofs"
+  type       = "bool"
+  predicates = ["LFSCEnabledBuild"]
+  notifies   = ["notifyBeforeSearch"]
+  links      = ["--proof"]
+  help       = "after UNSAT/VALID, machine-check the generated proof"
+
+[[option]]
+  name       = "dumpProofs"
+  category   = "regular"
+  long       = "dump-proofs"
+  type       = "bool"
+  default    = "false"
+  links      = ["--proof"]
+  read_only  = true
+  help       = "output proofs after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpInstantiations"
+  category   = "regular"
+  long       = "dump-instantiations"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
+
+[[option]]
+  name       = "sygusOut"
+  category   = "regular"
+  long       = "sygus-out=MODE"
+  type       = "SygusSolutionOutMode"
+  default    = "SYGUS_SOL_OUT_STATUS_AND_DEF"
+  handler    = "stringToSygusSolutionOutMode"
+  includes   = ["options/sygus_out_mode.h"]
+  help       = "output mode for sygus"
+
+[[option]]
+  name       = "sygusPrintCallbacks"
+  category   = "regular"
+  long       = "sygus-print-callbacks"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
+
+[[option]]
+  name       = "dumpSynth"
+  category   = "regular"
+  long       = "dump-synth"
+  type       = "bool"
+  default    = "false"
+  help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
+
+[[option]]
+  name       = "unsatCores"
+  category   = "regular"
+  long       = "produce-unsat-cores"
+  type       = "bool"
+  predicates = ["proofEnabledBuild"]
+  notifies   = ["notifyBeforeSearch"]
+  read_only  = true
+  help       = "turn on unsat core generation"
+
+[[option]]
+  name       = "checkUnsatCores"
+  category   = "regular"
+  long       = "check-unsat-cores"
+  type       = "bool"
+  links      = ["--produce-unsat-cores"]
+  help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
+
+[[option]]
+  name       = "dumpUnsatCores"
+  category   = "regular"
+  long       = "dump-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  notifies   = ["notifyBeforeSearch"]
+  links      = ["--produce-unsat-cores"]
+  read_only  = true
+  help       = "output unsat cores after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpUnsatCoresFull"
+  category   = "regular"
+  long       = "dump-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  notifies   = ["notifyBeforeSearch"]
+  links      = ["--dump-unsat-cores"]
+  read_only  = true
+  help       = "dump the full unsat core, including unlabeled assertions"
+
+[[option]]
+  name       = "unsatAssumptions"
+  category   = "regular"
+  long       = "produce-unsat-assumptions"
+  type       = "bool"
+  default    = "false"
+  links      = ["--produce-unsat-cores"]
+  predicates = ["proofEnabledBuild"]
+  notifies   = ["notifyBeforeSearch"]
+  read_only  = true
+  help       = "turn on unsat assumptions generation"
+
+[[option]]
+  name       = "checkSynthSol"
+  category   = "regular"
+  long       = "check-synth-sol"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to functions-to-synthesize satisfy the conjecture"
+
+[[option]]
+  name       = "produceAssignments"
+  category   = "regular"
+  long       = "produce-assignments"
+  type       = "bool"
+  default    = "false"
+  notifies   = ["notifyBeforeSearch"]
+  read_only  = true
+  help       = "support the get-assignment command"
+
+[[option]]
+  name       = "interactiveMode"
+  smt_name   = "interactive-mode"
+  category   = "undocumented"
+  type       = "bool"
+  predicates = ["setProduceAssertions"]
+  notifies   = ["notifyBeforeSearch"]
+  help       = "deprecated name for produce-assertions"
+
+[[option]]
+  name       = "produceAssertions"
+  category   = "common"
+  long       = "produce-assertions"
+  type       = "bool"
+  predicates = ["setProduceAssertions"]
+  notifies   = ["notifyBeforeSearch"]
+  help       = "keep an assertions list (enables get-assertions command)"
+
+[[option]]
+  name       = "doITESimp"
+  category   = "regular"
+  long       = "ite-simp"
+  type       = "bool"
+  help       = "turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)"
+
+[[option]]
+  name       = "doITESimpOnRepeat"
+  category   = "regular"
+  long       = "on-repeat-ite-simp"
+  type       = "bool"
+  default    = "false"
+  help       = "do the ite simplification pass again if repeating simplification"
+
+[[option]]
+  name       = "extRewPrep"
+  category   = "regular"
+  long       = "ext-rew-prep"
+  type       = "bool"
+  default    = "false"
+  help       = "use extended rewriter as a preprocessing pass"
+
+[[option]]
+  name       = "extRewPrepAgg"
+  category   = "regular"
+  long       = "ext-rew-prep-agg"
+  type       = "bool"
+  default    = "false"
+  help       = "use aggressive extended rewriter as a preprocessing pass"
+
+[[option]]
+  name       = "simplifyWithCareEnabled"
+  category   = "regular"
+  long       = "simp-with-care"
+  type       = "bool"
+  default    = "false"
+  help       = "enables simplifyWithCare in ite simplificiation"
+
+[[option]]
+  name       = "compressItes"
+  category   = "regular"
+  long       = "simp-ite-compress"
+  type       = "bool"
+  default    = "false"
+  help       = "enables compressing ites after ite simplification"
+
+[[option]]
+  name       = "unconstrainedSimp"
+  category   = "regular"
+  long       = "unconstrained-simp"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)"
+
+[[option]]
+  name       = "repeatSimp"
+  category   = "regular"
+  long       = "repeat-simp"
+  type       = "bool"
+  help       = "make multiple passes with nonclausal simplifier"
+
+[[option]]
+  name       = "zombieHuntThreshold"
+  category   = "regular"
+  long       = "simp-ite-hunt-zombies"
+  type       = "uint32_t"
+  default    = "524288"
+  read_only  = true
+  help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
+
+[[option]]
+  name       = "sortInference"
+  category   = "regular"
+  long       = "sort-inference"
+  type       = "bool"
+  default    = "false"
+  help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
+
+[[option]]
+  name       = "incrementalSolving"
+  category   = "common"
+  short      = "i"
+  long       = "incremental"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "enable incremental solving"
+
+[[option]]
+  name       = "abstractValues"
+  category   = "regular"
+  long       = "abstract-values"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
+
+[[option]]
+  name       = "modelUninterpDtEnum"
+  category   = "regular"
+  long       = "model-u-dt-enum"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "in models, output uninterpreted sorts as datatype enumerations"
+
+[[option]]
+  name       = "regularChannelName"
+  smt_name   = "regular-output-channel"
+  category   = "regular"
+  type       = "std::string"
+  notifies   = ["notifySetRegularOutputChannel"]
+  read_only  = true
+  help       = "set the regular output channel of the solver"
+
+[[option]]
+  name       = "diagnosticChannelName"
+  smt_name   = "diagnostic-output-channel"
+  category   = "regular"
+  type       = "std::string"
+  notifies   = ["notifySetDiagnosticOutputChannel"]
+  read_only  = true
+  help       = "set the diagnostic output channel of the solver"
+
+[[option]]
+  name       = "cumulativeMillisecondLimit"
+  smt_name   = "tlimit"
+  category   = "common"
+  long       = "tlimit=MS"
+  type       = "unsigned long"
+  handler    = "tlimitHandler"
+  notifies   = ["notifyTlimit"]
+  read_only  = true
+  help       = "enable time limiting (give milliseconds)"
+
+[[option]]
+  name       = "perCallMillisecondLimit"
+  smt_name   = "tlimit-per"
+  category   = "common"
+  long       = "tlimit-per=MS"
+  type       = "unsigned long"
+  handler    = "tlimitPerHandler"
+  notifies   = ["notifyTlimitPer"]
+  read_only  = true
+  help       = "enable time limiting per query (give milliseconds)"
+
+[[option]]
+  name       = "cumulativeResourceLimit"
+  smt_name   = "rlimit"
+  category   = "common"
+  long       = "rlimit=N"
+  type       = "unsigned long"
+  handler    = "rlimitHandler"
+  notifies   = ["notifyRlimit"]
+  read_only  = true
+  help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
+
+[[option]]
+  name       = "perCallResourceLimit"
+  smt_name   = "reproducible-resource-limit"
+  category   = "common"
+  long       = "rlimit-per=N"
+  type       = "unsigned long"
+  handler    = "rlimitPerHandler"
+  notifies   = ["notifyRlimitPer"]
+  read_only  = true
+  help       = "enable resource limiting per query"
+
+[[option]]
+  name       = "hardLimit"
+  category   = "common"
+  long       = "hard-limit"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "the resource limit is hard potentially leaving the smtEngine in an unsafe state (should be destroyed and rebuild after resourcing out)"
+
+[[option]]
+  name       = "cpuTime"
+  category   = "common"
+  long       = "cpu-time"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "measures CPU time if set to true and wall time if false (default false)"
+
+[[option]]
+  name       = "rewriteStep"
+  category   = "expert"
+  long       = "rewrite-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each rewrite step"
+
+[[option]]
+  name       = "theoryCheckStep"
+  category   = "expert"
+  long       = "theory-check-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each theory check call"
+
+[[option]]
+  name       = "decisionStep"
+  category   = "expert"
+  long       = "decision-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of getNext decision calls in the decision engine"
+
+[[option]]
+  name       = "bitblastStep"
+  category   = "expert"
+  long       = "bitblast-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each bitblast step"
+
+[[option]]
+  name       = "parseStep"
+  category   = "expert"
+  long       = "parse-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each command/expression parsing"
+
+[[option]]
+  name       = "lemmaStep"
+  category   = "expert"
+  long       = "lemma-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent when adding lemmas"
+
+[[option]]
+  name       = "restartStep"
+  category   = "expert"
+  long       = "restart-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each theory restart"
+
+[[option]]
+  name       = "cnfStep"
+  category   = "expert"
+  long       = "cnf-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each call to cnf conversion"
+
+[[option]]
+  name       = "preprocessStep"
+  category   = "expert"
+  long       = "preprocess-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each preprocessing step in SmtEngine"
+
+[[option]]
+  name       = "quantifierStep"
+  category   = "expert"
+  long       = "quantifier-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for quantifier instantiations"
+
+[[option]]
+  name       = "satConflictStep"
+  category   = "expert"
+  long       = "sat-conflict-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat conflict (main sat solver)"
+
+[[option]]
+  name       = "bvSatConflictStep"
+  category   = "expert"
+  long       = "bv-sat-conflict-step"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "amount of resources spent for each sat conflict (bitvectors)"
+
+[[option]]
+  name       = "rewriteApplyToConst"
+  category   = "expert"
+  long       = "rewrite-apply-to-const"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "eliminate function applications, rewriting e.g. f(5) to a new symbol f_5"
+
+# --replay is currently broken; don't document it for 1.0
+[[option]]
+  name       = "replayInputFilename"
+  category   = "undocumented"
+  long       = "replay=FILE"
+  type       = "std::string"
+  handler    = "checkReplayFilename"
+  read_only  = true
+  help       = "replay decisions from file"
+
+# --replay is currently broken; don't document it for 1.0
+[[option]]
+  name       = "replayLogFilename"
+  category   = "undocumented"
+  long       = "replay-log=FILE"
+  type       = "std::string"
+  handler    = "checkReplayFilename"
+  notifies   = ["notifySetReplayLogFilename", "notifyBeforeSearch"]
+  read_only  = true
+  help       = "replay decisions from file"
+
+[[option]]
+  name       = "forceNoLimitCpuWhileDump"
+  category   = "regular"
+  long       = "force-no-limit-cpu-while-dump"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "solveIntAsBV"
+  category   = "undocumented"
+  long       = "solve-int-as-bv"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
+
+[[option]]
+  name       = "solveRealAsInt"
+  category   = "undocumented"
+  long       = "solve-real-as-int"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "attempt to solve a pure real satisfiable problem as a integer problem (for non-linear)"

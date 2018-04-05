@@ -26,6 +26,7 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
 #include "theory/arith/normal_form.h"
+#include "util/ostream_util.h"
 
 using namespace std;
 
@@ -84,8 +85,9 @@ void PrimitiveVec::setup(int l){
 }
 void PrimitiveVec::print(std::ostream& out) const{
   Assert(initialized());
-  out << len << " ";
-  out.precision(15);
+  StreamFormatScope scope(out);
+
+  out << len << " " << std::setprecision(15);
   for(int i = 1; i <= len; ++i){
     out << "["<< inds[i] <<", " << coeffs[i]<<"]";
   }

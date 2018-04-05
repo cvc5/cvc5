@@ -34,9 +34,6 @@ typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
 struct BoundVarAttributeId {};
 typedef expr::Attribute<BoundVarAttributeId, Node> BoundVarAttribute;
 
-struct InstLevelAttributeId {};
-typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
-
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
@@ -61,10 +58,6 @@ typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 /** Attribute true for quantifiers that do not need to be partially instantiated */
 struct LtePartialInstAttributeId {};
 typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
-
-// attribute for sygus proxy variables
-struct SygusProxyAttributeId {};
-typedef expr::Attribute<SygusProxyAttributeId, Node> SygusProxyAttribute;
 
 // attribute for associating a synthesis function with a first order variable
 struct SygusSynthGrammarAttributeId {};
@@ -101,13 +94,16 @@ namespace inst{
 namespace quantifiers {
 
 class TermDatabase;
+class Instantiate;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil : public QuantifiersUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
-private:
+  friend class Instantiate;
+
+ private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
 public:
@@ -121,11 +117,11 @@ public:
   Node d_one;
 
   /** reset */
-  virtual bool reset(Theory::Effort e) override { return true; }
+  bool reset(Theory::Effort e) override { return true; }
   /** register quantifier */
-  virtual void registerQuantifier(Node q) override;
+  void registerQuantifier(Node q) override;
   /** identify */
-  virtual std::string identify() const override { return "TermUtil"; }
+  std::string identify() const override { return "TermUtil"; }
   // for inst constant
  private:
   /** map from universal quantifiers to the list of variables */
@@ -183,17 +179,9 @@ public:
   //quantified simplify (treat free variables in n as quantified and run rewriter)
   static Node getQuantSimplify( Node n );
 
-//for triggers
-private:
+ private:
   /** helper function for compute var contains */
   static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
-  /** helper for is instance of */
-  static bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf2( Node n1, Node n2, std::vector< Node >& varContains1, std::vector< Node >& varContains2 );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf(Node n1, Node n2);
-
  public:
   /** compute var contains */
   static void computeVarContains( Node n, std::vector< Node >& varContains );
@@ -261,8 +249,6 @@ public:
   bool containsVtsInfinity( Node n, bool isFree = false );
   /** ensure type */
   static Node ensureType( Node n, TypeNode tn );
-  /** get relevancy condition */
-  static void getRelevancyCondition( Node n, std::vector< Node >& cond );
   
 //general utilities
   // TODO #1216 : promote these?
@@ -303,6 +289,11 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
+  /**
+   * Make negated term, returns the negation of n wrt Kind notk, eliminating
+   * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
+   */
+  static Node mkNegate(Kind notk, Node n);
   /** is assoc */
   static bool isAssoc( Kind k );
   /** is k commutative? */
@@ -378,6 +369,13 @@ public:
   static Node mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
   /** make max value, static version of get max value */
   static Node mkTypeMaxValue(TypeNode tn);
+  /**
+   * Make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn).
+   * In other words, this returns either the minimum element of tn if pol is
+   * true, and the maximum element in pol is false. The type tn should have
+   * minimum and maximum elements, for example tn is Bool or BitVector.
+   */
+  static Node mkTypeConst(TypeNode tn, bool pol);
 
   // for higher-order
  private:

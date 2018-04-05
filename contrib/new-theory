@@ -179,8 +179,8 @@ if ! mv -f src/Makefile.am.new-theory src/Makefile.am; then
   exit 1
 fi
 
-echo "Adding ${dir}_options to src/options/Makefile.am..."
-if grep -q '^	${dir}_options' src/options/Makefile.am &>/dev/null; then
+echo "Adding ${dir}_options.toml to src/options/Makefile.am..."
+if grep -q '^	${dir}_options.toml' src/options/Makefile.am &>/dev/null; then
   echo "NOTE: src/options/Makefile.am already seems to link to $dir option files"
 else
   awk -v name="$dir" -f contrib/new-theory.awk src/options/Makefile.am > src/options/Makefile.am.new-theory

@@ -49,38 +49,26 @@ EmptySet& EmptySet::operator=(const EmptySet& es) {
   return *this;
 }
 
-
-EmptySet::~EmptySet() throw() {
-  delete d_type;
-}
-
+EmptySet::~EmptySet() { delete d_type; }
 const SetType& EmptySet::getType() const {
   return *d_type;
 }
-
-bool EmptySet::operator==(const EmptySet& es) const throw() {
+bool EmptySet::operator==(const EmptySet& es) const
+{
   return getType() == es.getType();
 }
 
-bool EmptySet::operator!=(const EmptySet& es) const throw() {
-  return !(*this == es);
-}
-
-bool EmptySet::operator<(const EmptySet& es) const throw() {
+bool EmptySet::operator!=(const EmptySet& es) const { return !(*this == es); }
+bool EmptySet::operator<(const EmptySet& es) const
+{
   return getType() < es.getType();
 }
 
-bool EmptySet::operator<=(const EmptySet& es) const throw() {
+bool EmptySet::operator<=(const EmptySet& es) const
+{
   return getType() <= es.getType();
 }
 
-bool EmptySet::operator>(const EmptySet& es) const throw() {
-  return !(*this <= es);
-}
-
-bool EmptySet::operator>=(const EmptySet& es) const throw() {
-  return !(*this < es);
-}
-
-
+bool EmptySet::operator>(const EmptySet& es) const { return !(*this <= es); }
+bool EmptySet::operator>=(const EmptySet& es) const { return !(*this < es); }
 }/* CVC4 namespace */

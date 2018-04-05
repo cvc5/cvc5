@@ -47,8 +47,7 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
       d_thss(NULL),
-      d_equalityEngine(d_notify, c, instanceName + "theory::uf::TheoryUF",
-                       true),
+      d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_conflict(c, false),
       d_extensionality_deq(u),
       d_uf_std_skolem(u),
@@ -330,14 +329,18 @@ Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
   return mkAnd(assumptions);
 }
 
-void TheoryUF::collectModelInfo( TheoryModel* m ){
+bool TheoryUF::collectModelInfo(TheoryModel* m)
+{
   Debug("uf") << "UF : collectModelInfo " << std::endl;
   set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms
   computeRelevantTerms(termSet);
 
-  m->assertEqualityEngine( &d_equalityEngine, &termSet );
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  {
+    return false;
+  }
 
   if( options::ufHo() ){
     for( std::set<Node>::iterator it = termSet.begin(); it != termSet.end(); ++it ){
@@ -345,12 +348,16 @@ void TheoryUF::collectModelInfo( TheoryModel* m ){
       if( n.getKind()==kind::APPLY_UF ){
         // for model-building with ufHo, we require that APPLY_UF is always expanded to HO_APPLY
         Node hn = TheoryUfRewriter::getHoApplyForApplyUf( n );
-        m->assertEquality( n, hn, true );
+        if (!m->assertEquality(n, hn, true))
+        {
+          return false;
+        }
       }
     }
   }
 
   Debug("uf") << "UF : finish collectModelInfo " << std::endl;
+  return true;
 }
 
 void TheoryUF::presolve() {

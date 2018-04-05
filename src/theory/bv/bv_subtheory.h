@@ -37,25 +37,21 @@ enum SubTheory {
   SUB_ALGEBRAIC = 4
 };
 
-inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
+inline std::ostream& operator<<(std::ostream& out, SubTheory subtheory) {
   switch (subtheory) {
-  case SUB_BITBLAST:
-    out << "BITBLASTER";
-    break;
-  case SUB_CORE:
-    out << "BV_CORE_SUBTHEORY";
-    break;
-  case SUB_INEQUALITY:
-    out << "BV_INEQUALITY_SUBTHEORY";
-  case SUB_ALGEBRAIC:
-    out << "BV_ALGEBRAIC_SUBTHEORY";
-  default:
-    Unreachable();
-    break;
+    case SUB_BITBLAST:
+      return out << "BITBLASTER";
+    case SUB_CORE:
+      return out << "BV_CORE_SUBTHEORY";
+    case SUB_INEQUALITY:
+      return out << "BV_INEQUALITY_SUBTHEORY";
+    case SUB_ALGEBRAIC:
+      return out << "BV_ALGEBRAIC_SUBTHEORY";
+    default:
+      break;
   }
-  return out;
+  Unreachable();
 }
-
 
 // forward declaration
 class TheoryBV;
@@ -79,7 +75,7 @@ class SubtheorySolver {
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
-  virtual void collectModelInfo(TheoryModel* m, bool fullModel) = 0;
+  virtual bool collectModelInfo(TheoryModel* m, bool fullModel) = 0;
   virtual Node getModelValue(TNode var) = 0;
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
