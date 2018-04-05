@@ -56,4 +56,4 @@ EXTRA_DIST = \
 	Makefile.levels \
 	Makefile.tests \
 	run_regression \
-	README
+	README.md
