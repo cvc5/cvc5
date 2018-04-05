@@ -1263,18 +1263,23 @@ inline Node RewriteRule<ZeroExtendUltConst>::apply(TNode node) {
  *
  */
 template <>
-inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
-  if (node.getKind() == kind::BITVECTOR_ULT &&
-      ((node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND &&
-        node[1].isConst()) ||
-       (node[1].getKind() == kind::BITVECTOR_SIGN_EXTEND &&
-        node[0].isConst()))) {
+inline bool RewriteRule<SignExtendUltConst>::applies(TNode node)
+{
+  if (node.getKind() == kind::BITVECTOR_ULT
+      && ((node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND
+           && node[1].isConst())
+          || (node[1].getKind() == kind::BITVECTOR_SIGN_EXTEND
+              && node[0].isConst())))
+  {
     TNode x, c;
     bool is_lhs = node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND;
-    if (is_lhs) {
+    if (is_lhs)
+    {
       x = node[0][0];
       c = node[1];
-    } else {
+    }
+    else
+    {
       x = node[1][0];
       c = node[0];
     }
@@ -1298,13 +1303,17 @@ inline bool RewriteRule<SignExtendUltConst>::applies(TNode node) {
 }
 
 template <>
-inline Node RewriteRule<SignExtendUltConst>::apply(TNode node) {
+inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
+{
   TNode x, c;
   bool is_lhs = node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND;
-  if (is_lhs) {
+  if (is_lhs)
+  {
     x = node[0][0];
     c = node[1];
-  } else {
+  }
+  else
+  {
     x = node[1][0];
     c = node[0];
   }
