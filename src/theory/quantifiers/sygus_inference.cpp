@@ -26,7 +26,7 @@ SygusInference::SygusInference() {}
 
 bool SygusInference::simplify(std::vector<Node>& assertions)
 {
-  Trace("sygus-infer") << "Sygus inference : " << std::endl;
+  Trace("sygus-infer") << "Run sygus inference..." << std::endl;
 
   if (assertions.empty())
   {
@@ -62,6 +62,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     {
       eassertions.push_back(ca);
     }
+    index++;
   }
 
   // process eassertions
@@ -75,14 +76,15 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     Node pas = as;
     // rewrite
     pas = Rewriter::rewrite(pas);
-    Trace("sygus-infer") << "  " << pas << std::endl;
+    Trace("sygus-infer") << "assertion : " << pas << std::endl;
     if (pas.getKind() == FORALL)
     {
       // preprocess the quantified formula
       pas = quantifiers::QuantifiersRewriter::preprocess(pas);
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
-
-      pas = pas[1];
+    }
+    if (pas.getKind() == FORALL)
+    {
       // infer prefix
       for (const Node& v : pas[0])
       {
@@ -101,6 +103,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
           qvars.push_back(v);
         }
       }
+      pas = pas[1];
       if (!vars.empty())
       {
         pas =
@@ -151,7 +154,9 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     return false;
   }
 
+  Assert(!processed_assertions.empty());
   // conjunction of the assertions
+  Trace("sygus-infer") << "Construct body..." << std::endl;
   Node body;
   if (processed_assertions.size() == 1)
   {
@@ -163,6 +168,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   }
 
   // for each free function symbol, make a bound variable of the same type
+  Trace("sygus-infer") << "Do free function substitution..." << std::endl;
   std::vector<Node> ff_vars;
   for (const Node& ff : free_functions)
   {
@@ -174,8 +180,10 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
                          free_functions.end(),
                          ff_vars.begin(),
                          ff_vars.end());
+  Trace("sygus-infer-debug") << "...got : " << body << std::endl;
 
   // quantify the body
+  Trace("sygus-infer") << "Make inner sygus conjecture..." << std::endl;
   if (!qvars.empty())
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, qvars);
@@ -183,6 +191,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   }
 
   // sygus attribute to mark the conjecture as a sygus conjecture
+  Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
   Node sygusVar = nm->mkBoundVar("sygus", nm->booleanType());
   SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
@@ -193,7 +202,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
 
   body = nm->mkNode(FORALL, fbvl, body, instAttrList);
 
-  Trace("sygus-infer") << "...return : " << body << std::endl;
+  Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // replace all assertions except the first with true
   Node truen = nm->mkConst(true);
