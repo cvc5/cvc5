@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **  Paul Meng, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,15 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SYMMETRY_DETECT_H
-#define __CVC4__SYMMETRY_DETECT_H
+#ifndef __CVC4__THEORY__SYMMETRY_DETECT_H
+#define __CVC4__THEORY__SYMMETRY_DETECT_H
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 #include "expr/node.h"
-#include "expr/type_node.h"
 
 namespace CVC4 {
 
@@ -46,14 +44,12 @@ class SymmetryDetect
    * */
   ~SymmetryDetect() {}
 
-  /** Get the final partition after symmetry detection */
+  /** Get the final partition after symmetry detection.
+   *  If a vector in parts contains two variables x and y,
+   *  then assertions and assertions { x -> y, y -> x } are
+   *  equisatisfiable.
+   * */
   void getPartition(std::vector<std::vector<Node> >& parts, std::vector<Node>& assertions);
-
-  /** Pretty print a vector of nodes */
-  static std::string printNodeVector(std::vector<Node> nodes);
-
-  /** Pretty print a set of nodes */
-  static std::string printNodeSet(std::unordered_set<Node, NodeHashFunction> nodes);
 
  private:
   /**

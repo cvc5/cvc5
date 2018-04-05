@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **  Paul Meng, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@ SymmetryDetect::Partition SymmetryDetect::detect(vector<Node>& assertions)
   Trace("sym-dt") << endl
                   << "------------------------------ The Final Partition "
                      "------------------------------"
-                  << std::endl;
+                  << endl;
   printPartition(p);
   return p;
 }
@@ -58,7 +58,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
 {
   Trace("sym-dt")
       << "------------------------------------------------------------"
-      << std::endl;
+      << endl;
   Trace("sym-dt") << "[sym-dt] findPartitions gets a term: " << node << endl;
   map<Node, Partition>::iterator partition = d_term_partition.find(node);
 
@@ -102,10 +102,10 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
 
   // Get all children of node
   Trace("sym-dt") << "[sym-dt] collectChildren for: " << node
-                  << " with operator " << node.getKind() << std::endl;
+                  << " with operator " << node.getKind() << endl;
   collectChildren(node, children);
-  Trace("sym-dt") << "[sym-dt] children: " << printNodeVector(children)
-                  << std::endl;
+  Trace("sym-dt") << "[sym-dt] children: " << (cout, children)
+                  << endl;
 
   // Create partitions for children
   vector<Node>::iterator children_it = children.begin();
@@ -318,47 +318,11 @@ void SymmetryDetect::collectChildren(Node node, Kind k, vector<Node>& children)
   }
 }
 
-string SymmetryDetect::printNodeVector(vector<Node> nodes)
-{
-  string result;
-  vector<Node>::iterator node_it = nodes.begin();
-
-  while (node_it != nodes.end())
-  {
-    result += " " + (*node_it).toString();
-    ++node_it;
-    if (node_it != nodes.end())
-    {
-      result += ",";
-    }
-  }
-  result += " ";
-  return result;
-}
-
-string SymmetryDetect::printNodeSet(unordered_set<Node, NodeHashFunction> nodes)
-{
-  string result;
-  unordered_set<Node, NodeHashFunction>::iterator node_it = nodes.begin();
-
-  while (node_it != nodes.end())
-  {
-    result += " " + (*node_it).toString();
-    ++node_it;
-    if (node_it != nodes.end())
-    {
-      result += ",";
-    }
-  }
-  result += " ";
-  return result;
-}
-
 void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part)
 {
   Trace("sym-dt") << "[sym-dt] Getting the new partitions from the leaves of "
                      "the partition trie:"
-                  << std::endl;
+                  << endl;
   if (!d_variables.empty())
   {
     vector<Node> vars;
@@ -424,23 +388,16 @@ void SymmetryDetect::getVariables(vector<Partition>& partitions,
 {
   vector<Partition>::iterator part_it = partitions.begin();
 
-  while (part_it != partitions.end())
+  for (; part_it != partitions.end(); ++part_it)
   {
     map<Node, vector<Node> >::iterator sub_var_it =
         (*part_it).d_subvar_to_vars.begin();
 
     while (sub_var_it != (*part_it).d_subvar_to_vars.end())
     {
-      vector<Node>::iterator v_it = (sub_var_it->second).begin();
-
-      while (v_it != (sub_var_it->second).end())
-      {
-        vars.insert(*v_it);
-        ++v_it;
-      }
+      vars.insert((sub_var_it->second).begin(), (sub_var_it->second).end());
       ++sub_var_it;
     }
-    ++part_it;
   }
 }
 
@@ -452,7 +409,7 @@ void SymmetryDetect::PartitionTrie::addNode(Node v,
   vector<Node> subvars;
   vector<Partition>::iterator part_it = partitions.begin();
 
-  while (part_it != partitions.end())
+  for (;part_it != partitions.end(); ++part_it)
   {
     map<Node, Node>::iterator var_sub_it = (*part_it).d_var_to_subvar.find(v);
 
@@ -476,20 +433,12 @@ void SymmetryDetect::PartitionTrie::addNode(Node v,
     }
     else
     {
-      map<Node, vector<Node> >::iterator sub_vars_it =
-          (*part_it).d_subvar_to_vars.begin();
-
-      while (sub_vars_it != (*part_it).d_subvar_to_vars.end())
-      {
-        subvars.push_back(Node::null());
-        ++sub_vars_it;
-      }
+      subvars.resize(subvars.size()+(*part_it).d_subvar_to_vars.size());
     }
-    ++part_it;
   }
 
   Trace("sym-dt") << "[sym-dt] Substitution variables for the variable " << v
-                  << ": " << SymmetryDetect::printNodeVector(subvars) << endl;
+                  << ": " << (cout, subvars) << endl;
 
   if (subvars.size() >= 1)
   {
