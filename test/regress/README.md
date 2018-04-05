@@ -28,10 +28,18 @@ git add regress/regress0/testMyFunctionality.cvc
 
 Also add it to [Makefile.tests](Makefile.tests) in this directory.
 
-A number of regressions exist under test/regress that aren't listed in
+A number of regressions exist under test/regress that are not listed in
 [Makefile.tests](Makefile.tests). These are regressions that may someday be
-included in the standard suite of tests, but aren't yet included (perhaps they
+included in the standard suite of tests, but are not yet included (perhaps they
 test functionality not yet supported).
+
+The following types of regression files are supported:
+
+- `*.smt`: An [SMT1.x](http://smtlib.cs.uiowa.edu/papers/format-v1.2-r06.08.30.pdf) benchmark
+- `*.smt2`: An [SMT 2.x](http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf) benchmark
+- `*.cvc`: A benchmark that uses [CVC4's native input language](https://github.com/CVC4/CVC4/wiki/CVC4-Native-Input-Language)
+- `*.sy`: A [SyGuS](http://sygus.seas.upenn.edu/files/SyGuS-IF.pdf) benchmark
+- `*.p`: A [TPTP](http://www.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html) benchmark
 
 ## Expected Output, Error, and Exit Codes
 
@@ -70,14 +78,26 @@ executing CVC4, for example:
 % COMMAND-LINE: --incremental
 ```
 
-Sometimes, the expected output or error output may need preprocessing. This is
-done with the `SCRUBBER` and `ERROR-SCRUBBER` directives:
+Sometimes, the expected output or error output may need some processing. This
+is done with the `SCRUBBER` and `ERROR-SCRUBBER` directives.  The command
+specified by the `SCRUBBER`/`ERROR-SCRUBBER` directive is applied to the output
+before the the output is matched against the `EXPECT`/`EXPECT-ERROR`
+directives. For example:
 
 ```
-; SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/'
+; SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/' -e 's/in a linear logic: .*$/in a linear logic: TERM/'
+; EXPECT: (error "A non-linear fact was asserted to arithmetic in a linear logic.
+; EXPECT: The fact in question: TERM
+; EXPECT: ")
 ```
+
+The `SCRUBBER` directive in this example replaces the actual term by a fixed
+string `TERM` to make the regression test robust to the actual term printed
+(e.g. there could be multiple non-linear facts and it is ok if any of them is
+printed).
 
 Sometimes it is useful to keep the directives separate. You can separate the
 benchmark from the output expectations by putting the benchmark in `<benchmark
 file>.smt` and the directives in `<benchmark file>.smt.expect`, which is looked
-for by the regression script.
+for by the regression script. Note that `*.expect` files should be added to the
+`EXTRA_DIST` variable in [Makefile.am](Makefile.am).
