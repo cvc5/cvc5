@@ -154,10 +154,10 @@ bool NodeTemplate<ref_count>::hasFreeVar()
     if (!cur.hasBoundVar())
     {
       continue;
-  }
+    }
     Kind k = cur.getKind();
     bool isQuant = k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
-                    || k == kind::CHOICE;
+                   || k == kind::CHOICE;
     std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
         visited.find(cur);
     if (itv == visited.end())
