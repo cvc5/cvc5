@@ -1481,8 +1481,11 @@ void SmtEngine::setDefaults() {
     options::boolToBitvector.set(false);
   }
 
-  // cases where we need produce models 
-  if( !options::produceModels() && (options::produceAssignments() || (options::sygusRewSynthCheck() && options::sygusSampleModel()))) {
+  // cases where we need produce models
+  if (!options::produceModels()
+      && (options::produceAssignments()
+          || (options::sygusRewSynthCheck() && options::sygusSampleModel())))
+  {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
   }
