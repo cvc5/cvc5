@@ -770,8 +770,8 @@ void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
     if (!d_drewrite->addRewrite(bn, beq_n))
     {
-      // must be unique according to the dynamic rewriter
-      Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
+      // should have already been filtered before reaching here
+      Assert( false );
       return;
     }
   }
