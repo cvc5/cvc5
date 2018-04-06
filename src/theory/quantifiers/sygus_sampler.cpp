@@ -735,7 +735,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   if (d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
-    if (!d_drewrite->areEqual(bn, beq_n))
+    if (d_drewrite->areEqual(bn, beq_n))
     {
       // must be unique according to the dynamic rewriter
       Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
