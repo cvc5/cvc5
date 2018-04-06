@@ -201,7 +201,7 @@ Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
   if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON || 
-      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER || k==SEP_PTO ){
+      k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER || k==SEP_PTO || k==HO_APPLY ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();
@@ -215,8 +215,6 @@ Node TermDb::getMatchOperator( Node n ) {
     Trace("par-op") << "Parametric operator : " << k << ", " << n.getOperator() << ", " << tn << " : " << n << std::endl;
     d_par_op_map[op][tn] = n;
     return n;
-  }else if( k==HO_APPLY ){
-    return n[0];
   }else if( inst::Trigger::isAtomicTriggerKind( k ) ){
     return n.getOperator();
   }else{
@@ -266,13 +264,6 @@ void TermDb::computeArgReps( TNode n ) {
   if( d_arg_reps.find( n )==d_arg_reps.end() )
   {
     eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
-    if( n.getKind()==HO_APPLY )
-    {
-      TNode nc = n[1];
-      TNode r = ee->hasTerm( nc ) ? ee->getRepresentative( nc ) : nc;
-      d_arg_reps[n].push_back( r );
-      return;
-    }
     for( const TNode& nc : n )
     {
       TNode r = ee->hasTerm( nc ) ? ee->getRepresentative( nc ) : nc;
@@ -867,6 +858,11 @@ bool TermDb::reset( Theory::Effort effort ){
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
+          if( !n.isVar() )
+          {
+            // TODO 
+            continue;
+          }
           if (d_op_map.find(n) != d_op_map.end())
           {
             if (first.isNull())

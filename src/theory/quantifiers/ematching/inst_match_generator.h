@@ -644,8 +644,11 @@ class InstMatchGeneratorSimple : public IMGenerator {
   std::vector< TypeNode > d_match_pattern_arg_types;
   /** The match operator d_match_pattern (see TermDb::getMatchOperator). */
   Node d_op;
-  /** Map from child number to variable index. */
-  std::map< int, int > d_var_num;
+  /** 
+   * Map from child number of d_match_pattern to variable index, or -1 if the
+   * child is not a variable. 
+   */
+  std::map< unsigned, int > d_var_num;
   /** add instantiations, helper function.
    *
    * m is the current match we are building,
