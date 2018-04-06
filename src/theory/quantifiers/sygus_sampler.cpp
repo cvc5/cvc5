@@ -730,7 +730,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
     }
   }
-  
+
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
@@ -742,7 +742,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       keep = false;
     }
   }
-  
+
   if (keep)
   {
     return eq_n;

@@ -598,8 +598,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       }
       else
       {
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(out, sol);
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
       CegInstantiation* cei = d_qe->getCegInstantiation();
@@ -651,7 +650,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 Trace("rr-check")
                     << "...rewrite does not hold for: " << std::endl;
                 success = false;
-                if( options::sygusSampleModel() )
+                if (options::sygusSampleModel())
                 {
                   std::vector<Node> vars;
                   d_sampler[prog].getVariables(vars);
@@ -659,14 +658,15 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                   for (const Node& v : vars)
                   {
                     Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
-                    Trace("rr-check") << "  " << v << " -> " << val << std::endl;
+                    Trace("rr-check")
+                        << "  " << v << " -> " << val << std::endl;
                     pt.push_back(val);
                   }
                   d_sampler[prog].addSamplePoint(pt);
                   // add the solution again
                   Node eq_sol_new = its->second.registerTerm(sol);
                   Assert(!r.asSatisfiabilityResult().isSat()
-                        || eq_sol_new == sol);
+                         || eq_sol_new == sol);
                 }
               }
               else
@@ -682,7 +682,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             if (success)
             {
               // register this as a relevant pair (helps filtering)
-              d_sampler[prog].registerRelevantPair(sol,eq_sol);
+              d_sampler[prog].registerRelevantPair(sol, eq_sol);
               // The analog of terms sol and eq_sol are equivalent under
               // sample points but do not rewrite to the same term. Hence,
               // this indicates a candidate rewrite.
@@ -728,7 +728,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             }
           }
           // we count this as a rewrite if we did not explicitly rule it out
-          if( success )
+          if (success)
           {
             ++(cei->d_statistics.d_candidate_rewrites);
           }
