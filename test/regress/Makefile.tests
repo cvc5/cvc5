@@ -1082,6 +1082,7 @@ REG1_TESTS = \
 	regress1/ho/ho-exponential-model.smt2 \
 	regress1/ho/ho-matching-enum-2.smt2 \
 	regress1/ho/ho-std-fmf.smt2 \
+	regress1/ho/match-middle.smt2 \
 	regress1/hole6.cvc \
 	regress1/ite5.smt2 \
 	regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt \
