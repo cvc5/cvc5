@@ -703,7 +703,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   Expr f;
   SExpr sexpr;
   std::string id;
-  Type t,t2,t3;
+  Type t;
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
@@ -921,10 +921,11 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     })?
     {
       if( f.getKind()==kind::LAMBDA ){
-        for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
+        /*for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
         {
           bvs.push_back( f[0][i] );
-        }
+        }*/
+        bvs.insert(bvs.end(), f[0].begin(), f[0].end());
         formals.push_back(bvs);
         bvs.clear();
         f = f[1];
@@ -945,7 +946,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       if(funcs.size()!=formulas.size()){
         PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
       }
-      for(unsigned int i = 0; i < funcs.size(); i++){
+      for(unsigned int i = 0, size = funcs.size(); i < size; i++){
         if(!funcs[i].getType().isSubtypeOf(types[i])){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
