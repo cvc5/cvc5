@@ -89,7 +89,27 @@ enum StrategyType
 };
 std::ostream& operator<<(std::ostream& os, StrategyType st);
 
-class UnifContext;
+/** virtual base class for context in synthesis-by-unification approaches */
+class UnifContext
+{
+ public:
+  /** Get the current role
+   *
+   * In a particular context when constructing solutions in synthesis by
+   * unification, we may be solving based on a modified role. For example,
+   * if we are currently synthesizing x in a solution ("a" ++ x), we are
+   * synthesizing the string suffix of the overall solution. In this case, this
+   * function returns role_string_suffix.
+   */
+  virtual NodeRole getCurrentRole() = 0;
+  /** is return value modified?
+   *
+   * This returns true if we are currently in a state where the return value
+   * of the solution has been modified, e.g. by a previous node that solved
+   * for a string prefix.
+   */
+  bool isReturnValueModified() { return getCurrentRole() != role_equal; }
+};
 
 /**
 * This class stores information regarding an enumerator, including
@@ -143,11 +163,6 @@ class EnumInfo
   std::vector<Node> d_enum_slave;
 
  private:
-  /**
-    * Whether an enumerated value for this conjecture has solved the entire
-    * conjecture.
-    */
-  Node d_enum_solved;
   /** the role of this enumerator (one of enum_* above). */
   EnumRole d_role;
   /** is this enumerator conditional */
@@ -217,7 +232,7 @@ class EnumTypeInfoStrat
   /** the template for the solution */
   Node d_sol_templ;
   /** Returns true if argument is valid strategy in unification context x */
-  bool isValid(UnifContext* x);
+  bool isValid(UnifContext& x);
 };
 
 /**
@@ -250,18 +265,28 @@ class SygusUnifStrategy
                   std::vector<Node>& lemmas);
   /** Get the root enumerator for this class */
   Node getRootEnumerator();
-  /** maps enumerators to relevant information */
-  std::map<Node, EnumInfo> d_einfo;
-  /** list of all enumerators for the function-to-synthesize */
-  std::vector<Node> d_esym_list;
-  /** Info for sygus datatype type occurring in a field of d_root */
-  std::map<TypeNode, EnumTypeInfo> d_tinfo;
+  /**
+   * Get the enumerator info for enumerator e, where e must be an enumerator
+   * initialized by this class (in enums after a call to initialize).
+   */
+  EnumInfo& getEnumInfo(Node e);
+  /**
+   * Get the enumerator type info for sygus type t, where t must be the type
+   * of some enumerator initialized by this class
+   */
+  EnumTypeInfo& getEnumTypeInfo(TypeNode tn);
 
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** The candidate variable this strategy is for */
   Node d_candidate;
+  /** maps enumerators to relevant information */
+  std::map<Node, EnumInfo> d_einfo;
+  /** list of all enumerators for the function-to-synthesize */
+  std::vector<Node> d_esym_list;
+  /** Info for sygus datatype type occurring in a field of d_root */
+  std::map<TypeNode, EnumTypeInfo> d_tinfo;
   /**
     * The root sygus datatype for the function-to-synthesize,
     * which encodes the overall syntactic restrictions on the space

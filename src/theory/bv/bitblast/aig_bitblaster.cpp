@@ -9,29 +9,35 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief 
+ ** \brief AIG bitblaster.
  **
- ** Bitblaster for the lazy bv solver. 
+ ** AIG bitblaster.
  **/
-
-#include "bitblaster_template.h"
 
 #include "cvc4_private.h"
 
+#include "theory/bv/bitblast/aig_bitblaster.h"
+
 #include "base/cvc4_check.h"
 #include "options/bv_options.h"
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 
 #ifdef CVC4_USE_ABC
-// Function is defined as static in ABC. Not sure how else to do this. 
-static inline int Cnf_Lit2Var( int Lit ) { return (Lit & 1)? -(Lit >> 1)-1 : (Lit >> 1)+1;  }
 
 extern "C" {
-extern Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+#include "base/abc/abc.h"
+#include "base/main/main.h"
+#include "sat/cnf/cnf.h"
+
+extern Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);
 }
 
+// Function is defined as static in ABC. Not sure how else to do this.
+static inline int Cnf_Lit2Var(int Lit)
+{
+  return (Lit & 1) ? -(Lit >> 1) - 1 : (Lit >> 1) + 1;
+}
 
 namespace CVC4 {
 namespace theory {
@@ -110,26 +116,17 @@ Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return Abc_AigMux(AigBitblaster::currentAigM(), cond, a, b); 
 }
 
-} /* CVC4::theory::bv */
-} /* CVC4::theory */
-} /* CVC4 */
-
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-
-
-Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
+CVC4_THREAD_LOCAL Abc_Ntk_t* AigBitblaster::s_abcAigNetwork = nullptr;
 
 Abc_Ntk_t* AigBitblaster::currentAigNtk() {
-  if (!AigBitblaster::abcAigNetwork) {
+  if (!AigBitblaster::s_abcAigNetwork) {
     Abc_Start();
-    abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1); 
+    s_abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
     char pName[] = "CVC4::theory::bv::AigNetwork";
-    abcAigNetwork->pName = Extra_UtilStrsav(pName);
+    s_abcAigNetwork->pName = Extra_UtilStrsav(pName);
   }
   
-  return abcAigNetwork;
+  return s_abcAigNetwork;
 }
 
 
@@ -138,34 +135,39 @@ Abc_Aig_t* AigBitblaster::currentAigM() {
 }
 
 AigBitblaster::AigBitblaster()
-  : TBitblaster<Abc_Obj_t*>()
-  , d_aigCache()
-  , d_bbAtoms()
-  , d_aigOutputNode(NULL)
+    : TBitblaster<Abc_Obj_t*>(),
+      d_nullContext(new context::Context()),
+      d_aigCache(),
+      d_bbAtoms(),
+      d_aigOutputNode(NULL)
 {
-  d_nullContext = new context::Context();
-  switch(options::bvSatSolver()) {
-  case SAT_SOLVER_MINISAT: {
-    prop::BVSatSolverInterface* minisat = prop::SatSolverFactory::createMinisat(d_nullContext,
-                                                                                smtStatisticsRegistry(),
-                                                                                "AigBitblaster");
-    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-    minisat->setNotify(notify);
-    d_satSolver = minisat;
-    break;
+  prop::SatSolver* solver = nullptr;
+  switch (options::bvSatSolver())
+  {
+    case SAT_SOLVER_MINISAT:
+    {
+      prop::BVSatSolverInterface* minisat =
+          prop::SatSolverFactory::createMinisat(
+              d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
+      MinisatEmptyNotify notify;
+      minisat->setNotify(&notify);
+      solver = minisat;
+      break;
+    }
+    case SAT_SOLVER_CADICAL:
+      solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
+                                                     "AigBitblaster");
+      break;
+    case SAT_SOLVER_CRYPTOMINISAT:
+      solver = prop::SatSolverFactory::createCryptoMinisat(
+          smtStatisticsRegistry(), "AigBitblaster");
+      break;
+    default: CVC4_FATAL() << "Unknown SAT solver type";
   }
-  case SAT_SOLVER_CRYPTOMINISAT:
-    d_satSolver = prop::SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(),
-                                                              "AigBitblaster");
-    break;
-  default: CVC4_FATAL() << "Unknown SAT solver type";
-  }
+  d_satSolver.reset(solver);
 }
 
-AigBitblaster::~AigBitblaster() {
-  Assert (abcAigNetwork == NULL);
-  delete d_nullContext;
-}
+AigBitblaster::~AigBitblaster() {}
 
 Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
   Assert (node.getType().isBoolean());
@@ -363,7 +365,7 @@ void AigBitblaster::simplifyAig() {
     fprintf( stdout, "Cannot execute command \"%s\".\n", command );
     exit(-1); 
   }
-  abcAigNetwork = Abc_FrameReadNtk(pAbc); 
+  s_abcAigNetwork = Abc_FrameReadNtk(pAbc);
 }
 
 
@@ -380,7 +382,7 @@ void AigBitblaster::convertToCnfAndAssert() {
 
   // // free old network
   // Abc_NtkDelete(currentAigNtk());
-  // abcAigNetwork = NULL;
+  // s_abcAigNetwork = NULL;
   
   Assert (pMan != NULL);
   Assert (Aig_ManCheck(pMan));
@@ -485,4 +487,8 @@ AigBitblaster::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
   smtStatisticsRegistry()->unregisterStat(&d_solveTime); 
 }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 #endif // CVC4_USE_ABC

@@ -289,6 +289,11 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
+  /**
+   * Make negated term, returns the negation of n wrt Kind notk, eliminating
+   * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
+   */
+  static Node mkNegate(Kind notk, Node n);
   /** is assoc */
   static bool isAssoc( Kind k );
   /** is k commutative? */
@@ -364,6 +369,13 @@ public:
   static Node mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
   /** make max value, static version of get max value */
   static Node mkTypeMaxValue(TypeNode tn);
+  /**
+   * Make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn).
+   * In other words, this returns either the minimum element of tn if pol is
+   * true, and the maximum element in pol is false. The type tn should have
+   * minimum and maximum elements, for example tn is Bool or BitVector.
+   */
+  static Node mkTypeConst(TypeNode tn, bool pol);
 
   // for higher-order
  private:

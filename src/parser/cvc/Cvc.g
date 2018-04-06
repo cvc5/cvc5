@@ -1803,8 +1803,7 @@ postfixTerm[CVC4::Expr& f]
       /* left- or right-shift */
     | ( LEFTSHIFT_TOK { left = true; }
       | RIGHTSHIFT_TOK { left = false; } ) k=numeral
-      { // Defined in:
-        // http://www.cs.nyu.edu/acsys/cvc3/doc/user_doc.html#user_doc_pres_lang_expr_bit
+      { 
         if(left) {
           f = MK_EXPR(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
         } else {
