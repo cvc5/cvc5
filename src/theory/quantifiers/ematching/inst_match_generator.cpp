@@ -1042,9 +1042,12 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getNodeData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
-    for( std::map< unsigned, int >::iterator it = d_var_num.begin(); it != d_var_num.end(); ++it ){
+    for (std::map<unsigned, int>::iterator it = d_var_num.begin();
+         it != d_var_num.end();
+         ++it)
+    {
       if( it->second>=0 ){
-        Assert( it->first<t.getNumChildren() );
+        Assert(it->first < t.getNumChildren());
         Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
         m.setValue( it->second, t[it->first] );
       }
