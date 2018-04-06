@@ -394,8 +394,8 @@ class TermDb : public QuantifiersUtil {
    * Map from terms to the term that they purified. For details, see addTermHo.
    */
   std::map<Node, Node> d_ho_purify_to_term;
-  /** 
-   * Map from terms in the domain of the above map to an equality between that 
+  /**
+   * Map from terms in the domain of the above map to an equality between that
    * term and its range in the above map.
    */
   std::map<Node, Node> d_ho_purify_to_eq;
@@ -403,32 +403,32 @@ class TermDb : public QuantifiersUtil {
   std::map< TNode, TNode > d_ho_op_rep;
   /** for each representative matchable operator, the list of other matchable operators in their equivalence class */
   std::map<TNode, std::vector<TNode> > d_ho_op_slaves;
-  /** add term higher-order 
-   * 
-    * This registers additional terms corresponding to (possibly multiple)
-    * purifications of a higher-order n.
-    * 
-    * Consider the example:
-    *    g : Int -> Int, f : Int x Int -> Int
-    *    constraints: (@ f 0) = g, (f 0 1) = (@ (@ f 0) 1) = 3
-    *    pattern: (g x)
-    * where @ is HO_APPLY.
-    * We have that (g x){ x -> 1 } is a E-match for (@ (@ f 0) 1).
-    * With the standard registration in addTerm, we construct term indices for
-    *   f, g, @ : Int x Int -> Int, @ : Int -> Int.
-    * However, to match (g x) with (@ (@ f 0) 1), we require that
-    *   [1] -> (@ (@ f 0) 1)
-    * is an entry in the term index of g. To do this, we maintain a term
-    * index for a fresh variable pfun, the purification variable for
-    * (@ f 0). Thus, we register the term (psk 1) in the call to this function
-    * for (@ (@ f 0) 1). This ensures that, when processing the equality 
-    * (@ f 0) = g, we merge the term indices of g and pfun. Hence, the entry
-    *   [1] -> (@ (@ f 0) 1)
-    * is added to the term index of g, assuming g is the representative of 
-    * the equivalence class of g and pfun.
-    * 
-    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
-    * d_ho_purify_to_term[(@ (@ f 0) 1)] = (psk 1).
+  /** add term higher-order
+   *
+   * This registers additional terms corresponding to (possibly multiple)
+   * purifications of a higher-order n.
+   *
+   * Consider the example:
+   *    g : Int -> Int, f : Int x Int -> Int
+   *    constraints: (@ f 0) = g, (f 0 1) = (@ (@ f 0) 1) = 3
+   *    pattern: (g x)
+   * where @ is HO_APPLY.
+   * We have that (g x){ x -> 1 } is a E-match for (@ (@ f 0) 1).
+   * With the standard registration in addTerm, we construct term indices for
+   *   f, g, @ : Int x Int -> Int, @ : Int -> Int.
+   * However, to match (g x) with (@ (@ f 0) 1), we require that
+   *   [1] -> (@ (@ f 0) 1)
+   * is an entry in the term index of g. To do this, we maintain a term
+   * index for a fresh variable pfun, the purification variable for
+   * (@ f 0). Thus, we register the term (psk 1) in the call to this function
+   * for (@ (@ f 0) 1). This ensures that, when processing the equality
+   * (@ f 0) = g, we merge the term indices of g and pfun. Hence, the entry
+   *   [1] -> (@ (@ f 0) 1)
+   * is added to the term index of g, assuming g is the representative of
+   * the equivalence class of g and pfun.
+   *
+   * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
+   * d_ho_purify_to_term[(@ (@ f 0) 1)] = (psk 1).
    */
   void addTermHo(Node n);
   /** get operator representative */
