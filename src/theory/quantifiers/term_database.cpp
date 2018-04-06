@@ -473,8 +473,8 @@ void TermDb::addTermHo(Node n)
         if( itp==d_ho_fun_op_purify.end() )
         {
           psk = nm->mkSkolem("pfun", curr.getType(), "purify for function operator term indexing");
-          d_ops.push_back(psk);
           d_ho_fun_op_purify[curr] = psk;
+          // we do not add it to d_ops since it is an internal operator
         }
         else
         {
