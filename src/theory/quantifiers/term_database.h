@@ -385,10 +385,23 @@ class TermDb : public QuantifiersUtil {
   */
   void computeArgReps(TNode n);
   //------------------------------higher-order term indexing
+  /** 
+   * Map from non-variable function terms to the operator used to purify it in
+   * this database.
+   */
+  std::map< Node, Node > d_ho_fun_op_purify;
+  /** 
+   * Map from terms to the term that they purified 
+   */
+  std::map< Node, Node > d_ho_purify_to_term;
+  /** Map from terms to the equality between terms. */
+  std::map< Node, Node > d_ho_purify_to_eq;
   /** a map from matchable operators to their representative */
   std::map< TNode, TNode > d_ho_op_rep;
   /** for each representative matchable operator, the list of other matchable operators in their equivalence class */
-  std::map< TNode, std::vector< TNode > > d_ho_op_rep_slaves;
+  std::map< TNode, std::vector< TNode > > d_ho_op_slaves;
+  /** add term higher-order */
+  void addTermHo(Node n);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing

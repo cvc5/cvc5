@@ -226,36 +226,44 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
     return;
-  }else{
-    bool rec = false;
-    if( d_processed.find( n )==d_processed.end() ){
-      d_processed.insert(n);
-      if( !TermUtil::hasInstConstAttr(n) ){
-        Trace("term-db-debug") << "register term : " << n << std::endl;
-        d_type_map[ n.getType() ].push_back( n );
-        //if this is an atomic trigger, consider adding it
-        if( inst::Trigger::isAtomicTrigger( n ) ){
-          Trace("term-db") << "register term in db " << n << std::endl;
+  }
+  bool rec = false;
+  if( d_processed.find( n )==d_processed.end() ){
+    d_processed.insert(n);
+    if( !TermUtil::hasInstConstAttr(n) ){
+      Trace("term-db-debug") << "register term : " << n << std::endl;
+      d_type_map[ n.getType() ].push_back( n );
+      //if this is an atomic trigger, consider adding it
+      if( inst::Trigger::isAtomicTrigger( n ) ){
+        Trace("term-db") << "register term in db " << n << std::endl;
 
-          Node op = getMatchOperator( n );
-          Trace("term-db-debug") << "  match operator is : " << op << std::endl;
+        Node op = getMatchOperator( n );
+        Trace("term-db-debug") << "  match operator is : " << op << std::endl;
+        if( d_op_map.find( op )==d_op_map.end() )
+        {
           d_ops.push_back(op);
-          d_op_map[op].push_back( n );
-          added.insert( n );
         }
-      }else{
-        setTermInactive( n );
+        d_op_map[op].push_back( n );
+        added.insert( n );
+        // If we are higher-order, we may need to register more terms.
+        if( options::ufHo() )
+        {
+          addTermHo(n);
+        }
       }
-      rec = true;
+    }else{
+      setTermInactive( n );
     }
-    if( withinInstClosure && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
-      d_iclosure_processed.insert( n );
-      rec = true;
-    }
-    if( rec && n.getKind()!=FORALL ){
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        addTerm( n[i], added, withinQuant, withinInstClosure );
-      }
+    rec = true;
+  }
+  if( withinInstClosure && d_iclosure_processed.find( n )==d_iclosure_processed.end() ){
+    d_iclosure_processed.insert( n );
+    rec = true;
+  }
+  if( rec && n.getKind()!=FORALL ){
+    for( const Node& nc : n )
+    {
+      addTerm( nc, added, withinQuant, withinInstClosure );
     }
   }
 }
@@ -282,7 +290,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   std::vector< TNode > ops;
   ops.push_back( f );
   if( options::ufHo() ){
-    ops.insert( ops.end(), d_ho_op_rep_slaves[f].begin(), d_ho_op_rep_slaves[f].end() );
+    ops.insert( ops.end(), d_ho_op_slaves[f].begin(), d_ho_op_slaves[f].end() );
   }
   eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
   for( const Node& ff : ops )
@@ -301,113 +309,191 @@ void TermDb::computeUfEqcTerms( TNode f ) {
 }
 
 void TermDb::computeUfTerms( TNode f ) {
+  if( d_op_nonred_count.find( f )!=d_op_nonred_count.end() )
+  {
+    // already computed
+    return;
+  }
   Assert( f==getOperatorRepresentative( f ) );
-  if( d_op_nonred_count.find( f )==d_op_nonred_count.end() ){
-    d_op_nonred_count[ f ] = 0;
-    // get the matchable operators in the equivalence class of f
-    std::vector< TNode > ops;
-    ops.push_back( f );
-    if( options::ufHo() ){
-      ops.insert( ops.end(), d_ho_op_rep_slaves[f].begin(), d_ho_op_rep_slaves[f].end() );
+  d_op_nonred_count[ f ] = 0;
+  // get the matchable operators in the equivalence class of f
+  std::vector< TNode > ops;
+  ops.push_back( f );
+  if( options::ufHo() ){
+    ops.insert( ops.end(), d_ho_op_slaves[f].begin(), d_ho_op_slaves[f].end() );
+  }
+  Trace("term-db-debug") << "computeUfTerms for " << f << std::endl;
+  unsigned congruentCount = 0;
+  unsigned nonCongruentCount = 0;
+  unsigned alreadyCongruentCount = 0;
+  unsigned relevantCount = 0;
+  eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+  for( const Node& ff : ops )
+  {
+    std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( ff );
+    if( it==d_op_map.end() )
+    {
+      // no terms for this operator
+      continue;
     }
-    Trace("term-db-debug") << "computeUfTerms for " << f << std::endl;
-    unsigned congruentCount = 0;
-    unsigned nonCongruentCount = 0;
-    unsigned alreadyCongruentCount = 0;
-    unsigned relevantCount = 0;
-    eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
-    for( const Node& ff : ops ){
-      //Assert( !options::ufHo() || ee->areEqual( ff, f ) );
-      std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( ff );
-      if( it!=d_op_map.end() ){
-        Trace("term-db-debug")
-            << "Adding terms for operator " << ff << std::endl;
-        for( const Node& n : it->second ){
-          //to be added to term index, term must be relevant, and exist in EE
-          if( hasTermCurrent( n ) && ee->hasTerm( n ) ){
-            relevantCount++;
-            if( isTermActive( n ) ){
-              computeArgReps( n );
-
-              Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-              for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
-                Trace("term-db-debug") << d_arg_reps[n][i] << " ";
-                if( std::find( d_func_map_rel_dom[f][i].begin(), 
-                               d_func_map_rel_dom[f][i].end(), d_arg_reps[n][i] ) == d_func_map_rel_dom[f][i].end() ){
-                  d_func_map_rel_dom[f][i].push_back( d_arg_reps[n][i] );
-                }
-              }
-              Trace("term-db-debug") << std::endl;
-              Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
-              Node at = d_func_map_trie[ f ].addOrGetTerm( n, d_arg_reps[n] );
-              Trace("term-db-debug2") << "...add term returned " << at << std::endl;
-              if( at!=n && ee->areEqual( at, n ) ){
-                setTermInactive( n );
-                Trace("term-db-debug") << n << " is redundant." << std::endl;
-                congruentCount++;
-              }else{
-                if( at!=n && ee->areDisequal( at, n, false ) ){
-                  std::vector< Node > lits;
-                  lits.push_back( NodeManager::currentNM()->mkNode( EQUAL, at, n ) );
-                  bool success = true;
-                  if( options::ufHo() ){
-                    //operators might be disequal
-                    if( ops.size()>1 ){
-                      Node atf = getMatchOperator( at );
-                      Node nf = getMatchOperator( n );
-                      if( atf!=nf ){
-                        if( at.getKind()==APPLY_UF && n.getKind()==APPLY_UF ){
-                          lits.push_back( atf.eqNode( nf ).negate() );
-                        }else{
-                          success = false;
-                          Assert( false );
-                        }
-                      }
-                    }
-                  }
-                  if( success ){
-                    for( unsigned k=0; k<at.getNumChildren(); k++ ){
-                      if( at[k]!=n[k] ){
-                        lits.push_back( NodeManager::currentNM()->mkNode( EQUAL, at[k], n[k] ).negate() );
-                      }
-                    }
-                    Node lem = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode( OR, lits );
-                    if( Trace.isOn("term-db-lemma") ){
-                      Trace("term-db-lemma") << "Disequal congruent terms : " << at << " " << n << "!!!!" << std::endl;
-                      if( !d_quantEngine->getTheoryEngine()->needCheck() ){
-                        Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
-                        // we should be a full effort check, prior to theory combination
-                      }
-                      Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
-                    }
-                    d_quantEngine->addLemma( lem );
-                    d_quantEngine->setConflict();
-                    d_consistent_ee = false;
-                    return;
-                  }
-                }
-                nonCongruentCount++;
-                d_op_nonred_count[ f ]++;
-              }
-            }else{
-              Trace("term-db-debug") << n << " is already redundant." << std::endl;
-              alreadyCongruentCount++;
-            }
-          }else{
-            Trace("term-db-debug") << n << " is not relevant." << std::endl;
-          }
-        }
-        if( Trace.isOn("tdb") ){
-          Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount << " / ";
-          Trace("tdb") << ( nonCongruentCount + congruentCount ) << " / " << ( nonCongruentCount + congruentCount + alreadyCongruentCount ) << " / ";
-          Trace("tdb") << relevantCount << " / " << it->second.size() << std::endl;
+    Trace("term-db-debug") << "Adding terms for operator " << ff << std::endl;
+    for( const Node& n : it->second )
+    {
+      // to be added to term index, term must be relevant, and exist in EE
+      if( !hasTermCurrent( n ) || !ee->hasTerm( n ) )
+      {
+        Trace("term-db-debug") << n << " is not relevant." << std::endl;
+        continue;
+      }
+        
+      relevantCount++;
+      if( !isTermActive( n ) )
+      {
+        Trace("term-db-debug") << n << " is already redundant." << std::endl;
+        alreadyCongruentCount++;
+        continue;
+      }
+      
+      computeArgReps( n );
+      Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
+      for( unsigned i=0; i<d_arg_reps[n].size(); i++ ){
+        Trace("term-db-debug") << d_arg_reps[n][i] << " ";
+        if( std::find( d_func_map_rel_dom[f][i].begin(), 
+                        d_func_map_rel_dom[f][i].end(), d_arg_reps[n][i] ) == d_func_map_rel_dom[f][i].end() ){
+          d_func_map_rel_dom[f][i].push_back( d_arg_reps[n][i] );
         }
       }
+      Trace("term-db-debug") << std::endl;
+      Assert( ee->hasTerm( n ) );
+      Trace("term-db-debug") << "  and value : " << ee->getRepresentative( n ) << std::endl;
+      Node at = d_func_map_trie[ f ].addOrGetTerm( n, d_arg_reps[n] );
+      Assert( ee->hasTerm( at ) );
+      Trace("term-db-debug2") << "...add term returned " << at << std::endl;
+      if( at!=n && ee->areEqual( at, n ) )
+      {
+        setTermInactive( n );
+        Trace("term-db-debug") << n << " is redundant." << std::endl;
+        congruentCount++;
+        continue;
+      }
+      if( ee->areDisequal( at, n, false ) )
+      {
+        std::vector< Node > lits;
+        lits.push_back( NodeManager::currentNM()->mkNode( EQUAL, at, n ) );
+        bool success = true;
+        if( options::ufHo() )
+        {
+          //operators might be disequal
+          if( ops.size()>1 )
+          {
+            Node atf = getMatchOperator( at );
+            Node nf = getMatchOperator( n );
+            if( atf!=nf )
+            {
+              if( at.getKind()==APPLY_UF && n.getKind()==APPLY_UF )
+              {
+                lits.push_back( atf.eqNode( nf ).negate() );
+              }
+              else
+              {
+                success = false;
+                Assert( false );
+              }
+            }
+          }
+        }
+        if( success ){
+          Assert( at.getNumChildren()==n.getNumChildren() );
+          for( unsigned k=0; k<at.getNumChildren(); k++ ){
+            if( at[k]!=n[k] ){
+              lits.push_back( NodeManager::currentNM()->mkNode( EQUAL, at[k], n[k] ).negate() );
+            }
+          }
+          Node lem = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode( OR, lits );
+          if( Trace.isOn("term-db-lemma") ){
+            Trace("term-db-lemma") << "Disequal congruent terms : " << at << " " << n << "!!!!" << std::endl;
+            if( !d_quantEngine->getTheoryEngine()->needCheck() ){
+              Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
+              // we should be a full effort check, prior to theory combination
+            }
+            Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
+          }
+          d_quantEngine->addLemma( lem );
+          d_quantEngine->setConflict();
+          d_consistent_ee = false;
+          return;
+        }
+      }
+      nonCongruentCount++;
+      d_op_nonred_count[ f ]++;
+    }
+    if( Trace.isOn("tdb") ){
+      Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount << " / ";
+      Trace("tdb") << ( nonCongruentCount + congruentCount ) << " / " << ( nonCongruentCount + congruentCount + alreadyCongruentCount ) << " / ";
+      Trace("tdb") << relevantCount << " / " << it->second.size() << std::endl;
     }
   }
 }
 
-
+void TermDb::addTermHo(Node n)
+{
+  // If we are higher-order, we may need to register more terms during addTerm.
+  // Consider the example: 
+  //    g : Int -> Int, f : Int x Int -> Int
+  //    constraints: (@ f 0) = g, (f 0 1) = (@ (@ f 0) 1) = 3
+  //    pattern: (g x)
+  // where @ is HO_APPLY.
+  // We have that (g x){ x -> 1 } is a E-match for (@ (@ f 0) 1).
+  // With the standard indexing above, we construct term indices for 
+  //   f, g, @ : Int x Int -> Int, @ : Int -> Int. 
+  // However, to match (g x) with (@ (@ f 0) 1), we require that 
+  //   [1] -> (@ (@ f 0) 1) 
+  // is an entry in the term index of g. To do this, we maintain a term
+  // index for a fresh variable pfun, the purification variable for
+  // (@ f 0). Thus, we register the term (psk 1) below. Then, when
+  // processing the equality (@ f 0) = g, we merge the term indices of
+  // g and pfun. Hence, the entry
+  //   [1] -> (@ (@ f 0) 1) 
+  // is added to the term index of g, assuming g is the master of pfun.
+  Assert( options::ufHo() );
+  if( !n.getType().isFunction() )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    Node curr = n;
+    std::vector< Node > args;
+    while( curr.getKind()==HO_APPLY )
+    {
+      args.insert( args.begin(), curr[1] );
+      curr = curr[0];
+      if( !curr.isVar() )
+      {
+        // purify the term
+        std::map< Node, Node >::iterator itp = d_ho_fun_op_purify.find( curr );
+        Node psk;
+        if( itp==d_ho_fun_op_purify.end() )
+        {
+          psk = nm->mkSkolem("pfun", curr.getType(), "purify for function operator term indexing");
+          d_ops.push_back(psk);
+          d_ho_fun_op_purify[curr] = psk;
+        }
+        else
+        {
+          psk = itp->second;
+        }
+        std::vector< Node > children;
+        children.push_back( psk );
+        children.insert( children.end(), args.begin(), args.end() );
+        Node p_n = nm->mkNode( APPLY_UF, children );
+        Trace("term-db") << "register term in db (via purify) " << p_n << std::endl;
+        // also add this one internally
+        d_op_map[psk].push_back( p_n );
+        // maintain backwards mapping
+        d_ho_purify_to_term[p_n] = n;
+      }
+    }
+  }
+}
+  
 Node TermDb::getOperatorRepresentative( TNode op ) const {
   std::map< TNode, TNode >::const_iterator it = d_ho_op_rep.find( op );
   if( it!=d_ho_op_rep.end() ){
@@ -799,6 +885,30 @@ bool TermDb::reset( Theory::Effort effort ){
   d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+  
+  // if higher-order, add equalities for the purification terms now
+  if( options::ufHo() )
+  {
+    for( std::pair< const Node, Node >& pp : d_ho_purify_to_term )
+    {
+      if( ee->hasTerm( pp.second ) )
+      {
+        Node eq;
+        std::map< Node, Node >::iterator itpe = d_ho_purify_to_eq.find(pp.first);
+        if( itpe==d_ho_purify_to_eq.end() )
+        {
+          eq = Rewriter::rewrite( pp.first.eqNode( pp.second ) );
+          d_ho_purify_to_eq[pp.first] = eq;
+        }
+        else
+        {
+          eq = itpe->second;
+        }
+        ee->assertEquality( eq, true, eq );
+      }
+    }
+  }
+  
   //compute has map
   if( options::termDbMode()==TERM_DB_RELEVANT || options::lteRestrictInstClosure() ){
     d_has_map.clear();
@@ -849,36 +959,45 @@ bool TermDb::reset( Theory::Effort effort ){
     Trace("quant-ho") << "TermDb::reset : compute equal functions..." << std::endl;
     // build operator representative map
     d_ho_op_rep.clear();
-    d_ho_op_rep_slaves.clear();
+    d_ho_op_slaves.clear();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
     while( !eqcs_i.isFinished() ){
       TNode r = (*eqcs_i);
       if( r.getType().isFunction() ){
+        Trace("quant-ho") << "  process function eqc " << r << std::endl;
         Node first;
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
+          Node n_use;
           if( n.isVar() )
           {
-            if (d_op_map.find(n) != d_op_map.end())
-            {
-              if (first.isNull())
-              {
-                first = n;
-                d_ho_op_rep[n] = n;
-              }
-              else
-              {
-                Trace("quant-ho") << "  have : " << n << " == " << first
-                                  << ", type = " << n.getType() << std::endl;
-                d_ho_op_rep[n] = first;
-                d_ho_op_rep_slaves[first].push_back(n);
-              }
-            }
+            n_use = n;
           }
           else
           {
-            // TODO
+            // use its purified variable, if it exists
+            std::map< Node, Node >::iterator itp = d_ho_fun_op_purify.find(n);
+            if( itp!=d_ho_fun_op_purify.end() )
+            {
+              n_use = itp->second;
+            }
+          }
+          Trace("quant-ho") << "  - process " << n_use << " from " << n << std::endl;
+          if( !n_use.isNull() && d_op_map.find(n_use) != d_op_map.end() )
+          {
+            if (first.isNull())
+            {
+              first = n_use;
+              d_ho_op_rep[n_use] = n_use;
+            }
+            else
+            {
+              Trace("quant-ho") << "  have : " << n_use << " == " << first
+                                << ", type = " << n_use.getType() << std::endl;
+              d_ho_op_rep[n_use] = first;
+              d_ho_op_slaves[first].push_back(n_use);
+            }
           }
           ++eqc_i;
         }
