@@ -921,10 +921,6 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     })?
     {
       if( f.getKind()==kind::LAMBDA ){
-        /*for( unsigned i=0,size=f[0].getNumChildren(); i<size; i++)
-        {
-          bvs.push_back( f[0][i] );
-        }*/
         bvs.insert(bvs.end(), f[0].begin(), f[0].end());
         formals.push_back(bvs);
         bvs.clear();
