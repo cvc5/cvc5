@@ -1,5 +1,5 @@
-% COMMAND-LINE: --no-check-proofs
-% EXPECT: unsat
+; COMMAND-LINE: --no-check-proofs
+; EXPECT: unsat
 (benchmark fuzzsmt
 :logic QF_AX
 :status unsat
