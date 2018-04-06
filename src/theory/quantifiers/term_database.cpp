@@ -886,12 +886,14 @@ bool TermDb::reset( Theory::Effort effort ){
 
   eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
   
+  Assert( ee->consistent() );
   // if higher-order, add equalities for the purification terms now
   if( options::ufHo() )
   {
+    Trace("quant-ho") << "TermDb::reset : assert higher-order purify equalities..." << std::endl;
     for( std::pair< const Node, Node >& pp : d_ho_purify_to_term )
     {
-      if( ee->hasTerm( pp.second ) )
+      if( ee->hasTerm( pp.second ) && ( !ee->hasTerm( pp.first ) || !ee->areEqual( pp.second, pp.first ) ) )
       {
         Node eq;
         std::map< Node, Node >::iterator itpe = d_ho_purify_to_eq.find(pp.first);
@@ -904,7 +906,9 @@ bool TermDb::reset( Theory::Effort effort ){
         {
           eq = itpe->second;
         }
+        Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
         ee->assertEquality( eq, true, eq );
+        Assert( ee->consistent() );
       }
     }
   }
@@ -948,8 +952,8 @@ bool TermDb::reset( Theory::Effort effort ){
     }
   }
   //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
-  for( std::unordered_set< Node, NodeHashFunction >::iterator it = d_iclosure_processed.begin(); it !=d_iclosure_processed.end(); ++it ){
-    Node n = *it;
+  for( const Node& n : d_iclosure_processed )
+  {
     if( !ee->hasTerm( n ) ){
       ee->addTerm( n );
     }
@@ -983,7 +987,7 @@ bool TermDb::reset( Theory::Effort effort ){
               n_use = itp->second;
             }
           }
-          Trace("quant-ho") << "  - process " << n_use << " from " << n << std::endl;
+          Trace("quant-ho") << "  - process " << n_use << ", from " << n << std::endl;
           if( !n_use.isNull() && d_op_map.find(n_use) != d_op_map.end() )
           {
             if (first.isNull())
