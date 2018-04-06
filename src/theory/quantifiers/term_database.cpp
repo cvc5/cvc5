@@ -858,25 +858,27 @@ bool TermDb::reset( Theory::Effort effort ){
         eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
-          if( !n.isVar() )
+          if( n.isVar() )
           {
-            // TODO 
-            continue;
+            if (d_op_map.find(n) != d_op_map.end())
+            {
+              if (first.isNull())
+              {
+                first = n;
+                d_ho_op_rep[n] = n;
+              }
+              else
+              {
+                Trace("quant-ho") << "  have : " << n << " == " << first
+                                  << ", type = " << n.getType() << std::endl;
+                d_ho_op_rep[n] = first;
+                d_ho_op_rep_slaves[first].push_back(n);
+              }
+            }
           }
-          if (d_op_map.find(n) != d_op_map.end())
+          else
           {
-            if (first.isNull())
-            {
-              first = n;
-              d_ho_op_rep[n] = n;
-            }
-            else
-            {
-              Trace("quant-ho") << "  have : " << n << " == " << first
-                                << ", type = " << n.getType() << std::endl;
-              d_ho_op_rep[n] = first;
-              d_ho_op_rep_slaves[first].push_back(n);
-            }
+            // TODO
           }
           ++eqc_i;
         }
