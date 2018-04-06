@@ -730,34 +730,21 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
     }
   }
-
+  
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
-    if (!d_drewrite->addRewrite(bn, beq_n))
+    if (!d_drewrite->areEqual(bn, beq_n))
     {
       // must be unique according to the dynamic rewriter
-      keep = false;
       Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
+      keep = false;
     }
   }
-
+  
   if (keep)
   {
-    // add to match information
-    for (unsigned r = 0; r < 2; r++)
-    {
-      Node t = r == 0 ? bn : beq_n;
-      Node to = r == 0 ? beq_n : bn;
-      // insert in match trie if first time
-      if (d_pairs.find(t) == d_pairs.end())
-      {
-        Trace("sse-match") << "SSE add term : " << t << std::endl;
-        d_match_trie.addTerm(t);
-      }
-      d_pairs[t].insert(to);
-    }
     return eq_n;
   }
   else if (Trace.isOn("sygus-synth-rr"))
@@ -766,6 +753,41 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     Trace("sygus-synth-rr") << std::endl;
   }
   return Node::null();
+}
+
+void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
+{
+  Node bn = n;
+  Node beq_n = eq_n;
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    beq_n = d_tds->sygusToBuiltin(eq_n);
+  }
+  // ----- check rewriting redundancy
+  if (d_drewrite != nullptr)
+  {
+    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
+    if (!d_drewrite->addRewrite(bn, beq_n))
+    {
+      // must be unique according to the dynamic rewriter
+      Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
+      return;
+    }
+  }
+  // add to match information
+  for (unsigned r = 0; r < 2; r++)
+  {
+    Node t = r == 0 ? bn : beq_n;
+    Node to = r == 0 ? beq_n : bn;
+    // insert in match trie if first time
+    if (d_pairs.find(t) == d_pairs.end())
+    {
+      Trace("sse-match") << "SSE add term : " << t << std::endl;
+      d_match_trie.addTerm(t);
+    }
+    d_pairs[t].insert(to);
+  }
 }
 
 bool SygusSamplerExt::notify(Node s,

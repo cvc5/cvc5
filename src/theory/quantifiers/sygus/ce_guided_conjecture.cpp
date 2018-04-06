@@ -583,16 +583,23 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       std::string f(ss.str());
       f.erase(f.begin());
       out << "(define-fun " << f << " ";
-      if( dt.getSygusVarList().isNull() ){
+      if (dt.getSygusVarList().isNull())
+      {
         out << "() ";
-      }else{
+      }
+      else
+      {
         out << dt.getSygusVarList() << " ";
       }
       out << dt.getSygusType() << " ";
-      if( status==0 ){
+      if (status == 0)
+      {
         out << sol;
-      }else{
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
+      }
+      else
+      {
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(out, sol);
       }
       out << ")" << std::endl;
       CegInstantiation* cei = d_qe->getCegInstantiation();
@@ -612,9 +619,9 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         // eq_sol is a candidate solution that is equivalent to sol
         if (eq_sol != sol)
         {
-          ++(cei->d_statistics.d_candidate_rewrites);
           // if eq_sol is null, then we have an uninteresting candidate rewrite,
           // e.g. one that is alpha-equivalent to another.
+          bool success = true;
           if (!eq_sol.isNull())
           {
             ExtendedRewriter* er = sygusDb->getExtRewriter();
@@ -622,7 +629,6 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             Node solbr = er->extendedRewrite(solb);
             Node eq_solb = sygusDb->sygusToBuiltin(eq_sol);
             Node eq_solr = er->extendedRewrite(eq_solb);
-            bool success = true;
             bool verified = false;
             // verify it if applicable
             if (options::sygusRewSynthCheck())
@@ -645,31 +651,41 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 Trace("rr-check")
                     << "...rewrite does not hold for: " << std::endl;
                 success = false;
-                std::vector<Node> vars;
-                d_sampler[prog].getVariables(vars);
-                std::vector<Node> pt;
-                for (const Node& v : vars)
+                if( options::sygusSampleModel() )
                 {
-                  Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
-                  Trace("rr-check") << "  " << v << " -> " << val << std::endl;
-                  pt.push_back(val);
+                  std::vector<Node> vars;
+                  d_sampler[prog].getVariables(vars);
+                  std::vector<Node> pt;
+                  for (const Node& v : vars)
+                  {
+                    Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
+                    Trace("rr-check") << "  " << v << " -> " << val << std::endl;
+                    pt.push_back(val);
+                  }
+                  d_sampler[prog].addSamplePoint(pt);
+                  // add the solution again
+                  Node eq_sol_new = its->second.registerTerm(sol);
+                  Assert(!r.asSatisfiabilityResult().isSat()
+                        || eq_sol_new == sol);
                 }
-                d_sampler[prog].addSamplePoint(pt);
-                // add the solution again
-                Node eq_sol_new = its->second.registerTerm(sol);
-                Assert(!r.asSatisfiabilityResult().isSat()
-                       || eq_sol_new == sol);
               }
               else
               {
                 verified = true;
               }
             }
+            else
+            {
+              // just insist that constants are not relevant pairs
+              success = !solb.isConst() || !eq_solb.isConst();
+            }
             if (success)
             {
-              // The analog of terms sol and eq_sol are equivalent under sample
-              // points but do not rewrite to the same term. Hence, this
-              // indicates a candidate rewrite.
+              // register this as a relevant pair (helps filtering)
+              d_sampler[prog].registerRelevantPair(sol,eq_sol);
+              // The analog of terms sol and eq_sol are equivalent under
+              // sample points but do not rewrite to the same term. Hence,
+              // this indicates a candidate rewrite.
               Printer* p = Printer::getPrinter(options::outputLanguage());
               out << "(" << (verified ? "" : "candidate-") << "rewrite ";
               p->toStreamSygus(out, sol);
@@ -710,6 +726,11 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 sygusDb->registerSymBreakLemma(d_candidates[i], lem, ptn, sz);
               }
             }
+          }
+          // we count this as a rewrite if we did not explicitly rule it out
+          if( success )
+          {
+            ++(cei->d_statistics.d_candidate_rewrites);
           }
         }
       }
