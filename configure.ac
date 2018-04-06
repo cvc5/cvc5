@@ -11,9 +11,10 @@ dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT
 
 AC_PREREQ([2.61])
-AC_INIT([cvc4], _CVC4_RELEASE_STRING, [cvc-bugs@cs.nyu.edu])
+AC_INIT([cvc4], _CVC4_RELEASE_STRING, [cvc4-bugs@cs.stanford.edu])
 AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
+AC_REQUIRE_AUX_FILE([tap-driver.sh])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_LIBOBJ_DIR([src/lib])
 

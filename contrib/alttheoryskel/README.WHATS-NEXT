@@ -13,13 +13,13 @@ Your next steps will likely be:
 
 You'll probably find the Developer's wiki useful:
 
-  http://cvc4.cs.nyu.edu/wiki/
+  http://cvc4.cs.stanford.edu/wiki/
 
-...and in particular the Developer's Guide:
+...and the Developer's Guide:
 
-  http://cvc4.cs.nyu.edu/wiki/Developer%27s_Guide
+  https://github.com/CVC4/CVC4/wiki/Developer-Guide
 
 which contains coding guidelines for the CVC4 project.
 
-Good luck, and please contact cvc4-devel@cs.nyu.edu for assistance
+Good luck, and please contact cvc4-devel@cs.stanford.edu for assistance
 should you need it!
