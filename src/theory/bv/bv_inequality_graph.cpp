@@ -2,7 +2,7 @@
 /*! \file bv_inequality_graph.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Paul Meng
+ **   Liana Hadarean, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
