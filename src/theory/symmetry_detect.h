@@ -49,7 +49,7 @@ class SymmetryDetect
    *  then assertions and assertions { x -> y, y -> x } are
    *  equisatisfiable.
    * */
-  void getPartition(std::vector<std::vector<Node> >& parts, std::vector<Node>& assertions);
+  void getPartition(std::vector<std::vector<Node> >& parts, const std::vector<Node>& assertions);
 
  private:
   /**
@@ -64,11 +64,11 @@ class SymmetryDetect
    public:
     /** Term corresponding to the partition, e.g., x + y = 0 */
     Node d_term;
-    /** Mapping between the variable and the substitute variable x -> w, y -> w,
+    /** Mapping between the variable and the substitution variable x -> w, y -> w,
      * z -> w */
     std::map<Node, Node> d_var_to_subvar;
 
-    /** Mapping between the substitute variable and variables w-> { x, y, z } */
+    /** Mapping between the substitution variable and variables w-> { x, y, z } */
     std::map<Node, std::vector<Node> > d_subvar_to_vars;
   };
 
@@ -111,7 +111,7 @@ class SymmetryDetect
    * such that for each set S in P, then all automorphisms for S applied to
    * assertions result in an equisatisfiable formula.
    */
-  Partition detect(std::vector<Node>& assertions);
+  Partition detect(const std::vector<Node>& assertions);
 
   /** Find symmetries in node */
   SymmetryDetect::Partition findPartitions(Node node);
@@ -119,7 +119,7 @@ class SymmetryDetect
   /** Collect children of a node
    *  If the kind of node is associative, we will chain its children together.
    *  We might need optimizations here, such as rewriting the input to negation
-   * normal form.
+   *  normal form.
    * */
   void collectChildren(Node node, std::vector<Node>& children);
   void collectChildren(Node node, Kind k, std::vector<Node>& children);
@@ -127,15 +127,33 @@ class SymmetryDetect
   /** Print a partition */
   void printPartition(Partition p);
 
-  /** Get all variables from partitions */
+  /** Retrieve all variables from partitions and put in vars */
   void getVariables(std::vector<Partition>& partitions,
                     std::unordered_set<Node, NodeHashFunction>& vars);
 
-  /** Process singleton partitions and add all variables to vars */
+  /** Process singleton partitions and add all variables to vars
+   *  It collects all partitions with more than 1 variable and save it in
+   *  partitions first. And then it collects the substitution variable to
+   *  variable and to term mappings respectively from partitions with 1
+   *  variable and invokes matches function on the mappings to check
+   *  if any subset of the variables can be merged. If yes, they will be merged
+   *  and put in partitions. The remaining ones after the merge check will be
+   *  put in the partitions as well.
+   * */
   void processSingletonPartitions(std::vector<Partition>& partitions,
                                   std::unordered_set<Node, NodeHashFunction>& vars);
 
-  /** Do matches on singleton partitions */
+  /** Do matches on singleton partitions
+   *  This function checks if any subset of the expressions corresponding to
+   *  substitution variables are equivalent under variables substitution.
+   *  If the expressions are equivalent, we will merge the variables corresponding
+   *  to the same substitution variables and put them in partitions.
+   *  For example, suppose we have subvar_to_var: {w1 -> u, w2 -> x, w3 -> y,
+   *  w4 -> z} and subvar_to_expr: {w1 -> u>2, w2 -> x>0, w3 -> y>0, w4 -> z>1}.
+   *  Since [x/w]>0 is equivalent [y/w]>0 but not equivalent to [z/w]>1 and [u/w]>2,
+   *  and [u/w]>2 is not equivalent to [z/w]>1, we would merge x and y and put
+   *  w5->{x, y} and also w1->{u}, w4->{z} in partitions.
+   * */
   void matches(std::vector<Partition>& partitions,
                std::map<Node, Node>& subvar_to_var,
                std::map<Node, Node>& subvar_to_expr);

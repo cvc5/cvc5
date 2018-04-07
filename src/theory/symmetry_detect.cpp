@@ -20,10 +20,10 @@ using namespace std;
 
 namespace CVC4 {
 
-SymmetryDetect::Partition SymmetryDetect::detect(vector<Node>& assertions)
+SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
   Node node = d_trueNode;
-  vector<Node>::iterator assertions_it = assertions.begin();
+  vector<Node>::const_iterator assertions_it = assertions.begin();
 
   while (assertions_it != assertions.end())
   {
@@ -41,7 +41,7 @@ SymmetryDetect::Partition SymmetryDetect::detect(vector<Node>& assertions)
 }
 
 void SymmetryDetect::getPartition(vector<vector<Node> >& parts,
-                                  vector<Node>& assertions)
+                                  const vector<Node>& assertions)
 {
   Partition p = detect(assertions);
   map<Node, vector<Node> >::iterator subvar_to_vars_it =
