@@ -987,6 +987,7 @@ REG1_TESTS = \
 	regress1/arith/mod.02.smt2 \
 	regress1/arith/mod.03.smt2 \
 	regress1/arith/mult.02.smt2 \
+	regress1/arith/pbrewrites-test.smt2 \
 	regress1/arith/problem__003.smt2 \
 	regress1/arrayinuf_error.smt2 \
 	regress1/aufbv/bug580.smt2 \
@@ -1036,6 +1037,7 @@ REG1_TESTS = \
 	regress1/errorcrash.smt2 \
 	regress1/fmf-fun-dbu.smt2 \
 	regress1/fmf/ALG008-1.smt2 \
+	regress1/fmf/Hoare-z3.931718.smt \
 	regress1/fmf/LeftistHeap.scala-8-ncm.smt2 \
 	regress1/fmf/PUZ001+1.smt2 \
 	regress1/fmf/agree466.smt2 \
@@ -1063,7 +1065,6 @@ REG1_TESTS = \
 	regress1/fmf/fore19-exp2-core.smt2 \
 	regress1/fmf/german169.smt2 \
 	regress1/fmf/german73.smt2 \
-	regress1/fmf/Hoare-z3.931718.smt \
 	regress1/fmf/issue916-fmf-or.smt2 \
 	regress1/fmf/jasmin-cdt-crash.smt2 \
 	regress1/fmf/ko-bound-set.cvc \
