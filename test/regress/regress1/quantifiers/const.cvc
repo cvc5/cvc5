@@ -1,0 +1,4 @@
+% EXPECT: unsat
+REC-FUN five : INT = 5;
+ASSERT five = 6;
+CHECKSAT;

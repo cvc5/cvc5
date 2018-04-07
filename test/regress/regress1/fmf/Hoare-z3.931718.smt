@@ -1,5 +1,5 @@
-% COMMAND-LINE: --finite-model-find
-% EXPECT: sat
+; COMMAND-LINE: --finite-model-find
+; EXPECT: sat
 (benchmark Isabelle
 :status sat
 :logic AUFLIA
