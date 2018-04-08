@@ -1539,7 +1539,7 @@ bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) con
 
   for (unsigned i = 0; i < toProcess.size(); ++ i) {
     TNode current = toProcess[i];
-    if( current.hasOperator() && current.getOperator()==t )
+    if (current.hasOperator() && current.getOperator() == t)
     {
       return true;
     }

@@ -756,7 +756,8 @@ Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
   }
   if( !ret.isNull() ){
     //ensure does not contain
-    if( ret.hasSubterm( v ) ){
+    if (ret.hasSubterm(v))
+    {
       ret = Node::null();
     }
   }
@@ -869,7 +870,8 @@ void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node cat
 }
 
 void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node catom, Node eqc, std::map< Node, int >& match_score ) {
-  if( inst::Trigger::isAtomicTrigger( catom ) && catom.hasSubterm( pv ) ){
+  if (inst::Trigger::isAtomicTrigger(catom) && catom.hasSubterm(pv))
+  {
     Trace("cegqi-epr") << "Find matches for " << catom << "..." << std::endl;
     std::vector< Node > arg_reps;
     for( unsigned j=0; j<catom.getNumChildren(); j++ ){

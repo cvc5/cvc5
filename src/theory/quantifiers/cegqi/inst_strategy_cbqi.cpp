@@ -768,7 +768,7 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
         }
       }
       //only legal if current quantified formula contains n
-      return d_curr_quant.hasSubterm( n );
+      return d_curr_quant.hasSubterm(n);
     }
   }else{
     return true;
