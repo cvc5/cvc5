@@ -436,6 +436,12 @@ public:
   bool hasBoundVar();
 
   /**
+   * Returns true iff this node contains a free variable.
+   * @return true iff this node contains a free variable.
+   */
+  bool hasFreeVar();
+
+  /**
    * Convert this Node into an Expr using the currently-in-scope
    * manager.  Essentially this is like an "operator Expr()" but we
    * don't want it to compete with implicit conversions between e.g.
