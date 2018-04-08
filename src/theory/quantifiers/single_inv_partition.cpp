@@ -250,37 +250,28 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         // now must check if it has other bound variables
         std::vector<Node> bvs;
         TermUtil::getBoundVars(cr, bvs);
-        if (bvs.size() > d_si_vars.size())
+        // bound variables must be contained in the single invocation variables
+        for (const Node& bv : bvs)
         {
-          // getBoundVars also collects functions in the rare case that we are
-          // synthesizing a function with 0 arguments
-          // take these into account below.
-          unsigned n_const_synth_fun = 0;
-          for (unsigned j = 0; j < bvs.size(); j++)
+          if (std::find(d_si_vars.begin(), d_si_vars.end(), bv)
+              == d_si_vars.end())
           {
-            if (std::find(d_input_funcs.begin(), d_input_funcs.end(), bvs[j])
-                != d_input_funcs.end())
+            // getBoundVars also collects functions in the rare case that we are
+            // synthesizing a function with 0 arguments, take this into account
+            // here.
+            if (std::find(d_input_funcs.begin(), d_input_funcs.end(), bv)
+                == d_input_funcs.end())
             {
-              n_const_synth_fun++;
+              Trace("si-prt")
+                  << "...not ground single invocation." << std::endl;
+              ngroundSingleInvocation = true;
+              singleInvocation = false;
             }
           }
-          if (bvs.size() - n_const_synth_fun > d_si_vars.size())
-          {
-            Trace("si-prt") << "...not ground single invocation." << std::endl;
-            ngroundSingleInvocation = true;
-            singleInvocation = false;
-          }
-          else
-          {
-            Trace("si-prt") << "...ground single invocation : success, after "
-                               "removing 0-arg synth functions."
-                            << std::endl;
-          }
         }
-        else
+        if (singleInvocation)
         {
-          Trace("si-prt") << "...ground single invocation : success."
-                          << std::endl;
+          Trace("si-prt") << "...ground single invocation" << std::endl;
         }
       }
       else
