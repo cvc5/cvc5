@@ -1223,6 +1223,8 @@ REG1_TESTS = \
 	regress1/quantifiers/burns4.smt2 \
 	regress1/quantifiers/cbqi-sdlx-fixpoint-3-dd.smt2 \
 	regress1/quantifiers/cdt-0208-to.smt2 \
+	regress1/quantifiers/const.cvc \
+	regress1/quantifiers/constfunc.cvc \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
@@ -1234,6 +1236,7 @@ REG1_TESTS = \
 	regress1/quantifiers/javafe.ast.StmtVec.009.smt2 \
 	regress1/quantifiers/mix-coeff.smt2 \
 	regress1/quantifiers/model_6_1_bv.smt2 \
+	regress1/quantifiers/mutualrec2.cvc \
 	regress1/quantifiers/nested9_true-unreach-call.i_575.smt2 \
 	regress1/quantifiers/opisavailable-12.smt2 \
 	regress1/quantifiers/parametric-lists.smt2 \
@@ -1258,6 +1261,7 @@ REG1_TESTS = \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
+	regress1/quantifiers/recfact.cvc \
 	regress1/quantifiers/rew-to-0211-dd.smt2 \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
 	regress1/quantifiers/set3.smt2 \
@@ -1536,6 +1540,7 @@ REG2_TESTS = \
 	regress2/quantifiers/javafe.ast.WhileStmt.447.smt2 \
 	regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2 \
 	regress2/quantifiers/javafe.tc.FlowInsensitiveChecks.682.smt2 \
+	regress2/quantifiers/mutualrec2.cvc \
 	regress2/quantifiers/nunchaku2309663.nun.min.smt2 \
 	regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
 	regress2/strings/cmu-dis-0707-3.smt2 \

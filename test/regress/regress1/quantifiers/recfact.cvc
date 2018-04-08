@@ -1,0 +1,7 @@
+% EXPECT: unsat
+OPTION "fmf-fun";
+x : INT;
+REC-FUN fact : (INT) -> INT = LAMBDA (x : INT) : IF (x > 0) THEN x * fact (x - 1) ELSE 1 ENDIF;
+ASSERT fact(0) = 2;
+ASSERT x = fact(3);
+CHECKSAT;
