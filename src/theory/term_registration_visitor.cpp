@@ -37,6 +37,8 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   if( ( parent.getKind() == kind::FORALL ||
         parent.getKind() == kind::EXISTS ||
+        parent.getKind() == kind::LAMBDA ||
+        parent.getKind() == kind::CHOICE ||
         parent.getKind() == kind::REWRITE_RULE ||
         parent.getKind() == kind::SEP_STAR ||
         parent.getKind() == kind::SEP_WAND ||
@@ -181,6 +183,8 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   if( ( parent.getKind() == kind::FORALL ||
         parent.getKind() == kind::EXISTS ||
+        parent.getKind() == kind::LAMBDA ||
+        parent.getKind() == kind::CHOICE ||
         parent.getKind() == kind::REWRITE_RULE ||
         parent.getKind() == kind::SEP_STAR ||
         parent.getKind() == kind::SEP_WAND ||

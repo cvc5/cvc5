@@ -394,6 +394,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       }
 
       // the atom should not have free variables
+      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed << std::endl;
       Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
