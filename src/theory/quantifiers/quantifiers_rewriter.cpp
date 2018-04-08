@@ -776,7 +776,7 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
   }else if( n.getKind()==EQUAL ){
     for( unsigned i=0; i<2; i++ ){
       if( n[i].getKind()==BOUND_VARIABLE ){
-        if( !TermUtil::containsTerm( n[1-i], n[i] ) ){
+        if( !n[1-i].hasSubterm(n[i]) ){
           return true;
         }
       }
@@ -874,11 +874,7 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
 }
 
 bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
-  if( TermUtil::containsTerm( s, v ) || !s.getType().isSubtypeOf( v.getType() ) ){
-    return false;
-  }else{
-    return true;
-  }
+  return !s.hasSubterm(v) && s.getType().isSubtypeOf( v.getType() );
 }
 
 void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 

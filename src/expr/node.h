@@ -1533,6 +1533,10 @@ bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) con
 
   for (unsigned i = 0; i < toProcess.size(); ++ i) {
     TNode current = toProcess[i];
+    if( current.hasOperator() && current.getOperator()==t )
+    {
+      return true;
+    }
     for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
       TNode child = current[j];
       if (child == t) {

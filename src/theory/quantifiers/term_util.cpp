@@ -553,7 +553,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     //rewriting infinity always takes precedence over rewriting delta
     for( unsigned r=0; r<2; r++ ){
       Node inf = getVtsInfinityIndex( r, false, false );
-      if( !inf.isNull() && containsTerm( n, inf ) ){
+      if( !inf.isNull() && n.hasSubterm( inf ) ){
         if( rew_vts_inf.isNull() ){
           rew_vts_inf = inf;
         }else{
@@ -566,14 +566,14 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
           n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
           n = Rewriter::rewrite( n );
           //may have cancelled
-          if( !containsTerm( n, rew_vts_inf ) ){
+          if( !n.hasSubterm( rew_vts_inf ) ){
             rew_vts_inf = Node::null();
           }
         }
       }
     }
     if( rew_vts_inf.isNull() ){
-      if( !d_vts_delta.isNull() && containsTerm( n, d_vts_delta ) ){
+      if( !d_vts_delta.isNull() && n.hasSubterm( d_vts_delta ) ){
         rew_delta = true;
       }
     }
@@ -690,41 +690,27 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
   }
 }
 
-bool TermUtil::containsTerm2( Node n, Node t, std::map< Node, bool >& visited ) {
-  if( n==t ){
-    return true;
-  }else{
-    if( visited.find( n )==visited.end() ){
-      visited[n] = true;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( containsTerm2( n[i], t, visited ) ){
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-}
-
 bool TermUtil::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
+  if( visited.find( n )==visited.end() )
+  {
     if( std::find( t.begin(), t.end(), n )!=t.end() ){
       return true;
-    }else{
-      visited[n] = true;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( containsTerms2( n[i], t, visited ) ){
-          return true;
-        }
+    }
+    visited[n] = true;
+    if( n.hasOperator() )
+    {
+      if( containsTerms2( n.getOperator(), t, visited ) )
+      {
+        return true;
+      }
+    }
+    for( const Node& nc : n ){
+      if( containsTerms2( nc, t, visited ) ){
+        return true;
       }
     }
   }
   return false;
-}
-
-bool TermUtil::containsTerm( Node n, Node t ) {
-  std::map< Node, bool > visited;
-  return containsTerm2( n, t, visited );
 }
 
 bool TermUtil::containsTerms( Node n, std::vector< Node >& t ) {
