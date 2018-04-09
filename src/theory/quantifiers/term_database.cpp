@@ -342,7 +342,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
   eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& ff : ops)
   {
     std::map<Node, std::vector<Node> >::iterator it = d_op_map.find(ff);
@@ -429,14 +429,10 @@ void TermDb::computeUfTerms( TNode f ) {
           {
             if (at[k] != n[k])
             {
-              lits.push_back(nm
-                                 ->mkNode(EQUAL, at[k], n[k])
-                                 .negate());
+              lits.push_back(nm->mkNode(EQUAL, at[k], n[k]).negate());
             }
           }
-          Node lem = lits.size() == 1
-                         ? lits[0]
-                         : nm->mkNode(OR, lits);
+          Node lem = lits.size() == 1 ? lits[0] : nm->mkNode(OR, lits);
           if (Trace.isOn("term-db-lemma"))
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
