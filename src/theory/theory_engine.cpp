@@ -1057,7 +1057,7 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
   Node newTerm;
-  if (theoryOf(term)->ppDontRewriteSubterm(term)) {
+  if (theoryOf(term)->ppDontRewriteSubterm(term) || term.getKind()==kind::CHOICE || term.getKind()==kind::LAMBDA) {
     newTerm = Rewriter::rewrite(term);
   } else {
     NodeBuilder<> newNode(term.getKind());
