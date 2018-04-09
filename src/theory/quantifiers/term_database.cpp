@@ -222,7 +222,8 @@ Node TermDb::getMatchOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool withinInstClosure ){
+void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool withinInstClosure )
+{
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
     return;
@@ -251,7 +252,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant, bool wi
         // If we are higher-order, we may need to register more terms.
         if (options::ufHo())
         {
-          addTermHo(n);
+          addTermHo(n, added, withinQuant, withinInstClosure);
         }
       }
     }
@@ -469,47 +470,56 @@ void TermDb::computeUfTerms( TNode f ) {
   }
 }
 
-void TermDb::addTermHo(Node n)
+void TermDb::addTermHo(Node n, std::set< Node >& added, bool withinQuant, bool withinInstClosure)
 {
   Assert(options::ufHo());
-  if (!n.getType().isFunction())
+  if (n.getType().isFunction())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    Node curr = n;
-    std::vector<Node> args;
-    while (curr.getKind() == HO_APPLY)
+    // nothing special to do with functions
+    return;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node curr = n;
+  std::vector<Node> args;
+  while (curr.getKind() == HO_APPLY)
+  {
+    args.insert(args.begin(), curr[1]);
+    curr = curr[0];
+    if (!curr.isVar())
     {
-      args.insert(args.begin(), curr[1]);
-      curr = curr[0];
-      if (!curr.isVar())
+      // purify the term
+      std::map<Node, Node>::iterator itp = d_ho_fun_op_purify.find(curr);
+      Node psk;
+      if (itp == d_ho_fun_op_purify.end())
       {
-        // purify the term
-        std::map<Node, Node>::iterator itp = d_ho_fun_op_purify.find(curr);
-        Node psk;
-        if (itp == d_ho_fun_op_purify.end())
-        {
-          psk = nm->mkSkolem("pfun",
-                             curr.getType(),
-                             "purify for function operator term indexing");
-          d_ho_fun_op_purify[curr] = psk;
-          // we do not add it to d_ops since it is an internal operator
-        }
-        else
-        {
-          psk = itp->second;
-        }
-        std::vector<Node> children;
-        children.push_back(psk);
-        children.insert(children.end(), args.begin(), args.end());
-        Node p_n = nm->mkNode(APPLY_UF, children);
-        Trace("term-db") << "register term in db (via purify) " << p_n
-                         << std::endl;
-        // also add this one internally
-        d_op_map[psk].push_back(p_n);
-        // maintain backwards mapping
-        d_ho_purify_to_term[p_n] = n;
+        psk = nm->mkSkolem("pfun",
+                            curr.getType(),
+                            "purify for function operator term indexing");
+        d_ho_fun_op_purify[curr] = psk;
+        // we do not add it to d_ops since it is an internal operator
       }
+      else
+      {
+        psk = itp->second;
+      }
+      std::vector<Node> children;
+      children.push_back(psk);
+      children.insert(children.end(), args.begin(), args.end());
+      Node p_n = nm->mkNode(APPLY_UF, children);
+      Trace("term-db") << "register term in db (via purify) " << p_n
+                        << std::endl;
+      // also add this one internally
+      d_op_map[psk].push_back(p_n);
+      // maintain backwards mapping
+      d_ho_purify_to_term[p_n] = n;
     }
+  }
+  if( !args.empty() && curr.isVar() )
+  {
+    // also add standard application version
+    args.insert(args.begin(), curr);
+    Node uf_n = nm->mkNode( APPLY_UF, args );
+    addTerm( uf_n, added, withinQuant, withinInstClosure );
   }
 }
 
