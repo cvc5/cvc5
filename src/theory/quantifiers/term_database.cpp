@@ -311,7 +311,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     for (const TNode& n : d_op_map[ff])
     {
-      if (hasTermCurrent(n) && isTermActive(n)
+      if (hasTermCurrent(n) && isTermActive(n))
       {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : n;
