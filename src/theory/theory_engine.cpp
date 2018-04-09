@@ -1057,9 +1057,13 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
   Node newTerm;
-  if (theoryOf(term)->ppDontRewriteSubterm(term) || term.getKind()==kind::CHOICE || term.getKind()==kind::LAMBDA) {
+  // do not rewrite inside quantifiers
+  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS || term.getKind()==kind::CHOICE || term.getKind()==kind::LAMBDA) 
+  {
     newTerm = Rewriter::rewrite(term);
-  } else {
+  } 
+  else 
+  {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
       newNode << term.getOperator();

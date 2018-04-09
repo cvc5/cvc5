@@ -553,11 +553,6 @@ public:
   virtual Node ppRewrite(TNode atom) { return atom; }
 
   /**
-   * Don't preprocess subterm of this term
-   */
-  virtual bool ppDontRewriteSubterm(TNode atom) { return false; }
-
-  /**
    * Notify preprocessed assertions. Called on new assertions after
    * preprocessing before they are asserted to theory engine.
    */
