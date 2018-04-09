@@ -787,12 +787,6 @@ REG0_TESTS = \
 	regress0/strings/substr-rewrites.smt2 \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
-	regress0/sym/sym1.smt2 \
-	regress0/sym/sym2.smt2 \
-	regress0/sym/sym3.smt2 \
-	regress0/sym/sym4.smt2 \
-	regress0/sym/sym5.smt2 \
-	regress0/sym/sym6.smt2 \			
 	regress0/sygus/General_plus10.sy \
 	regress0/sygus/c100.sy \
 	regress0/sygus/ccp16.lus.sy \
@@ -1491,6 +1485,12 @@ REG1_TESTS = \
 	regress1/sygus/twolets2-orig.sy \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
+	regress1/sym/sym1.smt2 \
+	regress1/sym/sym2.smt2 \
+	regress1/sym/sym3.smt2 \
+	regress1/sym/sym4.smt2 \
+	regress1/sym/sym5.smt2 \
+	regress1/sym/sym6.smt2 \
 	regress1/test12.cvc \
 	regress1/trim.cvc \
 	regress1/uf2.smt2 \

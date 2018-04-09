@@ -1,3 +1,4 @@
+; COMMAND-LINE: --symmetry-detect
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun A () (Set Int))
