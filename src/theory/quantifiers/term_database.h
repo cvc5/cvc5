@@ -406,14 +406,14 @@ class TermDb : public QuantifiersUtil {
   /** add term higher-order
    *
    * This registers additional terms corresponding to (possibly multiple)
-   * purifications of a higher-order n.
+   * purifications of a higher-order term n.
    *
    * Consider the example:
    *    g : Int -> Int, f : Int x Int -> Int
    *    constraints: (@ f 0) = g, (f 0 1) = (@ (@ f 0) 1) = 3
    *    pattern: (g x)
    * where @ is HO_APPLY.
-   * We have that (g x){ x -> 1 } is a E-match for (@ (@ f 0) 1).
+   * We have that (g x){ x -> 1 } is an E-match for (@ (@ f 0) 1).
    * With the standard registration in addTerm, we construct term indices for
    *   f, g, @ : Int x Int -> Int, @ : Int -> Int.
    * However, to match (g x) with (@ (@ f 0) 1), we require that

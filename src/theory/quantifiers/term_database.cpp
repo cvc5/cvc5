@@ -311,14 +311,11 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     for (const TNode& n : d_op_map[ff])
     {
-      if (hasTermCurrent(n))
+      if (hasTermCurrent(n) && isTermActive(n)
       {
-        if (isTermActive(n))
-        {
-          computeArgReps(n);
-          TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : n;
-          d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
-        }
+        computeArgReps(n);
+        TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : n;
+        d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
   }
@@ -345,6 +342,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
   eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+  NodeManager * nm = NodeManager::currentNM();
   for (const Node& ff : ops)
   {
     std::map<Node, std::vector<Node> >::iterator it = d_op_map.find(ff);
@@ -373,7 +371,7 @@ void TermDb::computeUfTerms( TNode f ) {
 
       computeArgReps(n);
       Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-      for (unsigned i = 0; i < d_arg_reps[n].size(); i++)
+      for (unsigned i = 0, size = d_arg_reps[n].size(); i < size; i++)
       {
         Trace("term-db-debug") << d_arg_reps[n][i] << " ";
         if (std::find(d_func_map_rel_dom[f][i].begin(),
@@ -401,7 +399,7 @@ void TermDb::computeUfTerms( TNode f ) {
       if (ee->areDisequal(at, n, false))
       {
         std::vector<Node> lits;
-        lits.push_back(NodeManager::currentNM()->mkNode(EQUAL, at, n));
+        lits.push_back(nm->mkNode(EQUAL, at, n));
         bool success = true;
         if (options::ufHo())
         {
@@ -427,18 +425,18 @@ void TermDb::computeUfTerms( TNode f ) {
         if (success)
         {
           Assert(at.getNumChildren() == n.getNumChildren());
-          for (unsigned k = 0; k < at.getNumChildren(); k++)
+          for (unsigned k = 0, size = at.getNumChildren(); k < size; k++)
           {
             if (at[k] != n[k])
             {
-              lits.push_back(NodeManager::currentNM()
+              lits.push_back(nm
                                  ->mkNode(EQUAL, at[k], n[k])
                                  .negate());
             }
           }
           Node lem = lits.size() == 1
                          ? lits[0]
-                         : NodeManager::currentNM()->mkNode(OR, lits);
+                         : nm->mkNode(OR, lits);
           if (Trace.isOn("term-db-lemma"))
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
