@@ -394,7 +394,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       }
 
       // the atom should not have free variables
-      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed << std::endl;
+      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
+                      << std::endl;
       Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
@@ -1058,11 +1059,13 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
 
   Node newTerm;
   // do not rewrite inside quantifiers
-  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS || term.getKind()==kind::CHOICE || term.getKind()==kind::LAMBDA) 
+  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS
+      || term.getKind() == kind::CHOICE
+      || term.getKind() == kind::LAMBDA)
   {
     newTerm = Rewriter::rewrite(term);
-  } 
-  else 
+  }
+  else
   {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
