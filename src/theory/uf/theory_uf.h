@@ -139,7 +139,10 @@ private:
   Node d_conflictNode;
 
   /** extensionality has been applied to these disequalities */
-  NodeSet d_extensionality_deq;
+  NodeSet d_extensionality;
+  
+  /** cache of getExtensionalityDeq below */
+  std::map< Node, Node > d_extensionality_deq;
 
   /** map from non-standard operators to their skolems */
   NodeNodeMap d_uf_std_skolem;
@@ -186,19 +189,39 @@ private:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
 private: // for higher-order
+  /** get extensionality disequality 
+   * 
+   * Given disequality deq f != g, this returns the disequality:
+   *   (f k) != (g k) for fresh constant(s) k.
+   */
+  Node getExtensionalityDeq(TNode deq);
+  
   /** applyExtensionality 
-   * Given disequality deq 
-   * If not already cached, this sends a lemma of the form 
+   * 
+   * Given disequality deq f != g, if not already cached, this sends a lemma of
+   * the form:
    *   f = g V (f k) != (g k) for fresh constant k.
-   * on the output channel.
-   * Return value is the number of lemmas sent.
+   * on the output channel. This is a "extensionality lemma".
+   * Return value is the number of lemmas of this form sent on the output 
+   * channel.
    */
   unsigned applyExtensionality(TNode deq);
 
-  /** check whether extensionality should be applied for any
-   * pair of terms in the equality engine.
+  /** 
+   * Check whether extensionality should be applied for any pair of terms in the
+   * equality engine.
+   * 
+   * If we pass a null model m to this function, then we add extensionality
+   * lemmas to the output channel and return the total number of lemmas added.
+   * We only add lemmas for functions whose argument types are all finite.
+   * 
+   * If we pass a non-null model m to this function, then we add disequalities
+   * that correspond to the conclusion of extensionality lemmas to the model's
+   * equality engine. We only add disequalities for functions that have at
+   * least one infinite argument type. We return 0 if the equality engine of m
+   * is consistent after this call, and 1 otherwise.
    */
-  unsigned checkExtensionality();
+  unsigned checkExtensionality(TheoryModel* m = nullptr);
   
   /** applyAppCompletion
    * This infers a correspondence between APPLY_UF and HO_APPLY 
@@ -223,6 +246,14 @@ private: // for higher-order
    * added to the equality engine.
   */
   unsigned checkHigherOrder();
+  
+  /** collect model info for higher-order term 
+   * 
+   * This adds required constraints to m for term n. In particular, if n is
+   * an APPLY_UF term, we add its HO_APPLY equivalent in this call. We return
+   * true if the model m is consistent after this call.
+   */
+  bool collectModelInfoHoTerm( Node n, TheoryModel* m );
 
   /** get apply uf for ho apply 
    * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
