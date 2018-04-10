@@ -213,13 +213,13 @@ private:
    *
    * If we pass a null model m to this function, then we add extensionality
    * lemmas to the output channel and return the total number of lemmas added.
-   * We only add lemmas for functions whose argument types are all finite.
+   * We only add lemmas for functions whose type is finite.
    *
    * If we pass a non-null model m to this function, then we add disequalities
    * that correspond to the conclusion of extensionality lemmas to the model's
-   * equality engine. We only add disequalities for functions that have at
-   * least one infinite argument type. We return 0 if the equality engine of m
-   * is consistent after this call, and 1 otherwise.
+   * equality engine. We only add disequalities for functions whose type is
+   * infinite. We return 0 if the equality engine of m is consistent after this
+   * call, and 1 otherwise.
    */
   unsigned checkExtensionality(TheoryModel* m = nullptr);
 

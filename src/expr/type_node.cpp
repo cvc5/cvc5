@@ -81,6 +81,21 @@ bool TypeNode::isInterpretedFinite() const {
         return getArrayIndexType().isInterpretedFinite() && getArrayConstituentType().isInterpretedFinite();
       }else if( isSet() ) {
         return getSetElementType().isInterpretedFinite();
+      }else if( isFunction() )
+      {
+        if( !getRangeType().isInterpretedFinite() )
+        {
+          return false;
+        }
+        std::vector< TypeNode > argTypes = getArgTypes();
+        for( unsigned i=0, nargs = argTypes.size(); i<nargs; i++ )
+        {
+          if( !argTypes[i].isInterpretedFinite() )
+          {
+            return false;
+          }
+        }
+        return true;
       }
     }
     return false;

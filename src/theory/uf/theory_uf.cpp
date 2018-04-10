@@ -756,19 +756,9 @@ unsigned TheoryUF::checkExtensionality(TheoryModel* m)
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
     if( tn.isFunction() ){
-      // if during collect model, must have an infinite argument type
-      // if not during collect model, must have all finite argument types
-      bool consider = !isCollectModel;
-      std::vector<TypeNode> argTypes = tn.getArgTypes();
-      for (unsigned i = 0, size = argTypes.size(); i < size; i++)
-      {
-        if (!argTypes[i].isInterpretedFinite())
-        {
-          consider = isCollectModel;
-          break;
-        }
-      }
-      if (consider)
+      // if during collect model, must have an infinite type
+      // if not during collect model, must have a finite type
+      if (tn.isInterpretedFinite()!=isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
