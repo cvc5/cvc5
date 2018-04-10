@@ -791,7 +791,7 @@ unsigned TheoryUF::checkExtensionality(TheoryModel* m)
             {
               if (!collectModelInfoHoTerm(edeq[0][r], m))
               {
-                return false;
+                return 1;
               }
             }
             Trace("uf-ho-debug")
