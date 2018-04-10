@@ -555,7 +555,8 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
         }
       }
     }else if( pk==STRING_SUBSTR ){
-      if( c==one_c ){
+      if (c == one_c && arg == 2)
+      {
         rt.d_req_kind = STRING_CHARAT;
         rt.d_children[0].d_req_type = getArgType( pdt[pc], 0 );
         rt.d_children[1].d_req_type = getArgType( pdt[pc], 1 );
