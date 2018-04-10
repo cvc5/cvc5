@@ -188,88 +188,90 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
- private: // for higher-order
- /** get extensionality disequality
-  *
-  * Given disequality deq f != g, this returns the disequality:
-  *   (f k) != (g k) for fresh constant(s) k.
-  */
- Node getExtensionalityDeq(TNode deq);
+ private:  // for higher-order
+  /** get extensionality disequality
+   *
+   * Given disequality deq f != g, this returns the disequality:
+   *   (f k) != (g k) for fresh constant(s) k.
+   */
+  Node getExtensionalityDeq(TNode deq);
 
- /** applyExtensionality
-  *
-  * Given disequality deq f != g, if not already cached, this sends a lemma of
-  * the form:
-  *   f = g V (f k) != (g k) for fresh constant k.
-  * on the output channel. This is a "extensionality lemma".
-  * Return value is the number of lemmas of this form sent on the output
-  * channel.
-  */
- unsigned applyExtensionality(TNode deq);
+  /** applyExtensionality
+   *
+   * Given disequality deq f != g, if not already cached, this sends a lemma of
+   * the form:
+   *   f = g V (f k) != (g k) for fresh constant k.
+   * on the output channel. This is a "extensionality lemma".
+   * Return value is the number of lemmas of this form sent on the output
+   * channel.
+   */
+  unsigned applyExtensionality(TNode deq);
 
- /**
-  * Check whether extensionality should be applied for any pair of terms in the
-  * equality engine.
-  *
-  * If we pass a null model m to this function, then we add extensionality
-  * lemmas to the output channel and return the total number of lemmas added.
-  * We only add lemmas for functions whose argument types are all finite.
-  *
-  * If we pass a non-null model m to this function, then we add disequalities
-  * that correspond to the conclusion of extensionality lemmas to the model's
-  * equality engine. We only add disequalities for functions that have at
-  * least one infinite argument type. We return 0 if the equality engine of m
-  * is consistent after this call, and 1 otherwise.
-  */
- unsigned checkExtensionality(TheoryModel* m = nullptr);
+  /**
+   * Check whether extensionality should be applied for any pair of terms in the
+   * equality engine.
+   *
+   * If we pass a null model m to this function, then we add extensionality
+   * lemmas to the output channel and return the total number of lemmas added.
+   * We only add lemmas for functions whose argument types are all finite.
+   *
+   * If we pass a non-null model m to this function, then we add disequalities
+   * that correspond to the conclusion of extensionality lemmas to the model's
+   * equality engine. We only add disequalities for functions that have at
+   * least one infinite argument type. We return 0 if the equality engine of m
+   * is consistent after this call, and 1 otherwise.
+   */
+  unsigned checkExtensionality(TheoryModel* m = nullptr);
 
- /** applyAppCompletion
-  * This infers a correspondence between APPLY_UF and HO_APPLY
-  * versions of terms for higher-order.
-  * Given APPLY_UF node e.g. (f a b c), this adds the equality to its
-  * HO_APPLY equivalent:
-  *   (f a b c) == (@ (@ (@ f a) b) c)
-  * to equality engine, if not already equal.
-  * Return value is the number of equalities added.
-  */
- unsigned applyAppCompletion(TNode n);
+  /** applyAppCompletion
+   * This infers a correspondence between APPLY_UF and HO_APPLY
+   * versions of terms for higher-order.
+   * Given APPLY_UF node e.g. (f a b c), this adds the equality to its
+   * HO_APPLY equivalent:
+   *   (f a b c) == (@ (@ (@ f a) b) c)
+   * to equality engine, if not already equal.
+   * Return value is the number of equalities added.
+   */
+  unsigned applyAppCompletion(TNode n);
 
- /** check whether app-completion should be applied for any
-  * pair of terms in the equality engine.
-  */
- unsigned checkAppCompletion();
+  /** check whether app-completion should be applied for any
+   * pair of terms in the equality engine.
+   */
+  unsigned checkAppCompletion();
 
- /** check higher order
-  * This is called at full effort and infers facts and sends lemmas
-  * based on higher-order reasoning (specifically, extentionality and
-  * app completion above). It returns the number of lemmas plus facts
-  * added to the equality engine.
- */
- unsigned checkHigherOrder();
-
- /** collect model info for higher-order term
-  *
-  * This adds required constraints to m for term n. In particular, if n is
-  * an APPLY_UF term, we add its HO_APPLY equivalent in this call. We return
-  * true if the model m is consistent after this call.
+  /** check higher order
+   * This is called at full effort and infers facts and sends lemmas
+   * based on higher-order reasoning (specifically, extentionality and
+   * app completion above). It returns the number of lemmas plus facts
+   * added to the equality engine.
   */
- bool collectModelInfoHoTerm(Node n, TheoryModel* m);
+  unsigned checkHigherOrder();
 
- /** get apply uf for ho apply
-  * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
-  * node has non-functional return type (that is, it corresponds to a fully
-  * applied function term).
-  * This call may introduce a skolem for the head operator and send out a lemma
-  * specifying the definition.
- */
- Node getApplyUfForHoApply(Node node);
- /** get the operator for this node (node should be either APPLY_UF or HO_APPLY)
+  /** collect model info for higher-order term
+   *
+   * This adds required constraints to m for term n. In particular, if n is
+   * an APPLY_UF term, we add its HO_APPLY equivalent in this call. We return
+   * true if the model m is consistent after this call.
+   */
+  bool collectModelInfoHoTerm(Node n, TheoryModel* m);
+
+  /** get apply uf for ho apply
+   * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
+   * node has non-functional return type (that is, it corresponds to a fully
+   * applied function term).
+   * This call may introduce a skolem for the head operator and send out a lemma
+   * specifying the definition.
   */
- Node getOperatorForApplyTerm(TNode node);
- /** get the starting index of the arguments for node (node should be either
-  * APPLY_UF or HO_APPLY) */
- unsigned getArgumentStartIndexForApplyTerm(TNode node);
-public:
+  Node getApplyUfForHoApply(Node node);
+  /** get the operator for this node (node should be either APPLY_UF or
+   * HO_APPLY)
+   */
+  Node getOperatorForApplyTerm(TNode node);
+  /** get the starting index of the arguments for node (node should be either
+   * APPLY_UF or HO_APPLY) */
+  unsigned getArgumentStartIndexForApplyTerm(TNode node);
+
+ public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
   TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
