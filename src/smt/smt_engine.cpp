@@ -2552,6 +2552,9 @@ void SmtEnginePrivate::finishInit() {
   // actually assembling preprocessing pipelines).
   std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  std::unique_ptr<RealToInt> realToInt(
+      new RealToInt(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -2713,97 +2716,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 }
 
 typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-
-Node SmtEnginePrivate::realToInt(TNode n, NodeMap& cache, std::vector< Node >& var_eq) {
-  Trace("real-as-int-debug") << "Convert : " << n << std::endl;
-  NodeMap::iterator find = cache.find(n);
-  if (find != cache.end()) {
-    return (*find).second;
-  }else{
-    Node ret = n;
-    if( n.getNumChildren()>0 ){
-      if( n.getKind()==kind::EQUAL || n.getKind()==kind::GEQ || n.getKind()==kind::LT || n.getKind()==kind::GT || n.getKind()==kind::LEQ ){
-        ret = Rewriter::rewrite( n );
-        Trace("real-as-int-debug") << "Now looking at : " << ret << std::endl;
-        if( !ret.isConst() ){
-          Node ret_lit = ret.getKind()==kind::NOT ? ret[0] : ret;
-          bool ret_pol = ret.getKind()!=kind::NOT;
-          std::map< Node, Node > msum;
-          if (ArithMSum::getMonomialSumLit(ret_lit, msum))
-          {
-            //get common coefficient
-            std::vector< Node > coeffs;
-            for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-              Node v = itm->first;
-              Node c = itm->second;
-              if( !c.isNull() ){
-                Assert( c.isConst() );
-                coeffs.push_back( NodeManager::currentNM()->mkConst( Rational( c.getConst<Rational>().getDenominator() ) ) );
-              }
-            }
-            Node cc = coeffs.empty() ? Node::null() : ( coeffs.size()==1 ? coeffs[0] : Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, coeffs ) ) );
-            std::vector< Node > sum;
-            for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-              Node v = itm->first;
-              Node c = itm->second;
-              Node s;
-              if( c.isNull() ){
-                c = cc.isNull() ? NodeManager::currentNM()->mkConst( Rational( 1 ) ) : cc;
-              }else{
-                if( !cc.isNull() ){
-                  c = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, c, cc ) );
-                }
-              }
-              Assert( c.getType().isInteger() );
-              if( v.isNull() ){
-                sum.push_back( c );
-              }else{
-                Node vv = realToInt( v, cache, var_eq );
-                if( vv.getType().isInteger() ){
-                  sum.push_back( NodeManager::currentNM()->mkNode( kind::MULT, c, vv ) );
-                }else{
-                  throw TypeCheckingException(v.toExpr(), string("Cannot translate to Int: ") + v.toString());
-                }
-              }
-            }
-            Node sumt = sum.empty() ? NodeManager::currentNM()->mkConst( Rational( 0 ) ) : ( sum.size()==1 ? sum[0] : NodeManager::currentNM()->mkNode( kind::PLUS, sum ) );
-            ret = NodeManager::currentNM()->mkNode( ret_lit.getKind(), sumt, NodeManager::currentNM()->mkConst( Rational( 0 ) ) );
-            if( !ret_pol ){
-              ret = ret.negate();
-            }
-            Trace("real-as-int") << "Convert : " << std::endl;
-            Trace("real-as-int") << "   " << n << std::endl;
-            Trace("real-as-int") << "   " << ret << std::endl;
-          }else{
-            throw TypeCheckingException(n.toExpr(), string("Cannot translate to Int: ") + n.toString());
-          }
-        }
-      }else{
-        bool childChanged = false;
-        std::vector< Node > children;
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          Node nc = realToInt( n[i], cache, var_eq );
-          childChanged = childChanged || nc!=n[i];
-          children.push_back( nc );
-        }
-        if( childChanged ){
-          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-        }
-      }
-    }else{
-      if( n.isVar() ){
-        if( !n.getType().isInteger() ){
-          ret = NodeManager::currentNM()->mkSkolem("__realToInt_var", NodeManager::currentNM()->integerType(), "Variable introduced in realToInt pass");
-          var_eq.push_back( n.eqNode( ret ) );
-          TheoryModel* m = d_smt.d_theoryEngine->getModel();
-          m->addSubstitution(n,ret);
-        }
-      }
-    }
-    cache[n] = ret;
-    return ret;
-  }
-}
 
 Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, std::vector< Node >& var_eq, bool beneathMult) {
   if( beneathMult ){
@@ -4074,19 +3986,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if (options::solveRealAsInt()) {
-    Chat() << "converting reals to ints..." << endl;
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    std::vector< Node > var_eq;
-    for(unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, realToInt(d_assertions[i], cache, var_eq));
-    }
-   /*
-    if( !var_eq.empty() ){
-      unsigned lastIndex = d_assertions.size()-1;
-      var_eq.insert( var_eq.begin(), d_assertions[lastIndex] );
-      d_assertions.replace(last_index, NodeManager::currentNM()->mkNode( kind::AND, var_eq ) );
-    }
-    */
+    d_preprocessingPassRegistry.getPass("real-to-int")->apply(&d_assertions);
   }
 
   if (options::solveIntAsBV() > 0) {
