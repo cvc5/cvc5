@@ -830,6 +830,7 @@ unsigned TheoryUF::checkHigherOrder() {
     }
   }while( num_facts>0 );
 
+  /*
   if( options::ufHoExt() ){
     unsigned num_lemmas = 0;
 
@@ -839,6 +840,7 @@ unsigned TheoryUF::checkHigherOrder() {
       return num_lemmas;
     }
   }
+  */
 
   Trace("uf-ho") << "...finished check higher order." << std::endl;
 
