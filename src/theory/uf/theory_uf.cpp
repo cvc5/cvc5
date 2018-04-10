@@ -39,9 +39,12 @@ namespace theory {
 namespace uf {
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c, context::UserContext* u,
-                   OutputChannel& out, Valuation valuation,
-                   const LogicInfo& logicInfo, std::string instanceName)
+TheoryUF::TheoryUF(context::Context* c,
+                   context::UserContext* u,
+                   OutputChannel& out,
+                   Valuation valuation,
+                   const LogicInfo& logicInfo,
+                   std::string instanceName)
     : Theory(THEORY_UF, c, u, out, valuation, logicInfo, instanceName),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
@@ -345,15 +348,16 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
   if( options::ufHo() ){
     for( std::set<Node>::iterator it = termSet.begin(); it != termSet.end(); ++it ){
       Node n = *it;
-      // for model-building with ufHo, we require that APPLY_UF is always expanded to HO_APPLY
-      if( !collectModelInfoHoTerm( n, m ) )
+      // for model-building with ufHo, we require that APPLY_UF is always
+      // expanded to HO_APPLY
+      if (!collectModelInfoHoTerm(n, m))
       {
         return false;
       }
     }
     // must add extensionality disequalities for all pairs of (non-disequal)
     // function equivalence classes.
-    if( checkExtensionality( m )!=0 )
+    if (checkExtensionality(m) != 0)
     {
       return false;
     }
@@ -363,11 +367,11 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
   return true;
 }
 
-bool TheoryUF::collectModelInfoHoTerm( Node n, TheoryModel* m )
+bool TheoryUF::collectModelInfoHoTerm(Node n, TheoryModel* m)
 {
-  if( n.getKind()==kind::APPLY_UF )
+  if (n.getKind() == kind::APPLY_UF)
   {
-    Node hn = TheoryUfRewriter::getHoApplyForApplyUf( n );
+    Node hn = TheoryUfRewriter::getHoApplyForApplyUf(n);
     if (!m->assertEquality(n, hn, true))
     {
       return false;
@@ -690,19 +694,20 @@ Node TheoryUF::getExtensionalityDeq(TNode deq)
 {
   Assert( deq.getKind()==kind::NOT && deq[0].getKind()==kind::EQUAL );
   Assert( deq[0][0].getType().isFunction() );
-  std::map< Node, Node >::iterator it = d_extensionality_deq.find(deq);
-  if( it==d_extensionality_deq.end() )
+  std::map<Node, Node>::iterator it = d_extensionality_deq.find(deq);
+  if (it == d_extensionality_deq.end())
   {
     TypeNode tn = deq[0][0].getType();
-    std::vector< TypeNode > argTypes = tn.getArgTypes();
+    std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector< Node > skolems;
-    for( unsigned i=0, nargs = argTypes.size(); i<nargs; i++ )
+    for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
     {
-      Node k = NodeManager::currentNM()->mkSkolem( "k", argTypes[i], "skolem created for extensionality." );
+      Node k = NodeManager::currentNM()->mkSkolem(
+          "k", argTypes[i], "skolem created for extensionality.");
       skolems.push_back( k );
     }
     Node t[2];
-    for( unsigned i=0; i<2; i++ )
+    for (unsigned i = 0; i < 2; i++)
     {
       std::vector< Node > children;
       Node curr = deq[0][i];
@@ -722,15 +727,15 @@ Node TheoryUF::getExtensionalityDeq(TNode deq)
   return it->second;
 }
 
-unsigned TheoryUF::applyExtensionality(TNode deq) 
+unsigned TheoryUF::applyExtensionality(TNode deq)
 {
-  Assert( deq.getKind()==kind::NOT && deq[0].getKind()==kind::EQUAL );
-  Assert( deq[0][0].getType().isFunction() );
+  Assert(deq.getKind() == kind::NOT && deq[0].getKind() == kind::EQUAL);
+  Assert(deq[0][0].getType().isFunction());
   // apply extensionality
-  if( d_extensionality.find( deq )==d_extensionality.end() )
+  if (d_extensionality.find(deq) == d_extensionality.end())
   {
-    d_extensionality.insert( deq );
-    Node conc = getExtensionalityDeq( deq );
+    d_extensionality.insert(deq);
+    Node conc = getExtensionalityDeq(deq);
     Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq[0], conc );
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem << std::endl;
     d_out->lemma( lem );
@@ -739,10 +744,12 @@ unsigned TheoryUF::applyExtensionality(TNode deq)
   return 0;
 }
 
-unsigned TheoryUF::checkExtensionality(TheoryModel* m) {
-  unsigned num_lemmas = 0;  
-  bool isCollectModel = (m!=nullptr);
-  Trace("uf-ho") << "TheoryUF::checkExtensionality, collectModel=" << isCollectModel << "..." << std::endl;
+unsigned TheoryUF::checkExtensionality(TheoryModel* m)
+{
+  unsigned num_lemmas = 0;
+  bool isCollectModel = (m != nullptr);
+  Trace("uf-ho") << "TheoryUF::checkExtensionality, collectModel="
+                 << isCollectModel << "..." << std::endl;
   std::map< TypeNode, std::vector< Node > > func_eqcs;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
@@ -752,19 +759,20 @@ unsigned TheoryUF::checkExtensionality(TheoryModel* m) {
       // if during collect model, must have an infinite argument type
       // if not during collect model, must have all finite argument types
       bool consider = !isCollectModel;
-      std::vector< TypeNode > argTypes = tn.getArgTypes();
-      for( unsigned i=0,size=argTypes.size();i<size;i++ )
+      std::vector<TypeNode> argTypes = tn.getArgTypes();
+      for (unsigned i = 0, size = argTypes.size(); i < size; i++)
       {
-        if( !argTypes[i].isInterpretedFinite() )
+        if (!argTypes[i].isInterpretedFinite())
         {
           consider = isCollectModel;
           break;
         }
       }
-      if( consider )
+      if (consider)
       {
-        func_eqcs[tn].push_back( eqc );
-        Trace("uf-ho-debug") << "  func eqc : " << tn << " : " << eqc << std::endl;
+        func_eqcs[tn].push_back(eqc);
+        Trace("uf-ho-debug")
+            << "  func eqc : " << tn << " : " << eqc << std::endl;
       }
     }
     ++eqcs_i;
@@ -775,26 +783,29 @@ unsigned TheoryUF::checkExtensionality(TheoryModel* m) {
     for( unsigned j=0; j<itf->second.size(); j++ ){
       for( unsigned k=(j+1); k<itf->second.size(); k++ ){ 
         // if these equivalence classes are not explicitly disequal, do extensionality to ensure distinctness
-        if( !d_equalityEngine.areDisequal( itf->second[j], itf->second[k], false ) )
+        if (!d_equalityEngine.areDisequal(
+                itf->second[j], itf->second[k], false))
         {
           Node deq = Rewriter::rewrite( itf->second[j].eqNode( itf->second[k] ).negate() );
           // either add to model, or add lemma
-          if( isCollectModel )
+          if (isCollectModel)
           {
             // add extentionality disequality to the model
-            Node edeq = getExtensionalityDeq( deq );
-            Assert( edeq.getKind()==kind::NOT && edeq[0].getKind()==kind::EQUAL );
+            Node edeq = getExtensionalityDeq(deq);
+            Assert(edeq.getKind() == kind::NOT
+                   && edeq[0].getKind() == kind::EQUAL);
             // introducing terms, must add required constraints, e.g. to
             // force equalities between APPLY_UF and HO_APPLY terms
-            for( unsigned r=0; r<2; r++ )
+            for (unsigned r = 0; r < 2; r++)
             {
-              if( !collectModelInfoHoTerm( edeq[0][r], m ) )
+              if (!collectModelInfoHoTerm(edeq[0][r], m))
               {
                 return false;
               }
             }
-            Trace("uf-ho-debug") << "Add extensionality deq to model : " << edeq << std::endl;
-            if( !m->assertEquality( edeq[0][0], edeq[0][1], false ) )
+            Trace("uf-ho-debug")
+                << "Add extensionality deq to model : " << edeq << std::endl;
+            if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
             {
               return 1;
             }
@@ -802,7 +813,7 @@ unsigned TheoryUF::checkExtensionality(TheoryModel* m) {
           else
           {
             // apply extensionality lemma
-            num_lemmas += applyExtensionality( deq );
+            num_lemmas += applyExtensionality(deq);
           }
         }
       }   
