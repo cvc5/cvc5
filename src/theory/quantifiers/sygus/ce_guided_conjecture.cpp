@@ -650,24 +650,21 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 Trace("rr-check")
                     << "...rewrite does not hold for: " << std::endl;
                 success = false;
-                if (options::sygusSampleModel())
+                std::vector<Node> vars;
+                d_sampler[prog].getVariables(vars);
+                std::vector<Node> pt;
+                for (const Node& v : vars)
                 {
-                  std::vector<Node> vars;
-                  d_sampler[prog].getVariables(vars);
-                  std::vector<Node> pt;
-                  for (const Node& v : vars)
-                  {
-                    Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
-                    Trace("rr-check")
-                        << "  " << v << " -> " << val << std::endl;
-                    pt.push_back(val);
-                  }
-                  d_sampler[prog].addSamplePoint(pt);
-                  // add the solution again
-                  Node eq_sol_new = its->second.registerTerm(sol);
-                  Assert(!r.asSatisfiabilityResult().isSat()
-                         || eq_sol_new == sol);
+                  Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
+                  Trace("rr-check")
+                      << "  " << v << " -> " << val << std::endl;
+                  pt.push_back(val);
                 }
+                d_sampler[prog].addSamplePoint(pt);
+                // add the solution again
+                Node eq_sol_new = its->second.registerTerm(sol);
+                Assert(!r.asSatisfiabilityResult().isSat()
+                        || eq_sol_new == sol);
               }
               else
               {

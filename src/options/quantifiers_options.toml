@@ -1173,15 +1173,6 @@ header = "options/quantifiers_options.h"
   help       = "when applicable, use grammar for choosing sample points"
 
 [[option]]
-  name       = "sygusSampleModel"
-  category   = "regular"
-  long       = "sygus-sample-model"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use models for choosing sample points"
-
-[[option]]
   name       = "sygusRewSynthAccel"
   category   = "regular"
   long       = "sygus-rr-synth-accel"
