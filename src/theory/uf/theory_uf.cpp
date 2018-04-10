@@ -700,11 +700,11 @@ Node TheoryUF::getExtensionalityDeq(TNode deq)
     TypeNode tn = deq[0][0].getType();
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector< Node > skolems;
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
     {
-      Node k = nm->mkSkolem(
-          "k", argTypes[i], "skolem created for extensionality.");
+      Node k =
+          nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
       skolems.push_back( k );
     }
     Node t[2];
@@ -719,7 +719,7 @@ Node TheoryUF::getExtensionalityDeq(TNode deq)
       children.push_back( curr );
       std::reverse( children.begin(), children.end() );
       children.insert( children.end(), skolems.begin(), skolems.end() );
-      t[i] = nm->mkNode( kind::APPLY_UF, children );
+      t[i] = nm->mkNode(kind::APPLY_UF, children);
     }
     Node conc = t[0].eqNode( t[1] ).negate();
     d_extensionality_deq[deq] = conc;
