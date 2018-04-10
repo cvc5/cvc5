@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "printer/printer.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "util/bitvector.h"
 #include "util/random.h"
@@ -700,13 +702,13 @@ void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
-  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
-                          << std::endl;
   if (eq_n == n)
   {
     // this is a unique term
     return n;
   }
+  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
+                          << std::endl;
   Node bn = n;
   Node beq_n = eq_n;
   if (d_use_sygus_type)
@@ -727,10 +729,10 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     if (!d_match_trie.getMatches(bn, &d_ssenm))
     {
       keep = false;
-      Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
+      Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
     }
   }
-
+  
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
@@ -738,19 +740,26 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     if (d_drewrite->areEqual(bn, beq_n))
     {
       // must be unique according to the dynamic rewriter
-      Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
+      Trace("sygus-synth-rr") << "...redundant (rewritable)" << std::endl;
       keep = false;
     }
   }
-
+  
   if (keep)
   {
     return eq_n;
   }
-  else if (Trace.isOn("sygus-synth-rr"))
+  Trace("sygus-synth-rr") << "Redundant pair : " << eq_n << " " << n;
+  Trace("sygus-synth-rr") << std::endl;
+  if (Trace.isOn("sygus-rr-filter"))
   {
-    Trace("sygus-synth-rr") << "Redundant pair : " << eq_n << " " << n;
-    Trace("sygus-synth-rr") << std::endl;
+    Printer* p = Printer::getPrinter(options::outputLanguage());
+    std::stringstream ss;
+    ss << "(redundant-rewrite ";
+    p->toStreamSygus(ss, n);
+    ss << " ";
+    p->toStreamSygus(ss, eq_n);
+    Trace("sygus-rr-filter") << ss.str() << std::endl;
   }
   return Node::null();
 }
@@ -768,12 +777,8 @@ void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
   if (d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
-    if (!d_drewrite->addRewrite(bn, beq_n))
-    {
-      // should have already been filtered before reaching here
-      Assert( false );
-      return;
-    }
+    Assert( !d_drewrite->areEqual(bn,beq_n) );
+    d_drewrite->addRewrite(bn, beq_n);
   }
   // add to match information
   for (unsigned r = 0; r < 2; r++)

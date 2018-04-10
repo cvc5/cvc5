@@ -582,27 +582,10 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      out << "(define-fun " << f << " ";
-      if (dt.getSygusVarList().isNull())
-      {
-        out << "() ";
-      }
-      else
-      {
-        out << dt.getSygusVarList() << " ";
-      }
-      out << dt.getSygusType() << " ";
-      if (status == 0)
-      {
-        out << sol;
-      }
-      else
-      {
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(out, sol);
-      }
-      out << ")" << std::endl;
       CegInstantiation* cei = d_qe->getCegInstantiation();
       ++(cei->d_statistics.d_solutions);
+      
+      bool is_unique_term = true;
 
       if (status != 0 && options::sygusRewSynth())
       {
@@ -618,6 +601,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         // eq_sol is a candidate solution that is equivalent to sol
         if (eq_sol != sol)
         {
+          is_unique_term = false;
           // if eq_sol is null, then we have an uninteresting candidate rewrite,
           // e.g. one that is alpha-equivalent to another.
           bool success = true;
@@ -629,10 +613,10 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             Node eq_solb = sygusDb->sygusToBuiltin(eq_sol);
             Node eq_solr = er->extendedRewrite(eq_solb);
             bool verified = false;
+            Trace("rr-check") << "Check candidate rewrite..." << std::endl;
             // verify it if applicable
             if (options::sygusRewSynthCheck())
             {
-              Trace("rr-check") << "Check candidate rewrite..." << std::endl;
               // Notice we don't set produce-models. rrChecker takes the same
               // options as the SmtEngine we belong to, where we ensure that
               // produce-models is set.
@@ -650,21 +634,21 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 Trace("rr-check")
                     << "...rewrite does not hold for: " << std::endl;
                 success = false;
+                is_unique_term = true;
                 std::vector<Node> vars;
                 d_sampler[prog].getVariables(vars);
                 std::vector<Node> pt;
                 for (const Node& v : vars)
                 {
                   Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
-                  Trace("rr-check")
-                      << "  " << v << " -> " << val << std::endl;
+                  Trace("rr-check") << "  " << v << " -> " << val << std::endl;
                   pt.push_back(val);
                 }
                 d_sampler[prog].addSamplePoint(pt);
                 // add the solution again
                 Node eq_sol_new = its->second.registerTerm(sol);
                 Assert(!r.asSatisfiabilityResult().isSat()
-                        || eq_sol_new == sol);
+                      || eq_sol_new == sol);
               }
               else
               {
@@ -679,7 +663,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             if (success)
             {
               // register this as a relevant pair (helps filtering)
-              d_sampler[prog].registerRelevantPair(sol, eq_sol);
+              d_sampler[prog].registerRelevantPair(sol,eq_sol);
               // The analog of terms sol and eq_sol are equivalent under
               // sample points but do not rewrite to the same term. Hence,
               // this indicates a candidate rewrite.
@@ -725,11 +709,34 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             }
           }
           // we count this as a rewrite if we did not explicitly rule it out
-          if (success)
+          if( success )
           {
             ++(cei->d_statistics.d_candidate_rewrites);
           }
         }
+      }
+      if (is_unique_term)
+      {
+        out << "(define-fun " << f << " ";
+        if (dt.getSygusVarList().isNull())
+        {
+          out << "() ";
+        }
+        else
+        {
+          out << dt.getSygusVarList() << " ";
+        }
+        out << dt.getSygusType() << " ";
+        if (status == 0)
+        {
+          out << sol;
+        }
+        else
+        {
+          Printer::getPrinter(options::outputLanguage())
+              ->toStreamSygus(out, sol);
+        }
+        out << ")" << std::endl;
       }
     }
   }
