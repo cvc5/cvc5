@@ -384,8 +384,8 @@ void TermDb::computeUfTerms( TNode f ) {
       }
       Trace("term-db-debug") << std::endl;
       Assert(ee->hasTerm(n));
-      Trace("term-db-debug")
-          << "  and value : " << ee->getRepresentative(n) << std::endl;
+      Trace("term-db-debug") << "  and value : " << ee->getRepresentative(n)
+                             << std::endl;
       Node at = d_func_map_trie[f].addOrGetTerm(n, d_arg_reps[n]);
       Assert(ee->hasTerm(at));
       Trace("term-db-debug2") << "...add term returned " << at << std::endl;
@@ -439,8 +439,8 @@ void TermDb::computeUfTerms( TNode f ) {
                                    << n << "!!!!" << std::endl;
             if (!d_quantEngine->getTheoryEngine()->needCheck())
             {
-              Trace("term-db-lemma")
-                  << "  all theories passed with no lemmas." << std::endl;
+              Trace("term-db-lemma") << "  all theories passed with no lemmas."
+                                     << std::endl;
               // we should be a full effort check, prior to theory combination
             }
             Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
@@ -1019,8 +1019,8 @@ bool TermDb::reset( Theory::Effort effort ){
               n_use = itp->second;
             }
           }
-          Trace("quant-ho")
-              << "  - process " << n_use << ", from " << n << std::endl;
+          Trace("quant-ho") << "  - process " << n_use << ", from " << n
+                            << std::endl;
           if (!n_use.isNull() && d_op_map.find(n_use) != d_op_map.end())
           {
             if (first.isNull())
