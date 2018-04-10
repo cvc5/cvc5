@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
-#include "printer/printer.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
@@ -732,7 +732,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
     }
   }
-  
+
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
@@ -744,7 +744,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       keep = false;
     }
   }
-  
+
   if (keep)
   {
     return eq_n;
@@ -777,7 +777,7 @@ void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
   if (d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
-    Assert( !d_drewrite->areEqual(bn,beq_n) );
+    Assert(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
   }
   // add to match information

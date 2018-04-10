@@ -584,7 +584,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       f.erase(f.begin());
       CegInstantiation* cei = d_qe->getCegInstantiation();
       ++(cei->d_statistics.d_solutions);
-      
+
       bool is_unique_term = true;
 
       if (status != 0 && options::sygusRewSynth())
@@ -648,7 +648,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 // add the solution again
                 Node eq_sol_new = its->second.registerTerm(sol);
                 Assert(!r.asSatisfiabilityResult().isSat()
-                      || eq_sol_new == sol);
+                       || eq_sol_new == sol);
               }
               else
               {
@@ -663,7 +663,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             if (success)
             {
               // register this as a relevant pair (helps filtering)
-              d_sampler[prog].registerRelevantPair(sol,eq_sol);
+              d_sampler[prog].registerRelevantPair(sol, eq_sol);
               // The analog of terms sol and eq_sol are equivalent under
               // sample points but do not rewrite to the same term. Hence,
               // this indicates a candidate rewrite.
@@ -709,7 +709,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             }
           }
           // we count this as a rewrite if we did not explicitly rule it out
-          if( success )
+          if (success)
           {
             ++(cei->d_statistics.d_candidate_rewrites);
           }
