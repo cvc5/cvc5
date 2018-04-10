@@ -4646,10 +4646,15 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     // Dump the query if requested
     if (Dump.isOn("benchmark"))
     {
+      size_t size = assumptions.size();
       // the expr already got dumped out if assertion-dumping is on
-      if (isQuery && assumptions.size() == 1)
+      if (isQuery && size == 1)
       {
         Dump("benchmark") << QueryCommand(assumptions[0]);
+      }
+      else if (size == 0)
+      {
+        Dump("benchmark") << CheckSatCommand();
       }
       else
       {
