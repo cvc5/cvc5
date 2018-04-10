@@ -300,7 +300,9 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
       }
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
-    if( options::relationalTriggers() && n2.getKind()==INST_CONSTANT && !quantifiers::TermUtil::containsTerm( n1, n2 ) ){
+    if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
+        && !n1.hasSubterm(n2))
+    {
       return true;
     }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
       return true;

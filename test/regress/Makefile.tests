@@ -1080,6 +1080,7 @@ REG1_TESTS = \
 	regress1/ho/auth0068.smt2 \
 	regress1/ho/fta0210.smt2 \
 	regress1/ho/fta0409.smt2 \
+	regress1/ho/hoa0008.smt2 \
 	regress1/ho/ho-exponential-model.smt2 \
 	regress1/ho/ho-matching-enum-2.smt2 \
 	regress1/ho/ho-std-fmf.smt2 \
