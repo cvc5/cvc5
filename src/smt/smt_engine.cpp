@@ -69,6 +69,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/passes/int_to_bv.h"
+#include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -91,7 +92,6 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "theory/bv/bvgauss.h"
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
@@ -2551,7 +2551,9 @@ void SmtEnginePrivate::finishInit() {
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
   std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVGauss> bvGauss(new BVGauss(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -3986,10 +3988,10 @@ void SmtEnginePrivate::processAssertions() {
     return;
   }
 
-  if(options::bvGaussElim())
+  if (options::bvGaussElim())
   {
     TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
-    theory::bv::BVGaussElim::gaussElimRewrite(d_assertions.ref());
+    d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
   }
 
   if (d_assertionsProcessed && options::incrementalSolving()) {
@@ -4089,7 +4091,8 @@ void SmtEnginePrivate::processAssertions() {
     */
   }
 
-  if (options::solveIntAsBV() > 0) {
+  if (options::solveIntAsBV() > 0)
+  {
     d_preprocessingPassRegistry.getPass("int-to-bv")->apply(&d_assertions);
   }
 
