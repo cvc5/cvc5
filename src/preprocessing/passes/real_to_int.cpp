@@ -21,8 +21,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
-#include "theory/theory.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -30,13 +31,7 @@ namespace passes {
 
 using namespace CVC4::theory;
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-
-namespace {
-
-Node SmtEnginePrivate::realToInt(TNode n,
-                                 NodeMap& cache,
-                                 std::vector<Node>& var_eq)
+Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
 {
   Trace("real-as-int-debug") << "Convert : " << n << std::endl;
   NodeMap::iterator find = cache.find(n);
@@ -113,7 +108,7 @@ Node SmtEnginePrivate::realToInt(TNode n,
               }
               else
               {
-                Node vv = realToInt(v, cache, var_eq);
+                Node vv = realToIntInternal(v, cache, var_eq);
                 if (vv.getType().isInteger())
                 {
                   sum.push_back(
@@ -158,7 +153,7 @@ Node SmtEnginePrivate::realToInt(TNode n,
         std::vector<Node> children;
         for (unsigned i = 0; i < n.getNumChildren(); i++)
         {
-          Node nc = realToInt(n[i], cache, var_eq);
+          Node nc = realToIntInternal(n[i], cache, var_eq);
           childChanged = childChanged || nc != n[i];
           children.push_back(nc);
         }
@@ -175,11 +170,11 @@ Node SmtEnginePrivate::realToInt(TNode n,
         if (!n.getType().isInteger())
         {
           ret = NodeManager::currentNM()->mkSkolem(
-              "__realToInt_var",
+              "__realToIntInternal_var",
               NodeManager::currentNM()->integerType(),
-              "Variable introduced in realToInt pass");
+              "Variable introduced in realToIntInternal pass");
           var_eq.push_back(n.eqNode(ret));
-          TheoryModel* m = d_smt.d_theoryEngine->getModel();
+          TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
           m->addSubstitution(n, ret);
         }
       }
@@ -188,8 +183,6 @@ Node SmtEnginePrivate::realToInt(TNode n,
     return ret;
   }
 }
-
-}  // namespace
 
 RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "real-to-int"){};
@@ -200,8 +193,9 @@ PreprocessingPassResult RealToInt::applyInternal(
   unordered_map<Node, Node, NodeHashFunction> cache;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
+    std::vector<Node> var_eq;
     assertionsToPreprocess->replace(
-        i, realToInt((*assertionsToPreprocess)[i], cache));
+        i, realToIntInternal((*assertionsToPreprocess)[i], cache, var_eq));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

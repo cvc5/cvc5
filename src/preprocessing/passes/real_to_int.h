@@ -26,14 +26,19 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+
 class RealToInt : public PreprocessingPass
 {
  public:
-  IntToBV(PreprocessingPassContext* preprocContext);
+  RealToInt(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
+ private:
+  Node realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq);
 };
 
 }  // namespace passes
