@@ -1,4 +1,3 @@
-/*********************                                                        */
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
