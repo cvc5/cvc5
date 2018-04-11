@@ -431,6 +431,13 @@ class SygusSamplerExt : public SygusSampler
    */
   Node registerTerm(Node n, bool forceKeep = false) override;
 
+  /** register relevant pair
+   *
+   * This should be called after registerTerm( n ) returns eq_n.
+   * This registers ( n, eq_n ) as a relevant pair with this class.
+   */
+  void registerRelevantPair(Node n, Node eq_n);
+
  private:
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;

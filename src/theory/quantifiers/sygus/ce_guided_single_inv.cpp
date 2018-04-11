@@ -721,7 +721,8 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       Node s;
       for( unsigned r=0; r<2; r++ ){
         if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
-          if( !TermUtil::containsTerm( slit[1-r], slit[r] ) ){
+          if (!slit[1 - r].hasSubterm(slit[r]))
+          {
             v = slit[r];
             s = slit[1-r];
             break;
@@ -739,7 +740,8 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
               Node val;
               int ires =
                   ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-              if( ires!=0 && veq_c.isNull() && !TermUtil::containsTerm( val, itm->first ) ){
+              if (ires != 0 && veq_c.isNull() && !val.hasSubterm(itm->first))
+              {
                 v = itm->first;
                 s = val;
               }
