@@ -40,6 +40,9 @@ while [ $# -gt 0 ]; do
     sed 's/guykatzz/Guy/' | \
     sed 's/Guy Katz/Guy/' | \
     sed 's/Guy/Guy Katz/' | \
+    sed 's/Martin Brain/Martin/' | \
+    sed 's/Martin/Martin Brain/' | \
+    sed 's/justinxu421/Justin Xu/' | \
     eval "$strip_email" | \
     sort | uniq -c | sort -nr | head -n 3 | \
     ( while read lines author; do

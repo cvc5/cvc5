@@ -526,6 +526,13 @@ public:
    */
   bool isConst() const;
 
+  /**
+   * Check if this expression contains a free variable.
+   *
+   * @return true if this node contains a free variable.
+   */
+  bool hasFreeVariable() const;
+
   /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
    *
    * It has been decided for now to hold off on implementations of

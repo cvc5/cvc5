@@ -9,7 +9,6 @@ UNIT_TESTS += \
 	theory/logic_info_white \
 	theory/theory_arith_white \
 	theory/theory_black \
-	theory/theory_bv_bvgauss_white \
 	theory/theory_bv_white \
 	theory/theory_engine_white \
 	theory/theory_quantifiers_bv_instantiator_white \
@@ -31,6 +30,7 @@ UNIT_TESTS += \
 	expr/type_node_white \
 	parser/parser_black \
 	parser/parser_builder_black \
+	preprocessing/pass_bv_gauss_white \
 	prop/cnf_stream_white \
 	context/context_black \
 	context/context_white \

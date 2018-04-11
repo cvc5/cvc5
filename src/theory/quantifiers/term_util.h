@@ -254,7 +254,6 @@ public:
   // TODO #1216 : promote these?
  private:
   //helper for contains term
-  static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
   /** cache for getTypeValue */
   std::unordered_map<TypeNode,
@@ -279,8 +278,6 @@ public:
       d_type_value_offset_status;
 
  public:
-  /** simple check for whether n contains t as subterm */
-  static bool containsTerm( Node n, Node t );
   /** simple check for contains term, true if contains at least one term in t */
   static bool containsTerms( Node n, std::vector< Node >& t );
   /** contains uninterpreted constant */

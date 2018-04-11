@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bvgauss.cpp
+/*! \file bv_gauss.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -15,44 +15,104 @@
  ** Elimination if possible.
  **/
 
-#include "theory/bv/bvgauss.h"
+#include "preprocessing/passes/bv_gauss.h"
 
-#include <unordered_map>
-
+#include "expr/node.h"
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "util/bitvector.h"
+
+#include <unordered_map>
+#include <vector>
+
 
 using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv;
 
 namespace CVC4 {
-namespace theory {
-namespace bv {
+namespace preprocessing {
+namespace passes {
 
-static bool is_bv_const(Node n)
+namespace {
+
+/**
+ *  Represents the result of Gaussian Elimination where the solution
+ *  of the given equation system is
+ *
+ *   INVALID ... i.e., NOT of the form c1*x1 + c2*x2 + ... % p = b,
+ *               where ci, b and p are
+ *                 - bit-vector constants
+ *                 - extracts or zero extensions on bit-vector constants
+ *                 - of arbitrary nesting level
+ *               and p is co-prime to all bit-vector constants for which
+ *               a multiplicative inverse has to be computed.
+ *
+ *   UNIQUE  ... determined for all unknowns, e.g., x = 4
+ *
+ *   PARTIAL ... e.g., x = 4 - 2z
+ *
+ *   NONE    ... no solution
+ *
+ *   Given a matrix A representing an equation system, the resulting
+ *   matrix B after applying GE represents, e.g.:
+ *
+ *   B = 1 0 0 2 <-    UNIQUE
+ *       0 1 0 3 <-
+ *       0 0 1 1 <-
+ *
+ *   B = 1 0 2 4 <-    PARTIAL
+ *       0 1 3 2 <-
+ *       0 0 1 1
+ *
+ *   B = 1 0 0 1       NONE
+ *       0 1 1 2
+ *       0 0 0 2 <-
+ */
+enum class Result
+{
+  INVALID,
+  UNIQUE,
+  PARTIAL,
+  NONE
+};
+
+bool is_bv_const(Node n)
 {
   if (n.isConst()) { return true; }
   return Rewriter::rewrite(n).getKind() == kind::CONST_BITVECTOR;
 }
 
-static Node get_bv_const(Node n)
+Node get_bv_const(Node n)
 {
   Assert(is_bv_const(n));
   return Rewriter::rewrite(n);
 }
 
-static Integer get_bv_const_value(Node n)
+Integer get_bv_const_value(Node n)
 {
   Assert(is_bv_const(n));
   return get_bv_const(n).getConst<BitVector>().getValue();
 }
 
-/* Note: getMinBwExpr assumes that 'expr' is rewritten.
+/**
+ * Determines if an overflow may occur in given 'expr'.
+ *
+ * Returns 0 if an overflow may occur, and the minimum required
+ * bit-width such that no overflow occurs, otherwise.
+ *
+ * Note that it would suffice for this function to be Boolean.
+ * However, it is handy to determine the minimum required bit-width for
+ * debugging purposes.
+ *
+ * Note: getMinBwExpr assumes that 'expr' is rewritten.
  *
  * If not, all operators that are removed via rewriting (e.g., ror, rol, ...)
  * will be handled via the default case, which is not incorrect but also not
- * necessarily the minimum. */
-unsigned BVGaussElim::getMinBwExpr(Node expr)
+ * necessarily the minimum.
+ */
+unsigned getMinBwExpr(Node expr)
 {
   std::vector<Node> visit;
   /* Maps visited nodes to the determined minimum bit-width required. */
@@ -88,8 +148,8 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
       {
         case kind::BITVECTOR_EXTRACT:
         {
-          const unsigned size = utils::getSize(n);
-          const unsigned low = utils::getExtractLow(n);
+          const unsigned size = bv::utils::getSize(n);
+          const unsigned low = bv::utils::getExtractLow(n);
           const unsigned child_min_width = visited[n[0]];
           visited[n] = std::min(
               size, child_min_width >= low ? child_min_width - low : 0u);
@@ -118,7 +178,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
             }
           }
           unsigned w = maxval.length();
-          if (w > utils::getSize(n)) { return 0; } /* overflow */
+          if (w > bv::utils::getSize(n)) { return 0; } /* overflow */
           visited[n] = w;
           break;
         }
@@ -128,8 +188,8 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
           unsigned i, wnz, nc;
           for (i = 0, wnz = 0, nc = n.getNumChildren() - 1; i < nc; ++i)
           {
-            unsigned wni = utils::getSize(n[i]);
-            if (n[i] != utils::mkZero(wni)) { break; }
+            unsigned wni = bv::utils::getSize(n[i]);
+            if (n[i] != bv::utils::mkZero(wni)) { break; }
             /* sum of all bit-widths of leading zero concats */
             wnz += wni;
           }
@@ -137,9 +197,8 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
            * min bw of current concat is determined as
            *   min bw of first non-zero term
            *   plus actual bw of all subsequent terms */
-          visited[n] = utils::getSize(n)
-                       + visited[n[i]] - utils::getSize(n[i])
-                       - wnz;
+          visited[n] = bv::utils::getSize(n) + visited[n[i]]
+                       - bv::utils::getSize(n[i]) - wnz;
           break;
         }
 
@@ -185,7 +244,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
             }
           }
           unsigned w = maxval.length();
-          if (w > utils::getSize(n)) { return 0; } /* overflow */
+          if (w > bv::utils::getSize(n)) { return 0; } /* overflow */
           visited[n] = w;
           break;
         }
@@ -196,7 +255,7 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
            * BITVECTOR_NOT
            * BITVECTOR_NEG
            * BITVECTOR_SHL */
-          visited[n] = utils::getSize(n);
+          visited[n] = bv::utils::getSize(n);
         }
       }
     }
@@ -205,7 +264,23 @@ unsigned BVGaussElim::getMinBwExpr(Node expr)
   return visited[expr];
 }
 
-BVGaussElim::Result BVGaussElim::gaussElim(
+/**
+ * Apply Gaussian Elimination modulo a (prime) number.
+ * The given equation system is represented as a matrix of Integers.
+ *
+ * Note that given 'prime' does not have to be prime but can be any
+ * arbitrary number. However, if 'prime' is indeed prime, GE is guaranteed
+ * to succeed, which is not the case, otherwise.
+ *
+ * Returns INVALID if GE can not be applied, UNIQUE and PARTIAL if GE was
+ * successful, and NONE, otherwise.
+ *
+ * Vectors 'rhs' and 'lhs' represent the right hand side and left hand side
+ * of the given matrix, respectively. The resulting matrix (in row echelon
+ * form) is stored in 'rhs' and 'lhs', i.e., the given matrix is overwritten
+ * with the resulting matrix.
+ */
+Result gaussElim(
     Integer prime,
     std::vector<Integer>& rhs,
     std::vector<std::vector<Integer>>& lhs)
@@ -221,7 +296,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(
     rhs = std::vector<Integer>(rhs.size(), Integer(0));
     lhs = std::vector<std::vector<Integer>>(
         lhs.size(), std::vector<Integer>(lhs[0].size(), Integer(0)));
-    return BVGaussElim::Result::UNIQUE;
+    return Result::UNIQUE;
   }
 
   size_t nrows = lhs.size();
@@ -286,7 +361,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(
           Integer inv = lhs[j][pcol].modInverse(prime);
           if (inv == -1)
           {
-            return BVGaussElim::Result::INVALID; /* not coprime */
+            return Result::INVALID; /* not coprime */
           }
           for (size_t k = pcol; k < ncols; ++k)
           {
@@ -334,7 +409,7 @@ BVGaussElim::Result BVGaussElim::gaussElim(
       if (rhs[i] != 0)
       {
         /* no solution */
-        return BVGaussElim::Result::NONE;
+        return Result::NONE;
       }
       continue;
     }
@@ -351,12 +426,33 @@ BVGaussElim::Result BVGaussElim::gaussElim(
     }
   }
 
-  if (ispart) { return BVGaussElim::Result::PARTIAL; }
+  if (ispart) { return Result::PARTIAL; }
 
-  return BVGaussElim::Result::UNIQUE;
+  return Result::UNIQUE;
 }
 
-BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
+/**
+ * Apply Gaussian Elimination on a set of equations modulo some (prime)
+ * number given as bit-vector equations.
+ *
+ * IMPORTANT: Applying GE modulo some number (rather than modulo 2^bw)
+ * on a set of bit-vector equations is only sound if this set of equations
+ * has a solution that does not produce overflows. Consequently, we only
+ * apply GE if the given bit-width guarantees that no overflows can occur
+ * in the given set of equations.
+ *
+ * Note that the given set of equations does not have to be modulo a prime
+ * but can be modulo any arbitrary number. However, if it is indeed modulo
+ * prime, GE is guaranteed to succeed, which is not the case, otherwise.
+ *
+ * Returns INVALID if GE can not be applied, UNIQUE and PARTIAL if GE was
+ * successful, and NONE, otherwise.
+ *
+ * The resulting constraints are stored in 'res' as a mapping of unknown
+ * to result (modulo prime). These mapped results are added as constraints
+ * of the form 'unknown = mapped result' in applyInternal.
+ */
+Result gaussElimRewriteForUrem(
     const std::vector<Node>& equations,
     std::unordered_map<Node, Node, NodeHashFunction>& res)
 {
@@ -397,7 +493,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           << "Minimum required bit-width exceeds given bit-width, "
              "will not apply Gaussian Elimination."
           << std::endl;
-      return BVGaussElim::Result::INVALID;
+      return Result::INVALID;
     }
     rhs.push_back(get_bv_const_value(eqrhs));
 
@@ -464,7 +560,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         }
         else
         {
-          n0 = utils::mkOne(utils::getSize(n));
+          n0 = bv::utils::mkOne(bv::utils::getSize(n));
         }
         /* n1 is a mult with non-const operands */
         if (nb_nonconsts.getNumChildren() > 1)
@@ -517,7 +613,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
   if (nrows < 1)
   {
-    return BVGaussElim::Result::INVALID;
+    return Result::INVALID;
   }
 
   for (size_t i = 0; i < nrows; ++i)
@@ -535,13 +631,13 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
 
   if (lhs.size() > lhs[0].size())
   {
-    return BVGaussElim::Result::INVALID;
+    return Result::INVALID;
   }
 
   Trace("bv-gauss-elim") << "Applying Gaussian Elimination..." << std::endl;
   Result ret = gaussElim(iprime, rhs, lhs);
 
-  if (ret != BVGaussElim::Result::NONE && ret != BVGaussElim::Result::INVALID)
+  if (ret != Result::NONE && ret != Result::INVALID)
   {
     std::vector<Node> vvars;
     for (const auto& p : vars) { vvars.push_back(p.first); }
@@ -549,17 +645,17 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
     Assert(nrows == lhs.size());
     Assert(nrows == rhs.size());
     NodeManager *nm = NodeManager::currentNM();
-    if (ret == BVGaussElim::Result::UNIQUE)
+    if (ret == Result::UNIQUE)
     {
       for (size_t i = 0; i < nvars; ++i)
       {
         res[vvars[i]] = nm->mkConst<BitVector>(
-            BitVector(utils::getSize(vvars[i]), rhs[i]));
+            BitVector(bv::utils::getSize(vvars[i]), rhs[i]));
       }
     }
     else
     {
-      Assert(ret == BVGaussElim::Result::PARTIAL);
+      Assert(ret == Result::PARTIAL);
 
       for (size_t pcol = 0, prow = 0; pcol < nvars && prow < nrows;
            ++pcol, ++prow)
@@ -584,7 +680,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           /* Normalize (no negative numbers, hence no subtraction)
            * e.g., x = 4 - 2y  --> x = 4 + 9y (modulo 11) */
           Integer m = iprime - lhs[prow][i];
-          Node bv = utils::mkConst(utils::getSize(vvars[i]), m);
+          Node bv = bv::utils::mkConst(bv::utils::getSize(vvars[i]), m);
           Node mult = nm->mkNode(kind::BITVECTOR_MULT, vvars[i], bv);
           stack.push_back(mult);
         }
@@ -592,7 +688,7 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
         if (stack.empty())
         {
           res[vvars[pcol]] = nm->mkConst<BitVector>(
-              BitVector(utils::getSize(vvars[pcol]), rhs[prow]));
+              BitVector(bv::utils::getSize(vvars[pcol]), rhs[prow]));
         }
         else
         {
@@ -603,8 +699,8 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
           if (rhs[prow] != 0)
           {
             tmp = nm->mkNode(kind::BITVECTOR_PLUS,
-                             utils::mkConst(
-                                 utils::getSize(vvars[pcol]), rhs[prow]),
+                             bv::utils::mkConst(
+                                 bv::utils::getSize(vvars[pcol]), rhs[prow]),
                              tmp);
           }
           Assert(!is_bv_const(tmp));
@@ -616,9 +712,19 @@ BVGaussElim::Result BVGaussElim::gaussElimRewriteForUrem(
   return ret;
 }
 
-void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
+}  // namespace
+
+
+
+BVGauss::BVGauss(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "bv-gauss")
 {
-  std::vector<Node> assertions(assertionsToPreprocess);
+}
+
+PreprocessingPassResult BVGauss::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  std::vector<Node> assertions(assertionsToPreprocess->ref());
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction> equations;
 
   while (!assertions.empty())
@@ -659,29 +765,30 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
   }
 
   std::unordered_map<Node, Node, NodeHashFunction> subst;
+  std::vector<Node>& atpp = assertionsToPreprocess->ref();
 
   for (const auto& eq : equations)
   {
     if (eq.second.size() <= 1) { continue; }
 
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret = gaussElimRewriteForUrem(eq.second, res);
+    Result ret = gaussElimRewriteForUrem(eq.second, res);
     Trace("bv-gauss-elim") << "result: "
-                           << (ret == BVGaussElim::Result::INVALID
+                           << (ret == Result::INVALID
                                    ? "INVALID"
-                                   : (ret == BVGaussElim::Result::UNIQUE
+                                   : (ret == Result::UNIQUE
                                           ? "UNIQUE"
-                                          : (ret == BVGaussElim::Result::PARTIAL
+                                          : (ret == Result::PARTIAL
                                                  ? "PARTIAL"
                                                  : "NONE")))
                            << std::endl;
-    if (ret != BVGaussElim::Result::INVALID)
+    if (ret != Result::INVALID)
     {
       NodeManager *nm = NodeManager::currentNM();
-      if (ret == BVGaussElim::Result::NONE)
+      if (ret == Result::NONE)
       {
-        assertionsToPreprocess.clear();
-        assertionsToPreprocess.push_back(nm->mkConst<bool>(false));
+        atpp.clear();
+        atpp.push_back(nm->mkConst<bool>(false));
       }
       else
       {
@@ -694,7 +801,7 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
         {
           Node a = nm->mkNode(kind::EQUAL, p.first, p.second);
           Trace("bv-gauss-elim") << "added assertion: " << a << std::endl;
-          assertionsToPreprocess.push_back(a);
+          atpp.push_back(a);
         }
       }
     }
@@ -703,13 +810,14 @@ void BVGaussElim::gaussElimRewrite(std::vector<Node> &assertionsToPreprocess)
   if (!subst.empty())
   {
     /* delete (= substitute with true) obsolete assertions */
-    for (auto& a : assertionsToPreprocess)
+    for (auto& a : atpp)
     {
       a = a.substitute(subst.begin(), subst.end());
     }
   }
+  return PreprocessingPassResult::NO_CONFLICT;
 }
 
-}  // namespace bv
-}  // namespace theory
+}  // namespace passes
+}  // namespace preprocessing
 }  // namespace CVC4
