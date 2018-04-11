@@ -3985,6 +3985,12 @@ void SmtEnginePrivate::processAssertions() {
     return;
   }
 
+  if (options::bvGaussElim())
+  {
+    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
+    d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
+  }
+
   if (d_assertionsProcessed && options::incrementalSolving()) {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
@@ -4085,12 +4091,6 @@ void SmtEnginePrivate::processAssertions() {
   if (options::solveIntAsBV() > 0)
   {
     d_preprocessingPassRegistry.getPass("int-to-bv")->apply(&d_assertions);
-  }
-
-  if (options::bvGaussElim())
-  {
-    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
-    d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
