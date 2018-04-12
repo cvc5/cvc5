@@ -443,6 +443,7 @@ REG0_TESTS = \
 	regress0/ho/ext-ho.smt2 \
 	regress0/ho/ext-sat-partial-eval.smt2 \
 	regress0/ho/ext-sat.smt2 \
+	regress0/ho/finite-fun-ext.smt2 \
 	regress0/ho/ho-match-fun-suffix.smt2 \
 	regress0/ho/ho-matching-enum.smt2 \
 	regress0/ho/ho-matching-nested-app.smt2 \
@@ -1078,10 +1079,13 @@ REG1_TESTS = \
 	regress1/fmf/with-ind-104-core.smt2 \
 	regress1/gensys_brn001.smt2 \
 	regress1/ho/auth0068.smt2 \
+	regress1/ho/fta0210.smt2 \
 	regress1/ho/fta0409.smt2 \
+	regress1/ho/hoa0008.smt2 \
 	regress1/ho/ho-exponential-model.smt2 \
 	regress1/ho/ho-matching-enum-2.smt2 \
 	regress1/ho/ho-std-fmf.smt2 \
+	regress1/ho/match-middle.smt2 \
 	regress1/hole6.cvc \
 	regress1/ite5.smt2 \
 	regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt \

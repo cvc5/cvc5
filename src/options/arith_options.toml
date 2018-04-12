@@ -388,15 +388,6 @@ header = "options/arith_options.h"
   help       = "threshold for substituting an equality in ppAssert"
 
 [[option]]
-  name       = "maxReplayTree"
-  category   = "regular"
-  long       = "max-replay-tree"
-  type       = "int"
-  default    = "512"
-  read_only  = true
-  help       = "threshold for attempting to replay a tree"
-
-[[option]]
   name       = "arithNoPartialFun"
   category   = "regular"
   long       = "arith-no-partial-fun"
@@ -413,15 +404,6 @@ header = "options/arith_options.h"
   default    = "false"
   read_only  = true
   help       = "apply pseudo boolean rewrites"
-
-[[option]]
-  name       = "pbRewriteThreshold"
-  category   = "regular"
-  long       = "pb-rewrite-threshold"
-  type       = "int"
-  default    = "256"
-  read_only  = true
-  help       = "threshold of number of pseudoboolean variables to have before doing rewrites"
 
 [[option]]
   name       = "sNormInferEq"
