@@ -192,7 +192,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
 
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
-  Node sygusVar = nm->mkBoundVar("sygus", nm->booleanType());
+  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
   SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
