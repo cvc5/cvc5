@@ -2834,7 +2834,7 @@ Node BvInverter::solveBvLit(Node sv,
   litk = k = lit.getKind();
 
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
-   *       is enabled. We currently do not support Boolean operators
+   *       is enabled and the logic is quantified. We currently do not support Boolean operators
    *       that are interpreted as bit-vector operators of width 1.  */
 
   /* Boolean layer ----------------------------------------------- */
