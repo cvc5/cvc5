@@ -387,9 +387,6 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
               sendInference( lexp, xneqs, "NEG-CTN-EQL", true );
             }
             return 1;
-          }else if( !areDisequal( lenx, lens ) ){
-            //split on their lenths
-            sendSplit( lenx, lens, "NEG-CTN-SP" );
           }else{
             r_effort = 2;
           }
