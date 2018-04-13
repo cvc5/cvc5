@@ -210,7 +210,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
     if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
        '--no-check-models' not in basic_command_line_args:
         extra_command_line_args = ['--check-models']
-    if proof and re.search(r'^(sat|valid)$', expected_output):
+    if proof and re.search(r'^(unsat|valid)$', expected_output):
         if '--no-check-proofs' not in basic_command_line_args and \
            '--incremental' not in basic_command_line_args and \
            '--unconstrained-simp' not in basic_command_line_args and \
@@ -223,10 +223,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
            '--incremental' not in basic_command_line_args and \
            '--unconstrained-simp' not in basic_command_line_args and \
            not cvc4_binary.endswith('pcvc4'):
-            extra_command_line_args = [
-                '--check-proofs', '--no-bv-eq', '--no-bv-ineq',
-                '--no-bv-algebraic'
-            ]
+            extra_command_line_args += ['--check-unsat-cores']
     if extra_command_line_args:
         command_line_args_configs.append(
             basic_command_line_args + extra_command_line_args)
