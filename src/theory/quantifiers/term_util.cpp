@@ -453,12 +453,12 @@ Node TermUtil::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_co
       }
       if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
         Node op = n.getOperator();
-        if( options::ufHo() )
+        if (options::ufHo())
         {
-          op = getCanonicalTerm( op, var_count, subs, apply_torder, visited );
+          op = getCanonicalTerm(op, var_count, subs, apply_torder, visited);
         }
         Trace("canon-term-debug") << "Insert operator " << op << std::endl;
-        cchildren.insert( cchildren.begin(), op );
+        cchildren.insert(cchildren.begin(), op);
       }
       Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
       Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
