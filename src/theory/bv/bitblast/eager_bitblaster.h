@@ -55,11 +55,12 @@ class EagerBitblaster : public TBitblaster<Node>
   void setProofLog(BitVectorProof* bvp);
 
  private:
+  std::unique_ptr<context::Context> d_nullContext;
+
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
-  std::unique_ptr<context::Context> d_nullContext;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   TheoryBV* d_bv;
