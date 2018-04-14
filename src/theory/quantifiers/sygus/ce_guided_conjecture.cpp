@@ -628,8 +628,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               rrChecker.assertFormula(crr.toExpr());
               Result r = rrChecker.checkSat();
               Trace("rr-check") << "...result : " << r << std::endl;
-              if (r.asSatisfiabilityResult().isUnknown()
-                  || r.asSatisfiabilityResult().isSat())
+              if (r.asSatisfiabilityResult().isSat())
               {
                 Trace("rr-check")
                     << "...rewrite does not hold for: " << std::endl;
@@ -652,7 +651,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               }
               else
               {
-                verified = true;
+                verified = !r.asSatisfiabilityResult().isUnknown();
               }
             }
             else
