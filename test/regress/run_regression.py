@@ -187,7 +187,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
             # been set explicitly, the benchmark is invalid.
             sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
 
-    if not proof and ('(get-unsat-cores)' in metadata_content
+    if not proof and ('(get-unsat-core)' in metadata_content
                       or '(get-unsat-assumptions)' in metadata_content):
         print(
             '1..0 # Skipped: unsat cores not supported without proof support')
