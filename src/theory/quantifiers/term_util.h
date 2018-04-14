@@ -186,7 +186,7 @@ public:
   /** adds the set of nodes of kind INST_CONSTANT in n to varContains */
   static void computeInstConstContains( Node n, std::vector< Node >& ics );
   /** adds the set of nodes of kind BOUND_VARIABLE in n to varContains */
-  //static void computeVarContains( Node n, std::vector< Node >& vars );
+  static void computeVarContains( Node n, std::vector< Node >& vars );
   /** adds the set of (top-level) nodes of kind FORALL in n to varContains */
   static void computeQuantContains( Node n, std::vector< Node >& quants );
   /** 
