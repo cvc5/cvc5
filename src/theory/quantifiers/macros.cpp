@@ -156,7 +156,7 @@ bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
   Node icn = d_qe->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
-  d_qe->getTermUtil()->getVarContainsNode( f, icn, var );
+  quantifiers::TermUtil::getInstConstContainsNode( f, icn, var );
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
   inst::Trigger::getTriggerVariables( icn, f, trigger_var );
