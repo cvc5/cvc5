@@ -143,13 +143,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
     metadata_lines = None
     with open(metadata_filename, 'r') as metadata_file:
         metadata_lines = metadata_file.readlines()
-
-    benchmark_content = None
-    if metadata_filename == benchmark_path:
-        benchmark_content = ''.join(metadata_lines)
-    else:
-        with open(benchmark_path, 'r') as benchmark_file:
-            benchmark_content = benchmark_file.read()
+    metadata_content = ''.join(metadata_lines)
 
     # Extract the metadata for the benchmark.
     scrubber = None
@@ -184,7 +178,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
     if expected_output == '' and expected_error == '':
         match = None
         if status_regex:
-            match = re.search(status_regex, benchmark_content)
+            match = re.search(status_regex, metadata_content)
 
         if match:
             expected_output = status_to_output(match.group(1))
@@ -193,8 +187,8 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
             # been set explicitly, the benchmark is invalid.
             sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
 
-    if not proof and ('(get-unsat-core)' in benchmark_content
-                      or '(get-unsat-assumptions)' in benchmark_content):
+    if not proof and ('(get-unsat-core)' in metadata_content
+                      or '(get-unsat-assumptions)' in metadata_content):
         print(
             '1..0 # Skipped: unsat cores not supported without proof support')
         return
