@@ -271,11 +271,9 @@ void TermUtil::computeInstConstContains( Node n, std::vector< Node >& ics ){
   computeVarContainsInternal( n, INST_CONSTANT, ics );
 }
 
-/*
 void TermUtil::computeVarContains( Node n, std::vector< Node >& vars ) {
   computeVarContainsInternal( n, BOUND_VARIABLE, vars );
 }
-*/
 
 void TermUtil::computeQuantContains( Node n, std::vector< Node >& quants ) {
   computeVarContainsInternal( n, FORALL, quants );
