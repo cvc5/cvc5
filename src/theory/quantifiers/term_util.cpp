@@ -925,7 +925,7 @@ Node TermUtil::getTypeValueOffset(TypeNode tn,
 
 Node TermUtil::mkTypeConst(TypeNode tn, bool pol)
 {
-  return pol ? mkTypeMaxValue(tn) : mkTypeValue(tn, 0);
+  return pol ? mkTypeValue(tn, 0) : mkTypeMaxValue(tn);
 }
 
 bool TermUtil::isAntisymmetric(Kind k, Kind& dk)
