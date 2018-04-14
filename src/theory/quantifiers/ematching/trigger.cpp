@@ -36,7 +36,7 @@ namespace inst {
 
 void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
   if( d_fv.empty() ){
-    quantifiers::TermUtil::computeInstConstContainsForQuant( q, n, d_fv );
+    quantifiers::TermUtil::computeInstConstContainsForQuant(q, n, d_fv);
   }
   if( d_reqPol==0 ){
     d_reqPol = reqPol;
@@ -134,8 +134,10 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
   std::map< Node, std::vector< Node > > patterns;
   size_t varCount = 0;
   std::map< Node, std::vector< Node > > varContains;
-  for( const Node& pat : temp ){
-    quantifiers::TermUtil::computeInstConstContainsForQuant( q, pat, varContains[ pat ] );
+  for (const Node& pat : temp)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(
+        q, pat, varContains[pat]);
   }
   for( unsigned i=0; i<temp.size(); i++ ){
     bool foundVar = false;
@@ -872,8 +874,9 @@ void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
   std::vector< Node > exclude;
   collectPatTerms(q, n, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo);
   //collect all variables from all patterns in patTerms, add to t_vars
-  for( const Node& pat : patTerms ){
-    quantifiers::TermUtil::computeInstConstContainsForQuant( q, pat, t_vars );
+  for (const Node& pat : patTerms)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(q, pat, t_vars);
   }
 }
 

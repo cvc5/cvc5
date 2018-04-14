@@ -181,22 +181,27 @@ public:
 
  private:
   /** adds the set of nodes of kind k in n to varContains */
-  static void computeVarContainsInternal( Node n, Kind k, std::vector< Node >& varContains);
+  static void computeVarContainsInternal(Node n,
+                                         Kind k,
+                                         std::vector<Node>& varContains);
+
  public:
   /** adds the set of nodes of kind INST_CONSTANT in n to varContains */
-  static void computeInstConstContains( Node n, std::vector< Node >& ics );
+  static void computeInstConstContains(Node n, std::vector<Node>& ics);
   /** adds the set of nodes of kind BOUND_VARIABLE in n to varContains */
-  static void computeVarContains( Node n, std::vector< Node >& vars );
+  static void computeVarContains(Node n, std::vector<Node>& vars);
   /** adds the set of (top-level) nodes of kind FORALL in n to varContains */
-  static void computeQuantContains( Node n, std::vector< Node >& quants );
-  /** 
+  static void computeQuantContains(Node n, std::vector<Node>& quants);
+  /**
    * adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
-   * formula q to varContains 
+   * formula q to varContains
    */
-  static void computeInstConstContainsForQuant( Node q, Node n, std::vector< Node >& varContains );
+  static void computeInstConstContainsForQuant(Node q,
+                                               Node n,
+                                               std::vector<Node>& varContains);
 
-//for term ordering
-private:
+  // for term ordering
+ private:
   /** operator id count */
   int d_op_id_count;
   /** map from operators to id */

@@ -597,8 +597,10 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vector< Node >& pats, QuantifiersEngine* qe ) {
   //order patterns to maximize eager matching failures
   std::map< Node, std::vector< Node > > var_contains;
-  for( const Node& pat : pats ){
-    quantifiers::TermUtil::computeInstConstContainsForQuant( q, pat, var_contains[ pat ] );
+  for (const Node& pat : pats)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(
+        q, pat, var_contains[pat]);
   }
   std::map< Node, std::vector< Node > > var_to_node;
   for( std::map< Node, std::vector< Node > >::iterator it = var_contains.begin(); it != var_contains.end(); ++it ){
@@ -712,8 +714,10 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
 {
   Trace("multi-trigger-cache") << "Making smart multi-trigger for " << q << std::endl;
   std::map< Node, std::vector< Node > > var_contains;
-  for( const Node& pat : pats ){
-    quantifiers::TermUtil::computeInstConstContainsForQuant( q, pat, var_contains[ pat ] );
+  for (const Node& pat : pats)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(
+        q, pat, var_contains[pat]);
   }
   //convert to indicies
   for( std::map< Node, std::vector< Node > >::iterator it = var_contains.begin(); it != var_contains.end(); ++it ){

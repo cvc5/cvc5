@@ -620,17 +620,17 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               // Notice we don't set produce-models. rrChecker takes the same
               // options as the SmtEngine we belong to, where we ensure that
               // produce-models is set.
-              NodeManager * nm = NodeManager::currentNM();
+              NodeManager* nm = NodeManager::currentNM();
               SmtEngine rrChecker(nm->toExprManager());
               rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
               Node crr = solbr.eqNode(eq_solr).negate();
               // quantify over the free variables in crr
-              std::vector< Node > fvs;
-              TermUtil::computeVarContains( crr, fvs );
-              if( !fvs.empty() )
+              std::vector<Node> fvs;
+              TermUtil::computeVarContains(crr, fvs);
+              if (!fvs.empty())
               {
-                Node bvl_fvs = nm->mkNode( BOUND_VAR_LIST, fvs );
-                crr = nm->mkNode( EXISTS, bvl_fvs, crr );
+                Node bvl_fvs = nm->mkNode(BOUND_VAR_LIST, fvs);
+                crr = nm->mkNode(EXISTS, bvl_fvs, crr);
               }
               Trace("rr-check")
                   << "Check candidate rewrite : " << crr << std::endl;
