@@ -309,7 +309,7 @@ void TermUtil::computeVarContainsInternal( Node n, Kind k, std::vector< Node >& 
   } while (!visit.empty());  
 }
 
-void TermUtil::getInstConstContainsNode( Node q, Node n, std::vector< Node >& vars ){
+void TermUtil::computeInstConstContainsForQuant( Node q, Node n, std::vector< Node >& vars ){
   std::vector< Node > ics;
   computeInstConstContains( n, ics );
   for( const Node& v : ics )

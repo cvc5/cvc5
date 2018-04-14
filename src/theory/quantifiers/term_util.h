@@ -193,7 +193,7 @@ public:
    * adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
    * formula q to varContains 
    */
-  static void getInstConstContainsNode( Node q, Node n, std::vector< Node >& varContains );
+  static void computeInstConstContainsForQuant( Node q, Node n, std::vector< Node >& varContains );
 
 //for term ordering
 private:
