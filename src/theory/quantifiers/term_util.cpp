@@ -300,6 +300,10 @@ void TermUtil::computeVarContainsInternal( Node n, Kind k, std::vector< Node >& 
       }
       else
       {
+        if( cur.hasOperator() )
+        {
+          visit.push_back(cur.getOperator());
+        }
         for( const Node& cn : cur )
         {
           visit.push_back(cn);
