@@ -490,7 +490,7 @@ private:
   };
   std::map<Node, std::map<Node, std::map<int, Node> > > d_skolem_cache;
   /** the set of all skolems we have generated */
-  std::unordered_set< Node, NodeHashFunction > d_all_skolems;
+  std::unordered_set<Node, NodeHashFunction> d_all_skolems;
   Node mkSkolemCached(
       Node a, Node b, int id, const char* c, int isLenSplit = 0);
   inline Node mkSkolemS(const char* c, int isLenSplit = 0);

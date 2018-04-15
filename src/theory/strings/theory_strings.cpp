@@ -649,7 +649,9 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         if( tn.isString() ) {
           registerTerm( n, 0 );
           // FMF
-          if( options::stringFMF() && d_all_skolems.find(n)==d_all_skolems.end() ){
+          if (options::stringFMF()
+              && d_all_skolems.find(n) == d_all_skolems.end())
+          {
             d_input_vars.insert(n);
           }
           d_equalityEngine.addTerm(n);
