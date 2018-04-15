@@ -4621,33 +4621,15 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
       }
       break;
     }
-    case kind::REGEXP_CONCAT: {
-      std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        vec_nodes.push_back( getNormalSymRegExp(r[i], nf_exp) );
-      }
-      ret = mkConcat(vec_nodes);
-      break;
-    }
-    case kind::REGEXP_UNION: {
-      std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        vec_nodes.push_back( getNormalSymRegExp(r[i], nf_exp) );
-      }
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes) );
-      break;
-    }
-    case kind::REGEXP_INTER: {
-      std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        vec_nodes.push_back( getNormalSymRegExp(r[i], nf_exp) );
-      }
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_INTER, vec_nodes) );
-      break;
-    }
+    case kind::REGEXP_CONCAT: 
+    case kind::REGEXP_UNION: 
+    case kind::REGEXP_INTER: 
     case kind::REGEXP_STAR: {
-      ret = getNormalSymRegExp( r[0], nf_exp );
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, ret) );
+      std::vector< Node > vec_nodes;
+      for( const Node& cr : r ){
+        vec_nodes.push_back( getNormalSymRegExp(cr, nf_exp) );
+      }
+      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode( r.getKind(), vec_nodes ) );
       break;
     }
     //case kind::REGEXP_PLUS:
