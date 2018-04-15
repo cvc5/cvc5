@@ -649,7 +649,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         if( tn.isString() ) {
           registerTerm( n, 0 );
           // FMF
-          if( n.getKind() == kind::VARIABLE && options::stringFMF() ){
+          if( options::stringFMF() && d_all_skolems.find(n)==d_all_skolems.end() ){
             d_input_vars.insert(n);
           }
           d_equalityEngine.addTerm(n);
@@ -3560,6 +3560,7 @@ Node TheoryStrings::mkSkolemCached( Node a, Node b, int id, const char * c, int 
   if( it==d_skolem_cache[a][b].end() ){
     Node sk = mkSkolemS( c, isLenSplit );
     d_skolem_cache[a][b][id] = sk;
+    d_all_skolems.insert(sk);
     return sk;
   }else{
     return it->second;
