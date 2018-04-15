@@ -4621,15 +4621,18 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
       }
       break;
     }
-    case kind::REGEXP_CONCAT: 
-    case kind::REGEXP_UNION: 
-    case kind::REGEXP_INTER: 
-    case kind::REGEXP_STAR: {
+    case kind::REGEXP_CONCAT:
+    case kind::REGEXP_UNION:
+    case kind::REGEXP_INTER:
+    case kind::REGEXP_STAR:
+    {
       std::vector< Node > vec_nodes;
-      for( const Node& cr : r ){
-        vec_nodes.push_back( getNormalSymRegExp(cr, nf_exp) );
+      for (const Node& cr : r)
+      {
+        vec_nodes.push_back(getNormalSymRegExp(cr, nf_exp));
       }
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode( r.getKind(), vec_nodes ) );
+      ret = Rewriter::rewrite(
+          NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
       break;
     }
     //case kind::REGEXP_PLUS:
