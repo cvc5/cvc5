@@ -180,25 +180,25 @@ public:
   static Node getQuantSimplify( Node n );
 
  private:
-  /** adds the set of nodes of kind k in n to varContains */
+  /** adds the set of nodes of kind k in n to vars */
   static void computeVarContainsInternal(Node n,
                                          Kind k,
-                                         std::vector<Node>& varContains);
+                                         std::vector<Node>& vars);
 
  public:
-  /** adds the set of nodes of kind INST_CONSTANT in n to varContains */
+  /** adds the set of nodes of kind INST_CONSTANT in n to ics */
   static void computeInstConstContains(Node n, std::vector<Node>& ics);
-  /** adds the set of nodes of kind BOUND_VARIABLE in n to varContains */
+  /** adds the set of nodes of kind BOUND_VARIABLE in n to vars */
   static void computeVarContains(Node n, std::vector<Node>& vars);
-  /** adds the set of (top-level) nodes of kind FORALL in n to varContains */
+  /** adds the set of (top-level) nodes of kind FORALL in n to quants */
   static void computeQuantContains(Node n, std::vector<Node>& quants);
   /**
-   * adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
-   * formula q to varContains
+   * Adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
+   * formula q to vars.
    */
   static void computeInstConstContainsForQuant(Node q,
                                                Node n,
-                                               std::vector<Node>& varContains);
+                                               std::vector<Node>& vars);
 
   // for term ordering
  private:
