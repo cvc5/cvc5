@@ -19,7 +19,6 @@
 
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
-#include "theory/ite_utilities.h"
 
 using namespace std;
 
@@ -28,20 +27,9 @@ namespace CVC4 {
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
     : d_tfCache(u), d_skolem_cache(u)
 {
-  d_containsVisitor = new theory::ContainsTermITEVisitor();
 }
 
-RemoveTermFormulas::~RemoveTermFormulas(){
-  delete d_containsVisitor;
-}
-
-void RemoveTermFormulas::garbageCollect(){
-  d_containsVisitor->garbageCollect();
-}
-
-theory::ContainsTermITEVisitor* RemoveTermFormulas::getContainsVisitor() {
-  return d_containsVisitor;
-}
+RemoveTermFormulas::~RemoveTermFormulas() {}
 
 void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
 {
@@ -63,10 +51,6 @@ void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemM
     }
     output[i] = itesRemoved;
   }
-}
-
-bool RemoveTermFormulas::containsTermITE(TNode e) const {
-  return d_containsVisitor->containsTermITE(e);
 }
 
 Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
