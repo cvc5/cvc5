@@ -620,11 +620,39 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               // Notice we don't set produce-models. rrChecker takes the same
               // options as the SmtEngine we belong to, where we ensure that
               // produce-models is set.
-              SmtEngine rrChecker(NodeManager::currentNM()->toExprManager());
+              NodeManager* nm = NodeManager::currentNM();
+              SmtEngine rrChecker(nm->toExprManager());
               rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
               Node crr = solbr.eqNode(eq_solr).negate();
-              Trace("rr-check")
-                  << "Check candidate rewrite : " << crr << std::endl;
+              Trace("rr-check") << "Check candidate rewrite : " << crr
+                                << std::endl;
+              // quantify over the free variables in crr
+              std::vector<Node> fvs;
+              TermUtil::computeVarContains(crr, fvs);
+              std::map<Node, unsigned> fv_index;
+              std::vector<Node> sks;
+              if (!fvs.empty())
+              {
+                // map to skolems
+                for (unsigned i = 0, size = fvs.size(); i < size; i++)
+                {
+                  Node v = fvs[i];
+                  fv_index[v] = i;
+                  std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
+                  if (itf == d_fv_to_skolem.end())
+                  {
+                    Node sk = nm->mkSkolem("rrck", v.getType());
+                    d_fv_to_skolem[v] = sk;
+                    sks.push_back(sk);
+                  }
+                  else
+                  {
+                    sks.push_back(itf->second);
+                  }
+                }
+                crr = crr.substitute(
+                    fvs.begin(), fvs.end(), sks.begin(), sks.end());
+              }
               rrChecker.assertFormula(crr.toExpr());
               Result r = rrChecker.checkSat();
               Trace("rr-check") << "...result : " << r << std::endl;
@@ -639,15 +667,28 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                 std::vector<Node> pt;
                 for (const Node& v : vars)
                 {
-                  Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
-                  Trace("rr-check") << "  " << v << " -> " << val << std::endl;
+                  std::map<Node, unsigned>::iterator itf = fv_index.find(v);
+                  Node val;
+                  if (itf == fv_index.end())
+                  {
+                    // not in conjecture, can use arbitrary value
+                    val = v.getType().mkGroundTerm();
+                  }
+                  else
+                  {
+                    // get the model value of its skolem
+                    Node sk = sks[itf->second];
+                    val = Node::fromExpr(rrChecker.getValue(sk.toExpr()));
+                    Trace("rr-check") << "  " << v << " -> " << val
+                                      << std::endl;
+                  }
                   pt.push_back(val);
                 }
                 d_sampler[prog].addSamplePoint(pt);
                 // add the solution again
+                // by construction of the above point, we should be unique now
                 Node eq_sol_new = its->second.registerTerm(sol);
-                Assert(!r.asSatisfiabilityResult().isSat()
-                       || eq_sol_new == sol);
+                Assert(eq_sol_new == sol);
               }
               else
               {

@@ -113,7 +113,7 @@ bool InstStrategyCbqi::registerCbqiLemma( Node q ) {
       //compute dependencies between quantified formulas
       if( options::cbqiLitDepend() || options::cbqiInnermost() ){
         std::vector< Node > ics;
-        TermUtil::computeVarContains( q, ics );
+        TermUtil::computeInstConstContains(q, ics);
         d_parent_quant[q].clear();
         d_children_quant[q].clear();
         std::vector< Node > dep;
