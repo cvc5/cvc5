@@ -654,7 +654,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // not belong to this theory.
           if (options::stringFMF()
               && ((n.isVar() && d_all_skolems.find(n) == d_all_skolems.end())
-                  || theoryOf(n.getKind() != THEORY_STRINGS)))
+                  || kindToTheoryId(n.getKind()) != THEORY_STRINGS))
           {
             d_input_vars.insert(n);
           }
