@@ -207,10 +207,11 @@ class SygusSampler : public LazyTrieEvaluator
   bool isOrdered(Node n);
   /** contains free variables
    *
-   * Returns true if all free variables of a are contained in b. Free variables
-   * are those that occur in the range d_type_vars.
+   * Returns true if the free variables of b are a subset of those in a, where
+   * we require a strict subset if strict is true. Free variables are those that
+   * occur in the range d_type_vars.
    */
-  bool containsFreeVariables(Node a, Node b);
+  bool containsFreeVariables(Node a, Node b, bool strict=false);
 
  protected:
   /** sygus term database of d_qe */

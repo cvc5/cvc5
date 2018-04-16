@@ -408,11 +408,12 @@ bool SygusSampler::isOrdered(Node n)
   return true;
 }
 
-bool SygusSampler::containsFreeVariables(Node a, Node b)
+bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
 {
   // compute free variables in a
   std::vector<Node> fvs;
   computeFreeVariables(a, fvs);
+  std::vector< Node > fv_found;
 
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -431,6 +432,15 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
         if (std::find(fvs.begin(), fvs.end(), cur) == fvs.end())
         {
           return false;
+        }
+        else if( strict )
+        {
+          if( fv_found.size()+1==fvs.size() )
+          {
+            return false;
+          }
+          Assert( std::find( fv_found.begin(), fv_found.end(), cur )==fv_found.end() );
+          fv_found.push_back(cur);
         }
       }
       for (const Node& cn : cur)
@@ -719,32 +729,32 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // whether we will keep this pair
   bool keep = true;
 
-  // one of eq_n or n must be ordered
+  // ----- check ordering redundancy
   bool nor = isOrdered(bn);
   bool eqor = isOrdered(beq_n);
   Trace("sygus-synth-rr-debug")
       << "Ordered? : " << nor << " " << eqor << std::endl;
   if (eqor || nor)
   {
-    // if only one is ordered, then the ordered one must contain the
-    // free variables of the other
+    // if only one is ordered, then the ordered one's variables cannot be
+    // a strict subset of the variables of the other
     if (!eqor)
     {
-      if (containsFreeVariables(bn, beq_n))
+      if (containsFreeVariables(beq_n,bn,true))
+      {
+        keep = false;
+      }
+      else
       {
         // if the previous value stored was unordered, but n is
         // ordered, we prefer n. Thus, we force its addition to the
         // sampler database.
         SygusSampler::registerTerm(n, true);
       }
-      else
-      {
-        keep = false;
-      }
     }
     else if (!nor)
     {
-      keep = containsFreeVariables(beq_n, bn);
+      keep = !containsFreeVariables(bn, beq_n,true);
     }
   }
   else
@@ -755,8 +765,20 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
   }
-
-  if (keep && options::sygusRewSynthFilter())
+  
+  // ----- check rewriting redundancy
+  if (keep && d_drewrite != nullptr)
+  {
+    Trace("sygus-synth-rr-debug") << "Check equal rewrite pair..." << std::endl;
+    if (d_drewrite->areEqual(bn, beq_n))
+    {
+      // must be unique according to the dynamic rewriter
+      Trace("sygus-synth-rr") << "...redundant (rewritable)" << std::endl;
+      keep = false;
+    }
+  }
+  
+  if (options::sygusRewSynthFilter())
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
@@ -767,18 +789,8 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     {
       keep = false;
       Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
-    }
-  }
-
-  // ----- check rewriting redundancy
-  if (keep && d_drewrite != nullptr)
-  {
-    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
-    if (d_drewrite->areEqual(bn, beq_n))
-    {
-      // must be unique according to the dynamic rewriter
-      Trace("sygus-synth-rr") << "...redundant (rewritable)" << std::endl;
-      keep = false;
+      // regardless, would help to remember it
+      registerRelevantPair(n,eq_n);
     }
   }
 
