@@ -707,8 +707,6 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // this is a unique term
     return n;
   }
-  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
-                          << std::endl;
   Node bn = n;
   Node beq_n = eq_n;
   if (d_use_sygus_type)
@@ -716,15 +714,54 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
+  Trace("sygus-synth-rr") << "sygusSampleExt : " << bn << "..." << beq_n
+                          << std::endl;
   // whether we will keep this pair
   bool keep = true;
+  
+  // one of eq_n or n must be ordered
+  bool nor = isOrdered(bn);
+  bool eqor = isOrdered(beq_n);
+  Trace("sygus-synth-rr-debug")
+      << "Ordered? : " << nor << " " << eqor << std::endl;
+  if (eqor || nor)
+  {
+    // if only one is ordered, then the ordered one must contain the
+    // free variables of the other
+    if (!eqor)
+    {
+      if( containsFreeVariables(bn, beq_n) )
+      {
+        // if the previous value stored was unordered, but n is
+        // ordered, we prefer n. Thus, we force its addition to the
+        // sampler database.
+        SygusSampler::registerTerm(n, true);
+      }
+      else
+      {
+        keep = false;
+      }
+    }
+    else if (!nor)
+    {
+      keep = containsFreeVariables(beq_n, bn);
+    }
+  }
+  else
+  {
+    keep = false;
+  }
+  if( !keep )
+  {
+    Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
+  }
 
-  if( options::sygusRewSynthFilter() )
+  if(keep && options::sygusRewSynthFilter() )
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
     d_curr_pair_rhs = beq_n;
-    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
+    Trace("sse-match") << "SSE check matches : " << bn << " [rhs = " << beq_n
                       << "]..." << std::endl;
     if (!d_match_trie.getMatches(bn, &d_ssenm))
     {
@@ -732,9 +769,9 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
     }
   }
-
+  
   // ----- check rewriting redundancy
-  if (d_drewrite != nullptr)
+  if (keep && d_drewrite != nullptr)
   {
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
     if (d_drewrite->areEqual(bn, beq_n))
@@ -744,13 +781,11 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       keep = false;
     }
   }
-
+  
   if (keep)
   {
     return eq_n;
   }
-  Trace("sygus-synth-rr") << "Redundant pair : " << eq_n << " " << n;
-  Trace("sygus-synth-rr") << std::endl;
   if (Trace.isOn("sygus-rr-filter"))
   {
     Printer* p = Printer::getPrinter(options::outputLanguage());
@@ -759,6 +794,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     p->toStreamSygus(ss, n);
     ss << " ";
     p->toStreamSygus(ss, eq_n);
+    ss << ")";
     Trace("sygus-rr-filter") << ss.str() << std::endl;
   }
   return Node::null();
