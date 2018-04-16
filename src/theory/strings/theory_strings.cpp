@@ -648,8 +648,14 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         TypeNode tn = n.getType();
         if( tn.isString() ) {
           registerTerm( n, 0 );
-          // FMF
-          if( n.getKind() == kind::VARIABLE && options::stringFMF() ){
+          // if finite model finding is enabled,
+          // then we minimize the length of this term if it is a variable
+          // but not an internally generated Skolem, or a term that does
+          // not belong to this theory.
+          if (options::stringFMF()
+              && (n.isVar() ? d_all_skolems.find(n) == d_all_skolems.end()
+                            : kindToTheoryId(n.getKind()) != THEORY_STRINGS))
+          {
             d_input_vars.insert(n);
           }
           d_equalityEngine.addTerm(n);
@@ -3569,6 +3575,7 @@ Node TheoryStrings::mkSkolemCached( Node a, Node b, int id, const char * c, int 
 //isLenSplit: -1-ignore, 0-no restriction, 1-greater than one, 2-one
 Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
   Node n = NodeManager::currentNM()->mkSkolem( c, NodeManager::currentNM()->stringType(), "string sko" );
+  d_all_skolems.insert(n);
   d_length_lemma_terms_cache.insert( n );
   ++(d_statistics.d_new_skolems);
   if( isLenSplit==0 ){
