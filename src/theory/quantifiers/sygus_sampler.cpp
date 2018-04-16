@@ -413,7 +413,7 @@ bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
   // compute free variables in a
   std::vector<Node> fvs;
   computeFreeVariables(a, fvs);
-  std::vector< Node > fv_found;
+  std::vector<Node> fv_found;
 
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -433,13 +433,14 @@ bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
         {
           return false;
         }
-        else if( strict )
+        else if (strict)
         {
-          if( fv_found.size()+1==fvs.size() )
+          if (fv_found.size() + 1 == fvs.size())
           {
             return false;
           }
-          Assert( std::find( fv_found.begin(), fv_found.end(), cur )==fv_found.end() );
+          Assert(std::find(fv_found.begin(), fv_found.end(), cur)
+                 == fv_found.end());
           fv_found.push_back(cur);
         }
       }
@@ -740,7 +741,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // a strict subset of the variables of the other
     if (!eqor)
     {
-      if (containsFreeVariables(beq_n,bn,true))
+      if (containsFreeVariables(beq_n, bn, true))
       {
         keep = false;
       }
@@ -754,7 +755,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     }
     else if (!nor)
     {
-      keep = !containsFreeVariables(bn, beq_n,true);
+      keep = !containsFreeVariables(bn, beq_n, true);
     }
   }
   else
@@ -765,7 +766,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
   }
-  
+
   // ----- check rewriting redundancy
   if (keep && d_drewrite != nullptr)
   {
@@ -777,7 +778,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       keep = false;
     }
   }
-  
+
   if (options::sygusRewSynthFilter())
   {
     // ----- check matchable
@@ -790,7 +791,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       keep = false;
       Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
       // regardless, would help to remember it
-      registerRelevantPair(n,eq_n);
+      registerRelevantPair(n, eq_n);
     }
   }
 

@@ -211,7 +211,7 @@ class SygusSampler : public LazyTrieEvaluator
    * we require a strict subset if strict is true. Free variables are those that
    * occur in the range d_type_vars.
    */
-  bool containsFreeVariables(Node a, Node b, bool strict=false);
+  bool containsFreeVariables(Node a, Node b, bool strict = false);
 
  protected:
   /** sygus term database of d_qe */
