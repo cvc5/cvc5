@@ -464,7 +464,7 @@ class NonlinearExtension {
    *   x_1 -> t_1 ... x_n -> t_n
    * where x_i is not in the free variables of t_j for j>=i.
    */
-  std::vector< Node > d_check_model_var;
+  std::vector< Node > d_check_model_vars;
   std::vector< Node > d_check_model_subs;
   /** 
    * Map from all literals appearing in the current set of assertions to their

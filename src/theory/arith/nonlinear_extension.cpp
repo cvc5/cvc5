@@ -68,12 +68,6 @@ unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value) {
   return (it == a.end()) ? value : it->second;
 }
 
-// Returns map[key] if key is in map or Node::null() otherwise.
-Node getNodeOrNull(const std::map<Node, Node>& map, Node key) {
-  std::map<Node, Node>::const_iterator it = map.find(key);
-  return (it == map.end()) ? Node::null() : it->second;
-}
-
 // Returns true if for any key then a[key] <= b[key] where the value for any key
 // not present is interpreted as 0.
 bool isSubset(const NodeMultiset& a, const NodeMultiset& b) {
@@ -707,14 +701,15 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
-  d_check_model_var.clear();
+  d_check_model_vars.clear();
   d_check_model_subs.clear();
   d_check_model_lit.clear();
   
   NodeManager* nm = NodeManager::currentNM();
   // get the assertions from the theory
   unsigned nassertions = 0;
-  std::unordered_set<Node, NodeHashFunction> init_assertions;
+  std::vector<Node> init_assertions;
+  std::unordered_set<Node, NodeHashFunction> rm_assertions;
   for (Theory::assertions_iterator it = d_containing.facts_begin();
        it != d_containing.facts_end();
        ++it)
@@ -722,25 +717,48 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     nassertions++;
     const Assertion& assertion = *it;
     Node lit = assertion.assertion;
-    init_assertions.insert(lit);
+    init_assertions.push_back(lit);
     d_check_model_lit[lit] = lit;
   }
   
   // heuristically, solve for equalities
-  bool addedSubs = false;
+  unsigned curr_index = 0;
+  unsigned terminate_index = 0;
+  std::vector< Node >::iterator itv = d_check_model_vars.begin();
+  std::vector< Node >::iterator its = d_check_model_subs.begin();
+  std::unordered_set< Node, NodeHashFunction > added_subst;
   do
   {
-    addedSubs = false;
-    for( const Node& lit : init_assertions )
+    Node lit = init_assertions[curr_index];
+    Node slit = d_check_model_lit[lit];
+    if( added_subst.find( lit )!=added_subst.end() )
     {
-      if( lit.getKind()==EQUAL )
-      {
-        Assert( d_check_model_lit.find(lit)!=d_check_model_lit.end() );
-        Node slit = d_check_model_lit[lit];
-        
-      }
+      added_subst.erase(lit);
+      itv++;
+      its++;
+      Assert( itv!=d_check_model_vars.end() );
+      Assert( its!=d_check_model_subs.end() );
     }
-  } while( addedSubs );
+    // update it based on the current substitution
+    if(!d_check_model_vars.empty() && !slit.isConst() )
+    {
+      slit = slit.substitute(itv,d_check_model_vars.end(),its,d_check_model_subs.end());
+      slit = Rewriter::rewrite( slit );
+      d_check_model_lit[lit] = slit;
+    }
+    // is it a substitution?
+    if( slit.getKind()==EQUAL )
+    {
+      
+      
+      
+    }
+    curr_index++;
+    if( curr_index==nassertions )
+    {
+      curr_index = 0;
+    }
+  } while( curr_index!=terminate_index );
   
   std::map<Node, Rational> init_bounds[2];
   std::map<Node, Node> init_bounds_lit[2];
@@ -801,7 +819,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
           if (setBound)
           {
             // the bound is subsumed
-            init_assertions.erase(init_bounds_lit[bindex][p]);
+            rm_assertions.insert(init_bounds_lit[bindex][p]);
           }
         }
         if (setBound)
@@ -831,9 +849,9 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
           Node lit2 = init_bounds_lit[1][p];
           Assert(lit2.getKind() != EQUAL);
           // use the equality instead, thus these are redundant
-          init_assertions.erase(lit1);
-          init_assertions.erase(lit2);
-          init_assertions.insert(eq);
+          rm_assertions.insert(lit1);
+          rm_assertions.insert(lit2);
+          init_assertions.push_back(eq);
         }
       }
     }
@@ -841,7 +859,10 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 
   for (const Node& a : init_assertions)
   {
-    assertions.push_back(a);
+    if( rm_assertions.find(a)==rm_assertions.end() )
+    {
+      assertions.push_back(a);
+    }
   }
   Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
                   << " assertions." << std::endl;
