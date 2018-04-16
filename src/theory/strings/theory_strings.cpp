@@ -143,7 +143,11 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
-  d_card_size = 128;
+  d_card_size = 256;
+  if (options::stdPrintASCII())
+  {
+    d_card_size = 128;
+  }
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -450,10 +454,6 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
-
-  if(!options::stdASCII()) {
-    d_card_size = 256;
-  }
 }
 
 
