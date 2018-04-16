@@ -30,10 +30,6 @@
 
 namespace CVC4 {
 
-namespace theory {
-  class ContainsTermITEVisitor;
-}/* CVC4::theory namespace */
-
 typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveTermFormulas {
@@ -151,13 +147,6 @@ public:
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-
-  /** Return the RemoveTermFormulas's containsVisitor. */
-  theory::ContainsTermITEVisitor* getContainsVisitor();
-
-private:
-  theory::ContainsTermITEVisitor* d_containsVisitor;
-
 };/* class RemoveTTE */
 
 }/* CVC4 namespace */

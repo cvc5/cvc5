@@ -58,10 +58,6 @@ class TheoryQuantifiers : public Theory {
                         Node n,
                         std::vector<Node> node_values,
                         std::string str_value) override;
-  bool ppDontRewriteSubterm(TNode atom) override
-  {
-    return atom.getKind() == kind::FORALL || atom.getKind() == kind::EXISTS;
-  }
 
  private:
   void assertUniversal( Node n );

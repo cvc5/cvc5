@@ -180,23 +180,28 @@ public:
   static Node getQuantSimplify( Node n );
 
  private:
-  /** helper function for compute var contains */
-  static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
- public:
-  /** compute var contains */
-  static void computeVarContains( Node n, std::vector< Node >& varContains );
-  /** get var contains for each of the patterns in pats */
-  static void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
-  /** get var contains for node n */
-  static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
-  /** compute quant contains */
-  static void computeQuantContains( Node n, std::vector< Node >& quantContains );
-  // TODO (#1216) : this should be in trigger.h
-  /** filter all nodes that have instances */
-  static void filterInstances( std::vector< Node >& nodes );
+  /** adds the set of nodes of kind k in n to vars */
+  static void computeVarContainsInternal(Node n,
+                                         Kind k,
+                                         std::vector<Node>& vars);
 
-//for term ordering
-private:
+ public:
+  /** adds the set of nodes of kind INST_CONSTANT in n to ics */
+  static void computeInstConstContains(Node n, std::vector<Node>& ics);
+  /** adds the set of nodes of kind BOUND_VARIABLE in n to vars */
+  static void computeVarContains(Node n, std::vector<Node>& vars);
+  /** adds the set of (top-level) nodes of kind FORALL in n to quants */
+  static void computeQuantContains(Node n, std::vector<Node>& quants);
+  /**
+   * Adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
+   * formula q to vars.
+   */
+  static void computeInstConstContainsForQuant(Node q,
+                                               Node n,
+                                               std::vector<Node>& vars);
+
+  // for term ordering
+ private:
   /** operator id count */
   int d_op_id_count;
   /** map from operators to id */
