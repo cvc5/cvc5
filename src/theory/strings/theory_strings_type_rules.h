@@ -361,8 +361,12 @@ public:
       if(ch[0] > ch[1]) {
         throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
       }
-      if(options::stdPrintASCII() && ch[1] > '\x7f') {
-        throw TypeCheckingExceptionPrivate(n, "expecting standard ASCII characters in regexp range when strings-print-ascii is true");
+      if (options::stdPrintASCII() && ch[1] > '\x7f')
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "expecting standard ASCII "
+                                           "characters in regexp range when "
+                                           "strings-print-ascii is true");
       }
     }
     return nodeManager->regExpType();
