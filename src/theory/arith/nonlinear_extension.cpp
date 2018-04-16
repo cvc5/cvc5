@@ -722,6 +722,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   }
   
   // heuristically, solve for equalities
+  /*
   unsigned curr_index = 0;
   unsigned terminate_index = 0;
   std::vector< Node >::iterator itv = d_check_model_vars.begin();
@@ -759,6 +760,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       curr_index = 0;
     }
   } while( curr_index!=terminate_index );
+  */
   
   std::map<Node, Rational> init_bounds[2];
   std::map<Node, Node> init_bounds_lit[2];
