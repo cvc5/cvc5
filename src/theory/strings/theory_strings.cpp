@@ -653,8 +653,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // but not an internally generated Skolem, or a term that does
           // not belong to this theory.
           if (options::stringFMF()
-              && ((n.isVar() && d_all_skolems.find(n) == d_all_skolems.end())
-                  || kindToTheoryId(n.getKind()) != THEORY_STRINGS))
+              && (n.isVar() ? d_all_skolems.find(n) == d_all_skolems.end() : kindToTheoryId(n.getKind()) != THEORY_STRINGS))
           {
             d_input_vars.insert(n);
           }
