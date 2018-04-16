@@ -24,7 +24,7 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-    : d_lastchar(options::stdASCII() ? '\x7f' : '\xff'),
+    : d_lastchar(options::stdPrintASCII() ? '\x7f' : '\xff'),
       d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
       d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
