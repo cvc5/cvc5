@@ -273,10 +273,17 @@ void SymmetryDetect::processSingletonPartitions(
 
 void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 {
+  Kind k = node.getKind();
+
+  if(!theory::quantifiers::TermUtil::isAssoc(k))
+  {
+    children.insert(children.end(), node.begin(), node.end());
+    return;
+  }
+
   Node cur;
   vector<Node> visit;
   visit.push_back(node);
-  Kind k = node.getKind();
   unordered_set<Node, NodeHashFunction> visited;
 
   do
