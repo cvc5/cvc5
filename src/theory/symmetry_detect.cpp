@@ -22,15 +22,7 @@ namespace CVC4 {
 
 SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
-  Node node = d_trueNode;
-  vector<Node>::const_iterator assertions_it = assertions.begin();
-
-  for (; assertions_it != assertions.end(); ++assertions_it)
-  {
-    node = NodeManager::currentNM()->mkNode(kind::AND, node, *assertions_it);
-  }
-
-  Partition p = findPartitions(node);
+  Partition p = findPartitions(NodeManager::currentNM()->mkNode(kind::AND, assertions));
   Trace("sym-dt") << endl
                   << "------------------------------ The Final Partition "
                      "------------------------------"
@@ -141,7 +133,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   }
 
   // Get the new partition
-  pt.getNewPartition(p);
+  pt.getNewPartition(p, pt);
 
   // Reconstruct the node
   Trace("sym-dt") << "[sym-dt] Reconstructing node: " << node << endl;
@@ -249,8 +241,7 @@ void SymmetryDetect::processSingletonPartitions(
        part_it != partitions.end();
        ++part_it)
   {
-    if (!(*part_it).d_var_to_subvar.empty()
-        && (*part_it).d_var_to_subvar.size() == 1)
+    if ((*part_it).d_var_to_subvar.size() == 1)
     {
       vars.insert(((*part_it).d_var_to_subvar.begin())->first);
       subvar_to_expr[((*part_it).d_var_to_subvar.begin())->second] =
@@ -258,15 +249,11 @@ void SymmetryDetect::processSingletonPartitions(
       subvar_to_var[((*part_it).d_var_to_subvar.begin())->second] =
           ((*part_it).d_var_to_subvar.begin())->first;
     }
-    else if (!(*part_it).d_var_to_subvar.empty()
-             && (*part_it).d_var_to_subvar.size() >= 2)
+    else if ((*part_it).d_var_to_subvar.size() >= 2)
     {
-      for (map<Node, Node>::iterator var_to_subvar_it =
-               (*part_it).d_var_to_subvar.begin();
-           var_to_subvar_it != (*part_it).d_var_to_subvar.end();
-           ++var_to_subvar_it)
+      for(pair<const Node, Node>& var_to_subvar : (*part_it).d_var_to_subvar)
       {
-        vars.insert(var_to_subvar_it->first);
+        vars.insert(var_to_subvar.first);
       }
       // Only add partitions that have more than 1 variable
       new_partitions.push_back(*part_it);
@@ -285,63 +272,31 @@ void SymmetryDetect::processSingletonPartitions(
 
 void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 {
-  if (theory::quantifiers::TermUtil::isAssoc(node.getKind()))
-  {
-    for(const Node& n : node)
-    {
-      collectChildren(n, node.getKind(), children);
-    }
-  }
-  else
-  {
-    children.insert(children.end(), node.begin(), node.end());
-  }
-}
+  Node cur;
+  vector<Node> visit;
+  visit.push_back(node);
+  Kind k = node.getKind();
+  unordered_set<Node, NodeHashFunction> visited;
 
-void SymmetryDetect::collectChildren(Node node, Kind k, vector<Node>& children)
-{
-  if (node.getKind() == k)
-  {
-    for(const Node& n : node)
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
     {
-      collectChildren(n, k, children);
+      visited.insert(cur);
+      if( cur.getKind()==k )
+      {
+        for (const Node& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
+      else
+      {
+        children.push_back(cur);
+      }
     }
-  }
-  else
-  {
-    children.push_back(node);
-  }
-}
-
-void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part)
-{
-  Trace("sym-dt") << "[sym-dt] Getting the new partitions from the leaves of "
-                     "the partition trie:"
-                  << endl;
-  if (!d_variables.empty())
-  {
-    vector<Node> vars;
-    Node fresh_var =
-        NodeManager::currentNM()->mkSkolem("sym_bk", d_variables[0].getType());
-
-    for (vector<Node>::iterator var_it = d_variables.begin();
-         var_it != d_variables.end();
-         ++var_it)
-    {
-      vars.push_back(*var_it);
-      part.d_var_to_subvar[*var_it] = fresh_var;
-    }
-    part.d_subvar_to_vars[fresh_var] = vars;
-  }
-  else
-  {
-    for (map<Node, PartitionTrie>::iterator part_it = d_children.begin();
-         part_it != d_children.end();
-         ++part_it)
-    {
-      getNewPartition(part, part_it->second);
-    }
-  }
+  } while (!visit.empty());
 }
 
 void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
@@ -394,10 +349,10 @@ void SymmetryDetect::getVariables(vector<Partition>& partitions,
   }
 }
 
-void SymmetryDetect::PartitionTrie::addNode(Node v,
+void SymmetryDetect::PartitionTrie::addNode(Node target_var,
                                             vector<Partition>& partitions)
 {
-  Trace("sym-dt") << "[sym-dt] Add a variable {" << v
+  Trace("sym-dt") << "[sym-dt] Add a variable {" << target_var
                   << "} to the partition trie..." << endl;
   vector<Node> subvars;
 
@@ -405,7 +360,7 @@ void SymmetryDetect::PartitionTrie::addNode(Node v,
        part_it != partitions.end();
        ++part_it)
   {
-    map<Node, Node>::iterator var_sub_it = (*part_it).d_var_to_subvar.find(v);
+    map<Node, Node>::iterator var_sub_it = (*part_it).d_var_to_subvar.find(target_var);
 
     if (var_sub_it != (*part_it).d_var_to_subvar.end())
     {
@@ -430,68 +385,36 @@ void SymmetryDetect::PartitionTrie::addNode(Node v,
     }
   }
 
-  Trace("sym-dt") << "[sym-dt] Substitution variables for the variable " << v
+  Trace("sym-dt") << "[sym-dt] Substitution variables for the variable " << target_var
                   << ": " << subvars << endl;
-
-  if (subvars.size() >= 1)
-  {
-    map<Node, PartitionTrie>::iterator children_it =
-        d_children.find(subvars[0]);
-
-    if (children_it != d_children.end())
-    {
-      vector<Node> new_subs;
-      if (subvars.begin() + 1 < subvars.end())
-      {
-        new_subs.insert(new_subs.begin(), subvars.begin() + 1, subvars.end());
-      }
-      (children_it->second).addNode(v, new_subs);
-    }
-    else
-    {
-      PartitionTrie pt;
-      vector<Node> new_subs;
-
-      if (subvars.begin() + 1 < subvars.end())
-      {
-        new_subs.insert(new_subs.begin(), subvars.begin() + 1, subvars.end());
-      }
-      pt.addNode(v, new_subs);
-      d_children[subvars[0]] = pt;
-    }
-  }
+  addNode(target_var, subvars);
 }
 
-void SymmetryDetect::PartitionTrie::addNode(Node v, vector<Node>& subs)
+void SymmetryDetect::PartitionTrie::addNode(Node target_var, vector<Node>& subvars)
 {
-  if (subs.empty())
+  if (subvars.empty())
   {
-    d_variables.push_back(v);
+    d_variables.push_back(target_var);
   }
   else
   {
-    map<Node, PartitionTrie>::iterator children_it = d_children.find(subs[0]);
+    vector<Node> new_subs;
+    map<Node, PartitionTrie>::iterator children_it = d_children.find(subvars[0]);
 
+    if (subvars.begin() + 1 < subvars.end())
+    {
+      new_subs.insert(new_subs.begin(), subvars.begin() + 1, subvars.end());
+    }
     if (children_it != d_children.end())
     {
-      vector<Node> new_subs;
-      if (subs.begin() + 1 < subs.end())
-      {
-        new_subs.insert(new_subs.begin(), subs.begin() + 1, subs.end());
-      }
-      (children_it->second).addNode(v, new_subs);
+      (children_it->second).addNode(target_var, new_subs);
     }
     else
     {
       PartitionTrie pt;
-      vector<Node> new_subs;
 
-      if (subs.begin() + 1 < subs.end())
-      {
-        new_subs.insert(new_subs.begin(), subs.begin() + 1, subs.end());
-      }
-      pt.addNode(v, new_subs);
-      d_children[subs[0]] = pt;
+      pt.addNode(target_var, new_subs);
+      d_children[subvars[0]] = pt;
     }
   }
 }

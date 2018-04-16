@@ -92,7 +92,6 @@ class SymmetryDetect
     void addNode(Node v, std::vector<Node>& subs);
 
     /** Get all the new regions of a partition and store in part */
-    void getNewPartition(Partition& part);
     void getNewPartition(Partition& part, PartitionTrie& pt);
   };
 
@@ -122,7 +121,6 @@ class SymmetryDetect
    *  normal form.
    * */
   void collectChildren(Node node, std::vector<Node>& children);
-  void collectChildren(Node node, Kind k, std::vector<Node>& children);
 
   /** Print a partition */
   void printPartition(Partition p);
