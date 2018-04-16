@@ -652,7 +652,9 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // then we minimize the length of this term if it is a variable
           // but not an internally generated Skolem, or a term that does
           // not belong to this theory.
-          if ( options::stringFMF() && ( ( n.isVar() && d_all_skolems.find(n)==d_all_skolems.end() ) || theoryOf(n.getKind()!=THEORY_STRINGS ) ) )
+          if (options::stringFMF()
+              && ((n.isVar() && d_all_skolems.find(n) == d_all_skolems.end())
+                  || theoryOf(n.getKind() != THEORY_STRINGS)))
           {
             d_input_vars.insert(n);
           }
