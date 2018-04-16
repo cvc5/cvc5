@@ -456,6 +456,22 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, bool> > d_c_info_maxm;
   std::vector<Node> d_constraints;
 
+  // per last-call effort
+  
+  /** 
+   * Map from variables appear in assertions to a solved form term. This map can
+   * be ordered such that it is of the form:
+   *   x_1 -> t_1 ... x_n -> t_n
+   * where x_i is not in the free variables of t_j for j>=i.
+   */
+  std::vector< Node > d_check_model_var;
+  std::vector< Node > d_check_model_subs;
+  /** 
+   * Map from all literals appearing in the current set of assertions to their
+   * rewritten form under the substitution given by d_check_model_solve_form.
+   */
+  std::map< Node, Node > d_check_model_lit;
+  
   // model values/orderings
   /** cache of model values
    *
