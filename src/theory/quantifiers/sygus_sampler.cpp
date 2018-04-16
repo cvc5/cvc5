@@ -718,7 +718,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
                           << std::endl;
   // whether we will keep this pair
   bool keep = true;
-  
+
   // one of eq_n or n must be ordered
   bool nor = isOrdered(bn);
   bool eqor = isOrdered(beq_n);
@@ -730,7 +730,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     // free variables of the other
     if (!eqor)
     {
-      if( containsFreeVariables(bn, beq_n) )
+      if (containsFreeVariables(bn, beq_n))
       {
         // if the previous value stored was unordered, but n is
         // ordered, we prefer n. Thus, we force its addition to the
@@ -751,25 +751,25 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   {
     keep = false;
   }
-  if( !keep )
+  if (!keep)
   {
     Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
   }
 
-  if(keep && options::sygusRewSynthFilter() )
+  if (keep && options::sygusRewSynthFilter())
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
     d_curr_pair_rhs = beq_n;
     Trace("sse-match") << "SSE check matches : " << bn << " [rhs = " << beq_n
-                      << "]..." << std::endl;
+                       << "]..." << std::endl;
     if (!d_match_trie.getMatches(bn, &d_ssenm))
     {
       keep = false;
       Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
     }
   }
-  
+
   // ----- check rewriting redundancy
   if (keep && d_drewrite != nullptr)
   {
@@ -781,7 +781,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       keep = false;
     }
   }
-  
+
   if (keep)
   {
     return eq_n;
