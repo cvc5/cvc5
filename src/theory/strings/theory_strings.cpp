@@ -3566,7 +3566,6 @@ Node TheoryStrings::mkSkolemCached( Node a, Node b, int id, const char * c, int 
   if( it==d_skolem_cache[a][b].end() ){
     Node sk = mkSkolemS( c, isLenSplit );
     d_skolem_cache[a][b][id] = sk;
-    d_all_skolems.insert(sk);
     return sk;
   }else{
     return it->second;
@@ -3576,6 +3575,7 @@ Node TheoryStrings::mkSkolemCached( Node a, Node b, int id, const char * c, int 
 //isLenSplit: -1-ignore, 0-no restriction, 1-greater than one, 2-one
 Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
   Node n = NodeManager::currentNM()->mkSkolem( c, NodeManager::currentNM()->stringType(), "string sko" );
+  d_all_skolems.insert(n);
   d_length_lemma_terms_cache.insert( n );
   ++(d_statistics.d_new_skolems);
   if( isLenSplit==0 ){
