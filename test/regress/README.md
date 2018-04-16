@@ -16,7 +16,16 @@ For example:
 TEST_REGEX=quantifiers make regress0
 ```
 
-Runs regression tests from level 0 that have "quantifiers" in their name.
+This runs regression tests from level 0 that have "quantifiers" in their name.
+
+By default, each invocation of CVC4 is done with a 10 minute timeout. To use a
+different timeout, set the `TEST_TIMEOUT` environment variable:
+
+```
+TEST_TIMEOUT=0.5s make regress0
+```
+
+This runs regression tests from level 0 with a 0,5 second timeout.
 
 ## Adding New Regressions
 

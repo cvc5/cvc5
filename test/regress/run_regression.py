@@ -15,6 +15,7 @@ import re
 import shlex
 import subprocess
 import sys
+import threading
 
 SCRUBBER = 'SCRUBBER: '
 ERROR_SCRUBBER = 'ERROR-SCRUBBER: '
@@ -24,8 +25,30 @@ EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
 
 
+def run_process(args, cwd, timeout, s_input=None):
+    """Runs a process with a timeout `timeout` in seconds. `args` are the
+    arguments to execute, `cwd` is the working directory and `s_input` is the
+    input to be sent to the process over stdin."""
+
+    proc = subprocess.Popen(
+        args,
+        cwd=cwd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+
+    timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
+    try:
+        timer.start()
+        out, err = proc.communicate(input=s_input)
+    finally:
+        timer.cancel()
+
+    return out, err, proc.returncode
+
+
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
-                  command_line, benchmark_dir, benchmark_filename):
+                  command_line, benchmark_dir, benchmark_filename, timeout):
     """Runs CVC4 on the file `benchmark_filename` in the directory
     `benchmark_dir` using the binary `cvc4_binary` with the command line
     options `command_line`. The output is scrubbed using `scrubber` and
@@ -44,44 +67,24 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             '--preprocess-only', '--dump', 'raw-benchmark',
             '--output-lang=smt2', '-qq'
         ]
-        dump_process = subprocess.Popen(
+        dump_output, _, _ = run_process(
             bin_args + command_line + dump_args + [benchmark_filename],
-            cwd=benchmark_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        dump_output, _ = dump_process.communicate()
-        process = subprocess.Popen(
-            bin_args + command_line + ['--lang=smt2', '-'],
-            cwd=benchmark_dir,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        output, error = process.communicate(input=dump_output)
-        exit_status = process.returncode
+            benchmark_dir, timeout)
+        output, error, exit_status = run_process(
+            bin_args + command_line + ['--lang=smt2', '-'], benchmark_dir,
+            timeout, dump_output)
     else:
-        process = subprocess.Popen(
-            bin_args + command_line + [benchmark_filename],
-            cwd=benchmark_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        output, error = process.communicate()
-        exit_status = process.returncode
+        output, error, exit_status = run_process(
+            bin_args + command_line + [benchmark_filename], benchmark_dir,
+            timeout)
 
     # If a scrubber command has been specified then apply it to the output.
     if scrubber:
-        scrubber_process = subprocess.Popen(
-            shlex.split(scrubber),
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        output, _ = scrubber_process.communicate(input=output)
+        output, _, _ = run_process(
+            shlex.split(scrubber), benchmark_dir, timeout, output)
     if error_scrubber:
-        error_scrubber_process = subprocess.Popen(
-            shlex.split(error_scrubber),
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        error, _ = error_scrubber_process.communicate(input=error)
+        error, _, _ = run_process(
+            shlex.split(error_scrubber), benchmark_dir, timeout, error)
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.
@@ -92,7 +95,7 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     return (output.strip(), error.strip(), exit_status)
 
 
-def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
+def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     """Determines the expected output for a benchmark, runs CVC4 on it and then
     checks whether the output corresponds to the expected output. Optionally
     uses a wrapper `wrapper`, tests proof generation (if proof is true), or
@@ -241,7 +244,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path):
     for command_line_args in command_line_args_configs:
         output, error, exit_status = run_benchmark(
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
-            command_line_args, benchmark_dir, benchmark_basename)
+            command_line_args, benchmark_dir, benchmark_basename, timeout)
         if output != expected_output:
             print(
                 'not ok - Differences between expected and actual output on stdout - Flags: {}'.
@@ -283,7 +286,10 @@ def main():
     if os.environ.get('VALGRIND') == '1' and not wrapper:
         wrapper = ['libtool', '--mode=execute', 'valgrind']
 
-    run_regression(args.proof, args.dump, wrapper, cvc4_binary, args.benchmark)
+    timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
+
+    run_regression(args.proof, args.dump, wrapper, cvc4_binary, args.benchmark,
+                   timeout)
 
 
 if __name__ == "__main__":
