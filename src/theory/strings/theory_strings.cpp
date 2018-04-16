@@ -387,9 +387,6 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
               sendInference( lexp, xneqs, "NEG-CTN-EQL", true );
             }
             return 1;
-          }else if( !areDisequal( lenx, lens ) ){
-            //split on their lenths
-            sendSplit( lenx, lens, "NEG-CTN-SP" );
           }else{
             r_effort = 2;
           }
@@ -651,8 +648,14 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         TypeNode tn = n.getType();
         if( tn.isString() ) {
           registerTerm( n, 0 );
-          // FMF
-          if( n.getKind() == kind::VARIABLE && options::stringFMF() ){
+          // if finite model finding is enabled,
+          // then we minimize the length of this term if it is a variable
+          // but not an internally generated Skolem, or a term that does
+          // not belong to this theory.
+          if (options::stringFMF()
+              && (n.isVar() ? d_all_skolems.find(n) == d_all_skolems.end()
+                            : kindToTheoryId(n.getKind()) != THEORY_STRINGS))
+          {
             d_input_vars.insert(n);
           }
           d_equalityEngine.addTerm(n);
@@ -3572,6 +3575,7 @@ Node TheoryStrings::mkSkolemCached( Node a, Node b, int id, const char * c, int 
 //isLenSplit: -1-ignore, 0-no restriction, 1-greater than one, 2-one
 Node TheoryStrings::mkSkolemS( const char *c, int isLenSplit ) {
   Node n = NodeManager::currentNM()->mkSkolem( c, NodeManager::currentNM()->stringType(), "string sko" );
+  d_all_skolems.insert(n);
   d_length_lemma_terms_cache.insert( n );
   ++(d_statistics.d_new_skolems);
   if( isLenSplit==0 ){
@@ -4624,33 +4628,18 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
       }
       break;
     }
-    case kind::REGEXP_CONCAT: {
+    case kind::REGEXP_CONCAT:
+    case kind::REGEXP_UNION:
+    case kind::REGEXP_INTER:
+    case kind::REGEXP_STAR:
+    {
       std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        vec_nodes.push_back( getNormalSymRegExp(r[i], nf_exp) );
+      for (const Node& cr : r)
+      {
+        vec_nodes.push_back(getNormalSymRegExp(cr, nf_exp));
       }
-      ret = mkConcat(vec_nodes);
-      break;
-    }
-    case kind::REGEXP_UNION: {
-      std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        vec_nodes.push_back( getNormalSymRegExp(r[i], nf_exp) );
-      }
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes) );
-      break;
-    }
-    case kind::REGEXP_INTER: {
-      std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        vec_nodes.push_back( getNormalSymRegExp(r[i], nf_exp) );
-      }
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_INTER, vec_nodes) );
-      break;
-    }
-    case kind::REGEXP_STAR: {
-      ret = getNormalSymRegExp( r[0], nf_exp );
-      ret = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, ret) );
+      ret = Rewriter::rewrite(
+          NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
       break;
     }
     //case kind::REGEXP_PLUS:

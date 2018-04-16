@@ -334,7 +334,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
 
-  d_iteUtilities = new ITEUtilities(d_tform_remover.getContainsVisitor());
+  d_iteUtilities = new ITEUtilities();
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -394,6 +394,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       }
 
       // the atom should not have free variables
+      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
+                      << std::endl;
       Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
@@ -1056,9 +1058,15 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
   Node newTerm;
-  if (theoryOf(term)->ppDontRewriteSubterm(term)) {
+  // do not rewrite inside quantifiers
+  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS
+      || term.getKind() == kind::CHOICE
+      || term.getKind() == kind::LAMBDA)
+  {
     newTerm = Rewriter::rewrite(term);
-  } else {
+  }
+  else
+  {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
       newNode << term.getOperator();
@@ -2002,7 +2010,8 @@ void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if (!d_tform_remover.containsTermITE(assertion)) {
+  if (!d_iteUtilities->containsTermITE(assertion))
+  {
     return assertion;
   } else {
     Node result = d_iteUtilities->simpITE(assertion);
@@ -2043,7 +2052,6 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
         Rewriter::clearCaches();
-        d_tform_remover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
       }
@@ -2054,7 +2062,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
      && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains = *d_tform_remover.getContainsVisitor();
+      ContainsTermITEVisitor& contains =
+          *(d_iteUtilities->getContainsVisitor());
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
       bool anyItes = false;
       for(size_t i = 0;  i < assertions.size(); ++i){
