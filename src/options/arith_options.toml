@@ -455,7 +455,7 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "nl-ext-tf-tplanes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   read_only  = true
   help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear"
 

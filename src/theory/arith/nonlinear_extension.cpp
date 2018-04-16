@@ -1115,9 +1115,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  // get the assertions
-  std::map<Node, Rational> init_bounds[2];
-  std::map<Node, Node> init_bounds_lit[2];
+  // get the assertions from the theory
   unsigned nassertions = 0;
   std::unordered_set<Node, NodeHashFunction> init_assertions;
   for (Theory::assertions_iterator it = d_containing.facts_begin();
@@ -1128,6 +1126,17 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     const Assertion& assertion = *it;
     Node lit = assertion.assertion;
     init_assertions.insert(lit);
+  }
+  
+  // heuristically, solve for equalities
+  
+  
+  
+  
+  std::map<Node, Rational> init_bounds[2];
+  std::map<Node, Node> init_bounds_lit[2];
+  for( const Node& lit : init_assertions )
+  {
     // check for concrete bounds
     bool pol = lit.getKind() != NOT;
     Node atom_orig = lit.getKind() == NOT ? lit[0] : lit;
@@ -1395,6 +1404,9 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
         return success;
       }
     }
+    // both checks passed and polarity is true, or both checks failed and
+    // polarity is false
+    return pol;
   }
 
   Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown literal."
