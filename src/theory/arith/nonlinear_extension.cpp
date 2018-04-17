@@ -1021,6 +1021,7 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
           bool set_lower =
               (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
               == pol;
+          Trace("nl-ext-cms-debug") << "set bound to " << (set_lower ? "lower" : "upper") << std::endl;
               
           // --- Collect variables and factors in v
           std::vector< Node > vars;
@@ -1034,7 +1035,7 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
               if( i+1==nchildren || v[i+1]!=v[i] )
               {
                 unsigned vfact = 1+(i-last_start);
-                last_start = i;
+                last_start = (i+1);
                 vars.push_back(v[i]);
                 factors.push_back(vfact);
               }
@@ -1130,7 +1131,7 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
             {
               // by convention, always say it is lower if they are the same
               vc_set_lower = true;
-              Trace("nl-ext-cms-debug") << "* " << vc << " equal bound, set to lower" << std::endl;
+              Trace("nl-ext-cms-debug") << "..." << vc << " equal bound, set to lower" << std::endl;
             }
             else 
             {
@@ -1144,7 +1145,7 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
                 // minimize or maximize its absolute value
                 vc_set_lower = (signs[i]==minimizeAbs);
               }
-              Trace("nl-ext-cms-debug") << "* " << vc << " set to " << ( vc_set_lower ? "lower" : "upper" ) << std::endl;
+              Trace("nl-ext-cms-debug") << "..." << vc << " set to " << ( vc_set_lower ? "lower" : "upper" ) << std::endl;
             }
             // check whether this is a conflicting bound
             std::map<Node, bool>::iterator itsb = set_bound.find(vc);
@@ -1248,7 +1249,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ms.clear();
   d_mterms.clear();
   d_m_nconst_factor.clear();
-  d_tplane_refine_dir.clear();
+  d_tplane_refine.clear();
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
@@ -2336,7 +2337,7 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
   for (unsigned k = kstart; k < d_mterms.size(); k++) {
     Node t = d_mterms[k];
     // if this term requires a refinement
-    if (d_tplane_refine_dir.find(t) != d_tplane_refine_dir.end()) {
+    if (d_tplane_refine.find(t) != d_tplane_refine.end()) {
       Trace("nl-ext-tplanes")
           << "Look at monomial requiring refinement : " << t << std::endl;
       // get a decomposition
@@ -2520,54 +2521,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
         // for a possible refinement
         if (options::nlExtTangentPlanes()) {
           if (is_false_lit) {
-            Node rhs_v = computeModelValue(rhs, 0);
-            Node x_v = computeModelValue(x, 0);
-            if( rhs_v.isConst() && x_v.isConst() ){
-              bool needsRefine = false;
-              bool refineDir;
-              if (rhs_v == x_v) {
-                if (type == GT)
-                {
-                  needsRefine = true;
-                  refineDir = true;
-                }
-                else if (type == LT)
-                {
-                  needsRefine = true;
-                  refineDir = false;
-                }
-              } else if (x_v.getConst<Rational>() > rhs_v.getConst<Rational>()) {
-                if (type != GT && type != GEQ)
-                {
-                  needsRefine = true;
-                  refineDir = false;
-                }
-              } else {
-                if (type != LT && type != LEQ)
-                {
-                  needsRefine = true;
-                  refineDir = true;
-                }
-              }
-              Trace("nl-ext-tplanes-cons-debug")
-                  << "...compute if bound corresponds to a required "
-                     "refinement"
-                  << std::endl;
-              Trace("nl-ext-tplanes-cons-debug")
-                  << "...M[" << x << "] = " << x_v << ", M[" << rhs
-                  << "] = " << rhs_v << std::endl;
-              Trace("nl-ext-tplanes-cons-debug") << "...refine = " << needsRefine
-                                                 << "/" << refineDir << std::endl;
-              if (needsRefine) {
-                Trace("nl-ext-tplanes-cons")
-                    << "---> By " << lit << " and since M[" << x << "] = " << x_v
-                    << ", M[" << rhs << "] = " << rhs_v << ", ";
-                Trace("nl-ext-tplanes-cons")
-                    << "monomial " << x << " should be "
-                    << (refineDir ? "larger" : "smaller") << std::endl;
-                d_tplane_refine_dir[x][refineDir] = true;
-              }
-            }
+            d_tplane_refine.insert(x);
           }
         }
       }
