@@ -1721,7 +1721,7 @@ void NonlinearExtension::check(Theory::Effort e) {
             if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
             {
               d_taylor_degree++;
-              d_secant_points.clear();
+              //d_secant_points.clear();
               needsRecheck = true;
               // increase precision for PI?
               // Difficult since Taylor series is very slow to converge
@@ -3459,27 +3459,27 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned n, const std
   else if (is_secant)
   {
     // bounds are the minimum and maximum previous secant points
-    Assert(std::find(d_secant_points[tf].begin(),
-                      d_secant_points[tf].end(),
+    Assert(std::find(d_secant_points[tf][n].begin(),
+                      d_secant_points[tf][n].end(),
                       c)
-            == d_secant_points[tf].end());
+            == d_secant_points[tf][n].end());
     // insert into the vector
-    d_secant_points[tf].push_back(c);
+    d_secant_points[tf][n].push_back(c);
     // sort
     SortNonlinearExtension smv;
     smv.d_nla = this;
     smv.d_order_type = 0;
     std::sort(
-        d_secant_points[tf].begin(), d_secant_points[tf].end(), smv);
+        d_secant_points[tf][n].begin(), d_secant_points[tf][n].end(), smv);
     // get the resulting index of c
     unsigned index =
         std::find(
-            d_secant_points[tf].begin(), d_secant_points[tf].end(), c)
-        - d_secant_points[tf].begin();
+            d_secant_points[tf][n].begin(), d_secant_points[tf][n].end(), c)
+        - d_secant_points[tf][n].begin();
     // bounds are the next closest upper/lower bound values
     if (index > 0)
     {
-      bounds[0] = d_secant_points[tf][index - 1];
+      bounds[0] = d_secant_points[tf][n][index - 1];
     }
     else
     {
@@ -3495,9 +3495,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned n, const std
         bounds[0] = Rewriter::rewrite(nm->mkNode(MINUS, c, d_one));
       }
     }
-    if (index < d_secant_points[tf].size() - 1)
+    if (index < d_secant_points[tf][n].size() - 1)
     {
-      bounds[1] = d_secant_points[tf][index + 1];
+      bounds[1] = d_secant_points[tf][n][index + 1];
     }
     else
     {
@@ -3764,11 +3764,11 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
 
 std::pair<Node, Node> NonlinearExtension::getTaylor(Node fa, unsigned n)
 {
+  Assert( n>0 );
   Node fac;  // what term we cache for fa
   if (fa[0] == d_zero)
   {
-    // optimization : simpler to compute (x-fa[0])^n if we are centered around
-    // 0.
+    // optimization : simpler to compute (x-fa[0])^n if we are centered around 0
     fac = fa;
   }
   else

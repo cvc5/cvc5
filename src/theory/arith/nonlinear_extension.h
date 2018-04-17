@@ -542,9 +542,10 @@ private:
    * "get-previous-secant-points" in "Satisfiability
    * Modulo Transcendental Functions via Incremental
    * Linearization" by Cimatti et al., CADE 2017, for
-   * each transcendental function application.
+   * each transcendental function application. We store this set for each
+   * Taylor degree.
    */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_secant_points;
+  std::unordered_map<Node, std::map< unsigned, std::vector<Node> >, NodeHashFunction> d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
    *
