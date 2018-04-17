@@ -850,7 +850,7 @@ std::vector<Node> NonlinearExtension::checkModel(
 
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
-  Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
+  Trace("nl-ext-cm") << "check-model : Run" << std::endl;
   d_check_model_vars.clear();
   d_check_model_subs.clear();
   d_check_model_lit.clear();
@@ -874,23 +874,23 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
       pa = pa.substitute(pvars.begin(),pvars.end(),psubs.begin(),psubs.end());
       pa = Rewriter::rewrite(pa);
     }
-    Trace("nl-ext-tf-check-model") << "- assertion : " << pa << std::endl;
+    Trace("nl-ext-cm-assert") << "- assert : " << pa << std::endl;
     d_check_model_lit[pa] = pa;
     passertions.push_back(pa);
   }
   
   // heuristically, solve for equalities
-  Trace("nl-ext-tf-check-model") << std::endl;
-  Trace("nl-ext-tf-check-model") << "solving equalities..." << std::endl;
+  Trace("nl-ext-cm") << std::endl;
+  Trace("nl-ext-cm") << "solving equalities..." << std::endl;
   unsigned nassertions_new = passertions.size();
   unsigned curr_index = 0;
   unsigned terminate_index = 0;
   do
   {
-    Trace("nl-ext-tf-check-model-debug") << "  indices : " << curr_index << " " << terminate_index << " " << nassertions_new << std::endl;
+    Trace("nl-ext-cm-debug") << "  indices : " << curr_index << " " << terminate_index << " " << nassertions_new << std::endl;
     Node lit = passertions[curr_index];
     Node slit = d_check_model_lit[lit];
-    Trace("nl-ext-tf-check-model-debug") << "  process " << lit << std::endl;
+    Trace("nl-ext-cm-debug") << "  process " << lit << std::endl;
     // update it based on the current substitution
     if(!d_check_model_vars.empty() && !slit.isConst() )
     {
@@ -898,7 +898,7 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
       slit = slit.substitute(d_check_model_vars.begin(),d_check_model_vars.end(), d_check_model_subs.begin(),d_check_model_subs.end());
       slit = Rewriter::rewrite( slit );
       d_check_model_lit[lit] = slit;
-      Trace("nl-ext-tf-check-model-debug") << "  ...substituted to " << slit << std::endl;
+      Trace("nl-ext-cm-debug") << "  ...substituted to " << slit << std::endl;
     }
     // is it a substitution?
     if( slit.getKind()==EQUAL )
@@ -924,8 +924,8 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
         }
         if( !v.isNull() )
         {
-          Trace("nl-ext-tf-check-model") << "  assertion : " << slit << " can be turned into substitution:" << std::endl;
-          Trace("nl-ext-tf-check-model") << "    " << v << " -> " << slv << std::endl;
+          Trace("nl-ext-cm") << "  assertion : " << slit << " can be turned into substitution:" << std::endl;
+          Trace("nl-ext-cm") << "    " << v << " -> " << slv << std::endl;
           d_check_model_vars.push_back(v);
           d_check_model_subs.push_back(slv);
           d_check_model_lit[lit] = d_true;
@@ -939,7 +939,7 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
       curr_index = 0;
     }
   } while( curr_index!=terminate_index );
-  Trace("nl-ext-tf-check-model") << "...finished." << std::endl;
+  Trace("nl-ext-cm") << "...finished." << std::endl;
   
   if (!d_pi.isNull())
   {
@@ -951,9 +951,9 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
        d_tf_check_model_bounds)
   {
     Node tf = tfb.first;
-    Trace("nl-ext-tf-check-model")
+    Trace("nl-ext-cm")
         << "check-model : satisfied approximate bound : ";
-    Trace("nl-ext-tf-check-model") << tfb.second.first << " <= " << tf
+    Trace("nl-ext-cm") << tfb.second.first << " <= " << tf
                                    << " <= " << tfb.second.second << std::endl;
   }
 
@@ -972,7 +972,7 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
         if (!simpleCheckModelTfLit(av))
         {
           check_assertions.push_back(av);
-          Trace("nl-ext-tf-check-model") << "check-model : failed assertion : " << av
+          Trace("nl-ext-cm") << "check-model : failed assertion : " << av
                                         << " (from " << a << ")" << std::endl;
         }
       }
@@ -981,20 +981,18 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 
   if (check_assertions.empty())
   {
-    Trace("nl-ext-tf-check-model") << "...simple check succeeded." << std::endl;
+    Trace("nl-ext-cm") << "...simple check succeeded." << std::endl;
     return true;
   }
-  else
-  {
-    Trace("nl-ext-tf-check-model") << "...simple check failed." << std::endl;
-    // TODO (#1450) check model for general case
-    return false;
-  }
+
+  Trace("nl-ext-cm") << "...simple check failed." << std::endl;
+  // TODO (#1450) check model for general case
+  return false;
 }
 
 bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
 {
-  Trace("nl-ext-tf-check-model-simple") << "simple check-model for " << lit
+  Trace("nl-ext-cms") << "simple check-model for " << lit
                                         << "..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   bool pol = lit.getKind() != kind::NOT;
@@ -1018,10 +1016,13 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
         }
         else
         {
+          Trace("nl-ext-cms-debug") << "--- monomial : " << v << std::endl;
+          // --- whether we should set a lower bound for this monomial
           bool set_lower =
               (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
               == pol;
-
+              
+          // --- Collect variables and factors in v
           std::vector< Node > vars;
           std::vector< unsigned > factors;
           if (v.getKind()==NONLINEAR_MULT)
@@ -1045,20 +1046,28 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
             factors.push_back(1);
           }
           
-          // get the lower and upper bounds and determine the comparisons
-          // now must decide what bounds to set
-          // -1 : we have an odd number of negative factors
-          // 0 : we have a variable number of negative factors
-          // 1 : we have an even number of negative factors
+          // --- Get the lower and upper bounds and sign information.
+          // Whether we have an (odd) number of negative factors in vars, apart
+          // from the variable at choose_index.
+          bool has_neg_factor = false;
           int choose_index = -1;
-          int num_neg_factor = 1;
-          bool has_zero = false;
           std::vector< Node > ls;
           std::vector< Node > us;
+          std::vector< int > signs;
+          Trace("nl-ext-cms-debug") << "get sign information..." << std::endl;
           for( unsigned i=0,size=vars.size(); i<size; i++ )
           {
             Node vc = vars[i];
             unsigned vcfact = factors[i];
+            if( Trace.isOn("nl-ext-cms-debug") )
+            {
+              Trace("nl-ext-cms-debug") << "* " << vc;
+              if( vcfact>1 )
+              {
+                Trace("nl-ext-cms-debug") << "^" << vcfact;
+              }
+              Trace("nl-ext-cms-debug")<< " ";
+            }
             std::map<Node, std::pair<Node, Node> >::iterator bit =
                 d_tf_check_model_bounds.find(vc);
             if (bit != d_tf_check_model_bounds.end())
@@ -1067,76 +1076,85 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
               Node u = bit->second.second;
               ls.push_back( l );
               us.push_back( u );
+              int vsign = 1;
               if( vcfact%2==1 )
               {
                 int lsgn = l.getConst<Rational>().sgn();
                 int usgn = u.getConst<Rational>().sgn();
+                Trace("nl-ext-cms-debug") << "bound_sign(" << lsgn << "," << usgn << ") ";
                 if( lsgn==-1 )
                 {
                   if( usgn<1 )
                   {
                     // must have a negative factor
-                    num_neg_factor = num_neg_factor*-1;
+                    has_neg_factor = !has_neg_factor;
+                    vsign = -1;
                   }
                   else if( choose_index==-1 )
                   {
                     // set the choose index to this
                     choose_index = i;
+                    vsign = 0;
+                  }
+                  else
+                  {
+                    // ambiguous, can't determine the bound
+                    return false;
                   }
                 }
               }
+              Trace("nl-ext-cms-debug") << " -> " << vsign << std::endl;
+              signs.push_back(vsign);
             }
             else
             {
-              Trace("nl-ext-tf-check-model-simple")
+              Trace("nl-ext-cms-debug") << std::endl;
+              Trace("nl-ext-cms")
                   << "  failed due to unknown bound for " << vc << std::endl;
               return false;
             }
           }
-          // for each variable, determine the comparison:
-          // 0 : lower
-          // 1 : upper
-          // 2 : abs(lower)>abs(upper) ? lower : upper  (maximum)
-          // 3 : abs(lower)>abs(upper) ? upper : lower  (minimum)
-          std::vector< unsigned > cmps;
-          for( unsigned i=0,size=vars.size(); i<size; i++ )
-          {
-            Node vc = vars[i];
-            if( choose_index==i )
-            {
-              cmps.push_back(set_lower ? 0 : 1);
-            }
-            else
-            {
-              return false;
-            }
-          }
+          // whether we will try to minimize/maximize (-1/1) the absolute value 
+          int minimizeAbs = set_lower==has_neg_factor ? -1 : 1;
           
           std::vector< Node > vbs;
+          Trace("nl-ext-cms-debug") << "set bounds..." << std::endl;
           for( unsigned i=0,size=vars.size(); i<size; i++ )
           {
             Node vc = vars[i];
             unsigned vcfact = factors[i];
-            unsigned vc_cmp = cmps[i];
             Node l = ls[i];
             Node u = us[i];
-            bool vc_set_lower = (vc_cmp==0);
+            bool vc_set_lower;
             if( l==u )
             {
               // by convention, always say it is lower if they are the same
               vc_set_lower = true;
+              Trace("nl-ext-cms-debug") << "* " << vc << " equal bound, set to lower" << std::endl;
             }
-            else if( vc_cmp>=2 )
+            else 
             {
-              int cres = compare_value(l,u,2);
-              vc_set_lower = cres==0 || cres==( vc_cmp==2 ? 1 : -1 );
+              if( signs[i]==0 )
+              {
+                // we choose this index to match the overall set_lower
+                vc_set_lower = set_lower;
+              }
+              else
+              {
+                // minimize or maximize its absolute value
+                vc_set_lower = (signs[i]==minimizeAbs);
+              }
+              Trace("nl-ext-cms-debug") << "* " << vc << " set to " << ( vc_set_lower ? "lower" : "upper" ) << std::endl;
             }
-            set_bound[vc] = vc_set_lower;
             // check whether this is a conflicting bound
             std::map<Node, bool>::iterator itsb = set_bound.find(vc);
-            if (itsb != set_bound.end() && itsb->second != vc_set_lower)
+            if (itsb == set_bound.end())
             {
-              Trace("nl-ext-tf-check-model-simple")
+              set_bound[vc] = vc_set_lower;
+            }
+            else if( itsb->second != vc_set_lower )
+            {
+              Trace("nl-ext-cms")
                   << "  failed due to conflicting bound for " << vc << std::endl;
               return false;
             }
@@ -1169,11 +1187,11 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
       {
         comp = comp.negate();
       }
-      Trace("nl-ext-tf-check-model-simple") << "  comparison is : " << comp
+      Trace("nl-ext-cms") << "  comparison is : " << comp
                                             << std::endl;
       comp = Rewriter::rewrite(comp);
       Assert(comp.isConst());
-      Trace("nl-ext-tf-check-model-simple") << "  returned : " << comp
+      Trace("nl-ext-cms") << "  returned : " << comp
                                             << std::endl;
       return comp == d_true;
     }
@@ -1202,7 +1220,7 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
     return pol;
   }
 
-  Trace("nl-ext-tf-check-model-simple") << "  failed due to unknown literal."
+  Trace("nl-ext-cms") << "  failed due to unknown literal."
                                         << std::endl;
   return false;
 }
