@@ -1556,10 +1556,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     lemmas = checkTangentPlanes();
     lemmas_proc += flushLemmas(lemmas);
   }
-  // always do this (to compute bounds)
-  lemmas = checkTranscendentalTangentPlanes();
   if (options::nlExtTfTangentPlanes())
   {
+    lemmas = checkTranscendentalTangentPlanes();
     lemmas_proc += flushLemmas(lemmas);
   }
   if (lemmas_proc > 0) {
@@ -1721,7 +1720,6 @@ void NonlinearExtension::check(Theory::Effort e) {
             if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
             {
               d_taylor_degree++;
-              //d_secant_points.clear();
               needsRecheck = true;
               // increase precision for PI?
               // Difficult since Taylor series is very slow to converge
@@ -3459,10 +3457,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned n, const std
   else if (is_secant)
   {
     // bounds are the minimum and maximum previous secant points
-    Assert(std::find(d_secant_points[tf][n].begin(),
-                      d_secant_points[tf][n].end(),
-                      c)
-            == d_secant_points[tf][n].end());
+    // should not repeat secant points: secant lemmas should suffice to 
+    // rule out previous assignment
+    Assert(std::find(d_secant_points[tf][n].begin(),d_secant_points[tf][n].end(),c)== d_secant_points[tf][n].end());
     // insert into the vector
     d_secant_points[tf][n].push_back(c);
     // sort
