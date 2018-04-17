@@ -3203,59 +3203,16 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     // we substitute into the Taylor sum P_{n,f(0)}( x )
     std::vector<Node> taylor_vars;
     taylor_vars.push_back(d_taylor_real_fv);
-
+    
     // Figure 3: P_l, P_u
     // mapped to for signs of c
     std::map<int, Node> poly_approx_bounds[2];
-    // n is the Taylor degree we are currently considering
-    unsigned n = 2 * d_taylor_degree;
-    // n must be even
-    std::pair<Node, Node> taylor = getTaylor(tft, n);
-    Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
-                                     << " is : " << taylor.first << std::endl;
-    Node taylor_sum = Rewriter::rewrite(taylor.first);
-    Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
-                                     << " is (post-rewrite) : " << taylor_sum
-                                     << std::endl;
-    Assert(taylor.second.getKind() == MULT);
-    Assert(taylor.second.getNumChildren() == 2);
-    Assert(taylor.second[0].getKind() == DIVISION);
-    Trace("nl-ext-tf-tplanes-debug") << "Taylor remainder for " << k << " is "
-                                     << taylor.second << std::endl;
-    // ru is x^{n+1}/(n+1)!
-    Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
-    ru = Rewriter::rewrite(ru);
-    Trace("nl-ext-tf-tplanes-debug")
-        << "Taylor remainder factor is (post-rewrite) : " << ru << std::endl;
-    if (k == EXPONENTIAL)
-    {
-      poly_approx_bounds[0][1] = taylor_sum;
-      poly_approx_bounds[0][-1] = taylor_sum;
-      poly_approx_bounds[1][1] = Rewriter::rewrite(
-          nm->mkNode(MULT, taylor_sum, nm->mkNode(PLUS, d_one, ru)));
-      poly_approx_bounds[1][-1] =
-          Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru));
-    }
-    else
-    {
-      Assert(k == SINE);
-      poly_approx_bounds[0][1] =
-          Rewriter::rewrite(nm->mkNode(MINUS, taylor_sum, ru));
-      poly_approx_bounds[0][-1] = poly_approx_bounds[0][1];
-      poly_approx_bounds[1][1] =
-          Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru));
-      poly_approx_bounds[1][-1] = poly_approx_bounds[1][1];
-    }
-    Trace("nl-ext-tf-tplanes") << "Polynomial approximation for " << k
-                               << " is: " << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Lower (pos): " << poly_approx_bounds[0][1]
-                               << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Upper (pos): " << poly_approx_bounds[1][1]
-                               << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Lower (neg): " << poly_approx_bounds[0][-1]
-                               << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Upper (neg): " << poly_approx_bounds[1][-1]
-                               << std::endl;
+    std::vector< Node > pbounds;
+    getPolynomialApproximationBounds(tft,d_taylor_degree,pbounds);
+    poly_approx_bounds[0][1] = pbounds[0];
+    poly_approx_bounds[0][-1] = pbounds[1];
+    poly_approx_bounds[1][1] = pbounds[2];
+    poly_approx_bounds[1][-1] = pbounds[3];
 
     for (std::pair<const Node, Node>& tfr : tfs.second)
     {
@@ -3775,7 +3732,7 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
   return Node::null();
 }
 
-std::pair<Node, Node> NonlinearExtension::getTaylor(TNode fa, unsigned n)
+std::pair<Node, Node> NonlinearExtension::getTaylor(Node fa, unsigned n)
 {
   Node fac;  // what term we cache for fa
   if (fa[0] == d_zero)
@@ -3888,6 +3845,69 @@ std::pair<Node, Node> NonlinearExtension::getTaylor(TNode fa, unsigned n)
     taylor_sum = taylor_sum.substitute(x, fa[0]);
   }
   return std::pair<Node, Node>(taylor_sum, taylor_rem);
+}
+
+void NonlinearExtension::getPolynomialApproximationBounds( Node fa, unsigned d, std::vector< Node >& pbounds )
+{
+  if( d_poly_bounds[fa][d].empty() )
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Kind k = fa.getKind();
+    // n is the Taylor degree we are currently considering
+    unsigned n = 2 * d_taylor_degree;
+    // n must be even
+    std::pair<Node, Node> taylor = getTaylor(fa, n);
+    Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
+                                     << " is : " << taylor.first << std::endl;
+    Node taylor_sum = Rewriter::rewrite(taylor.first);
+    Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
+                                     << " is (post-rewrite) : " << taylor_sum
+                                     << std::endl;
+    Assert(taylor.second.getKind() == MULT);
+    Assert(taylor.second.getNumChildren() == 2);
+    Assert(taylor.second[0].getKind() == DIVISION);
+    Trace("nl-ext-tf-tplanes-debug") << "Taylor remainder for " << k << " is "
+                                     << taylor.second << std::endl;
+    // ru is x^{n+1}/(n+1)!
+    Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
+    ru = Rewriter::rewrite(ru);
+    Trace("nl-ext-tf-tplanes-debug")
+        << "Taylor remainder factor is (post-rewrite) : " << ru << std::endl;
+    if (k == EXPONENTIAL)
+    {
+      pbounds.push_back( taylor_sum );
+      pbounds.push_back( taylor_sum );
+      pbounds.push_back( Rewriter::rewrite(
+          nm->mkNode(MULT, taylor_sum, nm->mkNode(PLUS, d_one, ru))) );
+      pbounds.push_back( 
+          Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru)));
+    }
+    else
+    {
+      Assert(k == SINE);
+      Node l = Rewriter::rewrite(nm->mkNode(MINUS, taylor_sum, ru));
+      Node u = Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru));
+      pbounds.push_back(l);
+      pbounds.push_back(l);
+      pbounds.push_back(u);
+      pbounds.push_back(u);
+    }
+    Trace("nl-ext-tf-tplanes") << "Polynomial approximation for " << k
+                               << " is: " << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Lower (pos): " << pbounds[0]
+                               << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2]
+                               << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1]
+                               << std::endl;
+    Trace("nl-ext-tf-tplanes") << " Upper (neg): " << pbounds[3]
+                               << std::endl;
+    d_poly_bounds[fa][d].insert(d_poly_bounds[fa][d].end(),pbounds.begin(),pbounds.end());
+  }
+  else
+  {
+    pbounds.insert(pbounds.end(),d_poly_bounds[fa][d].begin(),d_poly_bounds[fa][d].end());
+  }
 }
 
 }  // namespace arith

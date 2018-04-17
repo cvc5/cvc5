@@ -562,7 +562,7 @@ private:
    * In the latter case, note we compute the exponential x^{n+1}
    * instead of (x-a)^{n+1}, which can be done faster.
    */
-  std::pair<Node, Node> getTaylor(TNode fa, unsigned n);
+  std::pair<Node, Node> getTaylor(Node fa, unsigned n);
 
   /** internal variables used for constructing (cached) versions of the Taylor
    * series above.
@@ -576,7 +576,18 @@ private:
       d_taylor_sum;
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_rem;
-
+  /** polynomial approximation bounds 
+   * 
+   * This adds P_l+, P_l-, P_u+, P_u- to pbounds, where these are polynomial
+   * approximations of the Taylor series of fa for degree 2*d.
+   * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
+   * for positive/negative (+/-) values of the argument of fa.
+   */
+  void getPolynomialApproximationBounds(Node fa, unsigned d, std::vector< Node >& pbounds );
+  /** cache of the above function */
+  std::map< Node, std::map< unsigned, std::vector< Node > > > d_poly_bounds;
+  
+  
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
