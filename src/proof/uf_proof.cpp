@@ -578,7 +578,7 @@ UFProof::UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* pe)
   : TheoryProof(uf, pe)
 {}
 
-virtual theory::TheoryId UFProof::getTheoryId(){
+theory::TheoryId UFProof::getTheoryId(){
     return theory::THEORY_UF;
 }
 

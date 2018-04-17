@@ -207,7 +207,7 @@ protected:
   // Pointer to the theory for this proof
   theory::Theory* d_theory;
   TheoryProofEngine* d_proofEngine;
-  virtual theory::TheoryId getTheoryId();
+  virtual theory::TheoryId getTheoryId() = 0;
 public:
   TheoryProof(theory::Theory* th, TheoryProofEngine* proofEngine)
     : d_theory(th)
