@@ -3189,7 +3189,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
       // initial approximation is superior.
       continue;
     }
-    Node tft = nm->mkNode(k, d_zero);
     Trace("nl-ext-tf-tplanes-debug") << "Taylor variables: " << std::endl;
     Trace("nl-ext-tf-tplanes-debug")
         << "          taylor_real_fv : " << d_taylor_real_fv << std::endl;
@@ -3208,7 +3207,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     // mapped to for signs of c
     std::map<int, Node> poly_approx_bounds[2];
     std::vector< Node > pbounds;
-    getPolynomialApproximationBounds(tft,d_taylor_degree,pbounds);
+    getPolynomialApproximationBounds(k,d_taylor_degree,pbounds);
     poly_approx_bounds[0][1] = pbounds[0];
     poly_approx_bounds[0][-1] = pbounds[1];
     poly_approx_bounds[1][1] = pbounds[2];
@@ -3218,7 +3217,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     {
       // Figure 3 : tf( x )
       Node tf = tfr.second;
-
       bool consider = true;
       if (k == SINE)
       {
@@ -3236,7 +3234,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
         csign = c.getConst<Rational>().sgn();
         consider = csign != 0;
       }
-
       if (consider)
       {
         Assert(csign == 1 || csign == -1);
@@ -3555,6 +3552,29 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   return lemmas;
 }
 
+
+bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned n, std::vector< Node >& lems )
+{
+  Kind k = tf.getKind();
+  // Figure 3: P_l, P_u
+  // mapped to for signs of c
+  std::map<int, Node> poly_approx_bounds[2];
+  std::vector< Node > pbounds;
+  getPolynomialApproximationBounds(k,n,pbounds);
+  poly_approx_bounds[0][1] = pbounds[0];
+  poly_approx_bounds[0][-1] = pbounds[1];
+  poly_approx_bounds[1][1] = pbounds[2];
+  poly_approx_bounds[1][-1] = pbounds[3];
+
+  
+  
+  
+  
+  
+  
+  return false;
+}
+
 int NonlinearExtension::regionToMonotonicityDir(Kind k, int region)
 {
   if (k == EXPONENTIAL)
@@ -3847,16 +3867,16 @@ std::pair<Node, Node> NonlinearExtension::getTaylor(Node fa, unsigned n)
   return std::pair<Node, Node>(taylor_sum, taylor_rem);
 }
 
-void NonlinearExtension::getPolynomialApproximationBounds( Node fa, unsigned d, std::vector< Node >& pbounds )
+void NonlinearExtension::getPolynomialApproximationBounds( Kind k, unsigned d, std::vector< Node >& pbounds )
 {
-  if( d_poly_bounds[fa][d].empty() )
+  if( d_poly_bounds[k][d].empty() )
   {
     NodeManager* nm = NodeManager::currentNM();
-    Kind k = fa.getKind();
+    Node tft = nm->mkNode(k, d_zero);
     // n is the Taylor degree we are currently considering
     unsigned n = 2 * d_taylor_degree;
     // n must be even
-    std::pair<Node, Node> taylor = getTaylor(fa, n);
+    std::pair<Node, Node> taylor = getTaylor(tft, n);
     Trace("nl-ext-tf-tplanes-debug") << "Taylor for " << k
                                      << " is : " << taylor.first << std::endl;
     Node taylor_sum = Rewriter::rewrite(taylor.first);
@@ -3902,11 +3922,11 @@ void NonlinearExtension::getPolynomialApproximationBounds( Node fa, unsigned d, 
                                << std::endl;
     Trace("nl-ext-tf-tplanes") << " Upper (neg): " << pbounds[3]
                                << std::endl;
-    d_poly_bounds[fa][d].insert(d_poly_bounds[fa][d].end(),pbounds.begin(),pbounds.end());
+    d_poly_bounds[k][d].insert(d_poly_bounds[k][d].end(),pbounds.begin(),pbounds.end());
   }
   else
   {
-    pbounds.insert(pbounds.end(),d_poly_bounds[fa][d].begin(),d_poly_bounds[fa][d].end());
+    pbounds.insert(pbounds.end(),d_poly_bounds[k][d].begin(),d_poly_bounds[k][d].end());
   }
 }
 
