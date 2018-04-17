@@ -488,6 +488,8 @@ class NonlinearExtension {
   std::map<Node, Node> d_trig_base;
   std::map<Node, bool> d_trig_is_base;
   std::map< Node, bool > d_tf_initial_refine;
+  /** the list of lemmas we are waiting to flush until after check model */
+  std::vector< Node > d_waiting_lemmas;
   
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
@@ -603,6 +605,11 @@ private:
    * on the model value of its argument. 
    */
   std::pair< Node, Node > getTfModelBounds( Node tf, unsigned d );
+  /** is refinable transcendental function
+   * 
+   * TODO
+   */
+  bool isRefineablableTfFun( Node tf );
   
   /** concavity region for transcendental functions
   *

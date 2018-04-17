@@ -854,6 +854,7 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
   d_check_model_vars.clear();
   d_check_model_subs.clear();
   d_check_model_lit.clear();
+  d_tf_check_model_bounds.clear();
   
   // get the presubstitution
   std::vector< Node > pvars;
@@ -941,12 +942,31 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
   } while( curr_index!=terminate_index );
   Trace("nl-ext-cm") << "...finished." << std::endl;
   
-  if (!d_pi.isNull())
+  
+  // initialize the check model bounds
+  for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
   {
-    // add bounds for PI
-    d_tf_check_model_bounds[d_pi] =
-        std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+    Kind k = tfs.first;
+    if (k == PI)
+    {
+      d_tf_check_model_bounds[d_pi] =
+          std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+    }
+    else
+    {
+      for (std::pair<const Node, Node>& tfr : tfs.second)
+      {
+        // Figure 3 : tf( x )
+        Node tf = tfr.second;
+        if( isRefineablableTfFun( tf ) )
+        {
+          Node atf = computeModelValue(tf);
+          d_tf_check_model_bounds[atf] = getTfModelBounds(tf,d_taylor_degree);
+        }
+      }
+    }
   }
+  
   for (const std::pair<const Node, std::pair<Node, Node> >& tfb :
        d_tf_check_model_bounds)
   {
@@ -1255,7 +1275,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_tf_rep_map.clear();
   d_tf_region.clear();
-  d_tf_check_model_bounds.clear();
+  d_waiting_lemmas.clear();
 
   int lemmas_proc = 0;
   std::vector<Node> lemmas;
@@ -1554,17 +1574,22 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   if (options::nlExtTangentPlanes())
   {
     lemmas = checkTangentPlanes();
-    lemmas_proc += flushLemmas(lemmas);
+    //lemmas_proc += flushLemmas(lemmas);
+    d_waiting_lemmas.insert(d_waiting_lemmas.end(),lemmas.begin(),lemmas.end());
+    lemmas.clear();
   }
   if (options::nlExtTfTangentPlanes())
   {
     lemmas = checkTranscendentalTangentPlanes();
-    lemmas_proc += flushLemmas(lemmas);
+    //lemmas_proc += flushLemmas(lemmas);
+    d_waiting_lemmas.insert(d_waiting_lemmas.end(),lemmas.begin(),lemmas.end());
+    lemmas.clear();
   }
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
   }
+  Trace("nl-ext") << "  ...finished with " << d_waiting_lemmas.size() << " waiting lemmas." << std::endl;
 
   return 0;
 }
@@ -1631,6 +1656,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       unsigned num_shared_wrong_value = 0;
       std::vector<Node> shared_term_value_splits;
       // must ensure that shared terms are equal to their concrete value
+      Trace("nl-ext-mv") << "Shared terms : " << std::endl;
       for (context::CDList<TNode>::const_iterator its =
                d_containing.shared_terms_begin();
            its != d_containing.shared_terms_end();
@@ -1640,6 +1666,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         // compute its value in the model, and its evaluation in the model
         Node stv0 = computeModelValue(shared_term, 0);
         Node stv1 = computeModelValue(shared_term, 1);
+        Trace("nl-ext-mv") << "  " << shared_term << " -> " << stv0 << " [actual: " << stv1 << " ]" << std::endl;
         if (stv0 != stv1)
         {
           num_shared_wrong_value++;
@@ -1670,20 +1697,46 @@ void NonlinearExtension::check(Theory::Effort e) {
 
       // we require a check either if an assertion is false or a shared term has
       // a wrong value
-      bool isIncomplete = false;
+      int complete_status = 1;
       int num_added_lemmas = 0;
       if (!false_asserts.empty() || num_shared_wrong_value > 0)
       {
-        isIncomplete = true;
+        complete_status = num_shared_wrong_value > 0 ? -1 : 0;
         num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
+        if( num_added_lemmas>0 )
+        {
+          return;
+        }
       }
-
-      // if we did not add a lemma during check
-      if(num_added_lemmas==0) {
+      
+      // if we did not add a lemma during check and there is a chance for SAT
+      if( complete_status==0 )
+      {
+        // check the model using error bounds on the Taylor approximation
+        // we must pass all assertions here, since we may modify
+        // the model values in bounds.
+        if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
+        {
+          complete_status = 1;
+        }
+      }
+      
+      // if we have not concluded SAT
+      if( complete_status!=1 )
+      {
+        // flush the waiting lemmas 
+        num_added_lemmas = flushLemmas(d_waiting_lemmas);
+        if( num_added_lemmas>0 )
+        {
+          Trace("nl-ext") << "...added " << num_added_lemmas
+                          << " waiting lemmas." << std::endl;
+          return;
+        }
+        // resort to splitting on shared terms with their model value
+        // if we did not add any lemmas
         if (num_shared_wrong_value > 0)
         {
-          // resort to splitting on shared terms with their model value
-          isIncomplete = true;
+          complete_status = -1;
           if (!shared_term_value_splits.empty())
           {
             std::vector<Node> shared_term_value_lemmas;
@@ -1691,12 +1744,16 @@ void NonlinearExtension::check(Theory::Effort e) {
             {
               Node literal = d_containing.getValuation().ensureLiteral(eq);
               d_containing.getOutputChannel().requirePhase(literal, true);
-              shared_term_value_lemmas.push_back(
-                  literal.orNode(literal.negate()));
+              Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
+              shared_term_value_lemmas.push_back(literal.orNode(literal.negate()));
             }
             num_added_lemmas = flushLemmas(shared_term_value_lemmas);
-            Trace("nl-ext") << "...added " << num_added_lemmas
-                            << " shared term value split lemmas." << std::endl;
+            if( num_added_lemmas>0 )
+            {
+              Trace("nl-ext") << "...added " << num_added_lemmas
+                              << " shared term value split lemmas." << std::endl;
+              return;
+            }
           }
           else
           {
@@ -1705,37 +1762,27 @@ void NonlinearExtension::check(Theory::Effort e) {
             // since their model value cannot even be computed exactly
           }
         }
-        if (num_added_lemmas == 0)
+        
+        // we are incomplete
+        if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
         {
-          if (isIncomplete)
-          {
-            // check the model using error bounds on the Taylor approximation
-            if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
-            {
-              isIncomplete = false;
-            }
-          }
-          if (isIncomplete)
-          {
-            if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
-            {
-              d_taylor_degree++;
-              needsRecheck = true;
-              // increase precision for PI?
-              // Difficult since Taylor series is very slow to converge
-              Trace("nl-ext") << "...increment Taylor degree to "
-                              << d_taylor_degree << std::endl;
-            }
-            else
-            {
-              Trace("nl-ext") << "...failed to send lemma in "
-                                 "NonLinearExtension, set incomplete"
-                              << std::endl;
-              d_containing.getOutputChannel().setIncomplete();
-            }
-          }
+          d_taylor_degree++;
+          needsRecheck = true;
+          // increase precision for PI?
+          // Difficult since Taylor series is very slow to converge
+          Trace("nl-ext") << "...increment Taylor degree to "
+                          << d_taylor_degree << std::endl;
+        }
+        else
+        {
+          Trace("nl-ext") << "...failed to send lemma in "
+                              "NonLinearExtension, set incomplete"
+                          << std::endl;
+          d_containing.getOutputChannel().setIncomplete();
         }
       }
+      
+
     } while (needsRecheck);
   }
 }
@@ -3217,25 +3264,22 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     {
       // Figure 3 : tf( x )
       Node tf = tfr.second;
-      Node atf = computeModelValue(tf);
-      Trace("nl-ext-tftp") << "Compute tangent planes " << tf << std::endl;
-      // go until max degree is reached, or we don't meet bound criteria
-      for( unsigned d=1; d<=d_taylor_degree; d++ )
+      if( isRefineablableTfFun( tf ) )
       {
-        Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
-        unsigned prev = lemmas.size();
-        if( !checkTfTangentPlanesFun( tf, d, taylor_vars, lemmas ) )
+        Trace("nl-ext-tftp") << "Compute tangent planes " << tf << std::endl;
+        // go until max degree is reached, or we don't meet bound criteria
+        for( unsigned d=1; d<=d_taylor_degree; d++ )
         {
-          Trace("nl-ext-tftp") << "...fail, #lemmas = " << (lemmas.size()-prev) << std::endl;
-          break;
-        }
-        else
-        {
-          Trace("nl-ext-tftp") << "...success";
-          std::map<Node, std::pair<Node, Node> >::iterator it = d_tf_check_model_bounds.find(atf);
-          if( it!=d_tf_check_model_bounds.end() )
+          Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
+          unsigned prev = lemmas.size();
+          if( !checkTfTangentPlanesFun( tf, d, taylor_vars, lemmas ) )
           {
-            Trace("nl-ext-tftp") << ", bounds : " << it->second << std::endl;
+            Trace("nl-ext-tftp") << "...fail, #lemmas = " << (lemmas.size()-prev) << std::endl;
+            break;
+          }
+          else
+          {
+            Trace("nl-ext-tftp") << "...success" << std::endl;
           }
         }
       }
@@ -3245,22 +3289,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   return lemmas;
 }
 
-
-bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std::vector< Node >& taylor_vars, std::vector< Node >& lemmas )
+bool NonlinearExtension::isRefineablableTfFun(Node tf)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Kind k = tf.getKind();
-  // Figure 3: P_l, P_u
-  // mapped to for signs of c
-  std::map<int, Node> poly_approx_bounds[2];
-  std::vector< Node > pbounds;
-  getPolynomialApproximationBounds(k,d,pbounds);
-  poly_approx_bounds[0][1] = pbounds[0];
-  poly_approx_bounds[0][-1] = pbounds[1];
-  poly_approx_bounds[1][1] = pbounds[2];
-  poly_approx_bounds[1][-1] = pbounds[3];
-
-  if (k == SINE)
+  Assert( tf.getKind()==SINE || tf.getKind()==EXPONENTIAL );
+  if (tf.getKind()== SINE)
   {
     // we do not consider e.g. sin( -1*x ), since considering sin( x ) will
     // have the same effect
@@ -3277,6 +3309,28 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
   {
     return false;
   }
+  return true;
+}
+
+bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std::vector< Node >& taylor_vars, std::vector< Node >& lemmas )
+{
+  Assert( isRefineablableTfFun( tf ) );
+  
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = tf.getKind();
+  // Figure 3: P_l, P_u
+  // mapped to for signs of c
+  std::map<int, Node> poly_approx_bounds[2];
+  std::vector< Node > pbounds;
+  getPolynomialApproximationBounds(k,d,pbounds);
+  poly_approx_bounds[0][1] = pbounds[0];
+  poly_approx_bounds[0][-1] = pbounds[1];
+  poly_approx_bounds[1][1] = pbounds[2];
+  poly_approx_bounds[1][-1] = pbounds[3];
+
+  // Figure 3 : c
+  Node c = computeModelValue(tf[0], 1);
+  int csign = c.getConst<Rational>().sgn();
   Assert(csign == 1 || csign == -1);
 
   // Figure 3 : v
@@ -3390,10 +3444,6 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
   }
   else
   {
-    // store for check model bounds
-    Node atf = computeModelValue(tf);
-    d_tf_check_model_bounds[atf] =
-        std::pair<Node, Node>(model_values[0], model_values[1]);
     // we may want to continue getting better bounds
     return true;
   }
@@ -3403,8 +3453,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
     // compute tangent plane
     // Figure 3: T( x )
     Node tplane;
-    Node poly_approx_deriv =
-        getDerivative(poly_approx, d_taylor_real_fv);
+    Node poly_approx_deriv = getDerivative(poly_approx, d_taylor_real_fv);
     Assert(!poly_approx_deriv.isNull());
     poly_approx_deriv = Rewriter::rewrite(poly_approx_deriv);
     Trace("nl-ext-tftp-debug2") << "...derivative of "
