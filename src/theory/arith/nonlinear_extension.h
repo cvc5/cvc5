@@ -596,6 +596,13 @@ private:
   void getPolynomialApproximationBounds(Kind k, unsigned d, std::vector< Node >& pbounds );
   /** cache of the above function */
   std::map< Kind, std::map< unsigned, std::vector< Node > > > d_poly_bounds;
+  /** get transcendental function model bounds 
+   * 
+   * This returns the current upper and lower bounds of transcendental
+   * function application tf based on Taylor of degree 2*d, which is dependent
+   * on the model value of its argument. 
+   */
+  std::pair< Node, Node > getTfModelBounds( Node tf, unsigned d );
   
   /** concavity region for transcendental functions
   *
@@ -885,7 +892,7 @@ private:
    * 
    * TODO
    */
-  bool checkTfTangentPlanesFun( Node tf, unsigned n, const std::vector< Node >& taylor_vars, std::vector< Node >& lems );
+  bool checkTfTangentPlanesFun( Node tf, unsigned d, const std::vector< Node >& taylor_vars, std::vector< Node >& lems );
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
