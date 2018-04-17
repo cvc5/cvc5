@@ -1016,39 +1016,70 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
         {
           sum_bound.push_back(m.second.isNull() ? d_one : m.second);
         }
-        else if (v.getKind()==NONLINEAR_MULT)
-        {
-          // if non-linear mult node, check sign invariance first
-          // TODO
-          return false;
-        }
         else
         {
-          std::map<Node, std::pair<Node, Node> >::iterator bit =
-              d_tf_check_model_bounds.find(v);
-          if (bit != d_tf_check_model_bounds.end())
+          bool set_lower =
+              (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
+              == pol;
+          // 0 : lower
+          // 1 : upper
+          // 2 : abs(lower)>abs(upper) ? lower : upper  (maximum)
+          // 3 : abs(lower)>abs(upper) ? upper : lower  (minimum)
+          std::vector< unsigned > cmps;
+          std::vector< Node > vars;
+          if (v.getKind()==NONLINEAR_MULT)
           {
-            bool set_lower =
-                (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
-                == pol;
-            std::map<Node, bool>::iterator itsb = set_bound.find(v);
-            if (itsb != set_bound.end() && itsb->second != set_lower)
-            {
-              Trace("nl-ext-tf-check-model-simple")
-                  << "  failed due to conflicting bound for " << v << std::endl;
-              return false;
-            }
-            set_bound[v] = set_lower;
-            // must over/under approximate
-            Node vbound = set_lower ? bit->second.first : bit->second.second;
-            sum_bound.push_back(ArithMSum::mkCoeffTerm(m.second, vbound));
+            vars.insert(vars.end(),v.begin(),v.end());
+            return false;
           }
           else
           {
-            Trace("nl-ext-tf-check-model-simple")
-                << "  failed due to unknown bound for " << v << std::endl;
-            return false;
+            vars.push_back( v );
+            cmps.push_back( set_lower ? 0 : 1 );
           }
+          std::vector< Node > vbs;
+          for( unsigned i=0,size=vars.size(); i<size; i++ )
+          {
+            Node vc = vars[i];
+            unsigned vc_cmp = cmps[i];
+            std::map<Node, std::pair<Node, Node> >::iterator bit =
+                d_tf_check_model_bounds.find(vc);
+            if (bit != d_tf_check_model_bounds.end())
+            {
+              Node l = bit->second.first;
+              Node u = bit->second.second;
+              bool vc_set_lower = (vc_cmp==0);
+              if( l==u )
+              {
+                // by convention, always say it is lower if they are the same
+                vc_set_lower = true;
+              }
+              else if( vc_cmp>=2 )
+              {
+                int cres = compare_value(l,u,2);
+                vc_set_lower = cres==0 || cres==( vc_cmp==2 ? 1 : -1 );
+              }
+              set_bound[vc] = vc_set_lower;
+              // check whether this is a conflicting bound
+              std::map<Node, bool>::iterator itsb = set_bound.find(vc);
+              if (itsb != set_bound.end() && itsb->second != vc_set_lower)
+              {
+                Trace("nl-ext-tf-check-model-simple")
+                    << "  failed due to conflicting bound for " << vc << std::endl;
+                return false;
+              }
+              // must over/under approximate
+              vbs.push_back(set_lower ? l : u);
+            }
+            else
+            {
+              Trace("nl-ext-tf-check-model-simple")
+                  << "  failed due to unknown bound for " << vc << std::endl;
+              return false;
+            }
+          }
+          Node vbound = vbs.size()==1 ? vbs[0] : nm->mkNode(MULT,vbs);
+          sum_bound.push_back(ArithMSum::mkCoeffTerm(m.second, vbound));
         }
       }
       Node bound;
