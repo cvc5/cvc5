@@ -884,7 +884,7 @@ private:
    * 
    * TODO
    */
-  bool checkTfTangentPlanesFun( Node tf, unsigned n, std::vector< Node >& lems );
+  bool checkTfTangentPlanesFun( Node tf, unsigned n, const std::vector< Node >& taylor_vars, std::vector< Node >& lems );
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
