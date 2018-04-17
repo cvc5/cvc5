@@ -3205,7 +3205,28 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     {
       // Figure 3 : tf( x )
       Node tf = tfr.second;
-      checkTfTangentPlanesFun( tf, d_taylor_degree, taylor_vars, lemmas );
+      Node atf = computeModelValue(tf);
+      Trace("nl-ext-tftp") << "Compute tangent planes " << tf << std::endl;
+      // go until max degree is reached, or we don't meet bound criteria
+      for( unsigned d=1; d<=d_taylor_degree; d++ )
+      {
+        Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
+        unsigned prev = lemmas.size();
+        if( !checkTfTangentPlanesFun( tf, d, taylor_vars, lemmas ) )
+        {
+          Trace("nl-ext-tftp") << "...fail, #lemmas = " << (lemmas.size()-prev) << std::endl;
+          break;
+        }
+        else
+        {
+          Trace("nl-ext-tftp") << "...success";
+          std::map<Node, std::pair<Node, Node> >::iterator it = d_tf_check_model_bounds.find(atf);
+          if( it!=d_tf_check_model_bounds.end() )
+          {
+            Trace("nl-ext-tftp") << ", bounds : " << it->second << std::endl;
+          }
+        }
+      }
     }
   }
 
@@ -3266,8 +3287,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned n, const std
   }
   // Figure 3 : conc
   int concavity = regionToConcavity(k, itr->second);
-  Trace("nl-ext-tf-tplanes") << "  concavity is : " << concavity
-                              << std::endl;
+  Trace("nl-ext-tf-tplanes") << "  concavity is : " << concavity << std::endl;
   if (concavity == 0)
   {
     return false;
