@@ -41,13 +41,13 @@ def run_process(args, cwd, timeout, s_input=None):
 
     out = ''
     err = ''
+    exit_status = 124
     timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
     try:
         timer.start()
         out, err = proc.communicate(input=s_input)
         exit_status = proc.returncode
     finally:
-        exit_status = 124
         timer.cancel()
 
     return out, err, exit_status
