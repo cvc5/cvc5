@@ -1268,7 +1268,6 @@ REG1_TESTS = \
 	regress1/quantifiers/recfact.cvc \
 	regress1/quantifiers/rew-to-0211-dd.smt2 \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
-	regress1/quantifiers/set3.smt2 \
 	regress1/quantifiers/set8.smt2 \
 	regress1/quantifiers/small-pipeline-fixpoint-3.smt2 \
 	regress1/quantifiers/smtlib384a03.smt2 \
@@ -1616,6 +1615,9 @@ REG4_TESTS = \
 #
 # regress0/aufbv/bug348 does not seem to terminate with proofs
 # regress0/datatypes/datatype-dump.cvc (FIXME #1649)
+#
+# regress1/quantifiers/set3.smt2 does not terminate/takes a long time when
+# doing a coverage build with LFSC.
 DISABLED_TESTS = \
 	regress0/arith/bug549.cvc \
 	regress0/arith/incorrect1.smt \
@@ -1870,6 +1872,7 @@ DISABLED_TESTS = \
 	regress1/ho/hoa0102.smt2 \
 	regress1/issue1048-arrays-int-real.smt2 \
 	regress1/quantifiers/macro-subtype-param.smt2 \
+	regress1/quantifiers/set3.smt2 \
 	regress1/quantifiers/subtype-param-unk.smt2 \
 	regress1/quantifiers/subtype-param.smt2 \
 	regress1/rels/garbage_collect.cvc \
