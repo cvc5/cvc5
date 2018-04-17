@@ -28,7 +28,9 @@ COMMAND_LINE = 'COMMAND-LINE: '
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
     arguments to execute, `cwd` is the working directory and `s_input` is the
-    input to be sent to the process over stdin."""
+    input to be sent to the process over stdin. Returns the output, the error
+    output and the exit code of the process. If the process times out, the
+    output and the error output are empty and the exit code is 124."""
 
     proc = subprocess.Popen(
         args,
@@ -37,14 +39,18 @@ def run_process(args, cwd, timeout, s_input=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
 
+    out = ''
+    err = ''
     timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
     try:
         timer.start()
         out, err = proc.communicate(input=s_input)
+        exit_status = proc.returncode
     finally:
+        exit_status = 124
         timer.cancel()
 
-    return out, err, proc.returncode
+    return out, err, exit_status
 
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
