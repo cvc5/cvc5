@@ -1021,61 +1021,130 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
           bool set_lower =
               (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
               == pol;
-          // 0 : lower
-          // 1 : upper
-          // 2 : abs(lower)>abs(upper) ? lower : upper  (maximum)
-          // 3 : abs(lower)>abs(upper) ? upper : lower  (minimum)
-          std::vector< unsigned > cmps;
+
           std::vector< Node > vars;
+          std::vector< unsigned > factors;
           if (v.getKind()==NONLINEAR_MULT)
           {
-            vars.insert(vars.end(),v.begin(),v.end());
-            return false;
+            unsigned last_start = 0;            
+            for( unsigned i=0, nchildren = v.getNumChildren(); i<nchildren; i++)
+            {
+              // are we at the end?
+              if( i+1==nchildren || v[i+1]!=v[i] )
+              {
+                unsigned vfact = 1+(i-last_start);
+                last_start = i;
+                vars.push_back(v[i]);
+                factors.push_back(vfact);
+              }
+            }
           }
           else
           {
             vars.push_back( v );
-            cmps.push_back( set_lower ? 0 : 1 );
+            factors.push_back(1);
           }
-          std::vector< Node > vbs;
+          
+          // get the lower and upper bounds and determine the comparisons
+          // now must decide what bounds to set
+          // -1 : we have an odd number of negative factors
+          // 0 : we have a variable number of negative factors
+          // 1 : we have an even number of negative factors
+          int choose_index = -1;
+          int num_neg_factor = 1;
+          bool has_zero = false;
+          std::vector< Node > ls;
+          std::vector< Node > us;
           for( unsigned i=0,size=vars.size(); i<size; i++ )
           {
             Node vc = vars[i];
-            unsigned vc_cmp = cmps[i];
+            unsigned vcfact = factors[i];
             std::map<Node, std::pair<Node, Node> >::iterator bit =
                 d_tf_check_model_bounds.find(vc);
             if (bit != d_tf_check_model_bounds.end())
             {
               Node l = bit->second.first;
               Node u = bit->second.second;
-              bool vc_set_lower = (vc_cmp==0);
-              if( l==u )
+              ls.push_back( l );
+              us.push_back( u );
+              if( vcfact%2==1 )
               {
-                // by convention, always say it is lower if they are the same
-                vc_set_lower = true;
+                int lsgn = l.getConst<Rational>().sgn();
+                int usgn = u.getConst<Rational>().sgn();
+                if( lsgn==-1 )
+                {
+                  if( usgn<1 )
+                  {
+                    // must have a negative factor
+                    num_neg_factor = num_neg_factor*-1;
+                  }
+                  else if( choose_index==-1 )
+                  {
+                    // set the choose index to this
+                    choose_index = i;
+                  }
+                }
               }
-              else if( vc_cmp>=2 )
-              {
-                int cres = compare_value(l,u,2);
-                vc_set_lower = cres==0 || cres==( vc_cmp==2 ? 1 : -1 );
-              }
-              set_bound[vc] = vc_set_lower;
-              // check whether this is a conflicting bound
-              std::map<Node, bool>::iterator itsb = set_bound.find(vc);
-              if (itsb != set_bound.end() && itsb->second != vc_set_lower)
-              {
-                Trace("nl-ext-tf-check-model-simple")
-                    << "  failed due to conflicting bound for " << vc << std::endl;
-                return false;
-              }
-              // must over/under approximate
-              vbs.push_back(set_lower ? l : u);
             }
             else
             {
               Trace("nl-ext-tf-check-model-simple")
                   << "  failed due to unknown bound for " << vc << std::endl;
               return false;
+            }
+          }
+          // for each variable, determine the comparison:
+          // 0 : lower
+          // 1 : upper
+          // 2 : abs(lower)>abs(upper) ? lower : upper  (maximum)
+          // 3 : abs(lower)>abs(upper) ? upper : lower  (minimum)
+          std::vector< unsigned > cmps;
+          for( unsigned i=0,size=vars.size(); i<size; i++ )
+          {
+            Node vc = vars[i];
+            if( choose_index==i )
+            {
+              cmps.push_back(set_lower ? 0 : 1);
+            }
+            else
+            {
+              return false;
+            }
+          }
+          
+          std::vector< Node > vbs;
+          for( unsigned i=0,size=vars.size(); i<size; i++ )
+          {
+            Node vc = vars[i];
+            unsigned vcfact = factors[i];
+            unsigned vc_cmp = cmps[i];
+            Node l = ls[i];
+            Node u = us[i];
+            bool vc_set_lower = (vc_cmp==0);
+            if( l==u )
+            {
+              // by convention, always say it is lower if they are the same
+              vc_set_lower = true;
+            }
+            else if( vc_cmp>=2 )
+            {
+              int cres = compare_value(l,u,2);
+              vc_set_lower = cres==0 || cres==( vc_cmp==2 ? 1 : -1 );
+            }
+            set_bound[vc] = vc_set_lower;
+            // check whether this is a conflicting bound
+            std::map<Node, bool>::iterator itsb = set_bound.find(vc);
+            if (itsb != set_bound.end() && itsb->second != vc_set_lower)
+            {
+              Trace("nl-ext-tf-check-model-simple")
+                  << "  failed due to conflicting bound for " << vc << std::endl;
+              return false;
+            }
+            // must over/under approximate
+            Node vb = set_lower ? l : u;
+            for( unsigned i=0; i<vcfact; i++ )
+            {
+              vbs.push_back(vb);
             }
           }
           Node vbound = vbs.size()==1 ? vbs[0] : nm->mkNode(MULT,vbs);
