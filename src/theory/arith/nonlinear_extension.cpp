@@ -701,9 +701,6 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
-  d_check_model_lit.clear();
   
   NodeManager* nm = NodeManager::currentNM();
   // get the assertions from the theory
@@ -718,49 +715,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     const Assertion& assertion = *it;
     Node lit = assertion.assertion;
     init_assertions.push_back(lit);
-    d_check_model_lit[lit] = lit;
   }
-  
-  // heuristically, solve for equalities
-  /*
-  unsigned curr_index = 0;
-  unsigned terminate_index = 0;
-  std::vector< Node >::iterator itv = d_check_model_vars.begin();
-  std::vector< Node >::iterator its = d_check_model_subs.begin();
-  std::unordered_set< Node, NodeHashFunction > added_subst;
-  do
-  {
-    Node lit = init_assertions[curr_index];
-    Node slit = d_check_model_lit[lit];
-    if( added_subst.find( lit )!=added_subst.end() )
-    {
-      added_subst.erase(lit);
-      itv++;
-      its++;
-      Assert( itv!=d_check_model_vars.end() );
-      Assert( its!=d_check_model_subs.end() );
-    }
-    // update it based on the current substitution
-    if(!d_check_model_vars.empty() && !slit.isConst() )
-    {
-      slit = slit.substitute(itv,d_check_model_vars.end(),its,d_check_model_subs.end());
-      slit = Rewriter::rewrite( slit );
-      d_check_model_lit[lit] = slit;
-    }
-    // is it a substitution?
-    if( slit.getKind()==EQUAL )
-    {
-      
-      
-      
-    }
-    curr_index++;
-    if( curr_index==nassertions )
-    {
-      curr_index = 0;
-    }
-  } while( curr_index!=terminate_index );
-  */
   
   std::map<Node, Rational> init_bounds[2];
   std::map<Node, Node> init_bounds_lit[2];
@@ -866,6 +821,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       assertions.push_back(a);
     }
   }
+  
   Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
                   << " assertions." << std::endl;
 }
@@ -895,6 +851,96 @@ std::vector<Node> NonlinearExtension::checkModel(
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
+  d_check_model_vars.clear();
+  d_check_model_subs.clear();
+  d_check_model_lit.clear();
+  
+  // get the presubstitution
+  std::vector< Node > pvars;
+  std::vector< Node > psubs;
+  for( std::pair< const Node, Node >& tb : d_trig_base )
+  {
+    pvars.push_back(tb.first);
+    psubs.push_back(tb.second);
+  }
+  
+  // initialize representation of assertions
+  std::vector< Node > passertions;
+  for( const Node& a : assertions )
+  {
+    Node pa = a;
+    if( !pvars.empty() )
+    {
+      pa = pa.substitute(pvars.begin(),pvars.end(),psubs.begin(),psubs.end());
+      pa = Rewriter::rewrite(pa);
+    }
+    Trace("nl-ext-tf-check-model") << "- assertion : " << pa << std::endl;
+    d_check_model_lit[pa] = pa;
+    passertions.push_back(pa);
+  }
+  
+  // heuristically, solve for equalities
+  Trace("nl-ext-tf-check-model") << std::endl;
+  Trace("nl-ext-tf-check-model") << "solving equalities..." << std::endl;
+  unsigned nassertions_new = passertions.size();
+  unsigned curr_index = 0;
+  unsigned terminate_index = 0;
+  do
+  {
+    Trace("nl-ext-tf-check-model-debug") << "  indices : " << curr_index << " " << terminate_index << " " << nassertions_new << std::endl;
+    Node lit = passertions[curr_index];
+    Node slit = d_check_model_lit[lit];
+    Trace("nl-ext-tf-check-model-debug") << "  process " << lit << std::endl;
+    // update it based on the current substitution
+    if(!d_check_model_vars.empty() && !slit.isConst() )
+    {
+      // reapply the substitution
+      slit = slit.substitute(d_check_model_vars.begin(),d_check_model_vars.end(), d_check_model_subs.begin(),d_check_model_subs.end());
+      slit = Rewriter::rewrite( slit );
+      d_check_model_lit[lit] = slit;
+      Trace("nl-ext-tf-check-model-debug") << "  ...substituted to " << slit << std::endl;
+    }
+    // is it a substitution?
+    if( slit.getKind()==EQUAL )
+    {
+      std::map<Node, Node> msum;
+      if( ArithMSum::getMonomialSumLit(slit, msum))
+      {
+        // find a legal variable to solve for
+        Node v;
+        Node slv;
+        for( std::pair< const Node, Node >& m : msum )
+        {
+          Node mv = m.first;
+          if( mv.isVar() && ( ( v.getKind()!=SKOLEM && mv.getKind()==SKOLEM ) || slv.isNull() ) )
+          {
+            Node veqc;
+            if (ArithMSum::isolate( mv, msum, veqc, slv, EQUAL) != 0)
+            {
+              Assert( veqc.isNull() && !slv.isNull() );
+              v = mv;
+            }
+          }
+        }
+        if( !v.isNull() )
+        {
+          Trace("nl-ext-tf-check-model") << "  assertion : " << slit << " can be turned into substitution:" << std::endl;
+          Trace("nl-ext-tf-check-model") << "    " << v << " -> " << slv << std::endl;
+          d_check_model_vars.push_back(v);
+          d_check_model_subs.push_back(slv);
+          d_check_model_lit[lit] = d_true;
+          terminate_index = curr_index;
+        }
+      }
+    }
+    curr_index++;
+    if( curr_index==nassertions_new )
+    {
+      curr_index = 0;
+    }
+  } while( curr_index!=terminate_index );
+  Trace("nl-ext-tf-check-model") << "...finished." << std::endl;
+  
   if (!d_pi.isNull())
   {
     // add bounds for PI
@@ -911,16 +957,25 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
                                    << " <= " << tfb.second.second << std::endl;
   }
 
+  std::unordered_set<Node,NodeHashFunction> all_assertions;
   std::vector<Node> check_assertions;
-  for (const Node& a : assertions)
+  for (const Node& a : passertions)
   {
-    Node av = computeModelValue(a);
-    // simple check
-    if (!simpleCheckModelTfLit(av))
+    Node as = d_check_model_lit[a];
+    if( !as.isConst() || !as.getConst<bool>() )
     {
-      check_assertions.push_back(av);
-      Trace("nl-ext-tf-check-model") << "check-model : assertion : " << av
-                                     << " (from " << a << ")" << std::endl;
+      Node av = computeModelValue(a);
+      if( all_assertions.find(av)==all_assertions.end() )
+      {
+        all_assertions.insert(av);
+        // simple check
+        if (!simpleCheckModelTfLit(av))
+        {
+          check_assertions.push_back(av);
+          Trace("nl-ext-tf-check-model") << "check-model : failed assertion : " << av
+                                        << " (from " << a << ")" << std::endl;
+        }
+      }
     }
   }
 
@@ -960,6 +1015,12 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
         if (v.isNull())
         {
           sum_bound.push_back(m.second.isNull() ? d_one : m.second);
+        }
+        else if (v.getKind()==NONLINEAR_MULT)
+        {
+          // if non-linear mult node, check sign invariance first
+          // TODO
+          return false;
         }
         else
         {
