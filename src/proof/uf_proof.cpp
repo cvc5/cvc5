@@ -70,11 +70,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       return Node();
     }
 
-    int neg = -1;
     std::shared_ptr<theory::eq::EqProof> subTrans =
         std::make_shared<theory::eq::EqProof>();
 
-    tp->assertAndPrint(pf, map, theory::THEORY_UF, &neg, subTrans);
+    int neg = tp->assertAndPrint(pf, map, subTrans);
 
     Node n1;
     std::stringstream ss, ss2;
@@ -176,7 +175,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
     Debug("pf::uf") << "           " << n1 << "\n";
     Debug("pf::uf") << "           " << n2 << "\n";
     int side = 0;
-    if (TheoryProof::match(pf2->d_node, n1[0], theory::THEORY_UF))
+    if (TheoryProof::match(pf2->d_node, n1[0]))
     {
       //if(tb == 1) {
       Debug("pf::uf") << "SIDE IS 0\n";
@@ -186,12 +185,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       //if(tb == 1) {
       Debug("pf::uf") << "SIDE IS 1\n";
       //}
-      if (!TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_UF))
+      if (!TheoryProof::match(pf2->d_node, n1[1]))
       {
         Debug("pf::uf") << "IN BAD CASE, our first subproof is\n";
         pf2->d_children[0]->debug_print("pf::uf");
       }
-      Assert(TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_UF));
+      Assert(TheoryProof::match(pf2->d_node, n1[1]));
       side = 1;
     }
     if (n1[side].getKind() == kind::APPLY_UF
@@ -344,7 +343,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
     std::map<size_t, Node> childToStream;
     std::stringstream ss1(ss.str()), ss2;
-
+    std::pair<Node, Node> nodePair;
     for(size_t i = 1; i < pf.d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
       ss.str("");
@@ -423,17 +422,17 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
               ++j;
             }
 
-            tp->identicalEqualitiesPrinterHelper(theory::THEORY_UF,
+            nodePair = tp->identicalEqualitiesPrinterHelper(
                                           evenLengthSequence,
                                           sequenceOver,
-                                          i,
                                           pf,
                                           map,
-                                          n2,
                                           ss1.str(),
                                           &ss,
                                           n1,
                                           nodeAfterEqualitySequence);
+            n1 = nodePair.first;
+            nodeAfterEqualitySequence = nodePair.second;
           } else {
             ss.str(ss1.str());
           }
@@ -578,6 +577,10 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 UFProof::UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* pe)
   : TheoryProof(uf, pe)
 {}
+
+virtual theory::TheoryId UFProof::getTheoryId(){
+    return theory::THEORY_UF;
+}
 
 void UFProof::registerTerm(Expr term) {
   // already registered

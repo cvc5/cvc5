@@ -207,6 +207,7 @@ protected:
   // Pointer to the theory for this proof
   theory::Theory* d_theory;
   TheoryProofEngine* d_proofEngine;
+  virtual theory::TheoryId getTheoryId();
 public:
   TheoryProof(theory::Theory* th, TheoryProofEngine* proofEngine)
     : d_theory(th)
@@ -240,7 +241,7 @@ public:
   }
 
   // congrence matching term helper
-  inline static bool match(TNode n1, TNode n2, theory::TheoryId);
+  inline static bool match(TNode n1, TNode n2);
 
   /**
    * Helper function for ProofUF::toStreamRecLFSC and
@@ -254,11 +255,9 @@ public:
    *    - neg: the index of the contradicting node in pf.
    *    - subTrans: main transitivity proof part
    *    */
-  void assertAndPrint(
+  int assertAndPrint(
       const theory::eq::EqProof& pf,
       const ProofLetMap& map,
-      const theory::TheoryId theoryId,
-      int* neg,
       std::shared_ptr<theory::eq::EqProof> subTrans,
       theory::eq::EqProof::PrettyPrinter* pPrettyPrinter = nullptr);
 
@@ -270,28 +269,24 @@ public:
    *    - evenLengthSequence: true iff the length of the sequence
    *                          of the identical equalities is even.
    *    - sequenceOver: have we reached the last equality of this sequence?
-   *    - i: index of current son of pf (in the main loop that calls this function)
    *    - pf: equality engine proof
    *    - map: A map for the let-expressions in the proof
-   *    - n2: transitivity sub-proof
-   *    - ss1String: current stringstream content
+   *    - subproofStr: current stringstream content
    * Outputs:
-   *    - ss: output stream to which the proof is printed
-   *    - n1: transitivity sub-proof
+   *    - outStream: output stream to which the proof is printed
+   *    - n: transitivity sub-proof
    *    - nodeAfterEqualitySequence: The node after the identical sequence.
    * 
    */
-  void identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
+  std::pair<Node, Node> identicalEqualitiesPrinterHelper(
                                  bool evenLengthSequence,
                                  bool sequenceOver,
-                                 int i,
                                  const theory::eq::EqProof& pf,
                                  const ProofLetMap& map,
-                                 const Node& n2,
-                                 const std::string ss1String,
-                                 std::stringstream* ss,
-                                 Node& n1,
-                                 Node& nodeAfterEqualitySequence);
+                                 const std::string subproofStr,
+                                 std::stringstream* outStream,
+                                 Node n,
+                                 Node nodeAfterEqualitySequence);
 
   /**
    * Print the proof representation of the given type that belongs to THIS theory.

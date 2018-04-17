@@ -1264,17 +1264,19 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
 }
 
 
-inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId)
+inline bool TheoryProof::match(TNode n1, TNode n2)
 {
+  theory::TheoryId theoryId = getTheoryId();
+  ProofManager* pm = ProofManager::currentPM();
   bool ufProof = (theoryId == theory::THEORY_UF);
   Debug(ufProof ? "pf::uf" : "mgd") << "match " << n1 << " " << n2 << std::endl;
-  if (ProofManager::currentPM()->hasOp(n1))
+  if (pm->hasOp(n1))
   {
-    n1 = ProofManager::currentPM()->lookupOp(n1);
+    n1 = pm->lookupOp(n1);
   }
-  if (ProofManager::currentPM()->hasOp(n2))
+  if (pm->hasOp(n2))
   {
-    n2 = ProofManager::currentPM()->lookupOp(n2);
+    n2 = pm->lookupOp(n2);
   }
   Debug(ufProof ? "pf::uf" : "mgd") << "+ match " << n1 << " " << n2
                                     << std::endl;
@@ -1289,9 +1291,9 @@ inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId)
 
   if (n1.getType().isFunction() && n2.hasOperator())
   {
-    if (ProofManager::currentPM()->hasOp(n2.getOperator()))
+    if (pm->hasOp(n2.getOperator()))
     {
-      return n1 == ProofManager::currentPM()->lookupOp(n2.getOperator());
+      return n1 == pm->lookupOp(n2.getOperator());
     }
     else
     {
@@ -1301,9 +1303,9 @@ inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId)
 
   if (n2.getType().isFunction() && n1.hasOperator())
   {
-    if (ProofManager::currentPM()->hasOp(n1.getOperator()))
+    if (pm->hasOp(n1.getOperator()))
     {
-      return n2 == ProofManager::currentPM()->lookupOp(n1.getOperator());
+      return n2 == pm->lookupOp(n1.getOperator());
     }
     else
     {
@@ -1343,25 +1345,17 @@ inline bool TheoryProof::match(TNode n1, TNode n2, theory::TheoryId theoryId)
   return true;
 }
 
-void TheoryProof::assertAndPrint(
+int TheoryProof::assertAndPrint(
     const theory::eq::EqProof& pf,
     const ProofLetMap& map,
-    const theory::TheoryId theoryId,
-    int* neg,
     std::shared_ptr<theory::eq::EqProof> subTrans,
     theory::eq::EqProof::PrettyPrinter* pPrettyPrinter)
 {
-  std::string theoryName;
+  theory::TheoryId theoryId = getTheoryId();
+  int neg = -1;
+  Assert(theoryId == theory::THEORY_UF || theoryId == theory::THEORY_ARRAYS);
   bool ufProof = (theoryId == theory::THEORY_UF);
-  if (ufProof)
-  {
-    theoryName = "uf";
-  }
-  else
-  {
-    theoryName = "array";
-  }
-
+  std::string theoryName = theory::getStatsPrefix(theoryId);
   pf.debug_print(("pf::" + theoryName).c_str(), 0, pPrettyPrinter);
   Debug("pf::" + theoryName) << std::endl;
 
@@ -1386,8 +1380,8 @@ void TheoryProof::assertAndPrint(
     if (!pf.d_children[i]->d_node.isNull()
         && pf.d_children[i]->d_node.getKind() == kind::NOT)
     {
-      Assert(*neg < 0);
-      (*neg) = i;
+      Assert(neg < 0);
+      (neg) = i;
       ++i;
     }
 
@@ -1425,7 +1419,7 @@ void TheoryProof::assertAndPrint(
       bool targetAppearsBefore = true;
       bool targetAppearsAfter = true;
 
-      if ((i == 0) || (i == 1 && *neg == 0))
+      if ((i == 0) || (i == 1 && neg == 0))
       {
         Debug("pf::" + theoryName) << "Target does not appear before"
                                    << std::endl;
@@ -1529,7 +1523,7 @@ void TheoryProof::assertAndPrint(
     }
   }
 
-  bool disequalityFound = (*neg >= 0);
+  bool disequalityFound = (neg >= 0);
   if (!disequalityFound)
   {
     Debug("pf::" + theoryName)
@@ -1540,30 +1534,23 @@ void TheoryProof::assertAndPrint(
     Assert(pf.d_node.getNumChildren() == 2);
     Assert(pf.d_node[0].isConst() && pf.d_node[1].isConst());
   }
+  return neg;
 }
 
-void TheoryProof::identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
+std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
                                             bool evenLengthSequence,
                                             bool sequenceOver,
-                                            int i,
                                             const theory::eq::EqProof& pf,
                                             const ProofLetMap& map,
-                                            const Node& n2,
-                                            const std::string ss1String,
-                                            std::stringstream* ss,
-                                            Node& n1,
-                                            Node& nodeAfterEqualitySequence)
+                                            const std::string subproofStr,
+                                            std::stringstream* outStream,
+                                            Node n,
+                                            Node nodeAfterEqualitySequence)
 {
+  theory::TheoryId theoryId = getTheoryId();
+  Assert(theoryId == theory::THEORY_UF || theoryId == theory::THEORY_ARRAYS);
   bool ufProof = (theoryId == theory::THEORY_UF);
-  std::string theoryName;
-  if (theoryId == theory::THEORY_UF)
-  {
-    theoryName = "uf";
-  }
-  else
-  {
-    theoryName = "array";
-  }
+  std::string theoryName = theory::getStatsPrefix(theoryId);
   if (evenLengthSequence)
   {
     // If the length is even, we need to apply transitivity for the "correct"
@@ -1571,27 +1558,26 @@ void TheoryProof::identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
 
     Debug("pf::" + theoryName) << "Equality sequence of even length"
                                << std::endl;
-    Debug("pf::" + theoryName) << "n1 is: " << n1 << std::endl;
-    Debug("pf::" + theoryName) << "n2 is: " << n2 << std::endl;
+    Debug("pf::" + theoryName) << "n1 is: " << n << std::endl;
     Debug("pf::" + theoryName) << "pf-d_node is: " << pf.d_node << std::endl;
     Debug("pf::" + theoryName) << "Next node is: " << nodeAfterEqualitySequence
                                << std::endl;
 
-    (*ss) << "(trans _ _ _ _ ";
+    (*outStream) << "(trans _ _ _ _ ";
 
     // If the sequence is at the very end of the transitivity proof, use
     // pf.d_node to guide us.
     if (!sequenceOver)
     {
-      if (match(n1[0], pf.d_node[0], theoryId))
+      if (match(n[0], pf.d_node[0]))
       {
-        n1 = n1[0].eqNode(n1[0]);
-        (*ss) << ss1String << " (symm _ _ _ " << ss1String << ")";
+        n = n[0].eqNode(n[0]);
+        (*outStream) << subproofStr << " (symm _ _ _ " << subproofStr << ")";
       }
-      else if (match(n1[1], pf.d_node[1], theoryId))
+      else if (match(n[1], pf.d_node[1]))
       {
-        n1 = n1[1].eqNode(n1[1]);
-        (*ss) << " (symm _ _ _ " << ss1String << ")" << ss1String;
+        n = n[1].eqNode(n[1]);
+        (*outStream) << " (symm _ _ _ " << subproofStr << ")" << subproofStr;
       }
       else
       {
@@ -1611,19 +1597,19 @@ void TheoryProof::identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
 
       Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
 
-      if ((n1[0] == nodeAfterEqualitySequence[0])
-          || (n1[0] == nodeAfterEqualitySequence[1]))
+      if ((n[0] == nodeAfterEqualitySequence[0])
+          || (n[0] == nodeAfterEqualitySequence[1]))
       {
-        // Eliminate n1[1]
-        (*ss) << ss1String << " (symm _ _ _ " << ss1String << ")";
-        n1 = n1[0].eqNode(n1[0]);
+        // Eliminate n[1]
+        (*outStream) << subproofStr << " (symm _ _ _ " << subproofStr << ")";
+        n = n[0].eqNode(n[0]);
       }
-      else if ((n1[1] == nodeAfterEqualitySequence[0])
-               || (n1[1] == nodeAfterEqualitySequence[1]))
+      else if ((n[1] == nodeAfterEqualitySequence[0])
+               || (n[1] == nodeAfterEqualitySequence[1]))
       {
-        // Eliminate n1[0]
-        (*ss) << " (symm _ _ _ " << ss1String << ")" << ss1String;
-        n1 = n1[1].eqNode(n1[1]);
+        // Eliminate n[0]
+        (*outStream) << " (symm _ _ _ " << subproofStr << ")" << subproofStr;
+        n = n[1].eqNode(n[1]);
       }
       else
       {
@@ -1634,16 +1620,17 @@ void TheoryProof::identicalEqualitiesPrinterHelper(theory::TheoryId theoryId,
       }
     }
 
-    (*ss) << ")";
+    (*outStream) << ")";
   }
   else
   {
     Debug("pf::" + theoryName) << "Equality sequence length is odd!"
                                << std::endl;
-    (*ss).str(ss1String);
+    (*outStream).str(subproofStr);
   }
 
-  Debug("pf::" + theoryName) << "Have proven: " << n1 << std::endl;
+  Debug("pf::" + theoryName) << "Have proven: " << n << std::endl;
+  return std::make_pair<Node, Node>(n, nodeAfterEqualitySequence);
 }
 
 } /* namespace CVC4 */

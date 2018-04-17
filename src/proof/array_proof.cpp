@@ -107,12 +107,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                      << " . proof:" << std::endl;
   ArrayProofPrinter proofPrinter(d_reasonRow, d_reasonRow1, d_reasonExt);
   if(tb == 0) {
-    int neg = -1;
     std::shared_ptr<theory::eq::EqProof> subTrans =
         std::make_shared<theory::eq::EqProof>();
 
-    tp->assertAndPrint(
-        pf, map, theory::THEORY_ARRAYS, &neg, subTrans, &proofPrinter);
+    int neg = tp->assertAndPrint(
+        pf, map, subTrans, &proofPrinter);
 
     Node n1;
     std::stringstream ss, ss2;
@@ -236,18 +235,18 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       Debug("mgd") << "           " << n2 << "\n";
 
       int side = 0;
-      if (TheoryProof::match(pf2->d_node, n1[0], theory::THEORY_ARRAYS))
+      if (TheoryProof::match(pf2->d_node, n1[0]))
       {
         Debug("mgd") << "SIDE IS 0\n";
         side = 0;
       } else {
       Debug("mgd") << "SIDE IS 1\n";
-      if (!TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_ARRAYS))
+      if (!TheoryProof::match(pf2->d_node, n1[1]))
       {
         Debug("mgd") << "IN BAD CASE, our first subproof is\n";
         pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
       }
-      Assert(TheoryProof::match(pf2->d_node, n1[1], theory::THEORY_ARRAYS));
+      Assert(TheoryProof::match(pf2->d_node, n1[1]));
       side = 1;
     }
 
@@ -476,6 +475,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     std::map<size_t, Node> childToStream;
 
     std::stringstream ss1(ss.str()), ss2;
+    std::pair<Node, Node> nodePair;
     for (size_t i = 1; i < pf.d_children.size(); ++i)
     {
       std::stringstream ss1(ss.str()), ss2;
@@ -565,17 +565,17 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
               ++j;
             }
 
-            tp->identicalEqualitiesPrinterHelper(theory::THEORY_ARRAYS,
+            nodePair = tp->identicalEqualitiesPrinterHelper(
                                           evenLengthSequence,
                                           sequenceOver,
-                                          i,
                                           pf,
                                           map,
-                                          n2,
                                           ss1.str(),
                                           &ss,
                                           n1,
                                           nodeAfterEqualitySequence);
+            n1 = nodePair.first; 
+            nodeAfterEqualitySequence = nodePair.second;
           }
           else
           {
@@ -1062,6 +1062,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 ArrayProof::ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* pe)
   : TheoryProof(arrays, pe)
 {}
+
+theory::TheoryId ArrayProof::getTheoryId() {
+    return theory::THEORY_ARRAYS;
+}
 
 void ArrayProof::registerTerm(Expr term) {
   // already registered
