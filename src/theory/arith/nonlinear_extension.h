@@ -600,16 +600,23 @@ private:
   std::map< Kind, std::map< unsigned, std::vector< Node > > > d_poly_bounds;
   /** get transcendental function model bounds 
    * 
-   * This returns the current upper and lower bounds of transcendental
+   * This returns the current lower and upper bounds of transcendental
    * function application tf based on Taylor of degree 2*d, which is dependent
    * on the model value of its argument. 
    */
   std::pair< Node, Node > getTfModelBounds( Node tf, unsigned d );
   /** is refinable transcendental function
    * 
-   * TODO
+   * A transcendental function application is not refineable if its current
+   * model value is zero, or if it is an application of SINE applied
+   * to a non-variable.
    */
   bool isRefineablableTfFun( Node tf );
+  /** 
+   * Get a lower/upper approximation of the constant r within the given
+   * level of precision.
+   */
+  Node getApproximateConstant( Node c, bool isLower, unsigned prec );
   
   /** concavity region for transcendental functions
   *

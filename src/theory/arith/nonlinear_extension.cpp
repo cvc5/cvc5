@@ -3316,6 +3316,14 @@ bool NonlinearExtension::isRefineablableTfFun(Node tf)
   return true;
 }
 
+
+Node NonlinearExtension::getApproximateConstant( Node c, bool isLower, unsigned prec )
+{
+  
+  
+  return c;
+}
+
 bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std::vector< Node >& taylor_vars, std::vector< Node >& lemmas )
 {
   Assert( isRefineablableTfFun( tf ) );
@@ -3353,11 +3361,11 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
   if (itr != d_tf_region.end())
   {
     region = itr->second;
-    Trace("nl-ext-tf-tplanes") << "  region is : " << region << std::endl;
+    Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;
   }
   // Figure 3 : conc
   int concavity = regionToConcavity(k, itr->second);
-  Trace("nl-ext-tf-tplanes") << "  concavity is : " << concavity << std::endl;
+  Trace("nl-ext-tftp-debug") << "  concavity is : " << concavity << std::endl;
   if (concavity == 0)
   {
     return false;
@@ -3379,15 +3387,13 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
   // compute whether this is a tangent refinement or a secant refinement
   bool is_tangent = false;
   bool is_secant = false;
-  std::map<unsigned, Node> model_values;
   std::pair< Node, Node > mvb = getTfModelBounds( tf, d );
   for (unsigned r = 0; r < 2; r++)
   {
     Node pab = poly_approx_bounds[r][csign];
-    model_values[r] = r==0 ? mvb.first : mvb.second;
-    if (!pab.isNull())
+    Node v_pab = r==0 ? mvb.first : mvb.second;
+    if (!v_pab.isNull())
     {
-      Node v_pab = model_values[r];
       Assert(v_pab.isConst());
       Trace("nl-ext-tftp-debug2") << "...model value of " << pab
                                         << " is " << v_pab << std::endl;
