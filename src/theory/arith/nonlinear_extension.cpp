@@ -919,7 +919,10 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
             if (ArithMSum::isolate( mv, msum, veqc, slv, EQUAL) != 0)
             {
               Assert( veqc.isNull() && !slv.isNull() );
-              v = mv;
+              if( !mv.hasSubterm(v) )
+              {
+                v = mv;
+              }
             }
           }
         }
@@ -1014,6 +1017,10 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
 {
   Trace("nl-ext-cms") << "simple check-model for " << lit
                                         << "..." << std::endl;
+  if( lit.isConst() && lit.getConst<bool>() )
+  {
+    return true;
+  }
   NodeManager* nm = NodeManager::currentNM();
   bool pol = lit.getKind() != kind::NOT;
   Node atom = lit.getKind() == kind::NOT ? lit[0] : lit;
@@ -1396,12 +1403,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       Node shift_lem = nm->mkNode(
           AND,
           mkValidPhase(y, d_pi),
-          a[0].eqNode(nm->mkNode(
-              PLUS,
-              y,
-              nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi))),
-          // particular case of above for shift=0
-          nm->mkNode(IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
+          nm->mkNode(ITE, mkValidPhase(a[0], d_pi), 
+            a[0].eqNode(y),
+            a[0].eqNode(nm->mkNode(
+                PLUS,
+                y,
+                nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
           new_a.eqNode(a));
       // must do preprocess on this one
       Trace("nl-ext-lemma")
@@ -1570,24 +1577,17 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
   
   //------------------------------------tangent planes
-  lemmas_proc = 0;
   if (options::nlExtTangentPlanes())
   {
     lemmas = checkTangentPlanes();
-    //lemmas_proc += flushLemmas(lemmas);
     d_waiting_lemmas.insert(d_waiting_lemmas.end(),lemmas.begin(),lemmas.end());
     lemmas.clear();
   }
   if (options::nlExtTfTangentPlanes())
   {
     lemmas = checkTranscendentalTangentPlanes();
-    //lemmas_proc += flushLemmas(lemmas);
     d_waiting_lemmas.insert(d_waiting_lemmas.end(),lemmas.begin(),lemmas.end());
     lemmas.clear();
-  }
-  if (lemmas_proc > 0) {
-    Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-    return lemmas_proc;
   }
   Trace("nl-ext") << "  ...finished with " << d_waiting_lemmas.size() << " waiting lemmas." << std::endl;
 
@@ -1695,10 +1695,12 @@ void NonlinearExtension::check(Theory::Effort e) {
                             << " shared terms with wrong model value."
                             << std::endl;
 
-      // we require a check either if an assertion is false or a shared term has
-      // a wrong value
+      // complete_status: 
+      //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
       int complete_status = 1;
       int num_added_lemmas = 0;
+      // we require a check either if an assertion is false or a shared term has
+      // a wrong value
       if (!false_asserts.empty() || num_shared_wrong_value > 0)
       {
         complete_status = num_shared_wrong_value > 0 ? -1 : 0;
@@ -1708,10 +1710,12 @@ void NonlinearExtension::check(Theory::Effort e) {
           return;
         }
       }
+      Trace("nl-ext") << "Finished check with status : " << complete_status << std::endl;
       
       // if we did not add a lemma during check and there is a chance for SAT
       if( complete_status==0 )
       {
+        Trace("nl-ext") << "Checking model based on bounds for transcendental functions..." << std::endl;
         // check the model using error bounds on the Taylor approximation
         // we must pass all assertions here, since we may modify
         // the model values in bounds.
