@@ -12,13 +12,15 @@
  ** \brief Symmetry detection module
  **/
 
-#include "theory/symmetry_detect.h"
+#include "preprocessing/passes/symmetry_detect.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
 using namespace std;
 
 namespace CVC4 {
+namespace preprocessing {
+namespace passes {
 
 SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
@@ -449,5 +451,6 @@ void SymmetryDetect::printPartition(Partition p)
     Trace("sym-dt") << " }" << endl;
   }
 }
-
+}  // namespace passes
+}  // namespace preprocessing
 }  // namespace CVC4

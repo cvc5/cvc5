@@ -23,6 +23,8 @@
 #include "expr/node.h"
 
 namespace CVC4 {
+namespace preprocessing {
+namespace passes {
 
 /**
  * This is the class to detect symmetries from input based on terms equality.
@@ -156,7 +158,8 @@ class SymmetryDetect
                std::map<Node, Node>& subvar_to_var,
                std::map<Node, Node>& subvar_to_expr);
 };
-
+}  // namespace passes
+}  // namespace preprocessing
 }  // namespace CVC4
 
 #endif

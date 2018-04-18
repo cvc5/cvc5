@@ -66,6 +66,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
+	preprocessing/passes/symmetry_detect.cpp \
+	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -180,8 +182,6 @@ libcvc4_la_SOURCES = \
 	theory/sort_inference.h \
 	theory/substitutions.cpp \
 	theory/substitutions.h \
-	theory/symmetry_detect.cpp \
-	theory/symmetry_detect.h \
 	theory/term_registration_visitor.cpp \
 	theory/term_registration_visitor.h \
 	theory/theory.cpp \
