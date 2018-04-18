@@ -262,10 +262,13 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         {
           b1 << kind::PARTIAL_APPLY_UF;
           b1 << n1[side].getOperator();
-        } else if (n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::PARTIAL_SELECT_1) {
-        // b1 << n1[side].getKind();
-        b1 << kind::SELECT;
-      } else {
+        }
+        else if (n1[side].getKind() == kind::SELECT
+                 || n1[side].getKind() == kind::PARTIAL_SELECT_1)
+        {
+          // b1 << n1[side].getKind();
+          b1 << kind::SELECT;
+        } else {
         b1 << kind::PARTIAL_APPLY_UF;
         b1 << ProofManager::currentPM()->mkOp(n1[side].getOperator());
       }
