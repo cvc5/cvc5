@@ -18,6 +18,7 @@
 #include "theory/arith/nonlinear_extension.h"
 
 #include <set>
+#include <cmath>
 
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
@@ -961,7 +962,7 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
       {
         // Figure 3 : tf( x )
         Node tf = tfr.second;
-        if( isRefineablableTfFun( tf ) )
+        if( isRefineableTfFun( tf ) )
         {
           Node atf = computeModelValue(tf);
           d_tf_check_model_bounds[atf] = getTfModelBounds(tf,d_taylor_degree);
@@ -969,15 +970,18 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
       }
     }
   }
-  
-  for (const std::pair<const Node, std::pair<Node, Node> >& tfb :
-       d_tf_check_model_bounds)
+  if( Trace.isOn("nl-ext-cm") )
   {
-    Node tf = tfb.first;
-    Trace("nl-ext-cm")
-        << "check-model : satisfied approximate bound : ";
-    Trace("nl-ext-cm") << tfb.second.first << " <= " << tf
-                                   << " <= " << tfb.second.second << std::endl;
+    for (const std::pair<const Node, std::pair<Node, Node> >& tfb :
+        d_tf_check_model_bounds)
+    {
+      Node tf = tfb.first;
+      Trace("nl-ext-cm") << "check-model : satisfied approximate bound : ";
+      printRationalApprox("nl-ext-cm",tfb.second.first, 10);
+      Trace("nl-ext-cm") << " <= " << tf << " <= ";
+      printRationalApprox("nl-ext-cm",tfb.second.first, 10);
+      Trace("nl-ext-cm") << std::endl;
+    }
   }
 
   std::unordered_set<Node,NodeHashFunction> all_assertions;
@@ -1297,8 +1301,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     Node a = xts[i];
     computeModelValue(a, 0);
     computeModelValue(a, 1);
-    Trace("nl-ext-mv") << "  " << a << " -> " << d_mv[1][a] << " [actual: "
-                       << d_mv[0][a] << " ]" << std::endl;
+    printModelValue("nl-ext-mv",a,10);
     //Assert(d_mv[1][a].isConst());
     //Assert(d_mv[0][a].isConst());
     if (a.getKind() == NONLINEAR_MULT)
@@ -1440,7 +1443,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     registerMonomial(v);
     computeModelValue(v, 0);
     computeModelValue(v, 1);
-    Trace("nl-ext-mv") << "  " << v << " -> " << d_mv[1][v] << " [actual: " << d_mv[0][v] << " ]" << std::endl;
+    printModelValue("nl-ext-mv",v,10);
   }
   if( Trace.isOn("nl-ext-mv") )
   {
@@ -1453,7 +1456,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           Node v = itt->second[0];
           computeModelValue(v, 0);
           computeModelValue(v, 1);
-          Trace("nl-ext-mv") << "  " << v << " -> " << d_mv[1][v] << " [actual: " << d_mv[0][v] << " ]" << std::endl;
+          printModelValue("nl-ext-mv",v,10);
         }
       }
     }
@@ -1666,13 +1669,11 @@ void NonlinearExtension::check(Theory::Effort e) {
         // compute its value in the model, and its evaluation in the model
         Node stv0 = computeModelValue(shared_term, 0);
         Node stv1 = computeModelValue(shared_term, 1);
-        Trace("nl-ext-mv") << "  " << shared_term << " -> " << stv0 << " [actual: " << stv1 << " ]" << std::endl;
+        printModelValue("nl-ext-mv",shared_term,10);
         if (stv0 != stv1)
         {
           num_shared_wrong_value++;
-          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
-                             << " : " << stv1 << ", actual is " << stv0
-                             << std::endl;
+          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << std::endl;
           if (shared_term != stv0)
           {
             // split on the value, this is non-terminating in general, TODO :
@@ -1915,6 +1916,43 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
   lemmas.push_back( pi_lem );
 }
 
+void NonlinearExtension::printRationalApprox(const char* c, Node cr, unsigned prec) const
+{
+  Assert( cr.isConst() );
+  Node ca = getApproximateConstant(cr,true,prec);
+  if( ca!=cr )
+  {
+    Trace(c) << "(+";
+  }
+  Trace(c) << ca;
+  if( ca!=cr )
+  {
+    Trace(c) << " [0,10^" << prec << "])";
+  }
+}
+void NonlinearExtension::printModelValue(const char* c, Node n, unsigned prec) const
+{
+  if( Trace.isOn(c) )
+  {
+    Trace(c) << "  " << n << " -> ";
+    for( unsigned i=0; i<2; i++ )
+    {
+      std::map<Node,Node>::const_iterator it = d_mv[1-i].find(n);
+      Assert( it != d_mv[1-i].end() );
+      if( it->second.isConst() )
+      {
+        printRationalApprox(c,it->second,prec);
+      }
+      else
+      {
+        Trace(c) << it->second;
+      }
+      Trace(c) << ( i==0 ? " [actual: " : " ]" );
+    }
+    Trace(c) << std::endl;
+  }
+}
+                       
 int NonlinearExtension::compare_value(Node i, Node j,
                                       unsigned orderType) const {
   Assert(orderType >= 0 && orderType <= 3);
@@ -3268,7 +3306,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     {
       // Figure 3 : tf( x )
       Node tf = tfr.second;
-      if( isRefineablableTfFun( tf ) )
+      if( isRefineableTfFun( tf ) )
       {
         Trace("nl-ext-tftp") << "Compute tangent planes " << tf << std::endl;
         // go until max degree is reached, or we don't meet bound criteria
@@ -3293,7 +3331,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
   return lemmas;
 }
 
-bool NonlinearExtension::isRefineablableTfFun(Node tf)
+bool NonlinearExtension::isRefineableTfFun(Node tf)
 {
   Assert( tf.getKind()==SINE || tf.getKind()==EXPONENTIAL );
   if (tf.getKind()== SINE)
@@ -3317,16 +3355,82 @@ bool NonlinearExtension::isRefineablableTfFun(Node tf)
 }
 
 
-Node NonlinearExtension::getApproximateConstant( Node c, bool isLower, unsigned prec )
+Node NonlinearExtension::getApproximateConstant( Node c, bool isLower, unsigned prec ) const
 {
+  Assert( c.isConst() );
+  Rational cr = c.getConst<Rational>();
   
+  unsigned lower = 0;
+  unsigned upper = pow(10,prec);
   
-  return c;
+  Rational den = Rational(upper);
+  if( cr.getDenominator()<den.getNumerator() )
+  {
+    // denominator is not more than precision, we return it
+    return c;
+  }
+  
+  int csign = cr.sgn();
+  Assert( csign!=0 );
+  if( csign==-1 )
+  {
+    cr = -cr;
+  }
+  Rational one = Rational(1);
+  Rational ten = Rational(10);
+  Rational pow_ten = Rational(1);
+  // inefficient for large numbers
+  while( cr>=one )
+  {
+    cr = cr/ten;
+    pow_ten = pow_ten*ten;
+  }
+  Rational allow_err = one/den;
+  
+  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision " << prec << "..." << std::endl;
+  // now do binary search 
+  Rational two = Rational(2);
+  Node cret;
+  do
+  {
+    unsigned curr = (lower+upper)/2;
+    Rational curr_r = Rational(curr)/den;
+    Rational err = cr-curr_r;
+    int esign = err.sgn();
+    if( err.abs()<=allow_err )
+    {
+      if( esign==1 && !isLower )
+      {
+        curr_r = Rational(curr+1)/den;
+      }
+      else if( esign==-1 && isLower )
+      {
+        curr_r = Rational(curr-1)/den;
+      }
+      curr_r = curr_r*pow_ten;
+      cret = NodeManager::currentNM()->mkConst( csign==1 ? curr_r : -curr_r );
+    }
+    else
+    {
+      Assert( esign!=0 );
+      // update lower/upper
+      if( esign==-1 )
+      {
+        upper = curr;
+      }
+      else if( esign==1 )
+      {
+        lower = curr;
+      }
+    }
+  }while( cret.isNull() );
+  Trace("nl-ext-approx") << "Approximation for " << c << " for precision " << prec << " is " << cret << std::endl;
+  return cret;
 }
 
 bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std::vector< Node >& taylor_vars, std::vector< Node >& lemmas )
 {
-  Assert( isRefineablableTfFun( tf ) );
+  Assert( isRefineableTfFun( tf ) );
   
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
@@ -3353,6 +3457,12 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
                               << tf << ", degree " << d << "..." << std::endl;
   Trace("nl-ext-tftp-debug") << "  value in model : " << v << std::endl;
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
+  // compute approximations
+  Node c_approx_l = getApproximateConstant( c, true, 6 );
+  //Node c_approx_u = getApproximateConstant( c, false, 6 );
+  c = c_approx_l;
+  Trace("nl-ext-tftp-debug") << "  approximation : " << c << std::endl;
+  
 
   // compute the concavity
   int region = -1;
@@ -3403,6 +3513,27 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
       Node compr = Rewriter::rewrite(comp);
       Trace("nl-ext-tftp-debug2") << "...got : " << compr
                                         << std::endl;
+      if( Trace.isOn("nl-ext-tftp") )
+      {
+        if (compr == d_true)
+        {
+          Trace("nl-ext-tftp") << "*** Outside boundary point (";
+          Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
+          printRationalApprox("nl-ext-tftp", v_pab, 10 );
+          Trace("nl-ext-tftp") << ", will refine..." << std::endl;
+          Trace("nl-ext-tftp") << "    poly_approx = " << poly_approx << std::endl;
+          Trace("nl-ext-tftp") << "    is_tangent = " << is_tangent << std::endl;
+          Trace("nl-ext-tftp") << "    is_secant = " << is_secant << std::endl;
+        }
+        else
+        {
+          Trace("nl-ext-tftp") << "  ...within "
+                                      << (r == 0 ? "low" : "high")
+                                      << " bound : ";
+          printRationalApprox("nl-ext-tftp", v_pab, 10 );
+          Trace("nl-ext-tftp") << std::endl;
+        }
+      }
       if (compr == d_true)
       {
         // beyond the bounds
@@ -3418,21 +3549,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
           is_tangent = concavity == -1;
           is_secant = concavity == 1;
         }
-        Trace("nl-ext-tftp") << "*** Outside boundary point (";
-        Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
-        Trace("nl-ext-tftp") << comp << ", will refine..." << std::endl;
-        Trace("nl-ext-tftp") << "    poly_approx = " << poly_approx << std::endl;
-        Trace("nl-ext-tftp") << "    is_tangent = " << is_tangent
-                                    << std::endl;
-        Trace("nl-ext-tftp") << "    is_secant = " << is_secant
-                                    << std::endl;
         break;
-      }
-      else
-      {
-        Trace("nl-ext-tftp") << "  ...within "
-                                    << (r == 0 ? "low" : "high")
-                                    << " bound : " << comp << std::endl;
       }
     }
   }
