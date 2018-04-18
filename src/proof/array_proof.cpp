@@ -235,18 +235,18 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       Debug("mgd") << "           " << n2 << "\n";
 
       int side = 0;
-      if (TheoryProof::match(pf2->d_node, n1[0]))
+      if (tp->match(pf2->d_node, n1[0]))
       {
         Debug("mgd") << "SIDE IS 0\n";
         side = 0;
       } else {
       Debug("mgd") << "SIDE IS 1\n";
-      if (!TheoryProof::match(pf2->d_node, n1[1]))
+      if (!tp->match(pf2->d_node, n1[1]))
       {
         Debug("mgd") << "IN BAD CASE, our first subproof is\n";
         pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
       }
-      Assert(TheoryProof::match(pf2->d_node, n1[1]));
+      Assert(tp->match(pf2->d_node, n1[1]));
       side = 1;
     }
 

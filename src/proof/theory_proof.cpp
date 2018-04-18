@@ -1086,6 +1086,8 @@ BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
   : TheoryProof(NULL, proofEngine)
 {}
 
+
+
 void BooleanProof::registerTerm(Expr term) {
   Assert (term.getType().isBoolean());
 
@@ -1096,6 +1098,10 @@ void BooleanProof::registerTerm(Expr term) {
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     d_proofEngine->registerTerm(term[i]);
   }
+}
+
+theory::TheoryId BooleanProof::getTheoryId() {
+    return theory::THEORY_BOOL;
 }
 
 void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
@@ -1266,7 +1272,7 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
 
 inline bool TheoryProof::match(TNode n1, TNode n2)
 {
-  theory::TheoryId theoryId = getTheoryId();
+  theory::TheoryId theoryId = this->getTheoryId();
   ProofManager* pm = ProofManager::currentPM();
   bool ufProof = (theoryId == theory::THEORY_UF);
   Debug(ufProof ? "pf::uf" : "mgd") << "match " << n1 << " " << n2 << std::endl;
@@ -1630,7 +1636,7 @@ std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
   }
 
   Debug("pf::" + theoryName) << "Have proven: " << n << std::endl;
-  return std::make_pair<Node, Node>(n, nodeAfterEqualitySequence);
+  return std::make_pair<Node&, Node&>(n, nodeAfterEqualitySequence);
 }
 
 } /* namespace CVC4 */

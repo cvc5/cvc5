@@ -175,7 +175,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
     Debug("pf::uf") << "           " << n1 << "\n";
     Debug("pf::uf") << "           " << n2 << "\n";
     int side = 0;
-    if (TheoryProof::match(pf2->d_node, n1[0]))
+    if (tp->match(pf2->d_node, n1[0]))
     {
       //if(tb == 1) {
       Debug("pf::uf") << "SIDE IS 0\n";
@@ -185,12 +185,12 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       //if(tb == 1) {
       Debug("pf::uf") << "SIDE IS 1\n";
       //}
-      if (!TheoryProof::match(pf2->d_node, n1[1]))
+      if (!tp->match(pf2->d_node, n1[1]))
       {
         Debug("pf::uf") << "IN BAD CASE, our first subproof is\n";
         pf2->d_children[0]->debug_print("pf::uf");
       }
-      Assert(TheoryProof::match(pf2->d_node, n1[1]));
+      Assert(tp->match(pf2->d_node, n1[1]));
       side = 1;
     }
     if (n1[side].getKind() == kind::APPLY_UF

@@ -63,7 +63,7 @@ protected:
   ExprSet d_declarations; // all the variable/function declarations
 
   bool d_realMode;
-
+  theory::TheoryId getTheoryId();
 public:
   ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine);
 
