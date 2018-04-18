@@ -64,7 +64,8 @@ protected:
 
   bool d_realMode;
   theory::TheoryId getTheoryId();
-public:
+
+ public:
   ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine);
 
   void registerTerm(Expr term) override;

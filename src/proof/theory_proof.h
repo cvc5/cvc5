@@ -208,7 +208,8 @@ protected:
   theory::Theory* d_theory;
   TheoryProofEngine* d_proofEngine;
   virtual theory::TheoryId getTheoryId() = 0;
-public:
+
+ public:
   TheoryProof(theory::Theory* th, TheoryProofEngine* proofEngine)
     : d_theory(th)
     , d_proofEngine(proofEngine)
@@ -276,17 +277,17 @@ public:
    *    - outStream: output stream to which the proof is printed
    *    - n: transitivity sub-proof
    *    - nodeAfterEqualitySequence: The node after the identical sequence.
-   * 
+   *
    */
   std::pair<Node, Node> identicalEqualitiesPrinterHelper(
-                                 bool evenLengthSequence,
-                                 bool sequenceOver,
-                                 const theory::eq::EqProof& pf,
-                                 const ProofLetMap& map,
-                                 const std::string subproofStr,
-                                 std::stringstream* outStream,
-                                 Node n,
-                                 Node nodeAfterEqualitySequence);
+      bool evenLengthSequence,
+      bool sequenceOver,
+      const theory::eq::EqProof& pf,
+      const ProofLetMap& map,
+      const std::string subproofStr,
+      std::stringstream* outStream,
+      Node n,
+      Node nodeAfterEqualitySequence);
 
   /**
    * Print the proof representation of the given type that belongs to THIS theory.
@@ -364,7 +365,8 @@ class BooleanProof : public TheoryProof {
 protected:
   ExprSet d_declarations; // all the boolean variables
   theory::TheoryId getTheoryId();
-public:
+
+ public:
   BooleanProof(TheoryProofEngine* proofEngine);
 
   void registerTerm(Expr term) override;

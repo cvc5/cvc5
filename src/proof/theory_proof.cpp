@@ -1086,8 +1086,6 @@ BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
   : TheoryProof(NULL, proofEngine)
 {}
 
-
-
 void BooleanProof::registerTerm(Expr term) {
   Assert (term.getType().isBoolean());
 
@@ -1100,10 +1098,7 @@ void BooleanProof::registerTerm(Expr term) {
   }
 }
 
-theory::TheoryId BooleanProof::getTheoryId() {
-    return theory::THEORY_BOOL;
-}
-
+theory::TheoryId BooleanProof::getTheoryId() { return theory::THEORY_BOOL; }
 void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   Node falseNode = NodeManager::currentNM()->mkConst(false);
   Node trueNode = NodeManager::currentNM()->mkConst(true);
@@ -1268,7 +1263,6 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
   os << "))";
 }
-
 
 inline bool TheoryProof::match(TNode n1, TNode n2)
 {
@@ -1544,14 +1538,14 @@ int TheoryProof::assertAndPrint(
 }
 
 std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
-                                            bool evenLengthSequence,
-                                            bool sequenceOver,
-                                            const theory::eq::EqProof& pf,
-                                            const ProofLetMap& map,
-                                            const std::string subproofStr,
-                                            std::stringstream* outStream,
-                                            Node n,
-                                            Node nodeAfterEqualitySequence)
+    bool evenLengthSequence,
+    bool sequenceOver,
+    const theory::eq::EqProof& pf,
+    const ProofLetMap& map,
+    const std::string subproofStr,
+    std::stringstream* outStream,
+    Node n,
+    Node nodeAfterEqualitySequence)
 {
   theory::TheoryId theoryId = getTheoryId();
   Assert(theoryId == theory::THEORY_UF || theoryId == theory::THEORY_ARRAYS);

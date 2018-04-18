@@ -110,8 +110,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     std::shared_ptr<theory::eq::EqProof> subTrans =
         std::make_shared<theory::eq::EqProof>();
 
-    int neg = tp->assertAndPrint(
-        pf, map, subTrans, &proofPrinter);
+    int neg = tp->assertAndPrint(pf, map, subTrans, &proofPrinter);
 
     Node n1;
     std::stringstream ss, ss2;
@@ -239,26 +238,31 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       {
         Debug("mgd") << "SIDE IS 0\n";
         side = 0;
-      } else {
-      Debug("mgd") << "SIDE IS 1\n";
-      if (!tp->match(pf2->d_node, n1[1]))
-      {
-        Debug("mgd") << "IN BAD CASE, our first subproof is\n";
-        pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
       }
-      Assert(tp->match(pf2->d_node, n1[1]));
-      side = 1;
-    }
+      else
+      {
+        Debug("mgd") << "SIDE IS 1\n";
+        if (!tp->match(pf2->d_node, n1[1]))
+        {
+          Debug("mgd") << "IN BAD CASE, our first subproof is\n";
+          pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
+        }
+        Assert(tp->match(pf2->d_node, n1[1]));
+        side = 1;
+      }
 
-    if(n1[side].getKind() == kind::APPLY_UF ||
-       n1[side].getKind() == kind::PARTIAL_APPLY_UF ||
-       n1[side].getKind() == kind::SELECT ||
-       n1[side].getKind() == kind::PARTIAL_SELECT_1 ||
-       n1[side].getKind() == kind::STORE) {
-      if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::PARTIAL_APPLY_UF) {
-        b1 << kind::PARTIAL_APPLY_UF;
-        b1 << n1[side].getOperator();
-      } else if (n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::PARTIAL_SELECT_1) {
+      if (n1[side].getKind() == kind::APPLY_UF
+          || n1[side].getKind() == kind::PARTIAL_APPLY_UF
+          || n1[side].getKind() == kind::SELECT
+          || n1[side].getKind() == kind::PARTIAL_SELECT_1
+          || n1[side].getKind() == kind::STORE)
+      {
+        if (n1[side].getKind() == kind::APPLY_UF
+            || n1[side].getKind() == kind::PARTIAL_APPLY_UF)
+        {
+          b1 << kind::PARTIAL_APPLY_UF;
+          b1 << n1[side].getOperator();
+        } else if (n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::PARTIAL_SELECT_1) {
         // b1 << n1[side].getKind();
         b1 << kind::SELECT;
       } else {
@@ -420,8 +424,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       b2.append(n2.begin(), n2.end());
       n2 = b2;
     }
-    Node n =
-        (side == 0 ? n1.eqNode(n2) : n2.eqNode(n1));
+    Node n = (side == 0 ? n1.eqNode(n2) : n2.eqNode(n1));
 
     Debug("mgdx") << "\ncong proved: " << n << "\n";
     return n;
@@ -565,16 +568,16 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
               ++j;
             }
 
-            nodePair = tp->identicalEqualitiesPrinterHelper(
-                                          evenLengthSequence,
-                                          sequenceOver,
-                                          pf,
-                                          map,
-                                          ss1.str(),
-                                          &ss,
-                                          n1,
-                                          nodeAfterEqualitySequence);
-            n1 = nodePair.first; 
+            nodePair =
+                tp->identicalEqualitiesPrinterHelper(evenLengthSequence,
+                                                     sequenceOver,
+                                                     pf,
+                                                     map,
+                                                     ss1.str(),
+                                                     &ss,
+                                                     n1,
+                                                     nodeAfterEqualitySequence);
+            n1 = nodePair.first;
             nodeAfterEqualitySequence = nodePair.second;
           }
           else
@@ -1002,25 +1005,27 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         t3 = pf.d_node[0];
         ret = pf.d_node[1].eqNode(pf.d_node[0]);
         Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-      } else {
-      Assert(pf.d_node[0].getKind() == kind::SELECT &&
-             pf.d_node[0][0].getKind() == kind::STORE &&
-             pf.d_node[0][0][1] == pf.d_node[0][1] &&
-             pf.d_node[0][0][2] == pf.d_node[1]);
-      t1 = pf.d_node[0][0][0];
-      t2 = pf.d_node[0][0][1];
-      t3 = pf.d_node[1];
-      ret = pf.d_node;
-      Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
-    }
-    out << "(row1 _ _ ";
-    tp->printTerm(t1.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t2.toExpr(), out, map);
-    out << " ";
-    tp->printTerm(t3.toExpr(), out, map);
-    out << ")";
-    return ret;
+      }
+      else
+      {
+        Assert(pf.d_node[0].getKind() == kind::SELECT
+               && pf.d_node[0][0].getKind() == kind::STORE
+               && pf.d_node[0][0][1] == pf.d_node[0][1]
+               && pf.d_node[0][0][2] == pf.d_node[1]);
+        t1 = pf.d_node[0][0][0];
+        t2 = pf.d_node[0][0][1];
+        t3 = pf.d_node[1];
+        ret = pf.d_node;
+        Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\n";
+      }
+      out << "(row1 _ _ ";
+      tp->printTerm(t1.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t2.toExpr(), out, map);
+      out << " ";
+      tp->printTerm(t3.toExpr(), out, map);
+      out << ")";
+      return ret;
   }
   else if (pf.d_id == d_reasonExt) {
     Assert(pf.d_node.getKind() == kind::NOT);
@@ -1063,10 +1068,7 @@ ArrayProof::ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* 
   : TheoryProof(arrays, pe)
 {}
 
-theory::TheoryId ArrayProof::getTheoryId() {
-    return theory::THEORY_ARRAYS;
-}
-
+theory::TheoryId ArrayProof::getTheoryId() { return theory::THEORY_ARRAYS; }
 void ArrayProof::registerTerm(Expr term) {
   // already registered
   if (d_declarations.find(term) != d_declarations.end())
@@ -1090,8 +1092,10 @@ void ArrayProof::registerTerm(Expr term) {
   if (term.getKind() == kind::SELECT && term.getType().isBoolean()) {
     // Ensure cnf literals
     Node asNode(term);
-    ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(true)));
-    ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(false)));
+    ProofManager::currentPM()->ensureLiteral(
+        asNode.eqNode(NodeManager::currentNM()->mkConst(true)));
+    ProofManager::currentPM()->ensureLiteral(
+        asNode.eqNode(NodeManager::currentNM()->mkConst(false)));
   }
 
   // recursively declare all other terms

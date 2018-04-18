@@ -295,8 +295,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
       b2.append(n2.begin(), n2.end());
       n2 = b2;
     }
-    Node n =
-        (side == 0 ? n1.eqNode(n2) : n2.eqNode(n1));
+    Node n = (side == 0 ? n1.eqNode(n2) : n2.eqNode(n1));
     if(tb == 1) {
       Debug("pf::uf") << "\ncong proved: " << n << "\n";
     }
@@ -422,15 +421,15 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
               ++j;
             }
 
-            nodePair = tp->identicalEqualitiesPrinterHelper(
-                                          evenLengthSequence,
-                                          sequenceOver,
-                                          pf,
-                                          map,
-                                          ss1.str(),
-                                          &ss,
-                                          n1,
-                                          nodeAfterEqualitySequence);
+            nodePair =
+                tp->identicalEqualitiesPrinterHelper(evenLengthSequence,
+                                                     sequenceOver,
+                                                     pf,
+                                                     map,
+                                                     ss1.str(),
+                                                     &ss,
+                                                     n1,
+                                                     nodeAfterEqualitySequence);
             n1 = nodePair.first;
             nodeAfterEqualitySequence = nodePair.second;
           } else {
@@ -578,10 +577,7 @@ UFProof::UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* pe)
   : TheoryProof(uf, pe)
 {}
 
-theory::TheoryId UFProof::getTheoryId(){
-    return theory::THEORY_UF;
-}
-
+theory::TheoryId UFProof::getTheoryId() { return theory::THEORY_UF; }
 void UFProof::registerTerm(Expr term) {
   // already registered
   if (d_declarations.find(term) != d_declarations.end())
@@ -605,8 +601,10 @@ void UFProof::registerTerm(Expr term) {
     if (term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
       // Ensure cnf literals
       Node asNode(term);
-      ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(true)));
-      ProofManager::currentPM()->ensureLiteral(asNode.eqNode(NodeManager::currentNM()->mkConst(false)));
+      ProofManager::currentPM()->ensureLiteral(
+          asNode.eqNode(NodeManager::currentNM()->mkConst(true)));
+      ProofManager::currentPM()->ensureLiteral(
+          asNode.eqNode(NodeManager::currentNM()->mkConst(false)));
     }
   }
 
