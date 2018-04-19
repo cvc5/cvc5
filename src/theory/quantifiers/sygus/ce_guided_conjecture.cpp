@@ -748,7 +748,15 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               }
             }
           }
-          // we count this as a rewrite if we did not explicitly rule it out
+          // We count this as a rewrite if we did not explicitly rule it out.
+          // Notice that when --sygus-rr-synth-check is enabled,
+          // statistics on number of candidate rewrite rules is
+          // an accurate count of (#enumerated_terms-#unique_terms) only if 
+          // the option sygus-rr-synth-filter-order is disabled. The reason
+          // is that the sygus sampler may reason that a candidate rewrite
+          // rule is not useful since its variables are unordered, whereby
+          // it discards it as a redundant candidate rewrite rule before
+          // checking its correctness.
           if (success)
           {
             ++(cei->d_statistics.d_candidate_rewrites);

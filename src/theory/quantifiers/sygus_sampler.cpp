@@ -704,8 +704,11 @@ void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
   // initialize the dynamic rewriter
   std::stringstream ss;
   ss << f;
-  d_drewrite =
-      std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+  if (options::sygusRewSynthFilterCong())
+  {
+    d_drewrite =
+        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+  }
   d_pairs.clear();
   d_match_trie.clear();
 }
@@ -730,41 +733,46 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // whether we will keep this pair
   bool keep = true;
 
-  // ----- check ordering redundancy
-  bool nor = isOrdered(bn);
-  bool eqor = isOrdered(beq_n);
-  Trace("sygus-synth-rr-debug")
-      << "Ordered? : " << nor << " " << eqor << std::endl;
-  if (eqor || nor)
+  // ----- check ordering redundancy  
+  if (options::sygusRewSynthFilterOrder())
   {
-    // if only one is ordered, then the ordered one's variables cannot be
-    // a strict subset of the variables of the other
-    if (!eqor)
+    bool nor = isOrdered(bn);
+    bool eqor = isOrdered(beq_n);
+    Trace("sygus-synth-rr-debug")
+        << "Ordered? : " << nor << " " << eqor << std::endl;
+    if (eqor || nor)
     {
-      if (containsFreeVariables(beq_n, bn, true))
+      // if only one is ordered, then the ordered one's variables cannot be
+      // a strict subset of the variables of the other
+      if (!eqor)
       {
-        keep = false;
+        if (containsFreeVariables(beq_n, bn, true))
+        {
+          keep = false;
+        }
+        else
+        {
+          // if the previous value stored was unordered, but n is
+          // ordered, we prefer n. Thus, we force its addition to the
+          // sampler database.
+          SygusSampler::registerTerm(n, true);
+        }
       }
-      else
+      else if (!nor)
       {
-        // if the previous value stored was unordered, but n is
-        // ordered, we prefer n. Thus, we force its addition to the
-        // sampler database.
-        SygusSampler::registerTerm(n, true);
+        keep = !containsFreeVariables(bn, beq_n, true);
       }
     }
-    else if (!nor)
+    else
     {
-      keep = !containsFreeVariables(bn, beq_n, true);
+      keep = false;
     }
-  }
-  else
-  {
-    keep = false;
-  }
-  if (!keep)
-  {
-    Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
+    if (!keep)
+    {
+      // notice that this filtering makes the statistics
+      // 
+      Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
+    }
   }
 
   // ----- check rewriting redundancy
@@ -779,7 +787,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     }
   }
 
-  if (options::sygusRewSynthFilter())
+  if (options::sygusRewSynthFilterMatch())
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
@@ -828,19 +836,22 @@ void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
     Assert(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
-  }
-  // add to match information
-  for (unsigned r = 0; r < 2; r++)
+  }  
+  if (options::sygusRewSynthFilterMatch())
   {
-    Node t = r == 0 ? bn : beq_n;
-    Node to = r == 0 ? beq_n : bn;
-    // insert in match trie if first time
-    if (d_pairs.find(t) == d_pairs.end())
+    // add to match information
+    for (unsigned r = 0; r < 2; r++)
     {
-      Trace("sse-match") << "SSE add term : " << t << std::endl;
-      d_match_trie.addTerm(t);
+      Node t = r == 0 ? bn : beq_n;
+      Node to = r == 0 ? beq_n : bn;
+      // insert in match trie if first time
+      if (d_pairs.find(t) == d_pairs.end())
+      {
+        Trace("sse-match") << "SSE add term : " << t << std::endl;
+        d_match_trie.addTerm(t);
+      }
+      d_pairs[t].insert(to);
     }
-    d_pairs[t].insert(to);
   }
 }
 
