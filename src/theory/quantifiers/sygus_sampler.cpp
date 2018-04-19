@@ -733,13 +733,13 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
   // whether we will keep this pair
   bool keep = true;
 
-  // ----- check ordering redundancy  
+  // ----- check ordering redundancy
   if (options::sygusRewSynthFilterOrder())
   {
     bool nor = isOrdered(bn);
     bool eqor = isOrdered(beq_n);
-    Trace("sygus-synth-rr-debug")
-        << "Ordered? : " << nor << " " << eqor << std::endl;
+    Trace("sygus-synth-rr-debug") << "Ordered? : " << nor << " " << eqor
+                                  << std::endl;
     if (eqor || nor)
     {
       // if only one is ordered, then the ordered one's variables cannot be
@@ -769,8 +769,6 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     }
     if (!keep)
     {
-      // notice that this filtering makes the statistics
-      // 
       Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
     }
   }
@@ -836,7 +834,7 @@ void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
     Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
     Assert(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
-  }  
+  }
   if (options::sygusRewSynthFilterMatch())
   {
     // add to match information
