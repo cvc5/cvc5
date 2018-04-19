@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SYMMETRY_DETECT_H
-#define __CVC4__THEORY__SYMMETRY_DETECT_H
+#ifndef __CVC4__PREPROCESSING__PASSES__SYMMETRY_DETECT_H
+#define __CVC4__PREPROCESSING__PASSES__SYMMETRY_DETECT_H
 
 #include <map>
 #include <string>
