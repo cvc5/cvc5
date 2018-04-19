@@ -24,6 +24,7 @@ generated/
 *.gcov
 /lcov/
 /config/compile
+/config/tap-driver.sh
 .cvc4_config
 config.reconfig
 *.swp
