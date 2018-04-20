@@ -439,6 +439,7 @@ bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
           {
             return false;
           }
+          // cur should only be visited once
           Assert(std::find(fv_found.begin(), fv_found.end(), cur)
                  == fv_found.end());
           fv_found.push_back(cur);
@@ -742,8 +743,8 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
                                   << std::endl;
     if (eqor || nor)
     {
-      // if only one is ordered, then the ordered one's variables cannot be
-      // a strict subset of the variables of the other
+      // if only one is ordered, then we require that the ordered one's
+      // variables cannot be a strict subset of the variables of the other.
       if (!eqor)
       {
         if (containsFreeVariables(beq_n, bn, true))
