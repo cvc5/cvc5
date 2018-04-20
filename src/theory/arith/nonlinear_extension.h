@@ -457,21 +457,21 @@ class NonlinearExtension {
   std::vector<Node> d_constraints;
 
   // per last-call effort
-  
-  /** 
+
+  /**
    * Map from variables appear in assertions to a solved form term. This map can
    * be ordered such that it is of the form:
    *   x_1 -> t_1 ... x_n -> t_n
    * where x_i is not in the free variables of t_j for j>=i.
    */
-  std::vector< Node > d_check_model_vars;
-  std::vector< Node > d_check_model_subs;
-  /** 
+  std::vector<Node> d_check_model_vars;
+  std::vector<Node> d_check_model_subs;
+  /**
    * Map from all literals appearing in the current set of assertions to their
    * rewritten form under the substitution given by d_check_model_solve_form.
    */
-  std::map< Node, Node > d_check_model_lit;
-  
+  std::map<Node, Node> d_check_model_lit;
+
   // model values/orderings
   /** cache of model values
    *
@@ -489,15 +489,16 @@ class NonlinearExtension {
   std::map<Node, bool> d_trig_is_base;
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
-  std::vector< Node > d_waiting_lemmas;
-  
+  std::vector<Node> d_waiting_lemmas;
+
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
   /** print rational approximation */
-  void printRationalApprox(const char* c, Node cr, unsigned prec=5) const;
+  void printRationalApprox(const char* c, Node cr, unsigned prec = 5) const;
   /** print model value */
-  void printModelValue(const char* c, Node n, unsigned prec=5) const;
-private:
+  void printModelValue(const char* c, Node n, unsigned prec = 5) const;
+
+ private:
   //per last-call effort check
   
   //information about monomials
@@ -510,7 +511,7 @@ private:
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
   /** the set of monomials we should apply tangent planes to */
-  std::unordered_set<Node, NodeHashFunction > d_tplane_refine;
+  std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
   // term -> coeff -> rhs -> ( status, exp, b ),
   //   where we have that : exp =>  ( coeff * term <status> rhs )
   //   b is true if degree( term ) >= degree( rhs )
@@ -551,7 +552,10 @@ private:
    * each transcendental function application. We store this set for each
    * Taylor degree.
    */
-  std::unordered_map<Node, std::map< unsigned, std::vector<Node> >, NodeHashFunction> d_secant_points;
+  std::unordered_map<Node,
+                     std::map<unsigned, std::vector<Node> >,
+                     NodeHashFunction>
+      d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
    *
@@ -591,40 +595,42 @@ private:
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
   unsigned d_taylor_degree;
-  /** polynomial approximation bounds 
-   * 
+  /** polynomial approximation bounds
+   *
    * This adds P_l+, P_l-, P_u+, P_u- to pbounds, where these are polynomial
-   * approximations of the Taylor series of <k>( 0 ) for degree 2*d where 
+   * approximations of the Taylor series of <k>( 0 ) for degree 2*d where
    * k is SINE or EXPONENTIAL.
    * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
    * for positive/negative (+/-) values of the argument of <k>( 0 ).
    */
-  void getPolynomialApproximationBounds(Kind k, unsigned d, std::vector< Node >& pbounds );
+  void getPolynomialApproximationBounds(Kind k,
+                                        unsigned d,
+                                        std::vector<Node>& pbounds);
   /** cache of the above function */
-  std::map< Kind, std::map< unsigned, std::vector< Node > > > d_poly_bounds;
-  /** get transcendental function model bounds 
-   * 
+  std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
+  /** get transcendental function model bounds
+   *
    * This returns the current lower and upper bounds of transcendental
    * function application tf based on Taylor of degree 2*d, which is dependent
-   * on the model value of its argument. 
+   * on the model value of its argument.
    */
-  std::pair< Node, Node > getTfModelBounds( Node tf, unsigned d );
+  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
   /** is refinable transcendental function
-   * 
+   *
    * A transcendental function application is not refineable if its current
    * model value is zero, or if it is an application of SINE applied
    * to a non-variable.
    */
-  bool isRefineableTfFun( Node tf );
-  /** 
+  bool isRefineableTfFun(Node tf);
+  /**
    * Get a lower/upper approximation of the constant r within the given
-   * level of precision. In other words, this returns a constant c' such that 
+   * level of precision. In other words, this returns a constant c' such that
    *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
    *   c' + 1/(10^prec) <= c <= c' if isLower is false.
    * where c' is a rational of the form n/d for some n and d <= 10^prec.
    */
-  Node getApproximateConstant( Node c, bool isLower, unsigned prec ) const;
-  
+  Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
+
   /** concavity region for transcendental functions
   *
   * This stores an integer that identifies an interval in
@@ -909,11 +915,14 @@ private:
   *     such that c1 ~= .277 and c2 ~= 2.032.
   */
   std::vector<Node> checkTranscendentalTangentPlanes();
-  /** check transcendental function refinement for tf 
-   * 
+  /** check transcendental function refinement for tf
+   *
    * TODO
    */
-  bool checkTfTangentPlanesFun( Node tf, unsigned d, const std::vector< Node >& taylor_vars, std::vector< Node >& lems );
+  bool checkTfTangentPlanesFun(Node tf,
+                               unsigned d,
+                               const std::vector<Node>& taylor_vars,
+                               std::vector<Node>& lems);
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
