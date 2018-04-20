@@ -1191,6 +1191,7 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
       options::bvAbstraction.set(true);
       options::skolemizeArguments.set(true);
     }
+    return theory::bv::BITBLAST_MODE_EAGER;
   } else if(optarg == "help") {
     puts(s_bitblastingModeHelp.c_str());
     exit(1);
