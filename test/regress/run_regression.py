@@ -171,7 +171,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
             continue
-        line = line[1:].strip()
+        line = line[1:].lstrip()
 
         if line.startswith(SCRUBBER):
             scrubber = line[len(SCRUBBER):]
