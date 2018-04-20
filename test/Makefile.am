@@ -85,8 +85,12 @@ check-local:
 			fi; \
 		fi; \
 	done; \
-	for dir in `find regress -not -empty -type d`; do \
-		status_info=`grep -d skip ":test-result: " $$dir/*`; \
+	for dir in `find regress -maxdepth 2 -not -empty -type d | sort`; do \
+		if [[ "$$dir" =~ .*regress[0-4]$$ ]]; then \
+			status_info=`grep -d skip ":test-result: " $$dir/*`; \
+		else \
+			status_info=`grep -r ":test-result: " $$dir`; \
+		fi; \
 		total=`echo "$$status_info" | grep ":test-result: " | wc -l`; \
 		if [ $$total -ne 0 ]; then \
 			status="$${std}$$total TOTAL"; \
