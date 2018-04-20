@@ -49,9 +49,8 @@ QF_NRA)
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA)
   # the following is designed for a run time of 2400s (40 min).
   # initial runs 1min
-  trywith 20 --simplification=none --full-saturate-quant
-  trywith 20 --no-e-matching --full-saturate-quant
-  trywith 20 --fs-interleave --decision=internal --full-saturate-quant
+  trywith 30 --simplification=none --full-saturate-quant
+  trywith 30 --no-e-matching --full-saturate-quant
   # trigger selections 3min
   trywith 30 --relevant-triggers --full-saturate-quant
   trywith 30 --trigger-sel=max --full-saturate-quant
@@ -63,22 +62,19 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 30 --pre-skolem-quant --full-saturate-quant
   trywith 30 --inst-when=full --full-saturate-quant
   trywith 30 --no-e-matching --no-quant-cf --full-saturate-quant
-  trywith 30 --nl-ext --full-saturate-quant
   trywith 30 --full-saturate-quant --quant-ind
   trywith 60 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
-  # finite model find 2min
-  trywith 20 --finite-model-find --mbqi=none
-  trywith 20 --finite-model-find
-  trywith 20 --finite-model-find --uf-ss=no-minimal
+  # finite model find 3min
+  trywith 30 --finite-model-find --mbqi=none
+  trywith 30 --finite-model-find --decision=internal
+  trywith 30 --finite-model-find --macros-quant --macros-quant-mode=all
+  trywith 30 --finite-model-find --uf-ss=no-minimal
   trywith 60 --finite-model-find --fmf-inst-engine
   # long runs 20min
   trywith 200 --decision=internal --full-saturate-quant
   trywith 200 --term-db-mode=relevant --full-saturate-quant
   trywith 200 --fs-interleave --full-saturate-quant
   trywith 600 --finite-model-find --decision=internal
-  # finite model find 1min
-  trywith 30 --finite-model-find --fmf-bound-int
-  trywith 30 --finite-model-find --sort-inference
   # finish 10min
   finishwith --full-saturate-quant
   ;;
