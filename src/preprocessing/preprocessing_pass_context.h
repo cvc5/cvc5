@@ -21,10 +21,9 @@
 #ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
+#include "context/context.h"
 #include "decision/decision_engine.h"
 #include "smt/smt_engine.h"
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -37,6 +36,7 @@ class PreprocessingPassContext {
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
+  context::Context* getUserContext() { return d_smt->d_userContext; }
 
  private:
   /* Pointer to the SmtEngine that this context was created in. */
