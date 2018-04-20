@@ -68,6 +68,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/symmetry_detect.cpp \
+	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
