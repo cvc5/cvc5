@@ -24,23 +24,31 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "smt/smt_engine.h"
+#include "smt/term_formula_removal.h"
 #include "theory/theory_engine.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
 class PreprocessingPassContext {
  public:
-  PreprocessingPassContext(SmtEngine* smt);
+  PreprocessingPassContext(SmtEngine* smt, ResourceManager* resourceManager);
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
   context::Context* getUserContext() { return d_smt->d_userContext; }
+  RemoveTermFormulas* getIteRemover() { return d_smt->d_iteRemover.get(); }
+  void spendResource(unsigned amount)
+  {
+    d_resourceManager->spendResource(amount);
+  }
 
  private:
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
+  ResourceManager* d_resourceManager;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
