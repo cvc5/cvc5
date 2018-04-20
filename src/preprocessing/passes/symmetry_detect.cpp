@@ -30,7 +30,10 @@ SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
                   << "------------------------------ The Final Partition "
                      "------------------------------"
                   << endl;
-  printPartition(p);
+  if(Trace.isOn("sym-dt"))
+  {
+    printPartition(p);
+  }
   return p;
 }
 
@@ -39,7 +42,7 @@ void SymmetryDetect::getPartition(vector<vector<Node> >& parts,
 {
   Partition p = detect(assertions);
 
-  for (map<Node, vector<Node> >::iterator subvar_to_vars_it =
+  for (map<Node, vector<Node> >::const_iterator subvar_to_vars_it =
            p.d_subvar_to_vars.begin();
        subvar_to_vars_it != p.d_subvar_to_vars.end();
        ++subvar_to_vars_it)
@@ -240,7 +243,7 @@ void SymmetryDetect::processSingletonPartitions(
   vector<Partition> new_partitions;
 
   // Collect singleton partitions: subvar_to_expr, subvar_to_var, and variables
-  for (vector<Partition>::iterator part_it = partitions.begin();
+  for (vector<Partition>::const_iterator part_it = partitions.begin();
        part_it != partitions.end();
        ++part_it)
   {
@@ -254,7 +257,7 @@ void SymmetryDetect::processSingletonPartitions(
     }
     else if ((*part_it).d_var_to_subvar.size() >= 2)
     {
-      for (pair<const Node, Node>& var_to_subvar : (*part_it).d_var_to_subvar)
+      for (const pair<Node, Node>& var_to_subvar : (*part_it).d_var_to_subvar)
       {
         vars.insert(var_to_subvar.first);
       }
