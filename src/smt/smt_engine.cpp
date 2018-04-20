@@ -68,8 +68,10 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/bv_gauss.h"
+#include "preprocessing/passes/int_to_bv.h"
+#include "preprocessing/passes/pseudo_boolean_processor.h"
+#include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -90,7 +92,6 @@
 #include "smt_util/nary_builder.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/pseudoboolean_proc.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
@@ -571,7 +572,6 @@ public:
  private:
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
   PreprocessingPassRegistry d_preprocessingPassRegistry;
-  theory::arith::PseudoBooleanProcessor d_pbsProcessor;
 
   /** The top level substitutions */
   SubstitutionMap d_topLevelSubstitutions;
@@ -597,8 +597,6 @@ public:
   void removeITEs();
 
   Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
-  Node intToBV(TNode n, NodeToNodeHashMap& cache);
-  Node intToBVMakeBinary(TNode n, NodeToNodeHashMap& cache);
   Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
 
   /**
@@ -685,7 +683,6 @@ public:
     d_exprNames(smt.d_userContext),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
-    d_pbsProcessor(smt.d_userContext),
     d_topLevelSubstitutions(smt.d_userContext)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
@@ -2552,10 +2549,15 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
-  std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<BVGauss> bvGauss(new BVGauss(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<PseudoBooleanProcessor> pbProc(
+      new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
+  
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
+  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
+                                           std::move(pbProc));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4268,10 +4270,8 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( options::pbRewrites() ){
-    d_pbsProcessor.learn(d_assertions.ref());
-    if(d_pbsProcessor.likelyToHelp()){
-      d_pbsProcessor.applyReplacements(d_assertions.ref());
-    }
+    d_preprocessingPassRegistry.getPass("pseudo-boolean-processor")
+        ->apply(&d_assertions);
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
@@ -4283,6 +4283,13 @@ void SmtEnginePrivate::processAssertions() {
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
+
+  if (options::symmetryDetect())
+  {
+    SymmetryDetect symd;
+    vector<vector<Node>> part;
+    symd.getPartition(part, d_assertions.ref());
+  }
 
   dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {

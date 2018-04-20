@@ -342,6 +342,14 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
+   
+[[option]]
+  name       = "symmetryDetect"
+  category   = "regular"
+  long       = "symmetry-detect"
+  type       = "bool"
+  default    = "false"
+  help       = "compute symmetries in the input as a preprocessing pass"    
 
 [[option]]
   name       = "incrementalSolving"
