@@ -83,8 +83,8 @@ private:
   friend class NodeManager;
 
   // undefined, private copy constructor and assignment op (disallow copy)
-  ExprManager(const ExprManager&) CVC4_UNDEFINED;
-  ExprManager& operator=(const ExprManager&) CVC4_UNDEFINED;
+  ExprManager(const ExprManager&) = delete;
+  ExprManager& operator=(const ExprManager&) = delete;
 
   std::vector<DatatypeType> d_keep_dtt;
   std::vector<Datatype> d_keep_dt;

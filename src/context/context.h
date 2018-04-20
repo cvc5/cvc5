@@ -94,8 +94,8 @@ class Context {
   friend std::ostream& operator<<(std::ostream&, const Context&);
 
   // disable copy, assignment
-  Context(const Context&) CVC4_UNDEFINED;
-  Context& operator=(const Context&) CVC4_UNDEFINED;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
 
 public:
 
@@ -208,8 +208,8 @@ public:
 class UserContext : public Context {
 private:
   // disable copy, assignment
-  UserContext(const UserContext&) CVC4_UNDEFINED;
-  UserContext& operator=(const UserContext&) CVC4_UNDEFINED;
+  UserContext(const UserContext&) = delete;
+  UserContext& operator=(const UserContext&) = delete;
 public:
   UserContext() {}
 };/* class UserContext */

@@ -32,8 +32,8 @@ class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
   typedef CDInsertHashMap<V, bool, HashFcn> super;
 
   // no copy or assignment
-  CDHashSet(const CDHashSet&) CVC4_UNDEFINED;
-  CDHashSet& operator=(const CDHashSet&) CVC4_UNDEFINED;
+  CDHashSet(const CDHashSet&) = delete;
+  CDHashSet& operator=(const CDHashSet&) = delete;
 
 public:
 

@@ -60,8 +60,8 @@ private:
   CmpFcn d_cmp;
 
   // disallow copy and assignment
-  BinaryHeap(const BinaryHeap&) CVC4_UNDEFINED;
-  BinaryHeap& operator=(const BinaryHeap&) CVC4_UNDEFINED;
+  BinaryHeap(const BinaryHeap&) = delete;
+  BinaryHeap& operator=(const BinaryHeap&) = delete;
 
 public:
   BinaryHeap(const CmpFcn& c = CmpFcn())

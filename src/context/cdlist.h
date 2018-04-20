@@ -113,7 +113,7 @@ protected:
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
-  CDList& operator=(const CDList& l) CVC4_UNDEFINED;
+  CDList& operator=(const CDList& l) = delete;
 
 private:
   /**

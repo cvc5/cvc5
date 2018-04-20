@@ -87,8 +87,8 @@ private:
   Context* d_context;
 
   // no copy or assignment
-  CDVector(const CDVector&) CVC4_UNDEFINED;
-  CDVector& operator=(const CDVector&) CVC4_UNDEFINED;
+  CDVector(const CDVector&) = delete;
+  CDVector& operator=(const CDVector&) = delete;
 
 public:
   CDVector(Context* c) :

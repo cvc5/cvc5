@@ -72,8 +72,8 @@ class Rewriter {
                                   TNode node, TNode cache);
 
   // disable construction of rewriters; all functionality is static
-  Rewriter() CVC4_UNDEFINED;
-  Rewriter(const Rewriter&) CVC4_UNDEFINED;
+  Rewriter() = delete;
+  Rewriter(const Rewriter&) = delete;
 
   /**
    * Rewrites the node using the given theory rewriter.
