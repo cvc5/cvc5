@@ -91,7 +91,7 @@ void SygusSampler::initialize(TypeNode tn,
   for (const Node& sv : d_vars)
   {
     TypeNode svt = sv.getType();
-    unsigned tnid;
+    unsigned tnid = 0;
     std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
     if (itt == type_to_type_id.end())
     {
