@@ -1156,7 +1156,8 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     if (!options::bitvectorPropagate.wasSetByUser()) {
       options::bitvectorPropagate.set(true);
     }
-    if (!options::bitvectorEqualitySolver.wasSetByUser() && !options::proof()) {
+    if (!options::bitvectorEqualitySolver.wasSetByUser() && !options::proof())
+    {
       options::bitvectorEqualitySolver.set(true);
     }
     if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
@@ -1168,10 +1169,12 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
       }
     }
 
-    if (!options::bitvectorInequalitySolver.wasSetByUser() && !options::proof()) {
+    if (!options::bitvectorInequalitySolver.wasSetByUser() && !options::proof())
+    {
       options::bitvectorInequalitySolver.set(true);
     }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser() && !options::proof()) {
+    if (!options::bitvectorAlgebraicSolver.wasSetByUser() && !options::proof())
+    {
       options::bitvectorAlgebraicSolver.set(true);
     }
     return theory::bv::BITBLAST_MODE_LAZY;

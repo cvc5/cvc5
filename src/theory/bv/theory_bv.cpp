@@ -79,19 +79,22 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
     return;
   }
 
-  if (options::bitvectorEqualitySolver() && !options::proof()) {
+  if (options::bitvectorEqualitySolver() && !options::proof())
+  {
     SubtheorySolver* core_solver = new CoreSolver(c, this);
     d_subtheories.push_back(core_solver);
     d_subtheoryMap[SUB_CORE] = core_solver;
   }
 
-  if (options::bitvectorInequalitySolver() && !options::proof()) {
+  if (options::bitvectorInequalitySolver() && !options::proof())
+  {
     SubtheorySolver* ineq_solver = new InequalitySolver(c, u, this);
     d_subtheories.push_back(ineq_solver);
     d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
   }
 
-  if (options::bitvectorAlgebraicSolver() && !options::proof()) {
+  if (options::bitvectorAlgebraicSolver() && !options::proof())
+  {
     SubtheorySolver* alg_solver = new AlgebraicSolver(c, this);
     d_subtheories.push_back(alg_solver);
     d_subtheoryMap[SUB_ALGEBRAIC] = alg_solver;
