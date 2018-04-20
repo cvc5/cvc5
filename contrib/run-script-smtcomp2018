@@ -90,15 +90,9 @@ BV)
   trywith 300 --full-saturate-quant --no-cbqi
   finishwith --full-saturate-quant --cbqi --decision=internal
   ;;
-LIA|LRA)
-  trywith 30 --full-saturate-quant
-  trywith 300 --full-saturate-quant --cbqi-midpoint
-  trywith 300 --full-saturate-quant --cbqi-nested-qe
-  finishwith --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
-  ;;
-NIA|NRA)
-  trywith 30 --full-saturate-quant
-  trywith 300 --full-saturate-quant --nl-ext
+LIA|LRA|NIA|NRA)
+  trywith 30 --full-saturate-quant --nl-ext-tplanes
+  trywith 300 --full-saturate-quant --cbqi-no-innermost
   trywith 300 --full-saturate-quant --cbqi-nested-qe
   finishwith --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
   ;;
