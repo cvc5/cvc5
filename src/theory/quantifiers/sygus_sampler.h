@@ -336,7 +336,7 @@ class SygusSampler : public LazyTrieEvaluator
   /** map from sygus types to non-variable nullary constructors */
   std::map<TypeNode, std::vector<unsigned> > d_rvalue_null_cindices;
   /** the random string alphabet */
-  std::vector< unsigned > d_rstring_alphabet;
+  std::vector<unsigned> d_rstring_alphabet;
   /** map from variables to sygus types that include them */
   std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** map from constants to sygus types that include them */

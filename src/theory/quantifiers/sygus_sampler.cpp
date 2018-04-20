@@ -523,19 +523,22 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   }
   else if (tn.isString() || tn.isInteger())
   {
-    // if string, determine the alphabet 
-    if( tn.isString() && d_rstring_alphabet.empty() )
+    // if string, determine the alphabet
+    if (tn.isString() && d_rstring_alphabet.empty())
     {
-      Trace("sygus-sample-str-alpha") << "Setting string alphabet..." << std::endl;
-      std::unordered_set< unsigned > alphas;
-      for( const std::pair<const Node, std::vector<TypeNode> >& c : d_const_sygus_types )
+      Trace("sygus-sample-str-alpha")
+          << "Setting string alphabet..." << std::endl;
+      std::unordered_set<unsigned> alphas;
+      for (const std::pair<const Node, std::vector<TypeNode> >& c :
+           d_const_sygus_types)
       {
-        if( c.first.getType().isString() )
+        if (c.first.getType().isString())
         {
-          Trace("sygus-sample-str-alpha") << "...have constant " << c.first << std::endl;
-          Assert( c.first.isConst() );
+          Trace("sygus-sample-str-alpha")
+              << "...have constant " << c.first << std::endl;
+          Assert(c.first.isConst());
           std::vector<unsigned> svec = c.first.getConst<String>().getVec();
-          for( unsigned ch : svec )
+          for (unsigned ch : svec)
           {
             alphas.insert(ch);
           }
@@ -545,31 +548,34 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       // there are none in the grammar)
       unsigned num_fresh_char = alphas.empty() ? 2 : 1;
       unsigned fresh_char = 0;
-      for( unsigned i=0; i<num_fresh_char; i++ )
+      for (unsigned i = 0; i < num_fresh_char; i++)
       {
-        while(alphas.find(fresh_char)!=alphas.end())
+        while (alphas.find(fresh_char) != alphas.end())
         {
           fresh_char++;
         }
         alphas.insert(fresh_char);
       }
-      Trace("sygus-sample-str-alpha") << "Sygus sampler: limit strings alphabet to : " << std::endl << " ";
-      for( unsigned ch : alphas )
+      Trace("sygus-sample-str-alpha")
+          << "Sygus sampler: limit strings alphabet to : " << std::endl
+          << " ";
+      for (unsigned ch : alphas)
       {
         d_rstring_alphabet.push_back(ch);
-        Trace("sygus-sample-str-alpha") << " \"" << String::convertUnsignedIntToChar(ch) << "\"";
+        Trace("sygus-sample-str-alpha")
+            << " \"" << String::convertUnsignedIntToChar(ch) << "\"";
       }
       Trace("sygus-sample-str-alpha") << std::endl;
     }
-    
+
     std::vector<unsigned> vec;
     double ext_freq = .5;
     unsigned base = tn.isString() ? d_rstring_alphabet.size() : 10;
     while (Random::getRandom().pickWithProb(ext_freq))
     {
       // add a digit
-      unsigned digit = Random::getRandom().pick(0, base-1);
-      if( tn.isString() )
+      unsigned digit = Random::getRandom().pick(0, base - 1);
+      if (tn.isString())
       {
         digit = d_rstring_alphabet[digit];
       }
@@ -726,7 +732,7 @@ void SygusSampler::registerSygusType(TypeNode tn)
         if (dtc.getNumArgs() == 0)
         {
           d_rvalue_null_cindices[tn].push_back(i);
-          if( sop.isConst() )
+          if (sop.isConst())
           {
             d_const_sygus_types[sop].push_back(tn);
           }
