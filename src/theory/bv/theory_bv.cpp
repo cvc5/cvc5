@@ -74,25 +74,24 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
   setupExtTheory();
   getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
   getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
-
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_eagerSolver = new EagerBitblastSolver(this);
     return;
   }
 
-  if (options::bitvectorEqualitySolver()) {
+  if (options::bitvectorEqualitySolver() && !options::proof()) {
     SubtheorySolver* core_solver = new CoreSolver(c, this);
     d_subtheories.push_back(core_solver);
     d_subtheoryMap[SUB_CORE] = core_solver;
   }
 
-  if (options::bitvectorInequalitySolver()) {
+  if (options::bitvectorInequalitySolver() && !options::proof()) {
     SubtheorySolver* ineq_solver = new InequalitySolver(c, u, this);
     d_subtheories.push_back(ineq_solver);
     d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
   }
 
-  if (options::bitvectorAlgebraicSolver()) {
+  if (options::bitvectorAlgebraicSolver() && !options::proof()) {
     SubtheorySolver* alg_solver = new AlgebraicSolver(c, this);
     d_subtheories.push_back(alg_solver);
     d_subtheoryMap[SUB_ALGEBRAIC] = alg_solver;
