@@ -1,7 +1,7 @@
-; SCRUBBER: sed -e 's/(error \"Error.in.option.parsing.*$/Error in option parsing/'
-; EXPECT: Error in option parsing
-; COMMAND-LINE: --check-proofs --bv-algebraic-solver
-; EXIT: 1
+; SCRUBBER: sed -e 's/unsat.*/unsat/'
+; EXPECT: unsat
+; COMMAND-LINE: --check-proofs 
+; EXIT: 0
 (set-logic QF_BV)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")

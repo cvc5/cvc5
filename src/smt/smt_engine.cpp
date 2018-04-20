@@ -2194,7 +2194,7 @@ void SmtEngine::setDefaults() {
       if (options::bitvectorInequalitySolver()) {
         if (options::bitvectorInequalitySolver.wasSetByUser()) {
           throw OptionException(
-                  "--bv-ineq-solver is not supported with proofs");
+                  "--bv-inequality-solver is not supported with proofs");
         } 
         Notice() << "SmtEngine: turning off bv ineq solver to support proofs" << std::endl;
         options::bitvectorInequalitySolver.set(false);
