@@ -3596,7 +3596,6 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
       if (!bounds[i].isNull())
       {
         Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]);
-        //Assert( computeModelValue( ant )==d_true );
         antec.push_back(ant);
       }
     }
@@ -3609,7 +3608,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
     Trace("nl-ext-tftp-debug2") << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
     Trace("nl-ext-tftp-lemma") << "*** Tangent plane lemma : " << lem << std::endl;
-    //Assert( computeModelValue(lem)==d_false );
+    Assert( computeModelValue(lem,1)==d_false );
     // Figure 3 : line 9
     lemmas.push_back(lem);
   }
@@ -3734,6 +3733,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
                                     << std::endl;
         // Figure 3 : line 22
         lemmas.push_back(lem);
+        Assert( computeModelValue(lem,1)==d_false );
       }
     }
   }
