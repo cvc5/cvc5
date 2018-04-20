@@ -168,10 +168,10 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     expected_exit_status = None
     command_line = ''
     for line in metadata_lines:
-        # Skip lines that do not start with "%"
+        # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
             continue
-        line = line[2:]
+        line = line[1:].lstrip()
 
         if line.startswith(SCRUBBER):
             scrubber = line[len(SCRUBBER):]
