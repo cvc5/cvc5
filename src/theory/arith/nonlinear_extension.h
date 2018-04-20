@@ -494,9 +494,9 @@ class NonlinearExtension {
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
   /** print rational approximation */
-  void printRationalApprox(const char* c, Node cr, unsigned prec) const;
+  void printRationalApprox(const char* c, Node cr, unsigned prec=5) const;
   /** print model value */
-  void printModelValue(const char* c, Node n, unsigned prec) const;
+  void printModelValue(const char* c, Node n, unsigned prec=5) const;
 private:
   //per last-call effort check
   

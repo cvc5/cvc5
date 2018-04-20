@@ -27,6 +27,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/theory_model.h"
+//#include "util/random.h"
 
 using namespace CVC4::kind;
 
@@ -882,7 +883,6 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
   }
   
   // heuristically, solve for equalities
-  Trace("nl-ext-cm") << std::endl;
   Trace("nl-ext-cm") << "solving equalities..." << std::endl;
   unsigned nassertions_new = passertions.size();
   unsigned curr_index = 0;
@@ -951,36 +951,31 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
   for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
   {
     Kind k = tfs.first;
-    if (k == PI)
+    for (std::pair<const Node, Node>& tfr : tfs.second)
     {
-      d_tf_check_model_bounds[d_pi] =
-          std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
-    }
-    else
-    {
-      for (std::pair<const Node, Node>& tfr : tfs.second)
+      // Figure 3 : tf( x )
+      Node tf = tfr.second;
+      Node atf = computeModelValue(tf);
+      if( k==PI )
       {
-        // Figure 3 : tf( x )
-        Node tf = tfr.second;
-        if( isRefineableTfFun( tf ) )
+        d_tf_check_model_bounds[atf] = std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+      }
+      else if( isRefineableTfFun( tf ) )
+      {
+        d_tf_check_model_bounds[atf] = getTfModelBounds(tf,d_taylor_degree);
+      }
+      if( Trace.isOn("nl-ext-cm") )
+      {
+        std::map< Node, std::pair< Node, Node > >::iterator it = d_tf_check_model_bounds.find(atf);
+        if( it != d_tf_check_model_bounds.end() )
         {
-          Node atf = computeModelValue(tf);
-          d_tf_check_model_bounds[atf] = getTfModelBounds(tf,d_taylor_degree);
+          Trace("nl-ext-cm") << "check-model : satisfied approximate bound : ";
+          printRationalApprox("nl-ext-cm",it->second.first);
+          Trace("nl-ext-cm") << " <= " << tf << " <= ";
+          printRationalApprox("nl-ext-cm",it->second.second);
+          Trace("nl-ext-cm") << std::endl;
         }
       }
-    }
-  }
-  if( Trace.isOn("nl-ext-cm") )
-  {
-    for (const std::pair<const Node, std::pair<Node, Node> >& tfb :
-        d_tf_check_model_bounds)
-    {
-      Node tf = tfb.first;
-      Trace("nl-ext-cm") << "check-model : satisfied approximate bound : ";
-      printRationalApprox("nl-ext-cm",tfb.second.first, 10);
-      Trace("nl-ext-cm") << " <= " << tf << " <= ";
-      printRationalApprox("nl-ext-cm",tfb.second.first, 10);
-      Trace("nl-ext-cm") << std::endl;
     }
   }
 
@@ -999,8 +994,8 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
         if (!simpleCheckModelTfLit(av))
         {
           check_assertions.push_back(av);
-          Trace("nl-ext-cm") << "check-model : failed assertion : " << av
-                                        << " (from " << a << ")" << std::endl;
+          Trace("nl-ext-cm") << "check-model : failed assertion : " << a << std::endl;
+          Trace("nl-ext-cm-debug") << "check-model : failed assertion, value : " << av << std::endl;
         }
       }
     }
@@ -1301,7 +1296,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     Node a = xts[i];
     computeModelValue(a, 0);
     computeModelValue(a, 1);
-    printModelValue("nl-ext-mv",a,10);
+    printModelValue("nl-ext-mv",a);
     //Assert(d_mv[1][a].isConst());
     //Assert(d_mv[0][a].isConst());
     if (a.getKind() == NONLINEAR_MULT)
@@ -1443,7 +1438,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     registerMonomial(v);
     computeModelValue(v, 0);
     computeModelValue(v, 1);
-    printModelValue("nl-ext-mv",v,10);
+    printModelValue("nl-ext-mv",v);
   }
   if( Trace.isOn("nl-ext-mv") )
   {
@@ -1456,7 +1451,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
           Node v = itt->second[0];
           computeModelValue(v, 0);
           computeModelValue(v, 1);
-          printModelValue("nl-ext-mv",v,10);
+          printModelValue("nl-ext-mv",v);
         }
       }
     }
@@ -1620,82 +1615,80 @@ void NonlinearExtension::check(Theory::Effort e) {
     std::vector<Node> assertions;
     getAssertions(assertions);
 
+    // reset cached information
+    d_mv[0].clear();
+    d_mv[1].clear();
+
+    Trace("nl-ext-mv-assert") << "Getting model values... check for [model-false]"
+                        << std::endl;
+    // get the assertions that are false in the model
+    const std::vector<Node> false_asserts = checkModel(assertions);
+
+    // get the extended terms belonging to this theory
+    std::vector<Node> xts;
+    d_containing.getExtTheory()->getTerms(xts);
+
+    if (Trace.isOn("nl-ext-debug"))
+    {
+      Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
+                            << std::endl;
+      Trace("nl-ext-debug") << "     " << false_asserts.size()
+                            << " false assertions" << std::endl;
+      Trace("nl-ext-debug") << "     " << xts.size()
+                            << " extended terms: " << std::endl;
+      Trace("nl-ext-debug") << "       ";
+      for (unsigned j = 0; j < xts.size(); j++)
+      {
+        Trace("nl-ext-debug") << xts[j] << " ";
+      }
+      Trace("nl-ext-debug") << std::endl;
+    }
+
+    // compute whether shared terms have correct values
+    unsigned num_shared_wrong_value = 0;
+    std::vector<Node> shared_term_value_splits;
+    // must ensure that shared terms are equal to their concrete value
+    Trace("nl-ext-mv") << "Shared terms : " << std::endl;
+    for (context::CDList<TNode>::const_iterator its =
+              d_containing.shared_terms_begin();
+          its != d_containing.shared_terms_end();
+          ++its)
+    {
+      TNode shared_term = *its;
+      // compute its value in the model, and its evaluation in the model
+      Node stv0 = computeModelValue(shared_term, 0);
+      Node stv1 = computeModelValue(shared_term, 1);
+      printModelValue("nl-ext-mv",shared_term);
+      if (stv0 != stv1)
+      {
+        num_shared_wrong_value++;
+        Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << std::endl;
+        if (shared_term != stv0)
+        {
+          // split on the value, this is non-terminating in general, TODO :
+          // improve this
+          Node eq = shared_term.eqNode(stv0);
+          shared_term_value_splits.push_back(eq);
+        }
+        else
+        {
+          // this can happen for transcendental functions
+          // the problem is that we cannot evaluate transcendental functions
+          // (they don't have a rewriter that returns constants)
+          // thus, the actual value in their model can be themselves, hence we
+          // have no reference point to rule out the current model.  In this
+          // case, we may set incomplete below.
+        }
+      }
+    }
+    Trace("nl-ext-debug") << "     " << num_shared_wrong_value
+                          << " shared terms with wrong model value."
+                          << std::endl;
     bool needsRecheck;
     do
     {
       needsRecheck = false;
       Assert(e == Theory::EFFORT_LAST_CALL);
-
-      // reset cached information
-      d_mv[0].clear();
-      d_mv[1].clear();
-
-      Trace("nl-ext-mv-assert") << "Getting model values... check for [model-false]"
-                         << std::endl;
-      // get the assertions that are false in the model
-      const std::vector<Node> false_asserts = checkModel(assertions);
-
-      // get the extended terms belonging to this theory
-      std::vector<Node> xts;
-      d_containing.getExtTheory()->getTerms(xts);
-
-      if (Trace.isOn("nl-ext-debug"))
-      {
-        Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
-                              << std::endl;
-        Trace("nl-ext-debug") << "     " << false_asserts.size()
-                              << " false assertions" << std::endl;
-        Trace("nl-ext-debug") << "     " << xts.size()
-                              << " extended terms: " << std::endl;
-        Trace("nl-ext-debug") << "       ";
-        for (unsigned j = 0; j < xts.size(); j++)
-        {
-          Trace("nl-ext-debug") << xts[j] << " ";
-        }
-        Trace("nl-ext-debug") << std::endl;
-      }
-
-      // compute whether shared terms have correct values
-      unsigned num_shared_wrong_value = 0;
-      std::vector<Node> shared_term_value_splits;
-      // must ensure that shared terms are equal to their concrete value
-      Trace("nl-ext-mv") << "Shared terms : " << std::endl;
-      for (context::CDList<TNode>::const_iterator its =
-               d_containing.shared_terms_begin();
-           its != d_containing.shared_terms_end();
-           ++its)
-      {
-        TNode shared_term = *its;
-        // compute its value in the model, and its evaluation in the model
-        Node stv0 = computeModelValue(shared_term, 0);
-        Node stv1 = computeModelValue(shared_term, 1);
-        printModelValue("nl-ext-mv",shared_term,10);
-        if (stv0 != stv1)
-        {
-          num_shared_wrong_value++;
-          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term << std::endl;
-          if (shared_term != stv0)
-          {
-            // split on the value, this is non-terminating in general, TODO :
-            // improve this
-            Node eq = shared_term.eqNode(stv0);
-            shared_term_value_splits.push_back(eq);
-          }
-          else
-          {
-            // this can happen for transcendental functions
-            // the problem is that we cannot evaluate transcendental functions
-            // (they don't have a rewriter that returns constants)
-            // thus, the actual value in their model can be themselves, hence we
-            // have no reference point to rule out the current model.  In this
-            // case, we may set incomplete below.
-          }
-        }
-      }
-      Trace("nl-ext-debug") << "     " << num_shared_wrong_value
-                            << " shared terms with wrong model value."
-                            << std::endl;
-
       // complete_status: 
       //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
       int complete_status = 1;
@@ -1922,7 +1915,7 @@ void NonlinearExtension::printRationalApprox(const char* c, Node cr, unsigned pr
   Node ca = getApproximateConstant(cr,true,prec);
   if( ca!=cr )
   {
-    Trace(c) << "(+";
+    Trace(c) << "(+ ";
   }
   Trace(c) << ca;
   if( ca!=cr )
@@ -1945,7 +1938,7 @@ void NonlinearExtension::printModelValue(const char* c, Node n, unsigned prec) c
       }
       else
       {
-        Trace(c) << it->second;
+        Trace(c) << "?";//it->second;
       }
       Trace(c) << ( i==0 ? " [actual: " : " ]" );
     }
@@ -3458,9 +3451,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
   Trace("nl-ext-tftp-debug") << "  value in model : " << v << std::endl;
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
   // compute approximations
-  Node c_approx_l = getApproximateConstant( c, true, 6 );
-  //Node c_approx_u = getApproximateConstant( c, false, 6 );
-  c = c_approx_l;
+  //Node c_approx = getApproximateConstant( c, Random::getRandom().pickWithProb(0.5), 6+d );
+  //c = c_approx;
   Trace("nl-ext-tftp-debug") << "  approximation : " << c << std::endl;
   
 
@@ -3513,27 +3505,6 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
       Node compr = Rewriter::rewrite(comp);
       Trace("nl-ext-tftp-debug2") << "...got : " << compr
                                         << std::endl;
-      if( Trace.isOn("nl-ext-tftp") )
-      {
-        if (compr == d_true)
-        {
-          Trace("nl-ext-tftp") << "*** Outside boundary point (";
-          Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
-          printRationalApprox("nl-ext-tftp", v_pab, 10 );
-          Trace("nl-ext-tftp") << ", will refine..." << std::endl;
-          Trace("nl-ext-tftp") << "    poly_approx = " << poly_approx << std::endl;
-          Trace("nl-ext-tftp") << "    is_tangent = " << is_tangent << std::endl;
-          Trace("nl-ext-tftp") << "    is_secant = " << is_secant << std::endl;
-        }
-        else
-        {
-          Trace("nl-ext-tftp") << "  ...within "
-                                      << (r == 0 ? "low" : "high")
-                                      << " bound : ";
-          printRationalApprox("nl-ext-tftp", v_pab, 10 );
-          Trace("nl-ext-tftp") << std::endl;
-        }
-      }
       if (compr == d_true)
       {
         // beyond the bounds
@@ -3549,7 +3520,25 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
           is_tangent = concavity == -1;
           is_secant = concavity == 1;
         }
+        if( Trace.isOn("nl-ext-tftp") )
+        {
+          Trace("nl-ext-tftp") << "*** Outside boundary point (";
+          Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
+          printRationalApprox("nl-ext-tftp", v_pab );
+          Trace("nl-ext-tftp") << ", will refine..." << std::endl;
+          Trace("nl-ext-tftp") << "    poly_approx = " << poly_approx << std::endl;
+          Trace("nl-ext-tftp") << "    is_tangent = " << is_tangent << std::endl;
+          Trace("nl-ext-tftp") << "    is_secant = " << is_secant << std::endl;
+        }
         break;
+      }
+      else
+      {
+        Trace("nl-ext-tftp") << "  ...within "
+                                    << (r == 0 ? "low" : "high")
+                                    << " bound : ";
+        printRationalApprox("nl-ext-tftp", v_pab );
+        Trace("nl-ext-tftp") << std::endl;
       }
     }
   }
@@ -3566,7 +3555,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
                                             taylor_vars.end(),
                                             taylor_subs.begin(),
                                             taylor_subs.end());
-    Trace("nl-ext-tftp-debug2") << "...poly appoximation at c is "
+    Trace("nl-ext-tftp-debug2") << "...poly approximation at c is "
                                       << poly_approx_c << std::endl;
   }
   else
@@ -3606,7 +3595,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
     {
       if (!bounds[i].isNull())
       {
-        antec.push_back(nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]));
+        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]);
+        //Assert( computeModelValue( ant )==d_true );
+        antec.push_back(ant);
       }
     }
     if (!antec.empty())
@@ -3617,7 +3608,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
     }
     Trace("nl-ext-tftp-debug2") << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
-    Trace("nl-ext-tftp-debug") << "*** Tangent plane lemma : " << lem << std::endl;
+    Trace("nl-ext-tftp-lemma") << "*** Tangent plane lemma : " << lem << std::endl;
+    //Assert( computeModelValue(lem)==d_false );
     // Figure 3 : line 9
     lemmas.push_back(lem);
   }
@@ -3738,7 +3730,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun( Node tf, unsigned d, const std
             << "*** Secant plane lemma (pre-rewrite) : " << lem
             << std::endl;
         lem = Rewriter::rewrite(lem);
-        Trace("nl-ext-tftp-debug") << "*** Secant plane lemma : " << lem
+        Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem
                                     << std::endl;
         // Figure 3 : line 22
         lemmas.push_back(lem);
