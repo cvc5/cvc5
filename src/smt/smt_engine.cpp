@@ -1224,7 +1224,8 @@ SmtEngine::~SmtEngine()
 
     d_definedFunctions->deleteSelf();
     d_fmfRecFunctionsDefined->deleteSelf();
-
+    
+    //destroy all passes before destroying things that they refer to
     d_private->unregisterPreprocessingPasses();
 
     delete d_theoryEngine;

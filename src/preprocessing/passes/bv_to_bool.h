@@ -32,14 +32,6 @@ typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
 
 class BVToBool : public PreprocessingPass
 {
-  struct Statistics
-  {
-    IntStat d_numTermsLifted;
-    IntStat d_numAtomsLifted;
-    IntStat d_numTermsForcedLifted;
-    Statistics();
-    ~Statistics();
-  };
 
  public:
   BVToBool(PreprocessingPassContext* preprocContext);
@@ -49,6 +41,14 @@ class BVToBool : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
+  struct Statistics
+  {
+    IntStat d_numTermsLifted;
+    IntStat d_numAtomsLifted;
+    IntStat d_numTermsForcedLifted;
+    Statistics();
+    ~Statistics();
+  };        
   void addToBoolCache(TNode term, Node new_term);
   Node getBoolCache(TNode term) const;
   bool hasBoolCache(TNode term) const;

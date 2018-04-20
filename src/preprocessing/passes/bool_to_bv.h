@@ -36,6 +36,7 @@ class BoolToBV : public PreprocessingPass
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 
+ private:
   struct Statistics
   {
     IntStat d_numTermsLowered;
@@ -45,7 +46,6 @@ class BoolToBV : public PreprocessingPass
     ~Statistics();
   };
 
- private:
   void lowerBoolToBv(const std::vector<Node>& assertions,
                      std::vector<Node>& new_assertions);
   void addToLowerCache(TNode term, Node new_term);

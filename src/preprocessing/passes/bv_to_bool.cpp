@@ -34,8 +34,6 @@ namespace passes {
 using namespace std;
 using namespace CVC4::theory;
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-
 BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-bool"),
       d_liftCache(),
