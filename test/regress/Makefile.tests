@@ -741,6 +741,7 @@ REG0_TESTS = \
 	regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2 \
 	regress0/sets/sets-equal.smt2 \
 	regress0/sets/sets-inter.smt2 \
+	regress0/sets/sets-of-sets-subtypes.smt2 \
 	regress0/sets/sets-poly-int-real.smt2 \
 	regress0/sets/sets-poly-nonint.smt2 \
 	regress0/sets/sets-sample.smt2 \
