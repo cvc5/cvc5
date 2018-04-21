@@ -27,8 +27,8 @@ namespace quantifiers {
 /** CandidateRewriteDatabase
  *
  * This maintains the necessary data structures for generating a database
- * of candidate rewrite rules (see Reynolds "Rewrites for SMT Solvers Using
- * Syntax-Guided Enumeration" et al SMT 2018). The primary responsibilities
+ * of candidate rewrite rules (see Reynolds et al "Rewrites for SMT Solvers
+ * Using Syntax-Guided Enumeration" SMT 2018). The primary responsibilities
  * of this class are to perform the "equivalence checking" and "congruence
  * and matching filtering" in Figure 1. The equivalence checking is done
  * through a combination of the sygus sampler object owned by this class
