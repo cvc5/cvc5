@@ -39,6 +39,7 @@ void CandidateRewriteDatabase::initialize(QuantifiersEngine* qe,
                                           bool useSygusType)
 {
   d_qe = qe;
+  d_candidate = f;
   d_sampler.initializeSygusExt(d_qe, f, nsamples, useSygusType);
 }
 
