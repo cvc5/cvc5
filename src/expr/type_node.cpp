@@ -22,6 +22,7 @@
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/quantifiers_options.h"
+#include "options/uf_options.h"
 
 using namespace std;
 
@@ -81,9 +82,35 @@ bool TypeNode::isInterpretedFinite() const {
       }else if( isSet() ) {
         return getSetElementType().isInterpretedFinite();
       }
+      else if (isFunction())
+      {
+        if (!getRangeType().isInterpretedFinite())
+        {
+          return false;
+        }
+        std::vector<TypeNode> argTypes = getArgTypes();
+        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+        {
+          if (!argTypes[i].isInterpretedFinite())
+          {
+            return false;
+          }
+        }
+        return true;
+      }
     }
     return false;
   }
+}
+
+bool TypeNode::isFirstClass() const {
+  return ( getKind() != kind::FUNCTION_TYPE || options::ufHo() ) && 
+         getKind() != kind::CONSTRUCTOR_TYPE &&
+         getKind() != kind::SELECTOR_TYPE &&
+         getKind() != kind::TESTER_TYPE &&
+         getKind() != kind::SEXPR_TYPE &&
+         ( getKind() != kind::TYPE_CONSTANT ||
+           getConst<TypeConstant>() != REGEXP_TYPE );
 }
 
 bool TypeNode::isWellFounded() const {
@@ -308,10 +335,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   }
   case kind::SEXPR_TYPE:
     Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
-    return TypeNode();
   default:
     Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
-    return TypeNode();
   }
 }
 

@@ -17,45 +17,54 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
-#include <map>
+#include <vector>
 
-#include "context/cdlist.h"
-#include "context/cdo.h"
 #include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
 
-class QuantifiersEngine;
 class EqualityQuery;
 
 namespace inst {
 
-/** basic class defining an instantiation */
+/** Inst match
+ *
+ * This is the basic class specifying an instantiation. Its domain size (the
+ * size of d_vals) is the number of bound variables of the quantified formula
+ * that is passed to its constructor.
+ *
+ * The values of d_vals may be null, which indicate that the field has
+ * yet to be initialized.
+ */
 class InstMatch {
 public:
-  /* map from variable to ground terms */
-  std::vector< Node > d_vals;
-public:
   InstMatch(){}
-  explicit InstMatch( TNode f );
+  explicit InstMatch(TNode q);
   InstMatch( InstMatch* m );
-
-  /** fill all unfilled values with m */
-  bool add( InstMatch& m );
-  /** if compatible, fill all unfilled values with m and return true
-      return false otherwise */
+  /* map from variable to ground terms */
+  std::vector<Node> d_vals;
+  /** add match m
+   *
+   * This adds the initialized fields of m to this match for each field that is
+   * not already initialized in this match.
+   */
+  void add(InstMatch& m);
+  /** merge with match m
+   *
+   * This method returns true if the merge was successful, that is, all jointly
+   * initialized fields of this class and m are equivalent modulo the equalities
+   * given by q.
+   */
   bool merge( EqualityQuery* q, InstMatch& m );
-  /** debug print method */
-  void debugPrint( const char* c );
-  /** is complete? */
+  /** is this complete, i.e. are all fields non-null? */
   bool isComplete();
-  /** make representative */
-  void makeRepresentative( QuantifiersEngine* qe );
-  /** empty */
+  /** is this empty, i.e. are all fields the null node? */
   bool empty();
-  /** clear */
+  /** clear the instantiation, i.e. set all fields to the null node */
   void clear();
+  /** debug print method */
+  void debugPrint(const char* c);
   /** to stream */
   inline void toStream(std::ostream& out) const {
     out << "INST_MATCH( ";
@@ -69,165 +78,24 @@ public:
     }
     out << " )";
   }
-  /** apply rewrite */
-  void applyRewrite();
-  /** get */
-  Node get( int i );
-  void getTerms( Node f, std::vector< Node >& inst );
-  /** set */
+  /** get the i^th term in the instantiation */
+  Node get(int i) const;
+  /** append the terms of this instantiation to inst */
+  void getInst(std::vector<Node>& inst) const;
+  /** set/overwrites the i^th field in the instantiation with n */
   void setValue( int i, TNode n );
-  bool set( QuantifiersEngine* qe, int i, TNode n );
-};/* class InstMatch */
+  /** set the i^th term in the instantiation to n
+   *
+   * This method returns true if the i^th field was previously uninitialized,
+   * or is equivalent to n modulo the equalities given by q.
+   */
+  bool set(EqualityQuery* q, int i, TNode n);
+};
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
   m.toStream(out);
   return out;
 }
-
-/** trie for InstMatch objects */
-class InstMatchTrie {
-public:
-  class ImtIndexOrder {
-  public:
-    std::vector< int > d_order;
-  };/* class InstMatchTrie ImtIndexOrder */
-  /** the data */
-  std::map< Node, InstMatchTrie > d_data;
-private:
-  void print( std::ostream& out, Node q, std::vector< TNode >& terms, bool& firstTime, bool useActive, std::vector< Node >& active ) const;
-  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) const;
-  void getExplanationForInstLemmas( Node q, std::vector< Node >& terms, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const;
-private:
-  void setInstLemma( Node n ){ 
-    d_data.clear();
-    d_data[n].clear(); 
-  }
-  bool hasInstLemma() const { return !d_data.empty(); }
-  Node getInstLemma() const { return d_data.begin()->first; }
-public:
-  InstMatchTrie(){}
-  ~InstMatchTrie(){}
-public:
-  /** return true if m exists in this trie
-        modEq is if we check modulo equality
-        modInst is if we return true if m is an instance of a match that exists
-   */
-  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                        ImtIndexOrder* imtio = NULL, int index = 0 ) {
-    return !addInstMatch( qe, f, m, modEq, imtio, true, index );
-  }
-  bool existsInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
-                        ImtIndexOrder* imtio = NULL, int index = 0 ) {
-    return !addInstMatch( qe, f, m, modEq, imtio, true, index );
-  }
-  /** add match m for quantifier f, take into account equalities if modEq = true,
-      if imtio is non-null, this is the order to add to trie
-      return true if successful
-  */
-  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                     ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 ){
-    return addInstMatch( qe, f, m.d_vals, modEq, imtio, onlyExist, index );
-  }
-  bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
-                     ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
-  bool removeInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, ImtIndexOrder* imtio = NULL, int index = 0 );
-  bool recordInstLemma( Node q, std::vector< Node >& m, Node lem, ImtIndexOrder* imtio = NULL, int index = 0 );
-  void print( std::ostream& out, Node q, bool& firstTime, bool useActive, std::vector< Node >& active ) const{
-    std::vector< TNode > terms;
-    print( out, q, terms, firstTime, useActive, active );
-  }
-  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) {
-    std::vector< Node > terms;
-    getInstantiations( insts, q, terms, qe, useActive, active );
-  }
-  void getExplanationForInstLemmas( Node q, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const {
-    std::vector< Node > terms;
-    getExplanationForInstLemmas( q, terms, lems, quant, tvec );
-  }  
-  void clear() { d_data.clear(); }
-};/* class InstMatchTrie */
-
-/** trie for InstMatch objects */
-class CDInstMatchTrie {
-private:
-  /** the data */
-  std::map< Node, CDInstMatchTrie* > d_data;
-  /** is valid */
-  context::CDO< bool > d_valid;
-private:
-  void print( std::ostream& out, Node q, std::vector< TNode >& terms, bool& firstTime, bool useActive, std::vector< Node >& active ) const;
-  void getInstantiations( std::vector< Node >& insts, Node q, std::vector< Node >& terms, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) const;
-  void getExplanationForInstLemmas( Node q, std::vector< Node >& terms, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const;
-private:
-  void setInstLemma( Node n ){ 
-    d_data.clear();
-    d_data[n] = NULL; 
-  }
-  bool hasInstLemma() const { return !d_data.empty(); }
-  Node getInstLemma() const { return d_data.begin()->first; }
-public:
-  CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
-  ~CDInstMatchTrie();
-
-  /** return true if m exists in this trie
-        modEq is if we check modulo equality
-        modInst is if we return true if m is an instance of a match that exists
-   */
-  bool existsInstMatch( QuantifiersEngine* qe, Node q, InstMatch& m, context::Context* c, bool modEq = false,
-                        int index = 0 ) {
-    return !addInstMatch( qe, q, m, c, modEq, index, true );
-  }
-  bool existsInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, context::Context* c, bool modEq = false,
-                        int index = 0 ) {
-    return !addInstMatch( qe, q, m, c, modEq, index, true );
-  }
-  /** add match m for quantifier f, take into account equalities if modEq = true,
-      if imtio is non-null, this is the order to add to trie
-      return true if successful
-  */
-  bool addInstMatch( QuantifiersEngine* qe, Node q, InstMatch& m, context::Context* c, bool modEq = false,
-                     int index = 0, bool onlyExist = false ) {
-    return addInstMatch( qe, q, m.d_vals, c, modEq, index, onlyExist );
-  }
-  bool addInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, context::Context* c, bool modEq = false,
-                     int index = 0, bool onlyExist = false );
-  bool removeInstMatch( QuantifiersEngine* qe, Node q, std::vector< Node >& m, int index = 0 );
-  bool recordInstLemma( Node q, std::vector< Node >& m, Node lem, int index = 0 );
-  void print( std::ostream& out, Node q, bool& firstTime, bool useActive, std::vector< Node >& active ) const{
-    std::vector< TNode > terms;
-    print( out, q, terms, firstTime, useActive, active );
-  }
-  void getInstantiations( std::vector< Node >& insts, Node q, QuantifiersEngine * qe, bool useActive, std::vector< Node >& active ) {
-    std::vector< Node > terms;
-    getInstantiations( insts, q, terms, qe, useActive, active );
-  }
-  void getExplanationForInstLemmas( Node q, std::vector< Node >& lems, std::map< Node, Node >& quant, std::map< Node, std::vector< Node > >& tvec ) const {
-    std::vector< Node > terms;
-    getExplanationForInstLemmas( q, terms, lems, quant, tvec );
-  }  
-};/* class CDInstMatchTrie */
-
-
-class InstMatchTrieOrdered{
-private:
-  InstMatchTrie::ImtIndexOrder* d_imtio;
-  InstMatchTrie d_imt;
-public:
-  InstMatchTrieOrdered( InstMatchTrie::ImtIndexOrder* imtio ) : d_imtio( imtio ){}
-  ~InstMatchTrieOrdered(){}
-  /** get ordering */
-  InstMatchTrie::ImtIndexOrder* getOrdering() { return d_imtio; }
-  /** get trie */
-  InstMatchTrie* getTrie() { return &d_imt; }
-public:
-  /** add match m, return true if successful */
-  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, bool modInst = false ){
-    return d_imt.addInstMatch( qe, f, m, modEq, d_imtio );
-  }
-  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, bool modInst = false ){
-    return d_imt.existsInstMatch( qe, f, m, modEq, d_imtio );
-  }
-};/* class InstMatchTrieOrdered */
 
 }/* CVC4::theory::inst namespace */
 

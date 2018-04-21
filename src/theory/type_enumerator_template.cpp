@@ -29,7 +29,9 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 
-TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(TypeNode type, TypeEnumeratorProperties * tep) throw(AssertionException) {
+TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
+    TypeNode type, TypeEnumeratorProperties* tep)
+{
   switch(type.getKind()) {
   case kind::TYPE_CONSTANT:
     switch(type.getConst<TypeConstant>()) {

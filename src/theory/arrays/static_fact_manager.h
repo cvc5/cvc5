@@ -45,7 +45,6 @@ namespace arrays {
 
 public:
   StaticFactManager() {}
-  ~StaticFactManager() throw() { }
 
   /**
    * Return a Node's union-find representative, doing path compression.

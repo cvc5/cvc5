@@ -1,4 +1,4 @@
-% COMMAND-LINE: --enable-miplib-trick
+% COMMAND-LINE: --miplib-trick
 % EXPECT: sat
 
 tmp1 : INT;

@@ -37,80 +37,79 @@ enum SubTheory {
   SUB_ALGEBRAIC = 4
 };
 
-inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
+inline std::ostream& operator<<(std::ostream& out, SubTheory subtheory) {
   switch (subtheory) {
-  case SUB_BITBLAST:
-    out << "BITBLASTER";
-    break;
-  case SUB_CORE:
-    out << "BV_CORE_SUBTHEORY";
-    break;
-  case SUB_INEQUALITY:
-    out << "BV_INEQUALITY_SUBTHEORY";
-  case SUB_ALGEBRAIC:
-    out << "BV_ALGEBRAIC_SUBTHEORY";
-  default:
-    Unreachable();
-    break;
+    case SUB_BITBLAST:
+      return out << "BITBLASTER";
+    case SUB_CORE:
+      return out << "BV_CORE_SUBTHEORY";
+    case SUB_INEQUALITY:
+      return out << "BV_INEQUALITY_SUBTHEORY";
+    case SUB_ALGEBRAIC:
+      return out << "BV_ALGEBRAIC_SUBTHEORY";
+    default:
+      break;
   }
-  return out;
+  Unreachable();
 }
-
 
 // forward declaration
 class TheoryBV;
 
-typedef context::CDQueue<Node> AssertionQueue;
+using AssertionQueue = context::CDQueue<Node>;
+
 /**
  * Abstract base class for bit-vector subtheory solvers
  *
  */
 class SubtheorySolver {
-
-protected:
-
-  /** The context we are using */
-  context::Context* d_context;
-
-  /** The bit-vector theory */
-  TheoryBV* d_bv;
-  /** proof log */
-  BitVectorProof * d_bvp;
-  AssertionQueue d_assertionQueue;
-  context::CDO<uint32_t>  d_assertionIndex;
-public:
-
-  SubtheorySolver(context::Context* c, TheoryBV* bv) :
-    d_context(c),
-    d_bv(bv),
-    d_assertionQueue(c),
-    d_assertionIndex(c, 0)
-  {}
+ public:
+  SubtheorySolver(context::Context* c, TheoryBV* bv)
+      : d_context(c),
+        d_bv(bv),
+        d_bvp(nullptr),
+        d_assertionQueue(c),
+        d_assertionIndex(c, 0) {}
   virtual ~SubtheorySolver() {}
   virtual bool check(Theory::Effort e) = 0;
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
-  virtual void collectModelInfo(TheoryModel* m, bool fullModel) = 0;
+  virtual bool collectModelInfo(TheoryModel* m, bool fullModel) = 0;
   virtual Node getModelValue(TNode var) = 0;
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
   virtual void addSharedTerm(TNode node) {}
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
-    Assert (!done());
+    Assert(!done());
     TNode res = d_assertionQueue[d_assertionIndex];
     d_assertionIndex = d_assertionIndex + 1;
     return res;
   }
   virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
-  virtual void setProofLog( BitVectorProof * bvp ) {}
-  AssertionQueue::const_iterator assertionsBegin() { return d_assertionQueue.begin(); }
-  AssertionQueue::const_iterator assertionsEnd() { return d_assertionQueue.end(); }
-};
+  virtual void setProofLog(BitVectorProof* bvp) {}
+  AssertionQueue::const_iterator assertionsBegin() {
+    return d_assertionQueue.begin();
+  }
+  AssertionQueue::const_iterator assertionsEnd() {
+    return d_assertionQueue.end();
+  }
 
-}
-}
-}
+ protected:
+  /** The context we are using */
+  context::Context* d_context;
+
+  /** The bit-vector theory */
+  TheoryBV* d_bv;
+  /** proof log */
+  BitVectorProof* d_bvp;
+  AssertionQueue d_assertionQueue;
+  context::CDO<uint32_t> d_assertionIndex;
+}; /* class SubtheorySolver */
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__BV__BV_SUBTHEORY_H */

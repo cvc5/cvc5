@@ -28,11 +28,12 @@ namespace CVC4 {
 
 class CVC4_PUBLIC TupleUpdate {
   unsigned d_index;
-public:
-  TupleUpdate(unsigned index) throw() : d_index(index) { }
-  unsigned getIndex() const throw() { return d_index; }
-  bool operator==(const TupleUpdate& t) const throw() { return d_index == t.d_index; }
-  bool operator!=(const TupleUpdate& t) const throw() { return d_index != t.d_index; }
+
+ public:
+  TupleUpdate(unsigned index) : d_index(index) {}
+  unsigned getIndex() const { return d_index; }
+  bool operator==(const TupleUpdate& t) const { return d_index == t.d_index; }
+  bool operator!=(const TupleUpdate& t) const { return d_index != t.d_index; }
 };/* class TupleUpdate */
 
 struct CVC4_PUBLIC TupleUpdateHashFunction {

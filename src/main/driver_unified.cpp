@@ -187,16 +187,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     opts.setOutputLanguage(language::toOutputLanguage(opts.getInputLanguage()));
   }
 
-  // if doing sygus, turn on CEGQI by default
-  if(opts.getInputLanguage() == language::input::LANG_SYGUS ){
-    if( !opts.wasSetByUserCeGuidedInst()) {
-      opts.setCeGuidedInst(true);
-    }
-    if( !opts.wasSetByUserDumpSynth()) {
-      opts.setDumpSynth(true);
-    }
-  }
-
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&CVC4::null_os);
@@ -304,7 +294,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
                   << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl;
+                  << endl << endl;
+        Message() << Configuration::copyright() << endl;
       }
       if(replayParser) {
         // have the replay parser use the declarations input interactively

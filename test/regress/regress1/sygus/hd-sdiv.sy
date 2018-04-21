@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=none --no-dump-synth
+; COMMAND-LINE: --cegqi-si=none --sygus-out=status
 (set-logic BV)
 
 (define-fun hd01 ((x (BitVec 32))) (BitVec 32) (bvand x #x00000001))

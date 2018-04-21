@@ -21,11 +21,20 @@ elif test -n "$with_abc"; then
       [path to top level of abc source tree]
     ),
     [ABC_HOME="$withval"],
-    [ if test -z "$ABC_HOME"; then
-        AC_MSG_FAILURE([must give --with-abc-dir=PATH or define environment variable ABC_HOME!])
+    [ if test -z "$ABC_HOME" && ! test -e "$ac_abs_confdir/abc/alanmi-abc-53f39c11b58d/arch_flags"; then
+        AC_MSG_FAILURE([must give --with-abc-dir=PATH, define environment variable ABC_HOME, or use contrib/get-abc to setup ABC for CVC4!])
       fi
     ]
   )
+  # Check if ABC was installed via contrib/get-abc
+  AC_MSG_CHECKING([whether ABC was already installed via contrib/get-abc])
+  if test -z "$ABC_HOME" && test -e "$ac_abs_confdir/abc/alanmi-abc-53f39c11b58d/arch_flags"; then
+    ABC_HOME="$ac_abs_confdir/abc/alanmi-abc-53f39c11b58d"
+    AC_MSG_RESULT([yes, $ABC_HOME])
+  else
+    AC_MSG_RESULT([no])
+  fi
+
   if ! test -d "$ABC_HOME" || ! test -x "$ABC_HOME/arch_flags"; then
     AC_MSG_FAILURE([either $ABC_HOME is not an abc source tree or it's not yet built])
   fi

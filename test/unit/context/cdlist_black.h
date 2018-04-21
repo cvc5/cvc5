@@ -150,4 +150,12 @@ class CDListBlack : public CxxTest::TestSuite {
 
 #endif /* CVC4_MEMORY_LIMITING_DISABLED */
   }
+
+  void testPopBelowLevelCreated()
+  {
+    d_context->push();
+    CDList<int> list(d_context);
+    d_context->popto(0);
+    list.push_back(42);
+  }
 };

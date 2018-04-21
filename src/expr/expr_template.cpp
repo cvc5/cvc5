@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -54,31 +54,69 @@ std::ostream& operator<<(std::ostream& out, const Expr& e) {
   }
 }
 
-TypeCheckingException::TypeCheckingException(const TypeCheckingException& t) throw() :
-  Exception(t.d_msg), d_expr(new Expr(t.getExpression())) {
+std::ostream& operator<<(std::ostream& out, const std::vector<Expr>& container)
+{
+  container_to_stream(out, container);
+  return out;
 }
 
-TypeCheckingException::TypeCheckingException(const Expr& expr, std::string message) throw() :
-  Exception(message), d_expr(new Expr(expr)) {
+std::ostream& operator<<(std::ostream& out, const std::set<Expr>& container)
+{
+  container_to_stream(out, container);
+  return out;
 }
 
-TypeCheckingException::TypeCheckingException(ExprManager* em,
-                                             const TypeCheckingExceptionPrivate* exc) throw() :
-  Exception(exc->getMessage()), d_expr(new Expr(em, new Node(exc->getNode()))) {
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_set<Expr, ExprHashFunction>& container)
+{
+  container_to_stream(out, container);
+  return out;
 }
 
-TypeCheckingException::~TypeCheckingException() throw() {
-  delete d_expr;
+template <typename V>
+std::ostream& operator<<(std::ostream& out, const std::map<Expr, V>& container)
+{
+  container_to_stream(out, container);
+  return out;
 }
 
-void TypeCheckingException::toStream(std::ostream& os) const throw() {
+template <typename V>
+std::ostream& operator<<(
+    std::ostream& out,
+    const std::unordered_map<Expr, V, ExprHashFunction>& container)
+{
+  container_to_stream(out, container);
+  return out;
+}
+
+TypeCheckingException::TypeCheckingException(const TypeCheckingException& t)
+    : Exception(t.d_msg), d_expr(new Expr(t.getExpression()))
+{
+}
+
+TypeCheckingException::TypeCheckingException(const Expr& expr,
+                                             std::string message)
+    : Exception(message), d_expr(new Expr(expr))
+{
+}
+
+TypeCheckingException::TypeCheckingException(
+    ExprManager* em, const TypeCheckingExceptionPrivate* exc)
+    : Exception(exc->getMessage()),
+      d_expr(new Expr(em, new Node(exc->getNode())))
+{
+}
+
+TypeCheckingException::~TypeCheckingException() { delete d_expr; }
+
+void TypeCheckingException::toStream(std::ostream& os) const
+{
   os << "Error during type checking: " << d_msg << endl
      << "The ill-typed expression: " << *d_expr;
 }
 
-Expr TypeCheckingException::getExpression() const throw() {
-  return *d_expr;
-}
+Expr TypeCheckingException::getExpression() const { return *d_expr; }
 
 Expr::Expr() :
   d_node(new Node),
@@ -335,7 +373,8 @@ Expr Expr::getOperator() const {
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
 
-Type Expr::getType(bool check) const throw (TypeCheckingException) {
+Type Expr::getType(bool check) const
+{
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   PrettyCheckArgument(!d_node->isNull(), this,
@@ -399,22 +438,22 @@ Expr Expr::substitute(const std::unordered_map<Expr, Expr, ExprHashFunction> map
   return Expr(d_exprManager, new Node(d_node->substitute(mkNodePairIteratorAdaptor(map.begin()), mkNodePairIteratorAdaptor(map.end()))));
 }
 
-Expr::const_iterator::const_iterator() :
-  d_iterator(NULL) {
-}
-Expr::const_iterator::const_iterator(ExprManager* em, void* v) :
-  d_exprManager(em),
-  d_iterator(v) {
-}
-Expr::const_iterator::const_iterator(const const_iterator& it) {
-  if(it.d_iterator == NULL) {
-    d_iterator = NULL;
-  } else {
+Expr::const_iterator::const_iterator()
+    : d_exprManager(nullptr), d_iterator(nullptr) {}
+
+Expr::const_iterator::const_iterator(ExprManager* em, void* v)
+    : d_exprManager(em), d_iterator(v) {}
+
+Expr::const_iterator::const_iterator(const const_iterator& it)
+    : d_exprManager(nullptr), d_iterator(nullptr) {
+  if (it.d_iterator != nullptr) {
     d_exprManager = it.d_exprManager;
     ExprManagerScope ems(*d_exprManager);
-    d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
+    d_iterator =
+        new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
   }
 }
+
 Expr::const_iterator& Expr::const_iterator::operator=(const const_iterator& it) {
   if(d_iterator != NULL) {
     ExprManagerScope ems(*d_exprManager);
@@ -491,20 +530,21 @@ bool Expr::isConst() const {
   return d_node->isConst();
 }
 
+bool Expr::hasFreeVariable() const
+{
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->hasFreeVar();
+}
+
 void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
                     OutputLanguage language) const {
   ExprManagerScope ems(*this);
   d_node->toStream(out, depth, types, dag, language);
 }
 
-Node Expr::getNode() const throw() {
-  return *d_node;
-}
-
-TNode Expr::getTNode() const throw() {
-  return *d_node;
-}
-
+Node Expr::getNode() const { return *d_node; }
+TNode Expr::getTNode() const { return *d_node; }
 Expr Expr::notExpr() const {
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");

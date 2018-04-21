@@ -20,12 +20,18 @@
 #include <deque>
 #include <new>
 
+#ifdef CVC4_VALGRIND
+#include <valgrind/memcheck.h>
+#endif /* CVC4_VALGRIND */
+
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
 namespace CVC4 {
 namespace context {
+
+#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 
 void ContextMemoryManager::newChunk() {
 
@@ -40,6 +46,10 @@ void ContextMemoryManager::newChunk() {
     if(d_chunkList.back() == NULL) {
       throw std::bad_alloc();
     }
+
+#ifdef CVC4_VALGRIND
+    VALGRIND_MAKE_MEM_NOACCESS(d_chunkList.back(), chunkSizeBytes);
+#endif /* CVC4_VALGRIND */
   }
   // If there is a free chunk, use that
   else {
@@ -60,10 +70,20 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
     throw std::bad_alloc();
   }
   d_endChunk = d_nextFree + chunkSizeBytes;
+
+#ifdef CVC4_VALGRIND
+  VALGRIND_CREATE_MEMPOOL(this, 0, false);
+  VALGRIND_MAKE_MEM_NOACCESS(d_nextFree, chunkSizeBytes);
+  d_allocations.push_back(std::vector<char*>());
+#endif /* CVC4_VALGRIND */
 }
 
 
 ContextMemoryManager::~ContextMemoryManager() {
+#ifdef CVC4_VALGRIND
+  VALGRIND_DESTROY_MEMPOOL(this);
+#endif /* CVC4_VALGRIND */
+
   // Delete all chunks
   while(!d_chunkList.empty()) {
     free(d_chunkList.back());
@@ -91,11 +111,21 @@ void* ContextMemoryManager::newData(size_t size) {
   Debug("context") << "ContextMemoryManager::newData(" << size
                    << ") returning " << res << " at level "
                    << d_chunkList.size() << std::endl;
+
+#ifdef CVC4_VALGRIND
+  VALGRIND_MEMPOOL_ALLOC(this, static_cast<char*>(res), size);
+  d_allocations.back().push_back(static_cast<char*>(res));
+#endif /* CVC4_VALGRIND */
+
   return res;
 }
 
 
 void ContextMemoryManager::push() {
+#ifdef CVC4_VALGRIND
+  d_allocations.push_back(std::vector<char*>());
+#endif /* CVC4_VALGRIND */
+
   // Store current state on the stack
   d_nextFreeStack.push_back(d_nextFree);
   d_endChunkStack.push_back(d_endChunk);
@@ -104,6 +134,14 @@ void ContextMemoryManager::push() {
 
 
 void ContextMemoryManager::pop() {
+#ifdef CVC4_VALGRIND
+  for (auto allocation : d_allocations.back())
+  {
+    VALGRIND_MEMPOOL_FREE(this, allocation);
+  }
+  d_allocations.pop_back();
+#endif /* CVC4_VALGRIND */
+
   Assert(d_nextFreeStack.size() > 0 && d_endChunkStack.size() > 0);
 
   // Restore state from stack
@@ -115,6 +153,9 @@ void ContextMemoryManager::pop() {
   // Free all the new chunks since the last push
   while(d_indexChunkList > d_indexChunkListStack.back()) {
     d_freeChunks.push_back(d_chunkList.back());
+#ifdef CVC4_VALGRIND
+    VALGRIND_MAKE_MEM_NOACCESS(d_chunkList.back(), chunkSizeBytes);
+#endif /* CVC4_VALGRIND */
     d_chunkList.pop_back();
     --d_indexChunkList;
   }
@@ -127,6 +168,7 @@ void ContextMemoryManager::pop() {
   }
 }
 
+#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
 
 } /* CVC4::context namespace */
 } /* CVC4 namespace */

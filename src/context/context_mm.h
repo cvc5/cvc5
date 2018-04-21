@@ -20,11 +20,14 @@
 #ifndef __CVC4__CONTEXT__CONTEXT_MM_H
 #define __CVC4__CONTEXT__CONTEXT_MM_H
 
-#include <vector>
 #include <deque>
+#include <limits>
+#include <vector>
 
 namespace CVC4 {
 namespace context {
+
+#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 
 /**
  * Region-based memory manager for contexts.  Calls to newData provide memory
@@ -101,8 +104,15 @@ class ContextMemoryManager {
    */
   void newChunk();
 
-public:
+#ifdef CVC4_VALGRIND
+  /**
+   * Vector of allocations for each level. Used for accurately marking
+   * allocations as free'd in Valgrind.
+   */
+  std::vector<std::vector<char*>> d_allocations;
+#endif
 
+ public:
   /**
    * Get the maximum allocation size for this memory manager.
    */
@@ -138,6 +148,60 @@ public:
 
 };/* class ContextMemoryManager */
 
+#else /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+
+#warning \
+    "Using the debug version of ContextMemoryManager, expect performance degradation"
+
+/**
+ * Dummy implementation of the ContextMemoryManager for debugging purposes. Use
+ * the configure flag "--enable-debug-context-memory-manager" to use this
+ * implementation.
+ */
+class ContextMemoryManager
+{
+ public:
+  static unsigned getMaxAllocationSize()
+  {
+    return std::numeric_limits<unsigned>::max();
+  }
+
+  ContextMemoryManager() { d_allocations.push_back(std::vector<char*>()); }
+  ~ContextMemoryManager()
+  {
+    for (const auto& levelAllocs : d_allocations)
+    {
+      for (auto alloc : levelAllocs)
+      {
+        free(alloc);
+      }
+    }
+  }
+
+  void* newData(size_t size)
+  {
+    void* alloc = malloc(size);
+    d_allocations.back().push_back(static_cast<char*>(alloc));
+    return alloc;
+  }
+
+  void push() { d_allocations.push_back(std::vector<char*>()); }
+
+  void pop()
+  {
+    for (auto alloc : d_allocations.back())
+    {
+      free(alloc);
+    }
+    d_allocations.pop_back();
+  }
+
+ private:
+  std::vector<std::vector<char*>> d_allocations;
+}; /* ContextMemoryManager */
+
+#endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */
+
 /**
  * An STL-like allocator class for allocating from context memory.
  */
@@ -158,15 +222,19 @@ public:
     typedef ContextMemoryAllocator<U> other;
   };
 
-  ContextMemoryAllocator(ContextMemoryManager* mm) throw() : d_mm(mm) {}
+  ContextMemoryAllocator(ContextMemoryManager* mm) : d_mm(mm) {}
   template <class U>
-  ContextMemoryAllocator(const ContextMemoryAllocator<U>& alloc) throw() : d_mm(alloc.getCMM()) {}
+  ContextMemoryAllocator(const ContextMemoryAllocator<U>& alloc)
+      : d_mm(alloc.getCMM())
+  {
+  }
   ~ContextMemoryAllocator() {}
 
   ContextMemoryManager* getCMM() const { return d_mm; }
   T* address(T& v) const { return &v; }
   T const* address(T const& v) const { return &v; }
-  size_t max_size() const throw() {
+  size_t max_size() const
+  {
     return ContextMemoryManager::getMaxAllocationSize() / sizeof(T);
   }
   T* allocate(size_t n, const void* = 0) const {

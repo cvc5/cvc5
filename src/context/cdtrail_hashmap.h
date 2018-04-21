@@ -92,7 +92,6 @@ private:
   /** The trail of elements. */
   KDTVec d_kdts;
 
-
   typedef std::unordered_map<Key, size_t, HashFcn> PositionMap;
   typedef typename PositionMap::iterator PM_iterator;
   typedef typename PositionMap::const_iterator PM_const_iterator;
@@ -124,13 +123,15 @@ private:
   }
 
 public:
-  /**
-   * Constant iterator for TrailHashMap.
-   * Only supports forward iteration.
-   * This always points at the end or a current element in the trail.
-   * This is done by iterating over the trail.
-   */
-  class const_iterator {
+ TrailHashMap() : d_kdts{}, d_posMap{}, d_uniqueKeys(0) {}
+
+ /**
+  * Constant iterator for TrailHashMap.
+  * Only supports forward iteration.
+  * This always points at the end or a current element in the trail.
+  * This is done by iterating over the trail.
+  */
+ class const_iterator {
   private:
     /** A vector iterator. */
     KDTVec_const_iterator d_it;
@@ -393,7 +394,8 @@ private:
    * the current sizes to a copy using the copy constructor,
    * The saved information is allocated using the ContextMemoryManager.
    */
-  ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
     ContextObj* data = new(pCMM) CDTrailHashMap<Key, Data, HashFcn>(*this);
     Debug("CDTrailHashMap") << "save " << this
                             << " at level " << this->getContext()->getLevel()
@@ -408,20 +410,23 @@ protected:
    * restores the previous size.  Note that the list pointer and the
    * allocated size are not changed.
    */
-  void restore(ContextObj* data) {
-    Debug("CDTrailHashMap") << "restore " << this
-                            << " level " << this->getContext()->getLevel()
-                            << " data == " << data
-                            << " d_trailMap == " << this->d_trailMap << std::endl;
-    size_t oldSize = ((CDTrailHashMap<Key, Data, HashFcn>*)data)->d_trailSize;
-    d_trailMap->pop_to_size(oldSize);
-    d_trailSize = oldSize;
-    Assert(d_trailMap->trailSize() == d_trailSize);
+ void restore(ContextObj* data) override
+ {
+   Debug("CDTrailHashMap") << "restore " << this << " level "
+                           << this->getContext()->getLevel()
+                           << " data == " << data
+                           << " d_trailMap == " << this->d_trailMap
+                           << std::endl;
+   size_t oldSize = ((CDTrailHashMap<Key, Data, HashFcn>*)data)->d_trailSize;
+   d_trailMap->pop_to_size(oldSize);
+   d_trailSize = oldSize;
+   Assert(d_trailMap->trailSize() == d_trailSize);
 
-    d_prevTrailSize = ((CDTrailHashMap<Key, Data, HashFcn>*)data)->d_prevTrailSize;
-    Debug("CDTrailHashMap") << "restore " << this
-                            << " level " << this->getContext()->getLevel()
-                            << " size back to " << this->d_trailSize << std::endl;
+   d_prevTrailSize =
+       ((CDTrailHashMap<Key, Data, HashFcn>*)data)->d_prevTrailSize;
+   Debug("CDTrailHashMap") << "restore " << this << " level "
+                           << this->getContext()->getLevel() << " size back to "
+                           << this->d_trailSize << std::endl;
   }
 
   /**

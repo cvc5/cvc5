@@ -201,11 +201,9 @@ class InequalityGraph : public context::ContextNotifyObj{
   Node makeDiseqSplitLemma(TNode diseq); 
   /** Backtracking mechanisms **/
   std::vector<std::pair<TermId, InequalityEdge> > d_undoStack;
-  context::CDO<unsigned> d_undoStackIndex; 
-  
-  void contextNotifyPop() {
-    backtrack();
-  }
+  context::CDO<unsigned> d_undoStackIndex;
+
+  void contextNotifyPop() override { backtrack(); }
 
   void backtrack(); 
 

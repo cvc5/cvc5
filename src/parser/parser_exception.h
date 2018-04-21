@@ -29,40 +29,33 @@ namespace CVC4 {
 namespace parser {
 
 class CVC4_PUBLIC ParserException : public Exception {
-public:
+ public:
   // Constructors
-  ParserException() throw() :
-    d_filename(),
-    d_line(0),
-    d_column(0) {
+  ParserException() : d_filename(), d_line(0), d_column(0) {}
+
+  ParserException(const std::string& msg)
+      : Exception(msg), d_filename(), d_line(0), d_column(0)
+  {
   }
 
-  ParserException(const std::string& msg) throw() :
-    Exception(msg),
-    d_filename(),
-    d_line(0),
-    d_column(0) {
+  ParserException(const char* msg)
+      : Exception(msg), d_filename(), d_line(0), d_column(0)
+  {
   }
 
-  ParserException(const char* msg) throw() :
-    Exception(msg),
-    d_filename(),
-    d_line(0),
-    d_column(0) {
-  }
-
-  ParserException(const std::string& msg, const std::string& filename,
-                  unsigned long line, unsigned long column) throw() :
-    Exception(msg),
-    d_filename(filename),
-    d_line(line),
-    d_column(column) {
+  ParserException(const std::string& msg,
+                  const std::string& filename,
+                  unsigned long line,
+                  unsigned long column)
+      : Exception(msg), d_filename(filename), d_line(line), d_column(column)
+  {
   }
 
   // Destructor
-  virtual ~ParserException() throw() {}
+  ~ParserException() override {}
 
-  virtual void toStream(std::ostream& os) const throw() {
+  void toStream(std::ostream& os) const override
+  {
     if( d_line > 0 ) {
       os <<  "Parse Error: " << d_filename << ":" << d_line << "."
          << d_column << ": " << d_msg;
@@ -71,44 +64,34 @@ public:
     }
   }
 
-  std::string getFilename() const throw() {
-    return d_filename;
-  }
+  std::string getFilename() const { return d_filename; }
 
-  int getLine() const throw() {
-    return d_line;
-  }
+  int getLine() const { return d_line; }
 
-  int getColumn() const throw() {
-    return d_column;
-  }
+  int getColumn() const { return d_column; }
 
-protected:
+ protected:
   std::string d_filename;
   unsigned long d_line;
   unsigned long d_column;
 };/* class ParserException */
 
 class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
-public:
-
+ public:
   // Constructors same as ParserException's
 
-  ParserEndOfFileException() throw() :
-    ParserException() {
-  }
+  ParserEndOfFileException() : ParserException() {}
 
-  ParserEndOfFileException(const std::string& msg) throw() :
-    ParserException(msg) {
-  }
+  ParserEndOfFileException(const std::string& msg) : ParserException(msg) {}
 
-  ParserEndOfFileException(const char* msg) throw() :
-    ParserException(msg) {
-  }
+  ParserEndOfFileException(const char* msg) : ParserException(msg) {}
 
-  ParserEndOfFileException(const std::string& msg, const std::string& filename,
-                           unsigned long line, unsigned long column) throw() :
-    ParserException(msg, filename, line, column) {
+  ParserEndOfFileException(const std::string& msg,
+                           const std::string& filename,
+                           unsigned long line,
+                           unsigned long column)
+      : ParserException(msg, filename, line, column)
+  {
   }
 
 };/* class ParserEndOfFileException */

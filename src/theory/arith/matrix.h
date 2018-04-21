@@ -48,9 +48,9 @@ public:
 
 class NoEffectCCCB : public CoefficientChangeCallback {
 public:
-  void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn);
-  void multiplyRow(RowIndex ridx, int Sgn);
-  bool canUseRow(RowIndex ridx) const;
+ void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) override;
+ void multiplyRow(RowIndex ridx, int Sgn) override;
+ bool canUseRow(RowIndex ridx) const override;
 };
 
 template<class T>

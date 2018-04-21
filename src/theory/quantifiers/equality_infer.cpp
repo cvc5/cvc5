@@ -15,8 +15,10 @@
  **/
 
 #include "theory/quantifiers/equality_infer.h"
-#include "theory/quantifiers/quant_util.h"
+
 #include "context/context_mm.h"
+#include "theory/rewriter.h"
+#include "theory/arith/arith_msum.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -144,7 +146,8 @@ void EqualityInference::eqNotifyNewClass(TNode t) {
       //somewhat strange: t may not be in rewritten form    
       Node r = Rewriter::rewrite( t );
       std::map< Node, Node > msum;
-      if( QuantArith::getMonomialSum( r, msum ) ){
+      if (ArithMSum::getMonomialSum(r, msum))
+      {
         Trace("eq-infer-debug2") << "...process monomial sum, size = " << msum.size() << std::endl;
         eqci->d_valid = true;
         bool changed = false;
@@ -185,7 +188,8 @@ void EqualityInference::eqNotifyNewClass(TNode t) {
           Trace("eq-infer-debug2") << "...pre-rewrite : " << r << std::endl;
           r = Rewriter::rewrite( r );
           msum.clear();
-          if( !QuantArith::getMonomialSum( r, msum ) ){
+          if (!ArithMSum::getMonomialSum(r, msum))
+          {
             mvalid = false;
           }
         }
@@ -285,7 +289,8 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
       if( tr1!=tr2 ){
         Node eq = tr1.eqNode( tr2 );
         std::map< Node, Node > msum;
-        if( QuantArith::getMonomialSumLit( eq, msum ) ){
+        if (ArithMSum::getMonomialSumLit(eq, msum))
+        {
           Node v_solve;
           //solve for variables with no coefficient
           if( Trace.isOn("eq-infer-debug2") ){
@@ -315,7 +320,8 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
           if( !v_solve.isNull() ){
             //solve for v_solve
             Node veq;
-            if( QuantArith::isolate( v_solve, msum, veq, kind::EQUAL, true )==1 ){
+            if (ArithMSum::isolate(v_solve, msum, veq, kind::EQUAL, true) == 1)
+            {
               Node v_value = veq[1];
               Trace("eq-infer") << "...solved " << v_solve << " == " << v_value << std::endl;
               Assert( d_elim_vars.find( v_solve )==d_elim_vars.end() );
@@ -375,7 +381,9 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
                     std::map< Node, EqcInfo * >::iterator itt = d_eqci.find( r );
                     if( itt!=d_eqci.end() && ( itt->second->d_valid || itt->second->d_solved ) ){
                       std::map< Node, Node > msum2;
-                      if( QuantArith::getMonomialSum( itt->second->d_rep.get(), msum2 ) ){
+                      if (ArithMSum::getMonomialSum(itt->second->d_rep.get(),
+                                                    msum2))
+                      {
                         std::map< Node, Node >::iterator itm = msum2.find( v_solve );
                         if( itm!=msum2.end() ){
                           //substitute in solved form
@@ -387,7 +395,7 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
                                                                                     itm->second.isNull() ? d_one : itm->second );
                           }
                           msum2.erase( itm );
-                          Node rr = QuantArith::mkNode( msum2 );
+                          Node rr = ArithMSum::mkNode(msum2);
                           rr = Rewriter::rewrite( rr );
                           Trace("eq-infer") << "......update " << itt->first << " => " << rr << std::endl;
                           setEqcRep( itt->first, rr, exp, itt->second );

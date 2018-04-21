@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules_constant_evaluation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Tim King
+ **   Liana Hadarean, Clark Barrett, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,7 @@ bool RewriteRule<EvalAnd>::applies(TNode node) {
   Unreachable();
   return (node.getKind() == kind::BITVECTOR_AND &&
           node.getNumChildren() == 2 &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -50,7 +50,7 @@ bool RewriteRule<EvalOr>::applies(TNode node) {
   Unreachable();
   return (node.getKind() == kind::BITVECTOR_OR &&
           node.getNumChildren() == 2 &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -69,7 +69,7 @@ bool RewriteRule<EvalXor>::applies(TNode node) {
   Unreachable();
   return (node.getKind() == kind::BITVECTOR_XOR &&
           node.getNumChildren() == 2 &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -86,7 +86,7 @@ Node RewriteRule<EvalXor>::apply(TNode node) {
 // template<> inline
 // bool RewriteRule<EvalXnor>::applies(TNode node) {
 //   return (node.getKind() == kind::BITVECTOR_XNOR &&
-//           utils::isBVGroundTerm(node));
+//           utils::isBvConstTerm(node));
 // }
 
 // template<> inline
@@ -101,7 +101,7 @@ Node RewriteRule<EvalXor>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalNot>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_NOT &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -115,7 +115,7 @@ Node RewriteRule<EvalNot>::apply(TNode node) {
 // template<> inline
 // bool RewriteRule<EvalComp>::applies(TNode node) {
 //   return (node.getKind() == kind::BITVECTOR_COMP &&
-//           utils::isBVGroundTerm(node));
+//           utils::isBvConstTerm(node));
 // }
 
 // template<> inline
@@ -136,7 +136,7 @@ Node RewriteRule<EvalNot>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalMult>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_MULT &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -153,7 +153,7 @@ Node RewriteRule<EvalMult>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalPlus>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_PLUS &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -170,7 +170,7 @@ Node RewriteRule<EvalPlus>::apply(TNode node) {
 // template<> inline
 // bool RewriteRule<EvalSub>::applies(TNode node) {
 //   return (node.getKind() == kind::BITVECTOR_SUB &&
-//           utils::isBVGroundTerm(node));
+//           utils::isBvConstTerm(node));
 // }
 
 // template<> inline
@@ -185,7 +185,7 @@ Node RewriteRule<EvalPlus>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalNeg>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_NEG &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -198,7 +198,7 @@ Node RewriteRule<EvalNeg>::apply(TNode node) {
 }
 template<> inline
 bool RewriteRule<EvalUdiv>::applies(TNode node) {
-  return (utils::isBVGroundTerm(node) &&
+  return (utils::isBvConstTerm(node) &&
           (node.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
            (node.getKind() == kind::BITVECTOR_UDIV && node[1].isConst())));
 }
@@ -214,7 +214,7 @@ Node RewriteRule<EvalUdiv>::apply(TNode node) {
 }
 template<> inline
 bool RewriteRule<EvalUrem>::applies(TNode node) {
-  return (utils::isBVGroundTerm(node) &&
+  return (utils::isBvConstTerm(node) &&
           (node.getKind() == kind::BITVECTOR_UREM_TOTAL ||
            (node.getKind() == kind::BITVECTOR_UREM && node[1].isConst())));
 }
@@ -231,7 +231,7 @@ Node RewriteRule<EvalUrem>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalShl>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SHL &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -247,7 +247,7 @@ Node RewriteRule<EvalShl>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalLshr>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_LSHR &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -263,7 +263,7 @@ Node RewriteRule<EvalLshr>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalAshr>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_ASHR &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -279,7 +279,7 @@ Node RewriteRule<EvalAshr>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalUlt>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_ULT &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -297,7 +297,7 @@ Node RewriteRule<EvalUlt>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalUltBv>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_ULTBV &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -315,7 +315,7 @@ Node RewriteRule<EvalUltBv>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalSlt>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLT &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -334,7 +334,7 @@ Node RewriteRule<EvalSlt>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalSltBv>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLTBV &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -354,7 +354,7 @@ template<> inline
 bool RewriteRule<EvalITEBv>::applies(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<EvalITEBv>::applies(" << node << ")" << std::endl;
   return (node.getKind() == kind::BITVECTOR_ITE &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -373,7 +373,7 @@ Node RewriteRule<EvalITEBv>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalUle>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_ULE &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -391,7 +391,7 @@ Node RewriteRule<EvalUle>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalSle>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLE &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -409,7 +409,7 @@ Node RewriteRule<EvalSle>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalExtract>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_EXTRACT &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -427,7 +427,7 @@ Node RewriteRule<EvalExtract>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalConcat>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_CONCAT &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -445,7 +445,7 @@ Node RewriteRule<EvalConcat>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalSignExtend>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SIGN_EXTEND &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -461,7 +461,7 @@ Node RewriteRule<EvalSignExtend>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalEquals>::applies(TNode node) {
   return (node.getKind() == kind::EQUAL &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline
@@ -479,7 +479,7 @@ Node RewriteRule<EvalEquals>::apply(TNode node) {
 template<> inline
 bool RewriteRule<EvalComp>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_COMP &&
-          utils::isBVGroundTerm(node));
+          utils::isBvConstTerm(node));
 }
 
 template<> inline

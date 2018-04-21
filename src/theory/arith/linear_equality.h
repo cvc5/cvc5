@@ -588,13 +588,16 @@ private:
     LinearEqualityModule* d_linEq;
   public:
     TrackingCallback(LinearEqualityModule* le) : d_linEq(le) {}
-    void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn){
+    void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) override
+    {
       d_linEq->trackingCoefficientChange(ridx, nb, oldSgn, currSgn);
     }
-    void multiplyRow(RowIndex ridx, int sgn){
+    void multiplyRow(RowIndex ridx, int sgn) override
+    {
       d_linEq->trackingMultiplyRow(ridx, sgn);
     }
-    bool canUseRow(RowIndex ridx) const {
+    bool canUseRow(RowIndex ridx) const override
+    {
       ArithVar basic = d_linEq->getTableau().rowIndexToBasic(ridx);
       return d_linEq->basicIsTracked(basic);
     }
@@ -746,7 +749,8 @@ private:
   LinearEqualityModule* d_mod;
 public:
   UpdateTrackingCallback(LinearEqualityModule* mod): d_mod(mod){}
-  void operator()(ArithVar v, const BoundsInfo& bi){
+  void operator()(ArithVar v, const BoundsInfo& bi) override
+  {
     d_mod->includeBoundUpdate(v, bi);
   }
 };

@@ -1,0 +1,19 @@
+; EXPECT: unsat
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+(set-logic LIA)
+
+(synth-fun P ((x Int) (y Int)) Bool
+  ((Start Bool ((and Start Start)
+                (not Start)
+                (<= StartInt StartIntC)
+                (<= StartInt StartInt)
+                (>= StartInt StartInt)
+                (<= StartIntC StartInt)
+                (>= StartIntC StartInt)
+                (<= StartIntC StartIntC)
+                ))
+   (StartIntC Int (0 0 1))
+   (StartInt Int (x y 0 1))))
+
+(constraint (P 0 2))
+(check-synth)

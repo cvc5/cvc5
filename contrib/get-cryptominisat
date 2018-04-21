@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+source "$(dirname "$0")/get-script-header.sh"
+
+if [ -e cryptominisat5 ]; then
+  echo 'error: file or directory "cryptominisat5" exists; please move it out of the way.' >&2
+  exit 1
+fi
+
+version="5.0.2"
+
+mkdir cryptominisat5
+cd cryptominisat5
+CRYPTOMINISAT_PATH=`pwd`
+
+webget https://github.com/msoos/cryptominisat/archive/$version.tar.gz cryptominisat-$version.tar.gz
+gunzip -f cryptominisat-$version.tar.gz
+tar xfv cryptominisat-$version.tar
+cd cryptominisat-$version
+
+mkdir ../build
+cd ../build
+
+cmake -DENABLE_PYTHON_INTERFACE=OFF \
+      -DCMAKE_INSTALL_PREFIX:PATH=$CRYPTOMINISAT_PATH/install \
+      -DSTATICCOMPILE=ON \
+      -DNOM4RI=ON \
+      ../cryptominisat-$version
+
+make install -j$(nproc)
+
+cd ../
+
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure --with-cryptominisat

@@ -26,40 +26,17 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "util/hash.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 
-class ContainsTermITEVisitor;
 class IncomingArcCounter;
 class TermITEHeightCounter;
 class ITECompressor;
 class ITESimplifier;
 class ITECareSimplifier;
-
-class ITEUtilities {
-public:
-  ITEUtilities(ContainsTermITEVisitor* containsVisitor);
-  ~ITEUtilities();
-
-  Node simpITE(TNode assertion);
-
-  bool simpIteDidALotOfWorkHeuristic() const;
-
-  /* returns false if an assertion is discovered to be equal to false. */
-  bool compress(std::vector<Node>& assertions);
-
-  Node simplifyWithCare(TNode e);
-
-  void clear();
-
-private:
-  ContainsTermITEVisitor* d_containsVisitor;
-  ITECompressor* d_compressor;
-  ITESimplifier* d_simplifier;
-  ITECareSimplifier* d_careSimp;
-};
 
 /**
  * A caching visitor that computes whether a node contains a term ite.
@@ -81,6 +58,40 @@ public:
 private:
   typedef std::unordered_map<Node, bool, NodeHashFunction> NodeBoolMap;
   NodeBoolMap d_cache;
+};
+
+class ITEUtilities
+{
+ public:
+  ITEUtilities();
+  ~ITEUtilities();
+
+  Node simpITE(TNode assertion);
+
+  bool simpIteDidALotOfWorkHeuristic() const;
+
+  /* returns false if an assertion is discovered to be equal to false. */
+  bool compress(std::vector<Node>& assertions);
+
+  Node simplifyWithCare(TNode e);
+
+  void clear();
+
+  ContainsTermITEVisitor* getContainsVisitor()
+  {
+    return d_containsVisitor.get();
+  }
+
+  bool containsTermITE(TNode n)
+  {
+    return d_containsVisitor->containsTermITE(n);
+  }
+
+ private:
+  std::unique_ptr<ContainsTermITEVisitor> d_containsVisitor;
+  ITECompressor* d_compressor;
+  ITESimplifier* d_simplifier;
+  ITECareSimplifier* d_careSimp;
 };
 
 class IncomingArcCounter {
@@ -240,14 +251,8 @@ private:
   uint32_t d_citeEqConstApplications;
 
   typedef std::pair<Node, Node> NodePair;
-  struct NodePairHashFunction {
-    size_t operator () (const NodePair& pair) const {
-      size_t hash = 0;
-      hash = 0x9e3779b9 + NodeHashFunction().operator()(pair.first);
-      hash ^= 0x9e3779b9 + NodeHashFunction().operator()(pair.second) + (hash << 6) + (hash >> 2);
-      return hash;
-    }
-  };/* struct ITESimplifier::NodePairHashFunction */
+  using NodePairHashFunction =
+      PairHashFunction<Node, Node, NodeHashFunction, NodeHashFunction>;
   typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
   NodePairMap d_constantIteEqualsConstantCache;
   NodePairMap d_replaceOverCache;

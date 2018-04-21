@@ -32,6 +32,7 @@
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 #include "smt/smt_engine.h"
+#include "util/proof.h"
 #include "util/statistics_registry.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
@@ -66,7 +67,7 @@ void SmtEngine::checkProof() {
 
   Chat() << "generating proof..." << endl;
 
-  Proof* pf = getProof();
+  const Proof& pf = getProof();
 
   Chat() << "checking proof..." << endl;
 
@@ -112,7 +113,7 @@ void SmtEngine::checkProof() {
 
   ofstream pfStream(pfFile);
   pfStream << proof::plf_signatures << endl;
-  pf->toStream(pfStream);
+  pf.toStream(pfStream);
   pfStream.close();
   lfscc_init();
   lfscc_check_file(pfFile, false, false, false, false, false, false, false);

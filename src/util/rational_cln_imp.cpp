@@ -84,29 +84,20 @@ int Rational::absCmp(const Rational& q) const{
   }
 }
 
-Rational Rational::fromDouble(double d) throw(RationalFromDoubleException){
+Maybe<Rational> Rational::fromDouble(double d)
+{
   try{
     cln::cl_DF fromD = d;
     Rational q;
     q.d_value = cln::rationalize(fromD);
     return q;
   }catch(cln::floating_point_underflow_exception& fpue){
-    throw RationalFromDoubleException(d);
+    return Maybe<Rational>();
   }catch(cln::floating_point_nan_exception& fpne){
-    throw RationalFromDoubleException(d);
+    return Maybe<Rational>();
   }catch(cln::floating_point_overflow_exception& fpoe){
-    throw RationalFromDoubleException(d);
+    return Maybe<Rational>();
   }
-}
-
-RationalFromDoubleException::RationalFromDoubleException(double d) throw()
-  : Exception()
-{
-  std::stringstream ss;
-  ss << "RationalFromDoubleException(";
-  ss << d;
-  ss << ")";
-  setMessage(ss.str());
 }
 
 } /* namespace CVC4 */

@@ -24,7 +24,8 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;
@@ -152,10 +153,10 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 }
 
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
-  Node icn = d_qe->getTermDatabase()->getInstConstantNode( n, f );
+  Node icn = d_qe->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
-  d_qe->getTermDatabase()->getVarContainsNode( f, icn, var );
+  quantifiers::TermUtil::computeInstConstContainsForQuant(f, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
   inst::Trigger::getTriggerVariables( icn, f, trigger_var );

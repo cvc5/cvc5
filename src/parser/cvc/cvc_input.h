@@ -40,8 +40,7 @@ class CvcInput : public AntlrInput {
   /** The ANTLR3 CVC parser for the input. */
   pCvcParser d_pCvcParser;
 
-public:
-
+ public:
   /** Create an input.
    *
    * @param inputStream the input to parse
@@ -52,28 +51,27 @@ public:
   virtual ~CvcInput();
 
   /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const throw() {
+  InputLanguage getLanguage() const override
+  {
     return language::input::LANG_CVC4;
   }
 
-protected:
-
+ protected:
   /** Parse a command from the input. Returns <code>NULL</code> if there is
    * no command there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand();
+  Command* parseCommand() override;
 
   /** Parse an expression from the input. Returns a null <code>Expr</code>
    * if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr();
+  Expr parseExpr() override;
 
-private:
-
+ private:
   /** Initialize the class. Called from the constructors once the input stream
    * is initialized. */
   void init();

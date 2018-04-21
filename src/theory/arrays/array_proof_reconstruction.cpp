@@ -17,6 +17,8 @@
 
 #include "theory/arrays/array_proof_reconstruction.h"
 
+#include <memory>
+
 namespace CVC4 {
 namespace theory {
 namespace arrays {
@@ -37,18 +39,18 @@ void ArrayProofReconstruction::setExtMergeTag(unsigned tag) {
   d_reasonExt = tag;
 }
 
-void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, Node b,
-                                      std::vector<TNode>& equalities, eq::EqProof* proof) const {
-
+void ArrayProofReconstruction::notify(
+    unsigned reasonType, Node reason, Node a, Node b,
+    std::vector<TNode>& equalities, eq::EqProof* proof) const {
   Debug("pf::array") << "ArrayProofReconstruction::notify( "
                      << reason << ", " << a << ", " << b << std::endl;
 
 
   if (reasonType == d_reasonExt) {
     if (proof) {
-      // Todo: here we assume that a=b is an assertion. We should probably call explain()
-      // recursively, to explain this.
-      eq::EqProof* childProof = new eq::EqProof;
+      // Todo: here we assume that a=b is an assertion. We should probably call
+      // explain() recursively, to explain this.
+      std::shared_ptr<eq::EqProof> childProof = std::make_shared<eq::EqProof>();
       childProof->d_node = reason;
       proof->d_children.push_back(childProof);
     }
@@ -101,12 +103,13 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
         Debug("pf::ee") << "Getting explanation for ROW guard: "
                         << indexOne << " != " << indexTwo << std::endl;
 
+        std::shared_ptr<eq::EqProof> childProof =
+            std::make_shared<eq::EqProof>();
+        d_equalityEngine->explainEquality(indexOne, indexTwo, false, equalities,
+                                          childProof.get());
 
-        eq::EqProof* childProof = new eq::EqProof;
-        d_equalityEngine->explainEquality(indexOne, indexTwo, false, equalities, childProof);
-
-        // It could be that the guard condition is a constant disequality. In this case,
-        // we need to change it to a different format.
+        // It could be that the guard condition is a constant disequality. In
+        // this case, we need to change it to a different format.
         bool haveNegChild = false;
         for (unsigned i = 0; i < childProof->d_children.size(); ++i) {
           if (childProof->d_children[i]->d_node.getKind() == kind::NOT)
@@ -145,13 +148,15 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
             }
           }
 
-          eq::EqProof* constantDisequalityProof = new eq::EqProof;
+          std::shared_ptr<eq::EqProof> constantDisequalityProof =
+              std::make_shared<eq::EqProof>();
           constantDisequalityProof->d_id = theory::eq::MERGED_THROUGH_CONSTANTS;
           constantDisequalityProof->d_node =
             NodeManager::currentNM()->mkNode(kind::EQUAL, constantOne, constantTwo).negate();
 
           // Middle is where we need to insert the new disequality
-          std::vector<eq::EqProof *>::iterator middle = childProof->d_children.begin();
+          std::vector<std::shared_ptr<eq::EqProof>>::iterator middle =
+              childProof->d_children.begin();
           ++middle;
 
           childProof->d_children.insert(middle, constantDisequalityProof);
@@ -174,8 +179,10 @@ void ArrayProofReconstruction::notify(unsigned reasonType, Node reason, Node a, 
         Assert(reason.getNumChildren() == 2);
         Debug("pf::ee") << "Getting explanation for ROW guard: " << reason[1] << std::endl;
 
-        eq::EqProof* childProof = new eq::EqProof;
-        d_equalityEngine->explainEquality(reason[1][0], reason[1][1], false, equalities, childProof);
+        std::shared_ptr<eq::EqProof> childProof =
+            std::make_shared<eq::EqProof>();
+        d_equalityEngine->explainEquality(reason[1][0], reason[1][1], false,
+                                          equalities, childProof.get());
         proof->d_children.push_back(childProof);
       }
     }

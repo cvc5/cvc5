@@ -59,8 +59,8 @@ Integer Integer::exactQuotient(const Integer& y) const {
   return Integer( cln::exquo(d_value, y.d_value) );
 }
 
-
-void Integer::parseInt(const std::string& s, unsigned base) throw(std::invalid_argument) {
+void Integer::parseInt(const std::string& s, unsigned base)
+{
   cln::cl_read_flags flags;
   flags.syntax = cln::syntax_integer;
   flags.lsyntax = cln::lsyntax_standard;
@@ -86,7 +86,10 @@ void Integer::parseInt(const std::string& s, unsigned base) throw(std::invalid_a
   readInt(flags, s, base);
 }
 
-void Integer::readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument) {
+void Integer::readInt(const cln::cl_read_flags& flags,
+                      const std::string& s,
+                      unsigned base)
+{
   try {
     // Removing leading zeroes, CLN has a bug for these inputs up to and
     // including CLN v1.3.2.
@@ -155,4 +158,36 @@ Integer Integer::pow(unsigned long int exp) const {
   }
 }
 
+Integer Integer::modAdd(const Integer& y, const Integer& m) const
+{
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  cln::cl_MI ym = ry->canonhom(y.d_value);
+  cln::cl_MI res = xm + ym;
+  return Integer(ry->retract(res));
+}
+
+Integer Integer::modMultiply(const Integer& y, const Integer& m) const
+{
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  cln::cl_MI ym = ry->canonhom(y.d_value);
+  cln::cl_MI res = xm * ym;
+  return Integer(ry->retract(res));
+}
+
+Integer Integer::modInverse(const Integer& m) const
+{
+  PrettyCheckArgument(m > 0, m, "m must be greater than zero");
+  cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
+  cln::cl_MI xm = ry->canonhom(d_value);
+  /* normalize to modulo m for coprime check */
+  cln::cl_I x = ry->retract(xm);
+  if (x == 0 || cln::gcd(x, m.d_value) != 1)
+  {
+    return Integer(-1);
+  }
+  cln::cl_MI res = cln::recip(xm);
+  return Integer(ry->retract(res));
+}
 } /* namespace CVC4 */

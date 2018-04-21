@@ -8,7 +8,7 @@ The main classes of the CVC4 API are:
 - CVC4::SmtEngine - the SMT interface, permits making assertions and checking satisfiability (create one of these for your application)
 
 There are numerous examples of the use of the C++ API in the examples/api directory of the CVC4 source distribution.  There is also a discussion on our CVC4 Wiki at
-http://cvc4.cs.nyu.edu/wiki/Tutorials#C.2B.2B_API
+http://cvc4.cs.stanford.edu/wiki/Tutorials#C.2B.2B_API
 
 Using the CVC4 API from Java
 

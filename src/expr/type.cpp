@@ -400,93 +400,92 @@ SortType SortConstructorType::instantiate(const std::vector<Type>& params) const
   return SortType(makeType(d_nodeManager->mkSort(*d_typeNode, paramsNodes)));
 }
 
-BooleanType::BooleanType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+BooleanType::BooleanType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isBoolean(), this);
 }
 
-IntegerType::IntegerType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+IntegerType::IntegerType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isInteger(), this);
 }
 
-RealType::RealType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+RealType::RealType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isReal(), this);
 }
 
-StringType::StringType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+StringType::StringType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isString(), this);
 }
 
-RegExpType::RegExpType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+RegExpType::RegExpType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isRegExp(), this);
 }
 
-RoundingModeType::RoundingModeType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+RoundingModeType::RoundingModeType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isRoundingMode(), this);
 }
 
-BitVectorType::BitVectorType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+BitVectorType::BitVectorType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isBitVector(), this);
 }
 
-FloatingPointType::FloatingPointType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+FloatingPointType::FloatingPointType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isFloatingPoint(), this);
 }
 
-DatatypeType::DatatypeType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+DatatypeType::DatatypeType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isDatatype(), this);
 }
 
-ConstructorType::ConstructorType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+ConstructorType::ConstructorType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isConstructor(), this);
 }
 
-SelectorType::SelectorType(const Type& t) throw(IllegalArgumentException) :
-  Type(t) {
+SelectorType::SelectorType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isSelector(), this);
 }
 
-TesterType::TesterType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
+TesterType::TesterType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isTester(), this);
 }
 
-FunctionType::FunctionType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
+FunctionType::FunctionType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isFunction(), this);
 }
 
-SExprType::SExprType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
+SExprType::SExprType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isSExpr(), this);
 }
 
-ArrayType::ArrayType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
+ArrayType::ArrayType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isArray(), this);
 }
 
-SetType::SetType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
+SetType::SetType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
-SortType::SortType(const Type& t) throw(IllegalArgumentException)
-    : Type(t) {
+SortType::SortType(const Type& t) : Type(t)
+{
   PrettyCheckArgument(isNull() || isSort(), this);
 }
 
 SortConstructorType::SortConstructorType(const Type& t)
-  throw(IllegalArgumentException)
     : Type(t) {
   PrettyCheckArgument(isNull() || isSortConstructor(), this);
 }

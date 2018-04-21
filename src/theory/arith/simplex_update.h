@@ -145,7 +145,7 @@ private:
    * d_nonbasicDelta is zero() or its sgn() must agree with d_nonbasicDirection.
    */
   bool debugSgnAgreement() const {
-    int deltaSgn = d_nonbasicDelta.constValue().sgn();
+    int deltaSgn = d_nonbasicDelta.value().sgn();
     return deltaSgn == 0 || deltaSgn == d_nonbasicDirection;
   }
 
@@ -228,16 +228,19 @@ public:
   inline int nonbasicDirection() const{  return d_nonbasicDirection; }
 
   /** Requires errorsChange to be set through setErrorsChange or updateProposal. */
-  inline int errorsChange() const { return d_errorsChange; }
+  inline int errorsChange() const { return d_errorsChange.value(); }
 
   /**
    * If errorsChange has been set, return errorsChange().
    * Otherwise, return def.
    */
   inline int errorsChangeSafe(int def) const {
-    if(d_errorsChange.just()){
-      return d_errorsChange;
-    }else{
+    if (d_errorsChange)
+    {
+      return d_errorsChange.value();
+    }
+    else
+    {
       return def;
     }
   }
@@ -250,7 +253,7 @@ public:
 
 
   /** Requires errorsChange to be set through setErrorsChange or updateProposal. */
-  inline int focusDirection() const{ return d_focusDirection; }
+  inline int focusDirection() const { return d_focusDirection.value(); }
 
   /** Sets the focusDirection. */
   void setFocusDirection(int fd){
@@ -265,18 +268,16 @@ public:
    * The burden for this being safe is on the user!
    */
   void determineFocusDirection(){
-    int deltaSgn = d_nonbasicDelta.constValue().sgn();
+    const int deltaSgn = d_nonbasicDelta.value().sgn();
     setFocusDirection(deltaSgn * d_nonbasicDirection);
   }
 
   /** Requires nonbasicDelta to be set through updateProposal(...). */
-  const DeltaRational& nonbasicDelta() const {
-    return d_nonbasicDelta;
-  }
+  const DeltaRational& nonbasicDelta() const { return d_nonbasicDelta.value(); }
   const Rational& getCoefficient() const {
     Assert(describesPivot());
-    Assert(d_tableauCoefficient.constValue() != NULL);
-    return *(d_tableauCoefficient.constValue());
+    Assert(d_tableauCoefficient.value() != NULL);
+    return *(d_tableauCoefficient.value());
   }
   int basicDirection() const {
     return nonbasicDirection() * (getCoefficient().sgn());
@@ -301,9 +302,7 @@ public:
     }
   }
 
-  const DeltaRational& focusChange() const {
-    return d_focusChange;
-  }
+  const DeltaRational& focusChange() const { return d_focusChange.value(); }
   void setFocusChange(const DeltaRational& fc) {
     d_focusChange = fc;
   }
@@ -329,13 +328,20 @@ private:
   WitnessImprovement computeWitness() const {
     if(d_foundConflict){
       return ConflictFound;
-    }else if(d_errorsChange.just() && d_errorsChange < 0){
+    }
+    else if (d_errorsChange.just() && d_errorsChange.value() < 0)
+    {
       return ErrorDropped;
-    }else if(d_errorsChange.nothing() || d_errorsChange == 0){
+    }
+    else if (d_errorsChange.nothing() || d_errorsChange.value() == 0)
+    {
       if(d_focusDirection.just()){
-        if(d_focusDirection > 0){
+        if (d_focusDirection.value() > 0)
+        {
           return FocusImproved;
-        }else if(d_focusDirection == 0){
+        }
+        else if (d_focusDirection.value() == 0)
+        {
           return Degenerate;
         }
       }

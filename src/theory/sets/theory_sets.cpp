@@ -50,8 +50,9 @@ bool TheorySets::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-void TheorySets::collectModelInfo(TheoryModel* m) {
-  d_internal->collectModelInfo(m);
+bool TheorySets::collectModelInfo(TheoryModel* m)
+{
+  return d_internal->collectModelInfo(m);
 }
 
 void TheorySets::computeCareGraph() {

@@ -12,10 +12,12 @@
  ** \brief Implementation of relevant domain class
  **/
 
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/relevant_domain.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -54,7 +56,7 @@ void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
   std::map< Node, Node > rterms;
   for( unsigned i=0; i<d_terms.size(); i++ ){
     Node r = d_terms[i];
-    if( !TermDb::hasInstConstAttr( d_terms[i] ) ){
+    if( !TermUtil::hasInstConstAttr( d_terms[i] ) ){
       r = qe->getEqualityQuery()->getRepresentative( d_terms[i] );
     }
     if( rterms.find( r )==rterms.end() ){
@@ -97,6 +99,7 @@ bool RelevantDomain::reset( Theory::Effort e ) {
   return true;
 }
 
+void RelevantDomain::registerQuantifier(Node q) {}
 void RelevantDomain::compute(){
   if( !d_is_computed ){
     d_is_computed = true;
@@ -108,18 +111,19 @@ void RelevantDomain::compute(){
     FirstOrderModel* fm = d_qe->getModel();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
-      Node icf = d_qe->getTermDatabase()->getInstConstantBody( q );
+      Node icf = d_qe->getTermUtil()->getInstConstantBody( q );
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
       computeRelevantDomain( q, icf, true, true );
     }
 
     Trace("rel-dom-debug") << "account for ground terms" << std::endl;
     TermDb * db = d_qe->getTermDatabase();
-    for( std::map< Node, std::vector< Node > >::iterator it = db->d_op_map.begin(); it != db->d_op_map.end(); ++it ){
-      Node op = it->first;
+    for (unsigned k = 0; k < db->getNumOperators(); k++)
+    {
+      Node op = db->getOperator(k);
       unsigned sz = db->getNumGroundTerms( op );
       for( unsigned i=0; i<sz; i++ ){
-        Node n = it->second[i];
+        Node n = db->getGroundTerm(op, i);
         //if it is a non-redundant term
         if( db->isTermActive( n ) ){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){
@@ -173,7 +177,7 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
     }
   }
 
-  if( ( ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) || n.getKind()==GEQ ) && TermDb::hasInstConstAttr( n ) ){
+  if( ( ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) || n.getKind()==GEQ ) && TermUtil::hasInstConstAttr( n ) ){
     //compute the information for what this literal does
     computeRelevantDomainLit( q, hasPol, pol, n );
     if( d_rel_dom_lit[hasPol][pol][n].d_merge ){
@@ -197,16 +201,16 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
 
 void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
   if( n.getKind()==INST_CONSTANT ){
-    Node q = d_qe->getTermDatabase()->getInstConstAttr( n );
+    Node q = d_qe->getTermUtil()->getInstConstAttr( n );
     //merge the RDomains
     unsigned id = n.getAttribute(InstVarNumAttribute());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
-    Trace("rel-dom-debug") << " with body : " << d_qe->getTermDatabase()->getInstConstantBody( q ) << std::endl;
+    Trace("rel-dom-debug") << " with body : " << d_qe->getTermUtil()->getInstConstantBody( q ) << std::endl;
     RDomain * rq = getRDomain( q, id );
     if( rf!=rq ){
       rq->merge( rf );
     }
-  }else if( !TermDb::hasInstConstAttr( n ) ){
+  }else if( !TermUtil::hasInstConstAttr( n ) ){
     Trace("rel-dom-debug") << "...add ground term to rel dom " << n << std::endl;
     //term to add
     rf->addTerm( n );
@@ -242,7 +246,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         //solve the inequality for one/two variables, if possible
         if( n[0].getType().isReal() ){
           std::map< Node, Node > msum;
-          if( QuantArith::getMonomialSumLit( n, msum ) ){
+          if (ArithMSum::getMonomialSumLit(n, msum))
+          {
             Node var;
             Node var2;
             bool hasNonVar = false;
@@ -264,7 +269,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
                 //single variable solve
                 Node veq_c;
                 Node val;
-                int ires = QuantArith::isolate( var, msum, veq_c, val, n.getKind() );
+                int ires =
+                    ArithMSum::isolate(var, msum, veq_c, val, n.getKind());
                 if( ires!=0 ){
                   if( veq_c.isNull() ){
                     r_add = val;
@@ -289,7 +295,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       if( hasPol && !pol ){
         d_rel_dom_lit[hasPol][pol][n].d_merge = false;
       }
-    }else if( !r_add.isNull() && !TermDb::hasInstConstAttr( r_add ) ){
+    }else if( !r_add.isNull() && !TermUtil::hasInstConstAttr( r_add ) ){
       Trace("rel-dom-debug") << "...add term " << r_add << ", pol = " << pol << ", kind = " << n.getKind() << std::endl;
       //the negative occurrence adds the term to the domain
       if( !hasPol || !pol ){
@@ -299,10 +305,12 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
       if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
         if( n.getKind()==EQUAL ){
           for( unsigned i=0; i<2; i++ ){
-            d_rel_dom_lit[hasPol][pol][n].d_val.push_back( QuantArith::offset( r_add, i==0 ? 1 : -1 )  );
+            d_rel_dom_lit[hasPol][pol][n].d_val.push_back(
+                ArithMSum::offset(r_add, i == 0 ? 1 : -1));
           }
         }else if( n.getKind()==GEQ ){
-          d_rel_dom_lit[hasPol][pol][n].d_val.push_back( QuantArith::offset( r_add, varLhs ? 1 : -1 ) );
+          d_rel_dom_lit[hasPol][pol][n].d_val.push_back(
+              ArithMSum::offset(r_add, varLhs ? 1 : -1));
         }
       }
     }else{

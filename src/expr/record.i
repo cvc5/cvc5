@@ -9,6 +9,8 @@
 #endif /* SWIGJAVA */
 %}
 
+%include "stdint.i"
+
 %rename(equals) CVC4::RecordUpdate::operator==(const RecordUpdate&) const;
 %ignore CVC4::RecordUpdate::operator!=(const RecordUpdate&) const;
 
@@ -35,7 +37,7 @@
       jenv->SetObjectArrayElement($result, 0, jenv->NewStringUTF($1.first.c_str()));
       jclass clazz = jenv->FindClass("edu/nyu/acsys/CVC4/Type");
       jmethodID methodid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<long>(new CVC4::Type($1.second)), true));
+      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<uintptr_t>(new CVC4::Type($1.second)), true));
     };
 
 

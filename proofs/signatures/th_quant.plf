@@ -3,18 +3,19 @@
                 (! f formula
                   formula))))
 
-(program eqterm ((n1 term) (n2 term)) bool
-    (do (markvar n1)
-        (let s (ifmarked n2 tt ff)
-           (do (markvar n1) s))))
+;This program recursively checks the instantiation.
+;Composite terms (such as "apply _ _ ...") are handled recursively.
+;Then, if ti and t are equal, we return true. Otherwise, we first verify that t is the variable for which ti is substitued (ifmarked). if this is the case, ti should be equal to k.
 
 (program is_inst_t ((ti term) (t term) (k term)) bool
-  (match t
-    ((apply s1 s2 t1 t2)
-      (match ti
-        ((apply si1 si2 ti1 ti2) (match (is_inst_t ti1 t1 k) (tt (is_inst_t ti2 t2 k)) (ff ff)))
-        (default ff)))
-    (default (eqterm ti (ifmarked t k t)))))
+ (match t
+   ((apply s1 s2 t1 t2)
+     (match ti
+       ((apply si1 si2 ti1 ti2) 
+           (match (is_inst_t ti1 t1 k) (tt (is_inst_t ti2 t2 k)) (ff ff)))
+       (default ff)))
+   (default (ifequal ti t tt (ifmarked t (ifequal ti k tt ff) ff)))))
+
 
 (program is_inst_f ((fi formula) (f formula) (k term)) bool
   (match f

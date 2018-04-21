@@ -148,7 +148,11 @@ public: //conversion between HO_APPLY AND APPLY_UF
     // cannot construct APPLY_UF if operator is partially applied or is not standard       
     return Node::null();
   }
-  // collects arguments into args, returns operator of a curried HO_APPLY node
+  /**
+   * Given a curried HO_APPLY term n, this method adds its arguments into args
+   * and returns its operator. If the argument opInArgs is true, then we add
+   * its operator to args.
+   */
   static Node decomposeHoApply(TNode n, std::vector<TNode>& args, bool opInArgs = false) {
     TNode curr = n;
     while( curr.getKind() == kind::HO_APPLY ){
@@ -170,7 +174,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
    * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
   static inline bool canUseAsApplyUfOperator(TNode n){
-    return n.isVar() && n.getKind()!=kind::BOUND_VARIABLE;
+    return n.isVar();
   }
 };/* class TheoryUfRewriter */
 

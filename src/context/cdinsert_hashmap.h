@@ -221,7 +221,8 @@ private:
    * restored on a pop).  The saved information is allocated using the
    * ContextMemoryManager.
    */
-  ContextObj* save(ContextMemoryManager* pCMM) {
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
     Debug("CDInsertHashMap") << "save " << this
                             << " at level " << this->getContext()->getLevel()
@@ -237,23 +238,25 @@ protected:
    * of new pushFront calls have happened since saving.
    * The d_insertMap is untouched and d_pushFronts is also kept.
    */
-  void restore(ContextObj* data) {
-    Debug("CDInsertHashMap") << "restore " << this
-                            << " level " << this->getContext()->getLevel()
-                            << " data == " << data
-                            << " d_insertMap == " << this->d_insertMap << std::endl;
-    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
-    size_t oldPushFronts = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_pushFronts;
-    Assert(oldPushFronts <= d_pushFronts);
+ void restore(ContextObj* data) override
+ {
+   Debug("CDInsertHashMap")
+       << "restore " << this << " level " << this->getContext()->getLevel()
+       << " data == " << data << " d_insertMap == " << this->d_insertMap
+       << std::endl;
+   size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
+   size_t oldPushFronts =
+       ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_pushFronts;
+   Assert(oldPushFronts <= d_pushFronts);
 
-    // The size to restore to.
-    size_t restoreSize = oldSize + (d_pushFronts - oldPushFronts);
-    d_insertMap->pop_to_size(restoreSize);
-    d_size = restoreSize;
-    Assert(d_insertMap->size() == d_size);
-    Debug("CDInsertHashMap") << "restore " << this
-                            << " level " << this->getContext()->getLevel()
-                            << " size back to " << this->d_size << std::endl;
+   // The size to restore to.
+   size_t restoreSize = oldSize + (d_pushFronts - oldPushFronts);
+   d_insertMap->pop_to_size(restoreSize);
+   d_size = restoreSize;
+   Assert(d_insertMap->size() == d_size);
+   Debug("CDInsertHashMap")
+       << "restore " << this << " level " << this->getContext()->getLevel()
+       << " size back to " << this->d_size << std::endl;
   }
 public:
 

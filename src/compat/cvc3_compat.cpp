@@ -252,8 +252,8 @@ Expr::Expr(const Expr& e) : CVC4::Expr(e) {
 Expr::Expr(const CVC4::Expr& e) : CVC4::Expr(e) {
 }
 
-Expr::Expr(const CVC4::Kind k) : CVC4::Expr() {
-  *this = getEM()->operatorOf(k);
+Expr::Expr(ExprManager* em, const CVC4::Kind k) : CVC4::Expr() {
+  *this = em->operatorOf(k);
 }
 
 Expr Expr::eqExpr(const Expr& right) const {

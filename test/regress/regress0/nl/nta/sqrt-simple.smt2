@@ -1,0 +1,6 @@
+(set-logic QF_NRA)
+(set-info :status unsat)
+(declare-fun x () Real)
+(assert (> x 0.0))
+(assert (not (= (* (sqrt x) (sqrt x)) x)))
+(check-sat)

@@ -94,9 +94,51 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
       Trace("builtin-rewrite-debug") << "...failed to get array representation." << std::endl;
     }
     return RewriteResponse(REWRITE_DONE, node);
+  }
+  else if (node.getKind() == kind::CHOICE)
+  {
+    if (node[1].getKind() == kind::EQUAL)
+    {
+      for (unsigned i = 0; i < 2; i++)
+      {
+        if (node[1][i] == node[0][0])
+        {
+          return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
+        }
+      }
+    }
+    return RewriteResponse(REWRITE_DONE, node);
   }else{ 
     return doRewrite(node);
   }
+}
+
+TypeNode TheoryBuiltinRewriter::getFunctionTypeForArrayType(TypeNode atn,
+                                                            Node bvl)
+{
+  std::vector<TypeNode> children;
+  for (unsigned i = 0; i < bvl.getNumChildren(); i++)
+  {
+    Assert(atn.isArray());
+    Assert(bvl[i].getType() == atn.getArrayIndexType());
+    children.push_back(atn.getArrayIndexType());
+    atn = atn.getArrayConstituentType();
+  }
+  children.push_back(atn);
+  return NodeManager::currentNM()->mkFunctionType(children);
+}
+
+TypeNode TheoryBuiltinRewriter::getArrayTypeForFunctionType(TypeNode ftn)
+{
+  Assert(ftn.isFunction());
+  // construct the curried array type
+  unsigned nchildren = ftn.getNumChildren();
+  TypeNode ret = ftn[nchildren - 1];
+  for (int i = (static_cast<int>(nchildren) - 2); i >= 0; i--)
+  {
+    ret = NodeManager::currentNM()->mkArrayType(ftn[i], ret);
+  }
+  return ret;
 }
 
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 

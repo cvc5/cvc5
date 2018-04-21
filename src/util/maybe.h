@@ -22,9 +22,10 @@
  **   Nothing using a value of T
  ** - High level of assurance that a value is not used before it is set.
  **/
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
-#pragma once
+#ifndef __CVC4__UTIL__MAYBE_H
+#define __CVC4__UTIL__MAYBE_H
 
 #include <ostream>
 
@@ -33,12 +34,9 @@
 namespace CVC4 {
 
 template <class T>
-class Maybe {
-private:
-  bool d_just;
-  T d_value;
-
-public:
+class CVC4_PUBLIC Maybe
+{
+ public:
   Maybe() : d_just(false), d_value(){}
   Maybe(const T& val): d_just(true), d_value(val){}
 
@@ -50,6 +48,7 @@ public:
 
   inline bool nothing() const { return !d_just; }
   inline bool just() const { return d_just; }
+  explicit operator bool() const noexcept { return just(); }
 
   void clear() {
     if(just()){
@@ -58,16 +57,18 @@ public:
     }
   }
 
-  T& value() {
-    Assert(just(), "Maybe::value() requires the maybe to be set.");
-    return d_value;
-  }
-  const T& constValue() const {
-    Assert(just(), "Maybe::constValue() requires the maybe to be set.");
+  const T& value() const
+  {
+    if (nothing())
+    {
+      throw Exception("Maybe::value() requires the maybe to be set.");
+    }
     return d_value;
   }
 
-  operator const T&() const { return constValue(); }
+ private:
+  bool d_just;
+  T d_value;
 };
 
 template <class T>
@@ -77,10 +78,12 @@ inline std::ostream& operator<<(std::ostream& out, const Maybe<T>& m){
     out << "Nothing";
   }else{
     out << "Just ";
-    out << m.constValue();
+    out << m.value();
   }
   out << "}";
   return out;
 }
 
 }/* CVC4 namespace */
+
+#endif /* __CVC4__UTIL__MAYBE_H */

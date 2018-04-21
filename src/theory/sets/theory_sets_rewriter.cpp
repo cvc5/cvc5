@@ -15,10 +15,11 @@
  **/
 
 #include "theory/sets/theory_sets_rewriter.h"
-#include "theory/sets/normal_form.h"
-#include "theory/sets/rels_utils.h"
+
 #include "expr/attribute.h"
 #include "options/sets_options.h"
+#include "theory/sets/normal_form.h"
+#include "theory/sets/rels_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -92,7 +93,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
   AlwaysAssert(childList.size() < MAX_CHILDREN, "do not support formulas this big");
 
-  ChildList::iterator cur = childList.begin(), next, en = childList.end();
+  ChildList::iterator cur = childList.begin(), en = childList.end();
   Node ret = (*cur);
   ++cur;
   while( cur != en ) {

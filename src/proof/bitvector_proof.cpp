@@ -24,7 +24,7 @@
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 
@@ -33,17 +33,18 @@ using namespace CVC4::theory::bv;
 
 namespace CVC4 {
 
-BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
-  : TheoryProof(bv, proofEngine)
-  , d_declarations()
-  , d_seenBBTerms()
-  , d_bbTerms()
-  , d_bbAtoms()
-  , d_resolutionProof(NULL)
-  , d_cnfProof(NULL)
-  , d_bitblaster(NULL)
-  , d_useConstantLetification(false)
-{}
+BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
+                               TheoryProofEngine* proofEngine)
+    : TheoryProof(bv, proofEngine),
+      d_declarations(),
+      d_seenBBTerms(),
+      d_bbTerms(),
+      d_bbAtoms(),
+      d_resolutionProof(NULL),
+      d_cnfProof(NULL),
+      d_isAssumptionConflict(false),
+      d_bitblaster(NULL),
+      d_useConstantLetification(false) {}
 
 void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);

@@ -32,22 +32,21 @@ inline Node makeIntegerVariable(){
   return curr->mkSkolem("intvar", curr->integerType(), "is an integer variable created by the dio solver");
 }
 
-DioSolver::DioSolver(context::Context* ctxt) :
-  d_lastUsedProofVariable(ctxt,0),
-  d_inputConstraints(ctxt),
-  d_nextInputConstraintToEnqueue(ctxt, 0),
-  d_trail(ctxt),
-  d_subs(ctxt),
-  d_currentF(),
-  d_savedQueue(ctxt),
-  d_savedQueueIndex(ctxt, 0),
-  d_conflictHasBeenRaised(ctxt, false),
-  d_maxInputCoefficientLength(ctxt, 0),
-  d_usedDecomposeIndex(ctxt, false),
-  d_lastPureSubstitution(ctxt, 0),
-  d_pureSubstitionIter(ctxt, 0),
-  d_decompositionLemmaQueue(ctxt)
-{}
+DioSolver::DioSolver(context::Context* ctxt)
+    : d_lastUsedProofVariable(ctxt, 0),
+      d_inputConstraints(ctxt),
+      d_nextInputConstraintToEnqueue(ctxt, 0),
+      d_trail(ctxt),
+      d_subs(ctxt),
+      d_currentF(),
+      d_savedQueue(ctxt),
+      d_savedQueueIndex(ctxt, 0),
+      d_conflictIndex(ctxt),
+      d_maxInputCoefficientLength(ctxt, 0),
+      d_usedDecomposeIndex(ctxt, false),
+      d_lastPureSubstitution(ctxt, 0),
+      d_pureSubstitionIter(ctxt, 0),
+      d_decompositionLemmaQueue(ctxt) {}
 
 DioSolver::Statistics::Statistics() :
   d_conflictCalls("theory::arith::dio::conflictCalls",0),

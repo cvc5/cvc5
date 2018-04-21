@@ -22,13 +22,13 @@
 #include <iostream>
 #include <map>
 
-#include "context/cdchunk_list.h"
+#include "context/cdlist.h"
+#include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "theory/datatypes/datatypes_sygus.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,30 +40,32 @@ namespace quantifiers{
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
-private:
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+ private:
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
   /** transitive closure to record equivalence/subterm relation.  */
-  //TransitiveClosureNode d_cycle_check;
+  // TransitiveClosureNode d_cycle_check;
   /** has seen cycle */
-  context::CDO< bool > d_hasSeenCycle;
+  context::CDO<bool> d_hasSeenCycle;
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
   Node d_true;
   Node d_zero;
   /** mkAnd */
-  Node mkAnd( std::vector< TNode >& assumptions );
-private:
+  Node mkAnd(std::vector<TNode>& assumptions);
+
+ private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
     TheoryDatatypes& d_dt;
   public:
     NotifyClass(TheoryDatatypes& dt): d_dt(dt) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
+    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
       if (value) {
         return d_dt.propagate(equality);
@@ -72,7 +74,8 @@ private:
         return d_dt.propagate(equality.notNode());
       }
     }
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         return d_dt.propagate(predicate);
@@ -80,7 +83,11 @@ private:
        return d_dt.propagate(predicate.notNode());
       }
     }
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+    bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                     TNode t1,
+                                     TNode t2,
+                                     bool value) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
         return d_dt.propagate(t1.eqNode(t2));
@@ -88,23 +95,28 @@ private:
         return d_dt.propagate(t1.eqNode(t2).notNode());
       }
     }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.conflict(t1, t2);
     }
-    void eqNotifyNewClass(TNode t) {
+    void eqNotifyNewClass(TNode t) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_dt.eqNotifyNewClass(t);
     }
-    void eqNotifyPreMerge(TNode t1, TNode t2) {
+    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.eqNotifyPreMerge(t1, t2);
     }
-    void eqNotifyPostMerge(TNode t1, TNode t2) {
+    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
       d_dt.eqNotifyPostMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    {
       Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
       d_dt.eqNotifyDisequal(t1, t2, reason);
     }
@@ -219,21 +231,21 @@ private:
   /** get eqc constructor */
   TNode getEqcConstructor( TNode r );
 
-protected:
+ protected:
   void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
   /** compute care graph */
-  void computeCareGraph();
+  void computeCareGraph() override;
 
-public:
+ public:
   TheoryDatatypes(context::Context* c, context::UserContext* u,
                   OutputChannel& out, Valuation valuation,
                   const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   /** propagate */
-  void propagate(Effort effort);
+  void propagate(Effort effort) override;
   /** propagate */
   bool propagate(TNode literal);
   /** explain */
@@ -241,7 +253,7 @@ public:
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
   void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain( TNode literal );
+  Node explain(TNode literal) override;
   Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
@@ -254,26 +266,36 @@ public:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
-  void check(Effort e);
-  bool needsCheckLastEffort();
-  void preRegisterTerm(TNode n);
-  void finishInit();
-  Node expandDefinition(LogicRequest &logicRequest, Node n);
-  Node ppRewrite(TNode n);
-  void presolve();
-  void addSharedTerm(TNode t);
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo( TheoryModel* m );
-  void shutdown() { }
-  std::string identify() const { return std::string("TheoryDatatypes"); }
+  void check(Effort e) override;
+  bool needsCheckLastEffort() override;
+  void preRegisterTerm(TNode n) override;
+  void finishInit() override;
+  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node ppRewrite(TNode n) override;
+  void presolve() override;
+  void addSharedTerm(TNode t) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  bool collectModelInfo(TheoryModel* m) override;
+  void shutdown() override {}
+  std::string identify() const override
+  {
+    return std::string("TheoryDatatypes");
+  }
   /** equality engine */
-  eq::EqualityEngine * getEqualityEngine() { return &d_equalityEngine; }
-  bool getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp );
+  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
+  bool getCurrentSubstitution(int effort,
+                              std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
-  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
-private:
+  std::pair<bool, Node> entailmentCheck(
+      TNode lit,
+      const EntailmentCheckParameters* params = NULL,
+      EntailmentCheckSideEffects* out = NULL) override;
+
+ private:
   /** add tester to equivalence class info */
   void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );
   /** add selector to equivalence class info */
@@ -320,11 +342,11 @@ private:
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 private:
-  /** sygus utilities */
-  SygusSplitNew * d_sygus_split;
-  SygusSymBreakNew * d_sygus_sym_break;
+ /** sygus symmetry breaking utility */
+ SygusSymBreakNew* d_sygus_sym_break;
+
 public:
-  Node getNextDecisionRequest( unsigned& priority );
+ Node getNextDecisionRequest(unsigned& priority) override;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

@@ -1,0 +1,3 @@
+id     = "BOOLEANS"
+name   = "Boolean theory"
+header = "options/booleans_options.h"

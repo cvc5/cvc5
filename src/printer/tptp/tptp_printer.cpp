@@ -23,6 +23,8 @@
 #include "expr/expr.h" // for ExprSetDepth etc..
 #include "expr/node_manager.h" // for VarNameAttr
 #include "options/language.h" // for LANG_AST
+#include "options/smt_options.h" // for unsat cores
+#include "smt/smt_engine.h"
 #include "smt/command.h"
 
 using namespace std;
@@ -31,22 +33,28 @@ namespace CVC4 {
 namespace printer {
 namespace tptp {
 
-void TptpPrinter::toStream(std::ostream& out, TNode n,
-                           int toDepth, bool types, size_t dag) const throw() {
+void TptpPrinter::toStream(
+    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+{
   n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out, const Command* c,
-                           int toDepth, bool types, size_t dag) const throw() {
+void TptpPrinter::toStream(std::ostream& out,
+                           const Command* c,
+                           int toDepth,
+                           bool types,
+                           size_t dag) const
+{
   c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw() {
+void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
+{
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-
-void TptpPrinter::toStream(std::ostream& out, const Model& m) const throw() {
+void TptpPrinter::toStream(std::ostream& out, const Model& m) const
+{
   out << "% SZS output start FiniteModel for " << m.getInputName() << endl;
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m, m.getCommand(i));
@@ -54,11 +62,30 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m) const throw() {
   out << "% SZS output end FiniteModel for " << m.getInputName() << endl;
 }
 
-void TptpPrinter::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
+void TptpPrinter::toStream(std::ostream& out,
+                           const Model& m,
+                           const Command* c) const
+{
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
-
+void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
+{
+  out << "% SZS output start UnsatCore " << std::endl;
+  SmtEngine * smt = core.getSmtEngine();
+  Assert( smt!=NULL );
+  for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
+    std::string name;
+    if (smt->getExpressionName(*i, name)) {
+      // Named assertions always get printed
+      out << name << endl;
+    } else if (options::dumpUnsatCoresFull()) {
+      // Unnamed assertions only get printed if the option is set
+      out << *i << endl;
+    }
+  }
+  out << "% SZS output end UnsatCore " << std::endl;
+}
 
 }/* CVC4::printer::tptp namespace */
 }/* CVC4::printer namespace */

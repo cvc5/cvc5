@@ -173,13 +173,14 @@ uint64_t ResourceManager::getTimeRemaining() const {
   return d_thisCallTimeBudget - time_passed;
 }
 
-void ResourceManager::spendResource(unsigned ammount) throw (UnsafeInterruptException) {
+void ResourceManager::spendResource(unsigned amount)
+{
   ++d_spendResourceCalls;
-  d_cumulativeResourceUsed += ammount;
+  d_cumulativeResourceUsed += amount;
   if (!d_on) return;
 
   Debug("limit") << "ResourceManager::spendResource()" << std::endl;
-  d_thisCallResourceUsed += ammount;
+  d_thisCallResourceUsed += amount;
   if(out()) {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
     Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;

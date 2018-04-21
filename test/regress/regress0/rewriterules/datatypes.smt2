@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 ;; try to solve datatypes with rewriterules
 (set-logic AUFLIA)
 (set-info :status unsat)

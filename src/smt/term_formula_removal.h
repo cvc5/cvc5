@@ -30,18 +30,52 @@
 
 namespace CVC4 {
 
-namespace theory {
-  class ContainsTermITEVisitor;
-}/* CVC4::theory namespace */
-
 typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveTermFormulas {
-  typedef context::CDInsertHashMap< std::pair<Node, int>, Node, PairHashFunction<Node, int, NodeHashFunction, BoolHashFunction> > ITECache;
-  ITECache d_iteCache;
+  typedef context::
+      CDInsertHashMap<std::pair<Node, int>,
+                      Node,
+                      PairHashFunction<Node, int, NodeHashFunction> >
+          TermFormulaCache;
+  /** term formula removal cache
+   *
+   * This stores the results of term formula removal for inputs to the run(...)
+   * function below, where the integer in the pair we hash on is the
+   * result of cacheVal below.
+   */
+  TermFormulaCache d_tfCache;
 
+  /** return the integer cache value for the input flags to run(...) */
   static inline int cacheVal( bool inQuant, bool inTerm ) { return (inQuant ? 1 : 0) + 2*(inTerm ? 1 : 0); }
-  
+
+  /** skolem cache
+   *
+   * This is a cache that maps terms to the skolem we use to replace them.
+   *
+   * Notice that this cache is necessary in addition to d_tfCache, since
+   * we should use the same skolem to replace terms, regardless of the input
+   * arguments to run(...). For example:
+   *
+   * ite( G, a, b ) = c ^ forall x. P( ite( G, a, b ), x )
+   *
+   * should be processed to:
+   *
+   * k = c ^ forall x. P( k, x ) ^ ite( G, k=a, k=b )
+   *
+   * where notice
+   *   d_skolem_cache[ite( G, a, b )] = k, and
+   *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
+   */
+  context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
+
+  /** gets the skolem for node
+   *
+   * This returns the d_skolem_cache value for node, if it exists as a key
+   * in the above map, or the null node otherwise.
+   */
+  inline Node getSkolemForNode(Node node) const;
+
   static bool hasNestedTermChildren( TNode node );
 public:
 
@@ -49,11 +83,39 @@ public:
   ~RemoveTermFormulas();
 
   /**
-   * Removes the ITE nodes by introducing skolem variables. All
-   * additional assertions are pushed into assertions. iteSkolemMap
+   * By introducing skolem variables, this function removes all occurrences of:
+   * (1) term ITEs,
+   * (2) terms of type Boolean that are not Boolean term variables,
+   * (3) lambdas, and
+   * (4) Hilbert choice expressions.
+   * from assertions.
+   * All additional assertions are pushed into assertions. iteSkolemMap
    * contains a map from introduced skolem variables to the index in
-   * assertions containing the new Boolean ite created in conjunction
+   * assertions containing the new definition created in conjunction
    * with that skolem variable.
+   *
+   * As an example of (1):
+   *   f( (ite C 0 1)) = 2
+   * becomes
+   *   f( k ) = 2 ^ ite( C, k=0, k=1 )
+   *
+   * As an example of (2):
+   *   g( (and C1 C2) ) = 3
+   * becomes
+   *   g( k ) = 3 ^ ( k <=> (and C1 C2) )
+   *
+   * As an example of (3):
+   *   (lambda x. t[x]) = f
+   * becomes
+   *   (forall x. k(x) = t[x]) ^ k = f
+   * where k is a fresh skolem function.
+   * This is sometimes called "lambda lifting"
+   *
+   * As an example of (4):
+   *   (choice x. P( x ) ) = t
+   * becomes
+   *   P( k ) ^ k = t
+   * where k is a fresh skolem constant.
    *
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
@@ -61,11 +123,15 @@ public:
   void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap, bool reportDeps = false);
 
   /**
-   * Removes the ITE from the node by introducing skolem
-   * variables. All additional assertions are pushed into
+   * Removes terms of the form (1), (2), (3) described above from node.
+   * All additional assertions are pushed into
    * assertions. iteSkolemMap contains a map from introduced skolem
    * variables to the index in assertions containing the new Boolean
    * ite created in conjunction with that skolem variable.
+   *
+   * inQuant is whether we are processing node in the body of quantified formula
+   * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
+   *        of a parent term that is not a Boolean connective.
    */
   Node run(TNode node, std::vector<Node>& additionalAssertions,
            IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm);
@@ -79,18 +145,8 @@ public:
   /** Returns true if e contains a term ite. */
   bool containsTermITE(TNode e) const;
 
-  /** Returns the collected size of the caches. */
-  size_t collectedCacheSizes() const;
-
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-
-  /** Return the RemoveTermFormulas's containsVisitor. */
-  theory::ContainsTermITEVisitor* getContainsVisitor();
-
-private:
-  theory::ContainsTermITEVisitor* d_containsVisitor;
-
 };/* class RemoveTTE */
 
 }/* CVC4 namespace */

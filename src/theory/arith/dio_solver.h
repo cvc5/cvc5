@@ -26,6 +26,7 @@
 
 #include "base/output.h"
 #include "context/cdlist.h"
+#include "context/cdmaybe.h"
 #include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
@@ -147,9 +148,7 @@ private:
   std::deque<TrailIndex> d_currentF;
   context::CDList<TrailIndex> d_savedQueue;
   context::CDO<size_t> d_savedQueueIndex;
-
-  context::CDO<bool> d_conflictHasBeenRaised;
-  TrailIndex d_conflictIndex;
+  context::CDMaybe<TrailIndex> d_conflictIndex;
 
   /**
    * Drop derived constraints with a coefficient length larger than
@@ -225,21 +224,18 @@ private:
    * Returns true if the context dependent flag for conflicts
    * has been raised.
    */
-  bool inConflict() const{
-    return d_conflictHasBeenRaised;
-  }
+  bool inConflict() const { return d_conflictIndex.isSet(); }
 
   /** Raises a conflict at the index ti. */
   void raiseConflict(TrailIndex ti){
     Assert(!inConflict());
-    d_conflictHasBeenRaised = true;
-    d_conflictIndex = ti;
+    d_conflictIndex.set(ti);
   }
 
   /** Returns the conflict index. */
   TrailIndex getConflictIndex() const{
     Assert(inConflict());
-    return d_conflictIndex;
+    return d_conflictIndex.get();
   }
 
   /**

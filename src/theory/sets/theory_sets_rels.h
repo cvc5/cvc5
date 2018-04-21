@@ -19,8 +19,8 @@
 
 #include <unordered_set>
 
-#include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -46,8 +46,7 @@ public:
 };/* class TupleTrie */
 
 class TheorySetsRels {
-
-  typedef context::CDChunkList< Node >                            NodeList;
+  typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet< Node, NodeHashFunction >            NodeSet;
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 

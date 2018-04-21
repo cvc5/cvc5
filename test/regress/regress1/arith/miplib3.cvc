@@ -1,0 +1,33 @@
+% COMMAND-LINE: --miplib-trick
+% EXPECT: sat
+
+tmp1, tmp2, tmp3, tmp4 : INT;
+x, y, z : BOOLEAN;
+
+% x = {0, 1}, (NOT x) = 1 - x
+% i*Nx + j*Ny + k = 0
+% i*x + j*Ny + k = 4
+% i*Nx + j*y + k = 6
+% i*x + j*y + k = 10
+
+ASSERT NOT x AND (NOT y AND TRUE) => tmp1 = 0;
+ASSERT     x AND (NOT y AND TRUE) => tmp1 = 4;
+ASSERT NOT x AND (    y AND TRUE) => tmp1 = 6;
+ASSERT     x AND (    y AND TRUE) => tmp1 = 10;
+
+ASSERT NOT x AND (NOT z AND TRUE) => tmp2 = 0;
+ASSERT     x AND (NOT z AND TRUE) => tmp2 = 2;
+ASSERT NOT x AND (    z AND TRUE) => tmp2 = 9;
+ASSERT     x AND (    z AND TRUE) => tmp2 = 11;
+
+ASSERT NOT y AND (NOT z AND TRUE) => tmp3 = 0;
+ASSERT     y AND (NOT z AND TRUE) => tmp3 = 5;
+ASSERT NOT y AND (    z AND TRUE) => tmp3 = 16;
+ASSERT     y AND (    z AND TRUE) => tmp3 = 21;
+
+ASSERT NOT x AND (NOT y AND TRUE) => tmp4 = 0;
+ASSERT     x AND (NOT y AND TRUE) => tmp4 = 4;
+ASSERT NOT x AND (    y AND TRUE) => tmp4 = 6;
+ASSERT     x AND (    y AND TRUE) => tmp4 = 10;
+
+CHECKSAT;

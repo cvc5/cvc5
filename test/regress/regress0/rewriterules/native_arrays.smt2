@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 ;; This example can't be done if we don't access the EqualityEngine of
 ;; the theory of arrays
 

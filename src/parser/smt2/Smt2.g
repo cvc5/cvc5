@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -266,6 +266,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
   std::vector<Expr> terms;
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
+  std::vector<Expr> flattenVars;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -339,19 +340,20 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
-      if( sorts.size() > 0 ) {
-        if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-          PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
-                                        "be declared in logic ");
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
+      if( !sorts.empty() ) {
+        t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
-      Expr func = PARSER_STATE->mkVar(name, t);
+      if(t.isFunction() && !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
+        PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
+                                      "be declared in logic ");
+      }
+      // we allow overloading for function declarations
+      Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
       cmd->reset(new DeclareFunctionCommand(name, func, t));
     }
   | /* function definition */
@@ -363,7 +365,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define fun: '" << name << "'" << std::endl;
       if( sortedVarNames.size() > 0 ) {
-        std::vector<CVC4::Type> sorts;
         sorts.reserve(sortedVarNames.size());
         for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
               sortedVarNames.begin(), iend = sortedVarNames.end();
@@ -371,7 +372,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
             ++i) {
           sorts.push_back((*i).second);
         }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       }
       PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
@@ -382,12 +383,20 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     }
     term[expr, expr2]
-    { PARSER_STATE->popScope();
+    {
+      if( !flattenVars.empty() ){
+        // if this function has any implicit variables flattenVars,
+        // we apply the body of the definition to the flatten vars
+        expr = PARSER_STATE->mkHoApply(expr, flattenVars);
+        terms.insert(terms.end(), flattenVars.begin(), flattenVars.end());
+      }
+      PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
+      // we allow overloading for function definitions
       Expr func = PARSER_STATE->mkFunction(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED);
+                                           ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(name, func, terms, expr));
     }
   | /* value query */
@@ -414,11 +423,26 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
       cmd->reset(new AssertCommand(expr, inUnsatCore));
       if(inUnsatCore) {
-        PARSER_STATE->registerUnsatCoreName(PARSER_STATE->lastNamedTerm());
+        // set the expression name, if there was a named term
+        std::pair<Expr, std::string> namedTerm = PARSER_STATE->lastNamedTerm();
+        Command* csen = new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
+        csen->setMuted(true);
+        PARSER_STATE->preemptCommand(csen);
+      }
+      // if sygus, check whether it has a free variable
+      // this is because, due to the sygus format, one can write assertions
+      // that have free function variables in them
+      if (PARSER_STATE->sygus())
+      {
+        if (expr.hasFreeVariable())
+        {
+          PARSER_STATE->parseError("Assertion has free variable. Perhaps you "
+                                   "meant constraint instead of assert?");
+        }
       }
     }
   | /* check-sat */
-    CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if( PARSER_STATE->sygus() ){
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
@@ -433,15 +457,28 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     | { expr = MK_CONST(bool(true)); }
     )
     { cmd->reset(new CheckSatCommand(expr)); }
+  | /* check-sat-assuming */
+    CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
+      { cmd->reset(new CheckSatAssumingCommand(terms)); }
+    | ~LPAREN_TOK
+      { PARSER_STATE->parseError("The check-sat-assuming command expects a "
+                                 "list of terms.  Perhaps you forgot a pair of "
+                                 "parentheses?");
+      }
+    )
   | /* get-assertions */
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssertionsCommand()); }
   | /* get-proof */
     GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetProofCommand()); }
+  | /* get-unsat-assumptions */
+    GET_UNSAT_ASSUMPTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetUnsatAssumptionsCommand); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetUnsatCoreCommand(PARSER_STATE->getUnsatCoreNames())); }
+    { cmd->reset(new GetUnsatCoreCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if( PARSER_STATE->sygus() ){
@@ -454,13 +491,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
           cmd->reset(new EmptyCommand());
         } else if(n == 1) {
           PARSER_STATE->pushScope();
-          PARSER_STATE->pushUnsatCoreNameScope();
           cmd->reset(new PushCommand());
         } else {
           std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
             PARSER_STATE->pushScope();
-            PARSER_STATE->pushUnsatCoreNameScope();
             Command* push_cmd = new PushCommand();
             push_cmd->setMuted(n > 1);
             seq->addCommand(push_cmd);
@@ -475,7 +510,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "PUSH.  Maybe you want (push 1)?");
         } else {
           PARSER_STATE->pushScope();
-          PARSER_STATE->pushUnsatCoreNameScope();
           cmd->reset(new PushCommand());
         }
       } )
@@ -493,13 +527,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         if(n == 0) {
           cmd->reset(new EmptyCommand());
         } else if(n == 1) {
-          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         } else {
           std::unique_ptr<CommandSequence> seq(new CommandSequence());
           do {
-            PARSER_STATE->popUnsatCoreNameScope();
             PARSER_STATE->popScope();
             Command* pop_command = new PopCommand();
             pop_command->setMuted(n > 1);
@@ -514,7 +546,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "Strict compliance mode demands an integer to be provided to POP."
               "Maybe you want (pop 1)?");
         } else {
-          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd->reset(new PopCommand());
         }
@@ -608,6 +639,9 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       if( range.isNull() ){
         PARSER_STATE->parseError("Must supply return type for synth-fun.");
       }
+      if( range.isFunction() ){
+        PARSER_STATE->parseError("Cannot use synth-fun with function return type.");
+      }
       seq.reset(new CommandSequence());
       std::vector<Type> var_sorts;
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
@@ -622,7 +656,12 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       }else{
         synth_fun_type = range;
       }
-      synth_fun = PARSER_STATE->mkVar(fun, synth_fun_type);
+      // we do not allow overloading for synth fun
+      synth_fun = PARSER_STATE->mkBoundVar(fun, synth_fun_type);
+      // we add a declare function command here
+      // this is the single unmuted command in the sequence generated by this smt2 command
+      // TODO (as part of #1170) : make this a standard command.
+      seq->addCommand(new DeclareFunctionCommand(fun, synth_fun, synth_fun_type));
       PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
@@ -733,7 +772,10 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
         }
         std::vector<DatatypeType> datatypeTypes =
             PARSER_STATE->mkMutualDatatypeTypes(datatypes);
-        seq->addCommand(new DatatypeDeclarationCommand(datatypeTypes));
+        Command * cdd = new DatatypeDeclarationCommand(datatypeTypes);
+        // we set this command muted since there should only be one success printed
+        cdd->setMuted(true);
+        seq->addCommand(cdd);
         if( sorts[0]!=range ){
           PARSER_STATE->parseError(std::string("Bad return type in grammar for "
                                                "SyGuS function ") + fun);
@@ -1024,7 +1066,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   | str[s,false]
     { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \""
                             << s << "\"" << std::endl;
-      sgt.d_expr = MK_CONST( ::CVC4::String(s) );
+      sgt.d_expr = MK_CONST( ::CVC4::String(s, true) );
       sgt.d_name = s;
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
@@ -1132,23 +1174,28 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<std::pair<std::string, Type> > sortedVarNames;
   SExpr sexpr;
   Type t;
-  Expr func_app;
+  Expr func;
   std::vector<Expr> bvs;
   std::vector< std::vector<std::pair<std::string, Type> > > sortedVarNamesList;
+  std::vector<std::vector<Expr>> flattenVarsList;
+  std::vector<std::vector<Expr>> formals;
   std::vector<Expr> funcs;
   std::vector<Expr> func_defs;
   Expr aexpr;
   std::unique_ptr<CVC4::CommandSequence> seq;
+  std::vector<Type> sorts;
+  std::vector<Expr> flattenVars;
 }
     /* meta-info */
   : META_INFO_TOK metaInfoInternal[cmd]
 
     /* declare-const */
   | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
-    { Expr c = PARSER_STATE->mkVar(name, t);
+    { // allow overloading here
+      Expr c = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -1175,83 +1222,42 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       PARSER_STATE->resetAssertions();
     }
   | DEFINE_FUN_REC_TOK
-    { PARSER_STATE->checkThatLogicIsSet();
-      seq.reset(new CVC4::CommandSequence());
-    }
-    symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[fname,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(fname); }
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     sortSymbol[t,CHECK_DECLARED]
-    { if( sortedVarNames.size() > 0 ) {
-        std::vector<CVC4::Type> sorts;
-        sorts.reserve(sortedVarNames.size());
-        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-            ++i) {
-          sorts.push_back((*i).second);
-        }
-        t = EXPR_MANAGER->mkFunctionType(sorts, t);
-      }
-      Expr func = PARSER_STATE->mkVar(fname, t);
-      seq->addCommand(new DeclareFunctionCommand(fname, func, t));
-      if( sortedVarNames.empty() ){
-        func_app = func;
-      }else{
-        std::vector< Expr > f_app;
-        f_app.push_back( func );
-        PARSER_STATE->pushScope(true);
-        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-              sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-            ++i) {
-          Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
-          bvs.push_back( v );
-          f_app.push_back( v );
-        }
-        func_app = MK_EXPR( kind::APPLY_UF, f_app );
-      }
+    {
+      func = PARSER_STATE->mkDefineFunRec(fname, sortedVarNames, t, flattenVars);
+      PARSER_STATE->pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs, true );
     }
     term[expr, expr2]
     { PARSER_STATE->popScope(); 
-      Expr as = MK_EXPR( kind::EQUAL, func_app, expr);
-      if( !bvs.empty() ){
-        std::string attr_name("fun-def");
-        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
-        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr);
-        //set the attribute to denote this is a function definition
-        seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
-        //assert it
-        Expr boundVars = EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs);
-        as = EXPR_MANAGER->mkExpr(kind::FORALL, boundVars, as, aexpr);
+      if( !flattenVars.empty() ){
+        expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      seq->addCommand( new AssertCommand(as, false) );
-      cmd->reset(seq.release());
+      cmd->reset(new DefineFunctionRecCommand(func,bvs,expr));
     }
   | DEFINE_FUNS_REC_TOK
-    { PARSER_STATE->checkThatLogicIsSet();
-      seq.reset(new CVC4::CommandSequence());
-    }
+    { PARSER_STATE->checkThatLogicIsSet();}
     LPAREN_TOK
     ( LPAREN_TOK
       symbol[fname,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(fname); }
       LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
       sortSymbol[t,CHECK_DECLARED]
-      { sortedVarNamesList.push_back( sortedVarNames );
-        if( sortedVarNamesList[0].size() > 0 ) {
-          if( !sortedVarNames.empty() ){
-            std::vector<CVC4::Type> sorts;
-            for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-                    i = sortedVarNames.begin(), iend = sortedVarNames.end();
-                i != iend; ++i) {
-              sorts.push_back((*i).second);
-            }
-            t = EXPR_MANAGER->mkFunctionType(sorts, t);
-          }
-        }
-        sortedVarNames.clear();
-        Expr func = PARSER_STATE->mkVar(fname, t);
-        seq->addCommand(new DeclareFunctionCommand(fname, func, t));
+      {
+        flattenVars.clear();
+        func = PARSER_STATE->mkDefineFunRec( fname, sortedVarNames, t, flattenVars );
         funcs.push_back( func );
+
+        // add to lists (need to remember for when parsing the bodies)
+        sortedVarNamesList.push_back( sortedVarNames );
+        flattenVarsList.push_back( flattenVars );
+
+        // set up parsing the next variable list block
+        sortedVarNames.clear();
+        flattenVars.clear();
       }
       RPAREN_TOK
     )+
@@ -1263,60 +1269,26 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         PARSER_STATE->parseError("Must define at least one function in "
                                  "define-funs-rec");
       }
-      PARSER_STATE->pushScope(true);
       bvs.clear();
-      if( sortedVarNamesList[0].empty() ){
-        func_app = funcs[0];
-      }else{
-        std::vector< Expr > f_app;
-        f_app.push_back( funcs[0] );
-        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-              i = sortedVarNamesList[0].begin(),
-              iend = sortedVarNamesList[0].end(); i != iend; ++i) {
-          Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
-          bvs.push_back( v );
-          f_app.push_back( v );
-        }
-        func_app = MK_EXPR( kind::APPLY_UF, f_app );
-      }
+      PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[0], funcs[0],
+                                           flattenVarsList[0], bvs, true);
     }
     (
     term[expr,expr2]
     { 
-      func_defs.push_back( expr );
-      Expr as = MK_EXPR( kind::EQUAL, func_app, expr );
-      if( !bvs.empty() ){
-        std::string attr_name("fun-def");
-        aexpr = MK_EXPR(kind::INST_ATTRIBUTE, func_app);
-        aexpr = MK_EXPR(kind::INST_PATTERN_LIST, aexpr );
-        //set the attribute to denote these are function definitions
-        seq->addCommand( new SetUserAttributeCommand( attr_name, func_app ) );
-        //assert it
-        as = EXPR_MANAGER->mkExpr( kind::FORALL,
-                      EXPR_MANAGER->mkExpr(kind::BOUND_VAR_LIST, bvs),
-                      as, aexpr);
+      unsigned j = func_defs.size();
+      if( !flattenVarsList[j].empty() ){
+        expr = PARSER_STATE->mkHoApply( expr, flattenVarsList[j] );
       }
-      seq->addCommand( new AssertCommand(as, false) );
+      func_defs.push_back( expr );
+      formals.push_back(bvs);
+      j++;
       //set up the next scope 
       PARSER_STATE->popScope();
       if( func_defs.size()<funcs.size() ){
-        PARSER_STATE->pushScope(true);
         bvs.clear();
-        unsigned j = func_defs.size();
-        if( sortedVarNamesList[j].empty() ){
-          func_app = funcs[j];
-        }else{
-          std::vector< Expr > f_app;
-          f_app.push_back( funcs[j] );
-          for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator
-                  i = sortedVarNamesList[j].begin(),
-                  iend = sortedVarNamesList[j].end(); i != iend; ++i) {
-            Expr v = PARSER_STATE->mkBoundVar((*i).first, (*i).second);
-            bvs.push_back( v );
-            f_app.push_back( v );
-          }
-          func_app = MK_EXPR( kind::APPLY_UF, f_app );
-        }
+        PARSER_STATE->pushDefineFunRecScope( sortedVarNamesList[j], funcs[j], 
+                                             flattenVarsList[j], bvs, true);
       }
     }
     )+
@@ -1326,10 +1298,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "Number of functions defined does not match number listed in "
             "define-funs-rec"));
       }
-      cmd->reset(seq.release());
+      cmd->reset( new DefineFunctionRecCommand(funcs,formals,func_defs));
     }
-  // CHECK_SAT_ASSUMING still being discussed
-  // GET_UNSAT_ASSUMPTIONS
   ;
 
 extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
@@ -1387,11 +1357,15 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
             PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) "
                                           "cannot be declared in logic ");
           }
-          t = EXPR_MANAGER->mkFunctionType(sorts);
+          // must flatten
+          Type range = sorts.back();
+          sorts.pop_back();
+          t = PARSER_STATE->mkFlatFunctionType(sorts, range);
         } else {
           t = sorts[0];
         }
-        Expr func = PARSER_STATE->mkVar(name, t);
+        // allow overloading
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1412,7 +1386,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        Expr func = PARSER_STATE->mkVar(name, t);
+        // allow overloading
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -1502,6 +1477,8 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   std::string name;
   std::vector<Type> sorts;
+  std::vector<std::string> dnames;
+  std::vector<unsigned> arities;
 }
   : { PARSER_STATE->checkThatLogicIsSet();
     /* open a scope to keep the UnresolvedTypes contained */
@@ -1513,7 +1490,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
   { PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)));
+    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true)));
   }
   ;
   
@@ -1521,15 +1498,16 @@ datatypeDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
+  std::vector<std::string> dnames;
+  std::vector<int> arities;
 }
  : { PARSER_STATE->checkThatLogicIsSet(); }
- symbol[name,CHECK_UNDECLARED,SYM_SORT] LPAREN_TOK
- { std::vector<Type> params;
-   dts.push_back(Datatype(name,params,isCo));
+ symbol[name,CHECK_UNDECLARED,SYM_SORT]
+ {
+   dnames.push_back(name);
+   arities.push_back(-1);
  }
- ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
- RPAREN_TOK
- { cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts))); }
+ datatypesDef[isCo, dnames, arities, cmd]
  ;
   
 datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
@@ -1537,28 +1515,39 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   std::string name;
   std::vector<std::string> dnames;
-  std::vector<unsigned> arities;
-  std::vector<Type> params;
+  std::vector<int> arities;
 }
-  : { PARSER_STATE->checkThatLogicIsSet(); PARSER_STATE->pushScope(true); }
-  LPAREN_TOK /* sorts */
+  : { PARSER_STATE->checkThatLogicIsSet(); }
+  LPAREN_TOK /* datatype definition prelude */
   ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_SORT] n=INTEGER_LITERAL RPAREN_TOK
     { unsigned arity = AntlrInput::tokenToUnsigned(n);
-      //Type type;
-      //if(arity == 0) {
-      //  type = PARSER_STATE->mkSort(name);
-      //} else {
-      //  type = PARSER_STATE->mkSortConstructor(name, arity);
-      //}
-      //types.push_back(type);
       Debug("parser-dt") << "Datatype : " << name << ", arity = " << arity << std::endl;
       dnames.push_back(name);
-      arities.push_back( arity );
+      arities.push_back( static_cast<int>(arity) );
     }
   )*
   RPAREN_TOK 
   LPAREN_TOK 
-  ( LPAREN_TOK { 
+  datatypesDef[isCo, dnames, arities, cmd]
+  RPAREN_TOK
+  ;
+
+/**
+ * Read a list of datatype definitions for datatypes with names dnames and
+ * parametric arities arities. A negative value in arities indicates that the
+ * arity for the corresponding datatype has not been fixed.
+ */
+datatypesDef[bool isCo,
+             const std::vector<std::string>& dnames,
+             const std::vector<int>& arities,
+             std::unique_ptr<CVC4::Command>* cmd]
+@declarations {
+  std::vector<CVC4::Datatype> dts;
+  std::string name;
+  std::vector<Type> params;
+}
+  : { PARSER_STATE->pushScope(true); }
+    ( LPAREN_TOK {
       params.clear(); 
       Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
       if( dts.size()>=dnames.size() ){
@@ -1570,7 +1559,8 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
         { params.push_back( PARSER_STATE->mkSort(name) ); }
       )*
       RPAREN_TOK {
-        if( params.size()!=arities[dts.size()] ){
+        // if the arity was fixed by prelude and is not equal to the number of parameters
+        if( arities[dts.size()]>=0 && static_cast<int>(params.size())!=arities[dts.size()] ){
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
@@ -1579,7 +1569,8 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
       RPAREN_TOK { PARSER_STATE->popScope(); } 
-    | { if( 0!=arities[dts.size()] ){
+    | { // if the arity was fixed by prelude and is not equal to 0
+        if( arities[dts.size()]>0 ){
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
@@ -1589,9 +1580,9 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
     )
     RPAREN_TOK
     )+
-  RPAREN_TOK
-  { PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts))); 
+  {
+    PARSER_STATE->popScope();
+    cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts, true))); 
   }
   ;
 
@@ -1744,10 +1735,12 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 //  }
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
-  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK
+  | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
+        | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
         | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK
-        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK
+        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_ASSUMPTIONS_TOK
+        | GET_UNSAT_CORE_TOK | EXIT_TOK
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK
@@ -1788,6 +1781,22 @@ symbolicExpr[CVC4::SExpr& sexpr]
  */
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
+  std::string name;
+}
+: termNonVariable[expr, expr2]
+    /* a variable */
+  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
+    { expr = PARSER_STATE->getExpressionForName(name); 
+      assert( !expr.isNull() );
+    }
+  ;
+
+/**
+ * Matches a term.
+ * @return the expression representing the formula
+ */
+termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
+@init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind = kind::NULL_EXPR;
   Expr op;
@@ -1804,6 +1813,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Type type;
   std::string s;
   bool isBuiltinOperator = false;
+  bool isOverloadedFunction = false;
+  bool readVariable = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
 }
@@ -1852,17 +1863,29 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK AS_TOK term[f, f2] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
+  | LPAREN_TOK AS_TOK ( termNonVariable[f, f2] | symbol[name,CHECK_DECLARED,SYM_VARIABLE] { readVariable = true; } ) 
+    sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
+      if(readVariable) {
+        Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
+        // get the variable expression for the type
+        f = PARSER_STATE->getExpressionForNameAndType(name, type); 
+        assert( !f.isNull() );
+      }
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
-        std::vector<CVC4::Expr> v;
-        Expr e = f.getOperator();
-        const DatatypeConstructor& dtc =
-            Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-        v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                             MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
-        v.insert(v.end(), f.begin(), f.end());
-        expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        // could be a parametric type constructor or just an overloaded constructor
+        if(((DatatypeType)type).isParametric()) {
+          std::vector<CVC4::Expr> v;
+          Expr e = f.getOperator();
+          const DatatypeConstructor& dtc =
+              Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
+          v.insert(v.end(), f.begin(), f.end());
+          expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        }else{
+          expr = f;
+        }
       } else if(f.getKind() == CVC4::kind::EMPTYSET) {
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
@@ -1877,6 +1900,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         if(f.getType() != type) {
           PARSER_STATE->parseError("Type ascription not satisfied.");
+        }else{
+          expr = f;
         }
       }
     }
@@ -1925,32 +1950,20 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         /* A non-built-in function application */
         PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-        //hack to allow constants with parentheses (disabled for now)
-        //if( PARSER_STATE->sygus() && !PARSER_STATE->isFunctionLike(name) ){
-        //  op = PARSER_STATE->getVariable(name);
-        //}else{
-        PARSER_STATE->checkFunctionLike(name);
-        const bool isDefinedFunction =
-          PARSER_STATE->isDefinedFunction(name);
-        if(isDefinedFunction) {
-          expr = PARSER_STATE->getFunction(name);
-          kind = CVC4::kind::APPLY;
-        } else {
-          expr = PARSER_STATE->getVariable(name);
-          Type t = expr.getType();
-          if(t.isConstructor()) {
-            kind = CVC4::kind::APPLY_CONSTRUCTOR;
-          } else if(t.isSelector()) {
-            kind = CVC4::kind::APPLY_SELECTOR;
-          } else if(t.isTester()) {
-            kind = CVC4::kind::APPLY_TESTER;
-          } else {
-            kind = CVC4::kind::APPLY_UF;
-          }
+        expr = PARSER_STATE->getVariable(name);
+        if(!expr.isNull()) {
+          //hack to allow constants with parentheses (disabled for now)
+          //if( PARSER_STATE->sygus() && !PARSER_STATE->isFunctionLike(expr) ){
+          //  op = PARSER_STATE->getVariable(name);
+          //}else{
+          PARSER_STATE->checkFunctionLike(expr);
+          kind = PARSER_STATE->getKindForFunction(expr);
+          args.push_back(expr);
+        }else{
+          isOverloadedFunction = true;
         }
-        args.push_back(expr);
       }
-        }
+    }
     //(termList[args,expr])? RPAREN_TOK
     termList[args,expr] RPAREN_TOK
     { Debug("parser") << "args has size " << args.size() << std::endl
@@ -1958,19 +1971,66 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
         Debug("parser") << "++ " << *i << std::endl;
       }
+      if(isOverloadedFunction) {
+        std::vector< Type > argTypes;
+        for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
+          argTypes.push_back( (*i).getType() );
+        }
+        expr = PARSER_STATE->getOverloadedFunctionForTypes(name, argTypes);
+        if(!expr.isNull()) {
+          PARSER_STATE->checkFunctionLike(expr);
+          kind = PARSER_STATE->getKindForFunction(expr);
+          args.insert(args.begin(),expr);
+        }else{
+          PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
+        }
+      }
       if(isBuiltinOperator) {
         PARSER_STATE->checkOperator(kind, args.size());
       }
-      expr = MK_EXPR(kind, args); 
+      // may be partially applied function, in this case we should use HO_APPLY
+      if( args.size()>=2 && args[0].getType().isFunction() &&
+          (args.size()-1)<((FunctionType)args[0].getType()).getArity() ){
+        Debug("parser") << "Partial application of " << args[0];
+        Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();
+        Debug("parser") << ", #args = " << args.size()-1 << std::endl;
+        // must curry the application
+        expr = args[0];
+        expr = PARSER_STATE->mkHoApply( expr, args, 1 );
+      }else{
+        expr = MK_EXPR(kind, args);
+      }
     }
 
   | LPAREN_TOK
     ( /* An indexed function application */
-      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK
-      { 
-        if( kind!=kind::NULL_EXPR ){
+      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
+        if(kind==CVC4::kind::APPLY_SELECTOR) {
+          //tuple selector case
+          Integer x = op.getConst<CVC4::Rational>().getNumerator();
+          if (!x.fitsUnsignedInt()) {
+            PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
+          }
+          unsigned int n = x.toUnsignedInt();
+          if (args.size()>1) {
+            PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
+          }
+          Type t = args[0].getType();
+          if (!t.isTuple()) {
+            PARSER_STATE->parseError("tupSel applied to non-tuple");
+          }
+          size_t length = ((DatatypeType)t).getTupleLength();
+          if (n >= length) {
+            std::stringstream ss;
+            ss << "tuple is of length " << length << "; cannot access index " << n;
+            PARSER_STATE->parseError(ss.str());
+          }
+          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          op = dt[0][n].getSelector();
+        }
+        if (kind!=kind::NULL_EXPR) {
           expr = MK_EXPR( kind, op, args );
-        }else{
+        } else {
           expr = MK_EXPR(op, args);
         }
         PARSER_STATE->checkOperator(expr.getKind(), args.size());
@@ -2169,30 +2229,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       // ConstructorType(expr.getType()).getArity()==0;
       expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
     }
-    /* a variable */
-  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { if( PARSER_STATE->sygus() && name[0]=='-' && 
-          name.find_first_not_of("0123456789", 1) == std::string::npos ){
-        //allow unary minus in sygus
-        expr = MK_CONST(Rational(name));
-      }else{
-        const bool isDefinedFunction =
-          PARSER_STATE->isDefinedFunction(name);
-        if(PARSER_STATE->isAbstractValue(name)) {
-          expr = PARSER_STATE->mkAbstractValue(name);
-        } else if(isDefinedFunction) {
-          expr = MK_EXPR(CVC4::kind::APPLY,
-                        PARSER_STATE->getFunction(name));
-        } else {
-          expr = PARSER_STATE->getVariable(name);
-          Type t = PARSER_STATE->getType(name);
-          if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
-            // don't require parentheses, immediately turn it into an apply
-            expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-          }
-        }
-      }
-    }
 
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
@@ -2247,6 +2283,24 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr2 = f2;
       }
     }
+  | /* lambda */
+    LPAREN_TOK HO_LAMBDA_TOK
+    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope(true);
+      for(const std::pair<std::string, CVC4::Type>& svn : sortedVarNames){
+        args.push_back(PARSER_STATE->mkBoundVar(svn.first, svn.second));
+      }
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+      args.clear();
+      args.push_back(bvl);
+    }
+    term[f, f2] RPAREN_TOK
+    {
+      args.push_back( f );
+      PARSER_STATE->popScope();
+      expr = MK_EXPR( CVC4::kind::LAMBDA, args );
+    }
     /* constants */
   | INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
@@ -2271,17 +2325,25 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
     | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                      AntlrInput::tokenToUnsigned($sb),
-                                      +INFINITY)); }
+      { expr = MK_CONST(FloatingPoint::makeInf(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                 AntlrInput::tokenToUnsigned($sb)),
+                                               false)); }
     | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                      AntlrInput::tokenToUnsigned($sb),
-                                     -INFINITY)); }
+      { expr = MK_CONST(FloatingPoint::makeInf(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                 AntlrInput::tokenToUnsigned($sb)),
+                                               true)); }
     | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                      AntlrInput::tokenToUnsigned($sb),
-                                      NAN)); }
+      { expr = MK_CONST(FloatingPoint::makeNaN(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                 AntlrInput::tokenToUnsigned($sb)))); }
+
+    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                AntlrInput::tokenToUnsigned($sb)),
+                                              false)); }
+    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
+                                                                AntlrInput::tokenToUnsigned($sb)),
+                                              true)); }
     // NOTE: Theory parametric constants go here
 
     )
@@ -2298,7 +2360,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       expr = MK_CONST( BitVector(binString, 2) ); }
 
   | str[s,false]
-    { expr = MK_CONST( ::CVC4::String(s) ); }
+    { expr = MK_CONST( ::CVC4::String(s, true) ); }
   | FP_RNE_TOK      { expr = MK_CONST(roundNearestTiesToEven); }
   | FP_RNA_TOK      { expr = MK_CONST(roundNearestTiesToAway); }
   | FP_RTP_TOK      { expr = MK_CONST(roundTowardPositive); }
@@ -2309,6 +2371,10 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | FP_RTP_FULL_TOK { expr = MK_CONST(roundTowardPositive); }
   | FP_RTN_FULL_TOK { expr = MK_CONST(roundTowardNegative); }
   | FP_RTZ_FULL_TOK { expr = MK_CONST(roundTowardZero); }
+
+  | REAL_PI_TOK {
+      expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->realType(), kind::PI);
+    }
 
   | RENOSTR_TOK
     { std::vector< Expr > nvec;
@@ -2331,6 +2397,25 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     { //booleanType is placeholder here since we don't have type info without type annotation
       expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::SEP_NIL); }
     // NOTE: Theory constants go here
+
+  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
+    { std::vector<Type> types;
+      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        types.push_back((*i).getType());
+      }
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+  
+  | TUPLE_CONST_TOK
+    { std::vector<Type> types;
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
   ;
 
 /**
@@ -2505,26 +2590,6 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
               "bv2nat and int2bv are not part of SMT-LIB, and aren't available "
               "in SMT-LIB strict compliance mode");
         } }
-    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    +INFINITY)); }
-    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    -INFINITY)); }
-    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    NAN)); }
-    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    +0.0)); }
-    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                    AntlrInput::tokenToUnsigned($sb),
-                                    -0.0)); }
     | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
       { op = MK_CONST(FloatingPointToFPGeneric(
                 AntlrInput::tokenToUnsigned($eb),
@@ -2569,6 +2634,11 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
         op = Datatype::datatypeOf(expr)[Datatype::indexOf(expr)].getTester();
         kind = CVC4::kind::APPLY_TESTER;
       }
+    | TUPLE_SEL_TOK m=INTEGER_LITERAL {
+        kind = CVC4::kind::APPLY_SELECTOR;
+        //put m in op so that the caller (termNonVariable) can deal with this case
+        op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
+      } 
     | badIndexedFunctionName
     )
     RPAREN_TOK
@@ -2847,6 +2917,8 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = EXPR_MANAGER->mkSetType( args[0] );
+        } else if(name == "Tuple") {
+          t = EXPR_MANAGER->mkTupleType(args); 
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
           t = PARSER_STATE->getSort(name, args);
@@ -2866,6 +2938,16 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         }
       }
     ) RPAREN_TOK
+  | LPAREN_TOK HO_ARROW_TOK sortList[args] RPAREN_TOK
+    {
+      if(args.size()<2) {
+        PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
+      }
+      //flatten the type
+      Type rangeType = args.back();
+      args.pop_back();
+      t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
+    }
   ;
 
 /**
@@ -2978,11 +3060,10 @@ constructorDef[CVC4::Datatype& type]
   std::string id;
   CVC4::DatatypeConstructor* ctor = NULL;
 }
-  : symbol[id,CHECK_UNDECLARED,SYM_VARIABLE]
+  : symbol[id,CHECK_NONE,SYM_VARIABLE]
     { // make the tester
       std::string testerId("is-");
       testerId.append(id);
-      PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_VARIABLE);
       ctor = new CVC4::DatatypeConstructor(id, testerId);
     }
     ( LPAREN_TOK selector[*ctor] RPAREN_TOK )*
@@ -2998,7 +3079,7 @@ selector[CVC4::DatatypeConstructor& ctor]
   std::string id;
   Type t, t2;
 }
-  : symbol[id,CHECK_UNDECLARED,SYM_SORT] sortSymbol[t,CHECK_NONE]
+  : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { ctor.addArg(id, t);
       Debug("parser-idt") << "selector: " << id.c_str()
                           << " of type " << t << std::endl;
@@ -3007,7 +3088,8 @@ selector[CVC4::DatatypeConstructor& ctor]
 
 // Base SMT-LIB tokens
 ASSERT_TOK : 'assert';
-CHECKSAT_TOK : 'check-sat';
+CHECK_SAT_TOK : 'check-sat';
+CHECK_SAT_ASSUMING_TOK : 'check-sat-assuming';
 DECLARE_FUN_TOK : 'declare-fun';
 DECLARE_SORT_TOK : 'declare-sort';
 DEFINE_FUN_TOK : 'define-fun';
@@ -3018,6 +3100,7 @@ GET_VALUE_TOK : 'get-value';
 GET_ASSIGNMENT_TOK : 'get-assignment';
 GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
+GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
 RESET_TOK : { PARSER_STATE->v2_5(false) }? 'reset';
@@ -3132,9 +3215,13 @@ INST_CLOSURE_TOK : 'inst-closure';
 EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 UNIVSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'univset';
 NILREF_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'sep.nil';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'mkTuple';
+TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'tupSel';
 // Other set theory operators are not
 // tokenized and handled directly when
 // processing a term
+
+REAL_PI_TOK : 'real.pi';
 
 FP_PINF_TOK : '+oo';
 FP_NINF_TOK : '-oo';
@@ -3160,6 +3247,9 @@ FP_RNA_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundNear
 FP_RTP_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardPositive';
 FP_RTN_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardNegative';
 FP_RTZ_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardZero';
+
+HO_ARROW_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? '->';
+HO_LAMBDA_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? 'lambda';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts

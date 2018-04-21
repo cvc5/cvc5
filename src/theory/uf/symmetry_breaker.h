@@ -154,17 +154,16 @@ private:
 
   Statistics d_stats;
 
-protected:
-
-  void contextNotifyPop() {
+ protected:
+  void contextNotifyPop() override
+  {
     Debug("ufsymm") << "UFSYMM: clearing state due to pop" << std::endl;
     clear();
   }
 
-public:
-
+ public:
   SymmetryBreaker(context::Context* context, std::string name = "");
-  ~SymmetryBreaker() throw() {}
+
   void assertFormula(TNode phi);
   void apply(std::vector<Node>& newClauses);
 

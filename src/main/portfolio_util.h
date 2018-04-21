@@ -47,7 +47,7 @@ public:
     cnt(0)
   {}
 
-  ~PortfolioLemmaOutputChannel() throw() { }
+  ~PortfolioLemmaOutputChannel() {}
 
   void notifyNewLemma(Expr lemma);
 };/* class PortfolioLemmaOutputChannel */
@@ -65,7 +65,7 @@ public:
                              VarMap& to,
                                VarMap& from);
 
-  ~PortfolioLemmaInputChannel() throw() { }
+  ~PortfolioLemmaInputChannel() {}
 
   bool hasNewLemma();
   Expr getNewLemma();

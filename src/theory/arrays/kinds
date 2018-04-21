@@ -4,7 +4,7 @@
 # src/theory/builtin/kinds.
 #
 
-theory THEORY_ARRAY ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
+theory THEORY_ARRAYS ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_arrays.h"
 typechecker "theory/arrays/theory_arrays_type_rules.h"
 
 properties polite stable-infinite parametric

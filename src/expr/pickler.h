@@ -64,14 +64,8 @@ class CVC4_PUBLIC Pickler {
   friend class PicklerPrivate;
 
 protected:
-  virtual uint64_t variableToMap(uint64_t x) const
-    throw(PicklingException) {
-    return x;
-  }
-  virtual uint64_t variableFromMap(uint64_t x) const {
-    return x;
-  }
-
+ virtual uint64_t variableToMap(uint64_t x) const { return x; }
+ virtual uint64_t variableFromMap(uint64_t x) const { return x; }
 public:
   Pickler(ExprManager* em);
   virtual ~Pickler();
@@ -85,7 +79,7 @@ public:
    *
    * @return the pickle, which should be dispose()'d when you're done with it
    */
-  void toPickle(Expr e, Pickle& p) throw(PicklingException);
+  void toPickle(Expr e, Pickle& p);
 
   /**
    * Constructs a node from a Pickle.
@@ -111,21 +105,21 @@ public:
     d_fromMap(from) {
   }
 
-  virtual ~MapPickler() throw() {}
-
 protected:
-
-  virtual uint64_t variableToMap(uint64_t x) const
-    throw(PicklingException) {
-    VarMap::const_iterator i = d_toMap.find(x);
-    if(i != d_toMap.end()) {
-      return i->second;
-    } else {
-      throw PicklingException();
-    }
+ uint64_t variableToMap(uint64_t x) const override
+ {
+   VarMap::const_iterator i = d_toMap.find(x);
+   if (i != d_toMap.end())
+   {
+     return i->second;
+   }
+   else
+   {
+     throw PicklingException();
+   }
   }
 
-  virtual uint64_t variableFromMap(uint64_t x) const; 
+  uint64_t variableFromMap(uint64_t x) const override;
 };/* class MapPickler */
 
 }/* CVC4::expr::pickle namespace */

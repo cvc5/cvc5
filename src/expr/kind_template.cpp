@@ -91,5 +91,15 @@ ${type_constant_to_theory_id}
   throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad type constant");
 }
 
+std::string getStatsPrefix(TheoryId theoryId) {
+  switch(theoryId) {
+${theory_stats_prefixes}
+#line 98 "${template}"
+  default:
+    break;
+  }
+  return "unknown";
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

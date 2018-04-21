@@ -321,7 +321,7 @@ public:
   Expr();
   Expr(const Expr& e);
   Expr(const CVC4::Expr& e);
-  Expr(CVC4::Kind k);
+  Expr(ExprManager* em, CVC4::Kind k);
 
   // Compound expression constructors
   Expr eqExpr(const Expr& right) const;

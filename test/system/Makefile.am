@@ -3,6 +3,7 @@ TEST_EXTENSIONS = .class
 CPLUSPLUS_TESTS = \
 	boilerplate \
 	ouroborous \
+	reset_assertions \
 	two_smt_engines \
 	smt2_compliance \
 	statistics

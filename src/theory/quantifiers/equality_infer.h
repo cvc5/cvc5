@@ -21,11 +21,10 @@
 #include <map>
 #include <vector>
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdhashmap.h"
-#include "context/cdchunk_list.h"
-#include "context/cdhashset.h"
 #include "theory/theory.h"
 
 
@@ -37,7 +36,7 @@ class EqualityInference
 {
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDChunkList<Node> NodeList;
+  typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap< Node, int, NodeHashFunction > NodeIntMap;
 private:
   context::Context * d_c;

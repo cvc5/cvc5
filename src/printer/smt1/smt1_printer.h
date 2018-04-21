@@ -28,14 +28,26 @@ namespace printer {
 namespace smt1 {
 
 class Smt1Printer : public CVC4::Printer {
-  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
-public:
+ public:
   using CVC4::Printer::toStream;
-  void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
-  void toStream(std::ostream& out, const CommandStatus* s) const throw();
-  void toStream(std::ostream& out, const SExpr& sexpr) const throw();
-  void toStream(std::ostream& out, const Model& m) const throw();
+  void toStream(std::ostream& out,
+                TNode n,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out,
+                const Command* c,
+                int toDepth,
+                bool types,
+                size_t dag) const override;
+  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const Model& m) const override;
+
+ private:
+  void toStream(std::ostream& out,
+                const Model& m,
+                const Command* c) const override;
+  void toStream(std::ostream& out, const SExpr& sexpr) const;
 };/* class Smt1Printer */
 
 }/* CVC4::printer::smt1 namespace */
@@ -43,4 +55,3 @@ public:
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PRINTER__SMT1_PRINTER_H */
-

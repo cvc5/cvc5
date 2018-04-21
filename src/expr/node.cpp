@@ -22,40 +22,52 @@
 #include "base/output.h"
 #include "expr/attribute.h"
 
-#include "theory/quantifiers/term_database.h"
-
-
 using namespace std;
 
 namespace CVC4 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
-                                                           std::string message) throw() :
-  Exception(message),
-  d_node(new Node(node)) {
+                                                           std::string message)
+    : Exception(message), d_node(new Node(node))
+{
 #ifdef CVC4_DEBUG
+  std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
-    current->setContents(toString().c_str());
+    // Since this node is malformed, we cannot use toString().
+    // Instead, we print the kind and the children.
+    ss << "node kind: " << node.getKind() << ". children: ";
+    int i = 0;
+    for (const TNode& child : node)
+    {
+      ss << "child[" << i << "]: " << child << ". ";
+      i++;
+    }
+    string ssstring = ss.str();
+    current->setContents(ssstring.c_str());
   }
 #endif /* CVC4_DEBUG */
 }
 
-TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() throw () {
-  delete d_node;
-}
+TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
 
-void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const throw() {
+void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const
+{
   os << "Error during type checking: " << d_msg << std::endl << *d_node << endl << "The ill-typed expression: " << *d_node;
 }
 
-NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const throw() {
+NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const
+{
   return *d_node;
 }
 
-UnknownTypeException::UnknownTypeException(TNode n) throw() :
-  TypeCheckingExceptionPrivate(n, "this expression contains an element of unknown type (such as an abstract value);"
-                               " its type cannot be computed until it is substituted away") {
+UnknownTypeException::UnknownTypeException(TNode n)
+    : TypeCheckingExceptionPrivate(
+          n,
+          "this expression contains an element of unknown type (such as an "
+          "abstract value);"
+          " its type cannot be computed until it is substituted away")
+{
 }
 
 /** Is this node constant? (and has that been computed yet?) */
@@ -113,15 +125,9 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
       for(iterator i = begin(); i != end() && !hasBv; ++i) {
         hasBv = (*i).hasBoundVar();
       }
-      if( !hasBv ){
-        //FIXME : this is a hack to handle synthesis conjectures
-        // the issue is that we represent second-order quantification in synthesis conjectures via a Node:
-        //  exists x forall y P[f,y], where x is a dummy variable that maps to f through attribute SygusSynthFunVarListAttributeId
-        //  when asked whether a node has a bound variable, we want to treat f as if it were a bound (second-order) variable. -AJR
-        if( getKind()==kind::APPLY_UF && getOperator().hasAttribute(theory::SygusSynthFunVarListAttribute()) ){
-          hasBv = true;
-        }
-      }
+    }
+    if (!hasBv && hasOperator()) {
+      hasBv = getOperator().hasBoundVar();
     }
     setAttribute(HasBoundVarAttr(), hasBv);
     setAttribute(HasBoundVarComputedAttr(), true);
@@ -131,9 +137,73 @@ bool NodeTemplate<ref_count>::hasBoundVar() {
   return getAttribute(HasBoundVarAttr());
 }
 
+template <bool ref_count>
+bool NodeTemplate<ref_count>::hasFreeVar()
+{
+  assertTNodeNotExpired();
+  std::unordered_set<TNode, TNodeHashFunction> bound_var;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(*this);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // can skip if it doesn't have a bound variable
+    if (!cur.hasBoundVar())
+    {
+      continue;
+    }
+    Kind k = cur.getKind();
+    bool isQuant = k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
+                   || k == kind::CHOICE;
+    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
+        visited.find(cur);
+    if (itv == visited.end())
+    {
+      if (k == kind::BOUND_VARIABLE)
+      {
+        if (bound_var.find(cur) == bound_var.end())
+        {
+          return true;
+        }
+      }
+      else if (isQuant)
+      {
+        for (const TNode& cn : cur[0])
+        {
+          // should not shadow
+          Assert(bound_var.find(cn) == bound_var.end());
+          bound_var.insert(cn);
+        }
+        visit.push_back(cur);
+      }
+      // must visit quantifiers again to clean up below
+      visited[cur] = !isQuant;
+      for (const TNode& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+    else if (!itv->second)
+    {
+      Assert(isQuant);
+      for (const TNode& cn : cur[0])
+      {
+        bound_var.erase(cn);
+      }
+      visited[cur] = true;
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 template bool NodeTemplate<true>::hasBoundVar();
 template bool NodeTemplate<false>::hasBoundVar();
+template bool NodeTemplate<true>::hasFreeVar();
+template bool NodeTemplate<false>::hasFreeVar();
 
 }/* CVC4 namespace */

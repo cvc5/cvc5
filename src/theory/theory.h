@@ -177,10 +177,13 @@ private:
    * The pair <id, instance> is assumed to uniquely identify this Theory
    * w.r.t. the SmtEngine.
    */
-  Theory(TheoryId id, context::Context* satContext,
-         context::UserContext* userContext, OutputChannel& out,
-         Valuation valuation, const LogicInfo& logicInfo,
-         std::string instance = "") throw();  // taking : No default.
+  Theory(TheoryId id,
+         context::Context* satContext,
+         context::UserContext* userContext,
+         OutputChannel& out,
+         Valuation valuation,
+         const LogicInfo& logicInfo,
+         std::string instance = "");  // taking : No default.
 
   /**
    * This is called at shutdown time by the TheoryEngine, just before
@@ -228,12 +231,6 @@ private:
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
-
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofEnabled;
 
 public:
 
@@ -295,13 +292,8 @@ public:
     return node.getNumChildren() == 0 || theoryOf(node) != theoryId;
   }
 
-  /**
-   * Returns true if the assertFact queue is empty
-   */
-  bool done() const throw() {
-    return d_factsHead == d_facts.size();
-  }
-
+  /** Returns true if the assertFact queue is empty*/
+  bool done() const { return d_factsHead == d_facts.size(); }
   /**
    * Destructs a Theory.
    */
@@ -349,13 +341,6 @@ public:
   TheoryId getId() const {
     return d_id;
   }
-
-  /**
-   * Returns a string that uniquely identifies this theory solver w.r.t. the
-   * SmtEngine.
-   */
-  std::string getFullInstanceName() const;
-
 
   /**
    * Get the SAT context associated to this Theory.
@@ -518,16 +503,17 @@ public:
    * Get all relevant information in this theory regarding the current
    * model.  This should be called after a call to check( FULL_EFFORT )
    * for all theories with no conflicts and no lemmas added.
+   *
+   * This method returns true if and only if the equality engine of m is
+   * consistent as a result of this call.
    */
-  virtual void collectModelInfo( TheoryModel* m ){ }
-
+  virtual bool collectModelInfo(TheoryModel* m) { return true; }
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-
   /**
    * Return a decision request, if the theory has one, or the NULL node
    * otherwise.
-   * If returning non-null node, hould set priority to
+   * If returning non-null node, should set priority to
    *                        0 if decision is necessary for model-soundness,
    *                        1 if decision is necessary for completeness,
    *                        >1 otherwise.
@@ -565,11 +551,6 @@ public:
    * before an input atom to the engine.
    */
   virtual Node ppRewrite(TNode atom) { return atom; }
-
-  /**
-   * Don't preprocess subterm of this term
-   */
-  virtual bool ppDontRewriteSubterm(TNode atom) { return false; }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

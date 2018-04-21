@@ -1,0 +1,57 @@
+id     = "SEP"
+name   = "Sep"
+header = "options/sep_options.h"
+
+[[option]]
+  name       = "sepCheckNeg"
+  category   = "regular"
+  long       = "sep-check-neg"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "check negated spatial assertions"
+
+[[option]]
+  name       = "sepExp"
+  category   = "regular"
+  long       = "sep-exp"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "experimental flag for sep"
+
+[[option]]
+  name       = "sepMinimalRefine"
+  category   = "regular"
+  long       = "sep-min-refine"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "only add refinement lemmas for minimal (innermost) assertions"
+
+[[option]]
+  name       = "sepDisequalC"
+  category   = "regular"
+  long       = "sep-deq-c"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "assume cardinality elements are distinct"
+
+[[option]]
+  name       = "sepPreSkolemEmp"
+  category   = "regular"
+  long       = "sep-pre-skolem-emp"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "eliminate emp constraint at preprocess time"
+
+[[option]]
+  name       = "sepChildRefine"
+  category   = "regular"
+  long       = "sep-child-refine"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "child-specific refinements of negated star, positive wand"

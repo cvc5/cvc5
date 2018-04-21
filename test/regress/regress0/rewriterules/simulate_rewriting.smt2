@@ -1,3 +1,4 @@
+; COMMAND-LINE: --rewrite-rules
 ;; A new fast tableau-base ... Domenico Cantone et Calogero G.Zarba
 (set-logic AUFLIA)
 (set-info :status unsat)

@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class QAttributes;
+struct QAttributes;
 
 class QuantifiersRewriter {
 private:
@@ -52,7 +52,16 @@ private:
   static bool computeVariableElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& var, std::vector< Node >& subs,
                                       std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds );
   static Node computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa );
-public:
+  /** variable eliminate for bit-vector literals
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, and lit is equivalent to ( var = ret ).
+   */
+  static Node computeVariableElimLitBv(Node lit,
+                                       std::vector<Node>& args,
+                                       Node& var);
+
+ public:
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
@@ -91,6 +100,18 @@ public:
   static Node rewriteRewriteRule( Node r );
   static bool containsQuantifiers( Node n );
   static bool isPrenexNormalForm( Node n );
+  /** preprocess
+   *
+   * This returns the result of applying simple quantifiers-specific
+   * preprocessing to n, including but not limited to:
+   * - rewrite rule elimination,
+   * - pre-skolemization,
+   * - aggressive prenexing.
+   * The argument isInst is set to true if n is an instance of a previously
+   * registered quantified formula. If this flag is true, we do not apply
+   * certain steps like pre-skolemization since we know they will have no
+   * effect.
+   */
   static Node preprocess( Node n, bool isInst = false );
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );

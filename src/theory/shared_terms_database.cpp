@@ -19,21 +19,23 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace theory;
+using namespace CVC4::theory;
 
-SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context)
-: ContextNotifyObj(context)
-, d_statSharedTerms("theory::shared_terms", 0)
-, d_addedSharedTermsSize(context, 0)
-, d_termsToTheories(context)
-, d_alreadyNotifiedMap(context)
-, d_registeredEqualities(context)
-, d_EENotify(*this)
-, d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true)
-, d_theoryEngine(theoryEngine)
-, d_inConflict(context, false)
-{
+namespace CVC4 {
+
+SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
+                                         context::Context* context)
+    : ContextNotifyObj(context),
+      d_statSharedTerms("theory::shared_terms", 0),
+      d_addedSharedTermsSize(context, 0),
+      d_termsToTheories(context),
+      d_alreadyNotifiedMap(context),
+      d_registeredEqualities(context),
+      d_EENotify(*this),
+      d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
+      d_theoryEngine(theoryEngine),
+      d_inConflict(context, false),
+      d_conflictPolarity() {
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
 }
 
@@ -261,3 +263,5 @@ Node SharedTermsDatabase::explain(TNode literal) const {
   d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
   return mkAnd(assumptions);
 }
+
+} /* namespace CVC4 */

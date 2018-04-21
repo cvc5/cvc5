@@ -18,30 +18,37 @@
 
 #include "cvc4_private.h"
 
-#include "expr/node.h"
+#ifndef __CVC4__THEORY__ARITH__PARTIAL_MODEL_H
+#define __CVC4__THEORY__ARITH__PARTIAL_MODEL_H
 
-#include "context/context.h"
-#include "context/cdlist.h"
-
-
-#include "theory/arith/arithvar.h"
-#include "theory/arith/arith_utilities.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/constraint_forward.h"
-#include "theory/arith/callbacks.h"
-#include "theory/arith/bound_counts.h"
-
-
-#include <vector>
 #include <list>
+#include <vector>
 
-#pragma once
+#include "context/cdlist.h"
+#include "context/context.h"
+#include "expr/node.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/arithvar.h"
+#include "theory/arith/bound_counts.h"
+#include "theory/arith/callbacks.h"
+#include "theory/arith/constraint_forward.h"
+#include "theory/arith/delta_rational.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-
+/**
+ * (For the moment) the type hierarchy goes as:
+ * Integer <: Real
+ * The type number of a variable is an integer representing the most specific
+ * type of the variable. The possible values of type number are:
+ */
+enum class ArithType {
+  Unset,
+  Real,
+  Integer,
+};
 
 class ArithVariables {
 private:
@@ -409,3 +416,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
+#endif /* __CVC4__THEORY__ARITH__PARTIAL_MODEL_H */

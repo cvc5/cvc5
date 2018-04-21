@@ -109,13 +109,13 @@ public:
    * any expression references that used to be managed by this expression
    * manager and are left-over are bad.
    */
-  ~ExprManager() throw();
+  ~ExprManager();
 
   /** Get this expr manager's options */
   const Options& getOptions() const;
 
   /** Get this expr manager's resource manager */
-  ResourceManager* getResourceManager() throw();
+  ResourceManager* getResourceManager();
 
   /** Get the type for booleans */
   BooleanType booleanType() const;
@@ -437,29 +437,12 @@ public:
                                         size_t arity) const;
 
   /**
-   * Make a predicate subtype type defined by the given LAMBDA
-   * expression.  A TypeCheckingException can be thrown if lambda is
-   * not a LAMBDA, or is ill-typed, or if CVC4 fails at proving that
-   * the resulting predicate subtype is inhabited.
+   * Get the type of an expression.
+   *
+   * Throws a TypeCheckingException on failures or if a Type cannot be
+   * computed.
    */
-  // not in release 1.0
-  //Type mkPredicateSubtype(Expr lambda)
-  //  throw(TypeCheckingException);
-
-  /**
-   * Make a predicate subtype type defined by the given LAMBDA
-   * expression and whose non-emptiness is witnessed by the given
-   * witness.  A TypeCheckingException can be thrown if lambda is not
-   * a LAMBDA, or is ill-typed, or if the witness is not a witness or
-   * ill-typed.
-   */
-  // not in release 1.0
-  //Type mkPredicateSubtype(Expr lambda, Expr witness)
-  //  throw(TypeCheckingException);
-
-  /** Get the type of an expression */
-  Type getType(Expr e, bool check = false)
-    throw(TypeCheckingException);
+  Type getType(Expr e, bool check = false);
 
   /** Bits for use in mkVar() flags. */
   enum {
@@ -545,10 +528,10 @@ public:
   Expr mkNullaryOperator( Type type, Kind k);
 
   /** Get a reference to the statistics registry for this ExprManager */
-  Statistics getStatistics() const throw();
+  Statistics getStatistics() const;
 
   /** Get a reference to the statistics registry for this ExprManager */
-  SExpr getStatistic(const std::string& name) const throw();
+  SExpr getStatistic(const std::string& name) const;
 
   /**
    * Flushes statistics for this ExprManager to a file descriptor. Safe to use

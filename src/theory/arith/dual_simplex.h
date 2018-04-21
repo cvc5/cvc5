@@ -63,7 +63,8 @@ class DualSimplexDecisionProcedure : public SimplexDecisionProcedure{
 public:
   DualSimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
 
-  Result::Sat findModel(bool exactResult) {
+  Result::Sat findModel(bool exactResult) override
+  {
     return dualFindModel(exactResult);
   }
 

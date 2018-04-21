@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --no-dump-synth
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status
 (set-logic LIA)
 (define-fun g ((x Int)) Int (ite (= x 1) 15 19))
 (synth-fun f ((x Int)) Int

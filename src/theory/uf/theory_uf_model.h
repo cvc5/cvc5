@@ -23,6 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
+// TODO (#1302) : some of these classes should be moved to
+// src/theory/quantifiers/
 class UfModelTreeNode
 {
 public:

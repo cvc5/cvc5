@@ -26,19 +26,13 @@
 #ifndef __CVC4__CONTEXT__CDSET_FORWARD_H
 #define __CVC4__CONTEXT__CDSET_FORWARD_H
 
-/// \cond internals
-
-namespace __gnu_cxx {
-  template <class Key> struct hash;
-}/* __gnu_cxx namespace */
+#include <functional>
 
 namespace CVC4 {
-  namespace context {
-    template <class V, class HashFcn = __gnu_cxx::hash<V> >
-    class CDHashSet;
-  }/* CVC4::context namespace */
-}/* CVC4 namespace */
-
-/// \endcond
+namespace context {
+template <class V, class HashFcn = std::hash<V> >
+class CDHashSet;
+}  // namespace context
+}  // namespace CVC4
 
 #endif /* __CVC4__CONTEXT__CDSET_FORWARD_H */

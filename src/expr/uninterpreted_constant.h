@@ -25,42 +25,40 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC UninterpretedConstant {
-public:
+ public:
+  UninterpretedConstant(Type type, Integer index);
 
-  UninterpretedConstant(Type type, Integer index) throw(IllegalArgumentException);
-
-  ~UninterpretedConstant() throw() { }
-
-  Type getType() const throw() {
-    return d_type;
-  }
-  const Integer& getIndex() const throw() {
-    return d_index;
-  }
-
-  bool operator==(const UninterpretedConstant& uc) const throw() {
+  Type getType() const { return d_type; }
+  const Integer& getIndex() const { return d_index; }
+  bool operator==(const UninterpretedConstant& uc) const
+  {
     return d_type == uc.d_type && d_index == uc.d_index;
   }
-  bool operator!=(const UninterpretedConstant& uc) const throw() {
+  bool operator!=(const UninterpretedConstant& uc) const
+  {
     return !(*this == uc);
   }
 
-  bool operator<(const UninterpretedConstant& uc) const throw() {
+  bool operator<(const UninterpretedConstant& uc) const
+  {
     return d_type < uc.d_type ||
            (d_type == uc.d_type && d_index < uc.d_index);
   }
-  bool operator<=(const UninterpretedConstant& uc) const throw() {
+  bool operator<=(const UninterpretedConstant& uc) const
+  {
     return d_type < uc.d_type ||
            (d_type == uc.d_type && d_index <= uc.d_index);
   }
-  bool operator>(const UninterpretedConstant& uc) const throw() {
+  bool operator>(const UninterpretedConstant& uc) const
+  {
     return !(*this <= uc);
   }
-  bool operator>=(const UninterpretedConstant& uc) const throw() {
+  bool operator>=(const UninterpretedConstant& uc) const
+  {
     return !(*this < uc);
   }
 
-private:
+ private:
   const Type d_type;
   const Integer d_index;
 };/* class UninterpretedConstant */

@@ -54,19 +54,19 @@ public:
   virtual ~Smt1Input();
 
   /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const throw() {
+  InputLanguage getLanguage() const override
+  {
     return language::input::LANG_SMTLIB_V1;
   }
 
-protected:
-
+ protected:
   /**
    * Parse a command from the input. Returns <code>NULL</code> if
    * there is no command there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand();
+  Command* parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null
@@ -74,10 +74,9 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr();
+  Expr parseExpr() override;
 
-private:
-
+ private:
   /**
    * Initialize the class. Called from the constructors once the input
    * stream is initialized.

@@ -53,7 +53,8 @@ def is_vector3(arg_qual):
 
 
 # returns the jni type corresponding to the pseudo type signature
-def arg_type_to_java((arg_qual, arg_type, arg_name)):
+def arg_type_to_java(arg):
+    arg_qual, arg_type, arg_name = arg
     check_arg_qual(arg_qual);
     if arg_type == "jobject":
         if (not is_native(arg_qual)) or is_vector(arg_qual):
@@ -90,7 +91,8 @@ def arg_type_to_java((arg_qual, arg_type, arg_name)):
         else:
             return "jobject"
 
-def print_unembed_arg(cpp_file, (arg_qual, arg_type, arg_name)):
+def print_unembed_arg(cpp_file, arg):
+    arg_qual, arg_type, arg_name = arg
     check_arg_qual(arg_qual);
     if arg_type == "jobject":
         ()
@@ -152,11 +154,13 @@ def print_unembed_args(cpp_file, args):
         print_unembed_arg(cpp_file, arg)
 
 
-# check hat declaration and definition signatures match
-def match_signatures((decl_result, decl_args), (def_result, def_args, _)):
+# check that declaration and definition signatures match
+def match_signatures(decl, defn):
+    decl_result, decl_args = decl
+    def_result, def_args, _ = defn
     if decl_result != def_result or len(decl_args) != len(def_args):
         return False
-    for i in xrange(0, len(decl_args)):
+    for i in range(0, len(decl_args)):
         java_type = arg_type_to_java(def_args[i])
         #print java_type
         if decl_args[i] != java_type:
@@ -179,14 +183,15 @@ def print_header(cpp_file, includes):
 def print_signature(cpp_file, name, result, args):
     arg_strings = ["JNIEnv* env", "jclass"]
     arg_strings.extend( \
-        map(lambda (argQual, argType, argName): \
-                arg_type_to_java((argQual, argType, argName)) \
-                + " j" + argName, args))
+        map(lambda arg: \
+                arg_type_to_java(arg) \
+                + " j" + arg[2], args))
     cpp_file.writelines([
             "JNIEXPORT " + result + " JNICALL " + name + "\n",
             "(" + ", ".join(arg_strings) + ")\n"])
 
-def print_definition(cpp_file, name, (result, args, body)):
+def print_definition(cpp_file, name, defn):
+    result, args, body = defn
     cpp_file.writelines(["extern \"C\"\n"])
     print_signature(cpp_file, name, result, args)
     cpp_file.writelines([
@@ -203,7 +208,7 @@ def print_definition(cpp_file, name, (result, args, body)):
         cpp_file.writelines(["    return false;\n"])
     elif result == "jint":
         cpp_file.writelines(["    return -1;\n"])
-    elif result <> "void":
+    elif result != "void":
         print("BUG: return type " + result + " is not handled in print_definition")
         sys.exit(1)
     cpp_file.writelines(["  };\n",
@@ -218,7 +223,7 @@ def print_cpp(cpp_name, declarations, definitions, includes):
         #names = declarations.keys()
         #names.sort()
         for name in declarations[0]:
-            if not definitions.has_key(name):
+            if name not in definitions:
                 #continue
                 print("Error: " + name + " is declared in header" \
                           + " but not defined in implementation.")
@@ -230,7 +235,7 @@ def print_cpp(cpp_name, declarations, definitions, includes):
             if not match_signatures(declaration, definition):
                 print("Error: signature for " + name \
                       + " in definition and implementation do not match:")
-                print declaration
+                print(declaration)
                 print (definition[0], definition[1])
                 sys.exit(1)
 
@@ -239,13 +244,14 @@ def print_cpp(cpp_name, declarations, definitions, includes):
         if not len(definitions) == 0:
             print("Error: found definitions in implementation" \
                       " without declaration in header file:")
-            print definitions
+            print(definitions)
             sys.exit(1)
             
     
-    except IOError, (error_nr, error_string):
+    except IOError as err:
+        error_nr, error_string = err
         print ("Couldn't open " + cpp_name + ": " + error_string)
-        sys.exit(0)
+        sys.exit(1)
 
 
 ### header file function declarations
@@ -255,7 +261,7 @@ def print_cpp(cpp_name, declarations, definitions, includes):
 # - result: result type
 # - args: list of argument types, except for the first two (JNIEnv*, jclass)
 def register_declaration(declarations, name, result, args):
-    assert(not declarations[1].has_key(name));
+    assert(name not in declarations[1]);
     declarations[0].append(name)
     declarations[1][name] = (result, args)
 
@@ -303,9 +309,10 @@ def read_header(header_name):
         header_file.close()
 
 
-    except IOError, (error_nr, error_string):
+    except IOError as err:
+        error_nr, error_string = err
         print ("Couldn't open " + header_name + ": " + error_string)
-        sys.exit(0)
+        sys.exit(1)
 
     return declarations
     
@@ -320,7 +327,7 @@ def read_header(header_name):
 # - args: list of pairs of argument types and argument names,
 #   except for the first two (JNIEnv*, jclass)
 def register_definition(definitions, name, result, args, body):
-    if definitions.has_key(name):
+    if name in definitions:
         print("Error: redefinition of " + name + " in implementation.")
         sys.exit(1)
 
@@ -391,9 +398,10 @@ def read_impl(impl_name):
 
         impl_file.close()
 
-    except IOError, (error_nr, error_string):
+    except IOError as err:
+        error_nr, error_string = err
         print ("Couldn't open " + impl_name + ": " + error_string)
-        sys.exit(0)
+        sys.exit(1)
 
     return definitions, includes
 

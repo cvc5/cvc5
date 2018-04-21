@@ -1,29 +1,10 @@
 #!/bin/bash
 #
-set -e
+source "$(dirname "$0")/get-script-header.sh"
 
-cd "$(dirname "$0")/.."
-
-if ! [ -e src/parser/cvc/Cvc.g ]; then
-  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
-  echo "but apparently:" >&2
-  echo >&2
-  echo "  $(pwd)" >&2
-  echo >&2
-  echo "is not a CVC4 source tree ?!" >&2
-  exit 1
+if [ -z "${BUILD_TYPE}" ]; then
+  BUILD_TYPE="--disable-shared --enable-static"
 fi
-
-function webget {
-  if which curl &>/dev/null; then
-    curl "$1" >"$2"
-  elif which wget &>/dev/null; then
-    wget -c -O "$2" "$1"
-  else
-    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
-    exit 1
-  fi
-}
 
 if [ -z "${MACHINE_TYPE}" ]; then
   if ! [ -e config/config.guess ]; then
@@ -60,18 +41,29 @@ gunzip -f libantlr3c-3.4.tar.gz
 tar xfv libantlr3c-3.4.tar
 cd libantlr3c-3.4
 
+# Use an absolute path for the installation directory to avoid spurious libtool
+# warnings about the ANTLR library having moved
+PREFIX=$(realpath `pwd`/../..)
+
+# Make antlr3debughandlers.c empty to avoid unreferenced symbols
+rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here
-  ./configure --enable-64bit --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+  ./configure --enable-64bit --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
 else
   # 32-bit stuff here
-  ./configure --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+  ./configure --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
 fi
 
 cp Makefile Makefile.orig
 sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
-make
+make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}"
 make install
+
+if [[ $WINDOWS_BUILD == "yes" ]]; then
+  exit 0
+fi
+
 cd ../..
 mv lib/libantlr3c.a lib/libantlr3c-static.a
 
@@ -80,15 +72,15 @@ make clean
 
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here
-  ./configure --enable-64bit --with-pic --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+  ./configure --enable-64bit --with-pic --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
 else
   # 32-bit stuff here
-  ./configure --with-pic --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+  ./configure --with-pic --disable-antlrdebug --prefix="${PREFIX}" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
 fi
 
 cp Makefile Makefile.orig
 sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
-make
+make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}"
 make install
 cd ../..
 mv lib/libantlr3c.la lib/libantlr3c.la.orig
@@ -119,4 +111,4 @@ fi
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-antlr-dir=`pwd`/antlr-3.4 ANTLR=`pwd`/antlr-3.4/bin/antlr3
+echo ./configure

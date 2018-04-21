@@ -1,5 +1,0 @@
-% EXPECT: invalid
-
-f : [0..2] ->  INT;
-
-QUERY( f(0) = 0 );

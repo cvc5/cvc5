@@ -141,7 +141,7 @@ pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {
 AntlrInputStream*
 AntlrInputStream::newFileInputStream(const std::string& name,
                                      bool useMmap)
-  throw (InputStreamException) {
+{
 #ifdef _WIN32
   if(useMmap) {
     useMmap = false;
@@ -164,8 +164,7 @@ AntlrInputStream*
 AntlrInputStream::newStreamInputStream(std::istream& input,
                                        const std::string& name,
                                        bool lineBuffered)
-  throw (InputStreamException) {
-
+{
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 inputStringCopy = NULL;
   LineBuffer* line_buffer = NULL;
@@ -223,8 +222,7 @@ AntlrInputStream::newStreamInputStream(std::istream& input,
 AntlrInputStream*
 AntlrInputStream::newStringInputStream(const std::string& input,
                                        const std::string& name)
-  throw (InputStreamException) {
-
+{
   size_t input_size = input.size();
   assert(input_size <= std::numeric_limits<uint32_t>::max());
 
@@ -510,8 +508,7 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
 }
 
 void AntlrInput::parseError(const std::string& message, bool eofException)
-  throw (ParserException) {
-
+{
   string updatedMessage = parseErrorHelper((const char*)d_antlr3InputStream->getLineBuf(d_antlr3InputStream),
                                            d_lexer->getCharPositionInLine(d_lexer),
                                            message);

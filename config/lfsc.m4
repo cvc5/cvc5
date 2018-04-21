@@ -8,7 +8,6 @@ have_liblfsc=0
 LFSC_LIBS=
 LFSC_LDFLAGS=
 
-have_liblfsc=0
 if test "$with_lfsc" = no; then
   AC_MSG_RESULT([no, LFSC disabled by user])
 elif test -n "$with_lfsc"; then

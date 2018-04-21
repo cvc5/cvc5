@@ -32,13 +32,16 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC AscriptionType {
   Type d_type;
-public:
-  AscriptionType(Type t) throw() : d_type(t) {}
-  Type getType() const throw() { return d_type; }
-  bool operator==(const AscriptionType& other) const throw() {
+
+ public:
+  AscriptionType(Type t) : d_type(t) {}
+  Type getType() const { return d_type; }
+  bool operator==(const AscriptionType& other) const
+  {
     return d_type == other.d_type;
   }
-  bool operator!=(const AscriptionType& other) const throw() {
+  bool operator!=(const AscriptionType& other) const
+  {
     return d_type != other.d_type;
   }
 };/* class AscriptionType */

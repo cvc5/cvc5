@@ -1,0 +1,18 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic SLIA)
+(synth-fun f ((x String)) String
+((Start String (ntString))
+
+(ntString String (x "" (str.++ ntStringConst ntString ntString)))
+
+(ntStringConst String ("a" "b" " "))
+
+))
+
+; can be solved with concat PBE strategy, although we currently are not (issue #1259)
+; regardless, this is small enough to solve quickly
+(constraint (= (f "def") "ab def"))
+
+(check-synth)
+

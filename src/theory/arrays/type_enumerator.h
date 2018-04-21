@@ -39,18 +39,17 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
   bool d_finished;
   Node d_arrayConst;
 
-public:
-
-  ArrayEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<ArrayEnumerator>(type),
-    d_tep(tep),
-    d_index(type.getArrayIndexType(), tep),
-    d_constituentType(type.getArrayConstituentType()),
-    d_nm(NodeManager::currentNM()),
-    d_indexVec(),
-    d_constituentVec(),
-    d_finished(false),
-    d_arrayConst()
+ public:
+  ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<ArrayEnumerator>(type),
+        d_tep(tep),
+        d_index(type.getArrayIndexType(), tep),
+        d_constituentType(type.getArrayConstituentType()),
+        d_nm(NodeManager::currentNM()),
+        d_indexVec(),
+        d_constituentVec(),
+        d_finished(false),
+        d_arrayConst()
   {
     d_indexVec.push_back(*d_index);
     d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
@@ -61,16 +60,17 @@ public:
   // An array enumerator could be large, and generally you don't want to
   // go around copying these things; but a copy ctor is presently required
   // by the TypeEnumerator framework.
-  ArrayEnumerator(const ArrayEnumerator& ae) throw() :
-    TypeEnumeratorBase<ArrayEnumerator>(ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
-    d_tep(ae.d_tep),
-    d_index(ae.d_index),
-    d_constituentType(ae.d_constituentType),
-    d_nm(ae.d_nm),
-    d_indexVec(ae.d_indexVec),
-    d_constituentVec(),// copied below
-    d_finished(ae.d_finished),
-    d_arrayConst(ae.d_arrayConst)
+  ArrayEnumerator(const ArrayEnumerator& ae)
+      : TypeEnumeratorBase<ArrayEnumerator>(
+            ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
+        d_tep(ae.d_tep),
+        d_index(ae.d_index),
+        d_constituentType(ae.d_constituentType),
+        d_nm(ae.d_nm),
+        d_indexVec(ae.d_indexVec),
+        d_constituentVec(),  // copied below
+        d_finished(ae.d_finished),
+        d_arrayConst(ae.d_arrayConst)
   {
     for(std::vector<TypeEnumerator*>::const_iterator i =
           ae.d_constituentVec.begin(), i_end = ae.d_constituentVec.end();
@@ -87,7 +87,8 @@ public:
     }
   }
 
-  Node operator*() {
+  Node operator*() override
+  {
     if (d_finished) {
       throw NoMoreValuesException(getType());
     }
@@ -101,7 +102,8 @@ public:
     return n;
   }
 
-  ArrayEnumerator& operator++() {
+  ArrayEnumerator& operator++() override
+  {
     Trace("array-type-enum") << "operator++ called, **this = " << **this << std::endl;
 
     if (d_finished) {
@@ -144,7 +146,8 @@ public:
     return *this;
   }
 
-  bool isFinished() throw() {
+  bool isFinished() override
+  {
     Trace("array-type-enum") << "isFinished returning: " << d_finished << std::endl;
     return d_finished;
   }

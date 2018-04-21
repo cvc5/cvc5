@@ -286,8 +286,11 @@ class TseitinCnfStream : public CnfStream {
    * @param removable is this something that can be erased
    * @param negated true if negated
    */
-  void convertAndAssert(TNode node, bool removable, bool negated,
-                        ProofRule rule, TNode from = TNode::null());
+  void convertAndAssert(TNode node,
+                        bool removable,
+                        bool negated,
+                        ProofRule rule,
+                        TNode from = TNode::null()) override;
 
  private:
   /**
@@ -328,7 +331,7 @@ class TseitinCnfStream : public CnfStream {
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  void ensureLiteral(TNode n, bool noPreregistration = false);
+  void ensureLiteral(TNode n, bool noPreregistration = false) override;
 
 }; /* class TseitinCnfStream */
 

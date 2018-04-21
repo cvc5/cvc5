@@ -67,11 +67,9 @@ public:
 
   Result::Sat attempt(const ApproximateSimplex::Solution& sol);
 
-  Result::Sat findModel(bool exactResult){
-    Unreachable();
-  }
+  Result::Sat findModel(bool exactResult) override { Unreachable(); }
 
-private:
+ private:
   bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
 
   bool processSignals(){

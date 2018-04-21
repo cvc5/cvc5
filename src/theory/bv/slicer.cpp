@@ -2,9 +2,9 @@
 /*! \file slicer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Paul Meng
+ **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,13 +20,35 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 using namespace std; 
 
 
-const TermId CVC4::theory::bv::UndefinedId = -1; 
+namespace CVC4 {
+namespace theory {
+namespace bv {
+
+const TermId UndefinedId = -1;
+
+namespace {
+
+void intersect(const std::vector<TermId>& v1,
+               const std::vector<TermId>& v2,
+               std::vector<TermId>& intersection)
+{
+  for (const TermId id1 : v1)
+  {
+    for (const TermId id2 : v2)
+    {
+      if (id2 == id1)
+      {
+        intersection.push_back(id1);
+        break;
+      }
+    }
+  }
+}
+
+}  // namespace
 
 /**
  * Base
@@ -39,15 +61,15 @@ Base::Base(uint32_t size)
   Assert (d_size > 0); 
 }
 
-  
-void Base::sliceAt(Index index) {
+void Base::sliceAt(Index index)
+{
   Index vector_index = index / 32;
   if (vector_index == d_repr.size())
     return;
-  
+
   Index int_index = index % 32;
-  uint32_t bit_mask = utils::pow2(int_index); 
-  d_repr[vector_index] = d_repr[vector_index] | bit_mask; 
+  uint32_t bit_mask = 1u << int_index;
+  d_repr[vector_index] = d_repr[vector_index] | bit_mask;
 }
 
 void Base::sliceWith(const Base& other) {
@@ -57,17 +79,18 @@ void Base::sliceWith(const Base& other) {
   }
 }
 
-bool Base::isCutPoint (Index index) const {
+bool Base::isCutPoint (Index index) const
+{
   // there is an implicit cut point at the end and begining of the bv
   if (index == d_size || index == 0)
     return true;
-    
-  Index vector_index = index / 32;
-  Assert (vector_index < d_size); 
-  Index int_index = index % 32;
-  uint32_t bit_mask = utils::pow2(int_index); 
 
-  return (bit_mask & d_repr[vector_index]) != 0; 
+  Index vector_index = index / 32;
+  Assert (vector_index < d_size);
+  Index int_index = index % 32;
+  uint32_t bit_mask = 1u << int_index;
+
+  return (bit_mask & d_repr[vector_index]) != 0;
 }
 
 void Base::diffCutPoints(const Base& other, Base& res) const {
@@ -311,6 +334,19 @@ void UnionFind::getDecomposition(const ExtractTerm& term, Decomposition& decomp)
     getDecomposition(high_child, decomp); 
   }
 }
+
+/* Compute the greatest common divisor of two indices.  */
+static Index gcd(Index a, Index b)
+{
+  while (b != 0)
+  {
+    Index t = b;
+    b = a % t;
+    a = t;
+  }
+  return a;
+}
+
 /** 
  * May cause reslicings of the decompositions. Must not assume the decompositons
  * are the current normal form. 
@@ -347,7 +383,7 @@ void UnionFind::handleCommonSlice(const Decomposition& decomp1, const Decomposit
     Assert (overlap > 0);
     Index diff = common_size - overlap;
     Assert (diff >= 0);
-    Index granularity = utils::gcd(diff, overlap);
+    Index granularity = gcd(diff, overlap);
     // split the common part 
     for (unsigned i = 0; i < common_size; i+= granularity) {
       split(common, i); 
@@ -361,18 +397,19 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
   Debug("bv-slicer") << "                         " << term2.debugPrint() << endl;
   NormalForm nf1(term1.getBitwidth());
   NormalForm nf2(term2.getBitwidth());
-  
+
   getNormalForm(term1, nf1);
   getNormalForm(term2, nf2);
 
   Assert (nf1.base.getBitwidth() == nf2.base.getBitwidth());
-  
-  // first check if the two have any common slices 
-  std::vector<TermId> intersection; 
-  utils::intersect(nf1.decomp, nf2.decomp, intersection); 
-  for (unsigned i = 0; i < intersection.size(); ++i) {
-    // handle common slice may change the normal form 
-    handleCommonSlice(nf1.decomp, nf2.decomp, intersection[i]); 
+
+  // first check if the two have any common slices
+  std::vector<TermId> intersection;
+  intersect(nf1.decomp, nf2.decomp, intersection);
+  for (TermId id : intersection)
+  {
+    /* handleCommonSlice() may change the normal form */
+    handleCommonSlice(nf1.decomp, nf2.decomp, id);
   }
   // propagate cuts to a fixpoint 
   bool changed;
@@ -526,53 +563,64 @@ bool Slicer::isCoreTerm(TNode node) {
   }
   return d_coreTermCache[node]; 
 }
-unsigned Slicer::d_numAddedEqualities = 0; 
+unsigned Slicer::d_numAddedEqualities = 0;
 
-void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
-  Assert (node.getKind() == kind::EQUAL);
+void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities)
+{
+  Assert(node.getKind() == kind::EQUAL);
+  NodeManager* nm = NodeManager::currentNM();
   TNode t1 = node[0];
   TNode t2 = node[1];
 
-  uint32_t width = utils::getSize(t1); 
-  
-  Base base1(width); 
-  if (t1.getKind() == kind::BITVECTOR_CONCAT) {
+  uint32_t width = utils::getSize(t1);
+
+  Base base1(width);
+  if (t1.getKind() == kind::BITVECTOR_CONCAT)
+  {
     int size = 0;
-    // no need to count the last child since the end cut point is implicit 
-    for (int i = t1.getNumChildren() - 1; i >= 1 ; --i) {
+    // no need to count the last child since the end cut point is implicit
+    for (int i = t1.getNumChildren() - 1; i >= 1; --i)
+    {
       size = size + utils::getSize(t1[i]);
-      base1.sliceAt(size); 
+      base1.sliceAt(size);
     }
   }
 
-  Base base2(width); 
-  if (t2.getKind() == kind::BITVECTOR_CONCAT) {
-    unsigned size = 0; 
-    for (int i = t2.getNumChildren() - 1; i >= 1; --i) {
+  Base base2(width);
+  if (t2.getKind() == kind::BITVECTOR_CONCAT)
+  {
+    unsigned size = 0;
+    for (int i = t2.getNumChildren() - 1; i >= 1; --i)
+    {
       size = size + utils::getSize(t2[i]);
-      base2.sliceAt(size); 
+      base2.sliceAt(size);
     }
   }
 
-  base1.sliceWith(base2); 
-  if (!base1.isEmpty()) {
+  base1.sliceWith(base2);
+  if (!base1.isEmpty())
+  {
     // we split the equalities according to the base
-    int last = 0; 
-    for (unsigned i = 1; i <= utils::getSize(t1); ++i) {
-      if (base1.isCutPoint(i)) {
-        Node extract1 = utils::mkExtract(t1, i-1, last);
-        Node extract2 = utils::mkExtract(t2, i-1, last);
+    int last = 0;
+    for (unsigned i = 1; i <= utils::getSize(t1); ++i)
+    {
+      if (base1.isCutPoint(i))
+      {
+        Node extract1 = utils::mkExtract(t1, i - 1, last);
+        Node extract2 = utils::mkExtract(t2, i - 1, last);
         last = i;
-        Assert (utils::getSize(extract1) == utils::getSize(extract2)); 
-        equalities.push_back(utils::mkNode(kind::EQUAL, extract1, extract2)); 
+        Assert(utils::getSize(extract1) == utils::getSize(extract2));
+        equalities.push_back(nm->mkNode(kind::EQUAL, extract1, extract2));
       }
     }
-  } else {
+  }
+  else
+  {
     // just return same equality
     equalities.push_back(node);
   }
-  d_numAddedEqualities += equalities.size() - 1; 
-} 
+  d_numAddedEqualities += equalities.size() - 1;
+}
 
 std::string UnionFind::debugPrint(TermId id) {
   ostringstream os; 
@@ -592,12 +640,12 @@ std::string UnionFind::debugPrint(TermId id) {
 }
 
 UnionFind::Statistics::Statistics():
-  d_numNodes("theory::bv::slicer::NumberOfNodes", 0),
-  d_numRepresentatives("theory::bv::slicer::NumberOfRepresentatives", 0),
-  d_numSplits("theory::bv::slicer::NumberOfSplits", 0),
-  d_numMerges("theory::bv::slicer::NumberOfMerges", 0),
+  d_numNodes("theory::bv::slicer::NumNodes", 0),
+  d_numRepresentatives("theory::bv::slicer::NumRepresentatives", 0),
+  d_numSplits("theory::bv::slicer::NumSplits", 0),
+  d_numMerges("theory::bv::slicer::NumMerges", 0),
   d_avgFindDepth("theory::bv::slicer::AverageFindDepth"),
-  d_numAddedEqualities("theory::bv::slicer::NumberOfEqualitiesAdded", Slicer::d_numAddedEqualities)
+  d_numAddedEqualities("theory::bv::slicer::NumEqualitiesAdded", Slicer::d_numAddedEqualities)
 {
   smtStatisticsRegistry()->registerStat(&d_numRepresentatives);
   smtStatisticsRegistry()->registerStat(&d_numSplits);
@@ -613,3 +661,7 @@ UnionFind::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_avgFindDepth);
   smtStatisticsRegistry()->unregisterStat(&d_numAddedEqualities);
 }
+
+}  // namespace bv
+}  // namespace theory
+}  // namespace CVC4

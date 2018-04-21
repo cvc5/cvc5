@@ -32,63 +32,64 @@ class Smt1 : public Parser {
   friend class ParserBuilder;
 
 public:
-  enum Logic {
-    AUFLIA, // +p and -p?
-    AUFLIRA,
-    AUFNIRA,
-    LRA,
-    QF_ABV,
-    QF_AUFBV,
-    QF_AUFBVLIA,
-    QF_AUFBVLRA,
-    QF_AUFLIA,
-    QF_AUFLIRA,
-    QF_AX,
-    QF_BV,
-    QF_IDL,
-    QF_LIA,
-    QF_LRA,
-    QF_NIA,
-    QF_NRA,
-    QF_RDL,
-    QF_S, // nonstandard (for string theory)
-    QF_SAT,
-    QF_UF,
-    QF_UFIDL,
-    QF_UFBV,
-    QF_UFLIA,
-    QF_UFNIA, // nonstandard
-    QF_UFLRA,
-    QF_UFLIRA, // nonstandard
-    QF_UFNIRA, // nonstandard
-    QF_UFNRA,
-    UFLRA,
-    UFNIRA, // nonstandard
-    UFNIA,
-    QF_ALL_SUPPORTED, // nonstandard
-    ALL_SUPPORTED // nonstandard
-  };
+ enum Logic {
+   UNSET = 0,  // This indicates that the logic has not been set.
+   AUFLIA,     // +p and -p?
+   AUFLIRA,
+   AUFNIRA,
+   LRA,
+   QF_ABV,
+   QF_AUFBV,
+   QF_AUFBVLIA,
+   QF_AUFBVLRA,
+   QF_AUFLIA,
+   QF_AUFLIRA,
+   QF_AX,
+   QF_BV,
+   QF_IDL,
+   QF_LIA,
+   QF_LRA,
+   QF_NIA,
+   QF_NRA,
+   QF_RDL,
+   QF_S,  // nonstandard (for string theory)
+   QF_SAT,
+   QF_UF,
+   QF_UFIDL,
+   QF_UFBV,
+   QF_UFLIA,
+   QF_UFNIA,  // nonstandard
+   QF_UFLRA,
+   QF_UFLIRA,  // nonstandard
+   QF_UFNIRA,  // nonstandard
+   QF_UFNRA,
+   SAT,
+   UFLRA,
+   UFNIRA,  // nonstandard
+   UFNIA,
+   QF_ALL_SUPPORTED,  // nonstandard
+   ALL_SUPPORTED      // nonstandard
+ };
 
-  enum Theory {
-    THEORY_ARRAYS,
-    THEORY_ARRAYS_EX,
-    THEORY_BITVECTORS,
-    THEORY_BITVECTORS_32,
-    THEORY_BITVECTOR_ARRAYS_EX,
-    THEORY_EMPTY,
-    THEORY_INTS,
-    THEORY_INT_ARRAYS,
-    THEORY_INT_ARRAYS_EX,
-    THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX,
-    THEORY_REALS,
-    THEORY_REALS_INTS,
-    THEORY_STRINGS,
-    THEORY_QUANTIFIERS,
-    THEORY_CARDINALITY_CONSTRAINT
-  };
+ enum Theory {
+   THEORY_ARRAYS,
+   THEORY_ARRAYS_EX,
+   THEORY_BITVECTORS,
+   THEORY_BITVECTORS_32,
+   THEORY_BITVECTOR_ARRAYS_EX,
+   THEORY_EMPTY,
+   THEORY_INTS,
+   THEORY_INT_ARRAYS,
+   THEORY_INT_ARRAYS_EX,
+   THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX,
+   THEORY_REALS,
+   THEORY_REALS_INTS,
+   THEORY_STRINGS,
+   THEORY_QUANTIFIERS,
+   THEORY_CARDINALITY_CONSTRAINT
+ };
 
 private:
-  bool d_logicSet;
   Logic d_logic;
 
 protected:
@@ -102,7 +103,7 @@ public:
    */
   void addTheory(Theory theory);
 
-  bool logicIsSet();
+  bool logicIsSet() override;
 
   /**
    * Sets the logic for the current benchmark. Declares any logic and theory symbols.

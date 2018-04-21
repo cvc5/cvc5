@@ -1,6 +1,6 @@
 This directory contains usage examples of CVC4's different language
 bindings, library APIs, and also tutorial examples from the tutorials
-available at http://cvc4.cs.nyu.edu/wiki/Tutorials
+available at http://cvc4.cs.stanford.edu/wiki/Tutorials
 
 *** Files named SimpleVC*, simple_vc*
 
@@ -31,4 +31,3 @@ source.  After building CVC4, you can run "make examples".  You'll
 find the built binaries in builds/examples (or just in "examples" if
 you configured a build directory outside of the source tree).
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Tue, 24 Dec 2013 09:12:59 -0500

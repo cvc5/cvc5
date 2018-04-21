@@ -23,6 +23,7 @@
 #include <cln/input.h>
 #include <cln/integer.h>
 #include <cln/integer_io.h>
+#include <cln/modinteger.h>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -51,11 +52,13 @@ private:
    * Constructs an Integer by copying a CLN C++ primitive.
    */
   Integer(const cln::cl_I& val) : d_value(val) {}
+  // Throws a std::invalid_argument on invalid input `s` for the given base.
+  void readInt(const cln::cl_read_flags& flags,
+               const std::string& s,
+               unsigned base);
 
-  void readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument);
-
-  void parseInt(const std::string& s, unsigned base) throw(std::invalid_argument);
-
+  // Throws a std::invalid_argument on invalid inputs.
+  void parseInt(const std::string& s, unsigned base);
 
   // These constants are to help with CLN conversion in 32 bit.
   // See http://www.ginac.de/CLN/cln.html#Conversions
@@ -80,11 +83,13 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  explicit Integer(const char* sp, unsigned base = 10) throw (std::invalid_argument) {
+  explicit Integer(const char* sp, unsigned base = 10)
+  {
     parseInt(std::string(sp), base);
   }
 
-  explicit Integer(const std::string& s, unsigned base = 10) throw (std::invalid_argument) {
+  explicit Integer(const std::string& s, unsigned base = 10)
+  {
     parseInt(s, base);
   }
 
@@ -101,6 +106,14 @@ public:
 #endif /* CVC4_NEED_INT64_T_OVERLOADS */
 
   ~Integer() {}
+
+  /**
+   * Returns a copy of d_value to enable public access of CLN data.
+   */
+  cln::cl_I getValue() const
+  {
+    return d_value;
+  }
 
   Integer& operator=(const Integer& x){
     if(this == &x) return *this;
@@ -157,6 +170,7 @@ public:
   Integer operator*(const Integer& y) const {
     return Integer( d_value * y.d_value );
   }
+
   Integer& operator*=(const Integer& y) {
     d_value *= y.d_value;
     return *this;
@@ -338,6 +352,30 @@ public:
     cln::cl_I result = cln::lcm(d_value, y.d_value);
     return Integer(result);
   }
+
+  /**
+   * Compute addition of this Integer x + y modulo m.
+   */
+  Integer modAdd(const Integer& y, const Integer& m) const;
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modMultiply(const Integer& y, const Integer& m) const;
+
+  /**
+   * Compute modular inverse x^-1 of this Integer x modulo m with m > 0.
+   * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
+   * if such an inverse exists, and -1 otherwise.
+   *
+   * Such an inverse only exists if
+   *   - x is non-zero
+   *   - x and m are coprime, i.e., if gcd (x, m) = 1
+   *
+   * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
+   * if m = 1 (the zero ring).
+   */
+  Integer modInverse(const Integer& m) const;
 
   /**
    * Return true if *this exactly divides y.

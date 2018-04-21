@@ -144,55 +144,15 @@ struct CutScratchPad {
     d_explanation.clear();
   }
 };
+
 ApproximateStatistics::ApproximateStatistics()
-  // : d_relaxCalls("z::approx::relaxCalls",0)
-  // ,  d_relaxUnknowns("z::approx::relaxUnknowns",0)
-  // ,  d_relaxFeasible("z::approx::relaxFeasible",0)
-  // ,  d_relaxInfeasible("z::approx::relaxInfeasible",0)
-  // ,  d_relaxPivotsExhausted("z::approx::relaxPivotsExhausted",0)
-  // ,  d_mipCalls("z::approx::mipCalls",0)
-  // ,  d_mipUnknowns("z::approx::mipUnknowns",0)
-  // ,  d_mipBingo("z::approx::mipBingo",0)
-  // ,  d_mipClosed("z::approx::mipClosed",0)
-  // ,  d_mipBranchesExhausted("z::approx::mipBranchesExhausted",0)
-  // ,  d_mipPivotsExhausted("z::approx::mipPivotsExhausted",0)
-  // ,  d_mipExecExhausted("z::approx::mipExecExhausted",0)
-  // ,  d_gmiGen("z::approx::gmiGen",0)
-  // ,  d_gmiReplay("z::approx::gmiReplay",0)
-  // ,  d_mipGen("z::approx::mipGen",0)
-  // ,  d_mipReplay("z::approx::mipReplay",0)
   :  d_branchMaxDepth("z::approx::branchMaxDepth",0)
   ,  d_branchesMaxOnAVar("z::approx::branchesMaxOnAVar",0)
-  //,  d_branchTotal("z::approx::branchTotal",0)
-  //,  d_branchCuts("z::approx::branchCuts",0)
-
   ,  d_gaussianElimConstructTime("z::approx::gaussianElimConstruct::time")
   ,  d_gaussianElimConstruct("z::approx::gaussianElimConstruct::calls",0)
   ,  d_averageGuesses("z::approx::averageGuesses")
 {
-  // smtStatisticsRegistry()->registerStat(&d_relaxCalls);
-  // smtStatisticsRegistry()->registerStat(&d_relaxUnknowns);
-  // smtStatisticsRegistry()->registerStat(&d_relaxFeasible);
-  // smtStatisticsRegistry()->registerStat(&d_relaxInfeasible);
-  // smtStatisticsRegistry()->registerStat(&d_relaxPivotsExhausted);
-
-  // smtStatisticsRegistry()->registerStat(&d_mipCalls);
-  // smtStatisticsRegistry()->registerStat(&d_mipUnknowns);
-  // smtStatisticsRegistry()->registerStat(&d_mipBingo);
-  // smtStatisticsRegistry()->registerStat(&d_mipClosed);
-  // smtStatisticsRegistry()->registerStat(&d_mipBranchesExhausted);
-  // smtStatisticsRegistry()->registerStat(&d_mipPivotsExhausted);
-  // smtStatisticsRegistry()->registerStat(&d_mipExecExhausted);
-
-
-  // smtStatisticsRegistry()->registerStat(&d_gmiGen);
-  // smtStatisticsRegistry()->registerStat(&d_gmiReplay);
-  // smtStatisticsRegistry()->registerStat(&d_mipGen);
-  // smtStatisticsRegistry()->registerStat(&d_mipReplay);
-
   smtStatisticsRegistry()->registerStat(&d_branchMaxDepth);
-  //smtStatisticsRegistry()->registerStat(&d_branchTotal);
-  //smtStatisticsRegistry()->registerStat(&d_branchCuts);
   smtStatisticsRegistry()->registerStat(&d_branchesMaxOnAVar);
 
   smtStatisticsRegistry()->registerStat(&d_gaussianElimConstructTime);
@@ -202,29 +162,7 @@ ApproximateStatistics::ApproximateStatistics()
 }
 
 ApproximateStatistics::~ApproximateStatistics(){
-  // smtStatisticsRegistry()->unregisterStat(&d_relaxCalls);
-  // smtStatisticsRegistry()->unregisterStat(&d_relaxUnknowns);
-  // smtStatisticsRegistry()->unregisterStat(&d_relaxFeasible);
-  // smtStatisticsRegistry()->unregisterStat(&d_relaxInfeasible);
-  // smtStatisticsRegistry()->unregisterStat(&d_relaxPivotsExhausted);
-
-  // smtStatisticsRegistry()->unregisterStat(&d_mipCalls);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipUnknowns);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipBingo);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipClosed);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipBranchesExhausted);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipPivotsExhausted);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipExecExhausted);
-
-
-  // smtStatisticsRegistry()->unregisterStat(&d_gmiGen);
-  // smtStatisticsRegistry()->unregisterStat(&d_gmiReplay);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipGen);
-  // smtStatisticsRegistry()->unregisterStat(&d_mipReplay);
-
   smtStatisticsRegistry()->unregisterStat(&d_branchMaxDepth);
-  //smtStatisticsRegistry()->unregisterStat(&d_branchTotal);
-  //smtStatisticsRegistry()->unregisterStat(&d_branchCuts);
   smtStatisticsRegistry()->unregisterStat(&d_branchesMaxOnAVar);
 
   smtStatisticsRegistry()->unregisterStat(&d_gaussianElimConstructTime);
@@ -373,11 +311,17 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
   }
 }
 
-Rational ApproximateSimplex::estimateWithCFE(double d, const Integer& D) throw (RationalFromDoubleException){
-  return estimateWithCFE(Rational::fromDouble(d), D);
+Maybe<Rational> ApproximateSimplex::estimateWithCFE(double d, const Integer& D)
+{
+  if (Maybe<Rational> from_double = Rational::fromDouble(d))
+  {
+    return estimateWithCFE(from_double.value(), D);
+  }
+  return Maybe<Rational>();
 }
 
-Rational ApproximateSimplex::estimateWithCFE(double d) throw (RationalFromDoubleException){
+Maybe<Rational> ApproximateSimplex::estimateWithCFE(double d)
+{
   return estimateWithCFE(d, s_defaultMaxDenom);
 }
 
@@ -388,42 +332,32 @@ public:
   {}
   ~ApproxNoOp(){}
 
-  virtual LinResult solveRelaxation(){
-    return LinUnknown;
-  }
-  virtual Solution extractRelaxation() const throw (RationalFromDoubleException){
-    return Solution();
-  }
+  LinResult solveRelaxation() override { return LinUnknown; }
+  Solution extractRelaxation() const override { return Solution(); }
 
-  virtual ArithRatPairVec heuristicOptCoeffs() const{
+  ArithRatPairVec heuristicOptCoeffs() const override
+  {
     return ArithRatPairVec();
   }
 
-  virtual MipResult solveMIP(bool al){
-    return MipUnknown;
-  }
-  virtual Solution extractMIP() const throw (RationalFromDoubleException){
-    return Solution();
-  }
+  MipResult solveMIP(bool al) override { return MipUnknown; }
+  Solution extractMIP() const override { return Solution(); }
 
-  virtual void setOptCoeffs(const ArithRatPairVec& ref){}
-  virtual std::vector<const CutInfo*> getValidCuts(const std::set<const NodeLog*>& nodes){
+  void setOptCoeffs(const ArithRatPairVec& ref) override {}
+
+  void tryCut(int nid, CutInfo& cut) override {}
+
+  std::vector<const CutInfo*> getValidCuts(const NodeLog& node) override
+  {
     return std::vector<const CutInfo*>();
   }
 
-  virtual void tryCut(int nid, CutInfo& cut) throw (RationalFromDoubleException){}
-
-  virtual std::vector<const CutInfo*> getValidCuts(const NodeLog& node) throw(RationalFromDoubleException){
-    return std::vector<const CutInfo*>();
-  }
-
-  virtual ArithVar getBranchVar(const NodeLog& nl) const{
+  ArithVar getBranchVar(const NodeLog& nl) const override
+  {
     return ARITHVAR_SENTINEL;
   }
 
-  virtual double sumInfeasibilities(bool mip) const{
-    return 0.0;
-  }
+  double sumInfeasibilities(bool mip) const override { return 0.0; }
 };
 
 }/* CVC4::theory::arith namespace */
@@ -483,42 +417,36 @@ public:
   ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistics& s);
   ~ApproxGLPK();
 
-  virtual LinResult solveRelaxation();
-  virtual Solution extractRelaxation() const throw (RationalFromDoubleException){
-    return extractSolution(false);
-  }
+  LinResult solveRelaxation();
+  Solution extractRelaxation() const override { return extractSolution(false); }
 
-  virtual ArithRatPairVec heuristicOptCoeffs() const;
+  ArithRatPairVec heuristicOptCoeffs() const override;
 
-  virtual MipResult solveMIP(bool al);
-  virtual Solution extractMIP() const throw (RationalFromDoubleException){
-    return extractSolution(true);
-  }
-  virtual void setOptCoeffs(const ArithRatPairVec& ref);
-  //void getValidCuts(const NodeLog& con, std::vector<const CutInfo*>& out);
-  virtual std::vector<const CutInfo*> getValidCuts(const NodeLog& nodes) throw (RationalFromDoubleException);
-  //virtual std::vector<const NodeLog*> getBranches();
-
-  //Node downBranchLiteral(const NodeLog& con) const;
+  MipResult solveMIP(bool al) override;
+  Solution extractMIP() const override { return extractSolution(true); }
+  void setOptCoeffs(const ArithRatPairVec& ref) override;
+  std::vector<const CutInfo*> getValidCuts(const NodeLog& nodes) override;
   ArithVar getBranchVar(const NodeLog& con) const;
 
   static void printGLPKStatus(int status, std::ostream& out);
 
 
 private:
-  Solution extractSolution(bool mip) const throw (RationalFromDoubleException);
-  int guessDir(ArithVar v) const;
+ Solution extractSolution(bool mip) const;
+ int guessDir(ArithVar v) const;
 
-  // get this stuff out of here
-  void tryCut(int nid, CutInfo& cut) throw (RationalFromDoubleException);
+ // get this stuff out of here
+ void tryCut(int nid, CutInfo& cut) override;
 
-  ArithVar _getArithVar(int nid, int M, int ind) const;
-  ArithVar getArithVarFromRow(int nid, int ind) const {
-    if(ind >= 0){
-      const NodeLog& nl = d_log.getNode(nid);
-      return nl.lookupRowId(ind);
-    }
-    return ARITHVAR_SENTINEL;
+ ArithVar _getArithVar(int nid, int M, int ind) const;
+ ArithVar getArithVarFromRow(int nid, int ind) const
+ {
+   if (ind >= 0)
+   {
+     const NodeLog& nl = d_log.getNode(nid);
+     return nl.lookupRowId(ind);
+   }
+   return ARITHVAR_SENTINEL;
   }
 
   // virtual void mapRowId(int nid, int ind, ArithVar v){
@@ -1063,8 +991,8 @@ ApproxGLPK::~ApproxGLPK(){
 
 }
 
-
-ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const throw (RationalFromDoubleException){
+ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
+{
   Assert(d_solvedRelaxation);
   Assert(!mip  || d_solvedMIP);
 
@@ -1150,8 +1078,16 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const throw (
           // Message() << "not roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
         }
 
-        DeltaRational proposal = estimateWithCFE(newAssign);
-
+        DeltaRational proposal;
+        if (Maybe<Rational> maybe_new = estimateWithCFE(newAssign))
+        {
+          proposal = maybe_new.value();
+        }
+        else
+        {
+          // failed to estimate the old value. defaulting to the current.
+          proposal = d_vars.getAssignment(vi);
+        }
 
         if(roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA))){
           // Message() << "  to prev value" << newAssign << " " << oldAssign << endl;
@@ -1705,7 +1641,8 @@ static void glpkCallback(glp_tree *tree, void *info){
   }
 }
 
-std::vector<const CutInfo*> ApproxGLPK::getValidCuts(const NodeLog& con) throw (RationalFromDoubleException){
+std::vector<const CutInfo*> ApproxGLPK::getValidCuts(const NodeLog& con)
+{
   std::vector<const CutInfo*> proven;
   int nid = con.getNodeId();
   for(NodeLog::const_iterator j = con.begin(), jend=con.end(); j!=jend; ++j){
@@ -1725,51 +1662,11 @@ std::vector<const CutInfo*> ApproxGLPK::getValidCuts(const NodeLog& con) throw (
   return proven;
 }
 
-// std::vector<const CutInfo*> ApproxGLPK::getValidCuts(const std::set<const NodeLog*>& nodes){
-//   // assume selected has been applied
-//   std::vector<const CutInfo*> proven;
-//   std::set<const NodeLog*>::const_iterator i, iend;
-//   for(i = nodes.begin(), iend=nodes.end(); i!=iend; ++i){
-//     const NodeLog* nl = *i;
-//     getValidCuts(*nl, proven);
-//   }
-
-//   return proven;
-// }
-
 ArithVar ApproxGLPK::getBranchVar(const NodeLog& con) const{
   int br_var = con.branchVariable();
   return getArithVarFromStructural(br_var);
 }
 
-// Node ApproxGLPK::downBranchLiteral(const NodeLog& con) const{
-//   int br_var = con.branchVariable();
-//   ArithVar v = getArithVarFromStructural(br_var);
-//   if(v != ARITHVAR_SENTINEL){
-//     if(d_vars.isIntegerInput(v) && d_vars.hasNode(v)){
-//       Node var = d_vars.asNode(v);
-//       double br_val = con.branchValue();
-//       Rational val = estimateWithCFE(br_val);
-//       if(!val.isIntegral()){
-//         NodeManager* nm = NodeManager::currentNM();
-//         Node ineq = nm->mkNode(kind::LEQ, var, mkRationalNode(val));
-//         return Rewriter::rewrite(ineq);
-//       }
-//     }
-//   }
-//   return Node::null();
-// }
-
-// std::vector<const NodeLog*> ApproxGLPK::getBranches(){
-//   std::vector<const NodeLog*> branches;
-//   for(TreeLog::const_iterator i = d_log.begin(), iend=d_log.end(); i!=iend;++i){
-//     const NodeLog& con = (*i).second;
-//     if(con.isBranch()){
-//       branches.push_back(&con);
-//     }
-//   }
-//   return branches;
-// }
 
 MipResult ApproxGLPK::solveMIP(bool activelyLog){
   Assert(d_solvedRelaxation);
@@ -2124,7 +2021,13 @@ bool ApproxGLPK::attemptBranchCut(int nid, const BranchCutInfo& br_cut){
   d_pad.d_cut.lhs.set(x, Rational(1));
 
   Rational& rhs = d_pad.d_cut.rhs;
-  rhs = estimateWithCFE(Rational::fromDouble(br_cut.getRhs()), Integer(1));
+  Maybe<Rational> br_cut_rhs = Rational::fromDouble(br_cut.getRhs());
+  if (!br_cut_rhs)
+  {
+    return true;
+  }
+
+  rhs = estimateWithCFE(br_cut_rhs.value(), Integer(1));
   d_pad.d_failure = !rhs.isIntegral();
   if(d_pad.d_failure) { return true; }
 
@@ -2175,8 +2078,13 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
   DenseMap<Rational>& alpha = d_pad.d_alpha.lhs;
   Rational& b = d_pad.d_alpha.rhs;
 
-  Rational delta = estimateWithCFE(mir.delta);
-  d_pad.d_failure = (delta.sgn() <= 0);
+  Maybe<Rational> delta = estimateWithCFE(mir.delta);
+  if (!delta)
+  {
+    return true;
+  }
+
+  d_pad.d_failure = (delta.value().sgn() <= 0);
   if(d_pad.d_failure){ return true; }
 
   Debug("approx::mir") << "applyCMIRRule() " << delta << " " << mir.delta << endl;
@@ -2186,7 +2094,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
   for(; iter != iend; ++iter){
     ArithVar v = *iter;
     const Rational& curr = alpha[v];
-    Rational next = curr / delta;
+    Rational next = curr / delta.value();
     if(compRanges.isKey(v)){
       b -= curr * compRanges[v];
       alpha.set(v, - next);
@@ -2194,7 +2102,7 @@ bool ApproxGLPK::applyCMIRRule(int nid, const MirInfo& mir){
       alpha.set(v, next);
     }
   }
-  b = b / delta;
+  b = b / delta.value();
 
   Rational roundB = (b + Rational(1,2)).floor();
   d_pad.d_failure = (b - roundB).abs() < Rational(1,90);
@@ -2612,11 +2520,19 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     double coeff = row_sum.coeffs[i];
     ArithVar x = _getArithVar(nid, M, aux_ind);
     if(x == ARITHVAR_SENTINEL){ return true; }
-    Rational c = estimateWithCFE(coeff);
-    if(lhs.isKey(x)){
-      lhs.get(x) -= c;
-    }else{
-      lhs.set(x, -c);
+    Maybe<Rational> c = estimateWithCFE(coeff);
+    if (!c)
+    {
+      return true;
+    }
+
+    if (lhs.isKey(x))
+    {
+      lhs.get(x) -= c.value();
+    }
+    else
+    {
+      lhs.set(x, -c.value());
     }
   }
 
@@ -2636,9 +2552,13 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     double coeff = row_sum.coeffs[i];
     ArithVar x = _getArithVar(nid, M, aux_ind);
     Assert(x != ARITHVAR_SENTINEL);
-    Rational c = estimateWithCFE(coeff);
+    Maybe<Rational> c = estimateWithCFE(coeff);
+    if (!c)
+    {
+      return true;
+    }
     Assert(!lhs.isKey(x));
-    lhs.set(x, c);
+    lhs.set(x, c.value());
   }
 
   if(Debug.isOn("approx::mir")){
@@ -3070,8 +2990,12 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
     }
     Debug("guessCoefficientsConstructTableRow") << "match " << ind << "," << var << "("<<d_vars.asNode(var)<<")"<<endl;
 
-    Rational cfe = estimateWithCFE(coeff, D);
-    tab.set(var, cfe);
+    Maybe<Rational> cfe = estimateWithCFE(coeff, D);
+    if (!cfe)
+    {
+      return true;
+    }
+    tab.set(var, cfe.value());
     Debug("guessCoefficientsConstructTableRow") << var << " cfe " << cfe << endl;
   }
   if(!guessIsConstructable(tab)){
@@ -3173,7 +3097,8 @@ bool ApproxGLPK::constructGmiCut(){
   return false;
 }
 
-void ApproxGLPK::tryCut(int nid, CutInfo& cut) throw (RationalFromDoubleException){
+void ApproxGLPK::tryCut(int nid, CutInfo& cut)
+{
   Assert(!cut.reconstructed());
   Assert(cut.getKlass() != RowsDeletedKlass);
   bool failure = false;

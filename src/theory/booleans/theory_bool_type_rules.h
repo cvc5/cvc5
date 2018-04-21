@@ -26,7 +26,7 @@ namespace boolean {
 class BooleanTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     TypeNode booleanType = nodeManager->booleanType();
     if( check ) {
       TNode::iterator child_it = n.begin();
@@ -47,7 +47,7 @@ public:
 class IteTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
+  {
     TypeNode thenType = n[1].getType(check);
     TypeNode elseType = n[2].getType(check);
     TypeNode iteType = TypeNode::leastCommonTypeNode(thenType, elseType);

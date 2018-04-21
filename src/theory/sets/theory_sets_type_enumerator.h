@@ -42,18 +42,17 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
   bool d_finished;
   Node d_setConst;
 
-public:
-
-  SetEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) throw(AssertionException) :
-    TypeEnumeratorBase<SetEnumerator>(type),
-    d_tep(tep),
-    d_index(0),
-    d_constituentType(type.getSetElementType()),
-    d_nm(NodeManager::currentNM()),
-    d_indexVec(),
-    d_constituentVec(),
-    d_finished(false),
-    d_setConst()
+ public:
+  SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<SetEnumerator>(type),
+        d_tep(tep),
+        d_index(0),
+        d_constituentType(type.getSetElementType()),
+        d_nm(NodeManager::currentNM()),
+        d_indexVec(),
+        d_constituentVec(),
+        d_finished(false),
+        d_setConst()
   {
     // d_indexVec.push_back(false);
     // d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
@@ -63,16 +62,17 @@ public:
   // An set enumerator could be large, and generally you don't want to
   // go around copying these things; but a copy ctor is presently required
   // by the TypeEnumerator framework.
-  SetEnumerator(const SetEnumerator& ae) throw() :
-    TypeEnumeratorBase<SetEnumerator>(ae.d_nm->mkSetType(ae.d_constituentType)),
-    d_tep(ae.d_tep),
-    d_index(ae.d_index),
-    d_constituentType(ae.d_constituentType),
-    d_nm(ae.d_nm),
-    d_indexVec(ae.d_indexVec),
-    d_constituentVec(),// copied below
-    d_finished(ae.d_finished),
-    d_setConst(ae.d_setConst)
+  SetEnumerator(const SetEnumerator& ae)
+      : TypeEnumeratorBase<SetEnumerator>(
+            ae.d_nm->mkSetType(ae.d_constituentType)),
+        d_tep(ae.d_tep),
+        d_index(ae.d_index),
+        d_constituentType(ae.d_constituentType),
+        d_nm(ae.d_nm),
+        d_indexVec(ae.d_indexVec),
+        d_constituentVec(),  // copied below
+        d_finished(ae.d_finished),
+        d_setConst(ae.d_setConst)
   {
     for(std::vector<TypeEnumerator*>::const_iterator i =
           ae.d_constituentVec.begin(), i_end = ae.d_constituentVec.end();
@@ -89,7 +89,8 @@ public:
     }
   }
 
-  Node operator*() throw(NoMoreValuesException) {
+  Node operator*() override
+  {
     if (d_finished) {
       throw NoMoreValuesException(getType());
     }
@@ -108,7 +109,8 @@ public:
     return n;
   }
 
-  SetEnumerator& operator++() throw() {
+  SetEnumerator& operator++() override
+  {
     Trace("set-type-enum") << "operator++ called, **this = " << **this << std::endl;
 
     if (d_finished) {
@@ -169,7 +171,8 @@ public:
     return *this;
   }
 
-  bool isFinished() throw() {
+  bool isFinished() override
+  {
     Trace("set-type-enum") << "isFinished returning: " << d_finished << std::endl;
     return d_finished;
   }

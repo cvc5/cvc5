@@ -138,7 +138,6 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
     break;
   }
   Unreachable();
-  return Node::null();
 }
 
 ArithIteUtils::ArithIteUtils(ContainsTermITEVisitor& contains,

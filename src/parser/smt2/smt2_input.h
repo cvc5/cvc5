@@ -53,8 +53,7 @@ class Smt2Input : public AntlrInput {
    */
   void init();
 
-public:
-
+ public:
   /**
    * Create an input.
    *
@@ -67,22 +66,18 @@ public:
   virtual ~Smt2Input();
 
   /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const throw() {
-    return d_lang;
-  }
-
+  InputLanguage getLanguage() const override { return d_lang; }
   /** Set the language that this Input is reading. */
   void setLanguage(InputLanguage);
 
-protected:
-
+ protected:
   /**
    * Parse a command from the input. Returns <code>NULL</code> if
    * there is no command there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand();
+  Command* parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null
@@ -90,7 +85,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr();
+  Expr parseExpr() override;
 
 };/* class Smt2Input */
 

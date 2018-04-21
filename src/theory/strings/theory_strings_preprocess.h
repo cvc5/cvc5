@@ -23,7 +23,6 @@
 #include "util/hash.h"
 #include "theory/theory.h"
 #include "theory/rewriter.h"
-#include "context/cdchunk_list.h"
 #include "context/cdhashmap.h"
 
 namespace CVC4 {

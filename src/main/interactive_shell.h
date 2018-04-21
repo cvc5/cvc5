@@ -57,7 +57,7 @@ public:
    * Read a command from the interactive shell. This will read as
    * many lines as necessary to parse a well-formed command.
    */
-  Command* readCommand() throw (UnsafeInterruptException);
+  Command* readCommand();
 
   /**
    * Return the internal parser being used.

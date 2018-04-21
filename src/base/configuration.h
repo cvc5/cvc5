@@ -81,6 +81,8 @@ public:
 
   static std::string getVersionExtra();
 
+  static std::string copyright();
+
   static std::string about();
 
   static bool licenseIsGpl();
@@ -93,13 +95,15 @@ public:
 
   static bool isBuiltWithAbc();
 
+  static bool isBuiltWithCadical();
+
   static bool isBuiltWithCryptominisat();
 
   static bool isBuiltWithReadline();
 
-  static bool isBuiltWithCudd();
-
   static bool isBuiltWithTlsSupport();
+
+  static bool isBuiltWithLfsc();
 
   /* Return the number of debug tags */
   static unsigned getNumDebugTags();

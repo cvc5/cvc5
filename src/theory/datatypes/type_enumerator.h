@@ -79,21 +79,25 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   Node getCurrentTerm( unsigned index );
 
   void init();
-public:
 
-  DatatypesEnumerator(TypeNode type, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<DatatypesEnumerator>(type),
-    d_tep(tep),
-    d_datatype(DatatypeType(type.toType()).getDatatype()),
-    d_type(type) {
+ public:
+  DatatypesEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<DatatypesEnumerator>(type),
+        d_tep(tep),
+        d_datatype(DatatypeType(type.toType()).getDatatype()),
+        d_type(type)
+  {
     d_child_enum = false;
     init();
   }
-  DatatypesEnumerator(TypeNode type, bool childEnum, TypeEnumeratorProperties * tep = NULL) :
-    TypeEnumeratorBase<DatatypesEnumerator>(type),
-    d_tep(tep),
-    d_datatype(DatatypeType(type.toType()).getDatatype()),
-    d_type(type) {
+  DatatypesEnumerator(TypeNode type,
+                      bool childEnum,
+                      TypeEnumeratorProperties* tep = nullptr)
+      : TypeEnumeratorBase<DatatypesEnumerator>(type),
+        d_tep(tep),
+        d_datatype(DatatypeType(type.toType()).getDatatype()),
+        d_type(type)
+  {
     d_child_enum = childEnum;
     init();
   }
@@ -127,10 +131,8 @@ public:
     d_child_enum = de.d_child_enum;
   }
 
-  virtual ~DatatypesEnumerator() throw() {
-  }
-
-  Node operator*() {
+  Node operator*() override
+  {
     Debug("dt-enum-debug") << ": get term " << this << std::endl;
     if(d_ctor < d_has_debruijn + d_datatype.getNumConstructors()) {
       return getCurrentTerm( d_ctor );
@@ -139,7 +141,8 @@ public:
     }
   }
 
-  DatatypesEnumerator& operator++() {
+  DatatypesEnumerator& operator++() override
+  {
     Debug("dt-enum-debug") << ": increment " << this << std::endl;
     unsigned prevSize = d_size_limit;
     while(d_ctor < d_has_debruijn+d_datatype.getNumConstructors()) {
@@ -171,7 +174,8 @@ public:
     return *this;
   }
 
-  bool isFinished() throw() {
+  bool isFinished() override
+  {
     return d_ctor >= d_has_debruijn+d_datatype.getNumConstructors();
   }
 

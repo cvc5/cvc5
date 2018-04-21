@@ -20,7 +20,9 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "main/main.h"
 #include "smt/command.h"
@@ -130,15 +132,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
   // dump the model/proof/unsat core if option is set
   if (status) {
-    Command* g = NULL;
+    std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_options.getProduceModels() && d_options.getDumpModels() &&
         (res.asSatisfiabilityResult() == Result::SAT ||
          (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
-      g = new GetModelCommand();
+      getterCommands.emplace_back(new GetModelCommand());
     }
     if (d_options.getProof() && d_options.getDumpProofs() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetProofCommand();
+      getterCommands.emplace_back(new GetProofCommand());
     }
 
     if (d_options.getDumpInstantiations() &&
@@ -146,26 +148,30 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
           (res.asSatisfiabilityResult() == Result::SAT ||
            (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
          res.asSatisfiabilityResult() == Result::UNSAT)) {
-      g = new GetInstantiationsCommand();
+      getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
     if (d_options.getDumpSynth() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetSynthSolutionCommand();
+      getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
     if (d_options.getDumpUnsatCores() &&
         res.asSatisfiabilityResult() == Result::UNSAT) {
-      g = new GetUnsatCoreCommand();
+      getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
-    if (g != NULL) {
+    if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
       if (d_options.getForceNoLimitCpuWhileDump()) {
         setNoLimitCPU();
       }
-      status = doCommandSingleton(g);
-      delete g;
+      for (const auto& getterCommand : getterCommands) {
+        status = doCommandSingleton(getterCommand.get());
+        if (!status && !d_options.getContinuedExecution()) {
+          break;
+        }
+      }
     }
   }
   return status;
@@ -187,7 +193,10 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
   return !cmd->fail();
 }
 
-void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString) {
+void printStatsIncremental(std::ostream& out,
+                           const std::string& prvsStatsString,
+                           const std::string& curStatsString)
+{
   if(prvsStatsString == "") {
     out << curStatsString;
     return;
@@ -223,9 +232,11 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
         (std::istringstream(curStatValue) >> curFloat);
 
       if(isFloat) {
+        const std::streamsize old_precision = out.precision();
         out << curStatName << ", " << curStatValue << " "
             << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
             << std::endl;
+        out.precision(old_precision);
       } else {
         out << curStatName << ", " << curStatValue << std::endl;
       }
@@ -249,26 +260,29 @@ void CommandExecutor::printStatsFilterZeros(std::ostream& out,
 
   std::getline(iss, statName, ',');
 
-  while( !iss.eof() ) {
-
+  while (!iss.eof())
+  {
     std::getline(iss, statValue, '\n');
 
-    double curFloat;
-    std::istringstream iss_stat_value (statValue);
-    iss_stat_value >> curFloat;
-    bool isFloat = iss_stat_value.good();
+    bool skip = false;
+    try
+    {
+      double dval = std::stod(statValue);
+      skip = (dval == 0.0);
+    }
+    // Value can not be converted, don't skip
+    catch (const std::invalid_argument&) {}
+    catch (const std::out_of_range&) {}
 
-    if( (isFloat && curFloat == 0) ||
-        statValue == " \"0\"" ||
-        statValue == " \"[]\"") {
-      // skip
-    } else {
+    skip = skip || (statValue == " \"0\"" || statValue == " \"[]\"");
+
+    if (!skip)
+    {
       out << statName << "," << statValue << std::endl;
     }
 
     std::getline(iss, statName, ',');
   }
-
 }
 
 void CommandExecutor::flushOutputStreams() {

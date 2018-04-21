@@ -1,9 +1,11 @@
+; COMMAND-LINE: --cbqi-bv --no-cbqi-full
+; EXPECT: unsat
 (set-logic BV)
 (set-info :status unsat)
 (assert
    (forall
-    ((A (_ BitVec 32)) (B (_ BitVec 32)) (C (_ BitVec 32)) (D (_ BitVec 32)))
+    ((A (_ BitVec 8)) (B (_ BitVec 8)) (C (_ BitVec 8)) (D (_ BitVec 8)))
       (or (and (= A B) (= C D)) (and (= A C) (= B D)))))
-      
+
 (check-sat)
-      
+

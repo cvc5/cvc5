@@ -26,6 +26,18 @@ namespace theory {
 
 class QuantifiersEngine;
 
+struct ModelBasisAttributeId
+{
+};
+typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
+// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
+//                     0 : term has no direct child with model basis attribute.
+struct ModelBasisArgAttributeId
+{
+};
+typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
+    ModelBasisArgAttribute;
+
 namespace quantifiers {
 
 class TermDb;
@@ -42,24 +54,50 @@ class FirstOrderModelAbs;
 struct IsStarAttributeId {};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
+/** Quantifiers representative bound
+ *
+ * This class is used for computing (finite)
+ * bounds for the domain of a quantifier
+ * in the context of a RepSetIterator
+ * (see theory/rep_set.h).
+ */
+class QRepBoundExt : public RepBoundExt
+{
+ public:
+  QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
+  virtual ~QRepBoundExt() {}
+  /** set bound */
+  RepSetIterator::RsiEnumType setBound(Node owner,
+                                       unsigned i,
+                                       std::vector<Node>& elements) override;
+  /** reset index */
+  bool resetIndex(RepSetIterator* rsi,
+                  Node owner,
+                  unsigned i,
+                  bool initial,
+                  std::vector<Node>& elements) override;
+  /** initialize representative set for type */
+  bool initializeRepresentativesForType(TypeNode tn) override;
+  /** get variable order */
+  bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
+
+ private:
+  /** quantifiers engine associated with this bound */
+  QuantifiersEngine* d_qe;
+  /** indices that are bound integer enumeration */
+  std::map<unsigned, bool> d_bound_int;
+};
+
+// TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {
-protected:
-  /** quant engine */
-  QuantifiersEngine * d_qe;
-  /** list of quantifiers asserted in the current context */
-  context::CDList<Node> d_forall_asserts;
-  /** quantified formulas marked as relevant */
-  unsigned d_rlv_count;
-  std::map< Node, unsigned > d_forall_rlv;
-  std::vector< Node > d_forall_rlv_vec;
-  Node d_last_forall_rlv;
-  std::vector< Node > d_forall_rlv_assert;
-  /** get variable id */
-  std::map< Node, std::map< Node, int > > d_quant_var_id;
-  /** get current model value (deprecated) */
-  //virtual Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) = 0;
-public: //for Theory Quantifiers:
+ public:
+  FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
+
+  virtual FirstOrderModelIG* asFirstOrderModelIG() { return nullptr; }
+  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
+  virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return nullptr; }
+  virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return nullptr; }
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -68,30 +106,14 @@ public: //for Theory Quantifiers:
   Node getAssertedQuantifier( unsigned i, bool ordered = false );
   /** initialize model for term */
   void initializeModelForTerm( Node n, std::map< Node, bool >& visited );
-  virtual void processInitializeModelForTerm( Node n ) = 0;
-  virtual void processInitializeQuantifier( Node q ) {}
-public:
-  FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
-  virtual ~FirstOrderModel() throw() {}
-  virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
-  virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
-  virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
-  virtual FirstOrderModelAbs * asFirstOrderModelAbs() { return NULL; }
   // initialize the model
   void initialize();
-  virtual void processInitialize( bool ispre ) = 0;
   /** get variable id */
   int getVariableId(TNode q, TNode n) {
     return d_quant_var_id.find( q )!=d_quant_var_id.end() ? d_quant_var_id[q][n] : -1;
   }
-  /** get some domain element */
-  Node getSomeDomainElement(TypeNode tn);
   /** do we need to do any work? */
   bool checkNeeded();
-private:
-  //list of inactive quantified formulas
-  std::map< TNode, bool > d_quant_active;
-public:
   /** reset round */
   void reset_round();
   /** mark quantified formula relevant */
@@ -107,6 +129,70 @@ public:
   bool isQuantifierActive( TNode q );
   /** is quantified formula asserted */
   bool isQuantifierAsserted( TNode q );
+  /** get model basis term */
+  Node getModelBasisTerm(TypeNode tn);
+  /** is model basis term */
+  bool isModelBasisTerm(Node n);
+  /** get model basis term for op */
+  Node getModelBasisOpTerm(Node op);
+  /** get model basis */
+  Node getModelBasis(Node q, Node n);
+  /** get model basis body */
+  Node getModelBasisBody(Node q);
+  /** get model basis arg */
+  unsigned getModelBasisArg(Node n);
+  /** get some domain element */
+  Node getSomeDomainElement(TypeNode tn);
+  /** initialize representative set for type
+   *
+   * This ensures that TheoryModel::d_rep_set
+   * is initialized for type tn. In particular:
+   * (1) If tn is an uninitialized (unconstrained)
+   * uninterpreted sort, then we interpret it
+   * as a set of size one,
+   * (2) If tn is a "small" enumerable finite type,
+   * then we ensure that all its values are in
+   * TheoryModel::d_rep_set.
+   *
+   * Returns true if the initialization was complete,
+   * in that the set for tn in TheoryModel::d_rep_set
+   * has all representatives of type tn.
+   */
+  bool initializeRepresentativesForType(TypeNode tn);
+
+ protected:
+  /** quant engine */
+  QuantifiersEngine* d_qe;
+  /** list of quantifiers asserted in the current context */
+  context::CDList<Node> d_forall_asserts;
+  /** quantified formulas marked as relevant */
+  unsigned d_rlv_count;
+  std::map<Node, unsigned> d_forall_rlv;
+  std::vector<Node> d_forall_rlv_vec;
+  Node d_last_forall_rlv;
+  std::vector<Node> d_forall_rlv_assert;
+  /** get variable id */
+  std::map<Node, std::map<Node, int> > d_quant_var_id;
+  /** process initialize model for term */
+  virtual void processInitializeModelForTerm(Node n) = 0;
+  /** process intialize quantifier */
+  virtual void processInitializeQuantifier(Node q) {}
+  /** process initialize */
+  virtual void processInitialize(bool ispre) = 0;
+
+ private:
+  // list of inactive quantified formulas
+  std::map<TNode, bool> d_quant_active;
+  /** map from types to model basis terms */
+  std::map<TypeNode, Node> d_model_basis_term;
+  /** map from ops to model basis terms */
+  std::map<Node, Node> d_model_basis_op_term;
+  /** map from instantiation terms to their model basis equivalent */
+  std::map<Node, Node> d_model_basis_body;
+  /** map from universal quantifiers to model basis terms */
+  std::map<Node, std::vector<Node> > d_model_basis_terms;
+  /** compute model basis arg */
+  void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
 
@@ -128,12 +214,12 @@ private:
 //the following functions are for evaluating quantifier bodies
 public:
   FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelIG() throw() {}
-  FirstOrderModelIG * asFirstOrderModelIG() { return this; }
+
+  FirstOrderModelIG* asFirstOrderModelIG() override { return this; }
   // initialize the model
-  void processInitialize( bool ispre );
+  void processInitialize(bool ispre) override;
   //for initialize model
-  void processInitializeModelForTerm( Node n );
+  void processInitializeModelForTerm(Node n) override;
   /** reset evaluation */
   void resetEvaluate();
   /** evaluate functions */
@@ -162,26 +248,26 @@ class Def;
 class FirstOrderModelFmc : public FirstOrderModel
 {
   friend class FullModelChecker;
-private:
+
+ private:
   /** models for UF */
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
   Node intervalOp;
   /** get current model value */
-  void processInitializeModelForTerm(Node n);
-public:
+  void processInitializeModelForTerm(Node n) override;
+
+ public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  virtual ~FirstOrderModelFmc() throw();
-  FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
+  ~FirstOrderModelFmc() override;
+  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
   // initialize the model
-  void processInitialize( bool ispre );
+  void processInitialize(bool ispre) override;
   Node getFunctionValue(Node op, const char* argPrefix );
 
   bool isStar(Node n);
   Node getStar(TypeNode tn);
   Node getStarElement(TypeNode tn);
-  bool isModelBasisTerm(Node n);
-  Node getModelBasisTerm(TypeNode tn);
   bool isInterval(Node n);
   Node getInterval( Node lb, Node ub );
   bool isInRange( Node v, Node i );
@@ -193,24 +279,26 @@ class AbsDef;
 
 class FirstOrderModelAbs : public FirstOrderModel
 {
-public:
+ public:
   std::map< Node, AbsDef * > d_models;
   std::map< Node, bool > d_models_valid;
   std::map< TNode, unsigned > d_rep_id;
   std::map< TypeNode, unsigned > d_domain;
   std::map< Node, std::vector< int > > d_var_order;
   std::map< Node, std::map< int, int > > d_var_index;
-private:
+
+ private:
   /** get current model value */
-  void processInitializeModelForTerm(Node n);
-  void processInitializeQuantifier( Node q );
+  void processInitializeModelForTerm(Node n) override;
+  void processInitializeQuantifier(Node q) override;
   void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
   TNode getUsedRepresentative( TNode n );
-public:
+
+ public:
   FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelAbs() throw();
-  FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
-  void processInitialize( bool ispre );
+  ~FirstOrderModelAbs() override;
+  FirstOrderModelAbs* asFirstOrderModelAbs() override { return this; }
+  void processInitialize(bool ispre) override;
   unsigned getRepresentativeId( TNode n );
   bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
   Node getFunctionValue(Node op, const char* argPrefix );

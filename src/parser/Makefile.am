@@ -21,8 +21,19 @@ SUBDIRS = smt1 smt2 cvc tptp
 
 lib_LTLIBRARIES = libcvc4parser.la
 
-libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS) \
+libcvc4parser_la_LDFLAGS = \
+	$(ANTLR_LDFLAGS) \
+	-no-undefined \
 	-version-info $(LIBCVC4PARSER_VERSION)
+
+if CVC4_WINDOWS_BUILD
+# -Wl,--export-all-symbols makes sure that all symbols are exported when
+# building a DLL. This option is on by default but gets disabled for the parser
+# library because the generated lexer/parser files define some functions as
+# __declspec(dllexport), which leads to lots of unresolved symbols when linking
+# against libcvc4parser.
+libcvc4parser_la_LDFLAGS += -Wl,--export-all-symbols
+endif
 
 libcvc4parser_la_LIBADD = \
 	@builddir@/smt1/libparsersmt1.la \

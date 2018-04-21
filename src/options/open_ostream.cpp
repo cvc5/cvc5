@@ -42,7 +42,6 @@ void OstreamOpener::addSpecialCase(const std::string& name, std::ostream* out){
 
 
 std::pair< bool, std::ostream* > OstreamOpener::open(const std::string& optarg) const
-    throw(OptionException)
 {
   if(optarg == "") {
     std::stringstream ss;

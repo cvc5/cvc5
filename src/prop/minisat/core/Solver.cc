@@ -1833,11 +1833,12 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy*
   else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
 
-inline bool Solver::withinBudget(uint64_t ammount) const {
+inline bool Solver::withinBudget(uint64_t amount) const
+{
   Assert (proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
-  proxy->spendResource(ammount);
+  proxy->spendResource(amount);
 
   bool within_budget =  !asynch_interrupt &&
     (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&

@@ -97,7 +97,7 @@ public:
                 const Options& options);
 
   /** Build the parser, using the current settings. */
-  Parser *build() throw (InputStreamException);
+  Parser* build();
 
   /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);

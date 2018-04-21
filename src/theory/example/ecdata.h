@@ -74,8 +74,7 @@ struct Link {
     return pCMM->newData(size);
   }
 
-private:
-
+ private:
   /**
    * The destructor isn't actually defined.  This declaration keeps
    * the compiler from creating (wastefully) a default definition, and
@@ -84,7 +83,7 @@ private:
    * be allocated in a ContextMemoryManager, which doesn't call
    * destructors.
    */
-  ~Link() throw();
+  ~Link();
 
   /**
    * Just like the destructor, this is not defined.  This ensures no

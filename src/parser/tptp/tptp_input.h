@@ -50,8 +50,7 @@ class TptpInput : public AntlrInput {
    */
   void init();
 
-public:
-
+ public:
   /**
    * Create an input.
    *
@@ -63,19 +62,19 @@ public:
   virtual ~TptpInput();
 
   /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const throw() {
+  InputLanguage getLanguage() const override
+  {
     return language::input::LANG_TPTP;
   }
 
-protected:
-
+ protected:
   /**
    * Parse a command from the input. Returns <code>NULL</code> if
    * there is no command there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand();
+  Command* parseCommand() override;
 
   /**
    * Parse an expression from the input. Returns a null
@@ -83,7 +82,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr();
+  Expr parseExpr() override;
 
 };/* class TptpInput */
 

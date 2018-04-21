@@ -27,7 +27,7 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC LogicException : public CVC4::Exception {
-public:
+ public:
   LogicException() :
     Exception("Feature used while operating in "
               "incorrect state") {

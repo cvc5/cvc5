@@ -78,6 +78,14 @@ public:
 
   ~Integer() {}
 
+  /**
+   * Returns a copy of d_value to enable public access of GMP data.
+   */
+  mpz_class getValue() const
+  {
+    return d_value;
+  }
+
   Integer& operator=(const Integer& x){
     if(this == &x) return *this;
     d_value = x.d_value;
@@ -285,6 +293,7 @@ public:
       }
     }
   }
+
   /**
    * Returns the quotient according to Boute's Euclidean definition.
    * See the documentation for euclidianQR.
@@ -382,6 +391,30 @@ public:
     mpz_lcm(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
     return Integer(result);
   }
+
+  /**
+   * Compute addition of this Integer x + y modulo m.
+   */
+  Integer modAdd(const Integer& y, const Integer& m) const;
+
+  /**
+   * Compute multiplication of this Integer x * y modulo m.
+   */
+  Integer modMultiply(const Integer& y, const Integer& m) const;
+
+  /**
+   * Compute modular inverse x^-1 of this Integer x modulo m with m > 0.
+   * Returns a value x^-1 with 0 <= x^-1 < m such that x * x^-1 = 1 modulo m
+   * if such an inverse exists, and -1 otherwise.
+   *
+   * Such an inverse only exists if
+   *   - x is non-zero
+   *   - x and m are coprime, i.e., if gcd (x, m) = 1
+   *
+   * Note that if x and m are coprime, then x^-1 > 0 if m > 1 and x^-1 = 0
+   * if m = 1 (the zero ring).
+   */
+  Integer modInverse(const Integer& m) const;
 
   /**
    * All non-zero integers z, z.divide(0)
