@@ -117,7 +117,7 @@ void SortInference::reset() {
 void SortInference::simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference ){
   if( doSortInference ){
     Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     //process all assertions
     std::map< Node, int > visited;
     for( unsigned i=0; i<assertions.size(); i++ ){
@@ -154,120 +154,160 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doSortInfere
     }
 
     bool rewritten = false;
-    //determine monotonicity of sorts
-    Trace("sort-inference-proc") << "Calculating monotonicty for subsorts..." << std::endl;
-    std::map< Node, std::map< int, bool > > visitedm;
-    for( const Node& a : assertions ){
-      Trace("sort-inference-debug") << "Process monotonicity for " << a << std::endl;
-      std::map< Node, Node > var_bound;
-      processMonotonic( a, true, true, var_bound, visitedm );
+    // determine monotonicity of sorts
+    Trace("sort-inference-proc") << "Calculating monotonicty for subsorts..."
+                                 << std::endl;
+    std::map<Node, std::map<int, bool> > visitedm;
+    for (const Node& a : assertions)
+    {
+      Trace("sort-inference-debug") << "Process monotonicity for " << a
+                                    << std::endl;
+      std::map<Node, Node> var_bound;
+      processMonotonic(a, true, true, var_bound, visitedm);
     }
     Trace("sort-inference-proc") << "...done" << std::endl;
 
-    Trace("sort-inference") << "We have " << d_sub_sorts.size() << " sub-sorts : " << std::endl;
-    for( unsigned i=0, size = d_sub_sorts.size(); i<size; i++ ){
-      printSort( "sort-inference", d_sub_sorts[i] );
-      if( d_type_types.find( d_sub_sorts[i] )!=d_type_types.end() ){
+    Trace("sort-inference") << "We have " << d_sub_sorts.size()
+                            << " sub-sorts : " << std::endl;
+    for (unsigned i = 0, size = d_sub_sorts.size(); i < size; i++)
+    {
+      printSort("sort-inference", d_sub_sorts[i]);
+      if (d_type_types.find(d_sub_sorts[i]) != d_type_types.end())
+      {
         Trace("sort-inference") << " is interpreted." << std::endl;
-      }else if( d_non_monotonic_sorts.find( d_sub_sorts[i] )==d_non_monotonic_sorts.end() ){
+      }
+      else if (d_non_monotonic_sorts.find(d_sub_sorts[i])
+               == d_non_monotonic_sorts.end())
+      {
         Trace("sort-inference") << " is monotonic." << std::endl;
-      }else{
+      }
+      else
+      {
         Trace("sort-inference") << " is not monotonic." << std::endl;
       }
     }
 
-    //simplify all assertions by introducing new symbols wherever necessary
+    // simplify all assertions by introducing new symbols wherever necessary
     Trace("sort-inference-proc") << "Perform simplification..." << std::endl;
-    std::map< Node, std::map< TypeNode, Node > > visited2;
-    for( unsigned i=0, size = assertions.size(); i<size; i++ ){
+    std::map<Node, std::map<TypeNode, Node> > visited2;
+    for (unsigned i = 0, size = assertions.size(); i < size; i++)
+    {
       Node prev = assertions[i];
-      std::map< Node, Node > var_bound;
+      std::map<Node, Node> var_bound;
       Trace("sort-inference-debug") << "Simplify " << prev << std::endl;
       TypeNode tnn;
-      Node curr = simplifyNode( assertions[i], var_bound, tnn, visited2 );
+      Node curr = simplifyNode(assertions[i], var_bound, tnn, visited2);
       Trace("sort-inference-debug") << "Done." << std::endl;
-      if( curr!=assertions[i] ){
+      if (curr != assertions[i])
+      {
         Trace("sort-inference-debug") << "Rewrite " << curr << std::endl;
-        curr = theory::Rewriter::rewrite( curr );
+        curr = theory::Rewriter::rewrite(curr);
         rewritten = true;
         Trace("sort-inference-rewrite") << assertions << std::endl;
         Trace("sort-inference-rewrite") << " --> " << curr << std::endl;
-        PROOF( ProofManager::currentPM()->addDependence(curr, assertions[i]); );
+        PROOF(ProofManager::currentPM()->addDependence(curr, assertions[i]););
         assertions[i] = curr;
       }
     }
     Trace("sort-inference-proc") << "...done" << std::endl;
-    //now, ensure constants are distinct
-    for( std::map< TypeNode, std::map< Node, Node > >::iterator it = d_const_map.begin(); it != d_const_map.end(); ++it ){
-      std::vector< Node > consts;
-      for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        Assert( it2->first.isConst() );
-        consts.push_back( it2->second );
+    // now, ensure constants are distinct
+    for (std::map<TypeNode, std::map<Node, Node> >::iterator it =
+             d_const_map.begin();
+         it != d_const_map.end();
+         ++it)
+    {
+      std::vector<Node> consts;
+      for (std::map<Node, Node>::iterator it2 = it->second.begin();
+           it2 != it->second.end();
+           ++it2)
+      {
+        Assert(it2->first.isConst());
+        consts.push_back(it2->second);
       }
-      //add lemma enforcing introduced constants to be distinct
-      if( consts.size()>1 ){
-        Node distinct_const = nm->mkNode( kind::DISTINCT, consts );
-        Trace("sort-inference-rewrite") << "Add the constant distinctness lemma: " << std::endl;
+      // add lemma enforcing introduced constants to be distinct
+      if (consts.size() > 1)
+      {
+        Node distinct_const = nm->mkNode(kind::DISTINCT, consts);
+        Trace("sort-inference-rewrite")
+            << "Add the constant distinctness lemma: " << std::endl;
         Trace("sort-inference-rewrite") << "  " << distinct_const << std::endl;
-        assertions.push_back( distinct_const );
+        assertions.push_back(distinct_const);
         rewritten = true;
       }
     }
 
-    //enforce constraints based on monotonicity
+    // enforce constraints based on monotonicity
     Trace("sort-inference-proc") << "Enforce monotonicity..." << std::endl;
-    for( std::map< TypeNode, std::vector< int > >::iterator it = d_type_sub_sorts.begin(); it != d_type_sub_sorts.end(); ++it ){
+    for (std::map<TypeNode, std::vector<int> >::iterator it =
+             d_type_sub_sorts.begin();
+         it != d_type_sub_sorts.end();
+         ++it)
+    {
       int nmonSort = -1;
       unsigned nsorts = it->second.size();
-      for( unsigned i=0; i<nsorts; i++ ){
-        if( d_non_monotonic_sorts.find( it->second[i] )!=d_non_monotonic_sorts.end() ){
+      for (unsigned i = 0; i < nsorts; i++)
+      {
+        if (d_non_monotonic_sorts.find(it->second[i])
+            != d_non_monotonic_sorts.end())
+        {
           nmonSort = it->second[i];
           break;
         }
       }
-      if( nmonSort!=-1 ){
-        std::vector< Node > injections;
-        TypeNode base_tn = getOrCreateTypeForId( nmonSort, it->first );
-        for( unsigned i=0; i<nsorts; i++ ){
-          if( it->second[i]!=nmonSort ){
-            TypeNode new_tn = getOrCreateTypeForId( it->second[i], it->first );
-            //make injection to nmonSort
-            Node a1 = mkInjection( new_tn, base_tn );
-            injections.push_back( a1 );
-            if( d_non_monotonic_sorts.find( it->second[i] )!=d_non_monotonic_sorts.end() ){
-              //also must make injection from nmonSort to this
-              Node a2 = mkInjection( base_tn, new_tn );
-              injections.push_back( a2 );
+      if (nmonSort != -1)
+      {
+        std::vector<Node> injections;
+        TypeNode base_tn = getOrCreateTypeForId(nmonSort, it->first);
+        for (unsigned i = 0; i < nsorts; i++)
+        {
+          if (it->second[i] != nmonSort)
+          {
+            TypeNode new_tn = getOrCreateTypeForId(it->second[i], it->first);
+            // make injection to nmonSort
+            Node a1 = mkInjection(new_tn, base_tn);
+            injections.push_back(a1);
+            if (d_non_monotonic_sorts.find(it->second[i])
+                != d_non_monotonic_sorts.end())
+            {
+              // also must make injection from nmonSort to this
+              Node a2 = mkInjection(base_tn, new_tn);
+              injections.push_back(a2);
             }
           }
         }
-        if( Trace.isOn("sort-inference-rewrite") )
+        if (Trace.isOn("sort-inference-rewrite"))
         {
           Trace("sort-inference-rewrite") << "Add the following injections for " << it->first << " to ensure consistency wrt non-monotonic sorts : " << std::endl;
-          for( const Node& i : injections ){
-            Trace("sort-inference-rewrite") << "   " << i<< std::endl;
+          for (const Node& i : injections)
+          {
+            Trace("sort-inference-rewrite") << "   " << i << std::endl;
           }
         }
-        assertions.insert( assertions.end(), injections.begin(), injections.end() );
-        if( !injections.empty() ){
+        assertions.insert(
+            assertions.end(), injections.begin(), injections.end());
+        if (!injections.empty())
+        {
           rewritten = true;
         }
       }
     }
     Trace("sort-inference-proc") << "...done" << std::endl;
-    //no sub-sort information is stored
+    // no sub-sort information is stored
     reset();
-    Trace("sort-inference-debug") << "Finished sort inference, rewritten = " << rewritten << std::endl;
-    
+    Trace("sort-inference-debug")
+        << "Finished sort inference, rewritten = " << rewritten << std::endl;
+
     initialSortCount = sortCount;
   }
   if( doMonotonicyInference ){
-    std::map< Node, std::map< int, bool > > visitedmt;
+    std::map<Node, std::map<int, bool> > visitedmt;
     Trace("sort-inference-proc") << "Calculating monotonicty for types..." << std::endl;
-    for( const Node& a : assertions ){
-      Trace("sort-inference-debug") << "Process type monotonicity for " << a << std::endl;
+    for (const Node& a : assertions)
+    {
+      Trace("sort-inference-debug") << "Process type monotonicity for " << a
+                                    << std::endl;
       std::map< Node, Node > var_bound;
-      processMonotonic( a, true, true, var_bound, visitedmt, true );
+      processMonotonic(a, true, true, var_bound, visitedmt, true);
     }
     Trace("sort-inference-proc") << "...done" << std::endl;
   }

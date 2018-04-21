@@ -1492,7 +1492,8 @@ Node SortModel::getCardinalityLiteral( int c ) {
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
                                            context::UserContext* u,
-                                           OutputChannel& out, TheoryUF* th)
+                                           OutputChannel& out,
+                                           TheoryUF* th)
     : d_out(&out),
       d_th(th),
       d_conflict(c, false),
@@ -1502,8 +1503,8 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_min_pos_com_card(c, -1),
       d_card_assertions_eqv_lemma(u),
       d_min_pos_tn_master_card(c, -1),
-      d_rel_eqc(c){
-
+      d_rel_eqc(c)
+{
 }
 
 StrongSolverTheoryUF::~StrongSolverTheoryUF() {
