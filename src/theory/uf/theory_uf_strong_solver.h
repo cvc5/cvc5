@@ -50,6 +50,8 @@ public:
   class SortModel {
   private:
     std::map< Node, std::vector< int > > d_totality_lems;
+    std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
+    std::map< Node, int > d_sym_break_index;
   public:
 
     /**

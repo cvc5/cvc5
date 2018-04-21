@@ -1511,9 +1511,6 @@ StrongSolverTheoryUF::~StrongSolverTheoryUF() {
        it != d_rep_model.end(); ++it) {
     delete it->second;
   }
-  if (d_sym_break) {
-    delete d_sym_break;
-  }
 }
 
 SortInference* StrongSolverTheoryUF::getSortInference() {
@@ -2096,7 +2093,6 @@ StrongSolverTheoryUF::Statistics::Statistics():
   d_clique_lemmas("StrongSolverTheoryUF::Clique_Lemmas", 0),
   d_split_lemmas("StrongSolverTheoryUF::Split_Lemmas", 0),
   d_disamb_term_lemmas("StrongSolverTheoryUF::Disambiguate_Term_Lemmas", 0),
-  d_sym_break_lemmas("StrongSolverTheoryUF::Symmetry_Breaking_Lemmas", 0),
   d_totality_lemmas("StrongSolverTheoryUF::Totality_Lemmas", 0),
   d_max_model_size("StrongSolverTheoryUF::Max_Model_Size", 1)
 {
@@ -2104,7 +2100,6 @@ StrongSolverTheoryUF::Statistics::Statistics():
   smtStatisticsRegistry()->registerStat(&d_clique_lemmas);
   smtStatisticsRegistry()->registerStat(&d_split_lemmas);
   smtStatisticsRegistry()->registerStat(&d_disamb_term_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_sym_break_lemmas);
   smtStatisticsRegistry()->registerStat(&d_totality_lemmas);
   smtStatisticsRegistry()->registerStat(&d_max_model_size);
 }
@@ -2114,7 +2109,6 @@ StrongSolverTheoryUF::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_clique_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_split_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_disamb_term_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_sym_break_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_totality_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }
