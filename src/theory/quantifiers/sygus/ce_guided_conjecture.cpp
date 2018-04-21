@@ -586,10 +586,12 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       if (status != 0 && options::sygusRewSynth())
       {
-        std::map<Node, CandidateRewriteDatabase>::iterator its = d_crrdb.find(prog);
+        std::map<Node, CandidateRewriteDatabase>::iterator its =
+            d_crrdb.find(prog);
         if (its == d_crrdb.end())
         {
-          d_crrdb[prog].initialize(d_qe, d_candidates[i], options::sygusSamples(), true);
+          d_crrdb[prog].initialize(
+              d_qe, d_candidates[i], options::sygusSamples(), true);
           its = d_crrdb.find(prog);
         }
         is_unique_term = d_crrdb[prog].addTerm(sol, out);

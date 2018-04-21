@@ -20,12 +20,12 @@
 
 #include <memory>
 
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
-#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {

@@ -14,12 +14,12 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -31,21 +31,18 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-CandidateRewriteDatabase::CandidateRewriteDatabase() : d_qe(nullptr){
 
-}
-
+CandidateRewriteDatabase::CandidateRewriteDatabase() : d_qe(nullptr) {}
 void CandidateRewriteDatabase::initialize(QuantifiersEngine* qe,
-                          Node f,
-                          unsigned nsamples,
-                          bool useSygusType)
+                                          Node f,
+                                          unsigned nsamples,
+                                          bool useSygusType)
 {
   d_qe = qe;
   d_sampler.initializeSygusExt(d_qe, f, nsamples, useSygusType);
 }
 
-bool CandidateRewriteDatabase::addTerm( Node sol, std::ostream& out )
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   bool is_unique_term = true;
   TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
@@ -77,8 +74,7 @@ bool CandidateRewriteDatabase::addTerm( Node sol, std::ostream& out )
         SmtEngine rrChecker(nm->toExprManager());
         rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
         Node crr = solbr.eqNode(eq_solr).negate();
-        Trace("rr-check") << "Check candidate rewrite : " << crr
-                          << std::endl;
+        Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
         // quantify over the free variables in crr
         std::vector<Node> fvs;
         TermUtil::computeVarContains(crr, fvs);
@@ -103,16 +99,14 @@ bool CandidateRewriteDatabase::addTerm( Node sol, std::ostream& out )
               sks.push_back(itf->second);
             }
           }
-          crr = crr.substitute(
-              fvs.begin(), fvs.end(), sks.begin(), sks.end());
+          crr = crr.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
         }
         rrChecker.assertFormula(crr.toExpr());
         Result r = rrChecker.checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat())
         {
-          Trace("rr-check")
-              << "...rewrite does not hold for: " << std::endl;
+          Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
           success = false;
           is_unique_term = true;
           std::vector<Node> vars;
@@ -132,8 +126,7 @@ bool CandidateRewriteDatabase::addTerm( Node sol, std::ostream& out )
               // get the model value of its skolem
               Node sk = sks[itf->second];
               val = Node::fromExpr(rrChecker.getValue(sk.toExpr()));
-              Trace("rr-check") << "  " << v << " -> " << val
-                                << std::endl;
+              Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             }
             pt.push_back(val);
           }
@@ -170,11 +163,10 @@ bool CandidateRewriteDatabase::addTerm( Node sol, std::ostream& out )
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
         {
+          Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
+                                  << std::endl;
           Trace("sygus-rr-debug")
-              << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
-          Trace("sygus-rr-debug")
-              << "; candidate #2 ext-rewrites to: " << eq_solr
-              << std::endl;
+              << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
         }
         if (options::sygusRewSynthAccel())
         {
@@ -192,11 +184,11 @@ bool CandidateRewriteDatabase::addTerm( Node sol, std::ostream& out )
           }
           TypeNode ptn = d_candidate.getType();
           Node x = sygusDb->getFreeVar(ptn, 0);
-          Node lem = sygusDb->getExplain()->getExplanationForEquality(
-              x, exc_sol);
+          Node lem =
+              sygusDb->getExplain()->getExplanationForEquality(x, exc_sol);
           lem = lem.negate();
-          Trace("sygus-rr-sb")
-              << "Symmetry breaking lemma : " << lem << std::endl;
+          Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem
+                               << std::endl;
           sygusDb->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }
