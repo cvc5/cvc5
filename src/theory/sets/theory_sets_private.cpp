@@ -1694,10 +1694,7 @@ Node TheorySetsPrivate::getTypeConstraintSkolem(Node n, TypeNode tn)
     d_tc_skolem[n][tn] = k;
     return k;
   }
-  else
-  {
-    return it->second;
-  }
+  return it->second;
 }
 
 /**************************** TheorySetsPrivate *****************************/
