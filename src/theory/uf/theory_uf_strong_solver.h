@@ -26,7 +26,6 @@
 namespace CVC4 {
 class SortInference;
 namespace theory {
-class SubsortSymmetryBreaker;
 namespace uf {
 class TheoryUF;
 } /* namespace CVC4::theory::uf */
@@ -51,8 +50,6 @@ public:
   class SortModel {
   private:
     std::map< Node, std::vector< int > > d_totality_lems;
-    std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
-    std::map< Node, int > d_sym_break_index;
   public:
 
     /**
@@ -370,8 +367,6 @@ public:
   ~StrongSolverTheoryUF();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** symmetry breaker */
-  SubsortSymmetryBreaker* getSymmetryBreaker() { return d_sym_break; }
   /** get sort inference module */
   SortInference* getSortInference();
   /** get default sat context */
@@ -421,7 +416,6 @@ public:
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
     IntStat d_disamb_term_lemmas;
-    IntStat d_sym_break_lemmas;
     IntStat d_totality_lemmas;
     IntStat d_max_model_size;
     Statistics();
@@ -468,8 +462,6 @@ public:
   context::CDO<int> d_min_pos_tn_master_card;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
-  /** symmetry breaking techniques */
-  SubsortSymmetryBreaker* d_sym_break;
 }; /* class StrongSolverTheoryUF */
 
 

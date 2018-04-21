@@ -21,7 +21,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_model.h"
-#include "theory/quantifiers/symmetry_breaking.h"
 
 //#define ONE_SPLIT_REGION
 //#define DISABLE_QUICK_CLIQUE_CHECKS
@@ -144,9 +143,6 @@ void Region::setEqual( Node a, Node b ){
         if( !isDisequal( a, n, t ) ){
           setDisequal( a, n, t, true );
           nr->setDisequal( n, a, t, true );
-          if( options::ufssSymBreak() ){
-            d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
-          }
         }
         setDisequal( b, n, t, false );
         nr->setDisequal( n, b, t, false );
@@ -608,12 +604,6 @@ void SortModel::merge( Node a, Node b ){
         d_regions_map[b] = -1;
       }
       d_reps = d_reps - 1;
-
-      if( !d_conflict ){
-        if( options::ufssSymBreak() ){
-          d_thss->getSymmetryBreaker()->merge(a, b);
-        }
-      }
     }
   }
 }
@@ -658,12 +648,6 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
           d_regions[bi]->setDisequal( b, a, 0, true );
           checkRegion( ai );
           checkRegion( bi );
-        }
-
-        if( !d_conflict ){
-          if( options::ufssSymBreak() ){
-            d_thss->getSymmetryBreaker()->assertDisequal(a, b);
-          }
         }
       }
     }
@@ -1518,11 +1502,8 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_min_pos_com_card(c, -1),
       d_card_assertions_eqv_lemma(u),
       d_min_pos_tn_master_card(c, -1),
-      d_rel_eqc(c),
-      d_sym_break(NULL) {
-  if (options::ufssSymBreak()) {
-    d_sym_break = new SubsortSymmetryBreaker(th->getQuantifiersEngine(), c);
-  }
+      d_rel_eqc(c){
+
 }
 
 StrongSolverTheoryUF::~StrongSolverTheoryUF() {
@@ -1555,9 +1536,6 @@ void StrongSolverTheoryUF::ensureEqc( SortModel* c, Node a ) {
     d_rel_eqc[a] = true;
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << a << " : " << a.getType() << std::endl;
     c->newEqClass( a );
-    if( options::ufssSymBreak() ){
-      d_sym_break->newEqClass( a );
-    }
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
   }
 }
@@ -1589,9 +1567,6 @@ void StrongSolverTheoryUF::newEqClass( Node a ){
 #else
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << a << " : " << a.getType() << std::endl;
     c->newEqClass( a );
-    if( options::ufssSymBreak() ){
-      d_sym_break->newEqClass( a );
-    }
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
 #endif
   }
@@ -1789,10 +1764,6 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
           d_conflict = true;
           break;
         }
-      }
-      //check symmetry breaker
-      if( !d_conflict && options::ufssSymBreak() ){
-        d_sym_break->check( level );
       }
     }else if( options::ufssMode()==UF_SS_NO_MINIMAL ){
       if( level==Theory::EFFORT_FULL ){
