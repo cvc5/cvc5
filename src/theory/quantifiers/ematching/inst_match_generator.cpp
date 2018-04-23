@@ -142,24 +142,23 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       for (unsigned i = 0, size = d_match_pattern.getNumChildren(); i < size;
            i++)
       {
-        Node qa = quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i]);
+        Node pat = d_match_pattern[i];
+        Node qa = quantifiers::TermUtil::getInstConstAttr(pat);
         if (!qa.isNull())
         {
-          InstMatchGenerator* cimg =
-              getInstMatchGenerator(q, d_match_pattern[i]);
-          if (cimg)
+          if (pat.getKind() == INST_CONSTANT && qa == q)
           {
-            d_children.push_back(cimg);
-            d_children_index.push_back(i);
-            d_children_types.push_back(-2);
-          }else{
-            if (d_match_pattern[i].getKind() == INST_CONSTANT && qa == q)
+            d_children_types.push_back(pat.getAttribute(InstVarNumAttribute()));
+          }
+          else
+          {
+            InstMatchGenerator* cimg = getInstMatchGenerator(q, pat);
+            if (cimg)
             {
-              d_children_types.push_back(
-                  d_match_pattern[i].getAttribute(InstVarNumAttribute()));
-            }
-            else
-            {
+              d_children.push_back(cimg);
+              d_children_index.push_back(i);
+              d_children_types.push_back(-2);
+            }else{
               d_children_types.push_back(-1);
             }
           }
@@ -535,24 +534,23 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vecto
 
 InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
 {
-  if (n.getKind() == INST_CONSTANT)
+  if (n.getKind() != INST_CONSTANT)
   {
-    return NULL;
-  }
-  Trace("var-trigger-debug") << "Is " << n << " a variable trigger?"
-                             << std::endl;
-  Node x;
-  if (options::purifyTriggers())
-  {
-    x = Trigger::getInversionVariable(n);
-  }
-  if (!x.isNull())
-  {
-    Node s = Trigger::getInversion(n, x);
-    VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s);
-    Trace("var-trigger") << "Term substitution trigger : " << n
-                         << ", var = " << x << ", subs = " << s << std::endl;
-    return vmg;
+    Trace("var-trigger-debug") << "Is " << n << " a variable trigger?"
+                              << std::endl;
+    Node x;
+    if (options::purifyTriggers())
+    {
+      x = Trigger::getInversionVariable(n);
+    }
+    if (!x.isNull())
+    {
+      Node s = Trigger::getInversion(n, x);
+      VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s);
+      Trace("var-trigger") << "Term substitution trigger : " << n
+                          << ", var = " << x << ", subs = " << s << std::endl;
+      return vmg;
+    }
   }
   return new InstMatchGenerator(n);
 }
