@@ -181,8 +181,6 @@ class ExtTheory
                             bool isRed);
   /** send lemma on the output channel of d_parent */
   bool sendLemma(Node lem, bool preprocess = false);
-  /** register term (recursive) */
-  void registerTermRec(Node n, std::set<Node>* visited);
   /** reference to the underlying theory */
   Theory* d_parent;
   /** the true node */
