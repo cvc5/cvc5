@@ -51,8 +51,13 @@ void SygusRepairConst::initialize(Node base_inst, const std::vector< Node >& can
   Trace("sygus-repair-const") << "  allow constants : " << d_allow_constant_grammar << std::endl;
   
   // check if we are in a logic where we have an efficient procedure
-  // for quantified constraints.  TODO
-  //LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
+  // for quantified constraints.
+  d_easy_quantified_logic = true;
+  LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
+  if( logic.isTheoryEnabled(THEORY_BITVECTORS) || ( logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()) ))
+  {
+    d_easy_quantified_logic = false;
+  }
 }
 
 // recursion depth bounded by number of types in grammar (small)

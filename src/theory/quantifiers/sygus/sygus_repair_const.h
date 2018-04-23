@@ -89,6 +89,13 @@ class SygusRepairConst
    * this class is a no-op.
    */
   bool d_allow_constant_grammar;
+  /** easy quantified logic 
+   * 
+   * Set to true if the background logic is reasonably easy to answer
+   * quantified queries in. Currently, we say the logic is not easy if
+   * bit-vectors or non-linear arithmetic are enabled.
+   */
+  bool d_easy_logic; 
   /** map from skeleton variables to first-order variables */
   std::map< Node, Node > d_sk_to_fo;
   /** reverse map of d_sk_to_fo */
