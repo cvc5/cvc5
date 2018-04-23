@@ -2173,6 +2173,42 @@ void SmtEngine::setDefaults() {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
   }
+
+  if (options::proof())
+  {
+    if (options::bitvectorAlgebraicSolver())
+    {
+      if (options::bitvectorAlgebraicSolver.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-algebraic-solver is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv algebraic solver to support proofs"
+               << std::endl;
+      options::bitvectorAlgebraicSolver.set(false);
+    }
+    if (options::bitvectorEqualitySolver())
+    {
+      if (options::bitvectorEqualitySolver.wasSetByUser())
+      {
+        throw OptionException("--bv-eq-solver is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv eq solver to support proofs"
+               << std::endl;
+      options::bitvectorEqualitySolver.set(false);
+    }
+    if (options::bitvectorInequalitySolver())
+    {
+      if (options::bitvectorInequalitySolver.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-inequality-solver is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv ineq solver to support proofs"
+               << std::endl;
+      options::bitvectorInequalitySolver.set(false);
+    }
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)
