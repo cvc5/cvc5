@@ -49,7 +49,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_var_elim(u),
   d_external(external),
   d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::TheorySetsPrivate", true),
+  d_equalityEngine(d_notify, c, "theory::sets::ee", true),
   d_conflict(c)
 {
 

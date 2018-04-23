@@ -144,10 +144,6 @@ void Region::setEqual( Node a, Node b ){
         if( !isDisequal( a, n, t ) ){
           setDisequal( a, n, t, true );
           nr->setDisequal( n, a, t, true );
-          //notify the disequality propagator
-          if( options::ufssDiseqPropagation() ){
-            d_cf->d_thss->getDisequalityPropagator()->assertDisequal(a, n, Node::null());
-          }
           if( options::ufssSymBreak() ){
             d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
           }
@@ -614,10 +610,6 @@ void SortModel::merge( Node a, Node b ){
       d_reps = d_reps - 1;
 
       if( !d_conflict ){
-        if( options::ufssDiseqPropagation() ){
-          //notify the disequality propagator
-          d_thss->getDisequalityPropagator()->merge(a, b);
-        }
         if( options::ufssSymBreak() ){
           d_thss->getSymmetryBreaker()->merge(a, b);
         }
@@ -669,10 +661,6 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
         }
 
         if( !d_conflict ){
-          if( options::ufssDiseqPropagation() ){
-            //notify the disequality propagator
-            d_thss->getDisequalityPropagator()->assertDisequal(a, b, Node::null());
-          }
           if( options::ufssSymBreak() ){
             d_thss->getSymmetryBreaker()->assertDisequal(a, b);
           }
@@ -1159,9 +1147,10 @@ void SortModel::allocateCardinality( OutputChannel* out ){
   //check for abort case
   if (options::ufssAbortCardinality() != -1 &&
       d_aloc_cardinality >= options::ufssAbortCardinality()) {
-    Message() << "Maximum cardinality (" << options::ufssAbortCardinality()
-              << ")  for finite model finding exceeded." << std::endl;
-    exit( 1 );
+    std::stringstream ss;
+    ss << "Maximum cardinality (" << options::ufssAbortCardinality()
+       << ")  for finite model finding exceeded." << std::endl;
+    throw LogicException(ss.str());
   }else{
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
@@ -1243,7 +1232,7 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
       }
       if( ss==b_t ){
         Message() << "Bad split " << s << std::endl;
-        exit( 16 );
+        AlwaysAssert(false);
       }
     }
     if( options::sortInference()) {
@@ -1284,144 +1273,21 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
     clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
     addClique( d_cardinality, clique_vec );
   }
-  if( options::ufssSimpleCliques() && !options::ufssExplainedCliques() ){
-    //add as lemma
-    std::vector< Node > eqs;
-    for( int i=0; i<(int)clique.size(); i++ ){
-      for( int j=0; j<i; j++ ){
-        Node r1 = d_thss->getTheory()->d_equalityEngine.getRepresentative(clique[i]);
-        Node r2 = d_thss->getTheory()->d_equalityEngine.getRepresentative(clique[j]);
-        eqs.push_back( clique[i].eqNode( clique[j] ) );
-      }
+  // add as lemma
+  std::vector<Node> eqs;
+  for (unsigned i = 0, size = clique.size(); i < size; i++)
+  {
+    for (unsigned j = 0; j < i; j++)
+    {
+      eqs.push_back(clique[i].eqNode(clique[j]));
     }
-    eqs.push_back( d_cardinality_literal[ d_cardinality ].notNode() );
-    Node lem = NodeManager::currentNM()->mkNode( OR, eqs );
-    if( doSendLemma( lem ) ){
-      Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
-      ++( d_thss->d_statistics.d_clique_lemmas );
-    }
-  }else{
-    //found a clique
-    Debug("uf-ss-cliques") << "Found a clique (cardinality=" << d_cardinality << ") :" << std::endl;
-    Debug("uf-ss-cliques") << "   ";
-    for( int i=0; i<(int)clique.size(); i++ ){
-      Debug("uf-ss-cliques") << clique[i] << " ";
-    }
-    Debug("uf-ss-cliques") << std::endl;
-    Debug("uf-ss-cliques") << "Finding clique disequalities..." << std::endl;
-
-    //we will scan through each of the disequaltities
-    bool isSatConflict = true;
-    std::vector< Node > conflict;
-    //collect disequalities, and nodes that must be equal within representatives
-    std::map< Node, std::map< Node, bool > > explained;
-    std::map< Node, std::map< Node, bool > > nodesWithinRep;
-    //map from the reprorted clique members to those reported in the lemma
-    std::map< Node, Node > cliqueRepMap;
-    for( int i=0; i<(int)d_disequalities_index; i++ ){
-      //if both sides of disequality exist in clique
-      Node r1 = d_thss->getTheory()->d_equalityEngine.getRepresentative( d_disequalities[i][0][0] );
-      Node r2 = d_thss->getTheory()->d_equalityEngine.getRepresentative( d_disequalities[i][0][1] );
-      if( r1!=r2 && ( explained.find( r1 )==explained.end() || explained[r1].find( r2 )==explained[r1].end() ) &&
-          std::find( clique.begin(), clique.end(), r1 )!=clique.end() &&
-          std::find( clique.begin(), clique.end(), r2 )!=clique.end() ){
-        explained[r1][r2] = true;
-        explained[r2][r1] = true;
-        if( options::ufssExplainedCliques() ){
-          conflict.push_back( d_disequalities[i] );
-          Debug("uf-ss-cliques") << "   -> disequality : " << d_disequalities[i] << std::endl;
-          nodesWithinRep[r1][ d_disequalities[i][0][0] ] = true;
-          nodesWithinRep[r2][ d_disequalities[i][0][1] ] = true;
-        }else{
-          //get the terms we report in the lemma
-          Node ru1 = r1;
-          if( cliqueRepMap.find( r1 )==cliqueRepMap.end() ){
-            ru1 = d_disequalities[i][0][0];
-            cliqueRepMap[r1] = ru1;
-          }else{
-            ru1 = cliqueRepMap[r1];
-          }
-          Node ru2 = r2;
-          if( cliqueRepMap.find( r2 )==cliqueRepMap.end() ){
-            ru2 = d_disequalities[i][0][1];
-            cliqueRepMap[r2] = ru2;
-          }else{
-            ru2 = cliqueRepMap[r2];
-          }
-          if( ru1!=d_disequalities[i][0][0] || ru2!=d_disequalities[i][0][1] ){
-            //disequalities have endpoints that are not connected within an equivalence class
-            // we will be producing a lemma, introducing a new literal ru1 != ru2
-            conflict.push_back( ru1.eqNode( ru2 ).notNode() );
-            isSatConflict = false;
-          }else{
-            conflict.push_back( d_disequalities[i] );
-          }
-        }
-        if( conflict.size()==(clique.size()*( clique.size()-1 )/2) ){
-          break;
-        }
-      }
-    }
-    if( options::ufssExplainedCliques() ){
-      //Debug("uf-ss-cliques") << conflict.size() << " " << clique.size() << std::endl;
-      Assert( (int)conflict.size()==((int)clique.size()*( (int)clique.size()-1 )/2) );
-      //Assert( (int)conflict.size()==(int)clique.size()*( (int)clique.size()-1 )/2 );
-      Debug("uf-ss-cliques") << "Finding clique equalities internal to eq classes..." << std::endl;
-      //now, we must explain equalities within each equivalence class
-      for( std::map< Node, std::map< Node, bool > >::iterator it = nodesWithinRep.begin(); it != nodesWithinRep.end(); ++it ){
-        if( it->second.size()>1 ){
-          Node prev;
-          //add explanation of t1 = t2 = ... = tn
-          Debug("uf-ss-cliques") << "Explain ";
-          for( std::map< Node, bool >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-            if( prev!=Node::null() ){
-              Debug("uf-ss-cliques") << " = ";
-              //explain it2->first and prev
-              std::vector< TNode > expl;
-              d_thss->getTheory()->d_equalityEngine.explainEquality( it2->first, prev, true, expl );
-              for( int i=0; i<(int)expl.size(); i++ ){
-                if( std::find( conflict.begin(), conflict.end(), expl[i] )==conflict.end() ){
-                  conflict.push_back( expl[i] );
-                }
-              }
-            }
-            prev = it2->first;
-            Debug("uf-ss-cliques") << prev;
-          }
-          Debug("uf-ss-cliques") << std::endl;
-        }
-      }
-      Debug("uf-ss-cliques") << "Explanation of clique (size=" << conflict.size() << ") = " << std::endl;
-      for( int i=0; i<(int)conflict.size(); i++ ){
-        Debug("uf-ss-cliques") << conflict[i] << " ";
-      }
-      Debug("uf-ss-cliques") << std::endl;
-    }
-    //now, make the conflict
-    if( isSatConflict ){
-      conflict.push_back( d_cardinality_literal[ d_cardinality ] );
-      Node conflictNode = NodeManager::currentNM()->mkNode( AND, conflict );
-      Trace("uf-ss-lemma") << "*** Add clique conflict " << conflictNode << std::endl;
-      //Notice() << "*** Add clique conflict " << conflictNode << std::endl;
-      out->conflict( conflictNode );
-      d_conflict = true;
-      ++( d_thss->d_statistics.d_clique_conflicts );
-    }else{
-      Node conflictNode = conflict.size()==1 ? conflict[0] : NodeManager::currentNM()->mkNode( AND, conflict );
-      //add cardinality constraint
-      Node cardNode = d_cardinality_literal[ d_cardinality ];
-      //bool value;
-      //bool hasValue = d_th->getValuation().hasSatValue( cardNode, value );
-      //Assert( hasValue );
-      //Assert( value );
-      conflictNode = NodeManager::currentNM()->mkNode( IMPLIES, conflictNode, cardNode.notNode() );
-      if( doSendLemma( conflictNode ) ){
-        Trace("uf-ss-lemma") << "*** Add clique lemma " << conflictNode << std::endl;
-        ++( d_thss->d_statistics.d_clique_lemmas );
-      }
-    }
-
-    //DO_THIS: ensure that the same clique is not reported???  Check standard effort after assertDisequal can produce same clique.
+  }
+  eqs.push_back(d_cardinality_literal[d_cardinality].notNode());
+  Node lem = NodeManager::currentNM()->mkNode(OR, eqs);
+  if (doSendLemma(lem))
+  {
+    Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
+    ++(d_thss->d_statistics.d_clique_lemmas);
   }
 }
 
@@ -1653,11 +1519,7 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_card_assertions_eqv_lemma(u),
       d_min_pos_tn_master_card(c, -1),
       d_rel_eqc(c),
-      d_deq_prop(NULL),
       d_sym_break(NULL) {
-  if (options::ufssDiseqPropagation()) {
-    d_deq_prop = new DisequalityPropagator(th->getQuantifiersEngine(), this);
-  }
   if (options::ufssSymBreak()) {
     d_sym_break = new SubsortSymmetryBreaker(th->getQuantifiersEngine(), c);
   }
@@ -1670,9 +1532,6 @@ StrongSolverTheoryUF::~StrongSolverTheoryUF() {
   }
   if (d_sym_break) {
     delete d_sym_break;
-  }
-  if (d_deq_prop) {
-    delete d_deq_prop;
   }
 }
 
@@ -1758,10 +1617,6 @@ void StrongSolverTheoryUF::merge( Node a, Node b ){
     c->merge( a, b );
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Merge." << std::endl;
 #endif
-  }else{
-    if( options::ufssDiseqPropagation() ){
-      d_deq_prop->merge(a, b);
-    }
   }
 }
 
@@ -1778,10 +1633,6 @@ void StrongSolverTheoryUF::assertDisequal( Node a, Node b, Node reason ){
     //Assert( d_th->d_equalityEngine.getRepresentative( b )==b );
     c->assertDisequal( a, b, reason );
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Assert disequal." << std::endl;
-  }else{
-    if( options::ufssDiseqPropagation() ){
-      d_deq_prop->assertDisequal(a, b, reason);
-    }
   }
 }
 
@@ -1892,12 +1743,6 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
               //Unimplemented();
             }
           }
-        }
-      }
-      if( lit.getKind()!=EQUAL ){
-        //it is a predicate
-        if( options::ufssDiseqPropagation() ){
-          d_deq_prop->assertPredicate(lit, polarity);
         }
       }
     }
@@ -2301,79 +2146,6 @@ StrongSolverTheoryUF::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_sym_break_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_totality_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
-}
-
-
-DisequalityPropagator::DisequalityPropagator(QuantifiersEngine* qe,
-                                             StrongSolverTheoryUF* ufss)
-  : d_qe(qe), d_ufss(ufss)
-{
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
-}
-
-void DisequalityPropagator::checkEquivalenceClass( Node t, Node eqc ) {
-  if( t.getKind()==APPLY_UF ){
-    Node op = t.getOperator();
-    eqc = d_ufss->getTheory()->getEqualityEngine()->getRepresentative( eqc );
-    eq::EqClassIterator eqc_i(eqc, d_ufss->getTheory()->getEqualityEngine());
-    while( !eqc_i.isFinished() ){
-      Node s = *eqc_i;
-      if( s.getKind()==APPLY_UF && s.getOperator()==op ){
-        int unkIndex = -1;
-        for( size_t i=0; i<t.getNumChildren(); i++ ){
-          //should consult strong solver since it knows more disequalities
-          if( d_ufss->areDisequal( t[i], s[i] ) ){
-          //if( d_qe->getEqualityQuery()->areDisequal( t[i], s[i] ) ){
-            unkIndex = -1;
-            break;
-          }else if( !d_qe->getEqualityQuery()->areEqual( t[i], s[i] ) ){
-            if( unkIndex==-1 ){
-              unkIndex = i;
-            }else{
-              unkIndex = -1;
-              break;
-            }
-          }
-        }
-        if( unkIndex!=-1 ){
-          Trace("deq-prop") << "propagate disequality " << t[unkIndex] << " " << s[unkIndex] << std::endl;
-          d_ufss->assertDisequal(t[unkIndex], s[unkIndex], Node::null());
-          ++( d_statistics.d_propagations );
-          if( d_ufss->isConflict() ){
-            return;
-          }
-        }
-      }
-      ++eqc_i;
-    }
-  }
-}
-
-/** merge */
-void DisequalityPropagator::merge( Node a, Node b ){
-
-}
-
-/** assert terms are disequal */
-void DisequalityPropagator::assertDisequal( Node a, Node b, Node reason ){
-  Trace("deq-prop") << "Notify disequal : " << a << " " << b << std::endl;
-}
-
-
-void DisequalityPropagator::assertPredicate( Node p, bool polarity ) {
-  Trace("deq-prop") << "Assert predicate : " << p << " " << polarity << std::endl;
-  checkEquivalenceClass( p, polarity ? d_false : d_true );
-}
-
-DisequalityPropagator::Statistics::Statistics():
-   d_propagations("StrongSolverTheoryUF::Disequality_Propagations", 0)
-{
-  smtStatisticsRegistry()->registerStat(& d_propagations);
-}
-
-DisequalityPropagator::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(& d_propagations);
 }
 
 }/* CVC4::theory namespace::uf */

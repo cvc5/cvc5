@@ -16,7 +16,8 @@
 
 #include "cvc4_private.h"
 
-#pragma once
+#ifndef __CVC4__PROP__SAT_SOLVER_FACTORY_H
+#define __CVC4__PROP__SAT_SOLVER_FACTORY_H
 
 #include <string>
 #include <vector>
@@ -28,17 +29,25 @@
 namespace CVC4 {
 namespace prop {
 
-class SatSolverFactory {
-public:
-
+class SatSolverFactory
+{
+ public:
   static BVSatSolverInterface* createMinisat(context::Context* mainSatContext,
                                              StatisticsRegistry* registry,
                                              const std::string& name = "");
-  static DPLLSatSolverInterface* createDPLLMinisat(StatisticsRegistry* registry);
+
+  static DPLLSatSolverInterface* createDPLLMinisat(
+      StatisticsRegistry* registry);
+
   static SatSolver* createCryptoMinisat(StatisticsRegistry* registry,
                                         const std::string& name = "");
 
-};/* class SatSolverFactory */
+  static SatSolver* createCadical(StatisticsRegistry* registry,
+                                  const std::string& name = "");
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}; /* class SatSolverFactory */
+
+}  // namespace prop
+}  // namespace CVC4
+
+#endif  // __CVC4__PROP__SAT_SOLVER_FACTORY_H

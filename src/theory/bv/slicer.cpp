@@ -640,12 +640,12 @@ std::string UnionFind::debugPrint(TermId id) {
 }
 
 UnionFind::Statistics::Statistics():
-  d_numNodes("theory::bv::slicer::NumberOfNodes", 0),
-  d_numRepresentatives("theory::bv::slicer::NumberOfRepresentatives", 0),
-  d_numSplits("theory::bv::slicer::NumberOfSplits", 0),
-  d_numMerges("theory::bv::slicer::NumberOfMerges", 0),
+  d_numNodes("theory::bv::slicer::NumNodes", 0),
+  d_numRepresentatives("theory::bv::slicer::NumRepresentatives", 0),
+  d_numSplits("theory::bv::slicer::NumSplits", 0),
+  d_numMerges("theory::bv::slicer::NumMerges", 0),
   d_avgFindDepth("theory::bv::slicer::AverageFindDepth"),
-  d_numAddedEqualities("theory::bv::slicer::NumberOfEqualitiesAdded", Slicer::d_numAddedEqualities)
+  d_numAddedEqualities("theory::bv::slicer::NumEqualitiesAdded", Slicer::d_numAddedEqualities)
 {
   smtStatisticsRegistry()->registerStat(&d_numRepresentatives);
   smtStatisticsRegistry()->registerStat(&d_numSplits);

@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+source "$(dirname "$0")/get-script-header.sh"
+
+if [ -e cadical ]; then
+  echo 'error: file or directory "cadical" exists; please move it out of the way.' >&2
+  exit 1
+fi
+
+commit="b44ce4f0e64aa400358ae3a8adb45b24ae6e742c"
+
+git clone https://github.com/arminbiere/cadical cadical
+cd cadical
+git checkout $commit
+
+CXXFLAGS="-fPIC" ./configure && make -j$(nproc)
+
+echo
+echo "Using CaDiCaL commit $commit"
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure --with-cadical

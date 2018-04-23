@@ -294,7 +294,8 @@ bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >&
       Assert( std::find( vars.begin(), vars.end(), eq[r] )==vars.end() );
       if( std::find( new_vars.begin(), new_vars.end(), eq[r] )==new_vars.end() ){
         Node eqro = eq[r==0 ? 1 : 0 ];
-        if( !d_qe->getTermUtil()->containsTerm( eqro, eq[r] ) ){
+        if (!eqro.hasSubterm(eq[r]))
+        {
           Trace("csi-simp-debug") << "---equality " << eq[r] << " = " << eqro << std::endl;
           new_vars.push_back( eq[r] );
           new_subs.push_back( eqro );

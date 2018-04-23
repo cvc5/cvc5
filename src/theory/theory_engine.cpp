@@ -334,7 +334,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
 
-  d_iteUtilities = new ITEUtilities(d_tform_remover.getContainsVisitor());
+  d_iteUtilities = new ITEUtilities();
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -393,6 +393,10 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         d_sharedTerms.addEqualityToPropagate(preprocessed);
       }
 
+      // the atom should not have free variables
+      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
+                      << std::endl;
+      Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);
@@ -639,7 +643,12 @@ void TheoryEngine::check(Theory::Effort effort) {
         AlwaysAssert(d_curr_model->isBuiltSuccess());
         if (options::produceModels())
         {
-          d_curr_model_builder->debugCheckModel(d_curr_model);
+          // if we are incomplete, there is no guarantee on the model.
+          // thus, we do not check the model here. (related to #1693)
+          if (!d_incomplete)
+          {
+            d_curr_model_builder->debugCheckModel(d_curr_model);
+          }
           // Do post-processing of model from the theories (used for THEORY_SEP
           // to construct heap model)
           postProcessModel(d_curr_model);
@@ -1049,9 +1058,15 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
   Node newTerm;
-  if (theoryOf(term)->ppDontRewriteSubterm(term)) {
+  // do not rewrite inside quantifiers
+  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS
+      || term.getKind() == kind::CHOICE
+      || term.getKind() == kind::LAMBDA)
+  {
     newTerm = Rewriter::rewrite(term);
-  } else {
+  }
+  else
+  {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
       newNode << term.getOperator();
@@ -1995,7 +2010,8 @@ void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if (!d_tform_remover.containsTermITE(assertion)) {
+  if (!d_iteUtilities->containsTermITE(assertion))
+  {
     return assertion;
   } else {
     Node result = d_iteUtilities->simpITE(assertion);
@@ -2036,7 +2052,6 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
         Rewriter::clearCaches();
-        d_tform_remover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
       }
@@ -2047,7 +2062,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
      && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains = *d_tform_remover.getContainsVisitor();
+      ContainsTermITEVisitor& contains =
+          *(d_iteUtilities->getContainsVisitor());
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
       bool anyItes = false;
       for(size_t i = 0;  i < assertions.size(); ++i){
@@ -2361,12 +2377,12 @@ bool TheoryEngine::useTheoryAlternative(const std::string& name) {
 
 
 TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
-    conflicts(mkName("theory<", theory, ">::conflicts"), 0),
-    propagations(mkName("theory<", theory, ">::propagations"), 0),
-    lemmas(mkName("theory<", theory, ">::lemmas"), 0),
-    requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
-    flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
-    restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
+    conflicts(getStatsPrefix(theory) + "::conflicts", 0),
+    propagations(getStatsPrefix(theory) + "::propagations", 0),
+    lemmas(getStatsPrefix(theory) + "::lemmas", 0),
+    requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
+    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
+    restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);

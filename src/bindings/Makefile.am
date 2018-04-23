@@ -181,7 +181,7 @@ CVC4.jar: java.cpp
 	(cd java && \
 	rm -fr classes && \
 	mkdir -p classes && \
-	$(JAVAC) -source 1.5 -target 1.5 -classpath . -d classes `find . -name '*.java'` && \
+	$(JAVAC) -source 1.6 -target 1.6 -classpath . -d classes `find . -name '*.java'` && \
 	cd classes) && \
 	$(JAR) cf $@ -C java/classes .
 #java.cpp:;
@@ -223,8 +223,11 @@ $(patsubst %,%.cpp,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.cpp: @srcdi
 	$(AM_V_at)mkdir -p $(patsubst %.cpp,%,$@)
 	$(AM_V_GEN)$(SWIG) -Wall -I@builddir@/.. -I@srcdir@/../include -I@srcdir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) $($(subst .,_,$@)_SWIGFLAGS) -o $@ $<
 
+# Automake 1.16 is executing this target at configuration time. Because some
+# generated source files do not exist at that time, we use the -ignoremissing
+# option to not have SWIG complain about those missing files.
 $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.d: @srcdir@/../cvc4.i
-	$(AM_V_GEN)$(SWIG) -I@builddir@/.. -I@srcdir@/../include -I@srcdir@/.. -c++ -$(patsubst %.d,%,$@) -MM -o $(patsubst %.d,%.cpp,$@) $<
+	$(AM_V_GEN)$(SWIG) -I@builddir@/.. -I@srcdir@/../include -I@srcdir@/.. -c++ -$(patsubst %.d,%,$@) -ignoremissing -MM -o $(patsubst %.d,%.cpp,$@) $<
 # .PHONY so they get rebuilt each time
 .PHONY: .swig_deps $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
 .swig_deps: $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))

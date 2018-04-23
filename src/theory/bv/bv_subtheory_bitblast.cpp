@@ -14,18 +14,18 @@
  ** Algebraic solver.
  **/
 
+#include "theory/bv/bv_subtheory_bitblast.h"
 #include "decision/decision_attributes.h"
-#include "options/decision_options.h"
 #include "options/bv_options.h"
+#include "options/decision_options.h"
+#include "proof/bitvector_proof.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/lazy_bitblaster.h"
 #include "theory/bv/bv_quick_check.h"
-#include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "proof/proof_manager.h"
-#include "proof/bitvector_proof.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -36,9 +36,9 @@ namespace bv {
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
-    d_bitblaster(new TLazyBitblaster(c, bv, bv->getFullInstanceName() + "lazy")),
+    d_bitblaster(new TLazyBitblaster(c, bv, "theory::bv::lazy")),
     d_bitblastQueue(c),
-    d_statistics(bv->getFullInstanceName()),
+    d_statistics(),
     d_validModelCache(c, true),
     d_lemmaAtomsQueue(c),
     d_useSatPropagation(options::bitvectorPropagate()),
@@ -54,9 +54,9 @@ BitblastSolver::~BitblastSolver() {
   delete d_bitblaster;
 }
 
-BitblastSolver::Statistics::Statistics(const std::string &instanceName)
-  : d_numCallstoCheck(instanceName + "theory::bv::BitblastSolver::NumCallsToCheck", 0)
-  , d_numBBLemmas(instanceName + "theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
+BitblastSolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
+  , d_numBBLemmas("theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
   smtStatisticsRegistry()->registerStat(&d_numBBLemmas);

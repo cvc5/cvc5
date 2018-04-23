@@ -644,7 +644,7 @@ process will leave its output. Currently, each run of CVC clears the
 compilation buffer. If you need to save multiple runs, save them one
 at a time.
 
-Please report bugs to barrett@cs.nyu.edu."
+Please report bugs to barrett@cs.stanford.edu."
   (interactive)
   (use-local-map cvc-mode-map)
 ;;; Disable asking for the compile command

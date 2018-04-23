@@ -1,5 +1,5 @@
-(benchmark euf_simp1.smt
-:status sat
+(benchmark pred.smt
+:status unsat
 :logic QF_UF
 :category { crafted }
 

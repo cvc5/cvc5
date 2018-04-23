@@ -229,7 +229,7 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
 AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv)
   , d_modelMap(NULL)
-  , d_quickSolver(new BVQuickCheck("alg", bv))
+  , d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv))
   , d_isComplete(c, false)
   , d_isDifficult(c, false)
   , d_budget(options::bitvectorAlgebraicBudget())
@@ -239,7 +239,7 @@ AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   , d_numSolved(0)
   , d_numCalls(0)
   , d_ctx(new context::Context())
-  , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("alg", d_quickSolver) : NULL)
+  , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("theory::bv::algebraic", d_quickSolver) : NULL)
   , d_statistics()
 {}
 
@@ -778,14 +778,14 @@ Node AlgebraicSolver::getModelValue(TNode node) {
 }
 
 AlgebraicSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::AlgebraicSolver::NumCallsToCheck", 0)
-  , d_numSimplifiesToTrue("theory::bv::AlgebraicSolver::NumSimplifiesToTrue", 0)
-  , d_numSimplifiesToFalse("theory::bv::AlgebraicSolver::NumSimplifiesToFalse", 0)
-  , d_numUnsat("theory::bv::AlgebraicSolver::NumUnsat", 0)
-  , d_numSat("theory::bv::AlgebraicSolver::NumSat", 0)
-  , d_numUnknown("theory::bv::AlgebraicSolver::NumUnknown", 0)
-  , d_solveTime("theory::bv::AlgebraicSolver::SolveTime")
-  , d_useHeuristic("theory::bv::AlgebraicSolver::UseHeuristic", 0.2)
+  : d_numCallstoCheck("theory::bv::algebraic::NumCallsToCheck", 0)
+  , d_numSimplifiesToTrue("theory::bv::algebraic::NumSimplifiesToTrue", 0)
+  , d_numSimplifiesToFalse("theory::bv::algebraic::NumSimplifiesToFalse", 0)
+  , d_numUnsat("theory::bv::algebraic::NumUnsat", 0)
+  , d_numSat("theory::bv::algebraic::NumSat", 0)
+  , d_numUnknown("theory::bv::algebraic::NumUnknown", 0)
+  , d_solveTime("theory::bv::algebraic::SolveTime")
+  , d_useHeuristic("theory::bv::algebraic::UseHeuristic", 0.2)
 {
   smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
   smtStatisticsRegistry()->registerStat(&d_numSimplifiesToTrue);

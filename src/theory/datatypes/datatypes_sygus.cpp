@@ -222,10 +222,10 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
     bool success = false;
     if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
       registerTerm( n[0], lemmas );
-      std::map< Node, Node >::iterator it = d_term_to_anchor.find( n[0] );
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
+          d_term_to_anchor.find(n[0]);
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
-        d_term_to_anchor_conj[n] = d_term_to_anchor_conj[n[0]];
         unsigned sel_weight =
             d_tds->getSelectorWeight(n[0].getType(), n.getOperator());
         d = d_term_to_depth[n[0]] + sel_weight;
@@ -236,9 +236,9 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
       registerSizeTerm( n, lemmas );
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
-        d_term_to_anchor_conj[n] = d_tds->getConjectureForEnumerator(n);
+        d_anchor_to_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert(d_term_to_anchor_conj[n] != NULL);
+        Assert(d_anchor_to_conj[n] != NULL);
         d = 0;
         is_top_level = true;
         success = true;
@@ -354,8 +354,8 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       }
       // static conjecture-dependent symmetry breaking
       std::map<Node, quantifiers::CegConjecture*>::iterator itc =
-          d_term_to_anchor_conj.find(n);
-      if (itc != d_term_to_anchor_conj.end())
+          d_anchor_to_conj.find(a);
+      if (itc != d_anchor_to_conj.end())
       {
         quantifiers::CegConjecture* conj = itc->second;
         Assert(conj != NULL);
@@ -691,7 +691,8 @@ unsigned SygusSymBreakNew::processSelectorChain( Node n, std::map< TypeNode, Nod
 
 void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas ) {
   //register this term
-  std::map< Node, Node >::iterator ita = d_term_to_anchor.find( n );
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
+      d_term_to_anchor.find(n);
   Assert( ita != d_term_to_anchor.end() );
   Node a = ita->second;
   Assert( !a.isNull() );
@@ -722,10 +723,10 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
   // must do this for all nodes, regardless of top-level
   if( d_cache[a].d_search_val_proc.find( nv )==d_cache[a].d_search_val_proc.end() ){
-    d_cache[a].d_search_val_proc[nv] = true;
+    d_cache[a].d_search_val_proc.insert(nv);
     // get the root (for PBE symmetry breaking)
-    Assert(d_term_to_anchor_conj.find(a) != d_term_to_anchor_conj.end());
-    quantifiers::CegConjecture* aconj = d_term_to_anchor_conj[a];
+    Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
+    quantifiers::CegConjecture* aconj = d_anchor_to_conj[a];
     Assert(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << nv << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin( nv, tn );
@@ -740,7 +741,8 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
       registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), lemmas);
       return false;
     }else{
-      std::map< Node, Node >::iterator itsv = d_cache[a].d_search_val[tn].find( bvr );
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator itsv =
+          d_cache[a].d_search_val[tn].find(bvr);
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
@@ -787,20 +789,9 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
               d_tds, nv, options::sygusSamples(), false);
           its = d_sampler[a].find(tn);
         }
-        Node bvr_sample_ret;
-        std::map<Node, Node>::iterator itsv =
-            d_cache[a].d_search_val_sample[tn].find(bvr);
-        if (itsv == d_cache[a].d_search_val_sample[tn].end())
-        {
-          // initialize the sampler for the rewritten form of this node
-          bvr_sample_ret = its->second.registerTerm(bvr);
-          d_cache[a].d_search_val_sample[tn][bvr] = bvr_sample_ret;
-        }
-        else
-        {
-          bvr_sample_ret = itsv->second;
-        }
 
+        // register the rewritten node with the sampler
+        Node bvr_sample_ret = its->second.registerTerm(bvr);
         // register the current node with the sampler
         Node sample_ret = its->second.registerTerm(bv);
 
@@ -836,8 +827,15 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
             }
             else
             {
+              // no witness point found?
               Assert(false);
             }
+          }
+          if (options::sygusRewVerifyAbort())
+          {
+            AlwaysAssert(
+                false,
+                "--sygus-rr-verify detected unsoundness in the rewriter!");
           }
         }
       }
@@ -1072,7 +1070,8 @@ void SygusSymBreakNew::notifySearchSize( Node m, unsigned s, Node exp, std::vect
 
 unsigned SygusSymBreakNew::getSearchSizeFor( Node n ) {
   Trace("sygus-sb-debug2") << "get search size for term : " << n << std::endl;
-  std::map< Node, Node >::iterator ita = d_term_to_anchor.find( n );
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
+      d_term_to_anchor.find(n);
   Assert( ita != d_term_to_anchor.end() );
   return getSearchSizeForAnchor( ita->second );
 }
@@ -1298,11 +1297,13 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
   if( options::sygusFair()!=SYGUS_FAIR_NONE ){
     std::map< unsigned, Node >::iterator it = d_lits.find( s );
     if( it==d_lits.end() ){
-      if (options::sygusAbortSize() != -1 &&
-          static_cast<int>(s) > options::sygusAbortSize()) {
-        Message() << "Maximum term size (" << options::sygusAbortSize()
-                  << ") for enumerative SyGuS exceeded." << std::endl;
-        exit(1);
+      if (options::sygusAbortSize() != -1
+          && static_cast<int>(s) > options::sygusAbortSize())
+      {
+        std::stringstream ss;
+        ss << "Maximum term size (" << options::sygusAbortSize()
+           << ") for enumerative SyGuS exceeded." << std::endl;
+        throw LogicException(ss.str());
       }
       Assert( !d_this.isNull() );
       Node c = NodeManager::currentNM()->mkConst( Rational( s ) );

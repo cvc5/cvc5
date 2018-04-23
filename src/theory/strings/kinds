@@ -42,7 +42,7 @@ sort STRING_TYPE \
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(::CVC4::RegExp())" \
+        "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
         "util/regexp.h" \
     "RegExp type"
 
@@ -60,14 +60,7 @@ constant CONST_STRING \
     "util/regexp.h" \
     "a string of characters"
 
-constant CONST_REGEXP \
-    ::CVC4::RegExp \
-    ::CVC4::RegExpHashFunction \
-    "util/regexp.h" \
-    "a regular expression"
-
 typerule CONST_STRING ::CVC4::theory::strings::StringConstantTypeRule
-typerule CONST_REGEXP ::CVC4::theory::strings::RegExpConstantTypeRule
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"

@@ -155,12 +155,11 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         }
         Trace("cegqi-arith-debug") << pv << " " << atom.getKind() << " " << val << std::endl;
       }
-      if( options::cbqiAll() ){
-        // when not pure LIA/LRA, we must check whether the lhs contains pv
-        if( TermUtil::containsTerm( val, pv ) ){
-          Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
-          return 0;
-        }
+      // when not pure LIA/LRA, we must check whether the lhs contains pv
+      if (val.hasSubterm(pv))
+      {
+        Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
+        return 0;
       }
       if( pvtn.isInteger() && ( ( !veq_c.isNull() && !veq_c.getType().isInteger() ) || !val.getType().isInteger() ) ){
         //redo, split integer/non-integer parts
@@ -757,7 +756,8 @@ Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
   }
   if( !ret.isNull() ){
     //ensure does not contain
-    if( TermUtil::containsTerm( ret, v ) ){
+    if (ret.hasSubterm(v))
+    {
       ret = Node::null();
     }
   }
@@ -870,7 +870,8 @@ void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node cat
 }
 
 void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node catom, Node eqc, std::map< Node, int >& match_score ) {
-  if( inst::Trigger::isAtomicTrigger( catom ) && TermUtil::containsTerm( catom, pv ) ){
+  if (inst::Trigger::isAtomicTrigger(catom) && catom.hasSubterm(pv))
+  {
     Trace("cegqi-epr") << "Find matches for " << catom << "..." << std::endl;
     std::vector< Node > arg_reps;
     for( unsigned j=0; j<catom.getNumChildren(); j++ ){

@@ -418,32 +418,6 @@ class InstMatchGenerator : public IMGenerator {
   static InstMatchGenerator* getInstMatchGenerator(Node q, Node n);
 };/* class InstMatchGenerator */
 
-/** match generator for Boolean term ITEs
-* This handles the special case of triggers that look like ite( x, BV1, BV0 ).
-*/
-class VarMatchGeneratorBooleanTerm : public InstMatchGenerator {
-public:
-  VarMatchGeneratorBooleanTerm( Node var, Node comp );
-
-  /** Reset */
-  bool reset(Node eqc, QuantifiersEngine* qe) override
-  {
-    d_eq_class = eqc; 
-    return true;
-  }
-  /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m,
-                   QuantifiersEngine* qe,
-                   Trigger* tparent) override;
-
- private:
-  /** stores the true branch of the Boolean ITE */
-  Node d_comp;
-  /** stores whether we have written a value for var in the current match. */
-  bool d_rm_prev;
-};
-
 /** match generator for purified terms
 * This handles the special case of invertible terms like x+1 (see
 * Trigger::getTermInversionVariable).
@@ -670,8 +644,11 @@ class InstMatchGeneratorSimple : public IMGenerator {
   std::vector< TypeNode > d_match_pattern_arg_types;
   /** The match operator d_match_pattern (see TermDb::getMatchOperator). */
   Node d_op;
-  /** Map from child number to variable index. */
-  std::map< int, int > d_var_num;
+  /**
+   * Map from child number of d_match_pattern to variable index, or -1 if the
+   * child is not a variable.
+   */
+  std::map<unsigned, int> d_var_num;
   /** add instantiations, helper function.
    *
    * m is the current match we are building,

@@ -1,0 +1,7 @@
+% EXPECT: unsat
+OPTION "fmf-fun";
+REC-FUN f : INT -> INT = LAMBDA (x : INT) : 1;
+x : INT;
+ASSERT NOT (f(7) = x);
+ASSERT f(8) = x;
+CHECKSAT;

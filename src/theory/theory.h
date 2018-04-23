@@ -343,13 +343,6 @@ public:
   }
 
   /**
-   * Returns a string that uniquely identifies this theory solver w.r.t. the
-   * SmtEngine.
-   */
-  std::string getFullInstanceName() const;
-
-
-  /**
    * Get the SAT context associated to this Theory.
    */
   context::Context* getSatContext() const {
@@ -558,11 +551,6 @@ public:
    * before an input atom to the engine.
    */
   virtual Node ppRewrite(TNode atom) { return atom; }
-
-  /**
-   * Don't preprocess subterm of this term
-   */
-  virtual bool ppDontRewriteSubterm(TNode atom) { return false; }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

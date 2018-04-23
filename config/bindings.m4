@@ -47,7 +47,7 @@ if test "$noswig" = yes; then
   SWIG=
 else
   if test -z "$SWIG"; then
-    AC_CHECK_PROGS(SWIG, [swig swig2.0], [], [])
+    AC_CHECK_PROGS(SWIG, [swig swig2.0 swig-2], [], [])
   else
     AC_CHECK_PROG(SWIG, "$SWIG", "$SWIG", [])
   fi

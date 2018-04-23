@@ -139,7 +139,7 @@ JniUtils.lo: src/cvc3/JniUtils.cpp .headers
 
 $(LIB_FILES:%=classes/cvc3/%.class) classes/cvc3/JniUtils.class: .classes
 .classes:
-	$(AM_V_GEN)mkdir -p classes && $(JAVAC) -source 1.4 -target 1.4 -sourcepath $(srcdir)/src -d classes $(LIB_FILES:%=$(srcdir)/src/cvc3/%.java)
+	$(AM_V_GEN)mkdir -p classes && $(JAVAC) -source 1.6 -target 1.6 -sourcepath $(srcdir)/src -d classes $(LIB_FILES:%=$(srcdir)/src/cvc3/%.java)
 	@touch .classes
 .headers: $(LIB_FILES:%=cvc3/%.h)
 	@touch .headers

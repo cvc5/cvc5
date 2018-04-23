@@ -69,8 +69,9 @@ Theory::Theory(TheoryId id,
       d_careGraph(NULL),
       d_quantEngine(NULL),
       d_extTheory(NULL),
-      d_checkTime(getFullInstanceName() + "::checkTime"),
-      d_computeCareGraphTime(getFullInstanceName() + "::computeCareGraphTime"),
+      d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
+      d_computeCareGraphTime(getStatsPrefix(id) + name
+                             + "::computeCareGraphTime"),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
@@ -335,12 +336,6 @@ void Theory::setupExtTheory() {
 
 EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
   : d_tid(tid) {
-}
-
-std::string Theory::getFullInstanceName() const {
-  std::stringstream ss;
-  ss << "theory<" << d_id << ">" << d_instanceName;
-  return ss.str();
 }
 
 EntailmentCheckParameters::~EntailmentCheckParameters(){}

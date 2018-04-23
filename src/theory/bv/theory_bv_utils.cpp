@@ -35,8 +35,7 @@ unsigned getSize(TNode node)
 const bool getBit(TNode node, unsigned i)
 {
   Assert(i < getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
-  Integer bit = node.getConst<BitVector>().extract(i, i).getValue();
-  return (bit == 1u);
+  return node.getConst<BitVector>().extract(i, i).getValue() == 1u;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -90,17 +89,12 @@ unsigned isPow2Const(TNode node, bool& isNeg)
 
 bool isBvConstTerm(TNode node)
 {
-  if (node.getNumChildren() == 0)
-  {
-    return node.isConst();
+  if (node.getNumChildren() == 0) { return node.isConst();
   }
 
-  for (size_t i = 0; i < node.getNumChildren(); ++i)
+  for (const TNode& n : node)
   {
-    if (!node[i].isConst())
-    {
-      return false;
-    }
+    if (!n.isConst()) { return false; }
   }
   return true;
 }
@@ -279,8 +273,9 @@ Node mkVar(unsigned size)
 
 Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 {
-  Assert(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
-         || kind == kind::BITVECTOR_XOR);
+  Assert(kind == kind::BITVECTOR_AND
+      || kind == kind::BITVECTOR_OR
+      || kind == kind::BITVECTOR_XOR);
 
   if (child1 < child2)
   {
@@ -434,12 +429,9 @@ Node flattenAnd(std::vector<TNode>& queue)
     queue.pop_back();
     if (current.getKind() == kind::AND)
     {
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      for (const TNode& n : current)
       {
-        if (nodes.count(current[i]) == 0)
-        {
-          queue.push_back(current[i]);
-        }
+        if (nodes.count(n) == 0) { queue.push_back(n); }
       }
     }
     else
@@ -447,11 +439,7 @@ Node flattenAnd(std::vector<TNode>& queue)
       nodes.insert(current);
     }
   }
-  std::vector<TNode> children;
-  for (TNodeSet::const_iterator it = nodes.begin(); it != nodes.end(); ++it)
-  {
-    children.push_back(*it);
-  }
+  std::vector<TNode> children(nodes.begin(), nodes.end());
   return mkAnd(children);
 }
 

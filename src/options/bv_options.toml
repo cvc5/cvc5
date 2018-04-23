@@ -1,0 +1,212 @@
+id     = "BV"
+name   = "Bitvector theory"
+header = "options/bv_options.h"
+
+[[option]]
+  name       = "bvSatSolver"
+  smt_name   = "bv-sat-solver"
+  category   = "expert"
+  long       = "bv-sat-solver=MODE"
+  type       = "CVC4::theory::bv::SatSolverMode"
+  default    = "CVC4::theory::bv::SAT_SOLVER_MINISAT"
+  handler    = "stringToSatSolver"
+  predicates = ["satSolverEnabledBuild"]
+  includes   = ["options/bv_bitblast_mode.h"]
+  help       = "choose which sat solver to use, see --bv-sat-solver=help"
+
+[[option]]
+  name       = "bitblastMode"
+  smt_name   = "bitblast"
+  category   = "regular"
+  long       = "bitblast=MODE"
+  type       = "CVC4::theory::bv::BitblastMode"
+  default    = "CVC4::theory::bv::BITBLAST_MODE_LAZY"
+  handler    = "stringToBitblastMode"
+  includes   = ["options/bv_bitblast_mode.h"]
+  help       = "choose bitblasting mode, see --bitblast=help"
+
+[[option]]
+  name       = "bitvectorAig"
+  category   = "regular"
+  long       = "bitblast-aig"
+  type       = "bool"
+  default    = "false"
+  predicates = ["abcEnabledBuild", "setBitblastAig"]
+  help       = "bitblast by first converting to AIG (implies --bitblast=eager)"
+
+[[option]]
+  name       = "bitvectorAigSimplifications"
+  category   = "expert"
+  long       = "bv-aig-simp=COMMAND"
+  type       = "std::string"
+  predicates = ["abcEnabledBuild"]
+  links      = ["--bitblast-aig"]
+  help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
+
+[[option]]
+  name       = "bitvectorPropagate"
+  category   = "regular"
+  long       = "bv-propagate"
+  type       = "bool"
+  default    = "true"
+  help       = "use bit-vector propagation in the bit-blaster"
+
+[[option]]
+  name       = "bitvectorEqualitySolver"
+  category   = "regular"
+  long       = "bv-eq-solver"
+  type       = "bool"
+  default    = "true"
+  help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
+
+[[option]]
+  name       = "bitvectorEqualitySlicer"
+  category   = "regular"
+  long       = "bv-eq-slicer=MODE"
+  type       = "CVC4::theory::bv::BvSlicerMode"
+  default    = "CVC4::theory::bv::BITVECTOR_SLICER_OFF"
+  handler    = "stringToBvSlicerMode"
+  includes   = ["options/bv_bitblast_mode.h"]
+  links      = ["--bv-eq-solver"]
+  help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
+
+[[option]]
+  name       = "bitvectorInequalitySolver"
+  category   = "regular"
+  long       = "bv-inequality-solver"
+  type       = "bool"
+  default    = "true"
+  help       = "turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)"
+
+[[option]]
+  name       = "bitvectorAlgebraicSolver"
+  category   = "regular"
+  long       = "bv-algebraic-solver"
+  type       = "bool"
+  default    = "true"
+  help       = "turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+
+[[option]]
+  name       = "bitvectorAlgebraicBudget"
+  category   = "expert"
+  long       = "bv-algebraic-budget"
+  type       = "unsigned"
+  default    = "1500"
+  links      = ["--bv-algebraic-solver"]
+  help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
+
+[[option]]
+  name       = "bitvectorToBool"
+  category   = "regular"
+  long       = "bv-to-bool"
+  type       = "bool"
+  default    = "false"
+  help       = "lift bit-vectors of size 1 to booleans when possible"
+
+[[option]]
+  name       = "boolToBitvector"
+  category   = "regular"
+  long       = "bool-to-bv"
+  type       = "bool"
+  default    = "false"
+  help       = "convert booleans to bit-vectors of size 1 when possible"
+
+[[option]]
+  name       = "bitvectorDivByZeroConst"
+  category   = "regular"
+  long       = "bv-div-zero-const"
+  type       = "bool"
+  default    = "false"
+  help       = "always return -1 on division by zero"
+
+[[option]]
+  name       = "bvExtractArithRewrite"
+  category   = "expert"
+  long       = "bv-extract-arith"
+  type       = "bool"
+  default    = "false"
+  help       = "enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)"
+
+[[option]]
+  name       = "bvAbstraction"
+  category   = "expert"
+  long       = "bv-abstraction"
+  type       = "bool"
+  default    = "false"
+  help       = "mcm benchmark abstraction"
+
+[[option]]
+  name       = "skolemizeArguments"
+  category   = "expert"
+  long       = "bv-skolemize"
+  type       = "bool"
+  default    = "false"
+  help       = "skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)"
+
+[[option]]
+  name       = "bvNumFunc"
+  category   = "expert"
+  long       = "bv-num-func=NUM"
+  type       = "unsigned"
+  default    = "1"
+  read_only  = true
+  help       = "number of function symbols in conflicts that are generalized"
+
+[[option]]
+  name       = "bvEagerExplanations"
+  category   = "expert"
+  long       = "bv-eager-explanations"
+  type       = "bool"
+  default    = "false"
+  help       = "compute bit-blasting propagation explanations eagerly"
+
+[[option]]
+  name       = "bitvectorQuickXplain"
+  category   = "expert"
+  long       = "bv-quick-xplain"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "minimize bv conflicts using the QuickXplain algorithm"
+
+[[option]]
+  name       = "bvIntroducePow2"
+  category   = "expert"
+  long       = "bv-intro-pow2"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "introduce bitvector powers of two as a preprocessing pass"
+
+[[option]]
+  name       = "bvGaussElim"
+  category   = "expert"
+  long       = "bv-gauss-elim"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "simplify formula via Gaussian Elimination if applicable"
+
+[[option]]
+  name       = "bvLazyRewriteExtf"
+  category   = "regular"
+  long       = "bv-lazy-rewrite-extf"
+  type       = "bool"
+  default    = "true"
+  help       = "lazily rewrite extended functions like bv2nat and int2bv"
+
+[[option]]
+  name       = "bvLazyReduceExtf"
+  category   = "regular"
+  long       = "bv-lazy-reduce-extf"
+  type       = "bool"
+  default    = "false"
+  help       = "reduce extended functions like bv2nat and int2bv at last call instead of full effort"
+
+[[option]]
+  name       = "bvAlgExtf"
+  category   = "regular"
+  long       = "bv-alg-extf"
+  type       = "bool"
+  default    = "true"
+  help       = "algebraic inferences for extended functions"

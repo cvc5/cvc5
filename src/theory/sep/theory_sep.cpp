@@ -39,7 +39,7 @@ TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel
   Theory(THEORY_SEP, c, u, out, valuation, logicInfo),
   d_lemmas_produced_c(u),
   d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sep::TheorySep", true),
+  d_equalityEngine(d_notify, c, "theory::sep::ee", true),
   d_conflict(c, false),
   d_reduce(u),
   d_infer(c),

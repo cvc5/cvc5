@@ -1,4 +1,4 @@
-; COMMAND-LINE: --enable-miplib-trick
+; COMMAND-LINE: --miplib-trick
 ; EXPECT: unsat
 (set-logic QF_LRA)
 (set-info :source |

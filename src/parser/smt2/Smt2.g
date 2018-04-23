@@ -429,6 +429,17 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
+      // if sygus, check whether it has a free variable
+      // this is because, due to the sygus format, one can write assertions
+      // that have free function variables in them
+      if (PARSER_STATE->sygus())
+      {
+        if (expr.hasFreeVariable())
+        {
+          PARSER_STATE->parseError("Assertion has free variable. Perhaps you "
+                                   "meant constraint instead of assert?");
+        }
+      }
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -462,6 +473,9 @@ command [std::unique_ptr<CVC4::Command>* cmd]
   | /* get-proof */
     GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetProofCommand()); }
+  | /* get-unsat-assumptions */
+    GET_UNSAT_ASSUMPTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetUnsatAssumptionsCommand); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatCoreCommand); }
@@ -1286,7 +1300,6 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       }
       cmd->reset( new DefineFunctionRecCommand(funcs,formals,func_defs));
     }
-  // GET_UNSAT_ASSUMPTIONS
   ;
 
 extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
@@ -1726,7 +1739,8 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
         | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK
-        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK
+        | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_ASSUMPTIONS_TOK
+        | GET_UNSAT_CORE_TOK | EXIT_TOK
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK
@@ -3086,6 +3100,7 @@ GET_VALUE_TOK : 'get-value';
 GET_ASSIGNMENT_TOK : 'get-assignment';
 GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
+GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
 RESET_TOK : { PARSER_STATE->v2_5(false) }? 'reset';

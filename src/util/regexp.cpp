@@ -404,8 +404,4 @@ std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString(true) << "\"";
 }
 
-std::ostream &operator<<(std::ostream &out, const RegExp &s) {
-  return out << "regexp(" << s.getType() << ')';
-}
-
 }  // namespace CVC4

@@ -98,6 +98,52 @@ int main() {
       std::cout << " + arg: " << *j << std::endl;
     }
   }
+  std::cout << std::endl;
+
+  // You can also define parameterized datatypes.
+  // This example builds a simple parameterized list of sort T, with one
+  // constructor "cons".
+  Type sort = em.mkSort("T", ExprManager::SORT_FLAG_PLACEHOLDER);
+  Datatype paramConsListSpec("list", std::vector<Type>{sort});
+  DatatypeConstructor paramCons("cons");
+  paramCons.addArg("head", sort);
+  paramCons.addArg("tail", DatatypeSelfType());
+  paramConsListSpec.addConstructor(paramCons);
+
+  DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
+  Type paramConsIntListType = paramConsListType.instantiate(std::vector<Type>{em.integerType()});
+
+  Datatype paramConsList = paramConsListType.getDatatype();
+
+  std::cout << "parameterized datatype sort is " << std::endl;
+  for (const DatatypeConstructor& ctor : paramConsList)
+  {
+    std::cout << "ctor: " << ctor << std::endl;
+    for (const DatatypeConstructorArg& stor : ctor)
+    {
+      std::cout << " + arg: " << stor << std::endl;
+    }
+  }
+
+  Expr a = em.mkVar("a", paramConsIntListType);
+  std::cout << "Expr " << a << " is of type " << a.getType() << std::endl;
+
+  Expr head_a = em.mkExpr(
+      kind::APPLY_SELECTOR,
+      paramConsList["cons"].getSelector("head"),
+      a);
+  std::cout << "head_a is " << head_a << " of type " << head_a.getType() 
+            << std::endl
+            << "type of cons is "
+            << paramConsList.getConstructor("cons").getType() << std::endl
+            << std::endl;
+
+  Expr assertion = em.mkExpr(kind::GT, head_a, em.mkConst(Rational(50)));
+  std::cout << "Assert " << assertion << std::endl;
+  smt.assertFormula(assertion);
+
+  std::cout << "Expect sat." << std::endl;
+  std::cout << "CVC4: " << smt.checkSat()<< std::endl;
 
   return 0;
 }

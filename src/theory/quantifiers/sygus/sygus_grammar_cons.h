@@ -35,6 +35,7 @@ public:
  CegGrammarConstructor(QuantifiersEngine* qe, CegConjecture* p);
  ~CegGrammarConstructor() {}
  /** process
+  *
   * This converts node q based on its deep embedding
   * (Section 4 of Reynolds et al CAV 2015).
   * The syntactic restrictions are associated with
@@ -48,8 +49,17 @@ public:
   * for some t if !templates[i].isNull().
   */
  Node process(Node q,
-              std::map<Node, Node>& templates,
-              std::map<Node, Node>& templates_arg);
+              const std::map<Node, Node>& templates,
+              const std::map<Node, Node>& templates_arg);
+ /**
+  * Same as above, but we have already determined that the set of first-order
+  * datatype variables that will quantify the deep embedding conjecture are
+  * the vector ebvl.
+  */
+ Node process(Node q,
+              const std::map<Node, Node>& templates,
+              const std::map<Node, Node>& templates_arg,
+              const std::vector<Node>& ebvl);
  /** is the syntax restricted? */
  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
  /** does the syntax allow ITE expressions? */
@@ -83,7 +93,20 @@ public:
   *   fun is for naming
   */
   static TypeNode mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, const std::string& fun );
-private:
+  /**
+   * Returns the sygus variable list for function-to-synthesize variable f.
+   * These are the names of the arguments of f, which should be included in the
+   * grammar for f. This returns either the variable list set explicitly via the
+   * attribute SygusSynthFunVarListAttribute, or a fresh variable list of the
+   * proper type otherwise. It will return null if f is not a function.
+   */
+  static Node getSygusVarList(Node f);
+  /**
+   * Returns true iff there are syntax restrictions on the
+   * functions-to-synthesize of sygus conjecture q.
+   */
+  static bool hasSyntaxRestrictions(Node q);
+ private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
   /** parent conjecture

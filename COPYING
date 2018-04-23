@@ -82,7 +82,8 @@ GMP) may (and do) remain under the more permissive modified BSD license.
 CVC4 optionally links against the following libraries:
 
   ABC                (https://bitbucket.org/alanmi/abc)
-  Cryptominisat4.0   (https://github.com/msoos/cryptominisat)
+  CaDiCaL            (https://github.com/arminbiere/cadical)
+  CryptoMiniSat      (https://github.com/msoos/cryptominisat)
   LFSC checker       (https://github.com/CVC4/LFSC)
 
 Linking CVC4 against these libraries does not affect the license terms of the

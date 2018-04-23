@@ -241,12 +241,12 @@ void BvToBoolPreprocessor::liftBvToBool(const std::vector<Node>& assertions, std
 }
 
 BvToBoolPreprocessor::Statistics::Statistics()
-  : d_numTermsLifted("theory::bv::BvToBoolPreprocess::NumberOfTermsLifted", 0)
-  , d_numAtomsLifted("theory::bv::BvToBoolPreprocess::NumberOfAtomsLifted", 0)
-  , d_numTermsForcedLifted("theory::bv::BvToBoolPreprocess::NumberOfTermsForcedLifted", 0)
-  , d_numTermsLowered("theory::bv::BvToBoolPreprocess::NumberOfTermsLowered", 0)
-  , d_numAtomsLowered("theory::bv::BvToBoolPreprocess::NumberOfAtomsLowered", 0)    
-  , d_numTermsForcedLowered("theory::bv::BvToBoolPreprocess::NumberOfTermsForcedLowered", 0)
+  : d_numTermsLifted("theory::bv::BvToBool::NumTermsLifted", 0)
+  , d_numAtomsLifted("theory::bv::BvToBool::NumAtomsLifted", 0)
+  , d_numTermsForcedLifted("theory::bv::BvToBool::NumTermsForcedLifted", 0)
+  , d_numTermsLowered("theory::bv::BvToBool::NumTermsLowered", 0)
+  , d_numAtomsLowered("theory::bv::BvToBool::NumAtomsLowered", 0)
+  , d_numTermsForcedLowered("theory::bv::BvToBool::NumTermsForcedLowered", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numTermsLifted);
   smtStatisticsRegistry()->registerStat(&d_numAtomsLifted);

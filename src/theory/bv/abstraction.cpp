@@ -1111,9 +1111,10 @@ AbstractionModule::ArgsTableEntry& AbstractionModule::ArgsTable::getEntry(TNode 
 }
 
 AbstractionModule::Statistics::Statistics(const std::string& name)
-  : d_numFunctionsAbstracted(name + "theory::bv::AbstractioModule::NumFunctionsAbstracted", 0)
-  , d_numArgsSkolemized(name + "theory::bv::AbstractioModule::NumArgsSkolemized", 0)
-  , d_abstractionTime(name + "theory::bv::AbstractioModule::AbstractionTime")
+    : d_numFunctionsAbstracted(name + "::abstraction::NumFunctionsAbstracted",
+                               0),
+      d_numArgsSkolemized(name + "::abstraction::NumArgsSkolemized", 0),
+      d_abstractionTime(name + "::abstraction::AbstractionTime")
 {
   smtStatisticsRegistry()->registerStat(&d_numFunctionsAbstracted);
   smtStatisticsRegistry()->registerStat(&d_numArgsSkolemized);

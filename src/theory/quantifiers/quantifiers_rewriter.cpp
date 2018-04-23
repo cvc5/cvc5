@@ -776,7 +776,8 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
   }else if( n.getKind()==EQUAL ){
     for( unsigned i=0; i<2; i++ ){
       if( n[i].getKind()==BOUND_VARIABLE ){
-        if( !TermUtil::containsTerm( n[1-i], n[i] ) ){
+        if (!n[1 - i].hasSubterm(n[i]))
+        {
           return true;
         }
       }
@@ -874,11 +875,7 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
 }
 
 bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
-  if( TermUtil::containsTerm( s, v ) || !s.getType().isSubtypeOf( v.getType() ) ){
-    return false;
-  }else{
-    return true;
-  }
+  return !s.hasSubterm(v) && s.getType().isSubtypeOf(v.getType());
 }
 
 void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
@@ -1705,7 +1702,7 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
 
 bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
   bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
-  bool is_std = !qa.d_sygus && !qa.d_quant_elim && !qa.isFunDef() && !is_strict_trigger;
+  bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
     return true;

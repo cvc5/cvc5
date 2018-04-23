@@ -36,6 +36,25 @@ CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
 {
 }
 
+bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
+{
+  Assert(q.getKind() == FORALL);
+  for (const Node& f : q[0])
+  {
+    Node gv = f.getAttribute(SygusSynthGrammarAttribute());
+    if (!gv.isNull())
+    {
+      TypeNode tn = gv.getType();
+      if (tn.isDatatype()
+          && static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus())
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts ){
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
@@ -68,9 +87,10 @@ void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::vecto
   } while (!visit.empty());
 }
 
-
-
-Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, std::map< Node, Node >& templates_arg ) {
+Node CegGrammarConstructor::process(Node q,
+                                    const std::map<Node, Node>& templates,
+                                    const std::map<Node, Node>& templates_arg)
+{
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
   Trace("cegqi") << "CegConjecture : convert to deep embedding..." << std::endl;
@@ -80,25 +100,42 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     collectTerms( q[1], extra_cons );
   }
 
-  std::vector< Node > qchildren;
-  std::map< Node, Node > synth_fun_vars;
+  NodeManager* nm = NodeManager::currentNM();
+
   std::vector< Node > ebvl;
-  Node qbody_subs = q[1];
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     Node sf = q[0][i];
-    // v encodes the syntactic restrictions (via an inductive datatype) on sf
-    // from the input
+    // if non-null, v encodes the syntactic restrictions (via an inductive
+    // datatype) on sf from the input.
     Node v = sf.getAttribute(SygusSynthGrammarAttribute());
-    Assert(!v.isNull());
-    Node sfvl = sf.getAttribute(SygusSynthFunVarListAttribute());
+    TypeNode preGrammarType;
+    if (!v.isNull())
+    {
+      preGrammarType = v.getType();
+    }
+    else
+    {
+      // otherwise, the grammar is the default for the range of the function
+      preGrammarType = sf.getType();
+      if (preGrammarType.isFunction())
+      {
+        preGrammarType = preGrammarType.getRangeType();
+      }
+    }
+    Node sfvl = getSygusVarList(sf);
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;
 
+    // the actual sygus datatype we will use (normalized below)
     TypeNode tn;
     std::stringstream ss;
     ss << sf;
-    if( v.getType().isDatatype() && ((DatatypeType)v.getType().toType()).getDatatype().isSygus() ){
-      tn = v.getType();
+    if (preGrammarType.isDatatype()
+        && static_cast<DatatypeType>(preGrammarType.toType())
+               .getDatatype()
+               .isSygus())
+    {
+      tn = preGrammarType;
     }else{
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
@@ -116,41 +153,92 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
 
       // make the default grammar
       tn = mkSygusDefaultType(
-          v.getType(), sfvl, ss.str(), extra_cons, term_irrelevant);
+          preGrammarType, sfvl, ss.str(), extra_cons, term_irrelevant);
     }
+
     // normalize type
     SygusGrammarNorm sygus_norm(d_qe);
     tn = sygus_norm.normalizeSygusType(tn, sfvl);
-    // check if there is a template
-    std::map< Node, Node >::iterator itt = templates.find( sf );
+
+    std::map<Node, Node>::const_iterator itt = templates.find(sf);
     if( itt!=templates.end() ){
       Node templ = itt->second;
-      TNode templ_arg = templates_arg[sf];
+      std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
+      Assert(itta != templates_arg.end());
+      TNode templ_arg = itta->second;
       Assert( !templ_arg.isNull() );
-      Trace("cegqi-debug") << "Template for " << sf << " is : " << templ << " with arg " << templ_arg << std::endl;
       // if there is a template for this argument, make a sygus type on top of it
       if( options::sygusTemplEmbedGrammar() ){
+        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
+                             << " with arg " << templ_arg << std::endl;
         Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
         tn = mkSygusTemplateType( templ, templ_arg, tn, sfvl, ss.str() );
-      }else{
-        // otherwise, apply it as a preprocessing pass 
+      }
+    }
+
+    // ev is the first-order variable corresponding to this synth fun
+    std::stringstream ssf;
+    ssf << "f" << sf;
+    Node ev = nm->mkBoundVar(ssf.str(), tn);
+    ebvl.push_back(ev);
+    Trace("cegqi") << "...embedding synth fun : " << sf << " -> " << ev
+                   << std::endl;
+  }
+  return process(q, templates, templates_arg, ebvl);
+}
+
+Node CegGrammarConstructor::process(Node q,
+                                    const std::map<Node, Node>& templates,
+                                    const std::map<Node, Node>& templates_arg,
+                                    const std::vector<Node>& ebvl)
+{
+  Assert(q[0].getNumChildren() == ebvl.size());
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  std::vector<Node> qchildren;
+  Node qbody_subs = q[1];
+  std::map<Node, Node> synth_fun_vars;
+  for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
+  {
+    Node sf = q[0][i];
+    synth_fun_vars[sf] = ebvl[i];
+    Node sfvl = getSygusVarList(sf);
+    TypeNode tn = ebvl[i].getType();
+    // check if there is a template
+    std::map<Node, Node>::const_iterator itt = templates.find(sf);
+    if (itt != templates.end())
+    {
+      Node templ = itt->second;
+      std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
+      Assert(itta != templates_arg.end());
+      TNode templ_arg = itta->second;
+      Assert(!templ_arg.isNull());
+      // if there is a template for this argument, make a sygus type on top of
+      // it
+      if (!options::sygusTemplEmbedGrammar())
+      {
+        // otherwise, apply it as a preprocessing pass
+        Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
+                             << " with arg " << templ_arg << std::endl;
         Trace("cegqi-debug") << "  apply this template as a substituion during preprocess..." << std::endl;
         std::vector< Node > schildren;
         std::vector< Node > largs;
         for( unsigned j=0; j<sfvl.getNumChildren(); j++ ){
           schildren.push_back( sfvl[j] );
-          largs.push_back( NodeManager::currentNM()->mkBoundVar( sfvl[j].getType() ) );
+          largs.push_back(nm->mkBoundVar(sfvl[j].getType()));
         }
         std::vector< Node > subsfn_children;
         subsfn_children.push_back( sf );
         subsfn_children.insert( subsfn_children.end(), schildren.begin(), schildren.end() );
-        Node subsfn = NodeManager::currentNM()->mkNode( kind::APPLY_UF, subsfn_children );
+        Node subsfn = nm->mkNode(kind::APPLY_UF, subsfn_children);
         TNode subsf = subsfn;
         Trace("cegqi-debug") << "  substitute arg : " << templ_arg << " -> " << subsf << std::endl;
         templ = templ.substitute( templ_arg, subsf );
         // substitute lambda arguments
         templ = templ.substitute( schildren.begin(), schildren.end(), largs.begin(), largs.end() );
-        Node subsn = NodeManager::currentNM()->mkNode( kind::LAMBDA, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, largs ), templ );
+        Node subsn =
+            nm->mkNode(kind::LAMBDA, nm->mkNode(BOUND_VAR_LIST, largs), templ);
         TNode var = sf;
         TNode subs = subsn;
         Trace("cegqi-debug") << "  substitute : " << var << " -> " << subs << std::endl;
@@ -171,16 +259,8 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
     if( !dt.getSygusAllowAll() ){
       d_is_syntax_restricted = true;
     }
-
-    // ev is the first-order variable corresponding to this synth fun
-    std::stringstream ssf;
-    ssf << "f" << sf;
-    Node ev = NodeManager::currentNM()->mkBoundVar( ssf.str(), tn );
-    ebvl.push_back( ev );
-    synth_fun_vars[sf] = ev;
-    Trace("cegqi") << "...embedding synth fun : " << sf << " -> " << ev << std::endl;
   }
-  qchildren.push_back( NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, ebvl ) );
+  qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
   if( qbody_subs!=q[1] ){
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
     qbody_subs = Rewriter::rewrite( qbody_subs );
@@ -190,7 +270,7 @@ Node CegGrammarConstructor::process( Node q, std::map< Node, Node >& templates, 
   if( q.getNumChildren()==3 ){
     qchildren.push_back( q[2] );
   }
-  return NodeManager::currentNM()->mkNode( kind::FORALL, qchildren );
+  return nm->mkNode(kind::FORALL, qchildren);
 }
   
 Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
@@ -686,6 +766,27 @@ TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg,
                                                      const std::string& fun ) {
   unsigned tcount = 0;
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
+}
+
+Node CegGrammarConstructor::getSygusVarList(Node f)
+{
+  Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
+  if (sfvl.isNull() && f.getType().isFunction())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<TypeNode> argTypes = f.getType().getArgTypes();
+    // make default variable list if none was specified by input
+    std::vector<Node> bvs;
+    for (unsigned j = 0, size = argTypes.size(); j < size; j++)
+    {
+      std::stringstream ss;
+      ss << "arg" << j;
+      bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[j]));
+    }
+    sfvl = nm->mkNode(BOUND_VAR_LIST, bvs);
+    f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);
+  }
+  return sfvl;
 }
 
 }/* namespace CVC4::theory::quantifiers */

@@ -24,7 +24,7 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-    : d_lastchar(options::stdASCII() ? '\x7f' : '\xff'),
+    : d_lastchar(options::stdPrintASCII() ? '\x7f' : '\xff'),
       d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
       d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
@@ -39,8 +39,9 @@ RegExpOpr::RegExpOpr()
       d_char_end(),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
-      d_sigma_star(
-          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)) {}
+      d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
+{
+}
 
 RegExpOpr::~RegExpOpr() {}
 

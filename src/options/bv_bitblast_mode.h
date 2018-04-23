@@ -61,11 +61,12 @@ enum BvSlicerMode {
 };/* enum BvSlicerMode */
 
 /** Enumeration of sat solvers that can be used. */
-enum SatSolverMode {
+enum SatSolverMode
+{
   SAT_SOLVER_MINISAT,
   SAT_SOLVER_CRYPTOMINISAT,
-};/* enum SatSolver */
-
+  SAT_SOLVER_CADICAL,
+}; /* enum SatSolver */
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */

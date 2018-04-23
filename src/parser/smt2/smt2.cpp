@@ -317,7 +317,7 @@ bool Smt2::isOperatorEnabled(const std::string& name) const {
 bool Smt2::isTheoryEnabled(Theory theory) const {
   switch(theory) {
   case THEORY_ARRAYS:
-    return d_logic.isTheoryEnabled(theory::THEORY_ARRAY);
+    return d_logic.isTheoryEnabled(theory::THEORY_ARRAYS);
   case THEORY_BITVECTORS:
     return d_logic.isTheoryEnabled(theory::THEORY_BV);
   case THEORY_CORE:
@@ -477,7 +477,7 @@ void Smt2::setLogic(std::string name) {
     }
   }
 
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAY)) {
+  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
     addTheory(THEORY_ARRAYS);
   }
 

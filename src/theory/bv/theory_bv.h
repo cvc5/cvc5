@@ -117,7 +117,7 @@ private:
     IntStat     d_numCallsToCheckStandardEffort;
     TimerStat   d_weightComputationTimer;
     IntStat     d_numMultSlice;
-    Statistics(const std::string &name);
+    Statistics();
     ~Statistics();
   };
 

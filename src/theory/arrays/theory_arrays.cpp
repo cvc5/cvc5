@@ -58,7 +58,7 @@ const bool d_solveWrite2 = false;
 TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
                            OutputChannel& out, Valuation valuation,
                            const LogicInfo& logicInfo, std::string name)
-    : Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo, name),
+    : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, name),
       d_numRow(name + "theory::arrays::number of Row lemmas", 0),
       d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
       d_numProp(name + "theory::arrays::number of propagations", 0),
@@ -69,15 +69,15 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
       d_numGetModelValConflicts(name + "theory::arrays::number of getModelVal conflicts", 0),
       d_numSetModelValSplits(name + "theory::arrays::number of setModelVal splits", 0),
       d_numSetModelValConflicts(name + "theory::arrays::number of setModelVal conflicts", 0),
-      d_ppEqualityEngine(u, name + "theory::arrays::TheoryArraysPP" , true),
+      d_ppEqualityEngine(u, name + "theory::arrays::pp" , true),
       d_ppFacts(u),
       //      d_ppCache(u),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
-      d_mayEqualEqualityEngine(c, name + "theory::arrays::TheoryArraysMayEqual", true),
+      d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
       d_notify(*this),
-      d_equalityEngine(d_notify, c, name + "theory::arrays::TheoryArrays", true),
+      d_equalityEngine(d_notify, c, name + "theory::arrays", true),
       d_conflict(c, false),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -681,7 +681,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
     if (node.getType().isArray()) {
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
     }
     else {
       d_equalityEngine.addTerm(node);
@@ -723,7 +723,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (d_equalityEngine.hasTerm(node)) {
       break;
     }
-    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
 
     TNode a = d_equalityEngine.getRepresentative(node[0]);
 
@@ -786,7 +786,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     d_infoMap.setConstArr(node, node);
     d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
     d_defValues[node] = defaultValue;
     break;
   }
@@ -795,7 +795,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray()) {
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
       Assert(d_equalityEngine.getSize(node) == 1);
     }
     else {
@@ -849,7 +849,7 @@ Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
 
 void TheoryArrays::addSharedTerm(TNode t) {
   Debug("arrays::sharing") << spaces(getSatContext()->getLevel()) << "TheoryArrays::addSharedTerm(" << t << ")" << std::endl;
-  d_equalityEngine.addTriggerTerm(t, THEORY_ARRAY);
+  d_equalityEngine.addTriggerTerm(t, THEORY_ARRAYS);
   if (t.getType().isArray()) {
     d_sharedArrays.insert(t);
   }
@@ -882,7 +882,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
 
   TNode x = r1[1];
   TNode y = r2[1];
-  Assert(d_equalityEngine.isTriggerTerm(x, THEORY_ARRAY));
+  Assert(d_equalityEngine.isTriggerTerm(x, THEORY_ARRAYS));
 
   if (d_equalityEngine.hasTerm(x) && d_equalityEngine.hasTerm(y) &&
       (d_equalityEngine.areEqual(x,y) || d_equalityEngine.areDisequal(x,y,false))) {
@@ -909,14 +909,14 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
     }
   }
 
-  if (!d_equalityEngine.isTriggerTerm(y, THEORY_ARRAY)) {
+  if (!d_equalityEngine.isTriggerTerm(y, THEORY_ARRAYS)) {
     Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): not connected to shared terms, skipping" << std::endl;
     return;
   }
 
   // Get representative trigger terms
-  TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
-  TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_ARRAY);
+  TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAYS);
+  TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_ARRAYS);
   EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
   switch (eqStatusDomain) {
     case EQUALITY_TRUE_AND_PROPAGATED:
@@ -987,11 +987,11 @@ void TheoryArrays::computeCareGraph()
       Assert(d_equalityEngine.hasTerm(r1));
       TNode x = r1[1];
 
-      if (!d_equalityEngine.isTriggerTerm(x, THEORY_ARRAY)) {
+      if (!d_equalityEngine.isTriggerTerm(x, THEORY_ARRAYS)) {
         Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): not connected to shared terms, skipping" << std::endl;
         continue;
       }
-      Node x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
+      Node x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAYS);
 
       // Get the model value of index and find all reads that read from that same model value: these are the pairs we have to check
       // Also, insert this read in the list at the proper index

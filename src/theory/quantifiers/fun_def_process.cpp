@@ -42,7 +42,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
       //check if already defined, if so, throw error
       if( d_sorts.find( f )!=d_sorts.end() ){
         Message() << "Cannot define function " << f << " more than once." << std::endl;
-        exit( 0 );
+        AlwaysAssert(false);
       }
 
       Node bd = QuantAttributes::getFunDefBody( assertions[i] );

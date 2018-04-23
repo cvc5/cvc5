@@ -16,11 +16,10 @@
 
 #include "prop/sat_solver_factory.h"
 
-// Cryptominisat header has to come first since there are name clashes for
-// var_Undef, l_True, ... (static const in Cryptominisat vs. #define in Minisat)
+#include "prop/bvminisat/bvminisat.h"
+#include "prop/cadical.h"
 #include "prop/cryptominisat.h"
 #include "prop/minisat/minisat.h"
-#include "prop/bvminisat/bvminisat.h"
 
 namespace CVC4 {
 namespace prop {
@@ -33,6 +32,12 @@ BVSatSolverInterface* SatSolverFactory::createMinisat(
   return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
 
+DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(
+    StatisticsRegistry* registry)
+{
+  return new MinisatSatSolver(registry);
+}
+
 SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
                                                  const std::string& name)
 {
@@ -43,10 +48,14 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
 #endif
 }
 
-DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(
-    StatisticsRegistry* registry)
+SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
+                                           const std::string& name)
 {
-  return new MinisatSatSolver(registry);
+#ifdef CVC4_USE_CADICAL
+  return new CadicalSolver(registry, name);
+#else
+  Unreachable("CVC4 was not compiled with CaDiCaL support.");
+#endif
 }
 
 }  // namespace prop

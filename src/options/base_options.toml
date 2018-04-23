@@ -1,0 +1,208 @@
+id     = "BASE"
+name   = "Base"
+header = "options/base_options.h"
+
+[[option]]
+  name       = "binary_name"
+  category   = "undocumented"
+  type       = "std::string"
+
+[[option]]
+  name       = "in"
+  category   = "undocumented"
+  type       = "std::istream*"
+  default    = "&std::cin"
+  includes   = ["<iosfwd>"]
+
+[[option]]
+  name       = "out"
+  category   = "undocumented"
+  type       = "std::ostream*"
+  default    = "&std::cout"
+  includes   = ["<iosfwd>"]
+
+[[option]]
+  name       = "err"
+  category   = "undocumented"
+  type       = "std::ostream*"
+  default    = "&std::cerr"
+  includes   = ["<iosfwd>"]
+
+[[option]]
+  name       = "inputLanguage"
+  smt_name   = "input-language"
+  category   = "common"
+  short      = "L"
+  long       = "lang=LANG"
+  type       = "InputLanguage"
+  default    = "language::input::LANG_AUTO"
+  handler    = "stringToInputLanguage"
+  includes   = ["options/language.h"]
+  help       = "force input language (default is \"auto\"; see --lang help)"
+
+[[option]]
+  name       = "outputLanguage"
+  smt_name   = "output-language"
+  category   = "common"
+  long       = "output-lang=LANG"
+  type       = "OutputLanguage"
+  default    = "language::output::LANG_AUTO"
+  handler    = "stringToOutputLanguage"
+  includes   = ["options/language.h"]
+  help       = "force output language (default is \"auto\"; see --output-lang help)"
+
+[[option]]
+  name       = "languageHelp"
+  category   = "undocumented"
+  type       = "bool"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "language=L"
+  links      = ["--lang=L"]
+
+[[alias]]
+  category   = "undocumented"
+  long       = "output-language=L"
+  links      = ["--output-lang=L"]
+
+[[option]]
+  name       = "verbosity"
+  smt_name   = "verbosity"
+  category   = "regular"
+  type       = "int"
+  default    = "0"
+  predicates = ["setVerbosity"]
+  help       = "the verbosity level of CVC4"
+
+[[option]]
+  category   = "common"
+  short      = "v"
+  long       = "verbose"
+  type       = "void"
+  handler    = "increaseVerbosity"
+  read_only  = true
+  help       = "increase verbosity (may be repeated)"
+
+[[option]]
+  category   = "common"
+  short      = "q"
+  long       = "quiet"
+  type       = "void"
+  handler    = "decreaseVerbosity"
+  read_only  = true
+  help       = "decrease verbosity (may be repeated)"
+
+[[option]]
+  name       = "statistics"
+  smt_name   = "statistics"
+  category   = "common"
+  long       = "stats"
+  type       = "bool"
+  predicates = ["statsEnabledBuild"]
+  read_only  = true
+  help       = "give statistics on exit"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "statistics"
+  links      = ["--stats"]
+
+[[alias]]
+  category   = "undocumented"
+  long       = "no-statistics"
+  links      = ["--no-stats"]
+
+[[option]]
+  name       = "statsEveryQuery"
+  category   = "regular"
+  long       = "stats-every-query"
+  type       = "bool"
+  default    = "false"
+  links      = ["--stats"]
+  read_only  = true
+  help       = "in incremental mode, print stats after every satisfiability or validity query"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "statistics-every-query"
+  links      = ["--stats-every-query"]
+
+[[alias]]
+  category   = "undocumented"
+  long       = "no-statistics-every-query"
+  links      = ["--no-stats-every-query"]
+
+[[option]]
+  name       = "statsHideZeros"
+  category   = "regular"
+  long       = "stats-hide-zeros"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "hide statistics which are zero"
+
+[[alias]]
+  category   = "undocumented"
+  long       = "stats-show-zeros"
+  links      = ["--no-stats-hide-zeros"]
+
+[[alias]]
+  category   = "undocumented"
+  long       = "hide-zero-stats"
+  links      = ["--stats-hide-zeros"]
+
+[[alias]]
+  category   = "undocumented"
+  long       = "show-zero-stats"
+  links      = ["--stats-show-zeros"]
+
+[[option]]
+  name       = "parseOnly"
+  category   = "regular"
+  long       = "parse-only"
+  type       = "bool"
+  help       = "exit after parsing input"
+
+[[option]]
+  name       = "preprocessOnly"
+  category   = "regular"
+  long       = "preprocess-only"
+  type       = "bool"
+  read_only  = true
+  help       = "exit after preprocessing input"
+
+[[option]]
+  smt_name   = "trace"
+  category   = "regular"
+  short      = "t"
+  long       = "trace=TAG"
+  type       = "std::string"
+  handler    = "enableTraceTag"
+  read_only  = true
+  help       = "trace something (e.g. -t pushpop), can repeat"
+
+[[option]]
+  smt_name   = "debug"
+  category   = "regular"
+  short      = "d"
+  long       = "debug=TAG"
+  type       = "std::string"
+  handler    = "enableDebugTag"
+  read_only  = true
+  help       = "debug something (e.g. -d arith), can repeat"
+
+[[option]]
+  name       = "printSuccess"
+  category   = "regular"
+  long       = "print-success"
+  type       = "bool"
+  notifies   = ["notifyPrintSuccess"]
+  read_only  = true
+  help       = "print the \"success\" output required of SMT-LIBv2"
+
+[[alias]]
+  category   = "regular"
+  long       = "smtlib-strict"
+  links      = ["--lang=smt2", "--output-lang=smt2", "--strict-parsing", "--default-expr-depth=-1", "--print-success", "--incremental", "--abstract-values"]
+  help       = "SMT-LIBv2 compliance mode (implies other options)"

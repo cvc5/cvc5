@@ -123,7 +123,7 @@ BitVectorProof* ProofManager::getBitVectorProof() {
 
 ArrayProof* ProofManager::getArrayProof() {
   Assert (options::proof());
-  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAY);
+  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAYS);
   return (ArrayProof*)pf;
 }
 
