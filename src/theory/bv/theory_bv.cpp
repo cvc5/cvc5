@@ -33,6 +33,7 @@
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
 #include "theory/valuation.h"
+#include "theory/ext_theory.h"
 
 using namespace CVC4::context;
 using namespace CVC4::theory::bv::utils;

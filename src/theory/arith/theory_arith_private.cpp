@@ -74,6 +74,7 @@
 #include "util/rational.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
+#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4::kind;

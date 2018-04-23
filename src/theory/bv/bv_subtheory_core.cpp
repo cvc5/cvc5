@@ -23,6 +23,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4;

@@ -21,6 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/theory_arith_private.h"
+#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4::kind;

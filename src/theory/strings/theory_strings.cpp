@@ -29,6 +29,7 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4::context;
