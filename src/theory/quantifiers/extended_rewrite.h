@@ -130,12 +130,13 @@ class ExtendedRewriter
    * ( A
    * 
    * This function takes as arguments the kinds that specify AND, OR, EQUAL,
-   * XOR, and NOT. It additionally takes as argument a map bcp_kinds, which
+   * and NOT. The equal kind eqk is interpreted as XOR if isXor is true.
+   * It additionally takes as argument a map bcp_kinds, which
    * serves the same purpose as the above function.
    * If this function returns a non-null node ret, then n ---> ret.
    */
   Node extendedRewriteEqRes(
-      Kind andk, Kind ork, Kind eqk, Kind xork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
+      Kind andk, Kind ork, Kind eqk, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n, bool isXor = false);
   /** (type-independent) Equality chain rewriting, for example:
    *
    *   A = ( A = B ) ---> B

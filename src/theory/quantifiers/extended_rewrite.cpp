@@ -155,7 +155,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     if( new_ret.isNull() )
     {
       // equality resolution
-      new_ret = extendedRewriteEqRes(AND, OR, EQUAL, XOR, NOT, bcp_kinds,ret);
+      new_ret = extendedRewriteEqRes(AND, OR, EQUAL, NOT, bcp_kinds,ret, false);
       debugExtendedRewrite(ret, new_ret, "Bool eq res");
     }
   }
@@ -725,18 +725,71 @@ Node ExtendedRewriter::extendedRewriteBcp(
 }
 
 Node ExtendedRewriter::extendedRewriteEqRes(
-    Kind andk, Kind ork, Kind eqk, Kind xork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n)
+    Kind andk, Kind ork, Kind eqk, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n, bool isXor)
 {
   Assert( n.getKind()==andk || n.getKind()==ork );
-  bool gpol = (n.getKind()==andk);
+  Trace("ext-rew-eqres") << "Eq res: **** INPUT: " << n << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Kind nk = n.getKind();
+  bool gpol = (nk==andk);
   for( unsigned i=0, nchild = n.getNumChildren(); i<nchild; i++ )
   {
     Node lit = n[i];
-    Node atom = lit.getKind()==notk ? lit[0] : lit;
-    bool apol = lit.getKind()!=notk;
-    if( atom.getKind()==eqk || atom.getKind()==xork )
+    if( lit.getKind()==eqk )
     {
-      
+      Node eq;
+      if( gpol==isXor )
+      {
+        // can only turn disequality into equality if types are the same
+        if( lit[1].getType()==lit.getType() )
+        {
+          // t != s ---> ~t = s
+          Assert( lit[1].getKind()!=notk );
+          eq = nm->mkNode( EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1] );
+        }
+      }
+      else
+      {
+        eq = eqk == EQUAL ? lit : nm->mkNode( EQUAL, lit[0], lit[1] );
+      }
+      if( !eq.isNull() )
+      {
+        // see if it corresponds to a substitution
+        std::vector< Node > vars;
+        std::vector< Node > subs;
+        if( inferSubstitution( eq, vars, subs ) )
+        {
+          Assert( vars.size()==1 );
+          std::vector< Node > children;
+          bool childrenChanged = false;
+          // apply to all other children
+          for( unsigned j=0; j<nchild; j++ )
+          {
+            Node ccs = n[j];
+            if( i!=j )
+            {
+              if (bcp_kinds.empty())
+              {
+                ccs = ccs.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+              }
+              else
+              {
+                std::map< Node, Node > assign;
+                assign[vars[0]] = subs[0];
+                // substitution is only applicable to compatible kinds
+                ccs = partialSubstitute(ccs, assign, bcp_kinds);
+              }
+              childrenChanged = childrenChanged || n[j]!=ccs;
+            }
+            children.push_back( ccs );
+          }
+          if( childrenChanged )
+          {
+            return nm->mkNode(nk,children);
+          }
+        }
+      }
     }
   }
   
@@ -974,6 +1027,15 @@ Node ExtendedRewriter::solveEquality(Node n)
   // TODO (#1706) : implement
   Assert(n.getKind() == EQUAL);
 
+
+  /*
+  if( n[0].getKind()==NOT )
+  {
+    // ~t = s ---> t = ~s
+    return n[0][0].eqNode( n[1].negate() );
+  }
+  */
+  
   return Node::null();
 }
 
