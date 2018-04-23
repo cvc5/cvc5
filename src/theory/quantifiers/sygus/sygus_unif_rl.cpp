@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inv_synth.cpp
+/*! \file sygus_unif_io.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
@@ -9,22 +9,17 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief implementation of class for specialized approaches for invariant
- ** synthesis
+ ** \brief Implementation of sygus_unif_rl
  **/
 
-#include "theory/quantifiers/sygus/invbe.h"
+#include "theory/quantifiers/sygus/sygus_unif_rl.h"
+
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void InvBE::getTermList(const std::vector<Node>& candidates,
-                        std::vector<Node>& enums)
-{
-  enums.insert(enums.end(), candidates.begin(), candidates.end());
-}
-
-}  // namespace quantifiers
-}  // namespace theory
-}  // namespace CVC4
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

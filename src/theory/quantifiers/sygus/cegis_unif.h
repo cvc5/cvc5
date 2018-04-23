@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inv_synth.h
+/*! \file cegis_unif.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
@@ -9,18 +9,18 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief class for specialized approaches for invariant synthesis
+ ** \brief cegis with unification techinques
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS__INVBE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS__INVBE_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#define __CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
 
 #include <map>
-#include <string>
 #include <vector>
 
 #include "theory/quantifiers/sygus/sygus_module.h"
+#include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,14 +45,14 @@ namespace quantifiers {
  *
  * This approach is inspired by Padhi et al. PLDI 2016
  */
-class InvBE : public SygusModule
+class CegisUnif : public SygusModule
 {
  public:
-  InvBE(QuantifiersEngine* qe, CegConjecture* p)
+  CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
       : SygusModule(qe, p), d_tds(qe->getTermDatabaseSygus())
   {
   }
-  ~InvBE() {}
+  ~CegisUnif() {}
   /** initialize this class
    *
    * If n can be broken into an inductive invariant synthesis problem, i.e. some
@@ -154,32 +154,14 @@ class InvBE : public SygusModule
  private:
   /** sygus term database of d_qe */
   TermDbSygus * d_tds;
-  /** Currently synthesized atomic expressions to separate points */
-  std::vector<Node> d_features;
-  /** Alias for type of points */
-  using IPoint = std::vector<Node>;
-  /** Good points */
-  std::vector<IPoint> d_good;
-  /** Feature vectors of good points */
-  std::map<IPoint, std::vector<bool>> d_good_vectors;
-  /** Bad points */
-  std::vector<IPoint> d_bad;
-  /** Feature vectors of bad points */
-  std::map<IPoint, std::vector<bool>> d_bad_vectors;
-  /** Relative points */
-  std::vector<std::pair<IPoint, IPoint>> d_relative;
-  /** Feature vectors of antecedents of relative points */
-  std::map<IPoint, std::vector<bool>> d_rel_ant_vectors;
-  /** Feature vectors of consequent of relative points */
-  std::map<IPoint, std::vector<bool>> d_rel_cons_vectors;
-  /** builds a CNF to separate good and bad valuations
-   *
-   * Applies a PAC (probably approximately correct) algorithm that tries to
-   * build CNFs of increasing size such that all valuations in "good" hold and
-   * all in "bad" do not. */
-  Node buildCNF(std::vector<IPoint> good, std::vector<IPoint> bad);
+  /**
+   * Map from candidates to sygus unif utility. This class implements
+   * the core algorithm (e.g. decision tree learning) that this module relies
+   * upon.
+   */
+  std::map<Node, SygusUnifRl> d_sygus_unif;
 
-}; /* class InvBE */
+}; /* class CegisUnif */
 
 }  // namespace quantifiers
 }  // namespace theory
