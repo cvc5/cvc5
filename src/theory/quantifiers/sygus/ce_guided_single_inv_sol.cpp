@@ -1220,7 +1220,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
   // them, return a proxy
   if (!options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst())
   {
-    sc = tds->getProxyVariable(tn,c);
+    sc = tds->getProxyVariable(tn, c);
   }
   else
   {

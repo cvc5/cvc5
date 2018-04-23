@@ -1482,7 +1482,8 @@ void SmtEngine::setDefaults() {
 
   // cases where we need produce models
   if (!options::produceModels()
-      && (options::produceAssignments() || options::sygusRewSynthCheck() || options::sygusRepairConst()))
+      && (options::produceAssignments() || options::sygusRewSynthCheck()
+          || options::sygusRepairConst()))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));

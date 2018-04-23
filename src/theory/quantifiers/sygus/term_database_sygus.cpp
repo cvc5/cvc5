@@ -105,14 +105,17 @@ bool TermDbSygus::hasFreeVar( Node n ) {
   return hasFreeVar( n, visited );
 }
 
-Node TermDbSygus::getProxyVariable( TypeNode tn, Node c )
+Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 {
-  Assert( tn.isDatatype() );
-  Assert( static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus() );
-  Assert( TypeNode::fromType( static_cast<DatatypeType>(tn.toType()).getDatatype().getSygusType() )==c.getType() );
-  
-  std::map< Node, Node >::iterator it = d_proxy_vars[tn].find( c );
-  if( it==d_proxy_vars[tn].end() )
+  Assert(tn.isDatatype());
+  Assert(static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus());
+  Assert(
+      TypeNode::fromType(
+          static_cast<DatatypeType>(tn.toType()).getDatatype().getSygusType())
+      == c.getType());
+
+  std::map<Node, Node>::iterator it = d_proxy_vars[tn].find(c);
+  if (it == d_proxy_vars[tn].end())
   {
     Node k = NodeManager::currentNM()->mkSkolem("sy", tn, "sygus proxy");
     SygusPrintProxyAttribute spa;
@@ -122,7 +125,7 @@ Node TermDbSygus::getProxyVariable( TypeNode tn, Node c )
   }
   return it->second;
 }
-  
+
 TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
   Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
   return d_fv_stype[v];

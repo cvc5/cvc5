@@ -146,9 +146,9 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   {
     // it may be repairable
     SygusRepairConst* src = d_parent->getRepairConst();
-    std::vector< Node > fail_cvs = candidate_values;
+    std::vector<Node> fail_cvs = candidate_values;
     candidate_values.clear();
-    if( src->repairSolution( candidates, fail_cvs, candidate_values) )
+    if (src->repairSolution(candidates, fail_cvs, candidate_values))
     {
       return true;
     }
