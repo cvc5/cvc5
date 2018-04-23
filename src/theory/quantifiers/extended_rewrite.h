@@ -120,6 +120,22 @@ class ExtendedRewriter
    */
   Node extendedRewriteBcp(
       Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
+  /** (type-independent) equality resolution, for example:
+   * 
+   *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
+   *   ( A V ~B ) & ( A = B ) ----> ( A = B )
+   *   ( A V B ) & ( A xor B ) ----> ( A xor B )
+   *   ( A & B ) V ( A xor B ) ----> B V ( A xor B )
+   * 
+   * ( A
+   * 
+   * This function takes as arguments the kinds that specify AND, OR, EQUAL,
+   * XOR, and NOT. It additionally takes as argument a map bcp_kinds, which
+   * serves the same purpose as the above function.
+   * If this function returns a non-null node ret, then n ---> ret.
+   */
+  Node extendedRewriteEqRes(
+      Kind andk, Kind ork, Kind eqk, Kind xork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
   /** (type-independent) Equality chain rewriting, for example:
    *
    *   A = ( A = B ) ---> B

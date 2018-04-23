@@ -152,6 +152,12 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     std::map<Kind, bool> bcp_kinds;
     new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, ret);
     debugExtendedRewrite(ret, new_ret, "Bool bcp");
+    if( new_ret.isNull() )
+    {
+      // equality resolution
+      new_ret = extendedRewriteEqRes(AND, OR, EQUAL, XOR, NOT, bcp_kinds,ret);
+      debugExtendedRewrite(ret, new_ret, "Bool eq res");
+    }
   }
   else if (ret.getKind() == EQUAL)
   {
@@ -718,6 +724,25 @@ Node ExtendedRewriter::extendedRewriteBcp(
   return Node::null();
 }
 
+Node ExtendedRewriter::extendedRewriteEqRes(
+    Kind andk, Kind ork, Kind eqk, Kind xork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n)
+{
+  Assert( n.getKind()==andk || n.getKind()==ork );
+  bool gpol = (n.getKind()==andk);
+  for( unsigned i=0, nchild = n.getNumChildren(); i<nchild; i++ )
+  {
+    Node lit = n[i];
+    Node atom = lit.getKind()==notk ? lit[0] : lit;
+    bool apol = lit.getKind()!=notk;
+    if( atom.getKind()==eqk || atom.getKind()==xork )
+    {
+      
+    }
+  }
+  
+  return Node::null();
+}
+  
 Node ExtendedRewriter::extendedRewriteEqChain(
     Kind eqk, Kind andk, Kind ork, Kind notk, Node ret, bool isXor)
 {
