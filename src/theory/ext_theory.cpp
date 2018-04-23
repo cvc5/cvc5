@@ -104,7 +104,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
 {
   if (useCache)
   {
-    for( const Node& n : terms )
+    for (const Node& n : terms)
     {
       Assert(d_gst_cache[effort].find(n) != d_gst_cache[effort].end());
       sterms.push_back(d_gst_cache[effort][n].d_sterm);
@@ -125,12 +125,12 @@ void ExtTheory::getSubstitutedTerms(int effort,
       std::vector<Node> vars;
       std::vector<Node> sub;
       std::map<Node, std::vector<Node> > expc;
-      for( const Node& n : terms )
+      for (const Node& n : terms)
       {
         // do substitution, rewrite
         std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
         Assert(iti != d_extf_info.end());
-        for( const Node& v : iti->second.d_vars )
+        for (const Node& v : iti->second.d_vars)
         {
           if (std::find(vars.begin(), vars.end(), v) == vars.end())
           {
@@ -141,7 +141,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
       bool useSubs = d_parent->getCurrentSubstitution(effort, vars, sub, expc);
       // get the current substitution for all variables
       Assert(!useSubs || vars.size() == sub.size());
-      for( const Node& n : terms )
+      for (const Node& n : terms)
       {
         Node ns = n;
         std::vector<Node> expn;
@@ -154,15 +154,14 @@ void ExtTheory::getSubstitutedTerms(int effort,
             // build explanation: explanation vars = sub for each vars in FV(n)
             std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
             Assert(iti != d_extf_info.end());
-            for( const Node& v : iti->second.d_vars )
+            for (const Node& v : iti->second.d_vars)
             {
               std::map<Node, std::vector<Node> >::iterator itx = expc.find(v);
               if (itx != expc.end())
               {
-                for( const Node& e : itx->second )
+                for (const Node& e : itx->second)
                 {
-                  if (std::find(expn.begin(), expn.end(), e)
-                      == expn.end())
+                  if (std::find(expn.begin(), expn.end(), e) == expn.end())
                   {
                     expn.push_back(e);
                   }
@@ -201,7 +200,7 @@ bool ExtTheory::doInferencesInternal(int effort,
     bool addedLemma = false;
     if (isRed)
     {
-      for( const Node& n : terms )
+      for (const Node& n : terms)
       {
         Node nr;
         // note: could do reduction with substitution here
@@ -273,7 +272,7 @@ bool ExtTheory::doInferencesInternal(int effort,
             else
             {
               // unsigned j = itsi->second;
-              // note : can add (non-reducing) lemma : 
+              // note : can add (non-reducing) lemma :
               //   exp[j] ^ exp[i] => sterms[i] = sterms[j]
             }
 
@@ -297,8 +296,8 @@ bool ExtTheory::doInferencesInternal(int effort,
   if (terms.empty())
   {
     for (NodeBoolMap::iterator it = d_ext_func_terms.begin();
-          it != d_ext_func_terms.end();
-          ++it)
+         it != d_ext_func_terms.end();
+         ++it)
     {
       if ((*it).second && !isContextIndependentInactive((*it).first))
       {
@@ -313,7 +312,7 @@ bool ExtTheory::doInferencesInternal(int effort,
   }
   else
   {
-    for( const Node& n : terms )
+    for (const Node& n : terms)
     {
       std::vector<Node> nterms;
       nterms.push_back(n);
@@ -407,13 +406,16 @@ void ExtTheory::registerTermRec(Node n)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
       registerTerm(cur);
-      for (const Node& cc : cur ){
+      for (const Node& cc : cur)
+      {
         visit.push_back(cc);
       }
     }
