@@ -62,10 +62,14 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
-	preprocessing/passes/int_to_bv.cpp \
-	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
+	preprocessing/passes/int_to_bv.cpp \
+	preprocessing/passes/int_to_bv.h \
+	preprocessing/passes/pseudo_boolean_processor.cpp \
+	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/symmetry_detect.cpp \
+	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -246,8 +250,6 @@ libcvc4_la_SOURCES = \
 	theory/arith/normal_form.h\
 	theory/arith/partial_model.cpp \
 	theory/arith/partial_model.h \
-	theory/arith/pseudoboolean_proc.cpp \
-	theory/arith/pseudoboolean_proc.h \
 	theory/arith/simplex.cpp \
 	theory/arith/simplex.h \
 	theory/arith/simplex_update.cpp \

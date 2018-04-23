@@ -24,11 +24,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "decision/decision_engine.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace preprocessing {

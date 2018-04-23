@@ -22,14 +22,13 @@ header = "options/strings_options.h"
   help       = "the strategy of LB rule application: 0-lazy, 1-eager, 2-no"
 
 [[option]]
-  name       = "stdASCII"
+  name       = "stdPrintASCII"
   category   = "regular"
-  long       = "strings-std-ascii"
+  long       = "strings-print-ascii"
   type       = "bool"
-  default    = "true"
-  predicates = ["unsignedLessEqual2"]
+  default    = "false"
   read_only  = true
-  help       = "the alphabet contains only characters from the standard ASCII or the extended one"
+  help       = "the alphabet contains only printable characters from the standard extended ASCII"
 
 [[option]]
   name       = "stringFMF"
