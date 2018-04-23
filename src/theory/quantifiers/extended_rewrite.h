@@ -127,8 +127,6 @@ class ExtendedRewriter
    *   ( A V B ) & ( A xor B ) ----> ( A xor B )
    *   ( A & B ) V ( A xor B ) ----> B V ( A xor B )
    *
-   * ( A
-   *
    * This function takes as arguments the kinds that specify AND, OR, EQUAL,
    * and NOT. The equal kind eqk is interpreted as XOR if isXor is true.
    * It additionally takes as argument a map bcp_kinds, which
