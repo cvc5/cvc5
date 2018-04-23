@@ -160,9 +160,9 @@ class ExtTheory
   /** get the set of all extended function terms from d_ext_func_terms */
   void getTerms(std::vector<Node>& terms);
   /** is there at least one active extended function term? */
-  bool hasActiveTerm();
+  bool hasActiveTerm() const;
   /** is n an active extended function term? */
-  bool isActive(Node n);
+  bool isActive(Node n) const;
   /** get the set of active terms from d_ext_func_terms */
   std::vector<Node> getActive() const;
   /** get the set of active terms from d_ext_func_terms of kind k */
