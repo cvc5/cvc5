@@ -23,9 +23,9 @@
 
 #include "base/cvc4_assert.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/substitutions.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/ext_theory.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/substitutions.h"
 
 using namespace std;
 

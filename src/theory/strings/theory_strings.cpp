@@ -20,16 +20,16 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt/command.h"
+#include "theory/ext_theory.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/type_enumerator.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4::context;

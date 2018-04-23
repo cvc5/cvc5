@@ -24,9 +24,9 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/ext_theory.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/theory_model.h"
-#include "theory/ext_theory.h"
 
 using namespace CVC4::kind;
 
