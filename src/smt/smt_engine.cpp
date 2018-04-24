@@ -73,6 +73,7 @@
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_to_bool.h"
+#include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -2176,6 +2177,42 @@ void SmtEngine::setDefaults() {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
     setOption("incremental", SExpr("false"));
   }
+
+  if (options::proof())
+  {
+    if (options::bitvectorAlgebraicSolver())
+    {
+      if (options::bitvectorAlgebraicSolver.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-algebraic-solver is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv algebraic solver to support proofs"
+               << std::endl;
+      options::bitvectorAlgebraicSolver.set(false);
+    }
+    if (options::bitvectorEqualitySolver())
+    {
+      if (options::bitvectorEqualitySolver.wasSetByUser())
+      {
+        throw OptionException("--bv-eq-solver is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv eq solver to support proofs"
+               << std::endl;
+      options::bitvectorEqualitySolver.set(false);
+    }
+    if (options::bitvectorInequalitySolver())
+    {
+      if (options::bitvectorInequalitySolver.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-inequality-solver is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv ineq solver to support proofs"
+               << std::endl;
+      options::bitvectorInequalitySolver.set(false);
+    }
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)
@@ -4273,6 +4310,13 @@ void SmtEnginePrivate::processAssertions() {
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
+
+  if (options::symmetryDetect())
+  {
+    SymmetryDetect symd;
+    vector<vector<Node>> part;
+    symd.getPartition(part, d_assertions.ref());
+  }
 
   dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {

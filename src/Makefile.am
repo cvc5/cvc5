@@ -72,6 +72,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_to_bool.cpp \
 	preprocessing/passes/bv_to_bool.h \
+	preprocessing/passes/symmetry_detect.cpp \
+	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
