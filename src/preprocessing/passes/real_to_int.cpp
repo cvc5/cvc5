@@ -17,10 +17,7 @@
 #include "preprocessing/passes/real_to_int.h"
 
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-#include "expr/node.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -191,9 +188,9 @@ PreprocessingPassResult RealToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   unordered_map<Node, Node, NodeHashFunction> cache;
+  std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    std::vector<Node> var_eq;
     assertionsToPreprocess->replace(
         i, realToIntInternal((*assertionsToPreprocess)[i], cache, var_eq));
   }
