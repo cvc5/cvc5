@@ -744,6 +744,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
     Node lit = n[i];
     if (lit.getKind() == eqk)
     {
+      // eq is the equality we are basing a substitution on
       Node eq;
       if (gpol == isXor)
       {
@@ -783,6 +784,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
               else
               {
                 std::map<Node, Node> assign;
+                // vars.size()==subs.size()==1
                 assign[vars[0]] = subs[0];
                 // substitution is only applicable to compatible kinds
                 ccs = partialSubstitute(ccs, assign, bcp_kinds);
@@ -1033,14 +1035,6 @@ Node ExtendedRewriter::solveEquality(Node n)
 {
   // TODO (#1706) : implement
   Assert(n.getKind() == EQUAL);
-
-  /*
-  if( n[0].getKind()==NOT )
-  {
-    // ~t = s ---> t = ~s
-    return n[0][0].eqNode( n[1].negate() );
-  }
-  */
 
   return Node::null();
 }
