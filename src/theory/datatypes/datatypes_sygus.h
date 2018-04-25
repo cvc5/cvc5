@@ -40,10 +40,10 @@ namespace datatypes {
 
 class TheoryDatatypes;
 
-/** 
+/**
  * This is the sygus extension of the decision procedure for quantifier-free
- * inductive datatypes. 
- * 
+ * inductive datatypes.
+ *
  */
 class SygusSymBreakNew
 {
@@ -57,10 +57,10 @@ class SygusSymBreakNew
                    quantifiers::TermDbSygus* tds,
                    context::Context* c);
   ~SygusSymBreakNew();
-  /** 
+  /**
    * Notify this class that tester for constructor tindex has been asserted for
-   * n. Exp is the literal corresponding to this tester. This method may add 
-   * lemmas to the vector lemmas, for details see assertTesterInternal below. 
+   * n. Exp is the literal corresponding to this tester. This method may add
+   * lemmas to the vector lemmas, for details see assertTesterInternal below.
    * These lemmas are sent out on the output channel of datatypes by the caller.
    */
   void assertTester(int tindex, TNode n, Node exp, std::vector<Node>& lemmas);
@@ -73,26 +73,26 @@ class SygusSymBreakNew
    */
   void assertFact(Node n, bool polarity, std::vector<Node>& lemmas);
   /** pre-register term n
-   * 
+   *
    * This is called when n is pre-registered with the theory of datatypes.
    * If n is a sygus enumerator, then we may add lemmas to the vector lemmas
    * that are used to enforce fairness regarding the size of n.
    */
   void preRegisterTerm(TNode n, std::vector<Node>& lemmas);
-  /** check 
+  /** check
    *
    * This is called at last call effort, when the current model assignment is
-   * satisfiable according to the quantifier-free decision procedures and a 
+   * satisfiable according to the quantifier-free decision procedures and a
    * model is built. This method may add lemmas to the vector lemmas based
    * on dynamic symmetry breaking techniques, based on the model value of
    * all preregistered enumerators.
    */
   void check(std::vector<Node>& lemmas);
   /** get next decision request
-   * 
+   *
    * This function has the same interface as Theory::getNextDecisionRequest.
-   * 
-   * The decisions returned by this method 
+   *
+   * The decisions returned by this method
    */
   Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
 
@@ -101,9 +101,9 @@ class SygusSymBreakNew
   TheoryDatatypes* d_td;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
-  /** 
-   * Map from terms to the index of the tester that is asserted for them in 
-   * the current SAT context. In other words, if d_testers[n] = 2, then the 
+  /**
+   * Map from terms to the index of the tester that is asserted for them in
+   * the current SAT context. In other words, if d_testers[n] = 2, then the
    * tester is-C_2(n) is asserted in this SAT context.
    */
   IntMap d_testers;
@@ -112,8 +112,8 @@ class SygusSymBreakNew
    * d_testers[n] = is-C_2(n).
    */
   NodeMap d_testers_exp;
-  /** 
-   * The set of (selector chain) terms that are active in the current SAT 
+  /**
+   * The set of (selector chain) terms that are active in the current SAT
    * context. A selector chain term S_n( ... S_1( x )... ) is active if either:
    * (1) n=0 and x is a sygus enumerator,
    *   or:
@@ -122,9 +122,9 @@ class SygusSymBreakNew
    * (2.3) S_n is a selector for constructor C.
    */
   NodeSet d_active_terms;
-  /** 
-   * Map from enumerators to a lower bound on their size in the current SAT 
-   * context. 
+  /**
+   * Map from enumerators to a lower bound on their size in the current SAT
+   * context.
    */
   IntMap d_currTermSize;
   /** zero */
@@ -389,33 +389,34 @@ private:
 
   /** Get the canonical free variable for type tn */
   TNode getFreeVar( TypeNode tn );
-  /** get term order predicate 
-   * 
-   * Assuming that n1 and n2 are children of a commutative operator, this 
+  /** get term order predicate
+   *
+   * Assuming that n1 and n2 are children of a commutative operator, this
    * returns a symmetry breaking predicate that can be instantiated for n1 and
    * n2 while preserving satisfiability. By default, this is the predicate
    *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
    */
   Node getTermOrderPredicate( Node n1, Node n2 );
+
  private:
- /**
-  * Map from registered variables to whether they are a sygus enumerator.
-  *
-  * This should be user context-dependent if sygus is updated to work in
-  * incremental mode.
-  */
- std::map<Node, bool> d_register_st;
- //----------------------search size information
- /** 
-  * Checks whether e is a sygus enumerator (a term for which this class will
-  * track size for). If so, it initializes the information below for e and
-  * adds the necessary lemmas to lemmas.
-  */
- void registerSizeTerm(Node e, std::vector<Node>& lemmas);
- /** information for each enumerator preregistered to this class */
- class SearchSizeInfo
- {
-  public:
+  /**
+   * Map from registered variables to whether they are a sygus enumerator.
+   *
+   * This should be user context-dependent if sygus is updated to work in
+   * incremental mode.
+   */
+  std::map<Node, bool> d_register_st;
+  //----------------------search size information
+  /**
+   * Checks whether e is a sygus enumerator (a term for which this class will
+   * track size for). If so, it initializes the information below for e and
+   * adds the necessary lemmas to lemmas.
+   */
+  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+  /** information for each enumerator preregistered to this class */
+  class SearchSizeInfo
+  {
+   public:
     SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
     Node d_this;
     std::map< unsigned, Node > d_search_size_exp;
@@ -446,16 +447,16 @@ private:
   void registerMeasureTerm( Node m );
   unsigned getSearchSizeFor( Node n );
   unsigned getSearchSizeForAnchor( Node n );
-  /** 
-   * Get the current search size for enumerator (also called "measure term") m 
+  /**
+   * Get the current search size for enumerator (also called "measure term") m
    * in this SAT context.
    */
   unsigned getSearchSizeForMeasureTerm(Node m);
 
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
- //----------------------end search size information
-  bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
-  /** 
+  //----------------------end search size information
+  bool debugTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted
    * false, and 0 if it is not asserted.

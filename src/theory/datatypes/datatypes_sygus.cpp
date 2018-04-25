@@ -99,7 +99,8 @@ void SygusSymBreakNew::assertTester( int tindex, TNode n, Node exp, std::vector<
 }
 
 void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& lemmas ) {
-  if( n.getKind()==kind::DT_SYGUS_BOUND ){
+  if (n.getKind() == kind::DT_SYGUS_BOUND)
+  {
     Node m = n[0];
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
     registerMeasureTerm( m );
