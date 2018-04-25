@@ -26,7 +26,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Synthesizes invariants in a "by-examples" approach
+/** Synthesizes functions in a "by-examples" approach
+ *
+ * For function synthesis it generates a set of examples based on the refinement
+ * lemmas generated through the regular CEGIS approach
+ *
+ * For invariant synthesis it works as follows:
  *
  * Successively performs strengthening and weakining of candidate invariants
  * based on counterexamples produced while verifying that a candidate invariant
@@ -43,7 +48,8 @@ namespace quantifiers {
  * with the boolean structure of the invariant being derived afterwards when it
  * is guaranteed to succeed with an algorithm that favors small CNFs.
  *
- * This approach is inspired by Padhi et al. PLDI 2016
+ * This approach is inspired by the invariant synthesis based on the ICE
+ * framework from Garg et al. and the approach in Padhi et al. PLDI 2016
  */
 class CegisUnif : public SygusModule
 {
@@ -54,6 +60,8 @@ class CegisUnif : public SygusModule
   }
   ~CegisUnif() {}
   /** initialize this class
+   *
+   * For invariant synthesis it works as follows:
    *
    * If n can be broken into an inductive invariant synthesis problem, i.e. some
    * processed form equisatisfiable to
@@ -76,7 +84,9 @@ class CegisUnif : public SygusModule
   /** adds the candidate itself to enums */
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& enums) override;
-  /** Tries to build new candidate invariant with new enumerated expresion
+  /** Tries to build new candidate with new enumerated expresion
+   *
+   * For invariant synthesis it works as follows:
    *
    * This module keeps sets of points which are used to guide invariant
    * synthesis. A point is a valuation to the state variables of the transition
@@ -109,7 +119,11 @@ class CegisUnif : public SygusModule
    * feature to try to solve the conflicts.
    *
    * Once points can be separated without conflicts, a CNF is built (not using
-   * synthesis) with the features, thus yielding the candidate invariant. */
+   * synthesis) with the features, thus yielding the candidate invariant.
+   *
+   * The spearation of the points is left for a core algorithm (e.g. decision
+   * tree learning) this module depends on.
+   */
   virtual bool constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
                                    const std::vector<Node>& candidates,
@@ -117,6 +131,10 @@ class CegisUnif : public SygusModule
                                    std::vector<Node>& lems) override;
 
   /** Performs conflict analysis to obtain refinement points
+   *
+   * For function synthesis the lemma is registered as it is.
+   *
+   * For invariant synthesis it works as follows:
    *
    * The conjecture being tested with our candidate has (some equivalent of) the
    * form
@@ -142,9 +160,8 @@ class CegisUnif : public SygusModule
    * Good points are derived from t in case (1) and bad points from t in case
    * (2.1). Relative points compose a pair with [t, t'], from case (2.2).
    *
-   * Conflict analysis is complicated since the conjecture generally does not
-   * have the above form, since it may have been rewritten and x' may be a
-   * function of x.
+   * Conflict analysis amounts to simplifying the refinement lemma, which will
+   * yield one of the three cases
    *
    * This function does not modify lems since it does not require solutions to
    * be blocked externally */
@@ -155,9 +172,8 @@ class CegisUnif : public SygusModule
   /** sygus term database of d_qe */
   TermDbSygus * d_tds;
   /**
-   * Map from candidates to sygus unif utility. This class implements
-   * the core algorithm (e.g. decision tree learning) that this module relies
-   * upon.
+   * Map from candidates to sygus unif utility. This class implements the core
+   * algorithm (e.g. decision tree learning) that this module relies upon.
    */
   std::map<Node, SygusUnifRl> d_sygus_unif;
 
