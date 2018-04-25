@@ -62,8 +62,9 @@ class UFProof : public TheoryProof {
 protected:
   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
+  theory::TheoryId getTheoryId();
 
-public:
+ public:
   UFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine);
 
   void registerTerm(Expr term) override;
