@@ -154,6 +154,7 @@ REG0_TESTS = \
 	regress0/bug605.cvc \
 	regress0/bug639.smt2 \
 	regress0/buggy-ite.smt2 \
+	regress0/bv/bool-to-bv.smt2 \
 	regress0/bv/bug260a.smt \
 	regress0/bv/bug260b.smt \
 	regress0/bv/bug440.smt \
@@ -161,6 +162,7 @@ REG0_TESTS = \
 	regress0/bv/bug734.smt2 \
 	regress0/bv/bv-int-collapse1.smt2 \
 	regress0/bv/bv-int-collapse2.smt2 \
+	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv-options1.smt2 \
 	regress0/bv/bv-options2.smt2 \
 	regress0/bv/bv-options3.smt2 \
