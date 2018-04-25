@@ -1021,7 +1021,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_tf_region.clear();
   d_tf_check_model_bounds.clear();
   d_waiting_lemmas.clear();
-  
+
   int lemmas_proc = 0;
   std::vector<Node> lemmas;
   NodeManager* nm = NodeManager::currentNM();
@@ -1642,7 +1642,6 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
       NodeManager::currentNM()->mkNode(LEQ, d_pi, d_pi_bound[1]));
   lemmas.push_back( pi_lem );
 }
-
 
 Node NonlinearExtension::getApproximateConstant(Node c,
                                                 bool isLower,

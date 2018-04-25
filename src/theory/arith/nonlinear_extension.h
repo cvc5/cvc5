@@ -474,14 +474,15 @@ class NonlinearExtension {
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
   std::vector<Node> d_waiting_lemmas;
-  
+
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
   /** print rational approximation */
   void printRationalApprox(const char* c, Node cr, unsigned prec = 5) const;
   /** print model value */
   void printModelValue(const char* c, Node n, unsigned prec = 5) const;
-private:
+
+ private:
   //per last-call effort check
   
   //information about monomials
@@ -576,7 +577,7 @@ private:
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
   unsigned d_taylor_degree;
-  
+
   /**
    * Get a lower/upper approximation of the constant r within the given
    * level of precision. In other words, this returns a constant c' such that
