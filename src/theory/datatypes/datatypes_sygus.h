@@ -40,6 +40,11 @@ namespace datatypes {
 
 class TheoryDatatypes;
 
+/** 
+ * This is the sygus extension of the decision procedure for quantifier-free
+ * inductive datatypes. 
+ * 
+ */
 class SygusSymBreakNew
 {
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
@@ -52,11 +57,43 @@ class SygusSymBreakNew
                    quantifiers::TermDbSygus* tds,
                    context::Context* c);
   ~SygusSymBreakNew();
-  /** add tester */
+  /** 
+   * Notify this class that tester for constructor tindex has been asserted for
+   * n. Exp is the literal corresponding to this tester. This method may add 
+   * lemmas to the vector lemmas, for details see assertTesterInternal below. 
+   * These lemmas are sent out on the output channel of datatypes by the caller.
+   */
   void assertTester(int tindex, TNode n, Node exp, std::vector<Node>& lemmas);
+  /**
+   * Notify this class that literal n has been asserted with the given
+   * polarity. This method may add lemmas to the vector lemmas, for instance
+   * based on inferring consequences of (not) n. One example is if n is
+   * (DT_SIZE_BOUND x n), we add the lemma:
+   *   (DT_SIZE_BOUND x n) <=> ((DT_SIZE x) <= n )
+   */
   void assertFact(Node n, bool polarity, std::vector<Node>& lemmas);
+  /** pre-register term n
+   * 
+   * This is called when n is pre-registered with the theory of datatypes.
+   * If n is a sygus enumerator, then we may add lemmas to the vector lemmas
+   * that are used to enforce fairness regarding the size of n.
+   */
   void preRegisterTerm(TNode n, std::vector<Node>& lemmas);
+  /** check 
+   *
+   * This is called at last call effort, when the current model assignment is
+   * satisfiable according to the quantifier-free decision procedures and a 
+   * model is built. This method may add lemmas to the vector lemmas based
+   * on dynamic symmetry breaking techniques, based on the model value of
+   * all preregistered enumerators.
+   */
   void check(std::vector<Node>& lemmas);
+  /** get next decision request
+   * 
+   * This function has the same interface as Theory::getNextDecisionRequest.
+   * 
+   * The decisions returned by this method 
+   */
   Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
 
  private:
@@ -64,11 +101,33 @@ class SygusSymBreakNew
   TheoryDatatypes* d_td;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
+  /** 
+   * Map from terms to the index of the tester that is asserted for them in 
+   * the current SAT context. In other words, if d_testers[n] = 2, then the 
+   * tester is-C_2(n) is asserted in this SAT context.
+   */
   IntMap d_testers;
-  IntMap d_is_const;
+  /**
+   * Map from terms to the tester asserted for them. In the example above,
+   * d_testers[n] = is-C_2(n).
+   */
   NodeMap d_testers_exp;
+  /** 
+   * The set of (selector chain) terms that are active in the current SAT 
+   * context. A selector chain term S_n( ... S_1( x )... ) is active if either:
+   * (1) n=0 and x is a sygus enumerator,
+   *   or:
+   * (2.1) S_{n-1}( ... S_1( x )) is active,
+   * (2.2) is-C( S_{n-1}( ... S_1( x )) ) is asserted in this SAT context, and
+   * (2.3) S_n is a selector for constructor C.
+   */
   NodeSet d_active_terms;
+  /** 
+   * Map from enumerators to a lower bound on their size in the current SAT 
+   * context. 
+   */
   IntMap d_currTermSize;
+  /** zero */
   Node d_zero;
   /**
    * Map from terms (selector chains) to their anchors. The anchor of a
@@ -339,6 +398,11 @@ private:
   * incremental mode.
   */
  std::map<Node, bool> d_register_st;
+ /** 
+  * Checks whether e is a sygus enumerator (a term for which this class will
+  * track size for). If so, it initializes the information below for e and
+  * adds the necessary lemmas to lemmas.
+  */
  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
  class SearchSizeInfo
  {
@@ -381,8 +445,6 @@ private:
   bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   int getGuardStatus( Node g );
-private:
-  void assertIsConst( Node n, bool polarity, std::vector< Node >& lemmas );
 };
 
 }

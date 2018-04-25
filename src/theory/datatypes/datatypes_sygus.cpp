@@ -40,7 +40,6 @@ SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
     : d_td(td),
       d_tds(tds),
       d_testers(c),
-      d_is_const(c),
       d_testers_exp(c),
       d_active_terms(c),
       d_currTermSize(c) {
@@ -100,14 +99,7 @@ void SygusSymBreakNew::assertTester( int tindex, TNode n, Node exp, std::vector<
 }
 
 void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& lemmas ) {
-  if( n.getKind()==kind::DT_SYGUS_TERM_ORDER ){
-    if( polarity ){
-      Trace("sygus-sb-torder") << "Sygus term order : " << n[0] << " < " << n[1] << std::endl;
-      Node comm_sb = getTermOrderPredicate( n[0], n[1] );
-      Node comm_lem = NodeManager::currentNM()->mkNode( kind::OR, n.negate(), comm_sb );
-      lemmas.push_back( comm_lem );
-    }
-  }else if( n.getKind()==kind::DT_SYGUS_BOUND ){
+  if( n.getKind()==kind::DT_SYGUS_BOUND ){
     Node m = n[0];
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
     registerMeasureTerm( m );
@@ -123,54 +115,9 @@ void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& l
       unsigned s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
       notifySearchSize( m, s, n, lemmas );
     }
-  }else if( n.getKind() == kind::DT_SYGUS_IS_CONST ){
-    assertIsConst( n[0], polarity, lemmas );
   }else if( n.getKind() == kind::DT_HEIGHT_BOUND || n.getKind()==DT_SIZE_BOUND ){
     //reduce to arithmetic TODO ?
 
-  }
-}
-
-void SygusSymBreakNew::assertIsConst( Node n, bool polarity, std::vector< Node >& lemmas ) {
-  if( d_active_terms.find( n )!=d_active_terms.end() ) {
-    // what kind of constructor is n?
-    IntMap::const_iterator itt = d_testers.find( n );
-    Assert( itt!=d_testers.end() );
-    int tindex = (*itt).second;
-    TypeNode tn = n.getType();
-    const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-    Node lem;
-    if( dt[tindex].getNumArgs()==0 ){
-      // is this a constant?
-      Node sygus_op = Node::fromExpr( dt[tindex].getSygusOp() );
-      if( sygus_op.isConst()!=polarity ){
-        lem = NodeManager::currentNM()->mkNode( kind::DT_SYGUS_IS_CONST, n );
-        if( polarity ){
-          lem.negate();
-        }
-      }
-    }else{
-      // reduce
-      std::vector< Node > child_conj;
-      for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
-        Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( tn.toType(), j ) ), n );
-        child_conj.push_back( NodeManager::currentNM()->mkNode( kind::DT_SYGUS_IS_CONST, sel ) );
-      }
-      lem = child_conj.size()==1 ? child_conj[0] : NodeManager::currentNM()->mkNode( kind::AND, child_conj );
-      // only an implication (TODO : strengthen?)
-      lem = NodeManager::currentNM()->mkNode( kind::OR, lem.negate(), NodeManager::currentNM()->mkNode( kind::DT_SYGUS_IS_CONST, n ) );
-    }
-    if( !lem.isNull() ){
-      Trace("sygus-isc") << "Sygus is-const lemma : " << lem << std::endl;
-      Node rlv = getRelevancyCondition( n );
-      if( !rlv.isNull() ){
-        lem = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), lem );
-      }
-      lemmas.push_back( lem );
-    }
-  }else{
-    // lazy
-    d_is_const[n] = polarity ? 1 : -1;
   }
 }
 
@@ -268,13 +215,6 @@ bool SygusSymBreakNew::computeTopLevel( TypeNode tn, Node n ){
 void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas ) {
   d_active_terms.insert( n );
   Trace("sygus-sb-debug2") << "Sygus : activate term : " << n << " : " << exp << std::endl;  
-  
-  /* TODO
-  IntMap::const_iterator itisc = d_is_const.find( n );
-  if( itisc != d_is_const.end() ){
-    assertIsConst( n, (*itisc).second==1, lemmas );
-  }
-  */
   
   TypeNode ntn = n.getType();
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
@@ -502,21 +442,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             if( quantifiers::TermUtil::isComm( nk ) ){
               if( children.size()==2 ){
                 if( children[0].getType()==children[1].getType() ){
-  #if 0
-                  Node order_pred = NodeManager::currentNM()->mkNode( DT_SYGUS_TERM_ORDER, children[0], children[1] );
-                  sbp_conj.push_back( order_pred );
-                  Node child11 = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( tn.toType(), 1 ) ), children[0] );
-                  Assert( child11.getType()==children[1].getType() );
-                  //chainable
-                  if( children[0].getType()==tn ){
-                    Node order_pred_trans = NodeManager::currentNM()->mkNode( OR, DatatypesRewriter::mkTester( children[0], tindex, dt ).negate(),
-                                                                              NodeManager::currentNM()->mkNode( DT_SYGUS_TERM_ORDER, child11, children[1] ) );
-                    sbp_conj.push_back( order_pred_trans );
-                  }
-  #else   
                   Node order_pred = getTermOrderPredicate( children[0], children[1] );
                   sbp_conj.push_back( order_pred );
-  #endif
                 }
               }
             }
