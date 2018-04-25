@@ -988,6 +988,7 @@ REG1_TESTS = \
 	regress1/arith/mod.03.smt2 \
 	regress1/arith/mult.02.smt2 \
 	regress1/arith/problem__003.smt2 \
+	regress1/arith/real2int-test.smt2 \
 	regress1/arrayinuf_error.smt2 \
 	regress1/aufbv/bug580.smt2 \
 	regress1/aufbv/fuzz10.smt \
