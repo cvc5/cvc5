@@ -142,8 +142,8 @@ private:
   std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
   /** CEGIS module */
   std::unique_ptr<Cegis> d_ceg_cegis;
-  /** InvBE module */
-  std::unique_ptr<InvBE> d_ceg_invbe;
+  /** CEGIS UNIF module */
+  std::unique_ptr<CegisUnif> d_ceg_cegisUnif;
   /** the set of active modules (subset of the above list) */
   std::vector<SygusModule*> d_modules;
   /** master module
