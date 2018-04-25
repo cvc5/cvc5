@@ -2061,10 +2061,6 @@ void SmtEngine::setDefaults() {
     }
   }
   if( options::dtStcInduction() ){
-    //leads to unfairness FIXME
-    if( !options::dtForceAssignment.wasSetByUser() ){
-      options::dtForceAssignment.set( true );
-    }
     //try to remove ITEs from quantified formulas
     if( !options::iteDtTesterSplitQuant.wasSetByUser() ){
       options::iteDtTesterSplitQuant.set( true );
