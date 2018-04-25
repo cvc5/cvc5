@@ -32,9 +32,9 @@ namespace bv {
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
     : TBitblaster<Node>(),
+      d_nullContext(new context::Context()),
       d_satSolver(),
       d_bitblastingRegistrar(new BitblastingRegistrar(this)),
-      d_nullContext(new context::Context()),
       d_cnfStream(),
       d_bv(theory_bv),
       d_bbAtoms(),
