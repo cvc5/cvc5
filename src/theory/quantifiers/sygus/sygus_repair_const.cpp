@@ -56,8 +56,8 @@ void SygusRepairConst::initialize(Node base_inst,
   // for quantified constraints.
   d_easy_quantified_logic = true;
   LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
-  if (logic.isTheoryEnabled(THEORY_BITVECTORS)
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())))
+  if (logic.isTheoryEnabled(THEORY_BV)
+      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
   {
     d_easy_quantified_logic = false;
   }

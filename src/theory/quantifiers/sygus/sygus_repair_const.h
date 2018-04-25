@@ -95,7 +95,7 @@ class SygusRepairConst
    * quantified queries in. Currently, we say the logic is not easy if
    * bit-vectors or non-linear arithmetic are enabled.
    */
-  bool d_easy_logic;
+  bool d_easy_quantified_logic;
   /** map from skeleton variables to first-order variables */
   std::map<Node, Node> d_sk_to_fo;
   /** reverse map of d_sk_to_fo */
