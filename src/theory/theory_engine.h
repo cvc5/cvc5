@@ -35,7 +35,6 @@
 #include "smt/command.h"
 #include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
-#include "theory/bv/bv_to_bool.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
@@ -851,11 +850,8 @@ private:
   UnconstrainedSimplifier* d_unconstrainedSimp;
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
-  theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor;
 public:
   void staticInitializeBVOptions(const std::vector<Node>& assertions);
-  void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-  void ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   void mkAckermanizationAssertions(std::vector<Node>& assertions);
 

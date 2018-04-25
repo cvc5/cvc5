@@ -62,10 +62,18 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
-	preprocessing/passes/int_to_bv.cpp \
-	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
+	preprocessing/passes/int_to_bv.cpp \
+	preprocessing/passes/int_to_bv.h \
+	preprocessing/passes/pseudo_boolean_processor.cpp \
+	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/bool_to_bv.cpp \
+	preprocessing/passes/bool_to_bv.h \
+	preprocessing/passes/bv_to_bool.cpp \
+	preprocessing/passes/bv_to_bool.h \
+	preprocessing/passes/symmetry_detect.cpp \
+	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -246,8 +254,6 @@ libcvc4_la_SOURCES = \
 	theory/arith/normal_form.h\
 	theory/arith/partial_model.cpp \
 	theory/arith/partial_model.h \
-	theory/arith/pseudoboolean_proc.cpp \
-	theory/arith/pseudoboolean_proc.h \
 	theory/arith/simplex.cpp \
 	theory/arith/simplex.h \
 	theory/arith/simplex_update.cpp \
@@ -320,8 +326,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_core.h \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_subtheory_inequality.h \
-	theory/bv/bv_to_bool.cpp \
-	theory/bv/bv_to_bool.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
 	theory/bv/slicer.cpp \
@@ -371,6 +375,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bv_inverter.cpp \
 	theory/quantifiers/bv_inverter.h \
+	theory/quantifiers/candidate_rewrite_database.cpp \
+	theory/quantifiers/candidate_rewrite_database.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \

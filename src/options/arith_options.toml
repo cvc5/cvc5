@@ -478,15 +478,6 @@ header = "options/arith_options.h"
   help       = "do rewrites in non-linear solver"
 
 [[option]]
-  name       = "nlExtSolveSubs"
-  category   = "regular"
-  long       = "nl-ext-solve-subs"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "do solving for determining constant substitutions"
-
-[[option]]
   name       = "nlExtPurify"
   category   = "regular"
   long       = "nl-ext-purify"
