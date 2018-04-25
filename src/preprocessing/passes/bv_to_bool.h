@@ -48,7 +48,7 @@ class BVToBool : public PreprocessingPass
     IntStat d_numTermsForcedLifted;
     Statistics();
     ~Statistics();
-  };        
+  };
   void addToBoolCache(TNode term, Node new_term);
   Node getBoolCache(TNode term) const;
   bool hasBoolCache(TNode term) const;

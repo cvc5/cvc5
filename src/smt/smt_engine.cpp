@@ -68,11 +68,11 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_gauss.h"
+#include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/bool_to_bv.h"
-#include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -1225,7 +1225,7 @@ SmtEngine::~SmtEngine()
 
     d_definedFunctions->deleteSelf();
     d_fmfRecFunctionsDefined->deleteSelf();
-    
+
     //destroy all passes before destroying things that they refer to
     d_private->unregisterPreprocessingPasses();
 
