@@ -176,7 +176,28 @@ class CegisUnif : public SygusModule
    * algorithm (e.g. decision tree learning) that this module relies upon.
    */
   std::map<Node, SygusUnifRl> d_sygus_unif;
+  /** for each function-to-synthesize, its set of constraints */
+  std::map<Node, std::vector<std::vector<Node>>> d_constraints;
 
+  /** for each function-to-synthesize f whether the conjecture is point-wise for
+  * that variable, i.e. whether all occurrences In other words, all occurrences of f are guarded by equalities
+  * that constraint its arguments to constants.
+  */
+  std::map< Node, bool > d_examples_invalid;
+
+
+  /** collect the conjunctive constraints in n
+   *
+   * This is called on the input conjecture, and will populate the above vectors
+   * for each function to synthesize
+   *
+   * hasPol: whether n has a polarity (e.g. not the first chield of an ITE)
+   * pol: polarity of n
+  */
+  void collectConstraints(Node n,
+                          std::map<Node, bool>& visited,
+                          bool hasPol,
+                          bool pol);
 }; /* class CegisUnif */
 
 }  // namespace quantifiers
