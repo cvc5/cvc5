@@ -250,11 +250,10 @@ protected:
    * Inputs:
    *    - pf: equality engine proof
    *    - map: A map for the let-expressions in the proof
-   *    - theoryId: e.g. theory::THEORY_ARRAYS
-   *    - pPrettyPrinter: optional pretty printer for sub-proofs
-   * Outputs:
-   *    - neg: the index of the contradicting node in pf.
    *    - subTrans: main transitivity proof part
+   *    - pPrettyPrinter: optional pretty printer for sub-proofs
+   * returns:
+   *    - the index of the contradicting node in pf.
    *    */
   int assertAndPrint(
       const theory::eq::EqProof& pf,
@@ -266,17 +265,17 @@ protected:
    * Helper function for ProofUF::toStreamRecLFSC and
    * ProofArray::toStreamRecLFSC
    * Inputs:
-   *    - theoryId: e.g. theory::THEORY_ARRAYS
    *    - evenLengthSequence: true iff the length of the sequence
    *                          of the identical equalities is even.
    *    - sequenceOver: have we reached the last equality of this sequence?
    *    - pf: equality engine proof
    *    - map: A map for the let-expressions in the proof
    *    - subproofStr: current stringstream content
-   * Outputs:
    *    - outStream: output stream to which the proof is printed
    *    - n: transitivity sub-proof
    *    - nodeAfterEqualitySequence: The node after the identical sequence.
+   * Returns:
+   *    A pair of nodes, that are the updated nodes n and nodeAfterEqualitySequence
    *
    */
   std::pair<Node, Node> identicalEqualitiesPrinterHelper(
