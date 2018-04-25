@@ -168,10 +168,10 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     expected_exit_status = None
     command_line = ''
     for line in metadata_lines:
-        # Skip lines that do not start with "%"
+        # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
             continue
-        line = line[2:]
+        line = line[1:].lstrip()
 
         if line.startswith(SCRUBBER):
             scrubber = line[len(SCRUBBER):]
@@ -201,13 +201,6 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.
             sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
-
-    if not proof and ('(get-unsat-core)' in benchmark_content
-                      or '(get-unsat-assumptions)' in benchmark_content):
-        print(
-            '1..0 # Skipped: unsat cores not supported without proof support')
-        return
-
     if expected_exit_status is None:
         expected_exit_status = 0
 
@@ -216,6 +209,13 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
             os.environ['CVC4_REGRESSION_ARGS'])
     basic_command_line_args += shlex.split(command_line)
     command_line_args_configs = [basic_command_line_args]
+    if not proof and ('(get-unsat-core)' in benchmark_content
+                      or '(get-unsat-assumptions)' in benchmark_content
+                      or '--check-proofs' in basic_command_line_args
+                      or '--dump-proofs' in basic_command_line_args):
+        print(
+            '1..0 # Skipped: unsat cores not supported without proof support')
+        return
 
     extra_command_line_args = []
     if benchmark_ext == '.sy' and \
