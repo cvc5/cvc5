@@ -472,9 +472,15 @@ class NonlinearExtension {
   std::map<Node, Node> d_trig_base;
   std::map<Node, bool> d_trig_is_base;
   std::map< Node, bool > d_tf_initial_refine;
+  /** the list of lemmas we are waiting to flush until after check model */
+  std::vector<Node> d_waiting_lemmas;
   
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
+  /** print rational approximation */
+  void printRationalApprox(const char* c, Node cr, unsigned prec = 5) const;
+  /** print model value */
+  void printModelValue(const char* c, Node n, unsigned prec = 5) const;
 private:
   //per last-call effort check
   
@@ -570,6 +576,15 @@ private:
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
   unsigned d_taylor_degree;
+  
+  /**
+   * Get a lower/upper approximation of the constant r within the given
+   * level of precision. In other words, this returns a constant c' such that
+   *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
+   *   c' + 1/(10^prec) <= c <= c' if isLower is false.
+   * where c' is a rational of the form n/d for some n and d <= 10^prec.
+   */
+  Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
 
   /** concavity region for transcendental functions
   *
