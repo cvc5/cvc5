@@ -152,6 +152,13 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     std::map<Kind, bool> bcp_kinds;
     new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, ret);
     debugExtendedRewrite(ret, new_ret, "Bool bcp");
+    if (new_ret.isNull())
+    {
+      // equality resolution
+      new_ret =
+          extendedRewriteEqRes(AND, OR, EQUAL, NOT, bcp_kinds, ret, false);
+      debugExtendedRewrite(ret, new_ret, "Bool eq res");
+    }
   }
   else if (ret.getKind() == EQUAL)
   {
@@ -713,6 +720,86 @@ Node ExtendedRewriter::extendedRewriteBcp(
     Node new_ret = children.size() == 1 ? children[0] : nm->mkNode(k, children);
     Trace("ext-rew-bcp") << "BCP: **** OUTPUT: " << new_ret << std::endl;
     return new_ret;
+  }
+
+  return Node::null();
+}
+
+Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
+                                            Kind ork,
+                                            Kind eqk,
+                                            Kind notk,
+                                            std::map<Kind, bool>& bcp_kinds,
+                                            Node n,
+                                            bool isXor)
+{
+  Assert(n.getKind() == andk || n.getKind() == ork);
+  Trace("ext-rew-eqres") << "Eq res: **** INPUT: " << n << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Kind nk = n.getKind();
+  bool gpol = (nk == andk);
+  for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+  {
+    Node lit = n[i];
+    if (lit.getKind() == eqk)
+    {
+      // eq is the equality we are basing a substitution on
+      Node eq;
+      if (gpol == isXor)
+      {
+        // can only turn disequality into equality if types are the same
+        if (lit[1].getType() == lit.getType())
+        {
+          // t != s ---> ~t = s
+          Assert(lit[1].getKind() != notk);
+          eq = nm->mkNode(EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
+        }
+      }
+      else
+      {
+        eq = eqk == EQUAL ? lit : nm->mkNode(EQUAL, lit[0], lit[1]);
+      }
+      if (!eq.isNull())
+      {
+        // see if it corresponds to a substitution
+        std::vector<Node> vars;
+        std::vector<Node> subs;
+        if (inferSubstitution(eq, vars, subs))
+        {
+          Assert(vars.size() == 1);
+          std::vector<Node> children;
+          bool childrenChanged = false;
+          // apply to all other children
+          for (unsigned j = 0; j < nchild; j++)
+          {
+            Node ccs = n[j];
+            if (i != j)
+            {
+              if (bcp_kinds.empty())
+              {
+                ccs = ccs.substitute(
+                    vars.begin(), vars.end(), subs.begin(), subs.end());
+              }
+              else
+              {
+                std::map<Node, Node> assign;
+                // vars.size()==subs.size()==1
+                assign[vars[0]] = subs[0];
+                // substitution is only applicable to compatible kinds
+                ccs = partialSubstitute(ccs, assign, bcp_kinds);
+              }
+              childrenChanged = childrenChanged || n[j] != ccs;
+            }
+            children.push_back(ccs);
+          }
+          if (childrenChanged)
+          {
+            return nm->mkNode(nk, children);
+          }
+        }
+      }
+    }
   }
 
   return Node::null();
