@@ -389,8 +389,15 @@ private:
 
   /** Get the canonical free variable for type tn */
   TNode getFreeVar( TypeNode tn );
+  /** get term order predicate 
+   * 
+   * Assuming that n1 and n2 are children of a commutative operator, this 
+   * returns a symmetry breaking predicate that can be instantiated for n1 and
+   * n2 while preserving satisfiability. By default, this is the predicate
+   *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
+   */
   Node getTermOrderPredicate( Node n1, Node n2 );
-private:
+ private:
  /**
   * Map from registered variables to whether they are a sygus enumerator.
   *
@@ -398,12 +405,14 @@ private:
   * incremental mode.
   */
  std::map<Node, bool> d_register_st;
+ //----------------------search size information
  /** 
   * Checks whether e is a sygus enumerator (a term for which this class will
   * track size for). If so, it initializes the information below for e and
   * adds the necessary lemmas to lemmas.
   */
  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+ /** information for each enumerator preregistered to this class */
  class SearchSizeInfo
  {
   public:
@@ -437,13 +446,20 @@ private:
   void registerMeasureTerm( Node m );
   unsigned getSearchSizeFor( Node n );
   unsigned getSearchSizeForAnchor( Node n );
+  /** 
+   * Get the current search size for enumerator (also called "measure term") m 
+   * in this SAT context.
+   */
   unsigned getSearchSizeForMeasureTerm(Node m);
 
- private:
-  unsigned processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, 
-                                 std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas );
-  bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
+ //----------------------end search size information
+  bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
+  /** 
+   * Get the current SAT status of the guard g.
+   * In particular, this returns 1 if g is asserted true, -1 if it is asserted
+   * false, and 0 if it is not asserted.
+   */
   int getGuardStatus( Node g );
 };
 

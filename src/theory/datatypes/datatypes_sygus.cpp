@@ -599,23 +599,6 @@ TNode SygusSymBreakNew::getFreeVar( TypeNode tn ) {
   return d_tds->getFreeVar(tn, 0);
 }
 
-unsigned SygusSymBreakNew::processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas ) {
-  unsigned ret = 0;
-  if( n.getKind()==APPLY_SELECTOR_TOTAL ){
-    ret = processSelectorChain( n[0], top_level, tdepth, lemmas );
-  }
-  TypeNode tn = n.getType();
-  if( top_level.find( tn )==top_level.end() ){
-    top_level[tn] = n;
-    //tdepth[n] = ret;
-    registerSearchTerm( tn, ret, n, true, lemmas );
-  }else{
-    registerSearchTerm( tn, ret, n, false, lemmas );
-  }
-  tdepth[n] = ret;
-  return ret+1;
-}
-
 void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas ) {
   //register this term
   std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
