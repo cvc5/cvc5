@@ -92,7 +92,17 @@ class SygusSymBreakNew
    *
    * This function has the same interface as Theory::getNextDecisionRequest.
    *
-   * The decisions returned by this method
+   * The decisions returned by this method are of one of two forms:
+   * (1) Positive decisions on the active guards G of enumerators e registered 
+   * to this class. These assert "there are more values to enumerate for e".
+   * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
+   * where n is a non-negative integer. This asserts "the measure of terms
+   * we are enumerating for enumerators whose measure term m is at most n",
+   * where measure is commonly term size, but can also be height.
+   * 
+   * We prioritize decisions of form (1) before (2). For both decisions,
+   * we set the priority argument to "1", indicating that the decision is
+   * critical for solution completeness.
    */
   Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
 
@@ -451,11 +461,11 @@ private:
     /** increment current term size */
     void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
   };
-  /** the above information for each registered enumerator */
+  /** the above information for each registered measure term */
   std::map< Node, SearchSizeInfo * > d_szinfo;
-  /** map from anchor terms to their associated enumerator */
+  /** map from enumerators (anchors) to their associated measure term */
   std::map< Node, Node > d_anchor_to_measure_term;
-  /** */
+  /** map from enumerators (anchors) to their active guard*/
   std::map< Node, Node > d_anchor_to_active_guard;
   /** generic measure term
    * 
@@ -476,10 +486,18 @@ private:
    * explanation of why the measure term has size at most n.
    */
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  /** register measure term m */
+  /** register measure term m 
+   * 
+   * This allocates a SearchSizeInfo object in d_szinfo.
+   */
   void registerMeasureTerm( Node m );
+  /** 
+   * Return the current search size for arbitrary term n. This is the current
+   * search size of the anchor of n.
+   */
   unsigned getSearchSizeFor( Node n );
-  unsigned getSearchSizeForAnchor( Node n );
+  /** return the current search size for enumerator (anchor) e */
+  unsigned getSearchSizeForAnchor( Node e );
   /** Get the current search size for measure term m in this SAT context. */
   unsigned getSearchSizeForMeasureTerm(Node m);
   /** get current template
