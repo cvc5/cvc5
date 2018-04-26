@@ -2053,64 +2053,92 @@ void TheoryStrings::checkNormalForms(){
       }
     }
   }
-  if( !hasProcessed() ){
-    Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
-    //calculate normal forms for each equivalence class, possibly adding splitting lemmas
-    d_normal_forms.clear();
-    d_normal_forms_exp.clear();
-    std::map< Node, Node > nf_to_eqc;
-    std::map< Node, Node > eqc_to_nf;
-    std::map< Node, Node > eqc_to_exp;
-    for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
-      Node eqc = d_strings_eqc[i];
-      Trace("strings-process-debug") << "- Verify normal forms are the same for " << eqc << std::endl;
-      normalizeEquivalenceClass( eqc );
-      Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
+  if( hasProcessed() ){
+    return;
+  }
+  Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
+  //calculate normal forms for each equivalence class, possibly adding splitting lemmas
+  d_normal_forms.clear();
+  d_normal_forms_exp.clear();
+  std::map< Node, Node > nf_to_eqc;
+  std::map< Node, Node > eqc_to_nf;
+  std::map< Node, Node > eqc_to_exp;
+  for( const Node& eqc : d_strings_eqc )
+  {
+    Trace("strings-process-debug") << "- Verify normal forms are the same for " << eqc << std::endl;
+    normalizeEquivalenceClass( eqc );
+    Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
+    if( hasProcessed() ){
+      return;
+    }
+    Node nf_term = mkConcat( d_normal_forms[eqc] );
+    std::map< Node, Node >::iterator itn = nf_to_eqc.find( nf_term );
+    if( itn!=nf_to_eqc.end() ){
+      //two equivalence classes have same normal form, merge
+      std::vector< Node > nf_exp;
+      nf_exp.push_back( mkAnd( d_normal_forms_exp[eqc] ) );
+      nf_exp.push_back( eqc_to_exp[itn->second] );
+      Node eq = d_normal_forms_base[eqc].eqNode( d_normal_forms_base[itn->second] );
+      sendInference( nf_exp, eq, "Normal_Form" );
       if( hasProcessed() ){
         return;
-      }else{
-        Node nf_term = mkConcat( d_normal_forms[eqc] );
-        std::map< Node, Node >::iterator itn = nf_to_eqc.find( nf_term );
-        if( itn!=nf_to_eqc.end() ){
-          //two equivalence classes have same normal form, merge
-          std::vector< Node > nf_exp;
-          nf_exp.push_back( mkAnd( d_normal_forms_exp[eqc] ) );
-          nf_exp.push_back( eqc_to_exp[itn->second] );
-          Node eq = d_normal_forms_base[eqc].eqNode( d_normal_forms_base[itn->second] );
-          sendInference( nf_exp, eq, "Normal_Form" );
-        } else {
-          nf_to_eqc[nf_term] = eqc;
-          eqc_to_nf[eqc] = nf_term;
-          eqc_to_exp[eqc] = mkAnd( d_normal_forms_exp[eqc] );
-        }
       }
-      Trace("strings-process-debug") << "Done verifying normal forms are the same for " << eqc << std::endl;
+    } else {
+      nf_to_eqc[nf_term] = eqc;
+      eqc_to_nf[eqc] = nf_term;
+      eqc_to_exp[eqc] = mkAnd( d_normal_forms_exp[eqc] );
     }
-    if( !hasProcessed() ){
-      if(Trace.isOn("strings-nf")) {
-        Trace("strings-nf") << "**** Normal forms are : " << std::endl;
-        for( std::map< Node, Node >::iterator it = eqc_to_exp.begin(); it != eqc_to_exp.end(); ++it ){
-          Trace("strings-nf") << "  N[" << it->first << "] (base " << d_normal_forms_base[it->first] << ") = " << eqc_to_nf[it->first] << std::endl;
-          Trace("strings-nf") << "     exp: " << it->second << std::endl;
-        }
-        Trace("strings-nf") << std::endl;
-      }
-      checkExtfEval( 1 );
-      Trace("strings-process-debug") << "Done check extended functions re-eval, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-      if( !hasProcessed() ){
-        if( !options::stringEagerLen() ){
-          checkLengthsEqc();
-          if( hasProcessed() ){
-            return;
-          }
-        }
-        //process disequalities between equivalence classes
-        checkDeqNF();
-        Trace("strings-process-debug") << "Done check disequalities, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-      }
-    }
-    Trace("strings-solve") << "Finished check normal forms, #lemmas = " << d_lemma_cache.size() << ", conflict = " << d_conflict << std::endl;
+    Trace("strings-process-debug") << "Done verifying normal forms are the same for " << eqc << std::endl;
   }
+  if(Trace.isOn("strings-nf")) {
+    Trace("strings-nf") << "**** Normal forms are : " << std::endl;
+    for( std::map< Node, Node >::iterator it = eqc_to_exp.begin(); it != eqc_to_exp.end(); ++it ){
+      Trace("strings-nf") << "  N[" << it->first << "] (base " << d_normal_forms_base[it->first] << ") = " << eqc_to_nf[it->first] << std::endl;
+      Trace("strings-nf") << "     exp: " << it->second << std::endl;
+    }
+    Trace("strings-nf") << std::endl;
+  }
+  checkExtfEval( 1 );
+  Trace("strings-process-debug") << "Done check extended functions re-eval, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+  if( hasProcessed() ){
+    return;
+  }
+  if( !options::stringEagerLen() ){
+    checkLengthsEqc();
+    if( hasProcessed() ){
+      return;
+    }
+  }
+  //process disequalities between equivalence classes
+  checkDeqNF();
+  Trace("strings-process-debug") << "Done check disequalities, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+  if( hasProcessed() ){
+    return;
+  }
+  // ensure that lemmas regarding str.code been added for each constant string
+  // of length one
+  if( d_has_str_code )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    for( const Node& eqc : d_strings_eqc )
+    {
+      if( d_normal_forms[eqc].size()==1 && d_normal_forms[eqc][0].isConst() )
+      {
+        Node c = d_normal_forms[eqc][0];
+        Assert( d_proxy_var.find(c)!=d_proxy_var.end() );
+        Node cc = nm->mkNode( kind::STRING_CODE, c );
+        NodeNodeMap::const_iterator it = d_proxy_var.find( cc );
+        AlwaysAssert( it!=d_proxy_var.end() );
+        Node vc = nm->mkNode( kind::STRING_CODE, (*it).second );
+        sendInference( d_empty_vec, cc.eqNode(vc), "Code_Proxy" );
+      }
+    }
+  }
+  Trace("strings-process-debug") << "Done check code, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+  if( hasProcessed() ){
+    return;
+  }
+  Trace("strings-solve") << "Finished check normal forms, #lemmas = " << d_lemma_cache.size() << ", conflict = " << d_conflict << std::endl;
 }
 
 //compute d_normal_forms_(base,exp,exp_depend)[eqc]
