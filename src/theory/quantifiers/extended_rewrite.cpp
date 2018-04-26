@@ -1051,12 +1051,31 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     {
       n = slv_eq;
     }
+    NodeManager * nm = NodeManager::currentNM();
+    
+    Node v[2];
     for (unsigned i = 0; i < 2; i++)
     {
-      TNode r1 = n[i];
-      TNode r2 = n[1 - i];
+      if( n[i].isVar() || n[i].isConst() )
+      {
+        v[i] = n[i];
+      }
+      else if( TermUtil::isNegate(n[i].getKind()) && n[i][0].isVar() )
+      {
+        v[i] = n[i][0];
+      }
+    }
+    for (unsigned i = 0; i < 2; i++)
+    {
+      TNode r1 = v[i];
+      Node r2 = v[1 - i];
       if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
       {
+        r2 = n[1-i];
+        if( v[i]!=n[i] )
+        {
+          r2 = nm->mkNode( n[i].getKind(), r2 );
+        }
         // TODO (#1706) : union find
         if (std::find(vars.begin(), vars.end(), r1) == vars.end())
         {

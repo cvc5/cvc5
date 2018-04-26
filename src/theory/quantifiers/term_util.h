@@ -291,6 +291,8 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
+  /** is negate? */
+  static bool isNegate( Kind k );
   /**
    * Make negated term, returns the negation of n wrt Kind notk, eliminating
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
