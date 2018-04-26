@@ -408,9 +408,10 @@ private:
   std::map<Node, bool> d_register_st;
   //----------------------search size information
   /**
-   * Checks whether e is a sygus enumerator (a term for which this class will
-   * track size for). If so, it initializes the information below for e and
-   * adds the necessary lemmas to lemmas.
+   * Checks whether e is a sygus enumerator, that is, a term for which this 
+   * class will track size for. We also refer to enumerators as "measure terms"
+   * below. If e is a sygus enumerator, it initializes the information below 
+   * for e and adds the necessary lemmas to lemmas.
    */
   void registerSizeTerm(Node e, std::vector<Node>& lemmas);
   /** information for each enumerator preregistered to this class */
@@ -418,7 +419,12 @@ private:
   {
    public:
     SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
+    /** the enumerator */
     Node d_this;
+    /** 
+     * For each size n, an explanation for why this enumerator has size at most
+     * n. This is typically the literal (DT_SYGUS_BOUND e n) where e is d_this.
+     */
     std::map< unsigned, Node > d_search_size_exp;
     std::map< unsigned, bool > d_search_size;
     unsigned d_curr_search_size;
