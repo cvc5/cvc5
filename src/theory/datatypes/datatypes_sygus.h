@@ -409,21 +409,28 @@ private:
   //----------------------search size information
   /**
    * Checks whether e is a sygus enumerator, that is, a term for which this 
-   * class will track size for. We also refer to enumerators as "measure terms"
-   * below. If e is a sygus enumerator, it initializes the information below 
-   * for e and adds the necessary lemmas to lemmas.
+   * class will track size for. 
+   * 
+   * We map each sygus enumerator e to a "measure term", which is used for
+   * bounding the size of terms for the models of e. The measure term for a 
+   * sygus enumerator may e itself (if e has an active guard), or an arbitrary
+   * sygus variable otherwise. A measure term m is one for which our decision
+   * strategy decides on literals of the form (DT_SYGUS_BOUND m n).
+   * 
+   * After determining the measure term m for e, if applicable, we initialize
+   * the information for m below. This may result in lemmas
    */
   void registerSizeTerm(Node e, std::vector<Node>& lemmas);
-  /** information for each enumerator preregistered to this class */
+  /** information for each measure term allocated by this class */
   class SearchSizeInfo
   {
    public:
     SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
-    /** the enumerator */
+    /** the measure term */
     Node d_this;
     /** 
-     * For each size n, an explanation for why this enumerator has size at most
-     * n. This is typically the literal (DT_SYGUS_BOUND e n) where e is d_this.
+     * For each size n, an explanation for why this measure term has size at
+     * most n. This is typically the literal (DT_SYGUS_BOUND d_this n).
      */
     std::map< unsigned, Node > d_search_size_exp;
     std::map< unsigned, bool > d_search_size;
@@ -452,16 +459,24 @@ private:
   std::map< Node, Node > d_anchor_to_active_guard;
   /** generic measure term
    * 
-   * TODO
+   * This is a global term that is used as the measure term for all sygus
+   * enumerators that do not have active guards. This class enforces that
+   * all enumerators have size at most n, where n is the minimal integer
+   * such that (DT_SYGUS_BOUND d_generic_measure_term n) is asserted.
    */
   Node d_generic_measure_term;
-  /** increment current search size for enumerator m
+  /** increment current search size for enumerator e
    * 
    * TODO
    */
-  void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
-  void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  void registerMeasureTerm( Node m );
+  void incrementCurrentSearchSize( Node e, std::vector< Node >& lemmas );
+  /** 
+   * Notify this class that we are currently searching for terms of size at
+   * most s as model values for enumerator e. Literal exp corresponds to the 
+   * explanation of why the enumerator has size at most n.
+   */
+  void notifySearchSize( Node e, unsigned s, Node exp, std::vector< Node >& lemmas );
+  void registerMeasureTerm( Node e );
   unsigned getSearchSizeFor( Node n );
   unsigned getSearchSizeForAnchor( Node n );
   /**
@@ -475,7 +490,11 @@ private:
    */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   //----------------------end search size information
-  bool debugTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  /** check testers 
+   * 
+   * TODO
+   */
+  bool checkTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted

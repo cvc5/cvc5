@@ -1077,7 +1077,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         Trace("dt-sygus") << ss.str() << std::endl;
       }
       // TODO : remove this step (ensure there is no way a sygus term cannot be assigned a tester before this point)
-      if( !debugTesters( prog, progv, 0, lemmas ) ){
+      if( !checkTesters( prog, progv, 0, lemmas ) ){
         Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << prog << "." << std::endl;
         // this should not happen generally, it is caused by a sygus term not being assigned a tester
         //Assert( false );
@@ -1132,7 +1132,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 }
 
-bool SygusSymBreakNew::debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas ) {
+bool SygusSymBreakNew::checkTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas ) {
   Assert( vn.getKind()==kind::APPLY_CONSTRUCTOR );
   if( Trace.isOn("sygus-sb-warn") ){
     Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, n );
@@ -1160,7 +1160,7 @@ bool SygusSymBreakNew::debugTesters( Node n, Node vn, int ind, std::vector< Node
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
     Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), n );
-    if( !debugTesters( sel, vn[i], ind+1, lemmas ) ){
+    if( !checkTesters( sel, vn[i], ind+1, lemmas ) ){
       return false;
     }
   }
