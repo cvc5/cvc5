@@ -946,6 +946,9 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
     if( !e2->d_length_term.get().isNull() ){
       e1->d_length_term.set( e2->d_length_term );
     }
+    if( !e2->d_code_term.get().isNull() ){
+      e1->d_code_term.set( e2->d_code_term );
+    }
     if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
       e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
     }
@@ -2155,6 +2158,12 @@ void TheoryStrings::checkNormalForms(){
   if (d_has_str_code)
   {
     NodeManager* nm = NodeManager::currentNM();
+    // str.code applied to the code term for each equivalence class that has a
+    // code term but is not a constant
+    std::vector< Node > nconst_codes;
+    // str.code applied to the proxy variables for each equivalence classes that
+    // are constants of size one
+    std::vector< Node > const_codes;
     for (const Node& eqc : d_strings_eqc)
     {
       if (d_normal_forms[eqc].size() == 1 && d_normal_forms[eqc][0].isConst())
@@ -2166,16 +2175,40 @@ void TheoryStrings::checkNormalForms(){
         AlwaysAssert(it != d_proxy_var.end());
         Node vc = nm->mkNode(kind::STRING_CODE, (*it).second);
         sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
+        const_codes.push_back(vc);
+      }
+      else
+      {
+        EqcInfo* ei = getOrMakeEqcInfo( eqc, false );
+        if( ei && !ei->d_code_term.get().isNull() )
+        {
+          Node vc = nm->mkNode(kind::STRING_CODE, ei->d_code_term.get() );
+          nconst_codes.push_back(vc);
+        }
+      }
+    }
+    if (hasProcessed())
+    {
+      return;
+    }
+    // now, ensure that str.code is injective
+    std::vector< Node > cmps;
+    cmps.insert(cmps.end(),nconst_codes.begin(),nconst_codes.end());
+    cmps.insert(cmps.end(),const_codes.begin(),const_codes.end());
+    std::reverse(cmps.begin(),cmps.end());
+    for( unsigned i=0, num_ncc = nconst_codes.size(); i<num_ncc; i++ )
+    {
+      Node c1 = nconst_codes[i];
+      cmps.pop_back();
+      for( const Node& c2 : cmps )
+      {
+        
       }
     }
   }
   Trace("strings-process-debug")
       << "Done check code, addedFact = " << !d_pending.empty() << " "
       << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  if (hasProcessed())
-  {
-    return;
-  }
   Trace("strings-solve") << "Finished check normal forms, #lemmas = "
                          << d_lemma_cache.size()
                          << ", conflict = " << d_conflict << std::endl;

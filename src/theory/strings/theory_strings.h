@@ -299,9 +299,15 @@ private:
   public:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
-    /** a term of the form str.len( x ), where x is in this eq class */
+    /** 
+     * If non-null, this is a term x from this eq class such that str.len( x ) 
+     * occurs as a term in this SAT context.
+     */
     context::CDO< Node > d_length_term;
-    /** a term of the form str.code( x ), where x is in this eq class */
+    /** 
+     * If non-null, this is a term x from this eq class such that str.code( x ) 
+     * occurs as a term in this SAT context.
+     */
     context::CDO<Node> d_code_term;
     context::CDO< unsigned > d_cardinality_lem_k;
     context::CDO< Node > d_normalized_length;
