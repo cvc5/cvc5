@@ -95,6 +95,16 @@ d_ee_conjectures( c ){
 
 }
 
+ConjectureGenerator::~ConjectureGenerator()
+{
+  for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
+      i != iend; ++i){
+    EqcInfo* current = (*i).second;
+    Assert(current != nullptr);
+    delete current;
+  }
+}
+
 void ConjectureGenerator::eqNotifyNewClass( TNode t ){
   Trace("thm-ee-debug") << "UEE : new equivalence class " << t << std::endl;
   d_upendingAdds.push_back( t );
