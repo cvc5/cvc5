@@ -121,11 +121,13 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
   getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
   getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
   getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
+  getExtTheory()->addFunctionKind(kind::STRING_CODE);
 
   // The kinds we are treating as function application in congruence
-  d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
+  d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
+  d_equalityEngine.addFunctionKind(kind::STRING_CODE);
   if( options::stringLazyPreproc() ){
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
     d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
@@ -840,7 +842,7 @@ void TheoryStrings::checkExtfReductions( int effort ) {
   }
 }
 
-TheoryStrings::EqcInfo::EqcInfo(  context::Context* c ) : d_length_term(c), d_cardinality_lem_k(c), d_normalized_length(c) {
+TheoryStrings::EqcInfo::EqcInfo(  context::Context* c ) : d_length_term(c), d_code_term(c), d_cardinality_lem_k(c), d_normalized_length(c) {
 
 }
 
@@ -874,11 +876,19 @@ void TheoryStrings::conflict(TNode a, TNode b){
 
 /** called when a new equivalance class is created */
 void TheoryStrings::eqNotifyNewClass(TNode t){
-  if( t.getKind() == kind::STRING_LENGTH ){
+  Kind k = t.getKind();
+  if( k == kind::STRING_LENGTH || k==kind::STRING_CODE ){
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     Node r = d_equalityEngine.getRepresentative(t[0]);
     EqcInfo * ei = getOrMakeEqcInfo( r, true );
-    ei->d_length_term = t[0];
+    if( k == kind::STRING_LENGTH )
+    {
+      ei->d_length_term = t[0];
+    }
+    else
+    {
+      ei->d_code_term = t[0];
+    }
     //we care about the length of this string
     registerTerm( t[0], 1 );
   }else{

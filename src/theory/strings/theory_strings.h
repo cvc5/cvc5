@@ -294,18 +294,27 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
+  /** SAT-context-dependent information about an equivalence class */
   class EqcInfo {
   public:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
-    //constant in this eqc
+    /** a term of the form str.len( x ), where x is in this eq class */
     context::CDO< Node > d_length_term;
+    /** a term of the form str.code( x ), where x is in this eqclass */
+    context::CDO< Node > d_code_term;
+    /** */
     context::CDO< unsigned > d_cardinality_lem_k;
-    // 1 = added length lemma
+    /** */
     context::CDO< Node > d_normalized_length;
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
+  /** 
+   * Get the above information for equivalence class eqc. If doMake is true,
+   * we construct a new information class if one does not exist. The term eqc
+   * should currently be a representative of the equality engine of this class.
+   */
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   //maintain which concat terms have the length lemma instantiated
   NodeNodeMap d_proxy_var;

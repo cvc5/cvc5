@@ -109,6 +109,13 @@ private:
   * Returns the rewritten form of node.
   */
   static Node rewritePrefixSuffix(Node node);
+  /** rewrite str.code 
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.code( t )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStringCode(Node node);
+  
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:

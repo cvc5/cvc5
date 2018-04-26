@@ -24,6 +24,7 @@ operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_ITOS 1 "integer to string"
 operator STRING_STOI 1 "string to integer (total function)"
+operator STRING_CODE 1 "string to code"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
@@ -103,6 +104,7 @@ typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
 typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
 typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule
 typerule STRING_STOI ::CVC4::theory::strings::StringStrToIntTypeRule
+typerule STRING_CODE ::CVC4::theory::strings::StringStrToIntTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
 

@@ -30,18 +30,23 @@ namespace CVC4 {
 
 class CVC4_PUBLIC String {
  public:
+  static inline unsigned start_code() { return 65; }
+  static inline unsigned num_codes() { return 256; }
   static unsigned convertCharToUnsignedInt(unsigned char c) {
     unsigned i = c;
-    i = i + 191;
-    return (i >= 256 ? i - 256 : i);
+    return (i<start_code() ? i+num_codes() : i)-start_code();
   }
   static unsigned char convertUnsignedIntToChar(unsigned i) {
-    unsigned ii = i + 65;
-    return (unsigned char)(ii >= 256 ? ii - 256 : ii);
+    return static_cast<unsigned char>(convertUnsignedIntToCode(i));
   }
   static bool isPrintable(unsigned i) {
     unsigned char c = convertUnsignedIntToChar(i);
     return (c >= ' ' && c <= '~');  // isprint( (int)c );
+  }
+  static unsigned convertUnsignedIntToCode(unsigned i) 
+  {
+    unsigned ii = i + start_code();
+    return ii >= num_codes() ? ii - num_codes() : ii;
   }
 
   /** constructors for String
