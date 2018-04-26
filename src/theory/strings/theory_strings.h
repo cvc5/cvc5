@@ -301,11 +301,9 @@ private:
     ~EqcInfo(){}
     /** a term of the form str.len( x ), where x is in this eq class */
     context::CDO< Node > d_length_term;
-    /** a term of the form str.code( x ), where x is in this eqclass */
+    /** a term of the form str.code( x ), where x is in this eq class */
     context::CDO< Node > d_code_term;
-    /** */
     context::CDO< unsigned > d_cardinality_lem_k;
-    /** */
     context::CDO< Node > d_normalized_length;
   };
   /** map from representatives to information necessary for equivalence classes */
@@ -324,6 +322,8 @@ private:
 private:
   //any non-reduced extended functions exist
   context::CDO< bool > d_has_extf;
+  /** have we asserted any str.code terms? */
+  bool d_has_str_code;
   // static information about extf
   class ExtfInfo {
   public:

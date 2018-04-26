@@ -33,8 +33,7 @@ class CVC4_PUBLIC String {
   static inline unsigned start_code() { return 65; }
   static inline unsigned num_codes() { return 256; }
   static unsigned convertCharToUnsignedInt(unsigned char c) {
-    unsigned i = c;
-    return (i<start_code() ? i+num_codes() : i)-start_code();
+    return convertCodeToUnsignedInt( static_cast<unsigned>(c) );
   }
   static unsigned char convertUnsignedIntToChar(unsigned i) {
     return static_cast<unsigned char>(convertUnsignedIntToCode(i));
@@ -42,6 +41,10 @@ class CVC4_PUBLIC String {
   static bool isPrintable(unsigned i) {
     unsigned char c = convertUnsignedIntToChar(i);
     return (c >= ' ' && c <= '~');  // isprint( (int)c );
+  }
+  static unsigned convertCodeToUnsignedInt(unsigned i) 
+  {
+    return (i<start_code() ? i+num_codes() : i)-start_code();
   }
   static unsigned convertUnsignedIntToCode(unsigned i) 
   {

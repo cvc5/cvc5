@@ -99,6 +99,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
       d_proxy_var_to_length(u),
       d_functionsTerms(c),
       d_has_extf(c, false ),
+      d_has_str_code(false),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -523,20 +524,39 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   ////step 2 : assign arbitrary values for unknown lengths?
   // confirmed by calculus invariant, see paper
   Trace("strings-model") << "Assign to equivalence classes..." << std::endl;
+  std::map< Node, Node > pure_eq_assign;
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
     Trace("strings-model") << "The equivalence classes ";
-    for( unsigned j=0; j<col[i].size(); j++ ) {
-      Trace("strings-model") << col[i][j] << " ";
+    for( unsigned j=0; j<col[i].size(); j++ ) 
+    {
+      Node eqc = col[i][j];
+      Trace("strings-model") << eqc << " ";
       //check if col[i][j] has only variables
-      if( !col[i][j].isConst() ){
-        Assert( d_normal_forms.find( col[i][j] )!=d_normal_forms.end() );
-        if( d_normal_forms[col[i][j]].size()==1 ){//&& d_normal_forms[col[i][j]][0]==col[i][j] ){
-          pure_eq.push_back( col[i][j] );
+      if( !eqc.isConst() )
+      {
+        Assert( d_normal_forms.find( eqc )!=d_normal_forms.end() );
+        if( d_normal_forms[eqc].size()==1 )
+        {
+          // does it have a code?
+          EqcInfo * eip = getOrMakeEqcInfo(eqc,false);
+          if( eip && !eip->d_code_term.get().isNull() )
+          {
+            // its value must be equal to its code
+            Node ctv = d_valuation.getModelValue(eip->d_code_term.get());
+            unsigned cvalue = ctv.getConst<Rational>().getNumerator().toUnsignedInt();
+            std::vector< unsigned > vec;
+            vec.push_back(String::convertCodeToUnsignedInt(cvalue));
+            Node mv = NodeManager::currentNM()->mkConst( ::CVC4::String(vec) );
+            pure_eq_assign[eqc] = mv;
+          }
+          pure_eq.push_back( eqc );
         }
-      }else{
-        processed[col[i][j]] = col[i][j];
+      }
+      else
+      {
+        processed[eqc] = eqc;
       }
     }
     Trace("strings-model") << "have length " << lts_values[i] << std::endl;
@@ -557,23 +577,33 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Trace("strings-model") << pure_eq[j] << " ";
       }
       Trace("strings-model") << std::endl;
-
+      
 
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
-      for( unsigned j=0; j<pure_eq.size(); j++ ){
-        Assert( !sel.isFinished() );
-        Node c = *sel;
-        while( d_equalityEngine.hasTerm( c ) ){
-          ++sel;
+      for( const Node& eqc : pure_eq )
+      {
+        Node c;
+        std::map< Node, Node >::iterator itp = pure_eq_assign.find(eqc);
+        if( itp==pure_eq_assign.end() )
+        {
           Assert( !sel.isFinished() );
           c = *sel;
+          while( d_equalityEngine.hasTerm( c ) ){
+            ++sel;
+            Assert( !sel.isFinished() );
+            c = *sel;
+          }
+          ++sel;
         }
-        ++sel;
-        Trace("strings-model") << "*** Assigned constant " << c << " for " << pure_eq[j] << std::endl;
-        processed[pure_eq[j]] = c;
-        if (!m->assertEquality(pure_eq[j], c, true))
+        else
+        {
+          c = itp->second;
+        }
+        Trace("strings-model") << "*** Assigned constant " << c << " for " << eqc << std::endl;
+        processed[eqc] = c;
+        if (!m->assertEquality(eqc, c, true))
         {
           return false;
         }
@@ -647,9 +677,9 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         break;
       }
       default: {
+        registerTerm( n, 0 );
         TypeNode tn = n.getType();
         if( tn.isString() ) {
-          registerTerm( n, 0 );
           // if finite model finding is enabled,
           // then we minimize the length of this term if it is a variable
           // but not an internally generated Skolem, or a term that does
@@ -3292,7 +3322,8 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   // 1 : upon occurrence in length term
   // 2 : before normal form computation
   // 3 : called on normal form terms
-  bool do_register = false;
+  TypeNode tn = n.getType();
+  bool do_register = !tn.isString();
   if( options::stringEagerLen() ){
     do_register = effort==0;
   }else{
@@ -3302,7 +3333,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     if(d_registered_terms_cache.find(n) == d_registered_terms_cache.end()) {
       d_registered_terms_cache.insert(n);
       Debug("strings-register") << "TheoryStrings::registerTerm() " << n << ", effort = " << effort << std::endl;
-      if(n.getType().isString()) {
+      if(tn.isString()) {
         //register length information:
         //  for variables, split on empty vs positive length
         //  for concat/const/replace, introduce proxy var and state length relation
@@ -3356,8 +3387,21 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           d_out->lemma(ceq);
           
         }
-      } else {
-        AlwaysAssert(false, "String Terms only in registerTerm.");
+      }
+      else 
+      {
+        if( n.getKind()==kind::STRING_CODE )
+        {
+          d_has_str_code = true;
+          NodeManager* nm = NodeManager::currentNM();
+          // str.code(s)=-1 <=> str.len(s)!=1
+          Node code_eq_neg1 = n.eqNode( nm->mkConst( Rational(-1)));
+          Node code_len = mkLength( n[0] ).eqNode( d_one ).negate();
+          Node lem = code_eq_neg1.eqNode( code_len );
+          Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
+          Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
+          d_out->lemma(lem);
+        }
       }
     }
   }
