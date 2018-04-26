@@ -107,7 +107,7 @@ void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& l
     if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
       std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
       Assert( its!=d_szinfo.end() );
-      Node mt = its->second->getOrMkMeasureValue( lemmas );
+      Node mt = its->second->getOrMkMeasureValue(lemmas);
       //it relates the measure term to arithmetic
       Node blem = n.eqNode( NodeManager::currentNM()->mkNode( kind::LEQ, mt, n[1] ) );
       lemmas.push_back( blem );
@@ -912,14 +912,17 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
           if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
             // update constraints on the measure term
             if( options::sygusFairMax() ){
-              Node ds = NodeManager::currentNM()->mkNode( kind::DT_SIZE, e );
-              Node slem = NodeManager::currentNM()->mkNode( kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue( lemmas ) );
-              lemmas.push_back( slem );
+              Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
+              Node slem = NodeManager::currentNM()->mkNode(
+                  kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
+              lemmas.push_back(slem);
             }else{
-              Node mt = d_szinfo[m]->getOrMkActiveMeasureValue( lemmas );
-              Node new_mt = d_szinfo[m]->getOrMkActiveMeasureValue( lemmas, true );
-              Node ds = NodeManager::currentNM()->mkNode( kind::DT_SIZE, e );
-              lemmas.push_back( mt.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, new_mt, ds ) ) );
+              Node mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas);
+              Node new_mt =
+                  d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
+              Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
+              lemmas.push_back(mt.eqNode(
+                  NodeManager::currentNM()->mkNode(kind::PLUS, new_mt, ds)));
             }
           }
         }else{
@@ -1070,7 +1073,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         Trace("dt-sygus") << ss.str() << std::endl;
       }
       // TODO : remove this step (ensure there is no way a sygus term cannot be assigned a tester before this point)
-      if( !checkTesters( prog, progv, 0, lemmas ) ){
+      if (!checkTesters(prog, progv, 0, lemmas))
+      {
         Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << prog << "." << std::endl;
         // this should not happen generally, it is caused by a sygus term not being assigned a tester
         //Assert( false );
@@ -1125,7 +1129,11 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 }
 
-bool SygusSymBreakNew::checkTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas ) {
+bool SygusSymBreakNew::checkTesters(Node n,
+                                    Node vn,
+                                    int ind,
+                                    std::vector<Node>& lemmas)
+{
   Assert( vn.getKind()==kind::APPLY_CONSTRUCTOR );
   if( Trace.isOn("sygus-sb-warn") ){
     Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, n );
@@ -1153,7 +1161,8 @@ bool SygusSymBreakNew::checkTesters( Node n, Node vn, int ind, std::vector< Node
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
     Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), n );
-    if( !checkTesters( sel, vn[i], ind+1, lemmas ) ){
+    if (!checkTesters(sel, vn[i], ind + 1, lemmas))
+    {
       return false;
     }
   }
@@ -1182,24 +1191,35 @@ Node SygusSymBreakNew::getCurrentTemplate( Node n, std::map< TypeNode, int >& va
   }
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getOrMkMeasureValue( std::vector< Node >& lemmas ) {
-  if( d_measure_value.isNull() ){
-    d_measure_value = NodeManager::currentNM()->mkSkolem( "mt", NodeManager::currentNM()->integerType() );
-    lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, d_measure_value, NodeManager::currentNM()->mkConst( Rational(0) ) ) );
+Node SygusSymBreakNew::SearchSizeInfo::getOrMkMeasureValue(
+    std::vector<Node>& lemmas)
+{
+  if (d_measure_value.isNull())
+  {
+    d_measure_value = NodeManager::currentNM()->mkSkolem(
+        "mt", NodeManager::currentNM()->integerType());
+    lemmas.push_back(NodeManager::currentNM()->mkNode(
+        kind::GEQ,
+        d_measure_value,
+        NodeManager::currentNM()->mkConst(Rational(0))));
   }
   return d_measure_value;
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getOrMkActiveMeasureValue( std::vector< Node >& lemmas, bool mkNew ) {
-  if( mkNew )
+Node SygusSymBreakNew::SearchSizeInfo::getOrMkActiveMeasureValue(
+    std::vector<Node>& lemmas, bool mkNew)
+{
+  if (mkNew)
   {
-    Node new_mt = NodeManager::currentNM()->mkSkolem( "mt", NodeManager::currentNM()->integerType() );
-    lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, new_mt, NodeManager::currentNM()->mkConst(Rational(0)) ) );
+    Node new_mt = NodeManager::currentNM()->mkSkolem(
+        "mt", NodeManager::currentNM()->integerType());
+    lemmas.push_back(NodeManager::currentNM()->mkNode(
+        kind::GEQ, new_mt, NodeManager::currentNM()->mkConst(Rational(0))));
     d_measure_value_active = new_mt;
   }
-  else if( d_measure_value_active.isNull() )
+  else if (d_measure_value_active.isNull())
   {
-    d_measure_value_active = getOrMkMeasureValue( lemmas );
+    d_measure_value_active = getOrMkMeasureValue(lemmas);
   }
   return d_measure_value_active;
 }

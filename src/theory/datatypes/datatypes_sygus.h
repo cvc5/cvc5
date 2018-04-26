@@ -95,13 +95,13 @@ class SygusSymBreakNew
    * This function has the same interface as Theory::getNextDecisionRequest.
    *
    * The decisions returned by this method are of one of two forms:
-   * (1) Positive decisions on the active guards G of enumerators e registered 
+   * (1) Positive decisions on the active guards G of enumerators e registered
    * to this class. These assert "there are more values to enumerate for e".
    * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
    * where n is a non-negative integer. This asserts "the measure of terms
    * we are enumerating for enumerators whose measure term m is at most n",
    * where measure is commonly term size, but can also be height.
-   * 
+   *
    * We prioritize decisions of form (1) before (2). For both decisions,
    * we set the priority argument to "1", indicating that the decision is
    * critical for solution completeness.
@@ -419,15 +419,15 @@ private:
   std::map<Node, bool> d_register_st;
   //----------------------search size information
   /**
-   * Checks whether e is a sygus enumerator, that is, a term for which this 
-   * class will track size for. 
-   * 
-   * We associate each sygus enumerator e with a "measure term", which is used 
-   * for bounding the size of terms for the models of e. The measure term for a 
+   * Checks whether e is a sygus enumerator, that is, a term for which this
+   * class will track size for.
+   *
+   * We associate each sygus enumerator e with a "measure term", which is used
+   * for bounding the size of terms for the models of e. The measure term for a
    * sygus enumerator may e itself (if e has an active guard), or an arbitrary
    * sygus variable otherwise. A measure term m is one for which our decision
    * strategy decides on literals of the form (DT_SYGUS_BOUND m n).
-   * 
+   *
    * After determining the measure term m for e, if applicable, we initialize
    * the information for m below. This may result in lemmas
    */
@@ -439,26 +439,26 @@ private:
     SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
     /** the measure term */
     Node d_this;
-    /** 
+    /**
      * For each size n, an explanation for why this measure term has size at
      * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
      * we call the (n^th) "fairness literal" for m.
      */
     std::map< unsigned, Node > d_search_size_exp;
     /**
-     * For each size, whether we have called SygusSymBreakNew::notifySearchSize. 
+     * For each size, whether we have called SygusSymBreakNew::notifySearchSize.
      */
     std::map< unsigned, bool > d_search_size;
-    /** 
+    /**
      * The current search size. This corresponds to the number of times
      * incrementCurrentSearchSize has been called for this measure term.
      */
     unsigned d_curr_search_size;
     /** the list of all enumerators whose measure term is this */
     std::vector< Node > d_anchors;
-    /** get or make the measure value 
-     * 
-     * The measure value is an integer variable v that corresponds to the 
+    /** get or make the measure value
+     *
+     * The measure value is an integer variable v that corresponds to the
      * (symbolic) integer value that is constrained be less than or equal to
      * the current search size. For example, if we are using the fairness
      * strategy SYGUS_FAIR_DT_SIZE, then we constrain:
@@ -468,32 +468,33 @@ private:
      *   (DT_SIZE e) <= v
      * for all enumerators e.
      */
-    Node getOrMkMeasureValue( std::vector< Node >& lemmas );
-    /** get or make the active measure value 
-     * 
-     * The active measure value av is an integer variable that corresponds to 
+    Node getOrMkMeasureValue(std::vector<Node>& lemmas);
+    /** get or make the active measure value
+     *
+     * The active measure value av is an integer variable that corresponds to
      * the (symbolic) value of the sum of enumerators that are yet to be
-     * registered. This is to enforce the "sum of measures" strategy. For 
+     * registered. This is to enforce the "sum of measures" strategy. For
      * example, if we are using the fairness strategy SYGUS_FAIR_DT_SIZE,
      * then initially av is equal to the measure value v, and the constraints
      *   (DT_SYGUS_BOUND m n) <=> (v <= n)
-     * are added as before. When an enumerator e is registered, we add the 
+     * are added as before. When an enumerator e is registered, we add the
      * lemma:
      *   av = (DT_SIZE e) + av'
      * and update the active measure value to av'. This ensures that the sum
      * of sizes of active enumerators is at most n.
-     * 
+     *
      * If the flag mkNew is set to true, then we return a fresh variable and
      * update the active measure value.
      */
-    Node getOrMkActiveMeasureValue( std::vector< Node >& lemmas, bool mkNew = false );
-    /** 
+    Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
+                                   bool mkNew = false);
+    /**
      * The current search size literal for this measure term. This corresponds
      * to the minimial n such that (DT_SYGUS_BOUND d_this n) is asserted in
      * this SAT context.
      */
     context::CDO< unsigned > d_curr_lit;
-    /** 
+    /**
      * Map from integers n to the fairness literal, for each n such that this
      * literal has been allocated (by getFairnessLiteral below).
      */
@@ -509,6 +510,7 @@ private:
     }
     /** increment current term size */
     void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
+
    private:
     /** the measure value */
     Node d_measure_value;
@@ -522,73 +524,73 @@ private:
   /** map from enumerators (anchors) to their active guard*/
   std::map< Node, Node > d_anchor_to_active_guard;
   /** generic measure term
-   * 
+   *
    * This is a global term that is used as the measure term for all sygus
    * enumerators that do not have active guards. This class enforces that
    * all enumerators have size at most n, where n is the minimal integer
    * such that (DT_SYGUS_BOUND d_generic_measure_term n) is asserted.
    */
   Node d_generic_measure_term;
-  /** 
+  /**
    * This increments the current search size for measure term m. This may
    * cause lemmas to be added to lemmas based on the fact that symmetry
    * breaking lemmas are now relevant for new search terms, see discussion
-   * of how search size affects which lemmas are relevant above 
+   * of how search size affects which lemmas are relevant above
    * addSymBreakLemmasFor.
    */
   void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
-  /** 
+  /**
    * Notify this class that we are currently searching for terms of size at
-   * most s as model values for measure term m. Literal exp corresponds to the 
+   * most s as model values for measure term m. Literal exp corresponds to the
    * explanation of why the measure term has size at most n. This calls
-   * incrementSearchSize above, until the total number of times we have called 
+   * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
   /** Allocates a SearchSizeInfo object in d_szinfo. */
   void registerMeasureTerm( Node m );
-  /** 
+  /**
    * Return the current search size for arbitrary term n. This is the current
    * search size of the anchor of n.
    */
   unsigned getSearchSizeFor( Node n );
   /** return the current search size for enumerator (anchor) e */
-  unsigned getSearchSizeForAnchor( Node e );
+  unsigned getSearchSizeForAnchor(Node e);
   /** Get the current search size for measure term m in this SAT context. */
   unsigned getSearchSizeForMeasureTerm(Node m);
   /** get current template
-   * 
-   * For debugging. This returns a term that corresponds to the current 
-   * inferred shape of n. For example, if the testers 
+   *
+   * For debugging. This returns a term that corresponds to the current
+   * inferred shape of n. For example, if the testers
    *   is-C1( n ) and is-C2( n.1 )
-   * have been asserted where C1 and C2 are binary constructors, then this 
+   * have been asserted where C1 and C2 are binary constructors, then this
    * method may return a term of the form:
    *   C1( C2( x1, x2 ), x3 )
-   * for fresh variables x1, x2, x3. The map var_count maintains the variable 
+   * for fresh variables x1, x2, x3. The map var_count maintains the variable
    * count for generating these fresh variables.
    */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   //----------------------end search size information
-  /** check testers 
-   * 
+  /** check testers
+   *
    * This is called when we have a model assignment vn for n, where n is
    * a selector chain applied to an enumerator (a search term). This function
-   * ensures that testers have been asserted for each subterm of vn. This is 
-   * critical for ensuring that the proper steps have been taken by this class 
+   * ensures that testers have been asserted for each subterm of vn. This is
+   * critical for ensuring that the proper steps have been taken by this class
    * regarding whether or not vn is a legal value for n (not greater than the
    * current search size and not a value that can be blocked by symmetry
    * breaking).
-   * 
+   *
    * For example, if vn = +( x(), x() ), then we ensure that the testers
    *   is-+( n ), is-x( n.1 ), is-x( n.2 )
    * have been asserted to this class. If a tester is not asserted for some
    * relevant selector chain S( n ) of n, then we add a lemma L for that
-   * selector chain to lemmas, where L is the "splitting lemma" for S( n ), that 
+   * selector chain to lemmas, where L is the "splitting lemma" for S( n ), that
    * states that the top symbol of S( n ) must be one of the constructors of
    * its type.
-   * 
+   *
    * Notice that this function is a sanity check. Typically, it should be the
-   * case that testers are asserted for all subterms of vn, and hence this 
+   * case that testers are asserted for all subterms of vn, and hence this
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
