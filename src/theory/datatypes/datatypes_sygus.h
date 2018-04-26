@@ -167,7 +167,6 @@ class SygusSymBreakNew
    *   S4 : T1 -> T3
    * Then, x, S1( x ), and S4( S3( S2( S1( x ) ) ) ) are top-level terms,
    * whereas S2( S1( x ) ) and S3( S2( S1( x ) ) ) are not.
-   *
    */
   std::unordered_map<Node, bool, NodeHashFunction> d_is_top_level;
   /**
@@ -442,26 +441,79 @@ private:
     Node d_this;
     /** 
      * For each size n, an explanation for why this measure term has size at
-     * most n. This is typically the literal (DT_SYGUS_BOUND d_this n).
+     * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
+     * we call the (n^th) "fairness literal" for m.
      */
     std::map< unsigned, Node > d_search_size_exp;
-    /** For each size, whether we have */
+    /**
+     * For each size, whether we have called SygusSymBreakNew::notifySearchSize. 
+     */
     std::map< unsigned, bool > d_search_size;
+    /** 
+     * The current search size. This corresponds to the number of times
+     * incrementCurrentSearchSize has been called for this measure term.
+     */
     unsigned d_curr_search_size;
-    Node d_sygus_measure_term;
-    Node d_sygus_measure_term_active;
+    /** the list of all enumerators whose measure term is this */
     std::vector< Node > d_anchors;
-    Node getOrMkSygusMeasureTerm( std::vector< Node >& lemmas );
-    Node getOrMkSygusActiveMeasureTerm( std::vector< Node >& lemmas );
-    /** The current (minimal) search size for this measure term */
+    /** get or make the measure value 
+     * 
+     * The measure value is an integer variable v that corresponds to the 
+     * (symbolic) integer value that is constrained be less than or equal to
+     * the current search size. For example, if we are using the fairness
+     * strategy SYGUS_FAIR_DT_SIZE, then we constrain:
+     *   (DT_SYGUS_BOUND m n) <=> (v <= n)
+     * for all asserted fairness literals. Then, if we are enforcing fairness
+     * based on the maximum size, we assert:
+     *   (DT_SIZE e) <= v
+     * for all enumerators e.
+     */
+    Node getOrMkMeasureValue( std::vector< Node >& lemmas );
+    /** get or make the active measure value 
+     * 
+     * The active measure value av is an integer variable that corresponds to 
+     * the (symbolic) value of the sum of enumerators that are yet to be
+     * registered. This is to enforce the "sum of measures" strategy. For 
+     * example, if we are using the fairness strategy SYGUS_FAIR_DT_SIZE,
+     * then initially av is equal to the measure value v, and the constraints
+     *   (DT_SYGUS_BOUND m n) <=> (v <= n)
+     * are added as before. When an enumerator e is registered, we add the 
+     * lemma:
+     *   av = (DT_SIZE e) + av'
+     * and update the active measure value to av'. This ensures that the sum
+     * of sizes of active enumerators is at most n.
+     * 
+     * If the flag mkNew is set to true, then we return a fresh variable and
+     * update the active measure value.
+     */
+    Node getOrMkActiveMeasureValue( std::vector< Node >& lemmas, bool mkNew = false );
+    /** 
+     * The current search size literal for this measure term. This corresponds
+     * to the minimial n such that (DT_SYGUS_BOUND d_this n) is asserted in
+     * this SAT context.
+     */
     context::CDO< unsigned > d_curr_lit;
+    /** 
+     * Map from integers n to the fairness literal, for each n such that this
+     * literal has been allocated (by getFairnessLiteral below).
+     */
     std::map< unsigned, Node > d_lits;
+    /**
+     * Returns the s^th fairness literal for this measure term. This adds a
+     * split on this literal to lemmas.
+     */
     Node getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas );
+    /** get the current fairness literal */
     Node getCurrentFairnessLiteral( TheoryDatatypes * d, std::vector< Node >& lemmas ) { 
       return getFairnessLiteral( d_curr_lit.get(), d, lemmas ); 
     }
     /** increment current term size */
     void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
+   private:
+    /** the measure value */
+    Node d_measure_value;
+    /** the sygus measure value */
+    Node d_measure_value_active;
   };
   /** the above information for each registered measure term */
   std::map< Node, SearchSizeInfo * > d_szinfo;
@@ -477,21 +529,23 @@ private:
    * such that (DT_SYGUS_BOUND d_generic_measure_term n) is asserted.
    */
   Node d_generic_measure_term;
-  /** increment current search size for measure term m
-   * 
-   * TODO
+  /** 
+   * This increments the current search size for measure term m. This may
+   * cause lemmas to be added to lemmas based on the fact that symmetry
+   * breaking lemmas are now relevant for new search terms, see discussion
+   * of how search size affects which lemmas are relevant above 
+   * addSymBreakLemmasFor.
    */
   void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
   /** 
    * Notify this class that we are currently searching for terms of size at
    * most s as model values for measure term m. Literal exp corresponds to the 
-   * explanation of why the measure term has size at most n.
+   * explanation of why the measure term has size at most n. This calls
+   * incrementSearchSize above, until the total number of times we have called 
+   * incrementSearchSize so far is at least s.
    */
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  /** register measure term m 
-   * 
-   * This allocates a SearchSizeInfo object in d_szinfo.
-   */
+  /** Allocates a SearchSizeInfo object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /** 
    * Return the current search size for arbitrary term n. This is the current

@@ -107,7 +107,7 @@ void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& l
     if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
       std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
       Assert( its!=d_szinfo.end() );
-      Node mt = its->second->getOrMkSygusMeasureTerm( lemmas );
+      Node mt = its->second->getOrMkMeasureValue( lemmas );
       //it relates the measure term to arithmetic
       Node blem = n.eqNode( NodeManager::currentNM()->mkNode( kind::LEQ, mt, n[1] ) );
       lemmas.push_back( blem );
@@ -912,21 +912,14 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
           if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
             // update constraints on the measure term
             if( options::sygusFairMax() ){
-              if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
-                Node ds = NodeManager::currentNM()->mkNode( kind::DT_SIZE, e );
-                Node slem = NodeManager::currentNM()->mkNode( kind::LEQ, ds, d_szinfo[m]->getOrMkSygusMeasureTerm( lemmas ) );
-                lemmas.push_back( slem );
-              }
+              Node ds = NodeManager::currentNM()->mkNode( kind::DT_SIZE, e );
+              Node slem = NodeManager::currentNM()->mkNode( kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue( lemmas ) );
+              lemmas.push_back( slem );
             }else{
-              Node mt = d_szinfo[m]->getOrMkSygusActiveMeasureTerm( lemmas );
-              Node new_mt = NodeManager::currentNM()->mkSkolem( "mt", NodeManager::currentNM()->integerType() );
-              lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, new_mt, d_zero ) );
-              if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
-                Node ds = NodeManager::currentNM()->mkNode( kind::DT_SIZE, e );
-                lemmas.push_back( mt.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, new_mt, ds ) ) );
-                //lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, ds, d_zero ) );
-              }
-              d_szinfo[m]->d_sygus_measure_term_active = new_mt;
+              Node mt = d_szinfo[m]->getOrMkActiveMeasureValue( lemmas );
+              Node new_mt = d_szinfo[m]->getOrMkActiveMeasureValue( lemmas, true );
+              Node ds = NodeManager::currentNM()->mkNode( kind::DT_SIZE, e );
+              lemmas.push_back( mt.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, new_mt, ds ) ) );
             }
           }
         }else{
@@ -1189,19 +1182,26 @@ Node SygusSymBreakNew::getCurrentTemplate( Node n, std::map< TypeNode, int >& va
   }
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getOrMkSygusMeasureTerm( std::vector< Node >& lemmas ) {
-  if( d_sygus_measure_term.isNull() ){
-    d_sygus_measure_term = NodeManager::currentNM()->mkSkolem( "mt", NodeManager::currentNM()->integerType() );
-    lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, d_sygus_measure_term, NodeManager::currentNM()->mkConst( Rational(0) ) ) );
+Node SygusSymBreakNew::SearchSizeInfo::getOrMkMeasureValue( std::vector< Node >& lemmas ) {
+  if( d_measure_value.isNull() ){
+    d_measure_value = NodeManager::currentNM()->mkSkolem( "mt", NodeManager::currentNM()->integerType() );
+    lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, d_measure_value, NodeManager::currentNM()->mkConst( Rational(0) ) ) );
   }
-  return d_sygus_measure_term;
+  return d_measure_value;
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getOrMkSygusActiveMeasureTerm( std::vector< Node >& lemmas ) {
-  if( d_sygus_measure_term_active.isNull() ){
-    d_sygus_measure_term_active = getOrMkSygusMeasureTerm( lemmas );
+Node SygusSymBreakNew::SearchSizeInfo::getOrMkActiveMeasureValue( std::vector< Node >& lemmas, bool mkNew ) {
+  if( mkNew )
+  {
+    Node new_mt = NodeManager::currentNM()->mkSkolem( "mt", NodeManager::currentNM()->integerType() );
+    lemmas.push_back( NodeManager::currentNM()->mkNode( kind::GEQ, new_mt, NodeManager::currentNM()->mkConst(Rational(0)) ) );
+    d_measure_value_active = new_mt;
   }
-  return d_sygus_measure_term_active;
+  else if( d_measure_value_active.isNull() )
+  {
+    d_measure_value_active = getOrMkMeasureValue( lemmas );
+  }
+  return d_measure_value_active;
 }
 
 Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas ) {
