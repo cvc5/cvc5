@@ -192,7 +192,7 @@ class CegisUnif : public SygusModule
   */
   Node purifyLemma(Node n,
                    std::vector<Node>& model_guards,
-                   std::unordered_map<Node, Node, NodeHashFunction> cache);
+                   std::unordered_map<Node, Node, NodeHashFunction>& cache);
 
   /**
   * This is called on an application of the function-to-synthesize to purify its
@@ -200,7 +200,9 @@ class CegisUnif : public SygusModule
   * populates a vector of guards with the (negated) equalities between the
   * original args and their model values vectors.
   */
-  Node replaceFunctionArg(Node n, std::vector<Node>& model_guards);
+  Node purifyFuncApp(Node n,
+                     std::vector<Node>& model_guards,
+                     std::unordered_map<Node, Node, NodeHashFunction>& cache);
 
 }; /* class CegisUnif */
 
