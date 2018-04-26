@@ -1445,6 +1445,10 @@ REG1_TESTS = \
 	regress1/strings/string-unsound-sem.smt2 \
 	regress1/strings/strings-index-empty.smt2 \
 	regress1/strings/strip-endpt-sound.smt2 \
+	regress1/strings/str-code-sat.smt2 \
+	regress1/strings/str-code-unsat.smt2 \
+	regress1/strings/str-code-unsat-2.smt2 \
+	regress1/strings/str-code-unsat-3.smt2 \
 	regress1/strings/substr001.smt2 \
 	regress1/strings/type002.smt2 \
 	regress1/strings/type003.smt2 \
