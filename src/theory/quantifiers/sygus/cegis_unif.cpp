@@ -197,23 +197,25 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
+  Node plem;
   std::vector<Node> model_guards;
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  lem = purifyLemma(lem, model_guards, cache);
-  /* Store lemma internally */
-  d_refinement_lemmas.push_back(lem);
-  /* Make the refinement lemma and add it to lems. This lemma is guarded by the
-     model guards and by the parent's guard, which has the semantics "this
-     conjecture has a solution", hence this lemma states: if the parent
-     conjecture has a solution, it satisfies the specification for the given
-     concrete point. */
-  model_guards.push_back(d_parent->getGuard().negate());
-  model_guards.push_back(lem);
-  Node rlem = NodeManager::currentNM()->mkNode(OR, model_guards);
-  /* Store lemma for external modules */
-  lems.push_back(rlem);
+  Trace("cegis-unif") << "Registering lemma at CegisUnif : " << lem << "\n";
+  /* Make the purified lemma which will guide the unification utility. */
+  plem = purifyLemma(lem, model_guards, cache);
+  model_guards.push_back(plem);
+  NodeManager::currentNM()->mkNode(OR, model_guards);
+  Trace("cegis-unif") << "Purified lemma : " << plem << "\n";
+  d_refinement_lemmas.push_back(plem);
   /* Notify lemma to unification utility */
-  d_sygus_unif.addRefLemma(rlem);
+  d_sygus_unif.addRefLemma(plem);
+  /* Make the refinement lemma and add it to lems. This lemma is guarded by the
+     parent's guard, which has the semantics "this conjecture has a solution",
+     hence this lemma states: if the parent conjecture has a solution, it
+     satisfies the specification for the given concrete point. */
+  /* Store lemma for external modules */
+  lems.push_back(
+      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
 }
 
 }  // namespace quantifiers
