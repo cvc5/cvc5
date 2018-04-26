@@ -1470,6 +1470,8 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
           d_status_child_num++;
           return getNextTerm( s, depth );
         }else{
+          Trace("sg-gen-tg-debug2") << "...remove child from context " << std::endl;
+          s->changeContext( false );
           d_children.pop_back();
           d_status_child_num--;
           return getNextTerm( s, depth );
@@ -1492,11 +1494,7 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
     d_status_num = -1;
     return getNextTerm( s, depth );
   }else{
-    //clean up
     Assert( d_children.empty() );
-    Trace("sg-gen-tg-debug2") << "...remove from context " << this << std::endl;
-    s->changeContext( false );
-    Assert( d_id==s->d_tg_id );
     return false;
   }
 }
@@ -1815,9 +1813,10 @@ bool TermGenEnv::getNextTerm() {
     }else{
       return true;
     }
-  }else{
-    return false;
   }
+  Trace("sg-gen-tg-debug2") << "...remove from context " << std::endl;
+  changeContext( false );
+  return false;
 }
 
 //reset matching
