@@ -968,12 +968,12 @@ header = "options/quantifiers_options.h"
   help       = "sygus advanced pruning based on examples"
 
 [[option]]
-  name       = "sygusIce"
+  name       = "sygusUnif"
   category   = "regular"
-  long       = "sygus-ice"
+  long       = "sygus-unif"
   type       = "bool"
   default    = "false"
-  help       = "ICE-based function synthesis"
+  help       = "Unification-based function synthesis"
 
 [[option]]
   name       = "sygusQePreproc"

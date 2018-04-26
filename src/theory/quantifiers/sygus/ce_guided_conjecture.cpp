@@ -54,7 +54,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
   {
     d_modules.push_back(d_ceg_pbe.get());
   }
-  if (options::sygusIce())
+  if (options::sygusUnif())
   {
     d_modules.push_back(d_ceg_cegisUnif.get());
   }

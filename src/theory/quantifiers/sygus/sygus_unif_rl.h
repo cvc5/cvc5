@@ -37,14 +37,12 @@ class SygusUnifRl : public SygusUnif
   ~SygusUnifRl();
 
   /** initialize */
-  virtual void initialize(QuantifiersEngine* qe,
-                          Node f,
-                          std::vector<Node>& enums,
-                          std::vector<Node>& lemmas) override;
+  void initialize(QuantifiersEngine* qe,
+                  Node f,
+                  std::vector<Node>& enums,
+                  std::vector<Node>& lemmas) override;
   /** Notify enumeration */
-  virtual void notifyEnumeration(Node e,
-                                 Node v,
-                                 std::vector<Node>& lemmas) override;
+  void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** add refinement lemma
    *
    * This adds a lemma to the specification for f.

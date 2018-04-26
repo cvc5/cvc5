@@ -48,17 +48,14 @@ namespace quantifiers {
  * with the boolean structure of the invariant being derived afterwards when it
  * is guaranteed to succeed with an algorithm that favors small CNFs.
  *
- * This approach is inspired by the invariant synthesis based on the ICE
- * framework from Garg et al. and the approach in Padhi et al. PLDI 2016
+ * This approach is inspired by invariant synthesis based on the ICE framework
+ * from Garg et al. and the approach in Padhi et al. PLDI 2016
  */
 class CegisUnif : public SygusModule
 {
  public:
-  CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
-      : SygusModule(qe, p), d_tds(qe->getTermDatabaseSygus())
-  {
-  }
-  ~CegisUnif() {}
+  CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
+  ~CegisUnif();
   /** initialize this class
    *
    * For invariant synthesis it works as follows:
@@ -78,13 +75,13 @@ class CegisUnif : public SygusModule
    * particular, if the grammar contains boolean operators these will be removed
    * from the enumeration since boolean combinations or theory expressions will
    * be done in a different way (see ...). */
-  virtual void initialize(Node n,
-                          const std::vector<Node>& candidates,
-                          std::vector<Node>& lemmas) override;
+  bool initialize(Node n,
+                  const std::vector<Node>& candidates,
+                  std::vector<Node>& lemmas) override;
   /** adds the candidate itself to enums */
-  virtual void getTermList(const std::vector<Node>& candidates,
-                           std::vector<Node>& enums) override;
-  /** Tries to build new candidate with new enumerated expresion
+  void getTermList(const std::vector<Node>& candidates,
+                   std::vector<Node>& enums) override;
+  /** Tries to build new candidate solution with new enumerated expresion
    *
    * For invariant synthesis it works as follows:
    *
@@ -124,11 +121,11 @@ class CegisUnif : public SygusModule
    * The spearation of the points is left for a core algorithm (e.g. decision
    * tree learning) this module depends on.
    */
-  virtual bool constructCandidates(const std::vector<Node>& enums,
-                                   const std::vector<Node>& enum_values,
-                                   const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   std::vector<Node>& lems) override;
+  bool constructCandidates(const std::vector<Node>& enums,
+                           const std::vector<Node>& enum_values,
+                           const std::vector<Node>& candidates,
+                           std::vector<Node>& candidate_values,
+                           std::vector<Node>& lems) override;
 
   /** Performs conflict analysis to obtain refinement points
    *
@@ -165,39 +162,46 @@ class CegisUnif : public SygusModule
    *
    * This function does not modify lems since it does not require solutions to
    * be blocked externally */
-  virtual void registerRefinementLemma(const std::vector<Node>& vars,
-                                       Node lem,
-                                       std::vector<Node>& lems) override;
+  void registerRefinementLemma(const std::vector<Node>& vars,
+                               Node lem,
+                               std::vector<Node>& lems) override;
  private:
   /** sygus term database of d_qe */
   TermDbSygus * d_tds;
   /**
-   * Map from candidates to sygus unif utility. This class implements the core
-   * algorithm (e.g. decision tree learning) that this module relies upon.
+   * Sygus unif utility. This class implements the core algorithm (e.g. decision
+   * tree learning) that this module relies upon.
    */
-  std::map<Node, SygusUnifRl> d_sygus_unif;
-  /** for each function-to-synthesize, its set of constraints */
-  std::map<Node, std::vector<std::vector<Node>>> d_constraints;
-
-  /** for each function-to-synthesize f whether the conjecture is point-wise for
-  * that variable, i.e. whether all occurrences In other words, all occurrences of f are guarded by equalities
-  * that constraint its arguments to constants.
+  SygusUnifRl d_sygus_unif;
+  /* Candidate function-to-synthesize */
+  Node d_candidate;
+  /**
+   * list of enumerators being used to build solutions for candidate by the
+   * above utility.
+   */
+  std::vector<Node> d_enums;
+  /** map from enumerators to active guards */
+  std::map<Node, Node> d_enum_to_active_guard;
+  /* list of learned refinement lemmas */
+  std::vector<Node> d_refinement_lemmas;
+  /**
+  * This is called on the refinement lemma and will replace the argumets of the
+  * function-to-synthesize by their model values. It populates a vector of
+  * guards with the (negated) equalities between the original args and their
+  * model values vectors.
   */
-  std::map< Node, bool > d_examples_invalid;
+  Node purifyLemma(Node n,
+                   std::vector<Node>& model_guards,
+                   std::unordered_map<Node, Node, NodeHashFunction> cache);
 
-
-  /** collect the conjunctive constraints in n
-   *
-   * This is called on the input conjecture, and will populate the above vectors
-   * for each function to synthesize
-   *
-   * hasPol: whether n has a polarity (e.g. not the first chield of an ITE)
-   * pol: polarity of n
+  /**
+  * This is called on an application of the function-to-synthesize to purify its
+  * arguments such that they do not contain the function-to-synthesize. It
+  * populates a vector of guards with the (negated) equalities between the
+  * original args and their model values vectors.
   */
-  void collectConstraints(Node n,
-                          std::map<Node, bool>& visited,
-                          bool hasPol,
-                          bool pol);
+  Node replaceFunctionArg(Node n, std::vector<Node>& model_guards);
+
 }; /* class CegisUnif */
 
 }  // namespace quantifiers

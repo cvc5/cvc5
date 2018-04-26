@@ -20,6 +20,32 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+SygusUnifRl::SygusUnifRl() {}
+
+SygusUnifRl::~SygusUnifRl() {}
+
+void SygusUnifRl::initialize(QuantifiersEngine* qe,
+                             Node f,
+                             std::vector<Node>& enums,
+                             std::vector<Node>& lemmas)
+{
+  SygusUnif::initialize(qe, f, enums, lemmas);
+}
+
+void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
+{
+}
+
+void SygusUnifRl::addRefLemma(Node lemma) {}
+
+void SygusUnifRl::initializeConstructSol() {}
+
+Node SygusUnifRl::constructSol(Node e, NodeRole nrole, int ind)
+{
+  return Node::null();
+}
+
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
