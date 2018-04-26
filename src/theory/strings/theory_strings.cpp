@@ -3508,7 +3508,6 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           Trace("strings-lemma-debug") << "  prerewrite : " << skl.eqNode( lsum ) << std::endl;
           Trace("strings-assert") << "(assert " << ceq << ")" << std::endl;
           d_out->lemma(ceq);
-          
         }
       }
       else
