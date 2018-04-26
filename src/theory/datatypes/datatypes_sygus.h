@@ -42,8 +42,10 @@ class TheoryDatatypes;
 
 /**
  * This is the sygus extension of the decision procedure for quantifier-free
- * inductive datatypes.
- *
+ * inductive datatypes. At a high level, this class takes as input a
+ * set of asserted testers is-C1( x ), is-C2( x.1 ), is-C3( x.2 ), and
+ * generates lemmas that restrict the models of x, if x is a "sygus enumerator"
+ * (see TermDbSygus::registerEnumerator).
  */
 class SygusSymBreakNew
 {
@@ -502,13 +504,39 @@ private:
   unsigned getSearchSizeForMeasureTerm(Node m);
   /** get current template
    * 
-   * TODO
+   * For debugging. This returns a term that corresponds to the current 
+   * inferred shape of n. For example, if the testers 
+   *   is-C1( n ) and is-C2( n.1 )
+   * have been asserted where C1 and C2 are binary constructors, then this 
+   * method may return a term of the form:
+   *   C1( C2( x1, x2 ), x3 )
+   * for fresh variables x1, x2, x3. The map var_count maintains the variable 
+   * count for generating these fresh variables.
    */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   //----------------------end search size information
   /** check testers 
    * 
-   * TODO
+   * This is called when we have a model assignment vn for n, where n is
+   * a selector chain applied to an enumerator (a search term). This function
+   * ensures that testers have been asserted for each subterm of vn. This is 
+   * critical for ensuring that the proper steps have been taken by this class 
+   * regarding whether or not vn is a legal value for n (not greater than the
+   * current search size and not a value that can be blocked by symmetry
+   * breaking).
+   * 
+   * For example, if vn = +( x(), x() ), then we ensure that the testers
+   *   is-+( n ), is-x( n.1 ), is-x( n.2 )
+   * have been asserted to this class. If a tester is not asserted for some
+   * relevant selector chain S( n ) of n, then we add a lemma L for that
+   * selector chain to lemmas, where L is the "splitting lemma" for S( n ), that 
+   * states that the top symbol of S( n ) must be one of the constructors of
+   * its type.
+   * 
+   * Notice that this function is a sanity check. Typically, it should be the
+   * case that testers are asserted for all subterms of vn, and hence this 
+   * method should not ever add anything to lemmas. However, due to its
+   * importance, we check this regardless.
    */
   bool checkTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
   /**
