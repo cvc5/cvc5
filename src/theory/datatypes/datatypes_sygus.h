@@ -438,10 +438,21 @@ private:
     /** increment current term size */
     void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
   };
+  /** the above information for each registered enumerator */
   std::map< Node, SearchSizeInfo * > d_szinfo;
+  /** map from anchor terms to their associated enumerator */
   std::map< Node, Node > d_anchor_to_measure_term;
+  /** */
   std::map< Node, Node > d_anchor_to_active_guard;
+  /** generic measure term
+   * 
+   * TODO
+   */
   Node d_generic_measure_term;
+  /** increment current search size for enumerator m
+   * 
+   * TODO
+   */
   void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
   void registerMeasureTerm( Node m );
@@ -452,7 +463,10 @@ private:
    * in this SAT context.
    */
   unsigned getSearchSizeForMeasureTerm(Node m);
-
+  /** get current template
+   * 
+   * TODO
+   */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   //----------------------end search size information
   bool debugTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
