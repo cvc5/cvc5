@@ -1050,7 +1050,7 @@ static string smtKindString(Kind k)
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_ITOS: return "int.to.str" ;
   case kind::STRING_STOI: return "str.to.int" ;
-  case kind::STRING_CODE: return "str.code" ;
+  case kind::STRING_CODE: return "str.code";
   case kind::STRING_IN_REGEXP: return "str.in.re";
   case kind::STRING_TO_REGEXP: return "str.to.re";
   case kind::REGEXP_CONCAT: return "re.++";

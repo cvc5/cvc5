@@ -946,8 +946,9 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
     if( !e2->d_length_term.get().isNull() ){
       e1->d_length_term.set( e2->d_length_term );
     }
-    if( !e2->d_code_term.get().isNull() ){
-      e1->d_code_term.set( e2->d_code_term );
+    if (!e2->d_code_term.get().isNull())
+    {
+      e1->d_code_term.set(e2->d_code_term);
     }
     if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
       e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
@@ -2160,23 +2161,24 @@ void TheoryStrings::checkNormalForms(){
     NodeManager* nm = NodeManager::currentNM();
     // str.code applied to the code term for each equivalence class that has a
     // code term but is not a constant
-    std::vector< Node > nconst_codes;
+    std::vector<Node> nconst_codes;
     // str.code applied to the proxy variables for each equivalence classes that
     // are constants of size one
-    std::vector< Node > const_codes;
+    std::vector<Node> const_codes;
     for (const Node& eqc : d_strings_eqc)
     {
       if (d_normal_forms[eqc].size() == 1 && d_normal_forms[eqc][0].isConst())
       {
         Node c = d_normal_forms[eqc][0];
-        Trace("strings-code-debug") << "Get proxy variable for " << c << std::endl;
+        Trace("strings-code-debug")
+            << "Get proxy variable for " << c << std::endl;
         Node cc = nm->mkNode(kind::STRING_CODE, c);
-        cc = Rewriter::rewrite( cc );
-        Assert( cc.isConst() );
+        cc = Rewriter::rewrite(cc);
+        Assert(cc.isConst());
         NodeNodeMap::const_iterator it = d_proxy_var.find(c);
         AlwaysAssert(it != d_proxy_var.end());
         Node vc = nm->mkNode(kind::STRING_CODE, (*it).second);
-        if( !areEqual(cc,vc) )
+        if (!areEqual(cc, vc))
         {
           sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
         }
@@ -2184,10 +2186,10 @@ void TheoryStrings::checkNormalForms(){
       }
       else
       {
-        EqcInfo* ei = getOrMakeEqcInfo( eqc, false );
-        if( ei && !ei->d_code_term.get().isNull() )
+        EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
+        if (ei && !ei->d_code_term.get().isNull())
         {
-          Node vc = nm->mkNode(kind::STRING_CODE, ei->d_code_term.get() );
+          Node vc = nm->mkNode(kind::STRING_CODE, ei->d_code_term.get());
           nconst_codes.push_back(vc);
         }
       }
@@ -2197,22 +2199,23 @@ void TheoryStrings::checkNormalForms(){
       return;
     }
     // now, ensure that str.code is injective
-    std::vector< Node > cmps;
-    cmps.insert(cmps.end(),nconst_codes.begin(),nconst_codes.end());
-    cmps.insert(cmps.end(),const_codes.begin(),const_codes.end());
-    std::reverse(cmps.begin(),cmps.end());
-    for( unsigned i=0, num_ncc = nconst_codes.size(); i<num_ncc; i++ )
+    std::vector<Node> cmps;
+    cmps.insert(cmps.end(), nconst_codes.begin(), nconst_codes.end());
+    cmps.insert(cmps.end(), const_codes.begin(), const_codes.end());
+    std::reverse(cmps.begin(), cmps.end());
+    for (unsigned i = 0, num_ncc = nconst_codes.size(); i < num_ncc; i++)
     {
       Node c1 = nconst_codes[i];
       cmps.pop_back();
-      for( const Node& c2 : cmps )
+      for (const Node& c2 : cmps)
       {
-        Trace("strings-code-debug") << "Compare codes : " << c1 << " " << c2 << std::endl;
-        if( !areDisequal( c1, c2 ) )
+        Trace("strings-code-debug")
+            << "Compare codes : " << c1 << " " << c2 << std::endl;
+        if (!areDisequal(c1, c2))
         {
-          Node eqn = c1[0].eqNode( c2[0] );
-          Node eq = c1.eqNode( c2 );
-          Node inj_lem = nm->mkNode( kind::OR, eq.negate(), eqn );
+          Node eqn = c1[0].eqNode(c2[0]);
+          Node eq = c1.eqNode(c2);
+          Node inj_lem = nm->mkNode(kind::OR, eq.negate(), eqn);
           sendInference(d_empty_vec, inj_lem, "Code_Inj");
         }
       }
@@ -3437,12 +3440,15 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   // 3 : called on normal form terms
   TypeNode tn = n.getType();
   bool do_register = true;
-  if( !tn.isString() )
+  if (!tn.isString())
   {
-    if( options::stringEagerLen() ){
-      do_register = effort==0;
-    }else{
-      do_register = effort>0 || n.getKind()!=kind::STRING_CONCAT;
+    if (options::stringEagerLen())
+    {
+      do_register = effort == 0;
+    }
+    else
+    {
+      do_register = effort > 0 || n.getKind() != kind::STRING_CONCAT;
     }
   }
   if( do_register ){
@@ -3515,10 +3521,13 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           Node neg_one = nm->mkConst(Rational(-1));
           Node code_len = mkLength(n[0]).eqNode(d_one);
           Node code_eq_neg1 = n.eqNode(nm->mkConst(Rational(-1)));
-          Node code_range = nm->mkNode( kind::AND, 
-                                 nm->mkNode( kind::GEQ, n, d_zero ),
-                                 nm->mkNode( kind::LT, n, nm->mkConst(Rational(CVC4::String::num_codes()))));
-          Node lem = nm->mkNode( kind::ITE, code_len, code_range, code_eq_neg1 );
+          Node code_range = nm->mkNode(
+              kind::AND,
+              nm->mkNode(kind::GEQ, n, d_zero),
+              nm->mkNode(kind::LT,
+                         n,
+                         nm->mkConst(Rational(CVC4::String::num_codes()))));
+          Node lem = nm->mkNode(kind::ITE, code_len, code_range, code_eq_neg1);
           Trace("strings-lemma")
               << "Strings::Lemma CODE : " << lem << std::endl;
           Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
