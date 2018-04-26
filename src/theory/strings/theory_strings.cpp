@@ -481,6 +481,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     return false;
   }
 
+  NodeManager * nm = NodeManager::currentNM();
   // Generate model
   std::vector< Node > nodes;
   getEquivalenceClasses( nodes );
@@ -544,11 +545,13 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           if( eip && !eip->d_code_term.get().isNull() )
           {
             // its value must be equal to its code
-            Node ctv = d_valuation.getModelValue(eip->d_code_term.get());
+            Node ct = nm->mkNode(kind::STRING_CODE,eip->d_code_term.get());
+            Node ctv = d_valuation.getModelValue(ct);
             unsigned cvalue = ctv.getConst<Rational>().getNumerator().toUnsignedInt();
+            Trace("strings-model") << "(code: " << cvalue << ") ";
             std::vector< unsigned > vec;
             vec.push_back(String::convertCodeToUnsignedInt(cvalue));
-            Node mv = NodeManager::currentNM()->mkConst( ::CVC4::String(vec) );
+            Node mv = nm->mkConst( ::CVC4::String(vec) );
             pure_eq_assign[eqc] = mv;
           }
           pure_eq.push_back( eqc );
@@ -569,7 +572,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           lvalue++;
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
-        lts_values[i] = NodeManager::currentNM()->mkConst( Rational( lvalue ) );
+        lts_values[i] = nm->mkConst( Rational( lvalue ) );
         values_used[ lvalue ] = true;
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
