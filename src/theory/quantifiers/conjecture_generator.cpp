@@ -97,8 +97,11 @@ d_ee_conjectures( c ){
 
 ConjectureGenerator::~ConjectureGenerator()
 {
-  for(std::map< Node, EqcInfo* >::iterator i = d_eqc_info.begin(), iend = d_eqc_info.end();
-      i != iend; ++i){
+  for (std::map<Node, EqcInfo*>::iterator i = d_eqc_info.begin(),
+                                          iend = d_eqc_info.end();
+       i != iend;
+       ++i)
+  {
     EqcInfo* current = (*i).second;
     Assert(current != nullptr);
     delete current;
