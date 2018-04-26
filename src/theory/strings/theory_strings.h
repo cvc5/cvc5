@@ -302,13 +302,13 @@ private:
     /** a term of the form str.len( x ), where x is in this eq class */
     context::CDO< Node > d_length_term;
     /** a term of the form str.code( x ), where x is in this eq class */
-    context::CDO< Node > d_code_term;
+    context::CDO<Node> d_code_term;
     context::CDO< unsigned > d_cardinality_lem_k;
     context::CDO< Node > d_normalized_length;
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
-  /** 
+  /**
    * Get the above information for equivalence class eqc. If doMake is true,
    * we construct a new information class if one does not exist. The term eqc
    * should currently be a representative of the equality engine of this class.

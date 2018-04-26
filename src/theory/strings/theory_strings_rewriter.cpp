@@ -1223,8 +1223,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     }
   } else if(node.getKind() == kind::STRING_IN_REGEXP) {
     retNode = rewriteMembership(node);
-  } 
-  else if(node.getKind() == kind::STRING_CODE )
+  }
+  else if (node.getKind() == kind::STRING_CODE)
   {
     retNode = rewriteStringCode(node);
   }
@@ -2264,16 +2264,17 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
 
 Node TheoryStringsRewriter::rewriteStringCode(Node n)
 {
-  Assert( n.getKind()==kind::STRING_CODE );
-  if( n[0].isConst() )
+  Assert(n.getKind() == kind::STRING_CODE);
+  if (n[0].isConst())
   {
     CVC4::String s = n[0].getConst<String>();
     Node ret;
-    if( s.size()==1 )
+    if (s.size() == 1)
     {
       std::vector<unsigned> vec = s.getVec();
-      Assert( vec.size()==1 );
-      ret = NodeManager::currentNM()->mkConst(Rational(CVC4::String::convertUnsignedIntToCode(vec[0])));
+      Assert(vec.size() == 1);
+      ret = NodeManager::currentNM()->mkConst(
+          Rational(CVC4::String::convertUnsignedIntToCode(vec[0])));
     }
     else
     {
@@ -2281,7 +2282,7 @@ Node TheoryStringsRewriter::rewriteStringCode(Node n)
     }
     return returnRewrite(n, ret, "code-eval");
   }
-  
+
   return n;
 }
 

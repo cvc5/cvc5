@@ -73,13 +73,14 @@ Node TheoryStrings::TermIndex::add( TNode n, unsigned index, TheoryStrings* t, N
   }
 }
 
-
-TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
-                             OutputChannel& out, Valuation valuation,
+TheoryStrings::TheoryStrings(context::Context* c,
+                             context::UserContext* u,
+                             OutputChannel& out,
+                             Valuation valuation,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       RMAXINT(LONG_MAX),
-      d_notify( *this ),
+      d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_conflict(c, false),
       d_infer(c),
@@ -98,7 +99,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
       d_proxy_var(u),
       d_proxy_var_to_length(u),
       d_functionsTerms(c),
-      d_has_extf(c, false ),
+      d_has_extf(c, false),
       d_has_str_code(false),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
@@ -481,7 +482,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     return false;
   }
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // Generate model
   std::vector< Node > nodes;
   getEquivalenceClasses( nodes );
@@ -525,36 +526,37 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   ////step 2 : assign arbitrary values for unknown lengths?
   // confirmed by calculus invariant, see paper
   Trace("strings-model") << "Assign to equivalence classes..." << std::endl;
-  std::map< Node, Node > pure_eq_assign;
+  std::map<Node, Node> pure_eq_assign;
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
     Trace("strings-model") << "The equivalence classes ";
-    for( unsigned j=0; j<col[i].size(); j++ ) 
+    for (unsigned j = 0; j < col[i].size(); j++)
     {
       Node eqc = col[i][j];
       Trace("strings-model") << eqc << " ";
       //check if col[i][j] has only variables
-      if( !eqc.isConst() )
+      if (!eqc.isConst())
       {
-        Assert( d_normal_forms.find( eqc )!=d_normal_forms.end() );
-        if( d_normal_forms[eqc].size()==1 )
+        Assert(d_normal_forms.find(eqc) != d_normal_forms.end());
+        if (d_normal_forms[eqc].size() == 1)
         {
           // does it have a code?
-          EqcInfo * eip = getOrMakeEqcInfo(eqc,false);
-          if( eip && !eip->d_code_term.get().isNull() )
+          EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
+          if (eip && !eip->d_code_term.get().isNull())
           {
             // its value must be equal to its code
-            Node ct = nm->mkNode(kind::STRING_CODE,eip->d_code_term.get());
+            Node ct = nm->mkNode(kind::STRING_CODE, eip->d_code_term.get());
             Node ctv = d_valuation.getModelValue(ct);
-            unsigned cvalue = ctv.getConst<Rational>().getNumerator().toUnsignedInt();
+            unsigned cvalue =
+                ctv.getConst<Rational>().getNumerator().toUnsignedInt();
             Trace("strings-model") << "(code: " << cvalue << ") ";
-            std::vector< unsigned > vec;
+            std::vector<unsigned> vec;
             vec.push_back(String::convertCodeToUnsignedInt(cvalue));
-            Node mv = nm->mkConst( ::CVC4::String(vec) );
+            Node mv = nm->mkConst(::CVC4::String(vec));
             pure_eq_assign[eqc] = mv;
           }
-          pure_eq.push_back( eqc );
+          pure_eq.push_back(eqc);
         }
       }
       else
@@ -572,7 +574,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           lvalue++;
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
-        lts_values[i] = nm->mkConst( Rational( lvalue ) );
+        lts_values[i] = nm->mkConst(Rational(lvalue));
         values_used[ lvalue ] = true;
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
@@ -580,22 +582,22 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Trace("strings-model") << pure_eq[j] << " ";
       }
       Trace("strings-model") << std::endl;
-      
 
       //use type enumerator
       Assert(lts_values[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
-      for( const Node& eqc : pure_eq )
+      for (const Node& eqc : pure_eq)
       {
         Node c;
-        std::map< Node, Node >::iterator itp = pure_eq_assign.find(eqc);
-        if( itp==pure_eq_assign.end() )
+        std::map<Node, Node>::iterator itp = pure_eq_assign.find(eqc);
+        if (itp == pure_eq_assign.end())
         {
           Assert( !sel.isFinished() );
           c = *sel;
-          while( d_equalityEngine.hasTerm( c ) ){
+          while (d_equalityEngine.hasTerm(c))
+          {
             ++sel;
-            Assert( !sel.isFinished() );
+            Assert(!sel.isFinished());
             c = *sel;
           }
           ++sel;
@@ -604,7 +606,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         {
           c = itp->second;
         }
-        Trace("strings-model") << "*** Assigned constant " << c << " for " << eqc << std::endl;
+        Trace("strings-model")
+            << "*** Assigned constant " << c << " for " << eqc << std::endl;
         processed[eqc] = c;
         if (!m->assertEquality(eqc, c, true))
         {
@@ -680,7 +683,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         break;
       }
       default: {
-        registerTerm( n, 0 );
+        registerTerm(n, 0);
         TypeNode tn = n.getType();
         if( tn.isString() ) {
           // if finite model finding is enabled,
@@ -875,8 +878,12 @@ void TheoryStrings::checkExtfReductions( int effort ) {
   }
 }
 
-TheoryStrings::EqcInfo::EqcInfo(  context::Context* c ) : d_length_term(c), d_code_term(c), d_cardinality_lem_k(c), d_normalized_length(c) {
-
+TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
+    : d_length_term(c),
+      d_code_term(c),
+      d_cardinality_lem_k(c),
+      d_normalized_length(c)
+{
 }
 
 TheoryStrings::EqcInfo * TheoryStrings::getOrMakeEqcInfo( Node eqc, bool doMake ) {
@@ -910,11 +917,12 @@ void TheoryStrings::conflict(TNode a, TNode b){
 /** called when a new equivalance class is created */
 void TheoryStrings::eqNotifyNewClass(TNode t){
   Kind k = t.getKind();
-  if( k == kind::STRING_LENGTH || k==kind::STRING_CODE ){
+  if (k == kind::STRING_LENGTH || k == kind::STRING_CODE)
+  {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     Node r = d_equalityEngine.getRepresentative(t[0]);
     EqcInfo * ei = getOrMakeEqcInfo( r, true );
-    if( k == kind::STRING_LENGTH )
+    if (k == kind::STRING_LENGTH)
     {
       ei->d_length_term = t[0];
     }
@@ -2056,92 +2064,121 @@ void TheoryStrings::checkNormalForms(){
       }
     }
   }
-  if( hasProcessed() ){
+  if (hasProcessed())
+  {
     return;
   }
   Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
-  //calculate normal forms for each equivalence class, possibly adding splitting lemmas
+  // calculate normal forms for each equivalence class, possibly adding
+  // splitting lemmas
   d_normal_forms.clear();
   d_normal_forms_exp.clear();
-  std::map< Node, Node > nf_to_eqc;
-  std::map< Node, Node > eqc_to_nf;
-  std::map< Node, Node > eqc_to_exp;
-  for( const Node& eqc : d_strings_eqc )
+  std::map<Node, Node> nf_to_eqc;
+  std::map<Node, Node> eqc_to_nf;
+  std::map<Node, Node> eqc_to_exp;
+  for (const Node& eqc : d_strings_eqc)
   {
-    Trace("strings-process-debug") << "- Verify normal forms are the same for " << eqc << std::endl;
-    normalizeEquivalenceClass( eqc );
+    Trace("strings-process-debug")
+        << "- Verify normal forms are the same for " << eqc << std::endl;
+    normalizeEquivalenceClass(eqc);
     Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
-    if( hasProcessed() ){
+    if (hasProcessed())
+    {
       return;
     }
-    Node nf_term = mkConcat( d_normal_forms[eqc] );
-    std::map< Node, Node >::iterator itn = nf_to_eqc.find( nf_term );
-    if( itn!=nf_to_eqc.end() ){
-      //two equivalence classes have same normal form, merge
-      std::vector< Node > nf_exp;
-      nf_exp.push_back( mkAnd( d_normal_forms_exp[eqc] ) );
-      nf_exp.push_back( eqc_to_exp[itn->second] );
-      Node eq = d_normal_forms_base[eqc].eqNode( d_normal_forms_base[itn->second] );
-      sendInference( nf_exp, eq, "Normal_Form" );
+    Node nf_term = mkConcat(d_normal_forms[eqc]);
+    std::map<Node, Node>::iterator itn = nf_to_eqc.find(nf_term);
+    if (itn != nf_to_eqc.end())
+    {
+      // two equivalence classes have same normal form, merge
+      std::vector<Node> nf_exp;
+      nf_exp.push_back(mkAnd(d_normal_forms_exp[eqc]));
+      nf_exp.push_back(eqc_to_exp[itn->second]);
+      Node eq =
+          d_normal_forms_base[eqc].eqNode(d_normal_forms_base[itn->second]);
+      sendInference(nf_exp, eq, "Normal_Form");
       if( hasProcessed() ){
         return;
       }
-    } else {
+    }
+    else
+    {
       nf_to_eqc[nf_term] = eqc;
       eqc_to_nf[eqc] = nf_term;
-      eqc_to_exp[eqc] = mkAnd( d_normal_forms_exp[eqc] );
+      eqc_to_exp[eqc] = mkAnd(d_normal_forms_exp[eqc]);
     }
-    Trace("strings-process-debug") << "Done verifying normal forms are the same for " << eqc << std::endl;
+    Trace("strings-process-debug")
+        << "Done verifying normal forms are the same for " << eqc << std::endl;
   }
-  if(Trace.isOn("strings-nf")) {
+  if (Trace.isOn("strings-nf"))
+  {
     Trace("strings-nf") << "**** Normal forms are : " << std::endl;
-    for( std::map< Node, Node >::iterator it = eqc_to_exp.begin(); it != eqc_to_exp.end(); ++it ){
-      Trace("strings-nf") << "  N[" << it->first << "] (base " << d_normal_forms_base[it->first] << ") = " << eqc_to_nf[it->first] << std::endl;
+    for (std::map<Node, Node>::iterator it = eqc_to_exp.begin();
+         it != eqc_to_exp.end();
+         ++it)
+    {
+      Trace("strings-nf") << "  N[" << it->first << "] (base "
+                          << d_normal_forms_base[it->first]
+                          << ") = " << eqc_to_nf[it->first] << std::endl;
       Trace("strings-nf") << "     exp: " << it->second << std::endl;
     }
     Trace("strings-nf") << std::endl;
   }
-  checkExtfEval( 1 );
-  Trace("strings-process-debug") << "Done check extended functions re-eval, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  if( hasProcessed() ){
+  checkExtfEval(1);
+  Trace("strings-process-debug")
+      << "Done check extended functions re-eval, addedFact = "
+      << !d_pending.empty() << " " << !d_lemma_cache.empty()
+      << ", d_conflict = " << d_conflict << std::endl;
+  if (hasProcessed())
+  {
     return;
   }
-  if( !options::stringEagerLen() ){
+  if (!options::stringEagerLen())
+  {
     checkLengthsEqc();
-    if( hasProcessed() ){
+    if (hasProcessed())
+    {
       return;
     }
   }
-  //process disequalities between equivalence classes
+  // process disequalities between equivalence classes
   checkDeqNF();
-  Trace("strings-process-debug") << "Done check disequalities, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  if( hasProcessed() ){
+  Trace("strings-process-debug")
+      << "Done check disequalities, addedFact = " << !d_pending.empty() << " "
+      << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+  if (hasProcessed())
+  {
     return;
   }
   // ensure that lemmas regarding str.code been added for each constant string
   // of length one
-  if( d_has_str_code )
+  if (d_has_str_code)
   {
-    NodeManager * nm = NodeManager::currentNM();
-    for( const Node& eqc : d_strings_eqc )
+    NodeManager* nm = NodeManager::currentNM();
+    for (const Node& eqc : d_strings_eqc)
     {
-      if( d_normal_forms[eqc].size()==1 && d_normal_forms[eqc][0].isConst() )
+      if (d_normal_forms[eqc].size() == 1 && d_normal_forms[eqc][0].isConst())
       {
         Node c = d_normal_forms[eqc][0];
-        Assert( d_proxy_var.find(c)!=d_proxy_var.end() );
-        Node cc = nm->mkNode( kind::STRING_CODE, c );
-        NodeNodeMap::const_iterator it = d_proxy_var.find( cc );
-        AlwaysAssert( it!=d_proxy_var.end() );
-        Node vc = nm->mkNode( kind::STRING_CODE, (*it).second );
-        sendInference( d_empty_vec, cc.eqNode(vc), "Code_Proxy" );
+        Assert(d_proxy_var.find(c) != d_proxy_var.end());
+        Node cc = nm->mkNode(kind::STRING_CODE, c);
+        NodeNodeMap::const_iterator it = d_proxy_var.find(cc);
+        AlwaysAssert(it != d_proxy_var.end());
+        Node vc = nm->mkNode(kind::STRING_CODE, (*it).second);
+        sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
       }
     }
   }
-  Trace("strings-process-debug") << "Done check code, addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  if( hasProcessed() ){
+  Trace("strings-process-debug")
+      << "Done check code, addedFact = " << !d_pending.empty() << " "
+      << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+  if (hasProcessed())
+  {
     return;
   }
-  Trace("strings-solve") << "Finished check normal forms, #lemmas = " << d_lemma_cache.size() << ", conflict = " << d_conflict << std::endl;
+  Trace("strings-solve") << "Finished check normal forms, #lemmas = "
+                         << d_lemma_cache.size()
+                         << ", conflict = " << d_conflict << std::endl;
 }
 
 //compute d_normal_forms_(base,exp,exp_depend)[eqc]
@@ -3364,7 +3401,8 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     if(d_registered_terms_cache.find(n) == d_registered_terms_cache.end()) {
       d_registered_terms_cache.insert(n);
       Debug("strings-register") << "TheoryStrings::registerTerm() " << n << ", effort = " << effort << std::endl;
-      if(tn.isString()) {
+      if (tn.isString())
+      {
         //register length information:
         //  for variables, split on empty vs positive length
         //  for concat/const/replace, introduce proxy var and state length relation
@@ -3419,17 +3457,18 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           
         }
       }
-      else 
+      else
       {
-        if( n.getKind()==kind::STRING_CODE )
+        if (n.getKind() == kind::STRING_CODE)
         {
           d_has_str_code = true;
           NodeManager* nm = NodeManager::currentNM();
           // str.code(s)=-1 <=> str.len(s)!=1
-          Node code_eq_neg1 = n.eqNode( nm->mkConst( Rational(-1)));
-          Node code_len = mkLength( n[0] ).eqNode( d_one ).negate();
-          Node lem = code_eq_neg1.eqNode( code_len );
-          Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
+          Node code_eq_neg1 = n.eqNode(nm->mkConst(Rational(-1)));
+          Node code_len = mkLength(n[0]).eqNode(d_one).negate();
+          Node lem = code_eq_neg1.eqNode(code_len);
+          Trace("strings-lemma")
+              << "Strings::Lemma CODE : " << lem << std::endl;
           Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
           d_out->lemma(lem);
         }
