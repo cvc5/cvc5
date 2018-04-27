@@ -42,6 +42,20 @@ void ExtendedRewriter::setCache(Node n, Node ret)
   n.setAttribute(era, ret);
 }
 
+void addChild( Node nc, std::vector< Node >& children, bool isNonAdditive, bool& childChanged )
+{
+  // If the operator is non-additive, do not consider duplicates
+  if (isNonAdditive
+      && std::find(children.begin(), children.end(), nc) != children.end())
+  {
+    childChanged = true;
+  }
+  else
+  {
+    children.push_back(nc);
+  }  
+}
+
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
   n = Rewriter::rewrite(n);
@@ -97,19 +111,21 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     Kind k = n.getKind();
     bool childChanged = false;
     bool isNonAdditive = TermUtil::isNonAdditive(k);
+    bool isAssoc = TermUtil::isAssoc(k);
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       Node nc = extendedRewrite(n[i]);
       childChanged = nc != n[i] || childChanged;
-      // If the operator is non-additive, do not consider duplicates
-      if (isNonAdditive
-          && std::find(children.begin(), children.end(), nc) != children.end())
+      if( isAssoc && nc.getKind()==n.getKind() )
       {
-        childChanged = true;
+        for( const Node& ncc : nc )
+        {
+          addChild( ncc, children, isNonAdditive, childChanged );
+        }
       }
       else
       {
-        children.push_back(nc);
+        addChild( nc, children, isNonAdditive, childChanged );
       }
     }
     Assert(!children.empty());
