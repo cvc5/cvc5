@@ -1093,7 +1093,8 @@ bool ExtendedRewriter::inferSubstitution(Node n,
         r2 = n[1 - i];
         if (v[i] != n[i])
         {
-          r2 = nm->mkNode(n[i].getKind(), r2);
+          Assert( TermUtil::isNegate( n[i].getKind() ) );
+          r2 = TermUtil::mkNegate(n[i].getKind(), r2);
         }
         // TODO (#1706) : union find
         if (std::find(vars.begin(), vars.end(), r1) == vars.end())
