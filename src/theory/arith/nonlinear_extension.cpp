@@ -2516,10 +2516,10 @@ std::vector<Node> NonlinearExtension::checkFactoring(
         }
         for( std::map< Node, std::vector< Node > >::iterator itf = factor_to_mono.begin(); itf != factor_to_mono.end(); ++itf ){
           Node x = itf->first;
-          if( itf->second.size()==1 )
+          if (itf->second.size() == 1)
           {
             std::map<Node, Node>::iterator itm = msum.find(x);
-            if( itm!=msum.end() )
+            if (itm != msum.end())
             {
               itf->second.push_back(itm->second.isNull() ? d_one : itm->second);
               factor_to_mono_orig[x].push_back(x);
@@ -2528,12 +2528,13 @@ std::vector<Node> NonlinearExtension::checkFactoring(
           if( itf->second.size()>1 ){
             Node sum = NodeManager::currentNM()->mkNode(PLUS, itf->second);
             sum = Rewriter::rewrite( sum );
-            Trace("nl-ext-factor") << "* Factored sum for " << x << " : " << sum << std::endl;
+            Trace("nl-ext-factor")
+                << "* Factored sum for " << x << " : " << sum << std::endl;
             Node kf = getFactorSkolem( sum, lemmas ); 
             std::vector< Node > poly;
-            poly.push_back(
-                NodeManager::currentNM()->mkNode(MULT, x, kf));
-            std::map< Node, std::vector< Node > >::iterator itfo = factor_to_mono_orig.find( x );
+            poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
+            std::map<Node, std::vector<Node> >::iterator itfo =
+                factor_to_mono_orig.find(x);
             Assert( itfo!=factor_to_mono_orig.end() );
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
