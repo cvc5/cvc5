@@ -939,16 +939,16 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   }
 
   // sorted right associative chain
-  bool has_const = false;
-  unsigned const_index = 0;
+  bool has_nvar = false;
+  unsigned nvar_index = 0;
   for (std::pair<const Node, bool>& cp : cstatus)
   {
     if (cp.second)
     {
-      if (cp.first.isConst())
+      if (!cp.first.isVar())
       {
-        has_const = true;
-        const_index = children.size();
+        has_nvar = true;
+        nvar_index = children.size();
       }
       children.push_back(cp.first);
     }
@@ -959,7 +959,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   if (!gpol)
   {
     // negate the constant child if it exists
-    unsigned nindex = has_const ? const_index : 0;
+    unsigned nindex = has_nvar ? nvar_index : 0;
     children[nindex] = TermUtil::mkNegate(notk, children[nindex]);
   }
   new_ret = children.back();
