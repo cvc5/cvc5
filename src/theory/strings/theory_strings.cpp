@@ -58,17 +58,17 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
 {
   switch (s)
   {
-    case CHECK_INIT: out << "check_init";break;
-    case CHECK_EXTF_EVAL: out << "check_ext_fun_evaluation";break;
-    case CHECK_CYCLES: out << "check_cycles";break;
-    case CHECK_FLAT_FORMS: out << "check_flat_forms";break;
-    case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq";break;
-    case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq";break;
-    case CHECK_CODES: out << "check_codes";break;
-    case CHECK_LENGTH_EQC: out << "check_length_eqc";break;
-    case CHECK_EXTF_REDUCTION: out << "check_extf_reduction";break;
-    case CHECK_MEMBERSHIP: out << "check_membership";break;
-    case CHECK_CARDINALITY: out << "check_cardinality";break;
+    case CHECK_INIT: out << "check_init"; break;
+    case CHECK_EXTF_EVAL: out << "check_ext_fun_evaluation"; break;
+    case CHECK_CYCLES: out << "check_cycles"; break;
+    case CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
+    case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq"; break;
+    case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq"; break;
+    case CHECK_CODES: out << "check_codes"; break;
+    case CHECK_LENGTH_EQC: out << "check_length_eqc"; break;
+    case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
+    case CHECK_MEMBERSHIP: out << "check_membership"; break;
+    case CHECK_CARDINALITY: out << "check_cardinality"; break;
     default: out << "?"; break;
   }
   return out;
@@ -93,13 +93,14 @@ Node TheoryStrings::TermIndex::add( TNode n, unsigned index, TheoryStrings* t, N
   }
 }
 
-
-TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
-                             OutputChannel& out, Valuation valuation,
+TheoryStrings::TheoryStrings(context::Context* c,
+                             context::UserContext* u,
+                             OutputChannel& out,
+                             Valuation valuation,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       RMAXINT(LONG_MAX),
-      d_notify( *this ),
+      d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_conflict(c, false),
       d_infer(c),
@@ -118,7 +119,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u,
       d_proxy_var(u),
       d_proxy_var_to_length(u),
       d_functionsTerms(c),
-      d_has_extf(c, false ),
+      d_has_extf(c, false),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -740,7 +741,7 @@ void TheoryStrings::check(Effort e) {
   if( !d_conflict && ( ( e == EFFORT_FULL && !d_valuation.needCheck() ) || ( e==EFFORT_STANDARD && options::stringEager() ) ) ) {
     Trace("strings-check") << "Theory of strings full effort check " << std::endl;
     initializeStrategy();
-    
+
     if(Trace.isOn("strings-eqc")) {
       for( unsigned t=0; t<2; t++ ) {
         eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -771,15 +772,15 @@ void TheoryStrings::check(Effort e) {
       }
       Trace("strings-eqc") << std::endl;
     }
-    Assert( d_step_begin.find( e )!=d_step_begin.end() );
+    Assert(d_step_begin.find(e) != d_step_begin.end());
     unsigned sbegin = d_step_begin[e];
-    Assert( d_step_end.find( e )!=d_step_end.end() );
+    Assert(d_step_end.find(e) != d_step_end.end());
     unsigned send = d_step_end[e];
     bool addedLemma = false;
     bool addedFact;
     do{
-      // run the strategy 
-      runStrategy(sbegin,send);
+      // run the strategy
+      runStrategy(sbegin, send);
       // flush the facts
       addedFact = !d_pending.empty();
       addedLemma = !d_lemma_cache.empty();
@@ -1696,159 +1697,220 @@ void TheoryStrings::checkCycles()
   }
 }
 
-void TheoryStrings::checkFlatForms() {
-  //first check for cycles, while building ordering of equivalence classes
+void TheoryStrings::checkFlatForms()
+{
+  // first check for cycles, while building ordering of equivalence classes
   d_flat_form.clear();
   d_flat_form_index.clear();
 
-  //debug print flat forms
-  if( Trace.isOn("strings-ff") ){
+  // debug print flat forms
+  if (Trace.isOn("strings-ff"))
+  {
     Trace("strings-ff") << "Flat forms : " << std::endl;
-    debugPrintFlatForms( "strings-ff" );
+    debugPrintFlatForms("strings-ff");
   }
-  
-  //inferences without recursively expanding flat forms
-  
+
+  // inferences without recursively expanding flat forms
+
   //(1) approximate equality by containment, infer conflicts
-  for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
+  for (unsigned k = 0; k < d_strings_eqc.size(); k++)
+  {
     Node eqc = d_strings_eqc[k];
-    Node c = getConstantEqc( eqc );
-    if( !c.isNull() ){
-      //if equivalence class is constant, all component constants in flat forms must be contained in it, in order
-      std::map< Node, std::vector< Node > >::iterator it = d_eqc.find( eqc );
-      if( it!=d_eqc.end() ){
-        for( unsigned i=0; i<it->second.size(); i++ ){
+    Node c = getConstantEqc(eqc);
+    if (!c.isNull())
+    {
+      // if equivalence class is constant, all component constants in flat forms
+      // must be contained in it, in order
+      std::map<Node, std::vector<Node> >::iterator it = d_eqc.find(eqc);
+      if (it != d_eqc.end())
+      {
+        for (unsigned i = 0; i < it->second.size(); i++)
+        {
           Node n = it->second[i];
           int firstc, lastc;
-          if( !TheoryStringsRewriter::canConstantContainList( c, d_flat_form[n], firstc, lastc ) ){
-            Trace("strings-ff-debug") << "Flat form for " << n << " cannot be contained in constant " << c << std::endl;
-            Trace("strings-ff-debug") << "  indices = " << firstc << "/" << lastc << std::endl;
-            //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = f[n] )
-            std::vector< Node > exp;
-            Assert( d_eqc_to_const_base.find( eqc )!=d_eqc_to_const_base.end() );
-            addToExplanation( n, d_eqc_to_const_base[eqc], exp );
-            Assert( d_eqc_to_const_exp.find( eqc )!=d_eqc_to_const_exp.end() );
-            if( !d_eqc_to_const_exp[eqc].isNull() ){
-              exp.push_back( d_eqc_to_const_exp[eqc] );
+          if (!TheoryStringsRewriter::canConstantContainList(
+                  c, d_flat_form[n], firstc, lastc))
+          {
+            Trace("strings-ff-debug")
+                << "Flat form for " << n << " cannot be contained in constant "
+                << c << std::endl;
+            Trace("strings-ff-debug")
+                << "  indices = " << firstc << "/" << lastc << std::endl;
+            // conflict, explanation is n = base ^ base = c ^ relevant porition
+            // of ( n = f[n] )
+            std::vector<Node> exp;
+            Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
+            addToExplanation(n, d_eqc_to_const_base[eqc], exp);
+            Assert(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
+            if (!d_eqc_to_const_exp[eqc].isNull())
+            {
+              exp.push_back(d_eqc_to_const_exp[eqc]);
             }
-            for( int e=firstc; e<=lastc; e++ ){
-              if( d_flat_form[n][e].isConst() ){
-                Assert( e>=0 && e<(int)d_flat_form_index[n].size() );
-                Assert( d_flat_form_index[n][e]>=0 && d_flat_form_index[n][e]<(int)n.getNumChildren() );
-                addToExplanation( d_flat_form[n][e], n[d_flat_form_index[n][e]], exp );
+            for (int e = firstc; e <= lastc; e++)
+            {
+              if (d_flat_form[n][e].isConst())
+              {
+                Assert(e >= 0 && e < (int)d_flat_form_index[n].size());
+                Assert(d_flat_form_index[n][e] >= 0
+                       && d_flat_form_index[n][e] < (int)n.getNumChildren());
+                addToExplanation(
+                    d_flat_form[n][e], n[d_flat_form_index[n][e]], exp);
               }
             }
             Node conc = d_false;
-            sendInference( exp, conc, "F_NCTN" );
+            sendInference(exp, conc, "F_NCTN");
             return;
           }
         }
       }
     }
   }
-  
+
   //(2) scan lists, unification to infer conflicts and equalities
-  for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
+  for (unsigned k = 0; k < d_strings_eqc.size(); k++)
+  {
     Node eqc = d_strings_eqc[k];
-    std::map< Node, std::vector< Node > >::iterator it = d_eqc.find( eqc );
-    if( it!=d_eqc.end() && it->second.size()>1 ){
-      //iterate over start index
-      for( unsigned start=0; start<it->second.size()-1; start++ ){
-        for( unsigned r=0; r<2; r++ ){
+    std::map<Node, std::vector<Node> >::iterator it = d_eqc.find(eqc);
+    if (it != d_eqc.end() && it->second.size() > 1)
+    {
+      // iterate over start index
+      for (unsigned start = 0; start < it->second.size() - 1; start++)
+      {
+        for (unsigned r = 0; r < 2; r++)
+        {
           unsigned count = 0;
-          std::vector< Node > inelig;
-          for( unsigned i=0; i<=start; i++ ){
-            inelig.push_back( it->second[start] );
+          std::vector<Node> inelig;
+          for (unsigned i = 0; i <= start; i++)
+          {
+            inelig.push_back(it->second[start]);
           }
           Node a = it->second[start];
           Node b;
-          do{
-            std::vector< Node > exp;
-            //std::vector< Node > exp_n;
+          do
+          {
+            std::vector<Node> exp;
+            // std::vector< Node > exp_n;
             Node conc;
             int inf_type = -1;
-            if( count==d_flat_form[a].size() ){
-              for( unsigned i=start+1; i<it->second.size(); i++ ){
+            if (count == d_flat_form[a].size())
+            {
+              for (unsigned i = start + 1; i < it->second.size(); i++)
+              {
                 b = it->second[i];
-                if( std::find( inelig.begin(), inelig.end(), b )==inelig.end() ){
-                  if( count<d_flat_form[b].size() ){
-                    //endpoint
-                    std::vector< Node > conc_c;
-                    for( unsigned j=count; j<d_flat_form[b].size(); j++ ){
-                      conc_c.push_back( b[d_flat_form_index[b][j]].eqNode( d_emptyString ) );
+                if (std::find(inelig.begin(), inelig.end(), b) == inelig.end())
+                {
+                  if (count < d_flat_form[b].size())
+                  {
+                    // endpoint
+                    std::vector<Node> conc_c;
+                    for (unsigned j = count; j < d_flat_form[b].size(); j++)
+                    {
+                      conc_c.push_back(
+                          b[d_flat_form_index[b][j]].eqNode(d_emptyString));
                     }
-                    Assert( !conc_c.empty() );
-                    conc = mkAnd( conc_c );
+                    Assert(!conc_c.empty());
+                    conc = mkAnd(conc_c);
                     inf_type = 2;
-                    Assert( count>0 );
-                    //swap, will enforce is empty past current
-                    a = it->second[i]; b = it->second[start];
+                    Assert(count > 0);
+                    // swap, will enforce is empty past current
+                    a = it->second[i];
+                    b = it->second[start];
                     count--;
                     break;
                   }
-                  inelig.push_back( it->second[i] );
+                  inelig.push_back(it->second[i]);
                 }
               }
-            }else{
+            }
+            else
+            {
               Node curr = d_flat_form[a][count];
-              Node curr_c = getConstantEqc( curr );
+              Node curr_c = getConstantEqc(curr);
               Node ac = a[d_flat_form_index[a][count]];
-              std::vector< Node > lexp;
-              Node lcurr = getLength( ac, lexp );
-              for( unsigned i=1; i<it->second.size(); i++ ){
+              std::vector<Node> lexp;
+              Node lcurr = getLength(ac, lexp);
+              for (unsigned i = 1; i < it->second.size(); i++)
+              {
                 b = it->second[i];
-                if( std::find( inelig.begin(), inelig.end(), b )==inelig.end() ){
-                  if( count==d_flat_form[b].size() ){
-                    inelig.push_back( b );
-                    //endpoint
-                    std::vector< Node > conc_c;
-                    for( unsigned j=count; j<d_flat_form[a].size(); j++ ){
-                      conc_c.push_back( a[d_flat_form_index[a][j]].eqNode( d_emptyString ) );
+                if (std::find(inelig.begin(), inelig.end(), b) == inelig.end())
+                {
+                  if (count == d_flat_form[b].size())
+                  {
+                    inelig.push_back(b);
+                    // endpoint
+                    std::vector<Node> conc_c;
+                    for (unsigned j = count; j < d_flat_form[a].size(); j++)
+                    {
+                      conc_c.push_back(
+                          a[d_flat_form_index[a][j]].eqNode(d_emptyString));
                     }
-                    Assert( !conc_c.empty() );
-                    conc = mkAnd( conc_c );
+                    Assert(!conc_c.empty());
+                    conc = mkAnd(conc_c);
                     inf_type = 2;
-                    Assert( count>0 );
+                    Assert(count > 0);
                     count--;
                     break;
-                  }else{
+                  }
+                  else
+                  {
                     Node cc = d_flat_form[b][count];
-                    if( cc!=curr ){
+                    if (cc != curr)
+                    {
                       Node bc = b[d_flat_form_index[b][count]];
                       inelig.push_back( b );
-                      Assert( !areEqual( curr, cc ) );
-                      Node cc_c = getConstantEqc( cc );
-                      if( !curr_c.isNull() && !cc_c.isNull() ){
-                        //check for constant conflict
+                      Assert(!areEqual(curr, cc));
+                      Node cc_c = getConstantEqc(cc);
+                      if (!curr_c.isNull() && !cc_c.isNull())
+                      {
+                        // check for constant conflict
                         int index;
-                        Node s = TheoryStringsRewriter::splitConstant( cc_c, curr_c, index, r==1 );
-                        if( s.isNull() ){
-                          addToExplanation( ac, d_eqc_to_const_base[curr], exp );
-                          addToExplanation( d_eqc_to_const_exp[curr], exp );
-                          addToExplanation( bc, d_eqc_to_const_base[cc], exp );
-                          addToExplanation( d_eqc_to_const_exp[cc], exp );
+                        Node s = TheoryStringsRewriter::splitConstant(
+                            cc_c, curr_c, index, r == 1);
+                        if (s.isNull())
+                        {
+                          addToExplanation(ac, d_eqc_to_const_base[curr], exp);
+                          addToExplanation(d_eqc_to_const_exp[curr], exp);
+                          addToExplanation(bc, d_eqc_to_const_base[cc], exp);
+                          addToExplanation(d_eqc_to_const_exp[cc], exp);
                           conc = d_false;
                           inf_type = 0;
                           break;
                         }
-                      }else if( (d_flat_form[a].size()-1)==count && (d_flat_form[b].size()-1)==count ){
-                        conc = ac.eqNode( bc );
+                      }
+                      else if ((d_flat_form[a].size() - 1) == count
+                               && (d_flat_form[b].size() - 1) == count)
+                      {
+                        conc = ac.eqNode(bc);
                         inf_type = 3;
                         break;
-                      }else{
-                        //if lengths are the same, apply LengthEq
-                        std::vector< Node > lexp2;
-                        Node lcc = getLength( bc, lexp2 );
-                        if( areEqual( lcurr, lcc ) ){
-                          Trace("strings-ff-debug") << "Infer " << ac << " == " << bc << " since " << lcurr << " == " << lcc << std::endl;
-                          //exp_n.push_back( getLength( curr, true ).eqNode( getLength( cc, true ) ) );
-                          Trace("strings-ff-debug") << "Explanation for " << lcurr << " is ";
-                          for( unsigned j=0; j<lexp.size(); j++ ) { Trace("strings-ff-debug") << lexp[j] << std::endl; }
-                          Trace("strings-ff-debug") << "Explanation for " << lcc << " is ";
-                          for( unsigned j=0; j<lexp2.size(); j++ ) { Trace("strings-ff-debug") << lexp2[j] << std::endl; }
-                          exp.insert( exp.end(), lexp.begin(), lexp.end() );
-                          exp.insert( exp.end(), lexp2.begin(), lexp2.end() );
-                          addToExplanation( lcurr, lcc, exp );
+                      }
+                      else
+                      {
+                        // if lengths are the same, apply LengthEq
+                        std::vector<Node> lexp2;
+                        Node lcc = getLength(bc, lexp2);
+                        if (areEqual(lcurr, lcc))
+                        {
+                          Trace("strings-ff-debug")
+                              << "Infer " << ac << " == " << bc << " since "
+                              << lcurr << " == " << lcc << std::endl;
+                          // exp_n.push_back( getLength( curr, true ).eqNode(
+                          // getLength( cc, true ) ) );
+                          Trace("strings-ff-debug")
+                              << "Explanation for " << lcurr << " is ";
+                          for (unsigned j = 0; j < lexp.size(); j++)
+                          {
+                            Trace("strings-ff-debug") << lexp[j] << std::endl;
+                          }
+                          Trace("strings-ff-debug")
+                              << "Explanation for " << lcc << " is ";
+                          for (unsigned j = 0; j < lexp2.size(); j++)
+                          {
+                            Trace("strings-ff-debug") << lexp2[j] << std::endl;
+                          }
+                          exp.insert(exp.end(), lexp.begin(), lexp.end());
+                          exp.insert(exp.end(), lexp2.begin(), lexp2.end());
+                          addToExplanation(lcurr, lcc, exp);
                           conc = ac.eqNode( bc );
                           inf_type = 1;
                           break;
@@ -1859,74 +1921,99 @@ void TheoryStrings::checkFlatForms() {
                 }
               }
             }
-            if( !conc.isNull() ){
-              Trace("strings-ff-debug") << "Found inference : " << conc << " based on equality " << a << " == " << b << " " << r << " " << inf_type << std::endl;
-              addToExplanation( a, b, exp );
-              //explain why prefixes up to now were the same
-              for( unsigned j=0; j<count; j++ ){
-                Trace("strings-ff-debug") << "Add at " << d_flat_form_index[a][j] << " " << d_flat_form_index[b][j] << std::endl;
-                addToExplanation( a[d_flat_form_index[a][j]], b[d_flat_form_index[b][j]], exp );
+            if (!conc.isNull())
+            {
+              Trace("strings-ff-debug")
+                  << "Found inference : " << conc << " based on equality " << a
+                  << " == " << b << " " << r << " " << inf_type << std::endl;
+              addToExplanation(a, b, exp);
+              // explain why prefixes up to now were the same
+              for (unsigned j = 0; j < count; j++)
+              {
+                Trace("strings-ff-debug")
+                    << "Add at " << d_flat_form_index[a][j] << " "
+                    << d_flat_form_index[b][j] << std::endl;
+                addToExplanation(a[d_flat_form_index[a][j]],
+                                 b[d_flat_form_index[b][j]],
+                                 exp);
               }
-              //explain why other components up to now are empty
-              for( unsigned t=0; t<2; t++ ){
-                Node c = t==0 ? a : b;
+              // explain why other components up to now are empty
+              for (unsigned t = 0; t < 2; t++)
+              {
+                Node c = t == 0 ? a : b;
                 int jj;
-                if( inf_type==3 || ( t==1 && inf_type==2 ) ){
-                  //explain all the empty components for F_EndpointEq, all for the short end for F_EndpointEmp
-                  jj = r==0 ? c.getNumChildren() : -1;
-                }else{
-                  jj = t==0 ? d_flat_form_index[a][count] : d_flat_form_index[b][count];
+                if (inf_type == 3 || (t == 1 && inf_type == 2))
+                {
+                  // explain all the empty components for F_EndpointEq, all for
+                  // the short end for F_EndpointEmp
+                  jj = r == 0 ? c.getNumChildren() : -1;
                 }
-                if( r==0 ){
-                  for( int j=0; j<jj; j++ ){
-                    if( areEqual( c[j], d_emptyString ) ){
-                      addToExplanation( c[j], d_emptyString, exp );
+                else
+                {
+                  jj = t == 0 ? d_flat_form_index[a][count]
+                              : d_flat_form_index[b][count];
+                }
+                if (r == 0)
+                {
+                  for (int j = 0; j < jj; j++)
+                  {
+                    if (areEqual(c[j], d_emptyString))
+                    {
+                      addToExplanation(c[j], d_emptyString, exp);
                     }
                   }
                 }else{
-                  for( int j=(c.getNumChildren()-1); j>jj; --j ){
-                    if( areEqual( c[j], d_emptyString ) ){
-                      addToExplanation( c[j], d_emptyString, exp );
+                  for (int j = (c.getNumChildren() - 1); j > jj; --j)
+                  {
+                    if (areEqual(c[j], d_emptyString))
+                    {
+                      addToExplanation(c[j], d_emptyString, exp);
                     }
                   }
                 }
               }
-              //notice that F_EndpointEmp is not typically applied, since strict prefix equality ( a.b = a ) where a,b non-empty 
-              //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a) when len(b)!=0.
-              sendInference( exp, conc, inf_type==0 ? "F_Const" : ( inf_type==1 ? "F_Unify" : ( inf_type==2 ? "F_EndpointEmp" : "F_EndpointEq" ) ) );
-              if( d_conflict ){
+              // notice that F_EndpointEmp is not typically applied, since
+              // strict prefix equality ( a.b = a ) where a,b non-empty
+              //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
+              //  when len(b)!=0.
+              sendInference(
+                  exp,
+                  conc,
+                  inf_type == 0
+                      ? "F_Const"
+                      : (inf_type == 1 ? "F_Unify"
+                                       : (inf_type == 2 ? "F_EndpointEmp"
+                                                        : "F_EndpointEq")));
+              if (d_conflict)
+              {
                 return;
-              }else{
+              }
+              else
+              {
                 break;
               }
             }
             count++;
-          }while( inelig.size()<it->second.size() );
+          } while (inelig.size() < it->second.size());
 
-          for( unsigned i=0; i<it->second.size(); i++ ){
-            std::reverse( d_flat_form[it->second[i]].begin(), d_flat_form[it->second[i]].end() );
-            std::reverse( d_flat_form_index[it->second[i]].begin(), d_flat_form_index[it->second[i]].end() );
+          for (unsigned i = 0; i < it->second.size(); i++)
+          {
+            std::reverse(d_flat_form[it->second[i]].begin(),
+                         d_flat_form[it->second[i]].end());
+            std::reverse(d_flat_form_index[it->second[i]].begin(),
+                         d_flat_form_index[it->second[i]].end());
           }
         }
       }
     }
   }
-}  
-
-void TheoryStrings::checkNormalFormsEq()
-{
-  checkNormalForms();
 }
 
-void TheoryStrings::checkNormalFormsDeq()
-{
-  
-}
+void TheoryStrings::checkNormalFormsEq() { checkNormalForms(); }
 
-void TheoryStrings::checkCodes()
-{
-  
-}
+void TheoryStrings::checkNormalFormsDeq() {}
+
+void TheoryStrings::checkCodes() {}
 
 Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp ){
   if( std::find( curr.begin(), curr.end(), eqc )!=curr.end() ){
@@ -4657,88 +4744,90 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
 }
 
 /** run the given inference step */
-void TheoryStrings::runInferStep( InferStep s, int effort )
+void TheoryStrings::runInferStep(InferStep s, int effort)
 {
   Trace("strings-process") << "Run " << s;
-  if( effort>0 )
+  if (effort > 0)
   {
     Trace("strings-process") << ", effort = " << effort;
   }
   Trace("strings-process") << "..." << std::endl;
-  switch(s)
+  switch (s)
   {
-    case CHECK_INIT: checkInit();break;
-    case CHECK_EXTF_EVAL: checkExtfEval(effort);break;
-    case CHECK_CYCLES: checkCycles();break;
-    case CHECK_FLAT_FORMS: checkFlatForms();break;
-    case CHECK_NORMAL_FORMS_EQ: checkNormalFormsEq();break;
-    case CHECK_NORMAL_FORMS_DEQ: checkNormalFormsDeq();break;
-    case CHECK_CODES: checkCodes();break;
-    case CHECK_LENGTH_EQC: checkLengthsEqc();break;
-    case CHECK_EXTF_REDUCTION: checkExtfReductions(effort);break;
-    case CHECK_MEMBERSHIP: checkMemberships();break;
-    case CHECK_CARDINALITY: checkCardinality();break;
+    case CHECK_INIT: checkInit(); break;
+    case CHECK_EXTF_EVAL: checkExtfEval(effort); break;
+    case CHECK_CYCLES: checkCycles(); break;
+    case CHECK_FLAT_FORMS: checkFlatForms(); break;
+    case CHECK_NORMAL_FORMS_EQ: checkNormalFormsEq(); break;
+    case CHECK_NORMAL_FORMS_DEQ: checkNormalFormsDeq(); break;
+    case CHECK_CODES: checkCodes(); break;
+    case CHECK_LENGTH_EQC: checkLengthsEqc(); break;
+    case CHECK_EXTF_REDUCTION: checkExtfReductions(effort); break;
+    case CHECK_MEMBERSHIP: checkMemberships(); break;
+    case CHECK_CARDINALITY: checkCardinality(); break;
     default: Unreachable(); break;
   }
-  Trace("strings-process") << "Done " << s << ", addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+  Trace("strings-process") << "Done " << s
+                           << ", addedFact = " << !d_pending.empty() << " "
+                           << !d_lemma_cache.empty()
+                           << ", d_conflict = " << d_conflict << std::endl;
 }
 
-void TheoryStrings::initializeStrategy() 
+void TheoryStrings::initializeStrategy()
 {
   // initialize the strategy if not already done so
-  if( !d_strategy_init )
+  if (!d_strategy_init)
   {
     d_strategy_init = true;
-    d_infer_steps.push_back( CHECK_INIT );
+    d_infer_steps.push_back(CHECK_INIT);
     d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back( CHECK_EXTF_EVAL );
+    d_infer_steps.push_back(CHECK_EXTF_EVAL);
     d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back( CHECK_CYCLES );
+    d_infer_steps.push_back(CHECK_CYCLES);
     d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back( CHECK_FLAT_FORMS );
+    d_infer_steps.push_back(CHECK_FLAT_FORMS);
     d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back( CHECK_EXTF_REDUCTION );
+    d_infer_steps.push_back(CHECK_EXTF_REDUCTION);
     d_infer_step_effort.push_back(1);
-    if( options::stringEager() )
+    if (options::stringEager())
     {
       d_step_begin[EFFORT_STANDARD] = 0;
-      d_step_end[EFFORT_STANDARD] = d_infer_steps.size()-1;
+      d_step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
-    d_infer_steps.push_back( CHECK_NORMAL_FORMS_EQ );
+    d_infer_steps.push_back(CHECK_NORMAL_FORMS_EQ);
     d_infer_step_effort.push_back(0);
-    if( options::stringEagerLen() )
+    if (options::stringEagerLen())
     {
-      d_infer_steps.push_back( CHECK_LENGTH_EQC );
+      d_infer_steps.push_back(CHECK_LENGTH_EQC);
       d_infer_step_effort.push_back(0);
     }
-    if( options::stringExp() && !options::stringGuessModel() )
+    if (options::stringExp() && !options::stringGuessModel())
     {
-      d_infer_steps.push_back( CHECK_EXTF_REDUCTION );
+      d_infer_steps.push_back(CHECK_EXTF_REDUCTION);
       d_infer_step_effort.push_back(2);
     }
-    d_infer_steps.push_back( CHECK_MEMBERSHIP );
+    d_infer_steps.push_back(CHECK_MEMBERSHIP);
     d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back( CHECK_CARDINALITY );
+    d_infer_steps.push_back(CHECK_CARDINALITY);
     d_infer_step_effort.push_back(0);
     d_step_begin[EFFORT_FULL] = 0;
-    d_step_end[EFFORT_FULL] = d_infer_steps.size()-1;
+    d_step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
   }
 }
 
-void TheoryStrings::runStrategy( unsigned sbegin, unsigned send )
+void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
 {
   Trace("strings-process") << "----check, next round---" << std::endl;
-  for( unsigned i=sbegin; i<=send; i++ )
+  for (unsigned i = sbegin; i <= send; i++)
   {
-    runInferStep( d_infer_steps[i], d_infer_step_effort[i] );
-    if( hasProcessed() )
+    runInferStep(d_infer_steps[i], d_infer_step_effort[i]);
+    if (hasProcessed())
     {
       break;
     }
   }
   Trace("strings-process") << "----finished round---" << std::endl;
 }
-
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

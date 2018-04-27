@@ -382,7 +382,7 @@ private:
   //--------------------------for checkCycles
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //--------------------------end for checkCycles
-  
+
   //--------------------------for checkNormalFormsEq
   void checkNormalForms();
   void normalizeEquivalenceClass( Node n );
@@ -400,7 +400,7 @@ private:
                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
                          unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
   //--------------------------end for checkNormalFormsEq
-  
+
   //--------------------------for checkNormalFormsDeq
   void processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
@@ -414,7 +414,7 @@ private:
   //--------------------------end for checkNormalFormsDeq
 
   //--------------------------------for checkMemberships
-  //check membership constraints
+  // check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
   bool applyRConsume( CVC4::String &s, Node &r );
   Node applyRSplit( Node s1, Node s2, Node r );
@@ -593,64 +593,65 @@ private:
     ~Statistics();
   };/* class TheoryStrings::Statistics */
   Statistics d_statistics;
+
  private:
   //-----------------------inference steps
   /** check initial
-   * 
+   *
    */
   void checkInit();
-  /** check extended functions evaluation 
-   * 
+  /** check extended functions evaluation
+   *
    */
-  void checkExtfEval( int effort = 0 );
+  void checkExtfEval(int effort = 0);
   /** check cycles
-   * 
+   *
    */
   void checkCycles();
-  /** check flat forms 
-   * 
+  /** check flat forms
+   *
    */
   void checkFlatForms();
   /** check normal forms equalities
-   * 
+   *
    */
   void checkNormalFormsEq();
   /** check normal forms disequalities
-   * 
+   *
    */
   void checkNormalFormsDeq();
   /** check codes
-   * 
+   *
    */
   void checkCodes();
   /** check lengths for equivalence classes
-   * 
+   *
    */
   void checkLengthsEqc();
   /** check regular expression memberships
-   * 
+   *
    */
   void checkMemberships();
   /** check cardinality
-   * 
+   *
    */
   void checkCardinality();
   //-----------------------end inference steps
   /** is strategy initialized */
   bool d_strategy_init;
   /** run the given inference step */
-  void runInferStep( InferStep s, int effort );
+  void runInferStep(InferStep s, int effort);
   /** the strategy */
-  std::vector< InferStep > d_infer_steps;
+  std::vector<InferStep> d_infer_steps;
   /** the effort levels */
-  std::vector< int > d_infer_step_effort;
+  std::vector<int> d_infer_step_effort;
   /** the steps to run at various efforts */
-  std::map< Effort, unsigned > d_step_begin;
-  std::map< Effort, unsigned > d_step_end;
+  std::map<Effort, unsigned> d_step_begin;
+  std::map<Effort, unsigned> d_step_end;
   /** initialize the strategy */
   void initializeStrategy();
   /** run the strategy */
-  void runStrategy( unsigned sbegin, unsigned send );
+  void runStrategy(unsigned sbegin, unsigned send);
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
