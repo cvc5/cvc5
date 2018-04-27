@@ -67,12 +67,12 @@ class ExtendedRewriter
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret);
   /** add to children
-   * 
+   *
    * Adds nc to the vector of children, if dropDup is true, we do not add
-   * nc if it already occurs in children. This method returns false in this 
+   * nc if it already occurs in children. This method returns false in this
    * case, otherwise it returns true.
    */
-  bool addToChildren( Node nc, std::vector< Node >& children, bool dropDup );
+  bool addToChildren(Node nc, std::vector<Node>& children, bool dropDup);
 
   //--------------------------------------generic utilities
   /** Rewrite ITE, for example:

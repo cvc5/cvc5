@@ -42,7 +42,9 @@ void ExtendedRewriter::setCache(Node n, Node ret)
   n.setAttribute(era, ret);
 }
 
-bool ExtendedRewriter::addToChildren( Node nc, std::vector< Node >& children, bool dropDup)
+bool ExtendedRewriter::addToChildren(Node nc,
+                                     std::vector<Node>& children,
+                                     bool dropDup)
 {
   // If the operator is non-additive, do not consider duplicates
   if (dropDup
@@ -51,7 +53,7 @@ bool ExtendedRewriter::addToChildren( Node nc, std::vector< Node >& children, bo
     return false;
   }
   children.push_back(nc);
-  return true; 
+  return true;
 }
 
 Node ExtendedRewriter::extendedRewrite(Node n)
@@ -114,17 +116,17 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       Node nc = extendedRewrite(n[i]);
       childChanged = nc != n[i] || childChanged;
-      if( isAssoc && nc.getKind()==n.getKind() )
+      if (isAssoc && nc.getKind() == n.getKind())
       {
-        for( const Node& ncc : nc )
+        for (const Node& ncc : nc)
         {
-          if( !addToChildren( ncc, children, isNonAdditive ) )
+          if (!addToChildren(ncc, children, isNonAdditive))
           {
             childChanged = true;
           }
         }
       }
-      else if( !addToChildren( nc, children, isNonAdditive ) )
+      else if (!addToChildren(nc, children, isNonAdditive))
       {
         childChanged = true;
       }
@@ -1068,16 +1070,16 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     {
       n = slv_eq;
     }
-    NodeManager * nm = NodeManager::currentNM();
-    
+    NodeManager* nm = NodeManager::currentNM();
+
     Node v[2];
     for (unsigned i = 0; i < 2; i++)
     {
-      if( n[i].isVar() || n[i].isConst() )
+      if (n[i].isVar() || n[i].isConst())
       {
         v[i] = n[i];
       }
-      else if( TermUtil::isNegate(n[i].getKind()) && n[i][0].isVar() )
+      else if (TermUtil::isNegate(n[i].getKind()) && n[i][0].isVar())
       {
         v[i] = n[i][0];
       }
@@ -1088,10 +1090,10 @@ bool ExtendedRewriter::inferSubstitution(Node n,
       Node r2 = v[1 - i];
       if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
       {
-        r2 = n[1-i];
-        if( v[i]!=n[i] )
+        r2 = n[1 - i];
+        if (v[i] != n[i])
         {
-          r2 = nm->mkNode( n[i].getKind(), r2 );
+          r2 = nm->mkNode(n[i].getKind(), r2);
         }
         // TODO (#1706) : union find
         if (std::find(vars.begin(), vars.end(), r1) == vars.end())
