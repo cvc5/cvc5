@@ -532,6 +532,7 @@ int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visite
         ret = qepr->isEPR( tn ) ? 1 : -1;
       }
     }
+    // sets, arrays, functions and others are not supported
     visited[tn] = ret;
     return ret;
   }else{

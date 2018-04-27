@@ -140,7 +140,7 @@ bool CegInstantiator::isCbqiKind(Kind k)
   {
     // CBQI typically works for satisfaction-complete theories
     TheoryId t = kindToTheoryId(k);
-    return t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL;
+    return t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL || t == THEORY_SETS;
   }
 }
 
