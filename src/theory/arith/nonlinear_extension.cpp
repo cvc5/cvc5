@@ -2509,10 +2509,10 @@ std::vector<Node> NonlinearExtension::checkFactoring(
                   factor_to_mono_orig[itm->first[i]].push_back( itm->first );
                 }
               }
-            } /* else{
+            }else{
               factor_to_mono[itm->first].push_back( itm->second.isNull() ? d_one : itm->second );
               factor_to_mono_orig[itm->first].push_back( itm->first );
-            }*/
+            }
           }
         }
         for( std::map< Node, std::vector< Node > >::iterator itf = factor_to_mono.begin(); itf != factor_to_mono.end(); ++itf ){
