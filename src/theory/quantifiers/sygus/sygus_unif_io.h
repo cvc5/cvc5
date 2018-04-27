@@ -273,7 +273,7 @@ class SygusUnifIo : public SygusUnif
 
   /** Construct solution */
   virtual Node constructSolution() override;
-  
+
   /** add example
    *
    * This adds input -> output to the specification for f. The arity of

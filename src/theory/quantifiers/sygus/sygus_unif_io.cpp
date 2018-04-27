@@ -677,7 +677,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   lemmas.push_back(exp_exc);
 }
 
-Node SygusUnifIo::constructSolution() 
+Node SygusUnifIo::constructSolution()
 {
   Node c = d_candidate;
   if (!d_solution.isNull())

@@ -26,10 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif()
-    : d_qe(nullptr), d_tds(nullptr)
-{
-}
+SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
 
 SygusUnif::~SygusUnif() {}
 
