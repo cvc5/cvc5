@@ -14,7 +14,9 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
@@ -82,14 +84,16 @@ void SygusSampler::initialize(TypeNode tn,
   d_vars.clear();
   d_rvalue_cindices.clear();
   d_rvalue_null_cindices.clear();
+  d_rstring_alphabet.clear();
   d_var_sygus_types.clear();
+  d_const_sygus_types.clear();
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
   std::map<TypeNode, unsigned> type_to_type_id;
   unsigned type_id_counter = 0;
   for (const Node& sv : d_vars)
   {
     TypeNode svt = sv.getType();
-    unsigned tnid;
+    unsigned tnid = 0;
     std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
     if (itt == type_to_type_id.end())
     {
@@ -406,11 +410,12 @@ bool SygusSampler::isOrdered(Node n)
   return true;
 }
 
-bool SygusSampler::containsFreeVariables(Node a, Node b)
+bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
 {
   // compute free variables in a
   std::vector<Node> fvs;
   computeFreeVariables(a, fvs);
+  std::vector<Node> fv_found;
 
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -429,6 +434,17 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
         if (std::find(fvs.begin(), fvs.end(), cur) == fvs.end())
         {
           return false;
+        }
+        else if (strict)
+        {
+          if (fv_found.size() + 1 == fvs.size())
+          {
+            return false;
+          }
+          // cur should only be visited once
+          Assert(std::find(fv_found.begin(), fv_found.end(), cur)
+                 == fv_found.end());
+          fv_found.push_back(cur);
         }
       }
       for (const Node& cn : cur)
@@ -507,13 +523,63 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   }
   else if (tn.isString() || tn.isInteger())
   {
+    // if string, determine the alphabet
+    if (tn.isString() && d_rstring_alphabet.empty())
+    {
+      Trace("sygus-sample-str-alpha")
+          << "Setting string alphabet..." << std::endl;
+      std::unordered_set<unsigned> alphas;
+      for (const std::pair<const Node, std::vector<TypeNode> >& c :
+           d_const_sygus_types)
+      {
+        if (c.first.getType().isString())
+        {
+          Trace("sygus-sample-str-alpha")
+              << "...have constant " << c.first << std::endl;
+          Assert(c.first.isConst());
+          std::vector<unsigned> svec = c.first.getConst<String>().getVec();
+          for (unsigned ch : svec)
+          {
+            alphas.insert(ch);
+          }
+        }
+      }
+      // can limit to 1 extra characters beyond those in the grammar (2 if
+      // there are none in the grammar)
+      unsigned num_fresh_char = alphas.empty() ? 2 : 1;
+      unsigned fresh_char = 0;
+      for (unsigned i = 0; i < num_fresh_char; i++)
+      {
+        while (alphas.find(fresh_char) != alphas.end())
+        {
+          fresh_char++;
+        }
+        alphas.insert(fresh_char);
+      }
+      Trace("sygus-sample-str-alpha")
+          << "Sygus sampler: limit strings alphabet to : " << std::endl
+          << " ";
+      for (unsigned ch : alphas)
+      {
+        d_rstring_alphabet.push_back(ch);
+        Trace("sygus-sample-str-alpha")
+            << " \"" << String::convertUnsignedIntToChar(ch) << "\"";
+      }
+      Trace("sygus-sample-str-alpha") << std::endl;
+    }
+
     std::vector<unsigned> vec;
     double ext_freq = .5;
-    unsigned base = 10;
+    unsigned base = tn.isString() ? d_rstring_alphabet.size() : 10;
     while (Random::getRandom().pickWithProb(ext_freq))
     {
       // add a digit
-      vec.push_back(Random::getRandom().pick(0, base));
+      unsigned digit = Random::getRandom().pick(0, base - 1);
+      if (tn.isString())
+      {
+        digit = d_rstring_alphabet[digit];
+      }
+      vec.push_back(digit);
     }
     if (tn.isString())
     {
@@ -666,6 +732,10 @@ void SygusSampler::registerSygusType(TypeNode tn)
         if (dtc.getNumArgs() == 0)
         {
           d_rvalue_null_cindices[tn].push_back(i);
+          if (sop.isConst())
+          {
+            d_const_sygus_types[sop].push_back(tn);
+          }
         }
       }
       // recurse on all subfields
@@ -691,8 +761,11 @@ void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
   // initialize the dynamic rewriter
   std::stringstream ss;
   ss << f;
-  d_drewrite =
-      std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+  if (options::sygusRewSynthFilterCong())
+  {
+    d_drewrite =
+        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+  }
   d_pairs.clear();
   d_match_trie.clear();
 }
@@ -700,8 +773,6 @@ void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
-  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
-                          << std::endl;
   if (eq_n == n)
   {
     // this is a unique term
@@ -714,36 +785,114 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
+  Trace("sygus-synth-rr") << "sygusSampleExt : " << bn << "..." << beq_n
+                          << std::endl;
   // whether we will keep this pair
   bool keep = true;
 
-  if( options::sygusRewSynthFilter() )
+  // ----- check ordering redundancy
+  if (options::sygusRewSynthFilterOrder())
   {
-    // ----- check matchable
-    // check whether the pair is matchable with a previous one
-    d_curr_pair_rhs = beq_n;
-    Trace("sse-match") << "SSE check matches : " << n << " [rhs = " << eq_n
-                      << "]..." << std::endl;
-    if (!d_match_trie.getMatches(bn, &d_ssenm))
+    bool nor = isOrdered(bn);
+    bool eqor = isOrdered(beq_n);
+    Trace("sygus-synth-rr-debug") << "Ordered? : " << nor << " " << eqor
+                                  << std::endl;
+    if (eqor || nor)
+    {
+      // if only one is ordered, then we require that the ordered one's
+      // variables cannot be a strict subset of the variables of the other.
+      if (!eqor)
+      {
+        if (containsFreeVariables(beq_n, bn, true))
+        {
+          keep = false;
+        }
+        else
+        {
+          // if the previous value stored was unordered, but n is
+          // ordered, we prefer n. Thus, we force its addition to the
+          // sampler database.
+          SygusSampler::registerTerm(n, true);
+        }
+      }
+      else if (!nor)
+      {
+        keep = !containsFreeVariables(bn, beq_n, true);
+      }
+    }
+    else
     {
       keep = false;
-      Trace("sygus-synth-rr-debug") << "...redundant (matchable)" << std::endl;
+    }
+    if (!keep)
+    {
+      Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
     }
   }
 
   // ----- check rewriting redundancy
-  if (d_drewrite != nullptr)
+  if (keep && d_drewrite != nullptr)
   {
-    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
-    if (!d_drewrite->addRewrite(bn, beq_n))
+    Trace("sygus-synth-rr-debug") << "Check equal rewrite pair..." << std::endl;
+    if (d_drewrite->areEqual(bn, beq_n))
     {
       // must be unique according to the dynamic rewriter
+      Trace("sygus-synth-rr") << "...redundant (rewritable)" << std::endl;
       keep = false;
-      Trace("sygus-synth-rr-debug") << "...redundant (rewritable)" << std::endl;
+    }
+  }
+
+  if (options::sygusRewSynthFilterMatch())
+  {
+    // ----- check matchable
+    // check whether the pair is matchable with a previous one
+    d_curr_pair_rhs = beq_n;
+    Trace("sse-match") << "SSE check matches : " << bn << " [rhs = " << beq_n
+                       << "]..." << std::endl;
+    if (!d_match_trie.getMatches(bn, &d_ssenm))
+    {
+      keep = false;
+      Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
+      // regardless, would help to remember it
+      registerRelevantPair(n, eq_n);
     }
   }
 
   if (keep)
+  {
+    return eq_n;
+  }
+  if (Trace.isOn("sygus-rr-filter"))
+  {
+    Printer* p = Printer::getPrinter(options::outputLanguage());
+    std::stringstream ss;
+    ss << "(redundant-rewrite ";
+    p->toStreamSygus(ss, n);
+    ss << " ";
+    p->toStreamSygus(ss, eq_n);
+    ss << ")";
+    Trace("sygus-rr-filter") << ss.str() << std::endl;
+  }
+  return Node::null();
+}
+
+void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
+{
+  Node bn = n;
+  Node beq_n = eq_n;
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    beq_n = d_tds->sygusToBuiltin(eq_n);
+  }
+  // ----- check rewriting redundancy
+  if (d_drewrite != nullptr)
+  {
+    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
+    Assert(!d_drewrite->areEqual(bn, beq_n));
+    d_drewrite->addRewrite(bn, beq_n);
+  }
+  if (options::sygusRewSynthFilterMatch())
   {
     // add to match information
     for (unsigned r = 0; r < 2; r++)
@@ -758,14 +907,7 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
       }
       d_pairs[t].insert(to);
     }
-    return eq_n;
   }
-  else if (Trace.isOn("sygus-synth-rr"))
-  {
-    Trace("sygus-synth-rr") << "Redundant pair : " << eq_n << " " << n;
-    Trace("sygus-synth-rr") << std::endl;
-  }
-  return Node::null();
 }
 
 bool SygusSamplerExt::notify(Node s,

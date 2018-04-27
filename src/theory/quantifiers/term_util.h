@@ -180,23 +180,28 @@ public:
   static Node getQuantSimplify( Node n );
 
  private:
-  /** helper function for compute var contains */
-  static void computeVarContains2( Node n, Kind k, std::vector< Node >& varContains, std::map< Node, bool >& visited );
- public:
-  /** compute var contains */
-  static void computeVarContains( Node n, std::vector< Node >& varContains );
-  /** get var contains for each of the patterns in pats */
-  static void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
-  /** get var contains for node n */
-  static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
-  /** compute quant contains */
-  static void computeQuantContains( Node n, std::vector< Node >& quantContains );
-  // TODO (#1216) : this should be in trigger.h
-  /** filter all nodes that have instances */
-  static void filterInstances( std::vector< Node >& nodes );
+  /** adds the set of nodes of kind k in n to vars */
+  static void computeVarContainsInternal(Node n,
+                                         Kind k,
+                                         std::vector<Node>& vars);
 
-//for term ordering
-private:
+ public:
+  /** adds the set of nodes of kind INST_CONSTANT in n to ics */
+  static void computeInstConstContains(Node n, std::vector<Node>& ics);
+  /** adds the set of nodes of kind BOUND_VARIABLE in n to vars */
+  static void computeVarContains(Node n, std::vector<Node>& vars);
+  /** adds the set of (top-level) nodes of kind FORALL in n to quants */
+  static void computeQuantContains(Node n, std::vector<Node>& quants);
+  /**
+   * Adds the set of nodes of kind INST_CONSTANT in n that belong to quantified
+   * formula q to vars.
+   */
+  static void computeInstConstContainsForQuant(Node q,
+                                               Node n,
+                                               std::vector<Node>& vars);
+
+  // for term ordering
+ private:
   /** operator id count */
   int d_op_id_count;
   /** map from operators to id */
@@ -254,7 +259,6 @@ public:
   // TODO #1216 : promote these?
  private:
   //helper for contains term
-  static bool containsTerm2( Node n, Node t, std::map< Node, bool >& visited );
   static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
   /** cache for getTypeValue */
   std::unordered_map<TypeNode,
@@ -279,8 +283,6 @@ public:
       d_type_value_offset_status;
 
  public:
-  /** simple check for whether n contains t as subterm */
-  static bool containsTerm( Node n, Node t );
   /** simple check for contains term, true if contains at least one term in t */
   static bool containsTerms( Node n, std::vector< Node >& t );
   /** contains uninterpreted constant */
@@ -289,6 +291,11 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
+  /** is the kind k a negation kind?
+   *
+   * A kind k is a negation kind if <k>( <k>( n ) ) = n.
+   */
+  static bool isNegate(Kind k);
   /**
    * Make negated term, returns the negation of n wrt Kind notk, eliminating
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.

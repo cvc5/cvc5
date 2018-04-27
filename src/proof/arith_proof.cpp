@@ -643,6 +643,7 @@ ArithProof::ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* pe)
   : TheoryProof(arith, pe), d_realMode(false)
 {}
 
+theory::TheoryId ArithProof::getTheoryId() { return theory::THEORY_ARITH; }
 void ArithProof::registerTerm(Expr term) {
   Debug("pf::arith") << "Arith register term: " << term << ". Kind: " << term.getKind()
                             << ". Type: " << term.getType() << std::endl;

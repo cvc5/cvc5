@@ -142,21 +142,22 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       for (unsigned i = 0, size = d_match_pattern.getNumChildren(); i < size;
            i++)
       {
-        Node qa = quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i]);
+        Node pat = d_match_pattern[i];
+        Node qa = quantifiers::TermUtil::getInstConstAttr(pat);
         if (!qa.isNull())
         {
-          InstMatchGenerator* cimg =
-              getInstMatchGenerator(q, d_match_pattern[i]);
-          if (cimg)
+          if (pat.getKind() == INST_CONSTANT && qa == q)
           {
-            d_children.push_back(cimg);
-            d_children_index.push_back(i);
-            d_children_types.push_back(-2);
-          }else{
-            if (d_match_pattern[i].getKind() == INST_CONSTANT && qa == q)
+            d_children_types.push_back(pat.getAttribute(InstVarNumAttribute()));
+          }
+          else
+          {
+            InstMatchGenerator* cimg = getInstMatchGenerator(q, pat);
+            if (cimg)
             {
-              d_children_types.push_back(
-                  d_match_pattern[i].getAttribute(InstVarNumAttribute()));
+              d_children.push_back(cimg);
+              d_children_index.push_back(i);
+              d_children_types.push_back(-2);
             }
             else
             {
@@ -535,24 +536,23 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vecto
 
 InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
 {
-  if (n.getKind() == INST_CONSTANT)
+  if (n.getKind() != INST_CONSTANT)
   {
-    return NULL;
-  }
-  Trace("var-trigger-debug") << "Is " << n << " a variable trigger?"
-                             << std::endl;
-  Node x;
-  if (options::purifyTriggers())
-  {
-    x = Trigger::getInversionVariable(n);
-  }
-  if (!x.isNull())
-  {
-    Node s = Trigger::getInversion(n, x);
-    VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s);
-    Trace("var-trigger") << "Term substitution trigger : " << n
-                         << ", var = " << x << ", subs = " << s << std::endl;
-    return vmg;
+    Trace("var-trigger-debug")
+        << "Is " << n << " a variable trigger?" << std::endl;
+    Node x;
+    if (options::purifyTriggers())
+    {
+      x = Trigger::getInversionVariable(n);
+    }
+    if (!x.isNull())
+    {
+      Node s = Trigger::getInversion(n, x);
+      VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s);
+      Trace("var-trigger") << "Term substitution trigger : " << n
+                           << ", var = " << x << ", subs = " << s << std::endl;
+      return vmg;
+    }
   }
   return new InstMatchGenerator(n);
 }
@@ -597,7 +597,11 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vector< Node >& pats, QuantifiersEngine* qe ) {
   //order patterns to maximize eager matching failures
   std::map< Node, std::vector< Node > > var_contains;
-  qe->getTermUtil()->getVarContains( q, pats, var_contains );
+  for (const Node& pat : pats)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(
+        q, pat, var_contains[pat]);
+  }
   std::map< Node, std::vector< Node > > var_to_node;
   for( std::map< Node, std::vector< Node > >::iterator it = var_contains.begin(); it != var_contains.end(); ++it ){
     for( unsigned i=0; i<it->second.size(); i++ ){
@@ -710,7 +714,11 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
 {
   Trace("multi-trigger-cache") << "Making smart multi-trigger for " << q << std::endl;
   std::map< Node, std::vector< Node > > var_contains;
-  qe->getTermUtil()->getVarContains( q, pats, var_contains );
+  for (const Node& pat : pats)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(
+        q, pat, var_contains[pat]);
+  }
   //convert to indicies
   for( std::map< Node, std::vector< Node > >::iterator it = var_contains.begin(); it != var_contains.end(); ++it ){
     Trace("multi-trigger-cache") << "Pattern " << it->first << " contains: ";
@@ -1042,8 +1050,12 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getNodeData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
-    for( std::map< int, int >::iterator it = d_var_num.begin(); it != d_var_num.end(); ++it ){
+    for (std::map<unsigned, int>::iterator it = d_var_num.begin();
+         it != d_var_num.end();
+         ++it)
+    {
       if( it->second>=0 ){
+        Assert(it->first < t.getNumChildren());
         Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
         m.setValue( it->second, t[it->first] );
       }

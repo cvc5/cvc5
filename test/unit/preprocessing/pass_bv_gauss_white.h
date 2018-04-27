@@ -16,10 +16,11 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/passes/bv_gauss.cpp"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
-#include "theory/bv/bvgauss.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
@@ -28,9 +29,8 @@
 #include <vector>
 
 using namespace CVC4;
+using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
-using namespace CVC4::theory::bv::utils;
 using namespace CVC4::smt;
 
 static void print_matrix_dbg(std::vector<Integer> &rhs,
@@ -50,13 +50,13 @@ static void print_matrix_dbg(std::vector<Integer> &rhs,
 static void testGaussElimX(Integer prime,
                            std::vector<Integer> rhs,
                            std::vector<std::vector<Integer>> lhs,
-                           BVGaussElim::Result expected,
+                           passes::Result expected,
                            std::vector<Integer> *rrhs = nullptr,
                            std::vector<std::vector<Integer>> *rlhs = nullptr)
 {
   size_t nrows = lhs.size();
   size_t ncols = lhs[0].size();
-  BVGaussElim::Result ret;
+  passes::Result ret;
   std::vector<Integer> resrhs = std::vector<Integer>(rhs);
   std::vector<std::vector<Integer>> reslhs =
       std::vector<std::vector<Integer>>(lhs);
@@ -64,21 +64,21 @@ static void testGaussElimX(Integer prime,
   std::cout << "Input: " << std::endl;
   print_matrix_dbg(rhs, lhs);
 
-  ret = BVGaussElim::gaussElim(prime, resrhs, reslhs);
+  ret = passes::gaussElim(prime, resrhs, reslhs);
 
-  std::cout << "Result: "
-            << (ret == BVGaussElim::Result::INVALID
+  std::cout << "passes::Result: "
+            << (ret == passes::Result::INVALID
                     ? "INVALID"
-                    : (ret == BVGaussElim::Result::UNIQUE
+                    : (ret == passes::Result::UNIQUE
                            ? "UNIQUE"
-                           : (ret == BVGaussElim::Result::PARTIAL ? "PARTIAL"
+                           : (ret == passes::Result::PARTIAL ? "PARTIAL"
                                                                   : "NONE")))
             << std::endl;
   print_matrix_dbg(resrhs, reslhs);
 
   TS_ASSERT_EQUALS(expected, ret);
 
-  if (expected == BVGaussElim::Result::UNIQUE)
+  if (expected == passes::Result::UNIQUE)
   {
     /* map result value to column index
      * e.g.:
@@ -120,7 +120,7 @@ static void testGaussElimT(Integer prime,
                            std::vector<Integer> rhs,
                            std::vector<std::vector<Integer>> lhs)
 {
-  TS_ASSERT_THROWS(BVGaussElim::gaussElim(prime, rhs, lhs), T);
+  TS_ASSERT_THROWS(passes::gaussElim(prime, rhs, lhs), T);
 }
 
 class TheoryBVGaussWhite : public CxxTest::TestSuite
@@ -183,28 +183,45 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
 
-    d_zero = mkZero(16);
+    d_zero = bv::utils::mkZero(16);
 
-    d_p = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 11u)));
-    d_x = mkConcat(d_zero, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
-    d_y = mkConcat(d_zero, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
-    d_z = mkConcat(d_zero, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
+    d_p = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 11u)));
+    d_x = bv::utils::mkConcat(
+        d_zero, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
+    d_y = bv::utils::mkConcat(
+        d_zero, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
+    d_z = bv::utils::mkConcat(
+        d_zero, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
 
-    d_one = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 1u)));
-    d_two = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 2u)));
-    d_three = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 3u)));
-    d_four = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 4u)));
-    d_five = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 5u)));
-    d_six = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 6u)));
-    d_seven = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 7u)));
-    d_eight = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 8u)));
-    d_nine = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 9u)));
-    d_ten = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 10u)));
-    d_twelve = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 12u)));
-    d_eighteen = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 18u)));
-    d_twentyfour =
-        mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 24u)));
-    d_thirty = mkConcat(d_zero, d_nm->mkConst<BitVector>(BitVector(16, 30u)));
+    d_one = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 1u)));
+    d_two = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 2u)));
+    d_three = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 3u)));
+    d_four = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 4u)));
+    d_five = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 5u)));
+    d_six = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 6u)));
+    d_seven = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 7u)));
+    d_eight = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 8u)));
+    d_nine = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 9u)));
+    d_ten = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 10u)));
+    d_twelve = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 12u)));
+    d_eighteen = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 18u)));
+    d_twentyfour = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 24u)));
+    d_thirty = bv::utils::mkConcat(
+        d_zero, d_nm->mkConst<BitVector>(BitVector(16, 30u)));
 
     d_one32 = d_nm->mkConst<BitVector>(BitVector(32, 1u));
     d_two32 = d_nm->mkConst<BitVector>(BitVector(32, 2u));
@@ -303,27 +320,27 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     std::cout << "matrix 0, modulo 0" << std::endl;  // throws
     testGaussElimT<AssertionException>(Integer(0), rhs, lhs);
     std::cout << "matrix 0, modulo 1" << std::endl;
-    testGaussElimX(Integer(1), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(1), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 0, modulo 2" << std::endl;
-    testGaussElimX(Integer(2), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(2), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 0, modulo 3" << std::endl;
-    testGaussElimX(Integer(3), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(3), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 0, modulo 4" << std::endl;  // no inverse
-    testGaussElimX(Integer(4), rhs, lhs, BVGaussElim::Result::INVALID);
+    testGaussElimX(Integer(4), rhs, lhs, passes::Result::INVALID);
     std::cout << "matrix 0, modulo 5" << std::endl;
-    testGaussElimX(Integer(5), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(5), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 0, modulo 6" << std::endl;  // no inverse
-    testGaussElimX(Integer(6), rhs, lhs, BVGaussElim::Result::INVALID);
+    testGaussElimX(Integer(6), rhs, lhs, passes::Result::INVALID);
     std::cout << "matrix 0, modulo 7" << std::endl;
-    testGaussElimX(Integer(7), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(7), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 0, modulo 8" << std::endl;  // no inverse
-    testGaussElimX(Integer(8), rhs, lhs, BVGaussElim::Result::INVALID);
+    testGaussElimX(Integer(8), rhs, lhs, passes::Result::INVALID);
     std::cout << "matrix 0, modulo 9" << std::endl;
-    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(9), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 0, modulo 10" << std::endl;  // no inverse
-    testGaussElimX(Integer(10), rhs, lhs, BVGaussElim::Result::INVALID);
+    testGaussElimX(Integer(10), rhs, lhs, passes::Result::INVALID);
     std::cout << "matrix 0, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimUniqueDone()
@@ -343,7 +360,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(1), Integer(0)},
            {Integer(0), Integer(0), Integer(1)}};
     std::cout << "matrix 1, modulo 17" << std::endl;
-    testGaussElimX(Integer(17), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(17), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimUnique()
@@ -363,11 +380,11 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(4), Integer(5), Integer(6)},
            {Integer(3), Integer(1), Integer(-2)}};
     std::cout << "matrix 2, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 2, modulo 17" << std::endl;
-    testGaussElimX(Integer(17), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(17), rhs, lhs, passes::Result::UNIQUE);
     std::cout << "matrix 2, modulo 59" << std::endl;
-    testGaussElimX(Integer(59), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(59), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *      lhs       rhs         lhs     rhs   modulo 11
@@ -383,7 +400,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(1), Integer(-1), Integer(-1), Integer(-2)},
            {Integer(2), Integer(-1), Integer(2), Integer(-1)}};
     std::cout << "matrix 3, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimUniqueZero1()
@@ -403,7 +420,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(1), Integer(1), Integer(1)},
            {Integer(3), Integer(2), Integer(5)}};
     std::cout << "matrix 4, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs   modulo 11
@@ -417,7 +434,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(4), Integer(5)},
            {Integer(3), Integer(2), Integer(5)}};
     std::cout << "matrix 5, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs   modulo 11
@@ -431,7 +448,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(3), Integer(2), Integer(5)},
            {Integer(0), Integer(4), Integer(5)}};
     std::cout << "matrix 6, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimUniqueZero2()
@@ -451,7 +468,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(1), Integer(1), Integer(1)},
            {Integer(3), Integer(2), Integer(5)}};
     std::cout << "matrix 7, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs   modulo 11
@@ -465,7 +482,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(5)},
            {Integer(3), Integer(2), Integer(5)}};
     std::cout << "matrix 8, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs   modulo 11
@@ -479,7 +496,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(3), Integer(2), Integer(5)},
            {Integer(0), Integer(0), Integer(5)}};
     std::cout << "matrix 9, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimUniqueZero3()
@@ -499,7 +516,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(0)},
            {Integer(4), Integer(0), Integer(6)}};
     std::cout << "matrix 10, modulo 7" << std::endl;
-    testGaussElimX(Integer(7), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(7), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs   modulo 7
@@ -513,7 +530,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(0)},
            {Integer(4), Integer(6), Integer(0)}};
     std::cout << "matrix 11, modulo 7" << std::endl;
-    testGaussElimX(Integer(7), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(7), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimUniqueZero4()
@@ -533,7 +550,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(0)},
            {Integer(0), Integer(0), Integer(5)}};
     std::cout << "matrix 12, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -547,7 +564,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(3), Integer(5)},
            {Integer(0), Integer(0), Integer(0)}};
     std::cout << "matrix 13, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -561,7 +578,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(3), Integer(5)},
            {Integer(0), Integer(0), Integer(5)}};
     std::cout << "matrix 14, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -575,7 +592,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(0)},
            {Integer(4), Integer(0), Integer(5)}};
     std::cout << "matrix 15, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -589,7 +606,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(0), Integer(5)},
            {Integer(0), Integer(0), Integer(0)}};
     std::cout << "matrix 16, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -603,7 +620,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(0), Integer(5)},
            {Integer(4), Integer(0), Integer(5)}};
     std::cout << "matrix 17, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -617,7 +634,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(0)},
            {Integer(4), Integer(0), Integer(0)}};
     std::cout << "matrix 18, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -631,7 +648,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(3), Integer(0)},
            {Integer(0), Integer(0), Integer(0)}};
     std::cout << "matrix 18, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -645,7 +662,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(3), Integer(0)},
            {Integer(4), Integer(0), Integer(0)}};
     std::cout << "matrix 19, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *     lhs    rhs  modulo 2
@@ -664,7 +681,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
               {Integer(0), Integer(0), Integer(0)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(2), rhs, lhs, BVGaussElim::Result::UNIQUE, &resrhs, &reslhs);
+        Integer(2), rhs, lhs, passes::Result::UNIQUE, &resrhs, &reslhs);
   }
 
   void testGaussElimUniquePartial()
@@ -682,7 +699,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     lhs = {{Integer(2), Integer(0), Integer(6)},
            {Integer(4), Integer(0), Integer(6)}};
     std::cout << "matrix 21, modulo 7" << std::endl;
-    testGaussElimX(Integer(7), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(7), rhs, lhs, passes::Result::UNIQUE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs   modulo 7
@@ -694,7 +711,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     lhs = {{Integer(2), Integer(6), Integer(0)},
            {Integer(4), Integer(6), Integer(0)}};
     std::cout << "matrix 22, modulo 7" << std::endl;
-    testGaussElimX(Integer(7), rhs, lhs, BVGaussElim::Result::UNIQUE);
+    testGaussElimX(Integer(7), rhs, lhs, passes::Result::UNIQUE);
   }
 
   void testGaussElimNone()
@@ -714,7 +731,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(4), Integer(5), Integer(6)},
            {Integer(3), Integer(1), Integer(-2)}};
     std::cout << "matrix 23, modulo 9" << std::endl;
-    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::INVALID);
+    testGaussElimX(Integer(9), rhs, lhs, passes::Result::INVALID);
 
     /* -------------------------------------------------------------------
      *     lhs    rhs       modulo 59
@@ -728,7 +745,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(4), Integer(12)},
            {Integer(1), Integer(-4), Integer(-12)}};
     std::cout << "matrix 24, modulo 59" << std::endl;
-    testGaussElimX(Integer(59), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(59), rhs, lhs, passes::Result::NONE);
 
     /* -------------------------------------------------------------------
      *     lhs    rhs       modulo 9
@@ -742,7 +759,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(4), Integer(5), Integer(6)},
            {Integer(2), Integer(7), Integer(12)}};
     std::cout << "matrix 25, modulo 9" << std::endl;
-    testGaussElimX(Integer(9), rhs, lhs, BVGaussElim::Result::INVALID);
+    testGaussElimX(Integer(9), rhs, lhs, passes::Result::INVALID);
   }
 
   void testGaussElimNoneZero()
@@ -762,7 +779,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(3), Integer(5)},
            {Integer(0), Integer(0), Integer(5)}};
     std::cout << "matrix 26, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::NONE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -776,7 +793,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(0), Integer(5)},
            {Integer(4), Integer(0), Integer(5)}};
     std::cout << "matrix 27, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::NONE);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs  modulo 11
@@ -790,7 +807,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(3), Integer(0)},
            {Integer(4), Integer(0), Integer(0)}};
     std::cout << "matrix 28, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::NONE);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::NONE);
   }
 
   void testGaussElimPartial1()
@@ -808,7 +825,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     lhs = {{Integer(1), Integer(0), Integer(9)},
            {Integer(0), Integer(1), Integer(3)}};
     std::cout << "matrix 29, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::PARTIAL);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -820,7 +837,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     lhs = {{Integer(1), Integer(3), Integer(0)},
            {Integer(0), Integer(0), Integer(1)}};
     std::cout << "matrix 30, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::PARTIAL);
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -832,7 +849,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     lhs = {{Integer(1), Integer(1), Integer(1)},
            {Integer(2), Integer(3), Integer(5)}};
     std::cout << "matrix 31, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::PARTIAL);
 
     /* -------------------------------------------------------------------
      *     lhs    rhs  modulo { 3, 5, 7, 11, 17, 31, 59 }
@@ -851,38 +868,38 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
               {Integer(0), Integer(0), Integer(0)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(3), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(3), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
     resrhs = {Integer(1), Integer(4), Integer(0)};
     std::cout << "matrix 32, modulo 5" << std::endl;
     reslhs = {{Integer(1), Integer(0), Integer(4)},
               {Integer(0), Integer(1), Integer(2)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(5), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(5), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
     std::cout << "matrix 32, modulo 7" << std::endl;
     reslhs = {{Integer(1), Integer(0), Integer(6)},
               {Integer(0), Integer(1), Integer(2)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(7), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(7), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
     std::cout << "matrix 32, modulo 11" << std::endl;
     reslhs = {{Integer(1), Integer(0), Integer(10)},
               {Integer(0), Integer(1), Integer(2)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(11), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
     std::cout << "matrix 32, modulo 17" << std::endl;
     reslhs = {{Integer(1), Integer(0), Integer(16)},
               {Integer(0), Integer(1), Integer(2)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(17), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(17), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
     std::cout << "matrix 32, modulo 59" << std::endl;
     reslhs = {{Integer(1), Integer(0), Integer(58)},
               {Integer(0), Integer(1), Integer(2)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(59), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(59), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
 
     /* -------------------------------------------------------------------
      *     lhs    rhs        lhs   rhs   modulo 3
@@ -901,7 +918,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
               {Integer(0), Integer(0), Integer(0)},
               {Integer(0), Integer(0), Integer(0)}};
     testGaussElimX(
-        Integer(3), rhs, lhs, BVGaussElim::Result::PARTIAL, &resrhs, &reslhs);
+        Integer(3), rhs, lhs, passes::Result::PARTIAL, &resrhs, &reslhs);
   }
 
   void testGaussElimPartial2()
@@ -922,7 +939,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(0), Integer(0), Integer(2), Integer(2)},
            {Integer(0), Integer(0), Integer(1), Integer(0)}};
     std::cout << "matrix 34, modulo 11" << std::endl;
-    testGaussElimX(Integer(11), rhs, lhs, BVGaussElim::Result::PARTIAL);
+    testGaussElimX(Integer(11), rhs, lhs, passes::Result::PARTIAL);
   }
   void testGaussElimRewriteForUremUnique1()
   {
@@ -966,8 +983,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::UNIQUE);
+    passes::Result ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::UNIQUE);
     TS_ASSERT(res.size() == 3);
     TS_ASSERT(res[d_x] == d_three32);
     TS_ASSERT(res[d_y] == d_four32);
@@ -986,21 +1003,36 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node zextop6 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(6));
 
-    Node p = d_nm->mkNode(zextop6, mkConcat(mkZero(6),
-          d_nm->mkNode(kind::BITVECTOR_PLUS, mkConst(20, 7), mkConst(20, 4))));
+    Node p = d_nm->mkNode(
+        zextop6,
+        bv::utils::mkConcat(bv::utils::mkZero(6),
+                            d_nm->mkNode(kind::BITVECTOR_PLUS,
+                                         bv::utils::mkConst(20, 7),
+                                         bv::utils::mkConst(20, 4))));
 
-    Node x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT,
-        d_nm->mkNode(kind::BITVECTOR_SUB, d_five, d_four), d_x);
-    Node y_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT,
-        d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, d_one, d_five), d_y);
-    Node z_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, mkOne(32), d_z);
+    Node x_mul_one =
+        d_nm->mkNode(kind::BITVECTOR_MULT,
+                     d_nm->mkNode(kind::BITVECTOR_SUB, d_five, d_four),
+                     d_x);
+    Node y_mul_one =
+        d_nm->mkNode(kind::BITVECTOR_MULT,
+                     d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, d_one, d_five),
+                     d_y);
+    Node z_mul_one =
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkOne(32), d_z);
 
-    Node x_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT,
-        d_nm->mkNode(kind::BITVECTOR_SHL, mkOne(32), mkOne(32)), d_x);
+    Node x_mul_two = d_nm->mkNode(
+        kind::BITVECTOR_MULT,
+        d_nm->mkNode(
+            kind::BITVECTOR_SHL, bv::utils::mkOne(32), bv::utils::mkOne(32)),
+        d_x);
     Node y_mul_three = d_nm->mkNode(kind::BITVECTOR_MULT,
-        d_nm->mkNode(kind::BITVECTOR_LSHR, mkOnes(32), mkConst(32, 30)), d_y);
+                                    d_nm->mkNode(kind::BITVECTOR_LSHR,
+                                                 bv::utils::mkOnes(32),
+                                                 bv::utils::mkConst(32, 30)),
+                                    d_y);
     Node z_mul_five = d_nm->mkNode(kind::BITVECTOR_MULT,
-        mkExtract(
+        bv::utils::mkExtract(
           d_nm->mkNode(
             zextop6, d_nm->mkNode(kind::BITVECTOR_PLUS, d_three, d_two)),
           31, 0),
@@ -1010,10 +1042,10 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
           d_nm->mkNode(kind::BITVECTOR_PLUS,
             d_nm->mkNode(kind::BITVECTOR_MULT,
-              mkConst(32, 4),
-              mkConst(32, 5)),
-            mkConst(32, 4)),
-          mkConst(32, 6)),
+             bv::utils::mkConst(32, 4),
+             bv::utils::mkConst(32, 5)),
+           bv::utils::mkConst(32, 4)),
+         bv::utils::mkConst(32, 6)),
         d_x);
 
     Node eq1 = d_nm->mkNode(
@@ -1050,8 +1082,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::UNIQUE);
+    passes::Result ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::UNIQUE);
     TS_ASSERT(res.size() == 3);
     TS_ASSERT(res[d_x] == d_three32);
     TS_ASSERT(res[d_y] == d_four32);
@@ -1061,7 +1093,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial1()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -1087,8 +1119,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_nine);
 
     std::vector<Node> eqs = {eq1, eq2};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     Node x1 = d_nm->mkNode(
@@ -1179,7 +1211,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial1a()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -1203,8 +1235,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_nine);
 
     std::vector<Node> eqs = {eq1, eq2};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     Node x1 = d_nm->mkNode(
@@ -1295,7 +1327,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial2()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -1318,8 +1350,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
                      d_nine);
 
     std::vector<Node> eqs = {eq1, eq2};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     Node x1 = d_nm->mkNode(
@@ -1381,7 +1413,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial3()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -1412,8 +1444,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_eight);
 
     std::vector<Node> eqs = {eq1, eq2};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     Node x1 = d_nm->mkNode(
@@ -1502,7 +1534,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial4()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *     lhs    rhs          lhs    rhs  modulo 11
@@ -1546,8 +1578,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_thirty);
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     Node x1 = d_nm->mkNode(
@@ -1644,7 +1676,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial5()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *     lhs    rhs         lhs   rhs  modulo 3
@@ -1688,8 +1720,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_thirty);
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 1);
 
     Node x1 = d_nm->mkNode(kind::BITVECTOR_UREM,
@@ -1751,7 +1783,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremPartial6()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *    lhs    rhs  -->    lhs    rhs  modulo 11
@@ -1764,7 +1796,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node y_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, d_y, d_two);
     Node z_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_two);
-    Node w = mkConcat(d_zero, d_nm->mkVar("w", d_nm->mkBitVectorType(16)));
+    Node w = bv::utils::mkConcat(
+        d_zero, d_nm->mkVar("w", d_nm->mkBitVectorType(16)));
     Node w_mul_six = d_nm->mkNode(kind::BITVECTOR_MULT, w, d_six);
     Node w_mul_two = d_nm->mkNode(kind::BITVECTOR_MULT, w, d_two);
 
@@ -1794,8 +1827,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_two);
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 3);
 
     Node x1 = d_nm->mkNode(
@@ -1838,7 +1871,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremWithExprPartial()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -1847,17 +1880,24 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
      *  0 1 3   9        0 1 3   9
      * ------------------------------------------------------------------- */
 
-    Node zero = mkZero(8);
+    Node zero = bv::utils::mkZero(8);
     Node xx = d_nm->mkVar("xx", d_nm->mkBitVectorType(8));
     Node yy = d_nm->mkVar("yy", d_nm->mkBitVectorType(8));
     Node zz = d_nm->mkVar("zz", d_nm->mkBitVectorType(8));
 
-    Node x =
-        mkConcat(d_zero, mkConcat(zero, mkExtract(mkConcat(zero, xx), 7, 0)));
-    Node y =
-        mkConcat(d_zero, mkConcat(zero, mkExtract(mkConcat(zero, yy), 7, 0)));
-    Node z =
-        mkConcat(d_zero, mkConcat(zero, mkExtract(mkConcat(zero, zz), 7, 0)));
+    Node x = bv::utils::mkConcat(
+        d_zero,
+        bv::utils::mkConcat(
+            zero, bv::utils::mkExtract(bv::utils::mkConcat(zero, xx), 7, 0)));
+    Node y = bv::utils::mkConcat(
+        d_zero,
+        bv::utils::mkConcat(
+            zero, bv::utils::mkExtract(bv::utils::mkConcat(zero, yy), 7, 0)));
+    Node z = bv::utils::mkConcat(
+        d_zero,
+        bv::utils::mkConcat(
+            zero, bv::utils::mkExtract(bv::utils::mkConcat(zero, zz), 7, 0)));
+
     Node x_mul_one = d_nm->mkNode(kind::BITVECTOR_MULT, x, d_one32);
     Node nine_mul_z = d_nm->mkNode(kind::BITVECTOR_MULT, d_nine32, z);
     Node one_mul_y = d_nm->mkNode(kind::BITVECTOR_MULT, d_one, y);
@@ -1878,8 +1918,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         d_nine);
 
     std::vector<Node> eqs = {eq1, eq2};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     x = Rewriter::rewrite(x);
@@ -1974,7 +2014,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremNAryPartial()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      *   lhs   rhs        lhs   rhs  modulo 11
@@ -1983,26 +2023,29 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
      *  0 1 3   9        0 1 3   9
      * ------------------------------------------------------------------- */
 
-    Node zero = mkZero(8);
+    Node zero = bv::utils::mkZero(8);
     Node xx = d_nm->mkVar("xx", d_nm->mkBitVectorType(8));
     Node yy = d_nm->mkVar("yy", d_nm->mkBitVectorType(8));
     Node zz = d_nm->mkVar("zz", d_nm->mkBitVectorType(8));
 
-    Node x = mkConcat(
+    Node x = bv::utils::mkConcat(
         d_zero,
-        mkConcat(
+        bv::utils::mkConcat(
             zero,
-            mkExtract(d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, xx), 7, 0)));
-    Node y = mkConcat(
+            bv::utils::mkExtract(
+                d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, xx), 7, 0)));
+    Node y = bv::utils::mkConcat(
         d_zero,
-        mkConcat(
+        bv::utils::mkConcat(
             zero,
-            mkExtract(d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, yy), 7, 0)));
-    Node z = mkConcat(
+            bv::utils::mkExtract(
+                d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, yy), 7, 0)));
+    Node z = bv::utils::mkConcat(
         d_zero,
-        mkConcat(
+        bv::utils::mkConcat(
             zero,
-            mkExtract(d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
+            bv::utils::mkExtract(
+                d_nm->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
 
     NodeBuilder<> nbx(d_nm, kind::BITVECTOR_MULT);
     nbx << d_x << d_one << x;
@@ -2038,8 +2081,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
                             d_nine);
 
     std::vector<Node> eqs = {eq1, eq2};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::PARTIAL);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::PARTIAL);
     TS_ASSERT(res.size() == 2);
 
     x_mul_xx = Rewriter::rewrite(x_mul_xx);
@@ -2134,7 +2177,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremNotInvalid1()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      * 3x / 2z = 4  modulo 11
@@ -2148,9 +2191,11 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node n2 = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
                            d_nm->mkNode(kind::BITVECTOR_MULT, d_two, d_x),
                            d_nm->mkNode(kind::BITVECTOR_MULT, d_five, d_y));
-    Node n3 = mkConcat(
+
+    Node n3 = bv::utils::mkConcat(
         d_zero,
-        mkExtract(d_nm->mkNode(kind::BITVECTOR_CONCAT, d_y, d_z), 15, 0));
+        bv::utils::mkExtract(
+            d_nm->mkNode(kind::BITVECTOR_CONCAT, d_y, d_z), 15, 0));
 
     Node eq1 = d_nm->mkNode(
         kind::EQUAL, d_nm->mkNode(kind::BITVECTOR_UREM, n1, d_p), d_four);
@@ -2162,8 +2207,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         kind::EQUAL, d_nm->mkNode(kind::BITVECTOR_UREM, n3, d_p), d_five);
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::UNIQUE);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::UNIQUE);
     TS_ASSERT(res.size() == 3);
 
     TS_ASSERT(res[n1] == d_four32);
@@ -2174,7 +2219,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremNotInvalid2()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      * x*y = 4  modulo 11
@@ -2182,11 +2227,14 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
      * 2*x*y + 2*z = 9
      * ------------------------------------------------------------------- */
 
-    Node zero32 = mkZero(32);
+    Node zero32 = bv::utils::mkZero(32);
 
-    Node x = mkConcat(zero32, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
-    Node y = mkConcat(zero32, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
-    Node z = mkConcat(zero32, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
+    Node x = bv::utils::mkConcat(zero32,
+                                 d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
+    Node y = bv::utils::mkConcat(zero32,
+                                 d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
+    Node z = bv::utils::mkConcat(zero32,
+                                 d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
 
     Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, x, y);
     Node n2 = d_nm->mkNode(
@@ -2195,35 +2243,39 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         kind::BITVECTOR_PLUS,
         d_nm->mkNode(kind::BITVECTOR_MULT,
                      d_nm->mkNode(kind::BITVECTOR_MULT, x, y),
-                     mkConcat(d_zero, d_two)),
-        d_nm->mkNode(kind::BITVECTOR_MULT, mkConcat(d_zero, d_two), z));
+                     bv::utils::mkConcat(d_zero, d_two)),
+        d_nm->mkNode(
+            kind::BITVECTOR_MULT, bv::utils::mkConcat(d_zero, d_two), z));
 
     Node eq1 = d_nm->mkNode(
         kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n1, mkConcat(d_zero, d_p)),
-        mkConcat(d_zero, d_four));
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, n1, bv::utils::mkConcat(d_zero, d_p)),
+        bv::utils::mkConcat(d_zero, d_four));
 
     Node eq2 = d_nm->mkNode(
         kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n2, mkConcat(d_zero, d_p)),
-        mkConcat(d_zero, d_two));
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, n2, bv::utils::mkConcat(d_zero, d_p)),
+        bv::utils::mkConcat(d_zero, d_two));
 
     Node eq3 = d_nm->mkNode(
         kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n3, mkConcat(d_zero, d_p)),
-        mkConcat(d_zero, d_nine));
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, n3, bv::utils::mkConcat(d_zero, d_p)),
+        bv::utils::mkConcat(d_zero, d_nine));
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::UNIQUE);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::UNIQUE);
     TS_ASSERT(res.size() == 3);
 
     n1 = Rewriter::rewrite(n1);
     n2 = Rewriter::rewrite(n2);
     z = Rewriter::rewrite(z);
 
-    TS_ASSERT(res[n1] == mkConst(48, 4));
-    TS_ASSERT(res[n2] == mkConst(48, 2));
+    TS_ASSERT(res[n1] ==bv::utils::mkConst(48, 4));
+    TS_ASSERT(res[n2] ==bv::utils::mkConst(48, 2));
 
     Integer twoxy = (res[n1].getConst<BitVector>().getValue() * Integer(2))
                         .euclidianDivideRemainder(Integer(48));
@@ -2236,7 +2288,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
   void testGaussElimRewriteForUremInvalid()
   {
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::Result ret;
+    passes::Result ret;
 
     /* -------------------------------------------------------------------
      * x*y = 4  modulo 11
@@ -2244,37 +2296,43 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
      * 2*x*y = 9
      * ------------------------------------------------------------------- */
 
-    Node zero32 = mkZero(32);
+    Node zero32 = bv::utils::mkZero(32);
 
-    Node x = mkConcat(zero32, d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
-    Node y = mkConcat(zero32, d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
-    Node z = mkConcat(zero32, d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
+    Node x = bv::utils::mkConcat(zero32,
+                                 d_nm->mkVar("x", d_nm->mkBitVectorType(16)));
+    Node y = bv::utils::mkConcat(zero32,
+                                 d_nm->mkVar("y", d_nm->mkBitVectorType(16)));
+    Node z = bv::utils::mkConcat(zero32,
+                                 d_nm->mkVar("z", d_nm->mkBitVectorType(16)));
 
     Node n1 = d_nm->mkNode(kind::BITVECTOR_MULT, x, y);
     Node n2 = d_nm->mkNode(
         kind::BITVECTOR_MULT, d_nm->mkNode(kind::BITVECTOR_MULT, x, y), z);
     Node n3 = d_nm->mkNode(kind::BITVECTOR_MULT,
                            d_nm->mkNode(kind::BITVECTOR_MULT, x, y),
-                           mkConcat(d_zero, d_two));
+                           bv::utils::mkConcat(d_zero, d_two));
 
     Node eq1 = d_nm->mkNode(
         kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n1, mkConcat(d_zero, d_p)),
-        mkConcat(d_zero, d_four));
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, n1, bv::utils::mkConcat(d_zero, d_p)),
+        bv::utils::mkConcat(d_zero, d_four));
 
     Node eq2 = d_nm->mkNode(
         kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n2, mkConcat(d_zero, d_p)),
-        mkConcat(d_zero, d_two));
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, n2, bv::utils::mkConcat(d_zero, d_p)),
+        bv::utils::mkConcat(d_zero, d_two));
 
     Node eq3 = d_nm->mkNode(
         kind::EQUAL,
-        d_nm->mkNode(kind::BITVECTOR_UREM, n3, mkConcat(d_zero, d_p)),
-        mkConcat(d_zero, d_nine));
+        d_nm->mkNode(
+            kind::BITVECTOR_UREM, n3, bv::utils::mkConcat(d_zero, d_p)),
+        bv::utils::mkConcat(d_zero, d_nine));
 
     std::vector<Node> eqs = {eq1, eq2, eq3};
-    ret = BVGaussElim::gaussElimRewriteForUrem(eqs, res);
-    TS_ASSERT(ret == BVGaussElim::Result::INVALID);
+    ret = passes::gaussElimRewriteForUrem(eqs, res);
+    TS_ASSERT(ret == passes::Result::INVALID);
   }
 
   void testGaussElimRewriteUnique1()
@@ -2319,19 +2377,22 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node a = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::AND, eq1, eq2), eq3);
 
-    std::vector<Node> ass = {a};
+    AssertionPipeline apipe;
+    apipe.push_back(a);
+    passes::BVGauss bgauss(nullptr);
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::gaussElimRewrite(ass);
+    PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
+    TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);
     Node resx = d_nm->mkNode(
         kind::EQUAL, d_x, d_nm->mkConst<BitVector>(BitVector(32, 3u)));
     Node resy = d_nm->mkNode(
         kind::EQUAL, d_y, d_nm->mkConst<BitVector>(BitVector(32, 4u)));
     Node resz = d_nm->mkNode(
         kind::EQUAL, d_z, d_nm->mkConst<BitVector>(BitVector(32, 9u)));
-    TS_ASSERT(ass.size() == 4);
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resx) != ass.end());
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resy) != ass.end());
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resz) != ass.end());
+    TS_ASSERT(apipe.size() == 4);
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resx) != apipe.end());
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resy) != apipe.end());
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resz) != apipe.end());
   }
 
   void testGaussElimRewriteUnique2()
@@ -2398,9 +2459,14 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node a = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::AND, eq1, eq2), eq3);
 
-    std::vector<Node> ass = {a, eq4, eq5};
+    AssertionPipeline apipe;
+    apipe.push_back(a);
+    apipe.push_back(eq4);
+    apipe.push_back(eq5);
+    passes::BVGauss bgauss(nullptr);
     std::unordered_map<Node, Node, NodeHashFunction> res;
-    BVGaussElim::gaussElimRewrite(ass);
+    PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
+    TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);
     Node resx1 = d_nm->mkNode(
         kind::EQUAL, d_x, d_nm->mkConst<BitVector>(BitVector(32, 3u)));
     Node resx2 = d_nm->mkNode(
@@ -2411,12 +2477,12 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
         kind::EQUAL, d_y, d_nm->mkConst<BitVector>(BitVector(32, 2u)));
     Node resz = d_nm->mkNode(
         kind::EQUAL, d_z, d_nm->mkConst<BitVector>(BitVector(32, 9u)));
-    TS_ASSERT(ass.size() == 8);
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resx1) != ass.end());
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resx2) != ass.end());
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resy1) != ass.end());
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resy2) != ass.end());
-    TS_ASSERT(std::find(ass.begin(), ass.end(), resz) != ass.end());
+    TS_ASSERT(apipe.size() == 8);
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resx1) != apipe.end());
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resx2) != apipe.end());
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resy1) != apipe.end());
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resy2) != apipe.end());
+    TS_ASSERT(std::find(apipe.begin(), apipe.end(), resz) != apipe.end());
   }
 
   void testGaussElimRewritePartial()
@@ -2444,9 +2510,14 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
             d_p),
         d_nine);
 
-    std::vector<Node> ass = {eq1, eq2};
-    BVGaussElim::gaussElimRewrite(ass);
-    TS_ASSERT(ass.size() == 4);
+    AssertionPipeline apipe;
+    apipe.push_back(eq1);
+    apipe.push_back(eq2);
+    passes::BVGauss bgauss(nullptr);
+    std::unordered_map<Node, Node, NodeHashFunction> res;
+    PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
+    TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);
+    TS_ASSERT(apipe.size() == 4);
 
     Node resx1 = d_nm->mkNode(
         kind::EQUAL,
@@ -2505,12 +2576,12 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
                          d_nm->mkNode(kind::BITVECTOR_MULT, d_x, d_six32)),
             d_p));
 
-    bool fx1 = std::find(ass.begin(), ass.end(), resx1) != ass.end();
-    bool fy1 = std::find(ass.begin(), ass.end(), resy1) != ass.end();
-    bool fx2 = std::find(ass.begin(), ass.end(), resx2) != ass.end();
-    bool fz2 = std::find(ass.begin(), ass.end(), resz2) != ass.end();
-    bool fy3 = std::find(ass.begin(), ass.end(), resy3) != ass.end();
-    bool fz3 = std::find(ass.begin(), ass.end(), resz3) != ass.end();
+    bool fx1 = std::find(apipe.begin(), apipe.end(), resx1) != apipe.end();
+    bool fy1 = std::find(apipe.begin(), apipe.end(), resy1) != apipe.end();
+    bool fx2 = std::find(apipe.begin(), apipe.end(), resx2) != apipe.end();
+    bool fz2 = std::find(apipe.begin(), apipe.end(), resz2) != apipe.end();
+    bool fy3 = std::find(apipe.begin(), apipe.end(), resy3) != apipe.end();
+    bool fz3 = std::find(apipe.begin(), apipe.end(), resz3) != apipe.end();
 
     /* result depends on order of variables in matrix */
     TS_ASSERT((fx1 && fy1) || (fx2 && fz2) || (fy3 && fz3));
@@ -2518,15 +2589,15 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
   void testGetMinBw1()
   {
-    TS_ASSERT(BVGaussElim::getMinBwExpr(utils::mkConst(32, 11)) == 4);
+    TS_ASSERT(passes::getMinBwExpr(bv::utils::mkConst(32, 11)) == 4);
 
-    TS_ASSERT(BVGaussElim::getMinBwExpr(d_p) == 4);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(d_x) == 16);
+    TS_ASSERT(passes::getMinBwExpr(d_p) == 4);
+    TS_ASSERT(passes::getMinBwExpr(d_x) == 16);
 
-    Node extp = mkExtract(d_p, 4, 0);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(extp) == 4);
-    Node extx = mkExtract(d_x, 4, 0);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(extx) == 5);
+    Node extp = bv::utils::mkExtract(d_p, 4, 0);
+    TS_ASSERT(passes::getMinBwExpr(extp) == 4);
+    Node extx = bv::utils::mkExtract(d_x, 4, 0);
+    TS_ASSERT(passes::getMinBwExpr(extx) == 5);
 
     Node zextop8 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(8));
     Node zextop16 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(16));
@@ -2534,132 +2605,132 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node zextop40 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(40));
 
     Node zext40p = d_nm->mkNode(zextop8, d_p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext40p) == 4);
+    TS_ASSERT(passes::getMinBwExpr(zext40p) == 4);
     Node zext40x = d_nm->mkNode(zextop8, d_x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext40x) == 16);
+    TS_ASSERT(passes::getMinBwExpr(zext40x) == 16);
 
     Node zext48p = d_nm->mkNode(zextop16, d_p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext48p) == 4);
+    TS_ASSERT(passes::getMinBwExpr(zext48p) == 4);
     Node zext48x = d_nm->mkNode(zextop16, d_x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext48x) == 16);
+    TS_ASSERT(passes::getMinBwExpr(zext48x) == 16);
 
     Node p8 = d_nm->mkConst<BitVector>(BitVector(8, 11u));
     Node x8 = d_nm->mkVar("x8", d_nm->mkBitVectorType(8));
 
     Node zext48p8 = d_nm->mkNode(zextop40, p8);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext48p8) == 4);
+    TS_ASSERT(passes::getMinBwExpr(zext48p8) == 4);
     Node zext48x8 = d_nm->mkNode(zextop40, x8);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext48x8) == 8);
+    TS_ASSERT(passes::getMinBwExpr(zext48x8) == 8);
 
     Node mult1p = d_nm->mkNode(kind::BITVECTOR_MULT, extp, extp);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult1p) == 5);
+    TS_ASSERT(passes::getMinBwExpr(mult1p) == 5);
     Node mult1x = d_nm->mkNode(kind::BITVECTOR_MULT, extx, extx);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult1x) == 0);
+    TS_ASSERT(passes::getMinBwExpr(mult1x) == 0);
 
     Node mult2p = d_nm->mkNode(kind::BITVECTOR_MULT, zext40p, zext40p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult2p) == 7);
+    TS_ASSERT(passes::getMinBwExpr(mult2p) == 7);
     Node mult2x = d_nm->mkNode(kind::BITVECTOR_MULT, zext40x, zext40x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult2x) == 32);
+    TS_ASSERT(passes::getMinBwExpr(mult2x) == 32);
 
     NodeBuilder<> nbmult3p(kind::BITVECTOR_MULT);
     nbmult3p << zext48p << zext48p << zext48p;
     Node mult3p = nbmult3p;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult3p) == 11);
+    TS_ASSERT(passes::getMinBwExpr(mult3p) == 11);
     NodeBuilder<> nbmult3x(kind::BITVECTOR_MULT);
     nbmult3x << zext48x << zext48x << zext48x;
     Node mult3x = nbmult3x;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult3x) == 48);
+    TS_ASSERT(passes::getMinBwExpr(mult3x) == 48);
 
     NodeBuilder<> nbmult4p(kind::BITVECTOR_MULT);
     nbmult4p << zext48p  << zext48p8 << zext48p;
     Node mult4p = nbmult4p;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult4p) == 11);
+    TS_ASSERT(passes::getMinBwExpr(mult4p) == 11);
     NodeBuilder<> nbmult4x(kind::BITVECTOR_MULT);
     nbmult4x << zext48x  << zext48x8 << zext48x;
     Node mult4x = nbmult4x;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(mult4x) == 40);
+    TS_ASSERT(passes::getMinBwExpr(mult4x) == 40);
 
-    Node concat1p = mkConcat(d_p, zext48p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(concat1p) == 52);
-    Node concat1x = mkConcat(d_x, zext48x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(concat1x) == 64);
+    Node concat1p = bv::utils::mkConcat(d_p, zext48p);
+    TS_ASSERT(passes::getMinBwExpr(concat1p) == 52);
+    Node concat1x = bv::utils::mkConcat(d_x, zext48x);
+    TS_ASSERT(passes::getMinBwExpr(concat1x) == 64);
 
-    Node concat2p = mkConcat(mkZero(16), zext48p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(concat2p) == 4);
-    Node concat2x = mkConcat(mkZero(16), zext48x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(concat2x) == 16);
+    Node concat2p = bv::utils::mkConcat(bv::utils::mkZero(16), zext48p);
+    TS_ASSERT(passes::getMinBwExpr(concat2p) == 4);
+    Node concat2x = bv::utils::mkConcat(bv::utils::mkZero(16), zext48x);
+    TS_ASSERT(passes::getMinBwExpr(concat2x) == 16);
 
     Node udiv1p = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48p, zext48p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(udiv1p) == 1);
+    TS_ASSERT(passes::getMinBwExpr(udiv1p) == 1);
     Node udiv1x = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48x, zext48x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(udiv1x) == 48);
+    TS_ASSERT(passes::getMinBwExpr(udiv1x) == 48);
 
     Node udiv2p = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48p, zext48p8);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(udiv2p) == 1);
+    TS_ASSERT(passes::getMinBwExpr(udiv2p) == 1);
     Node udiv2x = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48x, zext48x8);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(udiv2x) == 48);
+    TS_ASSERT(passes::getMinBwExpr(udiv2x) == 48);
 
     Node urem1p = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48p, zext48p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(urem1p) == 1);
+    TS_ASSERT(passes::getMinBwExpr(urem1p) == 1);
     Node urem1x = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48x, zext48x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(urem1x) == 1);
+    TS_ASSERT(passes::getMinBwExpr(urem1x) == 1);
 
     Node urem2p = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48p, zext48p8);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(urem2p) == 1);
+    TS_ASSERT(passes::getMinBwExpr(urem2p) == 1);
     Node urem2x = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48x, zext48x8);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(urem2x) == 16);
+    TS_ASSERT(passes::getMinBwExpr(urem2x) == 16);
 
     Node urem3p = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48p8, zext48p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(urem3p) == 1);
+    TS_ASSERT(passes::getMinBwExpr(urem3p) == 1);
     Node urem3x = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48x8, zext48x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(urem3x) == 8);
+    TS_ASSERT(passes::getMinBwExpr(urem3x) == 8);
 
     Node add1p = d_nm->mkNode(kind::BITVECTOR_PLUS, extp, extp);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add1p) == 5);
+    TS_ASSERT(passes::getMinBwExpr(add1p) == 5);
     Node add1x = d_nm->mkNode(kind::BITVECTOR_PLUS, extx, extx);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add1x) == 0);
+    TS_ASSERT(passes::getMinBwExpr(add1x) == 0);
 
     Node add2p = d_nm->mkNode(kind::BITVECTOR_PLUS, zext40p, zext40p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add2p) == 5);
+    TS_ASSERT(passes::getMinBwExpr(add2p) == 5);
     Node add2x = d_nm->mkNode(kind::BITVECTOR_PLUS, zext40x, zext40x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add2x) == 17);
+    TS_ASSERT(passes::getMinBwExpr(add2x) == 17);
 
     Node add3p = d_nm->mkNode(kind::BITVECTOR_PLUS, zext48p8, zext48p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add3p) == 5);
+    TS_ASSERT(passes::getMinBwExpr(add3p) == 5);
     Node add3x = d_nm->mkNode(kind::BITVECTOR_PLUS, zext48x8, zext48x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add3x) == 17);
+    TS_ASSERT(passes::getMinBwExpr(add3x) == 17);
 
     NodeBuilder<> nbadd4p(kind::BITVECTOR_PLUS);
     nbadd4p << zext48p << zext48p << zext48p;
     Node add4p = nbadd4p;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add4p) == 6);
+    TS_ASSERT(passes::getMinBwExpr(add4p) == 6);
     NodeBuilder<> nbadd4x(kind::BITVECTOR_PLUS);
     nbadd4x << zext48x << zext48x << zext48x;
     Node add4x = nbadd4x;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add4x) == 18);
+    TS_ASSERT(passes::getMinBwExpr(add4x) == 18);
 
     NodeBuilder<> nbadd5p(kind::BITVECTOR_PLUS);
     nbadd5p << zext48p << zext48p8 << zext48p;
     Node add5p = nbadd5p;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add5p) == 6);
+    TS_ASSERT(passes::getMinBwExpr(add5p) == 6);
     NodeBuilder<> nbadd5x(kind::BITVECTOR_PLUS);
     nbadd5x << zext48x << zext48x8 << zext48x;
     Node add5x = nbadd5x;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add5x) == 18);
+    TS_ASSERT(passes::getMinBwExpr(add5x) == 18);
 
     NodeBuilder<> nbadd6p(kind::BITVECTOR_PLUS);
     nbadd6p << zext48p << zext48p << zext48p << zext48p;
     Node add6p = nbadd6p;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add6p) == 6);
+    TS_ASSERT(passes::getMinBwExpr(add6p) == 6);
     NodeBuilder<> nbadd6x(kind::BITVECTOR_PLUS);
     nbadd6x << zext48x << zext48x << zext48x << zext48x;
     Node add6x = nbadd6x;
-    TS_ASSERT(BVGaussElim::getMinBwExpr(add6x) == 18);
+    TS_ASSERT(passes::getMinBwExpr(add6x) == 18);
 
     Node not1p = d_nm->mkNode(kind::BITVECTOR_NOT, zext40p);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(not1p) == 40);
+    TS_ASSERT(passes::getMinBwExpr(not1p) == 40);
     Node not1x = d_nm->mkNode(kind::BITVECTOR_NOT, zext40x);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(not1x) == 40);
+    TS_ASSERT(passes::getMinBwExpr(not1x) == 40);
   }
 
   void testGetMinBw2()
@@ -2669,9 +2740,9 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
     Node zextop15 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(15));
     Node zext1 = d_nm->mkNode(zextop15, d_p);
-    Node ext = mkExtract(zext1, 7, 0);
+    Node ext = bv::utils::mkExtract(zext1, 7, 0);
     Node zext2 = d_nm->mkNode(zextop5, ext);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext2) == 4);
+    TS_ASSERT(passes::getMinBwExpr(zext2) == 4);
   }
 
   void testGetMinBw3a()
@@ -2685,11 +2756,11 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
     Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, x, y);
     Node zext1 = d_nm->mkNode(zextop5, udiv1);
-    Node ext1 = mkExtract(zext1, 4, 0);
-    Node ext2 = mkExtract(z, 4, 0);
+    Node ext1 = bv::utils::mkExtract(zext1, 4, 0);
+    Node ext2 = bv::utils::mkExtract(z, 4, 0);
     Node udiv2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1, ext2);
-    Node zext2 = mkConcat(mkZero(5), udiv2);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext2) == 5);
+    Node zext2 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2);
+    TS_ASSERT(passes::getMinBwExpr(zext2) == 5);
   }
 
   void testGetMinBw3b()
@@ -2700,11 +2771,11 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
     Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, d_x, d_y);
     Node zext1 = d_nm->mkNode(zextop5, udiv1);
-    Node ext1 = mkExtract(zext1, 4, 0);
-    Node ext2 = mkExtract(d_z, 4, 0);
+    Node ext1 = bv::utils::mkExtract(zext1, 4, 0);
+    Node ext2 = bv::utils::mkExtract(d_z, 4, 0);
     Node udiv2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1, ext2);
-    Node zext2 = mkConcat(mkZero(5), udiv2);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(zext2) == 5);
+    Node zext2 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2);
+    TS_ASSERT(passes::getMinBwExpr(zext2) == 5);
   }
 
   void testGetMinBw4a()
@@ -2725,19 +2796,19 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, x, y);
     Node zext1 = d_nm->mkNode(zextop5, udiv1);
 
-    Node ext1_1 = mkExtract(zext1, 4, 0);
-    Node ext2_1 = mkExtract(z, 4, 0);
+    Node ext1_1 = bv::utils::mkExtract(zext1, 4, 0);
+    Node ext2_1 = bv::utils::mkExtract(z, 4, 0);
     Node udiv2_1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_1, ext2_1);
-    Node zext2_1 = mkConcat(mkZero(5), udiv2_1);
+    Node zext2_1 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2_1);
 
-    Node ext1_2 = mkExtract(zext1, 2, 0);
-    Node ext2_2 = mkExtract(z, 2, 0);
+    Node ext1_2 = bv::utils::mkExtract(zext1, 2, 0);
+    Node ext2_2 = bv::utils::mkExtract(z, 2, 0);
     Node udiv2_2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_2, ext2_2);
     Node zext2_2 = d_nm->mkNode(zextop7, udiv2_2);
 
     Node plus = d_nm->mkNode(kind::BITVECTOR_PLUS, zext2_1, zext2_2);
 
-    TS_ASSERT(BVGaussElim::getMinBwExpr(plus) == 6);
+    TS_ASSERT(passes::getMinBwExpr(plus) == 6);
   }
 
   void testGetMinBw4b()
@@ -2755,19 +2826,19 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node udiv1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, d_x, d_y);
     Node zext1 = d_nm->mkNode(zextop5, udiv1);
 
-    Node ext1_1 = mkExtract(zext1, 4, 0);
-    Node ext2_1 = mkExtract(d_z, 4, 0);
+    Node ext1_1 = bv::utils::mkExtract(zext1, 4, 0);
+    Node ext2_1 = bv::utils::mkExtract(d_z, 4, 0);
     Node udiv2_1 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_1, ext2_1);
-    Node zext2_1 = mkConcat(mkZero(5), udiv2_1);
+    Node zext2_1 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2_1);
 
-    Node ext1_2 = mkExtract(zext1, 2, 0);
-    Node ext2_2 = mkExtract(d_z, 2, 0);
+    Node ext1_2 = bv::utils::mkExtract(zext1, 2, 0);
+    Node ext2_2 = bv::utils::mkExtract(d_z, 2, 0);
     Node udiv2_2 = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_2, ext2_2);
     Node zext2_2 = d_nm->mkNode(zextop7, udiv2_2);
 
     Node plus = d_nm->mkNode(kind::BITVECTOR_PLUS, zext2_1, zext2_2);
 
-    TS_ASSERT(BVGaussElim::getMinBwExpr(plus) == 6);
+    TS_ASSERT(passes::getMinBwExpr(plus) == 6);
   }
 
   void testGetMinBw5a()
@@ -2798,13 +2869,13 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
      *   (bvmul (_ bv83 13)
      *          ((_ zero_extend 5) ((_ extract 7 0) ((_ zero_extend 15) w)))))
      */
-    Node x = mkVar(1);
-    Node y = mkVar(1);
-    Node z = mkVar(1);
-    Node u = mkVar(1);
-    Node v = mkVar(1);
-    Node w = mkVar(1);
-    Node s = mkVar(16);
+    Node x =bv::utils::mkVar(1);
+    Node y =bv::utils::mkVar(1);
+    Node z =bv::utils::mkVar(1);
+    Node u =bv::utils::mkVar(1);
+    Node v =bv::utils::mkVar(1);
+    Node w =bv::utils::mkVar(1);
+    Node s =bv::utils::mkVar(16);
 
     Node zextop5 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
     Node zextop15 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(15));
@@ -2816,54 +2887,54 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node zext15v = d_nm->mkNode(zextop15, v);
     Node zext15w = d_nm->mkNode(zextop15, w);
 
-    Node ext7x = mkExtract(zext15x, 7, 0);
-    Node ext7y = mkExtract(zext15y, 7, 0);
-    Node ext7z = mkExtract(zext15z, 7, 0);
-    Node ext7u = mkExtract(zext15u, 7, 0);
-    Node ext7v = mkExtract(zext15v, 7, 0);
-    Node ext7w = mkExtract(zext15w, 7, 0);
-    Node ext7s = mkExtract(s, 7, 0);
-    Node ext15s = mkExtract(s, 15, 8);
+    Node ext7x = bv::utils::mkExtract(zext15x, 7, 0);
+    Node ext7y = bv::utils::mkExtract(zext15y, 7, 0);
+    Node ext7z = bv::utils::mkExtract(zext15z, 7, 0);
+    Node ext7u = bv::utils::mkExtract(zext15u, 7, 0);
+    Node ext7v = bv::utils::mkExtract(zext15v, 7, 0);
+    Node ext7w = bv::utils::mkExtract(zext15w, 7, 0);
+    Node ext7s = bv::utils::mkExtract(s, 7, 0);
+    Node ext15s = bv::utils::mkExtract(s, 15, 8);
 
-    Node xx = mkConcat(mkZero(5), ext7x);
-    Node yy = mkConcat(mkZero(5), ext7y);
-    Node zz = mkConcat(mkZero(5), ext7z);
-    Node uu = mkConcat(mkZero(5), ext7u);
-    Node vv = mkConcat(mkZero(5), ext7v);
-    Node ww = mkConcat(mkZero(5), ext7w);
-    Node s7 = mkConcat(mkZero(5), ext7s);
-    Node s15 = mkConcat(mkZero(5), ext15s);
+    Node xx = bv::utils::mkConcat(bv::utils::mkZero(5), ext7x);
+    Node yy = bv::utils::mkConcat(bv::utils::mkZero(5), ext7y);
+    Node zz = bv::utils::mkConcat(bv::utils::mkZero(5), ext7z);
+    Node uu = bv::utils::mkConcat(bv::utils::mkZero(5), ext7u);
+    Node vv = bv::utils::mkConcat(bv::utils::mkZero(5), ext7v);
+    Node ww = bv::utils::mkConcat(bv::utils::mkZero(5), ext7w);
+    Node s7 = bv::utils::mkConcat(bv::utils::mkZero(5), ext7s);
+    Node s15 = bv::utils::mkConcat(bv::utils::mkZero(5), ext15s);
 
-    Node plus1 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 86), xx),
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 41), yy));
-    Node plus2 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus1,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 37), zz));
-    Node plus3 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus2,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 170), uu));
-    Node plus4 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus3,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 112), uu));
-    Node plus5 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus4,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 195), s15));
-    Node plus6 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus5,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 124), s7));
-    Node plus7 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus6,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(13, 83), ww));
+    Node plus1 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 86), xx),
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 41), yy));
+    Node plus2 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus1,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 37), zz));
+    Node plus3 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus2,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 170), uu));
+    Node plus4 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus3,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 112), uu));
+    Node plus5 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus4,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 195), s15));
+    Node plus6 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus5,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 124), s7));
+    Node plus7 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus6,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(13, 83), ww));
 
-    TS_ASSERT(BVGaussElim::getMinBwExpr(plus7) == 0);
+    TS_ASSERT(passes::getMinBwExpr(plus7) == 0);
   }
 
   void testGetMinBw5b()
@@ -2894,13 +2965,13 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
      *   (bvmul (_ bv83 20)
      *          ((_ zero_extend 12) ((_ extract 7 0) ((_ zero_extend 15) w)))))
      */
-    Node x = mkVar(1);
-    Node y = mkVar(1);
-    Node z = mkVar(1);
-    Node u = mkVar(1);
-    Node v = mkVar(1);
-    Node w = mkVar(1);
-    Node s = mkVar(16);
+    Node x =bv::utils::mkVar(1);
+    Node y =bv::utils::mkVar(1);
+    Node z =bv::utils::mkVar(1);
+    Node u =bv::utils::mkVar(1);
+    Node v =bv::utils::mkVar(1);
+    Node w =bv::utils::mkVar(1);
+    Node s =bv::utils::mkVar(16);
 
     Node zextop15 = d_nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(15));
 
@@ -2911,55 +2982,55 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     Node zext15v = d_nm->mkNode(zextop15, v);
     Node zext15w = d_nm->mkNode(zextop15, w);
 
-    Node ext7x = mkExtract(zext15x, 7, 0);
-    Node ext7y = mkExtract(zext15y, 7, 0);
-    Node ext7z = mkExtract(zext15z, 7, 0);
-    Node ext7u = mkExtract(zext15u, 7, 0);
-    Node ext7v = mkExtract(zext15v, 7, 0);
-    Node ext7w = mkExtract(zext15w, 7, 0);
-    Node ext7s = mkExtract(s, 7, 0);
-    Node ext15s = mkExtract(s, 15, 8);
+    Node ext7x = bv::utils::mkExtract(zext15x, 7, 0);
+    Node ext7y = bv::utils::mkExtract(zext15y, 7, 0);
+    Node ext7z = bv::utils::mkExtract(zext15z, 7, 0);
+    Node ext7u = bv::utils::mkExtract(zext15u, 7, 0);
+    Node ext7v = bv::utils::mkExtract(zext15v, 7, 0);
+    Node ext7w = bv::utils::mkExtract(zext15w, 7, 0);
+    Node ext7s = bv::utils::mkExtract(s, 7, 0);
+    Node ext15s = bv::utils::mkExtract(s, 15, 8);
 
-    Node xx = mkConcat(mkZero(12), ext7x);
-    Node yy = mkConcat(mkZero(12), ext7y);
-    Node zz = mkConcat(mkZero(12), ext7z);
-    Node uu = mkConcat(mkZero(12), ext7u);
-    Node vv = mkConcat(mkZero(12), ext7v);
-    Node ww = mkConcat(mkZero(12), ext7w);
-    Node s7 = mkConcat(mkZero(12), ext7s);
-    Node s15 = mkConcat(mkZero(12), ext15s);
+    Node xx = bv::utils::mkConcat(bv::utils::mkZero(12), ext7x);
+    Node yy = bv::utils::mkConcat(bv::utils::mkZero(12), ext7y);
+    Node zz = bv::utils::mkConcat(bv::utils::mkZero(12), ext7z);
+    Node uu = bv::utils::mkConcat(bv::utils::mkZero(12), ext7u);
+    Node vv = bv::utils::mkConcat(bv::utils::mkZero(12), ext7v);
+    Node ww = bv::utils::mkConcat(bv::utils::mkZero(12), ext7w);
+    Node s7 = bv::utils::mkConcat(bv::utils::mkZero(12), ext7s);
+    Node s15 = bv::utils::mkConcat(bv::utils::mkZero(12), ext15s);
 
-    Node plus1 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 86), xx),
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 41), yy));
-    Node plus2 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus1,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 37), zz));
-    Node plus3 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus2,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 170), uu));
-    Node plus4 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus3,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 112), uu));
-    Node plus5 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus4,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 195), s15));
-    Node plus6 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus5,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 124), s7));
-    Node plus7 =
-        d_nm->mkNode(kind::BITVECTOR_PLUS,
-                     plus6,
-                     d_nm->mkNode(kind::BITVECTOR_MULT, mkConst(20, 83), ww));
+    Node plus1 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 86), xx),
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 41), yy));
+    Node plus2 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus1,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 37), zz));
+    Node plus3 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus2,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 170), uu));
+    Node plus4 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus3,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 112), uu));
+    Node plus5 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus4,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 195), s15));
+    Node plus6 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus5,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 124), s7));
+    Node plus7 = d_nm->mkNode(
+        kind::BITVECTOR_PLUS,
+        plus6,
+        d_nm->mkNode(kind::BITVECTOR_MULT, bv::utils::mkConst(20, 83), ww));
 
-    TS_ASSERT(BVGaussElim::getMinBwExpr(plus7) == 19);
-    TS_ASSERT(BVGaussElim::getMinBwExpr(Rewriter::rewrite(plus7)) == 17);
+    TS_ASSERT(passes::getMinBwExpr(plus7) == 19);
+    TS_ASSERT(passes::getMinBwExpr(Rewriter::rewrite(plus7)) == 17);
   }
 
 };

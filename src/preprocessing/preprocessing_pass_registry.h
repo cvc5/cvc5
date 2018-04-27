@@ -24,11 +24,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "decision/decision_engine.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -45,6 +41,11 @@ class PreprocessingPassRegistry {
    * Retrieves a pass with a given name from registry.
    */
   PreprocessingPass* getPass(const std::string& ppName);
+
+  /**
+   Clears all passes from the registry.
+   */
+  void unregisterPasses();
 
  private:
   bool hasPass(const std::string& ppName);

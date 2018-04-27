@@ -73,8 +73,9 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
       RewriteRule<SignExtendUltConst>,
       RewriteRule<ZeroExtendUltConst>
        >::apply(node);
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+
+  return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN_FULL,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUltBv(TNode node, bool prerewrite) {

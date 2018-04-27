@@ -19,7 +19,6 @@
 
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
-#include "theory/ite_utilities.h"
 
 using namespace std;
 
@@ -28,20 +27,9 @@ namespace CVC4 {
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
     : d_tfCache(u), d_skolem_cache(u)
 {
-  d_containsVisitor = new theory::ContainsTermITEVisitor();
 }
 
-RemoveTermFormulas::~RemoveTermFormulas(){
-  delete d_containsVisitor;
-}
-
-void RemoveTermFormulas::garbageCollect(){
-  d_containsVisitor->garbageCollect();
-}
-
-theory::ContainsTermITEVisitor* RemoveTermFormulas::getContainsVisitor() {
-  return d_containsVisitor;
-}
+RemoveTermFormulas::~RemoveTermFormulas() {}
 
 void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
 {
@@ -63,10 +51,6 @@ void RemoveTermFormulas::run(std::vector<Node>& output, IteSkolemMap& iteSkolemM
     }
     output[i] = itesRemoved;
   }
-}
-
-bool RemoveTermFormulas::containsTermITE(TNode e) const {
-  return d_containsVisitor->containsTermITE(e);
 }
 
 Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
@@ -215,8 +199,11 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     // The representation is now the skolem
     return skolem;
   }
-  
-  if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
+
+  if (node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS
+      || node.getKind() == kind::LAMBDA
+      || node.getKind() == kind::CHOICE)
+  {
     // Remember if we're inside a quantifier
     inQuant = true;
   }else if( !inTerm && hasNestedTermChildren( node ) ){
@@ -275,7 +262,10 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
     return cached.isNull() ? Node(node) : cached;
   }
 
-  if(node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS) {
+  if (node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS
+      || node.getKind() == kind::LAMBDA
+      || node.getKind() == kind::CHOICE)
+  {
     // Remember if we're inside a quantifier
     inQuant = true;
   }else if( !inTerm && hasNestedTermChildren( node ) ){

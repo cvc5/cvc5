@@ -19,9 +19,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -582,7 +579,24 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      if (!options::sygusSilent())
+      CegInstantiation* cei = d_qe->getCegInstantiation();
+      ++(cei->d_statistics.d_solutions);
+
+      bool is_unique_term = true;
+
+      if (status != 0 && options::sygusRewSynth())
+      {
+        std::map<Node, CandidateRewriteDatabase>::iterator its =
+            d_crrdb.find(prog);
+        if (its == d_crrdb.end())
+        {
+          d_crrdb[prog].initialize(
+              d_qe, d_candidates[i], options::sygusSamples(), true);
+          its = d_crrdb.find(prog);
+        }
+        is_unique_term = d_crrdb[prog].addTerm(sol, out);
+      }
+      if (is_unique_term)
       {
         out << "(define-fun " << f << " ";
         if (dt.getSygusVarList().isNull())
@@ -604,127 +618,6 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
               ->toStreamSygus(out, sol);
         }
         out << ")" << std::endl;
-      }
-      CegInstantiation* cei = d_qe->getCegInstantiation();
-      ++(cei->d_statistics.d_solutions);
-
-      if (status != 0 && options::sygusRewSynth())
-      {
-        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-        std::map<Node, SygusSamplerExt>::iterator its = d_sampler.find(prog);
-        if (its == d_sampler.end())
-        {
-          d_sampler[prog].initializeSygusExt(
-              d_qe, prog, options::sygusSamples(), true);
-          its = d_sampler.find(prog);
-        }
-        Node eq_sol = its->second.registerTerm(sol);
-        // eq_sol is a candidate solution that is equivalent to sol
-        if (eq_sol != sol)
-        {
-          ++(cei->d_statistics.d_candidate_rewrites);
-          // if eq_sol is null, then we have an uninteresting candidate rewrite,
-          // e.g. one that is alpha-equivalent to another.
-          if (!eq_sol.isNull())
-          {
-            ExtendedRewriter* er = sygusDb->getExtRewriter();
-            Node solb = sygusDb->sygusToBuiltin(sol);
-            Node solbr = er->extendedRewrite(solb);
-            Node eq_solb = sygusDb->sygusToBuiltin(eq_sol);
-            Node eq_solr = er->extendedRewrite(eq_solb);
-            bool success = true;
-            bool verified = false;
-            // verify it if applicable
-            if (options::sygusRewSynthCheck())
-            {
-              Trace("rr-check") << "Check candidate rewrite..." << std::endl;
-              // Notice we don't set produce-models. rrChecker takes the same
-              // options as the SmtEngine we belong to, where we ensure that
-              // produce-models is set.
-              SmtEngine rrChecker(NodeManager::currentNM()->toExprManager());
-              rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
-              Node crr = solbr.eqNode(eq_solr).negate();
-              Trace("rr-check")
-                  << "Check candidate rewrite : " << crr << std::endl;
-              rrChecker.assertFormula(crr.toExpr());
-              Result r = rrChecker.checkSat();
-              Trace("rr-check") << "...result : " << r << std::endl;
-              if (r.asSatisfiabilityResult().isUnknown()
-                  || r.asSatisfiabilityResult().isSat())
-              {
-                Trace("rr-check")
-                    << "...rewrite does not hold for: " << std::endl;
-                success = false;
-                std::vector<Node> vars;
-                d_sampler[prog].getVariables(vars);
-                std::vector<Node> pt;
-                for (const Node& v : vars)
-                {
-                  Node val = Node::fromExpr(rrChecker.getValue(v.toExpr()));
-                  Trace("rr-check") << "  " << v << " -> " << val << std::endl;
-                  pt.push_back(val);
-                }
-                d_sampler[prog].addSamplePoint(pt);
-                // add the solution again
-                Node eq_sol_new = its->second.registerTerm(sol);
-                Assert(!r.asSatisfiabilityResult().isSat()
-                       || eq_sol_new == sol);
-              }
-              else
-              {
-                verified = true;
-              }
-            }
-            if (success)
-            {
-              if (!options::sygusSilent())
-              {
-                // The analog of terms sol and eq_sol are equivalent under
-                // sample points but do not rewrite to the same term. Hence,
-                // this indicates a candidate rewrite.
-                Printer* p = Printer::getPrinter(options::outputLanguage());
-                out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-                p->toStreamSygus(out, sol);
-                out << " ";
-                p->toStreamSygus(out, eq_sol);
-                out << ")" << std::endl;
-              }
-              ++(cei->d_statistics.d_candidate_rewrites_print);
-              // debugging information
-              if (Trace.isOn("sygus-rr-debug"))
-              {
-                Trace("sygus-rr-debug")
-                    << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
-                Trace("sygus-rr-debug")
-                    << "; candidate #2 ext-rewrites to: " << eq_solr
-                    << std::endl;
-              }
-              if (options::sygusRewSynthAccel())
-              {
-                // Add a symmetry breaking clause that excludes the larger
-                // of sol and eq_sol. This effectively states that we no longer
-                // wish to enumerate any term that contains sol (resp. eq_sol)
-                // as a subterm.
-                Node exc_sol = sol;
-                unsigned sz = sygusDb->getSygusTermSize(sol);
-                unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
-                if (eqsz > sz)
-                {
-                  sz = eqsz;
-                  exc_sol = eq_sol;
-                }
-                TypeNode ptn = prog.getType();
-                Node x = sygusDb->getFreeVar(ptn, 0);
-                Node lem = sygusDb->getExplain()->getExplanationForEquality(
-                    x, exc_sol);
-                lem = lem.negate();
-                Trace("sygus-rr-sb")
-                    << "Symmetry breaking lemma : " << lem << std::endl;
-                sygusDb->registerSymBreakLemma(d_candidates[i], lem, ptn, sz);
-              }
-            }
-          }
-        }
       }
     }
   }

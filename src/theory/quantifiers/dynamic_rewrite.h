@@ -57,12 +57,8 @@ class DynamicRewriter
  public:
   DynamicRewriter(const std::string& name, QuantifiersEngine* qe);
   ~DynamicRewriter() {}
-  /** inform this class that the equality a = b holds.
-   *
-   * This function returns true if this class did not already know that
-   * a = b based on the previous equalities it has seen.
-   */
-  bool addRewrite(Node a, Node b);
+  /** inform this class that the equality a = b holds. */
+  void addRewrite(Node a, Node b);
   /**
    * Check whether this class knows that the equality a = b holds.
    */

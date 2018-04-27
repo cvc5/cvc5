@@ -429,6 +429,17 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
+      // if sygus, check whether it has a free variable
+      // this is because, due to the sygus format, one can write assertions
+      // that have free function variables in them
+      if (PARSER_STATE->sygus())
+      {
+        if (expr.hasFreeVariable())
+        {
+          PARSER_STATE->parseError("Assertion has free variable. Perhaps you "
+                                   "meant constraint instead of assert?");
+        }
+      }
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }

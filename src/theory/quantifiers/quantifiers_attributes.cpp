@@ -29,6 +29,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+bool QAttributes::isStandard() const
+{
+  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull();
+}
+
 QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
 d_quantEngine(qe) {
 
@@ -52,6 +57,12 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     Trace("quant-attr-debug") << "Set sygus " << n << std::endl;
     SygusAttribute ca;
     n.setAttribute( ca, true );
+  }
+  else if (attr == "quant-name")
+  {
+    Trace("quant-attr-debug") << "Set quant-name " << n << std::endl;
+    QuantNameAttribute qna;
+    n.setAttribute(qna, true);
   } else if (attr == "sygus-synth-grammar") {
     Assert( node_values.size()==1 );
     Trace("quant-attr-debug") << "Set sygus synth grammar " << n << " to "
@@ -264,6 +275,12 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           //Assert( q[1][0].getKind()==FORALL );
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
+        }
+        if (avar.getAttribute(QuantNameAttribute()))
+        {
+          Trace("quant-attr") << "Attribute : quantifier name : " << avar
+                              << " for " << q << std::endl;
+          qa.d_name = avar;
         }
         if( avar.getAttribute(SynthesisAttribute()) ){
           Trace("quant-attr") << "Attribute : synthesis : " << q << std::endl;

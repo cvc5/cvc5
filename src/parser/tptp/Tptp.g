@@ -233,6 +233,14 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     }
   | EOF
     {
+      CommandSequence* seq = new CommandSequence();
+      // assert that all distinct constants are distinct 
+      Expr aexpr = PARSER_STATE->getAssertionDistinctConstants();
+      if( !aexpr.isNull() )
+      {
+        seq->addCommand(new AssertCommand(aexpr, false));
+      }
+      
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
       size_t i = filename.find_last_of('/');
       if(i != std::string::npos) {
@@ -241,7 +249,6 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      CommandSequence* seq = new CommandSequence();
       seq->addCommand(new SetInfoCommand("name", SExpr(filename)));
       if(PARSER_STATE->hasConjecture()) {
         seq->addCommand(new QueryCommand(MK_CONST(bool(false))));

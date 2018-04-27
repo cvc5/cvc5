@@ -314,7 +314,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
-  d_bvToBoolPreprocessor(),
   d_theoryAlternatives(),
   d_attr_handle(),
   d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
@@ -334,7 +333,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
 
-  d_iteUtilities = new ITEUtilities(d_tform_remover.getContainsVisitor());
+  d_iteUtilities = new ITEUtilities();
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -393,6 +392,10 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         d_sharedTerms.addEqualityToPropagate(preprocessed);
       }
 
+      // the atom should not have free variables
+      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
+                      << std::endl;
+      Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);
@@ -1054,9 +1057,15 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
   Node newTerm;
-  if (theoryOf(term)->ppDontRewriteSubterm(term)) {
+  // do not rewrite inside quantifiers
+  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS
+      || term.getKind() == kind::CHOICE
+      || term.getKind() == kind::LAMBDA)
+  {
     newTerm = Rewriter::rewrite(term);
-  } else {
+  }
+  else
+  {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
       newNode << term.getOperator();
@@ -1980,14 +1989,6 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.liftBvToBool(assertions, new_assertions);
-}
-
-void TheoryEngine::ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.lowerBoolToBv(assertions, new_assertions);
-}
-
 bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
   return bv_theory->applyAbstraction(assertions, new_assertions);
@@ -2000,7 +2001,8 @@ void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if (!d_tform_remover.containsTermITE(assertion)) {
+  if (!d_iteUtilities->containsTermITE(assertion))
+  {
     return assertion;
   } else {
     Node result = d_iteUtilities->simpITE(assertion);
@@ -2041,7 +2043,6 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
         Rewriter::clearCaches();
-        d_tform_remover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
       }
@@ -2052,7 +2053,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
      && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains = *d_tform_remover.getContainsVisitor();
+      ContainsTermITEVisitor& contains =
+          *(d_iteUtilities->getContainsVisitor());
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
       bool anyItes = false;
       for(size_t i = 0;  i < assertions.size(); ++i){

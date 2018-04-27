@@ -449,8 +449,6 @@ CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms,
                                                  bool inUnsatCore)
     : d_terms(terms), d_inUnsatCore(inUnsatCore)
 {
-  PrettyCheckArgument(
-      terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
 }
 
 const std::vector<Expr>& CheckSatAssumingCommand::getTerms() const

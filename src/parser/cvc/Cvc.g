@@ -81,7 +81,7 @@ tokens {
   ARITH_VAR_ORDER_TOK = 'ARITH_VAR_ORDER';
   CONTINUE_TOK = 'CONTINUE';
   RESTART_TOK = 'RESTART';
-
+  RECURSIVE_FUNCTION_TOK = 'REC-FUN';
   /* operators */
 
   AND_TOK = 'AND';
@@ -116,7 +116,7 @@ tokens {
   EXISTS_TOK = 'EXISTS';
   PATTERN_TOK = 'PATTERN';
 
-  LAMBDA = 'LAMBDA';
+  LAMBDA_TOK = 'LAMBDA';
 
   // Symbols
 
@@ -707,6 +707,15 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::Datatype> dts;
   Debug("parser-extra") << "command: " << AntlrInput::tokenText(LT(1)) << std::endl;
   std::string s;
+  Expr func;
+  std::vector<Expr> bvs;
+  std::vector<Expr> funcs;
+  std::vector<Expr> formulas;
+  std::vector<std::vector<Expr>> formals;
+  std::vector<std::string> ids;
+  std::vector<CVC4::Type> types;
+  bool idCommaFlag = true;
+  bool formCommaFlag = true;
 }
     /* our bread & butter */
   : ASSERT_TOK formula[f] { cmd->reset(new AssertCommand(f)); }
@@ -880,6 +889,66 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | CONTINUE_TOK
     { UNSUPPORTED("CONTINUE command"); }
   | RESTART_TOK formula[f] { UNSUPPORTED("RESTART command"); }
+  | RECURSIVE_FUNCTION_TOK (identifier[id,CHECK_NONE,SYM_VARIABLE] 
+    {
+      if(idCommaFlag){
+        idCommaFlag=false;
+      }
+      else{
+        PARSER_STATE->parseError("Identifiers need to be comma separated");
+      }
+    }
+    COLON type[t,CHECK_DECLARED] (COMMA {
+      idCommaFlag=true;
+      })? 
+    {
+      func = PARSER_STATE->mkVar(id, t, ExprManager::VAR_FLAG_NONE, true);
+      ids.push_back(id);
+      types.push_back(t);
+      funcs.push_back(func);
+    })+
+    EQUAL_TOK (formula[f]
+    {
+      if(formCommaFlag){
+        formCommaFlag=false;
+      }
+      else{
+        PARSER_STATE->parseError("Function definitions need to be comma separated");
+      }
+    }
+    (COMMA{
+      formCommaFlag=true;
+    })?
+    {
+      if( f.getKind()==kind::LAMBDA ){
+        bvs.insert(bvs.end(), f[0].begin(), f[0].end());
+        formals.push_back(bvs);
+        bvs.clear();
+        f = f[1];
+        formulas.push_back(f);
+      }
+      else {
+        formals.push_back(bvs);
+        formulas.push_back(f);
+      }
+    })+
+    {
+      if(idCommaFlag){
+        PARSER_STATE->parseError("Cannot end function list with comma");
+      }
+      if(formCommaFlag){
+        PARSER_STATE->parseError("Cannot end function definition list with comma");
+      }
+      if(funcs.size()!=formulas.size()){
+        PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
+      }
+      for(unsigned int i = 0, size = funcs.size(); i < size; i++){
+        if(!funcs[i].getType().isSubtypeOf(types[i])){
+          PARSER_STATE->parseError("Type mismatch in definition");
+        }
+      }
+      cmd->reset(new DefineFunctionRecCommand(funcs,formals,formulas));
+    }
   | toplevelDeclaration[cmd]
   ;
 
@@ -1074,6 +1143,10 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
         }
       } else {
         // f is not null-- meaning this is a definition not a declaration
+        //Check if the formula f has the correct type, declared as t.
+        if(!f.getType().isSubtypeOf(t)){
+          PARSER_STATE->parseError("Type mismatch in definition");
+        }
         if(!topLevel) {
           // must be top-level; doesn't make sense to write something
           // like e.g. FORALL(x:INT = 4): [...]
@@ -1434,16 +1507,13 @@ prefixFormula[CVC4::Expr& f]
     IN_TOK formula[f] { PARSER_STATE->popScope(); }
 
    /* lambda */
-  | LAMBDA { PARSER_STATE->pushScope(); } LPAREN
+  | LAMBDA_TOK { PARSER_STATE->pushScope(); } LPAREN
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
-      std::string name = "lambda";
-      Expr func = PARSER_STATE->mkAnonymousFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
-      Command* cmd = new DefineFunctionCommand(name, func, terms, f);
-      PARSER_STATE->preemptCommand(cmd);
-      f = func;
+      Expr bvl = EXPR_MANAGER->mkExpr( kind::BOUND_VAR_LIST, terms );
+      f = EXPR_MANAGER->mkExpr( kind::LAMBDA, bvl, f );
     }
   ;
 
