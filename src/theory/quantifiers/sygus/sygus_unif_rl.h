@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_unif_io.h
+/*! \file sygus_unif_rl.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
