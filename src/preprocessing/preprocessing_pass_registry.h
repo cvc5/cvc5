@@ -42,6 +42,11 @@ class PreprocessingPassRegistry {
    */
   PreprocessingPass* getPass(const std::string& ppName);
 
+  /**
+   Clears all passes from the registry.
+   */
+  void unregisterPasses();
+
  private:
   bool hasPass(const std::string& ppName);
 
