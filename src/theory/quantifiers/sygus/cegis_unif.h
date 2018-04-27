@@ -26,11 +26,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-typedef std::pair<bool, Node> BoolNodePair;
+using BoolNodePair = std::pair<bool, Node>;
 using BoolNodePairHashFunction =
     PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
-typedef std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>
-    BoolNodePairMap;
+using BoolNodePairMap =
+    std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
 
 /** Synthesizes functions in a data-driven SyGuS approach
  *
