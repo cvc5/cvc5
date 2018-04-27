@@ -1883,6 +1883,12 @@ Node ExtendedRewriter::rewriteBvBool(Node ret)
       debugExtendedRewrite(ret, new_ret, "BV bcp");
       return new_ret;
     }
+    new_ret = extendedRewriteEqRes(BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_XOR, BITVECTOR_NOT, bcp_kinds, ret, true);
+    if (!new_ret.isNull())
+    {
+      debugExtendedRewrite(ret, new_ret, "BV eq res");
+      return new_ret;
+    }
   }
 
   return Node::null();
