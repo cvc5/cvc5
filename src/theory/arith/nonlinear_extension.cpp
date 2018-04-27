@@ -2100,7 +2100,8 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
   for (unsigned k = kstart; k < d_mterms.size(); k++) {
     Node t = d_mterms[k];
     // if this term requires a refinement
-    if (d_tplane_refine.find(t) != d_tplane_refine.end()) {
+    if (d_tplane_refine.find(t) != d_tplane_refine.end())
+    {
       Trace("nl-ext-tplanes")
           << "Look at monomial requiring refinement : " << t << std::endl;
       // get a decomposition
