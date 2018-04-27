@@ -542,7 +542,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         if (d_normal_forms[eqc].size() == 1)
         {
           // does it have a code?
-          if( d_has_str_code )
+          if (d_has_str_code)
           {
             EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_code_term.get().isNull())
