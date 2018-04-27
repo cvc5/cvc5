@@ -440,15 +440,6 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "use factoring inference in non-linear solver"
-  
-[[option]]
-  name       = "nlExtFactorAgg"
-  category   = "regular"
-  long       = "nl-ext-factor-agg"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use factoring inference in non-linear solver"
 
 [[option]]
   name       = "nlExtTangentPlanes"
