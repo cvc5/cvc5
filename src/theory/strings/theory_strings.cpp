@@ -3524,12 +3524,10 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         Node code_range = nm->mkNode(
             kind::AND,
             nm->mkNode(kind::GEQ, n, d_zero),
-            nm->mkNode(kind::LT,
-                        n,
-                        nm->mkConst(Rational(CVC4::String::num_codes()))));
+            nm->mkNode(
+                kind::LT, n, nm->mkConst(Rational(CVC4::String::num_codes()))));
         Node lem = nm->mkNode(kind::ITE, code_len, code_range, code_eq_neg1);
-        Trace("strings-lemma")
-            << "Strings::Lemma CODE : " << lem << std::endl;
+        Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
         Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
         d_out->lemma(lem);
       }
