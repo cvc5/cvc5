@@ -1702,7 +1702,6 @@ void TheoryStrings::checkCycles()
 
 void TheoryStrings::checkFlatForms()
 {
-
   // debug print flat forms
   if (Trace.isOn("strings-ff"))
   {
@@ -1713,7 +1712,7 @@ void TheoryStrings::checkFlatForms()
   // inferences without recursively expanding flat forms
 
   //(1) approximate equality by containment, infer conflicts
-  for( const Node& eqc : d_strings_eqc )
+  for (const Node& eqc : d_strings_eqc)
   {
     Node c = getConstantEqc(eqc);
     if (!c.isNull())
@@ -1723,7 +1722,7 @@ void TheoryStrings::checkFlatForms()
       std::map<Node, std::vector<Node> >::iterator it = d_eqc.find(eqc);
       if (it != d_eqc.end())
       {
-        for (const Node& n : it->second )
+        for (const Node& n : it->second)
         {
           int firstc, lastc;
           if (!TheoryStringsRewriter::canConstantContainList(
@@ -1765,7 +1764,7 @@ void TheoryStrings::checkFlatForms()
   }
 
   //(2) scan lists, unification to infer conflicts and equalities
-  for( const Node& eqc : d_strings_eqc )
+  for (const Node& eqc : d_strings_eqc)
   {
     std::map<Node, std::vector<Node> >::iterator it = d_eqc.find(eqc);
     if (it == d_eqc.end() || it->second.size() <= 1)
@@ -1856,7 +1855,7 @@ void TheoryStrings::checkFlatForms()
                   if (cc != curr)
                   {
                     Node bc = b[d_flat_form_index[b][count]];
-                    inelig.push_back( b );
+                    inelig.push_back(b);
                     Assert(!areEqual(curr, cc));
                     Node cc_c = getConstantEqc(cc);
                     if (!curr_c.isNull() && !cc_c.isNull())
@@ -1877,7 +1876,7 @@ void TheoryStrings::checkFlatForms()
                       }
                     }
                     else if ((d_flat_form[a].size() - 1) == count
-                              && (d_flat_form[b].size() - 1) == count)
+                             && (d_flat_form[b].size() - 1) == count)
                     {
                       conc = ac.eqNode(bc);
                       inf_type = 3;
@@ -1910,7 +1909,7 @@ void TheoryStrings::checkFlatForms()
                         exp.insert(exp.end(), lexp.begin(), lexp.end());
                         exp.insert(exp.end(), lexp2.begin(), lexp2.end());
                         addToExplanation(lcurr, lcc, exp);
-                        conc = ac.eqNode( bc );
+                        conc = ac.eqNode(bc);
                         inf_type = 1;
                         break;
                       }
@@ -1932,9 +1931,8 @@ void TheoryStrings::checkFlatForms()
               Trace("strings-ff-debug")
                   << "Add at " << d_flat_form_index[a][j] << " "
                   << d_flat_form_index[b][j] << std::endl;
-              addToExplanation(a[d_flat_form_index[a][j]],
-                                b[d_flat_form_index[b][j]],
-                                exp);
+              addToExplanation(
+                  a[d_flat_form_index[a][j]], b[d_flat_form_index[b][j]], exp);
             }
             // explain why other components up to now are empty
             for (unsigned t = 0; t < 2; t++)
@@ -1961,7 +1959,9 @@ void TheoryStrings::checkFlatForms()
                     addToExplanation(c[j], d_emptyString, exp);
                   }
                 }
-              }else{
+              }
+              else
+              {
                 for (int j = (c.getNumChildren() - 1); j > jj; --j)
                 {
                   if (areEqual(c[j], d_emptyString))
@@ -1981,7 +1981,7 @@ void TheoryStrings::checkFlatForms()
                 inf_type == 0
                     ? "F_Const"
                     : (inf_type == 1 ? "F_Unify"
-                                      : (inf_type == 2 ? "F_EndpointEmp"
+                                     : (inf_type == 2 ? "F_EndpointEmp"
                                                       : "F_EndpointEq")));
             if (d_conflict)
             {
@@ -1995,10 +1995,11 @@ void TheoryStrings::checkFlatForms()
           count++;
         } while (inelig.size() < it->second.size());
 
-        for (const Node& n : it->second )
+        for (const Node& n : it->second)
         {
-          std::reverse(d_flat_form[n].begin(),d_flat_form[n].end());
-          std::reverse(d_flat_form_index[n].begin(),d_flat_form_index[n].end());
+          std::reverse(d_flat_form[n].begin(), d_flat_form[n].end());
+          std::reverse(d_flat_form_index[n].begin(),
+                       d_flat_form_index[n].end());
         }
       }
     }
