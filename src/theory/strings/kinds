@@ -24,7 +24,7 @@ operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_ITOS 1 "integer to string"
 operator STRING_STOI 1 "string to integer (total function)"
-operator STRING_CODE 1 "string to code"
+operator STRING_CODE 1 "string to code, returns the code of the first character of the string if it has length one, -1 otherwise"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \

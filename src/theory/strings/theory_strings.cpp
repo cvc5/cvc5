@@ -3513,28 +3513,25 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
           d_out->lemma(ceq);
         }
       }
-      else
+      else if (n.getKind() == kind::STRING_CODE)
       {
-        if (n.getKind() == kind::STRING_CODE)
-        {
-          d_has_str_code = true;
-          NodeManager* nm = NodeManager::currentNM();
-          // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
-          Node neg_one = nm->mkConst(Rational(-1));
-          Node code_len = mkLength(n[0]).eqNode(d_one);
-          Node code_eq_neg1 = n.eqNode(nm->mkConst(Rational(-1)));
-          Node code_range = nm->mkNode(
-              kind::AND,
-              nm->mkNode(kind::GEQ, n, d_zero),
-              nm->mkNode(kind::LT,
-                         n,
-                         nm->mkConst(Rational(CVC4::String::num_codes()))));
-          Node lem = nm->mkNode(kind::ITE, code_len, code_range, code_eq_neg1);
-          Trace("strings-lemma")
-              << "Strings::Lemma CODE : " << lem << std::endl;
-          Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
-          d_out->lemma(lem);
-        }
+        d_has_str_code = true;
+        NodeManager* nm = NodeManager::currentNM();
+        // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
+        Node neg_one = nm->mkConst(Rational(-1));
+        Node code_len = mkLength(n[0]).eqNode(d_one);
+        Node code_eq_neg1 = n.eqNode(nm->mkConst(Rational(-1)));
+        Node code_range = nm->mkNode(
+            kind::AND,
+            nm->mkNode(kind::GEQ, n, d_zero),
+            nm->mkNode(kind::LT,
+                        n,
+                        nm->mkConst(Rational(CVC4::String::num_codes()))));
+        Node lem = nm->mkNode(kind::ITE, code_len, code_range, code_eq_neg1);
+        Trace("strings-lemma")
+            << "Strings::Lemma CODE : " << lem << std::endl;
+        Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
+        d_out->lemma(lem);
       }
     }
   }
