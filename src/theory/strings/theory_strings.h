@@ -104,6 +104,7 @@ enum InferStep
   CHECK_NORMAL_FORMS_DEQ,
   CHECK_CODES,
   CHECK_LENGTH_EQC,
+  CHECK_EXTF_REDUCTION,
   CHECK_MEMBERSHIP,
   CHECK_CARDINALITY,
 };
@@ -635,14 +636,21 @@ private:
    */
   void checkCardinality();
   //-----------------------end inference steps
+  /** is strategy initialized */
+  bool d_strategy_init;
   /** run the given inference step */
   void runInferStep( InferStep s, int effort );
   /** the strategy */
   std::vector< InferStep > d_infer_steps;
   /** the effort levels */
-  std::map< unsigned, int > d_infer_step_effort;
+  std::vector< int > d_infer_step_effort;
+  /** the steps to run at various efforts */
+  std::map< Effort, unsigned > d_step_begin;
+  std::map< Effort, unsigned > d_step_end;
+  /** initialize the strategy */
+  void initializeStrategy();
   /** run the strategy */
-  void runStrategy();
+  void runStrategy( unsigned sbegin, unsigned send );
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
