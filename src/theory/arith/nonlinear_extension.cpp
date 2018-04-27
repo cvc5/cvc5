@@ -2512,25 +2512,28 @@ std::vector<Node> NonlinearExtension::checkFactoring(
                 }
               }
             }
-            else
-            {
-              // aggressive factoring considers linear monomials
-              factor_to_mono[itm->first].push_back(
-                  itm->second.isNull() ? d_one : itm->second);
-              factor_to_mono_orig[itm->first].push_back(itm->first);
-            }
           }
         }
         for( std::map< Node, std::vector< Node > >::iterator itf = factor_to_mono.begin(); itf != factor_to_mono.end(); ++itf ){
+          Node x = itf->first;
+          if( itf->second.size()==1 )
+          {
+            std::map<Node, Node>::iterator itm = msum.find(x);
+            if( itm!=msum.end() )
+            {
+              itf->second.push_back(itm->second.isNull() ? d_one : itm->second);
+              factor_to_mono_orig[x].push_back(x);
+            }
+          }
           if( itf->second.size()>1 ){
             Node sum = NodeManager::currentNM()->mkNode(PLUS, itf->second);
             sum = Rewriter::rewrite( sum );
-            Trace("nl-ext-factor") << "* Factored sum for " << itf->first << " : " << sum << std::endl;
+            Trace("nl-ext-factor") << "* Factored sum for " << x << " : " << sum << std::endl;
             Node kf = getFactorSkolem( sum, lemmas ); 
             std::vector< Node > poly;
             poly.push_back(
-                NodeManager::currentNM()->mkNode(MULT, itf->first, kf));
-            std::map< Node, std::vector< Node > >::iterator itfo = factor_to_mono_orig.find( itf->first );
+                NodeManager::currentNM()->mkNode(MULT, x, kf));
+            std::map< Node, std::vector< Node > >::iterator itfo = factor_to_mono_orig.find( x );
             Assert( itfo!=factor_to_mono_orig.end() );
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
