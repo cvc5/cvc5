@@ -291,7 +291,10 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
-  /** is negate? */
+  /** is the kind k a negation kind? 
+   * 
+   * A kind k is a negation kind if <k>( <k>( n ) ) = n.
+   */
   static bool isNegate( Kind k );
   /**
    * Make negated term, returns the negation of n wrt Kind notk, eliminating

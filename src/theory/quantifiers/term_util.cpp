@@ -813,7 +813,7 @@ Node TermUtil::mkNegate(Kind notk, Node n)
 
 bool TermUtil::isNegate( Kind k )
 {
-  return k==NOT || k==BITVECTOR_NOT || k==BITVECTOR_NEG;
+  return k==NOT || k==BITVECTOR_NOT || k==BITVECTOR_NEG || k==UMINUS;
 }
 
 bool TermUtil::isAssoc( Kind k ) {

@@ -42,18 +42,16 @@ void ExtendedRewriter::setCache(Node n, Node ret)
   n.setAttribute(era, ret);
 }
 
-void addChild( Node nc, std::vector< Node >& children, bool isNonAdditive, bool& childChanged )
+bool ExtendedRewriter::addToChildren( Node nc, std::vector< Node >& children, bool dropDup)
 {
   // If the operator is non-additive, do not consider duplicates
-  if (isNonAdditive
+  if (dropDup
       && std::find(children.begin(), children.end(), nc) != children.end())
   {
-    childChanged = true;
+    return false;
   }
-  else
-  {
-    children.push_back(nc);
-  }  
+  children.push_back(nc);
+  return true; 
 }
 
 Node ExtendedRewriter::extendedRewrite(Node n)
@@ -120,12 +118,15 @@ Node ExtendedRewriter::extendedRewrite(Node n)
       {
         for( const Node& ncc : nc )
         {
-          addChild( ncc, children, isNonAdditive, childChanged );
+          if( !addToChildren( ncc, children, isNonAdditive ) )
+          {
+            childChanged = true;
+          }
         }
       }
-      else
+      else if( !addToChildren( nc, children, isNonAdditive ) )
       {
-        addChild( nc, children, isNonAdditive, childChanged );
+        childChanged = true;
       }
     }
     Assert(!children.empty());
