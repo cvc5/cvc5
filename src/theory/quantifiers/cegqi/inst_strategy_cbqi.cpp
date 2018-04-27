@@ -523,7 +523,9 @@ int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visite
     int ret = -1;
     if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
       ret = 1;
-    }else if( tn.isDatatype() ){
+    }
+    else if (tn.isDatatype())
+    {
       ret = 2;
       const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -541,7 +543,7 @@ int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visite
     }else if( tn.isSort() ){
       QuantEPR * qepr = d_quantEngine->getQuantEPR();
       if( qepr!=NULL ){
-        ret = qepr->isEPR( tn ) ? 2 : -1;
+        ret = qepr->isEPR(tn) ? 2 : -1;
       }
     }
     // sets, arrays, functions and others are not supported
@@ -588,12 +590,14 @@ bool InstStrategyCbqi::doCbqi( Node q ){
         //if quantifier has a non-handled variable, then do not use cbqi
         //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
         int ncbqiv = hasNonCbqiVariable( q );
-        if( ncbqiv>0 ){
+        if (ncbqiv > 0)
+        {
           std::map< Node, bool > visited;
           int cbqit = isCbqiTerm(q, visited);
           if (cbqit == -1)
           {
-            if( ncbqiv==2 ){
+            if (ncbqiv == 2)
+            {
               //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
               //  so, try but not exclusively
               ret = 1;

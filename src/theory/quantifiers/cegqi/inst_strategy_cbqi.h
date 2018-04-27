@@ -49,10 +49,10 @@ class InstStrategyCbqi : public QuantifiersModule {
   std::map< Node, bool > d_active_quant;
   /** whether we have instantiated quantified formulas */
   //NodeSet d_added_inst;
-  /** 
+  /**
    * Whether to do cbqi for this quantified formula, where:
-   * 2 : yes, 
-   * 1 : yes but not exclusively, 
+   * 2 : yes,
+   * 1 : yes but not exclusively,
    * 0 : no.
    */
   std::map< Node, int > d_do_cbqi;
@@ -70,11 +70,11 @@ class InstStrategyCbqi : public QuantifiersModule {
    */
   int isCbqiTerm(Node n, std::map<Node, bool>& visited);
   /** is cbqi sort?
-   * 
+   *
    * This method returns -1 if tn is a sort that is not supported by CBQI,
    * 1 if tn is a sort that is supported by CBQI, and 2 if tn is a sort
    * that is handled by CBQI regardless of the body of the quantified
-   * formula. 
+   * formula.
    */
   int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
