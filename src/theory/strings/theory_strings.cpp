@@ -542,19 +542,22 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         if (d_normal_forms[eqc].size() == 1)
         {
           // does it have a code?
-          EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
-          if (eip && !eip->d_code_term.get().isNull())
+          if( d_has_str_code )
           {
-            // its value must be equal to its code
-            Node ct = nm->mkNode(kind::STRING_CODE, eip->d_code_term.get());
-            Node ctv = d_valuation.getModelValue(ct);
-            unsigned cvalue =
-                ctv.getConst<Rational>().getNumerator().toUnsignedInt();
-            Trace("strings-model") << "(code: " << cvalue << ") ";
-            std::vector<unsigned> vec;
-            vec.push_back(String::convertCodeToUnsignedInt(cvalue));
-            Node mv = nm->mkConst(::CVC4::String(vec));
-            pure_eq_assign[eqc] = mv;
+            EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
+            if (eip && !eip->d_code_term.get().isNull())
+            {
+              // its value must be equal to its code
+              Node ct = nm->mkNode(kind::STRING_CODE, eip->d_code_term.get());
+              Node ctv = d_valuation.getModelValue(ct);
+              unsigned cvalue =
+                  ctv.getConst<Rational>().getNumerator().toUnsignedInt();
+              Trace("strings-model") << "(code: " << cvalue << ") ";
+              std::vector<unsigned> vec;
+              vec.push_back(String::convertCodeToUnsignedInt(cvalue));
+              Node mv = nm->mkConst(::CVC4::String(vec));
+              pure_eq_assign[eqc] = mv;
+            }
           }
           pure_eq.push_back(eqc);
         }
