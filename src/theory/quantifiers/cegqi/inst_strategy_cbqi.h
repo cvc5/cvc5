@@ -59,11 +59,11 @@ class InstStrategyCbqi : public QuantifiersModule {
   /** helper functions */
   int hasNonCbqiVariable( Node q );
   /** is cbqi term?
-   * 
+   *
    * This function returns 1 if n is a term that is handled by CBQI, it
    * returns -1 if n is prohibited from being handled by CBQI.
    */
-  int isCbqiTerm( Node n, std::map< Node, bool >& visited );
+  int isCbqiTerm(Node n, std::map<Node, bool>& visited);
   int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  

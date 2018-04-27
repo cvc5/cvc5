@@ -302,7 +302,7 @@ class CegInstantiator {
    * If this method returns -1, then we prohibit CBQI for terms involving this
    * kind. If this method returns 1, our approaches for CBQI fully handle
    * the kind.
-   * 
+   *
    * This typically corresponds to kinds that correspond to operators that
    * have total interpretations and are a part of the signature of
    * satisfaction complete theories (see Reynolds et al., CAV 2015).
