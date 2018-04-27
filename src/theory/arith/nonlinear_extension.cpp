@@ -1139,12 +1139,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       Node shift_lem = nm->mkNode(
           AND,
           mkValidPhase(y, d_pi),
-          a[0].eqNode(nm->mkNode(
-              PLUS,
-              y,
-              nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi))),
-          // particular case of above for shift=0
-          nm->mkNode(IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
+          nm->mkNode(
+              ITE,
+              mkValidPhase(a[0], d_pi),
+              a[0].eqNode(y),
+              a[0].eqNode(nm->mkNode(
+                  PLUS,
+                  y,
+                  nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
           new_a.eqNode(a));
       // must do preprocess on this one
       Trace("nl-ext-lemma")
