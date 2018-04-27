@@ -158,6 +158,11 @@ Node CegisUnif::purifyLemma(Node n,
   std::vector<Node> children;
   for (unsigned i = 0; i < size; ++i)
   {
+    if (i == 0 && fapp)
+    {
+      children.push_back(n[0]);
+      continue;
+    }
     Node child = purifyLemma(n[i], ensureConst || fapp, model_guards, cache);
     children.push_back(child);
     childChanged = childChanged || child != n[i];
@@ -192,9 +197,10 @@ Node CegisUnif::purifyLemma(Node n,
       nb = nv;
     }
   }
+  nb = Rewriter::rewrite(nb);
   /* every non-top level application of function-to-synthesize must be reduced
      to a concrete constant */
-  Assert(!ensureConst || !fapp || nb.isConst());
+  Assert(!ensureConst || nb.isConst());
   Trace("cegis-unif-purify") << "... caching [" << n << "] = " << nb << "\n";
   cache[BoolNodePair(ensureConst, n)] = nb;
   return nb;
