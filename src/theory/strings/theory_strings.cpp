@@ -428,7 +428,7 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           Trace("strings-extf-debug") << "  resolve extf : " << n << " based on positive contain reduction." << std::endl;
           return 1;
         }
-        else if( n.getKind()!=kind::STRING_CODE )
+        else if (n.getKind() != kind::STRING_CODE)
         {
           // for STRING_SUBSTR, STRING_STRCTN with pol=-1,
           //     STRING_STRIDOF, STRING_ITOS, STRING_STOI, STRING_STRREPL
