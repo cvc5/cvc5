@@ -127,21 +127,27 @@ bool CegInstantiator::isEligible( Node n ) {
   return d_inelig.find( n )==d_inelig.end();
 }
 
-bool CegInstantiator::isCbqiKind(Kind k)
+int CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
       || k == EQUAL
       || k == MULT
       || k == NONLINEAR_MULT)
   {
-    return true;
+    return 1;
   }
-  else
+
+  // CBQI typically works for satisfaction-complete theories
+  TheoryId t = kindToTheoryId(k);
+  if( t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL )
   {
-    // CBQI typically works for satisfaction-complete theories
-    TheoryId t = kindToTheoryId(k);
-    return t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL || t == THEORY_SETS;
+    return 1;
   }
+  else if( t == THEORY_SETS )
+  {
+    return 0;
+  }
+  return -1;
 }
 
 bool CegInstantiator::hasVariable( Node n, Node pv ) {
