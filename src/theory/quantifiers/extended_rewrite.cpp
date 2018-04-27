@@ -1059,7 +1059,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 Node ExtendedRewriter::solveEquality(Node n)
 {
   Assert(n.getKind() == EQUAL);
-  
+
   if (n[0].getType().isBitVector())
   {
     for (unsigned i = 0; i < 2; i++)
@@ -1120,7 +1120,7 @@ bool ExtendedRewriter::inferSubstitution(Node n,
         r2 = n[1 - i];
         if (v[i] != n[i])
         {
-          Assert( TermUtil::isNegate( n[i].getKind() ) );
+          Assert(TermUtil::isNegate(n[i].getKind()));
           r2 = TermUtil::mkNegate(n[i].getKind(), r2);
         }
         // TODO (#1706) : union find
@@ -1883,7 +1883,13 @@ Node ExtendedRewriter::rewriteBvBool(Node ret)
       debugExtendedRewrite(ret, new_ret, "BV bcp");
       return new_ret;
     }
-    new_ret = extendedRewriteEqRes(BITVECTOR_AND, BITVECTOR_OR, BITVECTOR_XOR, BITVECTOR_NOT, bcp_kinds, ret, true);
+    new_ret = extendedRewriteEqRes(BITVECTOR_AND,
+                                   BITVECTOR_OR,
+                                   BITVECTOR_XOR,
+                                   BITVECTOR_NOT,
+                                   bcp_kinds,
+                                   ret,
+                                   true);
     if (!new_ret.isNull())
     {
       debugExtendedRewrite(ret, new_ret, "BV eq res");
