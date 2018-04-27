@@ -54,6 +54,25 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, InferStep s)
+{
+  switch (s)
+  {
+    case CHECK_INIT: out << "check_init";break;
+    case CHECK_EXTF_EVAL: out << "check_ext_fun_evaluation";break;
+    case CHECK_CYCLES: out << "check_cycles";break;
+    case CHECK_FLAT_FORMS: out << "check_flat_forms";break;
+    case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq";break;
+    case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq";break;
+    case CHECK_CODES: out << "check_codes";break;
+    case CHECK_LENGTH_EQC: out << "check_length_eqc";break;
+    case CHECK_MEMBERSHIP: out << "check_membership";break;
+    case CHECK_CARDINALITY: out << "check_cardinality";break;
+    default: out << "?"; break;
+  }
+  return out;
+}
+
 Node TheoryStrings::TermIndex::add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c ) {
   if( index==n.getNumChildren() ){
     if( d_data.isNull() ){
@@ -1675,6 +1694,10 @@ struct sortConstLength {
   }
 };
 
+void TheoryStrings::checkCycles()
+{
+  
+}
 
 void TheoryStrings::checkFlatForms() {
   //first check for cycles, while building ordering of equivalence classes
@@ -1924,6 +1947,21 @@ void TheoryStrings::checkFlatForms() {
       Trace("strings-process") << "Done check extended function reduction" << std::endl;
     }
   }
+}  
+
+void TheoryStrings::checkNormalFormsEq()
+{
+  
+}
+
+void TheoryStrings::checkNormalFormsDeq()
+{
+  
+}
+
+void TheoryStrings::checkCodes()
+{
+  
 }
 
 Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp ){
@@ -4653,6 +4691,53 @@ Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
   }
   return ret;
 }
+
+/** run the given inference step */
+void TheoryStrings::runInferStep( InferStep s, int effort )
+{
+  Trace("strings-process") << "Run " << s;
+  if( effort>0 )
+  {
+    Trace("strings-process") << ", effort = " << effort;
+  }
+  Trace("strings-process") << "..." << std::endl;
+  switch(s)
+  {
+    case CHECK_INIT: checkInit();break;
+    case CHECK_EXTF_EVAL: checkExtfEval(effort);break;
+    case CHECK_CYCLES: checkCycles();break;
+    case CHECK_FLAT_FORMS: checkFlatForms();break;
+    case CHECK_NORMAL_FORMS_EQ: checkNormalFormsEq();break;
+    case CHECK_NORMAL_FORMS_DEQ: checkNormalFormsDeq();break;
+    case CHECK_CODES: checkCodes();break;
+    case CHECK_LENGTH_EQC: checkLengthsEqc();break;
+    case CHECK_MEMBERSHIP: checkMemberships();break;
+    case CHECK_CARDINALITY: checkCardinality();break;
+    default: Unreachable(); break;
+  }
+  Trace("strings-process") << "Done " << s << ", addedFact = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
+}
+
+void TheoryStrings::runStrategy()
+{
+  Trace("strings-process") << "----check, next round---" << std::endl;
+  for( unsigned i=0,nsteps=d_infer_steps.size(); i<nsteps; i++ )
+  {
+    int effort = 0;
+    std::map< unsigned, int >::iterator itef = d_infer_step_effort.find(i);
+    if( itef!=d_infer_step_effort.end() )
+    {
+      effort = itef->second;
+    }
+    runInferStep( d_infer_steps[i], effort );
+    if( hasProcessed() )
+    {
+      break;
+    }
+  }
+  Trace("strings-process") << "----finished round---" << std::endl;
+}
+
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

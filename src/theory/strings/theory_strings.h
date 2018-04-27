@@ -93,6 +93,22 @@ enum Inference
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
+/** inference steps */
+enum InferStep
+{
+  CHECK_INIT,
+  CHECK_EXTF_EVAL,
+  CHECK_CYCLES,
+  CHECK_FLAT_FORMS,
+  CHECK_NORMAL_FORMS_EQ,
+  CHECK_NORMAL_FORMS_DEQ,
+  CHECK_CODES,
+  CHECK_LENGTH_EQC,
+  CHECK_MEMBERSHIP,
+  CHECK_CARDINALITY,
+};
+std::ostream& operator<<(std::ostream& out, Inference i);
+
 struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
@@ -355,20 +371,18 @@ private:
     Node d_nf_pair[2];
     bool sendAsLemma();
   };
-  //initial check
-  void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  //extended functions evaluation check
-  void checkExtfEval( int effort = 0 );
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
   //check extf reduction
   void checkExtfReductions( int effort );
-  //flat forms check
-  void checkFlatForms();
+
+  //--------------------------for checkCycles
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
-  //normal forms check
+  //--------------------------end for checkCycles
+  
+  //--------------------------for checkNormalFormsEq
   void checkNormalForms();
   void normalizeEquivalenceClass( Node n );
   void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
@@ -384,6 +398,9 @@ private:
   void processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
                          unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
+  //--------------------------end for checkNormalFormsEq
+  
+  //--------------------------for checkNormalFormsDeq
   void processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
@@ -393,23 +410,19 @@ private:
   void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                                         std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
                                         unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
+  //--------------------------end for checkNormalFormsDeq
 
-  Node collectConstantStringAt( std::vector< Node >& vec, int& index, bool isRev );
-
+  //--------------------------------for checkMemberships
   //check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
   bool applyRConsume( CVC4::String &s, Node &r );
   Node applyRSplit( Node s1, Node s2, Node r );
   bool applyRLen( std::map< Node, std::vector< Node > > &XinR_with_exps );
-  void checkMemberships();
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );
-  //lengths normalize check
-  void checkLengthsEqc();
-  //cardinality check
-  void checkCardinality();
+  //--------------------------------end for checkMemberships
 
  private:
   void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
@@ -579,7 +592,57 @@ private:
     ~Statistics();
   };/* class TheoryStrings::Statistics */
   Statistics d_statistics;
-  
+ private:
+  //-----------------------inference steps
+  /** check initial
+   * 
+   */
+  void checkInit();
+  /** check extended functions evaluation 
+   * 
+   */
+  void checkExtfEval( int effort = 0 );
+  /** check cycles
+   * 
+   */
+  void checkCycles();
+  /** check flat forms 
+   * 
+   */
+  void checkFlatForms();
+  /** check normal forms equalities
+   * 
+   */
+  void checkNormalFormsEq();
+  /** check normal forms disequalities
+   * 
+   */
+  void checkNormalFormsDeq();
+  /** check codes
+   * 
+   */
+  void checkCodes();
+  /** check lengths for equivalence classes
+   * 
+   */
+  void checkLengthsEqc();
+  /** check regular expression memberships
+   * 
+   */
+  void checkMemberships();
+  /** check cardinality
+   * 
+   */
+  void checkCardinality();
+  //-----------------------end inference steps
+  /** run the given inference step */
+  void runInferStep( InferStep s, int effort );
+  /** the strategy */
+  std::vector< InferStep > d_infer_steps;
+  /** the effort levels */
+  std::map< unsigned, int > d_infer_step_effort;
+  /** run the strategy */
+  void runStrategy();
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
