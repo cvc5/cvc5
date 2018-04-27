@@ -271,6 +271,9 @@ class SygusUnifIo : public SygusUnif
                                  Node v,
                                  std::vector<Node>& lemmas) override;
 
+  /** Construct solution */
+  virtual Node constructSolution() override;
+  
   /** add example
    *
    * This adds input -> output to the specification for f. The arity of
@@ -281,6 +284,16 @@ class SygusUnifIo : public SygusUnif
   void addExample(const std::vector<Node>& input, Node output);
 
  protected:
+  /**
+   * Whether we will try to construct solution on the next call to
+   * constructSolution. This flag is set to true when we successfully
+   * register a new value for an enumerator.
+   */
+  bool d_check_sol;
+  /** The number of values we have enumerated for all enumerators. */
+  unsigned d_cond_count;
+  /** The solution for the function of this class, if one has been found */
+  Node d_solution;
   /** true and false nodes */
   Node d_true;
   Node d_false;

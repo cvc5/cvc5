@@ -27,7 +27,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusUnif::SygusUnif()
-    : d_qe(nullptr), d_tds(nullptr), d_check_sol(false), d_cond_count(0)
+    : d_qe(nullptr), d_tds(nullptr)
 {
 }
 
@@ -48,50 +48,11 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
 
 Node SygusUnif::constructSolution()
 {
-  Node c = d_candidate;
-  if (!d_solution.isNull())
-  {
-    // already has a solution
-    return d_solution;
-  }
-  // only check if an enumerator updated
-  if (d_check_sol)
-  {
-    Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
-                       << std::endl;
-    d_check_sol = false;
-    // try multiple times if we have done multiple conditions, due to
-    // non-determinism
-    Node vc;
-    for (unsigned i = 0; i <= d_cond_count; i++)
-    {
-      Trace("sygus-pbe-dt") << "ConstructPBE for candidate: " << c << std::endl;
-      Node e = d_strategy.getRootEnumerator();
-      // initialize a call to construct solution
-      initializeConstructSol();
-      // call the virtual construct solution method
-      Node vcc = constructSol(e, role_equal, 1);
-      // if we constructed the solution, and we either did not previously have
-      // a solution, or the new solution is better (smaller).
-      if (!vcc.isNull()
-          && (vc.isNull() || (!vc.isNull()
-                              && d_tds->getSygusTermSize(vcc)
-                                     < d_tds->getSygusTermSize(vc))))
-      {
-        Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = " << vcc
-                           << std::endl;
-        Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
-        vc = vcc;
-      }
-    }
-    if (!vc.isNull())
-    {
-      d_solution = vc;
-      return vc;
-    }
-    Trace("sygus-pbe") << "...failed to solve." << std::endl;
-  }
-  return Node::null();
+  // initialize a call to construct solution
+  initializeConstructSol();
+  // call the virtual construct solution method
+  Node e = d_strategy.getRootEnumerator();
+  return constructSol(e, role_equal, 1);
 }
 
 Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
