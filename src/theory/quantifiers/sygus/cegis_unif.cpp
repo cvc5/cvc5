@@ -31,7 +31,6 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
 }
 
 CegisUnif::~CegisUnif() {}
-
 bool CegisUnif::initialize(Node n,
                            const std::vector<Node>& candidates,
                            std::vector<Node>& lemmas)
@@ -43,13 +42,14 @@ bool CegisUnif::initialize(Node n,
     return false;
   }
   d_candidate = candidates[0];
-  Trace("cegis-unif") << "Initialize unif utility for " << d_candidate << "...\n";
+  Trace("cegis-unif") << "Initialize unif utility for " << d_candidate
+                      << "...\n";
   d_sygus_unif.initialize(d_qe, d_candidate, d_enums, lemmas);
   Assert(!d_enums.empty());
   Trace("cegis-unif") << "Initialize " << d_enums.size() << " enumerators for "
                       << d_candidate << "...\n";
   /* initialize the enumerators */
-  for (const Node& e: d_enums)
+  for (const Node& e : d_enums)
   {
     d_tds->registerEnumerator(e, d_candidate, d_parent, true);
     Node g = d_tds->getActiveGuardForEnumerator(e);
@@ -270,7 +270,9 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   Node plem;
   std::vector<Node> model_guards;
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Trace("cegis-unif") << "Registering lemma at CegisUnif : " << lem << " with model value " << d_parent->getModelValue(lem) << "\n";
+  Trace("cegis-unif") << "Registering lemma at CegisUnif : " << lem
+                      << " with model value " << d_parent->getModelValue(lem)
+                      << "\n";
   /* Make the purified lemma which will guide the unification utility. */
   plem = purifyLemma(lem, model_guards, cache);
   model_guards.push_back(plem);

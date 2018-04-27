@@ -109,9 +109,10 @@ class CegisUnif : public SygusModule
   void registerRefinementLemma(const std::vector<Node>& vars,
                                Node lem,
                                std::vector<Node>& lems) override;
+
  private:
   /** sygus term database of d_qe */
-  TermDbSygus * d_tds;
+  TermDbSygus* d_tds;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.
