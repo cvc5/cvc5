@@ -479,28 +479,40 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
   d_quantEngine->addLemma( lem, false );
 }
 
-bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()!=BOUND_VARIABLE && TermUtil::hasBoundVarAttr( n ) ){
-      if (!CegInstantiator::isCbqiKind(n.getKind()))
-      {
-        Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
-        return true;
-      }
-      else if (n.getKind() == FORALL || n.getKind() == CHOICE)
-      {
-        return hasNonCbqiOperator( n[1], visited );
-      }else{
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          if( hasNonCbqiOperator( n[i], visited ) ){
-            return true;
-          }
-        }
-      }
+int InstStrategyCbqi::isCbqiTerm(Node n, std::map<Node, bool>& visited)
+{
+  if (visited.find(n) != visited.end())
+  {
+    return 1;
+  }
+  visited[n] = true;
+  if (n.getKind() == BOUND_VARIABLE || !TermUtil::hasBoundVarAttr(n))
+  {
+    return 1;
+  }
+  if (n.getKind() == FORALL || n.getKind() == CHOICE)
+  {
+    return isCbqiTerm(n[1], visited);
+  }
+  int sum = CegInstantiator::isCbqiKind(n.getKind());
+  if (sum != 1)
+  {
+    Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n
+                         << std::endl;
+  }
+  for (const Node& nc : n)
+  {
+    int curr = isCbqiTerm(nc, visited);
+    if (curr == -1)
+    {
+      return curr;
+    }
+    else if (curr < sum)
+    {
+      sum = curr;
     }
   }
-  return false;
+  return sum;
 }
 
 // -1 : not cbqi sort, 0 : cbqi sort, 1 : cbqi sort regardless of quantifier body
@@ -532,6 +544,7 @@ int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visite
         ret = qepr->isEPR( tn ) ? 1 : -1;
       }
     }
+    // sets, arrays, functions and others are not supported
     visited[tn] = ret;
     return ret;
   }else{
@@ -577,7 +590,9 @@ bool InstStrategyCbqi::doCbqi( Node q ){
         int ncbqiv = hasNonCbqiVariable( q );
         if( ncbqiv==0 || ncbqiv==1 ){
           std::map< Node, bool > visited;
-          if( hasNonCbqiOperator( q[1], visited ) ){
+          int cbqit = isCbqiTerm(q, visited);
+          if (cbqit == -1)
+          {
             if( ncbqiv==1 ){
               //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
               //  so, try but not exclusively
@@ -586,6 +601,10 @@ bool InstStrategyCbqi::doCbqi( Node q ){
               //cannot be handled
               ret = 0;
             }
+          }
+          else if (cbqit == 0)
+          {
+            ret = 1;
           }
         }else{
           // unhandled variable type

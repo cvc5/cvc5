@@ -58,7 +58,12 @@ class InstStrategyCbqi : public QuantifiersModule {
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
   /** helper functions */
   int hasNonCbqiVariable( Node q );
-  bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
+  /** is cbqi term?
+   *
+   * This function returns 1 if n is a term that is handled by CBQI, it
+   * returns -1 if n is prohibited from being handled by CBQI.
+   */
+  int isCbqiTerm(Node n, std::map<Node, bool>& visited);
   int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  

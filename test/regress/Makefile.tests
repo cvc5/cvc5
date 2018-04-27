@@ -630,6 +630,7 @@ REG0_TESTS = \
 	regress0/quantifiers/qbv-test-invert-sign-extend.smt2 \
 	regress0/quantifiers/qcf-rel-dom-opt.smt2 \
 	regress0/quantifiers/rew-to-scala.smt2 \
+	regress0/quantifiers/sets-quant-cbqi-sat.smt2 \
 	regress0/quantifiers/simp-len.smt2 \
 	regress0/quantifiers/simp-typ-test.smt2 \
 	regress0/queries0.cvc \
