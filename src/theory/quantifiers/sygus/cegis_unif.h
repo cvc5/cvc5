@@ -26,30 +26,22 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Synthesizes functions in a "by-examples" approach
+/** Synthesizes functions in a data-driven SyGuS approach
  *
- * For function synthesis it generates a set of examples based on the refinement
- * lemmas generated through the regular CEGIS approach
+ * Data is derived from refinement lemmas generated through the regular CEGIS
+ * approach. SyGuS is used to generate terms for classifying the data
+ * (e.g. using decision tree learning) and thus generate a candidate for a
+ * function-to-synthesize.
  *
- * For invariant synthesis it works as follows:
+ * This approach is inspired by the divide and conquer synthesis through
+ * unification approach by Alur et al. TACAS 2017, by ICE-based invariant
+ * synthesis from Garg et al. CAV 2014 and POPL 2016, and Padhi et al. PLDI 2016
  *
- * Successively performs strengthening and weakining of candidate invariants
- * based on counterexamples produced while verifying that a candidate invariant
- * satisfies the constraints.
- *
- * Strengthening occurs when a candidate is not strong enough to rule out states
- * whose next state, after a transition step, violates the invariant. Weakining
- * occurs when a candidate is stronger than the precondition. To ensure that a
- * candidate is never weaker than the postcondition, the first candidate is
- * always the postcondition.
- *
- * The crucial insight is to use synthesis only to produce atomic expressions to
- * separate cases in which the invariant should hold to cases it should not,
- * with the boolean structure of the invariant being derived afterwards when it
- * is guaranteed to succeed with an algorithm that favors small CNFs.
- *
- * This approach is inspired by invariant synthesis based on the ICE framework
- * from Garg et al. and the approach in Padhi et al. PLDI 2016
+ * This module mantains a function-to-synthesize and a set of term
+ * enumerators. When new terms are enumerated it tries to learn a new candidate
+ * function, which is verified outside this module. If verification fails a
+ * refinement lemma is generated, which this module sends to the utility that
+ * learns candidates.
  */
 class CegisUnif : public SygusModule
 {
@@ -58,68 +50,36 @@ class CegisUnif : public SygusModule
   ~CegisUnif();
   /** initialize this class
    *
-   * For invariant synthesis it works as follows:
-   *
-   * If n can be broken into an inductive invariant synthesis problem, i.e. some
-   * processed form equisatisfiable to
-   *
-   * exists Inv. forall xx'.     Pre(x) => Inv(x)
-   *                         &&  Inv(x) && Trans(x, x') => Inv(x')
-   *                         &&  Inv(x) => Post(x)
-   *
-   * then this module takes onwership of the conjecture. The module assumes
-   * there is only one function to synthesize: the invariant.
-   *
-   * This function may add lemmas to the vector lemmas to restrict the
-   * enumeration of expressions used when building candidate invariants. In
-   * particular, if the grammar contains boolean operators these will be removed
-   * from the enumeration since boolean combinations or theory expressions will
-   * be done in a different way (see ...). */
+   * The module takes ownership of a conjecture when it contains a single
+   * function-to-synthesize
+  */
   bool initialize(Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
   /** adds the candidate itself to enums */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
-  /** Tries to build new candidate solution with new enumerated expresion
+  /** Tries to build a new candidate solution with new enumerated expresion
    *
-   * For invariant synthesis it works as follows:
+   * This function relies on a data-driven unification-based approach for
+   * constructing a solutions for the function-to-synthesize. See SygusUnifRl
+   * for more details.
    *
-   * This module keeps sets of points which are used to guide invariant
-   * synthesis. A point is a valuation to the state variables of the transition
-   * system. Points are organized in three categories:
+   * Calls to this function are such that terms is the list of active
+   * enumerators (returned by getTermList), and term_values are their current
+   * model values. This function registers { terms -> terms_values } in
+   * the database of values that have been enumerated, which are in turn used
+   * for constructing candidate solutions when possible.
    *
-   *     good - points on which invariant must always hold
-   *            true -> I[p]
-   *
-   *      bad - points on which invariant can never hold
-   *            I[p] -> false
-   *
-   * relative - pairs of points for which whenever invariant holds in the
-   *            first point it cannot hold in the second
-   *            I[p1] -> I[p2]
-   *
-   * Valid candidate invariants are those which hold in all good points and in
-   * no bad ones, while respecting the relative points. Such a candidate can be
-   * built if we can derive atomic expressions (denominated "features") which
-   * separate the points. Let a feture vector be a vector of the values of the
-   * current features on a point. We associate each point to a feature vector
-   * and are guaranteed to be able to build a candidate with the current
-   * features when no conflict exists between the vectors. A conflict occurs in
-   * two cases:
-   *
-   * 1) a good and a bad point have the same feature vector
-   * 2) the first point of a relative pair has the same feature vector of a
-   * good point and the second point has the same vector of a bad point
-   *
-   * If there is a conflict, this function returns false and waits for a new
-   * feature to try to solve the conflicts.
-   *
-   * Once points can be separated without conflicts, a CNF is built (not using
-   * synthesis) with the features, thus yielding the candidate invariant.
-   *
-   * The spearation of the points is left for a core algorithm (e.g. decision
-   * tree learning) this module depends on.
+   * This function also excludes models where (terms = terms_values) by adding
+   * blocking clauses to lems. For example, for grammar:
+   *   A -> A+A | x | 1 | 0
+   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
+   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
+   * to lems, where G is active guard of the enumerator d (see
+   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
+   * indicates that d should not be given the model value +( x, 1 ) anymore,
+   * since { d -> +( x, 1 ) } has now been added to the database of this class.
    */
   bool constructCandidates(const std::vector<Node>& enums,
                            const std::vector<Node>& enum_values,
@@ -127,41 +87,25 @@ class CegisUnif : public SygusModule
                            std::vector<Node>& candidate_values,
                            std::vector<Node>& lems) override;
 
-  /** Performs conflict analysis to obtain refinement points
+  /** Communicate refinement lemma to unification utility and external modules
    *
-   * For function synthesis the lemma is registered as it is.
+   * For the lemma to be sent to the external modules it adds a guard from the
+   * parent conjecture which establishes that if the conjecture has a solution
+   * then it must satisfy this refinement lemma
    *
-   * For invariant synthesis it works as follows:
+   * For the lemma to be sent to the unification utility it purifies the
+   * arguments of the function-to-synthensize such that all of its applications
+   * are over concrete values. E.g.:
+   *   f(f(f(0))) > 1
+   * becomes
+   *   f(0) != c1 v f(c1) != c2 v f(c2) > 1
+   * in which c1 and c2 are concrete integer values
    *
-   * The conjecture being tested with our candidate has (some equivalent of) the
-   * form
-   *
-   * exists J.forall xx'.   Pre(x) => J(x) && Post(x)
-   *                     && J(x) && Post(x) && Trans(x, x') => J(x') && Post(x')
-   *                     && J(x) && Post(x) => Post(x)
-   *
-   * since we are trying to build a J such that we can yield an invariant of the
-   * form J(x) && Post(x).
-   *
-   * When the test of the conjecture fails we obtain values t and t' (for x and
-   * x') as counterexamples, and consider three cases:
-   *
-   * 1) The invariant must be weakened (i.e. the first conjuct fails)
-   * 2) The invariant must be strengthned (i.e. the second conjuct fails)
-   *    2.1) if Post(t) && Trans(t, t') => Post(t') does not hold, then this
-   *    counterexample is indepedent of our candidate: no matter the invariant,
-   *    it must *never* hold on t.
-   *    2.2) otherwise J(t) => J(t') does not hold, then this counterexample
-   *    depends on the candidate
-   *
-   * Good points are derived from t in case (1) and bad points from t in case
-   * (2.1). Relative points compose a pair with [t, t'], from case (2.2).
-   *
-   * Conflict analysis amounts to simplifying the refinement lemma, which will
-   * yield one of the three cases
-   *
-   * This function does not modify lems since it does not require solutions to
-   * be blocked externally */
+   * Note that the lemma is in the deep embedding, which means that the above
+   * example would actually correspond to
+   *   eval(d, 0) != c1 v eval(d, c1) != c2 v eval(d, c2) > 1
+   * in which d is the deep embedding of the function-to-synthesize f
+  */
   void registerRefinementLemma(const std::vector<Node>& vars,
                                Node lem,
                                std::vector<Node>& lems) override;
@@ -173,7 +117,7 @@ class CegisUnif : public SygusModule
    * tree learning) that this module relies upon.
    */
   SygusUnifRl d_sygus_unif;
-  /* Candidate function-to-synthesize */
+  /* Function-to-synthesize (in deep embedding) */
   Node d_candidate;
   /**
    * list of enumerators being used to build solutions for candidate by the
