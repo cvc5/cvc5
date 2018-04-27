@@ -2509,7 +2509,10 @@ std::vector<Node> NonlinearExtension::checkFactoring(
                   factor_to_mono_orig[itm->first[i]].push_back( itm->first );
                 }
               }
-            }else{
+            }
+            else if( options::nlExtFactorAgg() )
+            {
+              // aggressive factoring considers linear monomials
               factor_to_mono[itm->first].push_back( itm->second.isNull() ? d_one : itm->second );
               factor_to_mono_orig[itm->first].push_back( itm->first );
             }
