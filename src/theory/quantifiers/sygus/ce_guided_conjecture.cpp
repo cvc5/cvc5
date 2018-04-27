@@ -42,6 +42,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, this)),
       d_master(nullptr),
       d_refine_count(0),
       d_syntax_guided(false)
@@ -49,6 +50,10 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
   if (options::sygusPbe())
   {
     d_modules.push_back(d_ceg_pbe.get());
+  }
+  if (options::sygusUnif())
+  {
+    d_modules.push_back(d_ceg_cegisUnif.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
 }
