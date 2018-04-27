@@ -26,6 +26,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+typedef std::pair<bool, Node> BoolNodePair;
+using BoolNodePairHashFunction =
+    PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
+typedef std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>
+    BoolNodePairMap;
+
 /** Synthesizes functions in a data-driven SyGuS approach
  *
  * Data is derived from refinement lemmas generated through the regular CEGIS
@@ -130,24 +136,19 @@ class CegisUnif : public SygusModule
   /* list of learned refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
   /**
-  * This is called on the refinement lemma and will replace the argumets of the
-  * function-to-synthesize by their model values. It populates a vector of
-  * guards with the (negated) equalities between the original args and their
-  * model values vectors.
+  * This is called on the refinement lemma and will replace the arguments of the
+  * function-to-synthesize by their model values (constants).
+  *
+  * When the traversal hits a function application of the function-to-synthesize
+  * it will proceed to ensure that the arguments of that function application
+  * are constants (the ensureConst becomes "true"). It populates a vector of
+  * guards with the (negated) equalities between the original arguments and
+  * their model values.
   */
   Node purifyLemma(Node n,
+                   bool ensureConst,
                    std::vector<Node>& model_guards,
-                   std::unordered_map<Node, Node, NodeHashFunction>& cache);
-
-  /**
-  * This is called on an application of the function-to-synthesize to purify its
-  * arguments such that they do not contain the function-to-synthesize. It
-  * populates a vector of guards with the (negated) equalities between the
-  * original args and their model values vectors.
-  */
-  Node purifyFuncApp(Node n,
-                     std::vector<Node>& model_guards,
-                     std::unordered_map<Node, Node, NodeHashFunction>& cache);
+                   BoolNodePairMap& cache);
 
 }; /* class CegisUnif */
 
