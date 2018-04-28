@@ -597,7 +597,16 @@ private:
   //-----------------------inference steps
   /** check initial
    *
-   * This function initializes 
+   * This function initializes term indices for each strings function symbol.
+   * One key aspect of this construction is that concat terms are indexed by
+   * their list of non-empty components. For example, if x = "" is an equality
+   * asserted in this SAT context, then y ++ x ++ z may be indexed by (y,z).
+   * This method may infer various facts while building these term indices, for 
+   * instance, based on congruence. An example would be inferring:
+   *   y ++ x ++ z = y ++ z
+   * in this example, if both terms are registered in this SAT context.
+   * 
+   * This function should be called as a first step of any strategy.
    */
   void checkInit();
   /** check constant equivalence classes
@@ -654,17 +663,32 @@ private:
   void checkLengthsEqc();
   /** check extended function reductions 
    * 
+   * This adds "reduction" lemmas for each active extended function in this SAT
+   * context. These are generally lemmas of the form:
+   *   F[t1...tn,k] ^ f( t1 ... tn ) = k
+   * where f( t1 ... tn ) is an active extended function, k is a fresh constant
+   * and F is a formula that constrains k based on the definition of f.
    * 
+   * For more details, this is step 7 from Strategy 1 in Reynolds et al, 
+   * "Scaling up DPLL(T) String Solvers using Context-Dependent Simplification", 
+   * CAV 2017.
    */
   void checkExtfReductions( int effort );
   /** check regular expression memberships
    *
-   * 
+   * This checks the satisfiability of all regular expression memberships
+   * of the form (not) s in R. We use various heuristic techniques based on
+   * unrolling, combined with techniques from Liang et al, "A Decision Procedure
+   * for Regular Membership and Length Constraints over Unbounded Strings",
+   * FroCoS 2015.
    */
   void checkMemberships();
   /** check cardinality
    *
-   * 
+   * This function checks whether a cardinality inference needs to be applied
+   * to a set of equivalence classes. For details, see Step 5 of the proof
+   * procedure from Liang et al, "A DPLL(T)-based String Theory for a Theory of
+   * Strings and Regular Expressions", CAV 2014.
    */
   void checkCardinality();
   //-----------------------end inference steps
