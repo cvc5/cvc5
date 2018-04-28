@@ -59,6 +59,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   switch (s)
   {
     case CHECK_INIT: out << "check_init"; break;
+    case CHECK_CONST_EQC: out << "check_const_eqc";break;
     case CHECK_EXTF_EVAL: out << "check_ext_fun_evaluation"; break;
     case CHECK_CYCLES: out << "check_cycles"; break;
     case CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
@@ -818,10 +819,10 @@ void TheoryStrings::checkExtfReductions( int effort ) {
   //getExtTheory()->doReductions( effort, nred, false );
 
   std::vector< Node > extf = getExtTheory()->getActive();
-  Trace("strings-process") << "checking " << extf.size() << " active extf" << std::endl;
+  Trace("strings-process") << "  checking " << extf.size() << " active extf" << std::endl;
   for( unsigned i=0; i<extf.size(); i++ ){
     Node n = extf[i];
-    Trace("strings-process") << "Check " << n << ", active in model=" << d_extf_info_tmp[n].d_model_active << std::endl;
+    Trace("strings-process") << "  check " << n << ", active in model=" << d_extf_info_tmp[n].d_model_active << std::endl;
     Node nr;
     int ret = getReduction( effort, n, nr );
     Assert( nr.isNull() );
@@ -1226,19 +1227,18 @@ void TheoryStrings::checkInit() {
       Trace("strings-process") << "  Terms[" << it->first << "] = " << ncongruent[it->first] << "/" << (congruent[it->first]+ncongruent[it->first]) << std::endl;
     }
   }
-  Trace("strings-process") << "Done check init, addedLemma = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  //now, infer constants for equivalence classes
-  if( !hasProcessed() ){
-    //do fixed point
-    unsigned prevSize;
-    do{
-      Trace("strings-process-debug") << "Check constant equivalence classes..." << std::endl;
-      prevSize = d_eqc_to_const.size();
-      std::vector< Node > vecc;
-      checkConstantEquivalenceClasses( &d_term_index[kind::STRING_CONCAT], vecc );
-    }while( !hasProcessed() && d_eqc_to_const.size()>prevSize );
-    Trace("strings-process") << "Done check constant equivalence classes, addedLemma = " << !d_pending.empty() << " " << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  }
+}
+
+void TheoryStrings::checkConstantEquivalenceClasses()
+{
+  //do fixed point
+  unsigned prevSize;
+  do{
+    Trace("strings-process-debug") << "Check constant equivalence classes..." << std::endl;
+    prevSize = d_eqc_to_const.size();
+    std::vector< Node > vecc;
+    checkConstantEquivalenceClasses( &d_term_index[kind::STRING_CONCAT], vecc );
+  }while( !hasProcessed() && d_eqc_to_const.size()>prevSize );
 }
 
 void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc ) {
@@ -2100,7 +2100,6 @@ void TheoryStrings::checkNormalForms(){
     }
   }
   if( !hasProcessed() ){
-    Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
     //calculate normal forms for each equivalence class, possibly adding splitting lemmas
     d_normal_forms.clear();
     d_normal_forms_exp.clear();
@@ -4752,6 +4751,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
   switch (s)
   {
     case CHECK_INIT: checkInit(); break;
+    case CHECK_CONST_EQC: checkConstantEquivalenceClasses();break;
     case CHECK_EXTF_EVAL: checkExtfEval(effort); break;
     case CHECK_CYCLES: checkCycles(); break;
     case CHECK_FLAT_FORMS: checkFlatForms(); break;
@@ -4777,6 +4777,8 @@ void TheoryStrings::initializeStrategy()
   {
     d_strategy_init = true;
     d_infer_steps.push_back(CHECK_INIT);
+    d_infer_step_effort.push_back(0);
+    d_infer_steps.push_back(CHECK_CONST_EQC);
     d_infer_step_effort.push_back(0);
     d_infer_steps.push_back(CHECK_EXTF_EVAL);
     d_infer_step_effort.push_back(0);

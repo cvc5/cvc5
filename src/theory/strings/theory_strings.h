@@ -97,6 +97,7 @@ std::ostream& operator<<(std::ostream& out, Inference i);
 enum InferStep
 {
   CHECK_INIT,
+  CHECK_CONST_EQC,
   CHECK_EXTF_EVAL,
   CHECK_CYCLES,
   CHECK_FLAT_FORMS,
@@ -600,6 +601,10 @@ private:
    *
    */
   void checkInit();
+  /** check constant equivalence classes 
+   *
+   */
+  void checkConstantEquivalenceClasses();
   /** check extended functions evaluation
    *
    */
@@ -637,6 +642,8 @@ private:
    */
   void checkCardinality();
   //-----------------------end inference steps
+  
+  //-----------------------representation of the strategy
   /** is strategy initialized */
   bool d_strategy_init;
   /** run the given inference step */
@@ -652,6 +659,8 @@ private:
   void initializeStrategy();
   /** run the strategy */
   void runStrategy(unsigned sbegin, unsigned send);
+  //-----------------------end representation of the strategy
+  
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
