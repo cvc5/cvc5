@@ -477,6 +477,8 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
+  // initialize the strategy
+  initializeStrategy();
 }
 
 
@@ -740,8 +742,8 @@ void TheoryStrings::check(Effort e) {
   doPendingFacts();
 
   if( !d_conflict && ( ( e == EFFORT_FULL && !d_valuation.needCheck() ) || ( e==EFFORT_STANDARD && options::stringEager() ) ) ) {
-    Trace("strings-check") << "Theory of strings full effort check " << std::endl;
-    initializeStrategy();
+    Trace("strings-check") << "Theory of strings " << e << " effort check " << std::endl;
+    Assert( d_strategy_init );
 
     if(Trace.isOn("strings-eqc")) {
       for( unsigned t=0; t<2; t++ ) {
@@ -1543,23 +1545,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           Trace("strings-extf-debug") << "  redundant." << std::endl;
           getExtTheory()->markReduced( n );
         }
-      }
-    }
-  }
-}
-
-void TheoryStrings::collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
-  if( !n.isConst() ){
-    if( visited.find( n )==visited.end() ){
-      visited[n] = true;
-      if( n.getNumChildren()>0 ){
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          collectVars( n[i], vars, visited );
-        }
-      }else{
-        //Node nr = getRepresentative( n );
-        //vars[nr].push_back( n );
-        vars.push_back( n );
       }
     }
   }

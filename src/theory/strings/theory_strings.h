@@ -375,7 +375,6 @@ private:
   };
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
-  void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
 
   //--------------------------for checkCycles
