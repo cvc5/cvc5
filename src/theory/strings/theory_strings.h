@@ -747,25 +747,25 @@ private:
   std::map<Effort, unsigned> d_step_begin;
   std::map<Effort, unsigned> d_step_end;
   /** has effort */
-  bool hasStrategyEffort( Effort e ) const;
-  /** initialize the strategy 
-   * 
+  bool hasStrategyEffort(Effort e) const;
+  /** initialize the strategy
+   *
    * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
    * d_infer_step_effort. This indicates that a call to runInferStep should
    * be run as the next step in the strategy. If addBreak is true, we add
    * a BREAK to the strategy following this step.
    */
   void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
-  /** initialize the strategy 
-   * 
+  /** initialize the strategy
+   *
    * This initializes the above information based on the options. This makes
    * a series of calls to addStrategyStep above.
    */
   void initializeStrategy();
-  /** run strategy 
-   * 
+  /** run strategy
+   *
    * This executes the inference steps starting at index sbegin and ending at
-   * index send. We exit if any step in this sequence adds a lemma or infers a 
+   * index send. We exit if any step in this sequence adds a lemma or infers a
    * fact.
    */
   void runStrategy(unsigned sbegin, unsigned send);

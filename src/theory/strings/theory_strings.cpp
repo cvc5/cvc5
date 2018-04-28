@@ -743,7 +743,8 @@ void TheoryStrings::check(Effort e) {
   doPendingFacts();
 
   Assert(d_strategy_init);
-  if( !d_conflict && !d_valuation.needCheck() && hasStrategyEffort(e) ) {
+  if (!d_conflict && !d_valuation.needCheck() && hasStrategyEffort(e))
+  {
     Trace("strings-check") << "Theory of strings " << e << " effort check "
                            << std::endl;
     if(Trace.isOn("strings-eqc")) {
@@ -4746,17 +4747,16 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
                            << ", d_conflict = " << d_conflict << std::endl;
 }
 
-
-bool TheoryStrings::hasStrategyEffort( Effort e ) const 
-{ 
-  return d_step_begin.find(e)!=d_step_begin.end(); 
+bool TheoryStrings::hasStrategyEffort(Effort e) const
+{
+  return d_step_begin.find(e) != d_step_begin.end();
 }
 
 void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
 {
   d_infer_steps.push_back(s);
   d_infer_step_effort.push_back(effort);
-  if( addBreak )
+  if (addBreak)
   {
     d_infer_steps.push_back(BREAK);
     d_infer_step_effort.push_back(0);
@@ -4803,9 +4803,9 @@ void TheoryStrings::initializeStrategy()
     {
       d_step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
       // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_EVAL,3,false);
+      addStrategyStep(CHECK_EXTF_EVAL, 3, false);
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);
-      d_step_end[EFFORT_LAST_CALL] = d_infer_steps.size()-1;
+      d_step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
   }
 }
@@ -4816,7 +4816,7 @@ void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
   for (unsigned i = sbegin; i <= send; i++)
   {
     InferStep curr = d_infer_steps[i];
-    if( curr==BREAK )
+    if (curr == BREAK)
     {
       if (hasProcessed())
       {
@@ -4826,7 +4826,7 @@ void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
     else
     {
       runInferStep(curr, d_infer_step_effort[i]);
-      if( d_conflict )
+      if (d_conflict)
       {
         break;
       }
