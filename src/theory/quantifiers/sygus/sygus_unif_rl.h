@@ -38,7 +38,7 @@ class SygusUnifRl : public SygusUnif
 
   /** initialize */
   void initialize(QuantifiersEngine* qe,
-                  Node f,
+                  const std::vector<Node>& funs,
                   std::vector<Node>& enums,
                   std::vector<Node>& lemmas) override;
   /** Notify enumeration */
@@ -86,7 +86,9 @@ class SygusUnifRl : public SygusUnif
    * In particular it rebuilds d_app_to_pt whenever d_prev_rlemmas is different
    * from d_rlemmas, in which case we may have added or removed data points
    */
-  void initializeConstructSol() override;
+  void initializeConstructSol() override;  
+  /** initialize construction solution for function-to-synthesize f */
+  void initializeConstructSolFor(Node f) override;
   /**
    * Returns a term covering all data points in the current branch, on null if
    * none can be found among the currently enumerated values for the respective
@@ -95,7 +97,7 @@ class SygusUnifRl : public SygusUnif
   Node canCloseBranch(Node e);
 
   /** construct solution */
-  Node constructSol(Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */

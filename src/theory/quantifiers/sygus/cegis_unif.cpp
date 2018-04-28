@@ -44,7 +44,7 @@ bool CegisUnif::initialize(Node n,
   d_candidate = candidates[0];
   Trace("cegis-unif") << "Initialize unif utility for " << d_candidate
                       << "...\n";
-  d_sygus_unif.initialize(d_qe, d_candidate, d_enums, lemmas);
+  d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
   Assert(!d_enums.empty());
   Trace("cegis-unif") << "Initialize " << d_enums.size() << " enumerators for "
                       << d_candidate << "...\n";
@@ -129,14 +129,13 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   }
   /* build candidate solution */
   Assert(candidates.size() == 1);
-  Node vc = d_sygus_unif.constructSolution();
-  Trace("cegis-unif-enum") << "... candidate solution :" << vc << "\n";
-  if (vc.isNull())
+  if( d_sygus_unif.constructSolution(candidate_values) )
   {
-    return false;
+    Node vc = candidate_values[0];
+    Trace("cegis-unif-enum") << "... candidate solution :" << vc << "\n";
+    return true;
   }
-  candidate_values.push_back(vc);
-  return true;
+  return false;
 }
 
 Node CegisUnif::purifyLemma(Node n,

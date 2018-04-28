@@ -29,18 +29,13 @@ namespace quantifiers {
 /** Sygus unification utility
  *
  * This utility implements synthesis-by-unification style approaches for a
- * single function to synthesize f.
- * These approaches include a combination of:
+ * set of functions-to-synthesize. These approaches include a combination of:
  * (1) Decision tree learning, inspired by Alur et al TACAS 2017,
  * (2) Divide-and-conquer via string concatenation.
  *
- * This class maintains:
+ * This class maintains, for each function-to-synthesize f:
  * (1) A "strategy tree" based on the syntactic restrictions for f that is
  * constructed during initialize (d_strategy),
- * (2) A set of input/output examples that are the specification for f. This
- * can be updated via calls to resetExmaples/addExamples,
- * (3) A set of terms that have been enumerated for enumerators (d_ecache). This
- * can be updated via calls to notifyEnumeration.
  *
  * Based on the above, solutions can be constructed via calls to
  * constructSolution.
@@ -53,8 +48,8 @@ class SygusUnif
 
   /** initialize
    *
-   * This initializes this class with function-to-synthesize f. We also call
-   * f the candidate variable.
+   * This initializes this class with functions-to-synthesize funs. We also call
+   * these "candidate variables".
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that
@@ -66,7 +61,7 @@ class SygusUnif
    * strategy is ITE_strat).
    */
   virtual void initialize(QuantifiersEngine* qe,
-                          Node f,
+                          const std::vector<Node>& funs,
                           std::vector<Node>& enums,
                           std::vector<Node>& lemmas);
 
@@ -78,12 +73,12 @@ class SygusUnif
   virtual void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) = 0;
   /** construct solution
    *
-   * This attempts to construct a solution based on the current set of
-   * enumerated values. Returns null if it cannot (for example, if the
-   * set of enumerated values is insufficient, or if a non-deterministic
-   * strategy aborts).
+   * This attempts to construct a solution for each function-to-synthesize 
+   * based on the current set of enumerated values. Returns null if it cannot 
+   * for some function (for example, if the set of enumerated values is 
+   * insufficient, or if a non-deterministic strategy aborts).
    */
-  virtual Node constructSolution();
+  virtual bool constructSolution(std::vector<Node>& sols);
 
  protected:
   /** reference to quantifier engine */
@@ -99,10 +94,10 @@ class SygusUnif
                         std::vector<Node>& vals,
                         bool pol = true);
   //-----------------------end debug printing
-  /** the candidate for this class */
-  Node d_candidate;
+  /** the candidates for this class */
+  std::vector< Node> d_candidates;
   /** maps a function-to-synthesize to the above information */
-  SygusUnifStrategy d_strategy;
+  std::map< Node, SygusUnifStrategy > d_strategy;
 
   /** domain-specific enumerator exclusion techniques
    *
@@ -139,6 +134,12 @@ class SygusUnif
    * Called once before each attempt to construct solutions.
    */
   virtual void initializeConstructSol() = 0;
+  /** implementation-dependent initialize construct solution
+   *
+   * Called once before each attempt to construct solution for a 
+   * function-to-synthesize f.
+   */
+  virtual void initializeConstructSolFor(Node f) = 0;
   /** implementation-dependent function for construct solution.
    *
    * Construct a solution based on enumerator e for function-to-synthesize of
@@ -146,7 +147,7 @@ class SygusUnif
    *
    * ind is the term depth of the context (for debugging).
    */
-  virtual Node constructSol(Node e, NodeRole nrole, int ind) = 0;
+  virtual Node constructSol(Node f,Node e, NodeRole nrole, int ind) = 0;
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   virtual Node constructBestSolvedTerm(const std::vector<Node>& solved);
