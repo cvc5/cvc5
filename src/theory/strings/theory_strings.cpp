@@ -4803,8 +4803,8 @@ void TheoryStrings::initializeStrategy()
     {
       d_step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
       // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_EVAL, 3, false);
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2);
+      addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
+      addStrategyStep(CHECK_EXTF_EVAL, 3);
       d_step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
   }

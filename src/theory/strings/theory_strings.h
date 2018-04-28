@@ -746,7 +746,7 @@ private:
   /** the steps to run at various efforts */
   std::map<Effort, unsigned> d_step_begin;
   std::map<Effort, unsigned> d_step_end;
-  /** has effort */
+  /** do we have a strategy for effort e? */
   bool hasStrategyEffort(Effort e) const;
   /** initialize the strategy
    *
