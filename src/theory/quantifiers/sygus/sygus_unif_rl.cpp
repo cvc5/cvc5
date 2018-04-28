@@ -42,7 +42,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
-  Trace("sygus-unif-rl-notify") << "SyGuS-Unif-Rl: Adding to enum " << e
+  Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
                                 << " value " << v << "\n";
   d_ecache[e].d_enum_vals.push_back(v);
   /* Exclude v from next enumerations for e */
@@ -51,7 +51,6 @@ void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Trace("sygus-unif-rl-notify")
       << "SygusUnifRl : enumeration exclude lemma : " << exc_lemma << std::endl;
   lemmas.push_back(exc_lemma);
-  d_check_sol = true;
 }
 
 void SygusUnifRl::addRefLemma(Node lemma)
@@ -60,7 +59,7 @@ void SygusUnifRl::addRefLemma(Node lemma)
   d_rlemmas = d_tds->getExtRewriter()->extendedRewrite(
       NodeManager::currentNM()->mkNode(AND, d_rlemmas, lemma));
   Trace("sygus-unif-rl-lemma")
-      << "SyGuS-Unif-Rl: New collection of ref lemmas is " << d_rlemmas << "\n";
+      << "SyGuSUnifRl: New collection of ref lemmas is " << d_rlemmas << "\n";
   d_hasRLemmas = d_rlemmas != d_true;
   Trace("sygus-unif-rl-lemma") << "...got d_hasRLemmas = " << d_hasRLemmas
                                << " and (d_rlemmas != d_prev_rlemmas) = "
@@ -109,11 +108,11 @@ void SygusUnifRl::initializeConstructSol()
     collectPoints(d_rlemmas);
     if (Trace.isOn("sygus-unif-rl-sol"))
     {
-      Trace("sygus-unif-rl-sol") << "SyGuS-Unif-Rl: Points from " << d_rlemmas
-                                 << "\n...";
+      Trace("sygus-unif-rl-sol") << "SyGuSUnifRl: Points from " << d_rlemmas
+                                 << "\n";
       for (const std::pair<Node, std::vector<Node>>& pair : d_app_to_pt)
       {
-        Trace("sygus-unif-rl-sol") << "[" << pair.first << "] --> (";
+        Trace("sygus-unif-rl-sol") << "...[" << pair.first << "] --> (";
         for (const Node& pt_i : pair.second)
         {
           Trace("sygus-unif-rl-sol") << pt_i << " ";
@@ -138,7 +137,7 @@ Node SygusUnifRl::canCloseBranch(Node e)
 {
   if (!d_hasRLemmas && !d_ecache[e].d_enum_vals.empty())
   {
-    Trace("sygus-unif-rl-sol") << "SyGuS-Unif-Rl: Closed branch and yielded "
+    Trace("sygus-unif-rl-sol") << "SyGuSUnifRl: Closed branch and yielded "
                                   << d_ecache[e].d_enum_vals[0] << "\n";
     return d_ecache[e].d_enum_vals[0];
   }
