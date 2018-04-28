@@ -601,7 +601,7 @@ private:
    *
    */
   void checkInit();
-  /** check constant equivalence classes 
+  /** check constant equivalence classes
    *
    */
   void checkConstantEquivalenceClasses();
@@ -642,7 +642,7 @@ private:
    */
   void checkCardinality();
   //-----------------------end inference steps
-  
+
   //-----------------------representation of the strategy
   /** is strategy initialized */
   bool d_strategy_init;
@@ -660,7 +660,7 @@ private:
   /** run the strategy */
   void runStrategy(unsigned sbegin, unsigned send);
   //-----------------------end representation of the strategy
-  
+
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
