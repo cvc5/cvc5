@@ -1794,19 +1794,21 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
     std::vector<Node> exp;
     Node conc;
     int inf_type = -1;
-    unsigned isize = eqc.size();
-    if (count == d_flat_form[a].size())
+    unsigned eqc_size = eqc.size();
+    unsigned asize = d_flat_form[a].size();
+    if (count == asize)
     {
-      for (unsigned i = start + 1; i < isize; i++)
+      for (unsigned i = start + 1; i < eqc_size; i++)
       {
         b = eqc[i];
         if (std::find(inelig.begin(), inelig.end(), b) == inelig.end())
         {
-          if (count < d_flat_form[b].size())
+          unsigned bsize = d_flat_form[b].size();
+          if (count < bsize)
           {
             // endpoint
             std::vector<Node> conc_c;
-            for (unsigned j = count; j < d_flat_form[b].size(); j++)
+            for (unsigned j = count; j < bsize; j++)
             {
               conc_c.push_back(
                   b[d_flat_form_index[b][j]].eqNode(d_emptyString));
@@ -1832,7 +1834,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       Node ac = a[d_flat_form_index[a][count]];
       std::vector<Node> lexp;
       Node lcurr = getLength(ac, lexp);
-      for (unsigned i = 1; i < isize; i++)
+      for (unsigned i = 1; i < eqc_size; i++)
       {
         b = eqc[i];
         if (std::find(inelig.begin(), inelig.end(), b) == inelig.end())
@@ -1842,7 +1844,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             inelig.push_back(b);
             // endpoint
             std::vector<Node> conc_c;
-            for (unsigned j = count; j < d_flat_form[a].size(); j++)
+            for (unsigned j = count; j < asize; j++)
             {
               conc_c.push_back(
                   a[d_flat_form_index[a][j]].eqNode(d_emptyString));
