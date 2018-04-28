@@ -377,6 +377,16 @@ private:
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
 
+  //--------------------------for checkFlatForm
+  /** 
+   * This checks whether there are flat form inferences between eqc[start] and
+   * eqc[j] for some j>start. If the flag isRev is true, we check for flat form
+   * interferences in the reverse direction of the flat forms. For more details,
+   * see checkFlatForms below.
+   */
+  void checkFlatForm( std::vector< Node >& eqc, unsigned start, bool isRev );
+  //--------------------------end for checkFlatForm
+  
   //--------------------------for checkCycles
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //--------------------------end for checkCycles
