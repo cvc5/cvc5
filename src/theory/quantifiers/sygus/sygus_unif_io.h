@@ -252,10 +252,10 @@ class SubsumeTrie
  * This class implement synthesis-by-unification, where the specification is
  * I/O examples. With respect to SygusUnif, it's main interface function is
  * addExample, which adds an I/O example to the specification.
- * 
+ *
  * Since I/O specifications for multiple functions can be fully separated, we
  * assume that this class is used only for a single function to synthesize.
- * 
+ *
  * In addition to the base class which maintains a strategy tree, this class
  * maintains:
  * (1) A set of input/output examples that are the specification for f. This
@@ -271,8 +271,8 @@ class SygusUnifIo : public SygusUnif
   SygusUnifIo();
   ~SygusUnifIo();
 
-  /** initialize 
-   * 
+  /** initialize
+   *
    * The vector funs should be of length one, since I/O specifications across
    * multiple functions can be separated.
    */
@@ -373,8 +373,8 @@ class SygusUnifIo : public SygusUnif
   /** maps enumerators to the information above */
   std::map<Node, EnumCache> d_ecache;
   /** Construct solution node
-   * 
-   * This is called for the (single) function-to-synthesize during a call to 
+   *
+   * This is called for the (single) function-to-synthesize during a call to
    * constructSolution. If this returns a non-null node, then that term is a
    * solution for the function-to-synthesize in the overall conjecture.
    */
@@ -415,7 +415,7 @@ class SygusUnifIo : public SygusUnif
   /** initialize construct solution for */
   void initializeConstructSolFor(Node f) override;
   /** construct solution */
-  Node constructSol(Node f,Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */

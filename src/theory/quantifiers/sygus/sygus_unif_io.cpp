@@ -466,13 +466,12 @@ SygusUnifIo::SygusUnifIo() : d_check_sol(false), d_cond_count(0)
 }
 
 SygusUnifIo::~SygusUnifIo() {}
-
 void SygusUnifIo::initialize(QuantifiersEngine* qe,
                              const std::vector<Node>& funs,
                              std::vector<Node>& enums,
                              std::vector<Node>& lemmas)
 {
-  Assert( funs.size()==1 );
+  Assert(funs.size() == 1);
   d_examples.clear();
   d_examples_out.clear();
   d_ecache.clear();
@@ -682,7 +681,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 bool SygusUnifIo::constructSolution(std::vector<Node>& sols)
 {
   Node sol = constructSolutionNode();
-  if( !sol.isNull() )
+  if (!sol.isNull())
   {
     sols.push_back(sol);
     return true;
@@ -848,12 +847,14 @@ void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 }
 
 void SygusUnifIo::initializeConstructSol() { d_context.initialize(this); }
-
-void SygusUnifIo::initializeConstructSolFor(Node f) { Assert( d_candidate==f ); }
+void SygusUnifIo::initializeConstructSolFor(Node f)
+{
+  Assert(d_candidate == f);
+}
 
 Node SygusUnifIo::constructSol(Node f, Node e, NodeRole nrole, int ind)
 {
-  Assert( d_candidate==f ); 
+  Assert(d_candidate == f);
   UnifContextIo& x = d_context;
   TypeNode etn = e.getType();
   if (Trace.isOn("sygus-sui-dt-debug"))

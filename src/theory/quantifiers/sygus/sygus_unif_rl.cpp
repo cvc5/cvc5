@@ -25,7 +25,6 @@ namespace quantifiers {
 SygusUnifRl::SygusUnifRl() {}
 
 SygusUnifRl::~SygusUnifRl() {}
-
 void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              const std::vector<Node>& funs,
                              std::vector<Node>& enums,
@@ -120,11 +119,7 @@ void SygusUnifRl::initializeConstructSol()
   }
 }
 
-void SygusUnifRl::initializeConstructSolFor(Node f)
-{
-  
-}
-
+void SygusUnifRl::initializeConstructSolFor(Node f) {}
 Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
 {
   Node solution = canCloseBranch(e);

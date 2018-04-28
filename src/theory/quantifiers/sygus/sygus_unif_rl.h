@@ -86,7 +86,7 @@ class SygusUnifRl : public SygusUnif
    * In particular it rebuilds d_app_to_pt whenever d_prev_rlemmas is different
    * from d_rlemmas, in which case we may have added or removed data points
    */
-  void initializeConstructSol() override;  
+  void initializeConstructSol() override;
   /** initialize construction solution for function-to-synthesize f */
   void initializeConstructSolFor(Node f) override;
   /**

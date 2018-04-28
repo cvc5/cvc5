@@ -143,16 +143,16 @@ bool CegConjecturePbe::initialize(Node n,
       }
     }
   }
-  
-  if( !options::sygusUnifCondSol() )
+
+  if (!options::sygusUnifCondSol())
   {
     // we are not doing unification
     return false;
   }
-  
+
   // check if all candidates are valid examples
   d_is_pbe = true;
-  for( const Node& c : candidates )
+  for (const Node& c : candidates)
   {
     if (d_examples[c].empty()
         || d_examples_out_invalid.find(c) != d_examples_out_invalid.end())
@@ -161,19 +161,20 @@ bool CegConjecturePbe::initialize(Node n,
       return false;
     }
   }
-  for( const Node& c : candidates )
+  for (const Node& c : candidates)
   {
-    Assert( d_examples.find( c )!=d_examples.end() );
+    Assert(d_examples.find(c) != d_examples.end());
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
-                        << std::endl;
-    std::vector< Node > singleton_c;
+                       << std::endl;
+    std::vector<Node> singleton_c;
     singleton_c.push_back(c);
-    d_sygus_unif[c].initialize(d_qe, singleton_c, d_candidate_to_enum[c], lemmas);
+    d_sygus_unif[c].initialize(
+        d_qe, singleton_c, d_candidate_to_enum[c], lemmas);
     Assert(!d_candidate_to_enum[c].empty());
     Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
-                        << " enumerators for " << c << "..." << std::endl;
+                       << " enumerators for " << c << "..." << std::endl;
     // initialize the enumerators
-    for( const Node& e : d_candidate_to_enum[c] )
+    for (const Node& e : d_candidate_to_enum[c])
     {
       d_tds->registerEnumerator(e, c, d_parent, true);
       Node g = d_tds->getActiveGuardForEnumerator(e);
@@ -181,7 +182,7 @@ bool CegConjecturePbe::initialize(Node n,
       d_enum_to_candidate[e] = c;
     }
     Trace("sygus-pbe") << "Initialize " << d_examples[c].size()
-                        << " example points for " << c << "..." << std::endl;
+                       << " example points for " << c << "..." << std::endl;
     // initialize the examples
     for (unsigned i = 0, nex = d_examples[c].size(); i < nex; i++)
     {
@@ -391,14 +392,14 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node c = candidates[i];
     //build decision tree for candidate
-    std::vector< Node > sol;
-    if( d_sygus_unif[c].constructSolution(sol) )
+    std::vector<Node> sol;
+    if (d_sygus_unif[c].constructSolution(sol))
     {
-      Assert( sol.size()==1 );
-      candidate_values.push_back( sol[0] );
+      Assert(sol.size() == 1);
+      candidate_values.push_back(sol[0]);
     }
     else
-    {     
+    {
       return false;
     }
   }

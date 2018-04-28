@@ -29,7 +29,6 @@ namespace quantifiers {
 SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
 
 SygusUnif::~SygusUnif() {}
-
 void SygusUnif::initialize(QuantifiersEngine* qe,
                            const std::vector<Node>& funs,
                            std::vector<Node>& enums,
@@ -38,9 +37,9 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
   Assert(d_candidates.empty());
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
-  for( const Node& f : funs )
+  for (const Node& f : funs)
   {
-    d_candidates.push_back( f );
+    d_candidates.push_back(f);
     // initialize the strategy
     d_strategy[f].initialize(qe, f, enums, lemmas);
   }
@@ -50,14 +49,14 @@ bool SygusUnif::constructSolution(std::vector<Node>& sols)
 {
   // initialize a call to construct solution
   initializeConstructSol();
-  for( const Node& f : d_candidates )
+  for (const Node& f : d_candidates)
   {
     // initialize a call to construct solution for function f
     initializeConstructSolFor(f);
     // call the virtual construct solution method
     Node e = d_strategy[f].getRootEnumerator();
-    Node sol = constructSol(f,e, role_equal, 1);
-    if( sol.isNull() )
+    Node sol = constructSol(f, e, role_equal, 1);
+    if (sol.isNull())
     {
       return false;
     }

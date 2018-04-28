@@ -73,9 +73,9 @@ class SygusUnif
   virtual void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) = 0;
   /** construct solution
    *
-   * This attempts to construct a solution for each function-to-synthesize 
-   * based on the current set of enumerated values. Returns null if it cannot 
-   * for some function (for example, if the set of enumerated values is 
+   * This attempts to construct a solution for each function-to-synthesize
+   * based on the current set of enumerated values. Returns null if it cannot
+   * for some function (for example, if the set of enumerated values is
    * insufficient, or if a non-deterministic strategy aborts).
    */
   virtual bool constructSolution(std::vector<Node>& sols);
@@ -95,9 +95,9 @@ class SygusUnif
                         bool pol = true);
   //-----------------------end debug printing
   /** the candidates for this class */
-  std::vector< Node> d_candidates;
+  std::vector<Node> d_candidates;
   /** maps a function-to-synthesize to the above information */
-  std::map< Node, SygusUnifStrategy > d_strategy;
+  std::map<Node, SygusUnifStrategy> d_strategy;
 
   /** domain-specific enumerator exclusion techniques
    *
@@ -136,7 +136,7 @@ class SygusUnif
   virtual void initializeConstructSol() = 0;
   /** implementation-dependent initialize construct solution
    *
-   * Called once before each attempt to construct solution for a 
+   * Called once before each attempt to construct solution for a
    * function-to-synthesize f.
    */
   virtual void initializeConstructSolFor(Node f) = 0;
@@ -147,7 +147,7 @@ class SygusUnif
    *
    * ind is the term depth of the context (for debugging).
    */
-  virtual Node constructSol(Node f,Node e, NodeRole nrole, int ind) = 0;
+  virtual Node constructSol(Node f, Node e, NodeRole nrole, int ind) = 0;
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   virtual Node constructBestSolvedTerm(const std::vector<Node>& solved);

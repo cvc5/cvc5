@@ -129,7 +129,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   }
   /* build candidate solution */
   Assert(candidates.size() == 1);
-  if( d_sygus_unif.constructSolution(candidate_values) )
+  if (d_sygus_unif.constructSolution(candidate_values))
   {
     Node vc = candidate_values[0];
     Trace("cegis-unif-enum") << "... candidate solution :" << vc << "\n";
