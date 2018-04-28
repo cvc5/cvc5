@@ -642,20 +642,20 @@ private:
   void checkExtfEval(int effort = 0);
   /** check cycles
    *
-   * This inference schema ensures that a containment ordering < over the 
+   * This inference schema ensures that a containment ordering < over the
    * string equivalence classes is acyclic. We define this ordering < such that
    * for equivalence classes e1 = { t1...tn } and e2 = { s1...sm }, e1 < e2
    * if there exists a ti whose flat form (see below) is [w1...sj...wk] for
    * some i,j. If e1 < ... < en < e1 for some chain, we infer that the flat
    * form components that do not constitute this chain, e.g. (w1...wk) \ sj
    * in the flat form above, must be empty.
-   * 
+   *
    * For more details, see the inference S-Cycle in Liang et al CAV 2014.
    */
   void checkCycles();
   /** check flat forms
    *
-   * This applies an inference schema based on "flat forms". The flat form of a 
+   * This applies an inference schema based on "flat forms". The flat form of a
    * string term t is a vector of representative terms [r1, ..., rn] such that
    *   E => t = r1 ++ ... ++ rn
    * where E is the current set of assertions. For example, if t is y ++ z ++ z,
@@ -666,17 +666,17 @@ private:
    *   ri = si, if ri !== si, rj == sj for each j < i, and len(ri)=len(si),
    *   rn = sn, if n=m and rj == sj for each j < n,
    *   ri = empty, if n=m+1 and ri == rj for each i=1,...,m.
-   * We refer to these as "unify", "endpoint-eq" and "enpoint-emp" inferences 
+   * We refer to these as "unify", "endpoint-eq" and "enpoint-emp" inferences
    * respectively.
-   * 
+   *
    * Notice that this inference scheme is an optimization and not needed for
    * model-soundness. The motivation for this schema is that it is simpler than
    * checkNormalFormsEq, which can be seen as a recursive version of this
-   * schema (see difference of "normal form" vs "flat form" below), and 
+   * schema (see difference of "normal form" vs "flat form" below), and
    * checkNormalFormsEq is complete, in the sense that if it passes with no
    * inferences, we are ensured that all string equalities in the current
    * context are satisfied.
-   * 
+   *
    * Must call checkCycles before this function in a strategy.
    */
   void checkFlatForms();
@@ -708,7 +708,7 @@ private:
    * where f( t1 ... tn ) is an active extended function, k is a fresh constant
    * and F is a formula that constrains k based on the definition of f.
    *
-   * For more details, this is step 7 from Strategy 1 in Reynolds et al, 
+   * For more details, this is step 7 from Strategy 1 in Reynolds et al,
    * CAV 2017.
    */
   void checkExtfReductions(int effort);
