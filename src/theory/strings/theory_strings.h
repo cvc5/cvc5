@@ -377,8 +377,6 @@ private:
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
-  //check extf reduction
-  void checkExtfReductions( int effort );
 
   //--------------------------for checkCycles
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
@@ -599,46 +597,74 @@ private:
   //-----------------------inference steps
   /** check initial
    *
+   * This function initializes 
    */
   void checkInit();
   /** check constant equivalence classes
    *
+   * This function infers whether CONCAT terms can be simplified to constants.
+   * For example, if x = "a" and y = "b" are equalities in the current SAT
+   * context, then we may infer x ++ "c" ++ y is equivalent to "acb". In this
+   * case, we infer the fact x ++ "c" ++ y = "acb".
    */
   void checkConstantEquivalenceClasses();
   /** check extended functions evaluation
    *
+   * This applies "context-dependent simplification" for all active extended
+   * function terms in this SAT context. This infers facts of the form:
+   *   x = c => f( t1 ... tn ) = c'
+   * where the rewritten form of f( t1...tn ) { x |-> c } is c', and x = c
+   * is a (tuple of) equalities that are asserted in this SAT context, and 
+   * f( t1 ... tn ) is a term from this SAT context.
+   * 
+   * For more details, this is steps 4 (when effort=0) and step 6 (when
+   * effort=1) from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
+   * Solvers using Context-Dependent Simplification", CAV 2017.
    */
   void checkExtfEval(int effort = 0);
   /** check cycles
    *
+   * 
    */
   void checkCycles();
   /** check flat forms
    *
+   * 
    */
   void checkFlatForms();
   /** check normal forms equalities
    *
+   * 
    */
   void checkNormalFormsEq();
   /** check normal forms disequalities
    *
+   * 
    */
   void checkNormalFormsDeq();
   /** check codes
    *
+   * 
    */
   void checkCodes();
   /** check lengths for equivalence classes
    *
+   * 
    */
   void checkLengthsEqc();
+  /** check extended function reductions 
+   * 
+   * 
+   */
+  void checkExtfReductions( int effort );
   /** check regular expression memberships
    *
+   * 
    */
   void checkMemberships();
   /** check cardinality
    *
+   * 
    */
   void checkCardinality();
   //-----------------------end inference steps
@@ -655,6 +681,8 @@ private:
   /** the steps to run at various efforts */
   std::map<Effort, unsigned> d_step_begin;
   std::map<Effort, unsigned> d_step_end;
+  /** initialize the strategy */
+  void initializeStrategyStep(InferStep s, int effort=0);
   /** initialize the strategy */
   void initializeStrategy();
   /** run the strategy */

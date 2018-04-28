@@ -4774,45 +4774,41 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
                            << ", d_conflict = " << d_conflict << std::endl;
 }
 
+
+void TheoryStrings::initializeStrategyStep(InferStep s, int effort)
+{
+  d_infer_steps.push_back(s);
+  d_infer_step_effort.push_back(effort);
+}
+
 void TheoryStrings::initializeStrategy()
 {
   // initialize the strategy if not already done so
   if (!d_strategy_init)
   {
     d_strategy_init = true;
-    d_infer_steps.push_back(CHECK_INIT);
-    d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back(CHECK_CONST_EQC);
-    d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back(CHECK_EXTF_EVAL);
-    d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back(CHECK_CYCLES);
-    d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back(CHECK_FLAT_FORMS);
-    d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back(CHECK_EXTF_REDUCTION);
-    d_infer_step_effort.push_back(1);
+    initializeStrategyStep(CHECK_INIT);
+    initializeStrategyStep(CHECK_CONST_EQC);
+    initializeStrategyStep(CHECK_EXTF_EVAL);
+    initializeStrategyStep(CHECK_CYCLES);
+    initializeStrategyStep(CHECK_FLAT_FORMS);
+    initializeStrategyStep(CHECK_EXTF_REDUCTION,1);
     if (options::stringEager())
     {
       d_step_begin[EFFORT_STANDARD] = 0;
       d_step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
-    d_infer_steps.push_back(CHECK_NORMAL_FORMS_EQ);
-    d_infer_step_effort.push_back(0);
+    initializeStrategyStep(CHECK_NORMAL_FORMS_EQ);
     if (options::stringEagerLen())
     {
-      d_infer_steps.push_back(CHECK_LENGTH_EQC);
-      d_infer_step_effort.push_back(0);
+      initializeStrategyStep(CHECK_LENGTH_EQC);
     }
     if (options::stringExp() && !options::stringGuessModel())
     {
-      d_infer_steps.push_back(CHECK_EXTF_REDUCTION);
-      d_infer_step_effort.push_back(2);
+      initializeStrategyStep(CHECK_EXTF_REDUCTION,2);
     }
-    d_infer_steps.push_back(CHECK_MEMBERSHIP);
-    d_infer_step_effort.push_back(0);
-    d_infer_steps.push_back(CHECK_CARDINALITY);
-    d_infer_step_effort.push_back(0);
+    initializeStrategyStep(CHECK_MEMBERSHIP);
+    initializeStrategyStep(CHECK_CARDINALITY);
     d_step_begin[EFFORT_FULL] = 0;
     d_step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
   }
