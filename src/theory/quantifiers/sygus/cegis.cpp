@@ -16,8 +16,6 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-// FIXME : remove these includes (github issue #1156)
-#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -128,12 +126,6 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       Node lem = nm->mkNode(kind::OR,
                             eager_exps[j].negate(),
                             eager_terms[j].eqNode(eager_vals[j]));
-      if (d_qe->getTheoryEngine()->isTheoryEnabled(THEORY_BV))
-      {
-        // FIXME: hack to incorporate hacks from BV for division by zero
-        // (github issue #1156)
-        lem = bv::TheoryBVRewriter::eliminateBVSDiv(lem);
-      }
       if (d_qe->addLemma(lem))
       {
         Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem
