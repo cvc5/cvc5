@@ -378,15 +378,15 @@ private:
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
 
   //--------------------------for checkFlatForm
-  /** 
+  /**
    * This checks whether there are flat form inferences between eqc[start] and
    * eqc[j] for some j>start. If the flag isRev is true, we check for flat form
    * interferences in the reverse direction of the flat forms. For more details,
    * see checkFlatForms below.
    */
-  void checkFlatForm( std::vector< Node >& eqc, unsigned start, bool isRev );
+  void checkFlatForm(std::vector<Node>& eqc, unsigned start, bool isRev);
   //--------------------------end for checkFlatForm
-  
+
   //--------------------------for checkCycles
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
   //--------------------------end for checkCycles
@@ -610,11 +610,11 @@ private:
    * One key aspect of this construction is that concat terms are indexed by
    * their list of non-empty components. For example, if x = "" is an equality
    * asserted in this SAT context, then y ++ x ++ z may be indexed by (y,z).
-   * This method may infer various facts while building these term indices, for 
+   * This method may infer various facts while building these term indices, for
    * instance, based on congruence. An example would be inferring:
    *   y ++ x ++ z = y ++ z
    * in this example, if both terms are registered in this SAT context.
-   * 
+   *
    * This function should be called as a first step of any strategy.
    */
   void checkInit();
@@ -632,9 +632,9 @@ private:
    * function terms in this SAT context. This infers facts of the form:
    *   x = c => f( t1 ... tn ) = c'
    * where the rewritten form of f( t1...tn ) { x |-> c } is c', and x = c
-   * is a (tuple of) equalities that are asserted in this SAT context, and 
+   * is a (tuple of) equalities that are asserted in this SAT context, and
    * f( t1 ... tn ) is a term from this SAT context.
-   * 
+   *
    * For more details, this is steps 4 (when effort=0) and step 6 (when
    * effort=1) from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
    * Solvers using Context-Dependent Simplification", CAV 2017.
@@ -642,47 +642,47 @@ private:
   void checkExtfEval(int effort = 0);
   /** check cycles
    *
-   * 
+   *
    */
   void checkCycles();
   /** check flat forms
    *
-   * 
+   *
    */
   void checkFlatForms();
   /** check normal forms equalities
    *
-   * 
+   *
    */
   void checkNormalFormsEq();
   /** check normal forms disequalities
    *
-   * 
+   *
    */
   void checkNormalFormsDeq();
   /** check codes
    *
-   * 
+   *
    */
   void checkCodes();
   /** check lengths for equivalence classes
    *
-   * 
+   *
    */
   void checkLengthsEqc();
-  /** check extended function reductions 
-   * 
+  /** check extended function reductions
+   *
    * This adds "reduction" lemmas for each active extended function in this SAT
    * context. These are generally lemmas of the form:
    *   F[t1...tn,k] ^ f( t1 ... tn ) = k
    * where f( t1 ... tn ) is an active extended function, k is a fresh constant
    * and F is a formula that constrains k based on the definition of f.
-   * 
-   * For more details, this is step 7 from Strategy 1 in Reynolds et al, 
-   * "Scaling up DPLL(T) String Solvers using Context-Dependent Simplification", 
+   *
+   * For more details, this is step 7 from Strategy 1 in Reynolds et al,
+   * "Scaling up DPLL(T) String Solvers using Context-Dependent Simplification",
    * CAV 2017.
    */
-  void checkExtfReductions( int effort );
+  void checkExtfReductions(int effort);
   /** check regular expression memberships
    *
    * This checks the satisfiability of all regular expression memberships
@@ -715,7 +715,7 @@ private:
   std::map<Effort, unsigned> d_step_begin;
   std::map<Effort, unsigned> d_step_end;
   /** initialize the strategy */
-  void initializeStrategyStep(InferStep s, int effort=0);
+  void initializeStrategyStep(InferStep s, int effort = 0);
   /** initialize the strategy */
   void initializeStrategy();
   /** run the strategy */

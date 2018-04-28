@@ -742,8 +742,9 @@ void TheoryStrings::check(Effort e) {
   doPendingFacts();
 
   if( !d_conflict && ( ( e == EFFORT_FULL && !d_valuation.needCheck() ) || ( e==EFFORT_STANDARD && options::stringEager() ) ) ) {
-    Trace("strings-check") << "Theory of strings " << e << " effort check " << std::endl;
-    Assert( d_strategy_init );
+    Trace("strings-check") << "Theory of strings " << e << " effort check "
+                           << std::endl;
+    Assert(d_strategy_init);
 
     if(Trace.isOn("strings-eqc")) {
       for( unsigned t=0; t<2; t++ ) {
@@ -1239,8 +1240,8 @@ void TheoryStrings::checkConstantEquivalenceClasses()
   unsigned prevSize;
   do
   {
-    Trace("strings-process-debug")
-        << "Check constant equivalence classes..." << std::endl;
+    Trace("strings-process-debug") << "Check constant equivalence classes..."
+                                   << std::endl;
     prevSize = d_eqc_to_const.size();
     std::vector<Node> vecc;
     checkConstantEquivalenceClasses(&d_term_index[kind::STRING_CONCAT], vecc);
@@ -1717,11 +1718,11 @@ void TheoryStrings::checkFlatForms()
           if (!TheoryStringsRewriter::canConstantContainList(
                   c, d_flat_form[n], firstc, lastc))
           {
-            Trace("strings-ff-debug")
-                << "Flat form for " << n << " cannot be contained in constant "
-                << c << std::endl;
-            Trace("strings-ff-debug")
-                << "  indices = " << firstc << "/" << lastc << std::endl;
+            Trace("strings-ff-debug") << "Flat form for " << n
+                                      << " cannot be contained in constant "
+                                      << c << std::endl;
+            Trace("strings-ff-debug") << "  indices = " << firstc << "/"
+                                      << lastc << std::endl;
             // conflict, explanation is n = base ^ base = c ^ relevant porition
             // of ( n = f[n] )
             std::vector<Node> exp;
@@ -1765,9 +1766,9 @@ void TheoryStrings::checkFlatForms()
     {
       for (unsigned r = 0; r < 2; r++)
       {
-        bool isRev = r==1;
-        checkFlatForm(it->second,start,isRev);
-        if (d_conflict) 
+        bool isRev = r == 1;
+        checkFlatForm(it->second, start, isRev);
+        if (d_conflict)
         {
           return;
         }
@@ -1776,7 +1777,9 @@ void TheoryStrings::checkFlatForms()
   }
 }
 
-void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, bool isRev )
+void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
+                                  unsigned start,
+                                  bool isRev)
 {
   unsigned count = 0;
   std::vector<Node> inelig;
@@ -1878,7 +1881,7 @@ void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, boo
                 }
               }
               else if ((d_flat_form[a].size() - 1) == count
-                        && (d_flat_form[b].size() - 1) == count)
+                       && (d_flat_form[b].size() - 1) == count)
               {
                 conc = ac.eqNode(bc);
                 inf_type = 3;
@@ -1891,19 +1894,19 @@ void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, boo
                 Node lcc = getLength(bc, lexp2);
                 if (areEqual(lcurr, lcc))
                 {
-                  Trace("strings-ff-debug")
-                      << "Infer " << ac << " == " << bc << " since "
-                      << lcurr << " == " << lcc << std::endl;
+                  Trace("strings-ff-debug") << "Infer " << ac << " == " << bc
+                                            << " since " << lcurr
+                                            << " == " << lcc << std::endl;
                   // exp_n.push_back( getLength( curr, true ).eqNode(
                   // getLength( cc, true ) ) );
-                  Trace("strings-ff-debug")
-                      << "Explanation for " << lcurr << " is ";
+                  Trace("strings-ff-debug") << "Explanation for " << lcurr
+                                            << " is ";
                   for (unsigned j = 0; j < lexp.size(); j++)
                   {
                     Trace("strings-ff-debug") << lexp[j] << std::endl;
                   }
-                  Trace("strings-ff-debug")
-                      << "Explanation for " << lcc << " is ";
+                  Trace("strings-ff-debug") << "Explanation for " << lcc
+                                            << " is ";
                   for (unsigned j = 0; j < lexp2.size(); j++)
                   {
                     Trace("strings-ff-debug") << lexp2[j] << std::endl;
@@ -1930,9 +1933,8 @@ void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, boo
       // explain why prefixes up to now were the same
       for (unsigned j = 0; j < count; j++)
       {
-        Trace("strings-ff-debug")
-            << "Add at " << d_flat_form_index[a][j] << " "
-            << d_flat_form_index[b][j] << std::endl;
+        Trace("strings-ff-debug") << "Add at " << d_flat_form_index[a][j] << " "
+                                  << d_flat_form_index[b][j] << std::endl;
         addToExplanation(
             a[d_flat_form_index[a][j]], b[d_flat_form_index[b][j]], exp);
       }
@@ -1952,7 +1954,7 @@ void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, boo
           jj = t == 0 ? d_flat_form_index[a][count]
                       : d_flat_form_index[b][count];
         }
-        int startj = isRev ? jj+1 : 0;
+        int startj = isRev ? jj + 1 : 0;
         int endj = isRev ? c.getNumChildren() : jj;
         for (int j = startj; j < endj; j++)
         {
@@ -1971,9 +1973,8 @@ void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, boo
           conc,
           inf_type == 0
               ? "F_Const"
-              : (inf_type == 1 ? "F_Unify"
-                                : (inf_type == 2 ? "F_EndpointEmp"
-                                                : "F_EndpointEq")));
+              : (inf_type == 1 ? "F_Unify" : (inf_type == 2 ? "F_EndpointEmp"
+                                                            : "F_EndpointEq")));
       if (d_conflict)
       {
         return;
@@ -1986,17 +1987,13 @@ void TheoryStrings::checkFlatForm( std::vector< Node >& eqc, unsigned start, boo
   for (const Node& n : eqc)
   {
     std::reverse(d_flat_form[n].begin(), d_flat_form[n].end());
-    std::reverse(d_flat_form_index[n].begin(),
-                  d_flat_form_index[n].end());
+    std::reverse(d_flat_form_index[n].begin(), d_flat_form_index[n].end());
   }
 }
 
 void TheoryStrings::checkNormalFormsEq() { checkNormalForms(); }
-
 void TheoryStrings::checkNormalFormsDeq() {}
-
 void TheoryStrings::checkCodes() {}
-
 Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp ){
   if( std::find( curr.begin(), curr.end(), eqc )!=curr.end() ){
     // a loop
@@ -4755,7 +4752,6 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
                            << ", d_conflict = " << d_conflict << std::endl;
 }
 
-
 void TheoryStrings::initializeStrategyStep(InferStep s, int effort)
 {
   d_infer_steps.push_back(s);
@@ -4773,7 +4769,7 @@ void TheoryStrings::initializeStrategy()
     initializeStrategyStep(CHECK_EXTF_EVAL);
     initializeStrategyStep(CHECK_CYCLES);
     initializeStrategyStep(CHECK_FLAT_FORMS);
-    initializeStrategyStep(CHECK_EXTF_REDUCTION,1);
+    initializeStrategyStep(CHECK_EXTF_REDUCTION, 1);
     if (options::stringEager())
     {
       d_step_begin[EFFORT_STANDARD] = 0;
@@ -4786,7 +4782,7 @@ void TheoryStrings::initializeStrategy()
     }
     if (options::stringExp() && !options::stringGuessModel())
     {
-      initializeStrategyStep(CHECK_EXTF_REDUCTION,2);
+      initializeStrategyStep(CHECK_EXTF_REDUCTION, 2);
     }
     initializeStrategyStep(CHECK_MEMBERSHIP);
     initializeStrategyStep(CHECK_CARDINALITY);
