@@ -54,6 +54,8 @@ enum EqualityStatus {
   EQUALITY_UNKNOWN
 };/* enum EqualityStatus */
 
+std::ostream& operator<<(std::ostream& os, EqualityStatus s);
+
 /**
  * Returns true if the two statuses are compatible, i.e. both TRUE
  * or both FALSE (regardless of inmodel/propagation).
