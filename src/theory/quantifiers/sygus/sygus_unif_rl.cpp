@@ -61,9 +61,6 @@ void SygusUnifRl::addRefLemma(Node lemma)
   Trace("sygus-unif-rl-lemma")
       << "SyGuSUnifRl: New collection of ref lemmas is " << d_rlemmas << "\n";
   d_hasRLemmas = d_rlemmas != d_true;
-  Trace("sygus-unif-rl-lemma") << "...got d_hasRLemmas = " << d_hasRLemmas
-                               << " and (d_rlemmas != d_prev_rlemmas) = "
-                               << (d_rlemmas != d_prev_rlemmas) << "\n...";
 }
 
 void SygusUnifRl::collectPoints(Node n)
