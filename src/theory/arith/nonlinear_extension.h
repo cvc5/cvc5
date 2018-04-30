@@ -439,6 +439,7 @@ class NonlinearExtension {
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  Node d_two;
   Node d_true;
   Node d_false;
   /** PI
@@ -599,6 +600,15 @@ class NonlinearExtension {
    * where c' is a rational of the form n/d for some n and d <= 10^prec.
    */
   Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
+  /** get approximate sqrt
+   * 
+   * This approximates the square root of positive constant c. If this method
+   * returns true, then l and u are updated to constants such that
+   *   l <= sqrt( c ) <= u
+   * The argument iter is the number of iterations in the binary search to
+   * perform.
+   */
+  bool getApproximateSqrt( Node c, Node& l, Node& u, unsigned iter=15 ) const;
 
   /** concavity region for transcendental functions
   *

@@ -166,6 +166,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_two = NodeManager::currentNM()->mkConst(Rational(2));
   d_order_points.push_back(d_neg_one);
   d_order_points.push_back(d_zero);
   d_order_points.push_back(d_one);
@@ -842,7 +843,9 @@ std::vector<Node> NonlinearExtension::checkModel(
 bool NonlinearExtension::checkModelVts(const std::vector<Node>& assertions,
                                        const std::vector<Node>& false_asserts)
 {
+  Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
   d_tf_check_model_bounds.clear();
+  Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   std::unordered_set< Node, NodeHashFunction > eq_solved;
   //d_tf_check_model_bounds.clear();
   for (const Node& atom : false_asserts)
@@ -856,21 +859,27 @@ bool NonlinearExtension::checkModelVts(const std::vector<Node>& assertions,
       }
       else
       {
+        // no chance we will satisfy this equality
+        Trace("nl-ext-cm") << "...check-model : failed to solve equality : " << atom << std::endl;
         return false;
       }
     }
   }
-  return false;
   
+  Trace("nl-ext-cm-debug") << "  check model..." << std::endl;
   for (const Node& atom : assertions)
   {
-    // simple check literal
-    if (!simpleCheckModelTfLit(atom))
+    if( eq_solved.find(atom)==eq_solved.end() )
     {
-      return false;
+      // simple check literal
+      if (!simpleCheckModelTfLit(atom))
+      {
+        Trace("nl-ext-cm") << "...check-model : assertion failed : " << atom << std::endl;
+        return false;
+      }
     }
   }
-  
+  Trace("nl-ext-cm") << "...success!" << std::endl;
   return true;
 }
 
@@ -886,9 +895,10 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
     for (std::pair<const Node, Node>& m : msum)
     {
       Node v = m.first;
+      Node coeff = m.second.isNull() ? d_one : m.second;
       if (v.isNull())
       {
-        c = m.second;
+        c = coeff;
       }
       else if( v.getKind()==NONLINEAR_MULT )
       {
@@ -896,7 +906,7 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
         {
           return false;
         }
-        a = m.second;
+        a = coeff;
         var = v[0];
       }
       else if( !v.isVar() || ( !var.isNull() && var!=v ) )
@@ -905,15 +915,75 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
       }
       else
       {
-        b = m.second;
+        b = coeff;
         var = v;
       }
+    }
+    if( a==d_zero )
+    {
+      // if we are linear, this equality should have been satisfied in the model
+      Assert( false );
+      return false;
     }
     Trace("nl-ext-quad") << "Solved quadratic : " << eq << std::endl;
     Trace("nl-ext-quad") << "  a : " << a << std::endl;
     Trace("nl-ext-quad") << "  b : " << b << std::endl;
     Trace("nl-ext-quad") << "  c : " << c << std::endl;
-    
+    NodeManager * nm = NodeManager::currentNM();
+    Node two_a = nm->mkNode( MULT, d_two, a );
+    two_a = Rewriter::rewrite( two_a );
+    Node sqrt_val = nm->mkNode( MINUS, nm->mkNode( MULT, b, b ), nm->mkNode( MULT, d_two, two_a, c ) );
+    sqrt_val = Rewriter::rewrite( sqrt_val );
+    Trace("nl-ext-quad") << "Will approximate sqrt " << sqrt_val << std::endl;
+    Assert( sqrt_val.isConst() );
+    // if it is negative, then we are in conflict
+    if( sqrt_val.getConst<Rational>().sgn()==-1 )
+    {
+      d_containing.getOutputChannel().lemma(eq.negate());
+      return false;
+    }
+    if( d_tf_check_model_bounds.find(var)!=d_tf_check_model_bounds.end() )
+    {
+      // two quadratic equations for same variable, give up
+      return false;
+    }
+    // approximate the square root of sqrt_val
+    Node l, u;
+    if( getApproximateSqrt(sqrt_val,l,u) )
+    {
+      Trace("nl-ext-quad") << "...got " << l << " <= sqrt(" << sqrt_val << ") <= " << u << std::endl;
+      Node negb = nm->mkConst( -b.getConst<Rational>() );
+      Node coeffa = nm->mkConst( Rational(1) / two_a.getConst<Rational>() );
+      // two possible bound regions
+      Node bounds[2][2];
+      Node diff_bound[2];
+      Node m_var = computeModelValue( var, 0 );
+      Assert( m_var.isConst() );
+      for( unsigned r=0; r<2; r++ )
+      {
+        for( unsigned b=0; b<2; b++ )
+        {
+          Node val = b==0 ? l : u;
+          // (-b +- approx_sqrt( b^2 - 4ac ))/2a
+          Node approx = nm->mkNode( MULT, coeffa, nm->mkNode( r==0 ? MINUS : PLUS, negb, val ) );
+          approx = Rewriter::rewrite( approx );
+          bounds[r][b] = approx;
+        }
+        Node diff = nm->mkNode( MINUS, m_var, nm->mkNode( MULT, nm->mkConst( Rational(1)/Rational(2) ), bounds[r][0], bounds[r][1] ) );
+        diff = Rewriter::rewrite( diff );
+        Assert( diff.isConst() );
+        diff = nm->mkConst( diff.getConst<Rational>().abs() );
+        diff_bound[r] = diff;
+      }
+      // take the one that var is closer to in the model
+      Node cmp = nm->mkNode( GEQ, diff_bound[0], diff_bound[1] );
+      cmp = Rewriter::rewrite( cmp );
+      Assert( cmp.isConst() );
+      unsigned r_use_index = cmp==d_true ? 1 : 0;
+      Trace("nl-ext-quad") << "...bound " << bounds[r_use_index][0] << " <= " << var << " <= " << bounds[r_use_index][1] << std::endl;
+      d_tf_check_model_bounds[var] = std::pair< Node, Node >( bounds[r_use_index][0], bounds[r_use_index][1] );
+      return true;
+    }
   }
 
   return false;
@@ -1956,6 +2026,49 @@ Node NonlinearExtension::getApproximateConstant(Node c,
   Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
                          << prec << " is " << cret << std::endl;
   return cret;
+}
+
+
+bool NonlinearExtension::getApproximateSqrt( Node c, Node& l, Node& u, unsigned iter ) const
+{
+  Assert( c.isConst() );
+  if( c==d_one || c==d_zero )
+  {
+    l = c;
+    u = c;
+    return true;
+  }
+  Rational rc = c.getConst<Rational>();
+  
+  Rational rl = rc<Rational(1) ? rc : Rational(1);
+  Rational ru = rc<Rational(1) ? Rational(1) : rc;
+  unsigned count = 0;
+  Rational half = Rational(1)/Rational(2);
+  while( count<iter )
+  {
+    Rational curr = half*( rl + ru );
+    Rational curr_sq = curr*curr;
+    if( curr_sq==rc )
+    {
+      rl = curr_sq;
+      ru = curr_sq;
+      break;
+    }
+    else if( curr_sq<rc )
+    {
+      rl = curr;
+    }
+    else
+    {
+      ru = curr;
+    }
+    count++;
+  }
+  
+  NodeManager * nm = NodeManager::currentNM();
+  l = nm->mkConst( rl );
+  u = nm->mkConst( ru );
+  return true;
 }
 
 void NonlinearExtension::printRationalApprox(const char* c,
