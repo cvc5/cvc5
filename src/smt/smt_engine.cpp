@@ -1730,7 +1730,8 @@ void SmtEngine::setDefaults() {
   {
     if (!options::nlExtTangentPlanesInterleave.wasSetByUser())
     {
-      options::nlExtTangentPlanesInterleave.sert(true);
+      Trace("smt") << "setting nlExtTangentPlanesInterleave to true" << endl;
+      options::nlExtTangentPlanesInterleave.set(true);
     }
   }
 
