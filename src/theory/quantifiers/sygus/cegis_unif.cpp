@@ -47,14 +47,19 @@ bool CegisUnif::initialize(Node n,
     d_base_body = d_base_body[0][1];
   }
   /* Init UNIF util */
-  d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
-  Assert(!d_enums.empty());
-  Trace("cegis-unif") << "Initialize " << d_enums.size() << " enumerator guards\n";
-  /* initialize the enumerator guardss */
-  for (const Node& e : d_enums)
+  /* TODO combine with enumeration manager */
+  if (false)
   {
-    Node g = d_tds->getActiveGuardForEnumerator(e);
-    d_enum_to_active_guard[e] = g;
+    d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
+    Assert(!d_enums.empty());
+    Trace("cegis-unif") << "Initialize " << d_enums.size()
+                        << " enumerator guards\n";
+    /* initialize the enumerator guards */
+    for (const Node& e : d_enums)
+    {
+      Node g = d_tds->getActiveGuardForEnumerator(e);
+      d_enum_to_active_guard[e] = g;
+    }
   }
   Trace("cegis-unif") << "Determining if any function using unification util\n";
   d_no_unif = true;
@@ -81,20 +86,24 @@ bool CegisUnif::initialize(Node n,
 }
 
 void CegisUnif::getTermList(const std::vector<Node>& candidates,
-                            std::vector<Node>& terms)
+                            std::vector<Node>& enums)
 {
-  Assert(candidates.size() == 1);
+  if (d_no_unif)
+  {
+    enums.insert(enums.end(), candidates.begin(), candidates.end());
+    return;
+  }
   Valuation& valuation = d_qe->getValuation();
   for (const Node& e : d_enums)
   {
     Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
     Node g = d_enum_to_active_guard[e];
     /* Get whether the active guard for this enumerator is if so, then there may
-       exist more values for it, and hence we add it to terms. */
+       exist more values for it, and hence we add it to enums. */
     Node gstatus = valuation.getSatValue(g);
     if (!gstatus.isNull() && gstatus.getConst<bool>())
     {
-      terms.push_back(e);
+      enums.push_back(e);
     }
   }
 }

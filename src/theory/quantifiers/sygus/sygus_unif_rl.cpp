@@ -36,7 +36,6 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   d_rlemmas = d_true;
   d_hasRLemmas = false;
   d_ecache.clear();
-  d_cand_to_cond_enum.clear();
   SygusUnif::initialize(qe, funs, enums, lemmas);
 }
 
