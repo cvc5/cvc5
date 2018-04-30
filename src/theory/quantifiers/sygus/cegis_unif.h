@@ -125,7 +125,12 @@ class CegisUnif : public Cegis
    */
   SygusUnifRl d_sygus_unif;
   /* Functions-to-synthesize */
-  std::unordered_set<Node> d_candidates;
+  std::unordered_set<Node, NodeHashFunction> d_candidates;
+  /**
+   * list of enumerators being used to build solutions for candidate by the
+   * above utility.
+   */
+  std::vector<Node> d_enums;
   /** map from enumerators to active guards */
   std::map<Node, Node> d_enum_to_active_guard;
   /* Whether no candidate is being synthesized with the unif utility */

@@ -28,8 +28,6 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
     : Cegis(qe, p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
-  d_sygus_unif = SygusUnifRl(p);
-  d_candidates.clear();
 }
 
 CegisUnif::~CegisUnif() {}
@@ -58,6 +56,7 @@ bool CegisUnif::initialize(Node n,
     Node g = d_tds->getActiveGuardForEnumerator(e);
     d_enum_to_active_guard[e] = g;
   }
+  Trace("cegis-unif") << "Determining if any function using unification util\n";
   d_no_unif = true;
   /* Copy candidates and check whether CegisUnif for any of them */
   for (const Node& c : candidates)
@@ -69,6 +68,7 @@ bool CegisUnif::initialize(Node n,
       d_purified_count[c] = 0;
     }
   }
+  Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   /* Initialize enumerators for case with No unification for any function */
   if (d_no_unif)
   {
