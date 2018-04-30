@@ -880,7 +880,8 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
 bool CegInstantiator::check() {
   /*
   if( d_qe->getTheoryEngine()->needCheck() ){
-    Trace("cbqi-engine") << "  CEGQI instantiator : wait until all ground theories are finished." << std::endl;
+    Trace("cbqi-engine") << "  CEGQI instantiator : wait until all ground
+  theories are finished." << std::endl;
     return false;
   }
   */

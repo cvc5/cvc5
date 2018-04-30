@@ -39,7 +39,8 @@ CegInstantiation::~CegInstantiation(){
 }
 
 bool CegInstantiation::needsCheck( Theory::Effort e ) {
-  return !d_quantEngine->getTheoryEngine()->needCheck() && e>=Theory::EFFORT_LAST_CALL;
+  return !d_quantEngine->getTheoryEngine()->needCheck()
+         && e >= Theory::EFFORT_LAST_CALL;
 }
 
 QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
