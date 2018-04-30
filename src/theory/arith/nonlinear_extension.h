@@ -281,6 +281,7 @@ class NonlinearExtension {
    *   2.0*sin( 1 ) > 1.5
    *   -1.0*sin( 1 ) < -0.79
    *   -1.0*sin( 1 ) > -0.91
+   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
    * It will return false for literals like:
    *   sin( 1 ) > 0.85
    * It will also return false for literals like:
