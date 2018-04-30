@@ -29,27 +29,40 @@ namespace quantifiers {
 SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
 
 SygusUnif::~SygusUnif() {}
-
 void SygusUnif::initialize(QuantifiersEngine* qe,
-                           Node f,
+                           const std::vector<Node>& funs,
                            std::vector<Node>& enums,
                            std::vector<Node>& lemmas)
 {
-  Assert(d_candidate.isNull());
-  d_candidate = f;
+  Assert(d_candidates.empty());
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
-  // initialize the strategy
-  d_strategy.initialize(qe, f, enums, lemmas);
+  for (const Node& f : funs)
+  {
+    d_candidates.push_back(f);
+    // initialize the strategy
+    d_strategy[f].initialize(qe, f, enums, lemmas);
+  }
 }
 
-Node SygusUnif::constructSolution()
+bool SygusUnif::constructSolution(std::vector<Node>& sols)
 {
   // initialize a call to construct solution
   initializeConstructSol();
-  // call the virtual construct solution method
-  Node e = d_strategy.getRootEnumerator();
-  return constructSol(e, role_equal, 1);
+  for (const Node& f : d_candidates)
+  {
+    // initialize a call to construct solution for function f
+    initializeConstructSolFor(f);
+    // call the virtual construct solution method
+    Node e = d_strategy[f].getRootEnumerator();
+    Node sol = constructSol(f, e, role_equal, 1);
+    if (sol.isNull())
+    {
+      return false;
+    }
+    sols.push_back(sol);
+  }
+  return true;
 }
 
 Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
