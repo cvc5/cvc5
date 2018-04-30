@@ -451,6 +451,14 @@ header = "options/arith_options.h"
   help       = "use non-terminating tangent plane strategy for non-linear"
 
 [[option]]
+  name       = "nlExtTangentPlanesInterleave"
+  category   = "regular"
+  long       = "nl-ext-tplanes-interleave"
+  type       = "bool"
+  default    = "false"
+  help       = "interleave tangent plane strategy for non-linear"
+
+[[option]]
   name       = "nlExtTfTangentPlanes"
   category   = "regular"
   long       = "nl-ext-tf-tplanes"
