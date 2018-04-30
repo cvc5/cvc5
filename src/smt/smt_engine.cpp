@@ -553,7 +553,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
-  
+
   //------------------------------- expression names
   /** mapping from expressions to name */
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
