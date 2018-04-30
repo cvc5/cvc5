@@ -1477,6 +1477,7 @@ REG1_TESTS = \
 	regress1/sygus/nia-max-square-ns.sy \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
+	regress1/sygus/pbe_multi.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
