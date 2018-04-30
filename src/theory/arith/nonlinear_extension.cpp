@@ -1296,6 +1296,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_tf_rep_map.clear();
   d_tf_region.clear();
+  d_tf_check_model_bounds.clear();
   d_waiting_lemmas.clear();
 
   int lemmas_proc = 0;
@@ -1735,7 +1736,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       }
       Trace("nl-ext") << "Finished check with status : " << complete_status
                       << std::endl;
-
+                      
       // if we did not add a lemma during check and there is a chance for SAT
       if (complete_status == 0)
       {
@@ -1942,6 +1943,84 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
   lemmas.push_back( pi_lem );
 }
 
+Node NonlinearExtension::getApproximateConstant(Node c,
+                                                bool isLower,
+                                                unsigned prec) const
+{
+  Assert(c.isConst());
+  Rational cr = c.getConst<Rational>();
+
+  unsigned lower = 0;
+  unsigned upper = pow(10, prec);
+
+  Rational den = Rational(upper);
+  if (cr.getDenominator() < den.getNumerator())
+  {
+    // denominator is not more than precision, we return it
+    return c;
+  }
+
+  int csign = cr.sgn();
+  Assert(csign != 0);
+  if (csign == -1)
+  {
+    cr = -cr;
+  }
+  Rational one = Rational(1);
+  Rational ten = Rational(10);
+  Rational pow_ten = Rational(1);
+  // inefficient for large numbers
+  while (cr >= one)
+  {
+    cr = cr / ten;
+    pow_ten = pow_ten * ten;
+  }
+  Rational allow_err = one / den;
+
+  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
+                         << prec << "..." << std::endl;
+  // now do binary search
+  Rational two = Rational(2);
+  NodeManager * nm = NodeManager::currentNM();
+  Node cret;
+  do
+  {
+    unsigned curr = (lower + upper) / 2;
+    Rational curr_r = Rational(curr) / den;
+    Rational err = cr - curr_r;
+    int esign = err.sgn();
+    if (err.abs() <= allow_err)
+    {
+      if (esign == 1 && !isLower)
+      {
+        curr_r = Rational(curr + 1) / den;
+      }
+      else if (esign == -1 && isLower)
+      {
+        curr_r = Rational(curr - 1) / den;
+      }
+      curr_r = curr_r * pow_ten;
+      cret = nm->mkConst(csign == 1 ? curr_r : -curr_r);
+    }
+    else
+    {
+      Assert(esign != 0);
+      // update lower/upper
+      if (esign == -1)
+      {
+        upper = curr;
+      }
+      else if (esign == 1)
+      {
+        lower = curr;
+      }
+    }
+  } while (cret.isNull());
+  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
+                         << prec << " is " << cret << std::endl;
+  return cret;
+}
+
 void NonlinearExtension::printRationalApprox(const char* c,
                                              Node cr,
                                              unsigned prec) const
@@ -1958,6 +2037,7 @@ void NonlinearExtension::printRationalApprox(const char* c,
     Trace(c) << " [0,10^" << prec << "])";
   }
 }
+
 void NonlinearExtension::printModelValue(const char* c,
                                          Node n,
                                          unsigned prec) const
@@ -3384,83 +3464,6 @@ bool NonlinearExtension::isRefineableTfFun(Node tf)
     return false;
   }
   return true;
-}
-
-Node NonlinearExtension::getApproximateConstant(Node c,
-                                                bool isLower,
-                                                unsigned prec) const
-{
-  Assert(c.isConst());
-  Rational cr = c.getConst<Rational>();
-
-  unsigned lower = 0;
-  unsigned upper = pow(10, prec);
-
-  Rational den = Rational(upper);
-  if (cr.getDenominator() < den.getNumerator())
-  {
-    // denominator is not more than precision, we return it
-    return c;
-  }
-
-  int csign = cr.sgn();
-  Assert(csign != 0);
-  if (csign == -1)
-  {
-    cr = -cr;
-  }
-  Rational one = Rational(1);
-  Rational ten = Rational(10);
-  Rational pow_ten = Rational(1);
-  // inefficient for large numbers
-  while (cr >= one)
-  {
-    cr = cr / ten;
-    pow_ten = pow_ten * ten;
-  }
-  Rational allow_err = one / den;
-
-  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
-                         << prec << "..." << std::endl;
-  // now do binary search
-  Rational two = Rational(2);
-  Node cret;
-  do
-  {
-    unsigned curr = (lower + upper) / 2;
-    Rational curr_r = Rational(curr) / den;
-    Rational err = cr - curr_r;
-    int esign = err.sgn();
-    if (err.abs() <= allow_err)
-    {
-      if (esign == 1 && !isLower)
-      {
-        curr_r = Rational(curr + 1) / den;
-      }
-      else if (esign == -1 && isLower)
-      {
-        curr_r = Rational(curr - 1) / den;
-      }
-      curr_r = curr_r * pow_ten;
-      cret = NodeManager::currentNM()->mkConst(csign == 1 ? curr_r : -curr_r);
-    }
-    else
-    {
-      Assert(esign != 0);
-      // update lower/upper
-      if (esign == -1)
-      {
-        upper = curr;
-      }
-      else if (esign == 1)
-      {
-        lower = curr;
-      }
-    }
-  } while (cret.isNull());
-  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
-                         << prec << " is " << cret << std::endl;
-  return cret;
 }
 
 bool NonlinearExtension::checkTfTangentPlanesFun(

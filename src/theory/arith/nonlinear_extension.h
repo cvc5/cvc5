@@ -281,6 +281,7 @@ class NonlinearExtension {
    *   2.0*sin( 1 ) > 1.5
    *   -1.0*sin( 1 ) < -0.79
    *   -1.0*sin( 1 ) > -0.91
+   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
    * It will return false for literals like:
    *   sin( 1 ) > 0.85
    * It will also return false for literals like:
@@ -622,6 +623,15 @@ class NonlinearExtension {
    * to a non-variable.
    */
   bool isRefineableTfFun(Node tf);
+  /**
+   * Get a lower/upper approximation of the constant r within the given
+   * level of precision. In other words, this returns a constant c' such that
+   *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
+   *   c' + 1/(10^prec) <= c <= c' if isLower is false.
+   * where c' is a rational of the form n/d for some n and d <= 10^prec.
+   */
+  Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
+
   /**
    * Get a lower/upper approximation of the constant r within the given
    * level of precision. In other words, this returns a constant c' such that
