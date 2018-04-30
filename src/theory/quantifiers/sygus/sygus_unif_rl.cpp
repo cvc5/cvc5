@@ -36,6 +36,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   d_rlemmas = d_true;
   d_hasRLemmas = false;
   d_ecache.clear();
+  d_cand_to_cond_enum.clear();
   SygusUnif::initialize(qe, funs, enums, lemmas);
 }
 
@@ -141,6 +142,10 @@ Node SygusUnifRl::canCloseBranch(Node e)
   return Node::null();
 }
 
+bool SygusUnifRl::usingUnif(Node f)
+{
+  return d_cand_to_cond_enum.find(f) != d_cand_to_cond_enum.end();
+}
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */

@@ -64,7 +64,7 @@ class Cegis : public SygusModule
                                        Node lem,
                                        std::vector<Node>& lems) override;
 
- private:
+ protected:
   /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**

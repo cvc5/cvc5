@@ -25,9 +25,11 @@ namespace theory {
 namespace quantifiers {
 
 CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
-    : SygusModule(qe, p)
+    : Cegis(qe, p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
+  d_sygus_unif = SygusUnifRl(p);
+  d_candidates.clear();
 }
 
 CegisUnif::~CegisUnif() {}
@@ -36,24 +38,44 @@ bool CegisUnif::initialize(Node n,
                            std::vector<Node>& lemmas)
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
-  Assert(candidates.size() > 0);
-  if (candidates.size() > 1)
+  /* For regular CEGIS */
+  d_base_body = n;
+  if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
   {
-    return false;
+    for (const Node& v : d_base_body[0][0])
+    {
+      d_base_vars.push_back(v);
+    }
+    d_base_body = d_base_body[0][1];
   }
-  d_candidate = candidates[0];
-  Trace("cegis-unif") << "Initialize unif utility for " << d_candidate
-                      << "...\n";
+  /* Init UNIF util */
   d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
   Assert(!d_enums.empty());
-  Trace("cegis-unif") << "Initialize " << d_enums.size() << " enumerators for "
-                      << d_candidate << "...\n";
-  /* initialize the enumerators */
+  Trace("cegis-unif") << "Initialize " << d_enums.size() << " enumerator guards\n";
+  /* initialize the enumerator guardss */
   for (const Node& e : d_enums)
   {
-    d_tds->registerEnumerator(e, d_candidate, d_parent, true);
     Node g = d_tds->getActiveGuardForEnumerator(e);
     d_enum_to_active_guard[e] = g;
+  }
+  d_no_unif = true;
+  /* Copy candidates and check whether CegisUnif for any of them */
+  for (const Node& c : candidates)
+  {
+    d_candidates.insert(c);
+    if (d_sygus_unif.usingUnif(c))
+    {
+      d_no_unif = false;
+      d_purified_count[c] = 0;
+    }
+  }
+  /* Initialize enumerators for case with No unification for any function */
+  if (d_no_unif)
+  {
+    for (const Node& c : candidates)
+    {
+      d_tds->registerEnumerator(c, c, d_parent, true);
+    }
   }
   return true;
 }
@@ -153,14 +175,34 @@ Node CegisUnif::purifyLemma(Node n,
   /* Recurse */
   unsigned size = n.getNumChildren();
   Kind k = n.getKind();
-  bool fapp = k == APPLY_UF && size > 0 && n[0] == d_candidate;
+  bool fapp = k == APPLY_UF && size > 0
+              && d_candidates.find(n[0]) != d_candidates.end();
   bool childChanged = false;
   std::vector<Node> children;
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0; i < size; ++i)
   {
     if (i == 0 && fapp)
     {
-      children.push_back(n[0]);
+      /* Non unif functions are kept as is */
+      if (!d_sygus_unif.usingUnif(n[0]))
+      {
+        children.push_back(n[0]);
+        continue;
+      }
+      std::map<Node, Node>::const_iterator it = d_app_to_purified.find(n);
+      if (it == d_app_to_purified.end())
+      {
+        std::stringstream ss;
+        ss << n[0] << "_" << d_purified_count[n[0]]++;
+        Node new_f = nm->mkSkolem(ss.str(), n[0].getType());
+        d_app_to_purified[n] = new_f;
+      }
+      else
+      {
+        children.push_back(it->second);
+      }
+      childChanged = true;
       continue;
     }
     Node child = purifyLemma(n[i], ensureConst || fapp, model_guards, cache);

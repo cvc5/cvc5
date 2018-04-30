@@ -19,7 +19,7 @@
 #include <map>
 #include <vector>
 
-#include "theory/quantifiers/sygus/sygus_module.h"
+#include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
 namespace CVC4 {
@@ -49,7 +49,7 @@ using BoolNodePairMap =
  * refinement lemma is generated, which this module sends to the utility that
  * learns candidates.
  */
-class CegisUnif : public SygusModule
+class CegisUnif : public Cegis
 {
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
@@ -124,17 +124,24 @@ class CegisUnif : public SygusModule
    * tree learning) that this module relies upon.
    */
   SygusUnifRl d_sygus_unif;
-  /* Function-to-synthesize (in deep embedding) */
-  Node d_candidate;
-  /**
-   * list of enumerators being used to build solutions for candidate by the
-   * above utility.
-   */
-  std::vector<Node> d_enums;
+  /* Functions-to-synthesize */
+  std::unordered_set<Node> d_candidates;
   /** map from enumerators to active guards */
   std::map<Node, Node> d_enum_to_active_guard;
+  /* Whether no candidate is being synthesized with the unif utility */
+  bool d_no_unif;
   /* list of learned refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
+  /**
+   * Maps applications of functions-to-synthesize to the respective purified
+   * form of the function-to-synthesized. For example if "f" is being
+   * synthesized with a unification strategy then applications such as
+   *  f(c1,c2), f(c3,c4)
+   * would be mapped into the symbols "f1" and "f2".
+   */
+  std::map<Node, Node> d_app_to_purified;
+  /* Maps a function-to-synthesize to its counter of purified symbols */
+  std::map<Node, unsigned> d_purified_count;
   /**
   * This is called on the refinement lemma and will replace the arguments of the
   * function-to-synthesize by their model values (constants).

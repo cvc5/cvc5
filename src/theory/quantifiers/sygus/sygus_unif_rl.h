@@ -48,8 +48,14 @@ class SygusUnifRl : public SygusUnif
    * This adds a lemma to the specification for f.
    */
   void addRefLemma(Node lemma);
+  /* whether f is being synthesized with unification strategies */
+  bool usingUnif(Node f);
 
  protected:
+  /* Maps candidates to their conditonal enumerators in case they exist. This
+     maps essentially indicates whether we can use a divide-and-conquer approach
+     for the respective function-to-synthesize */
+  std::map<Node, Node> d_cand_to_cond_enum;
   /** true and false nodes */
   Node d_true, d_false;
   /** current collecton of refinement lemmas */
