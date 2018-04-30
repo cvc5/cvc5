@@ -1401,13 +1401,13 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
   lemmas_proc = flushLemmas(lemmas);
-  
+
   if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
   {
     lemmas = checkTangentPlanes();
-    lemmas_proc += flushLemmas(lemmas);    
+    lemmas_proc += flushLemmas(lemmas);
   }
-  
+
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas."
                     << std::endl;
