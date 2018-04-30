@@ -533,7 +533,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
     Trace("strings-model") << "The equivalence classes ";
-    for( const Node& eqc : col[i] )
+    for (const Node& eqc : col[i])
     {
       Trace("strings-model") << eqc << " ";
       //check if col[i][j] has only variables
@@ -610,8 +610,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         {
           c = itp->second;
         }
-        Trace("strings-model")
-            << "*** Assigned constant " << c << " for " << eqc << std::endl;
+        Trace("strings-model") << "*** Assigned constant " << c << " for "
+                               << eqc << std::endl;
         processed[eqc] = c;
         if (!m->assertEquality(eqc, c, true))
         {
@@ -2086,8 +2086,8 @@ void TheoryStrings::checkNormalForms(){
   std::map<Node, Node> eqc_to_exp;
   for (const Node& eqc : d_strings_eqc)
   {
-    Trace("strings-process-debug")
-        << "- Verify normal forms are the same for " << eqc << std::endl;
+    Trace("strings-process-debug") << "- Verify normal forms are the same for "
+                                   << eqc << std::endl;
     normalizeEquivalenceClass(eqc);
     Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
     if (hasProcessed())
@@ -2174,8 +2174,8 @@ void TheoryStrings::checkNormalForms(){
       if (d_normal_forms[eqc].size() == 1 && d_normal_forms[eqc][0].isConst())
       {
         Node c = d_normal_forms[eqc][0];
-        Trace("strings-code-debug")
-            << "Get proxy variable for " << c << std::endl;
+        Trace("strings-code-debug") << "Get proxy variable for " << c
+                                    << std::endl;
         Node cc = nm->mkNode(kind::STRING_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
@@ -2213,8 +2213,8 @@ void TheoryStrings::checkNormalForms(){
       cmps.pop_back();
       for (const Node& c2 : cmps)
       {
-        Trace("strings-code-debug")
-            << "Compare codes : " << c1 << " " << c2 << std::endl;
+        Trace("strings-code-debug") << "Compare codes : " << c1 << " " << c2
+                                    << std::endl;
         if (!areDisequal(c1, c2))
         {
           Node eqn = c1[0].eqNode(c2[0]);

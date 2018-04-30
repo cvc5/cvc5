@@ -28,20 +28,20 @@
 
 namespace CVC4 {
 
-/** The CVC4 string class 
- * 
+/** The CVC4 string class
+ *
  * This data structure is the domain of values for the string type. It can also
  * be used as a generic utility for representing strings.
  */
 class CVC4_PUBLIC String {
  public:
-  /** 
+  /**
    * The start ASCII code. In our string representation below, we represent
    * characters using a vector d_vec of unsigned integers. We refer to this as
-   * the "internal representation" for the string.  
-   * 
+   * the "internal representation" for the string.
+   *
    * We make unsigned integer 0 correspond to the 65th character ("A") in the
-   * ASCII alphabet to make models intuitive. In particular, say if we have 
+   * ASCII alphabet to make models intuitive. In particular, say if we have
    * a set of string variables that are distinct but otherwise unconstrained,
    * then the model may assign them "A", "B", "C", ...
    */
@@ -52,7 +52,7 @@ class CVC4_PUBLIC String {
    * of the alphabet that the string theory reasons about.
    */
   static inline unsigned num_codes() { return 256; }
-  /** 
+  /**
    * Convert unsigned char to the unsigned used in the internal representation
    * in d_vec below.
    */
