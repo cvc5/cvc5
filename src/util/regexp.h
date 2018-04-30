@@ -28,24 +28,52 @@
 
 namespace CVC4 {
 
+/** The CVC4 string class 
+ * 
+ * This data structure is the domain of values for the string type. It can also
+ * be used as a generic utility for representing strings.
+ */
 class CVC4_PUBLIC String {
  public:
+  /** 
+   * The start ASCII code. In our string representation below, we represent
+   * characters using a vector d_vec of unsigned integers. We refer to this as
+   * the "internal representation" for the string.  
+   * 
+   * We make unsigned integer 0 correspond to the 65th character ("A") in the
+   * ASCII alphabet to make models intuitive. In particular, say if we have 
+   * a set of string variables that are distinct but otherwise unconstrained,
+   * then the model may assign them "A", "B", "C", ...
+   */
   static inline unsigned start_code() { return 65; }
+  /**
+   * This is the cardinality of the alphabet that is representable by this
+   * class. Notice that this must be greater than or equal to the cardinality
+   * of the alphabet that the string theory reasons about.
+   */
   static inline unsigned num_codes() { return 256; }
+  /** 
+   * Convert unsigned char to the unsigned used in the internal representation
+   * in d_vec below.
+   */
   static unsigned convertCharToUnsignedInt(unsigned char c) {
     return convertCodeToUnsignedInt(static_cast<unsigned>(c));
   }
+  /** Convert the internal unsigned to a unsigned char. */
   static unsigned char convertUnsignedIntToChar(unsigned i) {
     return static_cast<unsigned char>(convertUnsignedIntToCode(i));
   }
+  /** Does the internal unsigned correspond to a printable character? */
   static bool isPrintable(unsigned i) {
     unsigned char c = convertUnsignedIntToChar(i);
     return (c >= ' ' && c <= '~');  // isprint( (int)c );
   }
-  static unsigned convertCodeToUnsignedInt(unsigned i)
+  /** get the internal unsigned for ASCII code c. */
+  static unsigned convertCodeToUnsignedInt(unsigned c)
   {
-    return (i < start_code() ? i + num_codes() : i) - start_code();
+    return (c < start_code() ? c + num_codes() : c) - start_code();
   }
+  /** get the ASCII code number that internal unsigned i corresponds to. */
   static unsigned convertUnsignedIntToCode(unsigned i)
   {
     unsigned ii = i + start_code();

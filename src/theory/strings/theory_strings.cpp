@@ -533,9 +533,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
     Trace("strings-model") << "The equivalence classes ";
-    for (unsigned j = 0; j < col[i].size(); j++)
+    for( const Node& eqc : col[i] )
     {
-      Node eqc = col[i][j];
       Trace("strings-model") << eqc << " ";
       //check if col[i][j] has only variables
       if (!eqc.isConst())
@@ -557,7 +556,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
               Trace("strings-model") << "(code: " << cvalue << ") ";
               std::vector<unsigned> vec;
               vec.push_back(String::convertCodeToUnsignedInt(cvalue));
-              Node mv = nm->mkConst(::CVC4::String(vec));
+              Node mv = nm->mkConst(String(vec));
               pure_eq_assign[eqc] = mv;
             }
           }

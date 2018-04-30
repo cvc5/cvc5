@@ -1224,7 +1224,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   } else if(node.getKind() == kind::STRING_IN_REGEXP) {
     retNode = rewriteMembership(node);
   }
-  else if (node.getKind() == kind::STRING_CODE)
+  else if (node.getKind() == STRING_CODE)
   {
     retNode = rewriteStringCode(node);
   }
