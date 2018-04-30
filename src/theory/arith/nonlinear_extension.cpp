@@ -27,7 +27,6 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/theory_model.h"
-//#include "util/random.h"
 
 using namespace CVC4::kind;
 
@@ -703,12 +702,12 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
-
   NodeManager* nm = NodeManager::currentNM();
-  // get the assertions from the theory
+  // get the assertions
+  std::map<Node, Rational> init_bounds[2];
+  std::map<Node, Node> init_bounds_lit[2];
   unsigned nassertions = 0;
-  std::vector<Node> init_assertions;
-  std::unordered_set<Node, NodeHashFunction> rm_assertions;
+  std::unordered_set<Node, NodeHashFunction> init_assertions;
   for (Theory::assertions_iterator it = d_containing.facts_begin();
        it != d_containing.facts_end();
        ++it)
@@ -716,13 +715,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     nassertions++;
     const Assertion& assertion = *it;
     Node lit = assertion.assertion;
-    init_assertions.push_back(lit);
-  }
-
-  std::map<Node, Rational> init_bounds[2];
-  std::map<Node, Node> init_bounds_lit[2];
-  for (const Node& lit : init_assertions)
-  {
+    init_assertions.insert(lit);
     // check for concrete bounds
     bool pol = lit.getKind() != NOT;
     Node atom_orig = lit.getKind() == NOT ? lit[0] : lit;
@@ -778,7 +771,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
           if (setBound)
           {
             // the bound is subsumed
-            rm_assertions.insert(init_bounds_lit[bindex][p]);
+            init_assertions.erase(init_bounds_lit[bindex][p]);
           }
         }
         if (setBound)
@@ -808,9 +801,9 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
           Node lit2 = init_bounds_lit[1][p];
           Assert(lit2.getKind() != EQUAL);
           // use the equality instead, thus these are redundant
-          rm_assertions.insert(lit1);
-          rm_assertions.insert(lit2);
-          init_assertions.push_back(eq);
+          init_assertions.erase(lit1);
+          init_assertions.erase(lit2);
+          init_assertions.insert(eq);
         }
       }
     }
@@ -818,12 +811,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 
   for (const Node& a : init_assertions)
   {
-    if (rm_assertions.find(a) == rm_assertions.end())
-    {
-      assertions.push_back(a);
-    }
+    assertions.push_back(a);
   }
-
   Trace("nl-ext") << "...keep " << assertions.size() << " / " << nassertions
                   << " assertions." << std::endl;
 }
@@ -3418,8 +3407,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
     Trace("nl-ext-tftp-debug2") << std::endl;
 
     // we substitute into the Taylor sum P_{n,f(0)}( x )
-    std::vector<Node> taylor_vars;
-    taylor_vars.push_back(d_taylor_real_fv);
 
     for (std::pair<const Node, Node>& tfr : tfs.second)
     {
@@ -3433,7 +3420,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
         {
           Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
           unsigned prev = lemmas.size();
-          if (!checkTfTangentPlanesFun(tf, d, taylor_vars, lemmas))
+          if (!checkTfTangentPlanesFun(tf, d, lemmas))
           {
             Trace("nl-ext-tftp")
                 << "...fail, #lemmas = " << (lemmas.size() - prev) << std::endl;
@@ -3477,7 +3464,6 @@ bool NonlinearExtension::isRefineableTfFun(Node tf)
 bool NonlinearExtension::checkTfTangentPlanesFun(
     Node tf,
     unsigned d,
-    const std::vector<Node>& taylor_vars,
     std::vector<Node>& lemmas)
 {
   Assert(isRefineableTfFun(tf));
@@ -3507,11 +3493,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
                              << ", degree " << d << "..." << std::endl;
   Trace("nl-ext-tftp-debug") << "  value in model : " << v << std::endl;
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
-  // compute approximations
-  // Node c_approx = getApproximateConstant( c,
-  // Random::getRandom().pickWithProb(0.5), 6+d );
-  // c = c_approx;
-  Trace("nl-ext-tftp-debug") << "  approximation : " << c << std::endl;
+  
+  std::vector<Node> taylor_vars;
+  taylor_vars.push_back(d_taylor_real_fv);  
 
   // compute the concavity
   int region = -1;

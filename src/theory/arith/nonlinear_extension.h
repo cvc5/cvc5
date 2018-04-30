@@ -918,11 +918,16 @@ class NonlinearExtension {
   std::vector<Node> checkTranscendentalTangentPlanes();
   /** check transcendental function refinement for tf
    *
-   * TODO
+   * This method is called by the above method for each refineable 
+   * transcendental function (see isRefineableTfFun) that occurs in an
+   * assertion in the current context.
+   * 
+   * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
+   * function application tf for Taylor degree d. It may add a secant or
+   * tangent plane lemma to lems.
    */
   bool checkTfTangentPlanesFun(Node tf,
                                unsigned d,
-                               const std::vector<Node>& taylor_vars,
                                std::vector<Node>& lems);
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
