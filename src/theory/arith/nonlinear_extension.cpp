@@ -17,6 +17,7 @@
 
 #include "theory/arith/nonlinear_extension.h"
 
+#include <cmath>
 #include <set>
 
 #include "expr/node_builder.h"
@@ -1156,6 +1157,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_tf_rep_map.clear();
   d_tf_region.clear();
   d_tf_check_model_bounds.clear();
+  d_waiting_lemmas.clear();
 
   int lemmas_proc = 0;
   std::vector<Node> lemmas;
@@ -1434,24 +1436,22 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   }
   
   //------------------------------------tangent planes
-  if (options::nlExtTangentPlanes() || options::nlExtTfTangentPlanes())
+  if (options::nlExtTangentPlanes())
   {
-    lemmas_proc = 0;
-    if (options::nlExtTangentPlanes())
-    {
-      lemmas = checkTangentPlanes();
-      lemmas_proc += flushLemmas(lemmas);
-    }
-    if (options::nlExtTfTangentPlanes())
-    {
-      lemmas = checkTranscendentalTangentPlanes();
-      lemmas_proc += flushLemmas(lemmas);
-    }
-    if (lemmas_proc > 0) {
-      Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
-      return lemmas_proc;
-    }
+    lemmas = checkTangentPlanes();
+    d_waiting_lemmas.insert(
+        d_waiting_lemmas.end(), lemmas.begin(), lemmas.end());
+    lemmas.clear();
   }
+  if (options::nlExtTfTangentPlanes())
+  {
+    lemmas = checkTranscendentalTangentPlanes();
+    d_waiting_lemmas.insert(
+        d_waiting_lemmas.end(), lemmas.begin(), lemmas.end());
+    lemmas.clear();
+  }
+  Trace("nl-ext") << "  ...finished with " << d_waiting_lemmas.size()
+                  << " waiting lemmas." << std::endl;
 
   return 0;
 }
@@ -1479,98 +1479,130 @@ void NonlinearExtension::check(Theory::Effort e) {
     std::vector<Node> assertions;
     getAssertions(assertions);
 
+    // reset cached information
+    d_mv[0].clear();
+    d_mv[1].clear();
+
+    Trace("nl-ext-mv-assert")
+        << "Getting model values... check for [model-false]" << std::endl;
+    // get the assertions that are false in the model
+    const std::vector<Node> false_asserts = checkModel(assertions);
+
+    // get the extended terms belonging to this theory
+    std::vector<Node> xts;
+    d_containing.getExtTheory()->getTerms(xts);
+
+    if (Trace.isOn("nl-ext-debug"))
+    {
+      Trace("nl-ext-debug")
+          << "  processing NonlinearExtension::check : " << std::endl;
+      Trace("nl-ext-debug") << "     " << false_asserts.size()
+                            << " false assertions" << std::endl;
+      Trace("nl-ext-debug")
+          << "     " << xts.size() << " extended terms: " << std::endl;
+      Trace("nl-ext-debug") << "       ";
+      for (unsigned j = 0; j < xts.size(); j++)
+      {
+        Trace("nl-ext-debug") << xts[j] << " ";
+      }
+      Trace("nl-ext-debug") << std::endl;
+    }
+
+    // compute whether shared terms have correct values
+    unsigned num_shared_wrong_value = 0;
+    std::vector<Node> shared_term_value_splits;
+    // must ensure that shared terms are equal to their concrete value
+    Trace("nl-ext-mv") << "Shared terms : " << std::endl;
+    for (context::CDList<TNode>::const_iterator its =
+             d_containing.shared_terms_begin();
+         its != d_containing.shared_terms_end();
+         ++its)
+    {
+      TNode shared_term = *its;
+      // compute its value in the model, and its evaluation in the model
+      Node stv0 = computeModelValue(shared_term, 0);
+      Node stv1 = computeModelValue(shared_term, 1);
+      printModelValue("nl-ext-mv", shared_term);
+      if (stv0 != stv1)
+      {
+        num_shared_wrong_value++;
+        Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
+                           << std::endl;
+        if (shared_term != stv0)
+        {
+          // split on the value, this is non-terminating in general, TODO :
+          // improve this
+          Node eq = shared_term.eqNode(stv0);
+          shared_term_value_splits.push_back(eq);
+        }
+        else
+        {
+          // this can happen for transcendental functions
+          // the problem is that we cannot evaluate transcendental functions
+          // (they don't have a rewriter that returns constants)
+          // thus, the actual value in their model can be themselves, hence we
+          // have no reference point to rule out the current model.  In this
+          // case, we may set incomplete below.
+        }
+      }
+    }
+    Trace("nl-ext-debug") << "     " << num_shared_wrong_value
+                          << " shared terms with wrong model value."
+                          << std::endl;
     bool needsRecheck;
     do
     {
       needsRecheck = false;
       Assert(e == Theory::EFFORT_LAST_CALL);
-
-      // reset cached information
-      d_mv[0].clear();
-      d_mv[1].clear();
-
-      Trace("nl-ext-mv") << "Getting model values... check for [model-false]"
-                         << std::endl;
-      // get the assertions that are false in the model
-      const std::vector<Node> false_asserts = checkModel(assertions);
-
-      // get the extended terms belonging to this theory
-      std::vector<Node> xts;
-      d_containing.getExtTheory()->getTerms(xts);
-
-      if (Trace.isOn("nl-ext-debug"))
-      {
-        Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
-                              << std::endl;
-        Trace("nl-ext-debug") << "     " << false_asserts.size()
-                              << " false assertions" << std::endl;
-        Trace("nl-ext-debug") << "     " << xts.size()
-                              << " extended terms: " << std::endl;
-        Trace("nl-ext-debug") << "       ";
-        for (unsigned j = 0; j < xts.size(); j++)
-        {
-          Trace("nl-ext-debug") << xts[j] << " ";
-        }
-        Trace("nl-ext-debug") << std::endl;
-      }
-
-      // compute whether shared terms have correct values
-      unsigned num_shared_wrong_value = 0;
-      std::vector<Node> shared_term_value_splits;
-      // must ensure that shared terms are equal to their concrete value
-      for (context::CDList<TNode>::const_iterator its =
-               d_containing.shared_terms_begin();
-           its != d_containing.shared_terms_end();
-           ++its)
-      {
-        TNode shared_term = *its;
-        // compute its value in the model, and its evaluation in the model
-        Node stv0 = computeModelValue(shared_term, 0);
-        Node stv1 = computeModelValue(shared_term, 1);
-        if (stv0 != stv1)
-        {
-          num_shared_wrong_value++;
-          Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
-                             << " : " << stv1 << ", actual is " << stv0
-                             << std::endl;
-          if (shared_term != stv0)
-          {
-            // split on the value, this is non-terminating in general, TODO :
-            // improve this
-            Node eq = shared_term.eqNode(stv0);
-            shared_term_value_splits.push_back(eq);
-          }
-          else
-          {
-            // this can happen for transcendental functions
-            // the problem is that we cannot evaluate transcendental functions
-            // (they don't have a rewriter that returns constants)
-            // thus, the actual value in their model can be themselves, hence we
-            // have no reference point to rule out the current model.  In this
-            // case, we may set incomplete below.
-          }
-        }
-      }
-      Trace("nl-ext-debug") << "     " << num_shared_wrong_value
-                            << " shared terms with wrong model value."
-                            << std::endl;
-
+      // complete_status:
+      //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
+      int complete_status = 1;
+      int num_added_lemmas = 0;
       // we require a check either if an assertion is false or a shared term has
       // a wrong value
-      bool isIncomplete = false;
-      int num_added_lemmas = 0;
       if (!false_asserts.empty() || num_shared_wrong_value > 0)
       {
-        isIncomplete = true;
+        complete_status = num_shared_wrong_value > 0 ? -1 : 0;
         num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
+        if (num_added_lemmas > 0)
+        {
+          return;
+        }
+      }
+      Trace("nl-ext") << "Finished check with status : " << complete_status
+                      << std::endl;
+
+      // if we did not add a lemma during check and there is a chance for SAT
+      if (complete_status == 0)
+      {
+        Trace("nl-ext")
+            << "Checking model based on bounds for transcendental functions..."
+            << std::endl;
+        // check the model using error bounds on the Taylor approximation
+        // we must pass all assertions here, since we may modify
+        // the model values in bounds.
+        if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
+        {
+          complete_status = 1;
+        }
       }
 
-      // if we did not add a lemma during check
-      if(num_added_lemmas==0) {
+      // if we have not concluded SAT
+      if (complete_status != 1)
+      {
+        // flush the waiting lemmas
+        num_added_lemmas = flushLemmas(d_waiting_lemmas);
+        if (num_added_lemmas > 0)
+        {
+          Trace("nl-ext") << "...added " << num_added_lemmas
+                          << " waiting lemmas." << std::endl;
+          return;
+        }
+        // resort to splitting on shared terms with their model value
+        // if we did not add any lemmas
         if (num_shared_wrong_value > 0)
         {
-          // resort to splitting on shared terms with their model value
-          isIncomplete = true;
+          complete_status = -1;
           if (!shared_term_value_splits.empty())
           {
             std::vector<Node> shared_term_value_lemmas;
@@ -1578,12 +1610,18 @@ void NonlinearExtension::check(Theory::Effort e) {
             {
               Node literal = d_containing.getValuation().ensureLiteral(eq);
               d_containing.getOutputChannel().requirePhase(literal, true);
+              Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
               shared_term_value_lemmas.push_back(
                   literal.orNode(literal.negate()));
             }
             num_added_lemmas = flushLemmas(shared_term_value_lemmas);
-            Trace("nl-ext") << "...added " << num_added_lemmas
-                            << " shared term value split lemmas." << std::endl;
+            if (num_added_lemmas > 0)
+            {
+              Trace("nl-ext")
+                  << "...added " << num_added_lemmas
+                  << " shared term value split lemmas." << std::endl;
+              return;
+            }
           }
           else
           {
@@ -1592,38 +1630,28 @@ void NonlinearExtension::check(Theory::Effort e) {
             // since their model value cannot even be computed exactly
           }
         }
-        if (num_added_lemmas == 0)
+
+        // we are incomplete
+        if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
         {
-          if (isIncomplete)
-          {
-            // check the model using error bounds on the Taylor approximation
-            if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
-            {
-              isIncomplete = false;
-            }
-          }
-          if (isIncomplete)
-          {
-            if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
-            {
-              d_taylor_degree++;
-              d_secant_points.clear();
-              needsRecheck = true;
-              // increase precision for PI?
-              // Difficult since Taylor series is very slow to converge
-              Trace("nl-ext") << "...increment Taylor degree to "
-                              << d_taylor_degree << std::endl;
-            }
-            else
-            {
-              Trace("nl-ext") << "...failed to send lemma in "
-                                 "NonLinearExtension, set incomplete"
-                              << std::endl;
-              d_containing.getOutputChannel().setIncomplete();
-            }
-          }
+          d_taylor_degree++;
+          needsRecheck = true;
+          // clear secant points
+          d_secant_points.clear();
+          // increase precision for PI?
+          // Difficult since Taylor series is very slow to converge
+          Trace("nl-ext") << "...increment Taylor degree to " << d_taylor_degree
+                          << std::endl;
+        }
+        else
+        {
+          Trace("nl-ext") << "...failed to send lemma in "
+                             "NonLinearExtension, set incomplete"
+                          << std::endl;
+          d_containing.getOutputChannel().setIncomplete();
         }
       }
+
     } while (needsRecheck);
   }
 }
@@ -1750,6 +1778,126 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
       NodeManager::currentNM()->mkNode(GEQ, d_pi, d_pi_bound[0]),
       NodeManager::currentNM()->mkNode(LEQ, d_pi, d_pi_bound[1]));
   lemmas.push_back( pi_lem );
+}
+
+Node NonlinearExtension::getApproximateConstant(Node c,
+                                                bool isLower,
+                                                unsigned prec) const
+{
+  Assert(c.isConst());
+  Rational cr = c.getConst<Rational>();
+
+  unsigned lower = 0;
+  unsigned upper = pow(10, prec);
+
+  Rational den = Rational(upper);
+  if (cr.getDenominator() < den.getNumerator())
+  {
+    // denominator is not more than precision, we return it
+    return c;
+  }
+
+  int csign = cr.sgn();
+  Assert(csign != 0);
+  if (csign == -1)
+  {
+    cr = -cr;
+  }
+  Rational one = Rational(1);
+  Rational ten = Rational(10);
+  Rational pow_ten = Rational(1);
+  // inefficient for large numbers
+  while (cr >= one)
+  {
+    cr = cr / ten;
+    pow_ten = pow_ten * ten;
+  }
+  Rational allow_err = one / den;
+
+  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
+                         << prec << "..." << std::endl;
+  // now do binary search
+  Rational two = Rational(2);
+  NodeManager * nm = NodeManager::currentNM();
+  Node cret;
+  do
+  {
+    unsigned curr = (lower + upper) / 2;
+    Rational curr_r = Rational(curr) / den;
+    Rational err = cr - curr_r;
+    int esign = err.sgn();
+    if (err.abs() <= allow_err)
+    {
+      if (esign == 1 && !isLower)
+      {
+        curr_r = Rational(curr + 1) / den;
+      }
+      else if (esign == -1 && isLower)
+      {
+        curr_r = Rational(curr - 1) / den;
+      }
+      curr_r = curr_r * pow_ten;
+      cret = nm->mkConst(csign == 1 ? curr_r : -curr_r);
+    }
+    else
+    {
+      Assert(esign != 0);
+      // update lower/upper
+      if (esign == -1)
+      {
+        upper = curr;
+      }
+      else if (esign == 1)
+      {
+        lower = curr;
+      }
+    }
+  } while (cret.isNull());
+  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
+                         << prec << " is " << cret << std::endl;
+  return cret;
+}
+
+void NonlinearExtension::printRationalApprox(const char* c,
+                                             Node cr,
+                                             unsigned prec) const
+{
+  Assert(cr.isConst());
+  Node ca = getApproximateConstant(cr, true, prec);
+  if (ca != cr)
+  {
+    Trace(c) << "(+ ";
+  }
+  Trace(c) << ca;
+  if (ca != cr)
+  {
+    Trace(c) << " [0,10^" << prec << "])";
+  }
+}
+
+void NonlinearExtension::printModelValue(const char* c,
+                                         Node n,
+                                         unsigned prec) const
+{
+  if (Trace.isOn(c))
+  {
+    Trace(c) << "  " << n << " -> ";
+    for (unsigned i = 0; i < 2; i++)
+    {
+      std::map<Node, Node>::const_iterator it = d_mv[1 - i].find(n);
+      Assert(it != d_mv[1 - i].end());
+      if (it->second.isConst())
+      {
+        printRationalApprox(c, it->second, prec);
+      }
+      else
+      {
+        Trace(c) << "?";  // it->second;
+      }
+      Trace(c) << (i == 0 ? " [actual: " : " ]");
+    }
+    Trace(c) << std::endl;
+  }
 }
 
 int NonlinearExtension::compare_value(Node i, Node j,
