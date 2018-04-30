@@ -38,7 +38,7 @@ class SygusUnifRl : public SygusUnif
 
   /** initialize */
   void initialize(QuantifiersEngine* qe,
-                  Node f,
+                  const std::vector<Node>& funs,
                   std::vector<Node>& enums,
                   std::vector<Node>& lemmas) override;
   /** Notify enumeration */
@@ -50,12 +50,54 @@ class SygusUnifRl : public SygusUnif
   void addRefLemma(Node lemma);
 
  protected:
-  /** set of refinmente lemmas */
-  std::vector<Node> d_refLemmas;
-  /** initialize construct solution */
+  /** true and false nodes */
+  Node d_true, d_false;
+  /** current collecton of refinement lemmas */
+  Node d_rlemmas;
+  /** previous collecton of refinement lemmas */
+  Node d_prev_rlemmas;
+  /** whether there are refinement lemmas to satisfy when building solutions */
+  bool d_hasRLemmas;
+  /**
+   * maps applications of the function-to-synthesize to their tuple of arguments
+   * (which constitute a "data point") */
+  std::map<Node, std::vector<Node>> d_app_to_pt;
+  /**
+   * This class stores information regarding an enumerator, including: a
+   * database
+   * of values that have been enumerated for this enumerator.
+   */
+  class EnumCache
+  {
+   public:
+    EnumCache() {}
+    ~EnumCache() {}
+    /** Values that have been enumerated for this enumerator */
+    std::vector<Node> d_enum_vals;
+  };
+  /** maps enumerators to the information above */
+  std::map<Node, EnumCache> d_ecache;
+
+  /** Traverses n and populates d_app_to_pt */
+  void collectPoints(Node n);
+
+  /** collects data from refinement lemmas to drive solution construction
+   *
+   * In particular it rebuilds d_app_to_pt whenever d_prev_rlemmas is different
+   * from d_rlemmas, in which case we may have added or removed data points
+   */
   void initializeConstructSol() override;
+  /** initialize construction solution for function-to-synthesize f */
+  void initializeConstructSolFor(Node f) override;
+  /**
+   * Returns a term covering all data points in the current branch, on null if
+   * none can be found among the currently enumerated values for the respective
+   * enumerator
+   */
+  Node canCloseBranch(Node e);
+
   /** construct solution */
-  Node constructSol(Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */
