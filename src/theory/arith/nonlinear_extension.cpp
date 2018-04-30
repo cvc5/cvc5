@@ -1278,12 +1278,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       Node shift_lem = nm->mkNode(
           AND,
           mkValidPhase(y, d_pi),
-          a[0].eqNode(nm->mkNode(
-              PLUS,
-              y,
-              nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi))),
-          // particular case of above for shift=0
-          nm->mkNode(IMPLIES, mkValidPhase(a[0], d_pi), a[0].eqNode(y)),
+          nm->mkNode(
+              ITE,
+              mkValidPhase(a[0], d_pi),
+              a[0].eqNode(y),
+              a[0].eqNode(nm->mkNode(
+                  PLUS,
+                  y,
+                  nm->mkNode(MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
           new_a.eqNode(a));
       // must do preprocess on this one
       Trace("nl-ext-lemma")
@@ -2748,22 +2750,30 @@ std::vector<Node> NonlinearExtension::checkFactoring(
                   factor_to_mono_orig[itm->first[i]].push_back( itm->first );
                 }
               }
-            } /* else{
-              factor_to_mono[itm->first].push_back( itm->second.isNull() ? d_one : itm->second );
-              factor_to_mono_orig[itm->first].push_back( itm->first );
-            }*/
+            }
           }
         }
         for( std::map< Node, std::vector< Node > >::iterator itf = factor_to_mono.begin(); itf != factor_to_mono.end(); ++itf ){
+          Node x = itf->first;
+          if (itf->second.size() == 1)
+          {
+            std::map<Node, Node>::iterator itm = msum.find(x);
+            if (itm != msum.end())
+            {
+              itf->second.push_back(itm->second.isNull() ? d_one : itm->second);
+              factor_to_mono_orig[x].push_back(x);
+            }
+          }
           if( itf->second.size()>1 ){
             Node sum = NodeManager::currentNM()->mkNode(PLUS, itf->second);
             sum = Rewriter::rewrite( sum );
-            Trace("nl-ext-factor") << "* Factored sum for " << itf->first << " : " << sum << std::endl;
+            Trace("nl-ext-factor")
+                << "* Factored sum for " << x << " : " << sum << std::endl;
             Node kf = getFactorSkolem( sum, lemmas ); 
             std::vector< Node > poly;
-            poly.push_back(
-                NodeManager::currentNM()->mkNode(MULT, itf->first, kf));
-            std::map< Node, std::vector< Node > >::iterator itfo = factor_to_mono_orig.find( itf->first );
+            poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
+            std::map<Node, std::vector<Node> >::iterator itfo =
+                factor_to_mono_orig.find(x);
             Assert( itfo!=factor_to_mono_orig.end() );
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
