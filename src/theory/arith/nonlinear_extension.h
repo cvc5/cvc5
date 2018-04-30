@@ -260,8 +260,16 @@ class NonlinearExtension {
   /**
    * Check model vts. 
    */
-  bool checkModelVts(const std::vector<Node>& assertions);
+  bool checkModelVts(const std::vector<Node>& assertions,
+                                      const std::vector<Node>& false_asserts);
 
+  /** solve equality vts 
+   * 
+   * 
+   */
+  bool solveEqualitySimple( Node eq );
+  
+  
   /** check model for transcendental functions
    *
    * Checks the current model using error bounds on the Taylor approximation.

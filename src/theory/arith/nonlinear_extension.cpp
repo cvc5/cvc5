@@ -839,22 +839,85 @@ std::vector<Node> NonlinearExtension::checkModel(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModelVts(const std::vector<Node>& assertions)
+bool NonlinearExtension::checkModelVts(const std::vector<Node>& assertions,
+                                       const std::vector<Node>& false_asserts)
 {
+  d_tf_check_model_bounds.clear();
+  std::unordered_set< Node, NodeHashFunction > eq_solved;
   //d_tf_check_model_bounds.clear();
-  for (const Node& a : assertions)
+  for (const Node& atom : false_asserts)
   {
     // see if it corresponds to a univariate polynomial equation of degree two
-    if( a.getKind()==EQUAL )
+    if( atom.getKind()==EQUAL )
     {
-      
-      
+      if( solveEqualitySimple( atom ) )
+      {
+        eq_solved.insert( atom );
+      }
+      else
+      {
+        return false;
+      }
     }
   }
   return false;
+  
+  for (const Node& atom : assertions)
+  {
+    // simple check literal
+    if (!simpleCheckModelTfLit(atom))
+    {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
+bool NonlinearExtension::solveEqualitySimple( Node eq )
+{
+  std::map<Node, Node> msum;
+  if (ArithMSum::getMonomialSumLit(eq, msum))
+  {
+    Node var;
+    Node a = d_zero;
+    Node b = d_zero;
+    Node c = d_zero;
+    for (std::pair<const Node, Node>& m : msum)
+    {
+      Node v = m.first;
+      if (v.isNull())
+      {
+        c = m.second;
+      }
+      else if( v.getKind()==NONLINEAR_MULT )
+      {
+        if( v.getNumChildren()!=2 || v[0]!=v[1] || !var.isNull() && var!=v[0] )
+        {
+          return false;
+        }
+        a = m.second;
+        var = v[0];
+      }
+      else if( !v.isVar() || ( !var.isNull() && var!=v ) )
+      {
+        return false;
+      }
+      else
+      {
+        b = m.second;
+        var = v;
+      }
+    }
+    Trace("nl-ext-quad") << "Solved quadratic : " << eq << std::endl;
+    Trace("nl-ext-quad") << "  a : " << a << std::endl;
+    Trace("nl-ext-quad") << "  b : " << b << std::endl;
+    Trace("nl-ext-quad") << "  c : " << c << std::endl;
+    
+  }
 
+  return false;
+}
   
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
@@ -1610,7 +1673,8 @@ void NonlinearExtension::check(Theory::Effort e) {
             << "Checking model based on bounds for transcendental functions..."
             << std::endl;
         // check the model based on simple virtual term substitution
-        if( checkModelVts(assertions) )
+        // FIXME: merge with below
+        if( d_tf_rep_map.empty() && checkModelVts(assertions,false_asserts) )
         {
           complete_status = 1;
         }
