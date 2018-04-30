@@ -377,6 +377,12 @@ void LogicInfo::setLogicString(std::string logicString)
     enableQuantifiers();
     arithNonLinear();
     p += 3;
+  } else if(!strcmp(p, "HORN")) {
+    // the HORN logic
+    enableEverything();
+    enableQuantifiers();
+    arithNonLinear();
+    p += 4;
   } else {
     if(!strncmp(p, "QF_", 3)) {
       disableQuantifiers();
