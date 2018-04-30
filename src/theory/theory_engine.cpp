@@ -314,7 +314,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
-  d_bvToBoolPreprocessor(),
   d_theoryAlternatives(),
   d_attr_handle(),
   d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
@@ -1988,14 +1987,6 @@ void TheoryEngine::staticInitializeBVOptions(
     bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
     bv_theory->enableCoreTheorySlicer();
   }
-}
-
-void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.liftBvToBool(assertions, new_assertions);
-}
-
-void TheoryEngine::ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.lowerBoolToBv(assertions, new_assertions);
 }
 
 bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {

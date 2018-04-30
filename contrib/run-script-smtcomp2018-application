@@ -35,10 +35,10 @@ ALIA|QF_ALIA|QF_LRA|QF_UFLIA|QF_UFLRA|UFLRA)
   runcvc4 --incremental
   ;;
 ANIA|QF_ANIA|QF_NIA|QF_UFNIA|QF_NRA)
-  runcvc4 --nl-ext --tear-down-incremental=1
+  runcvc4 --tear-down-incremental=1
   ;;
 LIA|LRA)
-  runcvc4 --incremental --cbqi
+  runcvc4 --incremental
   ;;
 QF_AUFLIA)
   runcvc4 --no-arrays-eager-index --arrays-eager-lemmas --incremental
