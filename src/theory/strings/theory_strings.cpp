@@ -558,6 +558,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
               vec.push_back(String::convertCodeToUnsignedInt(cvalue));
               Node mv = nm->mkConst(String(vec));
               pure_eq_assign[eqc] = mv;
+              m->getEqualityEngine()->addTerm( mv );
             }
           }
           pure_eq.push_back(eqc);
@@ -598,7 +599,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         {
           Assert( !sel.isFinished() );
           c = *sel;
-          while (d_equalityEngine.hasTerm(c))
+          while (m->hasTerm(c))
           {
             ++sel;
             Assert(!sel.isFinished());
