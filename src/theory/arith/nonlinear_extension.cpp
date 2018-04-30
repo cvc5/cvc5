@@ -939,7 +939,9 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
     // if it is negative, then we are in conflict
     if( sqrt_val.getConst<Rational>().sgn()==-1 )
     {
-      d_containing.getOutputChannel().lemma(eq.negate());
+      Node conf = eq.negate();
+      Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : quadratic no root : " << conf << std::endl;
+      d_containing.getOutputChannel().lemma(conf);
       return false;
     }
     if( d_tf_check_model_bounds.find(var)!=d_tf_check_model_bounds.end() )
