@@ -1846,9 +1846,6 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set( quantifiers::MBQI_FMC );
     }
   }
-  if( options::ufssSymBreak() ){
-    options::sortInference.set( true );
-  }
   if( options::fmfFunWellDefinedRelevant() ){
     if( !options::fmfFunWellDefined.wasSetByUser() ){
       options::fmfFunWellDefined.set( true );
