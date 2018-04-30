@@ -879,9 +879,9 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
   unsigned terminate_index = 0;
   do
   {
-    Trace("nl-ext-cm-debug")
-        << "  indices : " << curr_index << " " << terminate_index << " "
-        << nassertions_new << std::endl;
+    Trace("nl-ext-cm-debug") << "  indices : " << curr_index << " "
+                             << terminate_index << " " << nassertions_new
+                             << std::endl;
     Node lit = passertions[curr_index];
     Node slit = d_check_model_lit[lit];
     Trace("nl-ext-cm-debug") << "  process " << lit << std::endl;
@@ -993,8 +993,8 @@ bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
         if (!simpleCheckModelTfLit(av))
         {
           check_assertions.push_back(av);
-          Trace("nl-ext-cm")
-              << "check-model : failed assertion : " << a << std::endl;
+          Trace("nl-ext-cm") << "check-model : failed assertion : " << a
+                             << std::endl;
           Trace("nl-ext-cm-debug")
               << "check-model : failed assertion, value : " << av << std::endl;
         }
@@ -1725,7 +1725,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       }
       Trace("nl-ext") << "Finished check with status : " << complete_status
                       << std::endl;
-                      
+
       // if we did not add a lemma during check and there is a chance for SAT
       if (complete_status == 0)
       {
@@ -3461,10 +3461,9 @@ bool NonlinearExtension::isRefineableTfFun(Node tf)
   return true;
 }
 
-bool NonlinearExtension::checkTfTangentPlanesFun(
-    Node tf,
-    unsigned d,
-    std::vector<Node>& lemmas)
+bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
+                                                 unsigned d,
+                                                 std::vector<Node>& lemmas)
 {
   Assert(isRefineableTfFun(tf));
 
@@ -3493,9 +3492,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
                              << ", degree " << d << "..." << std::endl;
   Trace("nl-ext-tftp-debug") << "  value in model : " << v << std::endl;
   Trace("nl-ext-tftp-debug") << "  arg value in model : " << c << std::endl;
-  
+
   std::vector<Node> taylor_vars;
-  taylor_vars.push_back(d_taylor_real_fv);  
+  taylor_vars.push_back(d_taylor_real_fv);
 
   // compute the concavity
   int region = -1;
@@ -3538,8 +3537,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
     if (!v_pab.isNull())
     {
       Assert(v_pab.isConst());
-      Trace("nl-ext-tftp-debug2")
-          << "...model value of " << pab << " is " << v_pab << std::endl;
+      Trace("nl-ext-tftp-debug2") << "...model value of " << pab << " is "
+                                  << v_pab << std::endl;
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
       Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
       Node compr = Rewriter::rewrite(comp);
@@ -3565,18 +3564,18 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
           Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
           printRationalApprox("nl-ext-tftp", v_pab);
           Trace("nl-ext-tftp") << ", will refine..." << std::endl;
-          Trace("nl-ext-tftp")
-              << "    poly_approx = " << poly_approx << std::endl;
-          Trace("nl-ext-tftp")
-              << "    is_tangent = " << is_tangent << std::endl;
+          Trace("nl-ext-tftp") << "    poly_approx = " << poly_approx
+                               << std::endl;
+          Trace("nl-ext-tftp") << "    is_tangent = " << is_tangent
+                               << std::endl;
           Trace("nl-ext-tftp") << "    is_secant = " << is_secant << std::endl;
         }
         break;
       }
       else
       {
-        Trace("nl-ext-tftp")
-            << "  ...within " << (r == 0 ? "low" : "high") << " bound : ";
+        Trace("nl-ext-tftp") << "  ...within " << (r == 0 ? "low" : "high")
+                             << " bound : ";
         printRationalApprox("nl-ext-tftp", v_pab);
         Trace("nl-ext-tftp") << std::endl;
       }
@@ -3595,8 +3594,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
                                            taylor_vars.end(),
                                            taylor_subs.begin(),
                                            taylor_subs.end());
-    Trace("nl-ext-tftp-debug2")
-        << "...poly approximation at c is " << poly_approx_c << std::endl;
+    Trace("nl-ext-tftp-debug2") << "...poly approximation at c is "
+                                << poly_approx_c << std::endl;
   }
   else
   {
@@ -3644,8 +3643,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
     Trace("nl-ext-tftp-debug2")
         << "*** Tangent plane lemma (pre-rewrite): " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
-    Trace("nl-ext-tftp-lemma")
-        << "*** Tangent plane lemma : " << lem << std::endl;
+    Trace("nl-ext-tftp-lemma") << "*** Tangent plane lemma : " << lem
+                               << std::endl;
     Assert(computeModelValue(lem, 1) == d_false);
     // Figure 3 : line 9
     lemmas.push_back(lem);
@@ -3767,8 +3766,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(
         Trace("nl-ext-tftp-debug2")
             << "*** Secant plane lemma (pre-rewrite) : " << lem << std::endl;
         lem = Rewriter::rewrite(lem);
-        Trace("nl-ext-tftp-lemma")
-            << "*** Secant plane lemma : " << lem << std::endl;
+        Trace("nl-ext-tftp-lemma") << "*** Secant plane lemma : " << lem
+                                   << std::endl;
         // Figure 3 : line 22
         lemmas.push_back(lem);
         Assert(computeModelValue(lem, 1) == d_false);
@@ -4081,17 +4080,17 @@ void NonlinearExtension::getPolynomialApproximationBounds(
     unsigned n = 2 * d;
     // n must be even
     std::pair<Node, Node> taylor = getTaylor(tft, n);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor for " << k << " is : " << taylor.first << std::endl;
+    Trace("nl-ext-tftp-debug2") << "Taylor for " << k
+                                << " is : " << taylor.first << std::endl;
     Node taylor_sum = Rewriter::rewrite(taylor.first);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor for " << k << " is (post-rewrite) : " << taylor_sum
-        << std::endl;
+    Trace("nl-ext-tftp-debug2") << "Taylor for " << k
+                                << " is (post-rewrite) : " << taylor_sum
+                                << std::endl;
     Assert(taylor.second.getKind() == MULT);
     Assert(taylor.second.getNumChildren() == 2);
     Assert(taylor.second[0].getKind() == DIVISION);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
+    Trace("nl-ext-tftp-debug2") << "Taylor remainder for " << k << " is "
+                                << taylor.second << std::endl;
     // ru is x^{n+1}/(n+1)!
     Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
     ru = Rewriter::rewrite(ru);
@@ -4115,8 +4114,8 @@ void NonlinearExtension::getPolynomialApproximationBounds(
       pbounds.push_back(u);
       pbounds.push_back(u);
     }
-    Trace("nl-ext-tf-tplanes")
-        << "Polynomial approximation for " << k << " is: " << std::endl;
+    Trace("nl-ext-tf-tplanes") << "Polynomial approximation for " << k
+                               << " is: " << std::endl;
     Trace("nl-ext-tf-tplanes") << " Lower (pos): " << pbounds[0] << std::endl;
     Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2] << std::endl;
     Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1] << std::endl;
