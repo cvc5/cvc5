@@ -281,6 +281,7 @@ class NonlinearExtension {
    *   2.0*sin( 1 ) > 1.5
    *   -1.0*sin( 1 ) < -0.79
    *   -1.0*sin( 1 ) > -0.91
+   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
    * It will return false for literals like:
    *   sin( 1 ) > 0.85
    * It will also return false for literals like:
@@ -494,9 +495,8 @@ class NonlinearExtension {
   //list of monomials with factors whose model value is non-constant in model 
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
-  // If ( m, p1, true ), then it would help satisfiability if m were ( >
-  // if p1=true, < if p1=false )
-  std::map<Node, std::map<bool, bool> > d_tplane_refine_dir;
+  /** the set of monomials we should apply tangent planes to */
+  std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
   // term -> coeff -> rhs -> ( status, exp, b ),
   //   where we have that : exp =>  ( coeff * term <status> rhs )
   //   b is true if degree( term ) >= degree( rhs )

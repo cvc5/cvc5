@@ -68,6 +68,10 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/bool_to_bv.cpp \
+	preprocessing/passes/bool_to_bv.h \
+	preprocessing/passes/bv_to_bool.cpp \
+	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/symmetry_detect.cpp \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
@@ -322,8 +326,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_core.h \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_subtheory_inequality.h \
-	theory/bv/bv_to_bool.cpp \
-	theory/bv/bv_to_bool.h \
 	theory/bv/bvintropow2.cpp \
 	theory/bv/bvintropow2.h \
 	theory/bv/slicer.cpp \
@@ -373,6 +375,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bv_inverter.cpp \
 	theory/quantifiers/bv_inverter.h \
+	theory/quantifiers/candidate_rewrite_database.cpp \
+	theory/quantifiers/candidate_rewrite_database.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
@@ -455,6 +459,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/skolemize.h \
 	theory/quantifiers/sygus/cegis.cpp \
 	theory/quantifiers/sygus/cegis.h \
+	theory/quantifiers/sygus/cegis_unif.cpp \
+	theory/quantifiers/sygus/cegis_unif.h \
 	theory/quantifiers/sygus/ce_guided_conjecture.cpp \
 	theory/quantifiers/sygus/ce_guided_conjecture.h \
 	theory/quantifiers/sygus/ce_guided_instantiation.cpp \
@@ -483,6 +489,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_unif.h \
 	theory/quantifiers/sygus/sygus_unif_io.cpp \
 	theory/quantifiers/sygus/sygus_unif_io.h \
+	theory/quantifiers/sygus/sygus_unif_rl.cpp \
+	theory/quantifiers/sygus/sygus_unif_rl.h \
 	theory/quantifiers/sygus/sygus_unif_strat.cpp \
 	theory/quantifiers/sygus/sygus_unif_strat.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \

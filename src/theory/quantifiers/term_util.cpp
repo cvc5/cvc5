@@ -20,6 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
@@ -808,6 +809,11 @@ Node TermUtil::mkNegate(Kind notk, Node n)
     return n[0];
   }
   return NodeManager::currentNM()->mkNode(notk, n);
+}
+
+bool TermUtil::isNegate(Kind k)
+{
+  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
 }
 
 bool TermUtil::isAssoc( Kind k ) {
