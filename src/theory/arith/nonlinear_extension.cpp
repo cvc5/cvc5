@@ -839,6 +839,23 @@ std::vector<Node> NonlinearExtension::checkModel(
   return false_asserts;
 }
 
+bool NonlinearExtension::checkModelVts(const std::vector<Node>& assertions)
+{
+  //d_tf_check_model_bounds.clear();
+  for (const Node& a : assertions)
+  {
+    // see if it corresponds to a univariate polynomial equation of degree two
+    if( a.getKind()==EQUAL )
+    {
+      
+      
+    }
+  }
+  return false;
+}
+
+
+  
 bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
 {
   Trace("nl-ext-tf-check-model") << "check-model : Run" << std::endl;
@@ -969,8 +986,20 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
               }
               Trace("nl-ext-cms-debug") << " ";
             }
+            
             std::map<Node, std::pair<Node, Node> >::iterator bit =
                 d_tf_check_model_bounds.find(vc);
+            if (bit == d_tf_check_model_bounds.end())
+            {
+              // give it an exact bound if not a transcendental
+              if( !isTranscendentalKind(vc.getKind() ) )
+              {
+                Node v = computeModelValue(vc,0);
+                d_tf_check_model_bounds[vc] = std::pair<Node,Node>(v,v);
+                bit = d_tf_check_model_bounds.find(vc);
+              }
+            }
+            // if there is a model bound for this term
             if (bit != d_tf_check_model_bounds.end())
             {
               Node l = bit->second.first;
@@ -1580,10 +1609,15 @@ void NonlinearExtension::check(Theory::Effort e) {
         Trace("nl-ext")
             << "Checking model based on bounds for transcendental functions..."
             << std::endl;
+        // check the model based on simple virtual term substitution
+        if( checkModelVts(assertions) )
+        {
+          complete_status = 1;
+        }
         // check the model using error bounds on the Taylor approximation
         // we must pass all assertions here, since we may modify
         // the model values in bounds.
-        if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
+        else if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
         {
           complete_status = 1;
         }

@@ -256,6 +256,11 @@ class NonlinearExtension {
    * this function.
    */
   std::vector<Node> checkModel(const std::vector<Node>& assertions);
+  
+  /**
+   * Check model vts. 
+   */
+  bool checkModelVts(const std::vector<Node>& assertions);
 
   /** check model for transcendental functions
    *
