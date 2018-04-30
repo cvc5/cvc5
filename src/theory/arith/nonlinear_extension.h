@@ -460,8 +460,8 @@ class NonlinearExtension {
   // per last-call effort
 
   /**
-   * Map from variables appear in assertions to a solved form term. This map can
-   * be ordered such that it is of the form:
+   * A substitution from variables that appear in assertions to a solved form
+   * term. These vectors are ordered in the form:
    *   x_1 -> t_1 ... x_n -> t_n
    * where x_i is not in the free variables of t_j for j>=i.
    */
