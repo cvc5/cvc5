@@ -99,18 +99,6 @@ class SygusUnif
                         std::vector<Node>& vals,
                         bool pol = true);
   //-----------------------end debug printing
-
-
-  /**
-   * Whether we will try to construct solution on the next call to
-   * constructSolution. This flag is set to true when we successfully
-   * register a new value for an enumerator.
-   */
-  bool d_check_sol;
-  /** The number of values we have enumerated for all enumerators. */
-  unsigned d_cond_count;
-  /** The solution for the function of this class, if one has been found */
-  Node d_solution;
   /** the candidate for this class */
   Node d_candidate;
   /** maps a function-to-synthesize to the above information */

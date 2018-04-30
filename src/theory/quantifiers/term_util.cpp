@@ -811,6 +811,11 @@ Node TermUtil::mkNegate(Kind notk, Node n)
   return NodeManager::currentNM()->mkNode(notk, n);
 }
 
+bool TermUtil::isNegate(Kind k)
+{
+  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
+}
+
 bool TermUtil::isAssoc( Kind k ) {
   return k == PLUS || k == MULT || k == AND || k == OR || k == BITVECTOR_PLUS
          || k == BITVECTOR_MULT || k == BITVECTOR_AND || k == BITVECTOR_OR
