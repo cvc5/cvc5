@@ -129,17 +129,17 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_STRREPL, "str.replace" );
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
-  if( v2_6() )
+  if (v2_6())
   {
-    addOperator(kind::STRING_ITOS, "str.from-int" );
-    addOperator(kind::STRING_STOI, "str.to-int" );
+    addOperator(kind::STRING_ITOS, "str.from-int");
+    addOperator(kind::STRING_STOI, "str.to-int");
     addOperator(kind::STRING_IN_REGEXP, "str.in-re");
     addOperator(kind::STRING_TO_REGEXP, "str.to-re");
   }
   else
   {
-    addOperator(kind::STRING_ITOS, "int.to.str" );
-    addOperator(kind::STRING_STOI, "str.to.int" );
+    addOperator(kind::STRING_ITOS, "int.to.str");
+    addOperator(kind::STRING_STOI, "str.to.int");
     addOperator(kind::STRING_IN_REGEXP, "str.in.re");
     addOperator(kind::STRING_TO_REGEXP, "str.to.re");
   }
