@@ -888,37 +888,77 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
   std::map<Node, Node> msum;
   if (ArithMSum::getMonomialSumLit(eq, msum))
   {
+    bool is_valid = true;
     Node var;
     Node a = d_zero;
     Node b = d_zero;
     Node c = d_zero;
+    NodeManager * nm = NodeManager::currentNM();
+    // the list of variables that occur as a monomial in msum, and whose value
+    // is so far unconstrained in the model.
+    std::unordered_set< Node, NodeHashFunction > unc_vars;
+    // the list of variables that occur as a factor in a monomial, and whose
+    // value is so far unconstrained in the model.
+    std::unordered_set< Node, NodeHashFunction > unc_vars_factor;
     for (std::pair<const Node, Node>& m : msum)
     {
       Node v = m.first;
       Node coeff = m.second.isNull() ? d_one : m.second;
       if (v.isNull())
       {
-        c = coeff;
+        c = nm->mkNode( PLUS, c, coeff );
       }
       else if( v.getKind()==NONLINEAR_MULT )
       {
-        if( v.getNumChildren()!=2 || v[0]!=v[1] || !var.isNull() && var!=v[0] )
+        if( v.getNumChildren()==2 && v[0]==v[1] && ( var.isNull() || var==v[0] ) )
         {
-          return false;
+          // may solve quadratic
+          a = coeff;
+          var = v[0];
         }
-        a = coeff;
-        var = v[0];
+        else
+        {
+          is_valid = false;
+        }
       }
-      else if( !v.isVar() || ( !var.isNull() && var!=v ) )
+      else if( !v.isVar() )
       {
-        return false;
+        // we cannot solve for non-variables
+        is_valid = false;
       }
       else
       {
-        b = coeff;
-        var = v;
+        // does it have an assignment in the model?
+        if( !var.isNull() && var!=v )
+        {
+          // cannot solve multivariate
+          if( is_valid )
+          {
+            is_valid = false;
+            // if b is non-zero, then var is also an unconstrained variable
+            if( b!=d_zero )
+            {
+              unc_vars.insert( var );
+            }
+          }
+          // if v is unconstrained, we may turn this equality into a substitution
+          unc_vars.insert( v );
+        }
+        else
+        {
+          // set the variable to solve for
+          b = coeff;
+          var = v;
+        }
       }
     }
+    if( !is_valid )
+    {
+      // FIXME
+      return false;
+    }
+    
+    
     if( a==d_zero )
     {
       // if we are linear, this equality should have been satisfied in the model
@@ -929,7 +969,6 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
     Trace("nl-ext-quad") << "  a : " << a << std::endl;
     Trace("nl-ext-quad") << "  b : " << b << std::endl;
     Trace("nl-ext-quad") << "  c : " << c << std::endl;
-    NodeManager * nm = NodeManager::currentNM();
     Node two_a = nm->mkNode( MULT, d_two, a );
     two_a = Rewriter::rewrite( two_a );
     Node sqrt_val = nm->mkNode( MINUS, nm->mkNode( MULT, b, b ), nm->mkNode( MULT, d_two, two_a, c ) );
