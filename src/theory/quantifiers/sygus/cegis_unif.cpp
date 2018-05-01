@@ -242,22 +242,22 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-void CegisUnifEnumManager::initializeCandidates(std::vector<Node>& candidates)
+void CegisUnifEnumManager::initialize(std::vector<TypeNode>& cts)
 {
-  for (const Node& c : candidates)
+  for (const TypeNode& tn : cts)
   {
-    d_ce_info[c].initialize();
+    d_ce_info[tn].initialize();
   }
 }
 
-void CegisUnifEnumManager::CandidateEnumInfo::initialize()
+void CegisUnifEnumManager::TypeInfo::initialize()
 {
   // do nothing
 }
 
-void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
+void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, TypeNode ct)
 {
-  std::map<Node, CandidateEnumInfo>::iterator it = d_ce_info.find(c);
+  std::map<TypeNode, TypeInfo>::iterator it = d_ce_info.find(ct);
   Assert(it != d_ce_info.end());
   it->second.d_eval_points.insert(
       it->second.d_eval_points.end(), eis.begin(), eis.end());
@@ -266,7 +266,8 @@ void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
   {
     for (const Node& ei : eis)
     {
-      registerEvalPtAtCostFunValue(c, ei, p.second, p.first);
+      Assert( ei.getType()==ct );
+      registerEvalPtAtValue(ct, ei, p.second, p.first);
     }
   }
 }
@@ -294,12 +295,12 @@ void CegisUnifEnumManager::incrementNumEnumerators()
   unsigned new_size = d_curr_guq_val.get() + 1;
   d_curr_guq_val.set(new_size);
   Node lit = getOrMkCurrentLiteral();
-  for (std::pair<const Node, CandidateEnumInfo>& ci : d_ce_info)
+  for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
   {
-    Node c = ci.first;
+    TypeNode ct = ci.first;
     for (const Node& ei : ci.second.d_eval_points)
     {
-      registerEvalPtAtCostFunValue(c, ei, lit, new_size);
+      registerEvalPtAtValue(ct, ei, lit, new_size);
     }
   }
 }
@@ -322,10 +323,10 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
     d_qe->getOutputChannel().requirePhase(new_lit, true);
     d_guq_lit[n] = new_lit;
     // allocate an enumerator for each candidate
-    for (std::pair<const Node, CandidateEnumInfo>& ci : d_ce_info)
+    for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
     {
-      Node c = ci.first;
-      Node eu = nm->mkSkolem("eu", c.getType());
+      TypeNode ct = ci.first;
+      Node eu = nm->mkSkolem("eu", ct);
       if (!ci.second.d_enums.empty())
       {
         Node eu_prev = ci.second.d_enums.back();
@@ -336,7 +337,7 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
         d_qe->getOutputChannel().lemma(sym_break);
       }
       ci.second.d_enums.push_back(eu);
-      d_tds->registerEnumerator(eu, c, d_parent);
+      d_tds->registerEnumerator(eu, d_null, d_parent);
     }
 
     return new_lit;
@@ -344,13 +345,13 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
   return itc->second;
 }
 
-void CegisUnifEnumManager::registerEvalPtAtCostFunValue(Node c,
+void CegisUnifEnumManager::registerEvalPtAtValue(TypeNode ct,
                                                         Node ei,
                                                         Node lit,
                                                         unsigned n)
 {
   // must be equal to one of the first n enums
-  std::map<Node, CandidateEnumInfo>::iterator itc = d_ce_info.find(c);
+  std::map<TypeNode, TypeInfo>::iterator itc = d_ce_info.find(ct);
   Assert(itc != d_ce_info.end());
   Assert(itc->second.d_enums.size() >= n);
   std::vector<Node> disj;

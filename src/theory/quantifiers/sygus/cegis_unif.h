@@ -158,13 +158,14 @@ class CegisUnif : public SygusModule
  * unique values given to the set of "evaluation points", which are variables
  * of sygus datatype type that are introduced by CegisUnif.
  *
- * For each type of an evaluation point, this class maintains a set of guards
- * G_uq_1 ... G_uq_n, where the semantics of G_uq_i is "the evaluation points
- * of this type are interpreted as a value in a set whose cardinality is at
- * most i".
+ * For each type of an evaluation point that is registered with this class, 
+ * it maintains a set of guards, call them G_uq_1 ... G_uq_n, where the 
+ * semantics of G_uq_i is "the evaluation points of this type are interpreted
+ * as a value in a set whose cardinality is at most i".
  *
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
- * evaluation points registered to this class.
+ * evaluation points registered to this class and add lemmas that enforce that
+ * points are equal to at least one enumerator (see registerEvalPtAtValue).
  */
 class CegisUnifEnumManager
 {
@@ -175,16 +176,16 @@ class CegisUnifEnumManager
    * Notify this class that it will be managing enumerators for the vector
    * of functions-to-synthesize (candidate variables) in candidates.
    *
-   * Each c in candidates should be such that we are using a
-   * synthesis-by-unification approach for c.
+   * Each type in cts should be such that we are using a
+   * synthesis-by-unification approach for some c of that type.
    */
-  void initializeCandidates(std::vector<Node>& candidates);
+  void initialize(std::vector<TypeNode>& cts);
   /** register evaluation point for candidate
    *
-   * This notifies this class that eis is a set of evaluation points for
-   * the given candidate c. Each ei in eis should be of the same type as c.
+   * This notifies this class that eis is a set of evaluation points of type ct.
+   * The type ct should be of some type that was passed to initialize in cts.
    */
-  void registerEvalPts(std::vector<Node>& eis, Node c);
+  void registerEvalPts(std::vector<Node>& eis, TypeNode ct);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
@@ -202,19 +203,21 @@ class CegisUnifEnumManager
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
-  /** candidate info */
-  class CandidateEnumInfo
+  /** null node */
+  Node d_null;
+  /** information per initialized type */
+  class TypeInfo
   {
    public:
-    CandidateEnumInfo() {}
+    TypeInfo() {}
     /** initialize */
     void initialize();
     /** the set of enumerators we have allocated for this candidate */
     std::vector<Node> d_enums;
-    /** the set of evaluation points for this candidate */
+    /** the set of evaluation points of this type */
     std::vector<Node> d_eval_points;
   };
-  std::map<Node, CandidateEnumInfo> d_ce_info;
+  std::map<TypeNode, TypeInfo> d_ce_info;
   /** literals of the form G_uq_n for each n */
   std::map<unsigned, Node> d_guq_lit;
   /**
@@ -234,7 +237,7 @@ class CegisUnifEnumManager
    *   G_uq_i => ei = d1 V ... V ei = dn
    * on the output channel of d_qe.
    */
-  void registerEvalPtAtCostFunValue(Node c, Node ei, Node lit, unsigned n);
+  void registerEvalPtAtValue(TypeNode ct, Node ei, Node lit, unsigned n);
 };
 
 }  // namespace quantifiers
