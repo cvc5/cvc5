@@ -327,13 +327,13 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
     {
       Node c = ci.first;
       Node eu = nm->mkSkolem("eu", c.getType());
-      if( !ci.second.d_enums.empty() )
+      if (!ci.second.d_enums.empty())
       {
         Node eu_prev = ci.second.d_enums.back();
         // symmetry breaking
-        Node size_eu = nm->mkNode( DT_SIZE, eu );
-        Node size_eu_prev = nm->mkNode( DT_SIZE, eu_prev );
-        Node sym_break = nm->mkNode( GEQ, size_eu, size_eu_prev );
+        Node size_eu = nm->mkNode(DT_SIZE, eu);
+        Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);
+        Node sym_break = nm->mkNode(GEQ, size_eu, size_eu_prev);
         d_qe->getOutputChannel().lemma(sym_break);
       }
       ci.second.d_enums.push_back(eu);
