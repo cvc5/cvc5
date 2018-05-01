@@ -81,6 +81,7 @@
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
+#include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -2732,6 +2733,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvAbstract));
   d_preprocessingPassRegistry.registerPass("bv-ackermann",
                                            std::move(bvAckermann));
+  std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
+      new SepSkolemEmp(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
@@ -2745,6 +2748,14 @@ void SmtEnginePrivate::finishInit()
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
+                                           std::move(pbProc)); 
+  d_preprocessingPassRegistry.registerPass("sep-skolem-emp", std::move(sepSkolemEmp));
+  std::unique_ptr<BVToBool> bvToBool(
+      new BVToBool(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  std::unique_ptr<BoolToBV> boolToBv(
+      new BoolToBV(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4224,15 +4235,8 @@ void SmtEnginePrivate::processAssertions() {
     Trace("smt") << "POST boolToBv" << endl;
   }
   if(options::sepPreSkolemEmp()) {
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node prev = d_assertions[i];
-      Node next = sep::TheorySepRewriter::preprocess( prev );
-      if( next!=prev ){
-        d_assertions.replace( i, Rewriter::rewrite( next ) );
-        Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
-        Trace("sep-preprocess") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
+      d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
+      Trace("smt") << "POST sepPreSkolemEmp" << endl;
   }
 
   if( d_smt.d_logic.isQuantified() ){
