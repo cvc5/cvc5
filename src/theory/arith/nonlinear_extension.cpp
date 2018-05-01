@@ -1022,6 +1022,7 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
       return seq.getConst<bool>();
     }
   }
+  Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   Assert( seq.getKind()==EQUAL );
   std::map<Node, Node> msum;
   if (ArithMSum::getMonomialSumLit(seq, msum))
@@ -1106,8 +1107,9 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
           Node veqc;
           if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
           {
-            Assert(veqc.isNull() && !slv.isNull());
-            if (!slv.hasSubterm(uv))
+            Assert(!slv.isNull());
+            // currently do not support substitution-with-coefficients
+            if (veqc.isNull() && !slv.hasSubterm(uv))
             {
               Trace("nl-ext-cm") << "check-model-subs : " << uv << " -> " << slv << std::endl;
               addCheckModelSubstitution(uv,slv);
@@ -1133,12 +1135,13 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
       }
       return false;
     }
-    else if( var.isNull() )
+    else if( var.isNull() || var.getType().isInteger() )
     {
-      Assert( false );
+      // cannot solve quadratic equations for integer variables
       return false;
     }
     
+    // we are linear, it is simple
     if( a==d_zero )
     {
       if( b==d_zero )
@@ -1146,7 +1149,6 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
         Assert( false );
         return false;
       }
-      // we are linear, it is simple
       Node val = nm->mkConst( -c.getConst<Rational>() / b.getConst<Rational>() );
       Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
       printRationalApprox("nl-ext-cm", val);
@@ -1154,7 +1156,7 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
       addCheckModelSubstitution(var,val);
       return true;
     }
-    Trace("nl-ext-quad") << "Solved quadratic : " << seq << std::endl;
+    Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
     Trace("nl-ext-quad") << "  a : " << a << std::endl;
     Trace("nl-ext-quad") << "  b : " << b << std::endl;
     Trace("nl-ext-quad") << "  c : " << c << std::endl;
@@ -1220,7 +1222,6 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
       return true;
     }
   }
-
   return false;
 }
 
