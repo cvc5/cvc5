@@ -255,10 +255,9 @@ void CegisUnifEnumManager::CandidateEnumInfo::initialize()
   // do nothing
 }
 
-void CegisUnifEnumManager::registerEvalPtsForEnumerator(std::vector<Node>& eis,
-                                                        Node candidate)
+void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
 {
-  std::map<Node, CandidateEnumInfo>::iterator it = d_ce_info.find(candidate);
+  std::map<Node, CandidateEnumInfo>::iterator it = d_ce_info.find(c);
   Assert(it != d_ce_info.end());
   it->second.d_eval_points.insert(
       it->second.d_eval_points.end(), eis.begin(), eis.end());
@@ -267,7 +266,7 @@ void CegisUnifEnumManager::registerEvalPtsForEnumerator(std::vector<Node>& eis,
   {
     for (const Node& ei : eis)
     {
-      registerEvalPtAtCostFunValue(candidate, ei, p.second, p.first);
+      registerEvalPtAtCostFunValue(c, ei, p.second, p.first);
     }
   }
 }

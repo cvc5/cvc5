@@ -162,6 +162,9 @@ class CegisUnif : public SygusModule
  * G_uq_1 ... G_uq_n, where the semantics of G_uq_i is "the evaluation points
  * of this type are interpreted as a value in a set whose cardinality is at
  * most i".
+ * 
+ * To enforce this, we introduce sygus enumerator(s) of the same type as the
+ * evaluation points registered to this class.
  */
 class CegisUnifEnumManager
 {
@@ -179,10 +182,9 @@ class CegisUnifEnumManager
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of evaluation points for
-   * the given candidate. Each ei in eis should be of the same type as
-   * candidate.
+   * the given candidate c. Each ei in eis should be of the same type as c.
    */
-  void registerEvalPtsForEnumerator(std::vector<Node>& eis, Node candidate);
+  void registerEvalPts(std::vector<Node>& eis, Node c);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
