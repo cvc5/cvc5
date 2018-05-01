@@ -206,6 +206,11 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
+  /** collect variables 
+   * 
+   * 
+   */
+  void collectVariables( Node n, std::vector< Node >& vars );
   /** compute model value
    *
    * This computes model values for terms based on two semantics, a "concrete"
@@ -255,39 +260,34 @@ class NonlinearExtension {
    * whose model value cannot be computed is included in the return value of
    * this function.
    */
-  std::vector<Node> checkModel(const std::vector<Node>& assertions);
+  std::vector<Node> checkModelEval(const std::vector<Node>& assertions);
   
-  /**
-   * Check model vts. 
+  /** Check model 
+   * 
+   * Checks the current model based on solving for equalities, and using error 
+   * bounds on the Taylor approximation.
+   * 
+   * If this function returns true, then all assertions in the input argument
+   * "assertions" are satisfied for all interpretations of variables within 
+   * their computed bounds (as stored in d_check_model_bounds).
+   * 
+   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
+   * "Detecting Satisfiable Formulas".
    */
-  bool checkModelVts(const std::vector<Node>& assertions,
-                                      const std::vector<Node>& false_asserts);
+  bool checkModel(const std::vector<Node>& assertions,
+                  const std::vector<Node>& false_asserts);
 
-  /** solve equality vts 
+  /** solve equality simple 
    * 
    * 
    */
   bool solveEqualitySimple( Node eq );
-  
-  
-  /** check model for transcendental functions
-   *
-   * Checks the current model using error bounds on the Taylor approximation.
-   *
-   * If this function returns true, then all assertions in the input argument
-   * "assertions" are satisfied for all interpretations of transcendental
-   * functions within their error bounds (as stored in d_tf_check_model_bounds).
-   *
-   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
-   * "Detecting Satisfiable Formulas".
-   */
-  bool checkModelTf(const std::vector<Node>& assertions);
 
   /** simple check model for transcendental functions for literal
    *
    * This method returns true if literal is true for all interpretations of
    * transcendental functions within their error bounds (as stored
-   * in d_tf_check_model_bounds). This is determined by a simple under/over
+   * in d_check_model_bounds). This is determined by a simple under/over
    * approximation of the value of sum of (linear) monomials. For example,
    * if we determine that .8 < sin( 1 ) < .9, this function will return
    * true for literals like:
@@ -302,7 +302,7 @@ class NonlinearExtension {
    *   sin( sin( 1 ) ) > .5
    * since the bounds on these terms cannot quickly be determined.
    */
-  bool simpleCheckModelTfLit(Node lit);
+  bool simpleCheckModelLit(Node lit);
 
   /** In the following functions, status states a relationship
   * between two arithmetic terms, where:
@@ -481,11 +481,28 @@ class NonlinearExtension {
    */
   std::vector<Node> d_check_model_vars;
   std::vector<Node> d_check_model_subs;
-  /**
-   * Map from all literals appearing in the current set of assertions to their
-   * rewritten form under the substitution given by d_check_model_solve_form.
+  /** add check model substitution 
+   * 
+   * TODO
    */
-  std::map<Node, Node> d_check_model_lit;
+  void addCheckModelSubstitution( TNode v, TNode s );
+  /** bounds for transcendental functions
+   *
+   * For each transcendental function application t, if this stores the pair
+   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
+   */
+  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
+  
+  /**
+   * The map from literals that our model construction solved, to the variable
+   * that was solved for. Examples of such literals are:
+   * (1) Equalities x = t, which we turned into a model substitution x -> t,
+   * (2) Equalities a*x*x + b*x + c = 0, which we turned into a model bound
+   * -b+s*sqrt(b*b-4*a*c)/2a - E <= x <= -b+s*sqrt(b*b-4*a*c)/2a + E.
+   * 
+   * These literals are exempt from check-model.
+   */
+  std::unordered_map< Node, Node, NodeHashFunction > d_check_model_solved;
 
   // model values/orderings
   /** cache of model values
@@ -542,13 +559,6 @@ class NonlinearExtension {
    * in the equality engine assoiated with this class.
    */
   std::map<Kind, std::map<Node, Node> > d_tf_rep_map;
-
-  /** bounds for transcendental functions
-   *
-   * For each transcendental function application t, if this stores the pair
-   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
-   */
-  std::map<Node, std::pair<Node, Node> > d_tf_check_model_bounds;
 
   // factor skolems
   std::map< Node, Node > d_factor_skolem;

@@ -818,7 +818,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
                   << " assertions." << std::endl;
 }
 
-std::vector<Node> NonlinearExtension::checkModel(
+std::vector<Node> NonlinearExtension::checkModelEval(
     const std::vector<Node>& assertions)
 {
   std::vector<Node> false_asserts;
@@ -840,47 +840,176 @@ std::vector<Node> NonlinearExtension::checkModel(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModelVts(const std::vector<Node>& assertions,
-                                       const std::vector<Node>& false_asserts)
+bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
+                                    const std::vector<Node>& false_asserts)
 {
-  Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
-  d_tf_check_model_bounds.clear();
+  Trace("nl-ext-cm") << "--- check-model ---" << std::endl;  
+  d_check_model_solved.clear();
+  d_check_model_bounds.clear();
+  d_check_model_vars.clear();
+  d_check_model_subs.clear();
+  
+  // get the presubstitution
+  Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
+  std::vector<Node> pvars;
+  std::vector<Node> psubs;
+  for (std::pair<const Node, Node>& tb : d_trig_base)
+  {
+    pvars.push_back(tb.first);
+    psubs.push_back(tb.second);
+  }
+  // initialize representation of assertions
+  std::vector<Node> passertions;
+  for (const Node& a : assertions)
+  {
+    Node pa = a;
+    if (!pvars.empty())
+    {
+      pa =
+          pa.substitute(pvars.begin(), pvars.end(), psubs.begin(), psubs.end());
+      pa = Rewriter::rewrite(pa);
+    }
+    if( !pa.isConst() || !pa.getConst<bool>() )
+    {
+      Trace("nl-ext-cm-assert") << "- assert : " << pa << std::endl;
+      passertions.push_back(pa);
+    }
+  }
+  
+  // get model bounds for all transcendental functions
+  Trace("nl-ext-cm-debug") << "  get bounds for transcendental functions..." << std::endl;
+  for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
+  {
+    Kind k = tfs.first;
+    for (std::pair<const Node, Node>& tfr : tfs.second)
+    {
+      // Figure 3 : tf( x )
+      Node tf = tfr.second;
+      Node atf = computeModelValue( tf, 0 );
+      if (k == PI)
+      {
+        d_check_model_bounds[atf] =
+            std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+      }
+      else if (isRefineableTfFun(tf))
+      {
+        d_check_model_bounds[atf] = getTfModelBounds(tf, d_taylor_degree);
+      }
+      if (Trace.isOn("nl-ext-cm"))
+      {
+        std::map<Node, std::pair<Node, Node> >::iterator it =
+            d_check_model_bounds.find(tf);
+        if (it != d_check_model_bounds.end())
+        {
+          Trace("nl-ext-cm") << "check-model-bound : approximate : ";
+          printRationalApprox("nl-ext-cm", it->second.first);
+          Trace("nl-ext-cm") << " <= " << tf << " <= ";
+          printRationalApprox("nl-ext-cm", it->second.second);
+          Trace("nl-ext-cm") << std::endl;
+        }
+      }
+    }
+  }  
+  
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
-  std::unordered_set< Node, NodeHashFunction > eq_solved;
-  //d_tf_check_model_bounds.clear();
+  //d_check_model_bounds.clear();
   for (const Node& atom : false_asserts)
   {
     // see if it corresponds to a univariate polynomial equation of degree two
     if( atom.getKind()==EQUAL )
     {
-      if( solveEqualitySimple( atom ) )
-      {
-        eq_solved.insert( atom );
-      }
-      else
+      Node seq = atom.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_vars.end() );
+      seq = Rewriter::rewrite( seq );
+      if( !solveEqualitySimple( atom ) )
       {
         // no chance we will satisfy this equality
         Trace("nl-ext-cm") << "...check-model : failed to solve equality : " << atom << std::endl;
-        return false;
       }
     }
   }
   
-  Trace("nl-ext-cm-debug") << "  check model..." << std::endl;
-  for (const Node& atom : assertions)
+  // all remaining variables are constrained to their exact model values
+  Trace("nl-ext-cm-debug") << "  set exact bounds for remaining variables..." << std::endl;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  for (const Node& a : passertions)
   {
-    if( eq_solved.find(atom)==eq_solved.end() )
-    {
-      // simple check literal
-      if (!simpleCheckModelTfLit(atom))
+    visit.push_back(a);
+    do {
+      cur = visit.back();
+      visit.pop_back();
+      if (visited.find(cur) == visited.end()) 
       {
-        Trace("nl-ext-cm") << "...check-model : assertion failed : " << atom << std::endl;
-        return false;
+        visited.insert(cur);
+        if( cur.getType().isReal() && !cur.isConst() )
+        {
+          Kind k = cur.getKind();
+          if( k!=MULT && k!=PLUS && k!=NONLINEAR_MULT && !isTranscendentalKind(k) )
+          {
+            // if we have not set an approximate bound for it
+            if( d_check_model_bounds.find(cur)==d_check_model_bounds.end() )
+            {
+              // set its exact model value in the substitution
+              Node curv = computeModelValue(cur);
+              Trace("nl-ext-cm") << "check-model-bound : exact : " << cur << " = ";
+              printRationalApprox("nl-ext-cm", curv);
+              Trace("nl-ext-cm") << std::endl;
+              addCheckModelSubstitution(cur, curv);
+            }
+          }
+        }
+        for (const Node& cn : cur ){
+          visit.push_back(cn);
+        }
+      }
+    } while (!visit.empty());
+  }
+  
+  Trace("nl-ext-cm-debug") << "  check assertions..." << std::endl;
+  std::vector<Node> check_assertions;
+  for (const Node& a : passertions)
+  {
+    if( d_check_model_solved.find(a)==d_check_model_solved.end() )
+    {
+      Node av = a;
+      // apply the substitution to a
+      if( !d_check_model_vars.empty() )
+      {
+        av = av.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_vars.end() );
+        av = Rewriter::rewrite( av );
+      }
+      // simple check literal
+      if (!simpleCheckModelLit(av))
+      {
+        Trace("nl-ext-cm") << "...check-model : assertion failed : " << a << std::endl;
+        check_assertions.push_back(av);
+        Trace("nl-ext-cm-debug") << "...check-model : failed assertion, value : " << av << std::endl;
       }
     }
   }
-  Trace("nl-ext-cm") << "...success!" << std::endl;
-  return true;
+  
+  if (check_assertions.empty())
+  {
+    Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
+    return true;
+  }
+
+  Trace("nl-ext-cm") << "...simple check failed." << std::endl;
+  // TODO (#1450) check model for general case
+  return false;
+}
+
+void NonlinearExtension::addCheckModelSubstitution( TNode v, TNode s )
+{
+  for( unsigned i=0, size = d_check_model_subs.size(); i<size; i++ )
+  {
+    Node ss = d_check_model_subs[i];
+    ss = ss.substitute(v,s);
+    d_check_model_subs[i] = ss;
+  }
+  d_check_model_vars.push_back(v);
+  d_check_model_subs.push_back(s);
 }
 
 bool NonlinearExtension::solveEqualitySimple( Node eq )
@@ -983,7 +1112,7 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
       d_containing.getOutputChannel().lemma(conf);
       return false;
     }
-    if( d_tf_check_model_bounds.find(var)!=d_tf_check_model_bounds.end() )
+    if( d_check_model_bounds.find(var)!=d_check_model_bounds.end() )
     {
       // two quadratic equations for same variable, give up
       return false;
@@ -1022,189 +1151,16 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
       Assert( cmp.isConst() );
       unsigned r_use_index = cmp==d_true ? 1 : 0;
       Trace("nl-ext-quad") << "...bound " << bounds[r_use_index][0] << " <= " << var << " <= " << bounds[r_use_index][1] << std::endl;
-      d_tf_check_model_bounds[var] = std::pair< Node, Node >( bounds[r_use_index][0], bounds[r_use_index][1] );
+      d_check_model_bounds[var] = std::pair< Node, Node >( bounds[r_use_index][0], bounds[r_use_index][1] );
+      d_check_model_solved[eq] = var;
       return true;
     }
   }
 
   return false;
 }
-  
-bool NonlinearExtension::checkModelTf(const std::vector<Node>& assertions)
-{
-  Trace("nl-ext-cm") << "check-model : Run" << std::endl;
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
-  d_check_model_lit.clear();
-  d_tf_check_model_bounds.clear();
 
-  // get the presubstitution
-  std::vector<Node> pvars;
-  std::vector<Node> psubs;
-  for (std::pair<const Node, Node>& tb : d_trig_base)
-  {
-    pvars.push_back(tb.first);
-    psubs.push_back(tb.second);
-  }
-
-  // initialize representation of assertions
-  std::vector<Node> passertions;
-  for (const Node& a : assertions)
-  {
-    Node pa = a;
-    if (!pvars.empty())
-    {
-      pa =
-          pa.substitute(pvars.begin(), pvars.end(), psubs.begin(), psubs.end());
-      pa = Rewriter::rewrite(pa);
-    }
-    Trace("nl-ext-cm-assert") << "- assert : " << pa << std::endl;
-    d_check_model_lit[pa] = pa;
-    passertions.push_back(pa);
-  }
-
-  // heuristically, solve for equalities
-  Trace("nl-ext-cm") << "solving equalities..." << std::endl;
-  unsigned nassertions_new = passertions.size();
-  unsigned curr_index = 0;
-  unsigned terminate_index = 0;
-  do
-  {
-    Trace("nl-ext-cm-debug") << "  indices : " << curr_index << " "
-                             << terminate_index << " " << nassertions_new
-                             << std::endl;
-    Node lit = passertions[curr_index];
-    Node slit = d_check_model_lit[lit];
-    Trace("nl-ext-cm-debug") << "  process " << lit << std::endl;
-    // update it based on the current substitution
-    if (!d_check_model_vars.empty() && !slit.isConst())
-    {
-      // reapply the substitution
-      slit = slit.substitute(d_check_model_vars.begin(),
-                             d_check_model_vars.end(),
-                             d_check_model_subs.begin(),
-                             d_check_model_subs.end());
-      slit = Rewriter::rewrite(slit);
-      d_check_model_lit[lit] = slit;
-      Trace("nl-ext-cm-debug") << "  ...substituted to " << slit << std::endl;
-    }
-    // is it a substitution?
-    if (slit.getKind() == EQUAL)
-    {
-      std::map<Node, Node> msum;
-      if (ArithMSum::getMonomialSumLit(slit, msum))
-      {
-        // find a legal variable to solve for
-        Node v;
-        Node slv;
-        for (std::pair<const Node, Node>& m : msum)
-        {
-          Node mv = m.first;
-          if (mv.isVar() && ((v.getKind() != SKOLEM && mv.getKind() == SKOLEM)
-                             || slv.isNull()))
-          {
-            Node veqc;
-            if (ArithMSum::isolate(mv, msum, veqc, slv, EQUAL) != 0)
-            {
-              Assert(veqc.isNull() && !slv.isNull());
-              if (!mv.hasSubterm(v))
-              {
-                v = mv;
-              }
-            }
-          }
-        }
-        if (!v.isNull())
-        {
-          Trace("nl-ext-cm")
-              << "  assertion : " << slit
-              << " can be turned into substitution:" << std::endl;
-          Trace("nl-ext-cm") << "    " << v << " -> " << slv << std::endl;
-          d_check_model_vars.push_back(v);
-          d_check_model_subs.push_back(slv);
-          d_check_model_lit[lit] = d_true;
-          terminate_index = curr_index;
-        }
-      }
-    }
-    curr_index++;
-    if (curr_index == nassertions_new)
-    {
-      curr_index = 0;
-    }
-  } while (curr_index != terminate_index);
-  Trace("nl-ext-cm") << "...finished." << std::endl;
-
-  // initialize the check model bounds
-  for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
-  {
-    Kind k = tfs.first;
-    for (std::pair<const Node, Node>& tfr : tfs.second)
-    {
-      // Figure 3 : tf( x )
-      Node tf = tfr.second;
-      Node atf = computeModelValue(tf);
-      if (k == PI)
-      {
-        d_tf_check_model_bounds[atf] =
-            std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
-      }
-      else if (isRefineableTfFun(tf))
-      {
-        d_tf_check_model_bounds[atf] = getTfModelBounds(tf, d_taylor_degree);
-      }
-      if (Trace.isOn("nl-ext-cm"))
-      {
-        std::map<Node, std::pair<Node, Node> >::iterator it =
-            d_tf_check_model_bounds.find(atf);
-        if (it != d_tf_check_model_bounds.end())
-        {
-          Trace("nl-ext-cm") << "check-model : satisfied approximate bound : ";
-          printRationalApprox("nl-ext-cm", it->second.first);
-          Trace("nl-ext-cm") << " <= " << tf << " <= ";
-          printRationalApprox("nl-ext-cm", it->second.second);
-          Trace("nl-ext-cm") << std::endl;
-        }
-      }
-    }
-  }
-
-  std::unordered_set<Node, NodeHashFunction> all_assertions;
-  std::vector<Node> check_assertions;
-  for (const Node& a : passertions)
-  {
-    Node as = d_check_model_lit[a];
-    if (!as.isConst() || !as.getConst<bool>())
-    {
-      Node av = computeModelValue(a);
-      if (all_assertions.find(av) == all_assertions.end())
-      {
-        all_assertions.insert(av);
-        // simple check
-        if (!simpleCheckModelTfLit(av))
-        {
-          check_assertions.push_back(av);
-          Trace("nl-ext-cm") << "check-model : failed assertion : " << a
-                             << std::endl;
-          Trace("nl-ext-cm-debug")
-              << "check-model : failed assertion, value : " << av << std::endl;
-        }
-      }
-    }
-  }
-
-  if (check_assertions.empty())
-  {
-    Trace("nl-ext-cm") << "...simple check succeeded." << std::endl;
-    return true;
-  }
-
-  Trace("nl-ext-cm") << "...simple check failed." << std::endl;
-  // TODO (#1450) check model for general case
-  return false;
-}
-
-bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
+bool NonlinearExtension::simpleCheckModelLit(Node lit)
 {
   Trace("nl-ext-cms") << "simple check-model for " << lit << "..." << std::endl;
   if (lit.isConst() && lit.getConst<bool>())
@@ -1291,19 +1247,19 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
             }
             
             std::map<Node, std::pair<Node, Node> >::iterator bit =
-                d_tf_check_model_bounds.find(vc);
-            if (bit == d_tf_check_model_bounds.end())
+                d_check_model_bounds.find(vc);
+            if (bit == d_check_model_bounds.end())
             {
               // give it an exact bound if not a transcendental
               if( !isTranscendentalKind(vc.getKind() ) )
               {
                 Node v = computeModelValue(vc,0);
-                d_tf_check_model_bounds[vc] = std::pair<Node,Node>(v,v);
-                bit = d_tf_check_model_bounds.find(vc);
+                d_check_model_bounds[vc] = std::pair<Node,Node>(v,v);
+                bit = d_check_model_bounds.find(vc);
               }
             }
             // if there is a model bound for this term
-            if (bit != d_tf_check_model_bounds.end())
+            if (bit != d_check_model_bounds.end())
             {
               Node l = bit->second.first;
               Node u = bit->second.second;
@@ -1442,7 +1398,7 @@ bool NonlinearExtension::simpleCheckModelTfLit(Node lit)
         lit = lit.negate();
       }
       lit = Rewriter::rewrite(lit);
-      bool success = simpleCheckModelTfLit(lit);
+      bool success = simpleCheckModelLit(lit);
       if (success != pol)
       {
         // false != true -> one conjunct of equality is false, we fail
@@ -1488,7 +1444,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_tf_rep_map.clear();
   d_tf_region.clear();
-  d_tf_check_model_bounds.clear();
+  d_check_model_bounds.clear();
   d_waiting_lemmas.clear();
 
   int lemmas_proc = 0;
@@ -1843,7 +1799,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     Trace("nl-ext-mv-assert")
         << "Getting model values... check for [model-false]" << std::endl;
     // get the assertions that are false in the model
-    const std::vector<Node> false_asserts = checkModel(assertions);
+    const std::vector<Node> false_asserts = checkModelEval(assertions);
 
     // get the extended terms belonging to this theory
     std::vector<Node> xts;
@@ -1935,16 +1891,9 @@ void NonlinearExtension::check(Theory::Effort e) {
         Trace("nl-ext")
             << "Checking model based on bounds for transcendental functions..."
             << std::endl;
-        // check the model based on simple virtual term substitution
-        // FIXME: merge with below
-        if( d_tf_rep_map.empty() && checkModelVts(assertions,false_asserts) )
-        {
-          complete_status = 1;
-        }
-        // check the model using error bounds on the Taylor approximation
-        // we must pass all assertions here, since we may modify
-        // the model values in bounds.
-        else if (!d_tf_rep_map.empty() && checkModelTf(false_asserts))
+        // check the model based on simple solving of equalities and using 
+        // error bounds on the Taylor approximation of transcendental functions.
+        if (checkModel(assertions,false_asserts))
         {
           complete_status = 1;
         }
