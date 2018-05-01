@@ -301,7 +301,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
   if (itc == d_guq_lit.end())
   {
     // allocate the new literal
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node new_lit = Rewriter::rewrite(nm->mkSkolem("G_cost", nm->booleanType()));
     new_lit = d_qe->getValuation().ensureLiteral(new_lit);
     AlwaysAssert(!new_lit.isNull());
@@ -349,9 +349,9 @@ Node CegisUnifEnumManager::getLiteral(unsigned n) const
 }
 
 void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
-                                                 Node ei,
-                                                 Node guq_lit,
-                                                 unsigned n)
+                                                Node ei,
+                                                Node guq_lit,
+                                                unsigned n)
 {
   // must be equal to one of the first n enums
   std::map<TypeNode, TypeInfo>::iterator itc = d_ce_info.find(ct);

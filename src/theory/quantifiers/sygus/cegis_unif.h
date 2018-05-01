@@ -185,8 +185,8 @@ class CegisUnifEnumManager
    * This notifies this class that eis is a set of evaluation points for
    * candidate c, where c should be a candidate that was passed to initialize
    * in the vector cs.
-   * 
-   * This may add new lemmas of the form described above 
+   *
+   * This may add new lemmas of the form described above
    * registerEvalPtAtValue on the output channel of d_qe.
    */
   void registerEvalPts(std::vector<Node>& eis, Node c);
@@ -197,8 +197,8 @@ class CegisUnifEnumManager
    * If no guard G_uq_* is asserted positively, then this method returns the
    * minimal G_uq_i that is not asserted negatively. It allocates this guard
    * if necessary.
-   * 
-   * This call may add new lemmas of the form described above 
+   *
+   * This call may add new lemmas of the form described above
    * registerEvalPtAtValue on the output channel of d_qe.
    */
   Node getNextDecisionRequest(unsigned& priority);
@@ -235,7 +235,7 @@ class CegisUnifEnumManager
   context::CDO<unsigned> d_curr_guq_val;
   /** increment the number of enumerators */
   void incrementNumEnumerators();
-  /** 
+  /**
    * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
    * is not asserted negatively in the current SAT context.
    */
