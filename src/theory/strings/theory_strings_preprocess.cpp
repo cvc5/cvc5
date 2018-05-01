@@ -513,13 +513,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     
     // assert:
     //  IF x=y
-    //  THEN ltp
+    //  THEN: ltp
     //  ELSE: k >= 0 AND k <= len( x ) AND k <= len( y ) AND 
     //        substr( x, 0, k ) = substr( y, 0, k ) AND 
     //        IF    ltp
     //        THEN: str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
     //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert = nm->mkNode( ITE, t[0].eqNode(t[1]), ltp, nm->mkNode( AND, conj ) ) );
+    Node assert = nm->mkNode( ITE, t[0].eqNode(t[1]), ltp, nm->mkNode( AND, conj ) );
     new_nodes.push_back( assert );
     
     
