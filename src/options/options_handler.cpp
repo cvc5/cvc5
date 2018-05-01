@@ -1107,7 +1107,7 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
       throw OptionException(
           std::string("CaDiCaL does not support incremental mode. \n\
                          Try --bv-sat-solver=cryptominisat or "
-                       "--bv-sat-solver=minisat"));
+                      "--bv-sat-solver=minisat"));
     }
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY

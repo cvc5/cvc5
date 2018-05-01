@@ -34,7 +34,9 @@ EagerBitblastSolver::EagerBitblastSolver(context::Context* c, TheoryBV* bv)
       d_aigBitblaster(),
       d_useAig(options::bitvectorAig()),
       d_bv(bv),
-      d_bvp(nullptr) {}
+      d_bvp(nullptr)
+{
+}
 
 EagerBitblastSolver::~EagerBitblastSolver() {}
 
