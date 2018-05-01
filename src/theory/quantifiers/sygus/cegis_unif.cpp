@@ -77,12 +77,12 @@ bool CegisUnif::initialize(Node n,
   }
   d_no_unif = true;
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
-  /* Initialize enumerators for case with No unification for any function */
+  /* Initialize enumerators for case with no unification for any function */
   if (d_no_unif)
   {
     for (const Node& c : candidates)
     {
-      d_tds->registerEnumerator(c, c, d_parent, true);
+      d_tds->registerEnumerator(c, c, d_parent);
     }
   }
   return true;
@@ -162,7 +162,6 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
       }
       Trace("cegqi-debug") << "...produced " << eager_terms.size()
                            << " eager evaluation lemmas.\n";
-
       for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
       {
         Node lem = nm->mkNode(
@@ -326,6 +325,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
+  d_refinement_lemmas.push_back(lem);
   /* Make the refinement lemma and add it to lems. This lemma is guarded by the
      parent's guard, which has the semantics "this conjecture has a solution",
      hence this lemma states: if the parent conjecture has a solution, it
@@ -349,7 +349,6 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   }
   plem = Rewriter::rewrite(plem);
   Trace("cegis-unif") << "Purified lemma : " << plem << "\n";
-  d_refinement_lemmas.push_back(plem);
   /* Notify lemma to unification utility */
   d_sygus_unif.addRefLemma(plem);
 }

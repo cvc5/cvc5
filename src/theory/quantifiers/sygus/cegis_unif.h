@@ -135,8 +135,6 @@ class CegisUnif : public Cegis
   std::map<Node, Node> d_enum_to_active_guard;
   /* Whether no candidate is being synthesized with the unif utility */
   bool d_no_unif;
-  /* list of learned refinement lemmas */
-  std::vector<Node> d_refinement_lemmas;
   /**
    * Maps applications of functions-to-synthesize to the respective purified
    * form of the function-to-synthesized. For example if "f" is being
