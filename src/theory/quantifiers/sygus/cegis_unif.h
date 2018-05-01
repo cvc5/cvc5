@@ -186,6 +186,8 @@ class CegisUnifEnumManager
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** sygus term database of d_qe */
+  TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
   /** candidate info */

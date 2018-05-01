@@ -239,6 +239,7 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
     : d_qe(qe), d_parent(parent), d_curr_cfun_val(qe->getSatContext(), 0)
 {
+  d_tds = d_qe->getTermDatabaseSygus();
 }
 
 void CegisUnifEnumManager::initializeCandidates(std::vector<Node>& candidates)
@@ -327,7 +328,7 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
       Node c = ci.first;
       Node eu = nm->mkSkolem("eu", c.getType());
       ci.second.d_enums.push_back(eu);
-      d_tds->registerEnumerator(e, d_candidate, d_parent);
+      d_tds->registerEnumerator(eu, c, d_parent);
     }
 
     return new_lit;
