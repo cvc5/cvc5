@@ -235,10 +235,11 @@ class CegisUnifEnumManager
   /** register evaluation point at cost function value
    *
    * This sends a lemma of the form:
-   *   G_uq_i => ei = d1 V ... V ei = dn
-   * on the output channel of d_qe.
+   *   G_uq_n => ei = d1 V ... V ei = dn
+   * on the output channel of d_qe, where d1...dn are sygus enumerators of the
+   * same type (ct) as ei.
    */
-  void registerEvalPtAtValue(TypeNode ct, Node ei, Node lit, unsigned n);
+  void registerEvalPtAtValue(TypeNode ct, Node ei, Node guq_lit, unsigned n);
 };
 
 }  // namespace quantifiers

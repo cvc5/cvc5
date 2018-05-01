@@ -345,7 +345,7 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
 
 void CegisUnifEnumManager::registerEvalPtAtValue(TypeNode ct,
                                                  Node ei,
-                                                 Node lit,
+                                                 Node guq_lit,
                                                  unsigned n)
 {
   // must be equal to one of the first n enums
@@ -353,7 +353,7 @@ void CegisUnifEnumManager::registerEvalPtAtValue(TypeNode ct,
   Assert(itc != d_ce_info.end());
   Assert(itc->second.d_enums.size() >= n);
   std::vector<Node> disj;
-  disj.push_back(lit.negate());
+  disj.push_back(guq_lit.negate());
   for (unsigned i = 0; i < n; i++)
   {
     disj.push_back(ei.eqNode(itc->second.d_enums[i]));
