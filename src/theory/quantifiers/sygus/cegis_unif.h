@@ -158,8 +158,8 @@ class CegisUnif : public SygusModule
  * unique values given to the set of "evaluation points", which are variables
  * of sygus datatype type that are introduced by CegisUnif.
  *
- * For each type of an evaluation point that is registered with this class, 
- * it maintains a set of guards, call them G_uq_1 ... G_uq_n, where the 
+ * For each type of an evaluation point that is registered with this class,
+ * it maintains a set of guards, call them G_uq_1 ... G_uq_n, where the
  * semantics of G_uq_i is "the evaluation points of this type are interpreted
  * as a value in a set whose cardinality is at most i".
  *

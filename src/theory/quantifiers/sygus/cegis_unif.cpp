@@ -266,7 +266,7 @@ void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, TypeNode ct)
   {
     for (const Node& ei : eis)
     {
-      Assert( ei.getType()==ct );
+      Assert(ei.getType() == ct);
       registerEvalPtAtValue(ct, ei, p.second, p.first);
     }
   }
@@ -346,9 +346,9 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
 }
 
 void CegisUnifEnumManager::registerEvalPtAtValue(TypeNode ct,
-                                                        Node ei,
-                                                        Node lit,
-                                                        unsigned n)
+                                                 Node ei,
+                                                 Node lit,
+                                                 unsigned n)
 {
   // must be equal to one of the first n enums
   std::map<TypeNode, TypeInfo>::iterator itc = d_ce_info.find(ct);
