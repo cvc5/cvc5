@@ -918,9 +918,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     // see if it corresponds to a univariate polynomial equation of degree two
     if( atom.getKind()==EQUAL )
     {
-      Node seq = atom.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_vars.end() );
-      seq = Rewriter::rewrite( seq );
-      if( !solveEqualitySimple( atom ) )
+      if( !solveEqualitySimple( atom, true ) )
       {
         // no chance we will satisfy this equality
         Trace("nl-ext-cm") << "...check-model : failed to solve equality : " << atom << std::endl;
@@ -976,7 +974,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       // apply the substitution to a
       if( !d_check_model_vars.empty() )
       {
-        av = av.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_vars.end() );
+        av = av.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_subs.end() );
         av = Rewriter::rewrite( av );
       }
       // simple check literal
@@ -1012,10 +1010,16 @@ void NonlinearExtension::addCheckModelSubstitution( TNode v, TNode s )
   d_check_model_subs.push_back(s);
 }
 
-bool NonlinearExtension::solveEqualitySimple( Node eq )
+bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
 {
+  Node seq = eq;
+  if( useCheckModelSubs && !d_check_model_vars.empty() )
+  {
+    seq = eq.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_subs.end() );
+    seq = Rewriter::rewrite( seq );
+  }
   std::map<Node, Node> msum;
-  if (ArithMSum::getMonomialSumLit(eq, msum))
+  if (ArithMSum::getMonomialSumLit(seq, msum))
   {
     bool is_valid = true;
     Node var;
@@ -1094,7 +1098,7 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
       Assert( false );
       return false;
     }
-    Trace("nl-ext-quad") << "Solved quadratic : " << eq << std::endl;
+    Trace("nl-ext-quad") << "Solved quadratic : " << seq << std::endl;
     Trace("nl-ext-quad") << "  a : " << a << std::endl;
     Trace("nl-ext-quad") << "  b : " << b << std::endl;
     Trace("nl-ext-quad") << "  c : " << c << std::endl;
@@ -1107,7 +1111,7 @@ bool NonlinearExtension::solveEqualitySimple( Node eq )
     // if it is negative, then we are in conflict
     if( sqrt_val.getConst<Rational>().sgn()==-1 )
     {
-      Node conf = eq.negate();
+      Node conf = seq.negate();
       Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : quadratic no root : " << conf << std::endl;
       d_containing.getOutputChannel().lemma(conf);
       return false;

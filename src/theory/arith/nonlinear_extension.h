@@ -281,7 +281,7 @@ class NonlinearExtension {
    * 
    * 
    */
-  bool solveEqualitySimple( Node eq );
+  bool solveEqualitySimple( Node eq, bool useCheckModelSubs = false );
 
   /** simple check model for transcendental functions for literal
    *
