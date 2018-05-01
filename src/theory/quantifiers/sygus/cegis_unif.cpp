@@ -235,6 +235,119 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
 }
 
+CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe) : d_qe(qe), d_curr_cfun_val( qe->getSatContext(), 0 )
+{
+  
+}
+
+void CegisUnifEnumManager::initializeCandidates(std::vector<Node>& candidates)
+{
+  for( const Node& c : candidates )
+  {
+    d_ce_info[c].initialize();
+  }
+}
+
+void CegisUnifEnumManager::CandidateEnumInfo::initialize()
+{
+  // do nothing
+}
+
+void CegisUnifEnumManager::registerEvalPtsForEnumerator( std::vector< Node >& eis, Node candidate )
+{
+  std::map< Node, CandidateEnumInfo >::iterator it = d_ce_info.find(candidate);
+  Assert( it != d_ce_info.end() );
+  it->second.d_eval_points.insert(it->second.d_eval_points.end(),eis.begin(),eis.end());
+  // register at all already allocated sizes
+  for( const std::pair< const unsigned, Node >& p : d_cfun_lit )
+  {
+    for( const Node& ei : eis )
+    {
+      registerEvalPtAtCostFunValue( candidate, ei, p.second, p.first );
+    }
+  }
+}
+
+Node CegisUnifEnumManager::getNextDecisionRequest( unsigned& priority )
+{
+  Node lit = getOrMkCurrentLiteral();
+  bool value;
+  if( !d_qe->getValuation().hasSatValue( lit, value ) ) 
+  {
+    priority = 0;
+    return lit;
+  }
+  else if( !value )
+  {
+    // propagated false, increment
+    incrementNumEnumerators();
+    return getNextDecisionRequest( priority );
+  }
+  return Node::null();
+}
+
+void CegisUnifEnumManager::incrementNumEnumerators()
+{
+  unsigned new_size = d_curr_cfun_val.get() + 1;
+  d_curr_cfun_val.set( new_size );
+  Node lit = getOrMkCurrentLiteral();
+  for( std::pair< const Node, CandidateEnumInfo >& ci : d_ce_info )
+  {
+    Node c = ci.first;
+    for( const Node& ei : ci.second.d_eval_points )
+    {
+      registerEvalPtAtCostFunValue( c, ei, lit, new_size );
+    }
+  }
+}
+
+
+Node CegisUnifEnumManager::getOrMkCurrentLiteral()
+{
+  return getOrMkLiteral( d_curr_cfun_val.get() );
+}
+  
+Node CegisUnifEnumManager::getOrMkLiteral( unsigned n )
+{
+  std::map< unsigned, Node >::iterator itc = d_cfun_lit.find(n);
+  if( itc == d_cfun_lit.end() )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    // initialize it
+    Node new_lit = Rewriter::rewrite( nm->mkSkolem( "G_cost", nm->booleanType() ) );
+    new_lit = d_qe->getValuation().ensureLiteral( new_lit );
+    AlwaysAssert( !new_lit.isNull() );
+    d_qe->getOutputChannel().requirePhase( new_lit, true );
+    d_cfun_lit[n] = new_lit;
+    // allocate an enumerator for each candidate 
+    for( std::pair< const Node, CandidateEnumInfo >& ci : d_ce_info )
+    {
+      Node c = ci.first;
+      Node eu = nm->mkSkolem( "eu", c.getType() );
+      ci.second.d_enums.push_back( eu );
+      // register it TODO
+    }
+    
+    return new_lit;
+  }
+  return itc->second;
+}
+
+void CegisUnifEnumManager::registerEvalPtAtCostFunValue( Node c, Node ei, Node lit, unsigned n )
+{
+  // must be equal to one of the first n enums
+  std::map< Node, CandidateEnumInfo >::iterator itc = d_ce_info.find( c );
+  Assert( itc!=d_ce_info.end() );
+  Assert( itc->second.d_enums.size()>=n );
+  std::vector< Node > disj;
+  disj.push_back( lit.negate() );
+  for( unsigned i=0; i<n; i++ )
+  {
+    disj.push_back( ei.eqNode( itc->second.d_enums[i] ) );
+  }
+  Node lem = NodeManager::currentNM()->mkNode( OR, disj );
+}
+  
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
