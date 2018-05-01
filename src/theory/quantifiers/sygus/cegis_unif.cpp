@@ -246,9 +246,13 @@ void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
 {
   for (const Node& c : cs)
   {
+    // currently, we allocate the same enumerators for candidates of the same
+    // type
     TypeNode tn = c.getType();
     d_ce_info[tn].d_candidates.push_back(c);
   }
+  // initialize the current literal
+  incrementNumEnumerators();
 }
 
 void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
@@ -265,14 +269,14 @@ void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
     for (const Node& ei : eis)
     {
       Assert(ei.getType() == ct);
-      registerEvalPtAtValue(ct, ei, p.second, p.first);
+      registerEvalPtAtSize(ct, ei, p.second, p.first);
     }
   }
 }
 
 Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
 {
-  Node lit = getOrMkCurrentLiteral();
+  Node lit = getCurrentLiteral();
   bool value;
   if (!d_qe->getValuation().hasSatValue(lit, value))
   {
@@ -292,34 +296,17 @@ void CegisUnifEnumManager::incrementNumEnumerators()
 {
   unsigned new_size = d_curr_guq_val.get() + 1;
   d_curr_guq_val.set(new_size);
-  Node lit = getOrMkCurrentLiteral();
-  for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
-  {
-    TypeNode ct = ci.first;
-    for (const Node& ei : ci.second.d_eval_points)
-    {
-      registerEvalPtAtValue(ct, ei, lit, new_size);
-    }
-  }
-}
-
-Node CegisUnifEnumManager::getOrMkCurrentLiteral()
-{
-  return getOrMkLiteral(d_curr_guq_val.get());
-}
-
-Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
-{
-  std::map<unsigned, Node>::iterator itc = d_guq_lit.find(n);
+  // ensure that the literal has been allocated
+  std::map<unsigned, Node>::iterator itc = d_guq_lit.find(new_size);
   if (itc == d_guq_lit.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    // initialize it
+    // allocate the new literal
+    NodeManager * nm = NodeManager::currentNM();
     Node new_lit = Rewriter::rewrite(nm->mkSkolem("G_cost", nm->booleanType()));
     new_lit = d_qe->getValuation().ensureLiteral(new_lit);
     AlwaysAssert(!new_lit.isNull());
     d_qe->getOutputChannel().requirePhase(new_lit, true);
-    d_guq_lit[n] = new_lit;
+    d_guq_lit[new_size] = new_lit;
     // allocate an enumerator for each candidate
     for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
     {
@@ -337,13 +324,31 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
       ci.second.d_enums.push_back(eu);
       d_tds->registerEnumerator(eu, d_null, d_parent);
     }
-
-    return new_lit;
+    // register the evaluation points at the new value
+    for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
+    {
+      TypeNode ct = ci.first;
+      for (const Node& ei : ci.second.d_eval_points)
+      {
+        registerEvalPtAtSize(ct, ei, new_lit, new_size);
+      }
+    }
   }
+}
+
+Node CegisUnifEnumManager::getCurrentLiteral() const
+{
+  return getLiteral(d_curr_guq_val.get());
+}
+
+Node CegisUnifEnumManager::getLiteral(unsigned n) const
+{
+  std::map<unsigned, Node>::const_iterator itc = d_guq_lit.find(n);
+  Assert(itc != d_guq_lit.end());
   return itc->second;
 }
 
-void CegisUnifEnumManager::registerEvalPtAtValue(TypeNode ct,
+void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
                                                  Node ei,
                                                  Node guq_lit,
                                                  unsigned n)

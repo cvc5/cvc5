@@ -154,7 +154,7 @@ class CegisUnif : public SygusModule
 
 /** Cegis Unif Enumeration Manager
  *
- * This function enforces a decision heuristic that limits the number of
+ * This class enforces a decision heuristic that limits the number of
  * unique values given to the set of "evaluation points", which are variables
  * of sygus datatype type that are introduced by CegisUnif.
  *
@@ -173,7 +173,8 @@ class CegisUnifEnumManager
   /** initialize candidates
    *
    * Notify this class that it will be managing enumerators for the vector
-   * of functions-to-synthesize (candidate variables) in candidates.
+   * of functions-to-synthesize (candidate variables) in candidates. This
+   * function should only be called once.
    *
    * Each candidate c in cs should be such that we are using a
    * synthesis-by-unification approach for c.
@@ -184,6 +185,9 @@ class CegisUnifEnumManager
    * This notifies this class that eis is a set of evaluation points for
    * candidate c, where c should be a candidate that was passed to initialize
    * in the vector cs.
+   * 
+   * This may add new lemmas of the form described above 
+   * registerEvalPtAtValue on the output channel of d_qe.
    */
   void registerEvalPts(std::vector<Node>& eis, Node c);
   /** get next decision request
@@ -193,6 +197,9 @@ class CegisUnifEnumManager
    * If no guard G_uq_* is asserted positively, then this method returns the
    * minimal G_uq_i that is not asserted negatively. It allocates this guard
    * if necessary.
+   * 
+   * This call may add new lemmas of the form described above 
+   * registerEvalPtAtValue on the output channel of d_qe.
    */
   Node getNextDecisionRequest(unsigned& priority);
 
@@ -217,28 +224,32 @@ class CegisUnifEnumManager
     /** the set of evaluation points of this type */
     std::vector<Node> d_eval_points;
   };
+  /** map types to the above info */
   std::map<TypeNode, TypeInfo> d_ce_info;
   /** literals of the form G_uq_n for each n */
   std::map<unsigned, Node> d_guq_lit;
   /**
-   * The minimal n such that G_uq_n is asserted positively in the
+   * The minimal n such that G_uq_n is not asserted negatively in the
    * current SAT context.
    */
   context::CDO<unsigned> d_curr_guq_val;
   /** increment the number of enumerators */
   void incrementNumEnumerators();
-  /** get current cost fun literal */
-  Node getOrMkCurrentLiteral();
-  /** get literal at n */
-  Node getOrMkLiteral(unsigned n);
-  /** register evaluation point at cost function value
+  /** 
+   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
+   * is not asserted negatively in the current SAT context.
+   */
+  Node getCurrentLiteral() const;
+  /** get literal G_uq_n */
+  Node getLiteral(unsigned n) const;
+  /** register evaluation point at size
    *
    * This sends a lemma of the form:
    *   G_uq_n => ei = d1 V ... V ei = dn
    * on the output channel of d_qe, where d1...dn are sygus enumerators of the
    * same type (ct) as ei.
    */
-  void registerEvalPtAtValue(TypeNode ct, Node ei, Node guq_lit, unsigned n);
+  void registerEvalPtAtSize(TypeNode ct, Node ei, Node guq_lit, unsigned n);
 };
 
 }  // namespace quantifiers
