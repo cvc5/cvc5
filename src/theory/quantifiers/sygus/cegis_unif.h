@@ -215,10 +215,10 @@ class CegisUnifEnumManager
     std::vector<Node> d_eval_points;
   };
   std::map<Node, CandidateEnumInfo> d_ce_info;
-  /** literals of the form d_guq <= n for each n */
+  /** literals of the form G_uq_n for each n */
   std::map<unsigned, Node> d_guq_lit;
   /**
-   * The minimal n such that d_guq <= n is asserted positively in the
+   * The minimal n such that G_uq_n is asserted positively in the
    * current SAT context.
    */
   context::CDO<unsigned> d_curr_guq_val;
