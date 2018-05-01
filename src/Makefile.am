@@ -34,9 +34,7 @@ libcvc4_la_LDFLAGS = \
 nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
-	api/cvc4cpp.h \
-	api/cvc4cppkind.h \
-	api/cvc4cpp.cpp \
+	svn_versioninfo.cpp \
 	context/backtrackable.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
@@ -50,7 +48,10 @@ libcvc4_la_SOURCES = \
 	context/cdmaybe.h \
 	context/cdo.h \
 	context/cdqueue.h \
+	context/cdtrail_hashmap.h \
+	context/cdtrail_hashmap_forward.h \
 	context/cdtrail_queue.h \
+	context/cdvector.h \
 	context/context.cpp \
 	context/context.h \
 	context/context_mm.cpp \
@@ -95,6 +96,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/quantifiers_preprocess.cpp \
 	preprocessing/passes/quantifiers_preprocess.h \
+	preprocessing/passes/quantifier_macros.cpp \
+	preprocessing/passes/quantifier_macros.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \
@@ -482,8 +485,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/lazy_trie.h \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/local_theory_ext.h \
-	theory/quantifiers/macros.cpp \
-	theory/quantifiers/macros.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_epr.cpp \

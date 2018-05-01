@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file macros.cpp
+/*! \file quantifier_macros.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Kshitij Bansal
@@ -14,7 +14,7 @@
  ** This class implements quantifiers macro definitions.
  **/
 
-#include "theory/quantifiers/macros.h"
+#include "preprocessing/passes/quantifier_macros.h"
 
 #include <vector>
 
@@ -28,16 +28,32 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "preprocessing/passes/quantifier_macros.h"
 
-using namespace CVC4;
+namespace CVC4 {
+namespace preprocessing {    
+namespace passes {
+
 using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 
-QuantifierMacros::QuantifierMacros( QuantifiersEngine * qe ) : d_qe( qe ){
-  d_ground_macros = false;
+
+
+
+QuantifierMacros::QuantifierMacros(PreprocessingPassContext* preprocContext) : 
+        PreprocessingPass(preprocContext, "quantifier-macros"){};
+
+PreprocessingPassResult QuantifierMacros::applyInternal(
+                AssertionPipeline* assertionsToPreprocess) {
+   bool success;
+   do {
+      success = simplify(assertionsToPreprocess->ref(), true);
+   } while (success);
+   finalizeDefinitions();
+   return PreprocessingPassResult::NO_CONFLICT;
 }
   
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
@@ -154,7 +170,7 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 }
 
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
-  Node icn = d_qe->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
+  Node icn = d_preprocContext->getTheoryEngine()->getQuantifiersEngine()->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(f, icn, var);
@@ -512,3 +528,7 @@ void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
     }
   }
 }
+
+} // passes
+} // preprocessing
+} // CVC4
