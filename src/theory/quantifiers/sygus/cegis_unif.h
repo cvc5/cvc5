@@ -160,7 +160,7 @@ class CegisUnif : public SygusModule
 class CegisUnifEnumManager
 {
  public:
-  CegisUnifEnumManager(QuantifiersEngine* qe);
+  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
   /** initialize candidates 
    * 
    * Notify this class that it will be managing enumerators for the vector
@@ -186,6 +186,8 @@ class CegisUnifEnumManager
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** reference to the parent conjecture */
+  CegConjecture* d_parent;
   /** candidate info */
   class CandidateEnumInfo
   {

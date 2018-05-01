@@ -235,7 +235,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
 }
 
-CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe) : d_qe(qe), d_curr_cfun_val( qe->getSatContext(), 0 )
+CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent) : d_qe(qe), d_parent(parent),
+d_curr_cfun_val( qe->getSatContext(), 0 )
 {
   
 }
@@ -325,7 +326,7 @@ Node CegisUnifEnumManager::getOrMkLiteral( unsigned n )
       Node c = ci.first;
       Node eu = nm->mkSkolem( "eu", c.getType() );
       ci.second.d_enums.push_back( eu );
-      // register it TODO
+      d_tds->registerEnumerator(e, d_candidate, d_parent);
     }
     
     return new_lit;
@@ -346,6 +347,7 @@ void CegisUnifEnumManager::registerEvalPtAtCostFunValue( Node c, Node ei, Node l
     disj.push_back( ei.eqNode( itc->second.d_enums[i] ) );
   }
   Node lem = NodeManager::currentNM()->mkNode( OR, disj );
+  d_qe->getOutputChannel().lemma(lem);
 }
   
 }  // namespace quantifiers
