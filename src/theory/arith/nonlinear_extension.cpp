@@ -1013,15 +1013,15 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 {
   // should not substitute the same variable twice
-  Assert( v.isVar() );
-  Assert( !hasCheckModelAssignment( v ) );
+  Assert(v.isVar());
+  Assert(!hasCheckModelAssignment(v));
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
     Node ms = d_check_model_subs[i];
     Node mss = ms.substitute(v, s);
-    if( mss!=ms )
+    if (mss != ms)
     {
-      mss = Rewriter::rewrite( mss );
+      mss = Rewriter::rewrite(mss);
     }
     d_check_model_subs[i] = mss;
   }
@@ -1031,11 +1031,12 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 
 bool NonlinearExtension::hasCheckModelAssignment(Node v) const
 {
-  if( d_check_model_bounds.find(v)!=d_check_model_bounds.end() )
+  if (d_check_model_bounds.find(v) != d_check_model_bounds.end())
   {
     return true;
-  }    
-  return std::find( d_check_model_vars.begin(), d_check_model_vars.end(), v )!=d_check_model_vars.end();
+  }
+  return std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
+         != d_check_model_vars.end();
 }
 
 bool NonlinearExtension::solveEqualitySimple(Node eq)
@@ -1050,7 +1051,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     seq = Rewriter::rewrite(seq);
     if (seq.isConst())
     {
-      if( seq.getConst<bool>() )
+      if (seq.getConst<bool>())
       {
         d_check_model_solved[eq] = Node::null();
         return true;

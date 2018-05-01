@@ -281,9 +281,9 @@ class NonlinearExtension {
   /** solve equality simple
    *
    * This method is used during checkModel(...). It takes as input an
-   * equality eq. If it returns true, then eq is correct-by-construction based 
-   * on the information stored in our model representation (see 
-   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq 
+   * equality eq. If it returns true, then eq is correct-by-construction based
+   * on the information stored in our model representation (see
+   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
    * is added to d_check_model_solved.
    */
   bool solveEqualitySimple(Node eq);
@@ -318,16 +318,16 @@ class NonlinearExtension {
   std::vector<Node> d_check_model_subs;
   /** add check model substitution
    *
-   * Adds the model substitution v -> s. This applies the substitution 
-   * { v -> s } to each term in d_check_model_subs and adds v,s to 
+   * Adds the model substitution v -> s. This applies the substitution
+   * { v -> s } to each term in d_check_model_subs and adds v,s to
    * d_check_model_vars and d_check_model_subs respectively.
    */
   void addCheckModelSubstitution(TNode v, TNode s);
   /** lower and upper bounds for check model
    *
    * For each term t in the domain of this map, if this stores the pair
-   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u. 
-   * 
+   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
+   *
    * We add terms whose value is approximated in the model to this map, which
    * includes:
    * (1) applications of transcendental functions, whose value is approximated
@@ -349,11 +349,11 @@ class NonlinearExtension {
    * definition of our model construction.
    */
   std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
-  /** has check model assignment 
-   * 
+  /** has check model assignment
+   *
    * Have we assigned v in the current checkModel(...) call?
-   * 
-   * This method returns true if variable v is in the domain of 
+   *
+   * This method returns true if variable v is in the domain of
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
   bool hasCheckModelAssignment(Node v) const;
