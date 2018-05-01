@@ -901,7 +901,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
             d_check_model_bounds.find(tf);
         if (it != d_check_model_bounds.end())
         {
-          Trace("nl-ext-cm") << "check-model-bound : approximate : ";
+          Trace("nl-ext-cm") << "check-model-bound : approximate (taylor) : ";
           printRationalApprox("nl-ext-cm", it->second.first);
           Trace("nl-ext-cm") << " <= " << tf << " <= ";
           printRationalApprox("nl-ext-cm", it->second.second);
@@ -1017,11 +1017,17 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
   {
     seq = eq.substitute( d_check_model_vars.begin(), d_check_model_vars.end(), d_check_model_subs.begin(), d_check_model_subs.end() );
     seq = Rewriter::rewrite( seq );
+    if( seq.isConst() )
+    {
+      return seq.getConst<bool>();
+    }
   }
+  Assert( seq.getKind()==EQUAL );
   std::map<Node, Node> msum;
   if (ArithMSum::getMonomialSumLit(seq, msum))
   {
     bool is_valid = true;
+    // the variable we will solve a quadratic equation for
     Node var;
     Node a = d_zero;
     Node b = d_zero;
@@ -1039,11 +1045,11 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
       Node coeff = m.second.isNull() ? d_one : m.second;
       if (v.isNull())
       {
-        c = nm->mkNode( PLUS, c, coeff );
+        c = coeff;
       }
       else if( v.getKind()==NONLINEAR_MULT )
       {
-        if( v.getNumChildren()==2 && v[0]==v[1] && ( var.isNull() || var==v[0] ) )
+        if( v.getNumChildren()==2 && v.isVar() && v[0]==v[1] && ( var.isNull() || var==v[0] ) )
         {
           // may solve quadratic
           a = coeff;
@@ -1052,6 +1058,11 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
         else
         {
           is_valid = false;
+          // may wish to set an exact bound for a factor and repeat
+          for( const Node& vc : v )
+          {
+            unc_vars_factor.insert( vc );
+          }
         }
       }
       else if( !v.isVar() )
@@ -1059,44 +1070,89 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
         // we cannot solve for non-variables
         is_valid = false;
       }
+      else if( !var.isNull() && var!=v )
+      {
+        // cannot solve multivariate
+        if( is_valid )
+        {
+          is_valid = false;
+          // if b is non-zero, then var is also an unconstrained variable
+          if( b!=d_zero )
+          {
+            unc_vars.insert( var );
+            unc_vars_factor.insert( var );
+          }
+        }
+        // if v is unconstrained, we may turn this equality into a substitution
+        unc_vars.insert( v );
+        unc_vars_factor.insert( v );
+      }
       else
       {
-        // does it have an assignment in the model?
-        if( !var.isNull() && var!=v )
-        {
-          // cannot solve multivariate
-          if( is_valid )
-          {
-            is_valid = false;
-            // if b is non-zero, then var is also an unconstrained variable
-            if( b!=d_zero )
-            {
-              unc_vars.insert( var );
-            }
-          }
-          // if v is unconstrained, we may turn this equality into a substitution
-          unc_vars.insert( v );
-        }
-        else
-        {
-          // set the variable to solve for
-          b = coeff;
-          var = v;
-        }
+        // set the variable to solve for
+        b = coeff;
+        var = v;
       }
     }
-    if( !is_valid )
+    if( !is_valid && useCheckModelSubs )
     {
-      // FIXME
+      // see if we can solve for a variable?
+      for( const Node& uv : unc_vars )
+      {
+        // cannot already have a bound
+        if( uv.isVar() && d_check_model_bounds.find(uv)==d_check_model_bounds.end() )
+        {
+          Node slv;
+          Node veqc;
+          if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
+          {
+            Assert(veqc.isNull() && !slv.isNull());
+            if (!slv.hasSubterm(uv))
+            {
+              Trace("nl-ext-cm") << "check-model-subs : " << uv << " -> " << slv << std::endl;
+              addCheckModelSubstitution(uv,slv);
+              return true;
+            }
+          }
+        }
+      }
+      // see if we can assign a variable to a constant
+      for( const Node& uvf : unc_vars_factor )
+      {
+        // cannot already have a bound
+        if( uvf.isVar() && d_check_model_bounds.find(uvf)==d_check_model_bounds.end() )
+        {
+          Node uvfv = computeModelValue(uvf);
+          Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
+          printRationalApprox("nl-ext-cm", uvfv);
+          Trace("nl-ext-cm") << std::endl;
+          addCheckModelSubstitution(uvf,uvfv);
+          //recurse
+          return solveEqualitySimple(eq,true);
+        }
+      }
       return false;
     }
-    
+    else if( var.isNull() )
+    {
+      Assert( false );
+      return false;
+    }
     
     if( a==d_zero )
     {
-      // if we are linear, this equality should have been satisfied in the model
-      Assert( false );
-      return false;
+      if( b==d_zero )
+      {
+        Assert( false );
+        return false;
+      }
+      // we are linear, it is simple
+      Node val = nm->mkConst( -c.getConst<Rational>() / b.getConst<Rational>() );
+      Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
+      printRationalApprox("nl-ext-cm", val);
+      Trace("nl-ext-cm") << std::endl;
+      addCheckModelSubstitution(var,val);
+      return true;
     }
     Trace("nl-ext-quad") << "Solved quadratic : " << seq << std::endl;
     Trace("nl-ext-quad") << "  a : " << a << std::endl;
@@ -1154,7 +1210,11 @@ bool NonlinearExtension::solveEqualitySimple( Node eq, bool useCheckModelSubs )
       cmp = Rewriter::rewrite( cmp );
       Assert( cmp.isConst() );
       unsigned r_use_index = cmp==d_true ? 1 : 0;
-      Trace("nl-ext-quad") << "...bound " << bounds[r_use_index][0] << " <= " << var << " <= " << bounds[r_use_index][1] << std::endl;
+      Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
+      printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
+      Trace("nl-ext-cm") << " <= " << var << " <= ";
+      printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
+      Trace("nl-ext-cm") << std::endl;
       d_check_model_bounds[var] = std::pair< Node, Node >( bounds[r_use_index][0], bounds[r_use_index][1] );
       d_check_model_solved[eq] = var;
       return true;
