@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -60,19 +61,21 @@ bool CegisUnif::initialize(Node n,
       Node g = d_tds->getActiveGuardForEnumerator(e);
       d_enum_to_active_guard[e] = g;
     }
-  }
-  Trace("cegis-unif") << "Determining if any function using unification util\n";
-  d_no_unif = true;
-  /* Copy candidates and check whether CegisUnif for any of them */
-  for (const Node& c : candidates)
-  {
-    d_candidates.insert(c);
-    if (d_sygus_unif.usingUnif(c))
+    Trace("cegis-unif")
+        << "Determining if any function using unification util\n";
+    d_no_unif = true;
+    /* Copy candidates and check whether CegisUnif for any of them */
+    for (const Node& c : candidates)
     {
-      d_no_unif = false;
-      d_purified_count[c] = 0;
+      d_candidates.insert(c);
+      if (d_sygus_unif.usingUnif(c))
+      {
+        d_no_unif = false;
+        d_purified_count[c] = 0;
+      }
     }
   }
+  d_no_unif = true;
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   /* Initialize enumerators for case with No unification for any function */
   if (d_no_unif)
@@ -114,6 +117,70 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
                                     std::vector<Node>& candidate_values,
                                     std::vector<Node>& lems)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  if (d_no_unif)
+  {
+    candidate_values.insert(
+        candidate_values.end(), enum_values.begin(), enum_values.end());
+    if (options::sygusDirectEval())
+    {
+      bool addedEvalLemmas = false;
+      if (options::sygusCRefEval())
+      {
+        Trace("cegqi-engine")
+            << "  *** Do conjecture refinement evaluation...\n";
+        /* see if any refinement lemma is refuted by evaluation */
+        std::vector<Node> cre_lems;
+        getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
+        if (!cre_lems.empty())
+        {
+          for (const Node& lem : cre_lems)
+          {
+            if (d_qe->addLemma(lem))
+            {
+              Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem
+                                   << std::endl;
+              addedEvalLemmas = true;
+            }
+          }
+          /* we could, but do not return here. experimentally, it is better to
+             add
+             the lemmas below as well, in parallel. */
+        }
+      }
+      Trace("cegqi-engine") << "  *** Do direct evaluation...\n";
+      std::vector<Node> eager_terms, eager_vals, eager_exps;
+      for (unsigned i = 0, size = candidates.size(); i < size; ++i)
+      {
+        Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
+                             << candidate_values[i] << std::endl;
+        d_tds->registerModelValue(candidates[i],
+                                  candidate_values[i],
+                                  eager_terms,
+                                  eager_vals,
+                                  eager_exps);
+      }
+      Trace("cegqi-debug") << "...produced " << eager_terms.size()
+                           << " eager evaluation lemmas.\n";
+
+      for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
+      {
+        Node lem = nm->mkNode(
+            OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
+        if (d_qe->addLemma(lem))
+        {
+          Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem
+                               << std::endl;
+          addedEvalLemmas = true;
+        }
+      }
+      if (addedEvalLemmas)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   Assert(enums.size() == enum_values.size());
   if (enums.empty())
   {
@@ -141,12 +208,10 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   /* only consider the enumerators that are at minimum size (for fairness) */
   Trace("cegis-unif-enum") << "...register " << enum_consider.size() << " / "
                            << enums.size() << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, ecsize = enum_consider.size(); i < ecsize; ++i)
   {
     unsigned j = enum_consider[i];
-    Node e = enums[j];
-    Node v = enum_values[j];
+    Node e = enums[j], v = enum_values[j];
     std::vector<Node> enum_lems;
     d_sygus_unif.notifyEnumeration(e, v, enum_lems);
     /* the lemmas must be guarded by the active guard of the enumerator */
@@ -158,12 +223,12 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
   }
-  /* build candidate solution */
-  Assert(candidates.size() == 1);
-  if (d_sygus_unif.constructSolution(candidate_values))
+  /* divide-and-conquer solution bulding for candidates using unif util */
+  std::vector<Node> sols;
+  if (d_sygus_unif.constructSolution(sols))
   {
-    Node vc = candidate_values[0];
-    Trace("cegis-unif-enum") << "... candidate solution :" << vc << "\n";
+    candidate_values.insert(
+        candidate_values.end(), sols.begin(), sols.end());
     return true;
   }
   return false;
@@ -261,6 +326,16 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
+  /* Make the refinement lemma and add it to lems. This lemma is guarded by the
+     parent's guard, which has the semantics "this conjecture has a solution",
+     hence this lemma states: if the parent conjecture has a solution, it
+     satisfies the specification for the given concrete point. */
+  lems.push_back(
+      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
+  if (d_no_unif)
+  {
+    return;
+  }
   Node plem;
   std::vector<Node> model_guards;
   BoolNodePairMap cache;
@@ -277,13 +352,6 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   d_refinement_lemmas.push_back(plem);
   /* Notify lemma to unification utility */
   d_sygus_unif.addRefLemma(plem);
-  /* Make the refinement lemma and add it to lems. This lemma is guarded by the
-     parent's guard, which has the semantics "this conjecture has a solution",
-     hence this lemma states: if the parent conjecture has a solution, it
-     satisfies the specification for the given concrete point. */
-  /* Store lemma for external modules */
-  lems.push_back(
-      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
 }
 
 }  // namespace quantifiers
