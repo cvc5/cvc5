@@ -39,4 +39,4 @@ class SepSkolemEmp : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H *
+#endif /* __CVC4__PREPROCESSING__PASSES__SEP_SKOLEM_EMP_H */
