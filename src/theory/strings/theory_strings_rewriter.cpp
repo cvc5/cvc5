@@ -1176,17 +1176,24 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     retNode = rewriteSubstr(node);
   }else if( node.getKind() == kind::STRING_STRCTN ){
     retNode = rewriteContains( node );
-  }else if( node.getKind() == kind::STRING_LT ){
-    NodeManager * nm = NodeManager::currentNM();
+  }
+  else if (node.getKind() == kind::STRING_LT)
+  {
+    NodeManager* nm = NodeManager::currentNM();
     // eliminate s < t ---> s != t AND s <= t
-    retNode = nm->mkNode( AND, node[0].eqNode(node[1]).negate(), nm->mkNode( STRING_LEQ, node[0], node[1] ) );
-  }else if( node.getKind() == kind::STRING_LEQ ){
-    retNode = rewriteStringLeq( node );
+    retNode = nm->mkNode(AND,
+                         node[0].eqNode(node[1]).negate(),
+                         nm->mkNode(STRING_LEQ, node[0], node[1]));
+  }
+  else if (node.getKind() == kind::STRING_LEQ)
+  {
+    retNode = rewriteStringLeq(node);
   }else if( node.getKind()==kind::STRING_STRIDOF ){
     retNode = rewriteIndexof( node );
   }else if( node.getKind() == kind::STRING_STRREPL ){
     retNode = rewriteReplace( node );
-  }else if (node.getKind() == kind::STRING_PREFIX
+  }
+  else if (node.getKind() == kind::STRING_PREFIX
            || node.getKind() == kind::STRING_SUFFIX)
   {
     retNode = rewritePrefixSuffix(node);
@@ -2195,26 +2202,26 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 Node TheoryStringsRewriter::rewriteStringLeq(Node n)
 {
   Assert(n.getKind() == kind::STRING_LEQ);
-  NodeManager * nm = NodeManager::currentNM();
-  if( n[0]==n[1] )
+  NodeManager* nm = NodeManager::currentNM();
+  if (n[0] == n[1])
   {
     Node ret = nm->mkConst(true);
-    return returnRewrite(n,ret,"str-leq-id");
+    return returnRewrite(n, ret, "str-leq-id");
   }
-  if( n[0].isConst() && n[1].isConst() )
+  if (n[0].isConst() && n[1].isConst())
   {
     String s = n[0].getConst<String>();
     String t = n[1].getConst<String>();
-    Node ret = nm->mkConst( s.isLeq(t) );
-    return returnRewrite(n,ret,"str-leq-eval");
+    Node ret = nm->mkConst(s.isLeq(t));
+    return returnRewrite(n, ret, "str-leq-eval");
   }
   // empty strings
-  for( unsigned i=0; i<2; i++ )
+  for (unsigned i = 0; i < 2; i++)
   {
-    if( n[i].isConst() && n[i].getConst<String>().isEmptyString())
+    if (n[i].isConst() && n[i].getConst<String>().isEmptyString())
     {
-      Node ret = i==0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
-      return returnRewrite(n,ret,"str-leq-empty");
+      Node ret = i == 0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
+      return returnRewrite(n, ret, "str-leq-empty");
     }
   }
 
@@ -2222,23 +2229,23 @@ Node TheoryStringsRewriter::rewriteStringLeq(Node n)
   getConcat(n[0], n1);
   std::vector<Node> n2;
   getConcat(n[1], n2);
-  Assert( !n1.empty() && !n2.empty() );
-  
+  Assert(!n1.empty() && !n2.empty());
+
   // constant prefixes
-  if( n1[0].isConst() && n2[0].isConst() )
+  if (n1[0].isConst() && n2[0].isConst())
   {
     String s = n1[0].getConst<String>();
     String t = n2[0].getConst<String>();
     // only need to truncate if s is larger
-    if( s.size()>t.size() )
+    if (s.size() > t.size())
     {
       s = s.substr(t.size());
     }
     // if prefix is not leq, then entire string is not leq
-    if( !s.isLeq(t) )
+    if (!s.isLeq(t))
     {
       Node ret = nm->mkConst(false);
-      return returnRewrite(n,ret,"str-leq-cprefix");
+      return returnRewrite(n, ret, "str-leq-cprefix");
     }
   }
 

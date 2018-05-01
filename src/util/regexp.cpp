@@ -272,19 +272,19 @@ std::string String::toString(bool useEscSequences) const {
   return str;
 }
 
-bool String::isLeq(const String& y) const
+bool String::isLeq(const String &y) const
 {
-  for (unsigned i = 0; i < size(); ++i) 
+  for (unsigned i = 0; i < size(); ++i)
   {
-    if( i>=y.size() )
+    if (i >= y.size())
     {
       return false;
     }
-    else if( d_str[i]>y.d_str[i] )
+    else if (d_str[i] > y.d_str[i])
     {
       return false;
     }
-    else if( d_str[i]<y.d_str[i] )
+    else if (d_str[i] < y.d_str[i])
     {
       return true;
     }
