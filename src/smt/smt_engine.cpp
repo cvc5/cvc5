@@ -2712,6 +2712,8 @@ void SmtEnginePrivate::finishInit()
       new BvIntroPow2(d_preprocessingPassContext.get()));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVGauss> bvGauss(
+      new BVGauss(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
@@ -2735,6 +2737,10 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvAckermann));
   std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVToBool> bvToBool(
+      new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<BoolToBV> boolToBv(
+      new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
@@ -2752,11 +2758,7 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp", std::move(sepSkolemEmp));
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
                                            std::move(sepSkolemEmp));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
 }
 
