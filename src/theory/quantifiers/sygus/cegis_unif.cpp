@@ -25,8 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
-    : Cegis(qe, p)
+CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p) : Cegis(qe, p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
 }
@@ -226,8 +225,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   std::vector<Node> sols;
   if (d_sygus_unif.constructSolution(sols))
   {
-    candidate_values.insert(
-        candidate_values.end(), sols.begin(), sols.end());
+    candidate_values.insert(candidate_values.end(), sols.begin(), sols.end());
     return true;
   }
   return false;

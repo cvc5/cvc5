@@ -36,16 +36,16 @@ using BoolNodePairMap =
  *
  * Data is derived from refinement lemmas generated through the regular CEGIS
  * approach. SyGuS is used to generate terms for classifying the data
- * (e.g. using decision tree learning) and thus generate a candidate for a
- * function-to-synthesize.
+ * (e.g. using decision tree learning) and thus generate a candidates for
+ * functions-to-synthesize.
  *
  * This approach is inspired by the divide and conquer synthesis through
  * unification approach by Alur et al. TACAS 2017, by ICE-based invariant
  * synthesis from Garg et al. CAV 2014 and POPL 2016, and Padhi et al. PLDI 2016
  *
- * This module mantains a function-to-synthesize and a set of term
- * enumerators. When new terms are enumerated it tries to learn a new candidate
- * function, which is verified outside this module. If verification fails a
+ * This module mantains a set of functions-to-synthesize and a set of term
+ * enumerators. When new terms are enumerated it tries to learn new candidate
+ * solutions, which are verified outside this module. If verification fails a
  * refinement lemma is generated, which this module sends to the utility that
  * learns candidates.
  */
@@ -54,22 +54,18 @@ class CegisUnif : public Cegis
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
   ~CegisUnif();
-  /** initialize this class
-   *
-   * The module takes ownership of a conjecture when it contains a single
-   * function-to-synthesize
-  */
+  /** initialize this class */
   bool initialize(Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
-  /** adds the candidate itself to enums */
+  /** adds the candidates themselves to enums */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
-  /** Tries to build a new candidate solution with new enumerated expresion
+  /** Tries to build new candidate solutions with new enumerated expressions
    *
    * This function relies on a data-driven unification-based approach for
-   * constructing a solutions for the function-to-synthesize. See SygusUnifRl
-   * for more details.
+   * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
+   * more details.
    *
    * Calls to this function are such that terms is the list of active
    * enumerators (returned by getTermList), and term_values are their current
@@ -93,7 +89,7 @@ class CegisUnif : public Cegis
                            std::vector<Node>& candidate_values,
                            std::vector<Node>& lems) override;
 
-  /** Communicate refinement lemma to unification utility and external modules
+  /** Communicates refinement lemma to unification utility and external modules
    *
    * For the lemma to be sent to the external modules it adds a guard from the
    * parent conjecture which establishes that if the conjecture has a solution
