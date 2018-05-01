@@ -1050,8 +1050,8 @@ static string smtKindString(Kind k)
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
-  case kind::STRING_LEQ: return "str.<=" ;
-  case kind::STRING_LT: return "str.<" ;
+  case kind::STRING_LEQ: return "str.<=";
+  case kind::STRING_LT: return "str.<";
   case kind::STRING_ITOS: return "int.to.str" ;
   case kind::STRING_STOI: return "str.to.int" ;
   case kind::STRING_CODE: return "str.code";
