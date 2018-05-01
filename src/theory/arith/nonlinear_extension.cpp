@@ -1040,220 +1040,234 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   Assert(seq.getKind() == EQUAL);
   std::map<Node, Node> msum;
-  if (ArithMSum::getMonomialSumLit(seq, msum))
+  if (!ArithMSum::getMonomialSumLit(seq, msum))
   {
-    bool is_valid = true;
-    // the variable we will solve a quadratic equation for
-    Node var;
-    Node a = d_zero;
-    Node b = d_zero;
-    Node c = d_zero;
-    NodeManager* nm = NodeManager::currentNM();
-    // the list of variables that occur as a monomial in msum, and whose value
-    // is so far unconstrained in the model.
-    std::unordered_set<Node, NodeHashFunction> unc_vars;
-    // the list of variables that occur as a factor in a monomial, and whose
-    // value is so far unconstrained in the model.
-    std::unordered_set<Node, NodeHashFunction> unc_vars_factor;
-    for (std::pair<const Node, Node>& m : msum)
+    Trace("nl-ext-cms") << "...fail, could not determine monomial sum." << std::endl;
+    return false;
+  }
+  bool is_valid = true;
+  // the variable we will solve a quadratic equation for
+  Node var;
+  Node a = d_zero;
+  Node b = d_zero;
+  Node c = d_zero;
+  NodeManager* nm = NodeManager::currentNM();
+  // the list of variables that occur as a monomial in msum, and whose value
+  // is so far unconstrained in the model.
+  std::unordered_set<Node, NodeHashFunction> unc_vars;
+  // the list of variables that occur as a factor in a monomial, and whose
+  // value is so far unconstrained in the model.
+  std::unordered_set<Node, NodeHashFunction> unc_vars_factor;
+  for (std::pair<const Node, Node>& m : msum)
+  {
+    Node v = m.first;
+    Node coeff = m.second.isNull() ? d_one : m.second;
+    if (v.isNull())
     {
-      Node v = m.first;
-      Node coeff = m.second.isNull() ? d_one : m.second;
-      if (v.isNull())
+      c = coeff;
+    }
+    else if (v.getKind() == NONLINEAR_MULT)
+    {
+      if (v.getNumChildren() == 2 && v[0].isVar() && v[0] == v[1]
+          && (var.isNull() || var == v[0]))
       {
-        c = coeff;
-      }
-      else if (v.getKind() == NONLINEAR_MULT)
-      {
-        if (v.getNumChildren() == 2 && v.isVar() && v[0] == v[1]
-            && (var.isNull() || var == v[0]))
-        {
-          // may solve quadratic
-          a = coeff;
-          var = v[0];
-        }
-        else
-        {
-          is_valid = false;
-          // may wish to set an exact bound for a factor and repeat
-          for (const Node& vc : v)
-          {
-            unc_vars_factor.insert(vc);
-          }
-        }
-      }
-      else if (!v.isVar())
-      {
-        // we cannot solve for non-variables
-        is_valid = false;
-      }
-      else if (!var.isNull() && var != v)
-      {
-        // cannot solve multivariate
-        if (is_valid)
-        {
-          is_valid = false;
-          // if b is non-zero, then var is also an unconstrained variable
-          if (b != d_zero)
-          {
-            unc_vars.insert(var);
-            unc_vars_factor.insert(var);
-          }
-        }
-        // if v is unconstrained, we may turn this equality into a substitution
-        unc_vars.insert(v);
-        unc_vars_factor.insert(v);
+        // may solve quadratic
+        a = coeff;
+        var = v[0];
       }
       else
       {
-        // set the variable to solve for
-        b = coeff;
-        var = v;
+        is_valid = false;
+        Trace("nl-ext-cms-debug") << "...invalid due to non-linear monomial " << v << std::endl;
+        // may wish to set an exact bound for a factor and repeat
+        for (const Node& vc : v)
+        {
+          unc_vars_factor.insert(vc);
+        }
       }
     }
-    if (!is_valid && useCheckModelSubs)
+    else if (!v.isVar())
     {
-      // see if we can solve for a variable?
-      for (const Node& uv : unc_vars)
+      // we cannot solve for non-variables
+      is_valid = false;
+      Trace("nl-ext-cms-debug") << "...invalid due to non-variable " << v << std::endl;
+    }
+    else if (!var.isNull() && var != v)
+    {
+      Trace("nl-ext-cms-debug") << "...invalid due to multivariate " << v << std::endl;
+      // cannot solve multivariate
+      if (is_valid)
       {
-        // cannot already have a bound
-        if (uv.isVar()
-            && d_check_model_bounds.find(uv) == d_check_model_bounds.end())
+        is_valid = false;
+        // if b is non-zero, then var is also an unconstrained variable
+        if (b != d_zero)
         {
-          Node slv;
-          Node veqc;
-          if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
+          unc_vars.insert(var);
+          unc_vars_factor.insert(var);
+        }
+      }
+      // if v is unconstrained, we may turn this equality into a substitution
+      unc_vars.insert(v);
+      unc_vars_factor.insert(v);
+    }
+    else
+    {
+      // set the variable to solve for
+      b = coeff;
+      var = v;
+    }
+  }
+  if (!is_valid && useCheckModelSubs)
+  {
+    // see if we can solve for a variable?
+    for (const Node& uv : unc_vars)
+    {
+      // cannot already have a bound
+      if (uv.isVar()
+          && d_check_model_bounds.find(uv) == d_check_model_bounds.end())
+      {
+        Node slv;
+        Node veqc;
+        if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
+        {
+          Assert(!slv.isNull());
+          // currently do not support substitution-with-coefficients
+          if (veqc.isNull() && !slv.hasSubterm(uv))
           {
-            Assert(!slv.isNull());
-            // currently do not support substitution-with-coefficients
-            if (veqc.isNull() && !slv.hasSubterm(uv))
-            {
-              Trace("nl-ext-cm")
-                  << "check-model-subs : " << uv << " -> " << slv << std::endl;
-              addCheckModelSubstitution(uv, slv);
-              return true;
-            }
+            Trace("nl-ext-cm")
+                << "check-model-subs : " << uv << " -> " << slv << std::endl;
+            addCheckModelSubstitution(uv, slv);
+            Trace("nl-ext-cms") << "...success, model substitution " << uv << " -> " << slv << std::endl;
+            return true;
           }
         }
       }
-      // see if we can assign a variable to a constant
-      for (const Node& uvf : unc_vars_factor)
+    }
+    // see if we can assign a variable to a constant
+    for (const Node& uvf : unc_vars_factor)
+    {
+      // cannot already have a bound
+      if (uvf.isVar()
+          && d_check_model_bounds.find(uvf) == d_check_model_bounds.end())
       {
-        // cannot already have a bound
-        if (uvf.isVar()
-            && d_check_model_bounds.find(uvf) == d_check_model_bounds.end())
-        {
-          Node uvfv = computeModelValue(uvf);
-          Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
-          printRationalApprox("nl-ext-cm", uvfv);
-          Trace("nl-ext-cm") << std::endl;
-          addCheckModelSubstitution(uvf, uvfv);
-          // recurse
-          return solveEqualitySimple(eq, true);
-        }
+        Node uvfv = computeModelValue(uvf);
+        Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
+        printRationalApprox("nl-ext-cm", uvfv);
+        Trace("nl-ext-cm") << std::endl;
+        addCheckModelSubstitution(uvf, uvfv);
+        // recurse
+        return solveEqualitySimple(eq, true);
       }
-      return false;
     }
-    else if (var.isNull() || var.getType().isInteger())
-    {
-      // cannot solve quadratic equations for integer variables
-      return false;
-    }
-
-    // we are linear, it is simple
-    if (a == d_zero)
-    {
-      if (b == d_zero)
-      {
-        Assert(false);
-        return false;
-      }
-      Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
-      Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
-      printRationalApprox("nl-ext-cm", val);
-      Trace("nl-ext-cm") << std::endl;
-      addCheckModelSubstitution(var, val);
-      return true;
-    }
-    Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
-    Trace("nl-ext-quad") << "  a : " << a << std::endl;
-    Trace("nl-ext-quad") << "  b : " << b << std::endl;
-    Trace("nl-ext-quad") << "  c : " << c << std::endl;
-    Node two_a = nm->mkNode(MULT, d_two, a);
-    two_a = Rewriter::rewrite(two_a);
-    Node sqrt_val = nm->mkNode(
-        MINUS, nm->mkNode(MULT, b, b), nm->mkNode(MULT, d_two, two_a, c));
-    sqrt_val = Rewriter::rewrite(sqrt_val);
-    Trace("nl-ext-quad") << "Will approximate sqrt " << sqrt_val << std::endl;
-    Assert(sqrt_val.isConst());
-    // if it is negative, then we are in conflict
-    if (sqrt_val.getConst<Rational>().sgn() == -1)
-    {
-      Node conf = seq.negate();
-      Trace("nl-ext-lemma")
-          << "NonlinearExtension::Lemma : quadratic no root : " << conf
-          << std::endl;
-      d_containing.getOutputChannel().lemma(conf);
-      return false;
-    }
-    if (d_check_model_bounds.find(var) != d_check_model_bounds.end())
-    {
-      // two quadratic equations for same variable, give up
-      return false;
-    }
-    // approximate the square root of sqrt_val
-    Node l, u;
-    if (getApproximateSqrt(sqrt_val, l, u))
-    {
-      Trace("nl-ext-quad") << "...got " << l << " <= sqrt(" << sqrt_val
-                           << ") <= " << u << std::endl;
-      Node negb = nm->mkConst(-b.getConst<Rational>());
-      Node coeffa = nm->mkConst(Rational(1) / two_a.getConst<Rational>());
-      // two possible bound regions
-      Node bounds[2][2];
-      Node diff_bound[2];
-      Node m_var = computeModelValue(var, 0);
-      Assert(m_var.isConst());
-      for (unsigned r = 0; r < 2; r++)
-      {
-        for (unsigned b = 0; b < 2; b++)
-        {
-          Node val = b == 0 ? l : u;
-          // (-b +- approx_sqrt( b^2 - 4ac ))/2a
-          Node approx = nm->mkNode(
-              MULT, coeffa, nm->mkNode(r == 0 ? MINUS : PLUS, negb, val));
-          approx = Rewriter::rewrite(approx);
-          bounds[r][b] = approx;
-        }
-        Node diff =
-            nm->mkNode(MINUS,
-                       m_var,
-                       nm->mkNode(MULT,
-                                  nm->mkConst(Rational(1) / Rational(2)),
-                                  bounds[r][0],
-                                  bounds[r][1]));
-        diff = Rewriter::rewrite(diff);
-        Assert(diff.isConst());
-        diff = nm->mkConst(diff.getConst<Rational>().abs());
-        diff_bound[r] = diff;
-      }
-      // take the one that var is closer to in the model
-      Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
-      cmp = Rewriter::rewrite(cmp);
-      Assert(cmp.isConst());
-      unsigned r_use_index = cmp == d_true ? 1 : 0;
-      Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
-      printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
-      Trace("nl-ext-cm") << " <= " << var << " <= ";
-      printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
-      Trace("nl-ext-cm") << std::endl;
-      d_check_model_bounds[var] =
-          std::pair<Node, Node>(bounds[r_use_index][0], bounds[r_use_index][1]);
-      d_check_model_solved[eq] = var;
-      return true;
-    }
+    Trace("nl-ext-cms") << "...fail due to constrained invalid terms." << std::endl;
+    return false;
   }
-  return false;
+  else if (var.isNull() || var.getType().isInteger())
+  {
+    // cannot solve quadratic equations for integer variables
+    Trace("nl-ext-cms") << "...fail due to variable to solve for." << std::endl;
+    return false;
+  }
+
+  // we are linear, it is simple
+  if (a == d_zero)
+  {
+    if (b == d_zero)
+    {
+      Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
+      Assert(false);
+      return false;
+    }
+    Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
+    Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
+    printRationalApprox("nl-ext-cm", val);
+    Trace("nl-ext-cm") << std::endl;
+    addCheckModelSubstitution(var, val);
+    Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+    return true;
+  }
+  Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
+  Trace("nl-ext-quad") << "  a : " << a << std::endl;
+  Trace("nl-ext-quad") << "  b : " << b << std::endl;
+  Trace("nl-ext-quad") << "  c : " << c << std::endl;
+  Node two_a = nm->mkNode(MULT, d_two, a);
+  two_a = Rewriter::rewrite(two_a);
+  Node sqrt_val = nm->mkNode(
+      MINUS, nm->mkNode(MULT, b, b), nm->mkNode(MULT, d_two, two_a, c));
+  sqrt_val = Rewriter::rewrite(sqrt_val);
+  Trace("nl-ext-quad") << "Will approximate sqrt " << sqrt_val << std::endl;
+  Assert(sqrt_val.isConst());
+  // if it is negative, then we are in conflict
+  if (sqrt_val.getConst<Rational>().sgn() == -1)
+  {
+    Node conf = seq.negate();
+    Trace("nl-ext-lemma")
+        << "NonlinearExtension::Lemma : quadratic no root : " << conf
+        << std::endl;
+    d_containing.getOutputChannel().lemma(conf);
+    Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
+    return false;
+  }
+  if (d_check_model_bounds.find(var) != d_check_model_bounds.end())
+  {
+    Trace("nl-ext-cms") << "...fail due to bounds on variable to solve for." << std::endl;
+    // two quadratic equations for same variable, give up
+    return false;
+  }
+  // approximate the square root of sqrt_val
+  Node l, u;
+  if (!getApproximateSqrt(sqrt_val, l, u))
+  {
+    Trace("nl-ext-cms") << "...fail, could not approximate sqrt." << std::endl;
+    return false;
+  }
+  Trace("nl-ext-quad") << "...got " << l << " <= sqrt(" << sqrt_val
+                        << ") <= " << u << std::endl;
+  Node negb = nm->mkConst(-b.getConst<Rational>());
+  Node coeffa = nm->mkConst(Rational(1) / two_a.getConst<Rational>());
+  // two possible bound regions
+  Node bounds[2][2];
+  Node diff_bound[2];
+  Node m_var = computeModelValue(var, 0);
+  Assert(m_var.isConst());
+  for (unsigned r = 0; r < 2; r++)
+  {
+    for (unsigned b = 0; b < 2; b++)
+    {
+      Node val = b == 0 ? l : u;
+      // (-b +- approx_sqrt( b^2 - 4ac ))/2a
+      Node approx = nm->mkNode(
+          MULT, coeffa, nm->mkNode(r == 0 ? MINUS : PLUS, negb, val));
+      approx = Rewriter::rewrite(approx);
+      bounds[r][b] = approx;
+    }
+    Node diff =
+        nm->mkNode(MINUS,
+                    m_var,
+                    nm->mkNode(MULT,
+                              nm->mkConst(Rational(1) / Rational(2)),
+                              bounds[r][0],
+                              bounds[r][1]));
+    diff = Rewriter::rewrite(diff);
+    Assert(diff.isConst());
+    diff = nm->mkConst(diff.getConst<Rational>().abs());
+    diff_bound[r] = diff;
+  }
+  // take the one that var is closer to in the model
+  Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
+  cmp = Rewriter::rewrite(cmp);
+  Assert(cmp.isConst());
+  unsigned r_use_index = cmp == d_true ? 1 : 0;
+  Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
+  printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
+  Trace("nl-ext-cm") << " <= " << var << " <= ";
+  printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
+  Trace("nl-ext-cm") << std::endl;
+  d_check_model_bounds[var] =
+      std::pair<Node, Node>(bounds[r_use_index][0], bounds[r_use_index][1]);
+  d_check_model_solved[eq] = var;
+  Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
+  return true;
 }
 
 bool NonlinearExtension::simpleCheckModelLit(Node lit)

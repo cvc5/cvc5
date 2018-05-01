@@ -1147,6 +1147,7 @@ REG1_TESTS = \
 	regress1/nl/sin1-ub.smt2 \
 	regress1/nl/sin2-lb.smt2 \
 	regress1/nl/sin2-ub.smt2 \
+	regress1/nl/solve-eq-small-qf-nra.smt2 \
 	regress1/nl/sqrt-problem-1.smt2 \
 	regress1/nl/sugar-ident-2.smt2 \
 	regress1/nl/sugar-ident-3.smt2 \
