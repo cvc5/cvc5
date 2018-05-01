@@ -2750,6 +2750,8 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
                                            std::move(pbProc)); 
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp", std::move(sepSkolemEmp));
+  d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
+                                           std::move(sepSkolemEmp));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
@@ -4235,8 +4237,8 @@ void SmtEnginePrivate::processAssertions() {
     Trace("smt") << "POST boolToBv" << endl;
   }
   if(options::sepPreSkolemEmp()) {
-      d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
-      Trace("smt") << "POST sepPreSkolemEmp" << endl;
+    d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
+    Trace("smt") << "POST sepPreSkolemEmp" << endl;
   }
 
   if( d_smt.d_logic.isQuantified() ){
