@@ -67,6 +67,7 @@ public:
  
   void testBitblasterCore() {
     d_smt->setOption("bitblast", SExpr("eager"));
+    d_smt->setOption("incremental", SExpr("false"));
     EagerBitblaster* bb = new EagerBitblaster(dynamic_cast<TheoryBV*>(
         d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]));
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
