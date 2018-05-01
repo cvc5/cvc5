@@ -145,6 +145,8 @@ class CVC4_PUBLIC String {
   bool empty() const { return d_str.empty(); }
   /** is this the empty string? */
   bool isEmptyString() const { return empty(); }
+  /** is less than or equal to string y */
+  bool isLeq(const String& y) const;
   /** Return the length of the string */
   std::size_t size() const { return d_str.size(); }
 

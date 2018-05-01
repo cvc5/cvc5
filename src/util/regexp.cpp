@@ -272,6 +272,26 @@ std::string String::toString(bool useEscSequences) const {
   return str;
 }
 
+bool String::isLeq(const String& y) const
+{
+  for (unsigned i = 0; i < size(); ++i) 
+  {
+    if( i>=y.size() )
+    {
+      return false;
+    }
+    else if( d_str[i]>y.d_str[i] )
+    {
+      return false;
+    }
+    else if( d_str[i]<y.d_str[i] )
+    {
+      return true;
+    }
+  }
+  return true;
+}
+
 bool String::isRepeated() const {
   if (size() > 1) {
     unsigned int f = d_str[0];

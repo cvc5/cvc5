@@ -2203,33 +2203,46 @@ Node TheoryStringsRewriter::rewriteStringLeq(Node n)
   }
   if( n[0].isConst() && n[1].isConst() )
   {
-    std::vector< unsigned > v1 = n[0].getConst<String>().getVec();
-    std::vector< unsigned > v2 = n[1].getConst<String>().getVec();
-    unsigned counter = 0;
-    Node ret;
-    do
-    {
-      if( counter==v1.size() )
-      {
-        ret = nm->mkConst(true);
-      }
-      else if( counter==v2.size() )
-      {
-        ret = nm->mkConst(false);
-      }
-      else if( v1[counter]!=v2[counter] )
-      {
-        ret = nm->mkConst(v1[counter]<v2[counter]);
-      }
-      else
-      {
-        counter++;
-      }
-    }while( ret.isNull() );
+    String s = n[0].getConst<String>();
+    String t = n[1].getConst<String>();
+    Node ret = nm->mkConst( s.isLeq(t) );
     return returnRewrite(n,ret,"str-leq-eval");
   }
+  // empty strings
+  for( unsigned i=0; i<2; i++ )
+  {
+    if( n[i].isConst() && n[i].getConst<String>().isEmptyString())
+    {
+      Node ret = i==0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
+      return returnRewrite(n,ret,"str-leq-empty");
+    }
+  }
+
+  std::vector<Node> n1;
+  getConcat(n[0], n1);
+  std::vector<Node> n2;
+  getConcat(n[1], n2);
+  Assert( !n1.empty() && !n2.empty() );
   
-  
+  // constant prefixes
+  if( n1[0].isConst() && n2[0].isConst() )
+  {
+    String s = n1[0].getConst<String>();
+    String t = n2[0].getConst<String>();
+    // only need to truncate if s is larger
+    if( s.size()>t.size() )
+    {
+      s = s.substr(t.size());
+    }
+    // if prefix is not leq, then entire string is not leq
+    if( !s.isLeq(t) )
+    {
+      Node ret = nm->mkConst(false);
+      return returnRewrite(n,ret,"str-leq-cprefix");
+    }
+  }
+
+  Trace("strings-rewrite-nf") << "No rewrites for : " << n << std::endl;
   return n;
 }
 
