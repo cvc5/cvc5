@@ -457,6 +457,22 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, bool> > d_c_info_maxm;
   std::vector<Node> d_constraints;
 
+  // per last-call effort
+
+  /**
+   * A substitution from variables that appear in assertions to a solved form
+   * term. These vectors are ordered in the form:
+   *   x_1 -> t_1 ... x_n -> t_n
+   * where x_i is not in the free variables of t_j for j>=i.
+   */
+  std::vector<Node> d_check_model_vars;
+  std::vector<Node> d_check_model_subs;
+  /**
+   * Map from all literals appearing in the current set of assertions to their
+   * rewritten form under the substitution given by d_check_model_solve_form.
+   */
+  std::map<Node, Node> d_check_model_lit;
+
   // model values/orderings
   /** cache of model values
    *
@@ -534,9 +550,13 @@ class NonlinearExtension {
    * "get-previous-secant-points" in "Satisfiability
    * Modulo Transcendental Functions via Incremental
    * Linearization" by Cimatti et al., CADE 2017, for
-   * each transcendental function application.
+   * each transcendental function application. We store this set for each
+   * Taylor degree.
    */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_secant_points;
+  std::unordered_map<Node,
+                     std::map<unsigned, std::vector<Node> >,
+                     NodeHashFunction>
+      d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
    *
@@ -554,7 +574,7 @@ class NonlinearExtension {
    * In the latter case, note we compute the exponential x^{n+1}
    * instead of (x-a)^{n+1}, which can be done faster.
    */
-  std::pair<Node, Node> getTaylor(TNode fa, unsigned n);
+  std::pair<Node, Node> getTaylor(Node fa, unsigned n);
 
   /** internal variables used for constructing (cached) versions of the Taylor
    * series above.
@@ -568,7 +588,6 @@ class NonlinearExtension {
       d_taylor_sum;
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_rem;
-
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
@@ -577,7 +596,33 @@ class NonlinearExtension {
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
   unsigned d_taylor_degree;
-
+  /** polynomial approximation bounds
+   *
+   * This adds P_l+, P_l-, P_u+, P_u- to pbounds, where these are polynomial
+   * approximations of the Taylor series of <k>( 0 ) for degree 2*d where
+   * k is SINE or EXPONENTIAL.
+   * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
+   * for positive/negative (+/-) values of the argument of <k>( 0 ).
+   */
+  void getPolynomialApproximationBounds(Kind k,
+                                        unsigned d,
+                                        std::vector<Node>& pbounds);
+  /** cache of the above function */
+  std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
+  /** get transcendental function model bounds
+   *
+   * This returns the current lower and upper bounds of transcendental
+   * function application tf based on Taylor of degree 2*d, which is dependent
+   * on the model value of its argument.
+   */
+  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
+  /** is refinable transcendental function
+   *
+   * A transcendental function application is not refineable if its current
+   * model value is zero, or if it is an application of SINE applied
+   * to a non-variable.
+   */
+  bool isRefineableTfFun(Node tf);
   /**
    * Get a lower/upper approximation of the constant r within the given
    * level of precision. In other words, this returns a constant c' such that
@@ -871,6 +916,17 @@ class NonlinearExtension {
   *     such that c1 ~= .277 and c2 ~= 2.032.
   */
   std::vector<Node> checkTranscendentalTangentPlanes();
+  /** check transcendental function refinement for tf
+   *
+   * This method is called by the above method for each refineable
+   * transcendental function (see isRefineableTfFun) that occurs in an
+   * assertion in the current context.
+   *
+   * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
+   * function application tf for Taylor degree d. It may add a secant or
+   * tangent plane lemma to lems.
+   */
+  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems);
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 
