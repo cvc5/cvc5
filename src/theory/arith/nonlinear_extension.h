@@ -262,6 +262,7 @@ class NonlinearExtension {
    */
   std::vector<Node> checkModelEval(const std::vector<Node>& assertions);
 
+  //---------------------------check model
   /** Check model
    *
    * Checks the current model based on solving for equalities, and using error
@@ -279,9 +280,13 @@ class NonlinearExtension {
 
   /** solve equality simple
    *
-   *
+   * This method is used during checkModel(...). It takes as input an
+   * equality eq. If it returns true, then eq is correct-by-construction based 
+   * on the information stored in our model representation (see 
+   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq 
+   * is added to d_check_model_solved.
    */
-  bool solveEqualitySimple(Node eq, bool useCheckModelSubs = false);
+  bool solveEqualitySimple(Node eq);
 
   /** simple check model for transcendental functions for literal
    *
@@ -303,6 +308,56 @@ class NonlinearExtension {
    * since the bounds on these terms cannot quickly be determined.
    */
   bool simpleCheckModelLit(Node lit);
+  /**
+   * A substitution from variables that appear in assertions to a solved form
+   * term. These vectors are ordered in the form:
+   *   x_1 -> t_1 ... x_n -> t_n
+   * where x_i is not in the free variables of t_j for j>=i.
+   */
+  std::vector<Node> d_check_model_vars;
+  std::vector<Node> d_check_model_subs;
+  /** add check model substitution
+   *
+   * Adds the model substitution v -> s. This applies the substitution 
+   * { v -> s } to each term in d_check_model_subs and adds v,s to 
+   * d_check_model_vars and d_check_model_subs respectively.
+   */
+  void addCheckModelSubstitution(TNode v, TNode s);
+  /** lower and upper bounds for check model
+   *
+   * For each term t in the domain of this map, if this stores the pair
+   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u. 
+   * 
+   * We add terms whose value is approximated in the model to this map, which
+   * includes:
+   * (1) applications of transcendental functions, whose value is approximated
+   * by the Taylor series,
+   * (2) variables we have solved quadratic equations for, whose value
+   * involves approximations of square roots.
+   */
+  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
+
+  /**
+   * The map from literals that our model construction solved, to the variable
+   * that was solved for. Examples of such literals are:
+   * (1) Equalities x = t, which we turned into a model substitution x -> t,
+   * where x not in FV( t ), and
+   * (2) Equalities a*x*x + b*x + c = 0, which we turned into a model bound
+   * -b+s*sqrt(b*b-4*a*c)/2a - E <= x <= -b+s*sqrt(b*b-4*a*c)/2a + E.
+   *
+   * These literals are exempt from check-model, since they are satisfied by
+   * definition of our model construction.
+   */
+  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
+  /** has check model assignment 
+   * 
+   * Have we assigned v in the current checkModel(...) call?
+   * 
+   * This method returns true if variable v is in the domain of 
+   * d_check_model_bounds or if it occurs in d_check_model_vars.
+   */
+  bool hasCheckModelAssignment(Node v) const;
+  //---------------------------end check model
 
   /** In the following functions, status states a relationship
   * between two arithmetic terms, where:
@@ -472,37 +527,6 @@ class NonlinearExtension {
   std::vector<Node> d_constraints;
 
   // per last-call effort
-
-  /**
-   * A substitution from variables that appear in assertions to a solved form
-   * term. These vectors are ordered in the form:
-   *   x_1 -> t_1 ... x_n -> t_n
-   * where x_i is not in the free variables of t_j for j>=i.
-   */
-  std::vector<Node> d_check_model_vars;
-  std::vector<Node> d_check_model_subs;
-  /** add check model substitution
-   *
-   * TODO
-   */
-  void addCheckModelSubstitution(TNode v, TNode s);
-  /** bounds for transcendental functions
-   *
-   * For each transcendental function application t, if this stores the pair
-   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
-   */
-  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
-
-  /**
-   * The map from literals that our model construction solved, to the variable
-   * that was solved for. Examples of such literals are:
-   * (1) Equalities x = t, which we turned into a model substitution x -> t,
-   * (2) Equalities a*x*x + b*x + c = 0, which we turned into a model bound
-   * -b+s*sqrt(b*b-4*a*c)/2a - E <= x <= -b+s*sqrt(b*b-4*a*c)/2a + E.
-   *
-   * These literals are exempt from check-model.
-   */
-  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
 
   // model values/orderings
   /** cache of model values

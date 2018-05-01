@@ -919,7 +919,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     // see if it corresponds to a univariate polynomial equation of degree two
     if (atom.getKind() == EQUAL)
     {
-      if (!solveEqualitySimple(atom, true))
+      if (!solveEqualitySimple(atom))
       {
         // no chance we will satisfy this equality
         Trace("nl-ext-cm") << "...check-model : failed to solve equality : "
@@ -951,7 +951,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
               && !isTranscendentalKind(k))
           {
             // if we have not set an approximate bound for it
-            if (d_check_model_bounds.find(cur) == d_check_model_bounds.end())
+            if (!hasCheckModelAssignment(cur))
             {
               // set its exact model value in the substitution
               Node curv = computeModelValue(cur);
@@ -1012,20 +1012,36 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
 void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 {
+  // should not substitute the same variable twice
+  Assert( v.isVar() );
+  Assert( !hasCheckModelAssignment( v ) );
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
-    Node ss = d_check_model_subs[i];
-    ss = ss.substitute(v, s);
-    d_check_model_subs[i] = ss;
+    Node ms = d_check_model_subs[i];
+    Node mss = ms.substitute(v, s);
+    if( mss!=ms )
+    {
+      mss = Rewriter::rewrite( mss );
+    }
+    d_check_model_subs[i] = mss;
   }
   d_check_model_vars.push_back(v);
   d_check_model_subs.push_back(s);
 }
 
-bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
+bool NonlinearExtension::hasCheckModelAssignment(Node v) const
+{
+  if( d_check_model_bounds.find(v)!=d_check_model_bounds.end() )
+  {
+    return true;
+  }    
+  return std::find( d_check_model_vars.begin(), d_check_model_vars.end(), v )!=d_check_model_vars.end();
+}
+
+bool NonlinearExtension::solveEqualitySimple(Node eq)
 {
   Node seq = eq;
-  if (useCheckModelSubs && !d_check_model_vars.empty())
+  if (!d_check_model_vars.empty())
   {
     seq = eq.substitute(d_check_model_vars.begin(),
                         d_check_model_vars.end(),
@@ -1034,7 +1050,15 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
     seq = Rewriter::rewrite(seq);
     if (seq.isConst())
     {
-      return seq.getConst<bool>();
+      if( seq.getConst<bool>() )
+      {
+        d_check_model_solved[eq] = Node::null();
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
   }
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
@@ -1121,14 +1145,13 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
       var = v;
     }
   }
-  if (!is_valid && useCheckModelSubs)
+  if (!is_valid)
   {
     // see if we can solve for a variable?
     for (const Node& uv : unc_vars)
     {
       // cannot already have a bound
-      if (uv.isVar()
-          && d_check_model_bounds.find(uv) == d_check_model_bounds.end())
+      if (uv.isVar() && !hasCheckModelAssignment(uv))
       {
         Node slv;
         Node veqc;
@@ -1143,6 +1166,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
             addCheckModelSubstitution(uv, slv);
             Trace("nl-ext-cms") << "...success, model substitution " << uv
                                 << " -> " << slv << std::endl;
+            d_check_model_solved[eq] = uv;
             return true;
           }
         }
@@ -1152,8 +1176,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
     for (const Node& uvf : unc_vars_factor)
     {
       // cannot already have a bound
-      if (uvf.isVar()
-          && d_check_model_bounds.find(uvf) == d_check_model_bounds.end())
+      if (uvf.isVar() && !hasCheckModelAssignment(uvf))
       {
         Node uvfv = computeModelValue(uvf);
         Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
@@ -1161,7 +1184,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
         Trace("nl-ext-cm") << std::endl;
         addCheckModelSubstitution(uvf, uvfv);
         // recurse
-        return solveEqualitySimple(eq, true);
+        return solveEqualitySimple(eq);
       }
     }
     Trace("nl-ext-cms") << "...fail due to constrained invalid terms."
@@ -1190,6 +1213,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
     Trace("nl-ext-cm") << std::endl;
     addCheckModelSubstitution(var, val);
     Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+    d_check_model_solved[eq] = var;
     return true;
   }
   Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
@@ -1213,7 +1237,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }
-  if (d_check_model_bounds.find(var) != d_check_model_bounds.end())
+  if (hasCheckModelAssignment(var))
   {
     Trace("nl-ext-cms") << "...fail due to bounds on variable to solve for."
                         << std::endl;
