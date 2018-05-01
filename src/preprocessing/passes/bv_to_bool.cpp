@@ -214,7 +214,6 @@ Node BVToBool::convertBvTerm(TNode node)
   {
     case kind::BITVECTOR_OR: new_kind = kind::OR; break;
     case kind::BITVECTOR_AND: new_kind = kind::AND; break;
-    case kind::BITVECTOR_XOR: new_kind = kind::XOR; break;
     case kind::BITVECTOR_NOT: new_kind = kind::NOT; break;
     default: Unhandled();
   }
