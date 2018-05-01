@@ -86,6 +86,7 @@
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
+#include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
@@ -2704,6 +2705,7 @@ void SmtEnginePrivate::finishInit()
                                            std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
+<<<<<<< fb1764b1e5c9001a804be32429b47e6b106dddd0
   d_preprocessingPassRegistry.registerPass("ite-removal",
                                            std::move(iteRemoval));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
@@ -4088,7 +4090,8 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
-      d_preprocessingPassRegistry.getPass("quantifier-macros")->apply(&d_assertions);
+      d_preprocessingPassRegistry.getPass("quantifier-macros")
+          ->apply(&d_assertions);
       Trace("smt") << "POST macrosQuant" << endl;
     }
 
