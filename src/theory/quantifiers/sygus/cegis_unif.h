@@ -176,16 +176,17 @@ class CegisUnifEnumManager
    * Notify this class that it will be managing enumerators for the vector
    * of functions-to-synthesize (candidate variables) in candidates.
    *
-   * Each type in cts should be such that we are using a
-   * synthesis-by-unification approach for some c of that type.
+   * Each candidate c in cs should be such that we are using a 
+   * synthesis-by-unification approach for c.
    */
-  void initialize(std::vector<TypeNode>& cts);
+  void initialize(std::vector<Node>& cs);
   /** register evaluation point for candidate
    *
-   * This notifies this class that eis is a set of evaluation points of type ct.
-   * The type ct should be of some type that was passed to initialize in cts.
+   * This notifies this class that eis is a set of evaluation points for
+   * candidate c, where c should be a candidate that was passed to initialize 
+   * in the vector cs.
    */
-  void registerEvalPts(std::vector<Node>& eis, TypeNode ct);
+  void registerEvalPts(std::vector<Node>& eis, Node c);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
@@ -210,8 +211,8 @@ class CegisUnifEnumManager
   {
    public:
     TypeInfo() {}
-    /** initialize */
-    void initialize();
+    /** candidates for this type */
+    std::vector< Node > d_candidates;
     /** the set of enumerators we have allocated for this candidate */
     std::vector<Node> d_enums;
     /** the set of evaluation points of this type */

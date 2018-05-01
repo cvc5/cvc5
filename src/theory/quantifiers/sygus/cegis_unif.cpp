@@ -242,21 +242,19 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-void CegisUnifEnumManager::initialize(std::vector<TypeNode>& cts)
+void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
 {
-  for (const TypeNode& tn : cts)
+  for (const Node& c : cs)
   {
-    d_ce_info[tn].initialize();
+    TypeNode tn = c.getType();
+    d_ce_info[tn].d_candidates.push_back( c );
   }
 }
 
-void CegisUnifEnumManager::TypeInfo::initialize()
+void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
 {
-  // do nothing
-}
-
-void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, TypeNode ct)
-{
+  // candidates of the same type are managed 
+  TypeNode ct = c.getType();
   std::map<TypeNode, TypeInfo>::iterator it = d_ce_info.find(ct);
   Assert(it != d_ce_info.end());
   it->second.d_eval_points.insert(
