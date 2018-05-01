@@ -247,13 +247,13 @@ void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
   for (const Node& c : cs)
   {
     TypeNode tn = c.getType();
-    d_ce_info[tn].d_candidates.push_back( c );
+    d_ce_info[tn].d_candidates.push_back(c);
   }
 }
 
 void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
 {
-  // candidates of the same type are managed 
+  // candidates of the same type are managed
   TypeNode ct = c.getType();
   std::map<TypeNode, TypeInfo>::iterator it = d_ce_info.find(ct);
   Assert(it != d_ce_info.end());
