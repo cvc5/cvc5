@@ -152,37 +152,37 @@ class CegisUnif : public SygusModule
 
 }; /* class CegisUnif */
 
-
-/** Cegis Unif Enumeration Manager 
- * 
- * 
+/** Cegis Unif Enumeration Manager
+ *
+ *
  */
 class CegisUnifEnumManager
 {
  public:
   CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
-  /** initialize candidates 
-   * 
+  /** initialize candidates
+   *
    * Notify this class that it will be managing enumerators for the vector
    * of functions-to-synthesize (candidate variables) in candidates.
-   * 
+   *
    * Each c in candidates should be such that we are using a
    * synthesis-by-unification approach for c.
    */
   void initializeCandidates(std::vector<Node>& candidates);
   /** register evaluation point for candidate
-   * 
+   *
    * This notifies this class that eis is a set of evaluation points for
-   * the given candidate. Each ei in eis should be of the same type as 
+   * the given candidate. Each ei in eis should be of the same type as
    * candidate.
    */
-  void registerEvalPtsForEnumerator( std::vector< Node >& eis, Node candidate );
+  void registerEvalPtsForEnumerator(std::vector<Node>& eis, Node candidate);
   /** get next decision request
-   * 
+   *
    * This function has the same contract as Theory::getNextDecisionRequest.
-   * 
+   *
    */
-  Node getNextDecisionRequest( unsigned& priority );
+  Node getNextDecisionRequest(unsigned& priority);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -192,37 +192,36 @@ class CegisUnifEnumManager
   class CandidateEnumInfo
   {
    public:
-    CandidateEnumInfo(){}
+    CandidateEnumInfo() {}
     /** initialize */
     void initialize();
     /** enumerators */
-    std::vector< Node > d_enums;
+    std::vector<Node> d_enums;
     /** */
-    std::vector< Node > d_eval_points;
+    std::vector<Node> d_eval_points;
   };
-  std::map< Node, CandidateEnumInfo > d_ce_info;
+  std::map<Node, CandidateEnumInfo> d_ce_info;
   /** the global cost function */
   Node d_cfun;
   /** literals of the form d_cfun <= n for each n */
-  std::map< unsigned, Node > d_cfun_lit;
-  /** 
-   * The minimal n such that d_cfun <= n is asserted positively in the 
+  std::map<unsigned, Node> d_cfun_lit;
+  /**
+   * The minimal n such that d_cfun <= n is asserted positively in the
    * current SAT context.
    */
-  context::CDO< unsigned > d_curr_cfun_val;
+  context::CDO<unsigned> d_curr_cfun_val;
   /** increment the number of enumerators */
   void incrementNumEnumerators();
   /** get current cost fun literal */
   Node getOrMkCurrentLiteral();
   /** get literal at n */
-  Node getOrMkLiteral( unsigned n );
-  /** register evaluation point at cost function value 
-   * 
-   * TODO   
+  Node getOrMkLiteral(unsigned n);
+  /** register evaluation point at cost function value
+   *
+   * TODO
    */
-  void registerEvalPtAtCostFunValue( Node c, Node ei, Node lit, unsigned n );
+  void registerEvalPtAtCostFunValue(Node c, Node ei, Node lit, unsigned n);
 };
-
 
 }  // namespace quantifiers
 }  // namespace theory
