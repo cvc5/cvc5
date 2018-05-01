@@ -1176,16 +1176,16 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     retNode = rewriteSubstr(node);
   }else if( node.getKind() == kind::STRING_STRCTN ){
     retNode = rewriteContains( node );
-  }else if( node.getKind() == kind::STRING_LEQ ){
+  }else if( node.getKind() == kind::STRING_LT ){
     NodeManager * nm = NodeManager::currentNM();
-    // eliminate s <= t ---> s = t OR s < t
-    retNode = nm->mkNode( OR, node[0].eqNode(node[1]), nm->mkNode( STRING_LT, node[0], node[1] ) );
+    // eliminate s < t ---> s != t AND s <= t
+    retNode = nm->mkNode( AND, node[0].eqNode(node[1]).negate(), nm->mkNode( STRING_LEQ, node[0], node[1] ) );
+  }else if( node.getKind() == kind::STRING_LEQ ){
+    retNode = rewriteStringLeq( node );
   }else if( node.getKind()==kind::STRING_STRIDOF ){
     retNode = rewriteIndexof( node );
   }else if( node.getKind() == kind::STRING_STRREPL ){
     retNode = rewriteReplace( node );
-  }else if( node.getKind() == kind::STRING_LT ){
-    retNode = rewriteStringLessThan( node );
   }else if (node.getKind() == kind::STRING_PREFIX
            || node.getKind() == kind::STRING_SUFFIX)
   {
@@ -2192,25 +2192,30 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   return node;
 }
 
-Node TheoryStringsRewriter::rewriteStringLessThan(Node n)
+Node TheoryStringsRewriter::rewriteStringLeq(Node n)
 {
-  Assert(n.getKind() == kind::STRING_LT);
+  Assert(n.getKind() == kind::STRING_LEQ);
   NodeManager * nm = NodeManager::currentNM();
+  if( n[0]==n[1] )
+  {
+    Node ret = nm->mkConst(true);
+    return returnRewrite(n,ret,"str-leq-id");
+  }
   if( n[0].isConst() && n[1].isConst() )
   {
     std::vector< unsigned > v1 = n[0].getConst<String>().getVec();
     std::vector< unsigned > v2 = n[1].getConst<String>().getVec();
-    int counter = 0;
+    unsigned counter = 0;
     Node ret;
     do
     {
-      if( counter==v2.size() )
-      {
-        ret = nm->mkConst(false);
-      }
-      else if( counter==v1.size() )
+      if( counter==v1.size() )
       {
         ret = nm->mkConst(true);
+      }
+      else if( counter==v2.size() )
+      {
+        ret = nm->mkConst(false);
       }
       else if( v1[counter]!=v2[counter] )
       {
@@ -2221,7 +2226,7 @@ Node TheoryStringsRewriter::rewriteStringLessThan(Node n)
         counter++;
       }
     }while( ret.isNull() );
-    return returnRewrite(n,ret,"str-lt-eval");
+    return returnRewrite(n,ret,"str-leq-eval");
   }
   
   

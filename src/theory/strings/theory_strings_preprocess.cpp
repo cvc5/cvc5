@@ -475,7 +475,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                 );
     retNode = NodeManager::currentNM()->mkNode( kind::EXISTS, b1v, body );
   }
-  else if( t.getKind() == kind::STRING_LT )
+  else if( t.getKind() == kind::STRING_LEQ )
   {
     Node ltp = nm->mkSkolem("ltp",nm->booleanType());
     Node k = nm->mkSkolem("k",nm->integerType());
@@ -504,10 +504,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     }
     conj.push_back( nm->mkNode( ITE, ite_ch ) );
     // assert:
-    //  IF y="" 
-    //  THEN: ~ltp
-    //  ELIF x=""
+    //  IF x=""
     //  THEN ltp
+    //  ELIF y="" 
+    //  THEN: ~ltp
     //  ELSE: k >= 0 AND k < len( x ) AND k < len( y ) AND 
     //        substr( x, 0, k-1 ) = substr( y, 0, k-1 ) AND 
     //        IF    ltp
@@ -515,12 +515,12 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //              str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
     //        ELSE: str.prefixof( y, x ) OR
     //              str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert = nm->mkNode( ITE, t[1].eqNode(d_empty_str), ltp.negate(), 
-                              nm->mkNode( ITE, t[0].eqNode(d_empty_str), ltp,
+    Node assert = nm->mkNode( ITE, t[0].eqNode(d_empty_str), ltp, 
+                              nm->mkNode( ITE, t[1].eqNode(d_empty_str), ltp.negate(),
                                           nm->mkNode( AND, conj ) ) );
     
     
-    // Thus, str.<( x, y ) = p_lt
+    // Thus, str.<=( x, y ) = p_lt
     retNode = ltp;
   }
 

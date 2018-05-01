@@ -103,12 +103,12 @@ private:
   * Returns the rewritten form of node.
   */
   static Node rewriteReplace(Node node);
-  /** rewrite string less then
+  /** rewrite string less then or equal
   * This is the entry point for post-rewriting terms node of the form
-  *   str.<( t, s )
+  *   str.<=( t, s )
   * Returns the rewritten form of node.
   */
-  static Node rewriteStringLessThan(Node node);
+  static Node rewriteStringLeq(Node node);
   /** rewrite prefix/suffix
   * This is the entry point for post-rewriting terms n of the form
   *   str.prefixof( s, t ) / str.suffixof( s, t )

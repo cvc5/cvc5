@@ -123,7 +123,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
   getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
   getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
-  getExtTheory()->addFunctionKind(kind::STRING_LT);
+  getExtTheory()->addFunctionKind(kind::STRING_LEQ);
   getExtTheory()->addFunctionKind(kind::STRING_CODE);
 
   // The kinds we are treating as function application in congruence
@@ -133,7 +133,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CODE);
   if( options::stringLazyPreproc() ){
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-    d_equalityEngine.addFunctionKind(kind::STRING_LT);
+    d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
     d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
     d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
     d_equalityEngine.addFunctionKind(kind::STRING_STOI);
