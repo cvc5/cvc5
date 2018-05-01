@@ -162,7 +162,7 @@ class CegisUnif : public SygusModule
  * G_uq_1 ... G_uq_n, where the semantics of G_uq_i is "the evaluation points
  * of this type are interpreted as a value in a set whose cardinality is at
  * most i".
- * 
+ *
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
  * evaluation points registered to this class.
  */
