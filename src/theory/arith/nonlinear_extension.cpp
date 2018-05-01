@@ -1042,7 +1042,8 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
   {
-    Trace("nl-ext-cms") << "...fail, could not determine monomial sum." << std::endl;
+    Trace("nl-ext-cms") << "...fail, could not determine monomial sum."
+                        << std::endl;
     return false;
   }
   bool is_valid = true;
@@ -1078,7 +1079,8 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
       else
       {
         is_valid = false;
-        Trace("nl-ext-cms-debug") << "...invalid due to non-linear monomial " << v << std::endl;
+        Trace("nl-ext-cms-debug")
+            << "...invalid due to non-linear monomial " << v << std::endl;
         // may wish to set an exact bound for a factor and repeat
         for (const Node& vc : v)
         {
@@ -1090,11 +1092,13 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
     {
       // we cannot solve for non-variables
       is_valid = false;
-      Trace("nl-ext-cms-debug") << "...invalid due to non-variable " << v << std::endl;
+      Trace("nl-ext-cms-debug")
+          << "...invalid due to non-variable " << v << std::endl;
     }
     else if (!var.isNull() && var != v)
     {
-      Trace("nl-ext-cms-debug") << "...invalid due to multivariate " << v << std::endl;
+      Trace("nl-ext-cms-debug")
+          << "...invalid due to multivariate " << v << std::endl;
       // cannot solve multivariate
       if (is_valid)
       {
@@ -1137,7 +1141,8 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
             addCheckModelSubstitution(uv, slv);
-            Trace("nl-ext-cms") << "...success, model substitution " << uv << " -> " << slv << std::endl;
+            Trace("nl-ext-cms") << "...success, model substitution " << uv
+                                << " -> " << slv << std::endl;
             return true;
           }
         }
@@ -1159,7 +1164,8 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
         return solveEqualitySimple(eq, true);
       }
     }
-    Trace("nl-ext-cms") << "...fail due to constrained invalid terms." << std::endl;
+    Trace("nl-ext-cms") << "...fail due to constrained invalid terms."
+                        << std::endl;
     return false;
   }
   else if (var.isNull() || var.getType().isInteger())
@@ -1201,16 +1207,16 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
   if (sqrt_val.getConst<Rational>().sgn() == -1)
   {
     Node conf = seq.negate();
-    Trace("nl-ext-lemma")
-        << "NonlinearExtension::Lemma : quadratic no root : " << conf
-        << std::endl;
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : quadratic no root : "
+                          << conf << std::endl;
     d_containing.getOutputChannel().lemma(conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }
   if (d_check_model_bounds.find(var) != d_check_model_bounds.end())
   {
-    Trace("nl-ext-cms") << "...fail due to bounds on variable to solve for." << std::endl;
+    Trace("nl-ext-cms") << "...fail due to bounds on variable to solve for."
+                        << std::endl;
     // two quadratic equations for same variable, give up
     return false;
   }
@@ -1222,7 +1228,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
     return false;
   }
   Trace("nl-ext-quad") << "...got " << l << " <= sqrt(" << sqrt_val
-                        << ") <= " << u << std::endl;
+                       << ") <= " << u << std::endl;
   Node negb = nm->mkConst(-b.getConst<Rational>());
   Node coeffa = nm->mkConst(Rational(1) / two_a.getConst<Rational>());
   // two possible bound regions
@@ -1241,13 +1247,12 @@ bool NonlinearExtension::solveEqualitySimple(Node eq, bool useCheckModelSubs)
       approx = Rewriter::rewrite(approx);
       bounds[r][b] = approx;
     }
-    Node diff =
-        nm->mkNode(MINUS,
-                    m_var,
-                    nm->mkNode(MULT,
-                              nm->mkConst(Rational(1) / Rational(2)),
-                              bounds[r][0],
-                              bounds[r][1]));
+    Node diff = nm->mkNode(MINUS,
+                           m_var,
+                           nm->mkNode(MULT,
+                                      nm->mkConst(Rational(1) / Rational(2)),
+                                      bounds[r][0],
+                                      bounds[r][1]));
     diff = Rewriter::rewrite(diff);
     Assert(diff.isConst());
     diff = nm->mkConst(diff.getConst<Rational>().abs());
