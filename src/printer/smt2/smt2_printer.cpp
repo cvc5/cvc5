@@ -42,7 +42,7 @@ namespace smt2 {
 
 static OutputLanguage variantToLanguage(Variant v);
 
-static string smtKindString(Kind k);
+static string smtKindString(Kind k, Variant v);
 
 static void printBvParameterizedOp(std::ostream& out, TNode n);
 static void printFpParameterizedOp(std::ostream& out, TNode n);
@@ -191,10 +191,10 @@ void Smt2Printer::toStream(std::ostream& out,
       out << (n.getConst<bool>() ? "true" : "false");
       break;
     case kind::BUILTIN:
-      out << smtKindString(n.getConst<Kind>());
+      out << smtKindString(n.getConst<Kind>(),d_variant);
       break;
     case kind::CHAIN_OP:
-      out << smtKindString(n.getConst<Chain>().getOperator());
+      out << smtKindString(n.getConst<Chain>().getOperator(),d_variant);
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
@@ -323,7 +323,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if (force_nt.isReal())
       {
         out << "(" << smtKindString(force_nt.isInteger() ? kind::TO_INTEGER
-                                                         : kind::TO_REAL)
+                                                         : kind::TO_REAL, d_variant)
             << " ";
         toStream(out, n, toDepth, types, TypeNode::null());
         out << ")";
@@ -386,7 +386,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::APPLY: break;
   case kind::EQUAL:
   case kind::DISTINCT: 
-    out << smtKindString(k) << " "; 
+    out << smtKindString(k, d_variant) << " "; 
     parametricTypeChildren = true;
     break;
   case kind::CHAIN: break;
@@ -407,14 +407,14 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::IMPLIES:
   case kind::OR:
   case kind::XOR:
-  case kind::ITE: out << smtKindString(k) << " "; break;
+  case kind::ITE: out << smtKindString(k, d_variant) << " "; break;
 
     // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
   // higher-order
   case kind::HO_APPLY: break;
   case kind::LAMBDA:
-    out << smtKindString(k) << " ";
+    out << smtKindString(k, d_variant) << " ";
     break;
 
   // arith theory
@@ -453,7 +453,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::TO_REAL:
   case kind::POW: 
     parametricTypeChildren = true;
-    out << smtKindString(k) << " "; 
+    out << smtKindString(k, d_variant) << " "; 
     break;
 
   case kind::DIVISIBLE:
@@ -466,7 +466,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STORE: typeChildren = true;
   case kind::PARTIAL_SELECT_0:
   case kind::PARTIAL_SELECT_1:
-  case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
+  case kind::ARRAY_TYPE: out << smtKindString(k, d_variant) << " "; break;
 
     // string theory
   case kind::STRING_CONCAT:
@@ -586,12 +586,12 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::TRANSPOSE:
   case kind::TCLOSURE:
     parametricTypeChildren = true;
-    out << smtKindString(k) << " "; 
+    out << smtKindString(k, d_variant) << " "; 
     break;
   case kind::MEMBER: typeChildren = true;
   case kind::SET_TYPE:
   case kind::SINGLETON:
-  case kind::COMPLEMENT:out << smtKindString(k) << " "; break;
+  case kind::COMPLEMENT:out << smtKindString(k, d_variant) << " "; break;
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
     // fp theory
@@ -621,7 +621,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_ISNEG:
   case kind::FLOATINGPOINT_ISPOS:
   case kind::FLOATINGPOINT_TO_REAL:
-    out << smtKindString(k) << ' '; break;
+    out << smtKindString(k, d_variant) << ' '; break;
 
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
   case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
@@ -681,7 +681,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::SEP_EMP:
     case kind::SEP_PTO:
     case kind::SEP_STAR:
-    case kind::SEP_WAND: out << smtKindString(k) << " "; break;
+    case kind::SEP_WAND: out << smtKindString(k, d_variant) << " "; break;
 
     case kind::SEP_NIL:
       out << "(as sep.nil " << n.getType() << ")";
@@ -856,7 +856,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
         Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindString(n.getKind()) << ' ';
+        out << " (" << smtKindString(n.getKind(), d_variant) << ' ';
         parens << ')';
         ++c;
       } else {
@@ -869,7 +869,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }/* Smt2Printer::toStream(TNode) */
 
-static string smtKindString(Kind k)
+static string smtKindString(Kind k, Variant v)
 {
   switch(k) {
     // builtin theory
@@ -1047,10 +1047,10 @@ static string smtKindString(Kind k)
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
-  case kind::STRING_ITOS: return "int.to.str" ;
-  case kind::STRING_STOI: return "str.to.int" ;
-  case kind::STRING_IN_REGEXP: return "str.in.re";
-  case kind::STRING_TO_REGEXP: return "str.to.re";
+  case kind::STRING_ITOS: return v==smt2_6_variant ? "str.from-int" : "int.to.str" ;
+  case kind::STRING_STOI: return v==smt2_6_variant ? "str.to-int" : "str.to.int" ;
+  case kind::STRING_IN_REGEXP: return v==smt2_6_variant ? "str.in-re" : "str.in.re";
+  case kind::STRING_TO_REGEXP: return v==smt2_6_variant ? "str.to-re" : "str.to.re";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";
