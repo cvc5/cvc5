@@ -499,30 +499,32 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")";
       return;
     }
-    out << "str.in.re ";
+    out << smtKindString(k, d_variant) << " ";
     break;
   }
-  case kind::STRING_LENGTH: out << (d_variant == z3str_variant ? "Length " : "str.len "); break;
-  case kind::STRING_SUBSTR: out << "str.substr "; break;
-  case kind::STRING_CHARAT: out << "str.at "; break;
-  case kind::STRING_STRCTN: out << "str.contains "; break;
-  case kind::STRING_STRIDOF: out << "str.indexof "; break;
-  case kind::STRING_STRREPL: out << "str.replace "; break;
-  case kind::STRING_PREFIX: out << "str.prefixof "; break;
-  case kind::STRING_SUFFIX: out << "str.suffixof "; break;
-  case kind::STRING_ITOS: out << "int.to.str "; break;
-  case kind::STRING_STOI: out << "str.to.int "; break;
-  case kind::STRING_TO_REGEXP: out << "str.to.re "; break;
-  case kind::REGEXP_CONCAT: out << "re.++ "; break;
-  case kind::REGEXP_UNION: out << "re.union "; break;
-  case kind::REGEXP_INTER: out << "re.inter "; break;
-  case kind::REGEXP_STAR: out << "re.* "; break;
-  case kind::REGEXP_PLUS: out << "re.+ "; break;
-  case kind::REGEXP_OPT: out << "re.opt "; break;
-  case kind::REGEXP_RANGE: out << "re.range "; break;
-  case kind::REGEXP_LOOP: out << "re.loop "; break;
-  case kind::REGEXP_EMPTY: out << "re.nostr "; break;
-  case kind::REGEXP_SIGMA: out << "re.allchar "; break;
+  case kind::STRING_LENGTH:
+  case kind::STRING_SUBSTR:
+  case kind::STRING_CHARAT:
+  case kind::STRING_STRCTN:
+  case kind::STRING_STRIDOF:
+  case kind::STRING_STRREPL:
+  case kind::STRING_PREFIX:
+  case kind::STRING_SUFFIX:
+  case kind::STRING_ITOS:
+  case kind::STRING_STOI:
+  case kind::STRING_TO_REGEXP:
+  case kind::REGEXP_CONCAT:
+  case kind::REGEXP_UNION:
+  case kind::REGEXP_INTER:
+  case kind::REGEXP_STAR:
+  case kind::REGEXP_PLUS:
+  case kind::REGEXP_OPT:
+  case kind::REGEXP_RANGE:
+  case kind::REGEXP_LOOP:
+  case kind::REGEXP_EMPTY:
+  case kind::REGEXP_SIGMA:
+    out << smtKindString(k, d_variant) << " ";
+    break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
@@ -1039,7 +1041,7 @@ static string smtKindString(Kind k, Variant v)
 
   //string theory
   case kind::STRING_CONCAT: return "str.++";
-  case kind::STRING_LENGTH: return "str.len";
+  case kind::STRING_LENGTH: return v == z3str_variant ? "Length" : "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
