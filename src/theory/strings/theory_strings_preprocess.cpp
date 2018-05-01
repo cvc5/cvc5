@@ -482,42 +482,45 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     
     std::vector< Node > conj;
     conj.push_back( nm->mkNode( GEQ, k, d_zero ) );
-    Node eq_emp[2];
-    Node prefix[2];
     Node substr[2];
     Node code[2];
     for( unsigned r=0; r<2; r++ )
     {
       Node ta = t[r];
       Node tb = t[1-r];
-      prefix[r] = nm->mkNode( STRING_PREFIX, ta, tb );
-      substr[r] = nm->mkNode( STRING_SUBSTR, ta, d_zero, nm->mkNode( MINUS, k, d_one ) );
+      substr[r] = nm->mkNode( STRING_SUBSTR, ta, d_zero, k );
       code[r] = nm->mkNode( STRING_CODE, nm->mkNode( STRING_SUBSTR, ta, k, d_one ) );
-      conj.push_back( nm->mkNode( LT, k, nm->mkNode( STRING_LENGTH, ta ) ) );
+      conj.push_back( nm->mkNode( LEQ, k, nm->mkNode( STRING_LENGTH, ta ) ) );
     }
     conj.push_back( substr[0].eqNode(substr[1]));
     std::vector< Node > ite_ch;
     ite_ch.push_back( ltp );
     for( unsigned r=0; r<2; r++ )
     {
-      ite_ch.push_back( nm->mkNode( OR, prefix[r], nm->mkNode( LT, code[r], code[1-r] ) ) );
+      ite_ch.push_back( nm->mkNode( LT, code[r], code[1-r] ) );
     }
     conj.push_back( nm->mkNode( ITE, ite_ch ) );
+    
+    // Intuitively, the reduction says either x and y are equal, or they have
+    // some (maximal) common prefix after which their characters at position k
+    // are distinct, and the comparison of their code matches the return value
+    // of the overall term.
+    // Notice the below reduction relies on the semantics of str.code being -1
+    // for the empty string. In particular, say x = "a" and y = "ab", then the
+    // reduction below is satisfied for k = 1, since 
+    //   str.code(substr( "a", 1, 1 )) = str.code( "" ) = -1 <
+    //   str.code(substr( "ab", 1, 1 )) = str.code( "b" ) = 66
+    
     // assert:
-    //  IF x=""
+    //  IF x=y
     //  THEN ltp
-    //  ELIF y="" 
-    //  THEN: ~ltp
-    //  ELSE: k >= 0 AND k < len( x ) AND k < len( y ) AND 
-    //        substr( x, 0, k-1 ) = substr( y, 0, k-1 ) AND 
+    //  ELSE: k >= 0 AND k <= len( x ) AND k <= len( y ) AND 
+    //        substr( x, 0, k ) = substr( y, 0, k ) AND 
     //        IF    ltp
-    //        THEN: str.prefixof( x, y ) OR
-    //              str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
-    //        ELSE: str.prefixof( y, x ) OR
-    //              str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert = nm->mkNode( ITE, t[0].eqNode(d_empty_str), ltp, 
-                              nm->mkNode( ITE, t[1].eqNode(d_empty_str), ltp.negate(),
-                                          nm->mkNode( AND, conj ) ) );
+    //        THEN: str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
+    //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
+    Node assert = nm->mkNode( ITE, t[0].eqNode(t[1]), ltp, nm->mkNode( AND, conj ) ) );
+    new_nodes.push_back( assert );
     
     
     // Thus, str.<=( x, y ) = p_lt
