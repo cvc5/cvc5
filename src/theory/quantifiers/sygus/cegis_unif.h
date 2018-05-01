@@ -154,7 +154,14 @@ class CegisUnif : public SygusModule
 
 /** Cegis Unif Enumeration Manager
  *
- *
+ * This function enforces a decision heuristic that limits the number of
+ * unique values given to the set of "evaluation points", which are variables
+ * of sygus datatype type that are introduced by CegisUnif.
+ * 
+ * For each type of an evaluation point, this class maintains a set of guards 
+ * G_uq_1 ... G_uq_n, where the semantics of G_uq_i is "the evaluation points
+ * of this type are interpreted as a value in a set whose cardinality is at 
+ * most i".
  */
 class CegisUnifEnumManager
 {
@@ -180,6 +187,9 @@ class CegisUnifEnumManager
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
    *
+   * If no guard G_uq_* is asserted positively, then this method returns the
+   * minimal G_uq_i that is not asserted negatively. It allocates this guard
+   * if necessary.
    */
   Node getNextDecisionRequest(unsigned& priority);
 
@@ -197,21 +207,19 @@ class CegisUnifEnumManager
     CandidateEnumInfo() {}
     /** initialize */
     void initialize();
-    /** enumerators */
+    /** the set of enumerators we have allocated for this candidate */
     std::vector<Node> d_enums;
-    /** */
+    /** the set of evaluation points for this candidate */
     std::vector<Node> d_eval_points;
   };
   std::map<Node, CandidateEnumInfo> d_ce_info;
-  /** the global cost function */
-  Node d_cfun;
-  /** literals of the form d_cfun <= n for each n */
-  std::map<unsigned, Node> d_cfun_lit;
+  /** literals of the form d_guq <= n for each n */
+  std::map<unsigned, Node> d_guq_lit;
   /**
-   * The minimal n such that d_cfun <= n is asserted positively in the
+   * The minimal n such that d_guq <= n is asserted positively in the
    * current SAT context.
    */
-  context::CDO<unsigned> d_curr_cfun_val;
+  context::CDO<unsigned> d_curr_guq_val;
   /** increment the number of enumerators */
   void incrementNumEnumerators();
   /** get current cost fun literal */
@@ -220,7 +228,9 @@ class CegisUnifEnumManager
   Node getOrMkLiteral(unsigned n);
   /** register evaluation point at cost function value
    *
-   * TODO
+   * This sends a lemma of the form:
+   *   G_uq_i => ei = d1 V ... V ei = dn
+   * on the output channel of d_qe.
    */
   void registerEvalPtAtCostFunValue(Node c, Node ei, Node lit, unsigned n);
 };

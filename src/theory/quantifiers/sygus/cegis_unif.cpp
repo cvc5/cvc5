@@ -237,7 +237,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
-    : d_qe(qe), d_parent(parent), d_curr_cfun_val(qe->getSatContext(), 0)
+    : d_qe(qe), d_parent(parent), d_curr_guq_val(qe->getSatContext(), 0)
 {
   d_tds = d_qe->getTermDatabaseSygus();
 }
@@ -263,7 +263,7 @@ void CegisUnifEnumManager::registerEvalPtsForEnumerator(std::vector<Node>& eis,
   it->second.d_eval_points.insert(
       it->second.d_eval_points.end(), eis.begin(), eis.end());
   // register at all already allocated sizes
-  for (const std::pair<const unsigned, Node>& p : d_cfun_lit)
+  for (const std::pair<const unsigned, Node>& p : d_guq_lit)
   {
     for (const Node& ei : eis)
     {
@@ -292,8 +292,8 @@ Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
 
 void CegisUnifEnumManager::incrementNumEnumerators()
 {
-  unsigned new_size = d_curr_cfun_val.get() + 1;
-  d_curr_cfun_val.set(new_size);
+  unsigned new_size = d_curr_guq_val.get() + 1;
+  d_curr_guq_val.set(new_size);
   Node lit = getOrMkCurrentLiteral();
   for (std::pair<const Node, CandidateEnumInfo>& ci : d_ce_info)
   {
@@ -307,13 +307,13 @@ void CegisUnifEnumManager::incrementNumEnumerators()
 
 Node CegisUnifEnumManager::getOrMkCurrentLiteral()
 {
-  return getOrMkLiteral(d_curr_cfun_val.get());
+  return getOrMkLiteral(d_curr_guq_val.get());
 }
 
 Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
 {
-  std::map<unsigned, Node>::iterator itc = d_cfun_lit.find(n);
-  if (itc == d_cfun_lit.end())
+  std::map<unsigned, Node>::iterator itc = d_guq_lit.find(n);
+  if (itc == d_guq_lit.end())
   {
     NodeManager* nm = NodeManager::currentNM();
     // initialize it
@@ -321,12 +321,21 @@ Node CegisUnifEnumManager::getOrMkLiteral(unsigned n)
     new_lit = d_qe->getValuation().ensureLiteral(new_lit);
     AlwaysAssert(!new_lit.isNull());
     d_qe->getOutputChannel().requirePhase(new_lit, true);
-    d_cfun_lit[n] = new_lit;
+    d_guq_lit[n] = new_lit;
     // allocate an enumerator for each candidate
     for (std::pair<const Node, CandidateEnumInfo>& ci : d_ce_info)
     {
       Node c = ci.first;
       Node eu = nm->mkSkolem("eu", c.getType());
+      if( !ci.second.d_enums.empty() )
+      {
+        Node eu_prev = ci.second.d_enums.back();
+        // symmetry breaking
+        Node size_eu = nm->mkNode( DT_SIZE, eu );
+        Node size_eu_prev = nm->mkNode( DT_SIZE, eu_prev );
+        Node sym_break = nm->mkNode( GEQ, size_eu, size_eu_prev );
+        d_qe->getOutputChannel().lemma(sym_break);
+      }
       ci.second.d_enums.push_back(eu);
       d_tds->registerEnumerator(eu, c, d_parent);
     }
