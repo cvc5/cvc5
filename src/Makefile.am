@@ -90,8 +90,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/static_learning.h \
 	preprocessing/passes/symmetry_breaker.cpp \
 	preprocessing/passes/symmetry_breaker.h \
-	preprocessing/passes/sep_skolem_emp.cpp \ 
-	preprocessing/passes/sep_skolem_emp.h \ 
+	preprocessing/passes/sep_skolem_emp.cpp \
+	preprocessing/passes/sep_skolem_emp.h \
 	preprocessing/passes/symmetry_detect.cpp \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/passes/synth_rew_rules.cpp \
