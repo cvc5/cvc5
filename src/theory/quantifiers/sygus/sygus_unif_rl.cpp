@@ -253,11 +253,21 @@ void SygusUnifRl::initializeConstructSol()
   }
 }
 
-void SygusUnifRl::initializeConstructSolFor(Node f) {}
-Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
+bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {
-  /* TODO return model value for each function */
-  return Node::null();
+  for (const Node& c: d_candidates)
+  {
+    if (!usingUnif(c))
+    {
+      Node v = d_parent->getModelValue(c);
+      sols.push_back(v);
+    }
+    else
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool SygusUnifRl::usingUnif(Node f)

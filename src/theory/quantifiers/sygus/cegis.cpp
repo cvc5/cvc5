@@ -66,8 +66,12 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 }
 
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
-                          std::vector<Node>& candidate_values)
+                          const std::vector<Node>& candidate_values)
 {
+  if (!options::sygusDirectEval())
+  {
+    return false;
+  }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
   if (options::sygusCRefEval())
@@ -128,12 +132,12 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 std::vector<Node>& candidate_values,
                                 std::vector<Node>& lems)
 {
-  candidate_values.insert(
-      candidate_values.end(), enum_values.begin(), enum_values.end());
-  if (options::sygusDirectEval() && addEvalLemmas(candidates, candidate_values))
+  if (addEvalLemmas(enums, enum_values))
   {
     return false;
   }
+  candidate_values.insert(
+      candidate_values.end(), enum_values.begin(), enum_values.end());
   return true;
 }
 

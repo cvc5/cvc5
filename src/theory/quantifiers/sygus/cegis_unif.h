@@ -26,12 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-using BoolNodePair = std::pair<bool, Node>;
-using BoolNodePairHashFunction =
-    PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
-using BoolNodePairMap =
-    std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
-
 /** Synthesizes functions in a data-driven SyGuS approach
  *
  * Data is derived from refinement lemmas generated through the regular CEGIS

@@ -24,6 +24,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+using BoolNodePair = std::pair<bool, Node>;
+using BoolNodePairHashFunction =
+    PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
+using BoolNodePairMap =
+    std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
+
 /** Sygus unification Refinement Lemmas utility
  *
  * This class implement synthesis-by-unification, where the specification is a
@@ -43,6 +49,8 @@ class SygusUnifRl : public SygusUnif
                   std::vector<Node>& lemmas) override;
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
+  /** Construct solution */
+  bool constructSolution(std::vector<Node>& sols) override;
   /** add refinement lemma
    *
    * This adds a lemma to the specification for f.
@@ -96,18 +104,6 @@ protected:
    * from d_rlemmas, in which case we may have added or removed data points
    */
   void initializeConstructSol() override;
-  /** initialize construction solution for function-to-synthesize f */
-  void initializeConstructSolFor(Node f) override;
-  /**
-   * Returns a term covering all data points in the current branch, on null if
-   * none can be found among the currently enumerated values for the respective
-   * enumerator
-   */
-  Node canCloseBranch(Node e);
-
-  /** construct solution */
-  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
-
   /*
     --------------------------------------------------------------
         Purification

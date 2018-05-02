@@ -105,7 +105,7 @@ class Cegis : public SygusModule
    * connectives)
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     std::vector<Node>& candidate_values);
+                     const std::vector<Node>& candidate_values);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas

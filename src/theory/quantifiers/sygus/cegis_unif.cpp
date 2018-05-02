@@ -28,6 +28,7 @@ namespace quantifiers {
 CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p) : Cegis(qe, p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
+  d_enum_to_active_guard.clear();
 }
 
 CegisUnif::~CegisUnif() {}
@@ -48,12 +49,12 @@ bool CegisUnif::initialize(Node n,
   }
   /* Init UNIF util */
   d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
-  /* TODO initialize condition enumerators */
+  /* TODO initialize unif enumerators */
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
-  /* Initialize enumerators for case with no unification for any function */
+  /* Initialize enumerators for non-unif functions-to-synhesize */
   for (const Node& c : candidates)
   {
-    if (!d_unif.usingUnif(c))
+    if (!d_sygus_unif.usingUnif(c))
     {
       d_tds->registerEnumerator(c, c, d_parent);
     }
@@ -64,22 +65,26 @@ bool CegisUnif::initialize(Node n,
 void CegisUnif::getTermList(const std::vector<Node>& candidates,
                             std::vector<Node>& enums)
 {
-  if (d_no_unif)
+  for (const Node& c : candidates)
   {
-    enums.insert(enums.end(), candidates.begin(), candidates.end());
-    return;
-  }
-  Valuation& valuation = d_qe->getValuation();
-  for (const Node& e : d_enums)
-  {
-    Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-    Node g = d_enum_to_active_guard[e];
-    /* Get whether the active guard for this enumerator is if so, then there may
-       exist more values for it, and hence we add it to enums. */
-    Node gstatus = valuation.getSatValue(g);
-    if (!gstatus.isNull() && gstatus.getConst<bool>())
+    if (!d_sygus_unif.usingUnif(c))
     {
-      enums.push_back(e);
+      enums.push_back(c);
+      continue;
+    }
+    Valuation& valuation = d_qe->getValuation();
+    for (const Node& e : d_enums)
+    {
+      Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
+      Node g = d_enum_to_active_guard[e];
+      /* Get whether the active guard for this enumerator is if so, then there
+         may
+         exist more values for it, and hence we add it to enums. */
+      Node gstatus = valuation.getSatValue(g);
+      if (!gstatus.isNull() && gstatus.getConst<bool>())
+      {
+        enums.push_back(e);
+      }
     }
   }
 }
@@ -90,71 +95,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
                                     std::vector<Node>& candidate_values,
                                     std::vector<Node>& lems)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  if (d_no_unif)
-  {
-    candidate_values.insert(
-        candidate_values.end(), enum_values.begin(), enum_values.end());
-    if (options::sygusDirectEval())
-    {
-      bool addedEvalLemmas = false;
-      if (options::sygusCRefEval())
-      {
-        Trace("cegqi-engine")
-            << "  *** Do conjecture refinement evaluation...\n";
-        /* see if any refinement lemma is refuted by evaluation */
-        std::vector<Node> cre_lems;
-        getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
-        if (!cre_lems.empty())
-        {
-          for (const Node& lem : cre_lems)
-          {
-            if (d_qe->addLemma(lem))
-            {
-              Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem
-                                   << std::endl;
-              addedEvalLemmas = true;
-            }
-          }
-          /* we could, but do not return here. experimentally, it is better to
-             add
-             the lemmas below as well, in parallel. */
-        }
-      }
-      Trace("cegqi-engine") << "  *** Do direct evaluation...\n";
-      std::vector<Node> eager_terms, eager_vals, eager_exps;
-      for (unsigned i = 0, size = candidates.size(); i < size; ++i)
-      {
-        Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
-                             << candidate_values[i] << std::endl;
-        d_tds->registerModelValue(candidates[i],
-                                  candidate_values[i],
-                                  eager_terms,
-                                  eager_vals,
-                                  eager_exps);
-      }
-      Trace("cegqi-debug") << "...produced " << eager_terms.size()
-                           << " eager evaluation lemmas.\n";
-      for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
-      {
-        Node lem = nm->mkNode(
-            OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
-        if (d_qe->addLemma(lem))
-        {
-          Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem
-                               << std::endl;
-          addedEvalLemmas = true;
-        }
-      }
-      if (addedEvalLemmas)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-  Assert(enums.size() == enum_values.size());
-  if (enums.empty())
+  if (addEvalLemmas(enums, enum_values))
   {
     return false;
   }
@@ -163,6 +104,10 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
+    if (std::find(d_enums.begin(), d_enums.end(), enums[i]) == d_enums.end())
+    {
+      continue;
+    }
     Trace("cegis-unif-enum") << "  " << enums[i] << " -> " << enum_values[i]
                              << std::endl;
     unsigned sz = d_tds->getSygusTermSize(enum_values[i]);
@@ -183,7 +128,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   for (unsigned i = 0, ecsize = enum_consider.size(); i < ecsize; ++i)
   {
     unsigned j = enum_consider[i];
-    Node e = enums[j], v = enum_values[j];
+    Node e = enums[j], v = enum _values[j];
     std::vector<Node> enum_lems;
     d_sygus_unif.notifyEnumeration(e, v, enum_lems);
     /* the lemmas must be guarded by the active guard of the enumerator */
