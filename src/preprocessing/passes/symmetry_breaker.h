@@ -24,6 +24,23 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+/**
+ * Given a vector of partitions {{v_{11}, ... , v_{1n}}, {v_{m1}, ... , v_{mk}}},
+ * the symmetry breaker will generate symmetry breaking constraints for each
+ * partition {v_{i1}, ... , v_{ij}} depending on the type of variables
+ * in each partition.
+ *
+ * For a partition of integer, real and bit-vectors variables {v1, ..., vn},
+ * we generate ordered constraints: {v1 <= v2, ..., v{n-1} <= vn}.
+ * For a partition of variables of other types {v1, ..., vn}, we generate
+ * the following two kinds of constraints.
+ *
+ * 1. Triplet constraints
+ *    v_i = v_j => v_i = v_{j-1} for all 0 <= i < j-1 < j < n
+ * 2. Segment constraints
+ *    v_i = v_j => (v_0 = v_1 OR \ldots OR v_{i-1} = v_{i}) for all 1 <= i < j < n
+ * */
+
 class SymmetryBreaker
 {
  public:
@@ -45,17 +62,20 @@ class SymmetryBreaker
    * This is to generate symmetry breaking constraints for partitions in parts.
    * The symmetry breaking constraints SB returned by this function conjuncted
    * with the original assertions SB ^ C is equisatisfiable to the C.
-   *
    * */
   Node generateSymBkConstraints(std::vector<std::vector<Node> >& parts);
 
  private:
+
   /** True and false constant nodes */
   Node d_trueNode;
   Node d_falseNode;
 
   /**
-   * Get the order kind for node depending on the type of node
+   * Get the order kind depending on the type of node.
+   * For example, if node is a integer or real, we would return
+   * the operator less than or equal to (<=) and use it to build
+   * ordered constraints.
    * */
   Kind getOrderKind(Node node);
 };
