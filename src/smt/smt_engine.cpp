@@ -71,6 +71,7 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
+#include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -4289,6 +4290,11 @@ void SmtEnginePrivate::processAssertions() {
     SymmetryDetect symd;
     vector<vector<Node>> part;
     symd.getPartition(part, d_assertions.ref());
+    if (options::symmetryBreaker())
+    {
+      SymmetryBreaker symb;
+      Node sbConstraint = symb.generateSymBkConstraints(part);
+    }
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
