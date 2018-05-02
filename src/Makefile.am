@@ -64,6 +64,8 @@ libcvc4_la_SOURCES = \
 	decision/justification_heuristic.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
+	preprocessing/passes/bv_intro_pow2.cpp \
+	preprocessing/passes/bv_intro_pow2.h \
 	preprocessing/passes/int_to_bv.cpp \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
@@ -328,8 +330,6 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_core.h \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_subtheory_inequality.h \
-	theory/bv/bvintropow2.cpp \
-	theory/bv/bvintropow2.h \
 	theory/bv/slicer.cpp \
 	theory/bv/slicer.h \
 	theory/bv/theory_bv.cpp \
