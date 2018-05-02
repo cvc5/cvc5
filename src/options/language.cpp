@@ -21,13 +21,13 @@ namespace language {
 
 bool isInputLang_smt2(InputLanguage lang)
 {
-  return (lang >= input::LANG_SMTLIB_V2_0 && lang <= input::LANG_SMTLIB_END)
+  return (lang >= input::LANG_SMTLIB_V2_0 && lang <= input::LANG_SMTLIB_V2_END)
          || lang == input::LANG_Z3STR;
 }
 
 bool isOutputLang_smt2(OutputLanguage lang)
 {
-  return (lang >= output::LANG_SMTLIB_V1 && lang <= output::LANG_SMTLIB_END)
+  return (lang >= output::LANG_SMTLIB_V1 && lang <= output::LANG_SMTLIB_V2_END)
          || lang == output::LANG_Z3STR;
 }
 
@@ -35,28 +35,28 @@ bool isInputLang_smt2_5(InputLanguage lang, bool exact)
 {
   return exact ? lang == input::LANG_SMTLIB_V2_5
                : (lang >= input::LANG_SMTLIB_V2_5
-                  && lang <= input::LANG_SMTLIB_END);
+                  && lang <= input::LANG_SMTLIB_V2_END);
 }
 
 bool isOutputLang_smt2_5(OutputLanguage lang, bool exact)
 {
   return exact ? lang == output::LANG_SMTLIB_V2_5
                : (lang >= output::LANG_SMTLIB_V2_5
-                  && lang <= output::LANG_SMTLIB_END);
+                  && lang <= output::LANG_SMTLIB_V2_END);
 }
 
 bool isInputLang_smt2_6(InputLanguage lang, bool exact)
 {
   return exact ? lang == input::LANG_SMTLIB_V2_6
                : (lang >= input::LANG_SMTLIB_V2_6
-                  && lang <= input::LANG_SMTLIB_END);
+                  && lang <= input::LANG_SMTLIB_V2_END);
 }
 
 bool isOutputLang_smt2_6(OutputLanguage lang, bool exact)
 {
   return exact ? lang == output::LANG_SMTLIB_V2_6
                : (lang >= output::LANG_SMTLIB_V2_6
-                  && lang <= output::LANG_SMTLIB_END);
+                  && lang <= output::LANG_SMTLIB_V2_END);
 }
 
 InputLanguage toInputLanguage(OutputLanguage language) {
