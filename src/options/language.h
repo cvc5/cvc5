@@ -211,7 +211,7 @@ typedef language::output::Language OutputLanguage;
 
 namespace language {
 
-/** Is the language a smtlib version 2 language? */
+/** Is the language a variant of the smtlib version 2 language? */
 bool isInputLang_smt2(InputLanguage lang) CVC4_PUBLIC;
 bool isOutputLang_smt2(OutputLanguage lang) CVC4_PUBLIC;
 
