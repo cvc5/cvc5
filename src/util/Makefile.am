@@ -22,7 +22,6 @@ libutil_la_SOURCES = \
 	bitvector.h \
 	bitvector.cpp \
 	bool.h \
-	cache.h \
 	cardinality.cpp \
 	cardinality.h \
 	channel.h \

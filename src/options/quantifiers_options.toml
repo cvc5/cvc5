@@ -968,6 +968,14 @@ header = "options/quantifiers_options.h"
   help       = "sygus advanced pruning based on examples"
 
 [[option]]
+  name       = "sygusUnif"
+  category   = "regular"
+  long       = "sygus-unif"
+  type       = "bool"
+  default    = "false"
+  help       = "Unification-based function synthesis"
+
+[[option]]
   name       = "sygusQePreproc"
   category   = "regular"
   long       = "sygus-qe-preproc"
@@ -1132,12 +1140,28 @@ header = "options/quantifiers_options.h"
   help       = "use sygus to enumerate candidate rewrite rules via sampling"
 
 [[option]]
-  name       = "sygusRewSynthFilter"
+  name       = "sygusRewSynthFilterOrder"
   category   = "regular"
-  long       = "sygus-rr-synth-filter"
+  long       = "sygus-rr-synth-filter-order"
   type       = "bool"
   default    = "true"
-  help       = "filter candidate rewrites based on techniques like matching"
+  help       = "filter candidate rewrites based on variable ordering"
+
+[[option]]
+  name       = "sygusRewSynthFilterMatch"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-match"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on matching"
+
+[[option]]
+  name       = "sygusRewSynthFilterCong"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-cong"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on congruence"
 
 [[option]]
   name       = "sygusRewVerify"

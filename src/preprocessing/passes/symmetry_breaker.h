@@ -12,7 +12,6 @@
  ** \brief Symmetry breaker for theories
  **/
 
-
 #ifndef __CVC4__PREPROCESSING_PASSES_SYMMETRY_BREAKER_H_
 #define __CVC4__PREPROCESSING_PASSES_SYMMETRY_BREAKER_H_
 
@@ -25,7 +24,8 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-class SymmetryBreaker{
+class SymmetryBreaker
+{
  public:
   /**
    * Constructor
@@ -47,10 +47,9 @@ class SymmetryBreaker{
    * with the original assertions SB ^ C is equisatisfiable to the C.
    *
    * */
-  Node generateSymBkConstraints(std::vector< std::vector< Node > >& parts);
+  Node generateSymBkConstraints(std::vector<std::vector<Node> >& parts);
 
  private:
-
   /** True and false constant nodes */
   Node d_trueNode;
   Node d_falseNode;
@@ -59,13 +58,10 @@ class SymmetryBreaker{
    * Get the order kind for node depending on the type of node
    * */
   Kind getOrderKind(Node node);
-
 };
 
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4
-
-
 
 #endif /* __CVC4_PREPROCESSING_PASSES_SYMMETRY_BREAKER_H_ */

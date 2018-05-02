@@ -26,10 +26,10 @@
 
 #include "expr/expr.h"
 #include "proof/clause_id.h"
-#include "prop/sat_solver_types.h"
-#include "util/proof.h"
 #include "proof/proof_utils.h"
-
+#include "prop/sat_solver_types.h"
+#include "theory/uf/equality_engine.h"
+#include "util/proof.h"
 namespace CVC4 {
 
 namespace theory {
@@ -207,7 +207,9 @@ protected:
   // Pointer to the theory for this proof
   theory::Theory* d_theory;
   TheoryProofEngine* d_proofEngine;
-public:
+  virtual theory::TheoryId getTheoryId() = 0;
+
+ public:
   TheoryProof(theory::Theory* th, TheoryProofEngine* proofEngine)
     : d_theory(th)
     , d_proofEngine(proofEngine)
@@ -238,6 +240,54 @@ public:
   void printSort(Type type, std::ostream& os) {
     d_proofEngine->printSort(type, os);
   }
+
+  // congrence matching term helper
+  inline bool match(TNode n1, TNode n2);
+
+  /**
+   * Helper function for ProofUF::toStreamRecLFSC and
+   * ProofArray::toStreamRecLFSC
+   * Inputs:
+   *    - pf: equality engine proof
+   *    - map: A map for the let-expressions in the proof
+   *    - subTrans: main transitivity proof part
+   *    - pPrettyPrinter: optional pretty printer for sub-proofs
+   * returns:
+   *    - the index of the contradicting node in pf.
+   *    */
+  int assertAndPrint(
+      const theory::eq::EqProof& pf,
+      const ProofLetMap& map,
+      std::shared_ptr<theory::eq::EqProof> subTrans,
+      theory::eq::EqProof::PrettyPrinter* pPrettyPrinter = nullptr);
+
+  /**
+   * Helper function for ProofUF::toStreamRecLFSC and
+   * ProofArray::toStreamRecLFSC
+   * Inputs:
+   *    - evenLengthSequence: true iff the length of the sequence
+   *                          of the identical equalities is even.
+   *    - sequenceOver: have we reached the last equality of this sequence?
+   *    - pf: equality engine proof
+   *    - map: A map for the let-expressions in the proof
+   *    - subproofStr: current stringstream content
+   *    - outStream: output stream to which the proof is printed
+   *    - n: transitivity sub-proof
+   *    - nodeAfterEqualitySequence: The node after the identical sequence.
+   * Returns:
+   *    A pair of nodes, that are the updated nodes n and nodeAfterEqualitySequence
+   *
+   */
+  std::pair<Node, Node> identicalEqualitiesPrinterHelper(
+      bool evenLengthSequence,
+      bool sequenceOver,
+      const theory::eq::EqProof& pf,
+      const ProofLetMap& map,
+      const std::string subproofStr,
+      std::stringstream* outStream,
+      Node n,
+      Node nodeAfterEqualitySequence);
+
   /**
    * Print the proof representation of the given type that belongs to THIS theory.
    *
@@ -313,7 +363,9 @@ public:
 class BooleanProof : public TheoryProof {
 protected:
   ExprSet d_declarations; // all the boolean variables
-public:
+  theory::TheoryId getTheoryId();
+
+ public:
   BooleanProof(TheoryProofEngine* proofEngine);
 
   void registerTerm(Expr term) override;
