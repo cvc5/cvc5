@@ -65,6 +65,62 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
   enums.insert(enums.end(), candidates.begin(), candidates.end());
 }
 
+bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
+                          std::vector<Node>& candidate_values)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  bool addedEvalLemmas = false;
+  if (options::sygusCRefEval())
+  {
+    Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..."
+                          << std::endl;
+    // see if any refinement lemma is refuted by evaluation
+    std::vector<Node> cre_lems;
+    getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
+    if (!cre_lems.empty())
+    {
+      for (const Node& lem : cre_lems)
+      {
+        if (d_qe->addLemma(lem))
+        {
+          Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem
+                               << std::endl;
+          addedEvalLemmas = true;
+        }
+      }
+      /* we could, but do not return here. experimentally, it is better to
+         add the lemmas below as well, in parallel. */
+    }
+  }
+  Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
+  std::vector<Node> eager_terms, eager_vals, eager_exps;
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+  for (unsigned i = 0, size = candidates.size(); i < size; ++i)
+  {
+    Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
+                         << candidate_values[i] << std::endl;
+    tds->registerModelValue(candidates[i],
+                            candidate_values[i],
+                            eager_terms,
+                            eager_vals,
+                            eager_exps);
+  }
+  Trace("cegqi-debug") << "...produced " << eager_terms.size()
+                       << " eager evaluation lemmas.\n";
+  for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
+  {
+    Node lem = nm->mkNode(
+        OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
+    if (d_qe->addLemma(lem))
+    {
+      Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem
+                           << std::endl;
+      addedEvalLemmas = true;
+    }
+  }
+  return addedEvalLemmas;
+}
+
 /** construct candidate */
 bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 const std::vector<Node>& enum_values,
@@ -74,71 +130,10 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
 {
   candidate_values.insert(
       candidate_values.end(), enum_values.begin(), enum_values.end());
-
-  if (options::sygusDirectEval())
+  if (options::sygusDirectEval() && addEvalLemmas(candidates, candidate_values))
   {
-    NodeManager* nm = NodeManager::currentNM();
-    bool addedEvalLemmas = false;
-    if (options::sygusCRefEval())
-    {
-      Trace("cegqi-engine") << "  *** Do conjecture refinement evaluation..."
-                            << std::endl;
-      // see if any refinement lemma is refuted by evaluation
-      std::vector<Node> cre_lems;
-      getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
-      if (!cre_lems.empty())
-      {
-        for (unsigned j = 0; j < cre_lems.size(); j++)
-        {
-          Node lem = cre_lems[j];
-          if (d_qe->addLemma(lem))
-          {
-            Trace("cegqi-lemma") << "Cegqi::Lemma : cref evaluation : " << lem
-                                 << std::endl;
-            addedEvalLemmas = true;
-          }
-        }
-        // we could, but do not return here.
-        // experimentally, it is better to add the lemmas below as well,
-        // in parallel.
-      }
-    }
-    Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
-    std::vector<Node> eager_terms;
-    std::vector<Node> eager_vals;
-    std::vector<Node> eager_exps;
-    TermDbSygus* tds = d_qe->getTermDatabaseSygus();
-    for (unsigned j = 0, size = candidates.size(); j < size; j++)
-    {
-      Trace("cegqi-debug") << "  register " << candidates[j] << " -> "
-                           << candidate_values[j] << std::endl;
-      tds->registerModelValue(candidates[j],
-                              candidate_values[j],
-                              eager_terms,
-                              eager_vals,
-                              eager_exps);
-    }
-    Trace("cegqi-debug") << "...produced " << eager_terms.size()
-                         << " eager evaluation lemmas." << std::endl;
-
-    for (unsigned j = 0, size = eager_terms.size(); j < size; j++)
-    {
-      Node lem = nm->mkNode(kind::OR,
-                            eager_exps[j].negate(),
-                            eager_terms[j].eqNode(eager_vals[j]));
-      if (d_qe->addLemma(lem))
-      {
-        Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation : " << lem
-                             << std::endl;
-        addedEvalLemmas = true;
-      }
-    }
-    if (addedEvalLemmas)
-    {
-      return false;
-    }
+    return false;
   }
-
   return true;
 }
 

@@ -94,6 +94,18 @@ class Cegis : public SygusModule
   bool sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                 const std::vector<Node>& vals,
                                 std::vector<Node>& lems);
+
+  /** evaluates candidate values on current refinement lemmas
+   *
+   * Returns true if refinement lemmas are added after evaluation, false
+   * otherwise.
+   *
+   * Also eagerly unfolds evaluation functions in a heuristic manner, which is
+   * useful when evaluation functions have been axiomatized (e.g. for boolean
+   * connectives)
+   */
+  bool addEvalLemmas(const std::vector<Node>& candidates,
+                     std::vector<Node>& candidate_values);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
