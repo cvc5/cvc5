@@ -25,7 +25,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p) : Cegis(qe, p)
+CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
+    : Cegis(qe, p), d_sygus_unif(p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
   d_enum_to_active_guard.clear();
@@ -97,10 +98,12 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
 {
   if (addEvalLemmas(enums, enum_values))
   {
+    Trace("cegis-unif-lemma") << "Added eval lemmas\n";
     return false;
   }
   unsigned min_term_size = 0;
   std::vector<unsigned> enum_consider;
+  NodeManager* nm = NodeManager::currentNM();
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
@@ -128,7 +131,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   for (unsigned i = 0, ecsize = enum_consider.size(); i < ecsize; ++i)
   {
     unsigned j = enum_consider[i];
-    Node e = enums[j], v = enum _values[j];
+    Node e = enums[j], v = enum_values[j];
     std::vector<Node> enum_lems;
     d_sygus_unif.notifyEnumeration(e, v, enum_lems);
     /* the lemmas must be guarded by the active guard of the enumerator */

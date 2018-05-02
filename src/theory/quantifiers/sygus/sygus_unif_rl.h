@@ -20,6 +20,8 @@
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "theory/quantifiers_engine.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
@@ -30,6 +32,8 @@ using BoolNodePairHashFunction =
 using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
 
+class CegConjecture;
+
 /** Sygus unification Refinement Lemmas utility
  *
  * This class implement synthesis-by-unification, where the specification is a
@@ -39,7 +43,7 @@ using BoolNodePairMap =
 class SygusUnifRl : public SygusUnif
 {
  public:
-  SygusUnifRl();
+  SygusUnifRl(CegConjecture* p);
   ~SygusUnifRl();
 
   /** initialize */
@@ -51,6 +55,7 @@ class SygusUnifRl : public SygusUnif
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols) override;
+  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
   /** add refinement lemma
    *
    * This adds a lemma to the specification for f.
@@ -62,7 +67,10 @@ class SygusUnifRl : public SygusUnif
    * former)
     */
   bool usingUnif(Node f);
-protected:
+
+ protected:
+  /** reference to the parent conjecture */
+  CegConjecture* d_parent;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
   /* Maps unif candidates to their conditonal enumerators */
@@ -104,6 +112,8 @@ protected:
    * from d_rlemmas, in which case we may have added or removed data points
    */
   void initializeConstructSol() override;
+  /** initialize construction solution for function-to-synthesize f */
+  void initializeConstructSolFor(Node f) override;
   /*
     --------------------------------------------------------------
         Purification

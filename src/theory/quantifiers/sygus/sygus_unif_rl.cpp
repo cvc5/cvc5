@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
+#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
@@ -22,8 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl() {}
-
+SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              const std::vector<Node>& funs,
@@ -45,7 +45,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   for (const Node& c : d_unif_candidates)
   {
     d_app_to_pt[c].clear();
-    cand_to_pt_enum[c].clear();
+    d_cand_to_pt_enum[c].clear();
     d_purified_count[c] = 0;
   }
 }
@@ -79,8 +79,21 @@ Node SygusUnifRl::purifyLemma(Node n,
   unsigned size = n.getNumChildren();
   Kind k = n.getKind();
   /* Uninterpreted functions (i.e. functions-to-synthesize in general) must be
-     applied over concrete values */
-  bool fapp = k == APPLY_UF && size > 0;
+     applied over concrete values except top level non-unif function apps */
+  bool fapp = k == APPLY_UF && size > 0 && (ensureConst || usingUnif(n[0]));
+  /* We retrive model value before the next transformation because the resulting
+     node would not have a model value */
+  Node nv = n;
+  /* get model value of non-top level applications of candidates */
+  if (ensureConst && fapp)
+  {
+    nv = d_parent->getModelValue(n);
+    Assert(n != nv);
+    Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
+                                  << " is " << nv << "\n";
+  }
+  Assert(!createModelEq || nb != nv);
+  /* Travese to purify */
   bool childChanged = false;
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
@@ -110,23 +123,8 @@ Node SygusUnifRl::purifyLemma(Node n,
   {
     nb = n;
   }
-  bool createModelEq = false;
-  /* We retrive model value before the next transformation because the resulting
-     node would not have a model value */
-  Node nv = nb;
-  /* get model value of non-top level applications of candidates */
-  if (ensureConst && fapp)
-  {
-    nv = d_parent->getModelValue(nb);
-    Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << nb
-                                  << " is " << nv << "\n";
-    /* needs to create model eq if nb != nv */
-    createModelEq = nv != nb;
-    AlwaysAssert(createModelEq);
-  }
-  Assert(!createModelEq || nb != nv);
   /* Map to point enumerator function being synthesize with unification  */
-  if (fapp && usingUnif(nb[0]))
+  if (fapp && usingUnif(n[0]))
   {
     Node np;
     std::map<Node, Node>::const_iterator it = d_app_to_purified.find(nb);
@@ -157,11 +155,12 @@ Node SygusUnifRl::purifyLemma(Node n,
       np = it->second;
     }
     Trace("sygus-unif-rl-purify")
-        << "PurifyLemma : purified head and transformed " << nb << " into " << np
-        << "\n";
+        << "PurifyLemma : purified head and transformed " << nb << " into "
+        << np << "\n";
     nb = np;
   }
-  if (createModelEq)
+  /* Add equality between purified fapp and model value */
+  if (ensureConst && fapp)
   {
     Trace("sygus-unif-rl-purify") << "PurifyLemma : adding model eq\n";
     model_guards.push_back(
@@ -179,9 +178,12 @@ Node SygusUnifRl::purifyLemma(Node n,
 
 void SygusUnifRl::addRefLemma(Node lemma)
 {
-  Trace("sygus-unif-rl-lemma") << "Registering lemma at SygusUnif : " << lemma << "\n";
+  Trace("sygus-unif-rl-lemma") << "Registering lemma at SygusUnif : " << lemma
+                               << "\n";
+  std::vector<Node>  model_guards;
+  BoolNodePairMap cache;
   /* Make the purified lemma which will guide the unification utility. */
-  plem = purifyLemma(lemma, false, model_guards, cache);
+  Node plem = purifyLemma(lemma, false, model_guards, cache);
   if (!model_guards.empty())
   {
     model_guards.push_back(plem);
@@ -252,14 +254,16 @@ void SygusUnifRl::initializeConstructSol()
     }
   }
 }
-
+void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {
-  for (const Node& c: d_candidates)
+  for (const Node& c : d_candidates)
   {
     if (!usingUnif(c))
     {
       Node v = d_parent->getModelValue(c);
+      Trace("sygus-unif-rl-sol") << "Adding solution " << v
+                                 << " to non-unif candidate " << c << "\n";
       sols.push_back(v);
     }
     else
@@ -270,9 +274,14 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
   return true;
 }
 
+Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
+{
+  return Node::null();
+}
+
 bool SygusUnifRl::usingUnif(Node f)
 {
-  return d_unif_candidates.find(c) != d_unif_candidates.end();
+  return d_unif_candidates.find(f) != d_unif_candidates.end();
 }
 
 } /* CVC4::theory::quantifiers namespace */
