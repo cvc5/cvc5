@@ -180,7 +180,7 @@ void SygusUnifRl::addRefLemma(Node lemma)
 {
   Trace("sygus-unif-rl-lemma") << "Registering lemma at SygusUnif : " << lemma
                                << "\n";
-  std::vector<Node>  model_guards;
+  std::vector<Node> model_guards;
   BoolNodePairMap cache;
   /* Make the purified lemma which will guide the unification utility. */
   Node plem = purifyLemma(lemma, false, model_guards, cache);
