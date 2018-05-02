@@ -377,7 +377,9 @@ void LogicInfo::setLogicString(std::string logicString)
     enableQuantifiers();
     arithNonLinear();
     p += 3;
-  } else if(!strcmp(p, "HORN")) {
+  }
+  else if (!strcmp(p, "HORN"))
+  {
     // the HORN logic
     enableEverything();
     enableQuantifiers();
