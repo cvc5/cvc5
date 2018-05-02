@@ -30,7 +30,8 @@ namespace language {
 
 namespace input {
 
-enum CVC4_PUBLIC Language {
+enum CVC4_PUBLIC Language
+{
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
   /** Auto-detect the language */
@@ -71,7 +72,7 @@ enum CVC4_PUBLIC Language {
 
   /** LANG_MAX is > any valid InputLanguage id */
   LANG_MAX
-};/* enum Language */
+}; /* enum Language */
 
 inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
@@ -91,9 +92,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SMTLIB_V2_6:
     out << "LANG_SMTLIB_V2_6";
     break;
-  case LANG_SMTLIB_V2_6_1:
-    out << "LANG_SMTLIB_V2_6_1";
-    break;
+  case LANG_SMTLIB_V2_6_1: out << "LANG_SMTLIB_V2_6_1"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
@@ -116,7 +115,8 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
 
 namespace output {
 
-enum CVC4_PUBLIC Language {
+enum CVC4_PUBLIC Language
+{
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
   /** Match the output language to the input language */
@@ -162,7 +162,7 @@ enum CVC4_PUBLIC Language {
 
   /** LANG_MAX is > any valid OutputLanguage id */
   LANG_MAX
-};/* enum Language */
+}; /* enum Language */
 
 inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
@@ -176,12 +176,8 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SMTLIB_V2_5:
     out << "LANG_SMTLIB_V2_5";
     break;
-  case LANG_SMTLIB_V2_6:
-    out << "LANG_SMTLIB_V2_6";
-    break;
-  case LANG_SMTLIB_V2_6_1:
-    out << "LANG_SMTLIB_V2_6_1";
-    break;
+  case LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
+  case LANG_SMTLIB_V2_6_1: out << "LANG_SMTLIB_V2_6_1"; break;
   case LANG_TPTP:
     out << "LANG_TPTP";
     break;
@@ -221,17 +217,17 @@ bool isOutputLang_smt2(OutputLanguage lang) CVC4_PUBLIC;
 
 /**
   * Is the language smtlib 2.5 or above? If exact=true, then this method returns
-  * false if the input language is not exactly SMT-LIB 2.6. 
+  * false if the input language is not exactly SMT-LIB 2.6.
   */
 bool isInputLang_smt2_5(InputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isOutputLang_smt2_5(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
 /**
   * Is the language smtlib 2.6 or above? If exact=true, then this method returns
-  * false if the input language is not exactly SMT-LIB 2.6. 
+  * false if the input language is not exactly SMT-LIB 2.6.
   */
 bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
-  
+
 InputLanguage toInputLanguage(OutputLanguage language) CVC4_PUBLIC;
 OutputLanguage toOutputLanguage(InputLanguage language) CVC4_PUBLIC;
 InputLanguage toInputLanguage(std::string language) CVC4_PUBLIC;

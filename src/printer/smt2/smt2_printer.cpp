@@ -45,11 +45,10 @@ static OutputLanguage variantToLanguage(Variant v);
 static string smtKindString(Kind k, Variant v);
 
 /** returns whether the variant is smt-lib 2.6 or greater */
-bool isVariant_2_6( Variant v )
+bool isVariant_2_6(Variant v)
 {
-  return v==smt2_6_variant || v==smt2_6_1_variant;
+  return v == smt2_6_variant || v == smt2_6_1_variant;
 }
-
 
 static void printBvParameterizedOp(std::ostream& out, TNode n);
 static void printFpParameterizedOp(std::ostream& out, TNode n);
@@ -786,7 +785,8 @@ void Smt2Printer::toStream(std::ostream& out,
       }else if( n.getKind()==kind::APPLY_TESTER ){
         unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
         const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-        if( isVariant_2_6( d_variant ) ){
+        if (isVariant_2_6(d_variant))
+        {
           out << "(_ is ";
           toStream(out, Node::fromExpr(dt[cindex].getConstructor()), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
           out << ")";
@@ -1327,7 +1327,7 @@ void DeclareTypeCommandToStream(std::ostream& out,
   const std::vector<Node>* type_refs = model.getRepSet()->getTypeRepsOrNull(tn);
   if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
   {
-    if (isVariant_2_6( variant ))
+    if (isVariant_2_6(variant))
     {
       out << "(declare-datatypes ((" << command.getSymbol() << " 0)) (";
     }

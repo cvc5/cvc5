@@ -2275,19 +2275,21 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
                value.getValue() == "2.6" ) {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
-    else if( value.getValue() == "2.6.1" )
+    else if (value.getValue() == "2.6.1")
     {
       ilang = language::input::LANG_SMTLIB_V2_6_1;
-    }else{
+    }
+    else
+    {
       Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
       throw UnrecognizedOptionException();
     }
     options::inputLanguage.set(ilang);
     // also update the output language
-    if(!options::outputLanguage.wasSetByUser() )
+    if (!options::outputLanguage.wasSetByUser())
     {
       language::output::Language olang = language::toOutputLanguage(ilang);
-      if( options::outputLanguage()!=olang )
+      if (options::outputLanguage() != olang)
       {
         options::outputLanguage.set(olang);
         *options::out() << language::SetLanguage(olang);

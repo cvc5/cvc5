@@ -263,14 +263,15 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     break;
 
   default:
-    if( language::isInputLang_smt2_5( lang ) )
+    if (language::isInputLang_smt2_5(lang))
     {
       input = new Smt2Input(inputStream, lang);
     }
     else
     {
       std::stringstream ss;
-      ss << "internal error: unhandled language " << lang << " in AntlrInput::newInput";
+      ss << "internal error: unhandled language " << lang
+         << " in AntlrInput::newInput";
       throw InputStreamException(ss.str());
     }
   }

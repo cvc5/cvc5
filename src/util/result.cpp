@@ -356,7 +356,7 @@ void Result::toStream(std::ostream& out, OutputLanguage language) const {
       toStreamTptp(out);
       break;
     default:
-      if( language::isOutputLang_smt2(language) )
+      if (language::isOutputLang_smt2(language))
       {
         toStreamSmt2(out);
       }

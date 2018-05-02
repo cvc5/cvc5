@@ -157,17 +157,19 @@ public:
   }
   /**
    * Are we using smtlib 2.5 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6. 
+   * false if the input language is not exactly SMT-LIB 2.6.
    */
-  bool v2_5( bool exact = false ) const {
-    return language::isInputLang_smt2_5( getInput()->getLanguage(), exact );
+  bool v2_5(bool exact = false) const
+  {
+    return language::isInputLang_smt2_5(getInput()->getLanguage(), exact);
   }
-  /** 
+  /**
    * Are we using smtlib 2.6 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6. 
+   * false if the input language is not exactly SMT-LIB 2.6.
    */
-  bool v2_6( bool exact = false ) const {
-    return language::isInputLang_smt2_6( getInput()->getLanguage(), exact );
+  bool v2_6(bool exact = false) const
+  {
+    return language::isInputLang_smt2_6(getInput()->getLanguage(), exact);
   }
   bool sygus() const {
     return getInput()->getLanguage() == language::input::LANG_SYGUS;

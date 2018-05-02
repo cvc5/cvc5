@@ -131,11 +131,12 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
       commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
       break;
     default:
-      if( language::isOutputLang_smt2(lang) )
+      if (language::isOutputLang_smt2(lang))
       {
         d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
         commandsBegin = smt2_commands;
-        commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+        commandsEnd =
+            smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
       }
       else
       {
@@ -335,7 +336,8 @@ restart:
     line += "\n";
     goto restart;
   } catch(ParserException& pe) {
-    if(language::isOutputLang_smt2(d_options.getOutputLanguage())) {
+    if (language::isOutputLang_smt2(d_options.getOutputLanguage()))
+    {
       d_out << "(error \"" << pe << "\")" << endl;
     } else {
       d_out << pe << endl;

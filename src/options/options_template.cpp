@@ -423,7 +423,8 @@ static const std::string optionsFootnote = "\n\
     sense of the option.\n\
 ";
 
-static const std::string languageDescription = "\
+static const std::string languageDescription =
+    "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
