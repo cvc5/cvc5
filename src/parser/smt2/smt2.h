@@ -157,7 +157,7 @@ public:
   }
   /**
    * Are we using smtlib 2.5 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6.
+   * false if the input language is not exactly SMT-LIB 2.5.
    */
   bool v2_5(bool exact = false) const
   {
