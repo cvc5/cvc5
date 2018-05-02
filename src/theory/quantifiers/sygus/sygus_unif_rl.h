@@ -48,22 +48,25 @@ class SygusUnifRl : public SygusUnif
    * This adds a lemma to the specification for f.
    */
   void addRefLemma(Node lemma);
-  /* whether f is being synthesized with unification strategies */
+  /**
+   * whether f is being synthesized with unification strategies. This can be
+   * checked through wehether f has conditional or point enumerators (we use the
+   * former)
+    */
   bool usingUnif(Node f);
-
- protected:
-  /* Maps candidates to their conditonal enumerators in case they exist. This
-     maps essentially indicates whether we can use a divide-and-conquer approach
-     for the respective function-to-synthesize */
+protected:
+  /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
+  std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
+  /* Maps unif candidates to their conditonal enumerators */
   std::map<Node, Node> d_cand_to_cond_enum;
+  /* Maps unif candidates to their point enumerators */
+  std::map<Node, std::vector<Node>> d_cand_to_pt_enum;
   /** true and false nodes */
   Node d_true, d_false;
   /** current collecton of refinement lemmas */
   Node d_rlemmas;
   /** previous collecton of refinement lemmas */
   Node d_prev_rlemmas;
-  /** whether there are refinement lemmas to satisfy when building solutions */
-  bool d_hasRLemmas;
   /**
    * maps applications of the function-to-synthesize to their tuple of arguments
    * (which constitute a "data point") */
@@ -104,6 +107,39 @@ class SygusUnifRl : public SygusUnif
 
   /** construct solution */
   Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
+
+  /*
+    --------------------------------------------------------------
+        Purification
+    --------------------------------------------------------------
+  */
+
+  /**
+   * Maps applications of functions-to-synthesize to the respective purified
+   * form of the function-to-synthesized. For example if "f" is being
+   * synthesized with a unification strategy then applications such as
+   *  f(c1,c2), f(c3,c4)
+   * would be mapped into the symbols "f1" and "f2".
+   */
+  std::map<Node, Node> d_app_to_purified;
+  /* Maps a function-to-synthesize to its counter of purified symbols */
+  std::map<Node, unsigned> d_purified_count;
+  /**
+   * This is called on the refinement lemma and will replace the arguments of
+   * the
+   * function-to-synthesize by their model values (constants).
+   *
+   * When the traversal hits a function application of the
+   * function-to-synthesize
+   * it will proceed to ensure that the arguments of that function application
+   * are constants (the ensureConst becomes "true"). It populates a vector of
+   * guards with the (negated) equalities between the original arguments and
+   * their model values.
+   */
+  Node purifyLemma(Node n,
+                   bool ensureConst,
+                   std::vector<Node>& model_guards,
+                   BoolNodePairMap& cache);
 };
 
 } /* CVC4::theory::quantifiers namespace */

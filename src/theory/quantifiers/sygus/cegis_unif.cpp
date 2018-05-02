@@ -47,39 +47,13 @@ bool CegisUnif::initialize(Node n,
     d_base_body = d_base_body[0][1];
   }
   /* Init UNIF util */
-  /* TODO combine with enumeration manager */
-  if (false)
-  {
-    d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
-    Assert(!d_enums.empty());
-    Trace("cegis-unif") << "Initialize " << d_enums.size()
-                        << " enumerator guards\n";
-    /* initialize the enumerator guards */
-    for (const Node& e : d_enums)
-    {
-      Node g = d_tds->getActiveGuardForEnumerator(e);
-      d_enum_to_active_guard[e] = g;
-    }
-    Trace("cegis-unif")
-        << "Determining if any function using unification util\n";
-    d_no_unif = true;
-    /* Copy candidates and check whether CegisUnif for any of them */
-    for (const Node& c : candidates)
-    {
-      d_candidates.insert(c);
-      if (d_sygus_unif.usingUnif(c))
-      {
-        d_no_unif = false;
-        d_purified_count[c] = 0;
-      }
-    }
-  }
-  d_no_unif = true;
+  d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
+  /* TODO initialize condition enumerators */
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   /* Initialize enumerators for case with no unification for any function */
-  if (d_no_unif)
+  for (const Node& c : candidates)
   {
-    for (const Node& c : candidates)
+    if (!d_unif.usingUnif(c))
     {
       d_tds->registerEnumerator(c, c, d_parent);
     }
@@ -231,94 +205,6 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   return false;
 }
 
-Node CegisUnif::purifyLemma(Node n,
-                            bool ensureConst,
-                            std::vector<Node>& model_guards,
-                            BoolNodePairMap& cache)
-{
-  Trace("cegis-unif-purify") << "PurifyLemma : " << n << "\n";
-  BoolNodePairMap::const_iterator it = cache.find(BoolNodePair(ensureConst, n));
-  if (it != cache.end())
-  {
-    Trace("cegis-unif-purify") << "... already visited " << n << "\n";
-    return it->second;
-  }
-  /* Recurse */
-  unsigned size = n.getNumChildren();
-  Kind k = n.getKind();
-  bool fapp = k == APPLY_UF && size > 0
-              && d_candidates.find(n[0]) != d_candidates.end();
-  bool childChanged = false;
-  std::vector<Node> children;
-  NodeManager* nm = NodeManager::currentNM();
-  for (unsigned i = 0; i < size; ++i)
-  {
-    if (i == 0 && fapp)
-    {
-      /* Non unif functions are kept as is */
-      if (!d_sygus_unif.usingUnif(n[0]))
-      {
-        children.push_back(n[0]);
-        continue;
-      }
-      std::map<Node, Node>::const_iterator it = d_app_to_purified.find(n);
-      if (it == d_app_to_purified.end())
-      {
-        std::stringstream ss;
-        ss << n[0] << "_" << d_purified_count[n[0]]++;
-        Node new_f = nm->mkSkolem(ss.str(), n[0].getType());
-        d_app_to_purified[n] = new_f;
-      }
-      else
-      {
-        children.push_back(it->second);
-      }
-      childChanged = true;
-      continue;
-    }
-    Node child = purifyLemma(n[i], ensureConst || fapp, model_guards, cache);
-    children.push_back(child);
-    childChanged = childChanged || child != n[i];
-  }
-  Node nb;
-  if (childChanged)
-  {
-    if (n.hasOperator())
-    {
-      children.insert(children.begin(), n.getOperator());
-    }
-    nb = NodeManager::currentNM()->mkNode(k, children);
-    Trace("cegis-unif-purify") << "PurifyLemma : transformed " << n << " into "
-                               << nb << "\n";
-  }
-  else
-  {
-    nb = n;
-  }
-  /* get model value of non-top level applications of d_candidate */
-  if (ensureConst && fapp)
-  {
-    Node nv = d_parent->getModelValue(nb);
-    Trace("cegis-unif-purify") << "PurifyLemma : model value for " << nb
-                               << " is " << nv << "\n";
-    /* test if different, then update model_guards */
-    if (nv != nb)
-    {
-      Trace("cegis-unif-purify") << "PurifyLemma : adding model eq\n";
-      model_guards.push_back(
-          NodeManager::currentNM()->mkNode(EQUAL, nv, nb).negate());
-      nb = nv;
-    }
-  }
-  nb = Rewriter::rewrite(nb);
-  /* every non-top level application of function-to-synthesize must be reduced
-     to a concrete constant */
-  Assert(!ensureConst || nb.isConst());
-  Trace("cegis-unif-purify") << "... caching [" << n << "] = " << nb << "\n";
-  cache[BoolNodePair(ensureConst, n)] = nb;
-  return nb;
-}
-
 void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
@@ -330,25 +216,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
      satisfies the specification for the given concrete point. */
   lems.push_back(
       NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
-  if (d_no_unif)
-  {
-    return;
-  }
-  Node plem;
-  std::vector<Node> model_guards;
-  BoolNodePairMap cache;
-  Trace("cegis-unif") << "Registering lemma at CegisUnif : " << lem << "\n";
-  /* Make the purified lemma which will guide the unification utility. */
-  plem = purifyLemma(lem, false, model_guards, cache);
-  if (!model_guards.empty())
-  {
-    model_guards.push_back(plem);
-    plem = NodeManager::currentNM()->mkNode(OR, model_guards);
-  }
-  plem = Rewriter::rewrite(plem);
-  Trace("cegis-unif") << "Purified lemma : " << plem << "\n";
   /* Notify lemma to unification utility */
-  d_sygus_unif.addRefLemma(plem);
+  d_sygus_unif.addRefLemma(lem);
 }
 
 }  // namespace quantifiers

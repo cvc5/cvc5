@@ -120,42 +120,15 @@ class CegisUnif : public Cegis
    * tree learning) that this module relies upon.
    */
   SygusUnifRl d_sygus_unif;
-  /* Functions-to-synthesize */
-  std::unordered_set<Node, NodeHashFunction> d_candidates;
   /**
-   * list of enumerators being used to build solutions for candidate by the
+   * list of enumerators being used to build solutions for candidates by the
    * above utility.
    */
   std::vector<Node> d_enums;
   /** map from enumerators to active guards */
   std::map<Node, Node> d_enum_to_active_guard;
-  /* Whether no candidate is being synthesized with the unif utility */
-  bool d_no_unif;
-  /**
-   * Maps applications of functions-to-synthesize to the respective purified
-   * form of the function-to-synthesized. For example if "f" is being
-   * synthesized with a unification strategy then applications such as
-   *  f(c1,c2), f(c3,c4)
-   * would be mapped into the symbols "f1" and "f2".
-   */
-  std::map<Node, Node> d_app_to_purified;
-  /* Maps a function-to-synthesize to its counter of purified symbols */
-  std::map<Node, unsigned> d_purified_count;
-  /**
-  * This is called on the refinement lemma and will replace the arguments of the
-  * function-to-synthesize by their model values (constants).
-  *
-  * When the traversal hits a function application of the function-to-synthesize
-  * it will proceed to ensure that the arguments of that function application
-  * are constants (the ensureConst becomes "true"). It populates a vector of
-  * guards with the (negated) equalities between the original arguments and
-  * their model values.
-  */
-  Node purifyLemma(Node n,
-                   bool ensureConst,
-                   std::vector<Node>& model_guards,
-                   BoolNodePairMap& cache);
-
+  /* The null node */
+  Node d_null;
 }; /* class CegisUnif */
 
 }  // namespace quantifiers
