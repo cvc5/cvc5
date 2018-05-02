@@ -64,7 +64,8 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
-    if(language::isOutputLang_smt2(opts.getOutputLanguage())) {
+    if (language::isOutputLang_smt2(opts.getOutputLanguage()))
+    {
       *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
       *opts.getErr() << "CVC4 Error:" << endl << e << endl;

@@ -1304,7 +1304,8 @@ void SmtEngine::setDefaults() {
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
-    options::bitvectorDivByZeroConst.set(language::isInputLang_smt2_6(options::inputLanguage()));
+    options::bitvectorDivByZeroConst.set(
+        language::isInputLang_smt2_6(options::inputLanguage()));
   }
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
