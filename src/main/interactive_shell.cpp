@@ -125,22 +125,24 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
       commandsBegin = smt1_commands;
       commandsEnd = smt1_commands + sizeof(smt1_commands) / sizeof(*smt1_commands);
       break;
-    case output::LANG_SMTLIB_V2_0:
-    case output::LANG_SMTLIB_V2_5:
-    case output::LANG_SMTLIB_V2_6:
-      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
-      commandsBegin = smt2_commands;
-      commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-      break;
     case output::LANG_TPTP:
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
       commandsBegin = tptp_commands;
       commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
       break;
     default:
-      std::stringstream ss;
-      ss << "internal error: unhandled language " << lang;
-      throw Exception(ss.str());
+      if( language::isOutputLang_smt2(lang) )
+      {
+        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
+        commandsBegin = smt2_commands;
+        commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+      }
+      else
+      {
+        std::stringstream ss;
+        ss << "internal error: unhandled language " << lang;
+        throw Exception(ss.str());
+      }
     }
     d_usingReadline = true;
     int err = ::read_history(d_historyFilename.c_str());
@@ -333,9 +335,7 @@ restart:
     line += "\n";
     goto restart;
   } catch(ParserException& pe) {
-    if(d_options.getOutputLanguage() == output::LANG_SMTLIB_V2_0 ||
-       d_options.getOutputLanguage() == output::LANG_SMTLIB_V2_5 ||
-       d_options.getOutputLanguage() == output::LANG_SMTLIB_V2_6) {
+    if(language::isOutputLang_smt2(d_options.getOutputLanguage())) {
       d_out << "(error \"" << pe << "\")" << endl;
     } else {
       d_out << pe << endl;

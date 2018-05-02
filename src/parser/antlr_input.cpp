@@ -254,12 +254,6 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     input = new Smt1Input(inputStream);
     break;
 
-  case LANG_SMTLIB_V2_0:
-  case LANG_SMTLIB_V2_5:
-  case LANG_SMTLIB_V2_6:
-    input = new Smt2Input(inputStream, lang);
-    break;
-
   case LANG_SYGUS:
     input = new SygusInput(inputStream);
     break;
@@ -269,9 +263,16 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     break;
 
   default:
-    std::stringstream ss;
-    ss << "internal error: unhandled language " << lang << " in AntlrInput::newInput";
-    throw InputStreamException(ss.str());
+    if( language::isInputLang_smt2_5( lang ) )
+    {
+      input = new Smt2Input(inputStream, lang);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "internal error: unhandled language " << lang << " in AntlrInput::newInput";
+      throw InputStreamException(ss.str());
+    }
   }
 
   return input;

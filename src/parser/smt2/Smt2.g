@@ -3362,7 +3362,7 @@ STRING_LITERAL_2_0
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5(false) || PARSER_STATE->sygus() }?=>
+  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
     '"' (~('"') | '""')* '"'
   ;
 

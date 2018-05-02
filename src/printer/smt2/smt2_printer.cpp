@@ -44,6 +44,13 @@ static OutputLanguage variantToLanguage(Variant v);
 
 static string smtKindString(Kind k, Variant v);
 
+/** returns whether the variant is smt-lib 2.6 or greater */
+bool isVariant_2_6( Variant v )
+{
+  return v==smt2_6_variant || v==smt2_6_1_variant;
+}
+
+
 static void printBvParameterizedOp(std::ostream& out, TNode n);
 static void printFpParameterizedOp(std::ostream& out, TNode n);
 
@@ -779,7 +786,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }else if( n.getKind()==kind::APPLY_TESTER ){
         unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
         const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-        if( d_variant==smt2_6_variant ){
+        if( isVariant_2_6( d_variant ) ){
           out << "(_ is ";
           toStream(out, Node::fromExpr(dt[cindex].getConstructor()), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
           out << ")";
@@ -1054,13 +1061,13 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_ITOS:
-    return v == smt2_6_variant ? "str.from-int" : "int.to.str";
+    return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
   case kind::STRING_STOI:
-    return v == smt2_6_variant ? "str.to-int" : "str.to.int";
+    return v == smt2_6_1_variant ? "str.to-int" : "str.to.int";
   case kind::STRING_IN_REGEXP:
-    return v == smt2_6_variant ? "str.in-re" : "str.in.re";
+    return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
-    return v == smt2_6_variant ? "str.to-re" : "str.to.re";
+    return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";
@@ -1320,7 +1327,7 @@ void DeclareTypeCommandToStream(std::ostream& out,
   const std::vector<Node>* type_refs = model.getRepSet()->getTypeRepsOrNull(tn);
   if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
   {
-    if (variant == smt2_6_variant)
+    if (isVariant_2_6( variant ))
     {
       out << "(declare-datatypes ((" << command.getSymbol() << " 0)) (";
     }
@@ -1903,7 +1910,7 @@ static void toStream(std::ostream& out,
     out << "co";
   }
   out << "datatypes";
-  if (v == smt2_6_variant)
+  if (isVariant_2_6(v))
   {
     out << " (";
     for (vector<DatatypeType>::const_iterator i = datatypes.begin(),
