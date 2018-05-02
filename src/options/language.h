@@ -56,8 +56,6 @@ enum CVC4_PUBLIC Language
   LANG_SMTLIB_V2 = LANG_SMTLIB_V2_6,
   /** The SMTLIB v2.6 input language, with support for the strings standard */
   LANG_SMTLIB_V2_6_1,
-  /** placeholder for the last smtlib v2 language */
-  LANG_SMTLIB_V2_END = LANG_SMTLIB_V2_6_1,
   /** The TPTP input language */
   LANG_TPTP,
   /** The CVC4 input language */
@@ -141,8 +139,6 @@ enum CVC4_PUBLIC Language
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
   /** The SMTLIB v2.6 output language */
   LANG_SMTLIB_V2_6_1 = input::LANG_SMTLIB_V2_6_1,
-  /** placeholder for the last smtlib language */
-  LANG_SMTLIB_V2_END = input::LANG_SMTLIB_V2_END,
   /** The TPTP output language */
   LANG_TPTP = input::LANG_TPTP,
   /** The CVC4 output language */

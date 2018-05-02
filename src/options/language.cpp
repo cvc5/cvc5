@@ -19,6 +19,14 @@
 namespace CVC4 {
 namespace language {
 
+/** define the end points of smt2 languages */
+namespace input {
+Language LANG_SMTLIB_V2_END = LANG_SMTLIB_V2_6_1;
+}
+namespace output {
+Language LANG_SMTLIB_V2_END = LANG_SMTLIB_V2_6_1;
+}
+
 bool isInputLang_smt2(InputLanguage lang)
 {
   return (lang >= input::LANG_SMTLIB_V2_0 && lang <= input::LANG_SMTLIB_V2_END)
@@ -27,7 +35,7 @@ bool isInputLang_smt2(InputLanguage lang)
 
 bool isOutputLang_smt2(OutputLanguage lang)
 {
-  return (lang >= output::LANG_SMTLIB_V1 && lang <= output::LANG_SMTLIB_V2_END)
+  return (lang >= output::LANG_SMTLIB_V2_0 && lang <= output::LANG_SMTLIB_V2_END)
          || lang == output::LANG_Z3STR;
 }
 
