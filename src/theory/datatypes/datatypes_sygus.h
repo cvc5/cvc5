@@ -463,7 +463,7 @@ private:
     /** get or make the measure value
      *
      * The measure value is an integer variable v that is a (symbolic) integer
-     * value that is constrained be less than or equal to the current search
+     * value that is constrained to be less than or equal to the current search
      * size. For example, if we are using the fairness strategy
      * SYGUS_FAIR_DT_SIZE (see options/datatype_options.h), then we constrain:
      *   (DT_SYGUS_BOUND m n) <=> (v <= n)
