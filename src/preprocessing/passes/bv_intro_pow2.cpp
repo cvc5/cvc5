@@ -92,8 +92,8 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     if (res != cur)
     {
       res = Rewriter::rewrite(res);
+      assertionsToPreprocess->replace(i, res);
     }
-    assertionsToPreprocess->replace(i, res);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
