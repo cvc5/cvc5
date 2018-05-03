@@ -33,9 +33,15 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   d_ecache.clear();
   d_cand_to_cond_enum.clear();
   d_cand_to_pt_enum.clear();
-  /* TODO populate d_unif_candidates and remove lemmas cleaning */
-  SygusUnif::initialize(qe, funs, enums, lemmas);
-  lemmas.clear();
+  //initialize
+  std::vector< Node > all_enums;
+  SygusUnif::initialize(qe, funs, all_enums, lemmas);
+  // based on the strategy inferred for each function, determine if we are
+  // using a unification strategy that is compatible our approach.
+  for (const Node& f : funs)
+  {
+    registerStrategy( f );
+  }
   /* Copy candidates and check whether CegisUnif for any of them */
   for (const Node& c : d_unif_candidates)
   {
@@ -235,6 +241,19 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
 bool SygusUnifRl::usingUnif(Node f)
 {
   return d_unif_candidates.find(f) != d_unif_candidates.end();
+}
+
+void SygusUnifRl::registerStrategy( Node f )
+{
+  if( Trace.isOn("sygus-unif-rl-strat") )
+  {
+    Trace("sygus-unif-rl-strat") << "Strategy for " << f << " is : " << std::endl;
+    d_strategy[f].debugPrint("sygus-unif-rl-strat");
+  }
+}
+void SygusUnifRl::registerStrategyNode( Node f, Node e )
+{
+  
 }
 
 } /* CVC4::theory::quantifiers namespace */

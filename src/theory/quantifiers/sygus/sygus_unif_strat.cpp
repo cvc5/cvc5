@@ -80,8 +80,7 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
 
 void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
                                    Node f,
-                                   std::vector<Node>& enums,
-                                   std::vector<Node>& lemmas)
+                                   std::vector<Node>& enums)
 {
   Assert(d_candidate.isNull());
   d_candidate = f;
@@ -92,8 +91,6 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
   collectEnumeratorTypes(d_root, role_equal);
   // add the enumerators
   enums.insert(enums.end(), d_esym_list.begin(), d_esym_list.end());
-  // learn redundant ops
-  staticLearnRedundantOps(lemmas);
 }
 
 void SygusUnifStrategy::initializeType(TypeNode tn)
@@ -101,10 +98,12 @@ void SygusUnifStrategy::initializeType(TypeNode tn)
   d_tinfo[tn].d_this_type = tn;
 }
 
-Node SygusUnifStrategy::getRootEnumerator()
+Node SygusUnifStrategy::getRootEnumerator() const
 {
-  std::map<EnumRole, Node>::iterator it = d_tinfo[d_root].d_enum.find(enum_io);
-  Assert(it != d_tinfo[d_root].d_enum.end());
+  std::map<TypeNode, EnumTypeInfo>::const_iterator itt = d_tinfo.find(d_root);
+  Assert(itt != d_tinfo.end() );
+  std::map<EnumRole, Node>::const_iterator it = itt->second.d_enum.find(enum_io);
+  Assert(it != itt->second.d_enum.end());
   return it->second;
 }
 
@@ -702,10 +701,11 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
   Trace("sygus-unif") << std::endl;
   Trace("sygus-unif") << "Strategy for candidate " << d_candidate
                       << " is : " << std::endl;
+  debugPrint("sygus-unif");
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
   staticLearnRedundantOps(
-      getRootEnumerator(), role_equal, visited, needs_cons, 0, false);
+      getRootEnumerator(), role_equal, visited, needs_cons, false);
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
@@ -730,12 +730,87 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
   }
 }
 
+void SygusUnifStrategy::debugPrint(const char * c )
+{
+  if( Trace.isOn(c) )
+  {
+    std::map<Node, std::map<NodeRole, bool> > visited;
+    debugPrint(c,getRootEnumerator(), role_equal, visited, 0);
+  }
+}
+
+void SygusUnifStrategy::debugPrint(const char * c,
+    Node e,
+    NodeRole nrole,
+    std::map<Node, std::map<NodeRole, bool> >& visited,
+    int ind)
+{
+  std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
+  Assert(itn != d_einfo.end());
+
+  if (visited[e].find(nrole) == visited[e].end())
+  {
+    visited[e][nrole] = true;
+
+    indent(c, ind);
+    Trace(c) << e << " :: node role : " << nrole;
+    Trace(c) << ", type : " << ((DatatypeType)e.getType().toType()).getDatatype().getName();
+    if (itn->second.isConditional())
+    {
+      Trace(c) << ", conditional";
+    }
+    Trace(c) << ", enum role : " << itn->second.getRole();
+
+    if (itn->second.isTemplated())
+    {
+      Trace(c) << ", templated : (lambda "
+                          << itn->second.d_template_arg << " "
+                          << itn->second.d_template << ")" << std::endl;
+    }
+    else
+    {
+      Trace(c) << std::endl;
+      TypeNode etn = e.getType();
+
+      // enumerator type info
+      std::map<TypeNode, EnumTypeInfo>::iterator itt = d_tinfo.find(etn);
+      Assert(itt != d_tinfo.end());
+      EnumTypeInfo& tinfo = itt->second;
+
+      // strategy info
+      std::map<NodeRole, StrategyNode>::iterator itsn =
+          tinfo.d_snodes.find(nrole);
+      Assert(itsn != tinfo.d_snodes.end());
+      StrategyNode& snode = itsn->second;
+
+      // various strategies
+      for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
+      {
+        EnumTypeInfoStrat* etis = snode.d_strats[j];
+        StrategyType strat = etis->d_this;
+        indent(c, ind + 1);
+        Trace(c) << "Strategy : " << strat
+                            << ", from cons : " << etis->d_cons << std::endl;
+        for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
+        {
+          // recurse
+          debugPrint(c,cec.first, cec.second, visited, ind + 2);
+        }
+      }
+    }
+  }
+  else
+  {
+    indent(c, ind);
+    Trace(c) << e << " :: node role : " << nrole << std::endl;
+  }
+}
+
 void SygusUnifStrategy::staticLearnRedundantOps(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool> >& visited,
     std::map<Node, std::map<unsigned, bool> >& needs_cons,
-    int ind,
     bool isCond)
 {
   std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
@@ -750,26 +825,9 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     {
       itn->second.setConditional();
     }
-    indent("sygus-unif", ind);
-    Trace("sygus-unif") << e << " :: node role : " << nrole;
-    Trace("sygus-unif")
-        << ", type : "
-        << ((DatatypeType)e.getType().toType()).getDatatype().getName();
-    if (isCond)
-    {
-      Trace("sygus-unif") << ", conditional";
-    }
-    Trace("sygus-unif") << ", enum role : " << itn->second.getRole();
 
-    if (itn->second.isTemplated())
+    if (!itn->second.isTemplated())
     {
-      Trace("sygus-unif") << ", templated : (lambda "
-                          << itn->second.d_template_arg << " "
-                          << itn->second.d_template << ")" << std::endl;
-    }
-    else
-    {
-      Trace("sygus-unif") << std::endl;
       TypeNode etn = e.getType();
 
       // enumerator type info
@@ -794,9 +852,6 @@ void SygusUnifStrategy::staticLearnRedundantOps(
         EnumTypeInfoStrat* etis = snode.d_strats[j];
         StrategyType strat = etis->d_this;
         bool newIsCond = isCond || strat == strat_ITE;
-        indent("sygus-unif", ind + 1);
-        Trace("sygus-unif") << "Strategy : " << strat
-                            << ", from cons : " << etis->d_cons << std::endl;
         int cindex = Datatype::indexOf(etis->d_cons.toExpr());
         Assert(cindex != -1);
         needs_cons_curr[static_cast<unsigned>(cindex)] = false;
@@ -804,7 +859,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
         {
           // recurse
           staticLearnRedundantOps(
-              cec.first, cec.second, visited, needs_cons, ind + 2, newIsCond);
+              cec.first, cec.second, visited, needs_cons,  newIsCond);
         }
       }
       // get the master enumerator for the type of this enumerator
@@ -839,11 +894,6 @@ void SygusUnifStrategy::staticLearnRedundantOps(
         }
       }
     }
-  }
-  else
-  {
-    indent("sygus-unif", ind);
-    Trace("sygus-unif") << e << " :: node role : " << nrole << std::endl;
   }
 }
 

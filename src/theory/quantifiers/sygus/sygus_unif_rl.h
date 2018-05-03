@@ -151,6 +151,20 @@ class SygusUnifRl : public SygusUnif
                    bool ensureConst,
                    std::vector<Node>& model_guards,
                    BoolNodePairMap& cache);
+  /*
+    --------------------------------------------------------------
+        Strategy information
+    --------------------------------------------------------------
+  */
+  class DecisionTreeInfo
+  {
+   public:
+    Node d_cond_enum;
+    Node d_pt_enum;
+  };
+  std::map< Node, DecisionTreeInfo > d_enum_to_dt;
+  void registerStrategy( Node f );
+  void registerStrategyNode( Node f, Node e );
 };
 
 } /* CVC4::theory::quantifiers namespace */
