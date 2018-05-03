@@ -46,10 +46,12 @@ bool CegisUnif::initialize(Node n,
   {
     if (!d_sygus_unif.usingUnif(c))
     {
+      Trace("cegis-unif") << "* non-unification candidate : " << c << std::endl;
       d_tds->registerEnumerator(c, c, d_parent);
     }
     else
     {
+      Trace("cegis-unif") << "* unification candidate : " << c << std::endl;
       unif_candidates.push_back(c);
     }
   }
