@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_sampler.h
+/*! \file lazy_trie.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
