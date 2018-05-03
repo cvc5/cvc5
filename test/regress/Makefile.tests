@@ -788,6 +788,7 @@ REG0_TESTS = \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
+	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
 	regress0/strings/str004.smt2 \
 	regress0/strings/str005.smt2 \

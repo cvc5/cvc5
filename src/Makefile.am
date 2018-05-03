@@ -92,8 +92,6 @@ libcvc4_la_SOURCES = \
 	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \
 	printer/cvc/cvc_printer.h \
-	printer/smt1/smt1_printer.cpp \
-	printer/smt1/smt1_printer.h \
 	printer/smt2/smt2_printer.cpp \
 	printer/smt2/smt2_printer.h \
 	printer/tptp/tptp_printer.cpp \
