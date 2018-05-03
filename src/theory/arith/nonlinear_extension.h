@@ -331,12 +331,12 @@ class NonlinearExtension {
    * involves approximations of square roots.
    */
   std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
-  /** add check model bound 
-   * 
-   * Adds the bound x -> < l, u > to the map above, and records the 
+  /** add check model bound
+   *
+   * Adds the bound x -> < l, u > to the map above, and records the
    * approximation ( x, l <= x <= u ) in the model.
    */
-  void addCheckModelBound(TNode v, TNode l, TNode u );
+  void addCheckModelBound(TNode v, TNode l, TNode u);
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:

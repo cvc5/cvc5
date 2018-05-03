@@ -893,8 +893,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
       else if (isRefineableTfFun(tf))
       {
-        std::pair<Node,Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-        addCheckModelBound(atf,bounds.first,bounds.second);
+        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
+        addCheckModelBound(atf, bounds.first, bounds.second);
       }
       if (Trace.isOn("nl-ext-cm"))
       {
@@ -1007,8 +1007,9 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   }
 
   // now, record the approximations we used
-  NodeManager * nm = NodeManager::currentNM();
-  for( const std::pair< const Node, std::pair< Node, Node > >& cb : d_check_model_bounds )
+  NodeManager* nm = NodeManager::currentNM();
+  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+       d_check_model_bounds)
   {
     Node l = cb.second.first;
     Node u = cb.second.second;
@@ -1043,7 +1044,7 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
   d_check_model_subs.push_back(s);
 }
 
-void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u )
+void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
 {
   Assert(!hasCheckModelAssignment(v));
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
@@ -1313,7 +1314,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Trace("nl-ext-cm") << " <= " << var << " <= ";
   printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
   Trace("nl-ext-cm") << std::endl;
-  addCheckModelBound( var, bounds[r_use_index][0], bounds[r_use_index][1] );
+  addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
   d_check_model_solved[eq] = var;
   Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
   return true;
