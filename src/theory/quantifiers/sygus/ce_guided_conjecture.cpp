@@ -19,9 +19,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -45,6 +42,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, this)),
       d_master(nullptr),
       d_refine_count(0),
       d_syntax_guided(false)
@@ -52,6 +50,10 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
   if (options::sygusPbe())
   {
     d_modules.push_back(d_ceg_pbe.get());
+  }
+  if (options::sygusUnif())
+  {
+    d_modules.push_back(d_ceg_cegisUnif.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
 }
@@ -477,51 +479,74 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
     priority = 0;
     return feasible_guard;
-  }else{
-    if( value ){  
-      // the conjecture is feasible
-      if( options::sygusStream() ){
-        Assert( !isSingleInvocation() );
-        // if we are in sygus streaming mode, then get the "next guard" 
-        // which denotes "we have not yet generated the next solution to the conjecture"
-        Node curr_stream_guard = getCurrentStreamGuard();
-        bool needs_new_stream_guard = false;
-        if( curr_stream_guard.isNull() ){
-          needs_new_stream_guard = true;
-        }else{
-          // check the polarity of the guard
-          if( !d_qe->getValuation().hasSatValue( curr_stream_guard, value ) ) {
-            priority = 0;
-            return curr_stream_guard;
-          }else{
-            if( !value ){
-              Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
-              // need to make the next stream guard
-              needs_new_stream_guard = true;
-              // the guard has propagated false, indicating that a verify
-              // lemma was unsatisfiable. Hence, the previous candidate is
-              // an actual solution. We print and continue the stream.
-              printAndContinueStream();
-            }
-          }
-        }
-        if( needs_new_stream_guard ){
-          // generate a new stream guard
-          curr_stream_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G_Stream", NodeManager::currentNM()->booleanType() ) );
-          curr_stream_guard = d_qe->getValuation().ensureLiteral( curr_stream_guard );
-          AlwaysAssert( !curr_stream_guard.isNull() );
-          d_qe->getOutputChannel().requirePhase( curr_stream_guard, true );
-          d_stream_guards.push_back( curr_stream_guard );
-          Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : " << curr_stream_guard << std::endl;
-          // return it as a decision
-          priority = 0;
-          return curr_stream_guard;
-        }
-      }
-    }else{
-      Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible." << std::endl;
-    } 
   }
+  if (!value)
+  {
+    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible."
+                         << std::endl;
+    return Node::null();
+  }
+  // the conjecture is feasible
+  if (options::sygusStream())
+  {
+    Assert(!isSingleInvocation());
+    // if we are in sygus streaming mode, then get the "next guard"
+    // which denotes "we have not yet generated the next solution to the
+    // conjecture"
+    Node curr_stream_guard = getCurrentStreamGuard();
+    bool needs_new_stream_guard = false;
+    if (curr_stream_guard.isNull())
+    {
+      needs_new_stream_guard = true;
+    }else{
+      // check the polarity of the guard
+      if (!d_qe->getValuation().hasSatValue(curr_stream_guard, value))
+      {
+        priority = 0;
+        return curr_stream_guard;
+      }
+      if (!value)
+      {
+        Trace("cegqi-debug") << "getNextDecision : we have a new solution "
+                                "since stream guard was propagated false: "
+                             << curr_stream_guard << std::endl;
+        // need to make the next stream guard
+        needs_new_stream_guard = true;
+        // the guard has propagated false, indicating that a verify
+        // lemma was unsatisfiable. Hence, the previous candidate is
+        // an actual solution. We print and continue the stream.
+        printAndContinueStream();
+      }
+    }
+    if (needs_new_stream_guard)
+    {
+      // generate a new stream guard
+      curr_stream_guard = Rewriter::rewrite(NodeManager::currentNM()->mkSkolem(
+          "G_Stream", NodeManager::currentNM()->booleanType()));
+      curr_stream_guard = d_qe->getValuation().ensureLiteral(curr_stream_guard);
+      AlwaysAssert(!curr_stream_guard.isNull());
+      d_qe->getOutputChannel().requirePhase(curr_stream_guard, true);
+      d_stream_guards.push_back(curr_stream_guard);
+      Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : "
+                           << curr_stream_guard << std::endl;
+      // return it as a decision
+      priority = 0;
+      return curr_stream_guard;
+    }
+  }
+  // see if the master module has a decision
+  if (!isSingleInvocation())
+  {
+    Assert(d_master != nullptr);
+    Node mlit = d_master->getNextDecisionRequest(priority);
+    if (!mlit.isNull())
+    {
+      Trace("cegqi-debug") << "getNextDecision : master module returned : "
+                           << mlit << std::endl;
+      return mlit;
+    }
+  }
+
   return Node::null();
 }
 
@@ -589,179 +614,15 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       if (status != 0 && options::sygusRewSynth())
       {
-        TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-        std::map<Node, SygusSamplerExt>::iterator its = d_sampler.find(prog);
-        if (its == d_sampler.end())
+        std::map<Node, CandidateRewriteDatabase>::iterator its =
+            d_crrdb.find(prog);
+        if (its == d_crrdb.end())
         {
-          d_sampler[prog].initializeSygusExt(
-              d_qe, prog, options::sygusSamples(), true);
-          its = d_sampler.find(prog);
+          d_crrdb[prog].initialize(
+              d_qe, d_candidates[i], options::sygusSamples(), true);
+          its = d_crrdb.find(prog);
         }
-        Node eq_sol = its->second.registerTerm(sol);
-        // eq_sol is a candidate solution that is equivalent to sol
-        if (eq_sol != sol)
-        {
-          is_unique_term = false;
-          // if eq_sol is null, then we have an uninteresting candidate rewrite,
-          // e.g. one that is alpha-equivalent to another.
-          bool success = true;
-          if (!eq_sol.isNull())
-          {
-            ExtendedRewriter* er = sygusDb->getExtRewriter();
-            Node solb = sygusDb->sygusToBuiltin(sol);
-            Node solbr = er->extendedRewrite(solb);
-            Node eq_solb = sygusDb->sygusToBuiltin(eq_sol);
-            Node eq_solr = er->extendedRewrite(eq_solb);
-            bool verified = false;
-            Trace("rr-check") << "Check candidate rewrite..." << std::endl;
-            // verify it if applicable
-            if (options::sygusRewSynthCheck())
-            {
-              // Notice we don't set produce-models. rrChecker takes the same
-              // options as the SmtEngine we belong to, where we ensure that
-              // produce-models is set.
-              NodeManager* nm = NodeManager::currentNM();
-              SmtEngine rrChecker(nm->toExprManager());
-              rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
-              Node crr = solbr.eqNode(eq_solr).negate();
-              Trace("rr-check") << "Check candidate rewrite : " << crr
-                                << std::endl;
-              // quantify over the free variables in crr
-              std::vector<Node> fvs;
-              TermUtil::computeVarContains(crr, fvs);
-              std::map<Node, unsigned> fv_index;
-              std::vector<Node> sks;
-              if (!fvs.empty())
-              {
-                // map to skolems
-                for (unsigned i = 0, size = fvs.size(); i < size; i++)
-                {
-                  Node v = fvs[i];
-                  fv_index[v] = i;
-                  std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
-                  if (itf == d_fv_to_skolem.end())
-                  {
-                    Node sk = nm->mkSkolem("rrck", v.getType());
-                    d_fv_to_skolem[v] = sk;
-                    sks.push_back(sk);
-                  }
-                  else
-                  {
-                    sks.push_back(itf->second);
-                  }
-                }
-                crr = crr.substitute(
-                    fvs.begin(), fvs.end(), sks.begin(), sks.end());
-              }
-              rrChecker.assertFormula(crr.toExpr());
-              Result r = rrChecker.checkSat();
-              Trace("rr-check") << "...result : " << r << std::endl;
-              if (r.asSatisfiabilityResult().isSat())
-              {
-                Trace("rr-check")
-                    << "...rewrite does not hold for: " << std::endl;
-                success = false;
-                is_unique_term = true;
-                std::vector<Node> vars;
-                d_sampler[prog].getVariables(vars);
-                std::vector<Node> pt;
-                for (const Node& v : vars)
-                {
-                  std::map<Node, unsigned>::iterator itf = fv_index.find(v);
-                  Node val;
-                  if (itf == fv_index.end())
-                  {
-                    // not in conjecture, can use arbitrary value
-                    val = v.getType().mkGroundTerm();
-                  }
-                  else
-                  {
-                    // get the model value of its skolem
-                    Node sk = sks[itf->second];
-                    val = Node::fromExpr(rrChecker.getValue(sk.toExpr()));
-                    Trace("rr-check") << "  " << v << " -> " << val
-                                      << std::endl;
-                  }
-                  pt.push_back(val);
-                }
-                d_sampler[prog].addSamplePoint(pt);
-                // add the solution again
-                // by construction of the above point, we should be unique now
-                Node eq_sol_new = its->second.registerTerm(sol);
-                Assert(eq_sol_new == sol);
-              }
-              else
-              {
-                verified = !r.asSatisfiabilityResult().isUnknown();
-              }
-            }
-            else
-            {
-              // just insist that constants are not relevant pairs
-              success = !solb.isConst() || !eq_solb.isConst();
-            }
-            if (success)
-            {
-              // register this as a relevant pair (helps filtering)
-              d_sampler[prog].registerRelevantPair(sol, eq_sol);
-              // The analog of terms sol and eq_sol are equivalent under
-              // sample points but do not rewrite to the same term. Hence,
-              // this indicates a candidate rewrite.
-              Printer* p = Printer::getPrinter(options::outputLanguage());
-              out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-              p->toStreamSygus(out, sol);
-              out << " ";
-              p->toStreamSygus(out, eq_sol);
-              out << ")" << std::endl;
-              ++(cei->d_statistics.d_candidate_rewrites_print);
-              // debugging information
-              if (Trace.isOn("sygus-rr-debug"))
-              {
-                Trace("sygus-rr-debug")
-                    << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
-                Trace("sygus-rr-debug")
-                    << "; candidate #2 ext-rewrites to: " << eq_solr
-                    << std::endl;
-              }
-              if (options::sygusRewSynthAccel())
-              {
-                // Add a symmetry breaking clause that excludes the larger
-                // of sol and eq_sol. This effectively states that we no longer
-                // wish to enumerate any term that contains sol (resp. eq_sol)
-                // as a subterm.
-                Node exc_sol = sol;
-                unsigned sz = sygusDb->getSygusTermSize(sol);
-                unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
-                if (eqsz > sz)
-                {
-                  sz = eqsz;
-                  exc_sol = eq_sol;
-                }
-                TypeNode ptn = prog.getType();
-                Node x = sygusDb->getFreeVar(ptn, 0);
-                Node lem = sygusDb->getExplain()->getExplanationForEquality(
-                    x, exc_sol);
-                lem = lem.negate();
-                Trace("sygus-rr-sb")
-                    << "Symmetry breaking lemma : " << lem << std::endl;
-                sygusDb->registerSymBreakLemma(d_candidates[i], lem, ptn, sz);
-              }
-            }
-          }
-          // We count this as a rewrite if we did not explicitly rule it out.
-          // Notice that when --sygus-rr-synth-check is enabled,
-          // statistics on number of candidate rewrite rules is
-          // an accurate count of (#enumerated_terms-#unique_terms) only if
-          // the option sygus-rr-synth-filter-order is disabled. The reason
-          // is that the sygus sampler may reason that a candidate rewrite
-          // rule is not useful since its variables are unordered, whereby
-          // it discards it as a redundant candidate rewrite rule before
-          // checking its correctness.
-          if (success)
-          {
-            ++(cei->d_statistics.d_candidate_rewrites);
-          }
-        }
+        is_unique_term = d_crrdb[prog].addTerm(sol, out);
       }
       if (is_unique_term)
       {
