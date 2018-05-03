@@ -201,13 +201,16 @@ int CegInstantiator::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited
   if( itv!=visited.end() ){
     return itv->second;
   }
-  visited[tn] = 0;
   int ret = -1;
   if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
     ret = 1;
   }
   else if (tn.isDatatype())
   {
+    // recursive calls to this datatype are handlable
+    visited[tn] = 1;
+    // if not recursive, it is finite and we can handle it regardless of body
+    // hence, we initialize ret to 2.
     ret = 2;
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
     for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){

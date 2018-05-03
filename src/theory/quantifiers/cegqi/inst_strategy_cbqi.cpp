@@ -500,9 +500,11 @@ bool InstStrategyCbqi::doCbqi( Node q ){
         //if quantifier has a non-handled variable, then do not use cbqi
         //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
         int ncbqiv = CegInstantiator::hasNonCbqiVariable( q, d_quantEngine );
+        Trace("cbqi-quant-debug") << "hasNonCbqiVariable returned " << ncbqiv << std::endl;
         if (ncbqiv > 0)
         {
           int cbqit = CegInstantiator::isCbqiTerm(q);
+          Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit << std::endl;
           if (cbqit == -1)
           {
             if (ncbqiv == 2)
