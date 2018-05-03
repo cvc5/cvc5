@@ -151,10 +151,11 @@ public:
    * If assertApproximation is called at least once during the model
    * construction process, then check-model is not guaranteed to succeed.
    * However, there are cases where we can establish the input is satisfiable
-   * without constructing an exact model.
-   * For example, if x=.77, sin(x)=.7, c=.7 and e=.01 in the above example, then
-   * we may reason that the set of assertions { sin(x)>.6 } is satisfiable,
-   * albiet without establishing an exact value for sin(x).
+   * without constructing an exact model. For example, if x=.77, sin(x)=.7, and
+   * say we have computed c=.7 and e=.01 as an approximation in the above 
+   * example, then we may reason that the set of assertions { sin(x)>.6 } is 
+   * satisfiable, albiet without establishing an exact (irrational) value for
+   * sin(x).
    *
    * This function is simply for bookkeeping, it does not affect the model
    * construction process.
@@ -192,11 +193,10 @@ public:
   bool getHeapModel(Expr& h, Expr& neq) const override;
   //---------------------------- end separation logic
 
+  /** is the list of approximations non-empty? */
+  bool hasApproximations() const override;
   /** get approximations */
-  std::vector<std::pair<Node, Node> >& getApproximations()
-  {
-    return d_approx_list;
-  }
+  std::vector<std::pair<Expr, Expr> > getApproximations() const override;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
