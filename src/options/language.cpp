@@ -44,6 +44,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
 OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
   case input::LANG_SMTLIB_V1:
+    return OutputLanguage(output::LANG_SMTLIB_V2_0);
   case input::LANG_SMTLIB_V2_0:
   case input::LANG_SMTLIB_V2_5:
   case input::LANG_SMTLIB_V2_6:
