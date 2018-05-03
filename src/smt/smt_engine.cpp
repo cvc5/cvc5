@@ -4253,14 +4253,8 @@ void SmtEnginePrivate::processAssertions() {
 
   dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-static-learning" << endl;
-    // Perform static learning
-    Chat() << "doing static learning..." << endl;
     Trace("simplify") << "SmtEnginePrivate::processAssertions(): "
                       << "performing static learning" << endl;
-    d_smt.finalOptionsAreSet();
-    TimerStat::CodeTimer staticLearningTimer(
-        d_smt.d_stats->d_staticLearningTime);
     d_preprocessingPassRegistry.getPass("static-learning")
         ->apply(&d_assertions);
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-static-learning" << endl;

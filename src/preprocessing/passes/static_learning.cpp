@@ -16,19 +16,12 @@
 #include "preprocessing/passes/static_learning.h"
 
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/passes/static_learning.h"
-#include "theory/rewriter.h"
-#include "theory/theory.h"
 
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
-
-using namespace CVC4::theory;
 
 StaticLearning::StaticLearning(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "static-learning"){};
