@@ -760,7 +760,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     return;
   }
   TypeNode etn = e.getType();
-  EnumTypeInfo& tinfo = getEnumTypeInfo( etn );
+  EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
   if (snode.d_strats.empty())
   {
@@ -788,8 +788,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   Node em = itse->second;
   Assert(!em.isNull());
   // get the current datatype
-  const Datatype& dt =
-      static_cast<DatatypeType>(etn.toType()).getDatatype();
+  const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
   // all constructors that are not a part of a strategy are needed
   for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
   {
@@ -835,7 +834,7 @@ void SygusUnifStrategy::finishInit(
     return;
   }
   TypeNode etn = e.getType();
-  EnumTypeInfo& tinfo = getEnumTypeInfo( etn );
+  EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
@@ -844,11 +843,10 @@ void SygusUnifStrategy::finishInit(
     bool newIsCond = isCond || strat == strat_ITE;
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
-      finishInit( cec.first, cec.second, visited, newIsCond);
+      finishInit(cec.first, cec.second, visited, newIsCond);
     }
   }
 }
-
 
 void SygusUnifStrategy::debugPrint(
     const char* c,
@@ -865,13 +863,13 @@ void SygusUnifStrategy::debugPrint(
   }
   visited[e][nrole] = true;
   EnumInfo& ei = getEnumInfo(e);
-  
+
   TypeNode etn = e.getType();
 
   indent(c, ind);
   Trace(c) << e << " :: node role : " << nrole;
   Trace(c) << ", type : "
-            << static_cast<DatatypeType>(etn.toType()).getDatatype().getName();
+           << static_cast<DatatypeType>(etn.toType()).getDatatype().getName();
   if (ei.isConditional())
   {
     Trace(c) << ", conditional";
@@ -881,11 +879,11 @@ void SygusUnifStrategy::debugPrint(
   if (ei.isTemplated())
   {
     Trace(c) << ", templated : (lambda " << ei.d_template_arg << " "
-              << ei.d_template << ")";
+             << ei.d_template << ")";
   }
   Trace(c) << std::endl;
 
-  EnumTypeInfo& tinfo = getEnumTypeInfo( etn );
+  EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
@@ -893,7 +891,7 @@ void SygusUnifStrategy::debugPrint(
     StrategyType strat = etis->d_this;
     indent(c, ind + 1);
     Trace(c) << "Strategy : " << strat << ", from cons : " << etis->d_cons
-              << std::endl;
+             << std::endl;
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
       // recurse
@@ -907,7 +905,7 @@ void EnumInfo::initialize(EnumRole role) { d_role = role; }
 StrategyNode& EnumTypeInfo::getStrategyNode(NodeRole nrole)
 {
   std::map<NodeRole, StrategyNode>::iterator it = d_snodes.find(nrole);
-  Assert( it !=d_snodes.end() );
+  Assert(it != d_snodes.end());
   return it->second;
 }
 

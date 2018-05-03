@@ -353,26 +353,25 @@ class SygusUnifStrategy
       NodeRole nrole,
       std::map<Node, std::map<NodeRole, bool> >& visited,
       std::map<Node, std::map<unsigned, bool> >& needs_cons);
-  /** finish initialization of the strategy tree 
-   * 
+  /** finish initialization of the strategy tree
+   *
    * (e, nrole) specify the strategy node in the graph we are currently
    * analyzing, visited stores the nodes we have already visited.
-   * 
+   *
    * isCond is whether the current enumerator is conditional (beneath a
    * conditional of an strat_ITE strategy).
    */
-  void finishInit(
-      Node e,
-      NodeRole nrole,
-      std::map<Node, std::map<NodeRole, bool> >& visited,
-      bool isCond);
+  void finishInit(Node e,
+                  NodeRole nrole,
+                  std::map<Node, std::map<NodeRole, bool> >& visited,
+                  bool isCond);
   /** helper for debug print
-   * 
+   *
    * Prints the node e with role nrole on Trace(c).
-   * 
+   *
    * (e, nrole) specify the strategy node in the graph we are currently
    * analyzing, visited stores the nodes we have already visited.
-   * 
+   *
    * ind is the current level of indentation (for debugging)
    */
   void debugPrint(const char* c,

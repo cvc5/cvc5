@@ -41,7 +41,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   {
     registerStrategy(f);
   }
-  enums.insert(enums.end(),d_cond_enums.begin(),d_cond_enums.end());
+  enums.insert(enums.end(), d_cond_enums.begin(), d_cond_enums.end());
   /* Copy candidates and check whether CegisUnif for any of them */
   for (const Node& c : d_unif_candidates)
   {
@@ -85,10 +85,10 @@ Node SygusUnifRl::purifyLemma(Node n,
   bool fapp = k == APPLY_UF && size > 0;
   bool u_fapp = false;
   bool nu_fapp = false;
-  if( fapp )
+  if (fapp)
   {
     Assert(std::find(d_candidates.begin(), d_candidates.end(), n[0])
-          != d_candidates.end());
+           != d_candidates.end());
     /* Whether application of a (non-)unification function-to-synthesize */
     u_fapp = usingUnif(n[0]);
     nu_fapp = !usingUnif(n[0]);
@@ -98,8 +98,8 @@ Node SygusUnifRl::purifyLemma(Node n,
     {
       nv = d_parent->getModelValue(n);
       Assert(n != nv);
-      Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
-                                    << " is " << nv << "\n";
+      Trace("sygus-unif-rl-purify")
+          << "PurifyLemma : model value for " << n << " is " << nv << "\n";
     }
   }
   /* Travese to purify */
@@ -234,13 +234,14 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
     else
     {
       initializeConstructSolFor(c);
-      Node v = constructSol(c,d_strategy[c].getRootEnumerator(),role_equal,0);
-      if( v.isNull() )
+      Node v =
+          constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
+      if (v.isNull())
       {
         return false;
       }
-      Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                                 << " to unif candidate " << c << "\n";
+      Trace("sygus-unif-rl-sol")
+          << "Adding solution " << v << " to unif candidate " << c << "\n";
       sols.push_back(v);
     }
   }
@@ -249,19 +250,20 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 
 Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
 {
-  indent("sygus-unif-sol",ind);
+  indent("sygus-unif-sol", ind);
   Trace("sygus-unif-sol") << "ConstructSol: SygusRL : " << e << std::endl;
   // is there a decision tree strategy?
-  if( nrole==role_equal )
+  if (nrole == role_equal)
   {
     std::map<Node, DecisionTreeInfo>::iterator itd = d_enum_to_dt.find(e);
-    if( itd!=d_enum_to_dt.end() )
+    if (itd != d_enum_to_dt.end())
     {
-      indent("sygus-unif-sol",ind);
-      Trace("sygus-unif-sol") << "...it has a decision tree strategy." << std::endl;
+      indent("sygus-unif-sol", ind);
+      Trace("sygus-unif-sol")
+          << "...it has a decision tree strategy." << std::endl;
     }
   }
-  
+
   return Node::null();
 }
 
@@ -281,10 +283,15 @@ void SygusUnifRl::registerStrategy(Node f)
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool> > visited;
-  registerStrategyNode(f,e,role_equal,visited);
+  registerStrategyNode(f, e, role_equal, visited);
 }
 
-void SygusUnifRl::registerStrategyNode(Node f, Node e, NodeRole nrole, std::map<Node, std::map<NodeRole, bool> >& visited) {
+void SygusUnifRl::registerStrategyNode(
+    Node f,
+    Node e,
+    NodeRole nrole,
+    std::map<Node, std::map<NodeRole, bool> >& visited)
+{
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
   {
@@ -299,25 +306,27 @@ void SygusUnifRl::registerStrategyNode(Node f, Node e, NodeRole nrole, std::map<
     EnumTypeInfoStrat* etis = snode.d_strats[j];
     StrategyType strat = etis->d_this;
     // is this a simple recursive ITE strategy?
-    if( strat==strat_ITE && nrole==role_equal )
+    if (strat == strat_ITE && nrole == role_equal)
     {
       bool success = true;
-      for( unsigned c=1; c<=2; c++ )
+      for (unsigned c = 1; c <= 2; c++)
       {
         std::pair<Node, NodeRole> child = etis->d_cenum[c];
-        if( child.first!=e || child.second!=nrole )
+        if (child.first != e || child.second != nrole)
         {
           success = false;
           break;
         }
       }
-      if( success )
+      if (success)
       {
         Node cond = etis->d_cenum[0].first;
-        Assert(etis->d_cenum[0].second==role_ite_condition );
-        Trace("sygus-unif-rl-strat") << "  ...detected recursive ITE strategy, condition enumerator : " << cond << std::endl;
+        Assert(etis->d_cenum[0].second == role_ite_condition);
+        Trace("sygus-unif-rl-strat")
+            << "  ...detected recursive ITE strategy, condition enumerator : "
+            << cond << std::endl;
         // indicate that we will be enumerating values for cond
-        registerConditionalEnumerator(f,e,cond);
+        registerConditionalEnumerator(f, e, cond);
       }
     }
     // TODO: recurse? for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
@@ -329,7 +338,8 @@ void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
   // we will do unification for this candidate
   d_unif_candidates.insert(f);
   // add to the list of all conditional enumerators
-  if( std::find(d_cond_enums.begin(),d_cond_enums.end(),cond)==d_cond_enums.end() )
+  if (std::find(d_cond_enums.begin(), d_cond_enums.end(), cond)
+      == d_cond_enums.end())
   {
     d_cond_enums.push_back(cond);
     // register the conditional enumerator
@@ -338,7 +348,6 @@ void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
   // register that this enumerator has a decision tree construction
   d_enum_to_dt[e].d_cond_enum = cond;
 }
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
