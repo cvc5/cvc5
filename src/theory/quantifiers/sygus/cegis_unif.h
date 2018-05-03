@@ -19,57 +19,52 @@
 #include <map>
 #include <vector>
 
-#include "theory/quantifiers/sygus/sygus_module.h"
+#include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-using BoolNodePair = std::pair<bool, Node>;
-using BoolNodePairHashFunction =
-    PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
-using BoolNodePairMap =
-    std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
-
 /** Synthesizes functions in a data-driven SyGuS approach
  *
  * Data is derived from refinement lemmas generated through the regular CEGIS
  * approach. SyGuS is used to generate terms for classifying the data
- * (e.g. using decision tree learning) and thus generate a candidate for a
- * function-to-synthesize.
+ * (e.g. using decision tree learning) and thus generate a candidates for
+ * functions-to-synthesize.
  *
  * This approach is inspired by the divide and conquer synthesis through
  * unification approach by Alur et al. TACAS 2017, by ICE-based invariant
  * synthesis from Garg et al. CAV 2014 and POPL 2016, and Padhi et al. PLDI 2016
  *
- * This module mantains a function-to-synthesize and a set of term
- * enumerators. When new terms are enumerated it tries to learn a new candidate
- * function, which is verified outside this module. If verification fails a
+ * This module mantains a set of functions-to-synthesize and a set of term
+ * enumerators. When new terms are enumerated it tries to learn new candidate
+ * solutions, which are verified outside this module. If verification fails a
  * refinement lemma is generated, which this module sends to the utility that
  * learns candidates.
  */
-class CegisUnif : public SygusModule
+class CegisUnif : public Cegis
 {
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
   ~CegisUnif();
-  /** initialize this class
-   *
-   * The module takes ownership of a conjecture when it contains a single
-   * function-to-synthesize
-  */
+  /** initialize this class */
   bool initialize(Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
-  /** adds the candidate itself to enums */
+  /** Retrieves enumerators for constructing solutions
+   *
+   * Non-unification candidates have themselves as enumerators, while for
+   * unification candidates we add their conditonal enumerators to enums if
+   * their respective guards are set in the current model
+   */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
-  /** Tries to build a new candidate solution with new enumerated expresion
+  /** Tries to build new candidate solutions with new enumerated expressions
    *
    * This function relies on a data-driven unification-based approach for
-   * constructing a solutions for the function-to-synthesize. See SygusUnifRl
-   * for more details.
+   * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
+   * more details.
    *
    * Calls to this function are such that terms is the list of active
    * enumerators (returned by getTermList), and term_values are their current
@@ -93,7 +88,7 @@ class CegisUnif : public SygusModule
                            std::vector<Node>& candidate_values,
                            std::vector<Node>& lems) override;
 
-  /** Communicate refinement lemma to unification utility and external modules
+  /** Communicates refinement lemma to unification utility and external modules
    *
    * For the lemma to be sent to the external modules it adds a guard from the
    * parent conjecture which establishes that if the conjecture has a solution
@@ -124,32 +119,15 @@ class CegisUnif : public SygusModule
    * tree learning) that this module relies upon.
    */
   SygusUnifRl d_sygus_unif;
-  /* Function-to-synthesize (in deep embedding) */
-  Node d_candidate;
   /**
-   * list of enumerators being used to build solutions for candidate by the
-   * above utility.
+   * list of conditonal enumerators to build solutions for candidates being
+   * synthesized with unification techniques
    */
-  std::vector<Node> d_enums;
+  std::vector<Node> d_cond_enums;
   /** map from enumerators to active guards */
   std::map<Node, Node> d_enum_to_active_guard;
-  /* list of learned refinement lemmas */
-  std::vector<Node> d_refinement_lemmas;
-  /**
-  * This is called on the refinement lemma and will replace the arguments of the
-  * function-to-synthesize by their model values (constants).
-  *
-  * When the traversal hits a function application of the function-to-synthesize
-  * it will proceed to ensure that the arguments of that function application
-  * are constants (the ensureConst becomes "true"). It populates a vector of
-  * guards with the (negated) equalities between the original arguments and
-  * their model values.
-  */
-  Node purifyLemma(Node n,
-                   bool ensureConst,
-                   std::vector<Node>& model_guards,
-                   BoolNodePairMap& cache);
-
+  /* The null node */
+  Node d_null;
 }; /* class CegisUnif */
 
 /** Cegis Unif Enumeration Manager
