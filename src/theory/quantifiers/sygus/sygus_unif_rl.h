@@ -162,9 +162,9 @@ class SygusUnifRl : public SygusUnif
     Node d_cond_enum;
     Node d_pt_enum;
   };
-  std::map< Node, DecisionTreeInfo > d_enum_to_dt;
-  void registerStrategy( Node f );
-  void registerStrategyNode( Node f, Node e );
+  std::map<Node, DecisionTreeInfo> d_enum_to_dt;
+  void registerStrategy(Node f);
+  void registerStrategyNode(Node f, Node e);
 };
 
 } /* CVC4::theory::quantifiers namespace */

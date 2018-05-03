@@ -254,9 +254,7 @@ class SygusUnifStrategy
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums.
    */
-  void initialize(QuantifiersEngine* qe,
-                  Node f,
-                  std::vector<Node>& enums);
+  void initialize(QuantifiersEngine* qe, Node f, std::vector<Node>& enums);
   /** Get the root enumerator for this class */
   Node getRootEnumerator() const;
   /**
@@ -275,14 +273,15 @@ class SygusUnifStrategy
    * This learns static lemmas for pruning enumerative space based on the
    * strategy for the function-to-synthesize of this class, and stores these
    * into lemmas.
-   * 
+   *
    * These may correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
    */
   void staticLearnRedundantOps(std::vector<Node>& lemmas);
   /** debug print this strategy on Trace c */
-  void debugPrint(const char * c );
+  void debugPrint(const char* c);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -357,11 +356,11 @@ class SygusUnifStrategy
       std::map<Node, std::map<unsigned, bool> >& needs_cons,
       bool isCond);
   /** helper for debug print */
-  void debugPrint(const char * c,
-      Node e,
-      NodeRole nrole,
-      std::map<Node, std::map<NodeRole, bool> >& visited,
-      int ind);
+  void debugPrint(const char* c,
+                  Node e,
+                  NodeRole nrole,
+                  std::map<Node, std::map<NodeRole, bool> >& visited,
+                  int ind);
   //------------------------------ end strategy registration
 };
 
