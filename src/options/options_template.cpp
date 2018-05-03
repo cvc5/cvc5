@@ -423,7 +423,8 @@ static const std::string optionsFootnote = "\n\
     sense of the option.\n\
 ";
 
-static const std::string languageDescription = "\
+static const std::string languageDescription =
+    "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
@@ -432,6 +433,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
+  smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf and fof)\n\
   sygus                          SyGuS format\n\
 \n\
@@ -443,6 +445,7 @@ Languages currently supported as arguments to the --output-lang option:\n\
   smt2.0 | smtlib2.0 | smtlib2   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
+  smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
   z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   ast                            internal format (simple syntax trees)\n\
