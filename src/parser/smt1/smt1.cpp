@@ -61,6 +61,7 @@ std::unordered_map<std::string, Smt1::Logic> Smt1::newLogicMap() {
   logicMap["ALL_SUPPORTED"] = ALL_SUPPORTED;
   logicMap["QF_ALL"] = QF_ALL_SUPPORTED;
   logicMap["ALL"] = ALL_SUPPORTED;
+  logicMap["HORN"] = ALL_SUPPORTED;
   return logicMap;
 }
 

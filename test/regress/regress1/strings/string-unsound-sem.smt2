@@ -1,3 +1,4 @@
+(set-info :smt-lib-version 2.5)
 (set-logic ALL)
 (set-option :strings-exp true)
 (set-info :status sat)

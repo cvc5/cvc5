@@ -34,24 +34,27 @@ QF_LIA)
   finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
 QF_NIA)
-  trywith 300 --nl-ext --nl-ext-tplanes --decision=internal
-  trywith 1800 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cryptominisat
-  trywith 1800 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cryptominisat
-  trywith 1800 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cryptominisat
-  trywith 1800 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 300 --nl-ext-tplanes --decision=internal
+  trywith 30 --no-nl-ext-tplanes --decision=internal
+  # this totals up to more than 20 minutes, although notice that smaller bit-widths may quickly fail
+  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cryptominisat
   finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
   ;;
 QF_NRA)
-  trywith 300 --nl-ext --nl-ext-tplanes --decision=justification
-  finishwith --nl-ext --nl-ext-tplanes
+  trywith 300 --nl-ext-tplanes --decision=internal
+  trywith 300 --nl-ext-tplanes --decision=justification --no-nl-ext-factor
+  trywith 30 --nl-ext-tplanes --decision=internal --solve-real-as-int
+  finishwith --nl-ext-tplanes --decision=justification
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA)
-  # the following is designed for a run time of 2400s (40 min).
+  # the following is designed for a run time of 20 min.
   # initial runs 1min
-  trywith 20 --simplification=none --full-saturate-quant
-  trywith 20 --no-e-matching --full-saturate-quant
-  trywith 20 --fs-interleave --decision=internal --full-saturate-quant
+  trywith 30 --simplification=none --full-saturate-quant
+  trywith 30 --no-e-matching --full-saturate-quant
   # trigger selections 3min
   trywith 30 --relevant-triggers --full-saturate-quant
   trywith 30 --trigger-sel=max --full-saturate-quant
@@ -59,52 +62,46 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 30 --multi-trigger-when-single --multi-trigger-priority --full-saturate-quant
   trywith 30 --multi-trigger-cache --full-saturate-quant
   trywith 30 --no-multi-trigger-linear --full-saturate-quant
-  # other 3min
+  # other 4min
   trywith 30 --pre-skolem-quant --full-saturate-quant
   trywith 30 --inst-when=full --full-saturate-quant
   trywith 30 --no-e-matching --no-quant-cf --full-saturate-quant
-  trywith 30 --nl-ext --full-saturate-quant
   trywith 30 --full-saturate-quant --quant-ind
-  trywith 60 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
-  # finite model find 2min
-  trywith 20 --finite-model-find --mbqi=none
-  trywith 20 --finite-model-find
-  trywith 20 --finite-model-find --uf-ss=no-minimal
+  trywith 30 --decision=internal --simplification=none --no-inst-no-entail --no-quant-cf --full-saturate-quant
+  trywith 30 --decision=internal --full-saturate-quant
+  trywith 30 --term-db-mode=relevant --full-saturate-quant
+  trywith 30 --fs-interleave --full-saturate-quant
+  # finite model find 3min
+  trywith 30 --finite-model-find --mbqi=none
+  trywith 30 --finite-model-find --decision=internal
+  trywith 30 --finite-model-find --macros-quant --macros-quant-mode=all
+  trywith 30 --finite-model-find --uf-ss=no-minimal
   trywith 60 --finite-model-find --fmf-inst-engine
-  # long runs 20min
-  trywith 200 --decision=internal --full-saturate-quant
-  trywith 200 --term-db-mode=relevant --full-saturate-quant
-  trywith 200 --fs-interleave --full-saturate-quant
-  trywith 600 --finite-model-find --decision=internal
-  # finite model find 1min
-  trywith 30 --finite-model-find --fmf-bound-int
-  trywith 30 --finite-model-find --sort-inference
-  # finish 10min
+  # long runs 9min
+  trywith 240 --finite-model-find --decision=internal
   finishwith --full-saturate-quant
   ;;
 UFBV)
   # most problems in UFBV are essentially BV
-  trywith 300 --full-saturate-quant
-  trywith 300 --full-saturate-quant --no-cbqi
-  trywith 300 --full-saturate-quant --cbqi --decision=internal
+  trywith 300 --full-saturate-quant --decision=internal
+  trywith 300 --full-saturate-quant --cbqi-nested-qe --decision=internal
+  trywith 30 --full-saturate-quant --cbqi-no-innermost --global-negate
   finishwith --finite-model-find
   ;;
 BV)
-  trywith 300 --full-saturate-quant
-  trywith 300 --full-saturate-quant --no-cbqi
-  finishwith --full-saturate-quant --cbqi --decision=internal
+  trywith 120 --full-saturate-quant
+  trywith 120 --full-saturate-quant --cbqi-no-innermost
+  trywith 300 --full-saturate-quant --cbqi-nested-qe --decision=internal
+  trywith 30 --full-saturate-quant --no-cbqi-bv
+  trywith 30 --full-saturate-quant --cbqi-bv-ineq=eq-slack
+  # finish 10min
+  finishwith --full-saturate-quant --cbqi-no-innermost --global-negate
   ;;
-LIA|LRA)
-  trywith 30 --full-saturate-quant
-  trywith 300 --full-saturate-quant --cbqi-midpoint
+LIA|LRA|NIA|NRA)
+  trywith 30 --full-saturate-quant --nl-ext-tplanes
+  trywith 300 --full-saturate-quant --cbqi-no-innermost
   trywith 300 --full-saturate-quant --cbqi-nested-qe
-  finishwith --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
-  ;;
-NIA|NRA)
-  trywith 30 --full-saturate-quant
-  trywith 300 --full-saturate-quant --nl-ext
-  trywith 300 --full-saturate-quant --cbqi-nested-qe
-  finishwith --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
+  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   trywith 600

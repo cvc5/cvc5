@@ -155,14 +155,21 @@ public:
   bool v2_0() const {
     return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_0;
   }
-  // 2.6 is a superset of 2.5, use exact=false to query whether smt lib 2.5 or above
-  bool v2_5( bool exact = true ) const {
-    return exact ? getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_5 : 
-                   ( getInput()->getLanguage() >= language::input::LANG_SMTLIB_V2_5 && 
-                     getInput()->getLanguage() <= language::input::LANG_SMTLIB_V2 );
+  /**
+   * Are we using smtlib 2.5 or above? If exact=true, then this method returns
+   * false if the input language is not exactly SMT-LIB 2.5.
+   */
+  bool v2_5(bool exact = false) const
+  {
+    return language::isInputLang_smt2_5(getInput()->getLanguage(), exact);
   }
-  bool v2_6() const {
-    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_6;
+  /**
+   * Are we using smtlib 2.6 or above? If exact=true, then this method returns
+   * false if the input language is not exactly SMT-LIB 2.6.
+   */
+  bool v2_6(bool exact = false) const
+  {
+    return language::isInputLang_smt2_6(getInput()->getLanguage(), exact);
   }
   bool sygus() const {
     return getInput()->getLanguage() == language::input::LANG_SYGUS;
