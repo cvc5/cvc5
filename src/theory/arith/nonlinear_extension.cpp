@@ -2109,17 +2109,18 @@ void NonlinearExtension::check(Theory::Effort e) {
 bool NonlinearExtension::collectModelInfo(TheoryModel* m)
 {
   // assert the approximations
-  NodeManager * nm = NodeManager::currentNM();
-  for( const std::pair< const Node, std::pair<Node, Node> >& cb : d_check_model_bounds )
+  NodeManager* nm = NodeManager::currentNM();
+  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+       d_check_model_bounds)
   {
     Node l = cb.second.first;
     Node u = cb.second.second;
-    if( l!= u )
+    if (l != u)
     {
       Node n = cb.first;
-      Node pred = nm->mkNode( AND, nm->mkNode( GEQ, n, l ), nm->mkNode( GEQ, n, u ) );
-      pred = Rewriter::rewrite( pred );
-      m->assertApproximation( n, pred );
+      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, n, l), nm->mkNode(GEQ, n, u));
+      pred = Rewriter::rewrite(pred);
+      m->assertApproximation(n, pred);
     }
   }
   return true;

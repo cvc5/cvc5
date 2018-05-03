@@ -452,11 +452,13 @@ void TheoryModel::assertSkeleton(TNode n)
 
 void TheoryModel::assertApproximation(TNode n, TNode pred)
 {
-  Assert( d_approximations.find( n )==d_approximations.end() );
-  Assert( pred.getType().isBoolean() );
-  Trace("model-builder-debug") << "Assert approximation : " << n << " satisfies the predicate " << pred << std::endl;
+  Assert(d_approximations.find(n) == d_approximations.end());
+  Assert(pred.getType().isBoolean());
+  Trace("model-builder-debug")
+      << "Assert approximation : " << n << " satisfies the predicate " << pred
+      << std::endl;
   d_approximations[n] = pred;
-  d_approx_list.push_back( std::pair< Node, Node >( n, pred ) );
+  d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
 
 bool TheoryModel::hasTerm(TNode a)

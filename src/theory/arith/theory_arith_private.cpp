@@ -4313,10 +4313,10 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // Iterate over equivalence classes in LinearEqualityModule
   // const eq::EqualityEngine& ee = d_congruenceManager.getEqualityEngine();
   // m->assertEqualityEngine(&ee);
-  
-  if( options::nlExt() )
+
+  if (options::nlExt())
   {
-    if( !d_nonlinearExtension->collectModelInfo(m) )
+    if (!d_nonlinearExtension->collectModelInfo(m))
     {
       return false;
     }
