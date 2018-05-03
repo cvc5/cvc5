@@ -65,6 +65,7 @@ void TheoryModel::reset(){
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
   d_approximations.clear();
+  d_approx_list.clear();
   d_reps.clear();
   d_rep_set.clear();
   d_uf_terms.clear();
