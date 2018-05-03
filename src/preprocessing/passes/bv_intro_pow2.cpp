@@ -28,6 +28,7 @@ namespace preprocessing {
 namespace passes {
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using namespace CVC4::theory;
 
 namespace {
 
@@ -86,8 +87,13 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(
-        i, pow2Rewrite((*assertionsToPreprocess)[i], cache));
+    Node cur = (*assertionsToPreprocess)[i];
+    Node res = pow2Rewrite(cur, cache);
+    if (res != cur)
+    {
+      res = Rewriter::rewrite(res);
+    }
+    assertionsToPreprocess->replace(i, res);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
