@@ -1726,6 +1726,14 @@ void SmtEngine::setDefaults() {
   if (options::arithRewriteEq()) {
     d_earlyTheoryPP = false;
   }
+  if (d_logic.isPure(THEORY_ARITH) && !d_logic.areRealsUsed())
+  {
+    if (!options::nlExtTangentPlanesInterleave.wasSetByUser())
+    {
+      Trace("smt") << "setting nlExtTangentPlanesInterleave to true" << endl;
+      options::nlExtTangentPlanesInterleave.set(true);
+    }
+  }
 
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
