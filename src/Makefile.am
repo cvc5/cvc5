@@ -72,6 +72,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_to_bool.cpp \
 	preprocessing/passes/bv_to_bool.h \
+	preprocessing/passes/real_to_int.cpp \
+	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/symmetry_detect.cpp \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
@@ -90,8 +92,6 @@ libcvc4_la_SOURCES = \
 	printer/ast/ast_printer.h \
 	printer/cvc/cvc_printer.cpp \
 	printer/cvc/cvc_printer.h \
-	printer/smt1/smt1_printer.cpp \
-	printer/smt1/smt1_printer.h \
 	printer/smt2/smt2_printer.cpp \
 	printer/smt2/smt2_printer.h \
 	printer/tptp/tptp_printer.cpp \
@@ -499,8 +499,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus_inference.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
-	theory/quantifiers/symmetry_breaking.cpp \
-	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_enumeration.cpp \
