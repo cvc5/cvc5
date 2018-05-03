@@ -26,7 +26,7 @@ namespace theory {
 namespace quantifiers {
 
 CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
-    : Cegis(qe, p), d_sygus_unif(p)
+    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
 }
@@ -39,16 +39,24 @@ bool CegisUnif::initialize(Node n,
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
   /* Init UNIF util */
   d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, lemmas);
-  /* TODO initialize unif enumerators */
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
+  std::vector<Node> unif_candidates;
   /* Initialize enumerators for non-unif functions-to-synhesize */
   for (const Node& c : candidates)
   {
     if (!d_sygus_unif.usingUnif(c))
     {
+      Trace("cegis-unif") << "* non-unification candidate : " << c << std::endl;
       d_tds->registerEnumerator(c, c, d_parent);
     }
+    else
+    {
+      Trace("cegis-unif") << "* unification candidate : " << c << std::endl;
+      unif_candidates.push_back(c);
+    }
   }
+  // initialize the enumeration manager
+  d_u_enum_manager.initialize(unif_candidates);
   return true;
 }
 
@@ -158,15 +166,27 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       OR, d_parent->getGuard().negate(), plem));
 }
 
+Node CegisUnif::getNextDecisionRequest(unsigned& priority)
+{
+  return d_u_enum_manager.getNextDecisionRequest(priority);
+}
+
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
-    : d_qe(qe), d_parent(parent), d_curr_guq_val(qe->getSatContext(), 0)
+    : d_qe(qe),
+      d_parent(parent),
+      d_ret_dec(qe->getSatContext(), false),
+      d_curr_guq_val(qe->getSatContext(), 0)
 {
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
 void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
 {
+  if (cs.empty())
+  {
+    return;
+  }
   for (const Node& c : cs)
   {
     // currently, we allocate the same enumerators for candidates of the same
@@ -199,10 +219,23 @@ void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
 
 Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
 {
+  // have we returned our decision in the current SAT context?
+  if (d_ret_dec.get())
+  {
+    return Node::null();
+  }
+  // only call this after initialization
+  if (d_ce_info.empty())
+  {
+    // if no enumerators, the decision is null
+    d_ret_dec = true;
+    return Node::null();
+  }
   Node lit = getCurrentLiteral();
   bool value;
   if (!d_qe->getValuation().hasSatValue(lit, value))
   {
+    d_ret_dec = true;
     priority = 0;
     return lit;
   }
