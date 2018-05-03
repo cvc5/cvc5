@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,7 +40,7 @@ class CegConjecture;
  * is satisfiable, where notice that the above formula after beta-reduction may
  * be one in pure first-order logic in a decidable theory (say linear
  * arithmetic). To check this, we invoke a separate instance of the SmtEngine
- * within repairSolution(...) below, which if, satisfiable gives us the
+ * within repairSolution(...) below, which if satisfiable gives us the
  * valuation for c'.
  */
 class SygusRepairConst
@@ -109,7 +109,7 @@ class SygusRepairConst
   void registerSygusType(TypeNode tn, std::map<TypeNode, bool>& tprocessed);
   /**
    * Returns true if n is a term of a sygus datatype type that allows all
-   * constants, and n encodes a constant. The term n must of a sygus datatype
+   * constants, and n encodes a constant. The term n must have a sygus datatype
    * type.
    */
   bool isRepairableConstant(Node n);
@@ -152,6 +152,9 @@ class SygusRepairConst
    * non-null node n', then n' is getFoQuery(...) on the resulting vectors, and
    * n' is in the given logic. The function may return null if it is not
    * possible to find a n' of this form.
+   * 
+   * It uses the function below to choose which variables to remove from
+   * sk_vars.
    */
   Node fitToLogic(LogicInfo& logic,
                   Node n,

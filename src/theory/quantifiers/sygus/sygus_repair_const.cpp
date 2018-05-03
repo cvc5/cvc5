@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-using namespace std;
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -402,11 +401,14 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
             Node sk_fov = nm->mkSkolem("k", cur.getType());
             d_sk_to_fo[v] = sk_fov;
             d_fo_to_sk[sk_fov] = v;
-            itf = d_sk_to_fo.find(v);
+            visited[cur] = v;
             Trace("sygus-repair-const-debug")
                 << "Map " << v << " -> " << sk_fov << std::endl;
           }
-          visited[cur] = itf->second;
+          else
+          {
+            visited[cur] = itf->second;
+          }
         }
       }
       if (visited[cur].isNull())
