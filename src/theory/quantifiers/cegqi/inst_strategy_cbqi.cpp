@@ -479,96 +479,6 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
   d_quantEngine->addLemma( lem, false );
 }
 
-int InstStrategyCbqi::isCbqiTerm(Node n, std::map<Node, bool>& visited)
-{
-  if (visited.find(n) != visited.end())
-  {
-    return 1;
-  }
-  visited[n] = true;
-  if (n.getKind() == BOUND_VARIABLE || !TermUtil::hasBoundVarAttr(n))
-  {
-    return 1;
-  }
-  if (n.getKind() == FORALL || n.getKind() == CHOICE)
-  {
-    return isCbqiTerm(n[1], visited);
-  }
-  int sum = CegInstantiator::isCbqiKind(n.getKind());
-  if (sum != 1)
-  {
-    Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n
-                         << std::endl;
-  }
-  for (const Node& nc : n)
-  {
-    int curr = isCbqiTerm(nc, visited);
-    if (curr == -1)
-    {
-      return curr;
-    }
-    else if (curr < sum)
-    {
-      sum = curr;
-    }
-  }
-  return sum;
-}
-
-// -1 : not cbqi sort, 0 : cbqi sort, 1 : cbqi sort regardless of quantifier body
-int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited ) {
-  std::map< TypeNode, int >::iterator itv = visited.find( tn );
-  if( itv==visited.end() ){
-    visited[tn] = 0;
-    int ret = -1;
-    if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
-      ret = 1;
-    }
-    else if (tn.isDatatype())
-    {
-      ret = 2;
-      const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode crange = TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() );
-          int cret = isCbqiSort( crange, visited );
-          if( cret==-1 ){
-            visited[tn] = -1;
-            return -1;
-          }else if( cret<ret ){
-            ret = cret;
-          }
-        }
-      }
-    }else if( tn.isSort() ){
-      QuantEPR * qepr = d_quantEngine->getQuantEPR();
-      if( qepr!=NULL ){
-        ret = qepr->isEPR(tn) ? 2 : -1;
-      }
-    }
-    // sets, arrays, functions and others are not supported
-    visited[tn] = ret;
-    return ret;
-  }else{
-    return itv->second;
-  }
-}
-
-int InstStrategyCbqi::hasNonCbqiVariable( Node q ){
-  int hmin = 1;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    TypeNode tn = q[0][i].getType();
-    std::map< TypeNode, int > visited;
-    int handled = isCbqiSort( tn, visited );
-    if( handled==-1 ){
-      return -1;
-    }else if( handled<hmin ){
-      hmin = handled;
-    }
-  }
-  return hmin;
-}
-
 bool InstStrategyCbqi::doCbqi( Node q ){
   std::map< Node, int >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
@@ -589,11 +499,10 @@ bool InstStrategyCbqi::doCbqi( Node q ){
       if( ret!=0 ){
         //if quantifier has a non-handled variable, then do not use cbqi
         //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-        int ncbqiv = hasNonCbqiVariable( q );
+        int ncbqiv = CegInstantiator::hasNonCbqiVariable( q, d_quantEngine );
         if (ncbqiv > 0)
         {
-          std::map< Node, bool > visited;
-          int cbqit = isCbqiTerm(q, visited);
+          int cbqit = CegInstantiator::isCbqiTerm(q);
           if (cbqit == -1)
           {
             if (ncbqiv == 2)

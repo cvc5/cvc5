@@ -24,6 +24,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/quant_epr.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -143,11 +144,107 @@ int CegInstantiator::isCbqiKind(Kind k)
   {
     return 1;
   }
-  else if (t == THEORY_SETS)
-  {
-    return 0;
-  }
   return -1;
+}
+
+int CegInstantiator::isCbqiTerm(Node n)
+{
+  int ret = 1;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end()) {
+      visited.insert(cur);
+      if (cur.getKind() != BOUND_VARIABLE && TermUtil::hasBoundVarAttr(cur))
+      {
+        if (cur.getKind() == FORALL || cur.getKind() == CHOICE)
+        {
+          visit.push_back(cur[1]);
+        }
+        else
+        {
+          int curr = isCbqiKind(cur.getKind());
+          if (curr<ret)
+          {
+            ret = curr;
+            Trace("cbqi-debug2") << "Non-cbqi kind : " << cur.getKind() << " in " << n
+                                << std::endl;
+            if( curr==-1 )
+            {
+              return -1;
+            }
+          }
+          for (const Node& nc : cur)
+          {
+            visit.push_back(nc);
+          }
+        }
+      }
+    }
+  } while (!visit.empty());
+  return ret;
+}
+
+int CegInstantiator::isCbqiSort( TypeNode tn, QuantifiersEngine * qe ) 
+{
+  std::map< TypeNode, int > visited;
+  return isCbqiSort(tn,visited,qe);
+}
+
+int CegInstantiator::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited, QuantifiersEngine * qe ) 
+{
+  std::map< TypeNode, int >::iterator itv = visited.find( tn );
+  if( itv!=visited.end() ){
+    return itv->second;
+  }
+  visited[tn] = 0;
+  int ret = -1;
+  if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
+    ret = 1;
+  }
+  else if (tn.isDatatype())
+  {
+    ret = 2;
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){
+      for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
+        TypeNode crange = TypeNode::fromType( static_cast<SelectorType>(dt[i][j].getType()).getRangeType() );
+        int cret = isCbqiSort( crange, visited, qe );
+        if( cret==-1 ){
+          visited[tn] = -1;
+          return -1;
+        }else if( cret<ret ){
+          ret = cret;
+        }
+      }
+    }
+  }else if( tn.isSort() ){
+    QuantEPR * qepr = qe->getQuantEPR();
+    if( qepr!=nullptr ){
+      ret = qepr->isEPR(tn) ? 2 : -1;
+    }
+  }
+  // sets, arrays, functions and others are not supported
+  visited[tn] = ret;
+  return ret;
+}
+
+int CegInstantiator::hasNonCbqiVariable( Node q, QuantifiersEngine * qe ){
+  int hmin = 1;
+  for( const Node& v : q[0] ){
+    TypeNode tn = v.getType();
+    int handled = isCbqiSort( tn, qe );
+    if( handled==-1 ){
+      return -1;
+    }else if( handled<hmin ){
+      hmin = handled;
+    }
+  }
+  return hmin;
 }
 
 bool CegInstantiator::hasVariable( Node n, Node pv ) {

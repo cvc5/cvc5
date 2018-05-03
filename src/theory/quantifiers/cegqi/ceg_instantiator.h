@@ -297,6 +297,8 @@ class CegInstantiator {
   bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
+  
+  //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
    * If this method returns -1, then we prohibit CBQI for terms involving this
@@ -308,7 +310,31 @@ class CegInstantiator {
    * satisfaction complete theories (see Reynolds et al., CAV 2015).
    */
   static int isCbqiKind(Kind k);
-
+  /** is cbqi term?
+   *
+   * This function returns 1 if n is a term that is handled by CBQI, it
+   * returns -1 if n is prohibited from being handled by CBQI.
+   */
+  static int isCbqiTerm(Node n);
+  /** is cbqi sort?
+   *
+   * This method returns -1 if tn is a sort that is not supported by CBQI,
+   * 1 if tn is a sort that is supported by CBQI, and 2 if tn is a sort
+   * that is handled by CBQI regardless of the body of the quantified
+   * formula. 
+   * 
+   * The argument qe is used if handling sort tn is conditional on the
+   * strategies initialized in qe. For example, uninterpreted sorts are
+   * handled if dedicated support for EPR is enabled.
+   */
+  static int isCbqiSort(TypeNode tn, QuantifiersEngine * qe=nullptr);
+  /** has non-cbqi variable?
+   * 
+   * This returns the minimum value of the above method for a bound variable
+   * in the prefix of quantified formula q.
+   */
+  static int hasNonCbqiVariable(Node q, QuantifiersEngine * qe=nullptr);
+  //------------------------------------ end static queries
  private:
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
@@ -546,6 +572,15 @@ class CegInstantiator {
   bool doAddInstantiation(std::vector<Node>& vars,
                           std::vector<Node>& subs,
                           std::vector<Node>& lemmas);
+  
+  //------------------------------------ static queries
+  /** is cbqi sort 
+   * 
+   * Helper function for isCbqiSort. This function recurses over the structure
+   * of the type tn, where visited stores the types we have visited.
+   */
+  static int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited, QuantifiersEngine * qe );
+  //------------------------------------ end  static queries
 };
 
 /** Instantiator class

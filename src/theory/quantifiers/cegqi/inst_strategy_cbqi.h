@@ -47,8 +47,6 @@ class InstStrategyCbqi : public QuantifiersModule {
   std::map< Node, std::vector< Node > > d_parent_quant;
   std::map< Node, std::vector< Node > > d_children_quant;
   std::map< Node, bool > d_active_quant;
-  /** whether we have instantiated quantified formulas */
-  //NodeSet d_added_inst;
   /**
    * Whether to do cbqi for this quantified formula, where:
    * 2 : yes,
@@ -61,22 +59,6 @@ class InstStrategyCbqi : public QuantifiersModule {
   virtual void registerCounterexampleLemma( Node q, Node lem );
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** helper functions */
-  int hasNonCbqiVariable( Node q );
-  /** is cbqi term?
-   *
-   * This function returns 1 if n is a term that is handled by CBQI, it
-   * returns -1 if n is prohibited from being handled by CBQI.
-   */
-  int isCbqiTerm(Node n, std::map<Node, bool>& visited);
-  /** is cbqi sort?
-   *
-   * This method returns -1 if tn is a sort that is not supported by CBQI,
-   * 1 if tn is a sort that is supported by CBQI, and 2 if tn is a sort
-   * that is handled by CBQI regardless of the body of the quantified
-   * formula.
-   */
-  int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
