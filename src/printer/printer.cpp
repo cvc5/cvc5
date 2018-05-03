@@ -50,6 +50,10 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
 
+  case LANG_SMTLIB_V2_6_1:
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_1_variant));
+
   case LANG_TPTP:
     return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
 
