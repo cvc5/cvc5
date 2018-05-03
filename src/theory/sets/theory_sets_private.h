@@ -163,13 +163,13 @@ private: //for universe set
   /** type constraint skolems
    *
    * The sets theory solver outputs equality lemmas of the form:
-   *   n = d_tc_skolem[n][tn] where
+   *   n = d_tc_skolem[n][tn]
    * where the type of d_tc_skolem[n][tn] is tn, and the type
    * of n is not a subtype of tn. This is required to handle benchmarks like
    *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
    * where for s : (Set Int) and t : (Set Real), we have that
    *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
-   * The type constraint Skolem for (y, Int) is skolemization of k above.
+   * The type constraint Skolem for (y, Int) is the skolemization of k above.
    */
   std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;
   /** get type constraint skolem for n and tn */
