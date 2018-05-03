@@ -163,7 +163,7 @@ class CegisUnif : public Cegis
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
   /** Tries to build new candidate solutions with new enumerated expressions
-   *d_u_enum_manager
+   *
    * This function relies on a data-driven unification-based approach for
    * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
    * more details.
