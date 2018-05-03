@@ -788,6 +788,7 @@ REG0_TESTS = \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
+	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
 	regress0/strings/str004.smt2 \
 	regress0/strings/str005.smt2 \
@@ -1254,6 +1255,7 @@ REG1_TESTS = \
 	regress1/quantifiers/model_6_1_bv.smt2 \
 	regress1/quantifiers/mutualrec2.cvc \
 	regress1/quantifiers/nested9_true-unreach-call.i_575.smt2 \
+	regress1/quantifiers/nra-interleave-inst.smt2 \
 	regress1/quantifiers/opisavailable-12.smt2 \
 	regress1/quantifiers/parametric-lists.smt2 \
 	regress1/quantifiers/psyco-001-bv.smt2 \
