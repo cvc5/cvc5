@@ -644,7 +644,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         {
           // if we are incomplete, there is no guarantee on the model.
           // thus, we do not check the model here. (related to #1693)
-          if (!d_incomplete)
+          if (!d_incomplete && options::checkModels())
           {
             d_curr_model_builder->debugCheckModel(d_curr_model);
           }

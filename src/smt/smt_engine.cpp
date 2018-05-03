@@ -5172,6 +5172,14 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   TheoryModel* m = d_theoryEngine->getModel();
 
+  // check-model is not guaranteed to succeed if approximate values were used
+  if (m->hasApproximations())
+  {
+    Warning()
+        << "WARNING: running check-model on a model with approximate values..."
+        << endl;
+  }
+
   // Check individual theory assertions
   d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
 

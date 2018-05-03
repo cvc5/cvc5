@@ -443,6 +443,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::ARCCOSECANT:
   case kind::ARCSECANT:
   case kind::ARCCOTANGENT:
+  case kind::PI:
   case kind::SQRT:
   case kind::MINUS:
   case kind::UMINUS:
@@ -923,6 +924,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::ARCCOSECANT: return "arccsc";
   case kind::ARCSECANT: return "arcsec";
   case kind::ARCCOTANGENT: return "arccot";
+  case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
   case kind::MINUS: return "-";
   case kind::UMINUS: return "-";
@@ -1300,6 +1302,16 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   std::string ln;
   while( std::getline( c, ln ) ){
     out << "; " << ln << std::endl;
+  }
+  // print approximations
+  if (m.hasApproximations())
+  {
+    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
+    for (unsigned i = 0, size = approx.size(); i < size; i++)
+    {
+      out << "; value of " << approx[i].first
+          << " is approximate, it satisfies " << approx[i].second << std::endl;
+    }
   }
   //print the model
   out << "(model" << endl;
