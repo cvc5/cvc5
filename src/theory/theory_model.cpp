@@ -64,6 +64,7 @@ void TheoryModel::reset(){
   d_comment_str.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
+  d_approximations.clear();
   d_reps.clear();
   d_rep_set.clear();
   d_uf_terms.clear();
@@ -447,6 +448,15 @@ void TheoryModel::assertSkeleton(TNode n)
   Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative(n)
                               << std::endl;
   d_reps[ n ] = n;
+}
+
+void TheoryModel::assertApproximation(TNode n, TNode pred)
+{
+  Assert( d_approximations.find( n )==d_approximations.end() );
+  Assert( pred.getType().isBoolean() );
+  Trace("model-builder-debug") << "Assert approximation : " << n << " satisfies the predicate " << pred << std::endl;
+  d_approximations[n] = pred;
+  d_approx_list.push_back( std::pair< Node, Node >( n, pred ) );
 }
 
 bool TheoryModel::hasTerm(TNode a)

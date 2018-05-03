@@ -139,6 +139,27 @@ public:
    * during Theory's collectModelInfo( ... ) functions.
    */
   void assertSkeleton(TNode n);
+  /** assert approximation 
+   * 
+   * This notifies this model that the value of n was approximated in this
+   * model such that the predicate pred (involving n) holds. For example,
+   * for transcendental functions, we may determine an error bound on the
+   * value of a transcendental function, say c-e <= y <= c+e where 
+   * c and e are constants. We call this function with n set to sin( x ) and 
+   * pred set to c-e <= sin( x ) <= c+e.
+   * 
+   * If assertApproximation is called at least once during the model
+   * construction process, then check-model is not guaranteed to succeed.
+   * However, there are cases where we can establish the input is satisfiable
+   * without constructing an exact model.
+   * For example, if x=.77, sin(x)=.7, c=.7 and e=.01 in the above example, then
+   * we may reason that the set of assertions { sin(x)>.6 } is satisfiable, 
+   * albiet without establishing an exact value for sin(x).
+   * 
+   * This function is simply for bookkeeping, it does not affect the model
+   * construction process.
+   */
+  void assertApproximation(TNode n, TNode pred);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -171,6 +192,8 @@ public:
   bool getHeapModel(Expr& h, Expr& neq) const override;
   //---------------------------- end separation logic
 
+  /** get approximations */
+  std::vector< std::pair< Node, Node > >& getApproximations() { return d_approx_list; }
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -215,6 +238,10 @@ public:
   context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
+  /** approximations (see assertApproximation) */
+  std::map< Node, Node > d_approximations;
+  /** list of all approximations */
+  std::vector< std::pair< Node, Node > > d_approx_list;
   /** map of representatives of equality engine to used representatives in
    * representative set */
   std::map<Node, Node> d_reps;

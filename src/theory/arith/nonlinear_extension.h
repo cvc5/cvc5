@@ -121,6 +121,8 @@ class NonlinearExtension {
   void check(Theory::Effort e);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
+  /** collect model info */
+  bool collectModelInfo(TheoryModel* m);
   /** presolve
    *
    * This function is called during TheoryArith's presolve command.
