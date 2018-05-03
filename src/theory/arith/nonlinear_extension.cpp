@@ -154,7 +154,8 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing) {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_lemmas(containing.getUserContext()),
+    : d_builtModel(containing.getSatContext(),false),
+      d_lemmas(containing.getUserContext()),
       d_zero_split(containing.getUserContext()),
       d_skolem_atoms(containing.getUserContext()),
       d_containing(containing),
@@ -177,6 +178,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_taylor_real_fv_base_rem = NodeManager::currentNM()->mkBoundVar(
       "b", NodeManager::currentNM()->realType());
   d_taylor_degree = options::nlExtTfTaylorDegree();
+  d_used_approx = false;
 }
 
 NonlinearExtension::~NonlinearExtension() {}
@@ -893,6 +895,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
       else if (isRefineableTfFun(tf))
       {
+        d_used_approx = true;
         std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
         addCheckModelBound(atf, bounds.first, bounds.second);
       }
@@ -913,7 +916,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   }
 
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
-  // d_check_model_bounds.clear();
   for (const Node& atom : false_asserts)
   {
     // see if it corresponds to a univariate polynomial equation of degree two
@@ -1005,23 +1007,30 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     // TODO (#1450) check model for general case
     return false;
   }
-
-  // now, record the approximations we used
-  NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
-       d_check_model_bounds)
-  {
-    Node l = cb.second.first;
-    Node u = cb.second.second;
-    if (l != u)
-    {
-      Node v = cb.first;
-      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, v, u));
-      pred = Rewriter::rewrite(pred);
-      d_containing.getValuation().getModel()->recordApproximation(v, pred);
-    }
-  }
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
+  
+  // must assert and re-check if produce models is true
+  if( options::produceModels() )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    // model guard whose semantics is "the model we constructed holds"
+    Node mg = nm->mkSkolem("model", nm->booleanType() );
+    mg = Rewriter::rewrite(mg);
+    mg = d_containing.getValuation().ensureLiteral(mg);
+    d_containing.getOutputChannel().requirePhase(mg, true);
+    // assert the constructed model as assertions
+    for( const std::pair<const Node, std::pair<Node, Node> > cb : d_check_model_bounds )
+    {
+      Node l = cb.second.first;
+      Node u = cb.second.second;
+      Node v = cb.first;
+      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+      pred = nm->mkNode(OR,mg.negate(),pred);
+      Trace("nl-ext-lemma-model") << "Assert : " << pred << std::endl;
+      d_containing.getOutputChannel().lemma(pred);
+    }
+    d_builtModel = true;
+  }
   return true;
 }
 
@@ -1134,17 +1143,10 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         }
       }
     }
-    else if (!v.isVar())
-    {
-      // we cannot solve for non-variables
-      is_valid = false;
-      Trace("nl-ext-cms-debug")
-          << "...invalid due to non-variable " << v << std::endl;
-    }
-    else if (!var.isNull() && var != v)
+    else if (!v.isVar() || (!var.isNull() && var != v) )
     {
       Trace("nl-ext-cms-debug")
-          << "...invalid due to multivariate " << v << std::endl;
+          << "...invalid due to factor " << v << std::endl;
       // cannot solve multivariate
       if (is_valid)
       {
@@ -1172,6 +1174,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     // see if we can solve for a variable?
     for (const Node& uv : unc_vars)
     {
+      Trace("nl-ext-cm-debug") << "check subs var : " << uv << std::endl;
       // cannot already have a bound
       if (uv.isVar() && !hasCheckModelAssignment(uv))
       {
@@ -1197,6 +1200,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     // see if we can assign a variable to a constant
     for (const Node& uvf : unc_vars_factor)
     {
+      Trace("nl-ext-cm-debug") << "check set var : " << uvf << std::endl;
       // cannot already have a bound
       if (uvf.isVar() && !hasCheckModelAssignment(uvf))
       {
@@ -1268,11 +1272,12 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   }
   // approximate the square root of sqrt_val
   Node l, u;
-  if (!getApproximateSqrt(sqrt_val, l, u))
+  if (!getApproximateSqrt(sqrt_val, l, u, 15+d_taylor_degree))
   {
     Trace("nl-ext-cms") << "...fail, could not approximate sqrt." << std::endl;
     return false;
   }
+  d_used_approx = true;
   Trace("nl-ext-quad") << "...got " << l << " <= sqrt(" << sqrt_val
                        << ") <= " << u << std::endl;
   Node negb = nm->mkConst(-b.getConst<Rational>());
@@ -1573,6 +1578,7 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
     Node v = d_ms_vars[i];
     if (d_zero_split.insert(v)) {
       Node eq = v.eqNode(d_zero);
+      eq = Rewriter::rewrite(eq);
       Node literal = d_containing.getValuation().ensureLiteral(eq);
       d_containing.getOutputChannel().requirePhase(literal, true);
       lemmas.push_back(literal.orNode(literal.negate()));
@@ -1596,7 +1602,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_tf_rep_map.clear();
   d_tf_region.clear();
-  d_check_model_bounds.clear();
   d_waiting_lemmas.clear();
 
   int lemmas_proc = 0;
@@ -1924,6 +1929,29 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 void NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
+  if( d_builtModel.get() )
+  {
+    if (e == Theory::EFFORT_FULL) 
+    {
+      return;
+    }
+    // now, record the approximations we used
+    NodeManager* nm = NodeManager::currentNM();
+    for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+        d_check_model_bounds)
+    {
+      Node l = cb.second.first;
+      Node u = cb.second.second;
+      if (l != u)
+      {
+        Node v = cb.first;
+        Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+        pred = Rewriter::rewrite(pred);
+        d_containing.getValuation().getModel()->recordApproximation(v, pred);
+      }
+    }
+    return;
+  }
   if (e == Theory::EFFORT_FULL) {
     d_containing.getExtTheory()->clearCache();
     d_needsLastCall = true;
@@ -2017,6 +2045,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     bool needsRecheck;
     do
     {
+      d_used_approx = false;
       needsRecheck = false;
       Assert(e == Theory::EFFORT_LAST_CALL);
       // complete_status:
@@ -2072,7 +2101,8 @@ void NonlinearExtension::check(Theory::Effort e) {
             std::vector<Node> shared_term_value_lemmas;
             for (const Node& eq : shared_term_value_splits)
             {
-              Node literal = d_containing.getValuation().ensureLiteral(eq);
+              Node req = Rewriter::rewrite(eq);
+              Node literal = d_containing.getValuation().ensureLiteral(req);
               d_containing.getOutputChannel().requirePhase(literal, true);
               Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
               shared_term_value_lemmas.push_back(
@@ -2096,9 +2126,10 @@ void NonlinearExtension::check(Theory::Effort e) {
         }
 
         // we are incomplete
-        if (options::nlExtTfIncPrecision() && !d_tf_rep_map.empty())
+        if (options::nlExtTfIncPrecision() && d_used_approx)
         {
           d_taylor_degree++;
+          d_used_approx = false;
           needsRecheck = true;
           // increase precision for PI?
           // Difficult since Taylor series is very slow to converge

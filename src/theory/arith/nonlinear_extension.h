@@ -357,6 +357,8 @@ class NonlinearExtension {
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
   bool hasCheckModelAssignment(Node v) const;
+  /** have we successfully built the model in this SAT context? */
+  context::CDO<bool> d_builtModel;
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
@@ -546,7 +548,9 @@ class NonlinearExtension {
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
   std::vector<Node> d_waiting_lemmas;
-
+  /** did we use an approximation on this call to last-call effort? */
+  bool d_used_approx;
+  
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
   /** print rational approximation */
