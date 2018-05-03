@@ -114,11 +114,14 @@ class SygusModule
                                        std::vector<Node>& lems)
   {
   }
-  /** get next decision request 
-   * 
+  /** get next decision request
+   *
    * This has the same contract as Theory::getNextDecisionRequest.
    */
-  virtual Node getNextDecisionRequest( unsigned& priority ) {return Node::null();}
+  virtual Node getNextDecisionRequest(unsigned& priority)
+  {
+    return Node::null();
+  }
 
  protected:
   /** reference to quantifier engine */

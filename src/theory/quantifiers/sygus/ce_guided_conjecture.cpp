@@ -480,27 +480,36 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
     priority = 0;
     return feasible_guard;
   }
-  if( !value ){  
-    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible." << std::endl;
+  if (!value)
+  {
+    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible."
+                         << std::endl;
     return Node::null();
   }
   // the conjecture is feasible
-  if( options::sygusStream() ){
-    Assert( !isSingleInvocation() );
-    // if we are in sygus streaming mode, then get the "next guard" 
-    // which denotes "we have not yet generated the next solution to the conjecture"
+  if (options::sygusStream())
+  {
+    Assert(!isSingleInvocation());
+    // if we are in sygus streaming mode, then get the "next guard"
+    // which denotes "we have not yet generated the next solution to the
+    // conjecture"
     Node curr_stream_guard = getCurrentStreamGuard();
     bool needs_new_stream_guard = false;
-    if( curr_stream_guard.isNull() ){
+    if (curr_stream_guard.isNull())
+    {
       needs_new_stream_guard = true;
     }else{
       // check the polarity of the guard
-      if( !d_qe->getValuation().hasSatValue( curr_stream_guard, value ) ) {
+      if (!d_qe->getValuation().hasSatValue(curr_stream_guard, value))
+      {
         priority = 0;
         return curr_stream_guard;
       }
-      if( !value ){
-        Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
+      if (!value)
+      {
+        Trace("cegqi-debug") << "getNextDecision : we have a new solution "
+                                "since stream guard was propagated false: "
+                             << curr_stream_guard << std::endl;
         // need to make the next stream guard
         needs_new_stream_guard = true;
         // the guard has propagated false, indicating that a verify
@@ -509,23 +518,27 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
         printAndContinueStream();
       }
     }
-    if( needs_new_stream_guard ){
+    if (needs_new_stream_guard)
+    {
       // generate a new stream guard
-      curr_stream_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G_Stream", NodeManager::currentNM()->booleanType() ) );
-      curr_stream_guard = d_qe->getValuation().ensureLiteral( curr_stream_guard );
-      AlwaysAssert( !curr_stream_guard.isNull() );
-      d_qe->getOutputChannel().requirePhase( curr_stream_guard, true );
-      d_stream_guards.push_back( curr_stream_guard );
-      Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : " << curr_stream_guard << std::endl;
+      curr_stream_guard = Rewriter::rewrite(NodeManager::currentNM()->mkSkolem(
+          "G_Stream", NodeManager::currentNM()->booleanType()));
+      curr_stream_guard = d_qe->getValuation().ensureLiteral(curr_stream_guard);
+      AlwaysAssert(!curr_stream_guard.isNull());
+      d_qe->getOutputChannel().requirePhase(curr_stream_guard, true);
+      d_stream_guards.push_back(curr_stream_guard);
+      Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : "
+                           << curr_stream_guard << std::endl;
       // return it as a decision
       priority = 0;
       return curr_stream_guard;
     }
   }
   Node mlit = d_master->getNextDecisionRequest(priority);
-  if( !mlit.isNull() )
+  if (!mlit.isNull())
   {
-    Trace("cegqi-debug") << "getNextDecision : master module returned : " << mlit << std::endl;
+    Trace("cegqi-debug") << "getNextDecision : master module returned : "
+                         << mlit << std::endl;
     return mlit;
   }
 

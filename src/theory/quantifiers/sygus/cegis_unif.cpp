@@ -26,7 +26,7 @@ namespace theory {
 namespace quantifiers {
 
 CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
-    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe,p)
+    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
 }
@@ -40,7 +40,7 @@ bool CegisUnif::initialize(Node n,
   /* Init UNIF util */
   d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, lemmas);
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
-  std::vector< Node > unif_candidates;
+  std::vector<Node> unif_candidates;
   /* Initialize enumerators for non-unif functions-to-synhesize */
   for (const Node& c : candidates)
   {
@@ -164,22 +164,24 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       OR, d_parent->getGuard().negate(), plem));
 }
 
-Node CegisUnif::getNextDecisionRequest( unsigned& priority ) 
+Node CegisUnif::getNextDecisionRequest(unsigned& priority)
 {
   return d_u_enum_manager.getNextDecisionRequest(priority);
 }
 
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
-    : d_qe(qe), d_parent(parent), d_ret_dec(qe->getSatContext(), false),
-    d_curr_guq_val(qe->getSatContext(), 0)
+    : d_qe(qe),
+      d_parent(parent),
+      d_ret_dec(qe->getSatContext(), false),
+      d_curr_guq_val(qe->getSatContext(), 0)
 {
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
 void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
 {
-  if( cs.empty() )
+  if (cs.empty())
   {
     return;
   }
@@ -216,12 +218,12 @@ void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
 Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
 {
   // have we returned our decision in the current SAT context?
-  if( d_ret_dec.get() )
+  if (d_ret_dec.get())
   {
     return Node::null();
   }
   // only call this after initialization
-  if( d_ce_info.empty() )
+  if (d_ce_info.empty())
   {
     // if no enumerators, the decision is null
     d_ret_dec = true;

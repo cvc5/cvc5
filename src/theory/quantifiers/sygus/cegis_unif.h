@@ -25,7 +25,6 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
 
 /** Cegis Unif Enumeration Manager
  *
@@ -214,7 +213,8 @@ class CegisUnif : public Cegis
                                Node lem,
                                std::vector<Node>& lems) override;
   /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority ) override;
+  Node getNextDecisionRequest(unsigned& priority) override;
+
  private:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
