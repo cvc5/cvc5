@@ -46,6 +46,10 @@ class TheoryDatatypes;
  * set of asserted testers is-C1( x ), is-C2( x.1 ), is-C3( x.2 ), and
  * generates lemmas that restrict the models of x, if x is a "sygus enumerator"
  * (see TermDbSygus::registerEnumerator).
+ * 
+ * Some of these techniques are described in these papers:
+ * "Refutation-Based Synthesis in SMT", Reynolds et al 2017.
+ * "Sygus Techniques in the Core of an SMT Solver", Reynolds et al 2017.
  */
 class SygusSymBreakNew
 {
@@ -86,7 +90,7 @@ class SygusSymBreakNew
    * This is called at last call effort, when the current model assignment is
    * satisfiable according to the quantifier-free decision procedures and a
    * model is built. This method may add lemmas to the vector lemmas based
-   * on dynamic symmetry breaking techniques, based on the model value of
+   * on dynamic symmetry breaking techniques, based on the model values of
    * all preregistered enumerators.
    */
   void check(std::vector<Node>& lemmas);
@@ -424,12 +428,12 @@ private:
    *
    * We associate each sygus enumerator e with a "measure term", which is used
    * for bounding the size of terms for the models of e. The measure term for a
-   * sygus enumerator may e itself (if e has an active guard), or an arbitrary
-   * sygus variable otherwise. A measure term m is one for which our decision
-   * strategy decides on literals of the form (DT_SYGUS_BOUND m n).
+   * sygus enumerator may be e itself (if e has an active guard), or an 
+   * arbitrary sygus variable otherwise. A measure term m is one for which our
+   * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
    *
    * After determining the measure term m for e, if applicable, we initialize
-   * the information for m below. This may result in lemmas
+   * SearchSizeInfo for m below. This may result in lemmas
    */
   void registerSizeTerm(Node e, std::vector<Node>& lemmas);
   /** information for each measure term allocated by this class */
@@ -458,10 +462,10 @@ private:
     std::vector< Node > d_anchors;
     /** get or make the measure value
      *
-     * The measure value is an integer variable v that corresponds to the
-     * (symbolic) integer value that is constrained be less than or equal to
-     * the current search size. For example, if we are using the fairness
-     * strategy SYGUS_FAIR_DT_SIZE, then we constrain:
+     * The measure value is an integer variable v that is a (symbolic) integer
+     * value that is constrained be less than or equal to the current search 
+     * size. For example, if we are using the fairness strategy 
+     * SYGUS_FAIR_DT_SIZE (see options/datatype_options.h), then we constrain:
      *   (DT_SYGUS_BOUND m n) <=> (v <= n)
      * for all asserted fairness literals. Then, if we are enforcing fairness
      * based on the maximum size, we assert:
