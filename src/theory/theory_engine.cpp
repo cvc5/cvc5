@@ -612,7 +612,8 @@ void TheoryEngine::check(Theory::Effort effort) {
           }
         }
       }
-      if( ! d_inConflict && ! needCheck() ){
+      if (!d_inConflict)
+      {
         if(d_logicInfo.isQuantified()) {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
