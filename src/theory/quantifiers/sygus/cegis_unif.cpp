@@ -158,6 +158,138 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   d_sygus_unif.addRefLemma(lem);
 }
 
+CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
+                                           CegConjecture* parent)
+    : d_qe(qe), d_parent(parent), d_curr_guq_val(qe->getSatContext(), 0)
+{
+  d_tds = d_qe->getTermDatabaseSygus();
+}
+
+void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
+{
+  for (const Node& c : cs)
+  {
+    // currently, we allocate the same enumerators for candidates of the same
+    // type
+    TypeNode tn = c.getType();
+    d_ce_info[tn].d_candidates.push_back(c);
+  }
+  // initialize the current literal
+  incrementNumEnumerators();
+}
+
+void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
+{
+  // candidates of the same type are managed
+  TypeNode ct = c.getType();
+  std::map<TypeNode, TypeInfo>::iterator it = d_ce_info.find(ct);
+  Assert(it != d_ce_info.end());
+  it->second.d_eval_points.insert(
+      it->second.d_eval_points.end(), eis.begin(), eis.end());
+  // register at all already allocated sizes
+  for (const std::pair<const unsigned, Node>& p : d_guq_lit)
+  {
+    for (const Node& ei : eis)
+    {
+      Assert(ei.getType() == ct);
+      registerEvalPtAtSize(ct, ei, p.second, p.first);
+    }
+  }
+}
+
+Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
+{
+  Node lit = getCurrentLiteral();
+  bool value;
+  if (!d_qe->getValuation().hasSatValue(lit, value))
+  {
+    priority = 0;
+    return lit;
+  }
+  else if (!value)
+  {
+    // propagated false, increment
+    incrementNumEnumerators();
+    return getNextDecisionRequest(priority);
+  }
+  return Node::null();
+}
+
+void CegisUnifEnumManager::incrementNumEnumerators()
+{
+  unsigned new_size = d_curr_guq_val.get() + 1;
+  d_curr_guq_val.set(new_size);
+  // ensure that the literal has been allocated
+  std::map<unsigned, Node>::iterator itc = d_guq_lit.find(new_size);
+  if (itc == d_guq_lit.end())
+  {
+    // allocate the new literal
+    NodeManager* nm = NodeManager::currentNM();
+    Node new_lit = Rewriter::rewrite(nm->mkSkolem("G_cost", nm->booleanType()));
+    new_lit = d_qe->getValuation().ensureLiteral(new_lit);
+    AlwaysAssert(!new_lit.isNull());
+    d_qe->getOutputChannel().requirePhase(new_lit, true);
+    d_guq_lit[new_size] = new_lit;
+    // allocate an enumerator for each candidate
+    for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
+    {
+      TypeNode ct = ci.first;
+      Node eu = nm->mkSkolem("eu", ct);
+      if (!ci.second.d_enums.empty())
+      {
+        Node eu_prev = ci.second.d_enums.back();
+        // symmetry breaking
+        Node size_eu = nm->mkNode(DT_SIZE, eu);
+        Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);
+        Node sym_break = nm->mkNode(GEQ, size_eu, size_eu_prev);
+        d_qe->getOutputChannel().lemma(sym_break);
+      }
+      ci.second.d_enums.push_back(eu);
+      d_tds->registerEnumerator(eu, d_null, d_parent);
+    }
+    // register the evaluation points at the new value
+    for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
+    {
+      TypeNode ct = ci.first;
+      for (const Node& ei : ci.second.d_eval_points)
+      {
+        registerEvalPtAtSize(ct, ei, new_lit, new_size);
+      }
+    }
+  }
+}
+
+Node CegisUnifEnumManager::getCurrentLiteral() const
+{
+  return getLiteral(d_curr_guq_val.get());
+}
+
+Node CegisUnifEnumManager::getLiteral(unsigned n) const
+{
+  std::map<unsigned, Node>::const_iterator itc = d_guq_lit.find(n);
+  Assert(itc != d_guq_lit.end());
+  return itc->second;
+}
+
+void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
+                                                Node ei,
+                                                Node guq_lit,
+                                                unsigned n)
+{
+  // must be equal to one of the first n enums
+  std::map<TypeNode, TypeInfo>::iterator itc = d_ce_info.find(ct);
+  Assert(itc != d_ce_info.end());
+  Assert(itc->second.d_enums.size() >= n);
+  std::vector<Node> disj;
+  disj.push_back(guq_lit.negate());
+  for (unsigned i = 0; i < n; i++)
+  {
+    disj.push_back(ei.eqNode(itc->second.d_enums[i]));
+  }
+  Node lem = NodeManager::currentNM()->mkNode(OR, disj);
+  d_qe->getOutputChannel().lemma(lem);
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

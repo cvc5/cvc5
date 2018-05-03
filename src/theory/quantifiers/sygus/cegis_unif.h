@@ -125,6 +125,106 @@ class CegisUnif : public Cegis
   Node d_null;
 }; /* class CegisUnif */
 
+/** Cegis Unif Enumeration Manager
+ *
+ * This class enforces a decision heuristic that limits the number of
+ * unique values given to the set of "evaluation points", which are variables
+ * of sygus datatype type that are introduced by CegisUnif.
+ *
+ * It maintains a set of guards, call them G_uq_1 ... G_uq_n, where the
+ * semantics of G_uq_i is "for each type, the evaluation points of that type
+ * are interpreted as a value in a set whose cardinality is at most i".
+ *
+ * To enforce this, we introduce sygus enumerator(s) of the same type as the
+ * evaluation points registered to this class and add lemmas that enforce that
+ * points are equal to at least one enumerator (see registerEvalPtAtValue).
+ */
+class CegisUnifEnumManager
+{
+ public:
+  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
+  /** initialize candidates
+   *
+   * Notify this class that it will be managing enumerators for the vector
+   * of functions-to-synthesize (candidate variables) in candidates. This
+   * function should only be called once.
+   *
+   * Each candidate c in cs should be such that we are using a
+   * synthesis-by-unification approach for c.
+   */
+  void initialize(std::vector<Node>& cs);
+  /** register evaluation point for candidate
+   *
+   * This notifies this class that eis is a set of evaluation points for
+   * candidate c, where c should be a candidate that was passed to initialize
+   * in the vector cs.
+   *
+   * This may add new lemmas of the form described above
+   * registerEvalPtAtValue on the output channel of d_qe.
+   */
+  void registerEvalPts(std::vector<Node>& eis, Node c);
+  /** get next decision request
+   *
+   * This function has the same contract as Theory::getNextDecisionRequest.
+   *
+   * If no guard G_uq_* is asserted positively, then this method returns the
+   * minimal G_uq_i that is not asserted negatively. It allocates this guard
+   * if necessary.
+   *
+   * This call may add new lemmas of the form described above
+   * registerEvalPtAtValue on the output channel of d_qe.
+   */
+  Node getNextDecisionRequest(unsigned& priority);
+
+ private:
+  /** reference to quantifier engine */
+  QuantifiersEngine* d_qe;
+  /** sygus term database of d_qe */
+  TermDbSygus* d_tds;
+  /** reference to the parent conjecture */
+  CegConjecture* d_parent;
+  /** null node */
+  Node d_null;
+  /** information per initialized type */
+  class TypeInfo
+  {
+   public:
+    TypeInfo() {}
+    /** candidates for this type */
+    std::vector<Node> d_candidates;
+    /** the set of enumerators we have allocated for this candidate */
+    std::vector<Node> d_enums;
+    /** the set of evaluation points of this type */
+    std::vector<Node> d_eval_points;
+  };
+  /** map types to the above info */
+  std::map<TypeNode, TypeInfo> d_ce_info;
+  /** literals of the form G_uq_n for each n */
+  std::map<unsigned, Node> d_guq_lit;
+  /**
+   * The minimal n such that G_uq_n is not asserted negatively in the
+   * current SAT context.
+   */
+  context::CDO<unsigned> d_curr_guq_val;
+  /** increment the number of enumerators */
+  void incrementNumEnumerators();
+  /**
+   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
+   * is not asserted negatively in the current SAT context.
+   */
+  Node getCurrentLiteral() const;
+  /** get literal G_uq_n */
+  Node getLiteral(unsigned n) const;
+  /** register evaluation point at size
+   *
+   * This sends a lemma of the form:
+   *   G_uq_n => ei = d1 V ... V ei = dn
+   * on the output channel of d_qe, where d1...dn are sygus enumerators of the
+   * same type (ct) as ei.
+   */
+  void registerEvalPtAtSize(TypeNode ct, Node ei, Node guq_lit, unsigned n);
+};
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
