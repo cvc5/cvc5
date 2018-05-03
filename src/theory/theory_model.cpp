@@ -94,21 +94,19 @@ bool TheoryModel::getHeapModel( Expr& h, Expr& neq ) const {
   }
 }
 
-bool TheoryModel::hasApproximations() const
-{
-  return !d_approx_list.empty();
-}
+bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
 
 std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
 {
   std::vector<std::pair<Expr, Expr> > approx;
-  for( unsigned i=0,size=d_approx_list.size(); i<size; i++ )
+  for (unsigned i = 0, size = d_approx_list.size(); i < size; i++)
   {
-    approx.push_back(std::pair<Expr,Expr>( d_approx_list[i].first.toExpr(), d_approx_list[i].second.toExpr() ) );
+    approx.push_back(std::pair<Expr, Expr>(d_approx_list[i].first.toExpr(),
+                                           d_approx_list[i].second.toExpr()));
   }
   return approx;
 }
-  
+
 Node TheoryModel::getValue(TNode n, bool useDontCares) const {
   //apply substitutions
   Node nn = d_substitutions.apply(n);

@@ -152,8 +152,8 @@ public:
    * construction process, then check-model is not guaranteed to succeed.
    * However, there are cases where we can establish the input is satisfiable
    * without constructing an exact model. For example, if x=.77, sin(x)=.7, and
-   * say we have computed c=.7 and e=.01 as an approximation in the above 
-   * example, then we may reason that the set of assertions { sin(x)>.6 } is 
+   * say we have computed c=.7 and e=.01 as an approximation in the above
+   * example, then we may reason that the set of assertions { sin(x)>.6 } is
    * satisfiable, albiet without establishing an exact (irrational) value for
    * sin(x).
    *

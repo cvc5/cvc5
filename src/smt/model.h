@@ -72,7 +72,7 @@ public:
   /** are there any approximations in this model? */
   virtual bool hasApproximations() const { return false; }
   /** get the list of approximations
-   * 
+   *
    * This is a list of pairs of the form (t,p), where t is a term and p
    * is a predicate over t that indicates a property that t satisfies.
    */

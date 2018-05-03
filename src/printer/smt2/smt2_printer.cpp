@@ -1302,12 +1302,13 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
     out << "; " << ln << std::endl;
   }
   // print approximations
-  if( m.hasApproximations() )
+  if (m.hasApproximations())
   {
-    std::vector< std::pair< Expr, Expr > > approx = m.getApproximations();
-    for( unsigned i=0,size=approx.size(); i<size; i++ )
+    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
+    for (unsigned i = 0, size = approx.size(); i < size; i++)
     {
-      out << "; value of " << approx[i].first << " is approximate, it satisfies " << approx[i].second << std::endl;
+      out << "; value of " << approx[i].first
+          << " is approximate, it satisfies " << approx[i].second << std::endl;
     }
   }
   //print the model
