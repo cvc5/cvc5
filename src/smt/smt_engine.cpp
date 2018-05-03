@@ -4530,6 +4530,12 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       d_assumptions = assumptions;
     }
 
+    if (!d_assumptions.empty())
+    {
+      internalPush();
+      didInternalPush = true;
+    }
+
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     for (Expr e : d_assumptions)
     {
@@ -4540,8 +4546,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       ensureBoolean(e);
 
       /* Add assumption  */
-      internalPush();
-      didInternalPush = true;
       if (d_assertionList != NULL)
       {
         d_assertionList->push_back(e);
