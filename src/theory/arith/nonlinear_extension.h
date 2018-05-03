@@ -121,8 +121,6 @@ class NonlinearExtension {
   void check(Theory::Effort e);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
-  /** collect model info */
-  bool collectModelInfo(TheoryModel* m);
   /** presolve
    *
    * This function is called during TheoryArith's presolve command.
@@ -208,11 +206,6 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
-  /** collect variables
-   *
-   *
-   */
-  void collectVariables(Node n, std::vector<Node>& vars);
   /** compute model value
    *
    * This computes model values for terms based on two semantics, a "concrete"
@@ -338,7 +331,12 @@ class NonlinearExtension {
    * involves approximations of square roots.
    */
   std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
-
+  /** add check model bound 
+   * 
+   * Adds the bound x -> < l, u > to the map above, and records the 
+   * approximation ( x, l <= x <= u ) in the model.
+   */
+  void addCheckModelBound(TNode v, TNode l, TNode u );
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:

@@ -889,12 +889,12 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       Node atf = computeModelValue(tf, 0);
       if (k == PI)
       {
-        d_check_model_bounds[atf] =
-            std::pair<Node, Node>(d_pi_bound[0], d_pi_bound[1]);
+        addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
       }
       else if (isRefineableTfFun(tf))
       {
-        d_check_model_bounds[atf] = getTfModelBounds(tf, d_taylor_degree);
+        std::pair<Node,Node> bounds = getTfModelBounds(tf, d_taylor_degree);
+        addCheckModelBound(atf,bounds.first,bounds.second);
       }
       if (Trace.isOn("nl-ext-cm"))
       {
@@ -999,15 +999,29 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     }
   }
 
-  if (check_assertions.empty())
+  if (!check_assertions.empty())
   {
-    Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
-    return true;
+    Trace("nl-ext-cm") << "...simple check failed." << std::endl;
+    // TODO (#1450) check model for general case
+    return false;
   }
 
-  Trace("nl-ext-cm") << "...simple check failed." << std::endl;
-  // TODO (#1450) check model for general case
-  return false;
+  // now, record the approximations we used
+  NodeManager * nm = NodeManager::currentNM();
+  for( const std::pair< const Node, std::pair< Node, Node > >& cb : d_check_model_bounds )
+  {
+    Node l = cb.second.first;
+    Node u = cb.second.second;
+    if (l != u)
+    {
+      Node v = cb.first;
+      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, v, u));
+      pred = Rewriter::rewrite(pred);
+      d_containing.getValuation().getModel()->recordApproximation(v, pred);
+    }
+  }
+  Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
+  return true;
 }
 
 void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
@@ -1027,6 +1041,12 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
   }
   d_check_model_vars.push_back(v);
   d_check_model_subs.push_back(s);
+}
+
+void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u )
+{
+  Assert(!hasCheckModelAssignment(v));
+  d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
 }
 
 bool NonlinearExtension::hasCheckModelAssignment(Node v) const
@@ -1293,8 +1313,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Trace("nl-ext-cm") << " <= " << var << " <= ";
   printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
   Trace("nl-ext-cm") << std::endl;
-  d_check_model_bounds[var] =
-      std::pair<Node, Node>(bounds[r_use_index][0], bounds[r_use_index][1]);
+  addCheckModelBound( var, bounds[r_use_index][0], bounds[r_use_index][1] );
   d_check_model_solved[eq] = var;
   Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
   return true;
@@ -1385,19 +1404,8 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
               }
               Trace("nl-ext-cms-debug") << " ";
             }
-
             std::map<Node, std::pair<Node, Node> >::iterator bit =
                 d_check_model_bounds.find(vc);
-            if (bit == d_check_model_bounds.end())
-            {
-              // give it an exact bound if not a transcendental
-              if (!isTranscendentalKind(vc.getKind()))
-              {
-                Node v = computeModelValue(vc, 0);
-                d_check_model_bounds[vc] = std::pair<Node, Node>(v, v);
-                bit = d_check_model_bounds.find(vc);
-              }
-            }
             // if there is a model bound for this term
             if (bit != d_check_model_bounds.end())
             {
@@ -1441,6 +1449,9 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
               Trace("nl-ext-cms-debug") << std::endl;
               Trace("nl-ext-cms")
                   << "  failed due to unknown bound for " << vc << std::endl;
+              // should either assign a model bound or eliminate the variable
+              // via substitution
+              Assert(false);
               return false;
             }
           }
@@ -2104,26 +2115,6 @@ void NonlinearExtension::check(Theory::Effort e) {
 
     } while (needsRecheck);
   }
-}
-
-bool NonlinearExtension::collectModelInfo(TheoryModel* m)
-{
-  // assert the approximations
-  NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
-       d_check_model_bounds)
-  {
-    Node l = cb.second.first;
-    Node u = cb.second.second;
-    if (l != u)
-    {
-      Node n = cb.first;
-      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, n, l), nm->mkNode(GEQ, n, u));
-      pred = Rewriter::rewrite(pred);
-      m->assertApproximation(n, pred);
-    }
-  }
-  return true;
 }
 
 void NonlinearExtension::presolve()

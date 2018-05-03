@@ -139,7 +139,7 @@ public:
    * during Theory's collectModelInfo( ... ) functions.
    */
   void assertSkeleton(TNode n);
-  /** assert approximation
+  /** record approximation
    *
    * This notifies this model that the value of n was approximated in this
    * model such that the predicate pred (involving n) holds. For example,
@@ -148,7 +148,7 @@ public:
    * c and e are constants. We call this function with n set to sin( x ) and
    * pred set to c-e <= sin( x ) <= c+e.
    *
-   * If assertApproximation is called at least once during the model
+   * If recordApproximation is called at least once during the model
    * construction process, then check-model is not guaranteed to succeed.
    * However, there are cases where we can establish the input is satisfiable
    * without constructing an exact model. For example, if x=.77, sin(x)=.7, and
@@ -160,7 +160,7 @@ public:
    * This function is simply for bookkeeping, it does not affect the model
    * construction process.
    */
-  void assertApproximation(TNode n, TNode pred);
+  void recordApproximation(TNode n, TNode pred);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -241,7 +241,7 @@ public:
   context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
-  /** approximations (see assertApproximation) */
+  /** approximations (see recordApproximation) */
   std::map<Node, Node> d_approximations;
   /** list of all approximations */
   std::vector<std::pair<Node, Node> > d_approx_list;
