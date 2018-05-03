@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sort-inference
+; COMMAND-LINE: --sort-inference --no-nl-ext-inc-prec
 ; EXPECT: unknown
 (set-logic QF_NRA)
 (declare-fun x () Real)

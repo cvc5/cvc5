@@ -1302,12 +1302,22 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
                            m_var,
                            nm->mkNode(MULT,
                                       nm->mkConst(Rational(1) / Rational(2)),
-                                      bounds[r][0],
-                                      bounds[r][1]));
+                                      nm->mkNode(PLUS,bounds[r][0],
+                                      bounds[r][1])));
+    Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
+    printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
+    Trace("nl-ext-cm-debug") << "...";
+    printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
+    Trace("nl-ext-cm-debug") << std::endl;
     diff = Rewriter::rewrite(diff);
     Assert(diff.isConst());
     diff = nm->mkConst(diff.getConst<Rational>().abs());
     diff_bound[r] = diff;
+    Trace("nl-ext-cm-debug") << "...diff from model value (";
+    printRationalApprox("nl-ext-cm-debug", m_var);
+    Trace("nl-ext-cm-debug") << ") is ";
+    printRationalApprox("nl-ext-cm-debug",diff_bound[r]);
+    Trace("nl-ext-cm-debug")<< std::endl;
   }
   // take the one that var is closer to in the model
   Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
@@ -2126,7 +2136,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         }
 
         // we are incomplete
-        if (options::nlExtTfIncPrecision() && d_used_approx)
+        if (options::nlExtIncPrecision() && d_used_approx)
         {
           d_taylor_degree++;
           d_used_approx = false;
