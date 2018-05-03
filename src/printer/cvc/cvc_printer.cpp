@@ -385,7 +385,7 @@ void CvcPrinter::toStream(
           return;
         }else{
           toStream(op, n.getOperator(), depth, types, false);
-          if( n.getNumChildren()==0 )
+          if (n.getNumChildren() == 0)
           {
             // for datatype constants d, we print "d" and not "d()"
             out << op.str();
