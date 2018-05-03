@@ -52,7 +52,12 @@ class CegisUnif : public Cegis
   bool initialize(Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
-  /** adds the candidates themselves to enums */
+  /** Retrieves enumerators for constructing solutions
+   *
+   * Non-unification candidates have themselves as enumerators, while for
+   * unification candidates we add their conditonal enumerators to enums if
+   * their respective guards are set in the current model
+   */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
   /** Tries to build new candidate solutions with new enumerated expressions

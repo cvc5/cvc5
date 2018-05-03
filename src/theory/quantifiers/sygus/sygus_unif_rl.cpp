@@ -30,14 +30,9 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              std::vector<Node>& enums,
                              std::vector<Node>& lemmas)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_prev_rlemmas = d_true;
-  d_rlemmas = d_true;
   d_ecache.clear();
   d_cand_to_cond_enum.clear();
   d_cand_to_pt_enum.clear();
-  d_app_to_pt.clear();
   /* TODO populate d_unif_candidates and remove lemmas cleaning */
   SygusUnif::initialize(qe, funs, enums, lemmas);
   lemmas.clear();
@@ -72,19 +67,23 @@ Node SygusUnifRl::purifyLemma(Node n,
   BoolNodePairMap::const_iterator it = cache.find(BoolNodePair(ensureConst, n));
   if (it != cache.end())
   {
-    Trace("sygus-unif-rl-purify") << "... already visited " << n << "\n";
+    Trace("sygus-unif-rl-purify-debug") << "... already visited " << n << "\n";
     return it->second;
   }
   /* Recurse */
   unsigned size = n.getNumChildren();
   Kind k = n.getKind();
-  /* Uninterpreted functions (i.e. functions-to-synthesize in general) must be
-     applied over concrete values except top level non-unif function apps */
-  bool fapp = k == APPLY_UF && size > 0 && (ensureConst || usingUnif(n[0]));
-  /* We retrive model value before the next transformation because the resulting
-     node would not have a model value */
+  /* Whether application of a function-to-synthesize */
+  bool fapp = k == APPLY_UF && size > 0;
+  Assert(std::find(d_candidates.begin(), d_candidates.end(), n[0])
+         == d_candidates.end());
+  /* Whether application of a (non-)unification function-to-synthesize */
+  bool u_fapp = fapp && usingUnif(n[0]);
+  bool nu_fapp = fapp && !usingUnif(n[0]);
+  /* We retrive model value now because purified node may not have a value */
   Node nv = n;
-  /* get model value of non-top level applications of candidates */
+  /* get model value of non-top level applications of functions-to-synthesize
+     occurring under a unification function-to-synthesize */
   if (ensureConst && fapp)
   {
     nv = d_parent->getModelValue(n);
@@ -103,7 +102,9 @@ Node SygusUnifRl::purifyLemma(Node n,
       children.push_back(n[i]);
       continue;
     }
-    Node child = purifyLemma(n[i], ensureConst || fapp, model_guards, cache);
+    /* Arguments of non-unif functions do not need to be constant */
+    Node child = purifyLemma(
+        n[i], !nu_fapp && (ensureConst || u_fapp), model_guards, cache);
     children.push_back(child);
     childChanged = childChanged || child != n[i];
   }
@@ -122,19 +123,38 @@ Node SygusUnifRl::purifyLemma(Node n,
   {
     nb = n;
   }
-  /* Map to point enumerator function being synthesized with unification  */
-  if (fapp && usingUnif(n[0]))
+  /* Map to point enumerator every unification function-to-synthesize  */
+  if (u_fapp)
   {
     Node np;
     std::map<Node, Node>::const_iterator it = d_app_to_purified.find(nb);
     if (it == d_app_to_purified.end())
     {
+      if (!childChanged)
+      {
+        Assert(nb.hasOperator());
+        children.insert(children.begin(), n.getOperator());
+      }
       /* Build purified head with fresh skolem and recreate node */
       std::stringstream ss;
       ss << nb[0] << "_" << d_purified_count[nb[0]]++;
       Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
-      /* Add new enumerator to candidate */
+      /* Adds new enumerator to map from candidate */
+      Trace("sygus-unif-rl-purify") << "...new enum " << new_f
+                                        << " for candidate " << nb[0] << "\n";
       d_cand_to_pt_enum[nb[0]].push_back(new_f);
+      /* Maps new enumerator to its respective tuple of arguments */
+      d_app_to_pt[new_f] =
+          std::vector<Node>(children.begin() + 2, children.end());
+      if (Trace.isOn("sygus-unif-rl-purify"))
+      {
+        Trace("sygus-unif-rl-purify") << "...[" << new_f << "] --> (";
+        for (const Node& pt_i : d_app_to_pt[new_f])
+        {
+          Trace("sygus-unif-rl-purify") << pt_i << " ";
+        }
+        Trace("sygus-unif-rl-purify") << ")\n";
+      }
       /* replace first child and rebulid node */
       children[1] = new_f;
       np = NodeManager::currentNM()->mkNode(k, children);
@@ -152,23 +172,25 @@ Node SygusUnifRl::purifyLemma(Node n,
   /* Add equality between purified fapp and model value */
   if (ensureConst && fapp)
   {
-    Trace("sygus-unif-rl-purify") << "PurifyLemma : adding model eq\n";
     model_guards.push_back(
         NodeManager::currentNM()->mkNode(EQUAL, nv, nb).negate());
     nb = nv;
+    Trace("sygus-unif-rl-purify") << "PurifyLemma : adding model eq "
+                                  << model_guards.back() << "\n";
   }
   nb = Rewriter::rewrite(nb);
   /* every non-top level application of function-to-synthesize must be reduced
      to a concrete constant */
   Assert(!ensureConst || nb.isConst());
-  Trace("sygus-unif-rl-purify") << "... caching [" << n << "] = " << nb << "\n";
+  Trace("sygus-unif-rl-purify-debug") << "... caching [" << n << "] = " << nb
+                                      << "\n";
   cache[BoolNodePair(ensureConst, n)] = nb;
   return nb;
 }
 
-void SygusUnifRl::addRefLemma(Node lemma)
+Node SygusUnifRl::addRefLemma(Node lemma)
 {
-  Trace("sygus-unif-rl-lemma") << "Registering lemma at SygusUnif : " << lemma
+  Trace("sygus-unif-rl-purify") << "Registering lemma at SygusUnif : " << lemma
                                << "\n";
   std::vector<Node> model_guards;
   BoolNodePairMap cache;
@@ -180,12 +202,8 @@ void SygusUnifRl::addRefLemma(Node lemma)
     plem = NodeManager::currentNM()->mkNode(OR, model_guards);
   }
   plem = Rewriter::rewrite(plem);
-  Trace("sygus-unif-rl-lemma") << "Purified lemma : " << plem << "\n";
-  d_prev_rlemmas = d_rlemmas;
-  d_rlemmas = d_tds->getExtRewriter()->extendedRewrite(
-      NodeManager::currentNM()->mkNode(AND, d_rlemmas, plem));
-  Trace("sygus-unif-rl-lemma")
-      << "SyGuSUnifRl: New collection of ref lemmas is " << d_rlemmas << "\n";
+  Trace("sygus-unif-rl-purify") << "Purified lemma : " << plem << "\n";
+  return plem;
 }
 
 void SygusUnifRl::initializeConstructSol() {}

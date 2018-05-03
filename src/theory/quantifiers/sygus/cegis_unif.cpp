@@ -67,8 +67,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     {
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
-      /* Get whether the active guard for this enumerator is if so, then there
-         may exist more values for it, and hence we add it to enums. */
+      /* Get whether the active guard for this enumerator is set. If so, then
+         there may exist more values for it, and hence we add it to enums. */
       Node gstatus = valuation.getSatValue(g);
       if (!gstatus.isNull() && gstatus.getConst<bool>())
       {
@@ -147,15 +147,15 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
-  d_refinement_lemmas.push_back(lem);
+  /* Notify lemma to unification utility and get its purified form */
+  Node plem = d_sygus_unif.addRefLemma(lem);
+  d_refinement_lemmas.push_back(plem);
   /* Make the refinement lemma and add it to lems. This lemma is guarded by the
      parent's guard, which has the semantics "this conjecture has a solution",
      hence this lemma states: if the parent conjecture has a solution, it
      satisfies the specification for the given concrete point. */
-  lems.push_back(
-      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem));
-  /* Notify lemma to unification utility */
-  d_sygus_unif.addRefLemma(lem);
+  lems.push_back(NodeManager::currentNM()->mkNode(
+      OR, d_parent->getGuard().negate(), plem));
 }
 
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
