@@ -20,9 +20,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/passes/static_learning.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "preprocessing/passes/static_learning.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -30,26 +30,30 @@ namespace passes {
 
 using namespace CVC4::theory;
 
-
 StaticLearning::StaticLearning(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "static-learning"){};
 
 PreprocessingPassResult StaticLearning::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-          NodeManager::currentResourceManager()->spendResource(
-                options::preprocessStep());
+  NodeManager::currentResourceManager()->spendResource(
+      options::preprocessStep());
 
-                  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++ i) {
-                              NodeBuilder<> learned(kind::AND);
-                                  learned << (*assertionsToPreprocess)[i];
-                                      d_preprocContext->getTheoryEngine()->ppStaticLearn((*assertionsToPreprocess)[i], learned);
-                                          if(learned.getNumChildren() == 1) {
-                                                        learned.clear();
-                                                            } else {
-                                                                          assertionsToPreprocess->replace(i, learned);
-                                                            }
-                  }
+  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  {
+    NodeBuilder<> learned(kind::AND);
+    learned << (*assertionsToPreprocess)[i];
+    d_preprocContext->getTheoryEngine()->ppStaticLearn(
+        (*assertionsToPreprocess)[i], learned);
+    if (learned.getNumChildren() == 1)
+    {
+      learned.clear();
+    }
+    else
+    {
+      assertionsToPreprocess->replace(i, learned);
+    }
+  }
   return PreprocessingPassResult::NO_CONFLICT;
 }
 

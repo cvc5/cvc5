@@ -2654,6 +2654,8 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
   d_preprocessingPassRegistry.registerPass("static-learning", std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
+  d_preprocessingPassRegistry.registerPass("static-learning",
+                                           std::move(staticLearning));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4257,7 +4259,8 @@ void SmtEnginePrivate::processAssertions() {
     Trace("simplify") << "SmtEnginePrivate::processAssertions(): "
                       << "performing static learning" << endl;
     d_smt.finalOptionsAreSet();
-    TimerStat::CodeTimer staticLearningTimer(d_smt.d_stats->d_staticLearningTime);
+    TimerStat::CodeTimer staticLearningTimer(
+        d_smt.d_stats->d_staticLearningTime);
     d_preprocessingPassRegistry.getPass("static-learning")
         ->apply(&d_assertions);
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-static-learning" << endl;
