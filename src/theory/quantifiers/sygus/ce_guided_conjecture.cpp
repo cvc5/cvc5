@@ -535,14 +535,14 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
     }
   }
   // see if the master module has a decision
-  if( !isSingleInvocation() )
+  if (!isSingleInvocation())
   {
-    Assert( d_master!=nullptr );
+    Assert(d_master != nullptr);
     Node mlit = d_master->getNextDecisionRequest(priority);
     if (!mlit.isNull())
     {
       Trace("cegqi-debug") << "getNextDecision : master module returned : "
-                          << mlit << std::endl;
+                           << mlit << std::endl;
       return mlit;
     }
   }
