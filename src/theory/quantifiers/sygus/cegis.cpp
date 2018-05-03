@@ -121,7 +121,6 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                            << std::endl;
       addedEvalLemmas = true;
     }
-    return false;
   }
   return addedEvalLemmas;
 }
