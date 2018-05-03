@@ -968,6 +968,14 @@ header = "options/quantifiers_options.h"
   help       = "sygus advanced pruning based on examples"
 
 [[option]]
+  name       = "sygusUnif"
+  category   = "regular"
+  long       = "sygus-unif"
+  type       = "bool"
+  default    = "false"
+  help       = "Unification-based function synthesis"
+
+[[option]]
   name       = "sygusQePreproc"
   category   = "regular"
   long       = "sygus-qe-preproc"

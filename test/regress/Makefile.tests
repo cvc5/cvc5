@@ -154,6 +154,7 @@ REG0_TESTS = \
 	regress0/bug605.cvc \
 	regress0/bug639.smt2 \
 	regress0/buggy-ite.smt2 \
+	regress0/bv/bool-to-bv.smt2 \
 	regress0/bv/bug260a.smt \
 	regress0/bv/bug260b.smt \
 	regress0/bv/bug440.smt \
@@ -161,6 +162,7 @@ REG0_TESTS = \
 	regress0/bv/bug734.smt2 \
 	regress0/bv/bv-int-collapse1.smt2 \
 	regress0/bv/bv-int-collapse2.smt2 \
+	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv-options1.smt2 \
 	regress0/bv/bv-options2.smt2 \
 	regress0/bv/bv-options3.smt2 \
@@ -593,6 +595,7 @@ REG0_TESTS = \
 	regress0/quantifiers/ex3.smt2 \
 	regress0/quantifiers/ex6.smt2 \
 	regress0/quantifiers/floor.smt2 \
+	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
@@ -785,6 +788,7 @@ REG0_TESTS = \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
+	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
 	regress0/strings/str004.smt2 \
 	regress0/strings/str005.smt2 \
@@ -995,6 +999,7 @@ REG1_TESTS = \
 	regress1/arith/mult.02.smt2 \
 	regress1/arith/pbrewrites-test.smt2 \
 	regress1/arith/problem__003.smt2 \
+	regress1/arith/real2int-test.smt2 \
 	regress1/arrayinuf_error.smt2 \
 	regress1/aufbv/bug580.smt2 \
 	regress1/aufbv/fuzz10.smt \
@@ -1114,6 +1119,7 @@ REG1_TESTS = \
 	regress1/nl/exp-4.5-lt.smt2 \
 	regress1/nl/exp1-lb.smt2 \
 	regress1/nl/exp_monotone.smt2 \
+	regress1/nl/factor_agg_s.smt2 \
 	regress1/nl/metitarski-1025.smt2 \
 	regress1/nl/metitarski-3-4.smt2 \
 	regress1/nl/metitarski_3_4_2e.smt2 \
@@ -1121,6 +1127,7 @@ REG1_TESTS = \
 	regress1/nl/nl-eq-infer.smt2 \
 	regress1/nl/nl-help-unsat-quant.smt2 \
 	regress1/nl/nl-unk-quant.smt2 \
+	regress1/nl/nl_uf_lalt.smt2 \
 	regress1/nl/ones.smt2 \
 	regress1/nl/poly-1025.smt2 \
 	regress1/nl/quant-nl.smt2 \
@@ -1241,12 +1248,14 @@ REG1_TESTS = \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
+	regress1/quantifiers/isaplanner-goal20.smt2 \
 	regress1/quantifiers/is-even.smt2 \
 	regress1/quantifiers/javafe.ast.StmtVec.009.smt2 \
 	regress1/quantifiers/mix-coeff.smt2 \
 	regress1/quantifiers/model_6_1_bv.smt2 \
 	regress1/quantifiers/mutualrec2.cvc \
 	regress1/quantifiers/nested9_true-unreach-call.i_575.smt2 \
+	regress1/quantifiers/nra-interleave-inst.smt2 \
 	regress1/quantifiers/opisavailable-12.smt2 \
 	regress1/quantifiers/parametric-lists.smt2 \
 	regress1/quantifiers/psyco-001-bv.smt2 \
@@ -1473,6 +1482,7 @@ REG1_TESTS = \
 	regress1/sygus/nia-max-square-ns.sy \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
+	regress1/sygus/pbe_multi.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \

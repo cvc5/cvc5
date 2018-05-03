@@ -20,8 +20,10 @@
 
 #include <memory>
 
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
+#include "theory/quantifiers/sygus/cegis_unif.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
@@ -146,6 +148,8 @@ private:
   std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
   /** CEGIS module */
   std::unique_ptr<Cegis> d_ceg_cegis;
+  /** CEGIS UNIF module */
+  std::unique_ptr<CegisUnif> d_ceg_cegisUnif;
   /** the set of active modules (subset of the above list) */
   std::vector<SygusModule*> d_modules;
   /** master module
@@ -252,17 +256,12 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
-  /** sygus sampler objects for each program variable
+  /** candidate rewrite objects for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, SygusSamplerExt> d_sampler;
-  /**
-   * Cache of skolems for each free variable that appears in a synthesis check
-   * (for --sygus-rr-synth-check).
-   */
-  std::map<Node, Node> d_fv_to_skolem;
+  std::map<Node, CandidateRewriteDatabase> d_crrdb;
 };
 
 } /* namespace CVC4::theory::quantifiers */

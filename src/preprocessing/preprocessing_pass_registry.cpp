@@ -45,5 +45,10 @@ PreprocessingPass* PreprocessingPassRegistry::getPass(
   return d_stringToPreprocessingPass[ppName].get();
 }
 
+void PreprocessingPassRegistry::unregisterPasses()
+{
+  d_stringToPreprocessingPass.clear();
+}
+
 }  // namespace preprocessing
 }  // namespace CVC4

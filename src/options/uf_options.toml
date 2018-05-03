@@ -95,15 +95,6 @@ header = "options/uf_options.h"
   help       = "use cliques instead of splitting on demand to shrink model"
 
 [[option]]
-  name       = "ufssSymBreak"
-  category   = "regular"
-  long       = "uf-ss-sym-break"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "finite model finding symmetry breaking techniques"
-
-[[option]]
   name       = "ufssFairness"
   category   = "regular"
   long       = "uf-ss-fair"

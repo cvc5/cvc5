@@ -42,6 +42,20 @@ void ExtendedRewriter::setCache(Node n, Node ret)
   n.setAttribute(era, ret);
 }
 
+bool ExtendedRewriter::addToChildren(Node nc,
+                                     std::vector<Node>& children,
+                                     bool dropDup)
+{
+  // If the operator is non-additive, do not consider duplicates
+  if (dropDup
+      && std::find(children.begin(), children.end(), nc) != children.end())
+  {
+    return false;
+  }
+  children.push_back(nc);
+  return true;
+}
+
 Node ExtendedRewriter::extendedRewrite(Node n)
 {
   n = Rewriter::rewrite(n);
@@ -97,19 +111,24 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     Kind k = n.getKind();
     bool childChanged = false;
     bool isNonAdditive = TermUtil::isNonAdditive(k);
+    bool isAssoc = TermUtil::isAssoc(k);
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       Node nc = extendedRewrite(n[i]);
       childChanged = nc != n[i] || childChanged;
-      // If the operator is non-additive, do not consider duplicates
-      if (isNonAdditive
-          && std::find(children.begin(), children.end(), nc) != children.end())
+      if (isAssoc && nc.getKind() == n.getKind())
+      {
+        for (const Node& ncc : nc)
+        {
+          if (!addToChildren(ncc, children, isNonAdditive))
+          {
+            childChanged = true;
+          }
+        }
+      }
+      else if (!addToChildren(nc, children, isNonAdditive))
       {
         childChanged = true;
-      }
-      else
-      {
-        children.push_back(nc);
       }
     }
     Assert(!children.empty());
@@ -152,6 +171,13 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     std::map<Kind, bool> bcp_kinds;
     new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, ret);
     debugExtendedRewrite(ret, new_ret, "Bool bcp");
+    if (new_ret.isNull())
+    {
+      // equality resolution
+      new_ret =
+          extendedRewriteEqRes(AND, OR, EQUAL, NOT, bcp_kinds, ret, false);
+      debugExtendedRewrite(ret, new_ret, "Bool eq res");
+    }
   }
   else if (ret.getKind() == EQUAL)
   {
@@ -718,6 +744,86 @@ Node ExtendedRewriter::extendedRewriteBcp(
   return Node::null();
 }
 
+Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
+                                            Kind ork,
+                                            Kind eqk,
+                                            Kind notk,
+                                            std::map<Kind, bool>& bcp_kinds,
+                                            Node n,
+                                            bool isXor)
+{
+  Assert(n.getKind() == andk || n.getKind() == ork);
+  Trace("ext-rew-eqres") << "Eq res: **** INPUT: " << n << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Kind nk = n.getKind();
+  bool gpol = (nk == andk);
+  for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+  {
+    Node lit = n[i];
+    if (lit.getKind() == eqk)
+    {
+      // eq is the equality we are basing a substitution on
+      Node eq;
+      if (gpol == isXor)
+      {
+        // can only turn disequality into equality if types are the same
+        if (lit[1].getType() == lit.getType())
+        {
+          // t != s ---> ~t = s
+          Assert(lit[1].getKind() != notk);
+          eq = nm->mkNode(EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
+        }
+      }
+      else
+      {
+        eq = eqk == EQUAL ? lit : nm->mkNode(EQUAL, lit[0], lit[1]);
+      }
+      if (!eq.isNull())
+      {
+        // see if it corresponds to a substitution
+        std::vector<Node> vars;
+        std::vector<Node> subs;
+        if (inferSubstitution(eq, vars, subs))
+        {
+          Assert(vars.size() == 1);
+          std::vector<Node> children;
+          bool childrenChanged = false;
+          // apply to all other children
+          for (unsigned j = 0; j < nchild; j++)
+          {
+            Node ccs = n[j];
+            if (i != j)
+            {
+              if (bcp_kinds.empty())
+              {
+                ccs = ccs.substitute(
+                    vars.begin(), vars.end(), subs.begin(), subs.end());
+              }
+              else
+              {
+                std::map<Node, Node> assign;
+                // vars.size()==subs.size()==1
+                assign[vars[0]] = subs[0];
+                // substitution is only applicable to compatible kinds
+                ccs = partialSubstitute(ccs, assign, bcp_kinds);
+              }
+              childrenChanged = childrenChanged || n[j] != ccs;
+            }
+            children.push_back(ccs);
+          }
+          if (childrenChanged)
+          {
+            return nm->mkNode(nk, children);
+          }
+        }
+      }
+    }
+  }
+
+  return Node::null();
+}
+
 Node ExtendedRewriter::extendedRewriteEqChain(
     Kind eqk, Kind andk, Kind ork, Kind notk, Node ret, bool isXor)
 {
@@ -836,16 +942,16 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   }
 
   // sorted right associative chain
-  bool has_const = false;
-  unsigned const_index = 0;
+  bool has_nvar = false;
+  unsigned nvar_index = 0;
   for (std::pair<const Node, bool>& cp : cstatus)
   {
     if (cp.second)
     {
-      if (cp.first.isConst())
+      if (!cp.first.isVar())
       {
-        has_const = true;
-        const_index = children.size();
+        has_nvar = true;
+        nvar_index = children.size();
       }
       children.push_back(cp.first);
     }
@@ -856,7 +962,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   if (!gpol)
   {
     // negate the constant child if it exists
-    unsigned nindex = has_const ? const_index : 0;
+    unsigned nindex = has_nvar ? nvar_index : 0;
     children[nindex] = TermUtil::mkNegate(notk, children[nindex]);
   }
   new_ret = children.back();
@@ -964,12 +1070,32 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     {
       n = slv_eq;
     }
+    NodeManager* nm = NodeManager::currentNM();
+
+    Node v[2];
     for (unsigned i = 0; i < 2; i++)
     {
-      TNode r1 = n[i];
-      TNode r2 = n[1 - i];
+      if (n[i].isVar() || n[i].isConst())
+      {
+        v[i] = n[i];
+      }
+      else if (TermUtil::isNegate(n[i].getKind()) && n[i][0].isVar())
+      {
+        v[i] = n[i][0];
+      }
+    }
+    for (unsigned i = 0; i < 2; i++)
+    {
+      TNode r1 = v[i];
+      Node r2 = v[1 - i];
       if (r1.isVar() && ((r2.isVar() && r1 < r2) || r2.isConst()))
       {
+        r2 = n[1 - i];
+        if (v[i] != n[i])
+        {
+          Assert( TermUtil::isNegate( n[i].getKind() ) );
+          r2 = TermUtil::mkNegate(n[i].getKind(), r2);
+        }
         // TODO (#1706) : union find
         if (std::find(vars.begin(), vars.end(), r1) == vars.end())
         {
