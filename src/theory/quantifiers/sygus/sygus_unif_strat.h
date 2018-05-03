@@ -198,6 +198,8 @@ class EnumTypeInfo
   std::map<EnumRole, Node> d_enum;
   /** map from node roles to strategy nodes */
   std::map<NodeRole, StrategyNode> d_snodes;
+  /** get strategy node for node role */
+  StrategyNode& getStrategyNode(NodeRole nrole);
 };
 
 /** represents a strategy for a SyGuS datatype type
@@ -345,17 +347,34 @@ class SygusUnifStrategy
    *
    * This method builds the mapping needs_cons, which maps (master) enumerators
    * to a map from the constructors that it needs.
-   *
-   * isCond is whether the current enumerator is conditional (beneath a
-   * conditional of an strat_ITE strategy).
    */
   void staticLearnRedundantOps(
       Node e,
       NodeRole nrole,
       std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map<unsigned, bool> >& needs_cons,
+      std::map<Node, std::map<unsigned, bool> >& needs_cons);
+  /** finish initialization of the strategy tree 
+   * 
+   * (e, nrole) specify the strategy node in the graph we are currently
+   * analyzing, visited stores the nodes we have already visited.
+   * 
+   * isCond is whether the current enumerator is conditional (beneath a
+   * conditional of an strat_ITE strategy).
+   */
+  void finishInit(
+      Node e,
+      NodeRole nrole,
+      std::map<Node, std::map<NodeRole, bool> >& visited,
       bool isCond);
-  /** helper for debug print */
+  /** helper for debug print
+   * 
+   * Prints the node e with role nrole on Trace(c).
+   * 
+   * (e, nrole) specify the strategy node in the graph we are currently
+   * analyzing, visited stores the nodes we have already visited.
+   * 
+   * ind is the current level of indentation (for debugging)
+   */
   void debugPrint(const char* c,
                   Node e,
                   NodeRole nrole,

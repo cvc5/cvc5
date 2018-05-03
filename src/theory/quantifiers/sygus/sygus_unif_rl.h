@@ -73,8 +73,6 @@ class SygusUnifRl : public SygusUnif
   CegConjecture* d_parent;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
-  /* Maps unif candidates to their conditonal enumerators */
-  std::map<Node, Node> d_cand_to_cond_enum;
   /**
    * This class stores information regarding an enumerator, including: a
    * database
@@ -156,15 +154,42 @@ class SygusUnifRl : public SygusUnif
         Strategy information
     --------------------------------------------------------------
   */
+  /** 
+   * This class stores the necessary information for building a decision tree
+   * for a particular node in the strategy tree of a candidate variable f.
+   */
   class DecisionTreeInfo
   {
    public:
+    /** 
+     * The enumerator in the strategy tree that stores conditions of the 
+     * decision tree.
+     */
     Node d_cond_enum;
-    Node d_pt_enum;
   };
+  /** map from enumerators in the strategy trees to the above data */
   std::map<Node, DecisionTreeInfo> d_enum_to_dt;
+  /** all conditional enumerators */
+  std::vector< Node > d_cond_enums;
+  /** register strategy 
+   * 
+   * Initialize the above data for the relevant enumerators in the strategy tree
+   * of candidate variable f. 
+   */
   void registerStrategy(Node f);
-  void registerStrategyNode(Node f, Node e);
+  /** register strategy node
+   * 
+   * Called while traversing the strategy tree of f. The arguments e and nrole
+   * indicate the current node in the tree we are traversing, and visited
+   * indicates the nodes we have already visited.
+   */
+  void registerStrategyNode(Node f, Node e, NodeRole nrole, std::map<Node, std::map<NodeRole, bool> >& visited);
+  /** register conditional enumerator 
+   * 
+   * Registers that cond is a conditional enumerator for building a (recursive)
+   * decision tree at strategy node e within the strategy tree of f.
+   */
+  void registerConditionalEnumerator(Node f, Node e, Node cond );
 };
 
 } /* CVC4::theory::quantifiers namespace */
