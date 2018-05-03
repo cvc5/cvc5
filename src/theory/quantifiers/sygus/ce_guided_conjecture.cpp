@@ -42,6 +42,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, this)),
       d_master(nullptr),
       d_refine_count(0),
       d_syntax_guided(false)
@@ -49,6 +50,10 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
   if (options::sygusPbe())
   {
     d_modules.push_back(d_ceg_pbe.get());
+  }
+  if (options::sygusUnif())
+  {
+    d_modules.push_back(d_ceg_cegisUnif.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
 }
@@ -474,51 +479,74 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
     priority = 0;
     return feasible_guard;
-  }else{
-    if( value ){  
-      // the conjecture is feasible
-      if( options::sygusStream() ){
-        Assert( !isSingleInvocation() );
-        // if we are in sygus streaming mode, then get the "next guard" 
-        // which denotes "we have not yet generated the next solution to the conjecture"
-        Node curr_stream_guard = getCurrentStreamGuard();
-        bool needs_new_stream_guard = false;
-        if( curr_stream_guard.isNull() ){
-          needs_new_stream_guard = true;
-        }else{
-          // check the polarity of the guard
-          if( !d_qe->getValuation().hasSatValue( curr_stream_guard, value ) ) {
-            priority = 0;
-            return curr_stream_guard;
-          }else{
-            if( !value ){
-              Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
-              // need to make the next stream guard
-              needs_new_stream_guard = true;
-              // the guard has propagated false, indicating that a verify
-              // lemma was unsatisfiable. Hence, the previous candidate is
-              // an actual solution. We print and continue the stream.
-              printAndContinueStream();
-            }
-          }
-        }
-        if( needs_new_stream_guard ){
-          // generate a new stream guard
-          curr_stream_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G_Stream", NodeManager::currentNM()->booleanType() ) );
-          curr_stream_guard = d_qe->getValuation().ensureLiteral( curr_stream_guard );
-          AlwaysAssert( !curr_stream_guard.isNull() );
-          d_qe->getOutputChannel().requirePhase( curr_stream_guard, true );
-          d_stream_guards.push_back( curr_stream_guard );
-          Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : " << curr_stream_guard << std::endl;
-          // return it as a decision
-          priority = 0;
-          return curr_stream_guard;
-        }
-      }
-    }else{
-      Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible." << std::endl;
-    } 
   }
+  if (!value)
+  {
+    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible."
+                         << std::endl;
+    return Node::null();
+  }
+  // the conjecture is feasible
+  if (options::sygusStream())
+  {
+    Assert(!isSingleInvocation());
+    // if we are in sygus streaming mode, then get the "next guard"
+    // which denotes "we have not yet generated the next solution to the
+    // conjecture"
+    Node curr_stream_guard = getCurrentStreamGuard();
+    bool needs_new_stream_guard = false;
+    if (curr_stream_guard.isNull())
+    {
+      needs_new_stream_guard = true;
+    }else{
+      // check the polarity of the guard
+      if (!d_qe->getValuation().hasSatValue(curr_stream_guard, value))
+      {
+        priority = 0;
+        return curr_stream_guard;
+      }
+      if (!value)
+      {
+        Trace("cegqi-debug") << "getNextDecision : we have a new solution "
+                                "since stream guard was propagated false: "
+                             << curr_stream_guard << std::endl;
+        // need to make the next stream guard
+        needs_new_stream_guard = true;
+        // the guard has propagated false, indicating that a verify
+        // lemma was unsatisfiable. Hence, the previous candidate is
+        // an actual solution. We print and continue the stream.
+        printAndContinueStream();
+      }
+    }
+    if (needs_new_stream_guard)
+    {
+      // generate a new stream guard
+      curr_stream_guard = Rewriter::rewrite(NodeManager::currentNM()->mkSkolem(
+          "G_Stream", NodeManager::currentNM()->booleanType()));
+      curr_stream_guard = d_qe->getValuation().ensureLiteral(curr_stream_guard);
+      AlwaysAssert(!curr_stream_guard.isNull());
+      d_qe->getOutputChannel().requirePhase(curr_stream_guard, true);
+      d_stream_guards.push_back(curr_stream_guard);
+      Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : "
+                           << curr_stream_guard << std::endl;
+      // return it as a decision
+      priority = 0;
+      return curr_stream_guard;
+    }
+  }
+  // see if the master module has a decision
+  if (!isSingleInvocation())
+  {
+    Assert(d_master != nullptr);
+    Node mlit = d_master->getNextDecisionRequest(priority);
+    if (!mlit.isNull())
+    {
+      Trace("cegqi-debug") << "getNextDecision : master module returned : "
+                           << mlit << std::endl;
+      return mlit;
+    }
+  }
+
   return Node::null();
 }
 

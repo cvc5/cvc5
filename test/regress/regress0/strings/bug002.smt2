@@ -1,5 +1,5 @@
-(set-logic ASLIA)
 (set-info :smt-lib-version 2.0)
+(set-logic ASLIA)
 (set-option :strings-exp true)
 (set-info :status sat)
 

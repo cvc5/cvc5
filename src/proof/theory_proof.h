@@ -242,7 +242,7 @@ protected:
   }
 
   // congrence matching term helper
-  inline bool match(TNode n1, TNode n2);
+  bool match(TNode n1, TNode n2);
 
   /**
    * Helper function for ProofUF::toStreamRecLFSC and
@@ -363,7 +363,7 @@ protected:
 class BooleanProof : public TheoryProof {
 protected:
   ExprSet d_declarations; // all the boolean variables
-  theory::TheoryId getTheoryId();
+  theory::TheoryId getTheoryId() override;
 
  public:
   BooleanProof(TheoryProofEngine* proofEngine);
