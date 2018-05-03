@@ -127,7 +127,7 @@ enum CVC4_PUBLIC Language
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB v1 output language */
+  /** The SMTLIB v1 output language (unsupported) */
   LANG_SMTLIB_V1 = input::LANG_SMTLIB_V1,
   /** The SMTLIB v2.0 output language */
   LANG_SMTLIB_V2_0 = input::LANG_SMTLIB_V2_0,

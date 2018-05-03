@@ -21,7 +21,6 @@
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
 #include "printer/cvc/cvc_printer.h"
-#include "printer/smt1/smt1_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
 
@@ -36,9 +35,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V1: // TODO the printer
-    return unique_ptr<Printer>(new printer::smt1::Smt1Printer());
-
   case LANG_SMTLIB_V2_0:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant));
