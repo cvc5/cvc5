@@ -12,14 +12,10 @@
  ** \brief lazy trie
  **/
 
-#include "cvc4_private.h"
-
 #ifndef __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
 #define __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
 
-#include <map>
-#include "theory/quantifiers/dynamic_rewrite.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
