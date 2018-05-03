@@ -76,9 +76,6 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_CVC4;
   } else if(language == "cvc3" || language == "LANG_CVC3") {
     return output::LANG_CVC3;
-  } else if(language == "smtlib1" || language == "smt1" ||
-            language == "LANG_SMTLIB_V1") {
-    return output::LANG_SMTLIB_V1;
   } else if(language == "smtlib" || language == "smt" ||
             language == "smtlib2" || language == "smt2" ||
             language == "smtlib2.0" || language == "smt2.0" ||
