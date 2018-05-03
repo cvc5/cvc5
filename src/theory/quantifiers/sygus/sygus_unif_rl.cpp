@@ -92,7 +92,6 @@ Node SygusUnifRl::purifyLemma(Node n,
     Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
                                   << " is " << nv << "\n";
   }
-  Assert(!createModelEq || nb != nv);
   /* Travese to purify */
   bool childChanged = false;
   std::vector<Node> children;
@@ -123,7 +122,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   {
     nb = n;
   }
-  /* Map to point enumerator function being synthesize with unification  */
+  /* Map to point enumerator function being synthesized with unification  */
   if (fapp && usingUnif(n[0]))
   {
     Node np;
@@ -136,17 +135,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
       /* Add new enumerator to candidate */
       d_cand_to_pt_enum[nb[0]].push_back(new_f);
-      /* collect children and rebulid node */
-      children.clear();
-      children.push_back(new_f);
-      for (unsigned i = 1; i < size; ++i)
-      {
-        children.push_back(nb[i]);
-      }
-      if (nb.hasOperator())
-      {
-        children.insert(children.begin(), nb.getOperator());
-      }
+      /* replace first child and rebulid node */
+      children[1] = new_f;
       np = NodeManager::currentNM()->mkNode(k, children);
       d_app_to_purified[nb] = np;
     }
@@ -198,62 +188,7 @@ void SygusUnifRl::addRefLemma(Node lemma)
       << "SyGuSUnifRl: New collection of ref lemmas is " << d_rlemmas << "\n";
 }
 
-void SygusUnifRl::collectPoints(Node n)
-{
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) != visited.end())
-    {
-      continue;
-    }
-    visited.insert(cur);
-    unsigned size = cur.getNumChildren();
-    if (cur.getKind() == APPLY_UF && size > 0)
-    {
-      std::vector<Node> pt;
-      for (unsigned i = 1; i < size; ++i)
-      {
-        Assert(cur[i].isConst());
-        pt.push_back(cur[i]);
-      }
-      d_app_to_pt[cur] = pt;
-      continue;
-    }
-    for (const TNode& child : cur)
-    {
-      visit.push_back(child);
-    }
-  } while (!visit.empty());
-}
-
-void SygusUnifRl::initializeConstructSol()
-{
-  if (d_rlemmas != d_prev_rlemmas)
-  {
-    collectPoints(d_rlemmas);
-    if (Trace.isOn("sygus-unif-rl-sol"))
-    {
-      Trace("sygus-unif-rl-sol") << "SyGuSUnifRl: Points from " << d_rlemmas
-                                 << "\n";
-      for (std::pair<const Node, std::vector<Node>>& pair : d_app_to_pt)
-      {
-        Trace("sygus-unif-rl-sol") << "...[" << pair.first << "] --> (";
-        for (const Node& pt_i : pair.second)
-        {
-          Trace("sygus-unif-rl-sol") << pt_i << " ";
-        }
-        Trace("sygus-unif-rl-sol") << ")\n";
-      }
-    }
-  }
-}
+void SygusUnifRl::initializeConstructSol() {}
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {

@@ -29,7 +29,6 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
     : Cegis(qe, p), d_sygus_unif(p)
 {
   d_tds = d_qe->getTermDatabaseSygus();
-  d_enum_to_active_guard.clear();
 }
 
 CegisUnif::~CegisUnif() {}
@@ -38,18 +37,8 @@ bool CegisUnif::initialize(Node n,
                            std::vector<Node>& lemmas)
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
-  /* For regular CEGIS */
-  d_base_body = n;
-  if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
-  {
-    for (const Node& v : d_base_body[0][0])
-    {
-      d_base_vars.push_back(v);
-    }
-    d_base_body = d_base_body[0][1];
-  }
   /* Init UNIF util */
-  d_sygus_unif.initialize(d_qe, candidates, d_enums, lemmas);
+  d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, lemmas);
   /* TODO initialize unif enumerators */
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   /* Initialize enumerators for non-unif functions-to-synhesize */
@@ -74,13 +63,12 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
       continue;
     }
     Valuation& valuation = d_qe->getValuation();
-    for (const Node& e : d_enums)
+    for (const Node& e : d_cond_enums)
     {
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
       /* Get whether the active guard for this enumerator is if so, then there
-         may
-         exist more values for it, and hence we add it to enums. */
+         may exist more values for it, and hence we add it to enums. */
       Node gstatus = valuation.getSatValue(g);
       if (!gstatus.isNull() && gstatus.getConst<bool>())
       {
@@ -107,7 +95,9 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
-    if (std::find(d_enums.begin(), d_enums.end(), enums[i]) == d_enums.end())
+    /* Only conditional enumerators will be notified to unif utility */
+    if (std::find(d_cond_enums.begin(), d_cond_enums.end(), enums[i])
+        == d_cond_enums.end())
     {
       continue;
     }

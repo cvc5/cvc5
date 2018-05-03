@@ -101,8 +101,7 @@ class Cegis : public SygusModule
    * otherwise.
    *
    * Also eagerly unfolds evaluation functions in a heuristic manner, which is
-   * useful when evaluation functions have been axiomatized (e.g. for boolean
-   * connectives)
+   * useful e.g. for boolean connectives
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
                      const std::vector<Node>& candidate_values);
