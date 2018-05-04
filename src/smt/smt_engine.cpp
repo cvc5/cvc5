@@ -4025,11 +4025,9 @@ void SmtEnginePrivate::processAssertions() {
     d_smt.d_theoryEngine->mkAckermanizationAssertions(d_assertions.ref());
   }
 
-  if ( options::bvAbstraction() &&
-      !options::incrementalSolving()) {
-    dumpAssertions("pre-bv-abstraction", d_assertions);
+  if (options::bvAbstraction() && !options::incrementalSolving())
+  {
     d_preprocessingPassRegistry.getPass("bv-abstraction")->apply(&d_assertions);
-    dumpAssertions("post-bv-abstraction", d_assertions);
   }
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;

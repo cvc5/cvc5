@@ -22,5 +22,11 @@ namespace preprocessing {
 PreprocessingPassContext::PreprocessingPassContext(SmtEngine* smt)
     : d_smt(smt) {}
 
+void PreprocessingPassContext::widenLogic(theory::TheoryId id)
+{
+  LogicRequest req(*d_smt);
+  req.widenLogic(id);
+}
+
 }  // namespace preprocessing
 }  // namespace CVC4

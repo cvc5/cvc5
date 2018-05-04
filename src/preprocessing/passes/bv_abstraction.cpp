@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "options/bv_options.h"
-#include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/rewriter.h"
 
@@ -46,7 +45,7 @@ PreprocessingPassResult BvAbstraction::applyInternal(
   std::vector<Node> assertions(assertionsToPreprocess->begin(),
                                assertionsToPreprocess->end());
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)te->theoryOf(THEORY_BV);
+  bv::TheoryBV* bv_theory = static_cast<bv::TheoryBV*>(te->theoryOf(THEORY_BV));
   bool changed = bv_theory->applyAbstraction(assertions, new_assertions);
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
@@ -56,8 +55,7 @@ PreprocessingPassResult BvAbstraction::applyInternal(
   // symbols were introduced.
   if (options::bitblastMode() == bv::BITBLAST_MODE_LAZY && changed)
   {
-    LogicRequest req(*d_preprocContext->getSmt());
-    req.widenLogic(theory::THEORY_UF);
+    d_preprocContext->widenLogic(theory::THEORY_UF);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
