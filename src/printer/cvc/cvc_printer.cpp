@@ -76,11 +76,14 @@ void CvcPrinter::toStream(
 
 void toStreamRational(std::ostream& out, Node n, bool forceRational)
 {
-  Assert( n.getKind()==kind::CONST_RATIONAL );
+  Assert(n.getKind() == kind::CONST_RATIONAL);
   const Rational& rat = n.getConst<Rational>();
-  if(rat.isIntegral() && !forceRational) {
+  if (rat.isIntegral() && !forceRational)
+  {
     out << rat.getNumerator();
-  } else {
+  }
+  else
+  {
     out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
   }
 }
@@ -152,7 +155,7 @@ void CvcPrinter::toStream(
       out << (n.getConst<bool>() ? "TRUE" : "FALSE");
       break;
     case kind::CONST_RATIONAL: {
-      toStreamRational(out,n,false);
+      toStreamRational(out, n, false);
       break;
     }
     case kind::TYPE_CONSTANT:
@@ -580,10 +583,10 @@ void CvcPrinter::toStream(
       opType = PREFIX;
       break;
     case kind::TO_REAL:
-      if( n[0].getKind()==kind::CONST_RATIONAL )
+      if (n[0].getKind() == kind::CONST_RATIONAL)
       {
         // print the constant as a rational
-        toStreamRational(out,n[0],true);
+        toStreamRational(out, n[0], true);
       }
       else
       {
