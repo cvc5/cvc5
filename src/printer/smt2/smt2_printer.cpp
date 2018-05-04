@@ -1441,10 +1441,7 @@ void Smt2Printer::toStream(std::ostream& out,
   else if (const DatatypeDeclarationCommand* datatype_declaration_command =
                dynamic_cast<const DatatypeDeclarationCommand*>(command))
   {
-    if (!datatype_declaration_command->getDatatypes()[0].isTuple())
-    {
-      out << command << endl;
-    }
+    toStream(out, datatype_declaration_command, -1, false, 1);
   }
   else
   {
@@ -1903,8 +1900,14 @@ static void toStream(std::ostream& out,
                      Variant v)
 {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
-  out << "(declare-";
   Assert(!datatypes.empty());
+  if (datatypes[0].getDatatype().isTuple())
+  {
+    // not necessary to print tuples
+    Assert(datatypes.size() == 1);
+    return;
+  }
+  out << "(declare-";
   if (datatypes[0].getDatatype().isCodatatype())
   {
     out << "co";
