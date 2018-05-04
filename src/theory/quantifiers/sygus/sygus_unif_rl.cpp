@@ -31,7 +31,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              std::vector<Node>& lemmas)
 {
   d_ecache.clear();
-  d_cand_to_pt_enum.clear();
+  d_cand_to_eval_hds.clear();
   // initialize
   std::vector<Node> all_enums;
   SygusUnif::initialize(qe, funs, all_enums, lemmas);
@@ -46,7 +46,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   for (const Node& c : d_unif_candidates)
   {
     d_app_to_pt[c].clear();
-    d_cand_to_pt_enum[c].clear();
+    d_cand_to_eval_hds[c].clear();
     d_purified_count[c] = 0;
   }
 }
@@ -153,7 +153,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       /* Adds new enumerator to map from candidate */
       Trace("sygus-unif-rl-purify") << "...new enum " << new_f
                                         << " for candidate " << nb[0] << "\n";
-      d_cand_to_pt_enum[nb[0]].push_back(new_f);
+      d_cand_to_eval_hds[nb[0]].push_back(new_f);
       /* Maps new enumerator to its respective tuple of arguments */
       d_app_to_pt[new_f] =
           std::vector<Node>(children.begin() + 2, children.end());
@@ -200,17 +200,17 @@ Node SygusUnifRl::purifyLemma(Node n,
 }
 
 Node SygusUnifRl::addRefLemma(Node lemma,
-                              std::map<Node, std::vector<Node>>& new_eval_pts)
+                              std::map<Node, std::vector<Node>>& eval_hds)
 {
   Trace("sygus-unif-rl-purify") << "Registering lemma at SygusUnif : " << lemma
                                << "\n";
   std::vector<Node> model_guards;
   BoolNodePairMap cache;
   // cache previous sizes
-  std::map<Node, unsigned> prev_n_eval_pts;
-  for (const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_pt_enum)
+  std::map<Node, unsigned> prev_n_eval_hds;
+  for (const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_eval_hds)
   {
-    prev_n_eval_pts[cp.first] = cp.second.size();
+    prev_n_eval_hds[cp.first] = cp.second.size();
   }
 
   /* Make the purified lemma which will guide the unification utility. */
@@ -224,18 +224,18 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   Trace("sygus-unif-rl-purify") << "Purified lemma : " << plem << "\n";
 
   Trace("sygus-unif-rl-purify") << "Collect new evaluation points...\n";
-  for (const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_pt_enum)
+  for (const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_eval_hds)
   {
     Node c = cp.first;
     unsigned prevn = 0;
-    std::map<Node, unsigned>::iterator itp = prev_n_eval_pts.find(c);
-    if (itp != prev_n_eval_pts.end())
+    std::map<Node, unsigned>::iterator itp = prev_n_eval_hds.find(c);
+    if (itp != prev_n_eval_hds.end())
     {
       prevn = itp->second;
     }
     for (unsigned j = prevn, size = cp.second.size(); j < size; j++)
     {
-      new_eval_pts[c].push_back(cp.second[j]);
+      eval_hds[c].push_back(cp.second[j]);
     }
   }
 
