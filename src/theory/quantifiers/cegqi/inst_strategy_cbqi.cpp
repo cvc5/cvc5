@@ -356,7 +356,7 @@ void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
         std::map< Node, Node > visited;
         Node mq = getIdMarkedQuantNode( q[1], visited );
         if( mq!=q[1] ){
-          //do not do cbqi
+          //do not do cbqi, we are reducing this quantified formula to a marked one
           d_do_cbqi[q] = CEG_UNHANDLED;
           //instead do reduction
           std::vector< Node > qqc;
@@ -483,66 +483,12 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 bool InstStrategyCbqi::doCbqi( Node q ){
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
-    CegHandledStatus ret = CEG_HANDLED;
-    if( !d_quantEngine->getQuantAttributes()->isQuantElim( q ) ){
-      Assert( !d_quantEngine->getQuantAttributes()->isQuantElimPartial( q ) );
-      //if has an instantiation pattern, don't do it
-      if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-        for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
-          if( q[2][i].getKind()==INST_PATTERN ){
-            ret = CEG_UNHANDLED;
-          }
-        }
-      }
-      if( d_quantEngine->getQuantAttributes()->isSygus( q ) ){
-        ret = CEG_UNHANDLED;
-      }
-      if (ret != CEG_UNHANDLED)
-      {
-        //if quantifier has a non-handled variable, then do not use cbqi
-        //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-        CegHandledStatus ncbqiv =
-            CegInstantiator::hasNonCbqiVariable(q, d_quantEngine);
-        Trace("cbqi-quant-debug") << "hasNonCbqiVariable returned " << ncbqiv
-                                  << std::endl;
-        if (ncbqiv != CEG_UNHANDLED)
-        {
-          CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
-          Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit
-                                    << std::endl;
-          if (cbqit == CEG_UNHANDLED)
-          {
-            if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
-            {
-              //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
-              //  so, try but not exclusively
-              ret = CEG_PARTIALLY_HANDLED;
-            }else{
-              //cannot be handled
-              ret = CEG_UNHANDLED;
-            }
-          }
-          else if (cbqit == CEG_PARTIALLY_HANDLED)
-          {
-            ret = CEG_PARTIALLY_HANDLED;
-          }
-        }else{
-          // unhandled variable type
-          ret = CEG_UNHANDLED;
-        }
-        if (ret == CEG_UNHANDLED && options::cbqiAll())
-        {
-          //try but not exclusively
-          ret = CEG_PARTIALLY_HANDLED;
-        }
-      }
-    }
+    CegHandledStatus ret = CegInstantiator::isCbqiQuant( q, d_quantEngine );
     Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret != CEG_UNHANDLED;
-  }else{
-    return it->second != CEG_UNHANDLED;
   }
+  return it->second != CEG_UNHANDLED;
 }
 
 Node InstStrategyCbqi::getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc ) {

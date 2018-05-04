@@ -202,6 +202,7 @@ enum CegHandledStatus
   // additional factors
   CEG_HANDLED_UNCONDITIONAL,
 };
+std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
 
 /** Ceg instantiator
  *
@@ -343,12 +344,19 @@ class CegInstantiator {
    */
   static CegHandledStatus isCbqiSort(TypeNode tn,
                                      QuantifiersEngine* qe = nullptr);
-  /** has non-cbqi variable?
+  /** is cbqi quantifier prefix
    *
    * This returns the minimum value of the above method for a bound variable
    * in the prefix of quantified formula q.
    */
-  static CegHandledStatus hasNonCbqiVariable(Node q,
+  static CegHandledStatus isCbqiQuantPrefix(Node q,
+                                             QuantifiersEngine* qe = nullptr);
+  /** is cbqi quantified formula
+   *
+   * This returns whether quantified formula q can and should be handled by
+   * counterexample-guided instantiation.
+   */
+  static CegHandledStatus isCbqiQuant(Node q,
                                              QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
  private:
