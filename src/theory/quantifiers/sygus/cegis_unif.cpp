@@ -171,14 +171,14 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
-  // Notify lemma to unification utility and get its purified form 
-  std::map< Node, std::vector< Node > > eval_pts;
+  // Notify lemma to unification utility and get its purified form
+  std::map<Node, std::vector<Node> > eval_pts;
   Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
   d_refinement_lemmas.push_back(plem);
   // Notify the enumeration manager if there are new evaluation points
-  for( const std::pair< const Node, std::vector< Node > >& ep : eval_pts )
+  for (const std::pair<const Node, std::vector<Node> >& ep : eval_pts)
   {
-    d_u_enum_manager.registerEvalPts(ep.second,ep.first);
+    d_u_enum_manager.registerEvalPts(ep.second, ep.first);
   }
   /* Make the refinement lemma and add it to lems. This lemma is guarded by the
      parent's guard, which has the semantics "this conjecture has a solution",

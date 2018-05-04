@@ -199,19 +199,20 @@ Node SygusUnifRl::purifyLemma(Node n,
   return nb;
 }
 
-Node SygusUnifRl::addRefLemma(Node lemma, std::map< Node, std::vector< Node > >& new_eval_pts)
+Node SygusUnifRl::addRefLemma(Node lemma,
+                              std::map<Node, std::vector<Node>>& new_eval_pts)
 {
   Trace("sygus-unif-rl-purify") << "Registering lemma at SygusUnif : " << lemma
                                << "\n";
   std::vector<Node> model_guards;
   BoolNodePairMap cache;
   // cache previous sizes
-  std::map< Node, unsigned > prev_n_eval_pts;
-  for( const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_pt_enum )
+  std::map<Node, unsigned> prev_n_eval_pts;
+  for (const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_pt_enum)
   {
     prev_n_eval_pts[cp.first] = cp.second.size();
   }
-  
+
   /* Make the purified lemma which will guide the unification utility. */
   Node plem = purifyLemma(lemma, false, model_guards, cache);
   if (!model_guards.empty())
@@ -221,23 +222,23 @@ Node SygusUnifRl::addRefLemma(Node lemma, std::map< Node, std::vector< Node > >&
   }
   plem = Rewriter::rewrite(plem);
   Trace("sygus-unif-rl-purify") << "Purified lemma : " << plem << "\n";
-  
+
   Trace("sygus-unif-rl-purify") << "Collect new evaluation points...\n";
-  for( const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_pt_enum )
+  for (const std::pair<const Node, std::vector<Node>>& cp : d_cand_to_pt_enum)
   {
     Node c = cp.first;
     unsigned prevn = 0;
-    std::map< Node, unsigned >::iterator itp = prev_n_eval_pts.find(c);
-    if( itp!=prev_n_eval_pts.end() )
+    std::map<Node, unsigned>::iterator itp = prev_n_eval_pts.find(c);
+    if (itp != prev_n_eval_pts.end())
     {
       prevn = itp->second;
     }
-    for( unsigned j=prevn, size = cp.second.size(); j<size; j++ )
+    for (unsigned j = prevn, size = cp.second.size(); j < size; j++)
     {
-      new_eval_pts[c].push_back( cp.second[j] );
+      new_eval_pts[c].push_back(cp.second[j]);
     }
   }
-  
+
   return plem;
 }
 
