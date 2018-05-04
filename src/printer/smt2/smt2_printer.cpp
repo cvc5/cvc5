@@ -1694,30 +1694,28 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
 static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)
 {
   bool neg = r.sgn() < 0;
-
-  // TODO:
-  // We are currently printing (- (/ 5 3))
-  // instead of (/ (- 5) 3) which is what is in the SMT-LIB value in the theory definition.
-  // Before switching, I'll keep to what was there and send an email.
-
-  // Tim: Apologies for the ifs on one line but in this case they are cleaner.
-
-  if (neg) { out << "(- "; }
-
+  // Print the rational, possibly as decimal.
+  // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
+  // the former is compliant with real values in the smt lib standard.
   if(r.isIntegral()) {
     if (neg) {
+      out << "(- ";
       out << (-r);
     }else {
       out << r;
     }
     if (decimal) { out << ".0"; }
+    if( neg ){
+      out << ")";
+    }
   }else{
     out << "(/ ";
     if(neg) {
+      out << "(- ";
       Rational abs_r = (-r);
       out << abs_r.getNumerator();
       if(decimal) { out << ".0"; }
-      out << ' ' << abs_r.getDenominator();
+      out << ") " << abs_r.getDenominator();
       if(decimal) { out << ".0"; }
     }else{
       out << r.getNumerator();
@@ -1727,23 +1725,6 @@ static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)
     }
     out << ')';
   }
-
-  if (neg) { out << ')';}
-
-  // if(r < 0) {
-  //   Rational abs_r = -r;
-  //   if(r.isIntegral()) {
-  //     out << "(- " << abs_r << ')';
-  //   } else {
-  //     out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
-  //   }
-  // } else {
-  //   if(r.isIntegral()) {
-  //         out << r;
-  //       } else {
-  //         out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
-  //       }
-  //     }
 }
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c)
