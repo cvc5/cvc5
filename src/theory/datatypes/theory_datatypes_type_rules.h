@@ -359,6 +359,90 @@ class DtSygusBoundTypeRule {
   }
 }; /* class DtSygusBoundTypeRule */
 
+class MatchTypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    Assert(n.getKind()==kind::MATCH);
+    TypeNode retType = n[1].getType(check);
+    if( check )
+    {
+      TypeNode headType = n[0].getType(check);
+      if( !headType.isDatatype() )
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
+      }
+      // must match the patterns 
+      for( const Node& nc : n[1] )
+      {
+        if (nc.getKind() != kind::MATCH_CASE) 
+        {
+          throw TypeCheckingExceptionPrivate(n, "expected a match case in match");
+        }
+        TypeNode patType = nc[0].getType();
+        if( patType!=headType )
+        {
+          throw TypeCheckingExceptionPrivate(n, "pattern of a match case does not match the head type in match");
+        }
+      }
+    }
+    return retType;
+  }
+}; /* class MatchTypeRule */
+
+class MatchCaseListTypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    Assert(n.getKind()==kind::MATCH_CASE_LIST);
+    TypeNode retType;
+    for( unsigned i=0, nchildren = n.getNumChildren(); i<nchildren; i++ )
+    {
+      Node nc = n[i];
+      if (nc.getKind() != kind::MATCH_CASE) 
+      {
+        // allow the last child to be a non-match case (for the default case)
+        if( i<nchildren-1 )
+        {
+          throw TypeCheckingExceptionPrivate(n, "expected a match case in match case list");
+        }
+      }
+      TypeNode currType = nc.getType(check);
+      if( i==0 )
+      {
+        retType = currType;
+      }
+      else
+      {
+        retType = TypeNode::leastCommonTypeNode(retType, currType);
+        if( retType.isNull() )
+        {
+          throw TypeCheckingExceptionPrivate(n, "incomparable types in match case list");
+        }
+      }
+    }
+    return retType;
+  }
+}; /* class MatchCaseListTypeRule */
+
+class MatchCaseTypeRule {
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
+                                     bool check) {
+    Assert(n.getKind()==kind::MATCH_CASE);
+    if( check )
+    {
+      TypeNode patType = n[0].getType(check);
+      if( !patType.isDatatype() )
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting datatype pattern in match case");
+      }
+    }
+    return n[1].getType(check);
+  }
+}; /* class MatchCaseTypeRule */
+
+
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
