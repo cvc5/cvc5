@@ -1705,7 +1705,8 @@ static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)
       out << r;
     }
     if (decimal) { out << ".0"; }
-    if( neg ){
+    if (neg)
+    {
       out << ")";
     }
   }else{
