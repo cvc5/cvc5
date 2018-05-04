@@ -2,7 +2,7 @@
 /*! \file lazy_trie.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -92,6 +92,17 @@ class LazyTrie
            unsigned index,
            unsigned ntotal,
            bool forceKeep);
+};
+
+class DynamicClassifer
+{
+ public:
+  std::map<Node, std::vector<Node>> d_rep_to_sepclass;
+  void addClassifier(LazyTrieEvaluator* ev, unsigned ntotal);
+  Node add(Node f, LazyTrieEvaluator* ev, unsigned ntotal);
+
+ private:
+  LazyTrie d_trie;
 };
 
 } /* CVC4::theory::quantifiers namespace */
