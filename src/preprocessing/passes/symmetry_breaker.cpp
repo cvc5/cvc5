@@ -22,7 +22,7 @@ namespace passes {
 
 Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts)
 {
-  Node sbConstraint = d_trueNode;
+  vector<Node> constraints;
 
   for (const vector<Node>& part : parts)
   {
@@ -37,8 +37,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
           // Generate less than or equal to constraints: part[i] <= part[i+1]
           Node constraint =
               NodeManager::currentNM()->mkNode(kd, part[i], part[i + 1]);
-          sbConstraint = NodeManager::currentNM()->mkNode(
-              kind::AND, sbConstraint, constraint);
+          constraints.push_back(constraint);
           Trace("sym-bk")
               << "[sym-bk] Generate a symmetry breaking constraint: "
               << constraint << endl;
@@ -56,8 +55,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
                 kind::IMPLIES,
                 NodeManager::currentNM()->mkNode(kd, part[i], part[j]),
                 NodeManager::currentNM()->mkNode(kd, part[i], part[j - 1]));
-            sbConstraint = NodeManager::currentNM()->mkNode(
-                kind::AND, sbConstraint, constraint);
+            constraints.push_back(constraint);
             Trace("sym-bk")
                 << "[sym-bk] Generate a symmetry breaking constraint: "
                 << constraint << endl;
@@ -67,7 +65,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
             for (unsigned int j = i + 1; j < part.size(); ++j)
             {
               Node lhs = NodeManager::currentNM()->mkNode(kd, part[i], part[j]);
-              Node rhs = NodeManager::currentNM()->mkNode(kd, part[i], part[i-1]);
+              Node rhs = NodeManager::currentNM()->mkNode(kd, part[i], part[i - 1]);
               int prev_seg_start_index = 2*i - j - 1;
 
               // Since prev_seg_len is always less than i - 1, we just need to make
@@ -84,8 +82,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
               // for all 1 <= i < j < part.size() and (i-1)-(j-i) >= 0
               Node constraint =
                   NodeManager::currentNM()->mkNode(kind::IMPLIES, lhs, rhs);
-              sbConstraint = NodeManager::currentNM()->mkNode(
-                  kind::AND, sbConstraint, constraint);
+              constraints.push_back(constraint);
               Trace("sym-bk")
                   << "[sym-bk] Generate a symmetry breaking constraint: "
                   << constraint << endl;
@@ -95,7 +92,15 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
       }
     }
   }
-  return sbConstraint;
+  if(constraints.empty())
+  {
+    return d_trueNode;
+  }
+  else if(constraints.size() == 1)
+  {
+    return constraints[0];
+  }
+  return NodeManager::currentNM()->mkNode(kind::AND, constraints);;
 }
 
 Kind SymmetryBreaker::getOrderKind(Node node)
