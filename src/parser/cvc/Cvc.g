@@ -2164,7 +2164,10 @@ simpleTerm[CVC4::Expr& f]
   | DECIMAL_LITERAL { 
       f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
       if(f.getType().isInteger()) {
-        f = MK_EXPR(kind::TO_REAL, f);
+        // Must cast to Real to ensure correct type is passed to parametric type constructors.
+        // We do this cast using division with 1.
+        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
+        f = MK_EXPR(kind::DIVISION, f, MK_CONST(Rational(1)));
       } 
     }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }

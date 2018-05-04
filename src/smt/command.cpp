@@ -1408,12 +1408,15 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
       Node value = Node::fromExpr(smtEngine->getValue(e));
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
-        // Need to wrap in special marker so that output printers know this
-        // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance, but ugly.
-        value = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                           nm->mkConst(AscriptionType(em->realType())),
-                           value);
+        // only necessary if mixed Int/Real
+        LogicInfo info = smtEngine->getLogicInfo();
+        if( info.areRealsUsed() && info.areIntegersUsed() )
+        {
+          // Need to wrap in special marker so that output printers know this
+          // is an integer-looking constant that really should be output as
+          // a rational.  Necessary for SMT-LIB standards compliance.
+          value = nm->mkNode(kind::TO_REAL, value);
+        }
       }
       result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
     }

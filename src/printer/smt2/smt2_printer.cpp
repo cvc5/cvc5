@@ -322,30 +322,37 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if (!force_nt.isNull())
+  // determine if we are printing out a type ascription, store the argument of
+  // the type ascription into type_asc_arg.
+  Node type_asc_arg;
+  if( n.getKind()== kind::APPLY_TYPE_ASCRIPTION )
   {
-    if (n.getType() != force_nt)
+    force_nt = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
+    type_asc_arg = n[0];
+  }
+  else if (!force_nt.isNull() && n.getType() != force_nt)
+  {
+    type_asc_arg = n;
+  }
+  if( !type_asc_arg.isNull() )
+  {
+    if (force_nt.isReal())
     {
-      if (force_nt.isReal())
-      {
-        out << "(" << smtKindString(force_nt.isInteger() ? kind::TO_INTEGER
-                                                         : kind::TO_REAL,
-                                    d_variant)
-            << " ";
-        toStream(out, n, toDepth, types, TypeNode::null());
-        out << ")";
-      }
-      else
-      {
-        Node nn = NodeManager::currentNM()->mkNode(
-            kind::APPLY_TYPE_ASCRIPTION,
-            NodeManager::currentNM()->mkConst(
-                AscriptionType(force_nt.toType())),
-            n);
-        toStream(out, nn, toDepth, types, TypeNode::null());
-      }
-      return;
+      out << "(" << smtKindString(force_nt.isInteger() ? kind::TO_INTEGER
+                                                        : kind::TO_REAL,
+                                  d_variant)
+          << " ";
+      toStream(out, type_asc_arg, toDepth, types, TypeNode::null());
+      out << ")";
     }
+    else
+    {
+      // use type ascription 
+      out << "(as ";
+      toStream(out, type_asc_arg, toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
+      out << " " << force_nt << ")";
+    }
+    return;
   }
 
   // variable
@@ -646,31 +653,6 @@ void Smt2Printer::toStream(std::ostream& out,
     printFpParameterizedOp(out, n);
     out << ' ';
     stillNeedToPrintParams = false;
-    break;
-
-    // datatypes
-  case kind::APPLY_TYPE_ASCRIPTION: {
-      TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
-      if(t.getKind() == kind::TYPE_CONSTANT &&
-         t.getConst<TypeConstant>() == REAL_TYPE &&
-         n[0].getType().isInteger()) {
-        // Special case, in model output integer constants that should be
-        // Real-sorted are wrapped in a type ascription.  Handle that here.
-
-        // Note: This is Tim making a guess about Morgan's Code.
-        Assert(n[0].getKind() == kind::CONST_RATIONAL);
-        toStreamRational(out, n[0].getConst<Rational>(), true);
-
-        //toStream(out, n[0], -1, false);
-        //out << ".0";
-
-        return;
-      }
-      out << "(as ";
-      toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
-      out << ' ' << (t.isFunctionLike() ? t.getRangeType() : t) << ')';
-      return;
-    }
     break;
 
     case kind::APPLY_CONSTRUCTOR:
