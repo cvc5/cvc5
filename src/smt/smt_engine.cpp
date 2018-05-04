@@ -70,6 +70,7 @@
 #include "options/uf_options.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_gauss.h"
+#include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
@@ -95,7 +96,6 @@
 #include "smt_util/nary_builder.h"
 #include "smt_util/node_visitor.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
@@ -2603,6 +2603,10 @@ void SmtEnginePrivate::finishInit() {
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
+  std::unique_ptr<BvIntroPow2> bvIntroPow2(
+      new BvIntroPow2(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
+                                           std::move(bvIntroPow2));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4070,8 +4074,9 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-unconstrained-simp", d_assertions);
   }
 
-  if(options::bvIntroducePow2()){
-    theory::bv::BVIntroducePow2::pow2Rewrite(d_assertions.ref());
+  if(options::bvIntroducePow2())
+  {
+    d_preprocessingPassRegistry.getPass("bv-intro-pow2")->apply(&d_assertions);
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-substitution" << endl;
