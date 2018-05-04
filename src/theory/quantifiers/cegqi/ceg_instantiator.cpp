@@ -128,28 +128,28 @@ bool CegInstantiator::isEligible( Node n ) {
   return d_inelig.find( n )==d_inelig.end();
 }
 
-int CegInstantiator::isCbqiKind(Kind k)
+CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
       || k == EQUAL
       || k == MULT
       || k == NONLINEAR_MULT)
   {
-    return 1;
+    return CEG_HANDLED;
   }
 
   // CBQI typically works for satisfaction-complete theories
   TheoryId t = kindToTheoryId(k);
   if (t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL)
   {
-    return 1;
+    return CEG_HANDLED;
   }
-  return -1;
+  return CEG_UNHANDLED;
 }
 
-int CegInstantiator::isCbqiTerm(Node n)
+CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
 {
-  int ret = 1;
+  CegHandledStatus ret = CEG_HANDLED;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
@@ -169,15 +169,15 @@ int CegInstantiator::isCbqiTerm(Node n)
         }
         else
         {
-          int curr = isCbqiKind(cur.getKind());
+          CegHandledStatus curr = isCbqiKind(cur.getKind());
           if (curr < ret)
           {
             ret = curr;
             Trace("cbqi-debug2") << "Non-cbqi kind : " << cur.getKind()
                                  << " in " << n << std::endl;
-            if (curr == -1)
+            if (curr == CEG_UNHANDLED)
             {
-              return -1;
+              return CEG_UNHANDLED;
             }
           }
           for (const Node& nc : cur)
@@ -191,33 +191,33 @@ int CegInstantiator::isCbqiTerm(Node n)
   return ret;
 }
 
-int CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
 {
-  std::map<TypeNode, int> visited;
+  std::map<TypeNode, CegHandledStatus> visited;
   return isCbqiSort(tn, visited, qe);
 }
 
-int CegInstantiator::isCbqiSort(TypeNode tn,
-                                std::map<TypeNode, int>& visited,
+CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn,
+                                std::map<TypeNode, CegHandledStatus>& visited,
                                 QuantifiersEngine* qe)
 {
-  std::map<TypeNode, int>::iterator itv = visited.find(tn);
+  std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
   if (itv != visited.end())
   {
     return itv->second;
   }
-  int ret = -1;
+  CegHandledStatus ret = CEG_UNHANDLED;
   if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector())
   {
-    ret = 1;
+    ret = CEG_HANDLED;
   }
   else if (tn.isDatatype())
   {
     // recursive calls to this datatype are handlable
-    visited[tn] = 1;
+    visited[tn] = CEG_HANDLED;
     // if not recursive, it is finite and we can handle it regardless of body
-    // hence, we initialize ret to 2.
-    ret = 2;
+    // hence, we initialize ret to CEG_HANDLED_UNCONDITIONAL.
+    ret = CEG_HANDLED_UNCONDITIONAL;
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
@@ -225,11 +225,11 @@ int CegInstantiator::isCbqiSort(TypeNode tn,
       {
         TypeNode crange = TypeNode::fromType(
             static_cast<SelectorType>(dt[i][j].getType()).getRangeType());
-        int cret = isCbqiSort(crange, visited, qe);
-        if (cret == -1)
+        CegHandledStatus cret = isCbqiSort(crange, visited, qe);
+        if (cret == CEG_UNHANDLED)
         {
-          visited[tn] = -1;
-          return -1;
+          visited[tn] = CEG_UNHANDLED;
+          return CEG_UNHANDLED;
         }
         else if (cret < ret)
         {
@@ -243,7 +243,7 @@ int CegInstantiator::isCbqiSort(TypeNode tn,
     QuantEPR* qepr = qe->getQuantEPR();
     if (qepr != nullptr)
     {
-      ret = qepr->isEPR(tn) ? 2 : -1;
+      ret = qepr->isEPR(tn) ? CEG_HANDLED_UNCONDITIONAL : CEG_UNHANDLED;
     }
   }
   // sets, arrays, functions and others are not supported
@@ -251,16 +251,16 @@ int CegInstantiator::isCbqiSort(TypeNode tn,
   return ret;
 }
 
-int CegInstantiator::hasNonCbqiVariable(Node q, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::hasNonCbqiVariable(Node q, QuantifiersEngine* qe)
 {
-  int hmin = 1;
+  CegHandledStatus hmin = CEG_HANDLED;
   for (const Node& v : q[0])
   {
     TypeNode tn = v.getType();
-    int handled = isCbqiSort(tn, qe);
-    if (handled == -1)
+    CegHandledStatus handled = isCbqiSort(tn, qe);
+    if (handled == CEG_UNHANDLED)
     {
-      return -1;
+      return CEG_UNHANDLED;
     }
     else if (handled < hmin)
     {

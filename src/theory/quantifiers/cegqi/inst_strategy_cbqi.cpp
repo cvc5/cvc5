@@ -289,9 +289,9 @@ bool InstStrategyCbqi::checkComplete() {
 }
 
 bool InstStrategyCbqi::checkCompleteFor( Node q ) {
-  std::map< Node, int >::iterator it = d_do_cbqi.find( q );
+  std::map< Node, CegHandledStatus >::iterator it = d_do_cbqi.find( q );
   if( it!=d_do_cbqi.end() ){
-    return it->second>0;
+    return it->second!=CEG_UNHANDLED;
   }else{
     return false;
   }
@@ -346,7 +346,7 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
 
 void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
-    if( d_do_cbqi[q]==2 ){
+    if( d_do_cbqi[q]==CEG_HANDLED ){
       //take full ownership of the quantified formula
       d_quantEngine->setOwner( q, this );
       
@@ -356,7 +356,7 @@ void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
         Node mq = getIdMarkedQuantNode( q[1], visited );
         if( mq!=q[1] ){
           //do not do cbqi
-          d_do_cbqi[q] = false;
+          d_do_cbqi[q] = CEG_UNHANDLED;
           //instead do reduction
           std::vector< Node > qqc;
           qqc.push_back( q[0] );
@@ -480,64 +480,64 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 }
 
 bool InstStrategyCbqi::doCbqi( Node q ){
-  std::map< Node, int >::iterator it = d_do_cbqi.find( q );
+  std::map< Node, CegHandledStatus >::iterator it = d_do_cbqi.find( q );
   if( it==d_do_cbqi.end() ){
-    int ret = 2;
+    CegHandledStatus ret = CEG_HANDLED;
     if( !d_quantEngine->getQuantAttributes()->isQuantElim( q ) ){
       Assert( !d_quantEngine->getQuantAttributes()->isQuantElimPartial( q ) );
       //if has an instantiation pattern, don't do it
       if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
         for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
           if( q[2][i].getKind()==INST_PATTERN ){
-            ret = 0;
+            ret = CEG_UNHANDLED;
           }
         }
       }
       if( d_quantEngine->getQuantAttributes()->isSygus( q ) ){
-        ret = 0;
+        ret = CEG_UNHANDLED;
       }
-      if( ret!=0 ){
+      if( ret!=CEG_UNHANDLED ){
         //if quantifier has a non-handled variable, then do not use cbqi
         //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-        int ncbqiv = CegInstantiator::hasNonCbqiVariable(q, d_quantEngine);
+        CegHandledStatus ncbqiv = CegInstantiator::hasNonCbqiVariable(q, d_quantEngine);
         Trace("cbqi-quant-debug")
             << "hasNonCbqiVariable returned " << ncbqiv << std::endl;
-        if (ncbqiv > 0)
+        if (ncbqiv != CEG_UNHANDLED)
         {
-          int cbqit = CegInstantiator::isCbqiTerm(q);
+          CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
           Trace("cbqi-quant-debug")
               << "isCbqiTerm returned " << cbqit << std::endl;
-          if (cbqit == -1)
+          if (cbqit == CEG_UNHANDLED)
           {
-            if (ncbqiv == 2)
+            if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
             {
               //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
               //  so, try but not exclusively
-              ret = 1;
+              ret = CEG_PARTIALLY_HANDLED;
             }else{
               //cannot be handled
-              ret = 0;
+              ret = CEG_UNHANDLED;
             }
           }
-          else if (cbqit == 0)
+          else if (cbqit == CEG_PARTIALLY_HANDLED)
           {
-            ret = 1;
+            ret = CEG_PARTIALLY_HANDLED;
           }
         }else{
           // unhandled variable type
-          ret = 0;
+          ret = CEG_UNHANDLED;
         }
-        if( ret==0 && options::cbqiAll() ){
+        if( ret==CEG_UNHANDLED && options::cbqiAll() ){
           //try but not exclusively
-          ret = 1;
+          ret = CEG_PARTIALLY_HANDLED;
         }
       }
     }
     Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
-    return ret!=0;
+    return ret!=CEG_UNHANDLED;
   }else{
-    return it->second!=0;
+    return it->second!=CEG_UNHANDLED;
   }
 }
 
