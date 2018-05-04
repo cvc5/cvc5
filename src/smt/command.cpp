@@ -1410,7 +1410,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
       {
         // only necessary if mixed Int/Real
         LogicInfo info = smtEngine->getLogicInfo();
-        if( info.areRealsUsed() && info.areIntegersUsed() )
+        if (info.areRealsUsed() && info.areIntegersUsed())
         {
           // Need to wrap in special marker so that output printers know this
           // is an integer-looking constant that really should be output as
