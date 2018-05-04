@@ -79,7 +79,7 @@ protected:
   ExprSet d_declarations; // all the variable/function declarations
   ExprSet d_skolemDeclarations; // all the skolem variable declarations
   std::map<Expr, std::string> d_skolemToLiteral;
-  theory::TheoryId getTheoryId();
+  theory::TheoryId getTheoryId() override;
 
  public:
   ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine);
