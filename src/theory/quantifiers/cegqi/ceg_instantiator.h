@@ -318,8 +318,8 @@ class CegInstantiator {
   //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
-   * If this method returns CEG_UNHANDLED, then we prohibit cegqi for terms 
-   * involving this kind. If this method returns CEG_HANDLED, our approaches 
+   * If this method returns CEG_UNHANDLED, then we prohibit cegqi for terms
+   * involving this kind. If this method returns CEG_HANDLED, our approaches
    * for cegqi fully handle the kind.
    *
    * This typically corresponds to kinds that correspond to operators that
@@ -355,10 +355,10 @@ class CegInstantiator {
   /** is cbqi quantified formula
    *
    * This returns whether quantified formula q can and should be handled by
-   * counterexample-guided instantiation. If this function returns 
+   * counterexample-guided instantiation. If this function returns
    * a status CEG_HANDLED or above, then q is fully handled by counterexample
    * guided quantifier instantiation and need not be processed by any other
-   * strategy for quantifiers (e.g. E-matching). Otherwise, if this function 
+   * strategy for quantifiers (e.g. E-matching). Otherwise, if this function
    * returns CEG_PARTIALLY_HANDLED, then it may be worthwhile to handle the
    * quantified formula using cegqi, however other strategies should also be
    * tried.
