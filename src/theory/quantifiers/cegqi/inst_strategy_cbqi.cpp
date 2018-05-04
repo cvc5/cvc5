@@ -356,7 +356,8 @@ void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
         std::map< Node, Node > visited;
         Node mq = getIdMarkedQuantNode( q[1], visited );
         if( mq!=q[1] ){
-          //do not do cbqi, we are reducing this quantified formula to a marked one
+          // do not do cbqi, we are reducing this quantified formula to a marked
+          // one
           d_do_cbqi[q] = CEG_UNHANDLED;
           //instead do reduction
           std::vector< Node > qqc;
@@ -483,7 +484,7 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 bool InstStrategyCbqi::doCbqi( Node q ){
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
-    CegHandledStatus ret = CegInstantiator::isCbqiQuant( q, d_quantEngine );
+    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q, d_quantEngine);
     Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret != CEG_UNHANDLED;

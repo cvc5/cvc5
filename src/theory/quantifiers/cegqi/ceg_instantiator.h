@@ -350,14 +350,13 @@ class CegInstantiator {
    * in the prefix of quantified formula q.
    */
   static CegHandledStatus isCbqiQuantPrefix(Node q,
-                                             QuantifiersEngine* qe = nullptr);
+                                            QuantifiersEngine* qe = nullptr);
   /** is cbqi quantified formula
    *
    * This returns whether quantified formula q can and should be handled by
    * counterexample-guided instantiation.
    */
-  static CegHandledStatus isCbqiQuant(Node q,
-                                             QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
  private:
   /** quantified formula associated with this instantiator */

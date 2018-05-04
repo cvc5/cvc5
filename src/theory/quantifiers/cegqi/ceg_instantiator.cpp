@@ -21,8 +21,8 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_epr.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
@@ -63,14 +63,14 @@ std::ostream& operator<<(std::ostream& os, CegInstPhase phase)
   return os;
 }
 std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
-{  
+{
   switch (status)
   {
-  case CEG_UNHANDLED: os << "unhandled";break;
-  case CEG_PARTIALLY_HANDLED:os << "partially_handled";break;
-  case CEG_HANDLED:os << "handled";break;
-  case CEG_HANDLED_UNCONDITIONAL:os << "unhandled_unc";break;
-  default: Unreachable();
+    case CEG_UNHANDLED: os << "unhandled"; break;
+    case CEG_PARTIALLY_HANDLED: os << "partially_handled"; break;
+    case CEG_HANDLED: os << "handled"; break;
+    case CEG_HANDLED_UNCONDITIONAL: os << "unhandled_unc"; break;
+    default: Unreachable();
   }
   return os;
 }
@@ -254,10 +254,10 @@ CegHandledStatus CegInstantiator::isCbqiSort(
   }
   else if (tn.isSort())
   {
-    QuantEPR* qepr = qe!=nullptr ? qe->getQuantEPR() : nullptr;
+    QuantEPR* qepr = qe != nullptr ? qe->getQuantEPR() : nullptr;
     if (qepr != nullptr)
     {
-      if( qepr->isEPR(tn) )
+      if (qepr->isEPR(tn))
       {
         ret = CEG_HANDLED_UNCONDITIONAL;
       }
@@ -269,7 +269,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
 }
 
 CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
-                                                     QuantifiersEngine* qe)
+                                                    QuantifiersEngine* qe)
 {
   CegHandledStatus hmin = CEG_HANDLED_UNCONDITIONAL;
   for (const Node& v : q[0])
@@ -288,31 +288,34 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
   return hmin;
 }
 
-
 CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
 {
-  //compute attributes
+  // compute attributes
   QAttributes qa;
-  QuantAttributes::computeQuantAttributes( q, qa );
-  if( qa.d_quant_elim )
+  QuantAttributes::computeQuantAttributes(q, qa);
+  if (qa.d_quant_elim)
   {
     return CEG_HANDLED;
   }
-  if( qa.d_sygus){
+  if (qa.d_sygus)
+  {
     return CEG_UNHANDLED;
   }
-  Assert( !qa.d_quant_elim_partial );
-  //if has an instantiation pattern, don't do it
-  if(q.getNumChildren()==3){
-    for( const Node& pat : q[2] ){
-      if( pat.getKind()==INST_PATTERN ){
+  Assert(!qa.d_quant_elim_partial);
+  // if has an instantiation pattern, don't do it
+  if (q.getNumChildren() == 3)
+  {
+    for (const Node& pat : q[2])
+    {
+      if (pat.getKind() == INST_PATTERN)
+      {
         return CEG_UNHANDLED;
       }
     }
   }
   CegHandledStatus ret = CEG_HANDLED;
-  //if quantifier has a non-handled variable, then do not use cbqi
-  //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
+  // if quantifier has a non-handled variable, then do not use cbqi
+  // if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
   CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q, qe);
   Trace("cbqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
                             << std::endl;
@@ -324,17 +327,19 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   else
   {
     CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
-    Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit
-                              << std::endl;
+    Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit << std::endl;
     if (cbqit == CEG_UNHANDLED)
     {
       if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
       {
-        //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
+        // all variables are fully handled, this implies this will be handlable
+        // regardless of body (e.g. for EPR)
         //  so, try but not exclusively
         ret = CEG_PARTIALLY_HANDLED;
-      }else{
-        //cannot be handled
+      }
+      else
+      {
+        // cannot be handled
         ret = CEG_UNHANDLED;
       }
     }
@@ -345,7 +350,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   }
   if (ret == CEG_UNHANDLED && options::cbqiAll())
   {
-    //try but not exclusively
+    // try but not exclusively
     ret = CEG_PARTIALLY_HANDLED;
   }
   return ret;
