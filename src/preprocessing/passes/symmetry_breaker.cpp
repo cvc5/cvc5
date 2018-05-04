@@ -20,11 +20,11 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-Node SymmetryBreaker::generateSymBkConstraints(vector<vector<Node>>& parts)
+Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts)
 {
   Node sbConstraint = d_trueNode;
 
-  for (vector<Node>& part : parts)
+  for (const vector<Node>& part : parts)
   {
     if (part.size() >= 2)
     {
@@ -50,7 +50,7 @@ Node SymmetryBreaker::generateSymBkConstraints(vector<vector<Node>>& parts)
         {
           for (unsigned int j = i + 2; j < part.size(); ++i)
           {
-            // Generate triplet constraints v_i = v_j => v_i = v_{j-1} for all 0
+            // Generate consecutive constraints v_i = v_j => v_i = v_{j-1} for all 0
             // <= i < j-1 < j < part.size()
             Node constraint = NodeManager::currentNM()->mkNode(
                 kind::IMPLIES,
@@ -66,19 +66,22 @@ Node SymmetryBreaker::generateSymBkConstraints(vector<vector<Node>>& parts)
           {
             for (unsigned int j = i + 1; j < part.size(); ++j)
             {
-              Node rhs = d_falseNode;
               Node lhs = NodeManager::currentNM()->mkNode(kd, part[i], part[j]);
+              Node rhs = NodeManager::currentNM()->mkNode(kd, part[i], part[i-1]);
+              int prev_seg_start_index = 2*i - j - 1;
 
-              for (unsigned int k = 0; k < i; ++k)
+              // Since prev_seg_len is always less than i - 1, we just need to make
+              // sure prev_seg_len is greater than or equal to 0
+              if(prev_seg_start_index >= 0)
               {
                 rhs = NodeManager::currentNM()->mkNode(
                     kind::OR,
                     rhs,
-                    NodeManager::currentNM()->mkNode(kd, part[k], part[k + 1]));
+                    NodeManager::currentNM()->mkNode(kd, part[i-1], part[prev_seg_start_index]));
               }
-              // Generate segment constraints
-              // v_i = v_j => (v_0 = v_1 OR \ldots OR v_{i-1} = v_{i}) for all 1
-              // <= i < j < part.size()
+              // Generate length order constraints
+              // v_i = v_j => (v_{i} = v_{i-1} OR v_{i-1} = x_{(i-1)-(j-i)})
+              // for all 1 <= i < j < part.size() and (i-1)-(j-i) >= 0
               Node constraint =
                   NodeManager::currentNM()->mkNode(kind::IMPLIES, lhs, rhs);
               sbConstraint = NodeManager::currentNM()->mkNode(

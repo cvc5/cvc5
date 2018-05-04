@@ -35,10 +35,13 @@ namespace passes {
  * For a partition of variables of other types {v1, ..., vn}, we generate
  * the following two kinds of constraints.
  *
- * 1. Triplet constraints
+ * 1. Consecutive constraints ensure that equivalence classes over v_1...v_n are
+ *    in consecutive segments
  *    v_i = v_j => v_i = v_{j-1} for all 0 <= i < j-1 < j < n
- * 2. Segment constraints
- *    v_i = v_j => (v_0 = v_1 OR \ldots OR v_{i-1} = v_{i}) for all 1 <= i < j < n
+ * 2. Length order constraints ensure that the length of segments occur in
+ *    descending order
+ *    v_i = v_j => (v_{i} = v_{i-1} OR v_{i-1} = x_{(i-1)-(j-i)})
+ *    for all 1 <= i < j < part.size() and (i-1)-(j-i) >= 0
  * */
 
 class SymmetryBreaker
@@ -63,7 +66,7 @@ class SymmetryBreaker
    * The symmetry breaking constraints SB returned by this function conjuncted
    * with the original assertions SB ^ C is equisatisfiable to the C.
    * */
-  Node generateSymBkConstraints(std::vector<std::vector<Node> >& parts);
+  Node generateSymBkConstraints(const std::vector<std::vector<Node> >& parts);
 
  private:
 
