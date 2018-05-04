@@ -63,8 +63,9 @@ class SymmetryBreaker
 
   /**
    * This is to generate symmetry breaking constraints for partitions in parts.
-   * The symmetry breaking constraints SB returned by this function conjuncted
-   * with the original assertions SB ^ C is equisatisfiable to the C.
+   * Since parts are symmetries of the original assertions C,
+   * the symmetry breaking constraints SB for parts returned by this function
+   * conjuncted with the original assertions SB ^ C is equisatisfiable to C.
    * */
   Node generateSymBkConstraints(const std::vector<std::vector<Node> >& parts);
 
