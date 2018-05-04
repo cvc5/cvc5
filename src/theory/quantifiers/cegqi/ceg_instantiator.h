@@ -318,9 +318,9 @@ class CegInstantiator {
   //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
-   * If this method returns -1, then we prohibit CBQI for terms involving this
-   * kind. If this method returns 1, our approaches for CBQI fully handle
-   * the kind.
+   * If this method returns CEG_UNHANDLED, then we prohibit cegqi for terms 
+   * involving this kind. If this method returns CEG_HANDLED, our approaches 
+   * for cegqi fully handle the kind.
    *
    * This typically corresponds to kinds that correspond to operators that
    * have total interpretations and are a part of the signature of
@@ -329,12 +329,13 @@ class CegInstantiator {
   static CegHandledStatus isCbqiKind(Kind k);
   /** is cbqi term?
    *
-   * This method returns whether the term is handled by CEGQI techniques.
+   * This method returns whether the term is handled by cegqi techniques, i.e.
+   * whether all subterms of n have kinds that can be handled by cegqi.
    */
   static CegHandledStatus isCbqiTerm(Node n);
   /** is cbqi sort?
    *
-   * This method returns whether the type tn is handled by CEGQI techniques.
+   * This method returns whether the type tn is handled by cegqi techniques.
    * If the result is CEG_HANDLED_UNCONDITIONAL, then this indicates that a
    * variable of this type is handled regardless of the formula it appears in.
    *
@@ -354,7 +355,13 @@ class CegInstantiator {
   /** is cbqi quantified formula
    *
    * This returns whether quantified formula q can and should be handled by
-   * counterexample-guided instantiation.
+   * counterexample-guided instantiation. If this function returns 
+   * a status CEG_HANDLED or above, then q is fully handled by counterexample
+   * guided quantifier instantiation and need not be processed by any other
+   * strategy for quantifiers (e.g. E-matching). Otherwise, if this function 
+   * returns CEG_PARTIALLY_HANDLED, then it may be worthwhile to handle the
+   * quantified formula using cegqi, however other strategies should also be
+   * tried.
    */
   static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
