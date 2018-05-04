@@ -53,14 +53,9 @@ namespace api {
  */
 class CVC4_PUBLIC Result
 {
-  public:
-    /**
-     * Constructor.
-     * @param r the internal result that is to be wrapped by this result
-     * @return the Result
-     */
-    Result (const CVC4::Result& r);
+  friend class Solver;
 
+  public:
     /**
      * Return true if query was a satisfiable checkSat() or checkSatAssuming()
      * query.
@@ -122,6 +117,13 @@ class CVC4_PUBLIC Result
     std::string toString () const;
 
   private:
+    /**
+     * Constructor.
+     * @param r the internal result that is to be wrapped by this result
+     * @return the Result
+     */
+    Result (const CVC4::Result& r);
+
     /* The interal result wrapped by this result. */
     const CVC4::Result* d_result;
 };
@@ -148,17 +150,13 @@ class CVC4_PUBLIC Sort
 {
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
+  friend class DatatypeSelectorDecl;
+  friend class OpTerm;
   friend class Solver;
   friend struct SortHashFunction;
+  friend class Term;
 
   public:
-    /**
-     * Constructor.
-     * @param t the internal type that is to be wrapped by this sort
-     * @return the Sort
-     */
-    Sort(const CVC4::Type& t);
-
     /**
      * Copy constructor.
      */
@@ -318,6 +316,13 @@ class CVC4_PUBLIC Sort
     std::string toString() const;
 
   private:
+    /**
+     * Constructor.
+     * @param t the internal type that is to be wrapped by this sort
+     * @return the Sort
+     */
+    Sort(const CVC4::Type& t);
+
     /* The interal type wrapped by this sort. */
     CVC4::Type* d_type;
 };
@@ -348,6 +353,8 @@ struct CVC4_PUBLIC SortHashFunction
  */
 class CVC4_PUBLIC Term
 {
+  friend class Datatype;
+  friend class DatatypeConstructor;
   friend class Solver;
   friend struct TermHashFunction;
 
@@ -356,13 +363,6 @@ class CVC4_PUBLIC Term
      * Constructor.
      */
     Term();
-
-    /**
-     * Constructor.
-     * @param e the internal expression that is to be wrapped by this term
-     * @return the Term
-     */
-    Term(const CVC4::Expr& e);
 
     /**
      * Copy constructor.
@@ -549,6 +549,13 @@ class CVC4_PUBLIC Term
   const_iterator end() const;
 
   private:
+    /**
+     * Constructor.
+     * @param e the internal expression that is to be wrapped by this term
+     * @return the Term
+     */
+    Term(const CVC4::Expr& e);
+
     /* The internal expression wrapped by this term. */
     CVC4::Expr* d_expr;
 };
@@ -642,13 +649,6 @@ class CVC4_PUBLIC OpTerm
     OpTerm();
 
     /**
-     * Constructor.
-     * @param e the internal expression that is to be wrapped by this term
-     * @return the Term
-     */
-    OpTerm(const CVC4::Expr& e);
-
-    /**
      * Copy constructor.
      */
     OpTerm(const OpTerm& t);
@@ -703,7 +703,15 @@ class CVC4_PUBLIC OpTerm
      * @return a string representation of this operator term
      */
     std::string toString() const;
+
   private:
+    /**
+     * Constructor.
+     * @param e the internal expression that is to be wrapped by this term
+     * @return the Term
+     */
+    OpTerm(const CVC4::Expr& e);
+
     /* The internal expression wrapped by this operator term. */
     CVC4::Expr* d_expr;
 };
@@ -817,6 +825,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
  */
 class CVC4_PUBLIC DatatypeDecl
 {
+  friend class DatatypeConstructorArg;
   friend class Solver;
   public:
     /**
@@ -876,18 +885,13 @@ class CVC4_PUBLIC DatatypeDecl
  */
 class CVC4_PUBLIC DatatypeSelector
 {
+  friend class DatatypeConstructor;
+  friend class Solver;
   public:
     /**
      * Constructor.
      */
     DatatypeSelector();
-
-    /**
-     * Constructor.
-     * @param stor the internal datatype selector to be wrapped
-     * @return the DatatypeSelector
-     */
-    DatatypeSelector(const CVC4::DatatypeConstructorArg& stor);
 
     /**
      * Destructor.
@@ -900,6 +904,13 @@ class CVC4_PUBLIC DatatypeSelector
     std::string toString() const;
 
   private:
+    /**
+     * Constructor.
+     * @param stor the internal datatype selector to be wrapped
+     * @return the DatatypeSelector
+     */
+    DatatypeSelector(const CVC4::DatatypeConstructorArg& stor);
+
     /* The internal datatype selector wrapped by this datatype selector. */
     std::shared_ptr<CVC4::DatatypeConstructorArg> d_stor;
 };
@@ -909,18 +920,13 @@ class CVC4_PUBLIC DatatypeSelector
  */
 class CVC4_PUBLIC DatatypeConstructor
 {
+  friend class Datatype;
+  friend class Solver;
   public:
     /**
      * Constructor.
      */
     DatatypeConstructor();
-
-    /**
-     * Constructor.
-     * @param ctor the internal datatype constructor to be wrapped
-     * @return thte DatatypeConstructor
-     */
-    DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
 
     /**
      * Destructor.
@@ -1033,6 +1039,13 @@ class CVC4_PUBLIC DatatypeConstructor
     const_iterator end() const;
 
   private:
+    /**
+     * Constructor.
+     * @param ctor the internal datatype constructor to be wrapped
+     * @return thte DatatypeConstructor
+     */
+    DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
+
     /* The internal datatype constructor wrapped by this datatype constructor.*/
     std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
 };
@@ -1042,14 +1055,9 @@ class CVC4_PUBLIC DatatypeConstructor
  */
 class CVC4_PUBLIC Datatype
 {
+  friend class Solver;
+  friend class Sort;
   public:
-    /**
-     * Constructor.
-     * @param dtype the internal datatype to be wrapped
-     * @return the Datatype
-     */
-    Datatype(const CVC4::Datatype& dtype);
-
     /**
      * Destructor.
      */
@@ -1160,6 +1168,13 @@ class CVC4_PUBLIC Datatype
     const_iterator end() const;
 
   private:
+    /**
+     * Constructor.
+     * @param dtype the internal datatype to be wrapped
+     * @return the Datatype
+     */
+    Datatype(const CVC4::Datatype& dtype);
+
     /* The internal datatype wrapped by this datatype. */
     std::shared_ptr<CVC4::Datatype> d_dtype;
 };
