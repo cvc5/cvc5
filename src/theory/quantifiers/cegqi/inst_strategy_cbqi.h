@@ -48,7 +48,7 @@ class InstStrategyCbqi : public QuantifiersModule {
   std::map< Node, std::vector< Node > > d_children_quant;
   std::map< Node, bool > d_active_quant;
   /** Whether cegqi handles each quantified formula. */
-  std::map< Node, CegHandledStatus > d_do_cbqi;
+  std::map<Node, CegHandledStatus> d_do_cbqi;
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
   virtual void registerCounterexampleLemma( Node q, Node lem );

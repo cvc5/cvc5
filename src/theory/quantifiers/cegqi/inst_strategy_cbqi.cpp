@@ -289,9 +289,9 @@ bool InstStrategyCbqi::checkComplete() {
 }
 
 bool InstStrategyCbqi::checkCompleteFor( Node q ) {
-  std::map< Node, CegHandledStatus >::iterator it = d_do_cbqi.find( q );
+  std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it!=d_do_cbqi.end() ){
-    return it->second!=CEG_UNHANDLED;
+    return it->second != CEG_UNHANDLED;
   }else{
     return false;
   }
@@ -346,7 +346,8 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
 
 void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
-    if( d_do_cbqi[q]==CEG_HANDLED ){
+    if (d_do_cbqi[q] == CEG_HANDLED)
+    {
       //take full ownership of the quantified formula
       d_quantEngine->setOwner( q, this );
       
@@ -480,7 +481,7 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
 }
 
 bool InstStrategyCbqi::doCbqi( Node q ){
-  std::map< Node, CegHandledStatus >::iterator it = d_do_cbqi.find( q );
+  std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
     CegHandledStatus ret = CEG_HANDLED;
     if( !d_quantEngine->getQuantAttributes()->isQuantElim( q ) ){
@@ -496,17 +497,19 @@ bool InstStrategyCbqi::doCbqi( Node q ){
       if( d_quantEngine->getQuantAttributes()->isSygus( q ) ){
         ret = CEG_UNHANDLED;
       }
-      if( ret!=CEG_UNHANDLED ){
+      if (ret != CEG_UNHANDLED)
+      {
         //if quantifier has a non-handled variable, then do not use cbqi
         //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-        CegHandledStatus ncbqiv = CegInstantiator::hasNonCbqiVariable(q, d_quantEngine);
-        Trace("cbqi-quant-debug")
-            << "hasNonCbqiVariable returned " << ncbqiv << std::endl;
+        CegHandledStatus ncbqiv =
+            CegInstantiator::hasNonCbqiVariable(q, d_quantEngine);
+        Trace("cbqi-quant-debug") << "hasNonCbqiVariable returned " << ncbqiv
+                                  << std::endl;
         if (ncbqiv != CEG_UNHANDLED)
         {
           CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
-          Trace("cbqi-quant-debug")
-              << "isCbqiTerm returned " << cbqit << std::endl;
+          Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit
+                                    << std::endl;
           if (cbqit == CEG_UNHANDLED)
           {
             if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
@@ -527,7 +530,8 @@ bool InstStrategyCbqi::doCbqi( Node q ){
           // unhandled variable type
           ret = CEG_UNHANDLED;
         }
-        if( ret==CEG_UNHANDLED && options::cbqiAll() ){
+        if (ret == CEG_UNHANDLED && options::cbqiAll())
+        {
           //try but not exclusively
           ret = CEG_PARTIALLY_HANDLED;
         }
@@ -535,9 +539,9 @@ bool InstStrategyCbqi::doCbqi( Node q ){
     }
     Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
-    return ret!=CEG_UNHANDLED;
+    return ret != CEG_UNHANDLED;
   }else{
-    return it->second!=CEG_UNHANDLED;
+    return it->second != CEG_UNHANDLED;
   }
 }
 

@@ -186,8 +186,8 @@ enum CegInstPhase
 
 std::ostream& operator<<(std::ostream& os, CegInstPhase phase);
 
-/** 
- * The handled status of a sort/term/quantified formula, indicating whether 
+/**
+ * The handled status of a sort/term/quantified formula, indicating whether
  * counterexample-guided instantiation handles it.
  */
 enum CegHandledStatus
@@ -198,7 +198,8 @@ enum CegHandledStatus
   CEG_PARTIALLY_HANDLED,
   // the sort/term/quantified formula is handled by cegqi
   CEG_HANDLED,
-  // the sort/term/quantified formula is handled by cegqi, regardless of additional factors
+  // the sort/term/quantified formula is handled by cegqi, regardless of
+  // additional factors
   CEG_HANDLED_UNCONDITIONAL,
 };
 
@@ -313,7 +314,6 @@ class CegInstantiator {
   bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
-
   //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
@@ -341,13 +341,15 @@ class CegInstantiator {
    * strategies initialized in qe. For example, uninterpreted sorts are
    * handled if dedicated support for EPR is enabled.
    */
-  static CegHandledStatus isCbqiSort(TypeNode tn, QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus isCbqiSort(TypeNode tn,
+                                     QuantifiersEngine* qe = nullptr);
   /** has non-cbqi variable?
    *
    * This returns the minimum value of the above method for a bound variable
    * in the prefix of quantified formula q.
    */
-  static CegHandledStatus hasNonCbqiVariable(Node q, QuantifiersEngine* qe = nullptr);
+  static CegHandledStatus hasNonCbqiVariable(Node q,
+                                             QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
  private:
   /** quantified formula associated with this instantiator */
@@ -593,9 +595,10 @@ class CegInstantiator {
    * Helper function for isCbqiSort. This function recurses over the structure
    * of the type tn, where visited stores the types we have visited.
    */
-  static CegHandledStatus isCbqiSort(TypeNode tn,
-                        std::map<TypeNode, CegHandledStatus>& visited,
-                        QuantifiersEngine* qe);
+  static CegHandledStatus isCbqiSort(
+      TypeNode tn,
+      std::map<TypeNode, CegHandledStatus>& visited,
+      QuantifiersEngine* qe);
   //------------------------------------ end  static queries
 };
 

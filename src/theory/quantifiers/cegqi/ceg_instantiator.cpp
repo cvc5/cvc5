@@ -197,9 +197,10 @@ CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
   return isCbqiSort(tn, visited, qe);
 }
 
-CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn,
-                                std::map<TypeNode, CegHandledStatus>& visited,
-                                QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::isCbqiSort(
+    TypeNode tn,
+    std::map<TypeNode, CegHandledStatus>& visited,
+    QuantifiersEngine* qe)
 {
   std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
   if (itv != visited.end())
@@ -251,7 +252,8 @@ CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn,
   return ret;
 }
 
-CegHandledStatus CegInstantiator::hasNonCbqiVariable(Node q, QuantifiersEngine* qe)
+CegHandledStatus CegInstantiator::hasNonCbqiVariable(Node q,
+                                                     QuantifiersEngine* qe)
 {
   CegHandledStatus hmin = CEG_HANDLED;
   for (const Node& v : q[0])
