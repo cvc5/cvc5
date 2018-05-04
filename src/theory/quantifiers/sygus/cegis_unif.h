@@ -29,7 +29,7 @@ namespace quantifiers {
 /** Cegis Unif Enumeration Manager
  *
  * This class enforces a decision heuristic that limits the number of
- * unique values given to the set of heads of evaluation points, which are 
+ * unique values given to the set of heads of evaluation points, which are
  * variables of sygus datatype type that are introduced by CegisUnif.
  *
  * It maintains a set of guards, call them G_uq_1 ... G_uq_n, where the
@@ -37,8 +37,8 @@ namespace quantifiers {
  * type are interpreted as a value in a set whose cardinality is at most i".
  *
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
- * heads of evaluation points registered to this class and add lemmas that 
- * enforce that these terms are equal to at least one enumerator (see 
+ * heads of evaluation points registered to this class and add lemmas that
+ * enforce that these terms are equal to at least one enumerator (see
  * registerEvalPtAtValue).
  */
 class CegisUnifEnumManager
@@ -57,8 +57,8 @@ class CegisUnifEnumManager
   void initialize(const std::vector<Node>& cs);
   /** register evaluation point for candidate
    *
-   * This notifies this class that eis is a set of heads of evaluation points 
-   * for candidate c, where c should be a candidate that was passed to 
+   * This notifies this class that eis is a set of heads of evaluation points
+   * for candidate c, where c should be a candidate that was passed to
    * initialize in the vector cs.
    *
    * This may add new lemmas of the form described above
