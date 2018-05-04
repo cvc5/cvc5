@@ -308,6 +308,7 @@ REG0_TESTS = \
 	regress0/bv/mult-pow2-negative.smt2 \
 	regress0/bv/sizecheck.cvc \
 	regress0/bv/smtcompbug.smt \
+	regress0/bv/test-bv_intro_pow2.smt2 \
 	regress0/bv/unsound1-reduced.smt2 \
 	regress0/chained-equality.smt2 \
 	regress0/constant-rewrite.smt \
