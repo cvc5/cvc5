@@ -53,7 +53,7 @@ class CegisUnifEnumManager
    * Each candidate c in cs should be such that we are using a
    * synthesis-by-unification approach for c.
    */
-  void initialize(std::vector<Node>& cs);
+  void initialize(const std::vector<Node>& cs);
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of evaluation points for
@@ -63,7 +63,7 @@ class CegisUnifEnumManager
    * This may add new lemmas of the form described above
    * registerEvalPtAtValue on the output channel of d_qe.
    */
-  void registerEvalPts(std::vector<Node>& eis, Node c);
+  void registerEvalPts(const std::vector<Node>& eis, Node c);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
