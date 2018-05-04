@@ -1264,7 +1264,7 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   os << "))";
 }
 
-inline bool TheoryProof::match(TNode n1, TNode n2)
+bool TheoryProof::match(TNode n1, TNode n2)
 {
   theory::TheoryId theoryId = this->getTheoryId();
   ProofManager* pm = ProofManager::currentPM();
