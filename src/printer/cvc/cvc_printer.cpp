@@ -1457,6 +1457,7 @@ static void toStream(std::ostream& out,
           out << ')';
         }
       }
+      firstDatatype = false;
     }
     out << endl << "END;";
   }
