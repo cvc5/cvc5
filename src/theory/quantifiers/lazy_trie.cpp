@@ -95,17 +95,19 @@ void DynamicClassifier::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
     for (const Node& n : prev_sep_class)
     {
       Node eval = ev->evaluate(n, index + 1);
-      if (trie->d_children[eval] != trie->d_children.end())
+      auto it = trie->d_children.find(eval);
+      if (it != trie->d_children.end())
       {
         // add n to to map of item in next level
-        d_rep_to_sepclass[trie->d_children[eval].d_lazy_child].push_back(n);
+        d_rep_to_sepclass[it->second.d_lazy_child].push_back(n);
         continue;
       }
       // store at next level
       trie->d_children[eval].d_lazy_child = n;
       // create new map
       Assert(d_rep_to_sepclass[n] == d_rep_to_sepclass.end());
-      d_rep_to_sepclass[n] = std::vector<Node>(n);
+      d_rep_to_sepclass[n].clear();
+      d_rep_to_sepclass[n].push_back(n);
     }
   }
 }
@@ -119,11 +121,12 @@ Node DynamicClassifier::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
     Assert(d_rep_to_sepclass[res] != d_rep_to_sepclass.end());
     Assert(!d_rep_to_sepclass[res].empty());
     d_rep_to_sepclass[res].push_back(f);
-    return;
+    return res;
   }
   // f is the representatitve of a singleton seperation class
   Assert(d_rep_to_sepclass[res] == d_rep_to_sepclass.end());
-  d_rep_to_sepclass[res] = std::vector<Node>(f);
+  d_rep_to_sepclass[res].clear();
+  d_rep_to_sepclass[res].push_back(f);
   return res;
 }
 
