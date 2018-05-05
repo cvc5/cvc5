@@ -416,7 +416,8 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
         d_preproc_cache[ c_n ] = true;
         Trace("strings-process-debug") << "Process reduction for " << n << ", pol = " << pol << std::endl;
         Kind k = n.getKind();
-        if( k==kind::STRING_STRCTN && pol==1 ){
+        if (k == kind::STRING_STRCTN && pol == 1)
+        {
           Node x = n[0];
           Node s = n[1];
           //positive contains reduces to a equality
@@ -432,7 +433,10 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
         }
         else if (k != kind::STRING_CODE)
         {
-          Assert( k==STRING_SUBSTR || k==STRING_STRCTN || k==STRING_STRIDOF || k==STRING_ITOS || k==STRING_STOI || k==STRING_STRREPL );
+          Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
+                 || k == STRING_ITOS
+                 || k == STRING_STOI
+                 || k == STRING_STRREPL);
           std::vector< Node > new_nodes;
           Node res = d_preproc.simplify( n, new_nodes );
           Assert( res!=n );
