@@ -4246,13 +4246,11 @@ void SmtEnginePrivate::processAssertions() {
     d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
-  dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {
     d_preprocessingPassRegistry.getPass("static-learning")
         ->apply(&d_assertions);
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-static-learning" << endl;
   }
-  dumpAssertions("post-static-learning", d_assertions);
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-ite-removal" << endl;
