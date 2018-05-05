@@ -32,6 +32,30 @@ namespace CVC4 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
+unsigned String::convertCharToUnsignedInt(unsigned char c) {
+  return convertCodeToUnsignedInt(static_cast<unsigned>(c));
+}
+unsigned char String::convertUnsignedIntToChar(unsigned i) {
+  Assert( i<num_codes() );
+  return static_cast<unsigned char>(convertUnsignedIntToCode(i));
+}
+bool String::isPrintable(unsigned i) {
+  Assert( i<num_codes() );
+  unsigned char c = convertUnsignedIntToChar(i);
+  return (c >= ' ' && c <= '~');
+}
+unsigned String::convertCodeToUnsignedInt(unsigned c)
+{
+  Assert( c<num_codes() );
+  return (c < start_code() ? c + num_codes() : c) - start_code();
+}
+unsigned String::convertUnsignedIntToCode(unsigned i)
+{
+  Assert( i<num_codes() );
+  return  (i + start_code()) % num_codes();
+}
+
+
 int String::cmp(const String &y) const {
   if (size() != y.size()) {
     return size() < y.size() ? -1 : 1;
