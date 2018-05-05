@@ -171,9 +171,15 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
-  /* Notify lemma to unification utility and get its purified form */
-  Node plem = d_sygus_unif.addRefLemma(lem);
+  // Notify lemma to unification utility and get its purified form
+  std::map<Node, std::vector<Node> > eval_pts;
+  Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
   d_refinement_lemmas.push_back(plem);
+  // Notify the enumeration manager if there are new evaluation points
+  for (const std::pair<const Node, std::vector<Node> >& ep : eval_pts)
+  {
+    d_u_enum_manager.registerEvalPts(ep.second, ep.first);
+  }
   /* Make the refinement lemma and add it to lems. This lemma is guarded by the
      parent's guard, which has the semantics "this conjecture has a solution",
      hence this lemma states: if the parent conjecture has a solution, it
@@ -197,7 +203,7 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
+void CegisUnifEnumManager::initialize(const std::vector<Node>& cs)
 {
   if (cs.empty())
   {
@@ -214,7 +220,7 @@ void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
   incrementNumEnumerators();
 }
 
-void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
+void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node c)
 {
   // candidates of the same type are managed
   TypeNode ct = c.getType();

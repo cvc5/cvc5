@@ -128,16 +128,20 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_CVC4;
   } else if(language == "cvc3" || language == "LANG_CVC3") {
     return output::LANG_CVC3;
-  } else if(language == "smtlib" || language == "smt" ||
-            language == "smtlib2" || language == "smt2" ||
-            language == "smtlib2.0" || language == "smt2.0" ||
-            language == "LANG_SMTLIB_V2_0" || language == "LANG_SMTLIB_V2") {
+  }
+  else if (language == "smtlib2.0" || language == "smt2.0"
+           || language == "LANG_SMTLIB_V2_0")
+  {
     return output::LANG_SMTLIB_V2_0;
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return output::LANG_SMTLIB_V2_5;
-  } else if(language == "smtlib2.6" || language == "smt2.6" ||
-            language == "LANG_SMTLIB_V2_6") {
+  }
+  else if (language == "smtlib" || language == "smt" || language == "smtlib2"
+           || language == "smt2" || language == "smtlib2.6"
+           || language == "smt2.6" || language == "LANG_SMTLIB_V2_6"
+           || language == "LANG_SMTLIB_V2")
+  {
     return output::LANG_SMTLIB_V2_6;
   }
   else if (language == "smtlib2.6.1" || language == "smt2.6.1"
