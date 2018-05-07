@@ -93,10 +93,10 @@ enum Inference
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
-/** inference steps 
- * 
- * Corresponds to a step in the overall strategy of the strings solver. For 
- * details on the individual steps, see documentation on the inference schemas 
+/** inference steps
+ *
+ * Corresponds to a step in the overall strategy of the strings solver. For
+ * details on the individual steps, see documentation on the inference schemas
  * within TheoryStrings.
  */
 enum InferStep
@@ -113,9 +113,9 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
-  // check normal forms equalities 
+  // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
-  // check normal forms disequalities 
+  // check normal forms disequalities
   CHECK_NORMAL_FORMS_DEQ,
   // check codes
   CHECK_CODES,
