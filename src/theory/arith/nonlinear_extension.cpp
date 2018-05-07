@@ -1444,7 +1444,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         if (it != v_b.end())
         {
           b = it->second;
-          t = nm->mkNode( PLUS, nm->mkNode( MULT, b, v ) );
+          t = nm->mkNode( PLUS, t, nm->mkNode( MULT, b, v ) );
         }
         t = Rewriter::rewrite( t );
         // find maximal/minimal value on the interval
