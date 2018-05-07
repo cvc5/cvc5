@@ -1384,27 +1384,29 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     return false;
   }
   // simple interval analysis
-  if( simpleCheckModelMsum(msum, pol) )
+  if (simpleCheckModelMsum(msum, pol))
   {
     return true;
   }
   // can also try reasoning about univariate quadratic equations
-  std::vector< Node > vs_invalid;
-  std::unordered_set< Node, NodeHashFunction > vs;
-  std::map< Node, Node > v_a;
-  std::map< Node, Node > v_b;
+  std::vector<Node> vs_invalid;
+  std::unordered_set<Node, NodeHashFunction> vs;
+  std::map<Node, Node> v_a;
+  std::map<Node, Node> v_b;
   // get coefficients...
   for (std::pair<const Node, Node>& m : msum)
   {
     Node v = m.first;
-    if( !v.isNull() )
+    if (!v.isNull())
     {
-      if( v.isVar() )
+      if (v.isVar())
       {
         v_b[v] = m.second.isNull() ? d_one : m.second;
         vs.insert(v);
       }
-      else if( v.getKind()==NONLINEAR_MULT && v.getNumChildren()==2 && v[0]==v[1] && v[0].isVar() )
+      else if (v.getKind() == NONLINEAR_MULT && v.getNumChildren() == 2
+               && v[0] == v[1]
+               && v[0].isVar())
       {
         v_a[v[0]] = m.second.isNull() ? d_one : m.second;
         vs.insert(v[0]);
@@ -1416,31 +1418,34 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     }
   }
   // solve the valid variables...
-  Node invalid_vsum = vs_invalid.empty() ? d_zero : ( vs_invalid.size()==1 ? vs_invalid[0] : nm->mkNode( PLUS, vs_invalid ) );
-  for( const Node& v : vs )
+  Node invalid_vsum =
+      vs_invalid.empty() ? d_zero : (vs_invalid.size() == 1
+                                         ? vs_invalid[0]
+                                         : nm->mkNode(PLUS, vs_invalid));
+  for (const Node& v : vs)
   {
     // is it a valid variable?
-    if( !invalid_vsum.hasSubterm(v) )
+    if (!invalid_vsum.hasSubterm(v))
     {
       Node a, b;
-      std::map< Node, Node >::iterator it = v_a.find(v);
-      if( it!=v_a.end() )
+      std::map<Node, Node>::iterator it = v_a.find(v);
+      if (it != v_a.end())
       {
         a = it->second;
       }
       it = v_b.find(v);
-      if( it!=v_b.end() )
+      if (it != v_b.end())
       {
         b = it->second;
       }
       // find maximal/minimal value on the interval
-      
     }
   }
   return false;
 }
-  
-bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
+
+bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
+                                              bool pol)
 {
   NodeManager* nm = NodeManager::currentNM();
   // map from transcendental functions to whether they were set to lower
@@ -1544,7 +1549,8 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum, 
               else
               {
                 // ambiguous, can't determine the bound
-                Trace("nl-ext-cms") << "  failed due to ambiguious monomial." << std::endl;
+                Trace("nl-ext-cms")
+                    << "  failed due to ambiguious monomial." << std::endl;
                 return false;
               }
             }
@@ -1617,7 +1623,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum, 
           vbs.push_back(vb);
         }
       }
-      if( !simpleSuccess )
+      if (!simpleSuccess)
       {
         break;
       }
