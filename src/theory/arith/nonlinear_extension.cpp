@@ -1422,24 +1422,91 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
       vs_invalid.empty() ? d_zero : (vs_invalid.size() == 1
                                          ? vs_invalid[0]
                                          : nm->mkNode(PLUS, vs_invalid));
+  // substitution to try
+  std::vector< Node > qvars;
+  std::vector< Node > qsubs;
   for (const Node& v : vs)
   {
     // is it a valid variable?
-    if (!invalid_vsum.hasSubterm(v))
+    std::map<Node, std::pair<Node, Node> >::iterator bit = d_check_model_bounds.find(v);
+    if (!invalid_vsum.hasSubterm(v) && bit!=d_check_model_bounds.end())
     {
-      Node a, b;
       std::map<Node, Node>::iterator it = v_a.find(v);
       if (it != v_a.end())
       {
-        a = it->second;
+        Node a = it->second;
+        Assert( a.isConst() );
+        int asgn = a.getConst<Rational>().sgn();
+        Assert( asgn!=0 );
+        Node t = nm->mkNode(MULT, a, v, v);
+        Node b = d_zero;
+        it = v_b.find(v);
+        if (it != v_b.end())
+        {
+          b = it->second;
+          t = nm->mkNode( PLUS, nm->mkNode( MULT, b, v ) );
+        }
+        t = Rewriter::rewrite( t );
+        // find maximal/minimal value on the interval
+        Node apex = nm->mkNode(DIVISION, b, nm->mkNode(MULT, d_two, a));
+        apex = Rewriter::rewrite( apex );
+        Assert( apex.isConst() );
+        bool cmp[2];
+        Node boundn[2];
+        for( unsigned r=0; r<2; r++ )
+        {
+          boundn[r] = r==0 ? bit->second.first : bit->second.second;
+          Node cmpn = nm->mkNode( LT, boundn[r], apex );
+          cmpn = Rewriter::rewrite(cmpn);
+          Assert( cmpn.isConst() );
+          cmp[r] = cmpn.getConst<bool>();
+        }
+        Node s;
+        qvars.push_back(v);
+        if( cmp[0]!=cmp[1] )
+        {
+          Assert( cmp[0] && !cmp[1] );
+          // does the sign match the bound?
+          if( (asgn==1)==pol )
+          {
+            // the apex is the max/min value
+            s = apex;
+          }
+          else
+          {
+            // it is one of the endpoints, plug in and compare
+            Node tcmpn[2];
+            for( unsigned r=0; r<2; r++ )
+            {
+              qsubs.push_back(boundn[r]);
+              Node ts = t.substitute(qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end() );
+              tcmpn[r] = Rewriter::rewrite(ts);
+              qsubs.pop_back();
+            }
+            Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1] );
+            tcmp = Rewriter::rewrite( tcmp );
+            Assert( tcmp.isConst() );
+            unsigned bindex_use = tcmp.getConst<bool>()==pol ? 1 : 0;
+            s = boundn[bindex_use];
+          }
+        }
+        else
+        {
+          // both to one side
+          unsigned bindex_use = ((asgn==1)==cmp[0])==pol ? 0 : 1;
+          s = boundn[bindex_use];
+        }
+        Assert( !s.isNull() );
+        qsubs.push_back(s);
       }
-      it = v_b.find(v);
-      if (it != v_b.end())
-      {
-        b = it->second;
-      }
-      // find maximal/minimal value on the interval
     }
+  }
+  if( !qvars.empty() )
+  {
+    Assert( qvars.size()==qsubs.size() );
+    Node slit = lit.substitute( qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end() );
+    slit = Rewriter::rewrite( slit );
+    return simpleCheckModelLit(slit);
   }
   return false;
 }
