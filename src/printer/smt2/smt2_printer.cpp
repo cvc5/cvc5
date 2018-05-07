@@ -523,6 +523,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_SUFFIX:
   case kind::STRING_ITOS:
   case kind::STRING_STOI:
+  case kind::STRING_CODE:
   case kind::STRING_TO_REGEXP:
   case kind::REGEXP_CONCAT:
   case kind::REGEXP_UNION:
