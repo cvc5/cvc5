@@ -1304,18 +1304,17 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   while( std::getline( c, ln ) ){
     out << "; " << ln << std::endl;
   }
+  //print the model
+  out << "(model" << endl;
   // print approximations
   if (m.hasApproximations())
   {
     std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
     for (unsigned i = 0, size = approx.size(); i < size; i++)
     {
-      out << "; value of " << approx[i].first
-          << " is approximate, it satisfies " << approx[i].second << std::endl;
+      out << "(approximation " << approx[i].second << ")" << std::endl;
     }
   }
-  //print the model
-  out << "(model" << endl;
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists
