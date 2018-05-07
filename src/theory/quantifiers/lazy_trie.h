@@ -94,7 +94,7 @@ class LazyTrie
            bool forceKeep);
 };
 
-class DynamicClassifier
+class LazyTrieMulti
 {
  public:
   std::map<Node, std::vector<Node>> d_rep_to_sepclass;

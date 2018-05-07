@@ -61,7 +61,7 @@ Node LazyTrie::add(Node n,
 
 using IndTriePair = std::pair<unsigned, LazyTrie*>;
 
-void DynamicClassifier::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
+void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
 {
   std::vector<IndTriePair> visit;
   unsigned index = 0;
@@ -112,7 +112,7 @@ void DynamicClassifier::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
   }
 }
 
-Node DynamicClassifier::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
+Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
 {
   Node res = d_trie.add(f, ev, 0, ntotal, false);
   // f was added to the separation class with representative res
