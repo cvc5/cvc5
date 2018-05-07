@@ -691,8 +691,9 @@ private:
    *
    * This applies an inference schema based on "flat forms". The flat form of a
    * string term t is a vector of representative terms [r1, ..., rn] such that
-   *   E => t = r1 ++ ... ++ rn
-   * where E is the current set of assertions. For example, if t is y ++ z ++ z,
+   * t is of the form t1 ++ ... ++ tm and r1 ++ ... ++ rn is equivalent to
+   * rewrite( [t1] ++ ... ++ [tm] ), where [t1] denotes the representative of
+   * the equivalence class containing t1. For example, if t is y ++ z ++ z,
    * E is { y = "", w = z }, and w is the representative of the equivalence
    * class { w, z }, then the flat form of t is [w, w]. Say t1 and t2 are terms
    * in the same equivalence classes with flat forms [r1...rn] and [s1...sm].
@@ -716,22 +717,49 @@ private:
   void checkFlatForms();
   /** check normal forms equalities
    *
-   *
+   * This applies an inference schema based on "normal forms". The normal form
+   * of an equivalence class of string terms e = {t1, ..., tn} union {x1....xn},
+   * where t1...tn are concatenation terms is a vector of representative terms
+   * [r1, ..., rm] such that:
+   * (1) if n=0, then m=1 and r1 is the representative of e,
+   * (2) if n>0, say
+   *   t1 = t^1_1 ++ ... ++ t^1_m_1
+   *   ...
+   *   tn = t^1_n ++ ... ++ t^_m_n
+   * for each i=1, ..., n, concenating the normal forms of
+   * t^1_1 ++ ... ++ t^1_m_1 is equal to [r1, ..., rm]. If an equivalence class
+   * can be assigned a normal form, then all equalities between ti and tj are 
+   * satisfied by all models that correspond to extensions of the current 
+   * assignment. For further detail on this terminology, see Liang et al 
+   * CAV 2014.
+   * 
+   * Notice that all constant words are implicitly considered concatentation
+   * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
+   * 
+   * If this inference schema returns no facts, lemmas, or conflicts, then
+   * we have successfully assigned normal forms for all equivalence classes, as
+   * stored in d_normal_forms. Otherwise, this method may add a fact, lemma, or
+   * conflict based on inferences in the Inference enumeration above.
    */
   void checkNormalFormsEq();
   /** check normal forms disequalities
    *
-   *
+   * 
    */
   void checkNormalFormsDeq();
   /** check codes
    *
-   *
+   * This inference schema ensures that constraints between str.code terms
+   * are satisfied by models that correspond to extensions of the current
+   * assignment. In particular, this method ensures that str.code can be
+   * given an interpretation that is injective for string arugments with length
+   * one. It may add lemmas of the form:
+   *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
    */
   void checkCodes();
   /** check lengths for equivalence classes
    *
-   *
+   * This inference schema 
    */
   void checkLengthsEqc();
   /** check extended function reductions

@@ -2142,7 +2142,6 @@ void TheoryStrings::checkNormalFormsEq(){
   {
     return;
   }
-  Trace("strings-process") << "Normalize equivalence classes...." << std::endl;
   // calculate normal forms for each equivalence class, possibly adding
   // splitting lemmas
   d_normal_forms.clear();
@@ -2267,12 +2266,6 @@ void TheoryStrings::checkCodes() {
       }
     }
   }
-  Trace("strings-process-debug")
-      << "Done check code, addedFact = " << !d_pending.empty() << " "
-      << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  Trace("strings-solve") << "Finished check normal forms, #lemmas = "
-                         << d_lemma_cache.size()
-                         << ", conflict = " << d_conflict << std::endl;
 }
 
 //compute d_normal_forms_(base,exp,exp_depend)[eqc]
