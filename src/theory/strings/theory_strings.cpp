@@ -32,6 +32,7 @@
 
 using namespace std;
 using namespace CVC4::context;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -416,7 +417,9 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
       if( d_preproc_cache.find( c_n )==d_preproc_cache.end() ){
         d_preproc_cache[ c_n ] = true;
         Trace("strings-process-debug") << "Process reduction for " << n << ", pol = " << pol << std::endl;
-        if( n.getKind()==kind::STRING_STRCTN && pol==1 ){
+        Kind k = n.getKind();
+        if (k == kind::STRING_STRCTN && pol == 1)
+        {
           Node x = n[0];
           Node s = n[1];
           //positive contains reduces to a equality
@@ -430,10 +433,12 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           Trace("strings-extf-debug") << "  resolve extf : " << n << " based on positive contain reduction." << std::endl;
           return 1;
         }
-        else if (n.getKind() != kind::STRING_CODE)
+        else if (k != kind::STRING_CODE)
         {
-          // for STRING_SUBSTR, STRING_STRCTN with pol=-1,
-          //     STRING_STRIDOF, STRING_ITOS, STRING_STOI, STRING_STRREPL
+          Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
+                 || k == STRING_ITOS
+                 || k == STRING_STOI
+                 || k == STRING_STRREPL || k==STRING_LEQ);
           std::vector< Node > new_nodes;
           Node res = d_preproc.simplify( n, new_nodes );
           Assert( res!=n );
@@ -613,8 +618,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         {
           c = itp->second;
         }
-        Trace("strings-model")
-            << "*** Assigned constant " << c << " for " << eqc << std::endl;
+        Trace("strings-model") << "*** Assigned constant " << c << " for "
+                               << eqc << std::endl;
         processed[eqc] = c;
         if (!m->assertEquality(eqc, c, true))
         {
@@ -2089,8 +2094,8 @@ void TheoryStrings::checkNormalForms(){
   std::map<Node, Node> eqc_to_exp;
   for (const Node& eqc : d_strings_eqc)
   {
-    Trace("strings-process-debug")
-        << "- Verify normal forms are the same for " << eqc << std::endl;
+    Trace("strings-process-debug") << "- Verify normal forms are the same for "
+                                   << eqc << std::endl;
     normalizeEquivalenceClass(eqc);
     Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
     if (hasProcessed())
@@ -2177,8 +2182,8 @@ void TheoryStrings::checkNormalForms(){
       if (d_normal_forms[eqc].size() == 1 && d_normal_forms[eqc][0].isConst())
       {
         Node c = d_normal_forms[eqc][0];
-        Trace("strings-code-debug")
-            << "Get proxy variable for " << c << std::endl;
+        Trace("strings-code-debug") << "Get proxy variable for " << c
+                                    << std::endl;
         Node cc = nm->mkNode(kind::STRING_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
@@ -2207,17 +2212,16 @@ void TheoryStrings::checkNormalForms(){
     }
     // now, ensure that str.code is injective
     std::vector<Node> cmps;
-    cmps.insert(cmps.end(), nconst_codes.begin(), nconst_codes.end());
-    cmps.insert(cmps.end(), const_codes.begin(), const_codes.end());
-    std::reverse(cmps.begin(), cmps.end());
+    cmps.insert(cmps.end(), const_codes.rbegin(), const_codes.rend());
+    cmps.insert(cmps.end(), nconst_codes.rbegin(), nconst_codes.rend());
     for (unsigned i = 0, num_ncc = nconst_codes.size(); i < num_ncc; i++)
     {
       Node c1 = nconst_codes[i];
       cmps.pop_back();
       for (const Node& c2 : cmps)
       {
-        Trace("strings-code-debug")
-            << "Compare codes : " << c1 << " " << c2 << std::endl;
+        Trace("strings-code-debug") << "Compare codes : " << c1 << " " << c2
+                                    << std::endl;
         if (!areDisequal(c1, c2))
         {
           Node eqn = c1[0].eqNode(c2[0]);
@@ -3441,10 +3445,6 @@ bool TheoryStrings::isNormalFormPair2( Node n1, Node n2 ) {
 }
 
 void TheoryStrings::registerTerm( Node n, int effort ) {
-  // 0 : upon preregistration or internal assertion
-  // 1 : upon occurrence in length term
-  // 2 : before normal form computation
-  // 3 : called on normal form terms
   TypeNode tn = n.getType();
   bool do_register = true;
   if (!tn.isString())

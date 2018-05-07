@@ -56,29 +56,15 @@ class CVC4_PUBLIC String {
    * Convert unsigned char to the unsigned used in the internal representation
    * in d_vec below.
    */
-  static unsigned convertCharToUnsignedInt(unsigned char c) {
-    return convertCodeToUnsignedInt(static_cast<unsigned>(c));
-  }
+  static unsigned convertCharToUnsignedInt(unsigned char c);
   /** Convert the internal unsigned to a unsigned char. */
-  static unsigned char convertUnsignedIntToChar(unsigned i) {
-    return static_cast<unsigned char>(convertUnsignedIntToCode(i));
-  }
+  static unsigned char convertUnsignedIntToChar(unsigned i);
   /** Does the internal unsigned correspond to a printable character? */
-  static bool isPrintable(unsigned i) {
-    unsigned char c = convertUnsignedIntToChar(i);
-    return (c >= ' ' && c <= '~');  // isprint( (int)c );
-  }
+  static bool isPrintable(unsigned i);
   /** get the internal unsigned for ASCII code c. */
-  static unsigned convertCodeToUnsignedInt(unsigned c)
-  {
-    return (c < start_code() ? c + num_codes() : c) - start_code();
-  }
+  static unsigned convertCodeToUnsignedInt(unsigned c);
   /** get the ASCII code number that internal unsigned i corresponds to. */
-  static unsigned convertUnsignedIntToCode(unsigned i)
-  {
-    unsigned ii = i + start_code();
-    return ii >= num_codes() ? ii - num_codes() : ii;
-  }
+  static unsigned convertUnsignedIntToCode(unsigned i);
 
   /** constructors for String
   *

@@ -454,7 +454,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "permitted while operating in strict compliance mode.");
         }
       }
-    | { expr = MK_CONST(bool(true)); }
+    | { expr = Expr(); }
     )
     { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */
@@ -3103,7 +3103,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
-RESET_TOK : { PARSER_STATE->v2_5(false) }? 'reset';
+RESET_TOK : { PARSER_STATE->v2_5() }? 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
 ITE_TOK : 'ite';
 LET_TOK : { !PARSER_STATE->sygus() }? 'let';
@@ -3362,7 +3362,7 @@ STRING_LITERAL_2_0
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5(false) || PARSER_STATE->sygus() }?=>
+  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
     '"' (~('"') | '""')* '"'
   ;
 

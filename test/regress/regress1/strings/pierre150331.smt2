@@ -1,3 +1,4 @@
+(set-info :smt-lib-version 2.5)
 (set-logic SLIA)
 (set-info :status sat)
 (set-info :smt-lib-version 2.5)
