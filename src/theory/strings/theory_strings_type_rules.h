@@ -228,7 +228,9 @@ public:
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a string term in string to int 0");
+        std::stringstream ss;
+        ss << "expecting a string term in argument of " << n.getKind();
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->integerType();
