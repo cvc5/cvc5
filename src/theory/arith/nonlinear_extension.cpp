@@ -1339,9 +1339,10 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
 bool NonlinearExtension::simpleCheckModelLit(Node lit)
 {
   Trace("nl-ext-cms") << "simple check-model for " << lit << "..." << std::endl;
-  if (lit.isConst() && lit.getConst<bool>())
+  if (lit.isConst())
   {
-    return true;
+    Trace("nl-ext-cms") << "  return constant." << std::endl;
+    return lit.getConst<bool>();
   }
   NodeManager* nm = NodeManager::currentNM();
   bool pol = lit.getKind() != kind::NOT;
@@ -1586,8 +1587,54 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
   {
     return true;
   }
+  
   // can also try reasoning about univariate quadratic equations
-
+  std::vector< Node > vs_invalid;
+  std::unordered_set< Node, NodeHashFunction > vs;
+  std::map< Node, Node > v_a;
+  std::map< Node, Node > v_b;
+  for (std::pair<const Node, Node>& m : msum)
+  {
+    Node v = m.first;
+    if( !v.isNull() )
+    {
+      if( v.isVar() )
+      {
+        v_b[v] = m.second.isNull() ? d_one : m.second;
+        vs.insert(v);
+      }
+      else if( v.getKind()==NONLINEAR_MULT && v.getNumChildren()==2 && v[0]==v[1] && v[0].isVar() )
+      {
+        v_a[v[0]] = m.second.isNull() ? d_one : m.second;
+        vs.insert(v[0]);
+      }
+      else
+      {
+        vs_invalid.push_back(v);
+      }
+    }
+  }
+  Node invalid_vsum = vs_invalid.empty() ? d_zero : ( vs_invalid.size()==1 ? vs_invalid[0] : nm->mkNode( PLUS, vs_invalid ) );
+  for( const Node& v : vs )
+  {
+    // is it a valid variable?
+    if( !invalid_vsum.hasSubterm(v) )
+    {
+      Node a, b;
+      std::map< Node, Node >::iterator it = v_a.find(v);
+      if( it!=v_a.end() )
+      {
+        a = it->second;
+      }
+      it = v_b.find(v);
+      if( it!=v_b.end() )
+      {
+        b = it->second;
+      }
+      
+      
+    }
+  }
   return false;
 }
 
