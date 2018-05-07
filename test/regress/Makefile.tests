@@ -308,6 +308,7 @@ REG0_TESTS = \
 	regress0/bv/mult-pow2-negative.smt2 \
 	regress0/bv/sizecheck.cvc \
 	regress0/bv/smtcompbug.smt \
+	regress0/bv/test-bv_intro_pow2.smt2 \
 	regress0/bv/unsound1-reduced.smt2 \
 	regress0/chained-equality.smt2 \
 	regress0/constant-rewrite.smt \
@@ -744,6 +745,7 @@ REG0_TESTS = \
 	regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2 \
 	regress0/sets/sets-equal.smt2 \
 	regress0/sets/sets-inter.smt2 \
+	regress0/sets/sets-of-sets-subtypes.smt2 \
 	regress0/sets/sets-poly-int-real.smt2 \
 	regress0/sets/sets-poly-nonint.smt2 \
 	regress0/sets/sets-sample.smt2 \
@@ -788,6 +790,7 @@ REG0_TESTS = \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
+	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
 	regress0/strings/str004.smt2 \
 	regress0/strings/str005.smt2 \
@@ -998,6 +1001,7 @@ REG1_TESTS = \
 	regress1/arith/mult.02.smt2 \
 	regress1/arith/pbrewrites-test.smt2 \
 	regress1/arith/problem__003.smt2 \
+	regress1/arith/real2int-test.smt2 \
 	regress1/arrayinuf_error.smt2 \
 	regress1/aufbv/bug580.smt2 \
 	regress1/aufbv/fuzz10.smt \
@@ -1117,6 +1121,7 @@ REG1_TESTS = \
 	regress1/nl/exp-4.5-lt.smt2 \
 	regress1/nl/exp1-lb.smt2 \
 	regress1/nl/exp_monotone.smt2 \
+	regress1/nl/factor_agg_s.smt2 \
 	regress1/nl/metitarski-1025.smt2 \
 	regress1/nl/metitarski-3-4.smt2 \
 	regress1/nl/metitarski_3_4_2e.smt2 \
@@ -1124,6 +1129,7 @@ REG1_TESTS = \
 	regress1/nl/nl-eq-infer.smt2 \
 	regress1/nl/nl-help-unsat-quant.smt2 \
 	regress1/nl/nl-unk-quant.smt2 \
+	regress1/nl/nl_uf_lalt.smt2 \
 	regress1/nl/ones.smt2 \
 	regress1/nl/poly-1025.smt2 \
 	regress1/nl/quant-nl.smt2 \
@@ -1251,6 +1257,7 @@ REG1_TESTS = \
 	regress1/quantifiers/model_6_1_bv.smt2 \
 	regress1/quantifiers/mutualrec2.cvc \
 	regress1/quantifiers/nested9_true-unreach-call.i_575.smt2 \
+	regress1/quantifiers/nra-interleave-inst.smt2 \
 	regress1/quantifiers/opisavailable-12.smt2 \
 	regress1/quantifiers/parametric-lists.smt2 \
 	regress1/quantifiers/psyco-001-bv.smt2 \
@@ -1403,6 +1410,7 @@ REG1_TESTS = \
 	regress1/strings/cmu-5042-0707-2.smt2 \
 	regress1/strings/cmu-inc-nlpp-071516.smt2 \
 	regress1/strings/cmu-substr-rw.smt2 \
+	regress1/strings/code-sequence.smt2 \
 	regress1/strings/crash-1019.smt2 \
 	regress1/strings/csp-prefix-exp-bug.smt2 \
 	regress1/strings/double-replace.smt2 \
@@ -1445,6 +1453,10 @@ REG1_TESTS = \
 	regress1/strings/string-unsound-sem.smt2 \
 	regress1/strings/strings-index-empty.smt2 \
 	regress1/strings/strip-endpt-sound.smt2 \
+	regress1/strings/str-code-sat.smt2 \
+	regress1/strings/str-code-unsat.smt2 \
+	regress1/strings/str-code-unsat-2.smt2 \
+	regress1/strings/str-code-unsat-3.smt2 \
 	regress1/strings/substr001.smt2 \
 	regress1/strings/type002.smt2 \
 	regress1/strings/type003.smt2 \
@@ -1477,6 +1489,7 @@ REG1_TESTS = \
 	regress1/sygus/nia-max-square-ns.sy \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
+	regress1/sygus/pbe_multi.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
