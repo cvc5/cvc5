@@ -1383,11 +1383,72 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     Trace("nl-ext-cms") << "  failed due to get msum." << std::endl;
     return false;
   }
+  // simple interval analysis
+  if( simpleCheckModelMsum(msum, pol) )
+  {
+    return true;
+  }
+  // can also try reasoning about univariate quadratic equations
+  std::vector< Node > vs_invalid;
+  std::unordered_set< Node, NodeHashFunction > vs;
+  std::map< Node, Node > v_a;
+  std::map< Node, Node > v_b;
+  // get coefficients...
+  for (std::pair<const Node, Node>& m : msum)
+  {
+    Node v = m.first;
+    if( !v.isNull() )
+    {
+      if( v.isVar() )
+      {
+        v_b[v] = m.second.isNull() ? d_one : m.second;
+        vs.insert(v);
+      }
+      else if( v.getKind()==NONLINEAR_MULT && v.getNumChildren()==2 && v[0]==v[1] && v[0].isVar() )
+      {
+        v_a[v[0]] = m.second.isNull() ? d_one : m.second;
+        vs.insert(v[0]);
+      }
+      else
+      {
+        vs_invalid.push_back(v);
+      }
+    }
+  }
+  // solve the valid variables...
+  Node invalid_vsum = vs_invalid.empty() ? d_zero : ( vs_invalid.size()==1 ? vs_invalid[0] : nm->mkNode( PLUS, vs_invalid ) );
+  for( const Node& v : vs )
+  {
+    // is it a valid variable?
+    if( !invalid_vsum.hasSubterm(v) )
+    {
+      Node a, b;
+      std::map< Node, Node >::iterator it = v_a.find(v);
+      if( it!=v_a.end() )
+      {
+        a = it->second;
+      }
+      it = v_b.find(v);
+      if( it!=v_b.end() )
+      {
+        b = it->second;
+      }
+      // find maximal/minimal value on the interval
+      
+    }
+  }
+  return false;
+}
+  
+bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
+{
+  NodeManager* nm = NodeManager::currentNM();
   // map from transcendental functions to whether they were set to lower
   // bound
+  bool simpleSuccess = true;
   std::map<Node, bool> set_bound;
   std::vector<Node> sum_bound;
-  for (std::pair<const Node, Node>& m : msum)
+  for (const std::pair<const Node, Node>& m : msum)
   {
     Node v = m.first;
     if (v.isNull())
@@ -1483,6 +1544,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
               else
               {
                 // ambiguous, can't determine the bound
+                Trace("nl-ext-cms") << "  failed due to ambiguious monomial." << std::endl;
                 return false;
               }
             }
@@ -1555,11 +1617,16 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           vbs.push_back(vb);
         }
       }
+      if( !simpleSuccess )
+      {
+        break;
+      }
       Node vbound = vbs.size() == 1 ? vbs[0] : nm->mkNode(MULT, vbs);
       sum_bound.push_back(ArithMSum::mkCoeffTerm(m.second, vbound));
     }
   }
-  // now, make the bound
+  // if the exact bound was computed via simple analysis above
+  // make the bound
   Node bound;
   if (sum_bound.size() > 1)
   {
@@ -1583,59 +1650,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
   comp = Rewriter::rewrite(comp);
   Assert(comp.isConst());
   Trace("nl-ext-cms") << "  returned : " << comp << std::endl;
-  if (comp == d_true)
-  {
-    return true;
-  }
-  
-  // can also try reasoning about univariate quadratic equations
-  std::vector< Node > vs_invalid;
-  std::unordered_set< Node, NodeHashFunction > vs;
-  std::map< Node, Node > v_a;
-  std::map< Node, Node > v_b;
-  for (std::pair<const Node, Node>& m : msum)
-  {
-    Node v = m.first;
-    if( !v.isNull() )
-    {
-      if( v.isVar() )
-      {
-        v_b[v] = m.second.isNull() ? d_one : m.second;
-        vs.insert(v);
-      }
-      else if( v.getKind()==NONLINEAR_MULT && v.getNumChildren()==2 && v[0]==v[1] && v[0].isVar() )
-      {
-        v_a[v[0]] = m.second.isNull() ? d_one : m.second;
-        vs.insert(v[0]);
-      }
-      else
-      {
-        vs_invalid.push_back(v);
-      }
-    }
-  }
-  Node invalid_vsum = vs_invalid.empty() ? d_zero : ( vs_invalid.size()==1 ? vs_invalid[0] : nm->mkNode( PLUS, vs_invalid ) );
-  for( const Node& v : vs )
-  {
-    // is it a valid variable?
-    if( !invalid_vsum.hasSubterm(v) )
-    {
-      Node a, b;
-      std::map< Node, Node >::iterator it = v_a.find(v);
-      if( it!=v_a.end() )
-      {
-        a = it->second;
-      }
-      it = v_b.find(v);
-      if( it!=v_b.end() )
-      {
-        b = it->second;
-      }
-      
-      
-    }
-  }
-  return false;
+  return comp == d_true;
 }
 
 std::vector<Node> NonlinearExtension::checkSplitZero() {

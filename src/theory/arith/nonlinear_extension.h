@@ -303,6 +303,7 @@ class NonlinearExtension {
    * since the bounds on these terms cannot quickly be determined.
    */
   bool simpleCheckModelLit(Node lit);
+  bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
   /**
    * A substitution from variables that appear in assertions to a solved form
    * term. These vectors are ordered in the form:
