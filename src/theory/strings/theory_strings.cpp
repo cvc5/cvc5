@@ -439,7 +439,8 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
                  || k == STRING_ITOS
                  || k == STRING_STOI
-                 || k == STRING_STRREPL || k==STRING_LEQ);
+                 || k == STRING_STRREPL
+                 || k == STRING_LEQ);
           std::vector< Node > new_nodes;
           Node res = d_preproc.simplify( n, new_nodes );
           Assert( res!=n );
@@ -550,8 +551,9 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Assert(d_normal_forms.find(eqc) != d_normal_forms.end());
         if (d_normal_forms[eqc].size() == 1)
         {
-          // does it have a code and the length of these equivalence classes are one?
-          if (d_has_str_code && lts_values[i]==d_one)
+          // does it have a code and the length of these equivalence classes are
+          // one?
+          if (d_has_str_code && lts_values[i] == d_one)
           {
             EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_code_term.get().isNull())
@@ -677,15 +679,20 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     //check for logic exceptions
     Kind k = n.getKind();
     if( !options::stringExp() ){
-      if( k==kind::STRING_STRIDOF ||
-          k == kind::STRING_ITOS || k == kind::STRING_STOI ||
-          k== kind::STRING_STRREPL || k == kind::STRING_STRCTN || k==STRING_LEQ ){
+      if (k == kind::STRING_STRIDOF || k == kind::STRING_ITOS
+          || k == kind::STRING_STOI
+          || k == kind::STRING_STRREPL
+          || k == kind::STRING_STRCTN
+          || k == STRING_LEQ)
+      {
         std::stringstream ss;
-        ss << "Term of kind " << k << " not supported in default mode, try --strings-exp";
+        ss << "Term of kind " << k
+           << " not supported in default mode, try --strings-exp";
         throw LogicException(ss.str());
       }
     }
-    switch( k ) {
+    switch (k)
+    {
       case kind::EQUAL: {
         d_equalityEngine.addTriggerEquality(n);
         break;
@@ -725,7 +732,9 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
-        if( n.hasOperator() && kindToTheoryId( k )==THEORY_STRINGS && k!=kind::STRING_CONCAT ){
+        if (n.hasOperator() && kindToTheoryId(k) == THEORY_STRINGS
+            && k != kind::STRING_CONCAT)
+        {
           d_functionsTerms.push_back( n );
         }
       }
@@ -2223,8 +2232,9 @@ void TheoryStrings::checkNormalForms(){
       cmps.pop_back();
       for (const Node& c2 : cmps)
       {
-        Trace("strings-code-debug") << "Compare codes : " << c1 << " " << c2 << std::endl;
-        if (!areDisequal(c1, c2) && !areEqual(c1,d_neg_one))
+        Trace("strings-code-debug")
+            << "Compare codes : " << c1 << " " << c2 << std::endl;
+        if (!areDisequal(c1, c2) && !areEqual(c1, d_neg_one))
         {
           Node eq_no = c1.eqNode(d_neg_one);
           Node deq = c1.eqNode(c2).negate();
