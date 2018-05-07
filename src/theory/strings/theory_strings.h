@@ -728,26 +728,26 @@ private:
    *   tn = t^1_n ++ ... ++ t^_m_n
    * for *each* i=1, ..., n, the result of concenating the normal forms of
    * t^1_1 ++ ... ++ t^1_m_1 is equal to [r1, ..., rm]. If an equivalence class
-   * can be assigned a normal form, then all equalities between ti and tj are 
-   * satisfied by all models that correspond to extensions of the current 
-   * assignment. For further detail on this terminology, see Liang et al 
+   * can be assigned a normal form, then all equalities between ti and tj are
+   * satisfied by all models that correspond to extensions of the current
+   * assignment. For further detail on this terminology, see Liang et al
    * CAV 2014.
-   * 
+   *
    * Notice that all constant words are implicitly considered concatentation
    * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
-   * 
+   *
    * At a high level, we build normal forms for equivalence classes bottom-up,
-   * starting with equivalence classes that are minimal with respect to the 
+   * starting with equivalence classes that are minimal with respect to the
    * containment ordering < computed during checkCycles. While computing a
    * normal for equivalence class, we may infer equalities between components
    * of strings that must be equal (e.g. x=y when x++z == y++w when
    * len(x)==len(y) is asserted), derive conflicts if two strings have disequal
-   * prefixes/suffixes (e.g. "a" ++ x == "b" ++ y is a conflict), or split 
-   * string terms into smaller components using fresh skolem variables (see 
+   * prefixes/suffixes (e.g. "a" ++ x == "b" ++ y is a conflict), or split
+   * string terms into smaller components using fresh skolem variables (see
    * Inference values with names "SPLIT"). We also may introduce regular
    * expression constraints in this method for looping word equations (see
    * the Inference INFER_FLOOP).
-   * 
+   *
    * If this inference schema returns no facts, lemmas, or conflicts, then
    * we have successfully assigned normal forms for all equivalence classes, as
    * stored in d_normal_forms. Otherwise, this method may add a fact, lemma, or
@@ -758,16 +758,16 @@ private:
    *
    * This inference schema can be seen as the converse of the above schema. In
    * particular, it ensures that each pair of distinct equivalence classes
-   * e1 and e2 have distinct normal forms. 
-   * 
-   * This method considers all pairs of distinct equivalence classes (e1,e2) 
+   * e1 and e2 have distinct normal forms.
+   *
+   * This method considers all pairs of distinct equivalence classes (e1,e2)
    * such that len(x1)==len(x2) is asserted for some x1 in e1 and x2 in e2. It
    * then traverses the normal forms of x1 and x2, say they are [r1, ..., rn]
    * and [s1, ..., sm]. For the minimial i such that ri!=si, if ri and si are
-   * disequal and have the same length, then x1 and x2 have distinct normal 
+   * disequal and have the same length, then x1 and x2 have distinct normal
    * forms. Otherwise, we may add splitting lemmas on the length of ri and si,
    * or split on an equality between ri and si.
-   * 
+   *
    * If this inference schema returns no facts, lemmas, or conflicts, then all
    * disequalities between string terms are satisfied by all models that are
    * extensions of the current assignment.

@@ -1297,8 +1297,8 @@ void TheoryStrings::checkConstantEquivalenceClasses()
   unsigned prevSize;
   do
   {
-    Trace("strings-process-debug") << "Check constant equivalence classes..."
-                                   << std::endl;
+    Trace("strings-process-debug")
+        << "Check constant equivalence classes..." << std::endl;
     prevSize = d_eqc_to_const.size();
     std::vector<Node> vecc;
     checkConstantEquivalenceClasses(&d_term_index[kind::STRING_CONCAT], vecc);
@@ -1775,11 +1775,11 @@ void TheoryStrings::checkFlatForms()
           if (!TheoryStringsRewriter::canConstantContainList(
                   c, d_flat_form[n], firstc, lastc))
           {
-            Trace("strings-ff-debug") << "Flat form for " << n
-                                      << " cannot be contained in constant "
-                                      << c << std::endl;
-            Trace("strings-ff-debug") << "  indices = " << firstc << "/"
-                                      << lastc << std::endl;
+            Trace("strings-ff-debug")
+                << "Flat form for " << n << " cannot be contained in constant "
+                << c << std::endl;
+            Trace("strings-ff-debug")
+                << "  indices = " << firstc << "/" << lastc << std::endl;
             // conflict, explanation is n = base ^ base = c ^ relevant porition
             // of ( n = f[n] )
             std::vector<Node> exp;
@@ -1953,19 +1953,19 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                 Node lcc = getLength(bc, lexp2);
                 if (areEqual(lcurr, lcc))
                 {
-                  Trace("strings-ff-debug") << "Infer " << ac << " == " << bc
-                                            << " since " << lcurr
-                                            << " == " << lcc << std::endl;
+                  Trace("strings-ff-debug")
+                      << "Infer " << ac << " == " << bc << " since " << lcurr
+                      << " == " << lcc << std::endl;
                   // exp_n.push_back( getLength( curr, true ).eqNode(
                   // getLength( cc, true ) ) );
-                  Trace("strings-ff-debug") << "Explanation for " << lcurr
-                                            << " is ";
+                  Trace("strings-ff-debug")
+                      << "Explanation for " << lcurr << " is ";
                   for (unsigned j = 0; j < lexp.size(); j++)
                   {
                     Trace("strings-ff-debug") << lexp[j] << std::endl;
                   }
-                  Trace("strings-ff-debug") << "Explanation for " << lcc
-                                            << " is ";
+                  Trace("strings-ff-debug")
+                      << "Explanation for " << lcc << " is ";
                   for (unsigned j = 0; j < lexp2.size(); j++)
                   {
                     Trace("strings-ff-debug") << lexp2[j] << std::endl;
@@ -2122,8 +2122,8 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
   return Node::null();
 }
 
-
-void TheoryStrings::checkNormalFormsEq(){
+void TheoryStrings::checkNormalFormsEq()
+{
   if( !options::stringEagerLen() ){
     for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
       Node eqc = d_strings_eqc[i];
@@ -2199,7 +2199,8 @@ void TheoryStrings::checkNormalFormsEq(){
   }
 }
 
-void TheoryStrings::checkCodes() {
+void TheoryStrings::checkCodes()
+{
   // ensure that lemmas regarding str.code been added for each constant string
   // of length one
   if (d_has_str_code)
@@ -3903,7 +3904,8 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
   }
 }
 
-void TheoryStrings::checkNormalFormsDeq() {
+void TheoryStrings::checkNormalFormsDeq()
+{
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
@@ -4930,7 +4932,7 @@ void TheoryStrings::initializeStrategy()
     // add the inference steps
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
-    addStrategyStep(CHECK_EXTF_EVAL,0);
+    addStrategyStep(CHECK_EXTF_EVAL, 0);
     addStrategyStep(CHECK_CYCLES);
     addStrategyStep(CHECK_FLAT_FORMS);
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
@@ -4940,7 +4942,7 @@ void TheoryStrings::initializeStrategy()
       d_step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
-    addStrategyStep(CHECK_EXTF_EVAL,1);
+    addStrategyStep(CHECK_EXTF_EVAL, 1);
     if (!options::stringEagerLen())
     {
       addStrategyStep(CHECK_LENGTH_EQC);
