@@ -726,7 +726,7 @@ private:
    *   t1 = t^1_1 ++ ... ++ t^1_m_1
    *   ...
    *   tn = t^1_n ++ ... ++ t^_m_n
-   * for each i=1, ..., n, concenating the normal forms of
+   * for *each* i=1, ..., n, the result of concenating the normal forms of
    * t^1_1 ++ ... ++ t^1_m_1 is equal to [r1, ..., rm]. If an equivalence class
    * can be assigned a normal form, then all equalities between ti and tj are 
    * satisfied by all models that correspond to extensions of the current 
@@ -744,7 +744,21 @@ private:
   void checkNormalFormsEq();
   /** check normal forms disequalities
    *
+   * This inference schema can be seen as the converse of the above schema. In
+   * particular, it ensures that each pair of distinct equivalence classes
+   * e1 and e2 have distinct normal forms. 
    * 
+   * This method considers all pairs of distinct equivalence classes (e1,e2) 
+   * such that len(x1)==len(x2) is asserted for some x1 in e1 and x2 in e2. It
+   * then traverses the normal forms of x1 and x2, say they are [r1, ..., rn]
+   * and [s1, ..., sm]. For the minimial i such that ri!=si, if ri and si are
+   * disequal and have the same length, then x1 and x2 have distinct normal 
+   * forms. Otherwise, we may add splitting lemmas on the length of ri and si,
+   * or split on an equality between ri and si.
+   * 
+   * If this inference schema returns no facts, lemmas, or conflicts, then all
+   * disequalities between string terms are satisfied by all models that are
+   * extensions of the current assignment.
    */
   void checkNormalFormsDeq();
   /** check codes
@@ -759,7 +773,11 @@ private:
   void checkCodes();
   /** check lengths for equivalence classes
    *
-   * This inference schema 
+   * This inference schema adds lemmas of the form:
+   *   E => len( x ) = rewrite( len( r1 ++ ... ++ rn ) )
+   * where [r1, ..., rn] is the normal form of the equivalence class containing
+   * x. This schema is not required for correctness but experimentally has
+   * shown to be helpful.
    */
   void checkLengthsEqc();
   /** check extended function reductions
