@@ -75,7 +75,7 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
     // not at (previous) last level, traverse children
     if (index < ntotal)
     {
-      for (std::map<Node, LazyTrie>& p_nt : trie->d_children)
+      for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
       {
         visit.push_back(IndTriePair(index + 1, &p_nt.second));
       }
@@ -101,7 +101,7 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
       // store at next level
       trie->d_children[eval].d_lazy_child = n;
       // create new map
-      Assert(d_rep_to_sepclass[n] == d_rep_to_sepclass.end());
+      Assert(d_rep_to_sepclass.find(n) == d_rep_to_sepclass.end());
       d_rep_to_sepclass[n].clear();
       d_rep_to_sepclass[n].push_back(n);
     }
@@ -114,13 +114,13 @@ Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
   // f was added to the separation class with representative res
   if (res != f)
   {
-    Assert(d_rep_to_sepclass[res] != d_rep_to_sepclass.end());
+    Assert(d_rep_to_sepclass.find(res) != d_rep_to_sepclass.end());
     Assert(!d_rep_to_sepclass[res].empty());
     d_rep_to_sepclass[res].push_back(f);
     return res;
   }
   // f is the representatitve of a singleton seperation class
-  Assert(d_rep_to_sepclass[res] == d_rep_to_sepclass.end());
+  Assert(d_rep_to_sepclass.find(res) == d_rep_to_sepclass.end());
   d_rep_to_sepclass[res].clear();
   d_rep_to_sepclass[res].push_back(f);
   return res;

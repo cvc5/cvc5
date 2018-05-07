@@ -189,8 +189,6 @@ class SygusUnifRl : public SygusUnif
     class PointSeparator : public LazyTrieEvaluator
     {
      public:
-      PointSeparator();
-      ~PointSeparator() override {}
       /** initializes this class */
       void initialize(DecisionTreeInfo* dt);
       /**

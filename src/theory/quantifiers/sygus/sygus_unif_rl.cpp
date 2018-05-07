@@ -30,8 +30,6 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              std::vector<Node>& enums,
                              std::vector<Node>& lemmas)
 {
-  d_ecache.clear();
-  d_cand_to_eval_hds.clear();
   // initialize
   std::vector<Node> all_enums;
   SygusUnif::initialize(qe, funs, all_enums, lemmas);
@@ -55,7 +53,6 @@ void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
   Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
                                 << " value " << v << "\n";
-  d_ecache[e].d_enum_vals.push_back(v);
   // Exclude v from next enumerations for e
   Node exc_lemma =
       d_tds->getExplain()->getExplanationForEquality(e, v).negate();
@@ -71,9 +68,9 @@ void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   }
   for (const Node& stratpt : it->second)
   {
-    Assert(d_enum_to_dt.find(stratpt) != d_enum_to_dt.end());
+    Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
     // Register new condition value
-    d_enum_to_dt[stratpt].addCondValue(v);
+    d_stratpt_to_dt[stratpt].addCondValue(v);
   }
 }
 
@@ -256,9 +253,9 @@ Node SygusUnifRl::addRefLemma(Node lemma,
         Assert(d_cenum_to_stratpt.find(cenum) != d_cenum_to_stratpt.end());
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
-          Assert(d_enum_to_dt.find(stratpt) != d_enum_to_dt.end());
+          Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
           // Register new point from new head
-          d_enum_to_dt[stratpt].addPoint(cp.second[j]);
+          d_stratpt_to_dt[stratpt].addPoint(cp.second[j]);
         }
       }
     }
@@ -305,8 +302,8 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
   // is there a decision tree strategy?
   if (nrole == role_equal)
   {
-    std::map<Node, DecisionTreeInfo>::iterator itd = d_enum_to_dt.find(e);
-    if (itd != d_enum_to_dt.end())
+    std::map<Node, DecisionTreeInfo>::iterator itd = d_stratpt_to_dt.find(e);
+    if (itd != d_stratpt_to_dt.end())
     {
       indent("sygus-unif-sol", ind);
       Trace("sygus-unif-sol")
@@ -398,14 +395,14 @@ void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
     d_cenum_to_stratpt[cond].clear();
   }
   // register that this strategy node has a decision tree construction
-  d_enum_to_dt[e].initialized(cond, this, &d_strategy[f]);
+  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f]);
   // associate conditional enumerator with strategy node
   d_cenum_to_stratpt[cond].push_back(e);
 }
 
-void DecisionTreeInfo::initialize(Node cond_enum,
-                                  SygusUnifRl* unif,
-                                  SygusUnifStrategy* strategy)
+void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
+                                               SygusUnifRl* unif,
+                                               SygusUnifStrategy* strategy)
 {
   d_cond_enum = cond_enum;
   d_unif = unif;
@@ -414,26 +411,28 @@ void DecisionTreeInfo::initialize(Node cond_enum,
   EnumInfo& eiv = d_strategy->getEnumInfo(d_cond_enum);
   d_template = NodePair(eiv.d_template, eiv.d_template_arg);
   // Initialize classifier
-  d_pt_sep.initalize(this);
+  d_pt_sep.initialize(this);
 }
 
-void DecisionTreeInfo::addPoint(Node f)
+void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
 {
-  d_pt_sep.d_trie.add(f, d_pt_sep, d_conds.size());
+  d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
 }
 
-void DecisionTreeInfo::addCondValue(Node condv)
+void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
 {
   d_conds.push_back(condv);
-  d_pt_sep.d_trie.addClassifier(d_pt_sep, d_conds.size() - 1);
+  d_pt_sep.d_trie.addClassifier(&d_pt_sep, d_conds.size() - 1);
 }
 
-void PointSeparator::initialize(DecisionTreeInfo* dt)
+void SygusUnifRl::DecisionTreeInfo::PointSeparator::initialize(
+    DecisionTreeInfo* dt)
 {
   d_dt = dt;
 }
 
-Node PointSeparator::evaluate(Node n, unsigned index)
+Node SygusUnifRl::DecisionTreeInfo::PointSeparator::evaluate(Node n,
+                                                             unsigned index)
 {
   Assert(index < d_dt->d_conds.size());
   // Retrieve respective built_in condition
@@ -446,15 +445,17 @@ Node PointSeparator::evaluate(Node n, unsigned index)
   // compute the result
   Node res = d_dt->d_unif->d_tds->evaluateBuiltin(tn, builtin_cond, pt);
   Trace("sygus-unif-rl-sep") << "...got res = " << res << " from cond "
-                               << builtin_cond << " on pt with head " << n
-                               << std::endl;
+                             << builtin_cond << " on pt with head " << n
+                             << std::endl;
   /* If condition is templated, recompute result accordingly */
-  if (!d_dt->d_template.first.isNull())
+  Node templ = d_dt->d_template.first;
+  TNode templ_var = d_dt->d_template.second;
+  if (!templ.isNull())
   {
-    res = d_dt->d_template.first.substitute(d_dt->d_template.second, res);
+    res = templ.substitute(templ_var, res);
     res = Rewriter::rewrite(res);
     Trace("sygus-unif-rl-sep") << "...after template res = " << res
-                                 << std::endl;
+                               << std::endl;
   }
   Assert(res.isConst());
   return res;
