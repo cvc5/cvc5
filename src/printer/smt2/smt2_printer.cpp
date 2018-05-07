@@ -1061,13 +1061,6 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
-<<<<<<< HEAD
-  case kind::STRING_ITOS: return "int.to.str" ;
-  case kind::STRING_STOI: return "str.to.int" ;
-  case kind::STRING_CODE: return "str.code";
-  case kind::STRING_IN_REGEXP: return "str.in.re";
-  case kind::STRING_TO_REGEXP: return "str.to.re";
-=======
   case kind::STRING_ITOS:
     return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
   case kind::STRING_STOI:
@@ -1076,7 +1069,6 @@ static string smtKindString(Kind k, Variant v)
     return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
     return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
->>>>>>> 884ad1a946ad6a04664ef97121ce1cebb5513d40
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";
