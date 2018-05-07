@@ -93,24 +93,39 @@ enum Inference
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
-/** inference steps */
+/** inference steps 
+ * 
+ * Corresponds to a step in the overall strategy of the strings solver. For 
+ * details on the individual steps, see documentation on the inference schemas 
+ * within TheoryStrings.
+ */
 enum InferStep
 {
-  // indicates that the strategy should break if any lemmas or facts have been
-  // inferred
+  // indicates that the strategy should break if lemmas or facts are added
   BREAK,
-  // the following correspond to inference schemas
+  // check initial
   CHECK_INIT,
+  // check constant equivalence classes
   CHECK_CONST_EQC,
+  // check extended function evaluation
   CHECK_EXTF_EVAL,
+  // check cycles
   CHECK_CYCLES,
+  // check flat forms
   CHECK_FLAT_FORMS,
+  // check normal forms equalities 
   CHECK_NORMAL_FORMS_EQ,
+  // check normal forms disequalities 
   CHECK_NORMAL_FORMS_DEQ,
+  // check codes
   CHECK_CODES,
+  // check lengths for equivalence classes
   CHECK_LENGTH_EQC,
+  // check extended function reductions
   CHECK_EXTF_REDUCTION,
+  // check regular expression memberships
   CHECK_MEMBERSHIP,
+  // check cardinality
   CHECK_CARDINALITY,
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
