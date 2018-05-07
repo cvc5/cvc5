@@ -21,6 +21,7 @@
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/lazy_trie.h"
 
 namespace CVC4 {
 namespace theory {
@@ -108,11 +109,41 @@ class SygusUnifRl : public SygusUnif
   void initializeConstructSolFor(Node f) override;
   /*
     --------------------------------------------------------------
+        Classifying points (w.r.t. conditions)
+    --------------------------------------------------------------
+  */
+  class PointSeparator : public LazyTrieEvaluator
+  {
+   public:
+    PointSeparator();
+    ~PointSeparator() override {}
+    /** adds the respective evaluation point of the head f  */
+    void registerPoint(Node f);
+    /** adds a condition to the pool of condition */
+    void registerCond(Node cond, bool isTemplated);
+    /**
+     * evaluates the respective evaluation point of the head n on the index-th
+     * condition */
+    Node evaluate(Node n, unsigned index) override;
+   private:
+    /** sygus term database of d_qe */
+    TermDbSygus* d_tds;
+    /** conditions */
+    std::vector<Node> d_conds;
+    /* whether i-th conditon is templated */
+    std::vector<bool> d_cond_templated;
+    /** the lazy trie for building the separation classes */
+    LazyTrieMulti d_trie;
+  }
+
+  /*
+    --------------------------------------------------------------
         Purification
     --------------------------------------------------------------
   */
   /* Maps unif candidates to heads of their evaluation points */
-  std::map<Node, std::vector<Node>> d_cand_to_eval_hds;
+  std::map<Node, std::vector<Node>>
+      d_cand_to_eval_hds;
   /**
    * maps applications of the function-to-synthesize to their tuple of arguments
    * (which constitute a "data point") */
