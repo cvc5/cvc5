@@ -70,6 +70,7 @@
 #include "options/uf_options.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_gauss.h"
+#include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
@@ -95,7 +96,6 @@
 #include "smt_util/nary_builder.h"
 #include "smt_util/node_visitor.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "theory/bv/bvintropow2.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
@@ -1304,8 +1304,8 @@ void SmtEngine::setDefaults() {
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
-    options::bitvectorDivByZeroConst.set(options::inputLanguage()
-                                         == language::input::LANG_SMTLIB_V2_6);
+    options::bitvectorDivByZeroConst.set(
+        language::isInputLang_smt2_6(options::inputLanguage()));
   }
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
@@ -1725,6 +1725,14 @@ void SmtEngine::setDefaults() {
   // Turn off early theory preprocessing if arithRewriteEq is on
   if (options::arithRewriteEq()) {
     d_earlyTheoryPP = false;
+  }
+  if (d_logic.isPure(THEORY_ARITH) && !d_logic.areRealsUsed())
+  {
+    if (!options::nlExtTangentPlanesInterleave.wasSetByUser())
+    {
+      Trace("smt") << "setting nlExtTangentPlanesInterleave to true" << endl;
+      options::nlExtTangentPlanesInterleave.set(true);
+    }
   }
 
   // Set decision mode based on logic (if not set by user)
@@ -2262,44 +2270,40 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     d_filename = value.getValue();
     return;
   } else if(key == "smt-lib-version") {
+    language::input::Language ilang = language::input::LANG_AUTO;
     if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
         (value.isRational() && value.getRationalValue() == Rational(2)) ||
         value.getValue() == "2" ||
         value.getValue() == "2.0" ) {
-      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_0);
-
-      // supported SMT-LIB version
-      if(!options::outputLanguage.wasSetByUser() &&
-         ( options::outputLanguage() == language::output::LANG_SMTLIB_V2_5 || options::outputLanguage() == language::output::LANG_SMTLIB_V2_6 )) {
-        options::outputLanguage.set(language::output::LANG_SMTLIB_V2_0);
-        *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_0);
-      }
-      return;
+      ilang = language::input::LANG_SMTLIB_V2_0;
     } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
                value.getValue() == "2.5" ) {
-      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_5);
-
-      // supported SMT-LIB version
-      if(!options::outputLanguage.wasSetByUser() &&
-         options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
-        options::outputLanguage.set(language::output::LANG_SMTLIB_V2_5);
-        *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
-      }
-      return;
+      ilang = language::input::LANG_SMTLIB_V2_5;
     } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
                value.getValue() == "2.6" ) {
-      options::inputLanguage.set(language::input::LANG_SMTLIB_V2_6);
-
-      // supported SMT-LIB version
-      if(!options::outputLanguage.wasSetByUser() &&
-         options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
-        options::outputLanguage.set(language::output::LANG_SMTLIB_V2_6);
-        *options::out() << language::SetLanguage(language::output::LANG_SMTLIB_V2_6);
-      }
-      return;
+      ilang = language::input::LANG_SMTLIB_V2_6;
     }
-    Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
-    throw UnrecognizedOptionException();
+    else if (value.getValue() == "2.6.1")
+    {
+      ilang = language::input::LANG_SMTLIB_V2_6_1;
+    }
+    else
+    {
+      Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
+      throw UnrecognizedOptionException();
+    }
+    options::inputLanguage.set(ilang);
+    // also update the output language
+    if (!options::outputLanguage.wasSetByUser())
+    {
+      language::output::Language olang = language::toOutputLanguage(ilang);
+      if (options::outputLanguage() != olang)
+      {
+        options::outputLanguage.set(olang);
+        *options::out() << language::SetLanguage(olang);
+      }
+    }
+    return;
   } else if(key == "status") {
     string s;
     if(value.isAtom()) {
@@ -2599,6 +2603,10 @@ void SmtEnginePrivate::finishInit() {
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
+  std::unique_ptr<BvIntroPow2> bvIntroPow2(
+      new BvIntroPow2(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
+                                           std::move(bvIntroPow2));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4066,8 +4074,9 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("post-unconstrained-simp", d_assertions);
   }
 
-  if(options::bvIntroducePow2()){
-    theory::bv::BVIntroducePow2::pow2Rewrite(d_assertions.ref());
+  if(options::bvIntroducePow2())
+  {
+    d_preprocessingPassRegistry.getPass("bv-intro-pow2")->apply(&d_assertions);
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-substitution" << endl;
@@ -4526,6 +4535,12 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       d_assumptions = assumptions;
     }
 
+    if (!d_assumptions.empty())
+    {
+      internalPush();
+      didInternalPush = true;
+    }
+
     Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     for (Expr e : d_assumptions)
     {
@@ -4536,8 +4551,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       ensureBoolean(e);
 
       /* Add assumption  */
-      internalPush();
-      didInternalPush = true;
       if (d_assertionList != NULL)
       {
         d_assertionList->push_back(e);

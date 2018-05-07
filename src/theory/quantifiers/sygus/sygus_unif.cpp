@@ -41,7 +41,7 @@ void SygusUnif::initialize(QuantifiersEngine* qe,
   {
     d_candidates.push_back(f);
     // initialize the strategy
-    d_strategy[f].initialize(qe, f, enums, lemmas);
+    d_strategy[f].initialize(qe, f, enums);
   }
 }
 

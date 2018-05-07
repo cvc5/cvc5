@@ -477,6 +477,8 @@ void SygusUnifIo::initialize(QuantifiersEngine* qe,
   d_ecache.clear();
   d_candidate = funs[0];
   SygusUnif::initialize(qe, funs, enums, lemmas);
+  // learn redundant operators based on the strategy
+  d_strategy[d_candidate].staticLearnRedundantOps(lemmas);
 }
 
 void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
