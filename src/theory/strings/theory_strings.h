@@ -736,6 +736,18 @@ private:
    * Notice that all constant words are implicitly considered concatentation
    * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
    * 
+   * At a high level, we build normal forms for equivalence classes bottom-up,
+   * starting with equivalence classes that are minimal with respect to the 
+   * containment ordering < computed during checkCycles. While computing a
+   * normal for equivalence class, we may infer equalities between components
+   * of strings that must be equal (e.g. x=y when x++z == y++w when
+   * len(x)==len(y) is asserted), derive conflicts if two strings have disequal
+   * prefixes/suffixes (e.g. "a" ++ x == "b" ++ y is a conflict), or split 
+   * string terms into smaller components using fresh skolem variables (see 
+   * Inference values with names "SPLIT"). We also may introduce regular
+   * expression constraints in this method for looping word equations (see
+   * the Inference INFER_FLOOP).
+   * 
    * If this inference schema returns no facts, lemmas, or conflicts, then
    * we have successfully assigned normal forms for all equivalence classes, as
    * stored in d_normal_forms. Otherwise, this method may add a fact, lemma, or
