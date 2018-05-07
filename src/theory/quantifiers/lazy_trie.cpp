@@ -75,27 +75,23 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
     // not at (previous) last level, traverse children
     if (index < ntotal)
     {
-      for (auto& p_nt : trie->d_children)
+      for (std::map<Node, LazyTrie>& p_nt : trie->d_children)
       {
         visit.push_back(IndTriePair(index + 1, &p_nt.second));
       }
       continue;
     }
     // last level, apply new classifier
-    Node lc = trie->d_lazy_child;
-    Assert(trie->d_children.empty() && !lc.isNull());
-    std::vector<Node> prev_sep_class = d_rep_to_sepclass[lc];
+    Assert(trie->d_children.empty() && !trie->d_lazy_child.isNull());
+    std::vector<Node> prev_sep_class = d_rep_to_sepclass[trie->d_lazy_child];
     // make new sepclass of lc a singleton with itself
-    d_rep_to_sepclass[lc].clear();
-    d_rep_to_sepclass[lc].push_back(lc);
-    // evaluate the lazy child and store at next level
-    trie->d_children[ev->evaluate(lc, index + 1)].d_lazy_child = lc;
+    d_rep_to_sepclass.erase(trie->d_lazy_child);
     // replace
-    lc = Node::null();
+    trie->d_lazy_child = Node::null();
     for (const Node& n : prev_sep_class)
     {
       Node eval = ev->evaluate(n, index + 1);
-      auto it = trie->d_children.find(eval);
+      std::map<Node, LazyTrie>::iterator it = trie->d_children.find(eval);
       if (it != trie->d_children.end())
       {
         // add n to to map of item in next level

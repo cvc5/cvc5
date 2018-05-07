@@ -23,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p), d_pt_sep(this) {}
+SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              const std::vector<Node>& funs,
@@ -49,7 +49,6 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
     d_cand_to_eval_hds[c].clear();
     d_purified_count[c] = 0;
   }
-
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -57,12 +56,25 @@ void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
                                 << " value " << v << "\n";
   d_ecache[e].d_enum_vals.push_back(v);
-  /* Exclude v from next enumerations for e */
+  // Exclude v from next enumerations for e
   Node exc_lemma =
       d_tds->getExplain()->getExplanationForEquality(e, v).negate();
   Trace("sygus-unif-rl-notify")
       << "SygusUnifRl : enumeration exclude lemma : " << exc_lemma << std::endl;
   lemmas.push_back(exc_lemma);
+  // Update all desicion trees in which this enumerator is a conditional
+  // enumerator, if any
+  std::map<Node, std::vector<Node>>::iterator it = d_cenum_to_stratpt.find(e);
+  if (it == d_cenum_to_stratpt.end())
+  {
+    return;
+  }
+  for (const Node& stratpt : it->second)
+  {
+    Assert(d_enum_to_dt.find(stratpt) != d_enum_to_dt.end());
+    // Register new condition value
+    d_enum_to_dt[stratpt].addCondValue(v);
+  }
 }
 
 Node SygusUnifRl::purifyLemma(Node n,
@@ -204,7 +216,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
                               std::map<Node, std::vector<Node>>& eval_hds)
 {
   Trace("sygus-unif-rl-purify") << "Registering lemma at SygusUnif : " << lemma
-                               << "\n";
+                                << "\n";
   std::vector<Node> model_guards;
   BoolNodePairMap cache;
   // cache previous sizes
@@ -237,6 +249,18 @@ Node SygusUnifRl::addRefLemma(Node lemma,
     for (unsigned j = prevn, size = cp.second.size(); j < size; j++)
     {
       eval_hds[c].push_back(cp.second[j]);
+      // Add new point to respective decision trees
+      Assert(d_cand_cenums.find(c) != d_cand_cenums.end());
+      for (const Node& cenum : d_cand_cenums[c])
+      {
+        Assert(d_cenum_to_stratpt.find(cenum) != d_cenum_to_stratpt.end());
+        for (const Node& stratpt : d_cenum_to_stratpt[cenum])
+        {
+          Assert(d_enum_to_dt.find(stratpt) != d_enum_to_dt.end());
+          // Register new point from new head
+          d_enum_to_dt[stratpt].addPoint(cp.second[j]);
+        }
+      }
     }
   }
 
@@ -368,46 +392,72 @@ void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
       == d_cond_enums.end())
   {
     d_cond_enums.push_back(cond);
+    d_cand_cenums[f].push_back(cond);
     // register the conditional enumerator
     d_tds->registerEnumerator(cond, f, d_parent, true);
+    d_cenum_to_stratpt[cond].clear();
   }
-  // register that this enumerator has a decision tree construction
-  d_enum_to_dt[e].d_cond_enum = cond;
+  // register that this strategy node has a decision tree construction
+  d_enum_to_dt[e].initialized(cond, this, &d_strategy[f]);
+  // associate conditional enumerator with strategy node
+  d_cenum_to_stratpt[cond].push_back(e);
 }
 
-PointSeparator::PointSeparator(SygusUnifRl* unif)
-    : d_unif(unif), d_tds(unif->d_qe->getTermDatabaseSygus())
+void DecisionTreeInfo::initialize(Node cond_enum,
+                                  SygusUnifRl* unif,
+                                  SygusUnifStrategy* strategy)
 {
+  d_cond_enum = cond_enum;
+  d_unif = unif;
+  d_strategy = strategy;
+  // Retrieve template
+  EnumInfo& eiv = d_strategy->getEnumInfo(d_cond_enum);
+  d_template = NodePair(eiv.d_template, eiv.d_template_arg);
+  // Initialize classifier
+  d_pt_sep.initalize(this);
 }
 
-void PointSeparator::registerCond(Node cond, bool isTemplated)
+void DecisionTreeInfo::addPoint(Node f)
 {
-  d_conds.push_back(cond);
-  d_cond_templated.push_back(isTemplated);
-  d_trie.addClassifier(this, d_conds.size() - 1);
+  d_pt_sep.d_trie.add(f, d_pt_sep, d_conds.size());
 }
 
-void PointSeparator::registerPoint(Node f)
+void DecisionTreeInfo::addCondValue(Node condv)
 {
-  d_trie.add(f, this, d_conds.size());
+  d_conds.push_back(condv);
+  d_pt_sep.d_trie.addClassifier(d_pt_sep, d_conds.size() - 1);
+}
+
+void PointSeparator::initialize(DecisionTreeInfo* dt)
+{
+  d_dt = dt;
 }
 
 Node PointSeparator::evaluate(Node n, unsigned index)
 {
-  Assert(index < d_conds.size());
+  Assert(index < d_dt->d_conds.size());
   // Retrieve respective built_in condition
-  Node cond = d_conds[index];
-  bool isTemplated = d_cond_templated[index];
+  Node cond = d_dt->d_conds[index];
   TypeNode tn = cond.getType();
-  Node builtin_cond = d_tds->sygusToBuiltin(cond, tn);
+  Node builtin_cond = d_dt->d_unif->d_tds->sygusToBuiltin(cond, tn);
   // Retrieve evaluation point
-  Assert(d_hd_to_pt.find(n) != d_hd_to_pt.end());
-  std::vector<Node> pt = d_hd_to_pt[n];
+  Assert(d_dt->d_unif->d_hd_to_pt.find(n) != d_dt->d_unif->d_hd_to_pt.end());
+  std::vector<Node> pt = d_dt->d_unif->d_hd_to_pt[n];
   // compute the result
-  Node res = d_tds->evaluateBuiltin(tn, builtin_cond, pt);
-  Trace("sygus-unif-rl-class") << "...got res = " << res << " from cond "
-                               << builtin_cond << " on pt with head " << n << std::endl;
-
+  Node res = d_dt->d_unif->d_tds->evaluateBuiltin(tn, builtin_cond, pt);
+  Trace("sygus-unif-rl-sep") << "...got res = " << res << " from cond "
+                               << builtin_cond << " on pt with head " << n
+                               << std::endl;
+  /* If condition is templated, recompute result accordingly */
+  if (!d_dt->d_template.first.isNull())
+  {
+    res = d_dt->d_template.first.substitute(d_dt->d_template.second, res);
+    res = Rewriter::rewrite(res);
+    Trace("sygus-unif-rl-sep") << "...after template res = " << res
+                                 << std::endl;
+  }
+  Assert(res.isConst());
+  return res;
 }
 
 } /* CVC4::theory::quantifiers namespace */

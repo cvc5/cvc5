@@ -32,6 +32,7 @@ using BoolNodePairHashFunction =
     PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
 using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
+using NodePair = std::pair<Node, Node>;
 
 class CegConjecture;
 
@@ -83,20 +84,6 @@ class SygusUnifRl : public SygusUnif
   CegConjecture* d_parent;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
-  /**
-   * This class stores information regarding an enumerator, including: a
-   * database of values that have been enumerated for this enumerator.
-   */
-  class EnumCache
-  {
-   public:
-    EnumCache() {}
-    ~EnumCache() {}
-    /** Values that have been enumerated for this enumerator */
-    std::vector<Node> d_enum_vals;
-  };
-  /** maps enumerators to the information above */
-  std::map<Node, EnumCache> d_ecache;
   /** construct sol */
   Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
   /** collects data from refinement lemmas to drive solution construction
@@ -109,47 +96,11 @@ class SygusUnifRl : public SygusUnif
   void initializeConstructSolFor(Node f) override;
   /*
     --------------------------------------------------------------
-        Classifying points (w.r.t. conditions)
-    --------------------------------------------------------------
-  */
-  class PointSeparator : public LazyTrieEvaluator
-  {
-   public:
-    PointSeparator(SygusUnifRl* unif);
-    ~PointSeparator() override {}
-    /** adds the respective evaluation point of the head f  */
-    void registerPoint(Node f);
-    /** adds a condition to the pool of condition */
-    void registerCond(Node cond, bool isTemplated);
-    /**
-     * evaluates the respective evaluation point of the head n on the index-th
-     * condition */
-    Node evaluate(Node n, unsigned index) override;
-   private:
-    /** reference to parent unif util */
-    SygusUnifRl* d_sygus_unif;
-    /** sygus term database of d_qe */
-    TermDbSygus* d_tds;
-    /** conditions */
-    std::vector<Node> d_conds;
-    /* whether i-th conditon is templated */
-    std::vector<bool> d_cond_templated;
-    /** the lazy trie for building the separation classes */
-    LazyTrieMulti d_trie;
-  };
-  /**
-   * Utility for separating evaluation pointers and determining whether solution
-   * can be built */
-  PointSeparator d_pt_sep;
-
-  /*
-    --------------------------------------------------------------
         Purification
     --------------------------------------------------------------
   */
   /* Maps unif candidates to heads of their evaluation points */
-  std::map<Node, std::vector<Node>>
-      d_cand_to_eval_hds;
+  std::map<Node, std::vector<Node>> d_cand_to_eval_hds;
   /**
    * maps heads of applications of a unif function-to-synthesize to their tuple of arguments
    * (which constitute a "data point" aka an "evaluation point") */
@@ -207,14 +158,65 @@ class SygusUnifRl : public SygusUnif
   class DecisionTreeInfo
   {
    public:
+    DecisionTreeInfo() {}
+    ~DecisionTreeInfo() {}
+    void initialize(Node cond_enum,
+                    SygusUnifRl* unif,
+                    SygusUnifStrategy* strategy);
+    /** adds the respective evaluation point of the head f  */
+    void addPoint(Node f);
+    /** adds a condition to the pool of condition */
+    void addCondValue(Node condv);
+    /** reference to parent unif util */
+    SygusUnifRl* d_unif;
+    /** enumerator template (if none, nodes are null) */
+    NodePair d_template;
+    /** enumerated condition values */
+    std::vector<Node> d_conds;
+   private:
+    /**
+     * reference to infered strategy for the function-to-synthesize this DT is
+     * associated with */
+    SygusUnifStrategy* d_strategy;
     /**
      * The enumerator in the strategy tree that stores conditions of the
      * decision tree.
      */
     Node d_cond_enum;
+    /**
+     * Lazy trie which classifies evaluation points according to enumerated
+     * condition values */
+    class PointSeparator : public LazyTrieEvaluator
+    {
+     public:
+      PointSeparator();
+      ~PointSeparator() override {}
+      /** initializes this class */
+      void initialize(DecisionTreeInfo* dt);
+      /**
+       * evaluates the respective evaluation point of the head n on the index-th
+       * condition */
+      Node evaluate(Node n, unsigned index) override;
+
+      /** the lazy trie for building the separation classes */
+      LazyTrieMulti d_trie;
+     private:
+      /** reference to parent unif util */
+      DecisionTreeInfo* d_dt;
+    };
+    /**
+     * Utility for separating evaluation pointers and determining whether
+     * solution can be built */
+    PointSeparator d_pt_sep;
   };
-  /** map from enumerators in the strategy trees to the above data */
-  std::map<Node, DecisionTreeInfo> d_enum_to_dt;
+  /** map from strategy points in the strategy trees to the above data */
+  std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;
+  /**
+   * map from conditional enumerators to the strategy points they are
+   * associated with */
+  std::map<Node, std::vector<Node>> d_cenum_to_stratpt;
+  /** map from unif candidate to its conditional enumerators */
+  std::map<Node, std::vector<Node>> d_cand_cenums;
   /** all conditional enumerators */
   std::vector<Node> d_cond_enums;
   /** register strategy
