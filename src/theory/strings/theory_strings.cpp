@@ -2050,9 +2050,6 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
   }
 }
 
-void TheoryStrings::checkNormalFormsEq() { checkNormalForms(); }
-void TheoryStrings::checkNormalFormsDeq() {}
-void TheoryStrings::checkCodes() {}
 Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp ){
   if( std::find( curr.begin(), curr.end(), eqc )!=curr.end() ){
     // a loop
@@ -2126,7 +2123,7 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
 }
 
 
-void TheoryStrings::checkNormalForms(){
+void TheoryStrings::checkNormalFormsEq(){
   if( !options::stringEagerLen() ){
     for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
       Node eqc = d_strings_eqc[i];
@@ -2201,32 +2198,9 @@ void TheoryStrings::checkNormalForms(){
     }
     Trace("strings-nf") << std::endl;
   }
-  checkExtfEval(1);
-  Trace("strings-process-debug")
-      << "Done check extended functions re-eval, addedFact = "
-      << !d_pending.empty() << " " << !d_lemma_cache.empty()
-      << ", d_conflict = " << d_conflict << std::endl;
-  if (hasProcessed())
-  {
-    return;
-  }
-  if (!options::stringEagerLen())
-  {
-    checkLengthsEqc();
-    if (hasProcessed())
-    {
-      return;
-    }
-  }
-  // process disequalities between equivalence classes
-  checkDeqNF();
-  Trace("strings-process-debug")
-      << "Done check disequalities, addedFact = " << !d_pending.empty() << " "
-      << !d_lemma_cache.empty() << ", d_conflict = " << d_conflict << std::endl;
-  if (hasProcessed())
-  {
-    return;
-  }
+}
+
+void TheoryStrings::checkCodes() {
   // ensure that lemmas regarding str.code been added for each constant string
   // of length one
   if (d_has_str_code)
@@ -3936,7 +3910,7 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
   }
 }
 
-void TheoryStrings::checkDeqNF() {
+void TheoryStrings::checkNormalFormsDeq() {
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
@@ -4963,7 +4937,7 @@ void TheoryStrings::initializeStrategy()
     // add the inference steps
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
-    addStrategyStep(CHECK_EXTF_EVAL);
+    addStrategyStep(CHECK_EXTF_EVAL,0);
     addStrategyStep(CHECK_CYCLES);
     addStrategyStep(CHECK_FLAT_FORMS);
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
@@ -4973,6 +4947,13 @@ void TheoryStrings::initializeStrategy()
       d_step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
+    addStrategyStep(CHECK_EXTF_EVAL,1);
+    if (!options::stringEagerLen())
+    {
+      addStrategyStep(CHECK_LENGTH_EQC);
+    }
+    addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
+    addStrategyStep(CHECK_CODES);
     if (options::stringEagerLen())
     {
       addStrategyStep(CHECK_LENGTH_EQC);
