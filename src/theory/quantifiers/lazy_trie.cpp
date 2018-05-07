@@ -66,16 +66,16 @@ void DynamicClassifier::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
   std::vector<IndTriePair> visit;
   unsigned index = 0;
   LazyTrie* trie;
-  visit.push(IndTriePair(0, d_trie));
+  visit.push_back(IndTriePair(0, &d_trie));
   while (!visit.empty())
   {
     index = visit.back().first;
-    trie = &visit.back().second;
+    trie = visit.back().second;
     visit.pop_back();
     // not at (previous) last level, traverse children
     if (index < ntotal)
     {
-      for (const auto& p_nt : trie->d_children)
+      for (auto& p_nt : trie->d_children)
       {
         visit.push_back(IndTriePair(index + 1, &p_nt.second));
       }
