@@ -115,7 +115,7 @@ class SygusUnifRl : public SygusUnif
   class PointSeparator : public LazyTrieEvaluator
   {
    public:
-    PointSeparator();
+    PointSeparator(SygusUnifRl* unif);
     ~PointSeparator() override {}
     /** adds the respective evaluation point of the head f  */
     void registerPoint(Node f);
@@ -126,6 +126,8 @@ class SygusUnifRl : public SygusUnif
      * condition */
     Node evaluate(Node n, unsigned index) override;
    private:
+    /** reference to parent unif util */
+    SygusUnifRl* d_sygus_unif;
     /** sygus term database of d_qe */
     TermDbSygus* d_tds;
     /** conditions */
@@ -134,7 +136,11 @@ class SygusUnifRl : public SygusUnif
     std::vector<bool> d_cond_templated;
     /** the lazy trie for building the separation classes */
     LazyTrieMulti d_trie;
-  }
+  };
+  /**
+   * Utility for separating evaluation pointers and determining whether solution
+   * can be built */
+  PointSeparator d_pt_sep;
 
   /*
     --------------------------------------------------------------
@@ -145,9 +151,9 @@ class SygusUnifRl : public SygusUnif
   std::map<Node, std::vector<Node>>
       d_cand_to_eval_hds;
   /**
-   * maps applications of the function-to-synthesize to their tuple of arguments
-   * (which constitute a "data point") */
-  std::map<Node, std::vector<Node>> d_app_to_pt;
+   * maps heads of applications of a unif function-to-synthesize to their tuple of arguments
+   * (which constitute a "data point" aka an "evaluation point") */
+  std::map<Node, std::vector<Node>> d_hd_to_pt;
   /** Maps applications of unif functions-to-synthesize to purified symbols*/
   std::map<Node, Node> d_app_to_purified;
   /** Maps unif functions-to-synthesize to counters of purified symbols */

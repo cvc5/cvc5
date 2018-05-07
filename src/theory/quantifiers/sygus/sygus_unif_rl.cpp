@@ -23,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
+SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p), d_pt_sep(this) {}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              const std::vector<Node>& funs,
@@ -45,10 +45,11 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   /* Copy candidates and check whether CegisUnif for any of them */
   for (const Node& c : d_unif_candidates)
   {
-    d_app_to_pt[c].clear();
+    d_hd_to_pt[c].clear();
     d_cand_to_eval_hds[c].clear();
     d_purified_count[c] = 0;
   }
+
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -155,12 +156,12 @@ Node SygusUnifRl::purifyLemma(Node n,
                                         << " for candidate " << nb[0] << "\n";
       d_cand_to_eval_hds[nb[0]].push_back(new_f);
       /* Maps new enumerator to its respective tuple of arguments */
-      d_app_to_pt[new_f] =
+      d_hd_to_pt[new_f] =
           std::vector<Node>(children.begin() + 2, children.end());
       if (Trace.isOn("sygus-unif-rl-purify"))
       {
         Trace("sygus-unif-rl-purify") << "...[" << new_f << "] --> (";
-        for (const Node& pt_i : d_app_to_pt[new_f])
+        for (const Node& pt_i : d_hd_to_pt[new_f])
         {
           Trace("sygus-unif-rl-purify") << pt_i << " ";
         }
@@ -372,6 +373,41 @@ void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
   }
   // register that this enumerator has a decision tree construction
   d_enum_to_dt[e].d_cond_enum = cond;
+}
+
+PointSeparator::PointSeparator(SygusUnifRl* unif)
+    : d_unif(unif), d_tds(unif->d_qe->getTermDatabaseSygus())
+{
+}
+
+void PointSeparator::registerCond(Node cond, bool isTemplated)
+{
+  d_conds.push_back(cond);
+  d_cond_templated.push_back(isTemplated);
+  d_trie.addClassifier(this, d_conds.size() - 1);
+}
+
+void PointSeparator::registerPoint(Node f)
+{
+  d_trie.add(f, this, d_conds.size());
+}
+
+Node PointSeparator::evaluate(Node n, unsigned index)
+{
+  Assert(index < d_conds.size());
+  // Retrieve respective built_in condition
+  Node cond = d_conds[index];
+  bool isTemplated = d_cond_templated[index];
+  TypeNode tn = cond.getType();
+  Node builtin_cond = d_tds->sygusToBuiltin(cond, tn);
+  // Retrieve evaluation point
+  Assert(d_hd_to_pt.find(n) != d_hd_to_pt.end());
+  std::vector<Node> pt = d_hd_to_pt[n];
+  // compute the result
+  Node res = d_tds->evaluateBuiltin(tn, builtin_cond, pt);
+  Trace("sygus-unif-rl-class") << "...got res = " << res << " from cond "
+                               << builtin_cond << " on pt with head " << n << std::endl;
+
 }
 
 } /* CVC4::theory::quantifiers namespace */
