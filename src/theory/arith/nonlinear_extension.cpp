@@ -154,7 +154,7 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing) {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_builtModel(containing.getSatContext(),false),
+    : d_builtModel(containing.getSatContext(), false),
       d_lemmas(containing.getUserContext()),
       d_zero_split(containing.getUserContext()),
       d_skolem_atoms(containing.getUserContext()),
@@ -1008,24 +1008,25 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     return false;
   }
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
-  
+
   // must assert and re-check if produce models is true
-  if( options::produceModels() )
+  if (options::produceModels())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     // model guard whose semantics is "the model we constructed holds"
-    Node mg = nm->mkSkolem("model", nm->booleanType() );
+    Node mg = nm->mkSkolem("model", nm->booleanType());
     mg = Rewriter::rewrite(mg);
     mg = d_containing.getValuation().ensureLiteral(mg);
     d_containing.getOutputChannel().requirePhase(mg, true);
     // assert the constructed model as assertions
-    for( const std::pair<const Node, std::pair<Node, Node> > cb : d_check_model_bounds )
+    for (const std::pair<const Node, std::pair<Node, Node> > cb :
+         d_check_model_bounds)
     {
       Node l = cb.second.first;
       Node u = cb.second.second;
       Node v = cb.first;
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      pred = nm->mkNode(OR,mg.negate(),pred);
+      pred = nm->mkNode(OR, mg.negate(), pred);
       Trace("nl-ext-lemma-model") << "Assert : " << pred << std::endl;
       d_containing.getOutputChannel().lemma(pred);
     }
@@ -1143,7 +1144,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         }
       }
     }
-    else if (!v.isVar() || (!var.isNull() && var != v) )
+    else if (!v.isVar() || (!var.isNull() && var != v))
     {
       Trace("nl-ext-cms-debug")
           << "...invalid due to factor " << v << std::endl;
@@ -1272,7 +1273,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   }
   // approximate the square root of sqrt_val
   Node l, u;
-  if (!getApproximateSqrt(sqrt_val, l, u, 15+d_taylor_degree))
+  if (!getApproximateSqrt(sqrt_val, l, u, 15 + d_taylor_degree))
   {
     Trace("nl-ext-cms") << "...fail, could not approximate sqrt." << std::endl;
     return false;
@@ -1298,12 +1299,12 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
       approx = Rewriter::rewrite(approx);
       bounds[r][b] = approx;
     }
-    Node diff = nm->mkNode(MINUS,
-                           m_var,
-                           nm->mkNode(MULT,
-                                      nm->mkConst(Rational(1) / Rational(2)),
-                                      nm->mkNode(PLUS,bounds[r][0],
-                                      bounds[r][1])));
+    Node diff =
+        nm->mkNode(MINUS,
+                   m_var,
+                   nm->mkNode(MULT,
+                              nm->mkConst(Rational(1) / Rational(2)),
+                              nm->mkNode(PLUS, bounds[r][0], bounds[r][1])));
     Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
     printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
     Trace("nl-ext-cm-debug") << "...";
@@ -1316,8 +1317,8 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     Trace("nl-ext-cm-debug") << "...diff from model value (";
     printRationalApprox("nl-ext-cm-debug", m_var);
     Trace("nl-ext-cm-debug") << ") is ";
-    printRationalApprox("nl-ext-cm-debug",diff_bound[r]);
-    Trace("nl-ext-cm-debug")<< std::endl;
+    printRationalApprox("nl-ext-cm-debug", diff_bound[r]);
+    Trace("nl-ext-cm-debug") << std::endl;
   }
   // take the one that var is closer to in the model
   Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
@@ -1369,7 +1370,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     // polarity is false
     return pol;
   }
-  else if( atom.getKind()!=GEQ )
+  else if (atom.getKind() != GEQ)
   {
     Trace("nl-ext-cms") << "  failed due to unknown literal." << std::endl;
     return false;
@@ -1400,8 +1401,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
           == pol;
       Trace("nl-ext-cms-debug")
-          << "set bound to " << (set_lower ? "lower" : "upper")
-          << std::endl;
+          << "set bound to " << (set_lower ? "lower" : "upper") << std::endl;
 
       // --- Collect variables and factors in v
       std::vector<Node> vars;
@@ -1409,8 +1409,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
       if (v.getKind() == NONLINEAR_MULT)
       {
         unsigned last_start = 0;
-        for (unsigned i = 0, nchildren = v.getNumChildren(); i < nchildren;
-              i++)
+        for (unsigned i = 0, nchildren = v.getNumChildren(); i < nchildren; i++)
         {
           // are we at the end?
           if (i + 1 == nchildren || v[i + 1] != v[i])
@@ -1533,8 +1532,8 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
             vc_set_lower = (signs[i] == minimizeAbs);
           }
           Trace("nl-ext-cms-debug")
-              << "..." << vc << " set to "
-              << (vc_set_lower ? "lower" : "upper") << std::endl;
+              << "..." << vc << " set to " << (vc_set_lower ? "lower" : "upper")
+              << std::endl;
         }
         // check whether this is a conflicting bound
         std::map<Node, bool>::iterator itsb = set_bound.find(vc);
@@ -1544,8 +1543,8 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         }
         else if (itsb->second != vc_set_lower)
         {
-          Trace("nl-ext-cms") << "  failed due to conflicting bound for "
-                              << vc << std::endl;
+          Trace("nl-ext-cms")
+              << "  failed due to conflicting bound for " << vc << std::endl;
           return false;
         }
         // must over/under approximate
@@ -1583,13 +1582,12 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
   comp = Rewriter::rewrite(comp);
   Assert(comp.isConst());
   Trace("nl-ext-cms") << "  returned : " << comp << std::endl;
-  if( comp == d_true )
+  if (comp == d_true)
   {
     return true;
   }
   // can also try reasoning about univariate quadratic equations
-  
-  
+
   return false;
 }
 
@@ -1957,23 +1955,24 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 void NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
-  if( d_builtModel.get() )
+  if (d_builtModel.get())
   {
-    if (e == Theory::EFFORT_FULL) 
+    if (e == Theory::EFFORT_FULL)
     {
       return;
     }
     // now, record the approximations we used
     NodeManager* nm = NodeManager::currentNM();
     for (const std::pair<const Node, std::pair<Node, Node> >& cb :
-        d_check_model_bounds)
+         d_check_model_bounds)
     {
       Node l = cb.second.first;
       Node u = cb.second.second;
       if (l != u)
       {
         Node v = cb.first;
-        Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+        Node pred =
+            nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
         pred = Rewriter::rewrite(pred);
         d_containing.getValuation().getModel()->recordApproximation(v, pred);
       }

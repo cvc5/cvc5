@@ -550,7 +550,7 @@ class NonlinearExtension {
   std::vector<Node> d_waiting_lemmas;
   /** did we use an approximation on this call to last-call effort? */
   bool d_used_approx;
-  
+
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
   /** print rational approximation */
