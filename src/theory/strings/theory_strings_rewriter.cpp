@@ -2236,10 +2236,10 @@ Node TheoryStringsRewriter::rewriteStringLeq(Node n)
   {
     String s = n1[0].getConst<String>();
     String t = n2[0].getConst<String>();
-    // only need to truncate if s is larger
+    // only need to truncate if s is longer
     if (s.size() > t.size())
     {
-      s = s.substr(t.size());
+      s = s.prefix(t.size());
     }
     // if prefix is not leq, then entire string is not leq
     if (!s.isLeq(t))

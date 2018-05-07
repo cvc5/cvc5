@@ -144,6 +144,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
   std::vector< Node > nvec;
   d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
@@ -549,8 +550,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Assert(d_normal_forms.find(eqc) != d_normal_forms.end());
         if (d_normal_forms[eqc].size() == 1)
         {
-          // does it have a code?
-          if (d_has_str_code)
+          // does it have a code and the length of these equivalence classes are one?
+          if (d_has_str_code && lts_values[i]==d_one)
           {
             EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_code_term.get().isNull())
@@ -581,7 +582,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     //assign a new length if necessary
     if( !pure_eq.empty() ){
       if( lts_values[i].isNull() ){
-        unsigned lvalue = 0;
+        // start with length two (other lengths have special precendence)
+        unsigned lvalue = 2;
         while( values_used.find( lvalue )!=values_used.end() ){
           lvalue++;
         }
@@ -673,16 +675,17 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   if( d_pregistered_terms_cache.find(n) == d_pregistered_terms_cache.end() ) {
     d_pregistered_terms_cache.insert(n);
     //check for logic exceptions
+    Kind k = n.getKind();
     if( !options::stringExp() ){
-      if( n.getKind()==kind::STRING_STRIDOF ||
-          n.getKind() == kind::STRING_ITOS || n.getKind() == kind::STRING_STOI ||
-          n.getKind() == kind::STRING_STRREPL || n.getKind() == kind::STRING_STRCTN ){
+      if( k==kind::STRING_STRIDOF ||
+          k == kind::STRING_ITOS || k == kind::STRING_STOI ||
+          k== kind::STRING_STRREPL || k == kind::STRING_STRCTN || k==STRING_LEQ ){
         std::stringstream ss;
-        ss << "Term of kind " << n.getKind() << " not supported in default mode, try --strings-exp";
+        ss << "Term of kind " << k << " not supported in default mode, try --strings-exp";
         throw LogicException(ss.str());
       }
     }
-    switch( n.getKind() ) {
+    switch( k ) {
       case kind::EQUAL: {
         d_equalityEngine.addTriggerEquality(n);
         break;
@@ -704,7 +707,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // not belong to this theory.
           if (options::stringFMF()
               && (n.isVar() ? d_all_skolems.find(n) == d_all_skolems.end()
-                            : kindToTheoryId(n.getKind()) != THEORY_STRINGS))
+                            : kindToTheoryId(k) != THEORY_STRINGS))
           {
             d_input_vars.insert(n);
           }
@@ -722,7 +725,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
-        if( n.hasOperator() && kindToTheoryId( n.getKind() )==THEORY_STRINGS && n.getKind()!=kind::STRING_CONCAT ){
+        if( n.hasOperator() && kindToTheoryId( k )==THEORY_STRINGS && k!=kind::STRING_CONCAT ){
           d_functionsTerms.push_back( n );
         }
       }
@@ -2220,13 +2223,14 @@ void TheoryStrings::checkNormalForms(){
       cmps.pop_back();
       for (const Node& c2 : cmps)
       {
-        Trace("strings-code-debug") << "Compare codes : " << c1 << " " << c2
-                                    << std::endl;
-        if (!areDisequal(c1, c2))
+        Trace("strings-code-debug") << "Compare codes : " << c1 << " " << c2 << std::endl;
+        if (!areDisequal(c1, c2) && !areEqual(c1,d_neg_one))
         {
+          Node eq_no = c1.eqNode(d_neg_one);
+          Node deq = c1.eqNode(c2).negate();
           Node eqn = c1[0].eqNode(c2[0]);
-          Node eq = c1.eqNode(c2);
-          Node inj_lem = nm->mkNode(kind::OR, eq.negate(), eqn);
+          // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
+          Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
           sendInference(d_empty_vec, inj_lem, "Code_Inj");
         }
       }
@@ -3522,9 +3526,8 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         d_has_str_code = true;
         NodeManager* nm = NodeManager::currentNM();
         // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
-        Node neg_one = nm->mkConst(Rational(-1));
         Node code_len = mkLength(n[0]).eqNode(d_one);
-        Node code_eq_neg1 = n.eqNode(nm->mkConst(Rational(-1)));
+        Node code_eq_neg1 = n.eqNode(d_neg_one);
         Node code_range = nm->mkNode(
             kind::AND,
             nm->mkNode(kind::GEQ, n, d_zero),
