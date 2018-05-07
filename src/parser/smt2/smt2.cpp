@@ -153,6 +153,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
+  addOperator(kind::STRING_CODE, "str.code");
 }
 
 void Smt2::addFloatingPointOperators() {
