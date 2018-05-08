@@ -18,12 +18,14 @@
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quant_epr.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -56,6 +58,18 @@ std::ostream& operator<<(std::ostream& os, CegInstPhase phase)
     case CEG_INST_PHASE_EQUAL: os << "eq"; break;
     case CEG_INST_PHASE_ASSERTION: os << "as"; break;
     case CEG_INST_PHASE_MVALUE: os << "mv"; break;
+    default: Unreachable();
+  }
+  return os;
+}
+std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
+{
+  switch (status)
+  {
+    case CEG_UNHANDLED: os << "unhandled"; break;
+    case CEG_PARTIALLY_HANDLED: os << "partially_handled"; break;
+    case CEG_HANDLED: os << "handled"; break;
+    case CEG_HANDLED_UNCONDITIONAL: os << "unhandled_unc"; break;
     default: Unreachable();
   }
   return os;
@@ -127,21 +141,219 @@ bool CegInstantiator::isEligible( Node n ) {
   return d_inelig.find( n )==d_inelig.end();
 }
 
-bool CegInstantiator::isCbqiKind(Kind k)
+CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
       || k == EQUAL
       || k == MULT
       || k == NONLINEAR_MULT)
   {
-    return true;
+    return CEG_HANDLED;
+  }
+
+  // CBQI typically works for satisfaction-complete theories
+  TheoryId t = kindToTheoryId(k);
+  if (t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL)
+  {
+    return CEG_HANDLED;
+  }
+  return CEG_UNHANDLED;
+}
+
+CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
+{
+  CegHandledStatus ret = CEG_HANDLED;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() != BOUND_VARIABLE && TermUtil::hasBoundVarAttr(cur))
+      {
+        if (cur.getKind() == FORALL || cur.getKind() == CHOICE)
+        {
+          visit.push_back(cur[1]);
+        }
+        else
+        {
+          CegHandledStatus curr = isCbqiKind(cur.getKind());
+          if (curr < ret)
+          {
+            ret = curr;
+            Trace("cbqi-debug2") << "Non-cbqi kind : " << cur.getKind()
+                                 << " in " << n << std::endl;
+            if (curr == CEG_UNHANDLED)
+            {
+              return CEG_UNHANDLED;
+            }
+          }
+          for (const Node& nc : cur)
+          {
+            visit.push_back(nc);
+          }
+        }
+      }
+    }
+  } while (!visit.empty());
+  return ret;
+}
+
+CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
+{
+  std::map<TypeNode, CegHandledStatus> visited;
+  return isCbqiSort(tn, visited, qe);
+}
+
+CegHandledStatus CegInstantiator::isCbqiSort(
+    TypeNode tn,
+    std::map<TypeNode, CegHandledStatus>& visited,
+    QuantifiersEngine* qe)
+{
+  std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
+  if (itv != visited.end())
+  {
+    return itv->second;
+  }
+  CegHandledStatus ret = CEG_UNHANDLED;
+  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector())
+  {
+    ret = CEG_HANDLED;
+  }
+  else if (tn.isDatatype())
+  {
+    // recursive calls to this datatype are handlable
+    visited[tn] = CEG_HANDLED;
+    // if not recursive, it is finite and we can handle it regardless of body
+    // hence, we initialize ret to CEG_HANDLED_UNCONDITIONAL.
+    ret = CEG_HANDLED_UNCONDITIONAL;
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      {
+        TypeNode crange = TypeNode::fromType(
+            static_cast<SelectorType>(dt[i][j].getType()).getRangeType());
+        CegHandledStatus cret = isCbqiSort(crange, visited, qe);
+        if (cret == CEG_UNHANDLED)
+        {
+          visited[tn] = CEG_UNHANDLED;
+          return CEG_UNHANDLED;
+        }
+        else if (cret < ret)
+        {
+          ret = cret;
+        }
+      }
+    }
+  }
+  else if (tn.isSort())
+  {
+    QuantEPR* qepr = qe != nullptr ? qe->getQuantEPR() : nullptr;
+    if (qepr != nullptr)
+    {
+      if (qepr->isEPR(tn))
+      {
+        ret = CEG_HANDLED_UNCONDITIONAL;
+      }
+    }
+  }
+  // sets, arrays, functions and others are not supported
+  visited[tn] = ret;
+  return ret;
+}
+
+CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
+                                                    QuantifiersEngine* qe)
+{
+  CegHandledStatus hmin = CEG_HANDLED_UNCONDITIONAL;
+  for (const Node& v : q[0])
+  {
+    TypeNode tn = v.getType();
+    CegHandledStatus handled = isCbqiSort(tn, qe);
+    if (handled == CEG_UNHANDLED)
+    {
+      return CEG_UNHANDLED;
+    }
+    else if (handled < hmin)
+    {
+      hmin = handled;
+    }
+  }
+  return hmin;
+}
+
+CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
+{
+  // compute attributes
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  if (qa.d_quant_elim)
+  {
+    return CEG_HANDLED;
+  }
+  if (qa.d_sygus)
+  {
+    return CEG_UNHANDLED;
+  }
+  Assert(!qa.d_quant_elim_partial);
+  // if has an instantiation pattern, don't do it
+  if (q.getNumChildren() == 3)
+  {
+    for (const Node& pat : q[2])
+    {
+      if (pat.getKind() == INST_PATTERN)
+      {
+        return CEG_UNHANDLED;
+      }
+    }
+  }
+  CegHandledStatus ret = CEG_HANDLED;
+  // if quantifier has a non-handled variable, then do not use cbqi
+  // if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
+  CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q, qe);
+  Trace("cbqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
+                            << std::endl;
+  if (ncbqiv == CEG_UNHANDLED)
+  {
+    // unhandled variable type
+    ret = CEG_UNHANDLED;
   }
   else
   {
-    // CBQI typically works for satisfaction-complete theories
-    TheoryId t = kindToTheoryId(k);
-    return t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL;
+    CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
+    Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit << std::endl;
+    if (cbqit == CEG_UNHANDLED)
+    {
+      if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
+      {
+        // all variables are fully handled, this implies this will be handlable
+        // regardless of body (e.g. for EPR)
+        //  so, try but not exclusively
+        ret = CEG_PARTIALLY_HANDLED;
+      }
+      else
+      {
+        // cannot be handled
+        ret = CEG_UNHANDLED;
+      }
+    }
+    else if (cbqit == CEG_PARTIALLY_HANDLED)
+    {
+      ret = CEG_PARTIALLY_HANDLED;
+    }
   }
+  if (ret == CEG_UNHANDLED && options::cbqiAll())
+  {
+    // try but not exclusively
+    ret = CEG_PARTIALLY_HANDLED;
+  }
+  return ret;
 }
 
 bool CegInstantiator::hasVariable( Node n, Node pv ) {
