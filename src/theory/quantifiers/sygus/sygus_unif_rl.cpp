@@ -2,7 +2,7 @@
 /*! \file sygus_unif_rl.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -45,7 +45,7 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   {
     d_hd_to_pt[c].clear();
     d_cand_to_eval_hds[c].clear();
-    d_purified_count[c] = 0;
+    d_cand_to_hd_count[c] = 0;
   }
 }
 
@@ -173,7 +173,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       }
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
-      ss << nb[0] << "_" << d_purified_count[nb[0]]++;
+      ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
       Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify") << "...new enum " << new_f
