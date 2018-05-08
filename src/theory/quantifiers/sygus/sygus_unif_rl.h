@@ -2,7 +2,7 @@
 /*! \file sygus_unif_rl.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -20,6 +20,7 @@
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -31,6 +32,7 @@ using BoolNodePairHashFunction =
     PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
 using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
+using NodePair = std::pair<Node, Node>;
 
 class CegConjecture;
 
@@ -82,20 +84,6 @@ class SygusUnifRl : public SygusUnif
   CegConjecture* d_parent;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
-  /**
-   * This class stores information regarding an enumerator, including: a
-   * database of values that have been enumerated for this enumerator.
-   */
-  class EnumCache
-  {
-   public:
-    EnumCache() {}
-    ~EnumCache() {}
-    /** Values that have been enumerated for this enumerator */
-    std::vector<Node> d_enum_vals;
-  };
-  /** maps enumerators to the information above */
-  std::map<Node, EnumCache> d_ecache;
   /** construct sol */
   Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
   /** collects data from refinement lemmas to drive solution construction
@@ -111,16 +99,20 @@ class SygusUnifRl : public SygusUnif
         Purification
     --------------------------------------------------------------
   */
-  /* Maps unif candidates to heads of their evaluation points */
+  /**
+   * maps heads of applications of a unif function-to-synthesize to their tuple
+   * of arguments (which constitute a "data point" aka an "evaluation point")
+   */
+  std::map<Node, std::vector<Node>> d_hd_to_pt;
+  /** maps unif candidates to heads of their evaluation points */
   std::map<Node, std::vector<Node>> d_cand_to_eval_hds;
   /**
-   * maps applications of the function-to-synthesize to their tuple of arguments
-   * (which constitute a "data point") */
-  std::map<Node, std::vector<Node>> d_app_to_pt;
-  /** Maps applications of unif functions-to-synthesize to purified symbols*/
+   * maps applications of unif functions-to-synthesize to the result of their
+   * purification */
   std::map<Node, Node> d_app_to_purified;
-  /** Maps unif functions-to-synthesize to counters of purified symbols */
-  std::map<Node, unsigned> d_purified_count;
+  /** maps unif functions-to-synthesize to counters of heads of evaluation
+   * points */
+  std::map<Node, unsigned> d_cand_to_hd_count;
   /**
    * This is called on the refinement lemma and will rewrite applications of
    * functions-to-synthesize to their respective purified form, i.e. such that
@@ -136,10 +128,10 @@ class SygusUnifRl : public SygusUnif
    *
    * When the traversal encounters an application of a unification
    * function-to-synthesize it will proceed to ensure that the arguments of that
-   * function application are constants (the ensureConst becomes "true"). If an
+   * function application are constants (ensureConst becomes "true"). If an
    * applicatin of a non-unif function-to-synthesize is reached, the requirement
-   * is lifted (the ensureConst becomes "false"). This avoides introducing
-   * spurious equalities in model_guards.
+   * is lifted (ensureConst becomes "false"). This avoides introducing spurious
+   * equalities in model_guards.
    *
    * For example if "f" is being synthesized with a unification strategy and "g"
    * is not then the application
@@ -152,7 +144,8 @@ class SygusUnifRl : public SygusUnif
    * would be purified into
    *   g(0) = c1 ^ f1(c1) = c2 => f2(+(0,c2))
    *
-   * This function also populates the maps for point enumerators
+   * This function also populates the maps between candidates, heads and
+   * evaluation points
    */
   Node purifyLemma(Node n,
                    bool ensureConst,
@@ -170,14 +163,71 @@ class SygusUnifRl : public SygusUnif
   class DecisionTreeInfo
   {
    public:
+    DecisionTreeInfo() {}
+    ~DecisionTreeInfo() {}
+    /** initializes this class */
+    void initialize(Node cond_enum,
+                    SygusUnifRl* unif,
+                    SygusUnifStrategy* strategy);
+    /** adds the respective evaluation point of the head f  */
+    void addPoint(Node f);
+    /** adds a condition value to the pool of condition values */
+    void addCondValue(Node condv);
+    /** whether all points that must be separated are separated **/
+    bool isSeparated();
+    /** reference to parent unif util */
+    SygusUnifRl* d_unif;
+    /** enumerator template (if no templates, nodes in pair are Node::null()) */
+    NodePair d_template;
+    /** enumerated condition values */
+    std::vector<Node> d_conds;
+
+   private:
+    /**
+     * reference to infered strategy for the function-to-synthesize this DT is
+     * associated with
+     */
+    SygusUnifStrategy* d_strategy;
     /**
      * The enumerator in the strategy tree that stores conditions of the
      * decision tree.
      */
     Node d_cond_enum;
+    /** Classifies evaluation points according to enumerated condition values
+     *
+     * Maintains the invariant that points evaluated in the same way in the
+     * current condition values are kept in the same "separation class."
+     */
+    class PointSeparator : public LazyTrieEvaluator
+    {
+     public:
+      /** initializes this class */
+      void initialize(DecisionTreeInfo* dt);
+      /**
+       * evaluates the respective evaluation point of the head n on the index-th
+       * condition
+       */
+      Node evaluate(Node n, unsigned index) override;
+
+      /** the lazy trie for building the separation classes */
+      LazyTrieMulti d_trie;
+
+     private:
+      /** reference to parent unif util */
+      DecisionTreeInfo* d_dt;
+    };
+    /**
+     * Utility for determining how evaluation points are separated by currently
+     * enumerated condiotion values
+     */
+    PointSeparator d_pt_sep;
   };
-  /** map from enumerators in the strategy trees to the above data */
-  std::map<Node, DecisionTreeInfo> d_enum_to_dt;
+  /** maps strategy points in the strategy tree to the above data */
+  std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;
+  /** maps conditional enumerators to strategy points in which they occur */
+  std::map<Node, std::vector<Node>> d_cenum_to_stratpt;
+  /** maps unif candidates to their conditional enumerators */
+  std::map<Node, std::vector<Node>> d_cand_cenums;
   /** all conditional enumerators */
   std::vector<Node> d_cond_enums;
   /** register strategy
