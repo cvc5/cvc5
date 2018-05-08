@@ -37,6 +37,25 @@ SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
   return p;
 }
 
+Node SymmetryDetect::getSymBreakVariable( TypeNode tn, unsigned index )
+{
+  std::map< TypeNode, std::vector< Node > >::iterator it = d_sb_vars.find(tn);
+  if( it==d_sb_vars.end() )
+  {
+    // initialize the variables for type tn
+    d_sb_vars[tn].clear();
+    it = d_sb_vars.find(tn);
+  }
+  while( it->second.size()<index )
+  {
+    std::stringstream ss;
+    ss << "sym_bk_" << tn;
+    Node fresh_var = NodeManager::currentNM()->mkSkolem(ss.str(), tn);
+    it->second.push_back(fresh_var);
+  }
+  return it->second[index];
+}
+  
 void SymmetryDetect::getPartition(vector<vector<Node> >& parts,
                                   const vector<Node>& assertions)
 {
@@ -75,10 +94,11 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   {
     vector<Node> vars;
     TypeNode type = node.getType();
-    Node fresh_var = NodeManager::currentNM()->mkSkolem("sym_bk", type);
+    Node fresh_var = getSymBreakVariable(type,0);
 
     vars.push_back(node);
     p.d_term = node;
+    p.d_sterm = fresh_var;
     p.d_subvar_to_vars[fresh_var] = vars;
     p.d_var_to_subvar[node] = fresh_var;
     d_term_partition[node] = p;
@@ -88,6 +108,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   else if (node.isConst())
   {
     p.d_term = node;
+    p.d_sterm = node;
     d_term_partition[node] = p;
     return p;
   }
@@ -105,10 +126,12 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
                   << endl;
 
   // Create partitions for children
+  std::unordered_set< unsigned > active_indices;
   for (vector<Node>::iterator children_it = children.begin();
        children_it != children.end();
        ++children_it)
   {
+    active_indices.insert(partitions.size());
     partitions.push_back(findPartitions(*children_it));
   }
 
@@ -116,34 +139,85 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
                      "partitions -------------------------------"
                   << endl;
 
-  PartitionTrie pt;
-  unordered_set<Node, NodeHashFunction> vars;
 
   if (theory::quantifiers::TermUtil::isComm(node.getKind()))
   {
+    // map substituted terms to indices in partitions
+    std::map< Node, std::vector< unsigned > > sterm_to_indices;
+    for( unsigned j=0, size=partitions.size(); j<size; j++ )
+    {
+      sterm_to_indices[partitions[j].d_sterm].push_back( j );
+    }
+    
+    for( const std::pair< Node, std::vector< unsigned > >& sti : sterm_to_indices )
+    {
+      Node cterm = sti.first;
+      // merge children, remove active indices
+      
+    }
+    
     // Start processing the singleton partitions and collect variables
-    processSingletonPartitions(partitions, vars);
+    //processSingletonPartitions(partitions, vars);
   }
-  else
+  
+  // for all active indices
+  unordered_set<Node, NodeHashFunction> all_vars;
+  std::map< TypeNode, unsigned > type_index;
+  std::vector< Node > schildren;
+  for( const unsigned& i : active_indices )
   {
-    // Get all the variables from the partitions
-    getVariables(partitions, vars);
+    Partition& pa = partitions[i];
+    // ensure the variables of pa are fresh
+    std::vector< Node > f_vars;
+    std::vector< Node > f_subs;
+    // add to overall list of variables
+    for (const pair<const Node, vector<Node> >& pas : pa.d_subvar_to_vars)
+    {
+      Node v = pas.first;
+      TypeNode tnv = v.getType();
+      // ensure we use a new index for this variable
+      unsigned new_index = 0;
+      std::map< TypeNode, unsigned >::iterator itt = type_index.find(tnv);
+      if( itt!=type_index.end() )
+      {
+        new_index = itt->second;
+      }
+      type_index[tnv] = new_index+1;
+      Node new_v = getSymBreakVariable(tnv,new_index);
+      f_vars.push_back(v);
+      f_subs.push_back(new_v);
+      // add all vars to partition trie classifier
+      all_vars.insert(pas.second.begin(), pas.second.end());
+      for( const Node& x : pas.second )
+      {
+        pa.d_var_to_subvar[x] = new_v;
+      }
+    }
+    // reconstruct the partition
+    for( unsigned j=0, size = f_vars.size(); j<size; j++ )
+    {
+      Node v = f_vars[j];
+      Node new_v = f_subs[j];
+      pa.d_subvar_to_vars[new_v].insert( pa.d_subvar_to_vars[new_v].end(),pa.d_subvar_to_vars[v].begin(),pa.d_subvar_to_vars[v].end());
+      pa.d_subvar_to_vars.erase(v);
+    }
+    pa.d_sterm = pa.d_sterm.substitute( f_vars.begin(),f_vars.end(),f_subs.begin(),f_subs.end());
+    schildren.push_back(pa.d_sterm);
   }
-
+  
+  PartitionTrie pt;
   // Build the partition trie
-  for (unordered_set<Node, NodeHashFunction>::iterator vars_it = vars.begin();
-       vars_it != vars.end();
-       ++vars_it)
+  for( const Node& n : all_vars )
   {
-    pt.addNode(*vars_it, partitions);
+    pt.addNode(n, partitions);
   }
-
   // Get the new partition
   pt.getNewPartition(p, pt);
 
   // Reconstruct the node
   Trace("sym-dt") << "[sym-dt] Reconstructing node: " << node << endl;
   p.d_term = node;
+  p.d_sterm = NodeManager::currentNM()->mkNode(node.getKind(),schildren);
   d_term_partition[node] = p;
   printPartition(p);
   return p;
@@ -342,23 +416,6 @@ void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
          ++part_it)
     {
       getNewPartition(part, part_it->second);
-    }
-  }
-}
-
-void SymmetryDetect::getVariables(vector<Partition>& partitions,
-                                  unordered_set<Node, NodeHashFunction>& vars)
-{
-  for (vector<Partition>::iterator part_it = partitions.begin();
-       part_it != partitions.end();
-       ++part_it)
-  {
-    for (map<Node, vector<Node> >::iterator sub_var_it =
-             (*part_it).d_subvar_to_vars.begin();
-         sub_var_it != (*part_it).d_subvar_to_vars.end();
-         ++sub_var_it)
-    {
-      vars.insert((sub_var_it->second).begin(), (sub_var_it->second).end());
     }
   }
 }

@@ -66,6 +66,8 @@ class SymmetryDetect
    public:
     /** Term corresponding to the partition, e.g., x + y = 0 */
     Node d_term;
+    /** Substituted term corresponding to the partition */
+    Node d_sterm;
     /** Mapping between the variable and the substitution variable x -> w, y -> w,
      * z -> w */
     std::map<Node, Node> d_var_to_subvar;
@@ -96,6 +98,9 @@ class SymmetryDetect
     /** Get all the new regions of a partition and store in part */
     void getNewPartition(Partition& part, PartitionTrie& pt);
   };
+  
+  std::map< TypeNode, std::vector< Node > > d_sb_vars;
+  Node getSymBreakVariable( TypeNode tn, unsigned index );
 
 
   /** True and false constant nodes */
@@ -126,10 +131,6 @@ class SymmetryDetect
 
   /** Print a partition */
   void printPartition(Partition p);
-
-  /** Retrieve all variables from partitions and put in vars */
-  void getVariables(std::vector<Partition>& partitions,
-                    std::unordered_set<Node, NodeHashFunction>& vars);
 
   /** Process singleton partitions and add all variables to vars
    *  It collects all partitions with more than 1 variable and save it in
