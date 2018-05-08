@@ -111,6 +111,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     d_term_partition[node] = p;
     return p;
   }
+  NodeManager * nm = NodeManager::currentNM();
 
   // Children of node
   vector<Node> children;
@@ -135,7 +136,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   if( Trace.isOn("sym-dt-debug") )
   {
     Trace("sym-dt-debug") << "----------------------------- Start processing "
-                            "partitions -------------------------------"
+                            "partitions for " << node << " -------------------------------"
                           << endl;
     for (unsigned j = 0, size = partitions.size(); j < size; j++)
     {
@@ -144,8 +145,8 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     Trace("sym-dt-debug") << "-----------------------------" << std::endl;
   }
 
-
-  if (theory::quantifiers::TermUtil::isComm(node.getKind()))
+  Kind k = node.getKind();
+  if (theory::quantifiers::TermUtil::isComm(k))
   {
     // map substituted terms to indices in partitions
     std::map<Node, std::vector<unsigned> > sterm_to_indices;
@@ -167,7 +168,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
         Trace("sym-dt-debug") << std::endl;
       }
       // merge children, remove active indices
-      mergePartitions(node.getKind(), partitions, sti.second, active_indices);
+      mergePartitions(k, partitions, sti.second, active_indices);
     }
   }
 
@@ -238,9 +239,14 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   // Reconstruct the node
   Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << endl;
   p.d_term = node;
-  p.d_sterm = schildren.size() == 1
-                  ? schildren[0]
-                  : NodeManager::currentNM()->mkNode(node.getKind(), schildren);
+  if(theory::quantifiers::TermUtil::isComm(k))
+  {
+    p.d_sterm = mkCommutativeNode(k,schildren);
+  }
+  else
+  {
+    p.d_sterm = nm->mkNode(k, schildren);
+  }
   d_term_partition[node] = p;
   printPartition("sym-dt-debug", p);
   return p;
@@ -293,9 +299,9 @@ bool SymmetryDetect::mergePartitions(
   unsigned first_index = indices[0];
 
   unsigned num_sb_vars = partitions[first_index].d_subvar_to_vars.size();
-  if (num_sb_vars > 1)
+  if (num_sb_vars != 1)
   {
-    // cannot handle multiple symmetry breaking variables
+    // can only handle symmetries that are classified by { n }
     return false;
   }
   // separate by number of variables
@@ -336,7 +342,12 @@ bool SymmetryDetect::mergePartitions(
                         nvi.second,
                         active_indices))
     {
+      Trace("sym-dt-debug") << "    ...success!" << std::endl;
       merged = true;
+    }
+    else
+    {
+      Trace("sym-dt-debug") << "    ...failed" << std::endl;
     }
   }
   return merged;
@@ -404,8 +415,8 @@ bool SymmetryDetect::mergePartitions(
                           << std::endl;
     Partition& p = partitions[master_index];
     // reconstruct the master partition
-    p.d_term = NodeManager::currentNM()->mkNode(k, children);
-    p.d_sterm = NodeManager::currentNM()->mkNode(k, schildren);
+    p.d_term = mkCommutativeNode(k, children);
+    p.d_sterm = mkCommutativeNode(k, schildren);
     Assert(p.d_subvar_to_vars.size() == 1);
     Node sb_v = p.d_subvar_to_vars.begin()->first;
     p.d_subvar_to_vars[sb_v].clear();
@@ -416,6 +427,7 @@ bool SymmetryDetect::mergePartitions(
       Trace("sym-dt-debug")
           << "- set var to svar " << v << " -> " << sb_v << std::endl;
     }
+    Trace("sym-dt-debug") << "...finished." << std::endl;
     return true;
   }
   // try to include this index
@@ -599,6 +611,27 @@ void SymmetryDetect::printPartition(const char* c, Partition p)
     Trace(c) << " }" << endl;
   }
 }
+  
+Node SymmetryDetect::mkCommutativeNode( Kind k, std::vector< Node >& children ) const
+{
+  NodeManager * nm = NodeManager::currentNM();
+  //sort and make right-associative chain
+  std::sort( children.begin(), children.end() );
+  Node sn;
+  for( const Node& sc : children )
+  {
+    if( sn.isNull() )
+    {
+      sn = sc;
+    }
+    else
+    {
+      sn = nm->mkNode( k, sc, sn );
+    }
+  }
+  return sn;
+}
+  
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

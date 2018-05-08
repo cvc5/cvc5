@@ -133,7 +133,17 @@ class SymmetryDetect
 
   /** merge partitions 
    * 
-   * TODO
+   * This method is called when we have detected symmetries for the children
+   * of a term t of the form <k>( t1, ..., tn ), where k is a commutative 
+   * operator. The vector partition stores partitions representating symmetries
+   * of the children t1...tn.
+   *
+   * The vector indices stores a list ( i1...im ) such that
+   * t_ij * revSubs( partition[ij] ) is equivalent for each j=1...m,
+   * where revSubs is the substitution mapping variables to their symmetry
+   * breaking variables.
+   * 
+   * This method tries to merge partitions for a subset of these children.
    */
   bool mergePartitions(Kind k,
                        std::vector<Partition>& partitions,
@@ -152,6 +162,12 @@ class SymmetryDetect
       std::vector<Partition>& partitions,
       const std::vector<unsigned>& indices,
       std::unordered_set<unsigned>& active_indices);
+  /** mk commutative node 
+   * 
+   * This returns (a normal form for) the term <k>( children ), where 
+   * k is a commutative operator.
+   */
+  Node mkCommutativeNode( Kind k, std::vector< Node >& children ) const;
 };
 }  // namespace passes
 }  // namespace preprocessing
