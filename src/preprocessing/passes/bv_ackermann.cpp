@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_ackermann.h
+/*! \file bv_ackermann.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -80,9 +80,9 @@ void collectFunctionSymbols(
     AlwaysAssert(term.getKind() != kind::STORE,
                  "Cannot use eager bitblasting on QF_ABV formula with stores");
   }
-  for (unsigned i = 0; i < term.getNumChildren(); ++i)
+  for (const TNode& n : term)
   {
-    collectFunctionSymbols(term[i], fun_to_args, fun_to_skolem, seen);
+    collectFunctionSymbols(n, fun_to_args, fun_to_skolem, seen);
   }
   seen.insert(term);
 }
@@ -103,20 +103,18 @@ PreprocessingPassResult BVAckermann::applyInternal(
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
 
-  std::vector<Node> assertions(assertionsToPreprocess->ref());
   std::unordered_set<TNode, TNodeHashFunction> seen;
 
-  for (unsigned i = 0; i < assertions.size(); ++i)
+  for (const Node& a : assertionsToPreprocess->ref())
   {
-    collectFunctionSymbols(assertions[i], d_funcToArgs, d_funcToSkolem, seen);
+    collectFunctionSymbols(a, d_funcToArgs, d_funcToSkolem, seen);
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  FunctionToArgsMap::const_iterator it = d_funcToArgs.begin();
-  for (; it != d_funcToArgs.end(); ++it)
+  for (const auto& p : d_funcToArgs)
   {
-    TNode func = it->first;
-    const NodeSet& args = it->second;
+    TNode func = p.first;
+    const NodeSet& args = p.second;
     NodeSet::const_iterator it1 = args.begin();
     for (; it1 != args.end(); ++it1)
     {
@@ -136,7 +134,7 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
           std::vector<Node> eqs(args1.getNumChildren());
 
-          for (unsigned i = 0; i < args1.getNumChildren(); ++i)
+          for (unsigned i = 0, n = args1.getNumChildren(); i < n; ++i)
           {
             eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
           }
@@ -152,15 +150,16 @@ PreprocessingPassResult BVAckermann::applyInternal(
         }
         Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
         Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
-        assertions.push_back(lemma);
+        assertionsToPreprocess->push_back(lemma);
       }
     }
   }
 
   // replace applications of UF by skolems (FIXME for model building)
-  for (unsigned i = 0; i < assertions.size(); ++i)
+  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertions[i] = d_funcToSkolem.apply(assertions[i]);
+    assertionsToPreprocess->replace(
+        i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
