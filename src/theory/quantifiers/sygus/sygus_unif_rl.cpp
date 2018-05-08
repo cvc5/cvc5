@@ -451,20 +451,20 @@ void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
 
 bool SygusUnifRl::DecisionTreeInfo::isSeparated()
 {
-  for (const std::pair<const Node, std::vector<Node>>& rep_to_sepclass :
-       d_pt_sep.d_trie.d_rep_to_sepclass)
+  for (const std::pair<const Node, std::vector<Node>>& rep_to_class :
+       d_pt_sep.d_trie.d_rep_to_class)
   {
-    Assert(!rep_to_sepclass.second.empty());
-    Node v = rep_to_sepclass.second[0];
-    unsigned i, size = rep_to_sepclass.second.size();
+    Assert(!rep_to_class.second.empty());
+    Node v = rep_to_class.second[0];
+    unsigned i, size = rep_to_class.second.size();
     for (i = 1; i < size; ++i)
     {
-      Node vi = d_unif->d_parent->getModelValue(rep_to_sepclass.second[i]);
+      Node vi = d_unif->d_parent->getModelValue(rep_to_class.second[i]);
       if (v != vi)
       {
         Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
-                                  << rep_to_sepclass.second[0] << " and "
-                                  << rep_to_sepclass.second[i] << "\n";
+                                  << rep_to_class.second[0] << " and "
+                                  << rep_to_class.second[i] << "\n";
         break;
       }
     }

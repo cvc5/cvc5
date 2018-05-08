@@ -101,7 +101,7 @@ class LazyTrie
 class LazyTrieMulti
 {
  public:
-  std::map<Node, std::vector<Node>> d_rep_to_sepclass;
+  std::map<Node, std::vector<Node>> d_rep_to_class;
   void addClassifier(LazyTrieEvaluator* ev, unsigned ntotal);
   Node add(Node f, LazyTrieEvaluator* ev, unsigned ntotal);
  private:

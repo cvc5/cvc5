@@ -90,9 +90,8 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
       continue;
     }
     // apply new classifier
-    Assert(d_rep_to_sepclass.find(trie->d_lazy_child)
-           != d_rep_to_sepclass.end());
-    std::vector<Node> prev_sep_class = d_rep_to_sepclass[trie->d_lazy_child];
+    Assert(d_rep_to_class.find(trie->d_lazy_child) != d_rep_to_class.end());
+    std::vector<Node> prev_sep_class = d_rep_to_class[trie->d_lazy_child];
     if (Trace.isOn("lazy-trie-multi"))
     {
       Trace("lazy-trie-multi") << "...last level. Prev sep class: \n";
@@ -102,7 +101,7 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
       }
     }
     // make new sepclass of lc a singleton with itself
-    d_rep_to_sepclass.erase(trie->d_lazy_child);
+    d_rep_to_class.erase(trie->d_lazy_child);
     // replace
     trie->d_lazy_child = Node::null();
     for (const Node& n : prev_sep_class)
@@ -114,16 +113,16 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
         // add n to to map of item in next level
         Trace("lazy-trie-multi") << "...add " << n << " to the class of "
                                  << it->second.d_lazy_child << "\n";
-        d_rep_to_sepclass[it->second.d_lazy_child].push_back(n);
+        d_rep_to_class[it->second.d_lazy_child].push_back(n);
         continue;
       }
       // store at next level
       trie->d_children[eval].d_lazy_child = n;
       // create new map
       Trace("lazy-trie-multi") << "...create new class for : " << n << "\n";
-      Assert(d_rep_to_sepclass.find(n) == d_rep_to_sepclass.end());
-      d_rep_to_sepclass[n].clear();
-      d_rep_to_sepclass[n].push_back(n);
+      Assert(d_rep_to_class.find(n) == d_rep_to_class.end());
+      d_rep_to_class[n].clear();
+      d_rep_to_class[n].push_back(n);
     }
   }
 }
@@ -137,17 +136,17 @@ Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
   {
     Trace("lazy-trie-multi") << "... added " << f << " to the sepclass of "
                              << res << "\n";
-    Assert(d_rep_to_sepclass.find(res) != d_rep_to_sepclass.end());
-    Assert(!d_rep_to_sepclass[res].empty());
-    d_rep_to_sepclass[res].push_back(f);
+    Assert(d_rep_to_class.find(res) != d_rep_to_class.end());
+    Assert(!d_rep_to_class[res].empty());
+    d_rep_to_class[res].push_back(f);
     return res;
   }
   // f is the representatitve of a singleton seperation class
   Trace("lazy-trie-multi") << "... added " << f
                            << " as the rep of the sepclass with itself\n";
-  Assert(d_rep_to_sepclass.find(res) == d_rep_to_sepclass.end());
-  d_rep_to_sepclass[res].clear();
-  d_rep_to_sepclass[res].push_back(f);
+  Assert(d_rep_to_class.find(res) == d_rep_to_class.end());
+  d_rep_to_class[res].clear();
+  d_rep_to_class[res].push_back(f);
   return res;
 }
 
