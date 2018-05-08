@@ -131,10 +131,10 @@ class SymmetryDetect
   /** Print a partition */
   void printPartition(const char* c, Partition p);
 
-  /** merge partitions 
-   * 
+  /** merge partitions
+   *
    * This method is called when we have detected symmetries for the children
-   * of a term t of the form <k>( t_1, ..., t_n ), where k is a commutative 
+   * of a term t of the form <k>( t_1, ..., t_n ), where k is a commutative
    * operator. For each i=1,...n, partitions[i] represents symmetries (in the
    * form of a partition) computed for the child t_i.
    *
@@ -142,15 +142,15 @@ class SymmetryDetect
    * t_i_j * revSubs( partition[i_j] ) is equivalent for each j=1...m,
    * where revSubs is the substitution mapping variables to their symmetry
    * breaking variables.
-   * 
+   *
    * This method tries to "merge" partitions for a subset of these children.
-   * We say that 
-   *   partition[j1] = { w -> X_1 }, 
-   *   ..., 
+   * We say that
+   *   partition[j1] = { w -> X_1 },
+   *   ...,
    *   partition[jp] = { w -> X_p }
-   * are mergebale if s=|X_1|=...=|X_p|, and all subsets X of 
-   * X* = ( union_{k=1...p} X_k ) of size s are equal to exactly one of 
-   * X_1 ... X_p. If there exists a mergeable set of partitions with indices 
+   * are mergebale if s=|X_1|=...=|X_p|, and all subsets X of
+   * X* = ( union_{k=1...p} X_k ) of size s are equal to exactly one of
+   * X_1 ... X_p. If there exists a mergeable set of partitions with indices
    * (j1...jp), we remove {j1...jp} \ { j1 } from active_indices, and update
    * partition[j1] := { w -> X* }.
    */
@@ -158,13 +158,14 @@ class SymmetryDetect
                        std::vector<Partition>& partitions,
                        const std::vector<unsigned>& indices,
                        std::unordered_set<unsigned>& active_indices);
-  /** merge partitions 
-   * 
+  /** merge partitions
+   *
    * This is a recursive helper for the above function. This function attempts
    * to construct a set of mergebale indices {j1...jp} of partitions.
-   * 
+   *
    * include_indices : the currently considered indices {j1...jp},
-   * curr_index : the index we are currently considering whether to add to include_indices,
+   * curr_index : the index we are currently considering whether to add to
+   * include_indices,
    * curr_variables : the current set X*,
    * num_vars : the size of the range of partitions, i.e. |X_i| above.
    */
@@ -177,13 +178,13 @@ class SymmetryDetect
       std::vector<Partition>& partitions,
       const std::vector<unsigned>& indices,
       std::unordered_set<unsigned>& active_indices);
-  /** mk commutative node 
-   * 
-   * This returns (a normal form for) the term <k>( children ), where 
+  /** mk commutative node
+   *
+   * This returns (a normal form for) the term <k>( children ), where
    * k is a commutative operator. We return a right-associative chain,
    * since some commutative operators (e.g. set union) require this.
    */
-  Node mkCommutativeNode( Kind k, std::vector< Node >& children ) const;
+  Node mkCommutativeNode(Kind k, std::vector<Node>& children) const;
 };
 }  // namespace passes
 }  // namespace preprocessing

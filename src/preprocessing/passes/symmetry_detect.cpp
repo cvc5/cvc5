@@ -49,8 +49,12 @@ Node SymmetryDetect::getSymBreakVariable(TypeNode tn, unsigned index)
   while (it->second.size() <= index)
   {
     std::stringstream ss;
-    ss << "_sym_bk_" << tn << "_" << (it->second.size()+1);
-    Node fresh_var = NodeManager::currentNM()->mkSkolem(ss.str(), tn, "symmetry breaking variable", NodeManager::SKOLEM_EXACT_NAME);
+    ss << "_sym_bk_" << tn << "_" << (it->second.size() + 1);
+    Node fresh_var =
+        NodeManager::currentNM()->mkSkolem(ss.str(),
+                                           tn,
+                                           "symmetry breaking variable",
+                                           NodeManager::SKOLEM_EXACT_NAME);
     it->second.push_back(fresh_var);
   }
   return it->second[index];
@@ -111,7 +115,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     d_term_partition[node] = p;
     return p;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
   // Children of node
   vector<Node> children;
@@ -133,14 +137,15 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     active_indices.insert(partitions.size());
     partitions.push_back(findPartitions(*children_it));
   }
-  if( Trace.isOn("sym-dt-debug") )
+  if (Trace.isOn("sym-dt-debug"))
   {
     Trace("sym-dt-debug") << "----------------------------- Start processing "
-                            "partitions for " << node << " -------------------------------"
-                          << endl;
+                             "partitions for "
+                          << node << " -------------------------------" << endl;
     for (unsigned j = 0, size = partitions.size(); j < size; j++)
     {
-      Trace("sym-dt-debug") << "[" << j << "]: " << partitions[j].d_sterm << std::endl;
+      Trace("sym-dt-debug")
+          << "[" << j << "]: " << partitions[j].d_sterm << std::endl;
     }
     Trace("sym-dt-debug") << "-----------------------------" << std::endl;
   }
@@ -177,7 +182,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   unordered_set<Node, NodeHashFunction> all_vars;
   std::map<TypeNode, unsigned> type_index;
   std::vector<Node> schildren;
-  if( !isComm )
+  if (!isComm)
   {
     schildren.resize(node.getNumChildren());
   }
@@ -227,7 +232,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     }
     pa.d_sterm = pa.d_sterm.substitute(
         f_vars.begin(), f_vars.end(), f_subs.begin(), f_subs.end());
-    if( isComm )
+    if (isComm)
     {
       schildren.push_back(pa.d_sterm);
     }
@@ -251,15 +256,15 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   // Reconstruct the node
   Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << endl;
   p.d_term = node;
-  if(isComm)
+  if (isComm)
   {
-    p.d_sterm = mkCommutativeNode(k,schildren);
+    p.d_sterm = mkCommutativeNode(k, schildren);
   }
   else
   {
-    if(node.getMetaKind()==kind::metakind::PARAMETERIZED )
+    if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      schildren.insert(schildren.begin(),node.getOperator());
+      schildren.insert(schildren.begin(), node.getOperator());
     }
     p.d_sterm = nm->mkNode(k, schildren);
   }
@@ -627,27 +632,28 @@ void SymmetryDetect::printPartition(const char* c, Partition p)
     Trace(c) << " }" << endl;
   }
 }
-  
-Node SymmetryDetect::mkCommutativeNode( Kind k, std::vector< Node >& children ) const
+
+Node SymmetryDetect::mkCommutativeNode(Kind k,
+                                       std::vector<Node>& children) const
 {
-  NodeManager * nm = NodeManager::currentNM();
-  //sort and make right-associative chain
-  std::sort( children.begin(), children.end() );
+  NodeManager* nm = NodeManager::currentNM();
+  // sort and make right-associative chain
+  std::sort(children.begin(), children.end());
   Node sn;
-  for( const Node& sc : children )
+  for (const Node& sc : children)
   {
-    if( sn.isNull() )
+    if (sn.isNull())
     {
       sn = sc;
     }
     else
     {
-      sn = nm->mkNode( k, sc, sn );
+      sn = nm->mkNode(k, sc, sn);
     }
   }
   return sn;
 }
-  
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4
