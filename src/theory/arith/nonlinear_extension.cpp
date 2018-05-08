@@ -1338,7 +1338,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
 
 bool NonlinearExtension::simpleCheckModelLit(Node lit)
 {
-  Trace("nl-ext-cms") << "simple check-model for " << lit << "..." << std::endl;
+  Trace("nl-ext-cms") << "*** Simple check-model lit for " << lit << "..." << std::endl;
   if (lit.isConst())
   {
     Trace("nl-ext-cms") << "  return constant." << std::endl;
@@ -1389,6 +1389,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     return true;
   }
   // can also try reasoning about univariate quadratic equations
+  Trace("nl-ext-cms-debug") << "* Try univariate quadratic analysis..." << std::endl;
   std::vector<Node> vs_invalid;
   std::unordered_set<Node, NodeHashFunction> vs;
   std::map<Node, Node> v_a;
@@ -1447,8 +1448,9 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           t = nm->mkNode( PLUS, t, nm->mkNode( MULT, b, v ) );
         }
         t = Rewriter::rewrite( t );
+        Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic " << t << "..." << std::endl;
         // find maximal/minimal value on the interval
-        Node apex = nm->mkNode(DIVISION, b, nm->mkNode(MULT, d_two, a));
+        Node apex = nm->mkNode(DIVISION, nm->mkNode(UMINUS,b), nm->mkNode(MULT, d_two, a));
         apex = Rewriter::rewrite( apex );
         Assert( apex.isConst() );
         bool cmp[2];
@@ -1461,6 +1463,9 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           Assert( cmpn.isConst() );
           cmp[r] = cmpn.getConst<bool>();
         }
+        Trace("nl-ext-cms-debug") << "  apex " << apex << std::endl;
+        Trace("nl-ext-cms-debug") << "  min " << boundn[0] << ", cmp: " << cmp[0] << std::endl;
+        Trace("nl-ext-cms-debug") << "  max " << boundn[1] << ", cmp: " << cmp[1] << std::endl;
         Node s;
         qvars.push_back(v);
         if( cmp[0]!=cmp[1] )
@@ -1471,6 +1476,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           {
             // the apex is the max/min value
             s = apex;
+            Trace("nl-ext-cms-debug") << "  ...set to apex." << std::endl;
           }
           else
           {
@@ -1484,9 +1490,11 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
               qsubs.pop_back();
             }
             Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1] );
+            Trace("nl-ext-cms-debug") << "  ...both sides of apex, compare " << tcmp << std::endl;
             tcmp = Rewriter::rewrite( tcmp );
             Assert( tcmp.isConst() );
             unsigned bindex_use = tcmp.getConst<bool>()==pol ? 1 : 0;
+            Trace("nl-ext-cms-debug") << "  ...set to " << (bindex_use==1 ? "max" : "min" ) << std::endl;
             s = boundn[bindex_use];
           }
         }
@@ -1494,10 +1502,12 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         {
           // both to one side
           unsigned bindex_use = ((asgn==1)==cmp[0])==pol ? 0 : 1;
+          Trace("nl-ext-cms-debug") << "  ...set to " << (bindex_use==1 ? "max" : "min" ) << std::endl;
           s = boundn[bindex_use];
         }
         Assert( !s.isNull() );
         qsubs.push_back(s);
+        Trace("nl-ext-cms") << "* set bound based on quadratic : " << v << " -> " << s << std::endl;
       }
     }
   }
@@ -1514,6 +1524,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
 bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
                                               bool pol)
 {
+  Trace("nl-ext-cms-debug") << "* Try simple interval analysis..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // map from transcendental functions to whether they were set to lower
   // bound
@@ -1529,7 +1540,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
     }
     else
     {
-      Trace("nl-ext-cms-debug") << "--- monomial : " << v << std::endl;
+      Trace("nl-ext-cms-debug") << "- monomial : " << v << std::endl;
       // --- whether we should set a lower bound for this monomial
       bool set_lower =
           (m.second.isNull() || m.second.getConst<Rational>().sgn() == 1)
@@ -1576,7 +1587,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
         unsigned vcfact = factors[i];
         if (Trace.isOn("nl-ext-cms-debug"))
         {
-          Trace("nl-ext-cms-debug") << "* " << vc;
+          Trace("nl-ext-cms-debug") << "-- " << vc;
           if (vcfact > 1)
           {
             Trace("nl-ext-cms-debug") << "^" << vcfact;
