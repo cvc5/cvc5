@@ -771,7 +771,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
         if (lit[1].getType() == lit.getType())
         {
           // t != s ---> ~t = s
-          if(lit[1].getKind() == notk && lit[0].getKind()!=notk)
+          if (lit[1].getKind() == notk && lit[0].getKind() != notk)
           {
             eq = nm->mkNode(EQUAL, lit[0], TermUtil::mkNegate(notk, lit[1]));
           }

@@ -5382,7 +5382,7 @@ void SmtEngine::checkSynthSolution()
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
-  if( sol_map.empty() )
+  if (sol_map.empty())
   {
     Trace("check-synth-sol") << "No solution to check!\n";
     return;
@@ -5471,7 +5471,8 @@ void SmtEngine::checkSynthSolution()
     else if (r.asSatisfiabilityResult().isSat())
     {
       InternalError(
-          "SmtEngine::checkSynthSolution(): produced solution leads to satisfiable negated conjecture.");
+          "SmtEngine::checkSynthSolution(): produced solution leads to "
+          "satisfiable negated conjecture.");
     }
     solChecker.resetAssertions();
   }

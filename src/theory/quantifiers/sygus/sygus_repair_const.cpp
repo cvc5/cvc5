@@ -19,8 +19,8 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
 
@@ -180,13 +180,15 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   {
     // must be a CBQI quantifier
     CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body, d_qe);
-    if( hstatus<CEG_HANDLED )
+    if (hstatus < CEG_HANDLED)
     {
       // abort if less than fully handled
-    Trace("sygus-repair-const") << "...first-order query is not handlable by counterexample-guided instantiation." << std::endl;
+      Trace("sygus-repair-const") << "...first-order query is not handlable by "
+                                     "counterexample-guided instantiation."
+                                  << std::endl;
       return false;
     }
-    
+
     // do miniscoping explicitly
     if (fo_body[1].getKind() == AND)
     {
