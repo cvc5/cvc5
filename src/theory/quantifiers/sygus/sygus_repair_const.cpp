@@ -401,7 +401,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
             Node sk_fov = nm->mkSkolem("k", cur.getType());
             d_sk_to_fo[v] = sk_fov;
             d_fo_to_sk[sk_fov] = v;
-            visited[cur] = v;
+            visited[cur] = sk_fov;
             Trace("sygus-repair-const-debug")
                 << "Map " << v << " -> " << sk_fov << std::endl;
           }

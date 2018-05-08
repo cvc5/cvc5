@@ -1319,6 +1319,11 @@ void SmtEngine::setDefaults() {
       options::cbqiMidpoint.set(true);
     }
   }
+  else
+  {
+    // cannot use sygus repair constants
+    options::sygusRepairConst.set(false);
+  }
 
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
@@ -5377,6 +5382,11 @@ void SmtEngine::checkSynthSolution()
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
+  if( sol_map.empty() )
+  {
+    Trace("check-synth-sol") << "No solution to check!\n";
+    return;
+  }
   Trace("check-synth-sol") << "Got solution map:\n";
   std::vector<Node> function_vars, function_sols;
   for (const auto& pair : sol_map)
@@ -5461,8 +5471,7 @@ void SmtEngine::checkSynthSolution()
     else if (r.asSatisfiabilityResult().isSat())
     {
       InternalError(
-          "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
-          "negated conjecture.");
+          "SmtEngine::checkSynthSolution(): produced solution leads to satisfiable negated conjecture.");
     }
     solChecker.resetAssertions();
   }
