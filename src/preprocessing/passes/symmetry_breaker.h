@@ -12,8 +12,8 @@
  ** \brief Symmetry breaker for theories
  **/
 
-#ifndef __CVC4__PREPROCESSING_PASSES_SYMMETRY_BREAKER_H_
-#define __CVC4__PREPROCESSING_PASSES_SYMMETRY_BREAKER_H_
+#ifndef __CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_
+#define __CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_
 
 #include <map>
 #include <string>
@@ -77,8 +77,8 @@ class SymmetryBreaker
 
   /**
    * Get the order kind depending on the type of node.
-   * For example, if node is a integer or real, we would return
-   * the operator less than or equal to (<=) and use it to build
+   * For example, if node is a integer or real, this function would return
+   * the operator less than or equal to (<=) so that we can use it to build
    * ordered constraints.
    * */
   Kind getOrderKind(Node node);
@@ -88,4 +88,4 @@ class SymmetryBreaker
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4_PREPROCESSING_PASSES_SYMMETRY_BREAKER_H_ */
+#endif /* __CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_ */

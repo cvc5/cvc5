@@ -4213,16 +4213,13 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryDetect())
+  if (options::symmetryBreakerExp())
   {
     SymmetryDetect symd;
+    SymmetryBreaker symb;
     vector<vector<Node>> part;
     symd.getPartition(part, d_assertions.ref());
-    if (options::symmetryBreaker())
-    {
-      SymmetryBreaker symb;
-      Node sbConstraint = symb.generateSymBkConstraints(part);
-    }
+    Node sbConstraint = symb.generateSymBkConstraints(part);
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
