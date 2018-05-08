@@ -49,8 +49,8 @@ Node SymmetryDetect::getSymBreakVariable(TypeNode tn, unsigned index)
   while (it->second.size() <= index)
   {
     std::stringstream ss;
-    ss << "sym_bk_" << tn;
-    Node fresh_var = NodeManager::currentNM()->mkSkolem(ss.str(), tn);
+    ss << "_sym_bk_" << tn << "_" << (it->second.size()+1);
+    Node fresh_var = NodeManager::currentNM()->mkSkolem(ss.str(), tn, "symmetry breaking variable", NodeManager::SKOLEM_EXACT_NAME);
     it->second.push_back(fresh_var);
   }
   return it->second[index];
@@ -131,12 +131,19 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   {
     active_indices.insert(partitions.size());
     partitions.push_back(findPartitions(*children_it));
-    Trace("sym-dt-debug") << "  " << partitions.back().d_sterm << std::endl;
+  }
+  if( Trace.isOn("sym-dt-debug") )
+  {
+    Trace("sym-dt-debug") << "----------------------------- Start processing "
+                            "partitions -------------------------------"
+                          << endl;
+    for (unsigned j = 0, size = partitions.size(); j < size; j++)
+    {
+      Trace("sym-dt-debug") << "[" << j << "]: " << partitions[j].d_sterm << std::endl;
+    }
+    Trace("sym-dt-debug") << "-----------------------------" << std::endl;
   }
 
-  Trace("sym-dt-debug") << "----------------------------- Start processing "
-                           "partitions -------------------------------"
-                        << endl;
 
   if (theory::quantifiers::TermUtil::isComm(node.getKind()))
   {
