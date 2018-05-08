@@ -14,7 +14,9 @@
 
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -55,6 +57,12 @@ bool CegisUnif::initialize(Node n,
       unif_candidates.push_back(c);
     }
   }
+  for (const Node& e : d_cond_enums)
+  {
+    Node g = d_tds->getActiveGuardForEnumerator(e);
+    Assert(!g.isNull());
+    d_enum_to_active_guard[e] = g;
+  }
   // initialize the enumeration manager
   d_u_enum_manager.initialize(unif_candidates);
   return true;
@@ -73,6 +81,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     Valuation& valuation = d_qe->getValuation();
     for (const Node& e : d_cond_enums)
     {
+      Trace("cegis-unif-debug")
+          << "Check conditional enumerator : " << e << std::endl;
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
       /* Get whether the active guard for this enumerator is set. If so, then
@@ -109,8 +119,14 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     {
       continue;
     }
-    Trace("cegis-unif-enum") << "  " << enums[i] << " -> " << enum_values[i]
-                             << std::endl;
+    if (Trace.isOn("cegis-unif-enum"))
+    {
+      Trace("cegis-unif-enum") << "  " << enums[i] << " -> ";
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())
+          ->toStreamSygus(ss, enum_values[i]);
+      Trace("cegis-unif-enum") << ss.str() << std::endl;
+    }
     unsigned sz = d_tds->getSygusTermSize(enum_values[i]);
     if (i == 0 || sz < min_term_size)
     {
@@ -155,9 +171,15 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         Node lem,
                                         std::vector<Node>& lems)
 {
-  /* Notify lemma to unification utility and get its purified form */
-  Node plem = d_sygus_unif.addRefLemma(lem);
+  // Notify lemma to unification utility and get its purified form
+  std::map<Node, std::vector<Node> > eval_pts;
+  Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
   d_refinement_lemmas.push_back(plem);
+  // Notify the enumeration manager if there are new evaluation points
+  for (const std::pair<const Node, std::vector<Node> >& ep : eval_pts)
+  {
+    d_u_enum_manager.registerEvalPts(ep.second, ep.first);
+  }
   /* Make the refinement lemma and add it to lems. This lemma is guarded by the
      parent's guard, which has the semantics "this conjecture has a solution",
      hence this lemma states: if the parent conjecture has a solution, it
@@ -181,7 +203,7 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
+void CegisUnifEnumManager::initialize(const std::vector<Node>& cs)
 {
   if (cs.empty())
   {
@@ -198,7 +220,7 @@ void CegisUnifEnumManager::initialize(std::vector<Node>& cs)
   incrementNumEnumerators();
 }
 
-void CegisUnifEnumManager::registerEvalPts(std::vector<Node>& eis, Node c)
+void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node c)
 {
   // candidates of the same type are managed
   TypeNode ct = c.getType();

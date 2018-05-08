@@ -454,7 +454,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
               "permitted while operating in strict compliance mode.");
         }
       }
-    | { expr = MK_CONST(bool(true)); }
+    | { expr = Expr(); }
     )
     { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */

@@ -29,16 +29,17 @@ namespace quantifiers {
 /** Cegis Unif Enumeration Manager
  *
  * This class enforces a decision heuristic that limits the number of
- * unique values given to the set of "evaluation points", which are variables
- * of sygus datatype type that are introduced by CegisUnif.
+ * unique values given to the set of heads of evaluation points, which are
+ * variables of sygus datatype type that are introduced by CegisUnif.
  *
  * It maintains a set of guards, call them G_uq_1 ... G_uq_n, where the
- * semantics of G_uq_i is "for each type, the evaluation points of that type
- * are interpreted as a value in a set whose cardinality is at most i".
+ * semantics of G_uq_i is "for each type, the heads of evaluation points of that
+ * type are interpreted as a value in a set whose cardinality is at most i".
  *
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
- * evaluation points registered to this class and add lemmas that enforce that
- * points are equal to at least one enumerator (see registerEvalPtAtValue).
+ * heads of evaluation points registered to this class and add lemmas that
+ * enforce that these terms are equal to at least one enumerator (see
+ * registerEvalPtAtValue).
  */
 class CegisUnifEnumManager
 {
@@ -53,17 +54,17 @@ class CegisUnifEnumManager
    * Each candidate c in cs should be such that we are using a
    * synthesis-by-unification approach for c.
    */
-  void initialize(std::vector<Node>& cs);
+  void initialize(const std::vector<Node>& cs);
   /** register evaluation point for candidate
    *
-   * This notifies this class that eis is a set of evaluation points for
-   * candidate c, where c should be a candidate that was passed to initialize
-   * in the vector cs.
+   * This notifies this class that eis is a set of heads of evaluation points
+   * for candidate c, where c should be a candidate that was passed to
+   * initialize in the vector cs.
    *
    * This may add new lemmas of the form described above
    * registerEvalPtAtValue on the output channel of d_qe.
    */
-  void registerEvalPts(std::vector<Node>& eis, Node c);
+  void registerEvalPts(const std::vector<Node>& eis, Node c);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
