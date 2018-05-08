@@ -32,6 +32,7 @@ using BoolNodePairHashFunction =
     PairHashFunction<bool, Node, BoolHashFunction, NodeHashFunction>;
 using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
+using NodePairMap = std::unordered_map<Node, Node, NodeHashFunction>;
 using NodePair = std::pair<Node, Node>;
 
 class CegConjecture;
@@ -168,11 +169,25 @@ class SygusUnifRl : public SygusUnif
     /** initializes this class */
     void initialize(Node cond_enum,
                     SygusUnifRl* unif,
-                    SygusUnifStrategy* strategy);
+                    SygusUnifStrategy* strategy,
+                    unsigned strategy_index);
     /** adds the respective evaluation point of the head f  */
     void addPoint(Node f);
     /** adds a condition value to the pool of condition values */
     void addCondValue(Node condv);
+    /** returns index of strategy information of strategy node for this DT */
+    unsigned getStrategyIndex() const;
+    /** builds solution stored in DT, if any, using the given constructor
+     *
+     * The DT contains a solution when no class contains two heads of evaluation
+     * points with different model values, i.e. when all points that must be
+     * separated indeed are separated.
+     *
+     * This function tests separation of the points in the above sense and may
+     * create separation lemmas to enforce guide the synthesis of conditons that
+     * will separate points not currently separated.
+     */
+    Node buildSol(Node cons);
     /** whether all points that must be separated are separated **/
     bool isSeparated();
     /** reference to parent unif util */
@@ -184,15 +199,19 @@ class SygusUnifRl : public SygusUnif
 
    private:
     /**
-     * reference to infered strategy for the function-to-synthesize this DT is
+     * reference to inferred strategy for the function-to-synthesize this DT is
      * associated with
      */
     SygusUnifStrategy* d_strategy;
+    /** index of strategy information of strategy node this DT is based on */
+    unsigned d_strategy_index;
     /**
      * The enumerator in the strategy tree that stores conditions of the
      * decision tree.
      */
     Node d_cond_enum;
+    /** chache of model values of heads of evaluation points */
+    NodePairMap d_hd_values;
     /** Classifies evaluation points according to enumerated condition values
      *
      * Maintains the invariant that points evaluated in the same way in the

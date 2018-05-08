@@ -94,6 +94,8 @@ class LazyTrie
            bool forceKeep);
 };
 
+using IndTriePair = std::pair<unsigned, LazyTrie*>;
+
 /** Lazy trie with multiple elements per leaf
  *
  * As the above trie, but allows multiple elements per leaf. This is done by

@@ -157,7 +157,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
   }
-  // divide-and-conquer solution bulding for candidates using unif util
+  // build solutions using a divide-and-conquer approach for unif candidates
   std::vector<Node> sols;
   if (d_sygus_unif.constructSolution(sols))
   {
