@@ -81,8 +81,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     Valuation& valuation = d_qe->getValuation();
     for (const Node& e : d_cond_enums)
     {
-      Trace("cegis-unif-debug")
-          << "Check conditional enumerator : " << e << std::endl;
+      Trace("cegis-unif-debug") << "Check conditional enumerator : " << e
+                                << std::endl;
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
       // Get whether the active guard for this enumerator is set. If so, then

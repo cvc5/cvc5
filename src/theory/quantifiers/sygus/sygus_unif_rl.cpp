@@ -274,7 +274,6 @@ Node SygusUnifRl::addRefLemma(Node lemma,
                                     << " to strategy point " << stratpt << "\n";
           // Register new point from new head
           d_stratpt_to_dt[stratpt].addPoint(cp.second[j]);
-
         }
       }
     }
@@ -306,8 +305,8 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
       {
         return false;
       }
-      Trace("sygus-unif-rl-sol")
-          << "Adding solution " << v << " to unif candidate " << c << "\n";
+      Trace("sygus-unif-rl-sol") << "Adding solution " << v
+                                 << " to unif candidate " << c << "\n";
       sols.push_back(v);
     }
   }
@@ -348,13 +347,13 @@ void SygusUnifRl::registerStrategy(Node f)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
-    Trace("sygus-unif-rl-strat")
-        << "Strategy for " << f << " is : " << std::endl;
+    Trace("sygus-unif-rl-strat") << "Strategy for " << f
+                                 << " is : " << std::endl;
     d_strategy[f].debugPrint("sygus-unif-rl-strat");
   }
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
-  std::map<Node, std::map<NodeRole, bool> > visited;
+  std::map<Node, std::map<NodeRole, bool>> visited;
   registerStrategyNode(f, e, role_equal, visited);
 }
 
@@ -362,7 +361,7 @@ void SygusUnifRl::registerStrategyNode(
     Node f,
     Node e,
     NodeRole nrole,
-    std::map<Node, std::map<NodeRole, bool> >& visited)
+    std::map<Node, std::map<NodeRole, bool>>& visited)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
