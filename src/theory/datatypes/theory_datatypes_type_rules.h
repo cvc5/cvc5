@@ -359,28 +359,6 @@ class DtSygusBoundTypeRule {
   }
 }; /* class DtSygusBoundTypeRule */
 
-
-class DtSygusPredTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    if (check) {
-      TypeNode tn = n[0].getType();
-      if (!tn.isDatatype() || !((DatatypeType)tn.toType()).getDatatype().isSygus()) {
-        throw TypeCheckingExceptionPrivate(
-            n, "datatype sygus predicate expecting terms of sygus type");
-      }
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if (tn!=n[i].getType()) {
-          throw TypeCheckingExceptionPrivate(
-              n, "datatype sygus predicate expecting two terms of the same type");
-        }
-      }
-    }
-    return nodeManager->booleanType();
-  }
-}; /* class DtSygusPredTypeRule */
-
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
