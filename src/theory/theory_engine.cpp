@@ -1992,11 +1992,6 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-  bv_theory->mkAckermanizationAssertions(assertions);
-}
-
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
   if (!d_iteUtilities->containsTermITE(assertion))
