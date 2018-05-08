@@ -152,7 +152,7 @@ class SygusRepairConst
    * non-null node n', then n' is getFoQuery(...) on the resulting vectors, and
    * n' is in the given logic. The function may return null if it is not
    * possible to find a n' of this form.
-   * 
+   *
    * It uses the function below to choose which variables to remove from
    * sk_vars.
    */

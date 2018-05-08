@@ -151,8 +151,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       ss << nb[0] << "_" << d_purified_count[nb[0]]++;
       Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
       /* Adds new enumerator to map from candidate */
-      Trace("sygus-unif-rl-purify") << "...new enum " << new_f
-                                        << " for candidate " << nb[0] << "\n";
+      Trace("sygus-unif-rl-purify")
+          << "...new enum " << new_f << " for candidate " << nb[0] << "\n";
       d_cand_to_eval_hds[nb[0]].push_back(new_f);
       /* Maps new enumerator to its respective tuple of arguments */
       d_app_to_pt[new_f] =
@@ -202,8 +202,8 @@ Node SygusUnifRl::purifyLemma(Node n,
 Node SygusUnifRl::addRefLemma(Node lemma,
                               std::map<Node, std::vector<Node>>& eval_hds)
 {
-  Trace("sygus-unif-rl-purify") << "Registering lemma at SygusUnif : " << lemma
-                               << "\n";
+  Trace("sygus-unif-rl-purify")
+      << "Registering lemma at SygusUnif : " << lemma << "\n";
   std::vector<Node> model_guards;
   BoolNodePairMap cache;
   // cache previous sizes
@@ -307,7 +307,7 @@ void SygusUnifRl::registerStrategy(Node f)
   }
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
-  std::map<Node, std::map<NodeRole, bool> > visited;
+  std::map<Node, std::map<NodeRole, bool>> visited;
   registerStrategyNode(f, e, role_equal, visited);
 }
 
@@ -315,7 +315,7 @@ void SygusUnifRl::registerStrategyNode(
     Node f,
     Node e,
     NodeRole nrole,
-    std::map<Node, std::map<NodeRole, bool> >& visited)
+    std::map<Node, std::map<NodeRole, bool>>& visited)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
