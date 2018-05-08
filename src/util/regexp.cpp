@@ -306,11 +306,11 @@ bool String::isLeq(const String &y) const
     {
       return false;
     }
-    else if (d_str[i] > y.d_str[i])
+    if (d_str[i] > y.d_str[i])
     {
       return false;
     }
-    else if (d_str[i] < y.d_str[i])
+    if (d_str[i] < y.d_str[i])
     {
       return true;
     }
