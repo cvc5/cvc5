@@ -57,8 +57,8 @@ class SymmetryDetect
   /**
    * This is the class stores a "partition", which is a way of representing a
    * class of symmetries.
-   * 
-   * For example, when finding symmetries for a term like x+y = 0, we 
+   *
+   * For example, when finding symmetries for a term like x+y = 0, we
    * construct a partition { w -> { x, y } } that indicates that automorphisms
    * over { x, y } do not affect the satisfiability of this term. In this
    * example, we have the following assignments to the members of this class:
@@ -67,29 +67,29 @@ class SymmetryDetect
    *   d_var_to_subvar : { x -> w, y -> w }
    *   d_subvar_to_vars : { w -> { x, y } }
    * We often identify a partition with its d_subvar_to_vars field.
-   * 
-   * We call w a "symmetry breaking variable". 
+   *
+   * We call w a "symmetry breaking variable".
    */
   class Partition
   {
    public:
     /** The term for which the partition was computed for. */
     Node d_term;
-    /** Substituted term corresponding to the partition 
-     * 
-     * This is equal to d_term * d_var_to_subvar, where * is application of 
+    /** Substituted term corresponding to the partition
+     *
+     * This is equal to d_term * d_var_to_subvar, where * is application of
      * substitution.
      */
     Node d_sterm;
-    /** 
-     * Mapping between the variable and the symmetry breaking variable e.g. 
+    /**
+     * Mapping between the variable and the symmetry breaking variable e.g.
      * { x -> w, y -> w }.
      */
     std::map<Node, Node> d_var_to_subvar;
 
-    /** 
+    /**
      * Mapping between the symmetry breaking variables and variables, e.g.
-     * { w-> { x, y } } 
+     * { w-> { x, y } }
      */
     std::map<Node, std::vector<Node> > d_subvar_to_vars;
   };
@@ -118,8 +118,8 @@ class SymmetryDetect
   };
   /** (canonical) symmetry breaking variables for each type */
   std::map<TypeNode, std::vector<Node> > d_sb_vars;
-  /** 
-   * Get the index^th symmetry breaking variable for type tn in the above 
+  /**
+   * Get the index^th symmetry breaking variable for type tn in the above
    * vector. These are fresh variables of type tn which are used for
    * constructing a canonical form for terms considered by this class, and
    * are used in the domains of partitions (Partition::d_subvar_to_vars).
