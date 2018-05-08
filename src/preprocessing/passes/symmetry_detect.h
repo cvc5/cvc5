@@ -131,12 +131,18 @@ class SymmetryDetect
   /** Print a partition */
   void printPartition(const char* c, Partition p);
 
-  /** merge partitions */
+  /** merge partitions 
+   * 
+   * TODO
+   */
   bool mergePartitions(Kind k,
                        std::vector<Partition>& partitions,
                        const std::vector<unsigned>& indices,
                        std::unordered_set<unsigned>& active_indices);
-
+  /** merge partitions 
+   * 
+   * TODO
+   */
   bool mergePartitions(
       Kind k,
       std::unordered_set<unsigned>& include_indices,
@@ -146,33 +152,6 @@ class SymmetryDetect
       std::vector<Partition>& partitions,
       const std::vector<unsigned>& indices,
       std::unordered_set<unsigned>& active_indices);
-
-  /** Process singleton partitions and add all variables to vars
-   *  It collects all partitions with more than 1 variable and save it in
-   *  partitions first. And then it collects the substitution variable to
-   *  variable and to term mappings respectively from partitions with 1
-   *  variable and invokes matches function on the mappings to check
-   *  if any subset of the variables can be merged. If yes, they will be merged
-   *  and put in partitions. The remaining ones after the merge check will be
-   *  put in the partitions as well.
-   * */
-  void processSingletonPartitions(std::vector<Partition>& partitions,
-                                  std::unordered_set<Node, NodeHashFunction>& vars);
-
-  /** Do matches on singleton partitions
-   *  This function checks if any subset of the expressions corresponding to
-   *  substitution variables are equivalent under variables substitution.
-   *  If the expressions are equivalent, we will merge the variables corresponding
-   *  to the same substitution variables and put them in partitions.
-   *  For example, suppose we have subvar_to_var: {w1 -> u, w2 -> x, w3 -> y,
-   *  w4 -> z} and subvar_to_expr: {w1 -> u>2, w2 -> x>0, w3 -> y>0, w4 -> z>1}.
-   *  Since [x/w]>0 is equivalent [y/w]>0 but not equivalent to [z/w]>1 and [u/w]>2,
-   *  and [u/w]>2 is not equivalent to [z/w]>1, we would merge x and y and put
-   *  w5->{x, y} and also w1->{u}, w4->{z} in partitions.
-   * */
-  void matches(std::vector<Partition>& partitions,
-               std::map<Node, Node>& subvar_to_var,
-               std::map<Node, Node>& subvar_to_expr);
 };
 }  // namespace passes
 }  // namespace preprocessing
