@@ -146,7 +146,8 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   }
 
   Kind k = node.getKind();
-  if (theory::quantifiers::TermUtil::isComm(k))
+  bool isComm = theory::quantifiers::TermUtil::isComm(k);
+  if (isComm)
   {
     // map substituted terms to indices in partitions
     std::map<Node, std::vector<unsigned> > sterm_to_indices;
@@ -176,6 +177,10 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   unordered_set<Node, NodeHashFunction> all_vars;
   std::map<TypeNode, unsigned> type_index;
   std::vector<Node> schildren;
+  if( !isComm )
+  {
+    schildren.resize(node.getNumChildren());
+  }
   std::vector<Partition> active_partitions;
   for (const unsigned& i : active_indices)
   {
@@ -222,7 +227,14 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     }
     pa.d_sterm = pa.d_sterm.substitute(
         f_vars.begin(), f_vars.end(), f_subs.begin(), f_subs.end());
-    schildren.push_back(pa.d_sterm);
+    if( isComm )
+    {
+      schildren.push_back(pa.d_sterm);
+    }
+    else
+    {
+      schildren[i] = pa.d_sterm;
+    }
     Trace("sym-dt-debug") << "...got : " << pa.d_sterm << std::endl;
     active_partitions.push_back(pa);
   }
@@ -239,12 +251,16 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   // Reconstruct the node
   Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << endl;
   p.d_term = node;
-  if(theory::quantifiers::TermUtil::isComm(k))
+  if(isComm)
   {
     p.d_sterm = mkCommutativeNode(k,schildren);
   }
   else
   {
+    if(node.getMetaKind()==kind::metakind::PARAMETERIZED )
+    {
+      schildren.insert(schildren.begin(),node.getOperator());
+    }
     p.d_sterm = nm->mkNode(k, schildren);
   }
   d_term_partition[node] = p;
@@ -411,7 +427,7 @@ bool SymmetryDetect::mergePartitions(
       }
     }
     Trace("sym-dt-debug") << "}" << std::endl;
-    Trace("sym-dt-debug") << "Reconstruct master index " << master_index
+    Trace("sym-dt-debug") << "Reconstruct master partition " << master_index
                           << std::endl;
     Partition& p = partitions[master_index];
     // reconstruct the master partition
