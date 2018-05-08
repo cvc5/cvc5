@@ -152,7 +152,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     {
       Node cterm = sti.first;
       // merge children, remove active indices
-      mergePartitions( partitions, sti.second, active_indices );
+      mergePartitions( node.getKind(), partitions, sti.second, active_indices );
     }
     
     // Start processing the singleton partitions and collect variables
@@ -387,7 +387,8 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 }
 
 
-void SymmetryDetect::mergePartitions( const std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
+bool SymmetryDetect::mergePartitions( 
+Kind k, std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
 {
   Assert( !indices.empty() );
   unsigned first_index = indices[0];
@@ -396,46 +397,105 @@ void SymmetryDetect::mergePartitions( const std::vector<Partition>& partitions, 
   if( num_sb_vars>1 )
   {
     // cannot handle multiple symmetry breaking variables
-    return;
+    return false;
   }
-  unsigned num_vars = partitions[first_index].d_var_to_subvar.size();
-  std::unordered_set< unsigned > include_indices;
-  unsigned curr_index = 0;
-  std::unordered_set< Node, NodeHashFunction > curr_variables;
-  if( mergePartitions(include_indices,curr_index,curr_variables,num_vars,partitions,indices,active_indices))
+  // separate by number of variables
+  // for each n, nv_indices[n] contains the indices of partitions of the form 
+  // { w1 -> { x1, ..., xn } }
+  std::map< unsigned, std::vector< unsigned > > nv_indices;
+  for( unsigned j=0, size = indices.size(); j<size; j++ )
   {
-    
+    unsigned index = indices[j];
+    Assert( partitions[index].d_subvar_to_vars.size()==1 );
+    unsigned num_vars = partitions[index].d_var_to_subvar.size();
+    nv_indices[num_vars].push_back(index);
   }
+  bool merged = false;
+  for( const std::pair< const unsigned, std::vector< unsigned > >& nvi : nv_indices )
+  {
+    unsigned num_vars = nvi.first;
+    std::unordered_set< unsigned > include_indices;
+    unsigned curr_index = 0;
+    std::unordered_set< Node, NodeHashFunction > curr_variables;
+    if( mergePartitions(k, include_indices,curr_index,curr_variables,num_vars,partitions,nvi.second,active_indices) )
+    {
+      merged = true;
+    }
+  }
+  return merged;
 }
 
 bool SymmetryDetect::mergePartitions( 
+Kind k,
 std::unordered_set< unsigned >& include_indices,
 unsigned curr_index,
 std::unordered_set< Node, NodeHashFunction >& curr_variables,
 unsigned num_vars,
-const std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
+std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
 {
   if( curr_index==indices.size() )
   {
+    if( include_indices.size()<=1 )
+    {
+      return false;
+    }
     // found a symmetry
-    // TODO
+    // merge the partitions
+    std::vector< Node > children;
+    std::vector< Node > schildren;
+    bool set_master_index = false;
+    unsigned master_index = 0;
+    for( const unsigned& i : include_indices )
+    {
+      const Partition& p = partitions[i];
+      children.push_back( p.d_term );
+      schildren.push_back( p.d_sterm );
+      Assert( active_indices.find( i )!=active_indices.end() );
+      if( !set_master_index )
+      {
+        set_master_index = true;
+        master_index = i;
+      }
+      else
+      {
+        active_indices.erase( i );
+      }
+    }
+    Partition& p = partitions[master_index];
+    // reconstruct the master partition
+    p.d_term = NodeManager::currentNM()->mkNode( k, children );
+    p.d_sterm = NodeManager::currentNM()->mkNode( k, schildren );
+    Assert( p.d_subvar_to_vars.size()==1 );
+    Node sb_v = p.d_subvar_to_vars.begin().first;
+    for( const Node& v : curr_variables )
+    {
+      p.d_var_to_subvar[v] = sb_v;
+      p.d_subvar_to_vars[sb_v].push_back(v);
+    }
     return true;
   }
   // try to include this index 
   unsigned index = indices[curr_index];
-  const Partition& p = partitions[index];
+  Partition& p = partitions[index];
   std::unordered_set< Node, NodeHashFunction > new_variables;
   new_variables.insert(curr_variables.begin(),curr_variables.end());
+  Assert( p.d_subvar_to_vars.size()==1 );
   for( const std::pair<const Node, std::vector<Node> >& s : p.d_subvar_to_vars )
   {
-    new_variables.insert( s.first );
+    new_variables.insert(s.second.begin(),s.second.end());
   }
   // are there too many variables?
   bool var_ok = false;
+  
+  unsigned npart = include_indices.size()+1;
+  unsigned curr_nvars = new_variables.size();
+  // (choose curr_nvars num_vars) must be smaller than npart + (indices.size()-curr_index)
+
+
   if( var_ok )
   {
     include_indices.insert(index);
-    if( mergePartitions(include_indices,curr_index+1,new_variables,num_vars,partitions,indices,active_indices) )
+    if( mergePartitions(k, include_indices,curr_index+1,new_variables,num_vars,partitions,indices,active_indices) )
     {
       return true;
     }
@@ -443,7 +503,7 @@ const std::vector<Partition>& partitions, const std::vector< unsigned >& indices
   }
   
   // try not including this index
-  return mergePartitions(include_indices,curr_index+1,curr_variables,num_vars,partitions,indices,active_indices);
+  return mergePartitions(k, include_indices,curr_index+1,curr_variables,num_vars,partitions,indices,active_indices);
 }
 
 
