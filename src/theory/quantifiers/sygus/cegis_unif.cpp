@@ -2,7 +2,7 @@
 /*! \file cegis_unif.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -39,11 +39,11 @@ bool CegisUnif::initialize(Node n,
                            std::vector<Node>& lemmas)
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
-  /* Init UNIF util */
+  // Init UNIF util
   d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, lemmas);
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   std::vector<Node> unif_candidates;
-  /* Initialize enumerators for non-unif functions-to-synhesize */
+  // Initialize enumerators for non-unif functions-to-synhesize
   for (const Node& c : candidates)
   {
     if (!d_sygus_unif.usingUnif(c))
@@ -81,12 +81,12 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     Valuation& valuation = d_qe->getValuation();
     for (const Node& e : d_cond_enums)
     {
-      Trace("cegis-unif-debug")
-          << "Check conditional enumerator : " << e << std::endl;
+      Trace("cegis-unif-debug") << "Check conditional enumerator : " << e
+                                << std::endl;
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
-      /* Get whether the active guard for this enumerator is set. If so, then
-         there may exist more values for it, and hence we add it to enums. */
+      // Get whether the active guard for this enumerator is set. If so, then
+      // there may exist more values for it, and hence we add it to enums.
       Node gstatus = valuation.getSatValue(g);
       if (!gstatus.isNull() && gstatus.getConst<bool>())
       {
@@ -113,7 +113,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
-    /* Only conditional enumerators will be notified to unif utility */
+    // Only conditional enumerators will be notified to unif utility
     if (std::find(d_cond_enums.begin(), d_cond_enums.end(), enums[i])
         == d_cond_enums.end())
     {
@@ -139,7 +139,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
       enum_consider.push_back(i);
     }
   }
-  /* only consider the enumerators that are at minimum size (for fairness) */
+  // only consider the enumerators that are at minimum size (for fairness)
   Trace("cegis-unif-enum") << "...register " << enum_consider.size() << " / "
                            << enums.size() << std::endl;
   for (unsigned i = 0, ecsize = enum_consider.size(); i < ecsize; ++i)
@@ -148,7 +148,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     Node e = enums[j], v = enum_values[j];
     std::vector<Node> enum_lems;
     d_sygus_unif.notifyEnumeration(e, v, enum_lems);
-    /* the lemmas must be guarded by the active guard of the enumerator */
+    // the lemmas must be guarded by the active guard of the enumerator
     Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
     Node g = d_enum_to_active_guard[e];
     for (unsigned j = 0, size = enum_lems.size(); j < size; ++j)
@@ -157,7 +157,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
   }
-  /* divide-and-conquer solution bulding for candidates using unif util */
+  // divide-and-conquer solution bulding for candidates using unif util
   std::vector<Node> sols;
   if (d_sygus_unif.constructSolution(sols))
   {
@@ -180,10 +180,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   {
     d_u_enum_manager.registerEvalPts(ep.second, ep.first);
   }
-  /* Make the refinement lemma and add it to lems. This lemma is guarded by the
-     parent's guard, which has the semantics "this conjecture has a solution",
-     hence this lemma states: if the parent conjecture has a solution, it
-     satisfies the specification for the given concrete point. */
+  // Make the refinement lemma and add it to lems. This lemma is guarded by the
+  // parent's guard, which has the semantics "this conjecture has a solution",
+  // hence this lemma states: if the parent conjecture has a solution, it
+  // satisfies the specification for the given concrete point.
   lems.push_back(NodeManager::currentNM()->mkNode(
       OR, d_parent->getGuard().negate(), plem));
 }
