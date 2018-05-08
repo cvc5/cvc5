@@ -2596,19 +2596,19 @@ void SmtEnginePrivate::finishInit() {
       new BVToBool(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
-  std::unique_ptr<RealToInt> realToInt(
-      new RealToInt(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
+  std::unique_ptr<RealToInt> realToInt(
+      new RealToInt(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
+  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
