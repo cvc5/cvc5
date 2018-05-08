@@ -55,24 +55,42 @@ class SymmetryDetect
 
  private:
   /**
-   * This is the class to store the partition,
-   * where d_term store the term corresponding to the partition,
-   * d_var_to_subvar is the mapping from the variable to the substitution
-   * variable, and d_subvar_to_vars is the mapping from the substitution
-   * variable to a list of variables forming a region of a partition.
+   * This is the class stores a "partition", which is a way of representing a
+   * class of symmetries.
+   * 
+   * For example, when finding symmetries for a term like x+y = 0, we 
+   * construct a partition { w -> { x, y } } that indicates that automorphisms
+   * over { x, y } do not affect the satisfiability of this term. In this
+   * example, we have the following assignments to the members of this class:
+   *   d_term : x+y=0
+   *   d_sterm : w+w=0
+   *   d_var_to_subvar : { x -> w, y -> w }
+   *   d_subvar_to_vars : { w -> { x, y } }
+   * We often identify a partition with its d_subvar_to_vars field.
+   * 
+   * We call w a "symmetry breaking variable". 
    */
   class Partition
   {
    public:
-    /** Term corresponding to the partition, e.g., x + y = 0 */
+    /** The term for which the partition was computed for. */
     Node d_term;
-    /** Substituted term corresponding to the partition */
+    /** Substituted term corresponding to the partition 
+     * 
+     * This is equal to d_term * d_var_to_subvar, where * is application of 
+     * substitution.
+     */
     Node d_sterm;
-    /** Mapping between the variable and the substitution variable x -> w, y -> w,
-     * z -> w */
+    /** 
+     * Mapping between the variable and the symmetry breaking variable e.g. 
+     * { x -> w, y -> w }.
+     */
     std::map<Node, Node> d_var_to_subvar;
 
-    /** Mapping between the substitution variable and variables w-> { x, y, z } */
+    /** 
+     * Mapping between the symmetry breaking variables and variables, e.g.
+     * { w-> { x, y } } 
+     */
     std::map<Node, std::vector<Node> > d_subvar_to_vars;
   };
 
@@ -98,8 +116,14 @@ class SymmetryDetect
     /** Get all the new regions of a partition and store in part */
     void getNewPartition(Partition& part, PartitionTrie& pt);
   };
-
+  /** (canonical) symmetry breaking variables for each type */
   std::map<TypeNode, std::vector<Node> > d_sb_vars;
+  /** 
+   * Get the index^th symmetry breaking variable for type tn in the above 
+   * vector. These are fresh variables of type tn which are used for
+   * constructing a canonical form for terms considered by this class, and
+   * are used in the domains of partitions (Partition::d_subvar_to_vars).
+   */
   Node getSymBreakVariable(TypeNode tn, unsigned index);
 
   /** True and false constant nodes */
@@ -139,9 +163,8 @@ class SymmetryDetect
    * form of a partition) computed for the child t_i.
    *
    * The vector indices stores a list ( i_1...i_m ) such that
-   * t_i_j * revSubs( partition[i_j] ) is equivalent for each j=1...m,
-   * where revSubs is the substitution mapping variables to their symmetry
-   * breaking variables.
+   * ( t_i_j * partition[i_j].d_var_to_subvar ) is syntactically equivalent
+   * for each j=1...m, where * is application of substitution.
    *
    * This method tries to "merge" partitions for a subset of these children.
    * We say that
