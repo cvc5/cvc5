@@ -130,7 +130,7 @@ class SymmetryDetect
   void collectChildren(Node node, std::vector<Node>& children);
 
   /** Print a partition */
-  void printPartition(Partition p);
+  void printPartition(const char * c,Partition p);
   
   /** merge partitions */
   bool mergePartitions( Kind k, std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices  );

@@ -32,7 +32,7 @@ SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
                   << endl;
   if(Trace.isOn("sym-dt"))
   {
-    printPartition(p);
+    printPartition("sym-dt",p);
   }
   return p;
 }
@@ -46,7 +46,7 @@ Node SymmetryDetect::getSymBreakVariable( TypeNode tn, unsigned index )
     d_sb_vars[tn].clear();
     it = d_sb_vars.find(tn);
   }
-  while( it->second.size()<index )
+  while( it->second.size()<=index )
   {
     std::stringstream ss;
     ss << "sym_bk_" << tn;
@@ -72,16 +72,16 @@ void SymmetryDetect::getPartition(vector<vector<Node> >& parts,
 
 SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
 {
-  Trace("sym-dt")
+  Trace("sym-dt-debug")
       << "------------------------------------------------------------"
       << endl;
-  Trace("sym-dt") << "[sym-dt] findPartitions gets a term: " << node << endl;
+  Trace("sym-dt-debug") << "[sym-dt] findPartitions gets a term: " << node << endl;
   map<Node, Partition>::iterator partition = d_term_partition.find(node);
 
   // Return its partition from cache if we have processed the node before
   if (partition != d_term_partition.end())
   {
-    Trace("sym-dt") << "[sym-dt] We have seen the node " << node
+    Trace("sym-dt-debug") << "[sym-dt] We have seen the node " << node
                     << " before, thus we return its partition from cache."
                     << endl;
     return partition->second;
@@ -118,10 +118,10 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   vector<Partition> partitions;
 
   // Get all children of node
-  Trace("sym-dt") << "[sym-dt] collectChildren for: " << node
+  Trace("sym-dt-debug") << "[sym-dt] collectChildren for: " << node
                   << " with operator " << node.getKind() << endl;
   collectChildren(node, children);
-  Trace("sym-dt") << "[sym-dt] children: " << children
+  Trace("sym-dt-debug") << "[sym-dt] children: " << children
                   << endl;
 
   // Create partitions for children
@@ -132,9 +132,10 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   {
     active_indices.insert(partitions.size());
     partitions.push_back(findPartitions(*children_it));
+    Trace("sym-dt-debug") << "  " << partitions.back().d_sterm << std::endl;
   }
 
-  Trace("sym-dt") << "----------------------------- Start processing "
+  Trace("sym-dt-debug") << "----------------------------- Start processing "
                      "partitions -------------------------------"
                   << endl;
 
@@ -151,20 +152,28 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     for( const std::pair< Node, std::vector< unsigned > >& sti : sterm_to_indices )
     {
       Node cterm = sti.first;
+      if( Trace.isOn("sym-dt-debug") )
+      {
+        Trace("sym-dt-debug") << "  indices[" << cterm << "] = ";
+        for( unsigned i : sti.second ) 
+        {
+          Trace("sym-dt-debug") << i << " ";
+        }
+        Trace("sym-dt-debug") << std::endl;
+      }
       // merge children, remove active indices
       mergePartitions( node.getKind(), partitions, sti.second, active_indices );
     }
-    
-    // Start processing the singleton partitions and collect variables
-    //processSingletonPartitions(partitions, vars);
   }
   
   // for all active indices
   unordered_set<Node, NodeHashFunction> all_vars;
   std::map< TypeNode, unsigned > type_index;
   std::vector< Node > schildren;
+  std::vector<Partition> active_partitions;
   for( const unsigned& i : active_indices )
   {
+    Trace("sym-dt-debug") << "Reconstruct partition for active index : " << i << std::endl;
     Partition& pa = partitions[i];
     // ensure the variables of pa are fresh
     std::vector< Node > f_vars;
@@ -190,6 +199,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
       for( const Node& x : pas.second )
       {
         pa.d_var_to_subvar[x] = new_v;
+        Trace("sym-dt-debug") << "...set var to svar " << x << " -> " << new_v << std::endl;
       }
     }
     // reconstruct the partition
@@ -202,23 +212,25 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     }
     pa.d_sterm = pa.d_sterm.substitute( f_vars.begin(),f_vars.end(),f_subs.begin(),f_subs.end());
     schildren.push_back(pa.d_sterm);
+    Trace("sym-dt-debug") << "...got : " << pa.d_sterm << std::endl;
+    active_partitions.push_back(pa);
   }
   
   PartitionTrie pt;
   // Build the partition trie
   for( const Node& n : all_vars )
   {
-    pt.addNode(n, partitions);
+    pt.addNode(n, active_partitions);
   }
   // Get the new partition
   pt.getNewPartition(p, pt);
 
   // Reconstruct the node
-  Trace("sym-dt") << "[sym-dt] Reconstructing node: " << node << endl;
+  Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << endl;
   p.d_term = node;
-  p.d_sterm = NodeManager::currentNM()->mkNode(node.getKind(),schildren);
+  p.d_sterm = schildren.size()==1 ? schildren[0] : NodeManager::currentNM()->mkNode(node.getKind(),schildren);
   d_term_partition[node] = p;
-  printPartition(p);
+  printPartition("sym-dt-debug",p);
   return p;
 }
 
@@ -226,7 +238,7 @@ void SymmetryDetect::matches(vector<Partition>& partitions,
                              map<Node, Node>& subvar_to_var,
                              map<Node, Node>& subvar_to_expr)
 {
-  Trace("sym-dt")
+  Trace("sym-dt-debug")
       << "[sym-dt] Start testing if singleton partitions can be merged!"
       << endl;
 
@@ -282,12 +294,12 @@ void SymmetryDetect::matches(vector<Partition>& partitions,
             (expr_it2->second)
                 .substitute(
                     subs2.begin(), subs2.end(), repls.begin(), repls.end());
-        Trace("sym-dt") << "[sym-dt] Testing if " << sub_expr1
+        Trace("sym-dt-debug") << "[sym-dt] Testing if " << sub_expr1
                         << " is equivalent to " << sub_expr2 << endl;
 
         if (sub_expr1 == sub_expr2)
         {
-          Trace("sym-dt") << "[sym-dt] Merge variable " << fst_var
+          Trace("sym-dt-debug") << "[sym-dt] Merge variable " << fst_var
                           << " with variable " << snd_var << endl;
           merged.insert(expr_it2->first);
           part.push_back(snd_var);
@@ -295,8 +307,8 @@ void SymmetryDetect::matches(vector<Partition>& partitions,
         }
       }
       p.d_subvar_to_vars[expr_it1->first] = part;
-      Trace("sym-dt") << "[sym-dt] Add a new partition after merging: " << endl;
-      printPartition(p);
+      Trace("sym-dt-debug") << "[sym-dt] Add a new partition after merging: " << endl;
+      printPartition("sym-dt-debug",p);
       partitions.push_back(p);
     }
   }
@@ -305,7 +317,7 @@ void SymmetryDetect::matches(vector<Partition>& partitions,
 void SymmetryDetect::processSingletonPartitions(
     vector<Partition>& partitions, unordered_set<Node, NodeHashFunction>& vars)
 {
-  Trace("sym-dt") << "[sym-dt] Start post-processing partitions with size = "
+  Trace("sym-dt-debug") << "[sym-dt] Start post-processing partitions with size = "
                   << partitions.size() << endl;
 
   // Mapping between the substitution variable to the actual variable
@@ -414,15 +426,39 @@ Kind k, std::vector<Partition>& partitions, const std::vector< unsigned >& indic
   for( const std::pair< const unsigned, std::vector< unsigned > >& nvi : nv_indices )
   {
     unsigned num_vars = nvi.first;
+    if( Trace.isOn("sym-dt-debug") )
+    {
+      Trace("sym-dt-debug") << "    nv_indices[" << num_vars << "] = ";
+      for( unsigned i : nvi.second ) 
+      {
+        Trace("sym-dt-debug") << i << " ";
+      }
+      Trace("sym-dt-debug") << std::endl;
+    }
     std::unordered_set< unsigned > include_indices;
     unsigned curr_index = 0;
     std::unordered_set< Node, NodeHashFunction > curr_variables;
+    Trace("sym-dt-debug") << "    try merge partitions..." << std::endl;
     if( mergePartitions(k, include_indices,curr_index,curr_variables,num_vars,partitions,nvi.second,active_indices) )
     {
       merged = true;
     }
   }
   return merged;
+}
+
+unsigned nChoosek( unsigned n, unsigned k )
+{
+    if (k > n) return 0;
+    if (k * 2 > n) k = n-k;
+    if (k == 0) return 1;
+
+    int result = n;
+    for( int i = 2; i <= static_cast<int>(k); ++i ) {
+        result *= (n-i+1);
+        result /= i;
+    }
+    return result;
 }
 
 bool SymmetryDetect::mergePartitions( 
@@ -433,6 +469,7 @@ std::unordered_set< Node, NodeHashFunction >& curr_variables,
 unsigned num_vars,
 std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
 {
+  Trace("sym-dt-debug") << "merge " << curr_index << " / " << indices.size() << std::endl;
   if( curr_index==indices.size() )
   {
     if( include_indices.size()<=1 )
@@ -445,8 +482,10 @@ std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std:
     std::vector< Node > schildren;
     bool set_master_index = false;
     unsigned master_index = 0;
+    Trace("sym-dt-debug") << "found symmetry : { ";
     for( const unsigned& i : include_indices )
     {
+      Trace("sym-dt-debug") << i << " ";
       const Partition& p = partitions[i];
       children.push_back( p.d_term );
       schildren.push_back( p.d_sterm );
@@ -461,16 +500,20 @@ std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std:
         active_indices.erase( i );
       }
     }
+    Trace("sym-dt-debug") << "}" << std::endl;
+    Trace("sym-dt-debug") << "Reconstruct master index " << master_index << std::endl;
     Partition& p = partitions[master_index];
     // reconstruct the master partition
     p.d_term = NodeManager::currentNM()->mkNode( k, children );
     p.d_sterm = NodeManager::currentNM()->mkNode( k, schildren );
     Assert( p.d_subvar_to_vars.size()==1 );
-    Node sb_v = p.d_subvar_to_vars.begin().first;
+    Node sb_v = p.d_subvar_to_vars.begin()->first;
+    p.d_subvar_to_vars[sb_v].clear();
     for( const Node& v : curr_variables )
     {
       p.d_var_to_subvar[v] = sb_v;
       p.d_subvar_to_vars[sb_v].push_back(v);
+      Trace("sym-dt-debug") << "- set var to svar " << v << " -> " << sb_v << std::endl;
     }
     return true;
   }
@@ -486,12 +529,24 @@ std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std:
   }
   // are there too many variables?
   bool var_ok = false;
-  
-  unsigned npart = include_indices.size()+1;
   unsigned curr_nvars = new_variables.size();
-  // (choose curr_nvars num_vars) must be smaller than npart + (indices.size()-curr_index)
-
-
+  Assert( curr_nvars>=num_vars );
+  if( curr_nvars==num_vars )
+  {
+    var_ok = true;
+  }
+  else
+  {
+    // the maximum number of partitions we can include at this point
+    unsigned npart_max = include_indices.size()+(indices.size()-curr_index);
+    // the number of patitions we need, which is (choose curr_nvars num_vars)
+    unsigned npart_need = nChoosek(curr_nvars,num_vars);
+    Trace("sym-dt-debug") << "...curr num vars = " << curr_nvars << std::endl;
+    Trace("sym-dt-debug") << "  npart_max = " << npart_max << std::endl;
+    Trace("sym-dt-debug") << "  npart_need = " << npart_need << std::endl;
+    // max must be greater than or equal to need
+    var_ok = npart_max>=npart_need;
+  }
   if( var_ok )
   {
     include_indices.insert(index);
@@ -501,7 +556,6 @@ std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std:
     }
     include_indices.erase(index);
   }
-  
   // try not including this index
   return mergePartitions(k, include_indices,curr_index+1,curr_variables,num_vars,partitions,indices,active_indices);
 }
@@ -515,18 +569,18 @@ void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
     vector<Node> vars;
     Node fresh_var = NodeManager::currentNM()->mkSkolem(
         "sym_bk", pt.d_variables[0].getType());
-    Trace("sym-dt")
+    Trace("sym-dt-debug")
         << "[sym-dt] A partition from leaves of the partition trie:{";
 
     for (vector<Node>::iterator var_it = pt.d_variables.begin();
          var_it != pt.d_variables.end();
          ++var_it)
     {
-      Trace("sym-dt") << " " << *var_it;
+      Trace("sym-dt-debug") << " " << *var_it;
       vars.push_back(*var_it);
       part.d_var_to_subvar[*var_it] = fresh_var;
     }
-    Trace("sym-dt") << " }" << endl;
+    Trace("sym-dt-debug") << " }" << endl;
     part.d_subvar_to_vars[fresh_var] = vars;
   }
   else
@@ -543,7 +597,7 @@ void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
 void SymmetryDetect::PartitionTrie::addNode(Node target_var,
                                             vector<Partition>& partitions)
 {
-  Trace("sym-dt") << "[sym-dt] Add a variable {" << target_var
+  Trace("sym-dt-debug") << "[sym-dt] Add a variable {" << target_var
                   << "} to the partition trie..." << endl;
   vector<Node> subvars;
 
@@ -577,7 +631,7 @@ void SymmetryDetect::PartitionTrie::addNode(Node target_var,
     }
   }
 
-  Trace("sym-dt") << "[sym-dt] Substitution variables for the variable "
+  Trace("sym-dt-debug") << "[sym-dt] Substitution variables for the variable "
                   << target_var << ": " << subvars << endl;
   addNode(target_var, subvars);
 }
@@ -613,22 +667,22 @@ void SymmetryDetect::PartitionTrie::addNode(Node target_var,
   }
 }
 
-void SymmetryDetect::printPartition(Partition p)
+void SymmetryDetect::printPartition(const char* c,Partition p)
 {
   for (map<Node, vector<Node> >::iterator sub_vars_it =
            p.d_subvar_to_vars.begin();
        sub_vars_it != p.d_subvar_to_vars.end();
        ++sub_vars_it)
   {
-    Trace("sym-dt") << "[sym-dt] Partition: " << sub_vars_it->first << " -> {";
+    Trace(c) << "[sym-dt] Partition: " << sub_vars_it->first << " -> {";
 
     for (vector<Node>::iterator part_it = (sub_vars_it->second).begin();
          part_it != (sub_vars_it->second).end();
          ++part_it)
     {
-      Trace("sym-dt") << " " << *part_it;
+      Trace(c) << " " << *part_it;
     }
-    Trace("sym-dt") << " }" << endl;
+    Trace(c) << " }" << endl;
   }
 }
 }  // namespace passes
