@@ -56,7 +56,7 @@ void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   // Exclude v from next enumerations for e
   Node exc_lemma =
       d_tds->getExplain()->getExplanationForEquality(e, v).negate();
-  Trace("sygus-unif-rl-notify")
+  Trace("sygus-unif-rl-notify-debug")
       << "SygusUnifRl : enumeration exclude lemma : " << exc_lemma << std::endl;
   lemmas.push_back(exc_lemma);
   // Update all desicion trees in which this enumerator is a conditional
@@ -68,9 +68,13 @@ void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   }
   for (const Node& stratpt : it->second)
   {
+    Trace("sygus-unif-rl-dt")
+        << "...adding value " << v
+        << " to decision tree of strategy point  : " << stratpt << std::endl;
     Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
     // Register new condition value
     d_stratpt_to_dt[stratpt].addCondValue(v);
+    Trace("sygus-unif-rl-dt") << "...added\n";
   }
 }
 
@@ -108,8 +112,8 @@ Node SygusUnifRl::purifyLemma(Node n,
     {
       nv = d_parent->getModelValue(n);
       Assert(n != nv);
-      Trace("sygus-unif-rl-purify")
-          << "PurifyLemma : model value for " << n << " is " << nv << "\n";
+      Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
+                                    << " is " << nv << "\n";
     }
   }
   /* Travese to purify */
@@ -132,9 +136,20 @@ Node SygusUnifRl::purifyLemma(Node n,
   Node nb;
   if (childChanged)
   {
-    if (n.hasOperator())
+    if (fapp && n.hasOperator())
     {
+      Trace("sygus-unif-rl-purify-debug") << "Node " << n
+                                          << " has operator and fapp is true\n";
       children.insert(children.begin(), n.getOperator());
+    }
+    if (Trace.isOn("sygus-unif-rl-purify-debug"))
+    {
+      Trace("sygus-unif-rl-purify-debug")
+          << "...rebuilding " << n << " with kind " << k << " and children:\n";
+      for (const Node& child : children)
+      {
+        Trace("sygus-unif-rl-purify-debug") << "...... " << child << "\n";
+      }
     }
     nb = NodeManager::currentNM()->mkNode(k, children);
     Trace("sygus-unif-rl-purify") << "PurifyLemma : transformed " << n
@@ -162,22 +177,23 @@ Node SygusUnifRl::purifyLemma(Node n,
       Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
       /* Adds new enumerator to map from candidate */
       Trace("sygus-unif-rl-purify") << "...new enum " << new_f
-                                        << " for candidate " << nb[0] << "\n";
+                                    << " for candidate " << nb[0] << "\n";
       d_cand_to_eval_hds[nb[0]].push_back(new_f);
       /* Maps new enumerator to its respective tuple of arguments */
       d_hd_to_pt[new_f] =
           std::vector<Node>(children.begin() + 2, children.end());
-      if (Trace.isOn("sygus-unif-rl-purify"))
+      if (Trace.isOn("sygus-unif-rl-purify-debug"))
       {
-        Trace("sygus-unif-rl-purify") << "...[" << new_f << "] --> (";
+        Trace("sygus-unif-rl-purify-debug") << "...[" << new_f << "] --> (";
         for (const Node& pt_i : d_hd_to_pt[new_f])
         {
-          Trace("sygus-unif-rl-purify") << pt_i << " ";
+          Trace("sygus-unif-rl-purify-debug") << pt_i << " ";
         }
-        Trace("sygus-unif-rl-purify") << ")\n";
+        Trace("sygus-unif-rl-purify-debug") << ")\n";
       }
       /* replace first child and rebulid node */
       children[1] = new_f;
+      Assert(children.size() > 1);
       np = NodeManager::currentNM()->mkNode(k, children);
       d_app_to_purified[nb] = np;
     }
@@ -254,8 +270,11 @@ Node SygusUnifRl::addRefLemma(Node lemma,
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
           Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
+          Trace("sygus-unif-rl-dt") << "Add point with head " << cp.second[j]
+                                    << " to strategy point " << stratpt << "\n";
           // Register new point from new head
           d_stratpt_to_dt[stratpt].addPoint(cp.second[j]);
+
         }
       }
     }
@@ -306,8 +325,14 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
     if (itd != d_stratpt_to_dt.end())
     {
       indent("sygus-unif-sol", ind);
-      Trace("sygus-unif-sol")
-          << "...it has a decision tree strategy." << std::endl;
+      Trace("sygus-unif-sol") << "...it has a decision tree strategy.\n";
+      if (itd->second.isSeparated())
+      {
+        Trace("sygus-unif-sol")
+            << "...... points are separated and I have for root enum the value "
+            << d_parent->getModelValue(e) << "\n";
+        return d_parent->getModelValue(e);
+      }
     }
   }
 
@@ -425,6 +450,34 @@ void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
   d_pt_sep.d_trie.addClassifier(&d_pt_sep, d_conds.size() - 1);
 }
 
+bool SygusUnifRl::DecisionTreeInfo::isSeparated()
+{
+  for (const std::pair<const Node, std::vector<Node>>& rep_to_sepclass :
+       d_pt_sep.d_trie.d_rep_to_sepclass)
+  {
+    Assert(!rep_to_sepclass.second.empty());
+    Node v = rep_to_sepclass.second[0];
+    unsigned i, size = rep_to_sepclass.second.size();
+    for (i = 1; i < size; ++i)
+    {
+      Node vi = d_unif->d_parent->getModelValue(rep_to_sepclass.second[i]);
+      if (v != vi)
+      {
+        Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
+                                  << rep_to_sepclass.second[0] << " and "
+                                  << rep_to_sepclass.second[i] << "\n";
+        break;
+      }
+    }
+    // Heads with different model values
+    if (i != size)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 void SygusUnifRl::DecisionTreeInfo::PointSeparator::initialize(
     DecisionTreeInfo* dt)
 {
@@ -444,9 +497,16 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::evaluate(Node n,
   std::vector<Node> pt = d_dt->d_unif->d_hd_to_pt[n];
   // compute the result
   Node res = d_dt->d_unif->d_tds->evaluateBuiltin(tn, builtin_cond, pt);
-  Trace("sygus-unif-rl-sep") << "...got res = " << res << " from cond "
-                             << builtin_cond << " on pt with head " << n
-                             << std::endl;
+  if (Trace.isOn("sygus-unif-rl-sep"))
+  {
+    Trace("sygus-unif-rl-sep") << "...got res = " << res << " from cond "
+                               << builtin_cond << " on pt " << n << " ( ";
+    for (const Node& pti : pt)
+    {
+      Trace("sygus-unif-rl-sep") << pti << " ";
+    }
+    Trace("sygus-unif-rl-sep") << ")\n";
+  }
   /* If condition is templated, recompute result accordingly */
   Node templ = d_dt->d_template.first;
   TNode templ_var = d_dt->d_template.second;

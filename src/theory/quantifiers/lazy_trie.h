@@ -94,13 +94,16 @@ class LazyTrie
            bool forceKeep);
 };
 
+/** Lazy trie with multiple points per leaf
+ *
+ * As the above trie, but allows multiple points per leaf, which is
+*/
 class LazyTrieMulti
 {
  public:
   std::map<Node, std::vector<Node>> d_rep_to_sepclass;
   void addClassifier(LazyTrieEvaluator* ev, unsigned ntotal);
   Node add(Node f, LazyTrieEvaluator* ev, unsigned ntotal);
-
  private:
   LazyTrie d_trie;
 };

@@ -63,6 +63,8 @@ using IndTriePair = std::pair<unsigned, LazyTrie*>;
 
 void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
 {
+  Trace("lazy-trie-multi") << "LazyTrieM: Adding classifier " << ntotal + 1
+                           << "\n";
   std::vector<IndTriePair> visit;
   unsigned index = 0;
   LazyTrie* trie;
@@ -81,26 +83,44 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
       }
       continue;
     }
-    // last level, apply new classifier
-    Assert(trie->d_children.empty() && !trie->d_lazy_child.isNull());
+    Assert(trie->d_children.empty());
+    // if last level and no element at leaf, ignore
+    if (trie->d_lazy_child.isNull())
+    {
+      continue;
+    }
+    // apply new classifier
+    Assert(d_rep_to_sepclass.find(trie->d_lazy_child)
+           != d_rep_to_sepclass.end());
     std::vector<Node> prev_sep_class = d_rep_to_sepclass[trie->d_lazy_child];
+    if (Trace.isOn("lazy-trie-multi"))
+    {
+      Trace("lazy-trie-multi") << "...last level. Prev sep class: \n";
+      for (const Node& n : prev_sep_class)
+      {
+        Trace("lazy-trie-multi") << "...... " << n << "\n";
+      }
+    }
     // make new sepclass of lc a singleton with itself
     d_rep_to_sepclass.erase(trie->d_lazy_child);
     // replace
     trie->d_lazy_child = Node::null();
     for (const Node& n : prev_sep_class)
     {
-      Node eval = ev->evaluate(n, index + 1);
+      Node eval = ev->evaluate(n, index);
       std::map<Node, LazyTrie>::iterator it = trie->d_children.find(eval);
       if (it != trie->d_children.end())
       {
         // add n to to map of item in next level
+        Trace("lazy-trie-multi") << "...add " << n << " to the class of "
+                                 << it->second.d_lazy_child << "\n";
         d_rep_to_sepclass[it->second.d_lazy_child].push_back(n);
         continue;
       }
       // store at next level
       trie->d_children[eval].d_lazy_child = n;
       // create new map
+      Trace("lazy-trie-multi") << "...create new class for : " << n << "\n";
       Assert(d_rep_to_sepclass.find(n) == d_rep_to_sepclass.end());
       d_rep_to_sepclass[n].clear();
       d_rep_to_sepclass[n].push_back(n);
@@ -110,16 +130,21 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
 
 Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
 {
+  Trace("lazy-trie-multi") << "LazyTrieM: Adding " << f << "\n";
   Node res = d_trie.add(f, ev, 0, ntotal, false);
   // f was added to the separation class with representative res
   if (res != f)
   {
+    Trace("lazy-trie-multi") << "... added " << f << " to the sepclass of "
+                             << res << "\n";
     Assert(d_rep_to_sepclass.find(res) != d_rep_to_sepclass.end());
     Assert(!d_rep_to_sepclass[res].empty());
     d_rep_to_sepclass[res].push_back(f);
     return res;
   }
   // f is the representatitve of a singleton seperation class
+  Trace("lazy-trie-multi") << "... added " << f
+                           << " as the rep of the sepclass with itself\n";
   Assert(d_rep_to_sepclass.find(res) == d_rep_to_sepclass.end());
   d_rep_to_sepclass[res].clear();
   d_rep_to_sepclass[res].push_back(f);

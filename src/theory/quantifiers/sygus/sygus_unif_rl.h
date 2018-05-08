@@ -167,6 +167,8 @@ class SygusUnifRl : public SygusUnif
     void addPoint(Node f);
     /** adds a condition to the pool of condition */
     void addCondValue(Node condv);
+    /** whether all points that must be separated are separated **/
+    bool isSeparated();
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if none, nodes are null) */
