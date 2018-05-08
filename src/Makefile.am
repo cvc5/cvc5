@@ -62,6 +62,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/passes/bv_abstraction.cpp \
+	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \

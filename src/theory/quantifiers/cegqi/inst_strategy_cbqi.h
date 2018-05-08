@@ -47,19 +47,13 @@ class InstStrategyCbqi : public QuantifiersModule {
   std::map< Node, std::vector< Node > > d_parent_quant;
   std::map< Node, std::vector< Node > > d_children_quant;
   std::map< Node, bool > d_active_quant;
-  /** whether we have instantiated quantified formulas */
-  //NodeSet d_added_inst;
-  /** whether to do cbqi for this quantified formula 0 : no, 2 : yes, 1 : yes but not exclusively, -1 : heuristically */
-  std::map< Node, int > d_do_cbqi;
+  /** Whether cegqi handles each quantified formula. */
+  std::map<Node, CegHandledStatus> d_do_cbqi;
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
   virtual void registerCounterexampleLemma( Node q, Node lem );
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** helper functions */
-  int hasNonCbqiVariable( Node q );
-  bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
-  int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */

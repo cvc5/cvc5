@@ -69,6 +69,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/passes/bool_to_bv.h"
+#include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
@@ -613,10 +614,6 @@ public:
    * ite removal.
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
-
-  // Abstract common structure over small domains to UF
-  // return true if changes were made.
-  void bvAbstraction();
 
   // Simplify ITE structure
   bool simpITE();
@@ -2587,27 +2584,33 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
-  std::unique_ptr<BVGauss> bvGauss(new BVGauss(d_preprocessingPassContext.get()));
-  std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BoolToBV> boolToBv(
+      new BoolToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BvAbstraction> bvAbstract(
+      new BvAbstraction(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVGauss> bvGauss(
+      new BVGauss(d_preprocessingPassContext.get()));
+  std::unique_ptr<BvIntroPow2> bvIntroPow2(
+      new BvIntroPow2(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVToBool> bvToBool(
+      new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<IntToBV> intToBV(
+      new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
-  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
-  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
-                                           std::move(pbProc));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
-  std::unique_ptr<BvIntroPow2> bvIntroPow2(
-      new BvIntroPow2(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bv-abstraction",
+                                           std::move(bvAbstract));
+  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
+  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
+                                           std::move(pbProc));
+  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -3182,24 +3185,6 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   d_propagatorNeedsFinish = true;
   return true;
 }
-
-void SmtEnginePrivate::bvAbstraction() {
-  Trace("bv-abstraction") << "SmtEnginePrivate::bvAbstraction()" << endl;
-  std::vector<Node> new_assertions;
-  bool changed = d_smt.d_theoryEngine->ppBvAbstraction(d_assertions.ref(), new_assertions);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(new_assertions[i]));
-  }
-  // if we are using the lazy solver and the abstraction
-  // applies, then UF symbols were introduced
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
-      changed) {
-    LogicRequest req(d_smt);
-    req.widenLogic(THEORY_UF);
-  }
-}
-
-
 
 bool SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
@@ -4041,11 +4026,9 @@ void SmtEnginePrivate::processAssertions() {
     d_smt.d_theoryEngine->mkAckermanizationAssertions(d_assertions.ref());
   }
 
-  if ( options::bvAbstraction() &&
-      !options::incrementalSolving()) {
-    dumpAssertions("pre-bv-abstraction", d_assertions);
-    bvAbstraction();
-    dumpAssertions("post-bv-abstraction", d_assertions);
+  if (options::bvAbstraction() && !options::incrementalSolving())
+  {
+    d_preprocessingPassRegistry.getPass("bv-abstraction")->apply(&d_assertions);
   }
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
@@ -5191,6 +5174,14 @@ void SmtEngine::checkModel(bool hardFailure) {
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   TheoryModel* m = d_theoryEngine->getModel();
+
+  // check-model is not guaranteed to succeed if approximate values were used
+  if (m->hasApproximations())
+  {
+    Warning()
+        << "WARNING: running check-model on a model with approximate values..."
+        << endl;
+  }
 
   // Check individual theory assertions
   d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);

@@ -69,6 +69,14 @@ public:
   virtual void getComments(std::ostream& out) const {}
   /** get heap model (for separation logic) */
   virtual bool getHeapModel( Expr& h, Expr& ne ) const { return false; }
+  /** are there any approximations in this model? */
+  virtual bool hasApproximations() const { return false; }
+  /** get the list of approximations
+   *
+   * This is a list of pairs of the form (t,p), where t is a term and p
+   * is a predicate over t that indicates a property that t satisfies.
+   */
+  virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
 };/* class Model */
 
 class ModelBuilder {

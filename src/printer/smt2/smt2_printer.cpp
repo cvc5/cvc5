@@ -443,6 +443,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::ARCCOSECANT:
   case kind::ARCSECANT:
   case kind::ARCCOTANGENT:
+  case kind::PI:
   case kind::SQRT:
   case kind::MINUS:
   case kind::UMINUS:
@@ -521,8 +522,11 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRREPL:
   case kind::STRING_PREFIX:
   case kind::STRING_SUFFIX:
+  case kind::STRING_LEQ:
+  case kind::STRING_LT:
   case kind::STRING_ITOS:
   case kind::STRING_STOI:
+  case kind::STRING_CODE:
   case kind::STRING_TO_REGEXP:
   case kind::REGEXP_CONCAT:
   case kind::REGEXP_UNION:
@@ -923,6 +927,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::ARCCOSECANT: return "arccsc";
   case kind::ARCSECANT: return "arcsec";
   case kind::ARCCOTANGENT: return "arccot";
+  case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
   case kind::MINUS: return "-";
   case kind::UMINUS: return "-";
@@ -1060,6 +1065,9 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
+  case kind::STRING_LEQ: return "str.<=";
+  case kind::STRING_LT: return "str.<";
+  case kind::STRING_CODE: return "str.code";
   case kind::STRING_ITOS:
     return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
   case kind::STRING_STOI:
@@ -1303,6 +1311,15 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
   //print the model
   out << "(model" << endl;
+  // print approximations
+  if (m.hasApproximations())
+  {
+    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
+    for (unsigned i = 0, size = approx.size(); i < size; i++)
+    {
+      out << "(approximation " << approx[i].second << ")" << std::endl;
+    }
+  }
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists

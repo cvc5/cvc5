@@ -776,6 +776,7 @@ REG0_TESTS = \
 	regress0/strings/bug002.smt2 \
 	regress0/strings/bug612.smt2 \
 	regress0/strings/bug613.smt2 \
+	regress0/strings/code-sat-neg-one.smt2 \
 	regress0/strings/escchar.smt2 \
 	regress0/strings/escchar_25.smt2 \
 	regress0/strings/idof-rewrites.smt2 \
@@ -1034,6 +1035,7 @@ REG1_TESTS = \
 	regress1/bv/divtest.smt2 \
 	regress1/bv/fuzz34.smt \
 	regress1/bv/fuzz38.smt \
+	regress1/bv/test-bv-abstraction.smt2 \
 	regress1/bv/unsound1.smt2 \
 	regress1/bvdiv2.smt2 \
 	regress1/constarr3.cvc \
@@ -1410,6 +1412,7 @@ REG1_TESTS = \
 	regress1/strings/cmu-5042-0707-2.smt2 \
 	regress1/strings/cmu-inc-nlpp-071516.smt2 \
 	regress1/strings/cmu-substr-rw.smt2 \
+	regress1/strings/code-sequence.smt2 \
 	regress1/strings/crash-1019.smt2 \
 	regress1/strings/csp-prefix-exp-bug.smt2 \
 	regress1/strings/double-replace.smt2 \
@@ -1451,7 +1454,14 @@ REG1_TESTS = \
 	regress1/strings/str007.smt2 \
 	regress1/strings/string-unsound-sem.smt2 \
 	regress1/strings/strings-index-empty.smt2 \
+	regress1/strings/strings-leq-trans-unsat.smt2 \
+	regress1/strings/strings-lt-len5.smt2 \
+	regress1/strings/strings-lt-simple.smt2 \
 	regress1/strings/strip-endpt-sound.smt2 \
+	regress1/strings/str-code-sat.smt2 \
+	regress1/strings/str-code-unsat.smt2 \
+	regress1/strings/str-code-unsat-2.smt2 \
+	regress1/strings/str-code-unsat-3.smt2 \
 	regress1/strings/substr001.smt2 \
 	regress1/strings/type002.smt2 \
 	regress1/strings/type003.smt2 \
