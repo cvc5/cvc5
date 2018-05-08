@@ -1035,6 +1035,7 @@ REG1_TESTS = \
 	regress1/bv/divtest.smt2 \
 	regress1/bv/fuzz34.smt \
 	regress1/bv/fuzz38.smt \
+	regress1/bv/test-bv-abstraction.smt2 \
 	regress1/bv/unsound1.smt2 \
 	regress1/bvdiv2.smt2 \
 	regress1/constarr3.cvc \

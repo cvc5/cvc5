@@ -1992,11 +1992,6 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-  return bv_theory->applyAbstraction(assertions, new_assertions);
-}
-
 void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
   bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
   bv_theory->mkAckermanizationAssertions(assertions);
