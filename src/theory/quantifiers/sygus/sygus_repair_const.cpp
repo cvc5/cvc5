@@ -20,6 +20,7 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 using namespace CVC4::kind;
 
@@ -50,16 +51,6 @@ void SygusRepairConst::initialize(Node base_inst,
   }
   Trace("sygus-repair-const")
       << "  allow constants : " << d_allow_constant_grammar << std::endl;
-
-  // check if we are in a logic where we have an efficient procedure
-  // for quantified constraints.
-  d_easy_quantified_logic = true;
-  LogicInfo logic = smt::currentSmtEngine()->getLogicInfo();
-  if (logic.isTheoryEnabled(THEORY_BV)
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
-  {
-    d_easy_quantified_logic = false;
-  }
 }
 
 // recursion depth bounded by number of types in grammar (small)
@@ -180,15 +171,23 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   if (fo_body.isNull() || sk_vars.empty())
   {
     Trace("sygus-repair-const")
-        << "...all skeleton variables lead to undecidability." << std::endl;
+        << "...all skeleton variables lead to bad logic." << std::endl;
     return false;
   }
 
   Trace("sygus-repair-const") << "Make satisfiabily query..." << std::endl;
-  Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
-  // do miniscoping explicitly
   if (fo_body.getKind() == FORALL)
   {
+    // must be a CBQI quantifier
+    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body, d_qe);
+    if( hstatus<CEG_HANDLED )
+    {
+      // abort if less than fully handled
+    Trace("sygus-repair-const") << "...first-order query is not handlable by counterexample-guided instantiation." << std::endl;
+      return false;
+    }
+    
+    // do miniscoping explicitly
     if (fo_body[1].getKind() == AND)
     {
       Node bvl = fo_body[0];
@@ -201,6 +200,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     }
   }
 
+  Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
   SmtEngine repcChecker(nm->toExprManager());
   repcChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
