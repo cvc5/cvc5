@@ -186,6 +186,24 @@ enum CegInstPhase
 
 std::ostream& operator<<(std::ostream& os, CegInstPhase phase);
 
+/**
+ * The handled status of a sort/term/quantified formula, indicating whether
+ * counterexample-guided instantiation handles it.
+ */
+enum CegHandledStatus
+{
+  // the sort/term/quantified formula is unhandled by cegqi
+  CEG_UNHANDLED,
+  // the sort/term/quantified formula is partially handled by cegqi
+  CEG_PARTIALLY_HANDLED,
+  // the sort/term/quantified formula is handled by cegqi
+  CEG_HANDLED,
+  // the sort/term/quantified formula is handled by cegqi, regardless of
+  // additional factors
+  CEG_HANDLED_UNCONDITIONAL,
+};
+std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
+
 /** Ceg instantiator
  *
  * This class manages counterexample-guided quantifier instantiation
@@ -297,14 +315,56 @@ class CegInstantiator {
   bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
+  //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
-  * This typically corresponds to kinds that correspond to operators that
-  * have total interpretations and are a part of the signature of
-  * satisfaction complete theories (see Reynolds et al., CAV 2015).
-  */
-  static bool isCbqiKind(Kind k);
-
+   * If this method returns CEG_UNHANDLED, then we prohibit cegqi for terms
+   * involving this kind. If this method returns CEG_HANDLED, our approaches
+   * for cegqi fully handle the kind.
+   *
+   * This typically corresponds to kinds that correspond to operators that
+   * have total interpretations and are a part of the signature of
+   * satisfaction complete theories (see Reynolds et al., CAV 2015).
+   */
+  static CegHandledStatus isCbqiKind(Kind k);
+  /** is cbqi term?
+   *
+   * This method returns whether the term is handled by cegqi techniques, i.e.
+   * whether all subterms of n have kinds that can be handled by cegqi.
+   */
+  static CegHandledStatus isCbqiTerm(Node n);
+  /** is cbqi sort?
+   *
+   * This method returns whether the type tn is handled by cegqi techniques.
+   * If the result is CEG_HANDLED_UNCONDITIONAL, then this indicates that a
+   * variable of this type is handled regardless of the formula it appears in.
+   *
+   * The argument qe is used if handling sort tn is conditional on the
+   * strategies initialized in qe. For example, uninterpreted sorts are
+   * handled if dedicated support for EPR is enabled.
+   */
+  static CegHandledStatus isCbqiSort(TypeNode tn,
+                                     QuantifiersEngine* qe = nullptr);
+  /** is cbqi quantifier prefix
+   *
+   * This returns the minimum value of the above method for a bound variable
+   * in the prefix of quantified formula q.
+   */
+  static CegHandledStatus isCbqiQuantPrefix(Node q,
+                                            QuantifiersEngine* qe = nullptr);
+  /** is cbqi quantified formula
+   *
+   * This returns whether quantified formula q can and should be handled by
+   * counterexample-guided instantiation. If this function returns
+   * a status CEG_HANDLED or above, then q is fully handled by counterexample
+   * guided quantifier instantiation and need not be processed by any other
+   * strategy for quantifiers (e.g. E-matching). Otherwise, if this function
+   * returns CEG_PARTIALLY_HANDLED, then it may be worthwhile to handle the
+   * quantified formula using cegqi, however other strategies should also be
+   * tried.
+   */
+  static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
+  //------------------------------------ end static queries
  private:
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
@@ -542,6 +602,18 @@ class CegInstantiator {
   bool doAddInstantiation(std::vector<Node>& vars,
                           std::vector<Node>& subs,
                           std::vector<Node>& lemmas);
+
+  //------------------------------------ static queries
+  /** is cbqi sort
+   *
+   * Helper function for isCbqiSort. This function recurses over the structure
+   * of the type tn, where visited stores the types we have visited.
+   */
+  static CegHandledStatus isCbqiSort(
+      TypeNode tn,
+      std::map<TypeNode, CegHandledStatus>& visited,
+      QuantifiersEngine* qe);
+  //------------------------------------ end  static queries
 };
 
 /** Instantiator class

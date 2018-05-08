@@ -100,10 +100,10 @@ bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
 std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
 {
   std::vector<std::pair<Expr, Expr> > approx;
-  for (unsigned i = 0, size = d_approx_list.size(); i < size; i++)
+  for (const std::pair<Node, Node>& ap : d_approx_list)
   {
-    approx.push_back(std::pair<Expr, Expr>(d_approx_list[i].first.toExpr(),
-                                           d_approx_list[i].second.toExpr()));
+    approx.push_back(
+        std::pair<Expr, Expr>(ap.first.toExpr(), ap.second.toExpr()));
   }
   return approx;
 }

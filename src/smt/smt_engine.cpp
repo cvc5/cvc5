@@ -2586,27 +2586,29 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassContext.reset(new PreprocessingPassContext(&d_smt));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
-  std::unique_ptr<BVGauss> bvGauss(new BVGauss(d_preprocessingPassContext.get()));
-  std::unique_ptr<IntToBV> intToBV(new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BoolToBV> boolToBv(
+      new BoolToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVGauss> bvGauss(
+      new BVGauss(d_preprocessingPassContext.get()));
+  std::unique_ptr<BvIntroPow2> bvIntroPow2(
+      new BvIntroPow2(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVToBool> bvToBool(
+      new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<IntToBV> intToBV(
+      new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
-  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
-  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
-                                           std::move(pbProc));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
-  std::unique_ptr<BvIntroPow2> bvIntroPow2(
-      new BvIntroPow2(d_preprocessingPassContext.get()));
+  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
+  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
+                                           std::move(pbProc));
+  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
