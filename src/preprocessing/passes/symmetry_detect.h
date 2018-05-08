@@ -131,7 +131,17 @@ class SymmetryDetect
 
   /** Print a partition */
   void printPartition(Partition p);
+  
+  /** merge partitions */
+  void mergePartitions( const std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices );
 
+  bool mergePartitions( 
+  std::unordered_set< unsigned >& include_indices,
+  unsigned curr_index,
+  std::unordered_set< Node, NodeHashFunction >& curr_variables,
+  unsigned num_vars,
+  const std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices );
+    
   /** Process singleton partitions and add all variables to vars
    *  It collects all partitions with more than 1 variable and save it in
    *  partitions first. And then it collects the substitution variable to

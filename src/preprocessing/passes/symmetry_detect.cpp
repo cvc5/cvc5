@@ -95,7 +95,6 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     vector<Node> vars;
     TypeNode type = node.getType();
     Node fresh_var = getSymBreakVariable(type,0);
-
     vars.push_back(node);
     p.d_term = node;
     p.d_sterm = fresh_var;
@@ -105,7 +104,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     return p;
   }
   // If node is a constant
-  else if (node.isConst())
+  else if (node.getNumChildren()==0)
   {
     p.d_term = node;
     p.d_sterm = node;
@@ -153,7 +152,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     {
       Node cterm = sti.first;
       // merge children, remove active indices
-      
+      mergePartitions( partitions, sti.second, active_indices );
     }
     
     // Start processing the singleton partitions and collect variables
@@ -386,6 +385,67 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
     }
   } while (!visit.empty());
 }
+
+
+void SymmetryDetect::mergePartitions( const std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
+{
+  Assert( !indices.empty() );
+  unsigned first_index = indices[0];
+  
+  unsigned num_sb_vars = partitions[first_index].d_subvar_to_vars.size();
+  if( num_sb_vars>1 )
+  {
+    // cannot handle multiple symmetry breaking variables
+    return;
+  }
+  unsigned num_vars = partitions[first_index].d_var_to_subvar.size();
+  std::unordered_set< unsigned > include_indices;
+  unsigned curr_index = 0;
+  std::unordered_set< Node, NodeHashFunction > curr_variables;
+  if( mergePartitions(include_indices,curr_index,curr_variables,num_vars,partitions,indices,active_indices))
+  {
+    
+  }
+}
+
+bool SymmetryDetect::mergePartitions( 
+std::unordered_set< unsigned >& include_indices,
+unsigned curr_index,
+std::unordered_set< Node, NodeHashFunction >& curr_variables,
+unsigned num_vars,
+const std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices )
+{
+  if( curr_index==indices.size() )
+  {
+    // found a symmetry
+    // TODO
+    return true;
+  }
+  // try to include this index 
+  unsigned index = indices[curr_index];
+  const Partition& p = partitions[index];
+  std::unordered_set< Node, NodeHashFunction > new_variables;
+  new_variables.insert(curr_variables.begin(),curr_variables.end());
+  for( const std::pair<const Node, std::vector<Node> >& s : p.d_subvar_to_vars )
+  {
+    new_variables.insert( s.first );
+  }
+  // are there too many variables?
+  bool var_ok = false;
+  if( var_ok )
+  {
+    include_indices.insert(index);
+    if( mergePartitions(include_indices,curr_index+1,new_variables,num_vars,partitions,indices,active_indices) )
+    {
+      return true;
+    }
+    include_indices.erase(index);
+  }
+  
+  // try not including this index
+  return mergePartitions(include_indices,curr_index+1,curr_variables,num_vars,partitions,indices,active_indices);
+}
+
 
 void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
                                                     PartitionTrie& pt)
