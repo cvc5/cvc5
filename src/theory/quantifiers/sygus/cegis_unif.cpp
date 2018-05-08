@@ -81,13 +81,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     Valuation& valuation = d_qe->getValuation();
     for (const Node& e : d_cond_enums)
     {
-<<<<<<< HEAD
-      Trace("cegis-unif-debug")
-          << "Check conditional enumerator : " << e << std::endl;
-=======
       Trace("cegis-unif-debug") << "Check conditional enumerator : " << e
                                 << std::endl;
->>>>>>> 4f3416bf998cdf3fc8b6adf6debb7e65d663bd7c
       Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
       Node g = d_enum_to_active_guard[e];
       // Get whether the active guard for this enumerator is set. If so, then
@@ -185,17 +180,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   {
     d_u_enum_manager.registerEvalPts(ep.second, ep.first);
   }
-<<<<<<< HEAD
-  /* Make the refinement lemma and add it to lems. This lemma is guarded by the
-     parent's guard, which has the semantics "this conjecture has a solution",
-     hence this lemma states: if the parent conjecture has a solution, it
-     satisfies the specification for the given concrete point. */
-=======
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
   // parent's guard, which has the semantics "this conjecture has a solution",
   // hence this lemma states: if the parent conjecture has a solution, it
   // satisfies the specification for the given concrete point.
->>>>>>> 4f3416bf998cdf3fc8b6adf6debb7e65d663bd7c
   lems.push_back(NodeManager::currentNM()->mkNode(
       OR, d_parent->getGuard().negate(), plem));
 }
