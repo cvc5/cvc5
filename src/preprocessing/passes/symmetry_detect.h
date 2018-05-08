@@ -98,10 +98,9 @@ class SymmetryDetect
     /** Get all the new regions of a partition and store in part */
     void getNewPartition(Partition& part, PartitionTrie& pt);
   };
-  
-  std::map< TypeNode, std::vector< Node > > d_sb_vars;
-  Node getSymBreakVariable( TypeNode tn, unsigned index );
 
+  std::map<TypeNode, std::vector<Node> > d_sb_vars;
+  Node getSymBreakVariable(TypeNode tn, unsigned index);
 
   /** True and false constant nodes */
   Node d_trueNode;
@@ -130,18 +129,24 @@ class SymmetryDetect
   void collectChildren(Node node, std::vector<Node>& children);
 
   /** Print a partition */
-  void printPartition(const char * c,Partition p);
-  
-  /** merge partitions */
-  bool mergePartitions( Kind k, std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices  );
+  void printPartition(const char* c, Partition p);
 
-  bool mergePartitions( Kind k,
-std::unordered_set< unsigned >& include_indices,
-unsigned curr_index,
-std::unordered_set< Node, NodeHashFunction >& curr_variables,
-unsigned num_vars,
-std::vector<Partition>& partitions, const std::vector< unsigned >& indices, std::unordered_set<unsigned>& active_indices );
-    
+  /** merge partitions */
+  bool mergePartitions(Kind k,
+                       std::vector<Partition>& partitions,
+                       const std::vector<unsigned>& indices,
+                       std::unordered_set<unsigned>& active_indices);
+
+  bool mergePartitions(
+      Kind k,
+      std::unordered_set<unsigned>& include_indices,
+      unsigned curr_index,
+      std::unordered_set<Node, NodeHashFunction>& curr_variables,
+      unsigned num_vars,
+      std::vector<Partition>& partitions,
+      const std::vector<unsigned>& indices,
+      std::unordered_set<unsigned>& active_indices);
+
   /** Process singleton partitions and add all variables to vars
    *  It collects all partitions with more than 1 variable and save it in
    *  partitions first. And then it collects the substitution variable to
