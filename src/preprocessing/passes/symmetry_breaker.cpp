@@ -147,7 +147,7 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   // add symmetry breaking constraint to the set of assertions
   Trace("sym-break-pass") << "...got: " << sbConstraint << std::endl;
   // if not true
-  if( !sbConstraint.isConst() )
+  if (!sbConstraint.isConst())
   {
     // add to assertions
     assertionsToPreprocess->push_back(sbConstraint);
