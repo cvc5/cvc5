@@ -52,10 +52,10 @@ class BoolToBV : public PreprocessingPass
   Node getLowerCache(TNode term) const;
   bool hasLowerCache(TNode term) const;
   Node lowerNode(TNode current, bool topLevel = false);
-  Statistics d_statistics;
   NodeNodeMap d_lowerCache;
   Node d_one;
   Node d_zero;
+  Statistics d_statistics;
 };  // class
 }  // namespace passes
 }  // namespace preprocessing

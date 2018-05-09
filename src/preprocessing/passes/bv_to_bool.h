@@ -65,11 +65,11 @@ class BVToBool : public PreprocessingPass
   void liftBvToBool(const std::vector<Node>& assertions,
                     std::vector<Node>& new_assertions);
 
-  Statistics d_statistics;
   NodeNodeMap d_liftCache;
   NodeNodeMap d_boolCache;
   Node d_one;
   Node d_zero;
+  Statistics d_statistics;
 };
 
 }  // namespace passes
