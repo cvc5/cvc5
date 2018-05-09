@@ -852,7 +852,6 @@ private:
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
   void staticInitializeBVOptions(const std::vector<Node>& assertions);
-  bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   void mkAckermanizationAssertions(std::vector<Node>& assertions);
 
   Node ppSimpITE(TNode assertion);

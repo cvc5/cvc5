@@ -16,6 +16,7 @@
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
@@ -49,7 +50,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_refine_count(0),
       d_syntax_guided(false)
 {
-  if (options::sygusPbe())
+  if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
   {
     d_modules.push_back(d_ceg_pbe.get());
   }

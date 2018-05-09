@@ -62,6 +62,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/passes/bv_abstraction.cpp \
+	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
@@ -76,6 +78,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
+	preprocessing/passes/symmetry_breaker.cpp \
+	preprocessing/passes/symmetry_breaker.h \
 	preprocessing/passes/symmetry_detect.cpp \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \

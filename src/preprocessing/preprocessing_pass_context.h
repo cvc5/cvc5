@@ -38,6 +38,9 @@ class PreprocessingPassContext {
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
   context::Context* getUserContext() { return d_smt->d_userContext; }
 
+  /* Widen the logic to include the given theory. */
+  void widenLogic(theory::TheoryId id);
+
  private:
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
