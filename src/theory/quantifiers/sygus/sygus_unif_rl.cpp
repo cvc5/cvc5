@@ -534,8 +534,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
       continue;
     }
     // retrieve terms of children and build result
-    AlwaysAssert(it->second.isNull());
-    AlwaysAssert(trie->d_children.size() == 1 || trie->d_children.size() == 2);
+    Assert(it->second.isNull());
+    Assert(trie->d_children.size() == 1 || trie->d_children.size() == 2);
     std::vector<Node> children(4);
     children[0] = cons;
     children[1] = d_conds[index];
@@ -557,7 +557,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
           << "\n";
       continue;
     }
-    AlwaysAssert(trie->d_children.size() == 2);
+    Assert(trie->d_children.size() == 2);
     cache[cur] = nm->mkNode(APPLY_CONSTRUCTOR, children);
     Trace("sygus-unif-sol-debug")
         << "......build node "
