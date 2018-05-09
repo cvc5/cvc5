@@ -13,6 +13,7 @@
  **/
 
 #include "preprocessing/passes/symmetry_breaker.h"
+#include "preprocessing/passes/symmetry_detect.h"
 
 using namespace std;
 
@@ -47,7 +48,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
       {
         for (unsigned int i = 0; i < part.size(); ++i)
         {
-          for (unsigned int j = i + 2; j < part.size(); ++i)
+          for (unsigned int j = i + 2; j < part.size(); ++j)
           {
             // Generate consecutive constraints v_i = v_j => v_i = v_{j-1} for all 0
             // <= i < j-1 < j < part.size()
@@ -100,7 +101,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
   {
     return constraints[0];
   }
-  return nm->mkNode(kind::AND, constraints);;
+  return nm->mkNode(kind::AND, constraints);
 }
 
 Kind SymmetryBreaker::getOrderKind(Node node)
@@ -118,6 +119,36 @@ Kind SymmetryBreaker::getOrderKind(Node node)
     return kind::EQUAL;
   }
 }
+
+SymBreakerPass::SymBreakerPass(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "sym-break"){};
+
+PreprocessingPassResult SymBreakerPass::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  Trace("sym-break-pass") << "Apply symmetry breaker pass..." << std::endl;
+  // detect symmetries
+  std::vector<std::vector<Node>> part;
+  SymmetryDetect symd;
+  symd.getPartition(part, assertionsToPreprocess->ref());
+  if( Trace.isOn("sym-break-pass") )
+  {
+    Trace("sym-break-pass") << "Detected symmetry partition:" << std::endl;
+    for( const std::vector< Node >& p : part )
+    {
+      Trace("sym-break-pass") << "  " << p << std::endl;
+    }
+  }
+  // construct the symmetry breaking constraint
+  Trace("sym-break-pass") << "Construct symmetry breaking constraint..." << std::endl;
+  SymmetryBreaker symb;
+  Node sbConstraint = symb.generateSymBkConstraints(part);
+  // add symmetry breaking constraint to the set of assertions
+  Trace("sym-break-pass") << "...got: " << sbConstraint << std::endl;
+  
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -2598,6 +2598,8 @@ void SmtEnginePrivate::finishInit() {
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
+  std::unique_ptr<SymBreakerPass> sbProc(
+      new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
@@ -2610,6 +2612,7 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
+  d_preprocessingPassRegistry.registerPass("sym-break",std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
 }
 
@@ -4198,11 +4201,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::symmetryBreakerExp())
   {
-    SymmetryDetect symd;
-    SymmetryBreaker symb;
-    vector<vector<Node>> part;
-    symd.getPartition(part, d_assertions.ref());
-    Node sbConstraint = symb.generateSymBkConstraints(part);
+    d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
