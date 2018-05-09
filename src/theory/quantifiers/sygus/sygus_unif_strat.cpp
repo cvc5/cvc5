@@ -680,7 +680,8 @@ bool SygusUnifStrategy::inferTemplate(
   return true;
 }
 
-void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
+void SygusUnifStrategy::staticLearnRedundantOps(
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   for (unsigned i = 0; i < d_esym_list.size(); i++)
   {
@@ -727,7 +728,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
         {
           Trace("sygus-unif") << "...can exclude based on  : " << tst
                               << std::endl;
-          lemmas.push_back(tst);
+          lemmas[em].push_back(tst);
         }
       }
     }
