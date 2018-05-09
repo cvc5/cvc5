@@ -2612,7 +2612,7 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
-  d_preprocessingPassRegistry.registerPass("sym-break",std::move(sbProc));
+  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
 }
 

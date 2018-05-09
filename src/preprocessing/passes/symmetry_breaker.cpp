@@ -131,26 +131,26 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   std::vector<std::vector<Node>> part;
   SymmetryDetect symd;
   symd.getPartition(part, assertionsToPreprocess->ref());
-  if( Trace.isOn("sym-break-pass") )
+  if (Trace.isOn("sym-break-pass"))
   {
     Trace("sym-break-pass") << "Detected symmetry partition:" << std::endl;
-    for( const std::vector< Node >& p : part )
+    for (const std::vector<Node>& p : part)
     {
       Trace("sym-break-pass") << "  " << p << std::endl;
     }
   }
   // construct the symmetry breaking constraint
-  Trace("sym-break-pass") << "Construct symmetry breaking constraint..." << std::endl;
+  Trace("sym-break-pass") << "Construct symmetry breaking constraint..."
+                          << std::endl;
   SymmetryBreaker symb;
   Node sbConstraint = symb.generateSymBkConstraints(part);
   // add symmetry breaking constraint to the set of assertions
   Trace("sym-break-pass") << "...got: " << sbConstraint << std::endl;
   // add to assertions
   assertionsToPreprocess->push_back(sbConstraint);
-  
+
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

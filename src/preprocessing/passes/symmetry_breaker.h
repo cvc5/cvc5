@@ -87,7 +87,7 @@ class SymmetryBreaker
   Kind getOrderKind(Node node);
 };
 
-/** 
+/**
  * This class detects symmetries in the input assertions in the form of a
  * partition (see symmetry_detect.h), and subsequently adds symmetry breaking
  * constraints that correspond to this partition, using the above class.
@@ -101,7 +101,6 @@ class SymBreakerPass : public PreprocessingPass
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 };
-
 
 }  // namespace passes
 }  // namespace preprocessing
