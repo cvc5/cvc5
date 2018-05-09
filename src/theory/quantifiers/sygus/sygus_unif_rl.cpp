@@ -542,7 +542,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
     unsigned i = 0;
     for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
     {
-      i = p_nt.first == trueN? 2 : 3;
+      i = p_nt.first == trueN ? 2 : 3;
       Assert(cache.find(IndTriePair(index + 1, &p_nt.second)) != cache.end());
       children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
       Assert(!children[i].isNull());
