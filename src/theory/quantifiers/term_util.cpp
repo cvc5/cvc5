@@ -817,8 +817,8 @@ bool TermUtil::isNegate(Kind k)
 }
 
 bool TermUtil::isAssoc( Kind k ) {
-  return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
-         || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+  return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
+         || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
          || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT;

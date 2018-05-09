@@ -114,7 +114,10 @@ class SymmetryDetect
     void addNode(Node v, std::vector<Node>& subs);
 
     /** Get all the new regions of a partition and store in part */
-    void getNewPartition(Partition& part, PartitionTrie& pt, Node sbv, bool set_sbv=false);
+    void getNewPartition(Partition& part,
+                         PartitionTrie& pt,
+                         Node sbv,
+                         bool set_sbv = false);
   };
   /** (canonical) symmetry breaking variables for each type */
   std::map<TypeNode, std::vector<Node> > d_sb_vars;

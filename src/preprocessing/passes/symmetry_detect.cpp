@@ -133,7 +133,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   bool isAssocComm = false;
   // EQUAL is a special case here: we consider EQUAL to be associative,
   // and handle the type polymorphism specially.
-  bool isAssoc = k==kind::EQUAL || theory::quantifiers::TermUtil::isAssoc(k);
+  bool isAssoc = k == kind::EQUAL || theory::quantifiers::TermUtil::isAssoc(k);
   // for now, only consider commutative operators that are also associative
   if (isAssoc)
   {
@@ -174,8 +174,8 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
                           << node << " -------------------------------" << endl;
     for (unsigned j = 0, size = partitions.size(); j < size; j++)
     {
-      Trace("sym-dt-debug")
-          << "[" << j << "]: " << partitions[j].d_term << " --> " << partitions[j].d_sterm << std::endl;
+      Trace("sym-dt-debug") << "[" << j << "]: " << partitions[j].d_term
+                            << " --> " << partitions[j].d_sterm << std::endl;
     }
     Trace("sym-dt-debug") << "-----------------------------" << std::endl;
   }
@@ -186,7 +186,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     std::map<Node, std::vector<unsigned> > sterm_to_indices;
     for (unsigned j = 0, size = partitions.size(); j < size; j++)
     {
-      if( !partitions[j].d_sterm.isNull() )
+      if (!partitions[j].d_sterm.isNull())
       {
         sterm_to_indices[partitions[j].d_sterm].push_back(j);
       }
@@ -252,7 +252,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
       all_vars.insert(pas.second.begin(), pas.second.end());
       for (const Node& x : pas.second)
       {
-        Assert( x.getType()==new_v.getType() );
+        Assert(x.getType() == new_v.getType());
         pa.d_var_to_subvar[x] = new_v;
         Trace("sym-dt-debug")
             << "...set var to svar: " << x << " -> " << new_v << std::endl;
@@ -272,7 +272,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
       }
     }
     Assert(f_vars.size() == f_subs.size());
-    if( !pa.d_sterm.isNull() )
+    if (!pa.d_sterm.isNull())
     {
       pa.d_sterm = pa.d_sterm.substitute(
           f_vars.begin(), f_vars.end(), f_subs.begin(), f_subs.end());
@@ -302,15 +302,17 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   {
     pt.addNode(n, active_partitions);
   }
-  
+
   // Get the new partition
   pt.getNewPartition(p, pt, Node::null());
 
   // Reconstruct the node
   p.d_term = node;
-  if( !p.d_sterm.isNull() )
+  if (!p.d_sterm.isNull())
   {
-    Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << ", #children = " << schildren.size() << "/" << children.size() << endl;
+    Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node
+                          << ", #children = " << schildren.size() << "/"
+                          << children.size() << endl;
     if (isAssocComm)
     {
       p.d_sterm = mkAssociativeNode(k, schildren);
@@ -324,12 +326,14 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
       p.d_sterm = nm->mkNode(k, schildren);
     }
     Trace("sym-dt-debug") << "...return sterm: " << p.d_sterm << std::endl;
-    Trace("sym-dt-debug") << ".....types: " << p.d_sterm.getType() << " " << node.getType() << std::endl;
-    Assert( p.d_sterm.getType()==node.getType() );
+    Trace("sym-dt-debug") << ".....types: " << p.d_sterm.getType() << " "
+                          << node.getType() << std::endl;
+    Assert(p.d_sterm.getType() == node.getType());
   }
   else
   {
-    Trace("sym-dt-debug") << "[sym-dt] Not reconstructing node : " << node << " since non-disjoint merged variables." << endl;
+    Trace("sym-dt-debug") << "[sym-dt] Not reconstructing node : " << node
+                          << " since non-disjoint merged variables." << endl;
   }
   d_term_partition[node] = p;
   printPartition("sym-dt-debug", p);
@@ -339,7 +343,8 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
 void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 {
   Kind k = node.getKind();
-  Assert((k==kind::EQUAL || theory::quantifiers::TermUtil::isAssoc(k)) && theory::quantifiers::TermUtil::isComm(k));
+  Assert((k == kind::EQUAL || theory::quantifiers::TermUtil::isAssoc(k))
+         && theory::quantifiers::TermUtil::isComm(k));
 
   // must track the type of the children we are collecting
   // this is to avoid having vectors of children with different type, like
@@ -575,15 +580,18 @@ bool SymmetryDetect::mergePartitions(
 }
 
 void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
-                                                    PartitionTrie& pt, Node sbv, bool set_sbv)
+                                                    PartitionTrie& pt,
+                                                    Node sbv,
+                                                    bool set_sbv)
 {
   if (!pt.d_variables.empty())
   {
     vector<Node> vars;
     Node fresh_var;
-    if( sbv.isNull() )
+    if (sbv.isNull())
     {
-      fresh_var = NodeManager::currentNM()->mkSkolem("sym_bk", pt.d_variables[0].getType());
+      fresh_var = NodeManager::currentNM()->mkSkolem(
+          "sym_bk", pt.d_variables[0].getType());
       part.d_sterm = Node::null();
     }
     else
@@ -612,11 +620,11 @@ void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
     {
       Node new_sbv = part_it->first;
       bool new_set_sbv = set_sbv || !new_sbv.isNull();
-      if( new_sbv.isNull() )
+      if (new_sbv.isNull())
       {
         new_sbv = sbv;
       }
-      else if( set_sbv )
+      else if (set_sbv)
       {
         new_sbv = Node::null();
       }
