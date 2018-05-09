@@ -130,12 +130,12 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   NodeManager* nm = NodeManager::currentNM();
 
   Kind k = node.getKind();
-  bool isComm = false;
+  bool isAssocComm = false;
   bool isAssoc = theory::quantifiers::TermUtil::isAssoc(k);
   // for now, only consider commutative operators that are also associative
   if (isAssoc)
   {
-    isComm = theory::quantifiers::TermUtil::isComm(k);
+    isAssocComm = theory::quantifiers::TermUtil::isComm(k);
   }
 
   // Children of node
@@ -146,7 +146,14 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   // Get all children of node
   Trace("sym-dt-debug") << "[sym-dt] collectChildren for: " << node
                         << " with operator " << node.getKind() << endl;
-  collectChildren(node, children);
+  if(!isAssocComm)
+  {
+    children.insert(children.end(), node.begin(), node.end());
+  }
+  else
+  {
+    collectChildren(node, children);
+  }
   Trace("sym-dt-debug") << "[sym-dt] children: " << children << endl;
 
   // Create partitions for children
@@ -171,7 +178,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     Trace("sym-dt-debug") << "-----------------------------" << std::endl;
   }
 
-  if (isComm)
+  if (isAssocComm)
   {
     // map substituted terms to indices in partitions
     std::map<Node, std::vector<unsigned> > sterm_to_indices;
@@ -201,7 +208,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   unordered_set<Node, NodeHashFunction> all_vars;
   std::map<TypeNode, unsigned> type_index;
   std::vector<Node> schildren;
-  if (!isComm)
+  if (!isAssocComm)
   {
     Assert(active_indices.size() == children.size());
     // order matters, and there is no chance we merged children
@@ -261,7 +268,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     Assert(f_vars.size() == f_subs.size());
     pa.d_sterm = pa.d_sterm.substitute(
         f_vars.begin(), f_vars.end(), f_subs.begin(), f_subs.end());
-    if (isComm)
+    if (isAssocComm)
     {
       Assert(!pa.d_sterm.isNull());
       schildren.push_back(pa.d_sterm);
@@ -287,7 +294,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   // Reconstruct the node
   Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << ", #children = " << schildren.size() << "/" << children.size() << endl;
   p.d_term = node;
-  if (isAssoc)
+  if (isAssocComm)
   {
     p.d_sterm = mkAssociativeNode(k, schildren);
   }
@@ -300,6 +307,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     p.d_sterm = nm->mkNode(k, schildren);
   }
   Trace("sym-dt-debug") << "...return sterm: " << p.d_sterm << std::endl;
+  AlwaysAssert( p.d_sterm.getType()==node.getType() );
   d_term_partition[node] = p;
   printPartition("sym-dt-debug", p);
   return p;
@@ -308,12 +316,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
 void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 {
   Kind k = node.getKind();
-
-  if(!theory::quantifiers::TermUtil::isAssoc(k))
-  {
-    children.insert(children.end(), node.begin(), node.end());
-    return;
-  }
+  Assert(theory::quantifiers::TermUtil::isAssoc(k) && theory::quantifiers::TermUtil::isComm(k));
 
   // must track the type of the children we are collecting
   // this is to avoid having vectors of children with different type, like
@@ -680,7 +683,11 @@ Node SymmetryDetect::mkAssociativeNode(Kind k,
   Assert( !children.empty() );
   NodeManager* nm = NodeManager::currentNM();
   // sort and make right-associative chain
-  std::sort(children.begin(), children.end());
+  bool isComm = theory::quantifiers::TermUtil::isComm(k);
+  if( isComm )
+  {
+    std::sort(children.begin(), children.end());
+  }
   Node sn;
   for (const Node& sc : children)
   {
@@ -691,7 +698,7 @@ Node SymmetryDetect::mkAssociativeNode(Kind k,
     }
     else
     {
-      Assert( sc.getType()==sn.getType() );
+      Assert( !isComm || sc.getType().isComparableTo(sn.getType()) );
       sn = nm->mkNode(k, sc, sn);
     }
   }
