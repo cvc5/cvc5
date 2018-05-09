@@ -144,7 +144,7 @@ bool CegConjecturePbe::initialize(Node n,
     }
   }
 
-  if (!options::sygusUnifCondSol())
+  if (!options::sygusUnifPbe())
   {
     // we are not doing unification
     return false;

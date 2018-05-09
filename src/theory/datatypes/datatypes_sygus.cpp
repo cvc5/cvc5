@@ -662,8 +662,11 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         // class
         // is it equivalent under examples?
         Node bvr_equiv;
-        if (aconj->getPbe()->hasExamples(a)) {
-          bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+        if( options::sygusSymBreakPbe() )
+        {
+          if (aconj->getPbe()->hasExamples(a)) {
+            bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+          }
         }
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
