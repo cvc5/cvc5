@@ -717,6 +717,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     Node em = nce.first;
     const Datatype& dt =
         static_cast<DatatypeType>(em.getType().toType()).getDatatype();
+    std::vector<Node> lemmas;
     for (std::pair<const unsigned, bool>& nc : nce.second)
     {
       Assert(nc.first < dt.getNumConstructors());
@@ -724,13 +725,18 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       {
         Node tst =
             datatypes::DatatypesRewriter::mkTester(em, nc.first, dt).negate();
+
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {
           Trace("sygus-unif") << "...can exclude based on  : " << tst
                               << std::endl;
-          lemmas[em].push_back(tst);
+          lemmas.push_back(tst);
         }
       }
+    }
+    if (!lemmas.empty())
+    {
+      strategy_lemmas[em] = lemmas;
     }
   }
 }

@@ -480,7 +480,7 @@ void SygusUnifIo::initialize(QuantifiersEngine* qe,
   // learn redundant operators based on the strategy
   std::map<Node, std::vector<Node>> strategy_lemmas;
   d_strategy[d_candidate].staticLearnRedundantOps(strategy_lemmas);
-  for (const std::pair < const Node, std::vector<Node>& p : strategy_lemmas)
+  for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
   {
     lemmas.insert(lemmas.end(), p.second.begin(), p.second.end());
   }
