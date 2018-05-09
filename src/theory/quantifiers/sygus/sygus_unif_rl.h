@@ -80,6 +80,9 @@ class SygusUnifRl : public SygusUnif
     */
   bool usingUnif(Node f);
 
+  /** retrieve the head of evaluation points for candidate c, if any */
+  std::vector<Node> getEvalPointHeads(Node c);
+
  protected:
   /** reference to the parent conjecture */
   CegConjecture* d_parent;

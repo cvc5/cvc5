@@ -174,7 +174,10 @@ Node SygusUnifRl::purifyLemma(Node n,
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
-      Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
+      Node new_f = nm->mkSkolem(ss.str(),
+                                nb[0].getType(),
+                                "head of unif evaluation point",
+                                NodeManager::SKOLEM_EXACT_NAME);
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify") << "...new enum " << new_f
                                     << " for candidate " << nb[0] << "\n";
@@ -348,6 +351,16 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
 bool SygusUnifRl::usingUnif(Node f)
 {
   return d_unif_candidates.find(f) != d_unif_candidates.end();
+}
+
+std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
+{
+  std::map<Node, std::vector<Node>>::iterator it = d_cand_to_eval_hds.find(c);
+  if (it == d_cand_to_eval_hds.end())
+  {
+    return std::vector<Node>();
+  }
+  return it->second;
 }
 
 void SygusUnifRl::registerStrategy(Node f)
@@ -534,8 +547,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
       children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
       Assert(!children[i].isNull());
     }
-    // condition is useless, no need for ITE
-    if (trie->d_children.size() == 1)
+    // condition is useless or result children are equal, no no need for ITE
+    if (trie->d_children.size() == 1 || children[2] == children[3])
     {
       cache[cur] = children[i];
       Trace("sygus-unif-sol-debug")
@@ -568,8 +581,19 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
   {
     Assert(!rep_to_class.second.empty());
     Node v = d_unif->d_parent->getModelValue(rep_to_class.second[0]);
-    Trace("sygus-unif-rl-dt-debug") << "...class of " << rep_to_class.second[0]
-                                    << " with value " << v << "\n";
+    if (Trace.isOn("sygus-unif-rl-dt-debug"))
+    {
+      Trace("sygus-unif-rl-dt-debug") << "...class of ("
+                                      << rep_to_class.second[0];
+      Assert(d_unif->d_hd_to_pt.find(rep_to_class.second[0])
+             != d_unif->d_hd_to_pt.end());
+      for (const Node& pti : d_unif->d_hd_to_pt[rep_to_class.second[0]])
+      {
+        Trace("sygus-unif-rl-dt-debug") << " " << pti << " ";
+      }
+      Trace("sygus-unif-rl-dt-debug") << ") "
+                                      << " with hd value " << v << "\n";
+    }
     d_hd_values[rep_to_class.second[0]] = v;
     unsigned i, size = rep_to_class.second.size();
     for (i = 1; i < size; ++i)
@@ -577,8 +601,19 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
       Node vi = d_unif->d_parent->getModelValue(rep_to_class.second[i]);
       Assert(d_hd_values.find(rep_to_class.second[i]) == d_hd_values.end());
       d_hd_values[rep_to_class.second[i]] = vi;
-      Trace("sygus-unif-rl-dt-debug") << "......hd " << rep_to_class.second[i]
-                                      << " has value " << vi << "\n";
+      if (Trace.isOn("sygus-unif-rl-dt-debug"))
+      {
+        Trace("sygus-unif-rl-dt-debug") << "...class of ("
+                                        << rep_to_class.second[i];
+        Assert(d_unif->d_hd_to_pt.find(rep_to_class.second[i])
+               != d_unif->d_hd_to_pt.end());
+        for (const Node& pti : d_unif->d_hd_to_pt[rep_to_class.second[i]])
+        {
+          Trace("sygus-unif-rl-dt-debug") << " " << pti << " ";
+        }
+        Trace("sygus-unif-rl-dt-debug") << ") "
+                                        << " with hd value " << vi << "\n";
+      }
       if (v != vi)
       {
         break;
