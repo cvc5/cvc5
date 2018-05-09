@@ -1949,9 +1949,13 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // PBE and streaming modes are incompatible
-      if (!options::sygusPbe.wasSetByUser())
+      if (!options::sygusSymBreakPbe.wasSetByUser())
       {
-        options::sygusPbe.set(false);
+        options::sygusSymBreakPbe.set(false);
+      }
+      if (!options::sygusUnifPbe.wasSetByUser())
+      {
+        options::sygusUnifPbe.set(false);
       }
     }
     //do not allow partial functions
