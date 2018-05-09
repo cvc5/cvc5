@@ -201,13 +201,13 @@ class SymmetryDetect
       std::vector<Partition>& partitions,
       const std::vector<unsigned>& indices,
       std::unordered_set<unsigned>& active_indices);
-  /** mk commutative node
+  /** mk associative node
    *
    * This returns (a normal form for) the term <k>( children ), where
-   * k is a commutative operator. We return a right-associative chain,
-   * since some commutative operators (e.g. set union) require this.
+   * k is an associative operator. We return a right-associative
+   * chain, since some operators (e.g. set union) require this.
    */
-  Node mkCommutativeNode(Kind k, std::vector<Node>& children) const;
+  Node mkAssociativeNode(Kind k, std::vector<Node>& children) const;
 };
 }  // namespace passes
 }  // namespace preprocessing

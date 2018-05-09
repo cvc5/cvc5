@@ -24,8 +24,20 @@ namespace passes {
 
 SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
-  Partition p =
-      findPartitions(NodeManager::currentNM()->mkNode(kind::AND, assertions));
+  Node an;
+  if( assertions.empty() )
+  {
+    an = d_trueNode;
+  }
+  else if( assertions.size()==1 )
+  {
+    an = assertions[0];
+  }
+  else
+  {
+    an = NodeManager::currentNM()->mkNode(kind::AND, assertions);
+  }
+  Partition p = findPartitions(an);
   Trace("sym-dt") << endl
                   << "------------------------------ The Final Partition "
                      "------------------------------"
@@ -117,6 +129,15 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   }
   NodeManager* nm = NodeManager::currentNM();
 
+  Kind k = node.getKind();
+  bool isComm = false;
+  bool isAssoc = theory::quantifiers::TermUtil::isAssoc(k);
+  // for now, only consider commutative operators that are also associative
+  if( isAssoc )
+  {
+    isComm = theory::quantifiers::TermUtil::isComm(k);
+  }
+  
   // Children of node
   vector<Node> children;
   // Partitions of children
@@ -150,8 +171,6 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     Trace("sym-dt-debug") << "-----------------------------" << std::endl;
   }
 
-  Kind k = node.getKind();
-  bool isComm = theory::quantifiers::TermUtil::isComm(k);
   if (isComm)
   {
     // map substituted terms to indices in partitions
@@ -184,7 +203,9 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   std::vector<Node> schildren;
   if (!isComm)
   {
-    schildren.resize(node.getNumChildren());
+    Assert(active_indices.size()==children.size());
+    // order matters, and there is no chance we merged children
+    schildren.resize(children.size());
   }
   std::vector<Partition> active_partitions;
   for (const unsigned& i : active_indices)
@@ -199,6 +220,8 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     for (const pair<const Node, vector<Node> >& pas : pa.d_subvar_to_vars)
     {
       Node v = pas.first;
+      Trace("sym-dt-debug") << "...process " << v << " -> " << pas.second << std::endl;
+      Assert( !v.isNull() );
       TypeNode tnv = v.getType();
       // ensure we use a new index for this variable
       unsigned new_index = 0;
@@ -217,7 +240,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
       {
         pa.d_var_to_subvar[x] = new_v;
         Trace("sym-dt-debug")
-            << "...set var to svar " << x << " -> " << new_v << std::endl;
+            << "...set var to svar: " << x << " -> " << new_v << std::endl;
       }
     }
     // reconstruct the partition
@@ -230,14 +253,17 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
                                         pa.d_subvar_to_vars[v].end());
       pa.d_subvar_to_vars.erase(v);
     }
+    Assert( f_vars.size()==f_subs.size() );
     pa.d_sterm = pa.d_sterm.substitute(
         f_vars.begin(), f_vars.end(), f_subs.begin(), f_subs.end());
     if (isComm)
     {
+      Assert( !pa.d_sterm.isNull() );
       schildren.push_back(pa.d_sterm);
     }
     else
     {
+      Assert( i<schildren.size() );
       schildren[i] = pa.d_sterm;
     }
     Trace("sym-dt-debug") << "...got : " << pa.d_sterm << std::endl;
@@ -256,9 +282,9 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   // Reconstruct the node
   Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << endl;
   p.d_term = node;
-  if (isComm)
+  if (isAssoc)
   {
-    p.d_sterm = mkCommutativeNode(k, schildren);
+    p.d_sterm = mkAssociativeNode(k, schildren);
   }
   else
   {
@@ -436,8 +462,8 @@ bool SymmetryDetect::mergePartitions(
                           << std::endl;
     Partition& p = partitions[master_index];
     // reconstruct the master partition
-    p.d_term = mkCommutativeNode(k, children);
-    p.d_sterm = mkCommutativeNode(k, schildren);
+    p.d_term = mkAssociativeNode(k, children);
+    p.d_sterm = mkAssociativeNode(k, schildren);
     Assert(p.d_subvar_to_vars.size() == 1);
     Node sb_v = p.d_subvar_to_vars.begin()->first;
     p.d_subvar_to_vars[sb_v].clear();
@@ -446,7 +472,7 @@ bool SymmetryDetect::mergePartitions(
       p.d_var_to_subvar[v] = sb_v;
       p.d_subvar_to_vars[sb_v].push_back(v);
       Trace("sym-dt-debug")
-          << "- set var to svar " << v << " -> " << sb_v << std::endl;
+          << "- set var to svar: " << v << " -> " << sb_v << std::endl;
     }
     Trace("sym-dt-debug") << "...finished." << std::endl;
     return true;
@@ -633,7 +659,7 @@ void SymmetryDetect::printPartition(const char* c, Partition p)
   }
 }
 
-Node SymmetryDetect::mkCommutativeNode(Kind k,
+Node SymmetryDetect::mkAssociativeNode(Kind k,
                                        std::vector<Node>& children) const
 {
   NodeManager* nm = NodeManager::currentNM();

@@ -151,7 +151,6 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   {
     // add to assertions
     assertionsToPreprocess->push_back(sbConstraint);
-    //exit(10);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
