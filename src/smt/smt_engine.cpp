@@ -76,6 +76,7 @@
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
+#include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -4195,11 +4196,13 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryDetect())
+  if (options::symmetryBreakerExp())
   {
     SymmetryDetect symd;
+    SymmetryBreaker symb;
     vector<vector<Node>> part;
     symd.getPartition(part, d_assertions.ref());
+    Node sbConstraint = symb.generateSymBkConstraints(part);
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
