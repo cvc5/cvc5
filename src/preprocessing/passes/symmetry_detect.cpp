@@ -239,6 +239,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
       all_vars.insert(pas.second.begin(), pas.second.end());
       for (const Node& x : pas.second)
       {
+        AlwaysAssert( x.getType()==new_v.getType() );
         pa.d_var_to_subvar[x] = new_v;
         Trace("sym-dt-debug")
             << "...set var to svar: " << x << " -> " << new_v << std::endl;
@@ -249,10 +250,13 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     {
       Node v = f_vars[j];
       Node new_v = f_subs[j];
-      pa.d_subvar_to_vars[new_v].insert(pa.d_subvar_to_vars[new_v].end(),
-                                        pa.d_subvar_to_vars[v].begin(),
-                                        pa.d_subvar_to_vars[v].end());
-      pa.d_subvar_to_vars.erase(v);
+      if( new_v!=v )
+      {
+        pa.d_subvar_to_vars[new_v].insert(pa.d_subvar_to_vars[new_v].end(),
+                                          pa.d_subvar_to_vars[v].begin(),
+                                          pa.d_subvar_to_vars[v].end());
+        pa.d_subvar_to_vars.erase(v);
+      }
     }
     Assert(f_vars.size() == f_subs.size());
     pa.d_sterm = pa.d_sterm.substitute(
@@ -281,7 +285,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   pt.getNewPartition(p, pt);
 
   // Reconstruct the node
-  Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << endl;
+  Trace("sym-dt-debug") << "[sym-dt] Reconstructing node: " << node << ", #children = " << schildren.size() << "/" << children.size() << endl;
   p.d_term = node;
   if (isAssoc)
   {
@@ -295,6 +299,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     }
     p.d_sterm = nm->mkNode(k, schildren);
   }
+  Trace("sym-dt-debug") << "...return sterm: " << p.d_sterm << std::endl;
   d_term_partition[node] = p;
   printPartition("sym-dt-debug", p);
   return p;
@@ -310,6 +315,11 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
     return;
   }
 
+  // must track the type of the children we are collecting
+  // this is to avoid having vectors of children with different type, like
+  // (= (= x 0) (= y "abc"))
+  TypeNode ctn = node[0].getType();
+  
   Node cur;
   vector<Node> visit;
   visit.push_back(node);
@@ -322,7 +332,7 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (cur.getKind() == k)
+      if (cur.getNumChildren()>0 && cur.getKind() == k && cur[0].getType()==ctn)
       {
         for (const Node& cn : cur)
         {
@@ -377,25 +387,28 @@ bool SymmetryDetect::mergePartitions(
       }
       Trace("sym-dt-debug") << std::endl;
     }
-    std::unordered_set<unsigned> include_indices;
-    unsigned curr_index = 0;
-    std::unordered_set<Node, NodeHashFunction> curr_variables;
-    Trace("sym-dt-debug") << "    try merge partitions..." << std::endl;
-    if (mergePartitions(k,
-                        include_indices,
-                        curr_index,
-                        curr_variables,
-                        num_vars,
-                        partitions,
-                        nvi.second,
-                        active_indices))
+    if( nvi.second.size()>1 )
     {
-      Trace("sym-dt-debug") << "    ...success!" << std::endl;
-      merged = true;
-    }
-    else
-    {
-      Trace("sym-dt-debug") << "    ...failed" << std::endl;
+      std::unordered_set<unsigned> include_indices;
+      unsigned curr_index = 0;
+      std::unordered_set<Node, NodeHashFunction> curr_variables;
+      Trace("sym-dt-debug") << "    try merge partitions..." << std::endl;
+      if (mergePartitions(k,
+                          include_indices,
+                          curr_index,
+                          curr_variables,
+                          num_vars,
+                          partitions,
+                          nvi.second,
+                          active_indices))
+      {
+        Trace("sym-dt-debug") << "    ...success!" << std::endl;
+        merged = true;
+      }
+      else
+      {
+        Trace("sym-dt-debug") << "    ...failed" << std::endl;
+      }
     }
   }
   return merged;
@@ -572,7 +585,8 @@ void SymmetryDetect::PartitionTrie::addNode(Node target_var,
                                             vector<Partition>& partitions)
 {
   Trace("sym-dt-debug") << "[sym-dt] Add a variable {" << target_var
-                        << "} to the partition trie..." << endl;
+                        << "} to the partition trie, #partitions = " << partitions.size() << "..." << endl;
+  Assert( !partitions.empty() );
   vector<Node> subvars;
 
   for (vector<Partition>::iterator part_it = partitions.begin();
@@ -605,7 +619,7 @@ void SymmetryDetect::PartitionTrie::addNode(Node target_var,
     }
   }
 
-  Trace("sym-dt-debug") << "[sym-dt] Substitution variables for the variable "
+  Trace("sym-dt-debug") << "[sym-dt] Symmetry breaking variables for the variable "
                         << target_var << ": " << subvars << endl;
   addNode(target_var, subvars);
 }
@@ -663,18 +677,21 @@ void SymmetryDetect::printPartition(const char* c, Partition p)
 Node SymmetryDetect::mkAssociativeNode(Kind k,
                                        std::vector<Node>& children) const
 {
+  Assert( !children.empty() );
   NodeManager* nm = NodeManager::currentNM();
   // sort and make right-associative chain
   std::sort(children.begin(), children.end());
   Node sn;
   for (const Node& sc : children)
   {
+    Assert( !sc.isNull() );
     if (sn.isNull())
     {
       sn = sc;
     }
     else
     {
+      Assert( sc.getType()==sn.getType() );
       sn = nm->mkNode(k, sc, sn);
     }
   }
