@@ -25,11 +25,11 @@ namespace passes {
 SymmetryDetect::Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
   Node an;
-  if( assertions.empty() )
+  if (assertions.empty())
   {
     an = d_trueNode;
   }
-  else if( assertions.size()==1 )
+  else if (assertions.size() == 1)
   {
     an = assertions[0];
   }
@@ -133,11 +133,11 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   bool isComm = false;
   bool isAssoc = theory::quantifiers::TermUtil::isAssoc(k);
   // for now, only consider commutative operators that are also associative
-  if( isAssoc )
+  if (isAssoc)
   {
     isComm = theory::quantifiers::TermUtil::isComm(k);
   }
-  
+
   // Children of node
   vector<Node> children;
   // Partitions of children
@@ -203,7 +203,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
   std::vector<Node> schildren;
   if (!isComm)
   {
-    Assert(active_indices.size()==children.size());
+    Assert(active_indices.size() == children.size());
     // order matters, and there is no chance we merged children
     schildren.resize(children.size());
   }
@@ -220,8 +220,9 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     for (const pair<const Node, vector<Node> >& pas : pa.d_subvar_to_vars)
     {
       Node v = pas.first;
-      Trace("sym-dt-debug") << "...process " << v << " -> " << pas.second << std::endl;
-      Assert( !v.isNull() );
+      Trace("sym-dt-debug")
+          << "...process " << v << " -> " << pas.second << std::endl;
+      Assert(!v.isNull());
       TypeNode tnv = v.getType();
       // ensure we use a new index for this variable
       unsigned new_index = 0;
@@ -253,17 +254,17 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
                                         pa.d_subvar_to_vars[v].end());
       pa.d_subvar_to_vars.erase(v);
     }
-    Assert( f_vars.size()==f_subs.size() );
+    Assert(f_vars.size() == f_subs.size());
     pa.d_sterm = pa.d_sterm.substitute(
         f_vars.begin(), f_vars.end(), f_subs.begin(), f_subs.end());
     if (isComm)
     {
-      Assert( !pa.d_sterm.isNull() );
+      Assert(!pa.d_sterm.isNull());
       schildren.push_back(pa.d_sterm);
     }
     else
     {
-      Assert( i<schildren.size() );
+      Assert(i < schildren.size());
       schildren[i] = pa.d_sterm;
     }
     Trace("sym-dt-debug") << "...got : " << pa.d_sterm << std::endl;
