@@ -20,6 +20,9 @@
 #include <vector>
 #include "expr/node.h"
 
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
@@ -82,6 +85,21 @@ class SymmetryBreaker
    * ordered constraints.
    * */
   Kind getOrderKind(Node node);
+};
+
+/**
+ * This class detects symmetries in the input assertions in the form of a
+ * partition (see symmetry_detect.h), and subsequently adds symmetry breaking
+ * constraints that correspond to this partition, using the above class.
+ */
+class SymBreakerPass : public PreprocessingPass
+{
+ public:
+  SymBreakerPass(PreprocessingPassContext* preprocContext);
+
+ protected:
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
 };
 
 }  // namespace passes
