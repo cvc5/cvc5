@@ -46,8 +46,6 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
     d_hd_to_pt[c].clear();
     d_cand_to_eval_hds[c].clear();
     d_cand_to_hd_count[c] = 0;
-    // learn redundant operators based on the strategy of unif candidate
-    d_strategy[c].staticLearnRedundantOps(lemmas);
   }
 }
 
