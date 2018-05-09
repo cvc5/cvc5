@@ -414,7 +414,7 @@ void SygusUnifRl::registerStrategyNode(
 void SygusUnifRl::registerConditionalEnumerator(Node f,
                                                 Node e,
                                                 Node cond,
-                                                unsigned st_index)
+                                                unsigned strategy_index)
 {
   // we will do unification for this candidate
   d_unif_candidates.insert(f);
@@ -429,7 +429,7 @@ void SygusUnifRl::registerConditionalEnumerator(Node f,
     d_cenum_to_stratpt[cond].clear();
   }
   // register that this strategy node has a decision tree construction
-  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], st_index);
+  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], strategy_index);
   // associate conditional enumerator with strategy node
   d_cenum_to_stratpt[cond].push_back(e);
 }
@@ -461,7 +461,7 @@ void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
   d_pt_sep.d_trie.addClassifier(&d_pt_sep, d_conds.size() - 1);
 }
 
-unsigned SygusUnifRl::DecisionTreeInfo::getStrategyInedx() const
+unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 {
   return d_strategy_index;
 }
@@ -480,15 +480,16 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
     Trace("sygus-unif-sol") << "...separation check failed\n";
     return Node::null();
   }
+  Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
   // Traverse trie and build ITE with cons
   NodeManager* nm = NodeManager::currentNM();
   std::map<IndTriePair, Node> cache;
   std::map<IndTriePair, Node>::iterator it;
   std::vector<IndTriePair> visit;
-  Noed trueN = nm->mkConst(true);
+  Node trueN = nm->mkConst(true);
   unsigned index = 0;
   LazyTrie* trie;
-  IndTriePair root = IndTriePair(0, &d_trie);
+  IndTriePair root = IndTriePair(0, &d_pt_sep.d_trie.d_trie);
   visit.push_back(root);
   while (!visit.empty())
   {
@@ -503,41 +504,59 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
       // leaf
       if (trie->d_children.empty())
       {
-        cache[cur] = trie->lazy_child;
+        Assert(d_hd_values.find(trie->d_lazy_child) != d_hd_values.end());
+        cache[cur] = d_hd_values[trie->d_lazy_child];
+        Trace("sygus-unif-sol-debug")
+            << "......leaf, build "
+            << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
+            << "\n";
         continue;
       }
       cache[cur] = Node::null();
-      visit.push(cur);
+      visit.push_back(cur);
       for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
       {
         visit.push_back(IndTriePair(index + 1, &p_nt.second));
       }
       continue;
     }
-    retrieve terms of children and
-    AlwaysAssert(!it->second.isNull());
-    AlwaysAssert(!trie->d_children.empty());
+    // retrieve terms of children and build result
+    AlwaysAssert(it->second.isNull());
+    AlwaysAssert(trie->d_children.size() == 1 || trie->d_children.size() == 2);
+    std::vector<Node> children(4);
+    children[0] = cons;
+    children[1] = d_conds[index];
+    unsigned i = 0;
+    for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
+    {
+      i = p_nt.first == trueN? 2 : 3;
+      Assert(cache.find(IndTriePair(index + 1, &p_nt.second)) != cache.end());
+      children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
+      Assert(!children[i].isNull());
+    }
     // condition is useless, no need for ITE
     if (trie->d_children.size() == 1)
     {
-      cache[cur] = children.back();
+      cache[cur] = children[i];
+      Trace("sygus-unif-sol-debug")
+          << "......no cond, build "
+          << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
+          << "\n";
       continue;
     }
     AlwaysAssert(trie->d_children.size() == 2);
-    std::vector<Node> children[3];
-    children[0] = d_conds[index];
-    for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
-    {
-      unsigned i = p_nt.first == trueN? 1 : 2;
-      Assert(cache.find(IndTriePair(index + 1, &p_nt.second)) != cache.end());
-      children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
-      Assert(!children.back().isNull());
-    }
-    AlwaysAssert(!children[1].isNull() && !children[2].isNull());
-    cache[cur] = nm->mkNode(APPLY_CONSTRUCTOR, d_cons, children);
+    cache[cur] = nm->mkNode(APPLY_CONSTRUCTOR, children);
+    Trace("sygus-unif-sol-debug")
+        << "......build node "
+        << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
+        << "\n";
   }
   Assert(cache.find(root) != cache.end());
   Assert(!cache.find(root)->second.isNull());
+  Trace("sygus-unif-sol") << "...solution is "
+                          << d_unif->d_tds->sygusToBuiltin(
+                                 cache[root], cache[root].getType())
+                          << "\n";
   return cache[root];
 }
 
@@ -548,13 +567,18 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
        d_pt_sep.d_trie.d_rep_to_class)
   {
     Assert(!rep_to_class.second.empty());
-    Node v = rep_to_class.second[0];
+    Node v = d_unif->d_parent->getModelValue(rep_to_class.second[0]);
+    Trace("sygus-unif-rl-dt-debug") << "...class of " << rep_to_class.second[0]
+                                    << " with value " << v << "\n";
+    d_hd_values[rep_to_class.second[0]] = v;
     unsigned i, size = rep_to_class.second.size();
     for (i = 1; i < size; ++i)
     {
       Node vi = d_unif->d_parent->getModelValue(rep_to_class.second[i]);
       Assert(d_hd_values.find(rep_to_class.second[i]) == d_hd_values.end());
       d_hd_values[rep_to_class.second[i]] = vi;
+      Trace("sygus-unif-rl-dt-debug") << "......hd " << rep_to_class.second[i]
+                                      << " has value " << vi << "\n";
       if (v != vi)
       {
         break;

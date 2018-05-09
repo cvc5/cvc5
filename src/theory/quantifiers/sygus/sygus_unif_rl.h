@@ -270,7 +270,10 @@ class SygusUnifRl : public SygusUnif
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
    */
-  void registerConditionalEnumerator(Node f, Node e, Node cond);
+  void registerConditionalEnumerator(Node f,
+                                     Node e,
+                                     Node cond,
+                                     unsigned strategy_index);
 };
 
 } /* CVC4::theory::quantifiers namespace */

@@ -159,7 +159,6 @@ class LazyTrieMulti
    * containing only itself.
    */
   Node add(Node f, LazyTrieEvaluator* ev, unsigned ntotal);
- private:
   /** A regular lazy trie */
   LazyTrie d_trie;
 };
