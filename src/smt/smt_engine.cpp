@@ -4201,6 +4201,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::symmetryBreakerExp())
   {
+    // apply symmetry breaking
     d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 

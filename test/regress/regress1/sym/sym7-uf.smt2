@@ -15,5 +15,6 @@
 ;(assert (or (= x y) (= x z) (= y z)))
 (assert (or (P x) (P y) (P z) (P w)))
 
+; should get { x, y, z }, { w }, { u, v, a }
 (check-sat)
 
