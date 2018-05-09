@@ -445,6 +445,7 @@ bool SymmetryDetect::mergePartitions(
   return merged;
 }
 
+// FIXME: make overflow safe
 unsigned nChoosek(unsigned n, unsigned k)
 {
   if (k > n) return 0;
@@ -472,6 +473,23 @@ bool SymmetryDetect::mergePartitions(
 {
   Trace("sym-dt-debug") << "merge " << curr_index << " / " << indices.size()
                         << std::endl;
+  // are there too many variables?
+  unsigned curr_nvars = curr_variables.size();
+  if (curr_nvars > num_vars)
+  {
+    // the maximum number of partitions we can include at this point
+    unsigned npart_max = include_indices.size() + (indices.size() - curr_index);
+    // the number of patitions we need, which is (choose curr_nvars num_vars)
+    unsigned npart_need = nChoosek(curr_nvars, num_vars);
+    Trace("sym-dt-debug") << "...curr num vars = " << curr_nvars << std::endl;
+    Trace("sym-dt-debug") << "  npart_max = " << npart_max << std::endl;
+    Trace("sym-dt-debug") << "  npart_need = " << npart_need << " (choose " << curr_nvars << " " << num_vars << ")" << std::endl;
+    // max must be greater than or equal to need
+    if( npart_max < npart_need )
+    {
+      return false;
+    }
+  }
   if (curr_index == indices.size())
   {
     if (include_indices.size() <= 1)
@@ -532,42 +550,22 @@ bool SymmetryDetect::mergePartitions(
   {
     new_variables.insert(s.second.begin(), s.second.end());
   }
-  // are there too many variables?
-  bool var_ok = false;
-  unsigned curr_nvars = new_variables.size();
-  Assert(curr_nvars >= num_vars);
-  if (curr_nvars == num_vars)
+
+  include_indices.insert(index);
+  if (mergePartitions(k,
+                      include_indices,
+                      curr_index + 1,
+                      new_variables,
+                      num_vars,
+                      partitions,
+                      indices,
+                      active_indices))
   {
-    var_ok = true;
+    return true;
   }
-  else
-  {
-    // the maximum number of partitions we can include at this point
-    unsigned npart_max = include_indices.size() + (indices.size() - curr_index);
-    // the number of patitions we need, which is (choose curr_nvars num_vars)
-    unsigned npart_need = nChoosek(curr_nvars, num_vars);
-    Trace("sym-dt-debug") << "...curr num vars = " << curr_nvars << std::endl;
-    Trace("sym-dt-debug") << "  npart_max = " << npart_max << std::endl;
-    Trace("sym-dt-debug") << "  npart_need = " << npart_need << std::endl;
-    // max must be greater than or equal to need
-    var_ok = npart_max >= npart_need;
-  }
-  if (var_ok)
-  {
-    include_indices.insert(index);
-    if (mergePartitions(k,
-                        include_indices,
-                        curr_index + 1,
-                        new_variables,
-                        num_vars,
-                        partitions,
-                        indices,
-                        active_indices))
-    {
-      return true;
-    }
-    include_indices.erase(index);
-  }
+  include_indices.erase(index);
+
+  
   // try not including this index
   return mergePartitions(k,
                          include_indices,
