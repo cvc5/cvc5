@@ -11,8 +11,8 @@
 (declare-fun a () U)
 (declare-fun P (U) Bool)
 
-;(assert (distinct w u v a))
-;(assert (or (= x y) (= x z) (= y z)))
+(assert (distinct w u v a))
+(assert (or (= x y) (= x z) (= y z)))
 (assert (or (P x) (P y) (P z) (P w)))
 
 ; should get { x, y, z }, { w }, { u, v, a }
