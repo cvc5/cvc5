@@ -174,7 +174,10 @@ Node SygusUnifRl::purifyLemma(Node n,
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
-      Node new_f = nm->mkSkolem(ss.str(), nb[0].getType());
+      Node new_f = nm->mkSkolem(ss.str(),
+                                nb[0].getType(),
+                                "head of unif evaluation point",
+                                NodeManager::SKOLEM_EXACT_NAME);
       // Adds new enumerator to map from candidate
       Trace("sygus-unif-rl-purify") << "...new enum " << new_f
                                     << " for candidate " << nb[0] << "\n";
@@ -317,30 +320,47 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
 {
   indent("sygus-unif-sol", ind);
   Trace("sygus-unif-sol") << "ConstructSol: SygusRL : " << e << std::endl;
-  // is there a decision tree strategy?
-  if (nrole == role_equal)
+  // retrieve strategy information
+  TypeNode etn = e.getType();
+  EnumTypeInfo& tinfo = d_strategy[f].getEnumTypeInfo(etn);
+  StrategyNode& snode = tinfo.getStrategyNode(nrole);
+  if (nrole != role_equal)
   {
-    std::map<Node, DecisionTreeInfo>::iterator itd = d_stratpt_to_dt.find(e);
-    if (itd != d_stratpt_to_dt.end())
-    {
-      indent("sygus-unif-sol", ind);
-      Trace("sygus-unif-sol") << "...it has a decision tree strategy.\n";
-      if (itd->second.isSeparated())
-      {
-        Trace("sygus-unif-sol")
-            << "...... points are separated and I have for root enum the value "
-            << d_parent->getModelValue(e) << "\n";
-        return d_parent->getModelValue(e);
-      }
-    }
+    return Node::null();
   }
-
-  return Node::null();
+  // is there a decision tree strategy?
+  std::map<Node, DecisionTreeInfo>::iterator itd = d_stratpt_to_dt.find(e);
+  // for now only considering simple case of sole "ITE(cond, e, e)" strategy
+  if (itd == d_stratpt_to_dt.end())
+  {
+    return Node::null();
+  }
+  indent("sygus-unif-sol", ind);
+  Trace("sygus-unif-sol") << "...it has a decision tree strategy.\n";
+  // whether empty set of points
+  if (d_cand_to_eval_hds[f].empty())
+  {
+    Trace("sygus-unif-sol") << "...... no points, return root enum value "
+                            << d_parent->getModelValue(e) << "\n";
+    return d_parent->getModelValue(e);
+  }
+  EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
+  return itd->second.buildSol(etis->d_cons);
 }
 
 bool SygusUnifRl::usingUnif(Node f)
 {
   return d_unif_candidates.find(f) != d_unif_candidates.end();
+}
+
+std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
+{
+  std::map<Node, std::vector<Node>>::iterator it = d_cand_to_eval_hds.find(c);
+  if (it == d_cand_to_eval_hds.end())
+  {
+    return std::vector<Node>();
+  }
+  return it->second;
 }
 
 void SygusUnifRl::registerStrategy(Node f)
@@ -397,14 +417,17 @@ void SygusUnifRl::registerStrategyNode(
             << "  ...detected recursive ITE strategy, condition enumerator : "
             << cond << std::endl;
         // indicate that we will be enumerating values for cond
-        registerConditionalEnumerator(f, e, cond);
+        registerConditionalEnumerator(f, e, cond, j);
       }
     }
     // TODO: recurse? for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
   }
 }
 
-void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
+void SygusUnifRl::registerConditionalEnumerator(Node f,
+                                                Node e,
+                                                Node cond,
+                                                unsigned strategy_index)
 {
   // we will do unification for this candidate
   d_unif_candidates.insert(f);
@@ -419,18 +442,20 @@ void SygusUnifRl::registerConditionalEnumerator(Node f, Node e, Node cond)
     d_cenum_to_stratpt[cond].clear();
   }
   // register that this strategy node has a decision tree construction
-  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f]);
+  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], strategy_index);
   // associate conditional enumerator with strategy node
   d_cenum_to_stratpt[cond].push_back(e);
 }
 
 void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
                                                SygusUnifRl* unif,
-                                               SygusUnifStrategy* strategy)
+                                               SygusUnifStrategy* strategy,
+                                               unsigned strategy_index)
 {
   d_cond_enum = cond_enum;
   d_unif = unif;
   d_strategy = strategy;
+  d_strategy_index = strategy_index;
   // Retrieve template
   EnumInfo& eiv = d_strategy->getEnumInfo(d_cond_enum);
   d_template = NodePair(eiv.d_template, eiv.d_template_arg);
@@ -449,29 +474,153 @@ void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
   d_pt_sep.d_trie.addClassifier(&d_pt_sep, d_conds.size() - 1);
 }
 
+unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
+{
+  return d_strategy_index;
+}
+
+using UNodePair = std::pair<unsigned, Node>;
+
+Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
+{
+  if (!d_template.first.isNull())
+  {
+    Trace("sygus-unif-sol") << "...templated conditions unsupported\n";
+    return Node::null();
+  }
+  if (!isSeparated())
+  {
+    Trace("sygus-unif-sol") << "...separation check failed\n";
+    return Node::null();
+  }
+  Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
+  // Traverse trie and build ITE with cons
+  NodeManager* nm = NodeManager::currentNM();
+  std::map<IndTriePair, Node> cache;
+  std::map<IndTriePair, Node>::iterator it;
+  std::vector<IndTriePair> visit;
+  unsigned index = 0;
+  LazyTrie* trie;
+  IndTriePair root = IndTriePair(0, &d_pt_sep.d_trie.d_trie);
+  visit.push_back(root);
+  while (!visit.empty())
+  {
+    index = visit.back().first;
+    trie = visit.back().second;
+    visit.pop_back();
+    IndTriePair cur = IndTriePair(index, trie);
+    it = cache.find(cur);
+    // traverse children so results are saved to build node for parent
+    if (it == cache.end())
+    {
+      // leaf
+      if (trie->d_children.empty())
+      {
+        Assert(d_hd_values.find(trie->d_lazy_child) != d_hd_values.end());
+        cache[cur] = d_hd_values[trie->d_lazy_child];
+        Trace("sygus-unif-sol-debug")
+            << "......leaf, build "
+            << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
+            << "\n";
+        continue;
+      }
+      cache[cur] = Node::null();
+      visit.push_back(cur);
+      for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
+      {
+        visit.push_back(IndTriePair(index + 1, &p_nt.second));
+      }
+      continue;
+    }
+    // retrieve terms of children and build result
+    Assert(it->second.isNull());
+    Assert(trie->d_children.size() == 1 || trie->d_children.size() == 2);
+    std::vector<Node> children(4);
+    children[0] = cons;
+    children[1] = d_conds[index];
+    unsigned i = 0;
+    for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
+    {
+      i = p_nt.first.getConst<bool>() ? 2 : 3;
+      Assert(cache.find(IndTriePair(index + 1, &p_nt.second)) != cache.end());
+      children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
+      Assert(!children[i].isNull());
+    }
+    // condition is useless or result children are equal, no no need for ITE
+    if (trie->d_children.size() == 1 || children[2] == children[3])
+    {
+      cache[cur] = children[i];
+      Trace("sygus-unif-sol-debug")
+          << "......no cond, build "
+          << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
+          << "\n";
+      continue;
+    }
+    Assert(trie->d_children.size() == 2);
+    cache[cur] = nm->mkNode(APPLY_CONSTRUCTOR, children);
+    Trace("sygus-unif-sol-debug")
+        << "......build node "
+        << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
+        << "\n";
+  }
+  Assert(cache.find(root) != cache.end());
+  Assert(!cache.find(root)->second.isNull());
+  Trace("sygus-unif-sol") << "...solution is "
+                          << d_unif->d_tds->sygusToBuiltin(
+                                 cache[root], cache[root].getType())
+                          << "\n";
+  return cache[root];
+}
+
 bool SygusUnifRl::DecisionTreeInfo::isSeparated()
 {
+  d_hd_values.clear();
   for (const std::pair<const Node, std::vector<Node>>& rep_to_class :
        d_pt_sep.d_trie.d_rep_to_class)
   {
     Assert(!rep_to_class.second.empty());
-    Node v = rep_to_class.second[0];
+    Node v = d_unif->d_parent->getModelValue(rep_to_class.second[0]);
+    if (Trace.isOn("sygus-unif-rl-dt-debug"))
+    {
+      Trace("sygus-unif-rl-dt-debug") << "...class of ("
+                                      << rep_to_class.second[0];
+      Assert(d_unif->d_hd_to_pt.find(rep_to_class.second[0])
+             != d_unif->d_hd_to_pt.end());
+      for (const Node& pti : d_unif->d_hd_to_pt[rep_to_class.second[0]])
+      {
+        Trace("sygus-unif-rl-dt-debug") << " " << pti << " ";
+      }
+      Trace("sygus-unif-rl-dt-debug") << ") "
+                                      << " with hd value " << v << "\n";
+    }
+    d_hd_values[rep_to_class.second[0]] = v;
     unsigned i, size = rep_to_class.second.size();
     for (i = 1; i < size; ++i)
     {
       Node vi = d_unif->d_parent->getModelValue(rep_to_class.second[i]);
+      Assert(d_hd_values.find(rep_to_class.second[i]) == d_hd_values.end());
+      d_hd_values[rep_to_class.second[i]] = vi;
+      if (Trace.isOn("sygus-unif-rl-dt-debug"))
+      {
+        Trace("sygus-unif-rl-dt-debug") << "...class of ("
+                                        << rep_to_class.second[i];
+        Assert(d_unif->d_hd_to_pt.find(rep_to_class.second[i])
+               != d_unif->d_hd_to_pt.end());
+        for (const Node& pti : d_unif->d_hd_to_pt[rep_to_class.second[i]])
+        {
+          Trace("sygus-unif-rl-dt-debug") << " " << pti << " ";
+        }
+        Trace("sygus-unif-rl-dt-debug") << ") "
+                                        << " with hd value " << vi << "\n";
+      }
+      // Heads with different model values
       if (v != vi)
       {
         Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
                                   << rep_to_class.second[0] << " and "
                                   << rep_to_class.second[i] << "\n";
-        break;
+        return false;
       }
-    }
-    // Heads with different model values
-    if (i != size)
-    {
-      return false;
     }
   }
   return true;
