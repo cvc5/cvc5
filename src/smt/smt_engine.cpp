@@ -1952,7 +1952,7 @@ void SmtEngine::setDefaults() {
       if (!options::sygusSymBreakPbe.wasSetByUser())
       {
         options::sygusSymBreakPbe.set(false);
-      }      
+      }
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
