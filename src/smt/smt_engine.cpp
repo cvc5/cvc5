@@ -2600,6 +2600,8 @@ void SmtEnginePrivate::finishInit() {
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
+  std::unique_ptr<SymBreakerPass> sbProc(
+      new SymBreakerPass(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -2611,6 +2613,7 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
+  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4196,13 +4199,10 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryBreakerExp())
+  if (options::symmetryBreakerExp() && !options::incrementalSolving())
   {
-    SymmetryDetect symd;
-    SymmetryBreaker symb;
-    vector<vector<Node>> part;
-    symd.getPartition(part, d_assertions.ref());
-    Node sbConstraint = symb.generateSymBkConstraints(part);
+    // apply symmetry breaking if not in incremental mode
+    d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
