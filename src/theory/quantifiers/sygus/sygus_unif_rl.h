@@ -206,7 +206,12 @@ class SygusUnifRl : public SygusUnif
      * associated with
      */
     SygusUnifStrategy* d_strategy;
-    /** index of strategy information of strategy node this DT is based on */
+    /** index of strategy information of strategy node this DT is based on
+     *
+     * this is the index of the strategy (d_strats[index]) in the strategy node
+     * to which this decision tree corresponds, which can be accessed through
+     * the above strategy reference
+     */
     unsigned d_strategy_index;
     /**
      * The enumerator in the strategy tree that stores conditions of the

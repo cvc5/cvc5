@@ -46,6 +46,8 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
     d_hd_to_pt[c].clear();
     d_cand_to_eval_hds[c].clear();
     d_cand_to_hd_count[c] = 0;
+    // learn redundant operators based on the strategy of unif candidate
+    d_strategy[c].staticLearnRedundantOps(lemmas);
   }
 }
 
@@ -499,7 +501,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
   std::map<IndTriePair, Node> cache;
   std::map<IndTriePair, Node>::iterator it;
   std::vector<IndTriePair> visit;
-  Node trueN = nm->mkConst(true);
   unsigned index = 0;
   LazyTrie* trie;
   IndTriePair root = IndTriePair(0, &d_pt_sep.d_trie.d_trie);
@@ -542,7 +543,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
     unsigned i = 0;
     for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
     {
-      i = p_nt.first == trueN ? 2 : 3;
+      i = p_nt.first.getConst<bool>() ? 2 : 3;
       Assert(cache.find(IndTriePair(index + 1, &p_nt.second)) != cache.end());
       children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
       Assert(!children[i].isNull());
@@ -614,18 +615,14 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
         Trace("sygus-unif-rl-dt-debug") << ") "
                                         << " with hd value " << vi << "\n";
       }
+      // Heads with different model values
       if (v != vi)
       {
-        break;
+        Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
+                                  << rep_to_class.second[0] << " and "
+                                  << rep_to_class.second[i] << "\n";
+        return false;
       }
-    }
-    // Heads with different model values
-    if (i != size)
-    {
-      Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
-                                << rep_to_class.second[0] << " and "
-                                << rep_to_class.second[i] << "\n";
-      return false;
     }
   }
   return true;
