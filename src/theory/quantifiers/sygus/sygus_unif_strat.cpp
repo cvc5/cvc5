@@ -780,7 +780,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     EnumTypeInfoStrat* etis = snode.d_strats[j];
     int cindex = Datatype::indexOf(etis->d_cons.toExpr());
     Assert(cindex != -1);
-    Trace("sygus-strat-slearn") << "...by strategy, can exclude operator " << etis->d_cons << std::endl;
+    Trace("sygus-strat-slearn")
+        << "...by strategy, can exclude operator " << etis->d_cons << std::endl;
     needs_cons_curr[static_cast<unsigned>(cindex)] = false;
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
@@ -795,7 +796,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
       Node op = Node::fromExpr(dt[j].getSygusOp());
-      Trace("sygus-strat-slearn") << "...for ite condition, look at operator : " << op << std::endl;
+      Trace("sygus-strat-slearn")
+          << "...for ite condition, look at operator : " << op << std::endl;
       if (op.getKind() == kind::BUILTIN)
       {
         Kind k = NodeManager::operatorToKind(op);
@@ -814,7 +816,9 @@ void SygusUnifStrategy::staticLearnRedundantOps(
           }
           if (type_ok)
           {
-            Trace("sygus-strat-slearn") << "...for ite condition, can exclude Boolean connective : " << op << std::endl;
+            Trace("sygus-strat-slearn")
+                << "...for ite condition, can exclude Boolean connective : "
+                << op << std::endl;
             needs_cons_curr[j] = false;
           }
         }
