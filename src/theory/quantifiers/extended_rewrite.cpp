@@ -771,8 +771,14 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
         if (lit[1].getType() == lit.getType())
         {
           // t != s ---> ~t = s
-          Assert(lit[1].getKind() != notk);
-          eq = nm->mkNode(EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
+          if (lit[1].getKind() == notk && lit[0].getKind() != notk)
+          {
+            eq = nm->mkNode(EQUAL, lit[0], TermUtil::mkNegate(notk, lit[1]));
+          }
+          else
+          {
+            eq = nm->mkNode(EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
+          }
         }
       }
       else
@@ -1070,8 +1076,6 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     {
       n = slv_eq;
     }
-    NodeManager* nm = NodeManager::currentNM();
-
     Node v[2];
     for (unsigned i = 0; i < 2; i++)
     {
