@@ -259,7 +259,7 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType(const DatatypeConstructor& c, unsigned i);
+  TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */

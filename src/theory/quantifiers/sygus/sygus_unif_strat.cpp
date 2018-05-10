@@ -767,7 +767,9 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     return;
   }
   std::map<unsigned, bool> needs_cons_curr;
-  // various strategies
+  // constructors that correspond to strategies are not needed
+  // the intuition is that the strategy itself is responsible for constructing
+  // all terms that use the given constructor
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
     EnumTypeInfoStrat* etis = snode.d_strats[j];
@@ -779,6 +781,39 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       staticLearnRedundantOps(cec.first, cec.second, visited, needs_cons);
     }
   }
+  // get the current datatype
+  const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
+  // do not use recursive Boolean connectives for conditions of ITEs
+  if( nrole==enum_ite_condition )
+  {
+    for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
+    {
+      Node op = Node::fromExpr(dt[j].getSygusOp());
+      if( op.getKind() == kind::BUILTIN )
+      {
+        Kind k = NodeManager::operatorToKind( op );
+        if( k==NOT || k==OR || k==AND )
+        {
+          // can eliminate if their argument types are simple loops to this type
+          bool type_ok = true;
+          for( unsigned k=0, nargs = dt[j].getNumArgs(); k<nargs; k++ )
+          {
+            TypeNode tn = TypeNode::fromType( dt[j].getArgType(k) );
+            if( tn!=etn )
+            {
+              type_ok = false;
+              break;
+            }
+          }
+          if( type_ok )
+          {
+            needs_cons_curr[j] = false;
+          }
+        }
+      }
+    }
+  }
+  
   // get the master enumerator for the type of this enumerator
   std::map<TypeNode, Node>::iterator itse = d_master_enum.find(etn);
   if (itse == d_master_enum.end())
@@ -787,9 +822,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   }
   Node em = itse->second;
   Assert(!em.isNull());
-  // get the current datatype
-  const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
-  // all constructors that are not a part of a strategy are needed
+  // all other constructors are needed
   for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
   {
     if (needs_cons_curr.find(j) == needs_cons_curr.end())
