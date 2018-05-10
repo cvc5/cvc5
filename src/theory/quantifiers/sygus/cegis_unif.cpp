@@ -311,7 +311,7 @@ Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
   bool value;
   if (!d_qe->getValuation().hasSatValue(lit, value))
   {
-    priority = 0;
+    priority = 1;
     return lit;
   }
   else if (!value)
@@ -362,7 +362,22 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         Node size_eu = nm->mkNode(DT_SIZE, eu);
         Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);
         Node sym_break = nm->mkNode(GEQ, size_eu, size_eu_prev);
+        Trace("cegis-unif-enum-lemma")
+            << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
         d_qe->getOutputChannel().lemma(sym_break);
+        // if the sygus datatype is interpreted as an infinite type
+        // (this should be the case for almost all examples)
+        if (!ct.isInterpretedFinite())
+        {
+          // it is disequal from all previous ones
+          for (const Node eui : ci.second.d_enums)
+          {
+            Node deq = eu.eqNode(eui).negate();
+            Trace("cegis-unif-enum-lemma")
+                << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
+            d_qe->getOutputChannel().lemma(deq);
+          }
+        }
       }
       ci.second.d_enums.push_back(eu);
       d_tds->registerEnumerator(eu, d_null, d_parent);
@@ -409,7 +424,8 @@ void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
     disj.push_back(ei.eqNode(itc->second.d_enums[i]));
   }
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
-  Trace("cegis-unif-enum") << "Adding lemma " << lem << "\n";
+  Trace("cegis-unif-enum-lemma")
+      << "CegisUnifEnum::lemma, domain:" << lem << "\n";
   d_qe->getOutputChannel().lemma(lem);
 }
 
