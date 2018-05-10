@@ -184,7 +184,8 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       ret = nr;
     }
   } else {
-    // FIXME : special case not necessary? (also address BV_ACKERMANIZE functions below), github issue #1116
+    // FIXME : special case not necessary? (also address BV_ACKERMANNIZE
+    // functions below), github issue #1116
     if(n.getKind() == kind::LAMBDA) {
       NodeManager* nm = NodeManager::currentNM();
       Node body = getModelValue(n[1], true);
@@ -198,10 +199,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       d_modelCache[n] = ret;
       return ret;
     }
-  
-    if (n.getNumChildren() > 0 &&
-        n.getKind() != kind::BITVECTOR_ACKERMANIZE_UDIV &&
-        n.getKind() != kind::BITVECTOR_ACKERMANIZE_UREM) {
+
+    if (n.getNumChildren() > 0
+        && n.getKind() != kind::BITVECTOR_ACKERMANNIZE_UDIV
+        && n.getKind() != kind::BITVECTOR_ACKERMANNIZE_UREM)
+    {
       Debug("model-getvalue-debug") << "Get model value children " << n << std::endl;
       std::vector<Node> children;
       if (n.getKind() == APPLY_UF) {
