@@ -262,7 +262,8 @@ class SygusUnifRl : public SygusUnif
    * Initialize the above data for the relevant enumerators in the strategy tree
    * of candidate variable f.
    */
-  void registerStrategy(Node f);
+  void registerStrategy(
+      Node f, const std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register strategy node
    *
    * Called while traversing the strategy tree of f. The arguments e and nrole

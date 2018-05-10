@@ -37,7 +37,8 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   // using a unification strategy that is compatible our approach.
   for (const Node& f : funs)
   {
-    registerStrategy(f);
+    d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
+    registerStrategy(f, strategy_lemmas);
   }
   enums.insert(enums.end(), d_cond_enums.begin(), d_cond_enums.end());
   // Copy candidates and check whether CegisUnif for any of them
@@ -363,7 +364,8 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
-void SygusUnifRl::registerStrategy(Node f)
+void SygusUnifRl::registerStrategy(
+    Node f, const std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -371,8 +373,6 @@ void SygusUnifRl::registerStrategy(Node f)
                                  << " is : " << std::endl;
     d_strategy[f].debugPrint("sygus-unif-rl-strat");
   }
-  std::map<Node, std::vector<Node>> strategy_lemmas;
-  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
@@ -451,6 +451,9 @@ void SygusUnifRl::registerConditionalEnumerator(
     {
       for (const Node& lemma : it->second)
       {
+        Trace("cegis-unif-enum-debug")
+            << "* Registering lemma to remove redundand operators for " << cond
+            << " --> " << lemma << "\n";
         d_qe->getOutputChannel().lemma(lemma);
       }
     }

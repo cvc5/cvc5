@@ -65,6 +65,7 @@ bool CegisUnif::initialize(Node n,
     d_enum_to_active_guard[e] = g;
   }
   // initialize the enumeration manager
+  Trace("cegis-unif-enum-debug") << "Have " << strategy_lemmas.size() << " maps on strategy_lemmas\n";
   d_u_enum_manager.initialize(unif_candidates, strategy_lemmas);
   return true;
 }
@@ -239,6 +240,10 @@ void CegisUnifEnumManager::initialize(
     }
     // collect lemmas for removing redundant ops for this candidate's type
     d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second);
+    Trace("cegis-unif-enum-debug")
+        << "* Registering lemma to remove redundant operators for " << c
+        << " and its type " << tn << " --> " << d_ce_info[tn].d_sbt_lemma
+        << "\n";
     d_ce_info[tn].d_sbt_arg = c;
   }
   // initialize the current literal
