@@ -309,13 +309,18 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         Trace("cegis-unif-enum-lemma")
             << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
         d_qe->getOutputChannel().lemma(sym_break);
-        // it is disequal from all previous ones
-        for (const Node eui : ci.second.d_enums)
+        // if the sygus datatype is interpreted as an infinite type
+        // (this should be the case for almost all examples)
+        if( !ct.isInterpretedFinite() )
         {
-          Node deq = eu.eqNode(eui).negate();
-          Trace("cegis-unif-enum-lemma")
-              << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
-          d_qe->getOutputChannel().lemma(deq);
+          // it is disequal from all previous ones
+          for (const Node eui : ci.second.d_enums)
+          {
+            Node deq = eu.eqNode(eui).negate();
+            Trace("cegis-unif-enum-lemma")
+                << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
+            d_qe->getOutputChannel().lemma(deq);
+          }
         }
       }
       ci.second.d_enums.push_back(eu);
