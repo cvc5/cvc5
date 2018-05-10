@@ -2795,11 +2795,21 @@ Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, s
   Node ret = n;
   if( n.getNumChildren()>0 ){
     if( beneathMult && (n.getKind()==kind::PLUS || n.getKind()==kind::MINUS) ){
-      //new variable
-      ret = NodeManager::currentNM()->mkSkolem("__purifyNl_var", n.getType(), "Variable introduced in purifyNl pass");
-      Node np = purifyNlTerms( n, cache, bcache, var_eq, false );
-      var_eq.push_back( np.eqNode( ret ) );
-      Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np << std::endl;
+      // don't do it if it rewrites to a constant
+      Node nr = Rewriter::rewrite( n );
+      if( nr.isConst() )
+      {
+        // return the rewritten constant
+        ret = nr;
+      }
+      else
+      {
+        //new variable
+        ret = NodeManager::currentNM()->mkSkolem("__purifyNl_var", n.getType(), "Variable introduced in purifyNl pass");
+        Node np = purifyNlTerms( n, cache, bcache, var_eq, false );
+        var_eq.push_back( np.eqNode( ret ) );
+        Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np << std::endl;
+      }
     }
     else
     {
