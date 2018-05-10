@@ -260,8 +260,8 @@ void CegisUnifEnumManager::initialize(
     }
     // collect lemmas for removing redundant ops for this candidate's type
     d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second.second);
-    Trace("cegis-unif-enum-lemma")
-        << "CegisUnifEnum::lemma, remove redundant operators for " << c
+    Trace("cegis-unif-enum-debug")
+        << "...adding lemma template to remove redundant operators for " << c
         << " and its type " << tn << " --> " << d_ce_info[tn].d_sbt_lemma
         << "\n";
     d_ce_info[tn].d_sbt_arg = it->second.first;
@@ -348,8 +348,8 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         Node templ = ci.second.d_sbt_lemma;
         TNode templ_var = ci.second.d_sbt_arg;
         Node sym_break_red_ops = templ.substitute(templ_var, eu);
-        Trace("cegis-unif-enum-debug")
-            << "* Registering lemma remove redundant ops of " << eu << " : "
+        Trace("cegis-unif-enum-lemma")
+            << "CegisUnifEnum::lemma, remove redundant ops of " << eu << " : "
             << sym_break_red_ops << "\n";
         d_qe->getOutputChannel().lemma(sym_break_red_ops);
       }
