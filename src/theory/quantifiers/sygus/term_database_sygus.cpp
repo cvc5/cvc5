@@ -1010,7 +1010,8 @@ bool TermDbSygus::isConstArg( TypeNode tn, int i ) {
 TypeNode TermDbSygus::getArgType(const DatatypeConstructor& c, unsigned i) const
 {
   Assert(i < c.getNumArgs());
-  return TypeNode::fromType( static_cast<SelectorType>(c[i].getType()).getRangeType() );
+  return TypeNode::fromType(
+      static_cast<SelectorType>(c[i].getType()).getRangeType());
 }
 
 /** get first occurrence */

@@ -390,7 +390,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * is returned.
    */
   Expr getSelector(std::string name) const;
-  /** 
+  /**
    * Get argument type. Returns the return type of the i^th selector of this
    * constructor.
    */

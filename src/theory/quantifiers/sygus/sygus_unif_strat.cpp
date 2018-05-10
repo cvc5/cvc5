@@ -784,28 +784,28 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   // get the current datatype
   const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
   // do not use recursive Boolean connectives for conditions of ITEs
-  if( nrole==enum_ite_condition )
+  if (nrole == enum_ite_condition)
   {
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
       Node op = Node::fromExpr(dt[j].getSygusOp());
-      if( op.getKind() == kind::BUILTIN )
+      if (op.getKind() == kind::BUILTIN)
       {
-        Kind k = NodeManager::operatorToKind( op );
-        if( k==NOT || k==OR || k==AND )
+        Kind k = NodeManager::operatorToKind(op);
+        if (k == NOT || k == OR || k == AND)
         {
           // can eliminate if their argument types are simple loops to this type
           bool type_ok = true;
-          for( unsigned k=0, nargs = dt[j].getNumArgs(); k<nargs; k++ )
+          for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
           {
-            TypeNode tn = TypeNode::fromType( dt[j].getArgType(k) );
-            if( tn!=etn )
+            TypeNode tn = TypeNode::fromType(dt[j].getArgType(k));
+            if (tn != etn)
             {
               type_ok = false;
               break;
             }
           }
-          if( type_ok )
+          if (type_ok)
           {
             needs_cons_curr[j] = false;
           }
@@ -813,7 +813,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       }
     }
   }
-  
+
   // get the master enumerator for the type of this enumerator
   std::map<TypeNode, Node>::iterator itse = d_master_enum.find(etn);
   if (itse == d_master_enum.end())
