@@ -311,7 +311,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         d_qe->getOutputChannel().lemma(sym_break);
         // if the sygus datatype is interpreted as an infinite type
         // (this should be the case for almost all examples)
-        if( !ct.isInterpretedFinite() )
+        if (!ct.isInterpretedFinite())
         {
           // it is disequal from all previous ones
           for (const Node eui : ci.second.d_enums)
