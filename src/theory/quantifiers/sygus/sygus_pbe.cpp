@@ -179,16 +179,16 @@ bool CegConjecturePbe::initialize(Node n,
     std::map<Node, std::vector<Node>> strategy_lemmas;
     d_sygus_unif[c].initialize(
         d_qe, singleton_c, d_candidate_to_enum[c], strategy_lemmas);
-    // collect lemmas from all strategies
+    Assert(!d_candidate_to_enum[c].empty());
+    Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
+                       << " enumerators for " << c << "..." << std::endl;
+    // collect list per type of strategy points with strategy lemmas
     std::map<TypeNode, std::vector<Node>> tn_to_strategy_pt;
     for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
     {
       TypeNode tnsp = p.first.getType();
       tn_to_strategy_pt[tnsp].push_back(p.first);
     }
-    Assert(!d_candidate_to_enum[c].empty());
-    Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
-                       << " enumerators for " << c << "..." << std::endl;
     // initialize the enumerators
     NodeManager* nm = NodeManager::currentNM();
     for (const Node& e : d_candidate_to_enum[c])
@@ -200,6 +200,9 @@ bool CegConjecturePbe::initialize(Node n,
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it
+      // we register only one "master" enumerator per type
+      // thus, the strategy lemmas (which are for individual strategy points)
+      // are applicable (disjunctively) to the master enumerator
       std::map<TypeNode, std::vector<Node>>::iterator itt =
           tn_to_strategy_pt.find(etn);
       if (itt != tn_to_strategy_pt.end())

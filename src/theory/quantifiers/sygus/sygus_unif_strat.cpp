@@ -771,10 +771,6 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   TypeNode etn = e.getType();
   EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
-  if (snode.d_strats.empty())
-  {
-    return;
-  }
   std::map<unsigned, bool> needs_cons_curr;
   // constructors that correspond to strategies are not needed
   // the intuition is that the strategy itself is responsible for constructing
@@ -784,6 +780,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     EnumTypeInfoStrat* etis = snode.d_strats[j];
     int cindex = Datatype::indexOf(etis->d_cons.toExpr());
     Assert(cindex != -1);
+    Trace("sygus-strat-slearn") << "...by strategy, can exclude operator " << etis->d_cons << std::endl;
     needs_cons_curr[static_cast<unsigned>(cindex)] = false;
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
@@ -793,11 +790,12 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   // get the current datatype
   const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
   // do not use recursive Boolean connectives for conditions of ITEs
-  if (nrole == enum_ite_condition)
+  if (nrole == role_ite_condition)
   {
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
       Node op = Node::fromExpr(dt[j].getSygusOp());
+      Trace("sygus-strat-slearn") << "...for ite condition, look at operator : " << op << std::endl;
       if (op.getKind() == kind::BUILTIN)
       {
         Kind k = NodeManager::operatorToKind(op);
@@ -816,13 +814,13 @@ void SygusUnifStrategy::staticLearnRedundantOps(
           }
           if (type_ok)
           {
+            Trace("sygus-strat-slearn") << "...for ite condition, can exclude Boolean connective : " << op << std::endl;
             needs_cons_curr[j] = false;
           }
         }
       }
     }
   }
-
   // all other constructors are needed
   for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
   {
