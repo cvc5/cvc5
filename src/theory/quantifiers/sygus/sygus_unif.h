@@ -55,10 +55,11 @@ class SygusUnif
    * the grammar of f and adds them to enums. These enumerators are those that
    * should be later given to calls to notifyEnumeration below.
    *
-   * This also may result in lemmas being added to lemmas,
+   * This also may result in lemmas being added to strategy_lemmas,
    * which correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
-   * strategy is ITE_strat).
+   * strategy is ITE_strat). The lemmas are associated with a strategy point of
+   * the respective function-to-synthesize.
    */
   virtual void initialize(QuantifiersEngine* qe,
                           const std::vector<Node>& funs,

@@ -176,12 +176,12 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
                                         std::vector<Node>& lems)
 {
   // Notify lemma to unification utility and get its purified form
-  std::map<Node, std::vector<Node> > eval_pts;
+  std::map<Node, std::vector<Node>> eval_pts;
   Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
   d_refinement_lemmas.push_back(plem);
   Trace("cegis-unif") << "* Refinement lemma:\n" << plem << "\n";
   // Notify the enumeration manager if there are new evaluation points
-  for (const std::pair<const Node, std::vector<Node> >& ep : eval_pts)
+  for (const std::pair<const Node, std::vector<Node>>& ep : eval_pts)
   {
     Trace("cegis-unif") << "** Registering new point:\n" << plem << "\n";
     d_u_enum_manager.registerEvalPts(ep.second, ep.first);
@@ -221,7 +221,7 @@ void CegisUnifEnumManager::initialize(
     return;
   }
   // process strategy lemmas
-  std::map<TypeNode, std::pair<Node, std::vector<Node>>> tn_redundant_ops;
+  std::map<TypeNode, std::pair<Node, std::vector<Node>>> tn_strategy_lemmas;
   for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
   {
     if (Trace.isOn("cegis-unif-enum-debug"))
@@ -234,9 +234,9 @@ void CegisUnifEnumManager::initialize(
       }
     }
     TypeNode tn = p.first.getType();
-    Assert(tn_redundant_ops.find(tn) == tn_redundant_ops.end());
-    tn_redundant_ops[tn].first = p.first;
-    tn_redundant_ops[tn].second = p.second;
+    Assert(tn_strategy_lemmas.find(tn) == tn_strategy_lemmas.end());
+    tn_strategy_lemmas[tn].first = p.first;
+    tn_strategy_lemmas[tn].second = p.second;
   }
   // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
@@ -253,21 +253,19 @@ void CegisUnifEnumManager::initialize(
       continue;
     }
     std::map<const TypeNode, std::pair<Node, std::vector<Node>>>::iterator it =
-        tn_redundant_ops.find(tn);
-    if (it == tn_redundant_ops.end())
+        tn_strategy_lemmas.find(tn);
+    if (it == tn_strategy_lemmas.end())
     {
       continue;
     }
     // collect lemmas for removing redundant ops for this candidate's type
     d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second.second);
-    Trace("cegis-unif-enum-debug")
-        << "...lemma template to remove redundant operators for " << c
+    Trace("cegis-unif-enum-lemma")
+        << "CegisUnifEnum::lemma, remove redundant operators for " << c
         << " and its type " << tn << " --> " << d_ce_info[tn].d_sbt_lemma
         << "\n";
     d_ce_info[tn].d_sbt_arg = it->second.first;
   }
-  std::map<TypeNode, unsigned> strat_lemmas_tn_index;
-
   // initialize the current literal
   incrementNumEnumerators();
 }
@@ -424,8 +422,8 @@ void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
     disj.push_back(ei.eqNode(itc->second.d_enums[i]));
   }
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
-  Trace("cegis-unif-enum-lemma")
-      << "CegisUnifEnum::lemma, domain:" << lem << "\n";
+  Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, domain:" << lem
+                                 << "\n";
   d_qe->getOutputChannel().lemma(lem);
 }
 

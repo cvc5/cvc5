@@ -27,7 +27,6 @@ namespace theory {
 namespace quantifiers {
 
 SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
-
 SygusUnif::~SygusUnif() {}
 void SygusUnif::initialize(QuantifiersEngine* qe,
                            const std::vector<Node>& funs,
@@ -98,7 +97,7 @@ Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
     const std::map<Node, unsigned>& total_inc,
-    const std::map<Node, std::vector<unsigned> >& incr)
+    const std::map<Node, std::vector<unsigned>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;
