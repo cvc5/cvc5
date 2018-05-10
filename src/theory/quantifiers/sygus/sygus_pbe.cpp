@@ -113,30 +113,38 @@ bool CegConjecturePbe::initialize(Node n,
                                   std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
-  
-  for( unsigned i=0; i<candidates.size(); i++ ){
+
+  for (unsigned i = 0; i < candidates.size(); i++)
+  {
     Node v = candidates[i];
     d_examples[v].clear();
     d_examples_out[v].clear();
     d_examples_term[v].clear();
   }
-  
-  std::map< Node, bool > visited;
-  collectExamples( n, visited, true, true );
-  
-  for( unsigned i=0; i<candidates.size(); i++ ){
+
+  std::map<Node, bool> visited;
+  collectExamples(n, visited, true, true);
+
+  for (unsigned i = 0; i < candidates.size(); i++)
+  {
     Node v = candidates[i];
     Trace("sygus-pbe") << "  examples for " << v << " : ";
-    if( d_examples_invalid.find( v )!=d_examples_invalid.end() ){
+    if (d_examples_invalid.find(v) != d_examples_invalid.end())
+    {
       Trace("sygus-pbe") << "INVALID" << std::endl;
-    }else{
+    }
+    else
+    {
       Trace("sygus-pbe") << std::endl;
-      for( unsigned j=0; j<d_examples[v].size(); j++ ){
+      for (unsigned j = 0; j < d_examples[v].size(); j++)
+      {
         Trace("sygus-pbe") << "    ";
-        for( unsigned k=0; k<d_examples[v][j].size(); k++ ){
+        for (unsigned k = 0; k < d_examples[v][j].size(); k++)
+        {
           Trace("sygus-pbe") << d_examples[v][j][k] << " ";
         }
-        if( !d_examples_out[v][j].isNull() ){
+        if (!d_examples_out[v][j].isNull())
+        {
           Trace("sygus-pbe") << " -> " << d_examples_out[v][j];
         }
         Trace("sygus-pbe") << std::endl;
@@ -168,8 +176,14 @@ bool CegConjecturePbe::initialize(Node n,
                        << std::endl;
     std::vector<Node> singleton_c;
     singleton_c.push_back(c);
+    std::map<Node, std::vector<Node>> strategy_lemmas;
     d_sygus_unif[c].initialize(
-        d_qe, singleton_c, d_candidate_to_enum[c], lemmas);
+        d_qe, singleton_c, d_candidate_to_enum[c], strategy_lemmas);
+    // collect lemmas from all strategies
+    for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
+    {
+      lemmas.insert(lemmas.end(), p.second.begin(), p.second.end());
+    }
     Assert(!d_candidate_to_enum[c].empty());
     Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
                        << " enumerators for " << c << "..." << std::endl;

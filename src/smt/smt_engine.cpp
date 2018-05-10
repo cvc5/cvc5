@@ -70,6 +70,7 @@
 #include "options/uf_options.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
+#include "preprocessing/passes/bv_ackermann.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
@@ -2590,6 +2591,8 @@ void SmtEnginePrivate::finishInit() {
   // actually assembling preprocessing pipelines).
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVAckermann> bvAckermann(
+      new BVAckermann(d_preprocessingPassContext.get()));
   std::unique_ptr<BvAbstraction> bvAbstract(
       new BvAbstraction(d_preprocessingPassContext.get()));
   std::unique_ptr<BVGauss> bvGauss(
@@ -2609,6 +2612,8 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
+  d_preprocessingPassRegistry.registerPass("bv-ackermann",
+                                           std::move(bvAckermann));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
@@ -4029,8 +4034,9 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_smt.d_theoryEngine->mkAckermanizationAssertions(d_assertions.ref());
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())

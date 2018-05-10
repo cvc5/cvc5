@@ -53,7 +53,7 @@ class SygusUnifRl : public SygusUnif
   void initialize(QuantifiersEngine* qe,
                   const std::vector<Node>& funs,
                   std::vector<Node>& enums,
-                  std::vector<Node>& lemmas) override;
+                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
@@ -261,27 +261,40 @@ class SygusUnifRl : public SygusUnif
    *
    * Initialize the above data for the relevant enumerators in the strategy tree
    * of candidate variable f.
+   *
+   * Lemmas to remove redundant operators from enumerators of specific strategy
+   * points, if any, are retrived from strategy_lemmas.
    */
-  void registerStrategy(Node f);
+  void registerStrategy(Node f,
+                        std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register strategy node
    *
    * Called while traversing the strategy tree of f. The arguments e and nrole
    * indicate the current node in the tree we are traversing, and visited
    * indicates the nodes we have already visited.
+   *
+   * Lemmas to remove redundant operators from enumerators of specific strategy
+   * points, if any, are retrived from strategy_lemmas.
    */
   void registerStrategyNode(Node f,
                             Node e,
                             NodeRole nrole,
-                            std::map<Node, std::map<NodeRole, bool>>& visited);
+                            std::map<Node, std::map<NodeRole, bool>>& visited,
+                            std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register conditional enumerator
    *
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
+   *
+   * Lemmas to remove redundant operators from enumerators of specific strategy
+   * points, if any, are retrived from strategy_lemmas.
    */
-  void registerConditionalEnumerator(Node f,
-                                     Node e,
-                                     Node cond,
-                                     unsigned strategy_index);
+  void registerConditionalEnumerator(
+      Node f,
+      Node e,
+      Node cond,
+      unsigned strategy_index,
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
 };
 
 } /* CVC4::theory::quantifiers namespace */

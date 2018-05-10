@@ -68,8 +68,6 @@ public:
 
   Node expandDefinition(LogicRequest& logicRequest, Node node) override;
 
-  void mkAckermanizationAssertions(std::vector<Node>& assertions);
-
   void preRegisterTerm(TNode n) override;
 
   void check(Effort e) override;
@@ -136,8 +134,6 @@ private:
   Node getBVDivByZero(Kind k, unsigned width);
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  void collectFunctionSymbols(TNode term, TNodeSet& seen);
-  void storeFunction(TNode func, TNode term);
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
 
@@ -148,12 +144,7 @@ private:
   std::unordered_map<unsigned, Node> d_BVDivByZero;
   std::unordered_map<unsigned, Node> d_BVRemByZero;
 
-
-  typedef std::unordered_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
   typedef std::unordered_map<Node, Node, NodeHashFunction>  NodeToNode;
-  // for ackermanization
-  FunctionToArgs d_funcToArgs;
-  CVC4::theory::SubstitutionMap d_funcToSkolem;
 
   context::CDO<bool> d_lemmasAdded;
 
