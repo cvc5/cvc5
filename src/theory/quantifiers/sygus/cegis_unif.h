@@ -85,6 +85,8 @@ class CegisUnifEnumManager
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
+  /** whether this module has been initialized */
+  bool d_initialized;
   /** null node */
   Node d_null;
   /** information per initialized type */

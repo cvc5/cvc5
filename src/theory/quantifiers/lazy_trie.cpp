@@ -59,8 +59,6 @@ Node LazyTrie::add(Node n,
   return Node::null();
 }
 
-using IndTriePair = std::pair<unsigned, LazyTrie*>;
-
 void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
 {
   Trace("lazy-trie-multi") << "LazyTrieM: Adding classifier " << ntotal + 1

@@ -960,14 +960,6 @@ header = "options/quantifiers_options.h"
   help       = "abort if synthesis conjecture is not single invocation"
 
 [[option]]
-  name       = "sygusPbe"
-  category   = "regular"
-  long       = "sygus-pbe"
-  type       = "bool"
-  default    = "true"
-  help       = "sygus advanced pruning based on examples"
-
-[[option]]
   name       = "sygusUnif"
   category   = "regular"
   long       = "sygus-unif"
@@ -1050,13 +1042,12 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which automatically unfolds transition systems for directly solving invariant synthesis problems"
 
 [[option]]
-  name       = "sygusUnifCondSol"
+  name       = "sygusUnifPbe"
   category   = "regular"
-  long       = "sygus-unif-csol"
+  long       = "sygus-pbe"
   type       = "bool"
   default    = "true"
-  read_only  = true
-  help       = "enable new approach which unifies conditional solutions"
+  help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
 
 [[option]]
   name       = "sygusDirectEval"

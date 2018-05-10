@@ -77,6 +77,7 @@
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
+#include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -1949,9 +1950,13 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // PBE and streaming modes are incompatible
-      if (!options::sygusPbe.wasSetByUser())
+      if (!options::sygusSymBreakPbe.wasSetByUser())
       {
-        options::sygusPbe.set(false);
+        options::sygusSymBreakPbe.set(false);
+      }
+      if (!options::sygusUnifPbe.wasSetByUser())
+      {
+        options::sygusUnifPbe.set(false);
       }
     }
     //do not allow partial functions
@@ -2602,6 +2607,8 @@ void SmtEnginePrivate::finishInit() {
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
+  std::unique_ptr<SymBreakerPass> sbProc(
+      new SymBreakerPass(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -2615,6 +2622,7 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
+  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4201,11 +4209,10 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryDetect())
+  if (options::symmetryBreakerExp())
   {
-    SymmetryDetect symd;
-    vector<vector<Node>> part;
-    symd.getPartition(part, d_assertions.ref());
+    // apply symmetry breaking
+    d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
   dumpAssertions("pre-static-learning", d_assertions);
