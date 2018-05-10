@@ -232,7 +232,7 @@ void CegisUnifEnumManager::initialize(
     {
       continue;
     }
-    std::map<Node, std::vector<Node>>::iterator it = strategy_lemmas.find(c);
+    auto it = strategy_lemmas.find(c);
     if (it == strategy_lemmas.end())
     {
       continue;

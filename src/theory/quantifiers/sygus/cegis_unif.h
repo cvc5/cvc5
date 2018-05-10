@@ -54,7 +54,8 @@ class CegisUnifEnumManager
    * Each candidate c in cs should be such that we are using a
    * synthesis-by-unification approach for c.
    */
-  void initialize(const std::vector<Node>& cs);
+  void initialize(const std::vector<Node>& cs,
+                  const std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points

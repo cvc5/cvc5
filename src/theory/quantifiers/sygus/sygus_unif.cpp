@@ -32,7 +32,7 @@ SygusUnif::~SygusUnif() {}
 void SygusUnif::initialize(QuantifiersEngine* qe,
                            const std::vector<Node>& funs,
                            std::vector<Node>& enums,
-                           std::vector<Node>& lemmas)
+                           std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   Assert(d_candidates.empty());
   d_qe = qe;

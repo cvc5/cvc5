@@ -28,11 +28,11 @@ SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initialize(QuantifiersEngine* qe,
                              const std::vector<Node>& funs,
                              std::vector<Node>& enums,
-                             std::vector<Node>& lemmas)
+                             std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   // initialize
   std::vector<Node> all_enums;
-  SygusUnif::initialize(qe, funs, all_enums, lemmas);
+  SygusUnif::initialize(qe, funs, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
   for (const Node& f : funs)
@@ -446,7 +446,7 @@ void SygusUnifRl::registerConditionalEnumerator(
     d_tds->registerEnumerator(cond, f, d_parent, true);
     d_cenum_to_stratpt[cond].clear();
     // register lemmas to remove redundant operators from condition enumeration
-    std::map<Node, std::vector<Node>>::iterator it = strategy_lemmas.find(cond);
+    auto it = strategy_lemmas.find(cond);
     if (it != strategy_lemmas.end())
     {
       for (const Node& lemma : it->second)

@@ -53,7 +53,7 @@ class SygusUnifRl : public SygusUnif
   void initialize(QuantifiersEngine* qe,
                   const std::vector<Node>& funs,
                   std::vector<Node>& enums,
-                  std::vector<Node>& lemmas) override;
+                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
