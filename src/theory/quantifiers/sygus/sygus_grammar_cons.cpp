@@ -633,17 +633,23 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
   //add operators
-  for( unsigned i=0; i<3; i++ ){
-    CVC4::Kind k = i==0 ? kind::NOT : ( i==1 ? kind::AND : kind::OR );
+  for (unsigned i = 0; i < 4; i++)
+  {
+    CVC4::Kind k = i == 0
+                       ? kind::NOT
+                       : (i == 1 ? kind::AND : (i == 2 ? kind::OR : kind::ITE));
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
     ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
     cnames.push_back(kind::kindToString(k));
     cargs.push_back( std::vector< CVC4::Type >() );
-    if( k==kind::NOT ){
+    cargs.back().push_back(unres_bt);
+    if (k != kind::NOT)
+    {
       cargs.back().push_back(unres_bt);
-    }else if( k==kind::AND || k==kind::OR ){
-      cargs.back().push_back(unres_bt);
-      cargs.back().push_back(unres_bt);
+      if (k == kind::ITE)
+      {
+        cargs.back().push_back(unres_bt);
+      }
     }
   }
   //add predicates for types
