@@ -760,6 +760,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   {
     return;
   }
+  Trace("sygus-strat-slearn") << "Learn redundant operators " << e << " " << nrole << "..." << std::endl;
   visited[e][nrole] = true;
   EnumInfo& ei = getEnumInfo(e);
   if (ei.isTemplated())
@@ -821,14 +822,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     }
   }
 
-  // get the master enumerator for the type of this enumerator
-  std::map<TypeNode, Node>::iterator itse = d_master_enum.find(etn);
-  if (itse == d_master_enum.end())
-  {
-    return;
-  }
-  Node em = itse->second;
-  Assert(!em.isNull());
+
   // all other constructors are needed
   for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
   {
@@ -838,15 +832,15 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     }
   }
   // update the constructors that the master enumerator needs
-  if (needs_cons.find(em) == needs_cons.end())
+  if (needs_cons.find(e) == needs_cons.end())
   {
-    needs_cons[em] = needs_cons_curr;
+    needs_cons[e] = needs_cons_curr;
   }
   else
   {
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
-      needs_cons[em][j] = needs_cons[em][j] || needs_cons_curr[j];
+      needs_cons[e][j] = needs_cons[e][j] || needs_cons_curr[j];
     }
   }
 }
