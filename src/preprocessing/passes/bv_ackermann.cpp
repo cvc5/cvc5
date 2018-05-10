@@ -155,7 +155,8 @@ PreprocessingPassResult BVAckermann::applyInternal(
     }
   }
 
-  // replace applications of UF by skolems (FIXME for model building)
+  /* replace applications of UF by skolems */
+  // FIXME for model building, github issue #1118)
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(

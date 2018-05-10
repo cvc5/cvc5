@@ -211,19 +211,11 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
     Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
-
-    // if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    //   // Ackermanize UF if using eager bit-blasting
-    //   Node ackerman_var = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_ACKERMANIZE_UDIV : kind::BITVECTOR_ACKERMANIZE_UREM, num);
-    //   node = nm->mkNode(kind::ITE, den_eq_0, ackerman_var, divTotalNumDen);
-    //   return node;
-    // } else {
-      Node divByZero = getBVDivByZero(node.getKind(), width);
-      Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-      node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-      logicRequest.widenLogic(THEORY_UF);
-      return node;
-      //}
+    Node divByZero = getBVDivByZero(node.getKind(), width);
+    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
+    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+    logicRequest.widenLogic(THEORY_UF);
+    return node;
   }
     break;
 
