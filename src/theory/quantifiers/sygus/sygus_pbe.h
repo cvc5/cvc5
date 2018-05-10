@@ -189,7 +189,7 @@ class CegConjecturePbe : public SygusModule
 
  private:
   /** sygus term database of d_qe */
-  quantifiers::TermDbSygus * d_tds;
+  quantifiers::TermDbSygus* d_tds;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -200,7 +200,7 @@ class CegConjecturePbe : public SygusModule
   * In other words, all occurrences of f are guarded by equalities that
   * constraint its arguments to constants.
   */
-  std::map< Node, bool > d_examples_invalid;
+  std::map<Node, bool> d_examples_invalid;
   /** for each candidate variable (function-to-synthesize), whether the
   * conjecture is purely PBE for that variable.
   * An example of a conjecture for which d_examples_invalid is false but
@@ -213,7 +213,7 @@ class CegConjecturePbe : public SygusModule
   * However, the domain of f in both cases is finite, which can be used for
   * search space pruning.
   */
-  std::map< Node, bool > d_examples_out_invalid;
+  std::map<Node, bool> d_examples_out_invalid;
   /**
    * Map from candidates to sygus unif utility. This class implements
    * the core algorithm (e.g. decision tree learning) that this module relies
@@ -231,19 +231,22 @@ class CegConjecturePbe : public SygusModule
   std::map<Node, Node> d_enum_to_active_guard;
   /** for each candidate variable (function-to-synthesize), input of I/O
    * examples */
-  std::map< Node, std::vector< std::vector< Node > > > d_examples;
+  std::map<Node, std::vector<std::vector<Node> > > d_examples;
   /** for each candidate variable (function-to-synthesize), output of I/O
    * examples */
-  std::map< Node, std::vector< Node > > d_examples_out;
+  std::map<Node, std::vector<Node> > d_examples_out;
   /** the list of example terms
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
    */
-  std::map< Node, std::vector< Node > > d_examples_term;
+  std::map<Node, std::vector<Node> > d_examples_term;
   /** collect the PBE examples in n
   * This is called on the input conjecture, and will populate the above vectors.
   *   hasPol/pol denote the polarity of n in the conjecture.
   */
-  void collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol );
+  void collectExamples(Node n,
+                       std::map<Node, bool>& visited,
+                       bool hasPol,
+                       bool pol);
 
   //--------------------------------- PBE search values
   /**
@@ -254,7 +257,8 @@ class CegConjecturePbe : public SygusModule
    *   term x+y is indexed by 1,4
    *   term 0 is indexed by 0,0.
    */
-  class PbeTrie {
+  class PbeTrie
+  {
    public:
     PbeTrie() {}
     ~PbeTrie() {}
@@ -271,13 +275,21 @@ class CegConjecturePbe : public SygusModule
      * index : the index of the example we are processing,
      * ntotal : the total of the examples for enumerator e.
      */
-    Node addPbeExample(TypeNode etn, Node e, Node b, CegConjecturePbe* cpbe,
-                       unsigned index, unsigned ntotal);
+    Node addPbeExample(TypeNode etn,
+                       Node e,
+                       Node b,
+                       CegConjecturePbe* cpbe,
+                       unsigned index,
+                       unsigned ntotal);
 
    private:
     /** Helper function for above, called when we get the current example ex. */
-    Node addPbeExampleEval(TypeNode etn, Node e, Node b, std::vector<Node>& ex,
-                           CegConjecturePbe* cpbe, unsigned index,
+    Node addPbeExampleEval(TypeNode etn,
+                           Node e,
+                           Node b,
+                           std::vector<Node>& ex,
+                           CegConjecturePbe* cpbe,
+                           unsigned index,
                            unsigned ntotal);
   };
   /** trie of candidate solutions tried
@@ -288,11 +300,10 @@ class CegConjecturePbe : public SygusModule
   */
   std::map<Node, std::map<TypeNode, PbeTrie> > d_pbe_trie;
   //--------------------------------- end PBE search values
-
 };
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+} /* namespace CVC4::theory::quantifiers */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
 
 #endif

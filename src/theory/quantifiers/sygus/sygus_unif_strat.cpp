@@ -680,7 +680,8 @@ bool SygusUnifStrategy::inferTemplate(
   return true;
 }
 
-void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
+void SygusUnifStrategy::staticLearnRedundantOps(
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   for (unsigned i = 0; i < d_esym_list.size(); i++)
   {
@@ -716,6 +717,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
     Node em = nce.first;
     const Datatype& dt =
         static_cast<DatatypeType>(em.getType().toType()).getDatatype();
+    std::vector<Node> lemmas;
     for (std::pair<const unsigned, bool>& nc : nce.second)
     {
       Assert(nc.first < dt.getNumConstructors());
@@ -723,6 +725,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
       {
         Node tst =
             datatypes::DatatypesRewriter::mkTester(em, nc.first, dt).negate();
+
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {
           Trace("sygus-unif") << "...can exclude based on  : " << tst
@@ -730,6 +733,10 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
           lemmas.push_back(tst);
         }
       }
+    }
+    if (!lemmas.empty())
+    {
+      strategy_lemmas[em] = lemmas;
     }
   }
 }
