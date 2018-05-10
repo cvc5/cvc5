@@ -306,13 +306,15 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         Node size_eu = nm->mkNode(DT_SIZE, eu);
         Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);
         Node sym_break = nm->mkNode(GEQ, size_eu, size_eu_prev);
-          Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
+        Trace("cegis-unif-enum-lemma")
+            << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
         d_qe->getOutputChannel().lemma(sym_break);
         // it is disequal from all previous ones
-        for( const Node eui : ci.second.d_enums )
+        for (const Node eui : ci.second.d_enums)
         {
           Node deq = eu.eqNode(eui).negate();
-          Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
+          Trace("cegis-unif-enum-lemma")
+              << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
           d_qe->getOutputChannel().lemma(deq);
         }
       }
@@ -361,7 +363,8 @@ void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
     disj.push_back(ei.eqNode(itc->second.d_enums[i]));
   }
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
-  Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, domain:" << lem << "\n";
+  Trace("cegis-unif-enum-lemma")
+      << "CegisUnifEnum::lemma, domain:" << lem << "\n";
   d_qe->getOutputChannel().lemma(lem);
 }
 
