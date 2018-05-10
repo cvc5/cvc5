@@ -1141,6 +1141,12 @@ Expr DatatypeConstructor::getSelector(std::string name) const {
   return (*this)[name].getSelector();
 }
 
+Type DatatypeConstructor::getArgType(unsigned index) const
+{
+  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  return static_cast<SelectorType>((*this)[index].getType()).getRangeType();
+}
+
 bool DatatypeConstructor::involvesExternalType() const{
   for(const_iterator i = begin(); i != end(); ++i) {
     if(! SelectorType((*i).getSelector().getType()).getRangeType().isDatatype()) {

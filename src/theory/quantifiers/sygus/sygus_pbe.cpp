@@ -179,21 +179,57 @@ bool CegConjecturePbe::initialize(Node n,
     std::map<Node, std::vector<Node>> strategy_lemmas;
     d_sygus_unif[c].initialize(
         d_qe, singleton_c, d_candidate_to_enum[c], strategy_lemmas);
-    // collect lemmas from all strategies
-    for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
-    {
-      lemmas.insert(lemmas.end(), p.second.begin(), p.second.end());
-    }
     Assert(!d_candidate_to_enum[c].empty());
     Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
                        << " enumerators for " << c << "..." << std::endl;
+    // collect list per type of strategy points with strategy lemmas
+    std::map<TypeNode, std::vector<Node>> tn_to_strategy_pt;
+    for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
+    {
+      TypeNode tnsp = p.first.getType();
+      tn_to_strategy_pt[tnsp].push_back(p.first);
+    }
     // initialize the enumerators
+    NodeManager* nm = NodeManager::currentNM();
     for (const Node& e : d_candidate_to_enum[c])
     {
+      TypeNode etn = e.getType();
       d_tds->registerEnumerator(e, c, d_parent, true);
       Node g = d_tds->getActiveGuardForEnumerator(e);
       d_enum_to_active_guard[e] = g;
       d_enum_to_candidate[e] = c;
+      TNode te = e;
+      // initialize static symmetry breaking lemmas for it
+      // we register only one "master" enumerator per type
+      // thus, the strategy lemmas (which are for individual strategy points)
+      // are applicable (disjunctively) to the master enumerator
+      std::map<TypeNode, std::vector<Node>>::iterator itt =
+          tn_to_strategy_pt.find(etn);
+      if (itt != tn_to_strategy_pt.end())
+      {
+        std::vector<Node> disj;
+        for (const Node& sp : itt->second)
+        {
+          std::map<Node, std::vector<Node>>::iterator itsl =
+              strategy_lemmas.find(sp);
+          Assert(itsl != strategy_lemmas.end());
+          if (!itsl->second.empty())
+          {
+            TNode tsp = sp;
+            Node lem = itsl->second.size() == 1 ? itsl->second[0]
+                                                : nm->mkNode(AND, itsl->second);
+            if (tsp != te)
+            {
+              lem = lem.substitute(tsp, te);
+            }
+            disj.push_back(lem);
+          }
+        }
+        Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
+        Trace("sygus-pbe") << "  static redundant op lemma : " << lem
+                           << std::endl;
+        lemmas.push_back(lem);
+      }
     }
     Trace("sygus-pbe") << "Initialize " << d_examples[c].size()
                        << " example points for " << c << "..." << std::endl;
