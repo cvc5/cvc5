@@ -201,10 +201,6 @@ void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
   {
     d_conj->getSynthSolutions(sol_map, d_last_inst_si);
   }
-  else
-  {
-    Assert(false);
-  }
 }
 
 void CegInstantiation::preregisterAssertion( Node n ) {
