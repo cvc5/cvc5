@@ -100,6 +100,10 @@ class CegisUnifEnumManager
     std::vector<Node> d_enums;
     /** the set of evaluation points of this type */
     std::vector<Node> d_eval_points;
+    /** symmetry breaking lemma template for this type */
+    Node d_sbt_lemma;
+    /** argument (to be instantiated) of symmetry breaking lemma template */
+    Node d_sbt_arg;
   };
   /** map types to the above info */
   std::map<TypeNode, TypeInfo> d_ce_info;

@@ -109,7 +109,7 @@ class CegConjecturePbe : public SygusModule
   */
   bool initialize(Node n,
                   const std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas) override;
+                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
   /** get term list
    *
   * Adds all active enumerators associated with functions-to-synthesize in

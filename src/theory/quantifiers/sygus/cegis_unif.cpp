@@ -40,7 +40,8 @@ bool CegisUnif::initialize(Node n,
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
   // Init UNIF util
-  d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, lemmas);
+  std::map<Node, std::vector<Node>> strategy_lemmas;
+  d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, strategy_lemmas);
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   std::vector<Node> unif_candidates;
   // Initialize enumerators for non-unif functions-to-synhesize
@@ -64,7 +65,7 @@ bool CegisUnif::initialize(Node n,
     d_enum_to_active_guard[e] = g;
   }
   // initialize the enumeration manager
-  d_u_enum_manager.initialize(unif_candidates);
+  d_u_enum_manager.initialize(unif_candidates, strategy_lemmas);
   return true;
 }
 
@@ -182,6 +183,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   // Notify the enumeration manager if there are new evaluation points
   for (const std::pair<const Node, std::vector<Node> >& ep : eval_pts)
   {
+    Trace("cegis-unif") << "** Registering new point:\n" << plem << "\n";
     d_u_enum_manager.registerEvalPts(ep.second, ep.first);
   }
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
@@ -208,7 +210,9 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-void CegisUnifEnumManager::initialize(const std::vector<Node>& cs)
+void CegisUnifEnumManager::initialize(
+    const std::vector<Node>& cs,
+    const std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   Assert(!d_initialized);
   d_initialized = true;
@@ -216,12 +220,26 @@ void CegisUnifEnumManager::initialize(const std::vector<Node>& cs)
   {
     return;
   }
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& c : cs)
   {
     // currently, we allocate the same enumerators for candidates of the same
     // type
     TypeNode tn = c.getType();
     d_ce_info[tn].d_candidates.push_back(c);
+    // retrieve symmetry breaking lemma template for type if not already init
+    if (!d_ce_info[tn].d_sbt_lemma.isNull())
+    {
+      continue;
+    }
+    std::map<Node, std::vector<Node>>::iterator it = strategy_lemmas.find(c);
+    if (it == strategy_lemmas.end())
+    {
+      continue;
+    }
+    // collect lemmas for removing redundant ops for this candidate's type
+    d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second);
+    d_ce_info[tn].d_sbt_arg = c;
   }
   // initialize the current literal
   incrementNumEnumerators();
@@ -302,6 +320,14 @@ void CegisUnifEnumManager::incrementNumEnumerators()
       if (!ci.second.d_enums.empty())
       {
         Node eu_prev = ci.second.d_enums.back();
+        // instantiate template for removing redundant operators
+        if (!ci.second.d_sbt_lemma.isNull())
+        {
+          Node templ = ci.second.d_sbt_lemma;
+          TNode templ_var = ci.second.d_sbt_arg;
+          Node sym_break_red_ops = templ.substitute(templ_var, eu);
+          d_qe->getOutputChannel().lemma(sym_break_red_ops);
+        }
         // symmetry breaking
         Node size_eu = nm->mkNode(DT_SIZE, eu);
         Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);

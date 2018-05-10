@@ -269,19 +269,23 @@ class SygusUnifRl : public SygusUnif
    * indicate the current node in the tree we are traversing, and visited
    * indicates the nodes we have already visited.
    */
-  void registerStrategyNode(Node f,
-                            Node e,
-                            NodeRole nrole,
-                            std::map<Node, std::map<NodeRole, bool>>& visited);
+  void registerStrategyNode(
+      Node f,
+      Node e,
+      NodeRole nrole,
+      std::map<Node, std::map<NodeRole, bool>>& visited,
+      const std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register conditional enumerator
    *
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
    */
-  void registerConditionalEnumerator(Node f,
-                                     Node e,
-                                     Node cond,
-                                     unsigned strategy_index);
+  void registerConditionalEnumerator(
+      Node f,
+      Node e,
+      Node cond,
+      unsigned strategy_index,
+      const std::map<Node, std::vector<Node>>& strategy_lemmas);
 };
 
 } /* CVC4::theory::quantifiers namespace */

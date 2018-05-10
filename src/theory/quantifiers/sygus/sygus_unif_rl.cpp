@@ -371,17 +371,20 @@ void SygusUnifRl::registerStrategy(Node f)
                                  << " is : " << std::endl;
     d_strategy[f].debugPrint("sygus-unif-rl-strat");
   }
+  std::map<Node, std::vector<Node>> strategy_lemmas;
+  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
-  registerStrategyNode(f, e, role_equal, visited);
+  registerStrategyNode(f, e, role_equal, visited, strategy_lemmas);
 }
 
 void SygusUnifRl::registerStrategyNode(
     Node f,
     Node e,
     NodeRole nrole,
-    std::map<Node, std::map<NodeRole, bool>>& visited)
+    std::map<Node, std::map<NodeRole, bool>>& visited,
+    const std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
@@ -417,17 +420,19 @@ void SygusUnifRl::registerStrategyNode(
             << "  ...detected recursive ITE strategy, condition enumerator : "
             << cond << std::endl;
         // indicate that we will be enumerating values for cond
-        registerConditionalEnumerator(f, e, cond, j);
+        registerConditionalEnumerator(f, e, cond, j, strategy_lemmas);
       }
     }
     // TODO: recurse? for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
   }
 }
 
-void SygusUnifRl::registerConditionalEnumerator(Node f,
-                                                Node e,
-                                                Node cond,
-                                                unsigned strategy_index)
+void SygusUnifRl::registerConditionalEnumerator(
+    Node f,
+    Node e,
+    Node cond,
+    unsigned strategy_index,
+    const std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   // we will do unification for this candidate
   d_unif_candidates.insert(f);
@@ -440,6 +445,15 @@ void SygusUnifRl::registerConditionalEnumerator(Node f,
     // register the conditional enumerator
     d_tds->registerEnumerator(cond, f, d_parent, true);
     d_cenum_to_stratpt[cond].clear();
+    // register lemmas to remove redundant operators from condition enumeration
+    std::map<Node, std::vector<Node>>::iterator it = strategy_lemmas.find(cond);
+    if (it != strategy_lemmas.end())
+    {
+      for (const Node& lemma : it->second)
+      {
+        d_qe->getOutputChannel().lemma(lemma);
+      }
+    }
   }
   // register that this strategy node has a decision tree construction
   d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], strategy_index);

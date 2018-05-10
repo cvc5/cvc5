@@ -63,7 +63,7 @@ class SygusUnif
   virtual void initialize(QuantifiersEngine* qe,
                           const std::vector<Node>& funs,
                           std::vector<Node>& enums,
-                          std::vector<Node>& lemmas);
+                          std::map<Node, std::vector<Node>>& strategy_lemmas);
 
   /**
    * Notify that the value v has been enumerated for enumerator e. This call
