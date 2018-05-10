@@ -760,7 +760,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   {
     return;
   }
-  Trace("sygus-strat-slearn") << "Learn redundant operators " << e << " " << nrole << "..." << std::endl;
+  Trace("sygus-strat-slearn") << "Learn redundant operators " << e << " "
+                              << nrole << "..." << std::endl;
   visited[e][nrole] = true;
   EnumInfo& ei = getEnumInfo(e);
   if (ei.isTemplated())
@@ -821,7 +822,6 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       }
     }
   }
-
 
   // all other constructors are needed
   for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
