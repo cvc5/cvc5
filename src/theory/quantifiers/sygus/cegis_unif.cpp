@@ -65,7 +65,6 @@ bool CegisUnif::initialize(Node n,
     d_enum_to_active_guard[e] = g;
   }
   // initialize the enumeration manager
-  Trace("cegis-unif-enum-debug") << "Have " << strategy_lemmas.size() << " maps on strategy_lemmas\n";
   d_u_enum_manager.initialize(unif_candidates, strategy_lemmas);
   return true;
 }
@@ -221,9 +220,29 @@ void CegisUnifEnumManager::initialize(
   {
     return;
   }
+  // process strategy lemmas
+  std::map<TypeNode, std::pair<Node, std::vector<Node>>> tn_redundant_ops;
+  for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
+  {
+    if (Trace.isOn("cegis-unif-enum-debug"))
+    {
+      Trace("cegis-unif-enum-debug") << "...lemmas of strategy pt " << p.first
+                                     << ":\n";
+      for (const Node& lem : p.second)
+      {
+        Trace("cegis-unif-enum-debug") << "\t" << lem << "\n";
+      }
+    }
+    TypeNode tn = p.first.getType();
+    Assert(tn_redundant_ops.find(tn) == tn_redundant_ops.end());
+    tn_redundant_ops[tn].first = p.first;
+    tn_redundant_ops[tn].second = p.second;
+  }
+  // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& c : cs)
   {
+    Trace("cegis-unif-enum-debug") << "...adding candidate " << c << "\n";
     // currently, we allocate the same enumerators for candidates of the same
     // type
     TypeNode tn = c.getType();
@@ -233,19 +252,22 @@ void CegisUnifEnumManager::initialize(
     {
       continue;
     }
-    auto it = strategy_lemmas.find(c);
-    if (it == strategy_lemmas.end())
+    std::map<const TypeNode, std::pair<Node, std::vector<Node>>>::iterator it =
+        tn_redundant_ops.find(tn);
+    if (it == tn_redundant_ops.end())
     {
       continue;
     }
     // collect lemmas for removing redundant ops for this candidate's type
-    d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second);
+    d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second.second);
     Trace("cegis-unif-enum-debug")
-        << "* Registering lemma to remove redundant operators for " << c
+        << "...lemma template to remove redundant operators for " << c
         << " and its type " << tn << " --> " << d_ce_info[tn].d_sbt_lemma
         << "\n";
-    d_ce_info[tn].d_sbt_arg = c;
+    d_ce_info[tn].d_sbt_arg = it->second.first;
   }
+  std::map<TypeNode, unsigned> strat_lemmas_tn_index;
+
   // initialize the current literal
   incrementNumEnumerators();
 }
@@ -322,17 +344,20 @@ void CegisUnifEnumManager::incrementNumEnumerators()
     {
       TypeNode ct = ci.first;
       Node eu = nm->mkSkolem("eu", ct);
+      // instantiate template for removing redundant operators
+      if (!ci.second.d_sbt_lemma.isNull())
+      {
+        Node templ = ci.second.d_sbt_lemma;
+        TNode templ_var = ci.second.d_sbt_arg;
+        Node sym_break_red_ops = templ.substitute(templ_var, eu);
+        Trace("cegis-unif-enum-debug")
+            << "* Registering lemma remove redundant ops of " << eu << " : "
+            << sym_break_red_ops << "\n";
+        d_qe->getOutputChannel().lemma(sym_break_red_ops);
+      }
       if (!ci.second.d_enums.empty())
       {
         Node eu_prev = ci.second.d_enums.back();
-        // instantiate template for removing redundant operators
-        if (!ci.second.d_sbt_lemma.isNull())
-        {
-          Node templ = ci.second.d_sbt_lemma;
-          TNode templ_var = ci.second.d_sbt_arg;
-          Node sym_break_red_ops = templ.substitute(templ_var, eu);
-          d_qe->getOutputChannel().lemma(sym_break_red_ops);
-        }
         // symmetry breaking
         Node size_eu = nm->mkNode(DT_SIZE, eu);
         Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);
