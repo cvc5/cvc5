@@ -11,7 +11,9 @@ EXTRA_DIST = \
 	configure-in-place \
 	depgraph \
 	get-antlr-3.4 \
+	get-cadical \
 	get-cryptominisat \
+	get-symfpu \
 	get-win-dependencies \
 	mac-build \
 	run-script-smtcomp2014 \
