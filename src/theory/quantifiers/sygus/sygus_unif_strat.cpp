@@ -801,7 +801,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       if (op.getKind() == kind::BUILTIN)
       {
         Kind k = NodeManager::operatorToKind(op);
-        if (k == NOT || k == OR || k == AND)
+        if (k == NOT || k == OR || k == AND || k == ITE)
         {
           // can eliminate if their argument types are simple loops to this type
           bool type_ok = true;
