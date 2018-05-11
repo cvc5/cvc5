@@ -182,6 +182,9 @@ class SygusExplain
    * - (if applicable) exp => ( n != vnr ).
    *
    * This function updates sz to be the term size of [[exp]]_n.
+   * 
+   * If strict is false, then we also test whether the invariance test holds
+   * independently of the entire value of vn.
    */
   void getExplanationFor(Node n,
                          Node vn,
@@ -192,7 +195,9 @@ class SygusExplain
   void getExplanationFor(Node n,
                          Node vn,
                          std::vector<Node>& exp,
-                         SygusInvarianceTest& et);
+                         SygusInvarianceTest& et,
+                         bool strict=true
+                        );
 
  private:
   /** sygus term database associated with this utility */

@@ -292,8 +292,17 @@ void SygusExplain::getExplanationFor(Node n,
 void SygusExplain::getExplanationFor(Node n,
                                      Node vn,
                                      std::vector<Node>& exp,
-                                     SygusInvarianceTest& et)
+                                     SygusInvarianceTest& et, bool strict)
 {
+  if( !strict )
+  {
+    // check if it is invariant over the entire node 
+    Node x = d_tdb->getFreeVar(vn.getType(), 0);
+    if( et.is_invariant(d_tdb, x, x ))
+    {
+      return;
+    }
+  }
   int sz = -1;
   std::map<TypeNode, int> var_count;
   TermRecBuild trb;

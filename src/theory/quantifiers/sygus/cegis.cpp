@@ -249,7 +249,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
               Trace("sygus-cref-eval2-debug")
                   << "  compute min explain of : " << vs[k] << " = " << ut
                   << std::endl;
-              tds->getExplain()->getExplanationFor(vs[k], ut, mexp, vsit);
+              tds->getExplain()->getExplanationFor(vs[k], ut, mexp, vsit, false);
               msu[k] = ut;
             }
             if (!mexp.empty())
