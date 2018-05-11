@@ -335,6 +335,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
     Trace("sym-dt-debug") << "[sym-dt] Not reconstructing node : " << node
                           << " since non-disjoint merged variables." << endl;
   }
+  p.normalize();
   d_term_partition[node] = p;
   printPartition("sym-dt-debug", p);
   return p;
@@ -378,6 +379,31 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
   } while (!visit.empty());
 }
 
+/** A basic trie for storing vectors of arguments */
+class NodeTrie
+{
+public:
+  /** children of this node */
+  std::map< Node, NodeTrie > d_children;
+  /** clear the children */
+  void clear() { d_children.clear(); }
+  /**
+   * Return true iff we've added the suffix of the vector of arguments starting
+   * at index before.
+   */
+  bool add( const std::vector< Node >& args, unsigned index=0 )
+  {
+    if( index==args.size() )
+    {
+      bool ret = d_children.empty();
+      // mark that we've visited this
+      d_children[Node::null()].clear();
+      return ret;
+    }
+    return d_children[args[index]].add(args,index+1);
+  }
+};
+
 bool SymmetryDetect::mergePartitions(
     Kind k,
     std::vector<Partition>& partitions,
@@ -408,6 +434,11 @@ bool SymmetryDetect::mergePartitions(
   for (const std::pair<const unsigned, std::vector<unsigned> >& nvi :
        nv_indices)
   {
+    if( nvi.second.size()<=1 )
+    {
+      // no symmetries
+      continue;
+    }
     unsigned num_vars = nvi.first;
     if (Trace.isOn("sym-dt-debug"))
     {
@@ -418,28 +449,75 @@ bool SymmetryDetect::mergePartitions(
       }
       Trace("sym-dt-debug") << std::endl;
     }
-    if( nvi.second.size()>1 )
+    // drop duplicates
+    // this ensures we don't double count equivalent children that were not
+    // syntactically identical e.g. (or (= x y) (= y x))
+    NodeTrie ntrie;
+    // non-duplicate indices
+    std::vector< unsigned > nvis;
+    for (unsigned index : nvi.second)
     {
-      std::unordered_set<unsigned> include_indices;
-      unsigned curr_index = 0;
-      std::unordered_set<Node, NodeHashFunction> curr_variables;
-      Trace("sym-dt-debug") << "    try merge partitions..." << std::endl;
-      if (mergePartitions(k,
-                          include_indices,
-                          curr_index,
-                          curr_variables,
-                          num_vars,
-                          partitions,
-                          nvi.second,
-                          active_indices))
+      Partition& p = partitions[index];
+      std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
+      if( ntrie.add(svs) )
       {
-        Trace("sym-dt-debug") << "    ...success!" << std::endl;
-        merged = true;
+        nvis.push_back(index);
       }
       else
       {
-        Trace("sym-dt-debug") << "    ...failed" << std::endl;
+        Trace("sym-dt-debug") << "Drop duplicate child : " << index << std::endl;
+        Assert(active_indices.find(index) != active_indices.end());
+        active_indices.erase(index);
       }
+    }
+    Trace("sym-dt-debug") << "Count variable occurrences..." << std::endl;
+    // count the number of times each variable occurs
+    std::map< Node, unsigned > occurs_count;
+    for( unsigned index : nvis )
+    {
+      Partition& p = partitions[index];
+      std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
+      for (const Node& v : svs)
+      {
+        if( occurs_count.find(v)==occurs_count.end() )
+        {
+          occurs_count[v] = 1;
+        }
+        else
+        {
+          occurs_count[v]++;
+        }
+      }
+    }
+    if (Trace.isOn("sym-dt-debug"))
+    {
+      Trace("sym-dt-debug") << "    variable occurrences: " << std::endl; 
+      for( const std::pair< const Node, unsigned >& o : occurs_count )
+      {
+        Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second << std::endl;
+      }
+    }
+    
+
+    std::unordered_set<unsigned> include_indices;
+    unsigned curr_index = 0;
+    std::unordered_set<Node, NodeHashFunction> curr_variables;
+    Trace("sym-dt-debug") << "    try merge partitions..." << std::endl;
+    if (mergePartitions(k,
+                        include_indices,
+                        curr_index,
+                        curr_variables,
+                        num_vars,
+                        partitions,
+                        nvis,
+                        active_indices))
+    {
+      Trace("sym-dt-debug") << "    ...success!" << std::endl;
+      merged = true;
+    }
+    else
+    {
+      Trace("sym-dt-debug") << "    ...failed" << std::endl;
     }
   }
   return merged;
@@ -575,6 +653,15 @@ bool SymmetryDetect::mergePartitions(
                          partitions,
                          indices,
                          active_indices);
+}
+
+
+void SymmetryDetect::Partition::normalize()
+{
+  for( std::pair<const Node, std::vector<Node> > p : d_subvar_to_vars )
+  {
+    std::sort( p.second.begin(), p.second.end() );
+  }
 }
 
 void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,

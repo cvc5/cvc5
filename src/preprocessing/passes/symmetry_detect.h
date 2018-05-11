@@ -92,6 +92,8 @@ class SymmetryDetect
      * { w-> { x, y } }
      */
     std::map<Node, std::vector<Node> > d_subvar_to_vars;
+    /** normalize, sorts the ranges of d_subvar_to_vars. */
+    void normalize();
   };
 
   /**
