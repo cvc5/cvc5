@@ -1319,6 +1319,38 @@ void SmtEngine::setDefaults() {
     }
   }
 
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Eager bit-blasting does not currently support incremental mode. "
+            "Try --bitblast=lazy"));
+      }
+      Notice() << "SmtEngine: turning off incremental to support eager "
+               << "bit-blasting" << endl;
+      setOption("incremental", SExpr("false"));
+    }
+    if (options::produceModels()
+        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+            || d_logic.isTheoryEnabled(THEORY_UF)))
+    {
+      if (options::bitblastMode.wasSetByUser()
+          || options::produceModels.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Eager bit-blasting currently does not support model generation "
+            "for the combination of bit-vectors with arrays or uinterpreted "
+            "functions. Try --bitblast=lazy"));
+      }
+      Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
+               << "generation" << endl;
+      setOption("bitblastMode", SExpr("lazy"));
+    }
+  }
+
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
   }else if (options::solveIntAsBV() > 0) {
@@ -1660,17 +1692,6 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
-  }
-
-
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      options::incrementalSolving()) {
-    if (options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
-                                         Try --bitblast=lazy"));
-    }
-    Notice() << "SmtEngine: turning off incremental to support eager bit-blasting" << endl;
-    setOption("incremental", SExpr("false"));
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&

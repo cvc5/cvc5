@@ -55,7 +55,12 @@ void storeFunction(
   if (set.find(term) == set.end())
   {
     set.insert(term);
-    Node skolem = bv::utils::mkVar(bv::utils::getSize(term));
+    TypeNode tn = term.getType();
+    Node skolem = NodeManager::currentNM()->mkSkolem(
+        "BVSKOLEM$$",
+        tn,
+        "is a variable created by the ackermannization "
+        "preprocessing pass for theory BV");
     fun_to_skolem.addSubstitution(term, skolem);
   }
 }
@@ -156,7 +161,7 @@ PreprocessingPassResult BVAckermann::applyInternal(
   }
 
   /* replace applications of UF by skolems */
-  // FIXME for model building, github issue #1118)
+  // FIXME for model building, github issue #1901
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
