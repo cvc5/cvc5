@@ -128,6 +128,14 @@ class TermDbSygus {
   int getVarNum(Node n) { return d_fv_num[n]; }
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
+  /** get sygus proxy variable
+   *
+   * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set
+   * to constant c. The type tn should be a sygus datatype type, and the type of
+   * c should be the analog type of tn. The semantics of the returned node
+   * is "the variable of sygus datatype tn that encodes constant c".
+   */
+  Node getProxyVariable(TypeNode tn, Node c);
   /** make generic
    *
    * This function returns a builtin term f( t1, ..., tn ) where f is the
@@ -152,6 +160,29 @@ class TermDbSygus {
   Node sygusToBuiltin(Node n, TypeNode tn);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
+  /** evaluate builtin
+   *
+   * bn is a term of some sygus datatype tn. This function returns the rewritten
+   * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
+   * list for type tn (see Datatype::getSygusVarList).
+   */
+  Node evaluateBuiltin(TypeNode tn, Node bn, std::vector<Node>& args);
+  /** evaluate with unfolding
+   *
+   * n is any term that may involve sygus evaluation functions. This function
+   * returns the result of unfolding the evaluation functions within n and
+   * rewriting the result. For example, if eval_A is the evaluation function
+   * for the datatype:
+   *   A -> C_0 | C_1 | C_x | C_+( C_A, C_A )
+   * corresponding to grammar:
+   *   A -> 0 | 1 | x | A + A
+   * then calling this function on eval( C_+( x, 1 ), 4 ) = y returns 5 = y.
+   * The node returned by this function is in (extended) rewritten form.
+   */
+  Node evaluateWithUnfolding(Node n);
+  /** same as above, but with a cache of visited nodes */
+  Node evaluateWithUnfolding(
+      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
   //-----------------------------end conversion from sygus to builtin
 
  private:
@@ -201,6 +232,8 @@ class TermDbSygus {
   std::map<Node, int> d_fv_num;
   /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
   bool hasFreeVar(Node n, std::map<Node, bool>& visited);
+  /** cache of getProxyVariable */
+  std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
 
   // TODO :issue #1235 : below here needs refactor
@@ -259,7 +292,7 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType(const DatatypeConstructor& c, unsigned i);
+  TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
@@ -316,13 +349,6 @@ public:
     return unfold( en, vtm, exp, false );
   }
   Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
-
-  // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
-  Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  // evaluate with unfolding
-  Node evaluateWithUnfolding(
-      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
-  Node evaluateWithUnfolding( Node n );
 };
 
 }/* CVC4::theory::quantifiers namespace */

@@ -1475,6 +1475,7 @@ REG1_TESTS = \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
 	regress1/sygus/constant.sy \
+	regress1/sygus/constant-ite-bv.sy \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
