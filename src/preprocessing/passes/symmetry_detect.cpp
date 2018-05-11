@@ -205,7 +205,7 @@ SymmetryDetect::Partition SymmetryDetect::findPartitions(Node node)
         Trace("sym-dt-debug") << std::endl;
       }
       // merge children, remove active indices
-      mergePartitions(k, partitions, sti.second, active_indices);
+      processPartitions(k, partitions, sti.second, active_indices);
     }
   }
   // initially set substituted term to node
@@ -383,6 +383,9 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 class NodeTrie
 {
  public:
+  NodeTrie() : d_value(-1){}
+  /** value of this node, -1 if unset */
+  int d_value;
   /** children of this node */
   std::map<Node, NodeTrie> d_children;
   /** clear the children */
@@ -391,20 +394,37 @@ class NodeTrie
    * Return true iff we've added the suffix of the vector of arguments starting
    * at index before.
    */
-  bool add(const std::vector<Node>& args, unsigned index = 0)
+  unsigned add(unsigned value, const std::vector<Node>& args, unsigned index = 0)
   {
     if (index == args.size())
     {
-      bool ret = d_children.empty();
-      // mark that we've visited this
-      d_children[Node::null()].clear();
-      return ret;
+      if( d_value==-1 )
+      {
+        d_value = static_cast<int>(value);
+      }
+      return d_value;
     }
-    return d_children[args[index]].add(args, index + 1);
+    return d_children[args[index]].add(value,args, index + 1);
   }
 };
 
-bool SymmetryDetect::mergePartitions(
+
+unsigned nChoosek(unsigned n, unsigned k)
+{
+  if (k > n) return 0;
+  if (k * 2 > n) k = n - k;
+  if (k == 0) return 1;
+
+  int result = n;
+  for (int i = 2; i <= static_cast<int>(k); ++i)
+  {
+    result *= (n - i + 1);
+    result /= i;
+  }
+  return result;
+}
+
+void SymmetryDetect::processPartitions(
     Kind k,
     std::vector<Partition>& partitions,
     const std::vector<unsigned>& indices,
@@ -417,7 +437,7 @@ bool SymmetryDetect::mergePartitions(
   if (num_sb_vars != 1)
   {
     // can only handle symmetries that are classified by { n }
-    return false;
+    return;
   }
   // separate by number of variables
   // for each n, nv_indices[n] contains the indices of partitions of the form
@@ -430,7 +450,6 @@ bool SymmetryDetect::mergePartitions(
     unsigned num_vars = partitions[index].d_var_to_subvar.size();
     nv_indices[num_vars].push_back(index);
   }
-  bool merged = false;
   for (const std::pair<const unsigned, std::vector<unsigned> >& nvi :
        nv_indices)
   {
@@ -449,212 +468,346 @@ bool SymmetryDetect::mergePartitions(
       }
       Trace("sym-dt-debug") << std::endl;
     }
+    Trace("sym-dt-debug") << "Check for duplicates..." << std::endl;
     // drop duplicates
     // this ensures we don't double count equivalent children that were not
     // syntactically identical e.g. (or (= x y) (= y x))
     NodeTrie ntrie;
     // non-duplicate indices
-    std::vector<unsigned> nvis;
+    std::unordered_set<unsigned> nvis;
     for (unsigned index : nvi.second)
     {
       Partition& p = partitions[index];
       std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
-      if (ntrie.add(svs))
+      unsigned aindex = ntrie.add(index,svs);
+      if (aindex==index)
       {
-        nvis.push_back(index);
+        nvis.insert(index);
       }
-      else
+      else if( theory::quantifiers::TermUtil::isNonAdditive(k) )
       {
         Trace("sym-dt-debug") << "Drop duplicate child : " << index
                               << std::endl;
         Assert(active_indices.find(index) != active_indices.end());
         active_indices.erase(index);
       }
-    }
-    Trace("sym-dt-debug") << "Count variable occurrences..." << std::endl;
-    // count the number of times each variable occurs
-    std::map<Node, unsigned> occurs_count;
-    for (unsigned index : nvis)
-    {
-      Partition& p = partitions[index];
-      std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
-      for (const Node& v : svs)
+      else
       {
-        if (occurs_count.find(v) == occurs_count.end())
-        {
-          occurs_count[v] = 1;
-        }
-        else
-        {
-          occurs_count[v]++;
-        }
+        nvis.erase(aindex);
       }
     }
-    if (Trace.isOn("sym-dt-debug"))
-    {
-      Trace("sym-dt-debug") << "    variable occurrences: " << std::endl;
-      for (const std::pair<const Node, unsigned>& o : occurs_count)
-      {
-        Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second
-                              << std::endl;
-      }
-    }
-
-    std::unordered_set<unsigned> include_indices;
-    unsigned curr_index = 0;
-    std::unordered_set<Node, NodeHashFunction> curr_variables;
-    Trace("sym-dt-debug") << "    try merge partitions..." << std::endl;
-    if (mergePartitions(k,
-                        include_indices,
-                        curr_index,
-                        curr_variables,
-                        num_vars,
-                        partitions,
-                        nvis,
-                        active_indices))
-    {
-      Trace("sym-dt-debug") << "    ...success!" << std::endl;
-      merged = true;
-    }
-    else
-    {
-      Trace("sym-dt-debug") << "    ...failed" << std::endl;
-    }
+    std::vector<unsigned> check_indices;
+    check_indices.insert(check_indices.end(), nvis.begin(),nvis.end());
+    Trace("sym-dt-debug") << "Merge..." << std::endl;
+    // now, try to merge these partitions
+    mergePartitions(k, partitions, check_indices, active_indices);
   }
-  return merged;
 }
-
-// FIXME: make overflow safe
-unsigned nChoosek(unsigned n, unsigned k)
-{
-  if (k > n) return 0;
-  if (k * 2 > n) k = n - k;
-  if (k == 0) return 1;
-
-  int result = n;
-  for (int i = 2; i <= static_cast<int>(k); ++i)
-  {
-    result *= (n - i + 1);
-    result /= i;
-  }
-  return result;
-}
-
-bool SymmetryDetect::mergePartitions(
+    
+void SymmetryDetect::mergePartitions(
     Kind k,
-    std::unordered_set<unsigned>& include_indices,
-    unsigned curr_index,
-    std::unordered_set<Node, NodeHashFunction>& curr_variables,
-    unsigned num_vars,
     std::vector<Partition>& partitions,
     const std::vector<unsigned>& indices,
     std::unordered_set<unsigned>& active_indices)
 {
-  Trace("sym-dt-debug") << "merge " << curr_index << " / " << indices.size()
-                        << std::endl;
-  // are there too many variables?
-  unsigned curr_nvars = curr_variables.size();
-  if (curr_nvars > num_vars)
+  if( indices.size()<=1 )
   {
-    // the maximum number of partitions we can include at this point
-    unsigned npart_max = include_indices.size() + (indices.size() - curr_index);
-    // the number of patitions we need, which is (choose curr_nvars num_vars)
-    unsigned npart_need = nChoosek(curr_nvars, num_vars);
-    Trace("sym-dt-debug") << "...curr num vars = " << curr_nvars << std::endl;
-    Trace("sym-dt-debug") << "  npart_max = " << npart_max << std::endl;
-    Trace("sym-dt-debug") << "  npart_need = " << npart_need << " (choose " << curr_nvars << " " << num_vars << ")" << std::endl;
-    // max must be greater than or equal to need
-    if( npart_max < npart_need )
-    {
-      return false;
-    }
+    return;
   }
-  if (curr_index == indices.size())
+  if (Trace.isOn("sym-dt-debug"))
   {
-    if (include_indices.size() <= 1)
-    {
-      return false;
-    }
-    // found a symmetry
-    // merge the partitions
-    std::vector<Node> children;
-    std::vector<Node> schildren;
-    bool set_master_index = false;
-    unsigned master_index = 0;
-    Trace("sym-dt-debug") << "found symmetry : { ";
-    for (const unsigned& i : include_indices)
+    Trace("sym-dt-debug") << "  merge indices ";
+    for (unsigned i : indices)
     {
       Trace("sym-dt-debug") << i << " ";
-      const Partition& p = partitions[i];
-      children.push_back(p.d_term);
-      schildren.push_back(p.d_sterm);
-      Assert(active_indices.find(i) != active_indices.end());
-      if (!set_master_index)
+    }
+    Trace("sym-dt-debug") << std::endl;
+  }
+  Assert(!indices.empty());
+  Trace("sym-dt-debug") << "Count variable occurrences..." << std::endl;
+  // count the number of times each variable occurs
+  std::map<Node, unsigned> occurs_count;
+  // the number of times each variable occurs up to the given index
+  std::map<unsigned, std::map< Node, unsigned > > occurs_by;
+  for (unsigned index : indices)
+  {
+    Partition& p = partitions[index];
+    std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
+    for (const Node& v : svs)
+    {
+      if (occurs_count.find(v) == occurs_count.end())
       {
-        set_master_index = true;
-        master_index = i;
+        occurs_count[v] = 1;
       }
       else
       {
-        active_indices.erase(i);
+        occurs_count[v]++;
       }
+      occurs_by[index][v] = occurs_count[v]-1;
     }
-    Trace("sym-dt-debug") << "}" << std::endl;
-    Trace("sym-dt-debug") << "Reconstruct master partition " << master_index
-                          << std::endl;
-    Partition& p = partitions[master_index];
-    // reconstruct the master partition
-    p.d_term = mkAssociativeNode(k, children);
-    p.d_sterm = mkAssociativeNode(k, schildren);
-    Assert(p.d_subvar_to_vars.size() == 1);
-    Node sb_v = p.d_subvar_to_vars.begin()->first;
-    p.d_subvar_to_vars[sb_v].clear();
-    for (const Node& v : curr_variables)
-    {
-      p.d_var_to_subvar[v] = sb_v;
-      p.d_subvar_to_vars[sb_v].push_back(v);
-      Trace("sym-dt-debug")
-          << "- set var to svar: " << v << " -> " << sb_v << std::endl;
-    }
-    Trace("sym-dt-debug") << "...finished." << std::endl;
-    return true;
   }
+  if (Trace.isOn("sym-dt-debug"))
+  {
+    Trace("sym-dt-debug") << "    variable occurrences: " << std::endl;
+    for (const std::pair<const Node, unsigned>& o : occurs_count)
+    {
+      Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second
+                            << std::endl;
+    }
+  }
+  for (unsigned index : indices)
+  {
+    Partition& p = partitions[index];
+    Trace("sym-dt-debug") << "   try basis index " << index << " (#vars = " << p.d_subvar_to_vars.size() << ")" << std::endl;
+    Assert( p.d_subvar_to_vars.size()==1 );
+    std::vector< Node >& svs = p.d_subvar_to_vars.begin()->second;
+    Trace("sym-dt-debug") << "   try basis: " << svs << std::endl;
+    // try to merge variables one-by-one
+    bool merged = false;
+    bool success = false;
+    std::unordered_set<unsigned> base_indices;
+    base_indices.insert(index);
+    std::unordered_set< Node,NodeHashFunction > base_vars;
+    base_vars.insert(svs.begin(),svs.end());
+    unsigned base_choose = base_vars.size()-1;
+    unsigned num_new_indices_needed = base_vars.size();
+    unsigned base_occurs_req = base_vars.size();
+    do
+    {
+      Trace("sym-dt-debug") << "   base variables must occur " << base_occurs_req << " times." << std::endl;
+      // check if all the base_vars occur at least the required number of
+      // times
+      bool var_ok = true;
+      for (const Node& v : base_vars)
+      {
+        if( occurs_count[v]<base_occurs_req )
+        {
+          Trace("sym-dt-debug") << "...failed variable " << v << std::endl;
+          var_ok = false;
+          break;
+        }
+      }
+      if( !var_ok )
+      {
+        // cannot merge due to a base variable
+        break;
+      }
+      // try to find a new variable to merge
+      Trace("sym-dt-debug") << "   must find " << num_new_indices_needed << " new indices to merge." << std::endl;
+      std::vector<unsigned> new_indices;
+      Node merge_var;
+      std::unordered_set< Node, NodeHashFunction > merge_var_tried;
+      if (mergeNewVar(k,
+                          index,
+                          base_vars,
+                          base_indices,
+                          new_indices,
+                          num_new_indices_needed,
+                          merge_var,
+                          0,
+                          merge_var_tried,
+                          occurs_count,
+                          occurs_by,
+                          partitions,
+                          0,
+                          indices,
+                          active_indices))
+      {
+        Trace("sym-dt-debug") << "   ...merged: " << merge_var << std::endl;
+        Assert( !merge_var.isNull() );
+        merged = true;
+        success = true;
+        // update the number of new indicies needed
+        if( base_choose>0 )
+        {
+          num_new_indices_needed += nChoosek( base_vars.size(), base_choose-1 );
+          //base_occurs_req =   TODO
+        }
+      }
+      else
+      {
+        Trace("sym-dt-debug") << "   ...failed to merge" << std::endl;
+        success = false;
+      }
+    }while(success);
+    // we merged, remove the master and the deactivated partition indices and recurse
+    if( merged )
+    {
+      Trace("sym-dt-debug") << "    ......we merged, recurse" << std::endl;
+      std::vector< unsigned > rem_indices;
+      for( unsigned ii : indices )
+      {
+        if( ii!=index && active_indices.find(ii)!=active_indices.end() )
+        {
+          rem_indices.push_back(ii);
+        }
+      }
+      mergePartitions(k,partitions,rem_indices,active_indices);
+      return;
+    }
+  }
+}
+
+bool SymmetryDetect::mergeNewVar(
+      Kind k,
+      unsigned master_base_index,
+      std::unordered_set<Node, NodeHashFunction>& base_vars,
+      std::unordered_set<unsigned>& base_indices,
+      
+      std::vector<unsigned>& new_indices,
+      unsigned num_new_indices_needed,
+      
+      Node& merge_var,
+      unsigned num_merge_var_max,
+      std::unordered_set< Node, NodeHashFunction >& merge_var_tried,
+      
+      std::map< Node, unsigned >& occurs_count,
+      std::map< unsigned, std::map< Node, unsigned > >& occurs_by,
+      
+      std::vector<Partition>& partitions,
+      
+      unsigned curr_index,
+      const std::vector<unsigned>& indices,
+      std::unordered_set<unsigned>& active_indices)
+{
+  Assert(new_indices.size()<num_new_indices_needed);
+  if (curr_index == indices.size())
+  {
+    return false;
+  }
+  Trace("sym-dt-debug2") << "merge " << curr_index << " / " << indices.size()
+                        << std::endl;
   // try to include this index
   unsigned index = indices[curr_index];
-  Partition& p = partitions[index];
-  std::unordered_set<Node, NodeHashFunction> new_variables;
-  new_variables.insert(curr_variables.begin(), curr_variables.end());
-  Assert(p.d_subvar_to_vars.size() == 1);
-  for (const std::pair<const Node, std::vector<Node> >& s : p.d_subvar_to_vars)
-  {
-    new_variables.insert(s.second.begin(), s.second.end());
-  }
-
-  include_indices.insert(index);
-  if (mergePartitions(k,
-                      include_indices,
-                      curr_index + 1,
-                      new_variables,
-                      num_vars,
-                      partitions,
-                      indices,
-                      active_indices))
-  {
-    return true;
-  }
-  include_indices.erase(index);
-
   
-  // try not including this index
-  return mergePartitions(k,
-                         include_indices,
-                         curr_index + 1,
-                         curr_variables,
-                         num_vars,
-                         partitions,
-                         indices,
-                         active_indices);
-}
+  // if not already included 
+  if( base_indices.find(index)==base_indices.end() )
+  {
+    Assert( active_indices.find(index)!=active_indices.end() );
+    // check whether it can merge
+    Partition& p = partitions[index];
+    Assert(p.d_subvar_to_vars.size() == 1);
+    std::vector< Node >& svs = p.d_subvar_to_vars.begin()->second;
+    bool include_success = true;
+    Node curr_merge_var;
+    for (const Node& v : svs)
+    {
+      if(base_vars.find(v)==base_vars.end() && v!=merge_var)
+      {
+        if( merge_var.isNull() && curr_merge_var.isNull() )
+        {
+          curr_merge_var = v;
+        }
+        else
+        {
+          // cannot include 
+          Trace("sym-dt-debug2") << "...cannot include (new-var)\n";
+          include_success = false;
+          curr_merge_var = Node::null();
+          break;
+        }
+      }
+    }
+    if( !curr_merge_var.isNull() )
+    {
+      // compute the maximum number of indices we can include for v
+      Assert( occurs_by[index].find(curr_merge_var)!=occurs_by[index].end() );
+      Assert( occurs_count.find(curr_merge_var)!=occurs_count.end() );
+      unsigned num_v_max = occurs_count[curr_merge_var] - occurs_by[index][curr_merge_var];
+      if( num_v_max>=num_new_indices_needed )
+      {
+        // have we already tried this merge_var?
+        if( merge_var_tried.find(curr_merge_var)!=merge_var_tried.end() )
+        {
+          include_success = false;
+          Trace("sym-dt-debug2") << "...cannot include (already tried new merge var " << curr_merge_var << ")\n";
+        }
+        else
+        {
+          Trace("sym-dt-debug2") << "set merge var : " << curr_merge_var << std::endl;
+          merge_var_tried.insert(curr_merge_var);
+          num_merge_var_max = num_v_max;
+          merge_var = curr_merge_var;
+        }
+      }
+      else
+      {
+        Trace("sym-dt-debug2") << "...cannot include (not enough room for new merge var " << num_v_max << "<" << num_new_indices_needed << ")\n";
+        include_success = false;
+      }
+    }
+    else if( !include_success && !merge_var.isNull() )
+    {
+      // decrement
+      num_merge_var_max--;
+      if( num_merge_var_max<num_new_indices_needed-new_indices.size() )
+      {
+        Trace("sym-dt-debug2") << "...fail (out of merge var)\n";
+        return false;
+      }
+    }
+    
+    if( include_success )
+    {
+      // try with the index included
+      new_indices.push_back(index);
+      
+      // do we have enough now?
+      if( new_indices.size()==num_new_indices_needed )
+      {
+        std::vector<Node> children;
+        children.push_back(p.d_term);
+        std::vector<Node> schildren;
+        schildren.push_back(p.d_sterm);
+        // can now include in the base
+        base_vars.insert(merge_var);
+        Trace("sym-dt-debug") << "found symmetry : { ";
+        for (const unsigned& i : new_indices)
+        {
+          Assert( base_indices.find(i)==base_indices.end() );
+          base_indices.insert(i);
+          Trace("sym-dt-debug") << i << " ";
+          const Partition& p = partitions[i];
+          children.push_back(p.d_term);
+          schildren.push_back(p.d_sterm);
+          Assert(active_indices.find(i) != active_indices.end());
+          active_indices.erase(i);
+        }
+        Trace("sym-dt-debug") << "}" << std::endl;
+        Trace("sym-dt-debug") << "Reconstruct master partition " << master_base_index
+                              << std::endl;
+        Partition& p = partitions[master_base_index];
+        // reconstruct the master partition
+        p.d_term = mkAssociativeNode(k, children);
+        p.d_sterm = mkAssociativeNode(k, schildren);
+        Assert(p.d_subvar_to_vars.size() == 1);
+        Node sb_v = p.d_subvar_to_vars.begin()->first;
+        p.d_subvar_to_vars[sb_v].push_back(merge_var);
+        Trace("sym-dt-debug")
+              << "- set var to svar: " << merge_var << " -> " << sb_v << std::endl;
+        p.d_var_to_subvar[merge_var] = sb_v;
+        return true;
+      }
+      if( mergeNewVar(k,master_base_index,base_vars,base_indices, new_indices,num_new_indices_needed,
+                         merge_var,num_merge_var_max,merge_var_tried, occurs_count,occurs_by, partitions, curr_index+1, indices, active_indices) )
+      {
+        return true;
+      }
+      new_indices.pop_back();
+      // if we included with the merge var, no use trying not including
+      if( curr_merge_var.isNull() && !merge_var.isNull() )
+      {
+        Trace("sym-dt-debug2") << "...fail (failed merge var)\n";
+        return false;
+      }
+    }
+  }   
+  // if we haven't chosen a merge variable, we may be out of time TODO
+  
+  // try with it not included
+  return mergeNewVar(k,master_base_index,base_vars,base_indices, new_indices,num_new_indices_needed,
+                         merge_var,num_merge_var_max,merge_var_tried, occurs_count,occurs_by, partitions, curr_index+1, indices, active_indices );
+}        
 
 void SymmetryDetect::Partition::normalize()
 {
@@ -676,7 +829,7 @@ void SymmetryDetect::PartitionTrie::getNewPartition(Partition& part,
     if (sbv.isNull())
     {
       fresh_var = NodeManager::currentNM()->mkSkolem(
-          "sym_bk", pt.d_variables[0].getType());
+          "tmp_sym_bk", pt.d_variables[0].getType());
       part.d_sterm = Node::null();
     }
     else

@@ -160,7 +160,7 @@ class SymmetryDetect
   /** Print a partition */
   void printPartition(const char* c, Partition p);
 
-  /** merge partitions
+  /** process partitions
    *
    * This method is called when we have detected symmetries for the children
    * of a term t of the form <k>( t_1, ..., t_n ), where k is a commutative
@@ -182,7 +182,11 @@ class SymmetryDetect
    * (j1...jp), we remove {j1...jp} \ { j1 } from active_indices, and update
    * partition[j1] := { w -> X* }.
    */
-  bool mergePartitions(Kind k,
+  void processPartitions(Kind k,
+                       std::vector<Partition>& partitions,
+                       const std::vector<unsigned>& indices,
+                       std::unordered_set<unsigned>& active_indices);
+  void mergePartitions(Kind k,
                        std::vector<Partition>& partitions,
                        const std::vector<unsigned>& indices,
                        std::unordered_set<unsigned>& active_indices);
@@ -197,15 +201,28 @@ class SymmetryDetect
    * curr_variables : the current set X*,
    * num_vars : the size of the range of partitions, i.e. |X_i| above.
    */
-  bool mergePartitions(
+  bool mergeNewVar(
       Kind k,
-      std::unordered_set<unsigned>& include_indices,
-      unsigned curr_index,
-      std::unordered_set<Node, NodeHashFunction>& curr_variables,
-      unsigned num_vars,
+      unsigned master_base_index,
+      std::unordered_set<Node, NodeHashFunction>& base_vars,
+      std::unordered_set<unsigned>& base_indices,
+      
+      std::vector<unsigned>& new_indices,
+      unsigned num_new_indices_needed,
+      
+      Node& merge_var,
+      unsigned num_merge_var_max,
+      std::unordered_set< Node, NodeHashFunction >& merge_var_tried,
+      
+      std::map< Node, unsigned >& occurs_count,
+      std::map< unsigned, std::map< Node, unsigned > >& occurs_by,
+      
       std::vector<Partition>& partitions,
+      
+      unsigned curr_index,
       const std::vector<unsigned>& indices,
       std::unordered_set<unsigned>& active_indices);
+  
   /** mk associative node
    *
    * This returns (a normal form for) the term <k>( children ), where
