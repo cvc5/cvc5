@@ -166,7 +166,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     expected_output = ''
     expected_error = ''
     expected_exit_status = None
-    command_line = ''
+    command_lines = []
     for line in metadata_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
@@ -184,7 +184,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
         elif line.startswith(EXIT):
             expected_exit_status = int(line[len(EXIT):])
         elif line.startswith(COMMAND_LINE):
-            command_line += line[len(COMMAND_LINE):]
+            command_lines.append(line[len(COMMAND_LINE):])
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
@@ -207,41 +207,52 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     if 'CVC4_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
             os.environ['CVC4_REGRESSION_ARGS'])
-    basic_command_line_args += shlex.split(command_line)
-    command_line_args_configs = [basic_command_line_args]
+
     if not proof and ('(get-unsat-core)' in benchmark_content
                       or '(get-unsat-assumptions)' in benchmark_content
                       or '--check-proofs' in basic_command_line_args
                       or '--dump-proofs' in basic_command_line_args):
         print(
-            '1..0 # Skipped: unsat cores not supported without proof support')
+            '1..0 # Skipped regression: unsat cores not supported without proof support'
+        )
         return
 
-    extra_command_line_args = []
-    if benchmark_ext == '.sy' and \
-        '--no-check-synth-sol' not in basic_command_line_args and \
-        '--check-synth-sol' not in basic_command_line_args:
-        extra_command_line_args = ['--check-synth-sol']
-    if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
-       '--no-check-models' not in basic_command_line_args:
-        extra_command_line_args = ['--check-models']
-    if proof and re.search(r'^(unsat|valid)$', expected_output):
-        if '--no-check-proofs' not in basic_command_line_args and \
-           '--incremental' not in basic_command_line_args and \
-           '--unconstrained-simp' not in basic_command_line_args and \
-           not cvc4_binary.endswith('pcvc4'):
-            extra_command_line_args = [
-                '--check-proofs', '--no-bv-eq', '--no-bv-ineq',
-                '--no-bv-algebraic'
-            ]
-        if '--no-check-unsat-cores' not in basic_command_line_args and \
-           '--incremental' not in basic_command_line_args and \
-           '--unconstrained-simp' not in basic_command_line_args and \
-           not cvc4_binary.endswith('pcvc4'):
-            extra_command_line_args += ['--check-unsat-cores']
-    if extra_command_line_args:
-        command_line_args_configs.append(
-            basic_command_line_args + extra_command_line_args)
+    if not command_lines:
+        command_lines.append('')
+
+    command_line_args_configs = []
+    for command_line in command_lines:
+        args = shlex.split(command_line)
+        if proof or ('--check-proofs' not in args
+                     and '--dump-proofs' not in args):
+            all_args = basic_command_line_args + args
+            command_line_args_configs.append(all_args)
+
+            extra_command_line_args = []
+            if benchmark_ext == '.sy' and \
+                '--no-check-synth-sol' not in all_args and \
+                '--check-synth-sol' not in all_args:
+                extra_command_line_args = ['--check-synth-sol']
+            if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
+               '--no-check-models' not in all_args:
+                extra_command_line_args = ['--check-models']
+            if proof and re.search(r'^(unsat|valid)$', expected_output):
+                if '--no-check-proofs' not in all_args and \
+                   '--incremental' not in all_args and \
+                   '--unconstrained-simp' not in all_args and \
+                   not cvc4_binary.endswith('pcvc4'):
+                    extra_command_line_args = [
+                        '--check-proofs', '--no-bv-eq', '--no-bv-ineq',
+                        '--no-bv-algebraic'
+                    ]
+                if '--no-check-unsat-cores' not in all_args and \
+                   '--incremental' not in all_args and \
+                   '--unconstrained-simp' not in all_args and \
+                   not cvc4_binary.endswith('pcvc4'):
+                    extra_command_line_args += ['--check-unsat-cores']
+            if extra_command_line_args:
+                command_line_args_configs.append(
+                    all_args + extra_command_line_args)
 
     # Run CVC4 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
