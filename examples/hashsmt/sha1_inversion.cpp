@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // Checksat command
     output << CheckSatCommand() << endl;
 
-    delete cvc4input;
+    delete[] cvc4input;
 
   } catch (CVC4::Exception& e) {
     cerr << e << endl;
