@@ -291,7 +291,7 @@ Node TheoryFp::toRealUF(Node node) {
     std::vector<TypeNode> args(1);
     args[0] = t;
     fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
-                       nm->mkFunctionType(t, nm->realType()),
+		       nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_to_real_infinity_and_NaN_case",
                        NodeManager::SKOLEM_EXACT_NAME);
     d_toRealMap.insert(t, fun);
