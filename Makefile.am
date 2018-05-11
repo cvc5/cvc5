@@ -131,7 +131,8 @@ EXTRA_DIST = \
 	doc/SmtEngine.3cvc_template.in \
 	doc/options.3cvc_template.in \
 	doc/libcvc4parser.3.in \
-	doc/libcvc4compat.3.in
+	doc/libcvc4compat.3.in \
+	symfpu-CVC4   # Remove as soon as symfpu is an optional dependency
 
 man_MANS = \
 	doc/cvc4.1 \
