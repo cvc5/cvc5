@@ -382,25 +382,25 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 /** A basic trie for storing vectors of arguments */
 class NodeTrie
 {
-public:
+ public:
   /** children of this node */
-  std::map< Node, NodeTrie > d_children;
+  std::map<Node, NodeTrie> d_children;
   /** clear the children */
   void clear() { d_children.clear(); }
   /**
    * Return true iff we've added the suffix of the vector of arguments starting
    * at index before.
    */
-  bool add( const std::vector< Node >& args, unsigned index=0 )
+  bool add(const std::vector<Node>& args, unsigned index = 0)
   {
-    if( index==args.size() )
+    if (index == args.size())
     {
       bool ret = d_children.empty();
       // mark that we've visited this
       d_children[Node::null()].clear();
       return ret;
     }
-    return d_children[args[index]].add(args,index+1);
+    return d_children[args[index]].add(args, index + 1);
   }
 };
 
@@ -434,7 +434,7 @@ bool SymmetryDetect::mergePartitions(
   for (const std::pair<const unsigned, std::vector<unsigned> >& nvi :
        nv_indices)
   {
-    if( nvi.second.size()<=1 )
+    if (nvi.second.size() <= 1)
     {
       // no symmetries
       continue;
@@ -454,32 +454,33 @@ bool SymmetryDetect::mergePartitions(
     // syntactically identical e.g. (or (= x y) (= y x))
     NodeTrie ntrie;
     // non-duplicate indices
-    std::vector< unsigned > nvis;
+    std::vector<unsigned> nvis;
     for (unsigned index : nvi.second)
     {
       Partition& p = partitions[index];
       std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
-      if( ntrie.add(svs) )
+      if (ntrie.add(svs))
       {
         nvis.push_back(index);
       }
       else
       {
-        Trace("sym-dt-debug") << "Drop duplicate child : " << index << std::endl;
+        Trace("sym-dt-debug") << "Drop duplicate child : " << index
+                              << std::endl;
         Assert(active_indices.find(index) != active_indices.end());
         active_indices.erase(index);
       }
     }
     Trace("sym-dt-debug") << "Count variable occurrences..." << std::endl;
     // count the number of times each variable occurs
-    std::map< Node, unsigned > occurs_count;
-    for( unsigned index : nvis )
+    std::map<Node, unsigned> occurs_count;
+    for (unsigned index : nvis)
     {
       Partition& p = partitions[index];
       std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
       for (const Node& v : svs)
       {
-        if( occurs_count.find(v)==occurs_count.end() )
+        if (occurs_count.find(v) == occurs_count.end())
         {
           occurs_count[v] = 1;
         }
@@ -491,13 +492,13 @@ bool SymmetryDetect::mergePartitions(
     }
     if (Trace.isOn("sym-dt-debug"))
     {
-      Trace("sym-dt-debug") << "    variable occurrences: " << std::endl; 
-      for( const std::pair< const Node, unsigned >& o : occurs_count )
+      Trace("sym-dt-debug") << "    variable occurrences: " << std::endl;
+      for (const std::pair<const Node, unsigned>& o : occurs_count)
       {
-        Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second << std::endl;
+        Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second
+                              << std::endl;
       }
     }
-    
 
     std::unordered_set<unsigned> include_indices;
     unsigned curr_index = 0;
@@ -655,12 +656,11 @@ bool SymmetryDetect::mergePartitions(
                          active_indices);
 }
 
-
 void SymmetryDetect::Partition::normalize()
 {
-  for( std::pair<const Node, std::vector<Node> > p : d_subvar_to_vars )
+  for (std::pair<const Node, std::vector<Node> > p : d_subvar_to_vars)
   {
-    std::sort( p.second.begin(), p.second.end() );
+    std::sort(p.second.begin(), p.second.end());
   }
 }
 
