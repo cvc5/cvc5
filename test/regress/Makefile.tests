@@ -1017,6 +1017,7 @@ REG1_TESTS = \
 	regress1/bug516.smt2 \
 	regress1/bug519.smt2 \
 	regress1/bug520.smt2 \
+	regress1/bug520-eager.smt2 \
 	regress1/bug521.smt2 \
 	regress1/bug543.smt2 \
 	regress1/bug567.smt2 \
