@@ -54,14 +54,19 @@ int main(int argc, char* argv[]) {
     ofstream output(argv[2]);
     output << expr::ExprSetDepth(-1) << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     output << SetBenchmarkLogicCommand("QF_BV") << endl;
-
-    hashsmt::Word message(msg.size()*8, "x");
+    output << SetBenchmarkStatusCommand(SMT_SATISFIABLE) << endl;
 
     // Make the variables the size of the string
     hashsmt::cvc4_uchar8 *cvc4input = new hashsmt::cvc4_uchar8[msgSize];
-    output << DeclareFunctionCommand("x", message.getExpr(), message.getExpr().getType()) << endl;
     for (unsigned i = 0; i < msgSize; ++ i) {
-      cvc4input[i] = message.select((i+1)*8-1, i*8);
+      stringstream ss;
+      ss << "x" << i;
+      cvc4input[i] = hashsmt::cvc4_uchar8(ss.str());
+      output << DeclareFunctionCommand(ss.str(), cvc4input[i].getExpr(), cvc4input[i].getExpr().getType()) << endl;
+
+      // Ouput the solution also
+      Expr solution = (cvc4input[i] == hashsmt::cvc4_uchar8(msg.c_str()[i]));
+      output << "; " << AssertCommand(solution) << endl;
     }
 
     // Do the cvc4 encoding
