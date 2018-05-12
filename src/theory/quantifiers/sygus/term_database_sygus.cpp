@@ -285,13 +285,15 @@ public:
       }
     }
     if( !d_req_type.isNull() ){
-      Trace("sygus-sb-debug") << "- check if "<< tn << " is type " << d_req_type << std::endl;
+      Trace("sygus-sb-debug") << "- check if " << tn << " is type "
+                              << d_req_type << std::endl;
       if( tn!=d_req_type ){
         return false;
       }
     }
     if( d_req_kind!=UNDEFINED_KIND ){
-      Trace("sygus-sb-debug") << "- check if "<< tn << " has " << d_req_kind << std::endl;
+      Trace("sygus-sb-debug") << "- check if " << tn << " has " << d_req_kind
+                              << std::endl;
       int c = tdb->getKindConsNum( tn, d_req_kind );
       if( c!=-1 ){
         bool ret = true;
@@ -329,27 +331,36 @@ bool TermDbSygus::considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, i
   const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
   Assert( hasKind( tn, k ) );
   Assert( hasKind( tnp, pk ) );
-  Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk << ", arg = " << arg << " in " << tnp << "?" << std::endl;
+  Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk
+                          << ", arg = " << arg << " in " << tnp << "?"
+                          << std::endl;
   int c = getKindConsNum( tn, k );
   int pc = getKindConsNum( tnp, pk );
     //check for associativity
-  if( k==pk && quantifiers::TermUtil::isAssoc( k ) ){
-    //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
-    int firstArg = getFirstArgOccurrence( pdt[pc], tn );
-    Assert( firstArg!=-1 );
-    if( arg==firstArg ){
+  if (k == pk && quantifiers::TermUtil::isAssoc(k))
+  {
+    // if the operator is associative, then a repeated occurrence should only
+    // occur in the leftmost argument position
+    int firstArg = getFirstArgOccurrence(pdt[pc], tn);
+    Assert(firstArg != -1);
+    if (arg == firstArg)
+    {
       return true;
     }
     // the argument types of the child must be the parent's type
-    for( unsigned i=0, nargs=dt[c].getNumArgs(); i<nargs; i++ )
+    for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
     {
-      TypeNode tn = TypeNode::fromType( dt[c].getArgType(i) );
-      if( tn!=tnp )
+      TypeNode tn = TypeNode::fromType(dt[c].getArgType(i));
+      if (tn != tnp)
       {
         return true;
       }
     }
-    Trace("sygus-sb-simple") << "  sb-simple : do not consider " << k << " at child arg " << arg << " of " << k << " since it is associative, with first arg = " << firstArg << std::endl;
+    Trace("sygus-sb-simple")
+        << "  sb-simple : do not consider " << k << " at child arg " << arg
+        << " of " << k
+        << " since it is associative, with first arg = " << firstArg
+        << std::endl;
     return false;
   }
   //describes the shape of an alternate term to construct
