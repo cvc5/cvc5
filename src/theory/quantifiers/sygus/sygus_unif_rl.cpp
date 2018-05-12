@@ -446,7 +446,7 @@ void SygusUnifRl::registerConditionalEnumerator(
     d_tds->registerEnumerator(cond, f, d_parent, true);
     d_cenum_to_stratpt[cond].clear();
     // register lemmas to remove redundant operators from condition enumeration
-    std::map<Node, std::vector<Node>>::iterator it =
+    std::map<Node, std::vector<Node>>::const_iterator it =
         strategy_lemmas.find(cond);
     if (it != strategy_lemmas.end())
     {

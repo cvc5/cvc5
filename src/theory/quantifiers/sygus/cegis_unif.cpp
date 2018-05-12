@@ -252,7 +252,7 @@ void CegisUnifEnumManager::initialize(
     {
       continue;
     }
-    std::map<TypeNode, std::pair<Node, std::vector<Node>>>::iterator it =
+    std::map<TypeNode, std::pair<Node, std::vector<Node>>>::const_iterator it =
         tn_strategy_lemmas.find(tn);
     if (it == tn_strategy_lemmas.end())
     {
