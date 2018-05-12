@@ -206,7 +206,6 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     else
     {
       // revert
-      var_count[xtn]--;
       trb.replaceChild(i, vn[i]);
     }
   }
