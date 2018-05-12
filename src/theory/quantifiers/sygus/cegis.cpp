@@ -236,6 +236,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
             std::vector<Node> msu;
             std::vector<Node> mexp;
             msu.insert(msu.end(), ms.begin(), ms.end());
+            std::map< TypeNode, int > var_count;
             for (unsigned k = 0; k < vs.size(); k++)
             {
               vsit.setUpdatedTerm(msu[k]);
@@ -250,8 +251,10 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                   << "  compute min explain of : " << vs[k] << " = " << ut
                   << std::endl;
               tds->getExplain()->getExplanationFor(
-                  vs[k], ut, mexp, vsit, false);
-              msu[k] = ut;
+                  vs[k], ut, mexp, vsit, var_count, false);
+              Trace("sygus-cref-eval2-debug") << "exp now: " << mexp << std::endl;
+              msu[k] = vsit.getUpdatedTerm();
+              Trace("sygus-cref-eval2-debug") << "updated term : " << msu[k] << std::endl;
             }
             if (!mexp.empty())
             {

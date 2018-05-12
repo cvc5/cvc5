@@ -205,6 +205,8 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     }
     else
     {
+      // revert
+      var_count[xtn]--;
       trb.replaceChild(i, vn[i]);
     }
   }
@@ -273,7 +275,7 @@ void SygusExplain::getExplanationFor(Node n,
   // naive :
   // return getExplanationForEquality( n, vn, exp );
 
-  // set up the recursion object
+  // set up the recursion object;
   std::map<TypeNode, int> var_count;
   TermRecBuild trb;
   trb.init(vn);
@@ -290,22 +292,34 @@ void SygusExplain::getExplanationFor(Node n,
 }
 
 void SygusExplain::getExplanationFor(Node n,
+                        Node vn,
+                        std::vector<Node>& exp,
+                        SygusInvarianceTest& et,
+                        bool strict)
+{
+  std::map<TypeNode, int> var_count;
+  getExplanationFor(n,vn,exp,et,var_count,strict);
+}
+  
+void SygusExplain::getExplanationFor(Node n,
                                      Node vn,
                                      std::vector<Node>& exp,
                                      SygusInvarianceTest& et,
+                                     std::map<TypeNode, int>& var_count,
                                      bool strict)
 {
   if (!strict)
   {
     // check if it is invariant over the entire node
-    Node x = d_tdb->getFreeVar(vn.getType(), 0);
+    TypeNode vtn = vn.getType();
+    Node x = d_tdb->getFreeVarInc(vtn, var_count);
     if (et.is_invariant(d_tdb, x, x))
     {
       return;
     }
+    var_count[vtn]--;
   }
   int sz = -1;
-  std::map<TypeNode, int> var_count;
   TermRecBuild trb;
   trb.init(vn);
   Node vnr;
