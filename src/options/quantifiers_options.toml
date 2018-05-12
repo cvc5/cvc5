@@ -968,6 +968,14 @@ header = "options/quantifiers_options.h"
   help       = "Unification-based function synthesis"
 
 [[option]]
+  name       = "sygusUnifOnlyBoolConst"
+  category   = "regular"
+  long       = "sygus-unif-bool-const"
+  type       = "bool"
+  default    = "false"
+  help       = "Only use Boolean constants for term candidates in unification-based function synthesis"
+
+[[option]]
   name       = "sygusQePreproc"
   category   = "regular"
   long       = "sygus-qe-preproc"
