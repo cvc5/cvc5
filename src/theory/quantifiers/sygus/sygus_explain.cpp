@@ -292,15 +292,15 @@ void SygusExplain::getExplanationFor(Node n,
 }
 
 void SygusExplain::getExplanationFor(Node n,
-                        Node vn,
-                        std::vector<Node>& exp,
-                        SygusInvarianceTest& et,
-                        bool strict)
+                                     Node vn,
+                                     std::vector<Node>& exp,
+                                     SygusInvarianceTest& et,
+                                     bool strict)
 {
   std::map<TypeNode, int> var_count;
-  getExplanationFor(n,vn,exp,et,var_count,strict);
+  getExplanationFor(n, vn, exp, et, var_count, strict);
 }
-  
+
 void SygusExplain::getExplanationFor(Node n,
                                      Node vn,
                                      std::vector<Node>& exp,
