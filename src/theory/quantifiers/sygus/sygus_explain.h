@@ -185,9 +185,9 @@ class SygusExplain
    *
    * If strict is false, then we also test whether the invariance test holds
    * independently of the entire value of vn.
-   * 
+   *
    * The argument var_count is used for tracking the variables that we introduce
-   * to generalize the shape of vn. This map is passed to 
+   * to generalize the shape of vn. This map is passed to
    * TermDbSygus::getFreeVarInc. This argument should be used if we are
    * calling this function multiple times and the generalization should not
    * introduce variables that shadow the variables introduced on previous calls.
