@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 namespace symbreak {
-  
+
 /**
   * This is the class stores a "partition", which is a way of representing a
   * class of symmetries.
@@ -45,7 +45,7 @@ namespace symbreak {
   */
 class Partition
 {
-  public:
+ public:
   /** The term for which the partition was computed for. */
   Node d_term;
   /** Substituted term corresponding to the partition
@@ -71,11 +71,11 @@ class Partition
   static void printPartition(const char* c, Partition p);
 };
 
-/** partition merger 
- * 
+/** partition merger
+ *
  * This class is used to identify sets of children of commutative operators k
  * that are identical up to a set of automorphisms.
- * 
+ *
  * This class is used when we have detected symmetries for the children
  * of a term t of the form <k>( t_1, ..., t_n ), where k is a commutative
  * operator. For each i=1,...n, partitions[i] represents symmetries (in the
@@ -84,49 +84,56 @@ class Partition
  * The vector d_indices of this class stores a list ( i_1...i_m ) such that
  * ( t_i_j * partition[i_j].d_var_to_subvar ) is syntactically equivalent
  * for each j=1...m, where * is application of substitution.
- * 
+ *
  * In detail, we say that
  *   partition[j1] = { w -> X_1 },
  *   ...,
  *   partition[jp] = { w -> X_p }
  * are mergebale if s=|X_1|=...=|X_p|, and all subsets of
  * X* = ( union_{k=1...p} X_k ) of size s are equal to exactly one of
- * X_1 ... X_p. 
+ * X_1 ... X_p.
  */
 class PartitionMerger
 {
  public:
-  PartitionMerger() : d_kind(kind::UNDEFINED_KIND), d_master_base_index(0), d_num_new_indices_needed(0){}
-  /** initialize this class 
-   * 
+  PartitionMerger()
+      : d_kind(kind::UNDEFINED_KIND),
+        d_master_base_index(0),
+        d_num_new_indices_needed(0)
+  {
+  }
+  /** initialize this class
+   *
    * We will be trying to merge the given partitions that occur at the given
    * indices. k is the kind of the operator that partitions are children of.
    */
-  void initialize(Kind k, 
+  void initialize(Kind k,
                   const std::vector<Partition>& partitions,
                   const std::vector<unsigned>& indices);
   /** merge
    *
    * This method tries to "merge" partitions occurring at the indices d_indices
-   * of the vector partitions. 
-   * 
+   * of the vector partitions.
+   *
    * Assuming the setting described above, if there exists a mergeable set of
    * partitions with indices (j_m1...j_mp), we remove {j_m1...j_mp} \ { j_m1 }
    * from active_indices, and update partition[j1] := { w -> X* }.
-   * 
+   *
    * The base_index is an index from d_indices that serves as a basis for
    * detecting this symmetry. In particular, we start by assuming that
-   * p=1, and j_m1 is base_index. We proceed by trying to find sets of indices 
+   * p=1, and j_m1 is base_index. We proceed by trying to find sets of indices
    * that add exactly one variable to X* at a time. We return
    * true if p>1, that is, at least partition was merged with the base_index.
    */
-  bool merge(std::vector<Partition>& partitions, unsigned base_index,
-                   std::unordered_set<unsigned>& active_indices);
+  bool merge(std::vector<Partition>& partitions,
+             unsigned base_index,
+             std::unordered_set<unsigned>& active_indices);
+
  private:
   /** the kind of the node we are consdiering */
   Kind d_kind;
   /** indices we are considering */
-  std::vector< unsigned > d_indices;
+  std::vector<unsigned> d_indices;
   /** count the number of times each variable occurs */
   std::map<Node, unsigned> d_occurs_count;
   /** the number of times each variable occurs up to the given index */
@@ -144,10 +151,10 @@ class PartitionMerger
   /** merge new variable
    *
    * This is a recursive helper for the merge function. This function attempts
-   * to construct a set of indices {j1...jp} of partitions and a variable 
-   * "merge_var" such that partitions[ji] is of the form { w -> X_ji }, where 
-   * merge_var in X_ji and ( X_ji \ { merge_var } ) is a subset of the base 
-   * variables X*. We require that p = d_num_new_indices_needed, where 
+   * to construct a set of indices {j1...jp} of partitions and a variable
+   * "merge_var" such that partitions[ji] is of the form { w -> X_ji }, where
+   * merge_var in X_ji and ( X_ji \ { merge_var } ) is a subset of the base
+   * variables X*. We require that p = d_num_new_indices_needed, where
    * d_num_new_indices_needed is
    *   |d_base_vars| choose (|X_ji|-1)
    *
@@ -172,7 +179,7 @@ class PartitionMerger
   */
 class PartitionTrie
 {
-  public:
+ public:
   /** Variables at the leave */
   std::vector<Node> d_variables;
 
@@ -186,11 +193,11 @@ class PartitionTrie
 
   /** Get all the new regions of a partition and store in part */
   void getNewPartition(Partition& part,
-                        PartitionTrie& pt,
-                        Node sbv,
-                        bool set_sbv = false);
+                       PartitionTrie& pt,
+                       Node sbv,
+                       bool set_sbv = false);
 };
-  
+
 /**
  * This is the class to detect symmetries from input based on terms equality.
  * */
@@ -261,15 +268,15 @@ class SymmetryDetect
    * of a term t of the form <k>( t_1, ..., t_n ), where k is a commutative
    * operator.  The vector indices stores a list ( i_1...i_m ) such that
    * ( t_i_j * partition[i_j].d_var_to_subvar ) is syntactically equivalent
-   * for each j=1...m, where * is application of substitution. In particular, 
-   * ( t_i_j * partition[i_j].d_var_to_subvar ) is equal to 
+   * for each j=1...m, where * is application of substitution. In particular,
+   * ( t_i_j * partition[i_j].d_var_to_subvar ) is equal to
    * partitions[i_j].d_sterm for each j=1...m.
-   * 
+   *
    * This function calls mergePartitions on subsets of these indices for which
    * it is possible to "merge" (see PartitionMerger). In particular, we consider
    * subsets of indices whose corresponding partitions are of the form
    *   { w -> { x1...xn } }
-   * for each n. This means that partitions like { w -> { x1 } } and 
+   * for each n. This means that partitions like { w -> { x1 } } and
    * { w -> { x1 x2 } } are considered separately when merging.
    */
   void processPartitions(Kind k,
@@ -278,7 +285,7 @@ class SymmetryDetect
                          std::unordered_set<unsigned>& active_indices);
   /** merge partitions
    *
-   * This method merges groups of partitions occurring in indices using the 
+   * This method merges groups of partitions occurring in indices using the
    * PartitionMerger class. Each merge updates one partition in partitions (the
    * master index of the merge) and removes a set of indices from active_indices
    * (the slave indices).

@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 namespace symbreak {
-  
+
 /** returns n choose k, that is, n!/(k! * (n-k)!) */
 unsigned nChoosek(unsigned n, unsigned k)
 {
@@ -37,7 +37,7 @@ unsigned nChoosek(unsigned n, unsigned k)
     result /= i;
   }
   return result;
-}  
+}
 
 /** mk associative node
   *
@@ -45,7 +45,7 @@ unsigned nChoosek(unsigned n, unsigned k)
   * k is an associative operator. We return a right-associative
   * chain, since some operators (e.g. set union) require this.
   */
-Node mkAssociativeNode(Kind k, std::vector<Node>& children) 
+Node mkAssociativeNode(Kind k, std::vector<Node>& children)
 {
   Assert(!children.empty());
   NodeManager* nm = NodeManager::currentNM();
@@ -72,7 +72,6 @@ Node mkAssociativeNode(Kind k, std::vector<Node>& children)
   return sn;
 }
 
-  
 void Partition::printPartition(const char* c, Partition p)
 {
   for (map<Node, vector<Node> >::iterator sub_vars_it =
@@ -92,7 +91,6 @@ void Partition::printPartition(const char* c, Partition p)
   }
 }
 
-
 void Partition::normalize()
 {
   for (std::pair<const Node, std::vector<Node> > p : d_subvar_to_vars)
@@ -101,10 +99,9 @@ void Partition::normalize()
   }
 }
 
-
-void PartitionMerger::initialize(Kind k, 
+void PartitionMerger::initialize(Kind k,
                                  const std::vector<Partition>& partitions,
-                  const std::vector<unsigned>& indices)
+                                 const std::vector<unsigned>& indices)
 {
   d_kind = k;
   Trace("sym-dt-debug") << "Count variable occurrences..." << std::endl;
@@ -131,16 +128,16 @@ void PartitionMerger::initialize(Kind k,
     Trace("sym-dt-debug") << "    variable occurrences: " << std::endl;
     for (const std::pair<const Node, unsigned>& o : d_occurs_count)
     {
-      Trace("sym-dt-debug")
-          << "     " << o.first << " -> " << o.second << std::endl;
+      Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second
+                            << std::endl;
     }
   }
 }
 
 void PartitionTrie::getNewPartition(Partition& part,
-                                                    PartitionTrie& pt,
-                                                    Node sbv,
-                                                    bool set_sbv)
+                                    PartitionTrie& pt,
+                                    Node sbv,
+                                    bool set_sbv)
 {
   if (!pt.d_variables.empty())
   {
@@ -191,8 +188,7 @@ void PartitionTrie::getNewPartition(Partition& part,
   }
 }
 
-void PartitionTrie::addNode(Node target_var,
-                                            vector<Partition>& partitions)
+void PartitionTrie::addNode(Node target_var, vector<Partition>& partitions)
 {
   Trace("sym-dt-debug") << "[sym-dt] Add a variable {" << target_var
                         << "} to the partition trie, #partitions = "
@@ -223,8 +219,7 @@ void PartitionTrie::addNode(Node target_var,
   addNode(target_var, subvars);
 }
 
-void PartitionTrie::addNode(Node target_var,
-                                            vector<Node>& subvars)
+void PartitionTrie::addNode(Node target_var, vector<Node>& subvars)
 {
   if (subvars.empty())
   {
@@ -253,7 +248,7 @@ void PartitionTrie::addNode(Node target_var,
     }
   }
 }
-  
+
 Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
   Node an;
@@ -743,14 +738,14 @@ void SymmetryDetect::mergePartitions(
     Trace("sym-dt-debug") << std::endl;
   }
   Assert(!indices.empty());
-  
+
   // initialize partition merger class
   PartitionMerger pm;
-  pm.initialize(k,partitions,indices);
-    
+  pm.initialize(k, partitions, indices);
+
   for (unsigned index : indices)
   {
-    if( pm.merge(partitions,index,active_indices) )
+    if (pm.merge(partitions, index, active_indices))
     {
       Trace("sym-dt-debug") << "    ......we merged, recurse" << std::endl;
       std::vector<unsigned> rem_indices;
@@ -766,12 +761,12 @@ void SymmetryDetect::mergePartitions(
     }
   }
 }
-    
-    
-bool PartitionMerger::merge(std::vector<Partition>& partitions, unsigned base_index,
-                   std::unordered_set<unsigned>& active_indices)
+
+bool PartitionMerger::merge(std::vector<Partition>& partitions,
+                            unsigned base_index,
+                            std::unordered_set<unsigned>& active_indices)
 {
-  Assert( base_index<partitions.size() );
+  Assert(base_index < partitions.size());
   d_master_base_index = base_index;
   Partition& p = partitions[base_index];
   Trace("sym-dt-debug") << "   try basis index " << base_index
@@ -792,8 +787,8 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions, unsigned base_in
   unsigned base_occurs_req = d_base_vars.size();
   do
   {
-    Trace("sym-dt-debug") << "   base variables must occur "
-                          << base_occurs_req << " times." << std::endl;
+    Trace("sym-dt-debug") << "   base variables must occur " << base_occurs_req
+                          << " times." << std::endl;
     // check if all the base_vars occur at least the required number of
     // times
     bool var_ok = true;
@@ -817,12 +812,7 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions, unsigned base_in
     std::vector<unsigned> new_indices;
     Node merge_var;
     d_merge_var_tried.clear();
-    if (mergeNewVar(0,
-      new_indices,
-                    merge_var,
-                    0,
-                    partitions,
-                    active_indices))
+    if (mergeNewVar(0, new_indices, merge_var, 0, partitions, active_indices))
     {
       Trace("sym-dt-debug") << "   ...merged: " << merge_var << std::endl;
       Assert(!merge_var.isNull());
@@ -831,7 +821,8 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions, unsigned base_in
       // update the number of new indicies needed
       if (base_choose > 0)
       {
-        d_num_new_indices_needed += nChoosek(d_base_vars.size(), base_choose - 1);
+        d_num_new_indices_needed +=
+            nChoosek(d_base_vars.size(), base_choose - 1);
         // base_occurs_req =   TODO
       }
     }
@@ -844,13 +835,12 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions, unsigned base_in
   return merged;
 }
 
-bool PartitionMerger::mergeNewVar(
-    unsigned curr_index,
-    std::vector<unsigned>& new_indices,
-    Node& merge_var,
-    unsigned num_merge_var_max,
-    std::vector<Partition>& partitions,
-    std::unordered_set<unsigned>& active_indices)
+bool PartitionMerger::mergeNewVar(unsigned curr_index,
+                                  std::vector<unsigned>& new_indices,
+                                  Node& merge_var,
+                                  unsigned num_merge_var_max,
+                                  std::vector<Partition>& partitions,
+                                  std::unordered_set<unsigned>& active_indices)
 {
   Assert(new_indices.size() < d_num_new_indices_needed);
   if (curr_index == d_indices.size())
@@ -893,7 +883,8 @@ bool PartitionMerger::mergeNewVar(
     if (!curr_merge_var.isNull())
     {
       // compute the maximum number of indices we can include for v
-      Assert(d_occurs_by[index].find(curr_merge_var) != d_occurs_by[index].end());
+      Assert(d_occurs_by[index].find(curr_merge_var)
+             != d_occurs_by[index].end());
       Assert(d_occurs_count.find(curr_merge_var) != d_occurs_count.end());
       unsigned num_v_max =
           d_occurs_count[curr_merge_var] - d_occurs_by[index][curr_merge_var];
