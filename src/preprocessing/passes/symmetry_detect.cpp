@@ -134,6 +134,241 @@ void PartitionMerger::initialize(Kind k,
   }
 }
 
+
+bool PartitionMerger::merge(std::vector<Partition>& partitions,
+                            unsigned base_index,
+                            std::unordered_set<unsigned>& active_indices)
+{
+  Assert(base_index < partitions.size());
+  d_master_base_index = base_index;
+  Partition& p = partitions[base_index];
+  Trace("sym-dt-debug") << "   try basis index " << base_index
+                        << " (#vars = " << p.d_subvar_to_vars.size() << ")"
+                        << std::endl;
+  Assert(p.d_subvar_to_vars.size() == 1);
+  std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
+  Trace("sym-dt-debug") << "   try basis: " << svs << std::endl;
+  // try to merge variables one-by-one
+  d_base_indices.clear();
+  d_base_indices.insert(base_index);
+  d_base_vars.clear();
+  d_base_vars.insert(svs.begin(), svs.end());
+  d_num_new_indices_needed = d_base_vars.size();
+  bool merged = false;
+  bool success = false;
+  unsigned base_choose = d_base_vars.size() - 1;
+  unsigned base_occurs_req = d_base_vars.size();
+  do
+  {
+    Trace("sym-dt-debug") << "   base variables must occur " << base_occurs_req
+                          << " times." << std::endl;
+    // check if all the base_vars occur at least the required number of
+    // times
+    bool var_ok = true;
+    for (const Node& v : d_base_vars)
+    {
+      if (d_occurs_count[v] < base_occurs_req)
+      {
+        Trace("sym-dt-debug") << "...failed variable " << v << std::endl;
+        var_ok = false;
+        break;
+      }
+    }
+    if (!var_ok)
+    {
+      // cannot merge due to a base variable
+      break;
+    }
+    // try to find a new variable to merge
+    Trace("sym-dt-debug") << "   must find " << d_num_new_indices_needed
+                          << " new indices to merge." << std::endl;
+    std::vector<unsigned> new_indices;
+    Node merge_var;
+    d_merge_var_tried.clear();
+    if (mergeNewVar(0, new_indices, merge_var, 0, partitions, active_indices))
+    {
+      Trace("sym-dt-debug") << "   ...merged: " << merge_var << std::endl;
+      Assert(!merge_var.isNull());
+      merged = true;
+      success = true;
+      // update the number of new indicies needed
+      if (base_choose > 0)
+      {
+        d_num_new_indices_needed +=
+            nChoosek(d_base_vars.size(), base_choose - 1);
+        // base_occurs_req =   TODO
+      }
+    }
+    else
+    {
+      Trace("sym-dt-debug") << "   ...failed to merge" << std::endl;
+      success = false;
+    }
+  } while (success);
+  return merged;
+}
+
+bool PartitionMerger::mergeNewVar(unsigned curr_index,
+                                  std::vector<unsigned>& new_indices,
+                                  Node& merge_var,
+                                  unsigned num_merge_var_max,
+                                  std::vector<Partition>& partitions,
+                                  std::unordered_set<unsigned>& active_indices)
+{
+  Assert(new_indices.size() < d_num_new_indices_needed);
+  if (curr_index == d_indices.size())
+  {
+    return false;
+  }
+  Trace("sym-dt-debug2") << "merge " << curr_index << " / " << d_indices.size()
+                         << std::endl;
+  // try to include this index
+  unsigned index = d_indices[curr_index];
+
+  // if not already included
+  if (d_base_indices.find(index) == d_base_indices.end())
+  {
+    Assert(active_indices.find(index) != active_indices.end());
+    // check whether it can merge
+    Partition& p = partitions[index];
+    Assert(p.d_subvar_to_vars.size() == 1);
+    std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
+    bool include_success = true;
+    Node curr_merge_var;
+    for (const Node& v : svs)
+    {
+      if (d_base_vars.find(v) == d_base_vars.end() && v != merge_var)
+      {
+        if (merge_var.isNull() && curr_merge_var.isNull())
+        {
+          curr_merge_var = v;
+        }
+        else
+        {
+          // cannot include
+          Trace("sym-dt-debug2") << "...cannot include (new-var)\n";
+          include_success = false;
+          curr_merge_var = Node::null();
+          break;
+        }
+      }
+    }
+    if (!curr_merge_var.isNull())
+    {
+      // compute the maximum number of indices we can include for v
+      Assert(d_occurs_by[index].find(curr_merge_var)
+             != d_occurs_by[index].end());
+      Assert(d_occurs_count.find(curr_merge_var) != d_occurs_count.end());
+      unsigned num_v_max =
+          d_occurs_count[curr_merge_var] - d_occurs_by[index][curr_merge_var];
+      if (num_v_max >= d_num_new_indices_needed)
+      {
+        // have we already tried this merge_var?
+        if (d_merge_var_tried.find(curr_merge_var) != d_merge_var_tried.end())
+        {
+          include_success = false;
+          Trace("sym-dt-debug2")
+              << "...cannot include (already tried new merge var "
+              << curr_merge_var << ")\n";
+        }
+        else
+        {
+          Trace("sym-dt-debug2")
+              << "set merge var : " << curr_merge_var << std::endl;
+          d_merge_var_tried.insert(curr_merge_var);
+          num_merge_var_max = num_v_max;
+          merge_var = curr_merge_var;
+        }
+      }
+      else
+      {
+        Trace("sym-dt-debug2")
+            << "...cannot include (not enough room for new merge var "
+            << num_v_max << "<" << d_num_new_indices_needed << ")\n";
+        include_success = false;
+      }
+    }
+    else if (!include_success && !merge_var.isNull())
+    {
+      // decrement
+      num_merge_var_max--;
+      if (num_merge_var_max < d_num_new_indices_needed - new_indices.size())
+      {
+        Trace("sym-dt-debug2") << "...fail (out of merge var)\n";
+        return false;
+      }
+    }
+
+    if (include_success)
+    {
+      // try with the index included
+      new_indices.push_back(index);
+
+      // do we have enough now?
+      if (new_indices.size() == d_num_new_indices_needed)
+      {
+        std::vector<Node> children;
+        children.push_back(p.d_term);
+        std::vector<Node> schildren;
+        schildren.push_back(p.d_sterm);
+        // can now include in the base
+        d_base_vars.insert(merge_var);
+        Trace("sym-dt-debug") << "found symmetry : { ";
+        for (const unsigned& i : new_indices)
+        {
+          Assert(d_base_indices.find(i) == d_base_indices.end());
+          d_base_indices.insert(i);
+          Trace("sym-dt-debug") << i << " ";
+          const Partition& p = partitions[i];
+          children.push_back(p.d_term);
+          schildren.push_back(p.d_sterm);
+          Assert(active_indices.find(i) != active_indices.end());
+          active_indices.erase(i);
+        }
+        Trace("sym-dt-debug") << "}" << std::endl;
+        Trace("sym-dt-debug") << "Reconstruct master partition "
+                              << d_master_base_index << std::endl;
+        Partition& p = partitions[d_master_base_index];
+        // reconstruct the master partition
+        p.d_term = mkAssociativeNode(d_kind, children);
+        p.d_sterm = mkAssociativeNode(d_kind, schildren);
+        Assert(p.d_subvar_to_vars.size() == 1);
+        Node sb_v = p.d_subvar_to_vars.begin()->first;
+        p.d_subvar_to_vars[sb_v].push_back(merge_var);
+        Trace("sym-dt-debug") << "- set var to svar: " << merge_var << " -> "
+                              << sb_v << std::endl;
+        p.d_var_to_subvar[merge_var] = sb_v;
+        return true;
+      }
+      if (mergeNewVar(curr_index + 1,
+                      new_indices,
+                      merge_var,
+                      num_merge_var_max,
+                      partitions,
+                      active_indices))
+      {
+        return true;
+      }
+      new_indices.pop_back();
+      // if we included with the merge var, no use trying not including
+      if (curr_merge_var.isNull() && !merge_var.isNull())
+      {
+        Trace("sym-dt-debug2") << "...fail (failed merge var)\n";
+        return false;
+      }
+    }
+  }
+  // if we haven't chosen a merge variable, we may be out of time TODO
+
+  // try with it not included
+  return mergeNewVar(curr_index + 1,
+                     new_indices,
+                     merge_var,
+                     num_merge_var_max,
+                     partitions,
+                     active_indices);
+}
+
 void PartitionTrie::getNewPartition(Partition& part,
                                     PartitionTrie& pt,
                                     Node sbv,
@@ -760,240 +995,6 @@ void SymmetryDetect::mergePartitions(
       return;
     }
   }
-}
-
-bool PartitionMerger::merge(std::vector<Partition>& partitions,
-                            unsigned base_index,
-                            std::unordered_set<unsigned>& active_indices)
-{
-  Assert(base_index < partitions.size());
-  d_master_base_index = base_index;
-  Partition& p = partitions[base_index];
-  Trace("sym-dt-debug") << "   try basis index " << base_index
-                        << " (#vars = " << p.d_subvar_to_vars.size() << ")"
-                        << std::endl;
-  Assert(p.d_subvar_to_vars.size() == 1);
-  std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
-  Trace("sym-dt-debug") << "   try basis: " << svs << std::endl;
-  // try to merge variables one-by-one
-  d_base_indices.clear();
-  d_base_indices.insert(base_index);
-  d_base_vars.clear();
-  d_base_vars.insert(svs.begin(), svs.end());
-  d_num_new_indices_needed = d_base_vars.size();
-  bool merged = false;
-  bool success = false;
-  unsigned base_choose = d_base_vars.size() - 1;
-  unsigned base_occurs_req = d_base_vars.size();
-  do
-  {
-    Trace("sym-dt-debug") << "   base variables must occur " << base_occurs_req
-                          << " times." << std::endl;
-    // check if all the base_vars occur at least the required number of
-    // times
-    bool var_ok = true;
-    for (const Node& v : d_base_vars)
-    {
-      if (d_occurs_count[v] < base_occurs_req)
-      {
-        Trace("sym-dt-debug") << "...failed variable " << v << std::endl;
-        var_ok = false;
-        break;
-      }
-    }
-    if (!var_ok)
-    {
-      // cannot merge due to a base variable
-      break;
-    }
-    // try to find a new variable to merge
-    Trace("sym-dt-debug") << "   must find " << d_num_new_indices_needed
-                          << " new indices to merge." << std::endl;
-    std::vector<unsigned> new_indices;
-    Node merge_var;
-    d_merge_var_tried.clear();
-    if (mergeNewVar(0, new_indices, merge_var, 0, partitions, active_indices))
-    {
-      Trace("sym-dt-debug") << "   ...merged: " << merge_var << std::endl;
-      Assert(!merge_var.isNull());
-      merged = true;
-      success = true;
-      // update the number of new indicies needed
-      if (base_choose > 0)
-      {
-        d_num_new_indices_needed +=
-            nChoosek(d_base_vars.size(), base_choose - 1);
-        // base_occurs_req =   TODO
-      }
-    }
-    else
-    {
-      Trace("sym-dt-debug") << "   ...failed to merge" << std::endl;
-      success = false;
-    }
-  } while (success);
-  return merged;
-}
-
-bool PartitionMerger::mergeNewVar(unsigned curr_index,
-                                  std::vector<unsigned>& new_indices,
-                                  Node& merge_var,
-                                  unsigned num_merge_var_max,
-                                  std::vector<Partition>& partitions,
-                                  std::unordered_set<unsigned>& active_indices)
-{
-  Assert(new_indices.size() < d_num_new_indices_needed);
-  if (curr_index == d_indices.size())
-  {
-    return false;
-  }
-  Trace("sym-dt-debug2") << "merge " << curr_index << " / " << d_indices.size()
-                         << std::endl;
-  // try to include this index
-  unsigned index = d_indices[curr_index];
-
-  // if not already included
-  if (d_base_indices.find(index) == d_base_indices.end())
-  {
-    Assert(active_indices.find(index) != active_indices.end());
-    // check whether it can merge
-    Partition& p = partitions[index];
-    Assert(p.d_subvar_to_vars.size() == 1);
-    std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
-    bool include_success = true;
-    Node curr_merge_var;
-    for (const Node& v : svs)
-    {
-      if (d_base_vars.find(v) == d_base_vars.end() && v != merge_var)
-      {
-        if (merge_var.isNull() && curr_merge_var.isNull())
-        {
-          curr_merge_var = v;
-        }
-        else
-        {
-          // cannot include
-          Trace("sym-dt-debug2") << "...cannot include (new-var)\n";
-          include_success = false;
-          curr_merge_var = Node::null();
-          break;
-        }
-      }
-    }
-    if (!curr_merge_var.isNull())
-    {
-      // compute the maximum number of indices we can include for v
-      Assert(d_occurs_by[index].find(curr_merge_var)
-             != d_occurs_by[index].end());
-      Assert(d_occurs_count.find(curr_merge_var) != d_occurs_count.end());
-      unsigned num_v_max =
-          d_occurs_count[curr_merge_var] - d_occurs_by[index][curr_merge_var];
-      if (num_v_max >= d_num_new_indices_needed)
-      {
-        // have we already tried this merge_var?
-        if (d_merge_var_tried.find(curr_merge_var) != d_merge_var_tried.end())
-        {
-          include_success = false;
-          Trace("sym-dt-debug2")
-              << "...cannot include (already tried new merge var "
-              << curr_merge_var << ")\n";
-        }
-        else
-        {
-          Trace("sym-dt-debug2")
-              << "set merge var : " << curr_merge_var << std::endl;
-          d_merge_var_tried.insert(curr_merge_var);
-          num_merge_var_max = num_v_max;
-          merge_var = curr_merge_var;
-        }
-      }
-      else
-      {
-        Trace("sym-dt-debug2")
-            << "...cannot include (not enough room for new merge var "
-            << num_v_max << "<" << d_num_new_indices_needed << ")\n";
-        include_success = false;
-      }
-    }
-    else if (!include_success && !merge_var.isNull())
-    {
-      // decrement
-      num_merge_var_max--;
-      if (num_merge_var_max < d_num_new_indices_needed - new_indices.size())
-      {
-        Trace("sym-dt-debug2") << "...fail (out of merge var)\n";
-        return false;
-      }
-    }
-
-    if (include_success)
-    {
-      // try with the index included
-      new_indices.push_back(index);
-
-      // do we have enough now?
-      if (new_indices.size() == d_num_new_indices_needed)
-      {
-        std::vector<Node> children;
-        children.push_back(p.d_term);
-        std::vector<Node> schildren;
-        schildren.push_back(p.d_sterm);
-        // can now include in the base
-        d_base_vars.insert(merge_var);
-        Trace("sym-dt-debug") << "found symmetry : { ";
-        for (const unsigned& i : new_indices)
-        {
-          Assert(d_base_indices.find(i) == d_base_indices.end());
-          d_base_indices.insert(i);
-          Trace("sym-dt-debug") << i << " ";
-          const Partition& p = partitions[i];
-          children.push_back(p.d_term);
-          schildren.push_back(p.d_sterm);
-          Assert(active_indices.find(i) != active_indices.end());
-          active_indices.erase(i);
-        }
-        Trace("sym-dt-debug") << "}" << std::endl;
-        Trace("sym-dt-debug") << "Reconstruct master partition "
-                              << d_master_base_index << std::endl;
-        Partition& p = partitions[d_master_base_index];
-        // reconstruct the master partition
-        p.d_term = mkAssociativeNode(d_kind, children);
-        p.d_sterm = mkAssociativeNode(d_kind, schildren);
-        Assert(p.d_subvar_to_vars.size() == 1);
-        Node sb_v = p.d_subvar_to_vars.begin()->first;
-        p.d_subvar_to_vars[sb_v].push_back(merge_var);
-        Trace("sym-dt-debug") << "- set var to svar: " << merge_var << " -> "
-                              << sb_v << std::endl;
-        p.d_var_to_subvar[merge_var] = sb_v;
-        return true;
-      }
-      if (mergeNewVar(curr_index + 1,
-                      new_indices,
-                      merge_var,
-                      num_merge_var_max,
-                      partitions,
-                      active_indices))
-      {
-        return true;
-      }
-      new_indices.pop_back();
-      // if we included with the merge var, no use trying not including
-      if (curr_merge_var.isNull() && !merge_var.isNull())
-      {
-        Trace("sym-dt-debug2") << "...fail (failed merge var)\n";
-        return false;
-      }
-    }
-  }
-  // if we haven't chosen a merge variable, we may be out of time TODO
-
-  // try with it not included
-  return mergeNewVar(curr_index + 1,
-                     new_indices,
-                     merge_var,
-                     num_merge_var_max,
-                     partitions,
-                     active_indices);
 }
 
 }  // namespace symbreak
