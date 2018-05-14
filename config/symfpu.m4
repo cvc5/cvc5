@@ -8,12 +8,6 @@ have_symfpu_headers=0
 if test "$with_symfpu" = no; then
   AC_MSG_RESULT([no, symfpu disabled by user])
 elif test -n "$with_symfpu"; then
-
-  # Automatically download symfpu since it is a required dependency for now
-  if ! test -e "$ac_abs_confdir/symfpu-CVC4"; then
-    $ac_abs_confdir/contrib/get-symfpu
-  fi
-
   AC_MSG_RESULT([yes, symfpu requested by user])
   AC_ARG_VAR(SYMFPU_HOME, [path to top level of symfpu source tree])
   AC_ARG_WITH(
@@ -29,8 +23,8 @@ elif test -n "$with_symfpu"; then
     ]
   )
 
-  # Check if symfpu was installed via contrib/get-symfpu
-  AC_MSG_CHECKING([whether symfpu was already installed via contrib/get-symfpu])
+  # Check if symfpu was installed via contrib/get-symfpu or SYMFPU_HOME or --with-symfpu-dir was set
+  AC_MSG_CHECKING([whether symfpu was installed via contrib/get-symfpu])
   if test -z "$SYMFPU_HOME" && test -e "$ac_abs_confdir/symfpu-CVC4/symfpu/core"; then
     SYMFPU_HOME="$ac_abs_confdir/symfpu-CVC4"
     AC_MSG_RESULT([yes, $SYMFPU_HOME])

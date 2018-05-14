@@ -932,11 +932,9 @@ AC_SUBST([LFSC_LDFLAGS])
 AC_SUBST([LFSC_LIBS])
 
 # Build with symfpu
-# Note: For now this is a required dependency and will be downloaded during
-#       ./configure (if directory symfpu-CVC4 does not exist)
 AC_ARG_WITH([symfpu],
   [AS_HELP_STRING([--with-symfpu],
-     [use symfpu for floating point solver])], [], [with_symfpu=yes])
+     [use symfpu for floating point solver])], [], [with_symfpu=])
 CVC4_CHECK_FOR_SYMFPU
 if test $have_symfpu_headers -eq 1; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_SYMFPU"
