@@ -107,7 +107,7 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
       std::vector<Node> cenums;
       // also get the current conditional enumerators
       d_u_enum_manager.getCondEnumeratorsForStrategyPt(e, cenums);
-      for( const Node& ce: cenums )
+      for (const Node& ce : cenums)
       {
         d_cenum_to_strat_pt[ce] = e;
       }
@@ -123,8 +123,8 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
                                     std::vector<Node>& candidate_values,
                                     std::vector<Node>& lems)
 {
-  // build the values of the 
-  std::map< Node, std::vector< Node > > condition_map;
+  // build the values of the
+  std::map<Node, std::vector<Node>> condition_map;
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
@@ -145,7 +145,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     Node e = enums[i], v = enum_values[i];
     std::map<Node, Node>::iterator itc = d_cenum_to_strat_pt.find(e);
-    if( itc!=d_cenum_to_strat_pt.end() )
+    if (itc != d_cenum_to_strat_pt.end())
     {
       Trace("cegis-unif-enum") << "   ...this is a condition for " << e << "\n";
       // it is the value of a current condition
@@ -159,9 +159,9 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     return false;
   }
   // inform the unif utility that we are using these conditions
-  for( const std::pair< const Node, std::vector< Node > > cs: condition_map )
+  for (const std::pair<const Node, std::vector<Node>> cs : condition_map)
   {
-    d_sygus_unif.setConditions(cs.first,cs.second);
+    d_sygus_unif.setConditions(cs.first, cs.second);
   }
   // TODO : check symmetry breaking for enumerators
   // TODO : check separation of evaluation heads wrt condition enumerators and

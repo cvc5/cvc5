@@ -335,13 +335,12 @@ Node SygusUnifRl::getConditionForEvaluationPoint(Node e) const
   return it->second.getConditionEnumerator();
 }
 
-void SygusUnifRl::setConditions(Node e,
-                                            const std::vector<Node>& conds)
+void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
   it->second.clearCondValues();
-  for( const Node& c : conds )
+  for (const Node& c : conds)
   {
     it->second.addCondValue(c);
   }
