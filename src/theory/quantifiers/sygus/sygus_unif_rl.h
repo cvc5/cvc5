@@ -51,7 +51,7 @@ class SygusUnifRl : public SygusUnif
 
   /** initialize */
   void initialize(QuantifiersEngine* qe,
-                  const std::vector<Node>& funs,
+                  Node f,
                   std::vector<Node>& enums,
                   std::map<Node, std::vector<Node>>& strategy_lemmas) override;
   /** set conditional enumerators
@@ -272,6 +272,7 @@ class SygusUnifRl : public SygusUnif
    * points, if any, are retrived from strategy_lemmas.
    */
   void registerStrategy(Node f,
+                        std::vector< Node >& enums,
                         std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register strategy node
    *
@@ -286,6 +287,7 @@ class SygusUnifRl : public SygusUnif
                             Node e,
                             NodeRole nrole,
                             std::map<Node, std::map<NodeRole, bool>>& visited,
+                            std::vector< Node >& enums,
                             std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register conditional enumerator
    *

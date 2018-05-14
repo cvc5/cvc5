@@ -39,30 +39,37 @@ bool CegisUnif::initialize(Node n,
                            std::vector<Node>& lemmas)
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
-  // Init UNIF util
-  std::map<Node, std::vector<Node>> strategy_lemmas;
-  std::vector<Node> enums;
-  d_sygus_unif.initialize(d_qe, candidates, enums, strategy_lemmas);
+
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
-  std::vector<Node> unif_candidates;
-  std::map< Node, Node > c_to_cond;
+  // list of strategy points for unification candidates
+  std::vector<Node> unif_candidate_pts;
+  // map from 
+  std::map< Node, Node > pt_to_cond;
+  std::map<Node, std::vector<Node>> strategy_lemmas;
   // Initialize enumerators for non-unif functions-to-synhesize
-  for (const Node& c : candidates)
+  for (const Node& f : candidates)
   {
-    if (!d_sygus_unif.usingUnif(c))
+    // Init UNIF util for this candidate
+    std::vector<Node> enums;
+    d_sygus_unif.initialize(d_qe, f, enums, strategy_lemmas);
+    if (!d_sygus_unif.usingUnif(f))
     {
-      Trace("cegis-unif") << "* non-unification candidate : " << c << std::endl;
-      d_tds->registerEnumerator(c, c, d_parent);
+      Trace("cegis-unif") << "* non-unification candidate : " << f << std::endl;
+      d_tds->registerEnumerator(f, f, d_parent);
     }
     else
     {
-      Trace("cegis-unif") << "* unification candidate : " << c << std::endl;
-      unif_candidates.push_back(c);
-      // TODO : map strategy point to its condition in c_to_cond
+      Trace("cegis-unif") << "* unification candidate : " << f << " with strategy points:" << std::endl;
+      unif_candidate_pts.insert(unif_candidate_pts.end(),enums.begin(),enums.end() );
+      // map strategy point to its condition in pt_to_cond
+      for( const Node& e : enums )
+      {
+        
+      }
     }
   }
   // initialize the enumeration manager
-  d_u_enum_manager.initialize(unif_candidates, c_to_cond, strategy_lemmas);
+  d_u_enum_manager.initialize(unif_candidate_pts, pt_to_cond, strategy_lemmas);
   return true;
 }
 

@@ -26,27 +26,23 @@ namespace quantifiers {
 SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initialize(QuantifiersEngine* qe,
-                             const std::vector<Node>& funs,
+                             Node f,
                              std::vector<Node>& enums,
                              std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   // initialize
   std::vector<Node> all_enums;
-  SygusUnif::initialize(qe, funs, all_enums, strategy_lemmas);
+  SygusUnif::initialize(qe, f, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
-  for (const Node& f : funs)
-  {
-    d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-    registerStrategy(f, strategy_lemmas);
-  }
-  enums.insert(enums.end(), d_cond_enums.begin(), d_cond_enums.end());
+  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
+  registerStrategy(f, enums, strategy_lemmas);
   // Copy candidates and check whether CegisUnif for any of them
-  for (const Node& c : d_unif_candidates)
+  if( d_unif_candidates.find(f)!=d_unif_candidates.end())
   {
-    d_hd_to_pt[c].clear();
-    d_cand_to_eval_hds[c].clear();
-    d_cand_to_hd_count[c] = 0;
+    d_hd_to_pt[f].clear();
+    d_cand_to_eval_hds[f].clear();
+    d_cand_to_hd_count[f] = 0;
   }
 }
 
@@ -364,7 +360,7 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
 }
 
 void SygusUnifRl::registerStrategy(
-    Node f, std::map<Node, std::vector<Node>>& strategy_lemmas)
+    Node f, std::vector< Node >& enums, std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -375,7 +371,7 @@ void SygusUnifRl::registerStrategy(
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
-  registerStrategyNode(f, e, role_equal, visited, strategy_lemmas);
+  registerStrategyNode(f, e, role_equal, visited, enums, strategy_lemmas);
 }
 
 void SygusUnifRl::registerStrategyNode(
@@ -383,6 +379,7 @@ void SygusUnifRl::registerStrategyNode(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool>>& visited,
+    std::vector< Node >& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;

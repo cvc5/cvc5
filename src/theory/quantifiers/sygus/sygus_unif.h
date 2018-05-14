@@ -48,8 +48,8 @@ class SygusUnif
 
   /** initialize
    *
-   * This initializes this class with functions-to-synthesize funs. We also call
-   * these "candidate variables".
+   * This initializes this class with functions-to-synthesize f. We also call
+   * this a "candidate variable".
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that
@@ -62,7 +62,7 @@ class SygusUnif
    * the respective function-to-synthesize.
    */
   virtual void initialize(QuantifiersEngine* qe,
-                          const std::vector<Node>& funs,
+                          Node f,
                           std::vector<Node>& enums,
                           std::map<Node, std::vector<Node>>& strategy_lemmas);
 
