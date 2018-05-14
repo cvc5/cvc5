@@ -226,35 +226,35 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
 }
 
 void CegisUnifEnumManager::initialize(
-    const std::vector<Node>& cs,
-    const std::map<Node, Node>& c_to_cond,
+    const std::vector<Node>& es,
+    const std::map<Node, Node>& e_to_cond,
     const std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   Assert(!d_initialized);
   d_initialized = true;
-  if (cs.empty())
+  if (es.empty())
   {
     return;
   }
   // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
-  for (const Node& c : cs)
+  for (const Node& e : es)
   {
-    Trace("cegis-unif-enum-debug") << "...adding candidate " << c << "\n";
+    Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";
     // currently, we allocate the same enumerators for candidates of the same
     // type
-    d_ce_info[c].d_pt = c;
-    std::map<Node, Node>::const_iterator itcc = c_to_cond.find(c);
-    Assert(itcc != c_to_cond.end());
+    d_ce_info[e].d_pt = e;
+    std::map<Node, Node>::const_iterator itcc = e_to_cond.find(e);
+    Assert(itcc != e_to_cond.end());
     Node cond = itcc->second;
     Trace("cegis-unif-enum-debug")
         << "...its condition strategy point is " << cond << "\n";
-    d_ce_info[c].d_ce_type = cond.getType();
+    d_ce_info[e].d_ce_type = cond.getType();
     // initialize the symmetry breaking lemma templates
     for (unsigned index = 0; index < 2; index++)
     {
-      Assert(d_ce_info[c].d_sbt_lemma_tmpl[index].first.isNull());
-      Node sp = index == 0 ? c : cond;
+      Assert(d_ce_info[e].d_sbt_lemma_tmpl[index].first.isNull());
+      Node sp = index == 0 ? e : cond;
       std::map<Node, std::vector<Node>>::const_iterator it =
           strategy_lemmas.find(sp);
       if (it == strategy_lemmas.end())
@@ -267,7 +267,7 @@ void CegisUnifEnumManager::initialize(
       Trace("cegis-unif-enum-debug")
           << "...adding lemma template to remove redundant operators for " << sp
           << " --> lambda " << sp << ". " << d_sbt_lemma << "\n";
-      d_ce_info[c].d_sbt_lemma_tmpl[index] =
+      d_ce_info[e].d_sbt_lemma_tmpl[index] =
           std::pair<Node, Node>(d_sbt_lemma, sp);
     }
   }
@@ -276,30 +276,30 @@ void CegisUnifEnumManager::initialize(
 }
 
 void CegisUnifEnumManager::getCondEnumeratorsForStrategyPt(
-    Node c, std::vector<Node>& ces) const
+    Node e, std::vector<Node>& ces) const
 {
-  std::map<Node, StrategyPtInfo>::const_iterator itc = d_ce_info.find(c);
+  std::map<Node, StrategyPtInfo>::const_iterator itc = d_ce_info.find(e);
   Assert(itc != d_ce_info.end());
   ces.insert(
       ces.end(), itc->second.d_enums[1].begin(), itc->second.d_enums[1].end());
 }
 
-void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node c)
+void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
 {
   // candidates of the same type are managed
-  std::map<Node, StrategyPtInfo>::iterator it = d_ce_info.find(c);
+  std::map<Node, StrategyPtInfo>::iterator it = d_ce_info.find(e);
   Assert(it != d_ce_info.end());
   it->second.d_eval_points.insert(
       it->second.d_eval_points.end(), eis.begin(), eis.end());
   // register at all already allocated sizes
   for (const Node& ei : eis)
   {
-    Assert(ei.getType() == c.getType());
+    Assert(ei.getType() == e.getType());
     for (const std::pair<const unsigned, Node>& p : d_guq_lit)
     {
-      Trace("cegis-unif-enum") << "...for cand " << c << " adding hd " << ei
+      Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei
                                << " at size " << p.first << "\n";
-      registerEvalPtAtSize(c, ei, p.second, p.first);
+      registerEvalPtAtSize(e, ei, p.second, p.first);
     }
   }
 }
@@ -435,13 +435,13 @@ Node CegisUnifEnumManager::getLiteral(unsigned n) const
   return itc->second;
 }
 
-void CegisUnifEnumManager::registerEvalPtAtSize(Node c,
+void CegisUnifEnumManager::registerEvalPtAtSize(Node e,
                                                 Node ei,
                                                 Node guq_lit,
                                                 unsigned n)
 {
   // must be equal to one of the first n enums
-  std::map<Node, StrategyPtInfo>::iterator itc = d_ce_info.find(c);
+  std::map<Node, StrategyPtInfo>::iterator itc = d_ce_info.find(e);
   Assert(itc != d_ce_info.end());
   Assert(itc->second.d_enums[0].size() >= n);
   std::vector<Node> disj;

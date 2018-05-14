@@ -64,13 +64,12 @@ class CegisUnifEnumManager
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points
-   * for candidate c, where c should be a candidate that was passed to
-   * initialize in the vector cs.
+   * for strategy point e, where e was passed to initialize in the vector es.
    *
    * This may add new lemmas of the form described above
    * registerEvalPtAtValue on the output channel of d_qe.
    */
-  void registerEvalPts(const std::vector<Node>& eis, Node c);
+  void registerEvalPts(const std::vector<Node>& eis, Node e);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
@@ -151,9 +150,9 @@ class CegisUnifEnumManager
    * This sends a lemma of the form:
    *   G_uq_n => ei = d1 V ... V ei = dn
    * on the output channel of d_qe, where d1...dn are sygus enumerators of the
-   * same type as c and ei, and ei is an evaluation point of candidate c.
+   * same type as e and ei, and ei is an evaluation point of strategy point e.
    */
-  void registerEvalPtAtSize(Node c, Node ei, Node guq_lit, unsigned n);
+  void registerEvalPtAtSize(Node e, Node ei, Node guq_lit, unsigned n);
 };
 
 /** Synthesizes functions in a data-driven SyGuS approach

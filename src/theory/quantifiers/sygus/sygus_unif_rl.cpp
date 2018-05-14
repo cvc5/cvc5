@@ -340,10 +340,12 @@ void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
   it->second.clearCondValues();
+  /* TODO
   for (const Node& c : conds)
   {
     it->second.addCondValue(c);
   }
+  */
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -487,7 +489,10 @@ void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
   d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
 }
 
-void SygusUnifRl::DecisionTreeInfo::clearCondValues() {}
+void SygusUnifRl::DecisionTreeInfo::clearCondValues() {
+  // TODO
+  //d_conds.clear();
+}
 
 void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
 {
