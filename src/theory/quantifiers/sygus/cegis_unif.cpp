@@ -98,9 +98,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
       enums.push_back(hd);
     }
     // for each decision tree strategy allocated for c (these are referenced
-    // by strategy points in eenums)
-    std::vector<Node>& eenums = d_cand_to_strat_pt[c];
-    for (const Node& e : eenums)
+    // by strategy points in d_cand_to_strat_pt[c])
+    for (const Node& e : d_cand_to_strat_pt[c])
     {
       std::vector<Node> cenums;
       // also get the current conditional enumerators

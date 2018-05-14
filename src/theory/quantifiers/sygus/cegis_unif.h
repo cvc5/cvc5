@@ -125,7 +125,7 @@ class CegisUnifEnumManager
      */
     std::pair<Node, Node> d_sbt_lemma_tmpl[2];
   };
-  /** map candidates to the above info */
+  /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
   /** literals of the form G_uq_n for each n */
   std::map<unsigned, Node> d_guq_lit;
