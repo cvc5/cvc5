@@ -710,16 +710,16 @@ void SygusSampler::registerSygusType(TypeNode tn)
 SygusSamplerExt::SygusSamplerExt() : d_drewrite(nullptr), d_ssenm(*this) {}
 
 void SygusSamplerExt::initializeSygus(TermDbSygus* tds,
-                                         Node f,
-                                         unsigned nsamples,
-                                         bool useSygusType)
+                                      Node f,
+                                      unsigned nsamples,
+                                      bool useSygusType)
 {
   SygusSampler::initializeSygus(tds, f, nsamples, useSygusType);
   d_pairs.clear();
   d_match_trie.clear();
 }
 
-void SygusSamplerExt::setDynamicRewriter( DynamicRewriter * dr )
+void SygusSamplerExt::setDynamicRewriter(DynamicRewriter* dr)
 {
   d_drewrite = dr;
 }

@@ -32,31 +32,35 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase() : d_qe(nullptr),d_using_sygus(false) {}
+CandidateRewriteDatabase::CandidateRewriteDatabase()
+    : d_qe(nullptr), d_using_sygus(false)
+{
+}
 void CandidateRewriteDatabase::initialize(QuantifiersEngine* qe,
                                           TypeNode tn,
-                std::vector<Node>& vars,
-                unsigned nsamples)
+                                          std::vector<Node>& vars,
+                                          unsigned nsamples)
 {
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
   initializeInternal(qe);
-  d_sampler.initialize(tn,vars,nsamples);
+  d_sampler.initialize(tn, vars, nsamples);
 }
 
 void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
                                                Node f,
-                                              unsigned nsamples,
-                                              bool useSygusType)
+                                               unsigned nsamples,
+                                               bool useSygusType)
 {
   d_candidate = f;
   d_type = f.getType();
-  Assert( d_type.isDatatype() );
+  Assert(d_type.isDatatype());
   Assert(static_cast<DatatypeType>(d_type.toType()).getDatatype().isSygus());
   d_using_sygus = true;
   initializeInternal(qe);
-  d_sampler.initializeSygus(qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
+  d_sampler.initializeSygus(
+      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
 }
 
 void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
@@ -72,7 +76,7 @@ void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
     d_sampler.setDynamicRewriter(d_drewrite.get());
   }
 }
-  
+
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   bool is_unique_term = true;
@@ -185,7 +189,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
         out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-        if( d_using_sygus )
+        if (d_using_sygus)
         {
           Printer* p = Printer::getPrinter(options::outputLanguage());
           p->toStreamSygus(out, sol);
@@ -248,25 +252,25 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
   return is_unique_term;
 }
 
-CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(QuantifiersEngine* qe,
-                std::vector<Node>& vars,
-                unsigned nsamples) : d_qe(qe), d_nsamples(nsamples)
+CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
+    QuantifiersEngine* qe, std::vector<Node>& vars, unsigned nsamples)
+    : d_qe(qe), d_nsamples(nsamples)
 {
-  d_vars.insert(d_vars.end(),vars.begin(),vars.end());
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 }
-   
-void CandidateRewriteDatabaseGen::addTerm( Node n, std::ostream& out )
+
+void CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
 {
   TypeNode tn = n.getType();
-  std::map<TypeNode,CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
-  if( itc==d_cdbs.end() )
+  std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
+  if (itc == d_cdbs.end())
   {
-    d_cdbs[tn].initialize(d_qe,tn,d_vars,d_nsamples);
+    d_cdbs[tn].initialize(d_qe, tn, d_vars, d_nsamples);
     itc = d_cdbs.find(tn);
   }
-  itc->second.addTerm(n,out);
+  itc->second.addTerm(n, out);
 }
-   
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

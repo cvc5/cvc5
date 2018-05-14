@@ -41,8 +41,8 @@ class CandidateRewriteDatabase
  public:
   CandidateRewriteDatabase();
   ~CandidateRewriteDatabase() {}
-  /**  Initialize this class 
-   * 
+  /**  Initialize this class
+   *
    * qe : pointer to quantifiers engine,
    * tn : the return type of terms we will be testing with this class,
    * vars : the variables we are testing substitutions for,
@@ -56,7 +56,7 @@ class CandidateRewriteDatabase
    *
    * Serves the same purpose as the above function, but we will be using
    * sygus to enumerate terms and generate samples.
-   * 
+   *
    * qe : pointer to quantifiers engine,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f. This is the
@@ -70,9 +70,9 @@ class CandidateRewriteDatabase
    * These arguments are used to initialize the sygus sampler class.
    */
   void initializeSygus(QuantifiersEngine* qe,
-                  Node f,
-                  unsigned nsamples,
-                  bool useSygusType);
+                       Node f,
+                       unsigned nsamples,
+                       bool useSygusType);
   /** add term
    *
    * Notifies this class that the solution sol was enumerated. This may
@@ -106,39 +106,40 @@ class CandidateRewriteDatabase
   void initializeInternal(QuantifiersEngine* qe);
 };
 
-/** 
- * This class generates and stores candidate rewrite databases for multiple 
+/**
+ * This class generates and stores candidate rewrite databases for multiple
  * types as needed.
  */
 class CandidateRewriteDatabaseGen
 {
- public:  
-   /** constructor 
-    * 
-    * qe : pointer to quantifiers engine,
-    * vars : the variables we are testing substitutions for, for all types,
-    * nsamples : number of sample points this class will test for all types.
-    */
-   CandidateRewriteDatabaseGen(QuantifiersEngine* qe,
-                   std::vector<Node>& vars,
-                   unsigned nsamples);
-   /** add term 
-    * 
-    * This registers term n with this class. We generate the candidate rewrite
-    * database of the appropriate type (if not allocated already), and register
-    * n with this database. This may result in "candidate-rewrite" being
-    * printed on the output stream out.
-    */
-   void addTerm( Node n, std::ostream& out );
+ public:
+  /** constructor
+   *
+   * qe : pointer to quantifiers engine,
+   * vars : the variables we are testing substitutions for, for all types,
+   * nsamples : number of sample points this class will test for all types.
+   */
+  CandidateRewriteDatabaseGen(QuantifiersEngine* qe,
+                              std::vector<Node>& vars,
+                              unsigned nsamples);
+  /** add term
+   *
+   * This registers term n with this class. We generate the candidate rewrite
+   * database of the appropriate type (if not allocated already), and register
+   * n with this database. This may result in "candidate-rewrite" being
+   * printed on the output stream out.
+   */
+  void addTerm(Node n, std::ostream& out);
+
  private:
-   /** reference to quantifier engine */
-   QuantifiersEngine* d_qe;
-   /** the variables */
-   std::vector< Node > d_vars;
-   /** the number of samples */
-   unsigned d_nsamples;
-   /** candidate rewrite databases for each type */
-   std::map<TypeNode,CandidateRewriteDatabase> d_cdbs;
+  /** reference to quantifier engine */
+  QuantifiersEngine* d_qe;
+  /** the variables */
+  std::vector<Node> d_vars;
+  /** the number of samples */
+  unsigned d_nsamples;
+  /** candidate rewrite databases for each type */
+  std::map<TypeNode, CandidateRewriteDatabase> d_cdbs;
 };
 
 } /* CVC4::theory::quantifiers namespace */

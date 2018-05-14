@@ -73,7 +73,9 @@ class SygusSampler : public LazyTrieEvaluator
    * vars : the variables we are testing substitutions for
    * nsamples : number of sample points this class will test.
    */
-  virtual void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
+  virtual void initialize(TypeNode tn,
+                          std::vector<Node>& vars,
+                          unsigned nsamples);
   /** initialize sygus
    *
    * qe : pointer to quantifiers engine,
@@ -86,9 +88,9 @@ class SygusSampler : public LazyTrieEvaluator
    * f's type encodes in the deep embedding.
    */
   virtual void initializeSygus(TermDbSygus* tds,
-                       Node f,
-                       unsigned nsamples,
-                       bool useSygusType);
+                               Node f,
+                               unsigned nsamples,
+                               bool useSygusType);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
@@ -330,16 +332,16 @@ class SygusSamplerExt : public SygusSampler
   SygusSamplerExt();
   /** initialize */
   void initializeSygus(TermDbSygus* tds,
-                          Node f,
-                          unsigned nsamples,
-                          bool useSygusType) override;
-  /** set dynamic rewriter 
-   * 
+                       Node f,
+                       unsigned nsamples,
+                       bool useSygusType) override;
+  /** set dynamic rewriter
+   *
    * This tells this class to use the dynamic rewriter object dr. This utility
    * is used to query whether pairs of terms are already entailed to be
    * equal based on previous rewrite rules.
    */
-  void setDynamicRewriter( DynamicRewriter * dr );
+  void setDynamicRewriter(DynamicRewriter* dr);
 
   /** register term n with this sampler database
    *
