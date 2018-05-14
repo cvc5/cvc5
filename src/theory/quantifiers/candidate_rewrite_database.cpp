@@ -33,7 +33,7 @@ namespace theory {
 namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase()
-    : d_qe(nullptr), d_tds(nullptr), d_ext_rewrite(nullptr), d_using_sygus(false), d_num_rewrites(0), d_num_rewrites_print(0)
+    : d_qe(nullptr), d_tds(nullptr), d_ext_rewrite(nullptr), d_using_sygus(false)
 {
 }
 void CandidateRewriteDatabase::initialize(ExtendedRewriter * er,
@@ -79,7 +79,7 @@ void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
   }
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_print)
 {
   bool is_unique_term = true;
   Node eq_sol = d_sampler.registerTerm(sol);
@@ -89,7 +89,6 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
     is_unique_term = false;
     // if eq_sol is null, then we have an uninteresting candidate rewrite,
     // e.g. one that is alpha-equivalent to another.
-    bool success = true;
     if (!eq_sol.isNull())
     {
       Node solb = sol;
@@ -148,7 +147,6 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
         if (r.asSatisfiabilityResult().isSat())
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
-          success = false;
           is_unique_term = true;
           std::vector<Node> vars;
           d_sampler.getVariables(vars);
@@ -185,9 +183,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
       else
       {
         // just insist that constants are not relevant pairs
-        success = !solb.isConst() || !eq_solb.isConst();
+        is_unique_term = solb.isConst() && eq_solb.isConst();
       }
-      if (success)
+      if (!is_unique_term)
       {
         // register this as a relevant pair (helps filtering)
         d_sampler.registerRelevantPair(sol, eq_sol);
@@ -207,7 +205,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
           out << sol << " " << eq_sol;
         }
         out << ")" << std::endl;
-        d_num_rewrites_print++;
+        rew_print = true;
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
         {
@@ -242,6 +240,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
       }
     }
     // We count this as a rewrite if we did not explicitly rule it out.
+    // The value of is_unique_term is false iff this call resulted in a rewrite.
     // Notice that when --sygus-rr-synth-check is enabled,
     // statistics on number of candidate rewrite rules is
     // an accurate count of (#enumerated_terms-#unique_terms) only if
@@ -250,12 +249,14 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
     // rule is not useful since its variables are unordered, whereby
     // it discards it as a redundant candidate rewrite rule before
     // checking its correctness.
-    if (success)
-    {
-      d_num_rewrites++;
-    }
   }
   return is_unique_term;
+}
+
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+{
+  bool rew_print = false;
+  return addTerm(sol,out,rew_print);
 }
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(std::vector<Node>& vars, unsigned nsamples)
@@ -270,6 +271,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
   if (itc == d_cdbs.end())
   {
+    // initialize with the extended rewriter owned by this class
     d_cdbs[tn].initialize(&d_ext_rewrite, tn, d_vars, d_nsamples);
     itc = d_cdbs.find(tn);
   }

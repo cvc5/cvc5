@@ -80,7 +80,11 @@ class CandidateRewriteDatabase
    *
    * Notifies this class that the solution sol was enumerated. This may
    * cause a candidate-rewrite to be printed on the output stream out.
+   * We return true if the term sol is distinct (up to equivalence) with
+   * all previous terms added to this class. The argument rew_print is set to 
+   * true if this class printed a rewrite.
    */
+  bool addTerm(Node sol, std::ostream& out, bool& rew_print);
   bool addTerm(Node sol, std::ostream& out);
 
  private:
@@ -113,10 +117,6 @@ class CandidateRewriteDatabase
   std::map<Node, Node> d_fv_to_skolem;
   /** initalize internal, called by initialize methods above */
   void initializeInternal(QuantifiersEngine* qe);
-  /** number of rewrites found */
-  unsigned d_num_rewrites;
-  /** number of rewrites printed */
-  unsigned d_num_rewrites_print;
 };
 
 /**
