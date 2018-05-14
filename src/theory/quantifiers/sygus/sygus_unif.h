@@ -49,7 +49,8 @@ class SygusUnif
   /** initialize candidate
    *
    * This initializes this class with functions-to-synthesize f. We also call
-   * this a "candidate variable".
+   * this a "candidate variable". This function can be called more than once
+   * for different functions-to-synthesize in the same conjecture.
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that

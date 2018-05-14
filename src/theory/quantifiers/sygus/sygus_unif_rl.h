@@ -56,7 +56,7 @@ class SygusUnifRl : public SygusUnif
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;
 
-  /** Notify enumeration */
+  /** Notify enumeration (unused) */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols) override;
@@ -83,15 +83,16 @@ class SygusUnifRl : public SygusUnif
   bool usingUnif(Node f) const;
   /** get condition for evaluation point
    *
-   *
+   * Returns the strategy point corresponding to the condition of the strategy
+   * point e.
    */
   Node getConditionForEvaluationPoint(Node e) const;
   /** set conditional enumerators
    *
-   * This informs this class that the current set of conditional enumerators
-   * for evaluation point e is enums.
+   * This informs this class that the current set of conditions for evaluation
+   * point e is conds.
    */
-  void setConditionalEnumerators(Node e, const std::vector<Node>& cenums);
+  void setConditions(Node e, const std::vector<Node>& conds);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);

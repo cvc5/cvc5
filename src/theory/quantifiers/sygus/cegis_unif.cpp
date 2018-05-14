@@ -107,8 +107,10 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
       std::vector<Node> cenums;
       // also get the current conditional enumerators
       d_u_enum_manager.getCondEnumeratorsForStrategyPt(e, cenums);
-      // inform the unif utility that we are using these conditional enumerators
-      d_sygus_unif.setConditionalEnumerators(e, cenums);
+      for( const Node& ce: cenums )
+      {
+        d_cenum_to_strat_pt[ce] = e;
+      }
       // conditional enumerators are also part of list
       enums.insert(enums.end(), cenums.begin(), cenums.end());
     }
@@ -121,6 +123,8 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
                                     std::vector<Node>& candidate_values,
                                     std::vector<Node>& lems)
 {
+  // build the values of the 
+  std::map< Node, std::vector< Node > > condition_map;
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
@@ -140,15 +144,24 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
       Trace("cegis-unif-enum") << ss.str() << std::endl;
     }
     Node e = enums[i], v = enum_values[i];
-    std::vector<Node> enum_lems;
-    d_sygus_unif.notifyEnumeration(e, v, enum_lems);
-    Assert(enum_lems.empty());
+    std::map<Node, Node>::iterator itc = d_cenum_to_strat_pt.find(e);
+    if( itc!=d_cenum_to_strat_pt.end() )
+    {
+      Trace("cegis-unif-enum") << "   ...this is a condition for " << e << "\n";
+      // it is the value of a current condition
+      condition_map[itc->second].push_back(v);
+    }
   }
   // evaluate on refinement lemmas
   if (addEvalLemmas(enums, enum_values))
   {
     Trace("cegis-unif-lemma") << "Added eval lemmas\n";
     return false;
+  }
+  // inform the unif utility that we are using these conditions
+  for( const std::pair< const Node, std::vector< Node > > cs: condition_map )
+  {
+    d_sygus_unif.setConditions(cs.first,cs.second);
   }
   // TODO : check symmetry breaking for enumerators
   // TODO : check separation of evaluation heads wrt condition enumerators and

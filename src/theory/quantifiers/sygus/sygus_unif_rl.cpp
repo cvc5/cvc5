@@ -49,25 +49,8 @@ void SygusUnifRl::initializeCandidate(
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
-  Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
-                                << " value " << v << "\n";
-  // Update all desicion trees in which this enumerator is a conditional
-  // enumerator, if any
-  std::map<Node, std::vector<Node>>::iterator it = d_cenum_to_stratpt.find(e);
-  if (it == d_cenum_to_stratpt.end())
-  {
-    return;
-  }
-  for (const Node& stratpt : it->second)
-  {
-    Trace("sygus-unif-rl-dt")
-        << "...adding value " << v
-        << " to decision tree of strategy point  : " << stratpt << std::endl;
-    Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-    // Register new condition value
-    d_stratpt_to_dt[stratpt].addCondValue(v);
-    Trace("sygus-unif-rl-dt") << "...added\n";
-  }
+  // we do not use notify enumeration
+  Assert(false);
 }
 
 Node SygusUnifRl::purifyLemma(Node n,
@@ -352,12 +335,16 @@ Node SygusUnifRl::getConditionForEvaluationPoint(Node e) const
   return it->second.getConditionEnumerator();
 }
 
-void SygusUnifRl::setConditionalEnumerators(Node e,
-                                            const std::vector<Node>& enums)
+void SygusUnifRl::setConditions(Node e,
+                                            const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
-  // it->second.
+  it->second.clearCondValues();
+  for( const Node& c : conds )
+  {
+    it->second.addCondValue(c);
+  }
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)

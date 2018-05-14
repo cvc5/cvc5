@@ -58,6 +58,7 @@ class CegisUnifEnumManager
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** get conditional enumerators for strategy point */
   void getCondEnumeratorsForStrategyPt(Node e, std::vector<Node>& ces) const;
+  /** notify values for enumerators */
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points
@@ -254,6 +255,8 @@ class CegisUnif : public Cegis
   Node d_null;
   /** list of strategy points per candidate */
   std::map<Node, std::vector<Node>> d_cand_to_strat_pt;
+  /** map from conditional enumerators to their strategy point */
+  std::map<Node, Node> d_cenum_to_strat_pt;
 }; /* class CegisUnif */
 
 }  // namespace quantifiers
