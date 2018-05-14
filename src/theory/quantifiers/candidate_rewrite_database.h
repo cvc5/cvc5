@@ -107,7 +107,7 @@ class CandidateRewriteDatabase
    */
   SygusSamplerExt d_sampler;
   /** a (dummy) user context, used for d_ddrewrite */
-  //context::UserContext d_fake_context;
+  context::UserContext d_fake_context;
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
   /**
