@@ -280,11 +280,10 @@ class SygusUnifRl : public SygusUnif
   /** register strategy
    *
    * Initialize the above data for the relevant enumerators in the strategy tree
-   * of candidate variable f. For each strategy point e which there is a 
+   * of candidate variable f. For each strategy point e which there is a
    * decision tree strategy, we add e to enums.
    */
-  void registerStrategy(Node f,
-                        std::vector<Node>& enums);
+  void registerStrategy(Node f, std::vector<Node>& enums);
   /** register strategy node
    *
    * Called while traversing the strategy tree of f. The arguments e and nrole

@@ -371,9 +371,7 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
-void SygusUnifRl::registerStrategy(
-    Node f,
-    std::vector<Node>& enums)
+void SygusUnifRl::registerStrategy(Node f, std::vector<Node>& enums)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -437,11 +435,10 @@ void SygusUnifRl::registerStrategyNode(
   }
 }
 
-void SygusUnifRl::registerConditionalEnumerator(
-    Node f,
-    Node e,
-    Node cond,
-    unsigned strategy_index)
+void SygusUnifRl::registerConditionalEnumerator(Node f,
+                                                Node e,
+                                                Node cond,
+                                                unsigned strategy_index)
 {
   // only allow one decision tree per strategy point
   if (d_stratpt_to_dt.find(e) != d_stratpt_to_dt.end())
