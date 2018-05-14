@@ -39,8 +39,6 @@ bool CegisUnif::initialize(Node n,
                            std::vector<Node>& lemmas)
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
-
-  Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   // list of strategy points for unification candidates
   std::vector<Node> unif_candidate_pts;
   // map from strategy points to their conditions
@@ -155,7 +153,6 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   // evaluate on refinement lemmas
   if (addEvalLemmas(enums, enum_values))
   {
-    Trace("cegis-unif-lemma") << "Added eval lemmas\n";
     return false;
   }
   // inform the unif utility that we are using these conditions
@@ -194,11 +191,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   std::map<Node, std::vector<Node>> eval_pts;
   Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
   d_refinement_lemmas.push_back(plem);
-  Trace("cegis-unif") << "* Refinement lemma:\n" << plem << "\n";
+  Trace("cegis-unif-lemma") << "* Refinement lemma:\n" << plem << "\n";
   // Notify the enumeration manager if there are new evaluation points
   for (const std::pair<const Node, std::vector<Node>>& ep : eval_pts)
   {
-    Trace("cegis-unif") << "** Registering new point:\n" << plem << "\n";
     d_u_enum_manager.registerEvalPts(ep.second, ep.first);
   }
   // Make the refinement lemma and add it to lems. This lemma is guarded by the

@@ -85,10 +85,25 @@ Node SygusUnifRl::purifyLemma(Node n,
     // occurring under a unification function-to-synthesize
     if (ensureConst)
     {
-      nv = d_parent->getModelValue(n);
-      Assert(n != nv);
+      std::map<Node, Node>::iterator it = d_cand_to_sol.find(n[0]);
+      // if function-to-synthesize, retrieve its built solution to replace in
+      // the application before computing the model value
+      AlwaysAssert(!u_fapp || it != d_cand_to_sol.end());
+      if (it != d_cand_to_sol.end())
+      {
+        TNode cand = n[0];
+        Node tmp = n.substitute(cand, it->second);
+        nv = d_tds->evaluateWithUnfolding(tmp);
+        Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << tmp
+                                      << " is " << nv << "\n";
+      }
+      else
+      {
+        nv = d_parent->getModelValue(n);
       Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
                                     << " is " << nv << "\n";
+      }
+      Assert(n != nv);
     }
   }
   // Travese to purify
@@ -273,20 +288,18 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
       Trace("sygus-unif-rl-sol") << "Adding solution " << v
                                  << " to non-unif candidate " << c << "\n";
       sols.push_back(v);
+      continue;
     }
-    else
+    initializeConstructSolFor(c);
+    Node v = constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
+    if (v.isNull())
     {
-      initializeConstructSolFor(c);
-      Node v =
-          constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
-      if (v.isNull())
-      {
-        return false;
-      }
-      Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                                 << " to unif candidate " << c << "\n";
-      sols.push_back(v);
+      return false;
     }
+    Trace("sygus-unif-rl-sol") << "Adding solution " << v
+                               << " to unif candidate " << c << "\n";
+    sols.push_back(v);
+    d_cand_to_sol[c] = v;
   }
   return true;
 }
