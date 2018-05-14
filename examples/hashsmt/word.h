@@ -69,6 +69,8 @@ public:
   Word  operator << (unsigned amount) const;
   Word  operator >> (unsigned amount) const;
 
+  Word select(unsigned high, unsigned low) const;
+
   unsigned size() const;
 
   void print(std::ostream& out) const;

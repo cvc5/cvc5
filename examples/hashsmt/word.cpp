@@ -140,6 +140,11 @@ Word Word::operator >> (unsigned amount) const {
   return em()->mkExpr(kind::BITVECTOR_LSHR, d_expr, shiftAmount.d_expr);
 }
 
+Word Word::select(unsigned high, unsigned low) const {
+  Expr extractOp = em()->mkConst(BitVectorExtract(high, low));
+  return em()->mkExpr(extractOp, d_expr);
+}
+
 unsigned Word::size() const {
   BitVectorType type = d_expr.getType();
   return type.getSize();
