@@ -778,7 +778,6 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
     EnumTypeInfoStrat* etis = snode.d_strats[j];
-    Assert(Datatype::indexOf(etis->d_cons.toExpr()) != -1);
     unsigned cindex =
         static_cast<unsigned>(Datatype::indexOf(etis->d_cons.toExpr()));
     Trace("sygus-strat-slearn") << "...by strategy, can exclude operator "
