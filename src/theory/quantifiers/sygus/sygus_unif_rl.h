@@ -300,16 +300,12 @@ class SygusUnifRl : public SygusUnif
    *
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
    */
   void registerConditionalEnumerator(
       Node f,
       Node e,
       Node cond,
-      unsigned strategy_index,
-      std::map<Node, std::vector<Node>>& strategy_lemmas);
+      unsigned strategy_index);
 };
 
 } /* CVC4::theory::quantifiers namespace */
