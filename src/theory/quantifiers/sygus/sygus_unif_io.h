@@ -276,7 +276,7 @@ class SygusUnifIo : public SygusUnif
    * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
    */
-  void initialize(QuantifiersEngine* qe,
+  void initializeCandidate(QuantifiersEngine* qe,
                   Node f,
                   std::vector<Node>& enums,
                   std::map<Node, std::vector<Node>>& strategy_lemmas) override;

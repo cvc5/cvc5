@@ -175,7 +175,7 @@ bool CegConjecturePbe::initialize(Node n,
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
-    d_sygus_unif[c].initialize(
+    d_sygus_unif[c].initializeCandidate(
         d_qe, c, d_candidate_to_enum[c], strategy_lemmas);
     Assert(!d_candidate_to_enum[c].empty());
     Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()

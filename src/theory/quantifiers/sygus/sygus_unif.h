@@ -46,7 +46,7 @@ class SygusUnif
   SygusUnif();
   virtual ~SygusUnif();
 
-  /** initialize
+  /** initialize candidate
    *
    * This initializes this class with functions-to-synthesize f. We also call
    * this a "candidate variable".
@@ -61,7 +61,7 @@ class SygusUnif
    * strategy is ITE_strat). The lemmas are associated with a strategy point of
    * the respective function-to-synthesize.
    */
-  virtual void initialize(QuantifiersEngine* qe,
+  virtual void initializeCandidate(QuantifiersEngine* qe,
                           Node f,
                           std::vector<Node>& enums,
                           std::map<Node, std::vector<Node>>& strategy_lemmas);

@@ -466,7 +466,7 @@ SygusUnifIo::SygusUnifIo() : d_check_sol(false), d_cond_count(0)
 }
 
 SygusUnifIo::~SygusUnifIo() {}
-void SygusUnifIo::initialize(QuantifiersEngine* qe,
+void SygusUnifIo::initializeCandidate(QuantifiersEngine* qe,
                              Node f,
                              std::vector<Node>& enums,
                              std::map<Node, std::vector<Node>>& strategy_lemmas)
@@ -475,7 +475,7 @@ void SygusUnifIo::initialize(QuantifiersEngine* qe,
   d_examples_out.clear();
   d_ecache.clear();
   d_candidate = f;
-  SygusUnif::initialize(qe, f, enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
 }

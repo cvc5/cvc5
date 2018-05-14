@@ -50,16 +50,11 @@ class SygusUnifRl : public SygusUnif
   ~SygusUnifRl();
 
   /** initialize */
-  void initialize(QuantifiersEngine* qe,
+  void initializeCandidate(QuantifiersEngine* qe,
                   Node f,
                   std::vector<Node>& enums,
                   std::map<Node, std::vector<Node>>& strategy_lemmas) override;
-  /** set conditional enumerators
-   * 
-   * This informs this class that the current set of conditional enumerators
-   * for candidate c is enums.
-   */
-  void setConditionalEnumerators(Node c, const std::vector< Node>& enums);
+
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
@@ -84,7 +79,18 @@ class SygusUnifRl : public SygusUnif
    * checked through wehether f has conditional or point enumerators (we use the
    * former)
     */
-  bool usingUnif(Node f);
+  bool usingUnif(Node f) const;
+  /** get condition for evaluation point 
+   * 
+   * 
+   */
+  Node getConditionForEvaluationPoint(Node e) const;
+  /** set conditional enumerators
+   * 
+   * This informs this class that the current set of conditional enumerators
+   * for evaluation point e is enums.
+   */
+  void setConditionalEnumerators(Node e, const std::vector< Node>& cenums);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
@@ -182,6 +188,8 @@ class SygusUnifRl : public SygusUnif
                     unsigned strategy_index);
     /** adds the respective evaluation point of the head f  */
     void addPoint(Node f);
+    /** clears the condition values */
+    void clearCondValues();
     /** adds a condition value to the pool of condition values */
     void addCondValue(Node condv);
     /** returns index of strategy information of strategy node for this DT */
@@ -205,6 +213,8 @@ class SygusUnifRl : public SygusUnif
     NodePair d_template;
     /** enumerated condition values */
     std::vector<Node> d_conds;
+    /** get condition enumerator */
+    Node getConditionEnumerator() const { return d_cond_enum; }
 
    private:
     /**
