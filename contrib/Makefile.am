@@ -10,8 +10,14 @@ EXTRA_DIST = \
 	new-theory \
 	configure-in-place \
 	depgraph \
+	get-abc \
 	get-antlr-3.4 \
+	get-cadical \
 	get-cryptominisat \
+	get-glpk-cut-log \
+	get-lfsc-checker \
+	get-script-header.sh \
+	get-symfpu \
 	get-win-dependencies \
 	mac-build \
 	run-script-smtcomp2014 \
