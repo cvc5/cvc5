@@ -160,8 +160,11 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     d_sygus_unif.setConditions(cs.first, cs.second);
   }
   // TODO : check symmetry breaking for enumerators
-  // TODO : check separation of evaluation heads wrt condition enumerators and
-  // add lemmas.
+  // check if evaluation points are separated on current model
+  if (!d_sygus_unif.isSeparated())
+  {
+    return false;
+  }
   // build solutions (for unif candidates a divide-and-conquer approach is used)
   std::vector<Node> sols;
   if (d_sygus_unif.constructSolution(sols))

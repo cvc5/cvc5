@@ -190,12 +190,6 @@ class SygusUnifRl : public SygusUnif
                     SygusUnifRl* unif,
                     SygusUnifStrategy* strategy,
                     unsigned strategy_index);
-    /** adds the respective evaluation point of the head f  */
-    void addPoint(Node f);
-    /** clears the condition values */
-    void clearCondValues();
-    /** adds a condition value to the pool of condition values */
-    void addCondValue(Node condv);
     /** returns index of strategy information of strategy node for this DT */
     unsigned getStrategyIndex() const;
     /** builds solution stored in DT, if any, using the given constructor
@@ -217,6 +211,8 @@ class SygusUnifRl : public SygusUnif
     NodePair d_template;
     /** enumerated condition values */
     std::vector<Node> d_conds;
+    /** gathered evaluation point heads */
+    std::vector<Node> d_hds;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
 
@@ -268,6 +264,10 @@ class SygusUnifRl : public SygusUnif
      * enumerated condiotion values
      */
     PointSeparator d_pt_sep;
+    /** adds the respective evaluation point of the head f to d_pt_sep */
+    void addPoint(Node f);
+    /** adds a value to the pool of condition values and to d_pt_sep */
+    void addCondValue(Node condv);
   };
   /** maps strategy points in the strategy tree to the above data */
   std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;

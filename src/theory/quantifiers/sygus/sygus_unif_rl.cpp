@@ -263,10 +263,11 @@ Node SygusUnifRl::addRefLemma(Node lemma,
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
           Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-          Trace("sygus-unif-rl-dt") << "Add point with head " << cp.second[j]
-                                    << " to strategy point " << stratpt << "\n";
+          Trace("sygus-unif-rl-dt") << "Register point with head "
+                                    << cp.second[j] << " to strategy point "
+                                    << stratpt << "\n";
           // Register new point from new head
-          d_stratpt_to_dt[stratpt].addPoint(cp.second[j]);
+          d_stratpt_to_dt[stratpt].d_hds.push_back(cp.second[j]);
         }
       }
     }
@@ -352,13 +353,11 @@ void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
-  it->second.clearCondValues();
-  /* TODO
-  for (const Node& c : conds)
-  {
-    it->second.addCondValue(c);
-  }
-  */
+  // Clear previous trie, set new condition values
+  it->second.d_pt_sep.d_trie.clear();
+  it->second.d_conds.clear();
+  it->second.d_conds.insert(
+      it->second.d_conds.end(), conds.begin(), conds.end());
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -479,13 +478,7 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
 
 void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
 {
-  d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
-}
-
-void SygusUnifRl::DecisionTreeInfo::clearCondValues()
-{
-  // TODO
-  // d_conds.clear();
+  // d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
 }
 
 void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
@@ -594,6 +587,12 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
 
 bool SygusUnifRl::DecisionTreeInfo::isSeparated()
 {
+  // build point separator
+  for (const Node& f: d_hds)
+  {
+    addPoint(f);
+  }
+  // check separation
   d_hd_values.clear();
   for (const std::pair<const Node, std::vector<Node>>& rep_to_class :
        d_pt_sep.d_trie.d_rep_to_class)
@@ -639,6 +638,7 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
         Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
                                   << rep_to_class.second[0] << " and "
                                   << rep_to_class.second[i] << "\n";
+        // TODO create lemma
         return false;
       }
     }
