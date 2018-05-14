@@ -489,9 +489,10 @@ void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
   d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
 }
 
-void SygusUnifRl::DecisionTreeInfo::clearCondValues() {
+void SygusUnifRl::DecisionTreeInfo::clearCondValues()
+{
   // TODO
-  //d_conds.clear();
+  // d_conds.clear();
 }
 
 void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
