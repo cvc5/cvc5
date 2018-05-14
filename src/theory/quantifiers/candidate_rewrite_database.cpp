@@ -68,6 +68,7 @@ void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
 {
   d_qe = qe;
   d_tds = d_qe==nullptr ? nullptr : qe->getTermDatabaseSygus();
+  /*
   if (options::sygusRewSynthFilterCong())
   {
     // initialize the dynamic rewriter
@@ -77,6 +78,7 @@ void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
         std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), &d_fake_context));
     d_sampler.setDynamicRewriter(d_drewrite.get());
   }
+  */
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_print)
