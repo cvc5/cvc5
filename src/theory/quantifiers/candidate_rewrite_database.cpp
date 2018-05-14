@@ -33,10 +33,10 @@ namespace theory {
 namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase()
-    : d_qe(nullptr), d_using_sygus(false)
+    : d_qe(nullptr), d_tds(nullptr), d_ext_rewrite(nullptr), d_using_sygus(false), d_num_rewrites(0), d_num_rewrites_print(0)
 {
 }
-void CandidateRewriteDatabase::initialize(QuantifiersEngine* qe,
+void CandidateRewriteDatabase::initialize(ExtendedRewriter * er,
                                           TypeNode tn,
                                           std::vector<Node>& vars,
                                           unsigned nsamples)
@@ -44,7 +44,8 @@ void CandidateRewriteDatabase::initialize(QuantifiersEngine* qe,
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
-  initializeInternal(qe);
+  initializeInternal(nullptr);
+  d_ext_rewrite = er;
   d_sampler.initialize(tn, vars, nsamples);
 }
 
@@ -59,20 +60,21 @@ void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
   Assert(static_cast<DatatypeType>(d_type.toType()).getDatatype().isSygus());
   d_using_sygus = true;
   initializeInternal(qe);
-  d_sampler.initializeSygus(
-      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
+  d_ext_rewrite = d_tds->getExtRewriter();
+  d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
 }
 
 void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
 {
   d_qe = qe;
+  d_tds = d_qe==nullptr ? nullptr : qe->getTermDatabaseSygus();
   if (options::sygusRewSynthFilterCong())
   {
     // initialize the dynamic rewriter
     std::stringstream ss;
     ss << "_dyn_rewriter_" << d_type;
     d_drewrite =
-        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), &d_fake_context));
     d_sampler.setDynamicRewriter(d_drewrite.get());
   }
 }
@@ -80,23 +82,27 @@ void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   bool is_unique_term = true;
-  TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
   Node eq_sol = d_sampler.registerTerm(sol);
   // eq_sol is a candidate solution that is equivalent to sol
   if (eq_sol != sol)
   {
-    CegInstantiation* cei = d_qe->getCegInstantiation();
     is_unique_term = false;
     // if eq_sol is null, then we have an uninteresting candidate rewrite,
     // e.g. one that is alpha-equivalent to another.
     bool success = true;
     if (!eq_sol.isNull())
     {
-      ExtendedRewriter* er = sygusDb->getExtRewriter();
-      Node solb = d_using_sygus ? sygusDb->sygusToBuiltin(sol) : sol;
-      Node solbr = er->extendedRewrite(solb);
-      Node eq_solb = d_using_sygus ? sygusDb->sygusToBuiltin(eq_sol) : eq_sol;
-      Node eq_solr = er->extendedRewrite(eq_solb);
+      Node solb = sol;
+      Node eq_solb = eq_sol;
+      if( d_using_sygus )
+      {
+        Assert( d_tds!=nullptr );
+        solb = d_tds->sygusToBuiltin(sol);
+        eq_solb = d_tds->sygusToBuiltin(eq_sol);
+      }
+      Assert(d_ext_rewrite!=nullptr);
+      Node solbr = d_ext_rewrite->extendedRewrite(solb);
+      Node eq_solr = d_ext_rewrite->extendedRewrite(eq_solb);
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
       // verify it if applicable
@@ -201,7 +207,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
           out << sol << " " << eq_sol;
         }
         out << ")" << std::endl;
-        ++(cei->d_statistics.d_candidate_rewrites_print);
+        d_num_rewrites_print++;
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
         {
@@ -212,26 +218,26 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
         }
         if (options::sygusRewSynthAccel() && d_using_sygus)
         {
+          Assert( d_tds!=nullptr );
           // Add a symmetry breaking clause that excludes the larger
           // of sol and eq_sol. This effectively states that we no longer
           // wish to enumerate any term that contains sol (resp. eq_sol)
           // as a subterm.
           Node exc_sol = sol;
-          unsigned sz = sygusDb->getSygusTermSize(sol);
-          unsigned eqsz = sygusDb->getSygusTermSize(eq_sol);
+          unsigned sz = d_tds->getSygusTermSize(sol);
+          unsigned eqsz = d_tds->getSygusTermSize(eq_sol);
           if (eqsz > sz)
           {
             sz = eqsz;
             exc_sol = eq_sol;
           }
           TypeNode ptn = d_candidate.getType();
-          Node x = sygusDb->getFreeVar(ptn, 0);
-          Node lem =
-              sygusDb->getExplain()->getExplanationForEquality(x, exc_sol);
+          Node x = d_tds->getFreeVar(ptn, 0);
+          Node lem = d_tds->getExplain()->getExplanationForEquality(x, exc_sol);
           lem = lem.negate();
           Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem
                                << std::endl;
-          sygusDb->registerSymBreakLemma(d_candidate, lem, ptn, sz);
+          d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }
     }
@@ -246,29 +252,28 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
     // checking its correctness.
     if (success)
     {
-      ++(cei->d_statistics.d_candidate_rewrites);
+      d_num_rewrites++;
     }
   }
   return is_unique_term;
 }
 
-CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
-    QuantifiersEngine* qe, std::vector<Node>& vars, unsigned nsamples)
-    : d_qe(qe), d_nsamples(nsamples)
+CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(std::vector<Node>& vars, unsigned nsamples)
+    : d_nsamples(nsamples)
 {
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 }
 
-void CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
+bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
 {
   TypeNode tn = n.getType();
   std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
   if (itc == d_cdbs.end())
   {
-    d_cdbs[tn].initialize(d_qe, tn, d_vars, d_nsamples);
+    d_cdbs[tn].initialize(&d_ext_rewrite, tn, d_vars, d_nsamples);
     itc = d_cdbs.find(tn);
   }
-  itc->second.addTerm(n, out);
+  return itc->second.addTerm(n, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */
