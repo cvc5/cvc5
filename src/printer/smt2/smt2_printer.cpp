@@ -1951,7 +1951,7 @@ static void toStream(std::ostream& out,
       const Datatype& d = i->getDatatype();
       out << "(";
       toStream(out, d);
-      out << ")" << endl;
+      out << ")";
     }
     out << ")";
   }
@@ -1966,11 +1966,11 @@ static void toStream(std::ostream& out,
       const Datatype& d = i->getDatatype();
       out << "(" << maybeQuoteSymbol(d.getName()) << " ";
       toStream(out, d);
-      out << ")" << endl;
+      out << ")";
     }
     out << ")";
   }
-  out << ")";
+  out << ")" << endl;
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c, Variant v)
