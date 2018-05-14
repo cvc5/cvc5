@@ -50,17 +50,17 @@ class CandidateRewriteDatabase
    * nsamples : number of sample points this class will test,
    * unique_type_ids : if this is set to true, then each variable is treated
    * as unique. This affects whether or not a rewrite rule is considered
-   * redundant or not. For example the rewrite f(y)=y is redundant if 
+   * redundant or not. For example the rewrite f(y)=y is redundant if
    * f(x)=x has also been printed as a rewrite and x and y have the same type
    * id (see SygusSampler for details). On the other hand, when a candidate
    * rewrite database is initialized with sygus below, the type ids of the
    * (sygus formal argument list) variables are always computed and used.
    */
-  void initialize(ExtendedRewriter * er,
+  void initialize(ExtendedRewriter* er,
                   TypeNode tn,
                   std::vector<Node>& vars,
                   unsigned nsamples,
-                  bool unique_type_ids=false);
+                  bool unique_type_ids = false);
   /**  Initialize this class
    *
    * Serves the same purpose as the above function, but we will be using

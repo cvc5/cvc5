@@ -79,7 +79,7 @@ class SygusSampler : public LazyTrieEvaluator
   virtual void initialize(TypeNode tn,
                           std::vector<Node>& vars,
                           unsigned nsamples,
-                          bool unique_type_ids=false);
+                          bool unique_type_ids = false);
   /** initialize sygus
    *
    * qe : pointer to quantifiers engine,

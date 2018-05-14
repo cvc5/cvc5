@@ -54,7 +54,7 @@ void SygusSampler::initialize(TypeNode tn,
   {
     TypeNode svt = sv.getType();
     unsigned tnid = 0;
-    if( unique_type_ids )
+    if (unique_type_ids)
     {
       tnid = type_id_counter;
       type_id_counter++;

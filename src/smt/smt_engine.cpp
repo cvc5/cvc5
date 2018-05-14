@@ -4229,8 +4229,8 @@ void SmtEnginePrivate::processAssertions() {
     d_preprocessingPassRegistry.getPass("pseudo-boolean-processor")
         ->apply(&d_assertions);
   }
-  
-  if( options::synthRrPrep() )
+
+  if (options::synthRrPrep())
   {
     // do candidate rewrite rule synthesis
     d_preprocessingPassRegistry.getPass("synth-rr")->apply(&d_assertions);

@@ -36,18 +36,18 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
     : d_qe(nullptr), d_tds(nullptr), d_ext_rewrite(nullptr), d_using_sygus(false)
 {
 }
-void CandidateRewriteDatabase::initialize(ExtendedRewriter * er,
+void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
                                           TypeNode tn,
                                           std::vector<Node>& vars,
                                           unsigned nsamples,
-                  bool unique_type_ids)
+                                          bool unique_type_ids)
 {
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
   initializeInternal(nullptr);
   d_ext_rewrite = er;
-  d_sampler.initialize(tn, vars, nsamples,unique_type_ids);
+  d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
 }
 
 void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
@@ -104,7 +104,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_pr
       // get the rewritten form
       Node solbr;
       Node eq_solr;
-      if(d_ext_rewrite!=nullptr)
+      if (d_ext_rewrite != nullptr)
       {
         solbr = d_ext_rewrite->extendedRewrite(solb);
         eq_solr = d_ext_rewrite->extendedRewrite(eq_solb);
@@ -284,8 +284,8 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   if (itc == d_cdbs.end())
   {
     // initialize with the extended rewriter owned by this class
-    ExtendedRewriter * er = nullptr;
-    if( options::synthRrPrepExtRew() )
+    ExtendedRewriter* er = nullptr;
+    if (options::synthRrPrepExtRew())
     {
       er = &d_ext_rewrite;
     }
