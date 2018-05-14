@@ -251,13 +251,6 @@ class CegisUnif : public Cegis
   SygusUnifRl d_sygus_unif;
   /** enumerator manager utility */
   CegisUnifEnumManager d_u_enum_manager;
-  /**
-   * list of conditonal enumerators to build solutions for candidates being
-   * synthesized with unification techniques
-   */
-  std::vector<Node> d_cond_enums;
-  /** map from enumerators to active guards */
-  std::map<Node, Node> d_enum_to_active_guard;
   /* The null node */
   Node d_null;
 }; /* class CegisUnif */

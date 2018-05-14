@@ -41,9 +41,11 @@ bool CegisUnif::initialize(Node n,
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
   // Init UNIF util
   std::map<Node, std::vector<Node>> strategy_lemmas;
-  d_sygus_unif.initialize(d_qe, candidates, d_cond_enums, strategy_lemmas);
+  std::vector<Node> enums;
+  d_sygus_unif.initialize(d_qe, candidates, enums, strategy_lemmas);
   Trace("cegis-unif") << "Initializing enums for pure Cegis case\n";
   std::vector<Node> unif_candidates;
+  std::map< Node, Node > c_to_cond;
   // Initialize enumerators for non-unif functions-to-synhesize
   for (const Node& c : candidates)
   {
@@ -56,17 +58,11 @@ bool CegisUnif::initialize(Node n,
     {
       Trace("cegis-unif") << "* unification candidate : " << c << std::endl;
       unif_candidates.push_back(c);
+      // TODO : map strategy point to its condition in c_to_cond
     }
   }
-  for (const Node& e : d_cond_enums)
-  {
-    Node g = d_tds->getActiveGuardForEnumerator(e);
-    Assert(!g.isNull());
-    d_enum_to_active_guard[e] = g;
-  }
   // initialize the enumeration manager
-  // TODO : map strategy points to their conditions
-  //d_u_enum_manager.initialize(unif_candidates, strategy_lemmas);
+  d_u_enum_manager.initialize(unif_candidates, c_to_cond, strategy_lemmas);
   return true;
 }
 
@@ -88,20 +84,10 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
                                      << hd << "\n";
       enums.push_back(hd);
     }
-  }
-  // Collect condition enumerators
-  Valuation& valuation = d_qe->getValuation();
-  for (const Node& e : d_cond_enums)
-  {
-    Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-    Node g = d_enum_to_active_guard[e];
-    // Get whether the active guard for this enumerator is set. If so, then
-    // there may exist more values for it, and hence we add it to enums.
-    Node gstatus = valuation.getSatValue(g);
-    if (!gstatus.isNull() && gstatus.getConst<bool>())
-    {
-      enums.push_back(e);
-    }
+    // also get the current conditional enumerators
+    d_u_enum_manager.getCondEnumeratorsForCandidate(c,enums);
+    // inform the unif utility that we are using these conditional enumerators
+    d_sygus_unif.setConditionalEnumerators(c,enums);
   }
 }
 
@@ -133,18 +119,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     Node e = enums[i], v = enum_values[i];
     std::vector<Node> enum_lems;
     d_sygus_unif.notifyEnumeration(e, v, enum_lems);
-    // introduce lemmas to exclude this value of a condition enumerator from
-    // future consideration
-    std::map<Node, Node>::iterator it = d_enum_to_active_guard.find(e);
-    if (it == d_enum_to_active_guard.end())
-    {
-      continue;
-    }
-    for (unsigned j = 0, size = enum_lems.size(); j < size; ++j)
-    {
-      enum_lems[j] = nm->mkNode(OR, it->second.negate(), enum_lems[j]);
-    }
-    lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
+    Assert( enum_lems.empty() );
   }
   // evaluate on refinement lemmas
   if (addEvalLemmas(enums, enum_values))

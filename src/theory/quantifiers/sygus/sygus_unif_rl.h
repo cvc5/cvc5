@@ -54,6 +54,12 @@ class SygusUnifRl : public SygusUnif
                   const std::vector<Node>& funs,
                   std::vector<Node>& enums,
                   std::map<Node, std::vector<Node>>& strategy_lemmas) override;
+  /** set conditional enumerators
+   * 
+   * This informs this class that the current set of conditional enumerators
+   * for candidate c is enums.
+   */
+  void setConditionalEnumerators(Node c, const std::vector< Node>& enums);
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */

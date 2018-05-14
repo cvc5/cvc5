@@ -50,16 +50,15 @@ void SygusUnifRl::initialize(QuantifiersEngine* qe,
   }
 }
 
+void SygusUnifRl::setConditionalEnumerators(Node c, const std::vector< Node>& enums)
+{
+  
+}
+
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
   Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
                                 << " value " << v << "\n";
-  // Exclude v from next enumerations for e
-  Node exc_lemma =
-      d_tds->getExplain()->getExplanationForEquality(e, v).negate();
-  Trace("sygus-unif-rl-notify-debug")
-      << "SygusUnifRl : enumeration exclude lemma : " << exc_lemma << std::endl;
-  lemmas.push_back(exc_lemma);
   // Update all desicion trees in which this enumerator is a conditional
   // enumerator, if any
   std::map<Node, std::vector<Node>>::iterator it = d_cenum_to_stratpt.find(e);
