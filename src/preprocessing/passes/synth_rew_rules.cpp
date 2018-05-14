@@ -26,7 +26,7 @@ namespace preprocessing {
 namespace passes {
 
 SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sym-break"){};
+    : PreprocessingPass(preprocContext, "synth-rr"){};
 
 PreprocessingPassResult SynthRewRulesPass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
