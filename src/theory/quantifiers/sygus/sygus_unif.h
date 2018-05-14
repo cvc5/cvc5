@@ -61,10 +61,11 @@ class SygusUnif
    * strategy is ITE_strat). The lemmas are associated with a strategy point of
    * the respective function-to-synthesize.
    */
-  virtual void initializeCandidate(QuantifiersEngine* qe,
-                          Node f,
-                          std::vector<Node>& enums,
-                          std::map<Node, std::vector<Node>>& strategy_lemmas);
+  virtual void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
 
   /**
    * Notify that the value v has been enumerated for enumerator e. This call

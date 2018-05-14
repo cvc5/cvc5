@@ -54,10 +54,10 @@ class CegisUnifEnumManager
    * synthesis-by-unification approach for its candidate.
    */
   void initialize(const std::vector<Node>& es,
-                  const std::map<Node,Node>& e_to_cond,
+                  const std::map<Node, Node>& e_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** get conditional enumerators for strategy point */
-  void getCondEnumeratorsForStrategyPt(Node e, std::vector< Node >& ces ) const;
+  void getCondEnumeratorsForStrategyPt(Node e, std::vector<Node>& ces) const;
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points
@@ -99,29 +99,29 @@ class CegisUnifEnumManager
     StrategyPtInfo() {}
     /** strategy point for this type */
     Node d_pt;
-    /** the set of enumerators we have allocated for this strategy point  
-     * 
+    /** the set of enumerators we have allocated for this strategy point
+     *
      * Index 0 stores the return value enumerators, and index 1 stores the
-     * conditional enumerators. We have that 
+     * conditional enumerators. We have that
      *   d_enums[0].size()==d_enums[1].size()+1.
      */
     std::vector<Node> d_enums[2];
     /** the type of conditional enumerators for this strategy point  */
     TypeNode d_ce_type;
-    /** 
-     * The set of evaluation points of this type. In models, we ensure that 
+    /**
+     * The set of evaluation points of this type. In models, we ensure that
      * each of these are equal to one of d_enums[0].
      */
     std::vector<Node> d_eval_points;
-    /** symmetry breaking lemma template for this strategy point 
+    /** symmetry breaking lemma template for this strategy point
      *
-     * Each pair stores (the symmetry breaking lemma template, argument (to be 
+     * Each pair stores (the symmetry breaking lemma template, argument (to be
      * instantiated) of symmetry breaking lemma template).
-     * 
+     *
      * Index 0 stores the symmetry breaking lemma template for return values,
      * index 1 stores the template for conditions.
      */
-    std::pair< Node, Node > d_sbt_lemma_tmpl[2];
+    std::pair<Node, Node> d_sbt_lemma_tmpl[2];
   };
   /** map candidates to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
@@ -253,7 +253,7 @@ class CegisUnif : public Cegis
   /* The null node */
   Node d_null;
   /** list of strategy points per candidate */
-  std::map< Node, std::vector< Node > > d_cand_to_strat_pt;
+  std::map<Node, std::vector<Node>> d_cand_to_strat_pt;
 }; /* class CegisUnif */
 
 }  // namespace quantifiers

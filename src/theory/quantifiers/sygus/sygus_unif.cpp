@@ -29,10 +29,11 @@ namespace quantifiers {
 SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
 SygusUnif::~SygusUnif() {}
 
-void SygusUnif::initializeCandidate(QuantifiersEngine* qe,
-                           Node f,
-                           std::vector<Node>& enums,
-                           std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnif::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();

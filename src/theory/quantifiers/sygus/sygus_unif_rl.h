@@ -50,10 +50,11 @@ class SygusUnifRl : public SygusUnif
   ~SygusUnifRl();
 
   /** initialize */
-  void initializeCandidate(QuantifiersEngine* qe,
-                  Node f,
-                  std::vector<Node>& enums,
-                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
+  void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas) override;
 
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
@@ -80,17 +81,17 @@ class SygusUnifRl : public SygusUnif
    * former)
     */
   bool usingUnif(Node f) const;
-  /** get condition for evaluation point 
-   * 
-   * 
+  /** get condition for evaluation point
+   *
+   *
    */
   Node getConditionForEvaluationPoint(Node e) const;
   /** set conditional enumerators
-   * 
+   *
    * This informs this class that the current set of conditional enumerators
    * for evaluation point e is enums.
    */
-  void setConditionalEnumerators(Node e, const std::vector< Node>& cenums);
+  void setConditionalEnumerators(Node e, const std::vector<Node>& cenums);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
@@ -282,7 +283,7 @@ class SygusUnifRl : public SygusUnif
    * points, if any, are retrived from strategy_lemmas.
    */
   void registerStrategy(Node f,
-                        std::vector< Node >& enums,
+                        std::vector<Node>& enums,
                         std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register strategy node
    *
@@ -297,7 +298,7 @@ class SygusUnifRl : public SygusUnif
                             Node e,
                             NodeRole nrole,
                             std::map<Node, std::map<NodeRole, bool>>& visited,
-                            std::vector< Node >& enums,
+                            std::vector<Node>& enums,
                             std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** register conditional enumerator
    *

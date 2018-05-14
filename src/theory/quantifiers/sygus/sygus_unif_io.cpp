@@ -466,10 +466,11 @@ SygusUnifIo::SygusUnifIo() : d_check_sol(false), d_cond_count(0)
 }
 
 SygusUnifIo::~SygusUnifIo() {}
-void SygusUnifIo::initializeCandidate(QuantifiersEngine* qe,
-                             Node f,
-                             std::vector<Node>& enums,
-                             std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnifIo::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   d_examples.clear();
   d_examples_out.clear();
