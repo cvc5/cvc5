@@ -2638,7 +2638,7 @@ void SmtEnginePrivate::finishInit() {
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
-     new SynthRewRulesPass(d_preprocessingPassContext.get()));
+      new SynthRewRulesPass(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -4245,7 +4245,7 @@ void SmtEnginePrivate::processAssertions() {
   }
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
-  
+
   if (options::symmetryBreakerExp())
   {
     // apply symmetry breaking

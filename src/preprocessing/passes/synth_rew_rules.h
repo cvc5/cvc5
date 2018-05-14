@@ -28,10 +28,10 @@ namespace preprocessing {
 namespace passes {
 
 /**
- * This class computes candidate rewrite rules of the form t1 = t2, where 
- * t1 and t2 are subterms of assertionsToPreprocess. It prints 
+ * This class computes candidate rewrite rules of the form t1 = t2, where
+ * t1 and t2 are subterms of assertionsToPreprocess. It prints
  * "candidate-rewrite" messages on the output stream of options.
- * 
+ *
  * In contrast to other preprocessing passes, this pass does not modify
  * the set of assertions.
  */

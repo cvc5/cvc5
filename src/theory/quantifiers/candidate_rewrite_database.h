@@ -89,7 +89,7 @@ class CandidateRewriteDatabase
    * Notifies this class that the solution sol was enumerated. This may
    * cause a candidate-rewrite to be printed on the output stream out.
    * We return true if the term sol is distinct (up to equivalence) with
-   * all previous terms added to this class. The argument rew_print is set to 
+   * all previous terms added to this class. The argument rew_print is set to
    * true if this class printed a rewrite.
    */
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
@@ -101,7 +101,7 @@ class CandidateRewriteDatabase
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** pointer to the extended rewriter object we are using */
-  ExtendedRewriter * d_ext_rewrite;
+  ExtendedRewriter* d_ext_rewrite;
   /** the (sygus or builtin) type of terms we are testing */
   TypeNode d_type;
   /** the function-to-synthesize we are testing (if sygus) */
@@ -139,8 +139,7 @@ class CandidateRewriteDatabaseGen
    * vars : the variables we are testing substitutions for, for all types,
    * nsamples : number of sample points this class will test for all types.
    */
-  CandidateRewriteDatabaseGen(std::vector<Node>& vars,
-                              unsigned nsamples);
+  CandidateRewriteDatabaseGen(std::vector<Node>& vars, unsigned nsamples);
   /** add term
    *
    * This registers term n with this class. We generate the candidate rewrite

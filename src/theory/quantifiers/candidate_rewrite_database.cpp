@@ -33,7 +33,10 @@ namespace theory {
 namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase()
-    : d_qe(nullptr), d_tds(nullptr), d_ext_rewrite(nullptr), d_using_sygus(false)
+    : d_qe(nullptr),
+      d_tds(nullptr),
+      d_ext_rewrite(nullptr),
+      d_using_sygus(false)
 {
 }
 void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
@@ -68,19 +71,21 @@ void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
 void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
 {
   d_qe = qe;
-  d_tds = d_qe==nullptr ? nullptr : qe->getTermDatabaseSygus();
+  d_tds = d_qe == nullptr ? nullptr : qe->getTermDatabaseSygus();
   if (options::sygusRewSynthFilterCong())
   {
     // initialize the dynamic rewriter
     std::stringstream ss;
     ss << "_dyn_rewriter_" << d_type;
-    d_drewrite =
-        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), &d_fake_context));
+    d_drewrite = std::unique_ptr<DynamicRewriter>(
+        new DynamicRewriter(ss.str(), &d_fake_context));
     d_sampler.setDynamicRewriter(d_drewrite.get());
   }
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_print)
+bool CandidateRewriteDatabase::addTerm(Node sol,
+                                       std::ostream& out,
+                                       bool& rew_print)
 {
   bool is_unique_term = true;
   Node eq_sol = d_sampler.registerTerm(sol);
@@ -95,9 +100,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_pr
       // get the actual term
       Node solb = sol;
       Node eq_solb = eq_sol;
-      if( d_using_sygus )
+      if (d_using_sygus)
       {
-        Assert( d_tds!=nullptr );
+        Assert(d_tds != nullptr);
         solb = d_tds->sygusToBuiltin(sol);
         eq_solb = d_tds->sygusToBuiltin(eq_sol);
       }
@@ -228,7 +233,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_pr
         }
         if (options::sygusRewSynthAccel() && d_using_sygus)
         {
-          Assert( d_tds!=nullptr );
+          Assert(d_tds != nullptr);
           // Add a symmetry breaking clause that excludes the larger
           // of sol and eq_sol. This effectively states that we no longer
           // wish to enumerate any term that contains sol (resp. eq_sol)
@@ -268,10 +273,11 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_pr
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   bool rew_print = false;
-  return addTerm(sol,out,rew_print);
+  return addTerm(sol, out, rew_print);
 }
 
-CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(std::vector<Node>& vars, unsigned nsamples)
+CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
+    std::vector<Node>& vars, unsigned nsamples)
     : d_nsamples(nsamples)
 {
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
