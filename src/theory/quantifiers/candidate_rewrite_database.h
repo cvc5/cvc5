@@ -41,8 +41,22 @@ class CandidateRewriteDatabase
  public:
   CandidateRewriteDatabase();
   ~CandidateRewriteDatabase() {}
+  /**  Initialize this class 
+   * 
+   * qe : pointer to quantifiers engine,
+   * tn : the return type of terms we will be testing with this class,
+   * vars : the variables we are testing substitutions for,
+   * nsamples : number of sample points this class will test.
+   */
+  void initialize(QuantifiersEngine* qe,
+                  TypeNode tn,
+                  std::vector<Node>& vars,
+                  unsigned nsamples);
   /**  Initialize this class
    *
+   * Serves the same purpose as the above function, but we will be using
+   * sygus to enumerate terms and generate samples.
+   * 
    * qe : pointer to quantifiers engine,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f. This is the
@@ -55,7 +69,7 @@ class CandidateRewriteDatabase
    *
    * These arguments are used to initialize the sygus sampler class.
    */
-  void initialize(QuantifiersEngine* qe,
+  void initializeSygus(QuantifiersEngine* qe,
                   Node f,
                   unsigned nsamples,
                   bool useSygusType);
@@ -69,19 +83,62 @@ class CandidateRewriteDatabase
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** the function-to-synthesize we are testing */
+  /** the (sygus or builtin) type of terms we are testing */
+  TypeNode d_type;
+  /** the function-to-synthesize we are testing (if sygus) */
   Node d_candidate;
+  /** whether we are using sygus */
+  bool d_using_sygus;
   /** sygus sampler objects for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
   SygusSamplerExt d_sampler;
+  /** dynamic rewriter class */
+  std::unique_ptr<DynamicRewriter> d_drewrite;
   /**
    * Cache of skolems for each free variable that appears in a synthesis check
    * (for --sygus-rr-synth-check).
    */
   std::map<Node, Node> d_fv_to_skolem;
+  /** initalize internal, called by initialize methods above */
+  void initializeInternal(QuantifiersEngine* qe);
+};
+
+/** 
+ * This class generates and stores candidate rewrite databases for multiple 
+ * types as needed.
+ */
+class CandidateRewriteDatabaseGen
+{
+ public:  
+   /** constructor 
+    * 
+    * qe : pointer to quantifiers engine,
+    * vars : the variables we are testing substitutions for, for all types,
+    * nsamples : number of sample points this class will test for all types.
+    */
+   CandidateRewriteDatabaseGen(QuantifiersEngine* qe,
+                   std::vector<Node>& vars,
+                   unsigned nsamples);
+   /** add term 
+    * 
+    * This registers term n with this class. We generate the candidate rewrite
+    * database of the appropriate type (if not allocated already), and register
+    * n with this database. This may result in "candidate-rewrite" being
+    * printed on the output stream out.
+    */
+   void addTerm( Node n, std::ostream& out );
+ private:
+   /** reference to quantifier engine */
+   QuantifiersEngine* d_qe;
+   /** the variables */
+   std::vector< Node > d_vars;
+   /** the number of samples */
+   unsigned d_nsamples;
+   /** candidate rewrite databases for each type */
+   std::map<TypeNode,CandidateRewriteDatabase> d_cdbs;
 };
 
 } /* CVC4::theory::quantifiers namespace */

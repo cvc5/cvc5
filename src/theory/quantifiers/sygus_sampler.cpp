@@ -707,26 +707,21 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-SygusSamplerExt::SygusSamplerExt() : d_ssenm(*this) {}
+SygusSamplerExt::SygusSamplerExt() : d_drewrite(nullptr), d_ssenm(*this) {}
 
-void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
+void SygusSamplerExt::initializeSygus(TermDbSygus* tds,
                                          Node f,
                                          unsigned nsamples,
                                          bool useSygusType)
 {
-  SygusSampler::initializeSygus(
-      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
-
-  // initialize the dynamic rewriter
-  std::stringstream ss;
-  ss << f;
-  if (options::sygusRewSynthFilterCong())
-  {
-    d_drewrite =
-        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
-  }
+  SygusSampler::initializeSygus(tds, f, nsamples, useSygusType);
   d_pairs.clear();
   d_match_trie.clear();
+}
+
+void SygusSamplerExt::setDynamicRewriter( DynamicRewriter * dr )
+{
+  d_drewrite = dr;
 }
 
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)

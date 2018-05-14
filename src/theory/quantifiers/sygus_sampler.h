@@ -73,10 +73,10 @@ class SygusSampler : public LazyTrieEvaluator
    * vars : the variables we are testing substitutions for
    * nsamples : number of sample points this class will test.
    */
-  void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
+  virtual void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
   /** initialize sygus
    *
-   * tds : pointer to sygus database,
+   * qe : pointer to quantifiers engine,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f,
    * nsamples : number of sample points this class will test,
@@ -85,7 +85,7 @@ class SygusSampler : public LazyTrieEvaluator
    * terms of the analog of the type of f, that is, the builtin type that
    * f's type encodes in the deep embedding.
    */
-  void initializeSygus(TermDbSygus* tds,
+  virtual void initializeSygus(TermDbSygus* tds,
                        Node f,
                        unsigned nsamples,
                        bool useSygusType);
@@ -328,11 +328,19 @@ class SygusSamplerExt : public SygusSampler
 {
  public:
   SygusSamplerExt();
-  /** initialize extended */
-  void initializeSygusExt(QuantifiersEngine* qe,
+  /** initialize */
+  void initializeSygus(TermDbSygus* tds,
                           Node f,
                           unsigned nsamples,
-                          bool useSygusType);
+                          bool useSygusType) override;
+  /** set dynamic rewriter 
+   * 
+   * This tells this class to use the dynamic rewriter object dr. This utility
+   * is used to query whether pairs of terms are already entailed to be
+   * equal based on previous rewrite rules.
+   */
+  void setDynamicRewriter( DynamicRewriter * dr );
+
   /** register term n with this sampler database
    *
    *  For each call to registerTerm( t, ... ) that returns s, we say that
@@ -364,7 +372,6 @@ class SygusSamplerExt : public SygusSampler
    * d_drewrite utility, or is an instance of a previous pair
    */
   Node registerTerm(Node n, bool forceKeep = false) override;
-
   /** register relevant pair
    *
    * This should be called after registerTerm( n ) returns eq_n.
@@ -373,8 +380,8 @@ class SygusSamplerExt : public SygusSampler
   void registerRelevantPair(Node n, Node eq_n);
 
  private:
-  /** dynamic rewriter class */
-  std::unique_ptr<DynamicRewriter> d_drewrite;
+  /** pointer to the dynamic rewriter class */
+  DynamicRewriter* d_drewrite;
 
   //----------------------------match filtering
   /**

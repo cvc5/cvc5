@@ -32,17 +32,47 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase() : d_qe(nullptr) {}
+CandidateRewriteDatabase::CandidateRewriteDatabase() : d_qe(nullptr),d_using_sygus(false) {}
 void CandidateRewriteDatabase::initialize(QuantifiersEngine* qe,
-                                          Node f,
-                                          unsigned nsamples,
-                                          bool useSygusType)
+                                          TypeNode tn,
+                std::vector<Node>& vars,
+                unsigned nsamples)
 {
-  d_qe = qe;
-  d_candidate = f;
-  d_sampler.initializeSygusExt(d_qe, f, nsamples, useSygusType);
+  d_candidate = Node::null();
+  d_type = tn;
+  d_using_sygus = false;
+  initializeInternal(qe);
+  d_sampler.initialize(tn,vars,nsamples);
 }
 
+void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
+                                               Node f,
+                                              unsigned nsamples,
+                                              bool useSygusType)
+{
+  d_candidate = f;
+  d_type = f.getType();
+  Assert( d_type.isDatatype() );
+  Assert(static_cast<DatatypeType>(d_type.toType()).getDatatype().isSygus());
+  d_using_sygus = true;
+  initializeInternal(qe);
+  d_sampler.initializeSygus(qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
+}
+
+void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
+{
+  d_qe = qe;
+  if (options::sygusRewSynthFilterCong())
+  {
+    // initialize the dynamic rewriter
+    std::stringstream ss;
+    ss << "_dyn_rewriter_" << d_type;
+    d_drewrite =
+        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+    d_sampler.setDynamicRewriter(d_drewrite.get());
+  }
+}
+  
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   bool is_unique_term = true;
@@ -59,9 +89,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
     if (!eq_sol.isNull())
     {
       ExtendedRewriter* er = sygusDb->getExtRewriter();
-      Node solb = sygusDb->sygusToBuiltin(sol);
+      Node solb = d_using_sygus ? sygusDb->sygusToBuiltin(sol) : sol;
       Node solbr = er->extendedRewrite(solb);
-      Node eq_solb = sygusDb->sygusToBuiltin(eq_sol);
+      Node eq_solb = d_using_sygus ? sygusDb->sygusToBuiltin(eq_sol) : eq_sol;
       Node eq_solr = er->extendedRewrite(eq_solb);
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
@@ -154,11 +184,18 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        Printer* p = Printer::getPrinter(options::outputLanguage());
         out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-        p->toStreamSygus(out, sol);
-        out << " ";
-        p->toStreamSygus(out, eq_sol);
+        if( d_using_sygus )
+        {
+          Printer* p = Printer::getPrinter(options::outputLanguage());
+          p->toStreamSygus(out, sol);
+          out << " ";
+          p->toStreamSygus(out, eq_sol);
+        }
+        else
+        {
+          out << sol << " " << eq_sol;
+        }
         out << ")" << std::endl;
         ++(cei->d_statistics.d_candidate_rewrites_print);
         // debugging information
@@ -169,7 +206,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
           Trace("sygus-rr-debug")
               << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
         }
-        if (options::sygusRewSynthAccel())
+        if (options::sygusRewSynthAccel() && d_using_sygus)
         {
           // Add a symmetry breaking clause that excludes the larger
           // of sol and eq_sol. This effectively states that we no longer
@@ -211,6 +248,25 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
   return is_unique_term;
 }
 
+CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(QuantifiersEngine* qe,
+                std::vector<Node>& vars,
+                unsigned nsamples) : d_qe(qe), d_nsamples(nsamples)
+{
+  d_vars.insert(d_vars.end(),vars.begin(),vars.end());
+}
+   
+void CandidateRewriteDatabaseGen::addTerm( Node n, std::ostream& out )
+{
+  TypeNode tn = n.getType();
+  std::map<TypeNode,CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
+  if( itc==d_cdbs.end() )
+  {
+    d_cdbs[tn].initialize(d_qe,tn,d_vars,d_nsamples);
+    itc = d_cdbs.find(tn);
+  }
+  itc->second.addTerm(n,out);
+}
+   
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
