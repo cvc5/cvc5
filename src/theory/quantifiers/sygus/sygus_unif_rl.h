@@ -98,6 +98,8 @@ class SygusUnifRl : public SygusUnif
   void initializeConstructSol() override;
   /** initialize construction solution for function-to-synthesize f */
   void initializeConstructSolFor(Node f) override;
+  /** maps unif functions-to~synhesize to their last built solutions */
+  std::map<Node, Node> d_cand_to_sol;
   /*
     --------------------------------------------------------------
         Purification
