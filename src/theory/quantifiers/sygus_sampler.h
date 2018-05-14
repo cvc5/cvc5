@@ -69,13 +69,17 @@ class SygusSampler : public LazyTrieEvaluator
 
   /** initialize
    *
-   * tn : the return type of terms we will be testing with this class
-   * vars : the variables we are testing substitutions for
-   * nsamples : number of sample points this class will test.
+   * tn : the return type of terms we will be testing with this class,
+   * vars : the variables we are testing substitutions for,
+   * nsamples : number of sample points this class will test,
+   * unique_type_ids : if this is set to true, then we consider each variable
+   * in vars to have a unique "type id". A type id is a finer-grained notion of
+   * type that is used to determine when a rewrite rule is redundant.
    */
   virtual void initialize(TypeNode tn,
                           std::vector<Node>& vars,
-                          unsigned nsamples);
+                          unsigned nsamples,
+                          bool unique_type_ids=false);
   /** initialize sygus
    *
    * qe : pointer to quantifiers engine,

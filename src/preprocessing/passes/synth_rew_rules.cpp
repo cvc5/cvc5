@@ -71,7 +71,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             else
             {
               Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
-              crdg->addTerm(cur,*nodeManagerOptions.getOut());
+              bool ret = crdg->addTerm(cur,*nodeManagerOptions.getOut());
+              Trace("synth-rr-pass-debug") << "...return " << ret << std::endl;
             }
             for (const Node& cn : cur )
             {

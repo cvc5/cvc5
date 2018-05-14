@@ -39,14 +39,15 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
 void CandidateRewriteDatabase::initialize(ExtendedRewriter * er,
                                           TypeNode tn,
                                           std::vector<Node>& vars,
-                                          unsigned nsamples)
+                                          unsigned nsamples,
+                  bool unique_type_ids)
 {
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
   initializeInternal(nullptr);
   d_ext_rewrite = er;
-  d_sampler.initialize(tn, vars, nsamples);
+  d_sampler.initialize(tn, vars, nsamples,unique_type_ids);
 }
 
 void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
@@ -91,6 +92,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_pr
     // e.g. one that is alpha-equivalent to another.
     if (!eq_sol.isNull())
     {
+      // get the actual term
       Node solb = sol;
       Node eq_solb = eq_sol;
       if( d_using_sygus )
@@ -99,9 +101,19 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out, bool& rew_pr
         solb = d_tds->sygusToBuiltin(sol);
         eq_solb = d_tds->sygusToBuiltin(eq_sol);
       }
-      Assert(d_ext_rewrite!=nullptr);
-      Node solbr = d_ext_rewrite->extendedRewrite(solb);
-      Node eq_solr = d_ext_rewrite->extendedRewrite(eq_solb);
+      // get the rewritten form
+      Node solbr;
+      Node eq_solr;
+      if(d_ext_rewrite!=nullptr)
+      {
+        solbr = d_ext_rewrite->extendedRewrite(solb);
+        eq_solr = d_ext_rewrite->extendedRewrite(eq_solb);
+      }
+      else
+      {
+        solbr = Rewriter::rewrite(solb);
+        eq_solr = Rewriter::rewrite(eq_solb);
+      }
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
       // verify it if applicable
@@ -272,7 +284,12 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   if (itc == d_cdbs.end())
   {
     // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(&d_ext_rewrite, tn, d_vars, d_nsamples);
+    ExtendedRewriter * er = nullptr;
+    if( options::synthRrPrepExtRew() )
+    {
+      er = &d_ext_rewrite;
+    }
+    d_cdbs[tn].initialize(er, tn, d_vars, d_nsamples, true);
     itc = d_cdbs.find(tn);
   }
   return itc->second.addTerm(n, out);

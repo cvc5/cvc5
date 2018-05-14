@@ -32,7 +32,8 @@ SygusSampler::SygusSampler()
 
 void SygusSampler::initialize(TypeNode tn,
                               std::vector<Node>& vars,
-                              unsigned nsamples)
+                              unsigned nsamples,
+                              bool unique_type_ids)
 {
   d_tds = nullptr;
   d_use_sygus_type = false;
@@ -53,15 +54,23 @@ void SygusSampler::initialize(TypeNode tn,
   {
     TypeNode svt = sv.getType();
     unsigned tnid = 0;
-    std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
-    if (itt == type_to_type_id.end())
+    if( unique_type_ids )
     {
-      type_to_type_id[svt] = type_id_counter;
+      tnid = type_id_counter;
       type_id_counter++;
     }
     else
     {
-      tnid = itt->second;
+      std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
+      if (itt == type_to_type_id.end())
+      {
+        type_to_type_id[svt] = type_id_counter;
+        type_id_counter++;
+      }
+      else
+      {
+        tnid = itt->second;
+      }
     }
     Trace("sygus-sample-debug")
         << "Type id for " << sv << " is " << tnid << std::endl;

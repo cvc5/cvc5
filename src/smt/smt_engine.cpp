@@ -4229,6 +4229,12 @@ void SmtEnginePrivate::processAssertions() {
     d_preprocessingPassRegistry.getPass("pseudo-boolean-processor")
         ->apply(&d_assertions);
   }
+  
+  if( options::synthRrPrep() )
+  {
+    // do candidate rewrite rule synthesis
+    d_preprocessingPassRegistry.getPass("synth-rr")->apply(&d_assertions);
+  }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
   dumpAssertions("pre-simplify", d_assertions);
@@ -4240,12 +4246,6 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
   
-  if( options::synthRrPrep() )
-  {
-    // do candidate rewrite rule synthesis
-    d_preprocessingPassRegistry.getPass("synth-rr")->apply(&d_assertions);
-  }
-
   if (options::symmetryBreakerExp())
   {
     // apply symmetry breaking
