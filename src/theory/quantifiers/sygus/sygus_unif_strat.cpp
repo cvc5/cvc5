@@ -778,41 +778,56 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
     EnumTypeInfoStrat* etis = snode.d_strats[j];
-    int cindex = Datatype::indexOf(etis->d_cons.toExpr());
-    Assert(cindex != -1);
+    Assert(Datatype::indexOf(etis->d_cons.toExpr()) != -1);
+    unsigned cindex =
+        static_cast<unsigned>(Datatype::indexOf(etis->d_cons.toExpr()));
     Trace("sygus-strat-slearn") << "...by strategy, can exclude operator "
                                 << etis->d_cons << std::endl;
-    needs_cons_curr[static_cast<unsigned>(cindex)] = false;
+    needs_cons_curr[cindex] = false;
     // can eliminate etn is BOOL and if ITE arguments are of type BOOL and
     // contain TRUE/FALSE constructors
-    Node op = Node::fromExpr(etis->d_cons.getSygusOp());
+    const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
+    Node op = Node::fromExpr(dt[cindex].getSygusOp());
+    TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
+    Trace("sygus-strat-slearn")
+        << "......type is boolean? " << sygus_tn.isBoolean()
+        << "\n......cons has kind " << op.getKind()
+        << "\n......cons has op kind " << NodeManager::operatorToKind(op)
+        << "\n......has equal arg types? "
+        << (TypeNode::fromType(dt[cindex].getArgType(1))
+            == TypeNode::fromType(dt[cindex].getArgType(2)))
+        << "\n";
     if (op.getKind() == kind::BUILTIN && NodeManager::operatorToKind(op) == ITE
-        && etn.isBoolean()
-        && TypeNode::fromType(etis->d_cons.getArgType(1)).isBoolean()
-        && TypeNode::fromType(etis->d_cons.getArgType(2)).isBoolean())
+        && sygus_tn.isBoolean()
+        && (TypeNode::fromType(dt[cindex].getArgType(1))
+            == TypeNode::fromType(dt[cindex].getArgType(2))))
     {
-      // get the datatype of ITE argument to check constructors
-      const Datatype& dt =
-          static_cast<DatatypeType>(etn.toType()).getDatatype();
-      unsigned nargs = d_cons.getNumArgs(), indexT = nargs, indexF = nargs;
+      Trace("sygus-strat-slearn") << "...checking whether dt has T/F\n";
+      unsigned nargs = dt.getNumConstructors(), indexT = nargs, indexF = nargs;
       for (unsigned k = 0; k < nargs; ++k)
       {
         Node op_arg = Node::fromExpr(dt[k].getSygusOp());
-        if (op_arg == TermUtil::mkTypeValue(etn, true))
+        if (op_arg == TermUtil::mkTypeValue(sygus_tn, true))
         {
           indexT = k;
           continue;
         }
-        if (op_arg == TermUtil::mkTypeValue(etn, false))
+        Trace("sygus-strat-slearn")
+            << "......" << k << "-ith op " << op_arg << " not equal to "
+            << TermUtil::mkTypeValue(sygus_tn, true) << "\n";
+        if (op_arg == TermUtil::mkTypeValue(sygus_tn, false))
         {
           indexF = k;
           continue;
         }
+        Trace("sygus-strat-slearn")
+            << "......" << k << "-ith op " << op_arg << " not equal to "
+            << TermUtil::mkTypeValue(sygus_tn, false) << "\n";
       }
       if (indexT < nargs && indexF < nargs)
       {
-        Trace("sygus-strat-slearn") << "...for ite boolean arg, can "
-                                       "exclude all operators but T/F\n";
+        Trace("sygus-strat-slearn")
+            << "...for ite boolean arg, can exclude all operators but T/F\n";
         for (unsigned k = 0; k < nargs; ++k)
         {
           needs_cons_curr[k] = false;
@@ -821,48 +836,47 @@ void SygusUnifStrategy::staticLearnRedundantOps(
         needs_cons_curr[indexF] = true;
       }
     }
-  }
-  for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
-  {
-    staticLearnRedundantOps(cec.first, cec.second, visited, needs_cons);
-  }
-}
-// get the current datatype
-const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
-// do not use recursive Boolean connectives for conditions of ITEs
-if (nrole == role_ite_condition)
-{
-  for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
-  {
-    Node op = Node::fromExpr(dt[j].getSygusOp());
-    Trace("sygus-strat-slearn")
-        << "...for ite condition, look at operator : " << op << std::endl;
-    if (op.getKind() == kind::BUILTIN)
+    for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
-      Kind k = NodeManager::operatorToKind(op);
-      if (k == NOT || k == OR || k == AND || k == ITE)
+      staticLearnRedundantOps(cec.first, cec.second, visited, needs_cons);
+    }
+  }
+  // get the current datatype
+  const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
+  // do not use recursive Boolean connectives for conditions of ITEs
+  if (nrole == role_ite_condition)
+  {
+    for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
+    {
+      Node op = Node::fromExpr(dt[j].getSygusOp());
+      Trace("sygus-strat-slearn")
+          << "...for ite condition, look at operator : " << op << std::endl;
+      if (op.getKind() == kind::BUILTIN)
       {
-        // can eliminate if their argument types are simple loops to this type
-        bool type_ok = true;
-        for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+        Kind k = NodeManager::operatorToKind(op);
+        if (k == NOT || k == OR || k == AND || k == ITE)
         {
-          TypeNode tn = TypeNode::fromType(dt[j].getArgType(k));
-          if (tn != etn)
+          // can eliminate if their argument types are simple loops to this type
+          bool type_ok = true;
+          for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
           {
-            type_ok = false;
-            break;
+            TypeNode tn = TypeNode::fromType(dt[j].getArgType(k));
+            if (tn != etn)
+            {
+              type_ok = false;
+              break;
+            }
           }
-        }
-        if (type_ok)
-        {
-          Trace("sygus-strat-slearn")
-              << "...for ite condition, can exclude Boolean connective : " << op
-              << std::endl;
-          needs_cons_curr[j] = false;
+          if (type_ok)
+          {
+            Trace("sygus-strat-slearn")
+                << "...for ite condition, can exclude Boolean connective : "
+                << op << std::endl;
+            needs_cons_curr[j] = false;
+          }
         }
       }
     }
-  }
   }
   // all other constructors are needed
   for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
