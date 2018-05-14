@@ -65,7 +65,8 @@ bool CegisUnif::initialize(Node n,
     d_enum_to_active_guard[e] = g;
   }
   // initialize the enumeration manager
-  d_u_enum_manager.initialize(unif_candidates, strategy_lemmas);
+  // TODO : map strategy points to their conditions
+  //d_u_enum_manager.initialize(unif_candidates, strategy_lemmas);
   return true;
 }
 
@@ -212,6 +213,7 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
 
 void CegisUnifEnumManager::initialize(
     const std::vector<Node>& cs,
+    const std::map<Node,Node>& c_to_cond,
     const std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   Assert(!d_initialized);
@@ -220,24 +222,6 @@ void CegisUnifEnumManager::initialize(
   {
     return;
   }
-  // process strategy lemmas
-  std::map<TypeNode, std::pair<Node, std::vector<Node>>> tn_strategy_lemmas;
-  for (const std::pair<const Node, std::vector<Node>>& p : strategy_lemmas)
-  {
-    if (Trace.isOn("cegis-unif-enum-debug"))
-    {
-      Trace("cegis-unif-enum-debug") << "...lemmas of strategy pt " << p.first
-                                     << ":\n";
-      for (const Node& lem : p.second)
-      {
-        Trace("cegis-unif-enum-debug") << "\t" << lem << "\n";
-      }
-    }
-    TypeNode tn = p.first.getType();
-    Assert(tn_strategy_lemmas.find(tn) == tn_strategy_lemmas.end());
-    tn_strategy_lemmas[tn].first = p.first;
-    tn_strategy_lemmas[tn].second = p.second;
-  }
   // initialize type information for candidates
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& c : cs)
@@ -245,48 +229,57 @@ void CegisUnifEnumManager::initialize(
     Trace("cegis-unif-enum-debug") << "...adding candidate " << c << "\n";
     // currently, we allocate the same enumerators for candidates of the same
     // type
-    TypeNode tn = c.getType();
-    d_ce_info[tn].d_candidates.push_back(c);
-    // retrieve symmetry breaking lemma template for type if not already init
-    if (!d_ce_info[tn].d_sbt_lemma.isNull())
+    d_ce_info[c].d_candidate = c;
+    std::map<Node,Node>::const_iterator itcc = c_to_cond.find(c);
+    Assert( itcc!=c_to_cond.end() );
+    Node cond = itcc->second;
+    Trace("cegis-unif-enum-debug") << "...its condition strategy point is " << cond << "\n";
+    d_ce_info[c].d_ce_type = cond.getType();
+    // initialize the symmetry breaking lemma templates
+    for( unsigned index=0; index<2; index++ )
     {
-      continue;
+      Assert(d_ce_info[c].d_sbt_lemma_tmpl[index].first.isNull());
+      Node sp = index==0 ? c : cond;
+      std::map<Node, std::vector<Node>>::const_iterator it = strategy_lemmas.find(sp);
+      if (it == strategy_lemmas.end())
+      {
+        continue;
+      }
+      // collect lemmas for removing redundant ops for this candidate's type
+      Node d_sbt_lemma = it->second.size()==1 ?  it->second[0] : nm->mkNode(AND, it->second);
+      Trace("cegis-unif-enum-debug")
+          << "...adding lemma template to remove redundant operators for " << sp
+          << " --> lambda " << sp << ". " << d_sbt_lemma << "\n";
+      d_ce_info[c].d_sbt_lemma_tmpl[index] = std::pair<Node,Node>(d_sbt_lemma,sp);
     }
-    std::map<const TypeNode, std::pair<Node, std::vector<Node>>>::iterator it =
-        tn_strategy_lemmas.find(tn);
-    if (it == tn_strategy_lemmas.end())
-    {
-      continue;
-    }
-    // collect lemmas for removing redundant ops for this candidate's type
-    d_ce_info[tn].d_sbt_lemma = nm->mkNode(AND, it->second.second);
-    Trace("cegis-unif-enum-debug")
-        << "...adding lemma template to remove redundant operators for " << c
-        << " and its type " << tn << " --> " << d_ce_info[tn].d_sbt_lemma
-        << "\n";
-    d_ce_info[tn].d_sbt_arg = it->second.first;
   }
   // initialize the current literal
   incrementNumEnumerators();
 }
 
+void CegisUnifEnumManager::getCondEnumeratorsForCandidate(Node c, std::vector< Node >& ces ) const
+{
+  std::map<Node, CandidateInfo>::const_iterator itc = d_ce_info.find(c);
+  Assert( itc!=d_ce_info.end() );
+  ces.insert( ces.end(), itc->second.d_enums[1].begin(), itc->second.d_enums[1].end() );
+}
+
 void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node c)
 {
   // candidates of the same type are managed
-  TypeNode ct = c.getType();
-  std::map<TypeNode, TypeInfo>::iterator it = d_ce_info.find(ct);
+  std::map<Node, CandidateInfo>::iterator it = d_ce_info.find(c);
   Assert(it != d_ce_info.end());
   it->second.d_eval_points.insert(
       it->second.d_eval_points.end(), eis.begin(), eis.end());
   // register at all already allocated sizes
-  for (const std::pair<const unsigned, Node>& p : d_guq_lit)
+  for (const Node& ei : eis)
   {
-    for (const Node& ei : eis)
+    Assert(ei.getType() == c.getType());
+    for (const std::pair<const unsigned, Node>& p : d_guq_lit)
     {
-      Assert(ei.getType() == ct);
       Trace("cegis-unif-enum") << "...for cand " << c << " adding hd " << ei
                                << " at size " << p.first << "\n";
-      registerEvalPtAtSize(ct, ei, p.second, p.first);
+      registerEvalPtAtSize(c, ei, p.second, p.first);
     }
   }
 }
@@ -338,57 +331,73 @@ void CegisUnifEnumManager::incrementNumEnumerators()
     d_qe->getOutputChannel().requirePhase(new_lit, true);
     d_guq_lit[new_size] = new_lit;
     // allocate an enumerator for each candidate
-    for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
+    for (std::pair<const Node, CandidateInfo>& ci : d_ce_info)
     {
-      TypeNode ct = ci.first;
+      Node c = ci.first;
+      TypeNode ct = c.getType();
       Node eu = nm->mkSkolem("eu", ct);
-      // instantiate template for removing redundant operators
-      if (!ci.second.d_sbt_lemma.isNull())
+      Node ceu;
+      if (!ci.second.d_enums[0].empty())
       {
-        Node templ = ci.second.d_sbt_lemma;
-        TNode templ_var = ci.second.d_sbt_arg;
-        Node sym_break_red_ops = templ.substitute(templ_var, eu);
-        Trace("cegis-unif-enum-lemma")
-            << "CegisUnifEnum::lemma, remove redundant ops of " << eu << " : "
-            << sym_break_red_ops << "\n";
-        d_qe->getOutputChannel().lemma(sym_break_red_ops);
+        // make a new conditional enumerator as well, starting the 
+        // second type around
+        ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
       }
-      if (!ci.second.d_enums.empty())
+      // register the new enumerators
+      for( unsigned index=0; index<2; index++ )
       {
-        Node eu_prev = ci.second.d_enums.back();
-        // symmetry breaking
-        Node size_eu = nm->mkNode(DT_SIZE, eu);
-        Node size_eu_prev = nm->mkNode(DT_SIZE, eu_prev);
-        Node sym_break = nm->mkNode(GEQ, size_eu, size_eu_prev);
+        Node e = index==0 ? eu : ceu;
+        if( e.isNull() )
+        {
+          continue;
+        }
+        // register the enumerator
+        ci.second.d_enums[index].push_back(e);
+        d_tds->registerEnumerator(e, ci.second.d_candidate, d_parent);
+        // instantiate template for removing redundant operators
+        if (!ci.second.d_sbt_lemma_tmpl[index].first.isNull())
+        {
+          Node templ = ci.second.d_sbt_lemma_tmpl[index].first;
+          TNode templ_var = ci.second.d_sbt_lemma_tmpl[index].second;
+          Node sym_break_red_ops = templ.substitute(templ_var, e);
+          Trace("cegis-unif-enum-lemma")
+              << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
+              << sym_break_red_ops << "\n";
+          d_qe->getOutputChannel().lemma(sym_break_red_ops);
+        }
+        // symmetry breaking between enumerators
+        Node e_prev = ci.second.d_enums[index].back();
+        Node size_e = nm->mkNode(DT_SIZE, e);
+        Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
+        Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
         Trace("cegis-unif-enum-lemma")
             << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
         d_qe->getOutputChannel().lemma(sym_break);
         // if the sygus datatype is interpreted as an infinite type
         // (this should be the case for almost all examples)
-        if (!ct.isInterpretedFinite())
+        TypeNode et = e.getType();
+        if (!et.isInterpretedFinite())
         {
           // it is disequal from all previous ones
-          for (const Node eui : ci.second.d_enums)
+          for (const Node ei : ci.second.d_enums[index])
           {
-            Node deq = eu.eqNode(eui).negate();
+            Node deq = e.eqNode(ei).negate();
             Trace("cegis-unif-enum-lemma")
                 << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
             d_qe->getOutputChannel().lemma(deq);
           }
         }
       }
-      ci.second.d_enums.push_back(eu);
-      d_tds->registerEnumerator(eu, d_null, d_parent);
     }
     // register the evaluation points at the new value
-    for (std::pair<const TypeNode, TypeInfo>& ci : d_ce_info)
+    for (std::pair<const Node, CandidateInfo>& ci : d_ce_info)
     {
-      TypeNode ct = ci.first;
+      Node c = ci.first;
       for (const Node& ei : ci.second.d_eval_points)
       {
         Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
                                  << " to new size " << new_size << "\n";
-        registerEvalPtAtSize(ct, ei, new_lit, new_size);
+        registerEvalPtAtSize(c, ei, new_lit, new_size);
       }
     }
   }
@@ -406,20 +415,20 @@ Node CegisUnifEnumManager::getLiteral(unsigned n) const
   return itc->second;
 }
 
-void CegisUnifEnumManager::registerEvalPtAtSize(TypeNode ct,
+void CegisUnifEnumManager::registerEvalPtAtSize(Node c,
                                                 Node ei,
                                                 Node guq_lit,
                                                 unsigned n)
 {
   // must be equal to one of the first n enums
-  std::map<TypeNode, TypeInfo>::iterator itc = d_ce_info.find(ct);
+  std::map<Node, CandidateInfo>::iterator itc = d_ce_info.find(c);
   Assert(itc != d_ce_info.end());
-  Assert(itc->second.d_enums.size() >= n);
+  Assert(itc->second.d_enums[0].size() >= n);
   std::vector<Node> disj;
   disj.push_back(guq_lit.negate());
   for (unsigned i = 0; i < n; i++)
   {
-    disj.push_back(ei.eqNode(itc->second.d_enums[i]));
+    disj.push_back(ei.eqNode(itc->second.d_enums[0][i]));
   }
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
   Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, domain:" << lem

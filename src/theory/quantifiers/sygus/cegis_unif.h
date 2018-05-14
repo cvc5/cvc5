@@ -48,14 +48,17 @@ class CegisUnifEnumManager
   /** initialize candidates
    *
    * Notify this class that it will be managing enumerators for the vector
-   * of functions-to-synthesize (candidate variables) in candidates. This
+   * of functions-to-synthesize (candidate variables) in cs. This
    * function should only be called once.
    *
    * Each candidate c in cs should be such that we are using a
    * synthesis-by-unification approach for c.
    */
   void initialize(const std::vector<Node>& cs,
+                  const std::map<Node,Node>& c_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
+  /** get conditional enumerators for candidate */
+  void getCondEnumeratorsForCandidate(Node c, std::vector< Node >& ces ) const;
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points
@@ -91,23 +94,38 @@ class CegisUnifEnumManager
   /** null node */
   Node d_null;
   /** information per initialized type */
-  class TypeInfo
+  class CandidateInfo
   {
    public:
-    TypeInfo() {}
-    /** candidates for this type */
-    std::vector<Node> d_candidates;
-    /** the set of enumerators we have allocated for this candidate */
-    std::vector<Node> d_enums;
-    /** the set of evaluation points of this type */
+    CandidateInfo() {}
+    /** candidate for this type */
+    Node d_candidate;
+    /** the set of enumerators we have allocated for this candidate 
+     * 
+     * Index 0 stores the return value enumerators, and index 1 stores the
+     * conditional enumerators. We have that 
+     *   d_enums[0].size()==d_enums[1].size()+1.
+     */
+    std::vector<Node> d_enums[2];
+    /** the type of conditional enumerators for this candidate */
+    TypeNode d_ce_type;
+    /** 
+     * The set of evaluation points of this type. In models, we ensure that 
+     * each of these are equal to one of d_enums[0].
+     */
     std::vector<Node> d_eval_points;
-    /** symmetry breaking lemma template for this type */
-    Node d_sbt_lemma;
-    /** argument (to be instantiated) of symmetry breaking lemma template */
-    Node d_sbt_arg;
+    /** symmetry breaking lemma template for this candidate 
+     *
+     * Each pair stores (the symmetry breaking lemma template, argument (to be 
+     * instantiated) of symmetry breaking lemma template).
+     * 
+     * Index 0 stores the symmetry breaking lemma template for return values,
+     * index 1 stores the template for conditions.
+     */
+    std::pair< Node, Node > d_sbt_lemma_tmpl[2];
   };
-  /** map types to the above info */
-  std::map<TypeNode, TypeInfo> d_ce_info;
+  /** map candidates to the above info */
+  std::map<Node, CandidateInfo> d_ce_info;
   /** literals of the form G_uq_n for each n */
   std::map<unsigned, Node> d_guq_lit;
   /** Have we returned a decision in the current SAT context? */
@@ -131,9 +149,9 @@ class CegisUnifEnumManager
    * This sends a lemma of the form:
    *   G_uq_n => ei = d1 V ... V ei = dn
    * on the output channel of d_qe, where d1...dn are sygus enumerators of the
-   * same type (ct) as ei.
+   * same type as c and ei, and ei is an evaluation point of candidate c.
    */
-  void registerEvalPtAtSize(TypeNode ct, Node ei, Node guq_lit, unsigned n);
+  void registerEvalPtAtSize(Node c, Node ei, Node guq_lit, unsigned n);
 };
 
 /** Synthesizes functions in a data-driven SyGuS approach
