@@ -29,17 +29,20 @@ namespace quantifiers {
 /** Cegis Unif Enumeration Manager
  *
  * This class enforces a decision heuristic that limits the number of
- * unique values given to the set of heads of evaluation points, which are
- * variables of sygus datatype type that are introduced by CegisUnif.
+ * unique values given to the set of heads of evaluation points and conditions
+ * enumerators for these points, which are variables of sygus datatype type that
+ * are introduced by CegisUnif.
  *
  * It maintains a set of guards, call them G_uq_1 ... G_uq_n, where the
  * semantics of G_uq_i is "for each type, the heads of evaluation points of that
  * type are interpreted as a value in a set whose cardinality is at most i".
+ * We also enforce that the number of condition enumerators for evaluation
+ * points is equal to (n-1).
  *
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
- * heads of evaluation points registered to this class and add lemmas that
- * enforce that these terms are equal to at least one enumerator (see
- * registerEvalPtAtValue).
+ * heads of evaluation points and condition enumerators registered to this class
+ * and add lemmas that enforce that these terms are equal to at least one
+ * enumerator (see registerEvalPtAtValue).
  */
 class CegisUnifEnumManager
 {
@@ -56,9 +59,8 @@ class CegisUnifEnumManager
   void initialize(const std::vector<Node>& es,
                   const std::map<Node, Node>& e_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
-  /** get conditional enumerators for strategy point */
+  /** get the current set of conditional enumerators for strategy point e */
   void getCondEnumeratorsForStrategyPt(Node e, std::vector<Node>& ces) const;
-  /** notify values for enumerators */
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points

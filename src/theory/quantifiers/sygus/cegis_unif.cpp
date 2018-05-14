@@ -123,7 +123,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
                                     std::vector<Node>& candidate_values,
                                     std::vector<Node>& lems)
 {
-  // build the values of the
+  // build the values of the condition enumerators for each strategy point
   std::map<Node, std::vector<Node>> condition_map;
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
