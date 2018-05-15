@@ -77,15 +77,15 @@ class Cegis : public SygusModule
   /** refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
   /** (processed) conjunctions of refinement lemmas */
-  std::vector<Node> d_refinement_lemma_conj;
-  std::vector<Node> d_refinement_lemma_unit;
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_conj;
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_unit;
   /** substitution entailed by refinement lemmas */
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
   /** add refinement lemma */
   void addRefinementLemma( Node lem );
   /** add refinement lemma conjunct */
-  void addRefinementLemmaConjunct( Node lem );
+  void addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting );
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that

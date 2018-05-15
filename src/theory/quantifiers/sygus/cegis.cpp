@@ -149,42 +149,29 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
 void Cegis::addRefinementLemma(Node lem)
 {
   d_refinement_lemmas.push_back(lem);
-  unsigned prev_rl_eval_hds = d_rl_eval_hds.size();
-  unsigned prev_conj = d_refinement_lemma_conj.size();
-  addRefinementLemmaConjunct(lem);
-  
-  if( d_rl_eval_hds.size()>prev_rl_eval_hds )
-  {
-    // process new substitutions
-    for( unsigned i=0; i<prev_conj; i++ )
-    {
-      
-    }
-  }
-}
-
-void Cegis::addRefinementLemmaConjunct( Node lem )
-{
-
-  // break into conjunctions
-  if (lem.getKind() == AND)
-  {
-    for (const Node& lc : lem)
-    {
-      addRefinementLemmaConjunct(lc);
-    }
-    return;
-  }
-  // apply substitution and rewrite if applicable
+  // apply existing substitution
   Node slem = lem;
   if( !d_rl_eval_hds.empty() )
   {
     slem = lem.substitute(d_rl_eval_hds.begin(),d_rl_eval_hds.end(),d_rl_vals.begin(),d_rl_vals.end());
     slem = Rewriter::rewrite(slem);
   }
-  if( slem.isConst() )
+  std::vector< Node > waiting;
+  waiting.push_back(lem);
+  unsigned wcounter = 0;
+  while(wcounter<waiting.size())
   {
-    if( !slem.getConst<bool>() )
+    addRefinementLemmaConjunct(waiting[wcounter], waiting);
+    wcounter++;
+  }
+}
+
+void Cegis::addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting )
+{
+  // apply substitution and rewrite if applicable
+  if( lem.isConst() )
+  {
+    if( !lem.getConst<bool>() )
     {
       // conjecture is infeasible
     }
@@ -193,28 +180,37 @@ void Cegis::addRefinementLemmaConjunct( Node lem )
       return;
     }
   }
+  // break into conjunctions
+  if (lem.getKind() == AND)
+  {
+    for (const Node& lc : lem)
+    {
+      addRefinementLemmaConjunct(lc, waiting);
+    }
+    return;
+  }
   // does this correspond to a substitution?
   NodeManager * nm = NodeManager::currentNM();
-  Node term;
-  Node val;
-  if( slem.getKind()==EQUAL )
+  TNode term;
+  TNode val;
+  if( lem.getKind()==EQUAL )
   {
     for( unsigned i=0; i<2; i++ )
     {
-      if( slem[i].isConst() && d_tds->isEvaluationHead(slem[1-i]))
+      if( lem[i].isConst() && d_tds->isEvaluationHead(lem[1-i]))
       {
-        term = slem[1-i];
-        val = slem[i];
+        term = lem[1-i];
+        val = lem[i];
         break;
       }
     }
   }
   else
   {
-    term = slem.getKind()==NOT ? slem[0] : slem;
+    term = lem.getKind()==NOT ? lem[0] : lem;
     if( d_tds->isEvaluationHead(term) )
     {
-      val = nm->mkConst(slem.getKind()!=NOT);
+      val = nm->mkConst(lem.getKind()!=NOT);
     }
   }
   if( !val.isNull() )
@@ -222,12 +218,29 @@ void Cegis::addRefinementLemmaConjunct( Node lem )
     Trace("cegis-rl") << "* cegis-rl: propagate: " << term << " -> " << val << std::endl;
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
-    d_refinement_lemma_unit.push_back(lem);
+    d_refinement_lemma_unit.insert(lem);
+    // apply to waiting lemmas
+    // apply to all existing refinement lemmas
+    std::vector< Node > to_rem;
+    for( const Node& rl : d_refinement_lemma_conj )
+    {
+      Node srl = rl.substitute(term,val);
+      if( srl!=rl )
+      {
+        srl = Rewriter::rewrite(rl);
+        //waiting.push_back(srl);
+        //to_rem.push_back(rl);
+      }
+    }
+    for( const Node& tr : to_rem )
+    {
+      d_refinement_lemma_conj.erase(tr);
+    }
   }
   else
   {
     Trace("cegis-rl") << "cegis-rl: add: " << lem << std::endl;
-    d_refinement_lemma_conj.push_back(lem);
+    d_refinement_lemma_conj.insert(lem);
   }
 }
 
@@ -261,7 +274,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node neg_guard = d_parent->getGuard().negate();
   for( unsigned r=0; r<2; r++ )
   {
-    std::vector< Node >& rlemmas = r==0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    std::unordered_set< Node, NodeHashFunction >& rlemmas = r==0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas )
     {
       Assert(!lem.isNull());
