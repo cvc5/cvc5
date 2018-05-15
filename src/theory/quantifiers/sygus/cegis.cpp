@@ -51,10 +51,9 @@ bool Cegis::initialize(Node n,
   }
 
   // initialize an enumerator for each candidate
-  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0; i < candidates.size(); i++)
   {
-    tds->registerEnumerator(candidates[i], candidates[i], d_parent);
+    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent);
   }
   return true;
 }
@@ -98,12 +97,11 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   }
   Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
   std::vector<Node> eager_terms, eager_vals, eager_exps;
-  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = candidates.size(); i < size; ++i)
   {
     Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
                          << candidate_values[i] << std::endl;
-    tds->registerModelValue(candidates[i],
+    d_tds->registerModelValue(candidates[i],
                             candidate_values[i],
                             eager_terms,
                             eager_vals,
@@ -151,18 +149,23 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
 void Cegis::addRefinementLemma(Node lem)
 {
   d_refinement_lemmas.push_back(lem);
-  // apply substitution and rewrite if applicable
-  Node subs_lem = lem;
-  if( !d_rl_eval_hds.empty() )
+  unsigned prev_rl_eval_hds = d_rl_eval_hds.size();
+  unsigned prev_conj = d_refinement_lemma_conj.size();
+  addRefinementLemmaConjunct(lem);
+  
+  if( d_rl_eval_hds.size()>prev_rl_eval_hds )
   {
-    subs_lem = lem.substitute(d_rl_eval_hds.begin(),d_rl_eval_hds.end(),d_rl_vals.begin(),d_rl_vals.end());
-    subs_lem = Rewriter::rewrite(subs_lem);
+    // process new substitutions
+    for( unsigned i=0; i<prev_conj; i++ )
+    {
+      
+    }
   }
-  addRefinementLemmaConjunct(subs_lem);
 }
 
 void Cegis::addRefinementLemmaConjunct( Node lem )
 {
+
   // break into conjunctions
   if (lem.getKind() == AND)
   {
@@ -172,8 +175,60 @@ void Cegis::addRefinementLemmaConjunct( Node lem )
     }
     return;
   }
+  // apply substitution and rewrite if applicable
+  Node slem = lem;
+  if( !d_rl_eval_hds.empty() )
+  {
+    slem = lem.substitute(d_rl_eval_hds.begin(),d_rl_eval_hds.end(),d_rl_vals.begin(),d_rl_vals.end());
+    slem = Rewriter::rewrite(slem);
+  }
+  if( slem.isConst() )
+  {
+    if( !slem.getConst<bool>() )
+    {
+      // conjecture is infeasible
+    }
+    else
+    {
+      return;
+    }
+  }
   // does this correspond to a substitution?
-  d_refinement_lemma_conj.push_back(lem);
+  NodeManager * nm = NodeManager::currentNM();
+  Node term;
+  Node val;
+  if( slem.getKind()==EQUAL )
+  {
+    for( unsigned i=0; i<2; i++ )
+    {
+      if( slem[i].isConst() && d_tds->isEvaluationHead(slem[1-i]))
+      {
+        term = slem[1-i];
+        val = slem[i];
+        break;
+      }
+    }
+  }
+  else
+  {
+    term = slem.getKind()==NOT ? slem[0] : slem;
+    if( d_tds->isEvaluationHead(term) )
+    {
+      val = nm->mkConst(slem.getKind()!=NOT);
+    }
+  }
+  if( !val.isNull() )
+  {
+    Trace("cegis-rl") << "* cegis-rl: propagate: " << term << " -> " << val << std::endl;
+    d_rl_eval_hds.push_back(term);
+    d_rl_vals.push_back(val);
+    d_refinement_lemma_unit.push_back(lem);
+  }
+  else
+  {
+    Trace("cegis-rl") << "cegis-rl: add: " << lem << std::endl;
+    d_refinement_lemma_conj.push_back(lem);
+  }
 }
 
 void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
@@ -196,21 +251,19 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
-                           << d_refinement_lemma_conj.size() << " refinement lemma conjunctions."
+                           << d_refinement_lemma_unit.size() << " unit and " << d_refinement_lemma_conj.size() << " non-unit refinement lemma conjunctions."
                            << std::endl;
-  unsigned nlemmas = d_refinement_lemma_conj.size();
-  if (nlemmas > 0)
+  Assert(vs.size() == ms.size());
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node nfalse = nm->mkConst(false);
+  Node neg_guard = d_parent->getGuard().negate();
+  for( unsigned r=0; r<2; r++ )
   {
-    Assert(vs.size() == ms.size());
-
-    TermDbSygus* tds = d_qe->getTermDatabaseSygus();
-    NodeManager* nm = NodeManager::currentNM();
-
-    Node nfalse = nm->mkConst(false);
-    Node neg_guard = d_parent->getGuard().negate();
-    for (unsigned i = 0; i < nlemmas; i++)
+    std::vector< Node >& rlemmas = r==0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    for (const Node& lem : rlemmas )
     {
-      Node lem = d_refinement_lemma_conj[i];
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
@@ -224,7 +277,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
       Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs
                                 << std::endl;
-      Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
+      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs);
       Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu
                                 << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
@@ -246,7 +299,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           Trace("sygus-cref-eval2-debug")
               << "  compute min explain of : " << vs[k] << " = " << ut
               << std::endl;
-          tds->getExplain()->getExplanationFor(
+          d_tds->getExplain()->getExplanationFor(
               vs[k], ut, mexp, vsit, var_count, false);
           Trace("sygus-cref-eval2-debug")
               << "exp now: " << mexp << std::endl;
@@ -273,6 +326,10 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           lems.push_back(cre_lem);
         }
       }
+    }
+    if( !lems.empty() )
+    {
+      break;
     }
   }
   // if we didn't add a lemma, trying sampling to add one

@@ -30,7 +30,6 @@ namespace quantifiers {
 CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
     : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
 {
-  d_tds = d_qe->getTermDatabaseSygus();
 }
 
 CegisUnif::~CegisUnif() {}
@@ -282,7 +281,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   // Notify lemma to unification utility and get its purified form
   std::map<Node, std::vector<Node>> eval_pts;
   Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
-  d_refinement_lemmas.push_back(plem);
+  addRefinementLemma(plem);
   Trace("cegis-unif-lemma") << "* Refinement lemma:\n" << plem << "\n";
   // Notify the enumeration manager if there are new evaluation points
   for (const std::pair<const Node, std::vector<Node>>& ep : eval_pts)
