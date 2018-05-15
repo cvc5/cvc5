@@ -50,11 +50,13 @@ class SygusUnifRl : public SygusUnif
   ~SygusUnifRl();
 
   /** initialize */
-  void initialize(QuantifiersEngine* qe,
-                  const std::vector<Node>& funs,
-                  std::vector<Node>& enums,
-                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
-  /** Notify enumeration */
+  void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas) override;
+
+  /** Notify enumeration (unused) */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols) override;
@@ -78,7 +80,19 @@ class SygusUnifRl : public SygusUnif
    * checked through wehether f has conditional or point enumerators (we use the
    * former)
     */
-  bool usingUnif(Node f);
+  bool usingUnif(Node f) const;
+  /** get condition for evaluation point
+   *
+   * Returns the strategy point corresponding to the condition of the strategy
+   * point e.
+   */
+  Node getConditionForEvaluationPoint(Node e) const;
+  /** set conditional enumerators
+   *
+   * This informs this class that the current set of conditions for evaluation
+   * point e is conds.
+   */
+  void setConditions(Node e, const std::vector<Node>& conds);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
@@ -178,6 +192,8 @@ class SygusUnifRl : public SygusUnif
                     unsigned strategy_index);
     /** adds the respective evaluation point of the head f  */
     void addPoint(Node f);
+    /** clears the condition values */
+    void clearCondValues();
     /** adds a condition value to the pool of condition values */
     void addCondValue(Node condv);
     /** returns index of strategy information of strategy node for this DT */
@@ -201,6 +217,8 @@ class SygusUnifRl : public SygusUnif
     NodePair d_template;
     /** enumerated condition values */
     std::vector<Node> d_conds;
+    /** get condition enumerator */
+    Node getConditionEnumerator() const { return d_cond_enum; }
 
    private:
     /**
@@ -262,41 +280,32 @@ class SygusUnifRl : public SygusUnif
   /** register strategy
    *
    * Initialize the above data for the relevant enumerators in the strategy tree
-   * of candidate variable f.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
+   * of candidate variable f. For each strategy point e which there is a
+   * decision tree strategy, we add e to enums.
    */
-  void registerStrategy(Node f,
-                        std::map<Node, std::vector<Node>>& strategy_lemmas);
+  void registerStrategy(Node f, std::vector<Node>& enums);
   /** register strategy node
    *
    * Called while traversing the strategy tree of f. The arguments e and nrole
    * indicate the current node in the tree we are traversing, and visited
-   * indicates the nodes we have already visited.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
+   * indicates the nodes we have already visited. If e has a decision tree
+   * strategy, it is added to enums.
    */
   void registerStrategyNode(Node f,
                             Node e,
                             NodeRole nrole,
                             std::map<Node, std::map<NodeRole, bool>>& visited,
-                            std::map<Node, std::vector<Node>>& strategy_lemmas);
+                            std::vector<Node>& enums);
   /** register conditional enumerator
    *
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
    */
   void registerConditionalEnumerator(
       Node f,
       Node e,
       Node cond,
-      unsigned strategy_index,
-      std::map<Node, std::vector<Node>>& strategy_lemmas);
+      unsigned strategy_index);
 };
 
 } /* CVC4::theory::quantifiers namespace */

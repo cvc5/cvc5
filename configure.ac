@@ -133,7 +133,8 @@ if test -z "${enable_optimized+set}" -a \
         -z "${with_abc+set}" -a \
         -z "${with_cadical+set}" -a \
         -z "${with_cryptominisat+set}" -a \
-        -z "${with_lfsc+set}"; then
+        -z "${with_lfsc+set}" -a \
+        -z "${with_symfpu+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -251,6 +252,11 @@ if test -n "${with_lfsc+set}"; then
   if test "$with_lfsc" = yes; then
     enable_proof=yes
     btargs="$btargs lfsc"
+  fi
+fi
+if test -n "${with_symfpu+set}"; then
+  if test "$with_symfpu" = yes; then
+    btargs="$btargs symfpu"
   fi
 fi
 
@@ -925,6 +931,16 @@ AM_CONDITIONAL([CVC4_USE_LFSC], [test $have_liblfsc -eq 1])
 AC_SUBST([LFSC_LDFLAGS])
 AC_SUBST([LFSC_LIBS])
 
+# Build with symfpu
+AC_ARG_WITH([symfpu],
+  [AS_HELP_STRING([--with-symfpu],
+     [use symfpu for floating point solver])], [], [with_symfpu=])
+CVC4_CHECK_FOR_SYMFPU
+if test $have_symfpu_headers -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_SYMFPU"
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$SYMFPU_HOME"
+fi
+AM_CONDITIONAL([CVC4_USE_SYMFPU], [test $have_symfpu_headers -eq 1])
 
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates std::hash<uint64_t> or not.  Some do, some don't.
