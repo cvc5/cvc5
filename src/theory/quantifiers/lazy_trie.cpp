@@ -148,6 +148,12 @@ Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
   return res;
 }
 
+void LazyTrieMulti::clear()
+{
+  d_trie.clear();
+  d_rep_to_class.clear();
+}
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

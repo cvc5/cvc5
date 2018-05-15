@@ -159,6 +159,9 @@ class LazyTrieMulti
    * containing only itself.
    */
   Node add(Node f, LazyTrieEvaluator* ev, unsigned ntotal);
+  /** clear the trie */
+  void clear();
+
   /** A regular lazy trie */
   LazyTrie d_trie;
 };
