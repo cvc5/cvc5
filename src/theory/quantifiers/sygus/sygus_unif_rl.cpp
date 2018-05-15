@@ -339,12 +339,12 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
   if (sol.isNull())
   {
     Assert(!toSeparate.isNull());
-    d_sepConds.push_back(NodeToNodes(e, toSeparate));
+    d_sepConds[e] = toSeparate;
   }
   return sol;
 }
 
-bool SygusUnifRl::getSeparationCond(std::vector<NodeToNodes>& sepConds)
+bool SygusUnifRl::getSeparationCond(std::map<Node, std::vector<Node>>& sepConds)
 {
   sepConds = d_sepConds;
   return !sepConds.empty();

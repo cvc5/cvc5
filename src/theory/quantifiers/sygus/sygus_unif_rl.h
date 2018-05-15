@@ -34,7 +34,6 @@ using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
 using NodePairMap = std::unordered_map<Node, Node, NodeHashFunction>;
 using NodePair = std::pair<Node, Node>;
-using NodeToNodes = std::pair<Node, std::vector<Node>>;
 
 class CegConjecture;
 
@@ -105,7 +104,7 @@ class SygusUnifRl : public SygusUnif
    * function-to-synthesize, such that fi could not be separated from fj by the
    * current condition values
    */
-  bool getSeparationCond(std::vector<NodeToNodes>& sepConds);
+  bool getSeparationCond(std::map<Node, std::vector<Node>>& sepConds);
 
  protected:
   /** reference to the parent conjecture */
@@ -129,7 +128,7 @@ class SygusUnifRl : public SygusUnif
    * this pair is set when a unif solution cannot be built because a two
    * evaluation point heads cannot be separated
    */
-  std::vector<NodeToNodes> d_sepConds;
+  std::map<Node, std::vector<Node>> d_sepConds;
   /*
     --------------------------------------------------------------
         Purification
