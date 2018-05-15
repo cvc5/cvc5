@@ -4249,7 +4249,6 @@ void SmtEnginePrivate::processAssertions() {
   if(options::doStaticLearning()) {
     d_preprocessingPassRegistry.getPass("static-learning")
         ->apply(&d_assertions);
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-static-learning" << endl;
   }
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
