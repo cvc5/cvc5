@@ -100,8 +100,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       else
       {
         nv = d_parent->getModelValue(n);
-      Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
-                                    << " is " << nv << "\n";
+        Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
+                                      << " is " << nv << "\n";
       }
       Assert(n != nv);
     }
@@ -292,9 +292,13 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
       continue;
     }
     initializeConstructSolFor(c);
-    Node v = constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
+    NodePair sepCond;
+    Node v = constructSol(
+        c, d_strategy[c].getRootEnumerator(), role_equal, sepCond, 0);
     if (v.isNull())
     {
+      sols.push_back(sepCond.first);
+      sols.push_back(sepCond.second);
       return false;
     }
     Trace("sygus-unif-rl-sol") << "Adding solution " << v
@@ -305,7 +309,8 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
   return true;
 }
 
-Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
+Node SygusUnifRl::constructSol(
+    Node f, Node e, NodeRole nrole, NodePair& sepCond, int ind)
 {
   indent("sygus-unif-sol", ind);
   Trace("sygus-unif-sol") << "ConstructSol: SygusRL : " << e << std::endl;
@@ -334,7 +339,14 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
     return d_parent->getModelValue(e);
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
-  return itd->second.buildSol(etis->d_cons);
+  Node toSeparate;
+  Node sol = itd->second.buildSol(etis->d_cons, toSeparate);
+  if (sol.isNull())
+  {
+    Assert(!toSeparate.isNull());
+    sepCond = NodePair(e, toSeparate);
+  }
+  return sol;
 }
 
 bool SygusUnifRl::usingUnif(Node f) const
@@ -353,9 +365,9 @@ void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
-  // Clear previous trie, set new condition values
-  it->second.d_pt_sep.d_trie.clear();
-  it->second.d_conds.clear();
+  // Clear previous trie
+  it->second.clearPointSeparator();
+  // set new condition values
   it->second.d_conds.insert(
       it->second.d_conds.end(), conds.begin(), conds.end());
 }
@@ -476,6 +488,12 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
   d_pt_sep.initialize(this);
 }
 
+void SygusUnifRl::DecisionTreeInfo::clearPointSeparator()
+{
+  d_pt_sep.d_trie.d_trie.clear();
+  d_conds.clear();
+}
+
 void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
 {
   // d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
@@ -494,14 +512,14 @@ unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 
 using UNodePair = std::pair<unsigned, Node>;
 
-Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
+Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons, Node& toSeparate)
 {
   if (!d_template.first.isNull())
   {
     Trace("sygus-unif-sol") << "...templated conditions unsupported\n";
     return Node::null();
   }
-  if (!isSeparated())
+  if (!isSeparated(toSeparate))
   {
     Trace("sygus-unif-sol") << "...separation check failed\n";
     return Node::null();
@@ -585,10 +603,10 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
   return cache[root];
 }
 
-bool SygusUnifRl::DecisionTreeInfo::isSeparated()
+bool SygusUnifRl::DecisionTreeInfo::isSeparated(Node& toSeparate)
 {
   // build point separator
-  for (const Node& f: d_hds)
+  for (const Node& f : d_hds)
   {
     addPoint(f);
   }
@@ -638,7 +656,8 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
         Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
                                   << rep_to_class.second[0] << " and "
                                   << rep_to_class.second[i] << "\n";
-        // TODO create lemma
+        toSeparate = NodeManager::currentNM()->mkNode(
+            EQUAL, rep_to_class.second[0], rep_to_class.second[i]);
         return false;
       }
     }

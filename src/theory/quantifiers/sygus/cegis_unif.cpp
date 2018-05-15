@@ -68,8 +68,8 @@ bool CegisUnif::initialize(Node n,
       {
         Node cond = d_sygus_unif.getConditionForEvaluationPoint(e);
         Assert(!cond.isNull());
-        Trace("cegis-unif")
-            << "  " << e << " with condition : " << cond << std::endl;
+        Trace("cegis-unif") << "  " << e << " with condition : " << cond
+                            << std::endl;
         pt_to_cond[e] = cond;
       }
     }
@@ -123,6 +123,8 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   // build the values of the condition enumerators for each strategy point
   std::map<Node, std::vector<Node>> condition_map;
   Trace("cegis-unif-enum") << "Register new enumerated values :\n";
+  // keep track of the relation between conditional enums and their values
+  NodePairMap cenum_to_value;
   for (unsigned i = 0, size = enums.size(); i < size; ++i)
   {
     // Non-unif enums (which are the very candidates) should not be notified
@@ -144,6 +146,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     std::map<Node, Node>::iterator itc = d_cenum_to_strat_pt.find(e);
     if (itc != d_cenum_to_strat_pt.end())
     {
+      cenum_to_value[e] = v;
       Trace("cegis-unif-enum") << "   ...this is a condition for " << e << "\n";
       // it is the value of a current condition
       condition_map[itc->second].push_back(v);
@@ -160,11 +163,6 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     d_sygus_unif.setConditions(cs.first, cs.second);
   }
   // TODO : check symmetry breaking for enumerators
-  // check if evaluation points are separated on current model
-  if (!d_sygus_unif.isSeparated())
-  {
-    return false;
-  }
   // build solutions (for unif candidates a divide-and-conquer approach is used)
   std::vector<Node> sols;
   if (d_sygus_unif.constructSolution(sols))
@@ -182,6 +180,27 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     return true;
   }
+  Assert(sols.size() >= 2);
+  // Build separation lemma based on current size, current enumerated condition
+  // values, and heads that could not be separated
+  NodeManager* nm = NodeManager::currentNM();
+  Node strategy_pt = sols[sols.size() - 2], head_equality = sols.back();
+  // Build equalities between condition enumerators associated with the strategy
+  // point whose decision tree could not separate the given heads
+  std::vector<Node> cenums, cond_eqs;
+  d_u_enum_manager.getCondEnumeratorsForStrategyPt(strategy_pt, cenums);
+  for (const Node& ce : cenums)
+  {
+    Assert(cenum_to_value.find(ce) != cenum_to_value.end());
+    cond_eqs.push_back(nm->mkNode(EQUAL, ce, cenum_to_value[ce]));
+  }
+  Node sep_lemma = nm->mkNode(OR,
+                              getCurrentLiteral().negate(),
+                              nm->mkNode(AND, cond_eqs).negate(),
+                              head_equality);
+  Trace("cegis-unif") << "* No solution, generating separation lemma : "
+                      << sep_lemma << "\n";
+  d_qe->getOutputChannel().lemma(sep_lemma);
   return false;
 }
 
@@ -245,8 +264,8 @@ void CegisUnifEnumManager::initialize(
     std::map<Node, Node>::const_iterator itcc = e_to_cond.find(e);
     Assert(itcc != e_to_cond.end());
     Node cond = itcc->second;
-    Trace("cegis-unif-enum-debug")
-        << "...its condition strategy point is " << cond << "\n";
+    Trace("cegis-unif-enum-debug") << "...its condition strategy point is "
+                                   << cond << "\n";
     d_ce_info[e].d_ce_type = cond.getType();
     // initialize the symmetry breaking lemma templates
     for (unsigned index = 0; index < 2; index++)
