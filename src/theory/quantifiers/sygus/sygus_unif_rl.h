@@ -97,6 +97,15 @@ class SygusUnifRl : public SygusUnif
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
 
+  /**
+   * if a separation condition is necessary after a failed solution
+   * construction, then sepCond is assigned a pair (e, fi = fj) in which e is
+   * the strategy point and fi, fj head of evaluation points of a unif
+   * function-to-synthesize, such that fi could not be separated from fj by the
+   * current condition values
+   */
+  bool getSeparationPairs(std::map<Node, std::vector<Node>>& sepPairs);
+
  protected:
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
@@ -114,6 +123,12 @@ class SygusUnifRl : public SygusUnif
   void initializeConstructSolFor(Node f) override;
   /** maps unif functions-to~synhesize to their last built solutions */
   std::map<Node, Node> d_cand_to_sol;
+  /** pair of strategy point and equality between evaluation point heads
+   *
+   * this pair is set when a unif solution cannot be built because a two
+   * evaluation point heads cannot be separated
+   */
+  std::map<Node, std::vector<Node>> d_sepPairs;
   /*
     --------------------------------------------------------------
         Purification
@@ -190,12 +205,6 @@ class SygusUnifRl : public SygusUnif
                     SygusUnifRl* unif,
                     SygusUnifStrategy* strategy,
                     unsigned strategy_index);
-    /** adds the respective evaluation point of the head f  */
-    void addPoint(Node f);
-    /** clears the condition values */
-    void clearCondValues();
-    /** adds a condition value to the pool of condition values */
-    void addCondValue(Node condv);
     /** returns index of strategy information of strategy node for this DT */
     unsigned getStrategyIndex() const;
     /** builds solution stored in DT, if any, using the given constructor
@@ -203,22 +212,29 @@ class SygusUnifRl : public SygusUnif
      * The DT contains a solution when no class contains two heads of evaluation
      * points with different model values, i.e. when all points that must be
      * separated indeed are separated.
-     *
-     * This function tests separation of the points in the above sense and may
-     * create separation lemmas to enforce guide the synthesis of conditons that
-     * will separate points not currently separated.
      */
-    Node buildSol(Node cons);
-    /** whether all points that must be separated are separated **/
-    bool isSeparated();
+    Node buildSol(Node cons, std::vector<Node>& toSeparate);
+    /** whether all points that must be separated are separated
+     *
+     * This function tests separation of the points in the above sense and in
+     * case two heads cannot be separated, an equality between them is created
+     * and stored in toSeparate, so that a separation lemma can be generated to
+     * guide the synthesis search to yield either conditions that will separate
+     * these heads or equal values to them.
+     */
+    bool isSeparated(std::vector<Node>& toSeparate);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
     NodePair d_template;
     /** enumerated condition values */
     std::vector<Node> d_conds;
+    /** gathered evaluation point heads */
+    std::vector<Node> d_hds;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
+    /** clear trie and registered condition values */
+    void resetPointSeparator(const std::vector<Node>& conds);
 
    private:
     /**
@@ -268,6 +284,10 @@ class SygusUnifRl : public SygusUnif
      * enumerated condiotion values
      */
     PointSeparator d_pt_sep;
+    /** adds the respective evaluation point of the head f to d_pt_sep */
+    void addPoint(Node f);
+    /** adds a value to the pool of condition values and to d_pt_sep */
+    void addCondValue(Node condv);
   };
   /** maps strategy points in the strategy tree to the above data */
   std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;
@@ -301,11 +321,10 @@ class SygusUnifRl : public SygusUnif
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
    */
-  void registerConditionalEnumerator(
-      Node f,
-      Node e,
-      Node cond,
-      unsigned strategy_index);
+  void registerConditionalEnumerator(Node f,
+                                     Node e,
+                                     Node cond,
+                                     unsigned strategy_index);
 };
 
 } /* CVC4::theory::quantifiers namespace */

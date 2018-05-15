@@ -82,6 +82,11 @@ class CegisUnifEnumManager
    * registerEvalPtAtValue on the output channel of d_qe.
    */
   Node getNextDecisionRequest(unsigned& priority);
+  /**
+   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
+   * is not asserted negatively in the current SAT context.
+   */
+  Node getCurrentLiteral() const;
 
  private:
   /** reference to quantifier engine */
@@ -138,11 +143,6 @@ class CegisUnifEnumManager
   context::CDO<unsigned> d_curr_guq_val;
   /** increment the number of enumerators */
   void incrementNumEnumerators();
-  /**
-   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
-   * is not asserted negatively in the current SAT context.
-   */
-  Node getCurrentLiteral() const;
   /** get literal G_uq_n */
   Node getLiteral(unsigned n) const;
   /** register evaluation point at size

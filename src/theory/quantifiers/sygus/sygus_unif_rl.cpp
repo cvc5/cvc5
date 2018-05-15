@@ -100,8 +100,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       else
       {
         nv = d_parent->getModelValue(n);
-      Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
-                                    << " is " << nv << "\n";
+        Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
+                                      << " is " << nv << "\n";
       }
       Assert(n != nv);
     }
@@ -263,10 +263,11 @@ Node SygusUnifRl::addRefLemma(Node lemma,
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
           Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-          Trace("sygus-unif-rl-dt") << "Add point with head " << cp.second[j]
-                                    << " to strategy point " << stratpt << "\n";
+          Trace("sygus-unif-rl-dt") << "Register point with head "
+                                    << cp.second[j] << " to strategy point "
+                                    << stratpt << "\n";
           // Register new point from new head
-          d_stratpt_to_dt[stratpt].addPoint(cp.second[j]);
+          d_stratpt_to_dt[stratpt].d_hds.push_back(cp.second[j]);
         }
       }
     }
@@ -275,18 +276,17 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   return plem;
 }
 
-void SygusUnifRl::initializeConstructSol() {}
+void SygusUnifRl::initializeConstructSol() { d_sepPairs.clear(); }
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {
   initializeConstructSol();
+  bool successful = true;
   for (const Node& c : d_candidates)
   {
     if (!usingUnif(c))
     {
       Node v = d_parent->getModelValue(c);
-      Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                                 << " to non-unif candidate " << c << "\n";
       sols.push_back(v);
       continue;
     }
@@ -294,14 +294,15 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
     Node v = constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
     if (v.isNull())
     {
-      return false;
+      // we continue trying to build solutions to accumulate potentitial
+      // separation conditions from other decision trees
+      successful = false;
+      continue;
     }
-    Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                               << " to unif candidate " << c << "\n";
     sols.push_back(v);
     d_cand_to_sol[c] = v;
   }
-  return true;
+  return successful;
 }
 
 Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
@@ -333,7 +334,21 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
     return d_parent->getModelValue(e);
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
-  return itd->second.buildSol(etis->d_cons);
+  std::vector<Node> toSeparate;
+  Node sol = itd->second.buildSol(etis->d_cons, toSeparate);
+  if (sol.isNull())
+  {
+    Assert(!toSeparate.empty());
+    d_sepPairs[e] = toSeparate;
+  }
+  return sol;
+}
+
+bool SygusUnifRl::getSeparationPairs(
+    std::map<Node, std::vector<Node>>& sepPairs)
+{
+  sepPairs = d_sepPairs;
+  return !sepPairs.empty();
 }
 
 bool SygusUnifRl::usingUnif(Node f) const
@@ -352,13 +367,8 @@ void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
-  it->second.clearCondValues();
-  /* TODO
-  for (const Node& c : conds)
-  {
-    it->second.addCondValue(c);
-  }
-  */
+  // Clear previous trie
+  it->second.resetPointSeparator(conds);
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -477,15 +487,19 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
   d_pt_sep.initialize(this);
 }
 
+void SygusUnifRl::DecisionTreeInfo::resetPointSeparator(
+    const std::vector<Node>& conds)
+{
+  // clear old condition values and trie
+  d_conds.clear();
+  d_pt_sep.d_trie.clear();
+  // set new condition values
+  d_conds.insert(d_conds.end(), conds.begin(), conds.end());
+}
+
 void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
 {
   d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
-}
-
-void SygusUnifRl::DecisionTreeInfo::clearCondValues()
-{
-  // TODO
-  // d_conds.clear();
 }
 
 void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
@@ -501,14 +515,15 @@ unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 
 using UNodePair = std::pair<unsigned, Node>;
 
-Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
+Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
+                                             std::vector<Node>& toSeparate)
 {
   if (!d_template.first.isNull())
   {
     Trace("sygus-unif-sol") << "...templated conditions unsupported\n";
     return Node::null();
   }
-  if (!isSeparated())
+  if (!isSeparated(toSeparate))
   {
     Trace("sygus-unif-sol") << "...separation check failed\n";
     return Node::null();
@@ -592,9 +607,16 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
   return cache[root];
 }
 
-bool SygusUnifRl::DecisionTreeInfo::isSeparated()
+bool SygusUnifRl::DecisionTreeInfo::isSeparated(std::vector<Node>& toSeparate)
 {
+  // build point separator
+  for (const Node& f : d_hds)
+  {
+    addPoint(f);
+  }
+  // check separation
   d_hd_values.clear();
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::vector<Node>>& rep_to_class :
        d_pt_sep.d_trie.d_rep_to_class)
   {
@@ -639,11 +661,14 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated()
         Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
                                   << rep_to_class.second[0] << " and "
                                   << rep_to_class.second[i] << "\n";
-        return false;
+        toSeparate.push_back(
+            nm->mkNode(EQUAL, rep_to_class.second[0], rep_to_class.second[i]));
+        // For non-separation suffices to consider one head pair per sep class
+        break;
       }
     }
   }
-  return true;
+  return toSeparate.empty();
 }
 
 void SygusUnifRl::DecisionTreeInfo::PointSeparator::initialize(
