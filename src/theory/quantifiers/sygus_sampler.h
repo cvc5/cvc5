@@ -21,6 +21,7 @@
 #include "theory/quantifiers/dynamic_rewrite.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 
 namespace CVC4 {
 namespace theory {
@@ -151,6 +152,8 @@ class SygusSampler : public LazyTrieEvaluator
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
+  /** term enumerator object */
+  TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
   /** data structure to check duplication of sample points */

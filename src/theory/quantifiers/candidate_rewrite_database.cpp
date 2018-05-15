@@ -285,20 +285,29 @@ CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
 
 bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
 {
+  ExtendedRewriter* er = nullptr;
+  if (options::synthRrPrepExtRew())
+  {
+    er = &d_ext_rewrite;
+  }
   TypeNode tn = n.getType();
   std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
   if (itc == d_cdbs.end())
   {
     // initialize with the extended rewriter owned by this class
-    ExtendedRewriter* er = nullptr;
-    if (options::synthRrPrepExtRew())
-    {
-      er = &d_ext_rewrite;
-    }
     d_cdbs[tn].initialize(er, tn, d_vars, d_nsamples, true);
     itc = d_cdbs.find(tn);
   }
-  return itc->second.addTerm(n, out);
+  Node nr;
+  if( er==nullptr )
+  {
+    nr = Rewriter::rewrite(n);
+  }
+  else
+  {
+    nr = er->extendedRewrite(n);
+  }
+  return itc->second.addTerm(nr, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */

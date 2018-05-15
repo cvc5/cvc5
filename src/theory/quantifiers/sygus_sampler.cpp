@@ -595,7 +595,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
     if (!s.isNull() && !r.isNull())
     {
       Rational sr = s.getConst<Rational>();
-      Rational rr = s.getConst<Rational>();
+      Rational rr = r.getConst<Rational>();
       if (rr.sgn() == 0)
       {
         return s;
@@ -606,7 +606,13 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
     }
   }
-  return Node::null();
+  // default: use type enumerator
+  unsigned counter = 0;
+  while(Random::getRandom().pickWithProb(0.75))
+  {
+    counter++;
+  }
+  return d_tenum.getEnumerateTerm(tn,counter);
 }
 
 Node SygusSampler::getSygusRandomValue(TypeNode tn,
