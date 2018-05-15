@@ -1470,6 +1470,7 @@ REG1_TESTS = \
 	regress1/sygus/array_search_2.sy \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/cegar1.sy \
+	regress1/sygus/cegisunif-depth1.sy \
 	regress1/sygus/cggmp.sy \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
@@ -1590,6 +1591,7 @@ REG2_TESTS = \
 	regress2/strings/norn-dis-0707-3.smt2 \
 	regress2/sygus/MPwL_d1s3.sy \
 	regress2/sygus/array_sum_dd.sy \
+	regress2/sygus/cegisunif-depth1-bv.sy \
 	regress2/sygus/ex23.sy \
 	regress2/sygus/icfp_easy_mt_ite.sy \
 	regress2/sygus/inv_gen_n_c11.sy \
