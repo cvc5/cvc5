@@ -46,10 +46,11 @@ class SygusUnif
   SygusUnif();
   virtual ~SygusUnif();
 
-  /** initialize
+  /** initialize candidate
    *
-   * This initializes this class with functions-to-synthesize funs. We also call
-   * these "candidate variables".
+   * This initializes this class with functions-to-synthesize f. We also call
+   * this a "candidate variable". This function can be called more than once
+   * for different functions-to-synthesize in the same conjecture.
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that
@@ -61,10 +62,11 @@ class SygusUnif
    * strategy is ITE_strat). The lemmas are associated with a strategy point of
    * the respective function-to-synthesize.
    */
-  virtual void initialize(QuantifiersEngine* qe,
-                          const std::vector<Node>& funs,
-                          std::vector<Node>& enums,
-                          std::map<Node, std::vector<Node>>& strategy_lemmas);
+  virtual void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
 
   /**
    * Notify that the value v has been enumerated for enumerator e. This call

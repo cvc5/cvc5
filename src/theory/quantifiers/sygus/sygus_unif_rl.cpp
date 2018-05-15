@@ -25,58 +25,32 @@ namespace quantifiers {
 
 SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
 SygusUnifRl::~SygusUnifRl() {}
-void SygusUnifRl::initialize(QuantifiersEngine* qe,
-                             const std::vector<Node>& funs,
-                             std::vector<Node>& enums,
-                             std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnifRl::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   // initialize
   std::vector<Node> all_enums;
-  SygusUnif::initialize(qe, funs, all_enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(qe, f, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
-  for (const Node& f : funs)
-  {
-    d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-    registerStrategy(f, strategy_lemmas);
-  }
-  enums.insert(enums.end(), d_cond_enums.begin(), d_cond_enums.end());
+  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
+  registerStrategy(f, enums);
   // Copy candidates and check whether CegisUnif for any of them
-  for (const Node& c : d_unif_candidates)
+  if (d_unif_candidates.find(f) != d_unif_candidates.end())
   {
-    d_hd_to_pt[c].clear();
-    d_cand_to_eval_hds[c].clear();
-    d_cand_to_hd_count[c] = 0;
+    d_hd_to_pt[f].clear();
+    d_cand_to_eval_hds[f].clear();
+    d_cand_to_hd_count[f] = 0;
   }
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
-  Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
-                                << " value " << v << "\n";
-  // Exclude v from next enumerations for e
-  Node exc_lemma =
-      d_tds->getExplain()->getExplanationForEquality(e, v).negate();
-  Trace("sygus-unif-rl-notify-debug")
-      << "SygusUnifRl : enumeration exclude lemma : " << exc_lemma << std::endl;
-  lemmas.push_back(exc_lemma);
-  // Update all desicion trees in which this enumerator is a conditional
-  // enumerator, if any
-  std::map<Node, std::vector<Node>>::iterator it = d_cenum_to_stratpt.find(e);
-  if (it == d_cenum_to_stratpt.end())
-  {
-    return;
-  }
-  for (const Node& stratpt : it->second)
-  {
-    Trace("sygus-unif-rl-dt")
-        << "...adding value " << v
-        << " to decision tree of strategy point  : " << stratpt << std::endl;
-    Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-    // Register new condition value
-    d_stratpt_to_dt[stratpt].addCondValue(v);
-    Trace("sygus-unif-rl-dt") << "...added\n";
-  }
+  // we do not use notify enumeration
+  Assert(false);
 }
 
 Node SygusUnifRl::purifyLemma(Node n,
@@ -362,9 +336,29 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
   return itd->second.buildSol(etis->d_cons);
 }
 
-bool SygusUnifRl::usingUnif(Node f)
+bool SygusUnifRl::usingUnif(Node f) const
 {
   return d_unif_candidates.find(f) != d_unif_candidates.end();
+}
+
+Node SygusUnifRl::getConditionForEvaluationPoint(Node e) const
+{
+  std::map<Node, DecisionTreeInfo>::const_iterator it = d_stratpt_to_dt.find(e);
+  Assert(it != d_stratpt_to_dt.end());
+  return it->second.getConditionEnumerator();
+}
+
+void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
+{
+  std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
+  Assert(it != d_stratpt_to_dt.end());
+  it->second.clearCondValues();
+  /* TODO
+  for (const Node& c : conds)
+  {
+    it->second.addCondValue(c);
+  }
+  */
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -377,8 +371,7 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
-void SygusUnifRl::registerStrategy(
-    Node f, std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnifRl::registerStrategy(Node f, std::vector<Node>& enums)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -389,7 +382,7 @@ void SygusUnifRl::registerStrategy(
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
-  registerStrategyNode(f, e, role_equal, visited, strategy_lemmas);
+  registerStrategyNode(f, e, role_equal, visited, enums);
 }
 
 void SygusUnifRl::registerStrategyNode(
@@ -397,7 +390,7 @@ void SygusUnifRl::registerStrategyNode(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool>>& visited,
-    std::map<Node, std::vector<Node>>& strategy_lemmas)
+    std::vector<Node>& enums)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
@@ -433,20 +426,25 @@ void SygusUnifRl::registerStrategyNode(
             << "  ...detected recursive ITE strategy, condition enumerator : "
             << cond << std::endl;
         // indicate that we will be enumerating values for cond
-        registerConditionalEnumerator(f, e, cond, j, strategy_lemmas);
+        registerConditionalEnumerator(f, e, cond, j);
+        // we will be using a strategy for e
+        enums.push_back(e);
       }
     }
     // TODO: recurse? for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
   }
 }
 
-void SygusUnifRl::registerConditionalEnumerator(
-    Node f,
-    Node e,
-    Node cond,
-    unsigned strategy_index,
-    std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnifRl::registerConditionalEnumerator(Node f,
+                                                Node e,
+                                                Node cond,
+                                                unsigned strategy_index)
 {
+  // only allow one decision tree per strategy point
+  if (d_stratpt_to_dt.find(e) != d_stratpt_to_dt.end())
+  {
+    return;
+  }
   // we will do unification for this candidate
   d_unif_candidates.insert(f);
   // add to the list of all conditional enumerators
@@ -455,23 +453,7 @@ void SygusUnifRl::registerConditionalEnumerator(
   {
     d_cond_enums.push_back(cond);
     d_cand_cenums[f].push_back(cond);
-    // register the conditional enumerator
-    d_tds->registerEnumerator(cond, f, d_parent, true);
     d_cenum_to_stratpt[cond].clear();
-    // register lemmas to remove redundant operators from condition enumeration
-    std::map<const Node, std::vector<Node>>::iterator it =
-        strategy_lemmas.find(cond);
-    if (it != strategy_lemmas.end())
-    {
-      for (const Node& lemma : it->second)
-      {
-        Trace("cegis-unif-enum-debug")
-            << "* Registering lemma to remove redundand operators for " << cond
-            << " --> " << lemma << "\n";
-        d_qe->getOutputChannel().lemma(lemma);
-      }
-      strategy_lemmas.erase(cond);
-    }
   }
   // register that this strategy node has a decision tree construction
   d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], strategy_index);
@@ -498,6 +480,12 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
 void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
 {
   d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
+}
+
+void SygusUnifRl::DecisionTreeInfo::clearCondValues()
+{
+  // TODO
+  // d_conds.clear();
 }
 
 void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)

@@ -273,13 +273,14 @@ class SygusUnifIo : public SygusUnif
 
   /** initialize
    *
-   * The vector funs should be of length one, since I/O specifications across
+   * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
    */
-  void initialize(QuantifiersEngine* qe,
-                  const std::vector<Node>& funs,
-                  std::vector<Node>& enums,
-                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
+  void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas) override;
   /** Notify enumeration */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
 
