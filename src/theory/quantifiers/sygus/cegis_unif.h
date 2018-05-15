@@ -60,7 +60,7 @@ class CegisUnifEnumManager
                   const std::map<Node, Node>& e_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
   /** get the current set of conditional enumerators for strategy point e */
-  void getCondEnumeratorsForStrategyPt(Node e, std::vector<Node>& ces) const;
+  void getEnumeratorsForStrategyPt(Node e, std::vector<Node>& ces, unsigned index) const;
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points
