@@ -620,17 +620,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
   //add constants if no variables and no connected types
-  if( ops.back().empty() && types.empty() ){
-    std::vector< Node > consts;
-    mkSygusConstantsForType( btype, consts );
-    for( unsigned j=0; j<consts.size(); j++ ){
-      std::stringstream ss;
-      ss << consts[j];
-      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-      ops.back().push_back( consts[j].toExpr() );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
+  std::vector<Node> consts;
+  mkSygusConstantsForType(btype, consts);
+  for (unsigned j = 0; j < consts.size(); j++)
+  {
+    std::stringstream ss;
+    ss << consts[j];
+    Trace("sygus-grammar-def") << "...add for constant " << ss.str()
+                               << std::endl;
+    ops.back().push_back(consts[j].toExpr());
+    cnames.push_back(ss.str());
+    cargs.push_back(std::vector<CVC4::Type>());
   }
   //add operators
   for (unsigned i = 0; i < 4; i++)
