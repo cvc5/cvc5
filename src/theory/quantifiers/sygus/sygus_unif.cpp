@@ -27,22 +27,19 @@ namespace theory {
 namespace quantifiers {
 
 SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
-
 SygusUnif::~SygusUnif() {}
-void SygusUnif::initialize(QuantifiersEngine* qe,
-                           const std::vector<Node>& funs,
-                           std::vector<Node>& enums,
-                           std::vector<Node>& lemmas)
+
+void SygusUnif::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
-  Assert(d_candidates.empty());
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
-  for (const Node& f : funs)
-  {
-    d_candidates.push_back(f);
-    // initialize the strategy
-    d_strategy[f].initialize(qe, f, enums);
-  }
+  d_candidates.push_back(f);
+  // initialize the strategy
+  d_strategy[f].initialize(qe, f, enums);
 }
 
 bool SygusUnif::constructSolution(std::vector<Node>& sols)
@@ -98,7 +95,7 @@ Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
     const std::map<Node, unsigned>& total_inc,
-    const std::map<Node, std::vector<unsigned> >& incr)
+    const std::map<Node, std::vector<unsigned>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;

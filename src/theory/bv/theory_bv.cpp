@@ -55,8 +55,6 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
     d_staticLearnCache(),
     d_BVDivByZero(),
     d_BVRemByZero(),
-    d_funcToArgs(),
-    d_funcToSkolem(u),
     d_lemmasAdded(c, false),
     d_conflict(c, false),
     d_invalidateModelCache(c, true),
@@ -189,94 +187,6 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   Unreachable();
 }
 
-
-void TheoryBV::collectFunctionSymbols(TNode term, TNodeSet& seen) {
-  if (seen.find(term) != seen.end())
-    return;
-  if (term.getKind() == kind::APPLY_UF) {
-    TNode func = term.getOperator();
-    storeFunction(func, term);
-  } else if (term.getKind() == kind::SELECT) {
-    TNode func = term[0];
-    storeFunction(func, term);
-  } else if (term.getKind() == kind::STORE) {
-    AlwaysAssert(false, "Cannot use eager bitblasting on QF_ABV formula with stores");
-  }
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    collectFunctionSymbols(term[i], seen);
-  }
-  seen.insert(term);
-}
-
-void TheoryBV::storeFunction(TNode func, TNode term) {
-  if (d_funcToArgs.find(func) == d_funcToArgs.end()) {
-    d_funcToArgs.insert(make_pair(func, NodeSet()));
-  }
-  NodeSet& set = d_funcToArgs[func];
-  if (set.find(term) == set.end()) {
-    set.insert(term);
-    Node skolem = utils::mkVar(utils::getSize(term));
-    d_funcToSkolem.addSubstitution(term, skolem);
-  }
-}
-
-void TheoryBV::mkAckermanizationAssertions(std::vector<Node>& assertions) {
-  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAssertions\n";
-
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
-  AlwaysAssert(!options::incrementalSolving());
-  TNodeSet seen;
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    collectFunctionSymbols(assertions[i], seen);
-  }
-
-  FunctionToArgs::const_iterator it = d_funcToArgs.begin();
-  NodeManager* nm = NodeManager::currentNM();
-  for (; it!= d_funcToArgs.end(); ++it) {
-    TNode func = it->first;
-    const NodeSet& args = it->second;
-    NodeSet::const_iterator it1 = args.begin();
-    for ( ; it1 != args.end(); ++it1) {
-      for(NodeSet::const_iterator it2 = it1; it2 != args.end(); ++it2) {
-        TNode args1 = *it1;
-        TNode args2 = *it2;
-        Node args_eq;
-        
-        if (args1.getKind() == kind::APPLY_UF) {
-          AlwaysAssert (args1.getKind() == kind::APPLY_UF &&
-                        args1.getOperator() == func);
-          AlwaysAssert (args2.getKind() == kind::APPLY_UF &&
-                        args2.getOperator() == func);
-          AlwaysAssert (args1.getNumChildren() == args2.getNumChildren());
-
-          std::vector<Node> eqs(args1.getNumChildren());
-
-          for (unsigned i = 0; i < args1.getNumChildren(); ++i) {
-            eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
-          }
-          args_eq = utils::mkAnd(eqs);
-        } else {
-          AlwaysAssert (args1.getKind() == kind::SELECT &&
-                        args1[0] == func);
-          AlwaysAssert (args2.getKind() == kind::SELECT &&
-                        args2[0] == func);
-          AlwaysAssert (args1.getNumChildren() == 2);
-          AlwaysAssert (args2.getNumChildren() == 2);
-          args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
-        }
-        Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
-        Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
-        assertions.push_back(lemma);
-      }
-    }
-  }
-
-  // replace applications of UF by skolems (FIXME for model building)
-  for(unsigned i = 0; i < assertions.size(); ++i) {
-    assertions[i] = d_funcToSkolem.apply(assertions[i]);
-  }
-}
-
 Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
@@ -301,19 +211,11 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
     Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
-
-    // if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    //   // Ackermanize UF if using eager bit-blasting
-    //   Node ackerman_var = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_ACKERMANIZE_UDIV : kind::BITVECTOR_ACKERMANIZE_UREM, num);
-    //   node = nm->mkNode(kind::ITE, den_eq_0, ackerman_var, divTotalNumDen);
-    //   return node;
-    // } else {
-      Node divByZero = getBVDivByZero(node.getKind(), width);
-      Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-      node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-      logicRequest.widenLogic(THEORY_UF);
-      return node;
-      //}
+    Node divByZero = getBVDivByZero(node.getKind(), width);
+    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
+    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+    logicRequest.widenLogic(THEORY_UF);
+    return node;
   }
     break;
 

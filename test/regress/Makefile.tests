@@ -1474,6 +1474,8 @@ REG1_TESTS = \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
 	regress1/sygus/constant.sy \
+	regress1/sygus/constant-ite-bv.sy \
+	regress1/sygus/crci-ssb-unk.sy \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
@@ -1486,6 +1488,7 @@ REG1_TESTS = \
 	regress1/sygus/icfp_easy-ite.sy \
 	regress1/sygus/inv-example.sy \
 	regress1/sygus/inv-unused.sy \
+	regress1/sygus/large-const-simp.sy \
 	regress1/sygus/list-head-x.sy \
 	regress1/sygus/max.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
@@ -1587,6 +1590,7 @@ REG2_TESTS = \
 	regress2/strings/norn-dis-0707-3.smt2 \
 	regress2/sygus/MPwL_d1s3.sy \
 	regress2/sygus/array_sum_dd.sy \
+	regress2/sygus/ex23.sy \
 	regress2/sygus/icfp_easy_mt_ite.sy \
 	regress2/sygus/inv_gen_n_c11.sy \
 	regress2/sygus/lustre-real.sy \
@@ -1597,7 +1601,9 @@ REG2_TESTS = \
 	regress2/sygus/process-10-vars-2fun.sy \
 	regress2/sygus/process-arg-invariance.sy \
 	regress2/sygus/real-grammar-neg.sy \
+	regress2/sygus/sixfuncs.sy \
 	regress2/sygus/three.sy \
+	regress2/sygus/vcb.sy \
 	regress2/typed_v1l50016-simp.cvc \
 	regress2/uflia-error0.smt2 \
 	regress2/xs-09-16-3-4-1-5.decn.smt \

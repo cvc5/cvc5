@@ -274,13 +274,15 @@ class SygusUnifStrategy
    *
    * This learns static lemmas for pruning enumerative space based on the
    * strategy for the function-to-synthesize of this class, and stores these
-   * into lemmas.
+   * into strategy_lemmas.
    *
    * These may correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
    */
-  void staticLearnRedundantOps(std::vector<Node>& lemmas);
+  void staticLearnRedundantOps(
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
+
   /** debug print this strategy on Trace c */
   void debugPrint(const char* c);
 

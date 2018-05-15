@@ -29,17 +29,20 @@ namespace quantifiers {
 /** Cegis Unif Enumeration Manager
  *
  * This class enforces a decision heuristic that limits the number of
- * unique values given to the set of heads of evaluation points, which are
- * variables of sygus datatype type that are introduced by CegisUnif.
+ * unique values given to the set of heads of evaluation points and conditions
+ * enumerators for these points, which are variables of sygus datatype type that
+ * are introduced by CegisUnif.
  *
  * It maintains a set of guards, call them G_uq_1 ... G_uq_n, where the
  * semantics of G_uq_i is "for each type, the heads of evaluation points of that
  * type are interpreted as a value in a set whose cardinality is at most i".
+ * We also enforce that the number of condition enumerators for evaluation
+ * points is equal to (n-1).
  *
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
- * heads of evaluation points registered to this class and add lemmas that
- * enforce that these terms are equal to at least one enumerator (see
- * registerEvalPtAtValue).
+ * heads of evaluation points and condition enumerators registered to this class
+ * and add lemmas that enforce that these terms are equal to at least one
+ * enumerator (see registerEvalPtAtValue).
  */
 class CegisUnifEnumManager
 {
@@ -48,23 +51,25 @@ class CegisUnifEnumManager
   /** initialize candidates
    *
    * Notify this class that it will be managing enumerators for the vector
-   * of functions-to-synthesize (candidate variables) in candidates. This
-   * function should only be called once.
+   * of strategy points es. This function should only be called once.
    *
-   * Each candidate c in cs should be such that we are using a
-   * synthesis-by-unification approach for c.
+   * Each strategy point in es should be such that we are using a
+   * synthesis-by-unification approach for its candidate.
    */
-  void initialize(const std::vector<Node>& cs);
+  void initialize(const std::vector<Node>& es,
+                  const std::map<Node, Node>& e_to_cond,
+                  const std::map<Node, std::vector<Node>>& strategy_lemmas);
+  /** get the current set of conditional enumerators for strategy point e */
+  void getCondEnumeratorsForStrategyPt(Node e, std::vector<Node>& ces) const;
   /** register evaluation point for candidate
    *
    * This notifies this class that eis is a set of heads of evaluation points
-   * for candidate c, where c should be a candidate that was passed to
-   * initialize in the vector cs.
+   * for strategy point e, where e was passed to initialize in the vector es.
    *
    * This may add new lemmas of the form described above
    * registerEvalPtAtValue on the output channel of d_qe.
    */
-  void registerEvalPts(const std::vector<Node>& eis, Node c);
+  void registerEvalPts(const std::vector<Node>& eis, Node e);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
@@ -85,22 +90,43 @@ class CegisUnifEnumManager
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
+  /** whether this module has been initialized */
+  bool d_initialized;
   /** null node */
   Node d_null;
   /** information per initialized type */
-  class TypeInfo
+  class StrategyPtInfo
   {
    public:
-    TypeInfo() {}
-    /** candidates for this type */
-    std::vector<Node> d_candidates;
-    /** the set of enumerators we have allocated for this candidate */
-    std::vector<Node> d_enums;
-    /** the set of evaluation points of this type */
+    StrategyPtInfo() {}
+    /** strategy point for this type */
+    Node d_pt;
+    /** the set of enumerators we have allocated for this strategy point
+     *
+     * Index 0 stores the return value enumerators, and index 1 stores the
+     * conditional enumerators. We have that
+     *   d_enums[0].size()==d_enums[1].size()+1.
+     */
+    std::vector<Node> d_enums[2];
+    /** the type of conditional enumerators for this strategy point  */
+    TypeNode d_ce_type;
+    /**
+     * The set of evaluation points of this type. In models, we ensure that
+     * each of these are equal to one of d_enums[0].
+     */
     std::vector<Node> d_eval_points;
+    /** symmetry breaking lemma template for this strategy point
+     *
+     * Each pair stores (the symmetry breaking lemma template, argument (to be
+     * instantiated) of symmetry breaking lemma template).
+     *
+     * Index 0 stores the symmetry breaking lemma template for return values,
+     * index 1 stores the template for conditions.
+     */
+    std::pair<Node, Node> d_sbt_lemma_tmpl[2];
   };
-  /** map types to the above info */
-  std::map<TypeNode, TypeInfo> d_ce_info;
+  /** map strategy points to the above info */
+  std::map<Node, StrategyPtInfo> d_ce_info;
   /** literals of the form G_uq_n for each n */
   std::map<unsigned, Node> d_guq_lit;
   /** Have we returned a decision in the current SAT context? */
@@ -124,9 +150,9 @@ class CegisUnifEnumManager
    * This sends a lemma of the form:
    *   G_uq_n => ei = d1 V ... V ei = dn
    * on the output channel of d_qe, where d1...dn are sygus enumerators of the
-   * same type (ct) as ei.
+   * same type as e and ei, and ei is an evaluation point of strategy point e.
    */
-  void registerEvalPtAtSize(TypeNode ct, Node ei, Node guq_lit, unsigned n);
+  void registerEvalPtAtSize(Node e, Node ei, Node guq_lit, unsigned n);
 };
 
 /** Synthesizes functions in a data-driven SyGuS approach
@@ -226,15 +252,12 @@ class CegisUnif : public Cegis
   SygusUnifRl d_sygus_unif;
   /** enumerator manager utility */
   CegisUnifEnumManager d_u_enum_manager;
-  /**
-   * list of conditonal enumerators to build solutions for candidates being
-   * synthesized with unification techniques
-   */
-  std::vector<Node> d_cond_enums;
-  /** map from enumerators to active guards */
-  std::map<Node, Node> d_enum_to_active_guard;
   /* The null node */
   Node d_null;
+  /** list of strategy points per candidate */
+  std::map<Node, std::vector<Node>> d_cand_to_strat_pt;
+  /** map from conditional enumerators to their strategy point */
+  std::map<Node, Node> d_cenum_to_strat_pt;
 }; /* class CegisUnif */
 
 }  // namespace quantifiers
