@@ -900,6 +900,9 @@ bool SygusSamplerExt::notify(Node s,
     for (unsigned i = 0, size = vars.size(); i < size; i++)
     {
       Trace("sse-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
+      // TODO (#1923) ensure that we use an internal representation to
+      // ensure polymorphism is handled correctly
+      Assert( vars[i].getType().isComparableTo(subs[i].getType()));
     }
   }
   Assert(it != d_pairs.end());
