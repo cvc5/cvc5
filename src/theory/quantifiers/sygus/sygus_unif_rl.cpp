@@ -496,13 +496,13 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
 
 void SygusUnifRl::DecisionTreeInfo::clearPointSeparator()
 {
-  d_pt_sep.d_trie.d_trie.clear();
   d_conds.clear();
+  d_pt_sep.d_trie.clear();
 }
 
 void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
 {
-  // d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
+  d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
 }
 
 void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)

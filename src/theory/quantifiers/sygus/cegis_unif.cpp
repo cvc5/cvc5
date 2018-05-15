@@ -197,9 +197,11 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
       Assert(cenum_to_value.find(ce) != cenum_to_value.end());
       cond_eqs.push_back(nm->mkNode(EQUAL, ce, cenum_to_value[ce]));
     }
+    Assert(!cond_eqs.empty());
+    Node conds = cond_eqs.size() > 1 ? nm->mkNode(AND, cond_eqs) : cond_eqs[0];
     Node sep_lemma = nm->mkNode(OR,
                                 d_u_enum_manager.getCurrentLiteral().negate(),
-                                nm->mkNode(AND, cond_eqs).negate(),
+                                conds.negate(),
                                 sepCond.second);
     Trace("cegis-unif") << "* No solution, generating separation lemma : "
                         << sep_lemma << "\n";
