@@ -47,23 +47,43 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // terms
   for (unsigned r = 0; r < 2; r++)
   {
-    std::unordered_set<TNode, TNodeHashFunction> visited;
+    std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+    std::vector<TNode> visit;
     TNode cur;
-    for (const Node& a : assertions)
+    for( const Node& a : assertions )
     {
-      std::vector<TNode> visit;
       visit.push_back(a);
-      do
-      {
+      do {
         cur = visit.back();
         visit.pop_back();
-        if (visited.find(cur) == visited.end())
-        {
-          visited.insert(cur);
+        it = visited.find(cur);
+        if (it == visited.end()) {
+          visited[cur] = false;
           Kind k = cur.getKind();
           bool isQuant = k == kind::FORALL || k == kind::EXISTS
-                         || k == kind::LAMBDA || k == kind::CHOICE;
+                          || k == kind::LAMBDA || k == kind::CHOICE;
+          // we recurse on this node if it is not a quantified formula
           if (!isQuant)
+          {
+            visit.push_back(cur);
+            for( const Node& cc : cur ){
+              visit.push_back(cc);
+            }
+          }
+        }else if( !it->second ){
+          // check if all of the children are valid 
+          // this ensures we do not register terms that have e.g. quantified
+          // formulas as subterms
+          bool childrenValid = true;
+          for( const Node& cc : cur ){
+            Assert( visited.find(cc)!=visited.end() );
+            if( !visited[cc] )
+            {
+              childrenValid = false;
+            }
+          }
+          if( childrenValid )
           {
             if (r == 0)
             {
@@ -77,12 +97,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
               Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
               bool ret = crdg->addTerm(cur, *nodeManagerOptions.getOut());
               Trace("synth-rr-pass-debug") << "...return " << ret << std::endl;
-            }
-            for (const Node& cn : cur)
-            {
-              visit.push_back(cn);
+              // if we want only rewrites of minimal size terms, we would set
+              // childrenValid to false if ret is false here.
             }
           }
+          visited[cur] = childrenValid;
         }
       } while (!visit.empty());
     }

@@ -608,11 +608,17 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   }
   // default: use type enumerator
   unsigned counter = 0;
-  while(Random::getRandom().pickWithProb(0.75))
+  while(Random::getRandom().pickWithProb(0.5))
   {
     counter++;
   }
-  return d_tenum.getEnumerateTerm(tn,counter);
+  Node ret = d_tenum.getEnumerateTerm(tn,counter);
+  if( ret.isNull() )
+  {
+    // beyond bounds, return the first 
+    ret = d_tenum.getEnumerateTerm(tn,0);
+  }
+  return ret;
 }
 
 Node SygusSampler::getSygusRandomValue(TypeNode tn,

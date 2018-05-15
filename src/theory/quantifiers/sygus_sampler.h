@@ -152,7 +152,7 @@ class SygusSampler : public LazyTrieEvaluator
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
-  /** term enumerator object */
+  /** term enumerator object (used for random sampling) */
   TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;

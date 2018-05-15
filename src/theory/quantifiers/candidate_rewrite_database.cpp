@@ -32,12 +32,25 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+// the number of d_drewrite objects we have allocated (to avoid name conflicts)
+static unsigned drewrite_counter = 0;
+
 CandidateRewriteDatabase::CandidateRewriteDatabase()
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_using_sygus(false)
 {
+  if (options::sygusRewSynthFilterCong())
+  {
+    // initialize the dynamic rewriter
+    std::stringstream ss;
+    ss << "_dyn_rewriter_" << drewrite_counter;
+    drewrite_counter++;
+    d_drewrite = std::unique_ptr<DynamicRewriter>(
+        new DynamicRewriter(ss.str(), &d_fake_context));
+    d_sampler.setDynamicRewriter(d_drewrite.get());
+  }
 }
 void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
                                           TypeNode tn,
@@ -48,7 +61,8 @@ void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
-  initializeInternal(nullptr);
+  d_qe = nullptr;
+  d_tds = nullptr;
   d_ext_rewrite = er;
   d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
 }
@@ -63,24 +77,10 @@ void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
   Assert(d_type.isDatatype());
   Assert(static_cast<DatatypeType>(d_type.toType()).getDatatype().isSygus());
   d_using_sygus = true;
-  initializeInternal(qe);
+  d_qe = qe;
+  d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = d_tds->getExtRewriter();
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
-}
-
-void CandidateRewriteDatabase::initializeInternal(QuantifiersEngine* qe)
-{
-  d_qe = qe;
-  d_tds = d_qe == nullptr ? nullptr : qe->getTermDatabaseSygus();
-  if (options::sygusRewSynthFilterCong())
-  {
-    // initialize the dynamic rewriter
-    std::stringstream ss;
-    ss << "_dyn_rewriter_" << d_type;
-    d_drewrite = std::unique_ptr<DynamicRewriter>(
-        new DynamicRewriter(ss.str(), &d_fake_context));
-    d_sampler.setDynamicRewriter(d_drewrite.get());
-  }
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
@@ -206,6 +206,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       {
         // register this as a relevant pair (helps filtering)
         d_sampler.registerRelevantPair(sol, eq_sol);
+        /*
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
@@ -222,6 +223,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           out << sol << " " << eq_sol;
         }
         out << ")" << std::endl;
+        */
         rew_print = true;
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
@@ -290,14 +292,6 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   {
     er = &d_ext_rewrite;
   }
-  TypeNode tn = n.getType();
-  std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
-  if (itc == d_cdbs.end())
-  {
-    // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(er, tn, d_vars, d_nsamples, true);
-    itc = d_cdbs.find(tn);
-  }
   Node nr;
   if( er==nullptr )
   {
@@ -307,6 +301,17 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   {
     nr = er->extendedRewrite(n);
   }
+  TypeNode tn = nr.getType();
+  std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
+  if (itc == d_cdbs.end())
+  {
+    Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
+    // initialize with the extended rewriter owned by this class
+    d_cdbs[tn].initialize(er, tn, d_vars, d_nsamples, true);
+    itc = d_cdbs.find(tn);
+    Trace("synth-rr-dbg") << "...finish." << std::endl;
+  }
+  Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
   return itc->second.addTerm(nr, out);
 }
 

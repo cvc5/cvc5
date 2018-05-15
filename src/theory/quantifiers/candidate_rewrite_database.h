@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 
 #include <map>
+#include <unordered_set>
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
@@ -114,7 +115,7 @@ class CandidateRewriteDatabase
    * rewrite rules.
    */
   SygusSamplerExt d_sampler;
-  /** a (dummy) user context, used for d_ddrewrite */
+  /** a (dummy) user context, used for d_drewrite */
   context::UserContext d_fake_context;
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
@@ -123,8 +124,6 @@ class CandidateRewriteDatabase
    * (for --sygus-rr-synth-check).
    */
   std::map<Node, Node> d_fv_to_skolem;
-  /** initalize internal, called by initialize methods above */
-  void initializeInternal(QuantifiersEngine* qe);
 };
 
 /**
