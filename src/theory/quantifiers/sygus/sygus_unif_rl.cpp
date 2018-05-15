@@ -276,7 +276,10 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   return plem;
 }
 
-void SygusUnifRl::initializeConstructSol() {}
+void SygusUnifRl::initializeConstructSol()
+{
+  d_sepCond.first = d_sepCond.second = Node::nul();
+}
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {
@@ -292,13 +295,9 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
       continue;
     }
     initializeConstructSolFor(c);
-    NodePair sepCond;
-    Node v = constructSol(
-        c, d_strategy[c].getRootEnumerator(), role_equal, sepCond, 0);
+    Node v = constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
     if (v.isNull())
     {
-      sols.push_back(sepCond.first);
-      sols.push_back(sepCond.second);
       return false;
     }
     Trace("sygus-unif-rl-sol") << "Adding solution " << v
@@ -309,8 +308,7 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
   return true;
 }
 
-Node SygusUnifRl::constructSol(
-    Node f, Node e, NodeRole nrole, NodePair& sepCond, int ind)
+Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
 {
   indent("sygus-unif-sol", ind);
   Trace("sygus-unif-sol") << "ConstructSol: SygusRL : " << e << std::endl;
@@ -344,9 +342,17 @@ Node SygusUnifRl::constructSol(
   if (sol.isNull())
   {
     Assert(!toSeparate.isNull());
-    sepCond = NodePair(e, toSeparate);
+    d_sepCond.first = e;
+    d_sepCond.second = toSeparate;
   }
   return sol;
+}
+
+bool SygusUnifRl::getSeparationCond(NodePair& sepCond)
+{
+  sepCond.first = d_sepCond.first;
+  sepCond.second = d_sepCond.second;
+  return !d_sepCond.first.isNull();
 }
 
 bool SygusUnifRl::usingUnif(Node f) const

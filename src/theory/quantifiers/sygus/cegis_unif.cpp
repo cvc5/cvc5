@@ -180,27 +180,31 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     return true;
   }
-  Assert(sols.size() >= 2);
-  // Build separation lemma based on current size, current enumerated condition
-  // values, and heads that could not be separated
-  NodeManager* nm = NodeManager::currentNM();
-  Node strategy_pt = sols[sols.size() - 2], head_equality = sols.back();
-  // Build equalities between condition enumerators associated with the strategy
-  // point whose decision tree could not separate the given heads
-  std::vector<Node> cenums, cond_eqs;
-  d_u_enum_manager.getCondEnumeratorsForStrategyPt(strategy_pt, cenums);
-  for (const Node& ce : cenums)
+  NodePair sepCond;
+  if (getSeparationCond(sepCond))
   {
-    Assert(cenum_to_value.find(ce) != cenum_to_value.end());
-    cond_eqs.push_back(nm->mkNode(EQUAL, ce, cenum_to_value[ce]));
+    // Build separation lemma based on current size, current enumerated
+    // condition
+    // values, and heads that could not be separated
+    NodeManager* nm = NodeManager::currentNM();
+    // Build equalities between condition enumerators associated with the
+    // strategy
+    // point whose decision tree could not separate the given heads
+    std::vector<Node> cenums, cond_eqs;
+    d_u_enum_manager.getCondEnumeratorsForStrategyPt(sepCond.first, cenums);
+    for (const Node& ce : cenums)
+    {
+      Assert(cenum_to_value.find(ce) != cenum_to_value.end());
+      cond_eqs.push_back(nm->mkNode(EQUAL, ce, cenum_to_value[ce]));
+    }
+    Node sep_lemma = nm->mkNode(OR,
+                                d_u_enum_manager.getCurrentLiteral().negate(),
+                                nm->mkNode(AND, cond_eqs).negate(),
+                                sepCond.second);
+    Trace("cegis-unif") << "* No solution, generating separation lemma : "
+                        << sep_lemma << "\n";
+    d_qe->getOutputChannel().lemma(sep_lemma);
   }
-  Node sep_lemma = nm->mkNode(OR,
-                              getCurrentLiteral().negate(),
-                              nm->mkNode(AND, cond_eqs).negate(),
-                              head_equality);
-  Trace("cegis-unif") << "* No solution, generating separation lemma : "
-                      << sep_lemma << "\n";
-  d_qe->getOutputChannel().lemma(sep_lemma);
   return false;
 }
 

@@ -97,6 +97,14 @@ class SygusUnifRl : public SygusUnif
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
 
+  /**
+   * if a separation condition is necessary after a failed solution
+   * construction, then sepCond is assigned a pair (e, fi = fj) in which e is
+   * the strategy point and fi, fj head of evaluation points of a unif
+   * function-to-synthesize, such that fi could not be separated from fj by the
+   * current condition values
+   */
+  bool getSeparationCond(NodePair& sepCond);
  protected:
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
@@ -114,6 +122,12 @@ class SygusUnifRl : public SygusUnif
   void initializeConstructSolFor(Node f) override;
   /** maps unif functions-to~synhesize to their last built solutions */
   std::map<Node, Node> d_cand_to_sol;
+  /** pair of strategy point and equality between evaluation point heads
+   *
+   * this pair is set when a unif solution cannot be built because a two
+   * evaluation point heads cannot be separated
+   */
+  NodePair d_sepCond;
   /*
     --------------------------------------------------------------
         Purification
@@ -197,14 +211,17 @@ class SygusUnifRl : public SygusUnif
      * The DT contains a solution when no class contains two heads of evaluation
      * points with different model values, i.e. when all points that must be
      * separated indeed are separated.
-     *
-     * This function tests separation of the points in the above sense and may
-     * create separation lemmas to enforce guide the synthesis of conditons that
-     * will separate points not currently separated.
      */
-    Node buildSol(Node cons);
-    /** whether all points that must be separated are separated **/
-    bool isSeparated();
+    Node buildSol(Node cons, Node& toSeparate);
+    /** whether all points that must be separated are separated
+     *
+     * This function tests separation of the points in the above sense and in
+     * case two heads cannot be separated, an equality between them is created
+     * and stored in toSeparate, so that a separation lemma can be generated to
+     * guide the synthesis search to yield either conditons that will separate
+     * these heads or equal values to them.
+     */
+    bool isSeparated(Node& toSeparate);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
