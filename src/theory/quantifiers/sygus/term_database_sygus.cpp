@@ -112,7 +112,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   Assert(
       TypeNode::fromType(
           static_cast<DatatypeType>(tn.toType()).getDatatype().getSygusType())
-      == c.getType());
+          .isComparableTo(c.getType()));
 
   std::map<Node, Node>::iterator it = d_proxy_vars[tn].find(c);
   if (it == d_proxy_vars[tn].end())
