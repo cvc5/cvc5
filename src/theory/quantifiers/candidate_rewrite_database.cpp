@@ -293,7 +293,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
     er = &d_ext_rewrite;
   }
   Node nr;
-  if( er==nullptr )
+  if (er == nullptr)
   {
     nr = Rewriter::rewrite(n);
   }

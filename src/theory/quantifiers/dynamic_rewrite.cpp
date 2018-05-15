@@ -42,7 +42,7 @@ void DynamicRewriter::addRewrite(Node a, Node b)
   // add to the equality engine
   Node ai = toInternal(a);
   Node bi = toInternal(b);
-  if( ai.isNull() || bi.isNull() )
+  if (ai.isNull() || bi.isNull())
   {
     Trace("dyn-rewrite") << "...not internalizable." << std::endl;
     return;
@@ -67,7 +67,7 @@ bool DynamicRewriter::areEqual(Node a, Node b)
   // add to the equality engine
   Node ai = toInternal(a);
   Node bi = toInternal(b);
-  if( ai.isNull() || bi.isNull() )
+  if (ai.isNull() || bi.isNull())
   {
     Trace("dyn-rewrite") << "...not internalizable." << std::endl;
     return false;
@@ -99,7 +99,7 @@ Node DynamicRewriter::toInternal(Node a)
         op = d_ois_trie[op].getSymbol(a);
         // if this term involves an argument that is not of first class type,
         // we cannot reason about it. This includes operators like str.in-re.
-        if( op.isNull() )
+        if (op.isNull())
         {
           return Node::null();
         }
@@ -140,7 +140,7 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   for (unsigned i = 0, size = ctypes.size(); i < size; i++)
   {
     // cannot handle certain types (e.g. regular expressions or functions)
-    if( !ctypes[i].isFirstClass() )
+    if (!ctypes[i].isFirstClass())
     {
       return Node::null();
     }

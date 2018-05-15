@@ -51,39 +51,45 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
     std::vector<TNode> visit;
     TNode cur;
-    for( const Node& a : assertions )
+    for (const Node& a : assertions)
     {
       visit.push_back(a);
-      do {
+      do
+      {
         cur = visit.back();
         visit.pop_back();
         it = visited.find(cur);
-        if (it == visited.end()) {
+        if (it == visited.end())
+        {
           visited[cur] = false;
           Kind k = cur.getKind();
           bool isQuant = k == kind::FORALL || k == kind::EXISTS
-                          || k == kind::LAMBDA || k == kind::CHOICE;
+                         || k == kind::LAMBDA || k == kind::CHOICE;
           // we recurse on this node if it is not a quantified formula
           if (!isQuant)
           {
             visit.push_back(cur);
-            for( const Node& cc : cur ){
+            for (const Node& cc : cur)
+            {
               visit.push_back(cc);
             }
           }
-        }else if( !it->second ){
-          // check if all of the children are valid 
+        }
+        else if (!it->second)
+        {
+          // check if all of the children are valid
           // this ensures we do not register terms that have e.g. quantified
           // formulas as subterms
           bool childrenValid = true;
-          for( const Node& cc : cur ){
-            Assert( visited.find(cc)!=visited.end() );
-            if( !visited[cc] )
+          for (const Node& cc : cur)
+          {
+            Assert(visited.find(cc) != visited.end());
+            if (!visited[cc])
             {
               childrenValid = false;
             }
           }
-          if( childrenValid )
+          if (childrenValid)
           {
             if (r == 0)
             {
