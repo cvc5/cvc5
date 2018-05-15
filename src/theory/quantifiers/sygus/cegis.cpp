@@ -148,11 +148,39 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   return true;
 }
 
+void Cegis::addRefinementLemma(Node lem)
+{
+  d_refinement_lemmas.push_back(lem);
+  // apply substitution and rewrite if applicable
+  Node subs_lem = lem;
+  if( !d_rl_eval_hds.empty() )
+  {
+    subs_lem = lem.substitute(d_rl_eval_hds.begin(),d_rl_eval_hds.end(),d_rl_vals.begin(),d_rl_vals.end());
+    subs_lem = Rewriter::rewrite(subs_lem);
+  }
+  addRefinementLemmaConjunct(subs_lem);
+}
+
+void Cegis::addRefinementLemmaConjunct( Node lem )
+{
+  // break into conjunctions
+  if (lem.getKind() == AND)
+  {
+    for (const Node& lc : lem)
+    {
+      addRefinementLemmaConjunct(lc);
+    }
+    return;
+  }
+  // does this correspond to a substitution?
+  d_refinement_lemma_conj.push_back(lem);
+}
+
 void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
                                     Node lem,
                                     std::vector<Node>& lems)
 {
-  d_refinement_lemmas.push_back(lem);
+  addRefinementLemma(lem);
   // Make the refinement lemma and add it to lems.
   // This lemma is guarded by the parent's guard, which has the semantics
   // "this conjecture has a solution", hence this lemma states:
@@ -168,10 +196,10 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
-                           << getNumRefinementLemmas() << " refinement lemmas."
+                           << d_refinement_lemma_conj.size() << " refinement lemma conjunctions."
                            << std::endl;
-  unsigned nlemmas = getNumRefinementLemmas();
-  if (nlemmas > 0 || options::cegisSample() != CEGIS_SAMPLE_NONE)
+  unsigned nlemmas = d_refinement_lemma_conj.size();
+  if (nlemmas > 0)
   {
     Assert(vs.size() == ms.size());
 
@@ -180,106 +208,80 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
 
     Node nfalse = nm->mkConst(false);
     Node neg_guard = d_parent->getGuard().negate();
-    for (unsigned i = 0; i <= nlemmas; i++)
+    for (unsigned i = 0; i < nlemmas; i++)
     {
-      if (i == nlemmas)
-      {
-        bool addedSample = false;
-        // find a new one by sampling, if applicable
-        if (options::cegisSample() != CEGIS_SAMPLE_NONE)
-        {
-          addedSample = sampleAddRefinementLemma(vs, ms, lems);
-        }
-        if (!addedSample)
-        {
-          return;
-        }
-      }
-      Node lem;
+      Node lem = d_refinement_lemma_conj[i];
+      Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
-      lem = getRefinementLemma(i);
-      if (!lem.isNull())
+      EvalSygusInvarianceTest vsit;
+      Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lem
+                                << " against current model." << std::endl;
+      Trace("sygus-cref-eval2") << "Check refinement lemma conjunct "
+                                << lem << " against current model."
+                                << std::endl;
+      Node cre_lem;
+      Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
+      Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs
+                                << std::endl;
+      Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
+      Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu
+                                << std::endl;
+      if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
-        std::vector<Node> lem_conj;
-        // break into conjunctions
-        if (lem.getKind() == kind::AND)
+        std::vector<Node> msu;
+        std::vector<Node> mexp;
+        msu.insert(msu.end(), ms.begin(), ms.end());
+        std::map<TypeNode, int> var_count;
+        for (unsigned k = 0; k < vs.size(); k++)
         {
-          for (unsigned i = 0; i < lem.getNumChildren(); i++)
-          {
-            lem_conj.push_back(lem[i]);
-          }
+          vsit.setUpdatedTerm(msu[k]);
+          msu[k] = vs[k];
+          // substitute for everything except this
+          Node sconj =
+              lem.substitute(vs.begin(), vs.end(), msu.begin(), msu.end());
+          vsit.init(sconj, vs[k], nfalse);
+          // get minimal explanation for this
+          Node ut = vsit.getUpdatedTerm();
+          Trace("sygus-cref-eval2-debug")
+              << "  compute min explain of : " << vs[k] << " = " << ut
+              << std::endl;
+          tds->getExplain()->getExplanationFor(
+              vs[k], ut, mexp, vsit, var_count, false);
+          Trace("sygus-cref-eval2-debug")
+              << "exp now: " << mexp << std::endl;
+          msu[k] = vsit.getUpdatedTerm();
+          Trace("sygus-cref-eval2-debug")
+              << "updated term : " << msu[k] << std::endl;
+        }
+        if (!mexp.empty())
+        {
+          Node en = mexp.size() == 1 ? mexp[0] : nm->mkNode(kind::AND, mexp);
+          cre_lem = nm->mkNode(kind::OR, en.negate(), neg_guard);
         }
         else
         {
-          lem_conj.push_back(lem);
-        }
-        EvalSygusInvarianceTest vsit;
-        for (unsigned j = 0; j < lem_conj.size(); j++)
-        {
-          Node lemc = lem_conj[j];
-          Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lemc
-                                   << " against current model." << std::endl;
-          Trace("sygus-cref-eval2") << "Check refinement lemma conjunct "
-                                    << lemc << " against current model."
-                                    << std::endl;
-          Node cre_lem;
-          Node lemcs =
-              lemc.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
-          Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs
-                                    << std::endl;
-          Node lemcsu = vsit.doEvaluateWithUnfolding(tds, lemcs);
-          Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu
-                                    << std::endl;
-          if (lemcsu.isConst() && !lemcsu.getConst<bool>())
-          {
-            std::vector<Node> msu;
-            std::vector<Node> mexp;
-            msu.insert(msu.end(), ms.begin(), ms.end());
-            std::map<TypeNode, int> var_count;
-            for (unsigned k = 0; k < vs.size(); k++)
-            {
-              vsit.setUpdatedTerm(msu[k]);
-              msu[k] = vs[k];
-              // substitute for everything except this
-              Node sconj =
-                  lemc.substitute(vs.begin(), vs.end(), msu.begin(), msu.end());
-              vsit.init(sconj, vs[k], nfalse);
-              // get minimal explanation for this
-              Node ut = vsit.getUpdatedTerm();
-              Trace("sygus-cref-eval2-debug")
-                  << "  compute min explain of : " << vs[k] << " = " << ut
-                  << std::endl;
-              tds->getExplain()->getExplanationFor(
-                  vs[k], ut, mexp, vsit, var_count, false);
-              Trace("sygus-cref-eval2-debug")
-                  << "exp now: " << mexp << std::endl;
-              msu[k] = vsit.getUpdatedTerm();
-              Trace("sygus-cref-eval2-debug")
-                  << "updated term : " << msu[k] << std::endl;
-            }
-            if (!mexp.empty())
-            {
-              Node en =
-                  mexp.size() == 1 ? mexp[0] : nm->mkNode(kind::AND, mexp);
-              cre_lem = nm->mkNode(kind::OR, en.negate(), neg_guard);
-            }
-            else
-            {
-              cre_lem = neg_guard;
-            }
-          }
-          if (!cre_lem.isNull())
-          {
-            if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
-            {
-              Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
-                                       << std::endl;
-              lems.push_back(cre_lem);
-            }
-          }
+          cre_lem = neg_guard;
         }
       }
+      if (!cre_lem.isNull())
+      {
+        if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
+        {
+          Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
+                                    << std::endl;
+          lems.push_back(cre_lem);
+        }
+      }
+    }
+  }
+  // if we didn't add a lemma, trying sampling to add one
+  if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
+  {
+    if( sampleAddRefinementLemma(vs, ms, lems) )
+    {
+      // restart (should be guaranteed to add evaluation lemmas
+      getRefinementEvalLemmas(vs,ms,lems);
     }
   }
 }
@@ -344,7 +346,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
             Trace("cegis-sample") << std::endl;
           }
           Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
-          d_refinement_lemmas.push_back(rlem);
+          addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
           if (options::cegisSample() != CEGIS_SAMPLE_TRUST)
           {

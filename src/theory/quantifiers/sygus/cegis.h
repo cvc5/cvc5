@@ -76,14 +76,15 @@ class Cegis : public SygusModule
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
-  /** get number of refinement lemmas we have added so far */
-  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
-  /** get refinement lemma
-   *
-   * If d_embed_quant is forall d. exists y. P( d, y ), then a refinement
-   * lemma is one of the form ~P( d_candidates, c ) for some c.
-   */
-  Node getRefinementLemma(unsigned i) { return d_refinement_lemmas[i]; }
+  /** (processed) conjunctions of refinement lemmas */
+  std::vector<Node> d_refinement_lemma_conj;
+  /** substitution entailed by refinement lemmas */
+  std::vector<Node> d_rl_eval_hds;
+  std::vector<Node> d_rl_vals;
+  /** add refinement lemma */
+  void addRefinementLemma( Node lem );
+  /** add refinement lemma conjunct */
+  void addRefinementLemmaConjunct( Node lem );
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that
