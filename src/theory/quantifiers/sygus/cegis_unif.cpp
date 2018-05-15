@@ -220,7 +220,12 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   // Notify the enumeration manager if there are new evaluation points
   for (const std::pair<const Node, std::vector<Node>>& ep : eval_pts)
   {
-    d_u_enum_manager.registerEvalPts(ep.second, ep.first);
+    Assert(d_cand_to_strat_pt.find(ep.first) != d_cand_to_strat_pt.end());
+    // Notify each startegy point of the respective candidate
+    for (const Node& n : d_cand_to_strat_pt[ep.first])
+    {
+      d_u_enum_manager.registerEvalPts(ep.second, n);
+    }
   }
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
   // parent's guard, which has the semantics "this conjecture has a solution",
@@ -392,9 +397,6 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         {
           continue;
         }
-        // register the enumerator
-        ci.second.d_enums[index].push_back(e);
-        d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
         // instantiate template for removing redundant operators
         if (!ci.second.d_sbt_lemma_tmpl[index].first.isNull())
         {
@@ -407,21 +409,34 @@ void CegisUnifEnumManager::incrementNumEnumerators()
           d_qe->getOutputChannel().lemma(sym_break_red_ops);
         }
         // symmetry breaking between enumerators
-        Node e_prev = ci.second.d_enums[index].back();
-        Node size_e = nm->mkNode(DT_SIZE, e);
-        Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
-        Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
-        Trace("cegis-unif-enum-lemma")
-            << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
-        d_qe->getOutputChannel().lemma(sym_break);
+        if (!ci.second.d_enums[index].empty())
+        {
+          Node e_prev = ci.second.d_enums[index].back();
+          Node size_e = nm->mkNode(DT_SIZE, e);
+          Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
+          Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
+          Trace("cegis-unif-enum-lemma")
+              << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
+          d_qe->getOutputChannel().lemma(sym_break);
+        }
+        // register the enumerator
+        ci.second.d_enums[index].push_back(e);
+        Trace("cegis-unif-enum") << "* Registering new enumerator " << e
+                                 << " to strategy point " << ci.second.d_pt
+                                 << "\n";
+        d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
         // if the sygus datatype is interpreted as an infinite type
         // (this should be the case for almost all examples)
         TypeNode et = e.getType();
         if (!et.isInterpretedFinite())
         {
           // it is disequal from all previous ones
-          for (const Node ei : ci.second.d_enums[index])
+          for (const Node& ei : ci.second.d_enums[index])
           {
+            if (ei == e)
+            {
+              continue;
+            }
             Node deq = e.eqNode(ei).negate();
             Trace("cegis-unif-enum-lemma")
                 << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
