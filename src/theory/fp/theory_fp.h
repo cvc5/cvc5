@@ -43,8 +43,11 @@ class TheoryFp : public Theory {
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
+  Node ppRewrite(TNode node);
+
   void check(Effort) override;
 
+  bool needsCheckLastEffort() { return true; }
   Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -100,6 +103,8 @@ class TheoryFp : public Theory {
   context::CDO<Node> d_conflictNode;
 
   /** Uninterpretted functions for partially defined functions. **/
+  void enableUF(LogicRequest& lr);
+
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
       ComparisonUFMap;
 
@@ -122,6 +127,21 @@ class TheoryFp : public Theory {
   ComparisonUFMap d_toRealMap;
 
   Node toRealUF(Node);
+
+  /** Uninterpretted functions for lazy handling of conversions */
+  typedef ComparisonUFMap conversionAbstractionMap;
+
+  conversionAbstractionMap realToFloatMap;
+  conversionAbstractionMap floatToRealMap;
+
+  Node abstractRealToFloat(Node);
+  Node abstractFloatToReal(Node);
+
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> abstractionMapType;
+  abstractionMapType abstractionMap;  // abstract -> original
+
+  bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
+
 }; /* class TheoryFp */
 
 }  // namespace fp

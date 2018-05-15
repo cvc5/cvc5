@@ -989,7 +989,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-repair-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1006,7 +1006,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-add-const-grammar"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
   help       = "statically add constants appearing in conjecture to grammars"
 
