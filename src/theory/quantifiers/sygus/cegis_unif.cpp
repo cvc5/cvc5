@@ -158,6 +158,13 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
           unif_values[index][e].push_back(m_eu);
         }
         // inter-enumerator symmetry breaking
+        // given a pool of unification enumerators eu_1, ..., eu_n,
+        // CegisUnifEnumManager insists that size(eu_1) <= ... <= size(eu_n).
+        // We additionally insist that M(eu_i) < M(eu_{i+1}) when 
+        // size(eu_i) = size(eu_{i+1}), where < is pointer comparison.
+        // We enforce this below by adding symmetry breaking lemmas of the form
+        //  ~( eu_i = M(eu_i) ^ eu_{i+1} = M(eu_{i+1} ) )
+        // when applicable.
         for (unsigned j = 1, nenum = unif_values[index][e].size(); j < nenum;
              j++)
         {
