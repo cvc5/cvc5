@@ -276,21 +276,17 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   return plem;
 }
 
-void SygusUnifRl::initializeConstructSol()
-{
-  d_sepCond.first = d_sepCond.second = Node::null();
-}
+void SygusUnifRl::initializeConstructSol() { d_sepConds.clear(); }
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {
   initializeConstructSol();
+  bool successful = true;
   for (const Node& c : d_candidates)
   {
     if (!usingUnif(c))
     {
       Node v = d_parent->getModelValue(c);
-      Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                                 << " to non-unif candidate " << c << "\n";
       sols.push_back(v);
       continue;
     }
@@ -298,14 +294,15 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
     Node v = constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
     if (v.isNull())
     {
-      return false;
+      // we continue trying to build solutions to accumulate potentitial
+      // separation conditions from other decision trees
+      successful = false;
+      continue;
     }
-    Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                               << " to unif candidate " << c << "\n";
     sols.push_back(v);
     d_cand_to_sol[c] = v;
   }
-  return true;
+  return successful;
 }
 
 Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
@@ -337,22 +334,20 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
     return d_parent->getModelValue(e);
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
-  Node toSeparate;
+  std::vector<Node> toSeparate;
   Node sol = itd->second.buildSol(etis->d_cons, toSeparate);
   if (sol.isNull())
   {
     Assert(!toSeparate.isNull());
-    d_sepCond.first = e;
-    d_sepCond.second = toSeparate;
+    d_sepConds.push_back(NodeToNodes(e, toSeparate));
   }
   return sol;
 }
 
-bool SygusUnifRl::getSeparationCond(NodePair& sepCond)
+bool SygusUnifRl::getSeparationCond(std::vector<NodeToNodes>& sepConds)
 {
-  sepCond.first = d_sepCond.first;
-  sepCond.second = d_sepCond.second;
-  return !d_sepCond.first.isNull();
+  sepConds = d_sepConds;
+  return !sepConds.empty();
 }
 
 bool SygusUnifRl::usingUnif(Node f) const
@@ -518,7 +513,8 @@ unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 
 using UNodePair = std::pair<unsigned, Node>;
 
-Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons, Node& toSeparate)
+Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
+                                             std::vector<Node>& toSeparate)
 {
   if (!d_template.first.isNull())
   {
@@ -609,7 +605,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons, Node& toSeparate)
   return cache[root];
 }
 
-bool SygusUnifRl::DecisionTreeInfo::isSeparated(Node& toSeparate)
+bool SygusUnifRl::DecisionTreeInfo::isSeparated(std::vector<Node>& toSeparate)
 {
   // build point separator
   for (const Node& f : d_hds)
@@ -618,6 +614,7 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated(Node& toSeparate)
   }
   // check separation
   d_hd_values.clear();
+  NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::vector<Node>>& rep_to_class :
        d_pt_sep.d_trie.d_rep_to_class)
   {
@@ -662,13 +659,14 @@ bool SygusUnifRl::DecisionTreeInfo::isSeparated(Node& toSeparate)
         Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
                                   << rep_to_class.second[0] << " and "
                                   << rep_to_class.second[i] << "\n";
-        toSeparate = NodeManager::currentNM()->mkNode(
-            EQUAL, rep_to_class.second[0], rep_to_class.second[i]);
-        return false;
+        toSeparate.push_back(
+            nm->mkNode(EQUAL, rep_to_class.second[0], rep_to_class.second[i]));
+        // For non-separation suffices to consider one head pair per sep class
+        break;
       }
     }
   }
-  return true;
+  return toSeparate.empty();
 }
 
 void SygusUnifRl::DecisionTreeInfo::PointSeparator::initialize(

@@ -180,32 +180,47 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     return true;
   }
-  NodePair sepCond;
-  if (d_sygus_unif.getSeparationCond(sepCond))
+  std::vector<NodeToNodes> sepConds;
+  if (d_sygus_unif.getSeparationCond(sepConds))
   {
-    // Build separation lemma based on current size, current enumerated
-    // condition
-    // values, and heads that could not be separated
+    // Build separation lemma based on current size, and for each heads that
+    // could not be separated, the condition values currently enumerated for its
+    // decision tree
     NodeManager* nm = NodeManager::currentNM();
-    // Build equalities between condition enumerators associated with the
-    // strategy
-    // point whose decision tree could not separate the given heads
+    Node neg_cost_lit = d_u_enum_manager.getCurrentLiteral().negate();
     std::vector<Node> cenums, cond_eqs;
-    d_u_enum_manager.getCondEnumeratorsForStrategyPt(sepCond.first, cenums);
-    for (const Node& ce : cenums)
+    for (NodeToNodes& np : sepConds)
     {
-      Assert(cenum_to_value.find(ce) != cenum_to_value.end());
-      cond_eqs.push_back(nm->mkNode(EQUAL, ce, cenum_to_value[ce]));
+      // Build equalities between condition enumerators associated with the
+      // strategy point whose decision tree could not separate the given heads
+      d_u_enum_manager.getCondEnumeratorsForStrategyPt(np.first, cenums);
+      for (const Node& ce : cenums)
+      {
+        Assert(cenum_to_value.find(ce) != cenum_to_value.end());
+        cond_eqs.push_back(nm->mkNode(EQUAL, ce, cenum_to_value[ce]));
+      }
+      Assert(!cond_eqs.empty());
+      Node neg_conds_lit =
+          cond_eqs.size() > 1 ? nm->mkNode(AND, cond_eqs) : cond_eqs[0];
+      neg_conds_lit = neg_conds_lit.negate();
+      for (const Node& eq : np.second)
+      {
+        // A separation lemma is of the shape
+        //   (cost_n+1 ^ (c_1 = M(c_1) ^ ... ^ M(c_n))) => e_i = e_j
+        // in which cost_n+1 is the cost function for the size n+1, each c_k is
+        // a conditional enumerator associated with the respective decision
+        // tree, each M(c_k) its current model value, and e_i, e_j are two
+        // distinct heads that could not be separated by these condition values
+        //
+        // Such a lemma will force the ground solver, within the restrictions of
+        // the respective cost function, to make e_i and e_j equal or to come up
+        // with new values for the conditional enumerators such that we can try
+        Node sep_lemma = nm->mkNode(OR, neg_cost_lit, neg_conds_lit, eq);
+        Trace("cegis-unif")
+            << "CegisUnif::lemma, separation lemma : " << sep_lemma << "\n";
+        d_qe->getOutputChannel().lemma(sep_lemma);
+      }
     }
-    Assert(!cond_eqs.empty());
-    Node conds = cond_eqs.size() > 1 ? nm->mkNode(AND, cond_eqs) : cond_eqs[0];
-    Node sep_lemma = nm->mkNode(OR,
-                                d_u_enum_manager.getCurrentLiteral().negate(),
-                                conds.negate(),
-                                sepCond.second);
-    Trace("cegis-unif") << "* No solution, generating separation lemma : "
-                        << sep_lemma << "\n";
-    d_qe->getOutputChannel().lemma(sep_lemma);
   }
   return false;
 }

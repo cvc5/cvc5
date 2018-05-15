@@ -34,6 +34,7 @@ using BoolNodePairMap =
     std::unordered_map<BoolNodePair, Node, BoolNodePairHashFunction>;
 using NodePairMap = std::unordered_map<Node, Node, NodeHashFunction>;
 using NodePair = std::pair<Node, Node>;
+using NodeToNodes = std::pair<Node, std::vector<Node>>;
 
 class CegConjecture;
 
@@ -104,7 +105,7 @@ class SygusUnifRl : public SygusUnif
    * function-to-synthesize, such that fi could not be separated from fj by the
    * current condition values
    */
-  bool getSeparationCond(NodePair& sepCond);
+  bool getSeparationCond(std::vector<NodeToNodes>& sepConds);
 
  protected:
   /** reference to the parent conjecture */
@@ -128,7 +129,7 @@ class SygusUnifRl : public SygusUnif
    * this pair is set when a unif solution cannot be built because a two
    * evaluation point heads cannot be separated
    */
-  NodePair d_sepCond;
+  std::vector<NodeToNodes> d_sepConds;
   /*
     --------------------------------------------------------------
         Purification
@@ -213,16 +214,16 @@ class SygusUnifRl : public SygusUnif
      * points with different model values, i.e. when all points that must be
      * separated indeed are separated.
      */
-    Node buildSol(Node cons, Node& toSeparate);
+    Node buildSol(Node cons, std::vector<Node>& toSeparate);
     /** whether all points that must be separated are separated
      *
      * This function tests separation of the points in the above sense and in
      * case two heads cannot be separated, an equality between them is created
      * and stored in toSeparate, so that a separation lemma can be generated to
-     * guide the synthesis search to yield either conditons that will separate
+     * guide the synthesis search to yield either conditions that will separate
      * these heads or equal values to them.
      */
-    bool isSeparated(Node& toSeparate);
+    bool isSeparated(std::vector<Node>& toSeparate);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
