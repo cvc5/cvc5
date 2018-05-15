@@ -2826,12 +2826,31 @@ Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, s
   }
   Node ret = n;
   if( n.getNumChildren()>0 ){
-    if( beneathMult && n.getKind()!=kind::MULT ){
-      //new variable
-      ret = NodeManager::currentNM()->mkSkolem("__purifyNl_var", n.getType(), "Variable introduced in purifyNl pass");
-      Node np = purifyNlTerms( n, cache, bcache, var_eq, false );
-      var_eq.push_back( np.eqNode( ret ) );
-    }else{
+    if (beneathMult
+        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
+    {
+      // don't do it if it rewrites to a constant
+      Node nr = Rewriter::rewrite(n);
+      if (nr.isConst())
+      {
+        // return the rewritten constant
+        ret = nr;
+      }
+      else
+      {
+        // new variable
+        ret = NodeManager::currentNM()->mkSkolem(
+            "__purifyNl_var",
+            n.getType(),
+            "Variable introduced in purifyNl pass");
+        Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
+        var_eq.push_back(np.eqNode(ret));
+        Trace("nl-ext-purify")
+            << "Purify : " << ret << " -> " << np << std::endl;
+      }
+    }
+    else
+    {
       bool beneathMultNew = beneathMult || n.getKind()==kind::MULT;
       bool childChanged = false;
       std::vector< Node > children;
@@ -4027,7 +4046,10 @@ void SmtEnginePrivate::processAssertions() {
     unordered_map<Node, Node, NodeHashFunction> bcache;
     std::vector< Node > var_eq;
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, purifyNlTerms(d_assertions[i], cache, bcache, var_eq));
+      Node a = d_assertions[i];
+      d_assertions.replace(i, purifyNlTerms(a, cache, bcache, var_eq));
+      Trace("nl-ext-purify")
+          << "Purify : " << a << " -> " << d_assertions[i] << std::endl;
     }
     if( !var_eq.empty() ){
       unsigned lastIndex = d_assertions.size()-1;
