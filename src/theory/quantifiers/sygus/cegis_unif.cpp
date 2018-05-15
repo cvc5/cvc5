@@ -111,21 +111,11 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     Trace("cegis-unif-enum") << "  Evaluation heads :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
-      // Non-unif enums (which are the very candidates) should not be notified
-      if (enums[i] == candidates[i] && !d_sygus_unif.usingUnif(enums[i]))
-      {
-        Trace("cegis-unif-enum")
-            << "  Ignoring non-unif candidate " << enums[i] << std::endl;
-        continue;
-      }
-      if (Trace.isOn("cegis-unif-enum"))
-      {
-        Trace("cegis-unif-enum") << "    " << enums[i] << " -> ";
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, enum_values[i]);
-        Trace("cegis-unif-enum") << ss.str() << std::endl;
-      }
+      Trace("cegis-unif-enum") << "    " << enums[i] << " -> ";
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())
+          ->toStreamSygus(ss, enum_values[i]);
+      Trace("cegis-unif-enum") << ss.str() << std::endl;
     }
   }
   // evaluate on refinement lemmas
@@ -150,10 +140,10 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
         Trace("cegis-unif-enum")
             << "  " << (index == 0 ? "Return values" : "Conditions") << " for "
             << e << ":\n";
-        // also get the current conditional enumerators
+        // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(
             e, unif_enums[index][e], index);
-        // get the model value of each condition
+        // get the model value of each enumerator
         for (const Node& eu : unif_enums[index][e])
         {
           Node m_eu = d_parent->getModelValue(eu);
@@ -193,6 +183,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
                                   << slem << "\n";
               d_qe->getOutputChannel().lemma(slem);
               addedUnifEnumSymBreakLemma = true;
+              break;
             }
           }
         }
