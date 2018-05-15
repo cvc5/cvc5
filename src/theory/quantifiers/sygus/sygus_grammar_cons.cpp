@@ -619,7 +619,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargs.push_back( std::vector< CVC4::Type >() );
     }
   }
-  //add constants if no variables and no connected types
+  //add constants
   std::vector<Node> consts;
   mkSygusConstantsForType(btype, consts);
   for (unsigned j = 0; j < consts.size(); j++)

@@ -38,7 +38,6 @@ bool CegisUnif::initialize(Node n,
                            const std::vector<Node>& candidates,
                            std::vector<Node>& lemmas)
 {
-  Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
   // list of strategy points for unification candidates
   std::vector<Node> unif_candidate_pts;
   // map from strategy points to their conditions
@@ -494,24 +493,10 @@ void CegisUnifEnumManager::incrementNumEnumerators()
                                  << " to strategy point " << ci.second.d_pt
                                  << "\n";
         d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
-        // if the sygus datatype is interpreted as an infinite type
-        // (this should be the case for almost all examples)
-        TypeNode et = e.getType();
-        if (!et.isInterpretedFinite())
-        {
-          // it is disequal from all previous ones
-          for (const Node& ei : ci.second.d_enums[index])
-          {
-            if (ei == e)
-            {
-              continue;
-            }
-            Node deq = e.eqNode(ei).negate();
-            Trace("cegis-unif-enum-lemma")
-                << "CegisUnifEnum::lemma, enum deq:" << deq << "\n";
-            d_qe->getOutputChannel().lemma(deq);
-          }
-        }
+        // TODO symmetry breaking for making
+        //   e distinct from ei : (ci.second.d_enums[index] \ {e})
+        // if their respective type has had at least
+        // ci.second.d_enums[index].size() distinct values enumerated
       }
     }
     // register the evaluation points at the new value

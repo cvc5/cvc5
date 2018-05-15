@@ -788,46 +788,33 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
     Node op = Node::fromExpr(dt[cindex].getSygusOp());
     TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
-    Trace("sygus-strat-slearn")
-        << "......type is boolean? " << sygus_tn.isBoolean()
-        << "\n......cons has kind " << op.getKind()
-        << "\n......cons has op kind " << NodeManager::operatorToKind(op)
-        << "\n......has equal arg types? "
-        << (TypeNode::fromType(dt[cindex].getArgType(1))
-            == TypeNode::fromType(dt[cindex].getArgType(2)))
-        << "\n";
     if (op.getKind() == kind::BUILTIN && NodeManager::operatorToKind(op) == ITE
         && sygus_tn.isBoolean()
         && (TypeNode::fromType(dt[cindex].getArgType(1))
             == TypeNode::fromType(dt[cindex].getArgType(2))))
     {
-      Trace("sygus-strat-slearn") << "...checking whether dt has T/F\n";
-      unsigned nargs = dt.getNumConstructors(), indexT = nargs, indexF = nargs;
-      for (unsigned k = 0; k < nargs; ++k)
+      unsigned ncons = dt.getNumConstructors(), indexT = ncons, indexF = ncons;
+      for (unsigned k = 0; k < ncons; ++k)
       {
         Node op_arg = Node::fromExpr(dt[k].getSygusOp());
-        if (op_arg == TermUtil::mkTypeValue(sygus_tn, true))
+        if (dt[k].getNumArgs() > 0 || !op_arg.isConst())
+        {
+          continue;
+        }
+        if (op_arg.getConst<bool>())
         {
           indexT = k;
-          continue;
         }
-        Trace("sygus-strat-slearn")
-            << "......" << k << "-ith op " << op_arg << " not equal to "
-            << TermUtil::mkTypeValue(sygus_tn, true) << "\n";
-        if (op_arg == TermUtil::mkTypeValue(sygus_tn, false))
+        else
         {
           indexF = k;
-          continue;
         }
-        Trace("sygus-strat-slearn")
-            << "......" << k << "-ith op " << op_arg << " not equal to "
-            << TermUtil::mkTypeValue(sygus_tn, false) << "\n";
       }
-      if (indexT < nargs && indexF < nargs)
+      if (indexT < ncons && indexF < ncons)
       {
         Trace("sygus-strat-slearn")
             << "...for ite boolean arg, can exclude all operators but T/F\n";
-        for (unsigned k = 0; k < nargs; ++k)
+        for (unsigned k = 0; k < ncons; ++k)
         {
           needs_cons_curr[k] = false;
         }
@@ -845,11 +832,20 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   // do not use recursive Boolean connectives for conditions of ITEs
   if (nrole == role_ite_condition)
   {
+    TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
       Node op = Node::fromExpr(dt[j].getSygusOp());
       Trace("sygus-strat-slearn")
           << "...for ite condition, look at operator : " << op << std::endl;
+      if (op.isConst() && dt[j].getNumArgs() == 0)
+      {
+        Trace("sygus-strat-slearn")
+            << "...for ite condition, can exclude Boolean constant " << op
+            << std::endl;
+        needs_cons_curr[j] = false;
+        continue;
+      }
       if (op.getKind() == kind::BUILTIN)
       {
         Kind k = NodeManager::operatorToKind(op);
