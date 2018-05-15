@@ -104,7 +104,7 @@ class SygusUnifRl : public SygusUnif
    * function-to-synthesize, such that fi could not be separated from fj by the
    * current condition values
    */
-  bool getSeparationCond(std::map<Node, std::vector<Node>>& sepConds);
+  bool getSeparationPairs(std::map<Node, std::vector<Node>>& sepPairs);
 
  protected:
   /** reference to the parent conjecture */
@@ -128,7 +128,7 @@ class SygusUnifRl : public SygusUnif
    * this pair is set when a unif solution cannot be built because a two
    * evaluation point heads cannot be separated
    */
-  std::map<Node, std::vector<Node>> d_sepConds;
+  std::map<Node, std::vector<Node>> d_sepPairs;
   /*
     --------------------------------------------------------------
         Purification
@@ -234,7 +234,7 @@ class SygusUnifRl : public SygusUnif
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** clear trie and registered condition values */
-    void clearPointSeparator();
+    void resetPointSeparator(const std::vector<Node>& conds);
 
    private:
     /**

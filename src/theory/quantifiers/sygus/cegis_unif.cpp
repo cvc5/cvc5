@@ -180,8 +180,8 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     return true;
   }
-  std::map<Node, std::vector<Node>> sepConds;
-  if (d_sygus_unif.getSeparationCond(sepConds))
+  std::map<Node, std::vector<Node>> sepPairs;
+  if (d_sygus_unif.getSeparationPairs(sepPairs))
   {
     // Build separation lemma based on current size, and for each heads that
     // could not be separated, the condition values currently enumerated for its
@@ -189,7 +189,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     NodeManager* nm = NodeManager::currentNM();
     Node neg_cost_lit = d_u_enum_manager.getCurrentLiteral().negate();
     std::vector<Node> cenums, cond_eqs;
-    for (std::pair<const Node, std::vector<Node>>& np : sepConds)
+    for (std::pair<const Node, std::vector<Node>>& np : sepPairs)
     {
       // Build equalities between condition enumerators associated with the
       // strategy point whose decision tree could not separate the given heads

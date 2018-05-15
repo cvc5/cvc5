@@ -276,7 +276,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   return plem;
 }
 
-void SygusUnifRl::initializeConstructSol() { d_sepConds.clear(); }
+void SygusUnifRl::initializeConstructSol() { d_sepPairs.clear(); }
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
 {
@@ -338,16 +338,17 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
   Node sol = itd->second.buildSol(etis->d_cons, toSeparate);
   if (sol.isNull())
   {
-    Assert(!toSeparate.isNull());
-    d_sepConds[e] = toSeparate;
+    Assert(!toSeparate.empty());
+    d_sepPairs[e] = toSeparate;
   }
   return sol;
 }
 
-bool SygusUnifRl::getSeparationCond(std::map<Node, std::vector<Node>>& sepConds)
+bool SygusUnifRl::getSeparationPairs(
+    std::map<Node, std::vector<Node>>& sepPairs)
 {
-  sepConds = d_sepConds;
-  return !sepConds.empty();
+  sepPairs = d_sepPairs;
+  return !sepPairs.empty();
 }
 
 bool SygusUnifRl::usingUnif(Node f) const
@@ -367,10 +368,7 @@ void SygusUnifRl::setConditions(Node e, const std::vector<Node>& conds)
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
   // Clear previous trie
-  it->second.clearPointSeparator();
-  // set new condition values
-  it->second.d_conds.insert(
-      it->second.d_conds.end(), conds.begin(), conds.end());
+  it->second.resetPointSeparator(conds);
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -489,10 +487,14 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
   d_pt_sep.initialize(this);
 }
 
-void SygusUnifRl::DecisionTreeInfo::clearPointSeparator()
+void SygusUnifRl::DecisionTreeInfo::resetPointSeparator(
+    const std::vector<Node>& conds)
 {
+  // clear old condition values and trie
   d_conds.clear();
   d_pt_sep.d_trie.clear();
+  // set new condition values
+  d_conds.insert(d_conds.end(), conds.begin(), conds.end());
 }
 
 void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
