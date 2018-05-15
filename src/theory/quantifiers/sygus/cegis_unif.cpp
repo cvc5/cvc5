@@ -108,8 +108,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
 {
   if( Trace.isOn("cegis-unif-enum") )
   {
-    Trace("cegis-unif-enum") << "Register new enumerated values :\n";
-    // keep track of the relation between conditional enums and their values
+    Trace("cegis-unif-enum") << "  Evaluation heads :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
       // Non-unif enums (which are the very candidates) should not be notified
@@ -121,7 +120,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
       }
       if (Trace.isOn("cegis-unif-enum"))
       {
-        Trace("cegis-unif-enum") << "  " << enums[i] << " -> ";
+        Trace("cegis-unif-enum") << "    " << enums[i] << " -> ";
         std::stringstream ss;
         Printer::getPrinter(options::outputLanguage())
             ->toStreamSygus(ss, enum_values[i]);
@@ -134,31 +133,72 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   {
     return false;
   }
-  // for each decision tree strategy allocated for c (these are referenced
-  // by strategy points in d_cand_to_strat_pt[c])
+  // the unification enumerators (return values, conditions) and their model values
+  NodeManager* nm = NodeManager::currentNM();
+  bool addedUnifEnumSymBreakLemma = false;
   std::map<Node, std::vector<Node>> unif_enums[2];
   std::map<Node, std::vector<Node>> unif_values[2];
   for (const Node& c : candidates)
   {
+    // for each decision tree strategy allocated for c (these are referenced
+    // by strategy points in d_cand_to_strat_pt[c])
     for (const Node& e : d_cand_to_strat_pt[c])
     {
       for( unsigned index=0; index<2; index++ )
       {
-        Trace("cegis-unif-enum") << "  " << (index ? "Return values" : "Conditions") << " for " << e << ":\n";
+        Trace("cegis-unif-enum") << "  " << (index==0 ? "Return values" : "Conditions") << " for " << e << ":\n";
         // also get the current conditional enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(e, unif_enums[index][e], index);
         // get the model value of each condition
         for( const Node& eu : unif_enums[index][e] )
         {
           Node m_eu = d_parent->getModelValue(eu);
-          Trace("cegis-unif-enum") << "    " << eu << " -> " << m_eu << std::endl;
+          if (Trace.isOn("cegis-unif-enum"))
+          {
+            Trace("cegis-unif-enum") << "    " << eu << " -> ";
+            std::stringstream ss;
+            Printer::getPrinter(options::outputLanguage())
+                ->toStreamSygus(ss, m_eu);
+            Trace("cegis-unif-enum") << ss.str() << std::endl;
+          }
           unif_values[index][e].push_back( m_eu );
-          // TODO: symmetry breaking
-          
         }
-        // set the conditions
-        d_sygus_unif.setConditions(e, unif_values[1][e]);
+        // inter-enumerator symmetry breaking
+        for( unsigned j=1, nenum = unif_values[index][e].size(); j<nenum; j++ )
+        {
+          Node prev_val = unif_values[index][e][j-1];
+          Node curr_val = unif_values[index][e][j];
+          // compare the node values
+          if( curr_val<prev_val )
+          {
+            // must have the same size 
+            unsigned prev_size = d_tds->getSygusTermSize(prev_val);
+            unsigned curr_size = d_tds->getSygusTermSize(curr_val);
+            Assert( prev_size<=curr_size );
+            if( curr_size==prev_size )
+            {
+              Node slem = nm->mkNode( AND, unif_enums[index][e][j-1].eqNode(unif_values[index][e][j-1]),
+                                      unif_enums[index][e][j].eqNode(unif_values[index][e][j])).negate();
+              Trace("cegis-unif")
+                << "CegisUnif::lemma, inter-unif-enumerator symmetry breaking lemma : " << slem << "\n";
+              d_qe->getOutputChannel().lemma(slem);
+              addedUnifEnumSymBreakLemma = true;
+            }
+          }
+        }
       }
+    }
+  }
+  if( addedUnifEnumSymBreakLemma )
+  {
+    return false;
+  }
+  // set the conditions
+  for (const Node& c : candidates)
+  {
+    for (const Node& e : d_cand_to_strat_pt[c])
+    {
+      d_sygus_unif.setConditions(e, unif_values[1][e]);
     }
   }
   // build solutions (for unif candidates a divide-and-conquer approach is used)
@@ -184,7 +224,6 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     // Build separation lemma based on current size, and for each heads that
     // could not be separated, the condition values currently enumerated for its
     // decision tree
-    NodeManager* nm = NodeManager::currentNM();
     Node neg_cost_lit = d_u_enum_manager.getCurrentLiteral().negate();
     std::vector<Node> cenums, cond_eqs;
     for (std::pair<const Node, std::vector<Node>>& np : sepPairs)
