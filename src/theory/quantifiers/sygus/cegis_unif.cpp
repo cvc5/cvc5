@@ -181,7 +181,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     return true;
   }
   NodePair sepCond;
-  if (getSeparationCond(sepCond))
+  if (d_sygus_unif.getSeparationCond(sepCond))
   {
     // Build separation lemma based on current size, current enumerated
     // condition

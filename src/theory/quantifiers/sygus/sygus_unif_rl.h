@@ -105,6 +105,7 @@ class SygusUnifRl : public SygusUnif
    * current condition values
    */
   bool getSeparationCond(NodePair& sepCond);
+
  protected:
   /** reference to the parent conjecture */
   CegConjecture* d_parent;

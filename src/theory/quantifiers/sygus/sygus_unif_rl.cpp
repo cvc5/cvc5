@@ -278,7 +278,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
 
 void SygusUnifRl::initializeConstructSol()
 {
-  d_sepCond.first = d_sepCond.second = Node::nul();
+  d_sepCond.first = d_sepCond.second = Node::null();
 }
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
