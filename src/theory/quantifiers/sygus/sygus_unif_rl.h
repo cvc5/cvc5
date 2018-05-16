@@ -222,7 +222,7 @@ class SygusUnifRl : public SygusUnif
     std::vector<Node> d_hds;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
-    /** registered condition values */
+    /** set conditions */
     void setConditions(Node guard,
                        const std::vector<Node>& enums,
                        const std::vector<Node>& conds);
