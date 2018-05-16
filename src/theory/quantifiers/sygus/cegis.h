@@ -85,7 +85,7 @@ class Cegis : public SygusModule
   /** add refinement lemma */
   void addRefinementLemma( Node lem );
   /** add refinement lemma conjunct */
-  void addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting );
+  void addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& waiting );
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that

@@ -161,13 +161,15 @@ void Cegis::addRefinementLemma(Node lem)
   unsigned wcounter = 0;
   while(wcounter<waiting.size())
   {
-    addRefinementLemmaConjunct(waiting[wcounter], waiting);
+    addRefinementLemmaConjunct(wcounter, waiting);
     wcounter++;
   }
 }
 
-void Cegis::addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting )
+void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& waiting )
 {
+  Node lem = waiting[wcounter];
+  lem = Rewriter::rewrite( lem );
   // apply substitution and rewrite if applicable
   if( lem.isConst() )
   {
@@ -185,7 +187,7 @@ void Cegis::addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting )
   {
     for (const Node& lc : lem)
     {
-      addRefinementLemmaConjunct(lc, waiting);
+      waiting.push_back(lc);
     }
     return;
   }
@@ -219,7 +221,11 @@ void Cegis::addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting )
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
     d_refinement_lemma_unit.insert(lem);
-    // apply to waiting lemmas
+    // apply to waiting lemmas beyond this one
+    for( unsigned i=wcounter+1, size=waiting.size(); i<size; i++ )
+    {
+      waiting[i] = waiting[i].substitute(term,val);
+    }
     // apply to all existing refinement lemmas
     std::vector< Node > to_rem;
     for( const Node& rl : d_refinement_lemma_conj )
@@ -227,9 +233,8 @@ void Cegis::addRefinementLemmaConjunct( Node lem, std::vector< Node >& waiting )
       Node srl = rl.substitute(term,val);
       if( srl!=rl )
       {
-        srl = Rewriter::rewrite(rl);
-        //waiting.push_back(srl);
-        //to_rem.push_back(rl);
+        waiting.push_back(srl);
+        to_rem.push_back(rl);
       }
     }
     for( const Node& tr : to_rem )
