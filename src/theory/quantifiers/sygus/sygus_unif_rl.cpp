@@ -634,17 +634,13 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
         continue;
       }
     }
+    // must include in the explanation that we hit a conflict at this point in the construction
+    exp.push_back(e.eqNode(er).negate());
     // we are in separation conflict, does the next condition resolve this?
-    //
-    // the following assertion holds due to the fact that the enumeration
-    // manager ensures #c >= (#d-1), that is, if our evaluation heads take on n
-    // unique values, we enumerate at least (n-1) conditions. Hence, we
-    // have at most (n-1) separation conflicts, which we enforce are resolved
-    // by the condition enumerators, in order.
+    // check whether we have have exhausted our condition pool. If so, we 
+    // are in conflict and this conflict depends on the guard.
     if (c_counter >= d_conds.size())
     {
-      // must explain this
-      exp.push_back(e.eqNode(er).negate());
       // truncated separation lemma
       Assert(!d_guard.isNull());
       exp.push_back(d_guard);
@@ -689,8 +685,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
     if (std::find(itr->second.begin(), itr->second.end(), e)
         != itr->second.end())
     {
-      // we are explaining the conflict, must include e!=er.
-      exp.push_back(e.eqNode(er).negate());
       Trace("sygus-unif-sol")
           << "  ...does not resolve separation conflict with current"
           << std::endl;
@@ -727,8 +721,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
     // should find exactly one
     Assert(!new_er.isNull());
     er = new_er;
-    // must explain this
-    exp.push_back(e.eqNode(er).negate());
     needs_sep_resolve = true;
   }
   if (exp_conflict)

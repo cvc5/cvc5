@@ -91,7 +91,9 @@ class SygusUnifRl : public SygusUnif
   /** set conditional enumerators
    *
    * This informs this class that the current set of conditions for evaluation
-   * point e is conds.
+   * point e are enumerated by "enums" and have values "conds"; "guard" is
+   * Boolean variable whose semantics correspond to "there is a solution using
+   * at most enums.size() conditions."
    */
   void setConditions(Node e,
                      Node guard,
@@ -204,9 +206,10 @@ class SygusUnifRl : public SygusUnif
      *
      * The DT contains a solution when no class contains two heads of evaluation
      * points with different model values, i.e. when all points that must be
-     * separated indeed are separated.
+     * separated indeed are separated by the current set of conditions.
      *
-     *
+     * This function either returns a condition (if all points are separated).
+     * It it fails, it adds a conflict lemma to lemmas.
      */
     Node buildSol(Node cons, std::vector<Node>& lemmas);
     /** whether all points that must be separated are separated
