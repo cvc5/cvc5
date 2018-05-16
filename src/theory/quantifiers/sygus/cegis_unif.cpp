@@ -495,7 +495,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
         // TODO symmetry breaking for making
         //   e distinct from ei : (ci.second.d_enums[index] \ {e})
-        // if their respective type has had at least
+        // if its respective type has had at least
         // ci.second.d_enums[index].size() distinct values enumerated
       }
     }
