@@ -59,7 +59,8 @@ class SygusUnifRl : public SygusUnif
   /** Notify enumeration (unused) */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
-  bool constructSolution(std::vector<Node>& sols, std::vector< Node >& lemmas) override;
+  bool constructSolution(std::vector<Node>& sols,
+                         std::vector<Node>& lemmas) override;
   /** add refinement lemma
    *
    * This adds a lemma to the specification. It returns the purified form
@@ -92,7 +93,9 @@ class SygusUnifRl : public SygusUnif
    * This informs this class that the current set of conditions for evaluation
    * point e is conds.
    */
-  void setConditions(Node e, const std::vector< Node >& enums, const std::vector<Node>& conds);
+  void setConditions(Node e,
+                     const std::vector<Node>& enums,
+                     const std::vector<Node>& conds);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
@@ -103,7 +106,11 @@ class SygusUnifRl : public SygusUnif
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
   /** construct sol */
-  Node constructSol(Node f, Node e, NodeRole nrole, int ind, std::vector< Node >& lemmas) override;
+  Node constructSol(Node f,
+                    Node e,
+                    NodeRole nrole,
+                    int ind,
+                    std::vector<Node>& lemmas) override;
   /** collects data from refinement lemmas to drive solution construction
    *
    * In particular it rebuilds d_app_to_pt whenever d_prev_rlemmas is different
@@ -197,8 +204,8 @@ class SygusUnifRl : public SygusUnif
      * The DT contains a solution when no class contains two heads of evaluation
      * points with different model values, i.e. when all points that must be
      * separated indeed are separated.
-     * 
-     * 
+     *
+     *
      */
     Node buildSol(Node cons, std::vector<Node>& lemmas);
     /** whether all points that must be separated are separated
@@ -220,10 +227,11 @@ class SygusUnifRl : public SygusUnif
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** registered condition values */
-    void setConditions(const std::vector< Node >& enums, const std::vector<Node>& conds);
+    void setConditions(const std::vector<Node>& enums,
+                       const std::vector<Node>& conds);
 
    private:
-    /** 
+    /**
      * Conditional enumerator variables corresponding to the condition values in
      * d_conds. These are used for generating separation lemmas during
      * buildSol.

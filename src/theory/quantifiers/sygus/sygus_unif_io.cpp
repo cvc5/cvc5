@@ -680,7 +680,8 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   lemmas.push_back(exp_exc);
 }
 
-bool SygusUnifIo::constructSolution(std::vector<Node>& sols, std::vector< Node >& lemmas)
+bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
+                                    std::vector<Node>& lemmas)
 {
   Node sol = constructSolutionNode(lemmas);
   if (!sol.isNull())
@@ -691,7 +692,7 @@ bool SygusUnifIo::constructSolution(std::vector<Node>& sols, std::vector< Node >
   return false;
 }
 
-Node SygusUnifIo::constructSolutionNode(std::vector< Node >& lemmas)
+Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 {
   Node c = d_candidate;
   if (!d_solution.isNull())
@@ -854,7 +855,8 @@ void SygusUnifIo::initializeConstructSolFor(Node f)
   Assert(d_candidate == f);
 }
 
-Node SygusUnifIo::constructSol(Node f, Node e, NodeRole nrole, int ind, std::vector< Node >& lemmas)
+Node SygusUnifIo::constructSol(
+    Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas)
 {
   Assert(d_candidate == f);
   UnifContextIo& x = d_context;

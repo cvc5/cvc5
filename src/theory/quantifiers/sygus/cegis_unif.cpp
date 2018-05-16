@@ -157,18 +157,18 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
           }
           unif_values[index][e].push_back(m_eu);
         }
-        if( index==0 )
+        if (index == 0)
         {
           // inter-enumerator symmetry breaking
           // given a pool of unification enumerators eu_1, ..., eu_n,
           // CegisUnifEnumManager insists that size(eu_1) <= ... <= size(eu_n).
           // We additionally insist that M(eu_i) < M(eu_{i+1}) when
           // size(eu_i) = size(eu_{i+1}), where < is pointer comparison.
-          // We enforce this below by adding symmetry breaking lemmas of the 
+          // We enforce this below by adding symmetry breaking lemmas of the
           // form ~( eu_i = M(eu_i) ^ eu_{i+1} = M(eu_{i+1} ) )
           // when applicable.
           for (unsigned j = 1, nenum = unif_values[index][e].size(); j < nenum;
-              j++)
+               j++)
           {
             Node prev_val = unif_values[index][e][j - 1];
             Node curr_val = unif_values[index][e][j];
@@ -182,14 +182,15 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
               if (curr_size == prev_size)
               {
                 Node slem = nm->mkNode(AND,
-                                      unif_enums[index][e][j - 1].eqNode(
-                                          unif_values[index][e][j - 1]),
-                                      unif_enums[index][e][j].eqNode(
-                                          unif_values[index][e][j]))
+                                       unif_enums[index][e][j - 1].eqNode(
+                                           unif_values[index][e][j - 1]),
+                                       unif_enums[index][e][j].eqNode(
+                                           unif_values[index][e][j]))
                                 .negate();
-                Trace("cegis-unif") << "CegisUnif::lemma, inter-unif-enumerator "
-                                      "symmetry breaking lemma : "
-                                    << slem << "\n";
+                Trace("cegis-unif")
+                    << "CegisUnif::lemma, inter-unif-enumerator "
+                       "symmetry breaking lemma : "
+                    << slem << "\n";
                 d_qe->getOutputChannel().lemma(slem);
                 addedUnifEnumSymBreakLemma = true;
                 break;
@@ -214,7 +215,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   }
   // build solutions (for unif candidates a divide-and-conquer approach is used)
   std::vector<Node> sols;
-  std::vector< Node > lemmas;
+  std::vector<Node> lemmas;
   if (d_sygus_unif.constructSolution(sols, lemmas))
   {
     candidate_values.insert(candidate_values.end(), sols.begin(), sols.end());
@@ -232,10 +233,11 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   }
   else
   {
-    Assert( !lemmas.empty() );
-    for( const Node& lem : lemmas )
+    Assert(!lemmas.empty());
+    for (const Node& lem : lemmas)
     {
-      Trace("cegis-unif") << "CegisUnif::lemma, separation lemma : " << lem << "\n";
+      Trace("cegis-unif") << "CegisUnif::lemma, separation lemma : " << lem
+                          << "\n";
       d_qe->getOutputChannel().lemma(lem);
     }
   }
@@ -493,7 +495,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
           d_qe->getOutputChannel().lemma(sym_break_red_ops);
         }
         // symmetry breaking between enumerators
-        if (!ci.second.d_enums[index].empty() && index==0)
+        if (!ci.second.d_enums[index].empty() && index == 0)
         {
           Node e_prev = ci.second.d_enums[index].back();
           Node size_e = nm->mkNode(DT_SIZE, e);
