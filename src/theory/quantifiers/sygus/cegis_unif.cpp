@@ -214,7 +214,8 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   {
     for (const Node& e : d_cand_to_strat_pt[c])
     {
-      d_sygus_unif.setConditions(e, cost_lit, unif_enums[1][e], unif_values[1][e]);
+      d_sygus_unif.setConditions(
+          e, cost_lit, unif_enums[1][e], unif_values[1][e]);
     }
   }
   // build solutions (for unif candidates a divide-and-conquer approach is used)

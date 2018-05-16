@@ -228,7 +228,8 @@ class SygusUnifRl : public SygusUnif
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** registered condition values */
-    void setConditions(Node guard, const std::vector<Node>& enums,
+    void setConditions(Node guard,
+                       const std::vector<Node>& enums,
                        const std::vector<Node>& conds);
 
    private:
@@ -238,7 +239,7 @@ class SygusUnifRl : public SygusUnif
      * buildSol. This is set by setConditions(...).
      */
     std::vector<Node> d_enums;
-    /** 
+    /**
      * The guard literal whose semantics are "we need at most d_enums.size()
      * conditions in our solution. This is set by setConditions(...).
      */
