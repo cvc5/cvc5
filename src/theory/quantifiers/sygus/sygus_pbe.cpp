@@ -441,7 +441,7 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     Node c = candidates[i];
     //build decision tree for candidate
     std::vector<Node> sol;
-    if (d_sygus_unif[c].constructSolution(sol))
+    if (d_sygus_unif[c].constructSolution(sol, lems))
     {
       Assert(sol.size() == 1);
       candidate_values.push_back(sol[0]);

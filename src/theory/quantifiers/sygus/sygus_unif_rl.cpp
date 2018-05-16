@@ -16,6 +16,8 @@
 
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "options/base_options.h"
+#include "printer/printer.h"
 
 using namespace CVC4::kind;
 
@@ -276,7 +278,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
   return plem;
 }
 
-void SygusUnifRl::initializeConstructSol() { d_sepPairs.clear(); }
+void SygusUnifRl::initializeConstructSol() {}
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
 bool SygusUnifRl::constructSolution(std::vector<Node>& sols, std::vector< Node >& lemmas)
 {
@@ -516,6 +518,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
     Trace("sygus-unif-sol") << "...templated conditions unsupported\n";
     return Node::null();
   }
+  Trace("sygus-unif-sol") << "Decision::buildSol with " << d_hds.size() << " evaluation heads and " << d_conds.size() << " conditions..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // model values for evaluation heads
   std::map< Node, Node > hd_mv;
@@ -527,14 +530,65 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   unsigned hd_counter = 0;
   // the index of the condition we are considering
   unsigned c_counter = 0;
+  // This loop simultaneously builds the solution in terms of a lazy trie
+  // (LazyTrieMulti), and checks whether a separation conflict exists. We
+  // enforce that the separation conflicts we encounter while building
+  // this solution are resolved, in order, by the condition enumerators.
+  // If not, then we add a (conflict) lemma stating that the current model
+  // value of the condition enumerator must be different. We also call this 
+  // a "separation lemma".
+  //
+  // As a simple example, say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2)
+  //   conditions: c1
+  // where M(e1) = x, M(e2) = y, and M(c1) = x>1. After adding e1 and e2, we are
+  // in conflict since { e1, e2 } form a separation class, M(e1)!=M(e2), and 
+  // M(c1) does not separate e1 and e2 since:
+  //   (x>1){x->0,y->0} = (x>1){x->1,y->2} = false
+  // Hence, we would fail to build a solution in this case, and instead send a
+  // separation lemma of the form:
+  //   ~( e1 != e2 ^ c1 = [x<1] )
+  //
+  // Say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2), (eval e3 1 3)
+  //   conditions: c1 c2
+  // where M(e1) = x, M(e2) = y, M(e3) = x+1, M(c1) = x>0 and M(c2) = x<0.
+  // After adding e1 and e2, { e1, e2 } form a separation class, M(e1)!=M(e2),
+  // but M(c1) separates e1 and e2 since 
+  //   (x>0){x->0,y->0} = false, and 
+  //   (x>1){x->1,y->2} = true
+  // Hence, we get new separation classes { e1 } and { e2 }, and afterwards 
+  // add e3. We then get { e2, e3 } as a separation class, which is also a 
+  // conflict since M(e2)!=M(e3). We check if M(c2) resolves this conflict.
+  // It does not, since (x<1){x->0,y->0} = (x<1){x->1,y->2} = false. Hence,
+  // we get a separation lemma:
+  //  ~( c1 = [x>1] ^ e2 != e3 ^ c2 = [x<1] )
+  //
+  // Say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2), (eval e3 1 3)
+  //   conditions: c1
+  // where M(e1) = x, M(e2) = x, M(e3) = y, M(c1) = x>0.
+  // After adding e1 and e2, we have separation class { e1, e2 }. This is not a
+  // conflict since M(e1)=M(e2). We then add e3, obtaining separation class 
+  // { e1, e2, e3 }, which is in conflict since M(e3)!=M(e1), and the condition
+  // c1 does not separate e3 and the representative of this class, e1. Hence we
+  // get a separation lemma of the form:
+  //  ~( e1 = e2 ^ e1 != e3 ^ c1 = [x>0] )
   while( hd_counter<d_hds.size() )
   {
     // add the head to the trie
     Node e = d_hds[hd_counter];
-    hd_counter++;
     hd_mv[e] = d_unif->d_parent->getModelValue(e);
+    if( Trace.isOn("sygus-unif-sol") )
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, hd_mv[e]);
+      Trace("sygus-unif-sol") << "  add evaluation head (" << hd_counter << "/" << d_hds.size() << "): " << e << " -> " << ss.str() << std::endl;
+    }
+    hd_counter++;
     // get the representative of the trie
-    Node er = d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
+    Node er = d_pt_sep.d_trie.add(e, &d_pt_sep, d_conds.size());
+    Trace("sygus-unif-sol") << "  ...separation class " << er << std::endl;
     // are we in conflict?
     if( er==e )
     {
@@ -546,34 +600,55 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
     {
       // merged into separation class with same model value, no conflict
       // add to explanation
+      // this states that it mattered that (er = e) at the time that e was
+      // added to the trie. Notice that er and e may become separated later,
+      // but to ensure the overall invariant, this equality must persist in
+      // the explanation.
       exp.push_back(er.eqNode(e));
+      Trace("sygus-unif-sol") << "  ...equal model values " << std::endl;
+      Trace("sygus-unif-sol") << "  ...add to explanation " << er.eqNode(e) << std::endl;
       continue;
     }
-    // we are in conflict
-    // does the next condition resolve this conflict?
+    // we are in conflict, but does the next condition resolve this conflict?
+    // the following assertion holds due to the fact that the enumeration 
+    // manager ensures #c >= (#d-1), that is, if our evaluation heads take on n 
+    // unique values, we enumerate at least (n-1) conditions. Hence, we 
+    // have at most (n-1) separation conflicts, which we enforce are resolved
+    // by the condition enumerators, in order.
     Assert( c_counter<d_conds.size() );
     Node ce = d_enums[c_counter];
     Node cv = d_conds[c_counter];
+    if( Trace.isOn("sygus-unif-sol") )
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, cv);
+      Trace("sygus-unif-sol") << "  add condition (" << c_counter << "/" << d_conds.size() << "): " << ce << " -> " << ss.str() << std::endl;
+    }
     d_pt_sep.d_trie.addClassifier(&d_pt_sep, c_counter);
     c_counter++;
     // add to explanation
     Node c_exp = d_unif->d_tds->getExplain()->getExplanationForEquality(ce,cv);
     exp.push_back(c_exp);
-    std::map<Node, std::vector<Node>>::iterator itr = d_pt_sep.d_rep_to_class.find(er);
+    std::map<Node, std::vector<Node>>::iterator itr = d_pt_sep.d_trie.d_rep_to_class.find(er);
     // since er is first in its separation class, it should remain a representative
-    Assert(itr!=d_pt_sep.d_rep_to_class.end());
+    Assert(itr!=d_pt_sep.d_trie.d_rep_to_class.end());
     // is e still in the separation class of er?
     std::vector< Node >& sepc_er = itr->second;
     if( std::find(sepc_er.begin(),sepc_er.end(),e)!=sepc_er.end() )
     {
+      // we are explaining the conflict, must include e!=er.
+      exp.push_back(e.eqNode(er).negate());
+      Trace("sygus-unif-sol") << "  ...does not resolve separation conflict" << std::endl;
       // the condition does not separate e and er
       // this violates the invariant that the i^th conditional enumerator
       // resolves the i^th separation conflict
       Node lemma = exp.size()==1 ? exp[0] : nm->mkNode(AND,exp);
       lemma = lemma.negate();
+      Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
       lemmas.push_back(lemma);
       return Node::null();
     }
+    Trace("sygus-unif-sol") << "  ...resolves separation conflict" << std::endl;
   }
 
   Trace("sygus-unif-sol") << "...ready to build solution from DT\n";

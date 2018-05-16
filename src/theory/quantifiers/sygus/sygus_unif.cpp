@@ -52,7 +52,7 @@ bool SygusUnif::constructSolution(std::vector<Node>& sols, std::vector< Node >& 
     initializeConstructSolFor(f);
     // call the virtual construct solution method
     Node e = d_strategy[f].getRootEnumerator();
-    Node sol = constructSol(f, e, role_equal, 1);
+    Node sol = constructSol(f, e, role_equal, 1, lemmas);
     if (sol.isNull())
     {
       return false;
