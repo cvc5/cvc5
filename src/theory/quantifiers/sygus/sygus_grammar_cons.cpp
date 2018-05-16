@@ -638,6 +638,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     CVC4::Kind k = i == 0
                        ? kind::NOT
                        : (i == 1 ? kind::AND : (i == 2 ? kind::OR : kind::ITE));
+    if (k == ITE && !options::sygusUnif())
+    {
+      continue;
+    }
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
     ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
     cnames.push_back(kind::kindToString(k));
