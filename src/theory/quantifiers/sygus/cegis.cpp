@@ -157,8 +157,9 @@ void Cegis::addRefinementLemma(Node lem)
                           d_rl_eval_hds.end(),
                           d_rl_vals.begin(),
                           d_rl_vals.end());
-    slem = Rewriter::rewrite(slem);
   }
+  // rewrite with extended rewriter
+  slem = d_tds->getExtRewriter()->extendedRewrite(slem);
   std::vector<Node> waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
@@ -205,7 +206,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   {
     for (unsigned i = 0; i < 2; i++)
     {
-      if (lem[i].isConst() && d_tds->isEvaluationHead(lem[1 - i]))
+      if (lem[i].isConst() && d_tds->isEvaluationPoint(lem[1 - i]))
       {
         term = lem[1 - i];
         val = lem[i];
@@ -216,7 +217,8 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
   else
   {
     term = lem.getKind() == NOT ? lem[0] : lem;
-    if (d_tds->isEvaluationHead(term))
+    // predicate case: the conjunct is a (negated) evaluation point
+    if (d_tds->isEvaluationPoint(term))
     {
       val = nm->mkConst(lem.getKind() != NOT);
     }
@@ -356,14 +358,10 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           cre_lem = neg_guard;
         }
       }
-      if (!cre_lem.isNull())
+      if (!cre_lem.isNull() && std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
       {
-        if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
-        {
-          Trace("sygus-cref-eval")
-              << "...produced lemma : " << cre_lem << std::endl;
-          lems.push_back(cre_lem);
-        }
+        Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem << std::endl;
+        lems.push_back(cre_lem);
       }
     }
     if (!lems.empty())

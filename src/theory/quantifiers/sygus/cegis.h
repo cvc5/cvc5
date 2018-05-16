@@ -93,7 +93,7 @@ class Cegis : public SygusModule
    * or d_refinement_lemma_unit). In the case that waiting[wcounter] corresponds
    * to a value propagation, e.g. it is of the form:
    *   (eval x c1...cn) = c
-   * the it is added to d_refinement_lemma_unit, (eval x c1...cn) -> c is added
+   * then it is added to d_refinement_lemma_unit, (eval x c1...cn) -> c is added
    * as a substitution in d_rl_eval_hds/d_rl_eval_vals, and applied to previous
    * lemmas in d_refinement_lemma_conj and lemmas waiting[k] for k>wcounter.
    * Each lemma in d_refinement_lemma_conj that is modifed in this process is

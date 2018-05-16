@@ -1597,7 +1597,7 @@ Node TermDbSygus::evaluateWithUnfolding( Node n ) {
   return evaluateWithUnfolding( n, visited );
 }
 
-bool TermDbSygus::isEvaluationHead(Node n) const
+bool TermDbSygus::isEvaluationPoint(Node n) const
 {
   if (n.getKind() != APPLY_UF || n.getNumChildren() == 0 || !n[0].isVar())
   {

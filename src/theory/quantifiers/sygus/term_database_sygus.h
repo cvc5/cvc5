@@ -183,12 +183,12 @@ class TermDbSygus {
   /** same as above, but with a cache of visited nodes */
   Node evaluateWithUnfolding(
       Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
-  /** is evaluation head?
+  /** is evaluation point?
    *
    * Returns true if n is of the form eval( x, c1...cn ) for some variable x
    * and constants c1...cn.
    */
-  bool isEvaluationHead(Node n) const;
+  bool isEvaluationPoint(Node n) const;
   //-----------------------------end conversion from sygus to builtin
 
  private:
