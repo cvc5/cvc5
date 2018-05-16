@@ -208,18 +208,10 @@ class SygusUnifRl : public SygusUnif
      * points with different model values, i.e. when all points that must be
      * separated indeed are separated by the current set of conditions.
      *
-     * This function either returns a condition (if all points are separated).
+     * This method either returns a solution (if all points are separated).
      * It it fails, it adds a conflict lemma to lemmas.
      */
     Node buildSol(Node cons, std::vector<Node>& lemmas);
-    /** whether all points that must be separated are separated
-     *
-     * This function tests separation of the points in the above sense and in
-     * case two heads cannot be separated, an equality between them is created
-     * and stored in toSeparate, so that a separation lemma can be generated to
-     * guide the synthesis search to yield either conditions that will separate
-     * these heads or equal values to them.
-     */
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
@@ -243,7 +235,7 @@ class SygusUnifRl : public SygusUnif
      */
     std::vector<Node> d_enums;
     /**
-     * The guard literal whose semantics are "we need at most d_enums.size()
+     * The guard literal whose semantics is "we need at most d_enums.size()
      * conditions in our solution. This is set by setConditions(...).
      */
     Node d_guard;

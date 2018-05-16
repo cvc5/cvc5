@@ -666,6 +666,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
     d_pt_sep.d_trie.addClassifier(&d_pt_sep, c_counter);
     c_counter++;
     // add to explanation
+    // c_exp is a conjunction of testers applied to shared selector chains
     Node c_exp = d_unif->d_tds->getExplain()->getExplanationForEquality(ce, cv);
     exp.push_back(c_exp);
     std::map<Node, std::vector<Node>>::iterator itr =
@@ -680,7 +681,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
       continue;
     }
     itr = d_pt_sep.d_trie.d_rep_to_class.find(er);
-    // since er is last in its separation class, it remains a representative
+    // since er is first in its separation class, it remains a representative
     Assert(itr != d_pt_sep.d_trie.d_rep_to_class.end());
     // is e still in the separation class of er?
     if (std::find(itr->second.begin(), itr->second.end(), e)
