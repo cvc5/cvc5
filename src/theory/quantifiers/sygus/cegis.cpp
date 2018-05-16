@@ -67,10 +67,6 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                           const std::vector<Node>& candidate_values)
 {
-  if (!options::sygusDirectEval())
-  {
-    return false;
-  }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
   if (options::sygusCRefEval())
@@ -94,6 +90,10 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       /* we could, but do not return here. experimentally, it is better to
          add the lemmas below as well, in parallel. */
     }
+  }
+  if (!options::sygusDirectEval())
+  {
+    return addedEvalLemmas;
   }
   Trace("cegqi-engine") << "  *** Do direct evaluation..." << std::endl;
   std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -159,8 +159,10 @@ void Cegis::addRefinementLemma(Node lem)
   std::vector< Node > waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
+  // while we are not done adding lemmas
   while(wcounter<waiting.size())
   {
+    // add the conjunct, possibly propagating
     addRefinementLemmaConjunct(wcounter, waiting);
     wcounter++;
   }
@@ -249,7 +251,13 @@ void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& 
   }
   else
   {
-    Trace("cegis-rl") << "cegis-rl: add: " << lem << std::endl;
+    if( Trace.isOn("cegis-rl") )
+    {
+      if( d_refinement_lemma_conj.find(lem)==d_refinement_lemma_conj.end() )
+      {
+        Trace("cegis-rl") << "cegis-rl: add: " << lem << std::endl;
+      }
+    }
     d_refinement_lemma_conj.insert(lem);
   }
 }
