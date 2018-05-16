@@ -80,8 +80,11 @@ class SygusUnif
    * based on the current set of enumerated values. Returns null if it cannot
    * for some function (for example, if the set of enumerated values is
    * insufficient, or if a non-deterministic strategy aborts).
+   * 
+   * This call may add lemmas to lemmas that should be sent out on an output
+   * channel by the caller.
    */
-  virtual bool constructSolution(std::vector<Node>& sols);
+  virtual bool constructSolution(std::vector<Node>& sols, std::vector< Node >& lemmas);
 
  protected:
   /** reference to quantifier engine */
@@ -150,7 +153,7 @@ class SygusUnif
    *
    * ind is the term depth of the context (for debugging).
    */
-  virtual Node constructSol(Node f, Node e, NodeRole nrole, int ind) = 0;
+  virtual Node constructSol(Node f, Node e, NodeRole nrole, int ind, std::vector< Node >& lemmas) = 0;
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   virtual Node constructBestSolvedTerm(const std::vector<Node>& solved);

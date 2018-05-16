@@ -157,40 +157,43 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
           }
           unif_values[index][e].push_back(m_eu);
         }
-        // inter-enumerator symmetry breaking
-        // given a pool of unification enumerators eu_1, ..., eu_n,
-        // CegisUnifEnumManager insists that size(eu_1) <= ... <= size(eu_n).
-        // We additionally insist that M(eu_i) < M(eu_{i+1}) when
-        // size(eu_i) = size(eu_{i+1}), where < is pointer comparison.
-        // We enforce this below by adding symmetry breaking lemmas of the form
-        //  ~( eu_i = M(eu_i) ^ eu_{i+1} = M(eu_{i+1} ) )
-        // when applicable.
-        for (unsigned j = 1, nenum = unif_values[index][e].size(); j < nenum;
-             j++)
+        if( index==0 )
         {
-          Node prev_val = unif_values[index][e][j - 1];
-          Node curr_val = unif_values[index][e][j];
-          // compare the node values
-          if (curr_val < prev_val)
+          // inter-enumerator symmetry breaking
+          // given a pool of unification enumerators eu_1, ..., eu_n,
+          // CegisUnifEnumManager insists that size(eu_1) <= ... <= size(eu_n).
+          // We additionally insist that M(eu_i) < M(eu_{i+1}) when
+          // size(eu_i) = size(eu_{i+1}), where < is pointer comparison.
+          // We enforce this below by adding symmetry breaking lemmas of the 
+          // form ~( eu_i = M(eu_i) ^ eu_{i+1} = M(eu_{i+1} ) )
+          // when applicable.
+          for (unsigned j = 1, nenum = unif_values[index][e].size(); j < nenum;
+              j++)
           {
-            // must have the same size
-            unsigned prev_size = d_tds->getSygusTermSize(prev_val);
-            unsigned curr_size = d_tds->getSygusTermSize(curr_val);
-            Assert(prev_size <= curr_size);
-            if (curr_size == prev_size)
+            Node prev_val = unif_values[index][e][j - 1];
+            Node curr_val = unif_values[index][e][j];
+            // compare the node values
+            if (curr_val < prev_val)
             {
-              Node slem = nm->mkNode(AND,
-                                     unif_enums[index][e][j - 1].eqNode(
-                                         unif_values[index][e][j - 1]),
-                                     unif_enums[index][e][j].eqNode(
-                                         unif_values[index][e][j]))
-                              .negate();
-              Trace("cegis-unif") << "CegisUnif::lemma, inter-unif-enumerator "
-                                     "symmetry breaking lemma : "
-                                  << slem << "\n";
-              d_qe->getOutputChannel().lemma(slem);
-              addedUnifEnumSymBreakLemma = true;
-              break;
+              // must have the same size
+              unsigned prev_size = d_tds->getSygusTermSize(prev_val);
+              unsigned curr_size = d_tds->getSygusTermSize(curr_val);
+              Assert(prev_size <= curr_size);
+              if (curr_size == prev_size)
+              {
+                Node slem = nm->mkNode(AND,
+                                      unif_enums[index][e][j - 1].eqNode(
+                                          unif_values[index][e][j - 1]),
+                                      unif_enums[index][e][j].eqNode(
+                                          unif_values[index][e][j]))
+                                .negate();
+                Trace("cegis-unif") << "CegisUnif::lemma, inter-unif-enumerator "
+                                      "symmetry breaking lemma : "
+                                    << slem << "\n";
+                d_qe->getOutputChannel().lemma(slem);
+                addedUnifEnumSymBreakLemma = true;
+                break;
+              }
             }
           }
         }
@@ -206,12 +209,13 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   {
     for (const Node& e : d_cand_to_strat_pt[c])
     {
-      d_sygus_unif.setConditions(e, unif_values[1][e]);
+      d_sygus_unif.setConditions(e, unif_values[0][e], unif_values[1][e]);
     }
   }
   // build solutions (for unif candidates a divide-and-conquer approach is used)
   std::vector<Node> sols;
-  if (d_sygus_unif.constructSolution(sols))
+  std::vector< Node > lemmas;
+  if (d_sygus_unif.constructSolution(sols, lemmas))
   {
     candidate_values.insert(candidate_values.end(), sols.begin(), sols.end());
     if (Trace.isOn("cegis-unif"))
@@ -226,6 +230,16 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     return true;
   }
+  else
+  {
+    Assert( !lemmas.empty() );
+    for( const Node& lem : lemmas )
+    {
+      Trace("cegis-unif") << "CegisUnif::lemma, separation lemma : " << lem << "\n";
+      d_qe->getOutputChannel().lemma(lem);
+    }
+  }
+  /*
   std::map<Node, std::vector<Node>> sepPairs;
   if (d_sygus_unif.getSeparationPairs(sepPairs))
   {
@@ -272,6 +286,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
       }
     }
   }
+  */
   return false;
 }
 
@@ -478,7 +493,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
           d_qe->getOutputChannel().lemma(sym_break_red_ops);
         }
         // symmetry breaking between enumerators
-        if (!ci.second.d_enums[index].empty())
+        if (!ci.second.d_enums[index].empty() && index==0)
         {
           Node e_prev = ci.second.d_enums[index].back();
           Node size_e = nm->mkNode(DT_SIZE, e);

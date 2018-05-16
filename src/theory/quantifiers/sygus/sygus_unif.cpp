@@ -42,7 +42,7 @@ void SygusUnif::initializeCandidate(
   d_strategy[f].initialize(qe, f, enums);
 }
 
-bool SygusUnif::constructSolution(std::vector<Node>& sols)
+bool SygusUnif::constructSolution(std::vector<Node>& sols, std::vector< Node >& lemmas)
 {
   // initialize a call to construct solution
   initializeConstructSol();
