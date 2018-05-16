@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -783,43 +784,49 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     Trace("sygus-strat-slearn") << "...by strategy, can exclude operator "
                                 << etis->d_cons << std::endl;
     needs_cons_curr[cindex] = false;
-    // can eliminate etn is BOOL and if ITE arguments are of type BOOL and
-    // contain TRUE/FALSE constructors
-    const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
-    Node op = Node::fromExpr(dt[cindex].getSygusOp());
-    TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
-    if (op.getKind() == kind::BUILTIN && NodeManager::operatorToKind(op) == ITE
-        && sygus_tn.isBoolean()
-        && (TypeNode::fromType(dt[cindex].getArgType(1))
-            == TypeNode::fromType(dt[cindex].getArgType(2))))
+    // try to eliminate from etn's datatype all operators except TRUE/FALSE if
+    // arguments of ITE are the same BOOL type
+    if (options::sygusUnifBoolConst())
     {
-      unsigned ncons = dt.getNumConstructors(), indexT = ncons, indexF = ncons;
-      for (unsigned k = 0; k < ncons; ++k)
+      const Datatype& dt =
+          static_cast<DatatypeType>(etn.toType()).getDatatype();
+      Node op = Node::fromExpr(dt[cindex].getSygusOp());
+      TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
+      if (op.getKind() == kind::BUILTIN
+          && NodeManager::operatorToKind(op) == ITE
+          && sygus_tn.isBoolean()
+          && (TypeNode::fromType(dt[cindex].getArgType(1))
+              == TypeNode::fromType(dt[cindex].getArgType(2))))
       {
-        Node op_arg = Node::fromExpr(dt[k].getSygusOp());
-        if (dt[k].getNumArgs() > 0 || !op_arg.isConst())
-        {
-          continue;
-        }
-        if (op_arg.getConst<bool>())
-        {
-          indexT = k;
-        }
-        else
-        {
-          indexF = k;
-        }
-      }
-      if (indexT < ncons && indexF < ncons)
-      {
-        Trace("sygus-strat-slearn")
-            << "...for ite boolean arg, can exclude all operators but T/F\n";
+        unsigned ncons = dt.getNumConstructors(), indexT = ncons,
+                 indexF = ncons;
         for (unsigned k = 0; k < ncons; ++k)
         {
-          needs_cons_curr[k] = false;
+          Node op_arg = Node::fromExpr(dt[k].getSygusOp());
+          if (dt[k].getNumArgs() > 0 || !op_arg.isConst())
+          {
+            continue;
+          }
+          if (op_arg.getConst<bool>())
+          {
+            indexT = k;
+          }
+          else
+          {
+            indexF = k;
+          }
         }
-        needs_cons_curr[indexT] = true;
-        needs_cons_curr[indexF] = true;
+        if (indexT < ncons && indexF < ncons)
+        {
+          Trace("sygus-strat-slearn")
+              << "...for ite boolean arg, can exclude all operators but T/F\n";
+          for (unsigned k = 0; k < ncons; ++k)
+          {
+            needs_cons_curr[k] = false;
+          }
+          needs_cons_curr[indexT] = true;
+          needs_cons_curr[indexF] = true;
+        }
       }
     }
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
