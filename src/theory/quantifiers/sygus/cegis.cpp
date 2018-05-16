@@ -358,9 +358,11 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           cre_lem = neg_guard;
         }
       }
-      if (!cre_lem.isNull() && std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
+      if (!cre_lem.isNull()
+          && std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
       {
-        Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem << std::endl;
+        Trace("sygus-cref-eval")
+            << "...produced lemma : " << cre_lem << std::endl;
         lems.push_back(cre_lem);
       }
     }
