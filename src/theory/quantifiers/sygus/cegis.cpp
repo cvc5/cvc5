@@ -102,10 +102,10 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
                          << candidate_values[i] << std::endl;
     d_tds->registerModelValue(candidates[i],
-                            candidate_values[i],
-                            eager_terms,
-                            eager_vals,
-                            eager_exps);
+                              candidate_values[i],
+                              eager_terms,
+                              eager_vals,
+                              eager_exps);
   }
   Trace("cegqi-debug") << "...produced " << eager_terms.size()
                        << " eager evaluation lemmas.\n";
@@ -151,16 +151,19 @@ void Cegis::addRefinementLemma(Node lem)
   d_refinement_lemmas.push_back(lem);
   // apply existing substitution
   Node slem = lem;
-  if( !d_rl_eval_hds.empty() )
+  if (!d_rl_eval_hds.empty())
   {
-    slem = lem.substitute(d_rl_eval_hds.begin(),d_rl_eval_hds.end(),d_rl_vals.begin(),d_rl_vals.end());
+    slem = lem.substitute(d_rl_eval_hds.begin(),
+                          d_rl_eval_hds.end(),
+                          d_rl_vals.begin(),
+                          d_rl_vals.end());
     slem = Rewriter::rewrite(slem);
   }
-  std::vector< Node > waiting;
+  std::vector<Node> waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
   // while we are not done adding lemmas
-  while(wcounter<waiting.size())
+  while (wcounter < waiting.size())
   {
     // add the conjunct, possibly propagating
     addRefinementLemmaConjunct(wcounter, waiting);
@@ -168,14 +171,15 @@ void Cegis::addRefinementLemma(Node lem)
   }
 }
 
-void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& waiting )
+void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
+                                       std::vector<Node>& waiting)
 {
   Node lem = waiting[wcounter];
-  lem = Rewriter::rewrite( lem );
+  lem = Rewriter::rewrite(lem);
   // apply substitution and rewrite if applicable
-  if( lem.isConst() )
+  if (lem.isConst())
   {
-    if( !lem.getConst<bool>() )
+    if (!lem.getConst<bool>())
     {
       // conjecture is infeasible
     }
@@ -194,16 +198,16 @@ void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& 
     return;
   }
   // does this correspond to a substitution?
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   TNode term;
   TNode val;
-  if( lem.getKind()==EQUAL )
+  if (lem.getKind() == EQUAL)
   {
-    for( unsigned i=0; i<2; i++ )
+    for (unsigned i = 0; i < 2; i++)
     {
-      if( lem[i].isConst() && d_tds->isEvaluationHead(lem[1-i]))
+      if (lem[i].isConst() && d_tds->isEvaluationHead(lem[1 - i]))
       {
-        term = lem[1-i];
+        term = lem[1 - i];
         val = lem[i];
         break;
       }
@@ -211,50 +215,52 @@ void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& 
   }
   else
   {
-    term = lem.getKind()==NOT ? lem[0] : lem;
-    if( d_tds->isEvaluationHead(term) )
+    term = lem.getKind() == NOT ? lem[0] : lem;
+    if (d_tds->isEvaluationHead(term))
     {
-      val = nm->mkConst(lem.getKind()!=NOT);
+      val = nm->mkConst(lem.getKind() != NOT);
     }
   }
-  if( !val.isNull() )
+  if (!val.isNull())
   {
-    if( d_refinement_lemma_unit.find(lem)!=d_refinement_lemma_unit.end() )
+    if (d_refinement_lemma_unit.find(lem) != d_refinement_lemma_unit.end())
     {
       // already added
       return;
     }
-    Trace("cegis-rl") << "* cegis-rl: propagate: " << term << " -> " << val << std::endl;
+    Trace("cegis-rl") << "* cegis-rl: propagate: " << term << " -> " << val
+                      << std::endl;
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
     d_refinement_lemma_unit.insert(lem);
     // apply to waiting lemmas beyond this one
-    for( unsigned i=wcounter+1, size=waiting.size(); i<size; i++ )
+    for (unsigned i = wcounter + 1, size = waiting.size(); i < size; i++)
     {
-      waiting[i] = waiting[i].substitute(term,val);
+      waiting[i] = waiting[i].substitute(term, val);
     }
     // apply to all existing refinement lemmas
-    std::vector< Node > to_rem;
-    for( const Node& rl : d_refinement_lemma_conj )
+    std::vector<Node> to_rem;
+    for (const Node& rl : d_refinement_lemma_conj)
     {
-      Node srl = rl.substitute(term,val);
-      if( srl!=rl )
+      Node srl = rl.substitute(term, val);
+      if (srl != rl)
       {
-        Trace("cegis-rl") << "* cegis-rl: replace: " << rl << " -> " << srl << std::endl;
+        Trace("cegis-rl") << "* cegis-rl: replace: " << rl << " -> " << srl
+                          << std::endl;
         waiting.push_back(srl);
         to_rem.push_back(rl);
       }
     }
-    for( const Node& tr : to_rem )
+    for (const Node& tr : to_rem)
     {
       d_refinement_lemma_conj.erase(tr);
     }
   }
   else
   {
-    if( Trace.isOn("cegis-rl") )
+    if (Trace.isOn("cegis-rl"))
     {
-      if( d_refinement_lemma_conj.find(lem)==d_refinement_lemma_conj.end() )
+      if (d_refinement_lemma_conj.find(lem) == d_refinement_lemma_conj.end())
       {
         Trace("cegis-rl") << "cegis-rl: add: " << lem << std::endl;
       }
@@ -283,7 +289,9 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
-                           << d_refinement_lemma_unit.size() << " unit and " << d_refinement_lemma_conj.size() << " non-unit refinement lemma conjunctions."
+                           << d_refinement_lemma_unit.size() << " unit and "
+                           << d_refinement_lemma_conj.size()
+                           << " non-unit refinement lemma conjunctions."
                            << std::endl;
   Assert(vs.size() == ms.size());
 
@@ -291,27 +299,27 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
 
   Node nfalse = nm->mkConst(false);
   Node neg_guard = d_parent->getGuard().negate();
-  for( unsigned r=0; r<2; r++ )
+  for (unsigned r = 0; r < 2; r++)
   {
-    std::unordered_set< Node, NodeHashFunction >& rlemmas = r==0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
-    for (const Node& lem : rlemmas )
+    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+        r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    for (const Node& lem : rlemmas)
     {
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
       EvalSygusInvarianceTest vsit;
       Trace("sygus-cref-eval") << "Check refinement lemma conjunct " << lem
+                               << " against current model." << std::endl;
+      Trace("sygus-cref-eval2") << "Check refinement lemma conjunct " << lem
                                 << " against current model." << std::endl;
-      Trace("sygus-cref-eval2") << "Check refinement lemma conjunct "
-                                << lem << " against current model."
-                                << std::endl;
       Node cre_lem;
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
-      Trace("sygus-cref-eval2") << "...under substitution it is : " << lemcs
-                                << std::endl;
+      Trace("sygus-cref-eval2")
+          << "...under substitution it is : " << lemcs << std::endl;
       Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs);
-      Trace("sygus-cref-eval2") << "...after unfolding is : " << lemcsu
-                                << std::endl;
+      Trace("sygus-cref-eval2")
+          << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
         std::vector<Node> msu;
@@ -333,8 +341,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
               << std::endl;
           d_tds->getExplain()->getExplanationFor(
               vs[k], ut, mexp, vsit, var_count, false);
-          Trace("sygus-cref-eval2-debug")
-              << "exp now: " << mexp << std::endl;
+          Trace("sygus-cref-eval2-debug") << "exp now: " << mexp << std::endl;
           msu[k] = vsit.getUpdatedTerm();
           Trace("sygus-cref-eval2-debug")
               << "updated term : " << msu[k] << std::endl;
@@ -353,13 +360,13 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       {
         if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
         {
-          Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
-                                    << std::endl;
+          Trace("sygus-cref-eval")
+              << "...produced lemma : " << cre_lem << std::endl;
           lems.push_back(cre_lem);
         }
       }
     }
-    if( !lems.empty() )
+    if (!lems.empty())
     {
       break;
     }
@@ -367,10 +374,10 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   // if we didn't add a lemma, trying sampling to add one
   if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
   {
-    if( sampleAddRefinementLemma(vs, ms, lems) )
+    if (sampleAddRefinementLemma(vs, ms, lems))
     {
       // restart (should be guaranteed to add evaluation lemmas
-      getRefinementEvalLemmas(vs,ms,lems);
+      getRefinementEvalLemmas(vs, ms, lems);
     }
   }
 }

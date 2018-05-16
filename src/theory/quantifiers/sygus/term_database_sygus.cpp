@@ -1599,29 +1599,29 @@ Node TermDbSygus::evaluateWithUnfolding( Node n ) {
 
 bool TermDbSygus::isEvaluationHead(Node n) const
 {
-  if( n.getKind()!=APPLY_UF || n.getNumChildren()==0 || !n[0].isVar() )
+  if (n.getKind() != APPLY_UF || n.getNumChildren() == 0 || !n[0].isVar())
   {
     return false;
   }
-  for( unsigned i=1, nchild = n.getNumChildren(); i<nchild; i++ )
+  for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
   {
-    if( !n[i].isConst() )
+    if (!n[i].isConst())
     {
       return false;
     }
   }
   TypeNode tn = n[0].getType();
-  if( !tn.isDatatype() )
+  if (!tn.isDatatype())
   {
     return false;
   }
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if( !dt.isSygus() )
+  if (!dt.isSygus())
   {
     return false;
   }
-  Node eval_op = Node::fromExpr( dt.getSygusEvaluationFunc() );
-  return eval_op==n.getOperator();
+  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
+  return eval_op == n.getOperator();
 }
 
 }/* CVC4::theory::quantifiers namespace */

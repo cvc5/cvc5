@@ -83,22 +83,23 @@ class Cegis : public SygusModule
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
   /** adds lem as a refinement lemma */
-  void addRefinementLemma( Node lem );
-  /** add refinement lemma conjunct 
-   * 
-   * This is a helper function for addRefinementLemma. 
-   * 
+  void addRefinementLemma(Node lem);
+  /** add refinement lemma conjunct
+   *
+   * This is a helper function for addRefinementLemma.
+   *
    * This adds waiting[wcounter] to the proper vector (d_refinement_lemma_conj
    * or d_refinement_lemma_unit). In the case that waiting[wcounter] corresponds
    * to a value propagation, e.g. it is of the form:
    *   (eval x c1...cn) = c
    * the it is added to d_refinement_lemma_unit, (eval x c1...cn) -> c is added
    * as a substitution in d_rl_eval_hds/d_rl_eval_vals, and applied to previous
-   * lemmas in d_refinement_lemma_conj and lemmas waiting[k] for k>wcounter. 
+   * lemmas in d_refinement_lemma_conj and lemmas waiting[k] for k>wcounter.
    * Each lemma in d_refinement_lemma_conj that is modifed in this process is
    * moved to the vector waiting.
    */
-  void addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& waiting );
+  void addRefinementLemmaConjunct(unsigned wcounter,
+                                  std::vector<Node>& waiting);
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that
