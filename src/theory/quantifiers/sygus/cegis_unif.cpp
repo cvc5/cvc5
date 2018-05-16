@@ -127,6 +127,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   // values
   NodeManager* nm = NodeManager::currentNM();
   bool addedUnifEnumSymBreakLemma = false;
+  Node cost_lit = d_u_enum_manager.getCurrentLiteral();
   std::map<Node, std::vector<Node>> unif_enums[2];
   std::map<Node, std::vector<Node>> unif_values[2];
   for (const Node& c : candidates)
@@ -167,6 +168,9 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
           // We enforce this below by adding symmetry breaking lemmas of the
           // form ~( eu_i = M(eu_i) ^ eu_{i+1} = M(eu_{i+1} ) )
           // when applicable.
+          // we only do this for return value enumerators, since condition
+          // enumerators cannot be ordered (their order is based on the
+          // seperation resolution scheme during model construction).
           for (unsigned j = 1, nenum = unif_values[index][e].size(); j < nenum;
                j++)
           {
@@ -210,7 +214,7 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
   {
     for (const Node& e : d_cand_to_strat_pt[c])
     {
-      d_sygus_unif.setConditions(e, unif_values[0][e], unif_values[1][e]);
+      d_sygus_unif.setConditions(e, cost_lit, unif_enums[1][e], unif_values[1][e]);
     }
   }
   // build solutions (for unif candidates a divide-and-conquer approach is used)
@@ -231,64 +235,14 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     }
     return true;
   }
-  else
+
+  Assert(!lemmas.empty());
+  for (const Node& lem : lemmas)
   {
-    Assert(!lemmas.empty());
-    for (const Node& lem : lemmas)
-    {
-      Trace("cegis-unif") << "CegisUnif::lemma, separation lemma : " << lem
-                          << "\n";
-      d_qe->getOutputChannel().lemma(lem);
-    }
+    Trace("cegis-unif") << "CegisUnif::lemma, separation lemma : " << lem
+                        << "\n";
+    d_qe->getOutputChannel().lemma(lem);
   }
-  /*
-  std::map<Node, std::vector<Node>> sepPairs;
-  if (d_sygus_unif.getSeparationPairs(sepPairs))
-  {
-    // Build separation lemma based on current size, and for each heads that
-    // could not be separated, the condition values currently enumerated for its
-    // decision tree
-    Node neg_cost_lit = d_u_enum_manager.getCurrentLiteral().negate();
-    std::vector<Node> cenums, cond_eqs;
-    for (std::pair<const Node, std::vector<Node>>& np : sepPairs)
-    {
-      Node e = np.first;
-      // Build equalities between condition enumerators associated with the
-      // strategy point whose decision tree could not separate the given heads
-      std::vector<Node> cond_eqs;
-      std::map<Node, std::vector<Node>>::iterator itue = unif_enums[1].find(e);
-      Assert(itue != unif_enums[1].end());
-      std::map<Node, std::vector<Node>>::iterator ituv = unif_values[1].find(e);
-      Assert(ituv != unif_values[1].end());
-      Assert(itue->second.size() == ituv->second.size());
-      for (unsigned i = 0, size = itue->second.size(); i < size; i++)
-      {
-        cond_eqs.push_back(itue->second[i].eqNode(ituv->second[i]));
-      }
-      Assert(!cond_eqs.empty());
-      Node neg_conds_lit =
-          cond_eqs.size() > 1 ? nm->mkNode(AND, cond_eqs) : cond_eqs[0];
-      neg_conds_lit = neg_conds_lit.negate();
-      for (const Node& eq : np.second)
-      {
-        // A separation lemma is of the shape
-        //   (cost_n+1 ^ (c_1 = M(c_1) ^ ... ^ M(c_n))) => e_i = e_j
-        // in which cost_n+1 is the cost function for the size n+1, each c_k is
-        // a conditional enumerator associated with the respective decision
-        // tree, each M(c_k) its current model value, and e_i, e_j are two
-        // distinct heads that could not be separated by these condition values
-        //
-        // Such a lemma will force the ground solver, within the restrictions of
-        // the respective cost function, to make e_i and e_j equal or to come up
-        // with new values for the conditional enumerators such that we can try
-        Node sep_lemma = nm->mkNode(OR, neg_cost_lit, neg_conds_lit, eq);
-        Trace("cegis-unif")
-            << "CegisUnif::lemma, separation lemma : " << sep_lemma << "\n";
-        d_qe->getOutputChannel().lemma(sep_lemma);
-      }
-    }
-  }
-  */
   return false;
 }
 

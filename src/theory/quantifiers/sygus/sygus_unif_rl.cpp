@@ -360,13 +360,14 @@ Node SygusUnifRl::getConditionForEvaluationPoint(Node e) const
 }
 
 void SygusUnifRl::setConditions(Node e,
+                                Node guard,
                                 const std::vector<Node>& enums,
                                 const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
   Assert(it != d_stratpt_to_dt.end());
   // set the conditions for the appropriate tree
-  it->second.setConditions(enums, conds);
+  it->second.setConditions(guard,enums, conds);
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -486,26 +487,17 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
 }
 
 void SygusUnifRl::DecisionTreeInfo::setConditions(
-    const std::vector<Node>& enums, const std::vector<Node>& conds)
+    Node guard, const std::vector<Node>& enums, const std::vector<Node>& conds)
 {
   Assert(enums.size() == conds.size());
+  // set the guard 
+  d_guard = guard;
   // clear old condition values
   d_enums.clear();
   d_conds.clear();
   // set new condition values
   d_enums.insert(d_enums.end(), enums.begin(), enums.end());
   d_conds.insert(d_conds.end(), conds.begin(), conds.end());
-}
-
-void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
-{
-  d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
-}
-
-void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
-{
-  d_conds.push_back(condv);
-  d_pt_sep.d_trie.addClassifier(&d_pt_sep, d_conds.size() - 1);
 }
 
 unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
@@ -533,10 +525,14 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   d_pt_sep.d_trie.clear();
   // the current explanation of why there has not yet been a separation conflict
   std::vector<Node> exp;
+  // is the above explanation ready to be sent out as a lemma?
+  bool exp_conflict = false;
   // the index of the head we are considering
   unsigned hd_counter = 0;
   // the index of the condition we are considering
   unsigned c_counter = 0;
+  // do we need to resolve a separation conflict?
+  bool needs_sep_resolve = false;
   // This loop simultaneously builds the solution in terms of a lazy trie
   // (LazyTrieMulti), and checks whether a separation conflict exists. We
   // enforce that the separation conflicts we encounter while building
@@ -581,54 +577,84 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   // c1 does not separate e3 and the representative of this class, e1. Hence we
   // get a separation lemma of the form:
   //  ~( e1 = e2 ^ e1 != e3 ^ c1 = [x>0] )
-  while (hd_counter < d_hds.size())
+  //
+  // It also may be the case that we exhaust the pool of condition enumerators.
+  // Say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2), (eval e3 1 3)
+  //   conditions: c1
+  // where M(e1) = x, M(e2) = x, M(e3) = y, M(c1) = y>0. After adding e1, e2,
+  // and e3, we have a separation class { e1, e2, e3 } that is in conflict
+  // since M(e3)!=M(e1). We add the condition c1, which separates into new
+  // equivalence classes { e1 }, { e2, e3 }. We are still in separation conflict
+  // since M(e3)!=M(e2). However, we do not have any further conditions to use
+  // to resolve this conflict. Thus, we add the separation lemma:
+  //  ~( e1 = e2 ^ e1 != e3 ^ e2 != e3 ^ c1 = [y>0] ^ G_1 )
+  // where G_1 is a guard stating that we use at most 1 condition.
+  Node e;
+  Node er;
+  while (hd_counter < d_hds.size() || needs_sep_resolve)
   {
-    // add the head to the trie
-    Node e = d_hds[hd_counter];
-    hd_mv[e] = d_unif->d_parent->getModelValue(e);
-    if (Trace.isOn("sygus-unif-sol"))
+    if( !needs_sep_resolve )
     {
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())
-          ->toStreamSygus(ss, hd_mv[e]);
-      Trace("sygus-unif-sol")
-          << "  add evaluation head (" << hd_counter << "/" << d_hds.size()
-          << "): " << e << " -> " << ss.str() << std::endl;
+      // add the head to the trie
+      e = d_hds[hd_counter];
+      hd_mv[e] = d_unif->d_parent->getModelValue(e);
+      if (Trace.isOn("sygus-unif-sol"))
+      {
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(ss, hd_mv[e]);
+        Trace("sygus-unif-sol")
+            << "  add evaluation head (" << hd_counter << "/" << d_hds.size()
+            << "): " << e << " -> " << ss.str() << std::endl;
+      }
+      hd_counter++;
+      // get the representative of the trie
+      er = d_pt_sep.d_trie.add(e, &d_pt_sep, c_counter);
+      Trace("sygus-unif-sol") << "  ...separation class " << er << std::endl;
+      // are we in conflict?
+      if (er == e)
+      {
+        // new separation class, no conflict
+        continue;
+      }
+      Assert(hd_mv.find(er) != hd_mv.end());
+      if (hd_mv[er] == hd_mv[e])
+      {
+        // merged into separation class with same model value, no conflict
+        // add to explanation
+        // this states that it mattered that (er = e) at the time that e was
+        // added to the trie. Notice that er and e may become separated later,
+        // but to ensure the overall invariant, this equality must persist in
+        // the explanation.
+        exp.push_back(er.eqNode(e));
+        Trace("sygus-unif-sol") << "  ...equal model values " << std::endl;
+        Trace("sygus-unif-sol")
+            << "  ...add to explanation " << er.eqNode(e) << std::endl;
+        continue;
+      }
     }
-    hd_counter++;
-    // get the representative of the trie
-    Node er = d_pt_sep.d_trie.add(e, &d_pt_sep, d_conds.size());
-    Trace("sygus-unif-sol") << "  ...separation class " << er << std::endl;
-    // are we in conflict?
-    if (er == e)
-    {
-      // new separation class, no conflict
-      continue;
-    }
-    Assert(hd_mv.find(er) != hd_mv.end());
-    if (hd_mv[er] == hd_mv[e])
-    {
-      // merged into separation class with same model value, no conflict
-      // add to explanation
-      // this states that it mattered that (er = e) at the time that e was
-      // added to the trie. Notice that er and e may become separated later,
-      // but to ensure the overall invariant, this equality must persist in
-      // the explanation.
-      exp.push_back(er.eqNode(e));
-      Trace("sygus-unif-sol") << "  ...equal model values " << std::endl;
-      Trace("sygus-unif-sol")
-          << "  ...add to explanation " << er.eqNode(e) << std::endl;
-      continue;
-    }
-    // we are in conflict, but does the next condition resolve this conflict?
+    // we are in separation conflict, does the next condition resolve this?
+    //
     // the following assertion holds due to the fact that the enumeration
     // manager ensures #c >= (#d-1), that is, if our evaluation heads take on n
     // unique values, we enumerate at least (n-1) conditions. Hence, we
     // have at most (n-1) separation conflicts, which we enforce are resolved
     // by the condition enumerators, in order.
+    if( c_counter>=d_conds.size() )
+    {
+      // must explain this
+      exp.push_back(e.eqNode(er).negate());
+      // truncated separation lemma
+      Assert(!d_guard.isNull());
+      exp.push_back(d_guard);
+      exp_conflict = true;
+      break;
+    }
     Assert(c_counter < d_conds.size());
     Node ce = d_enums[c_counter];
     Node cv = d_conds[c_counter];
+    Assert( ce.getType()==cv.getType() );
     if (Trace.isOn("sygus-unif-sol"))
     {
       std::stringstream ss;
@@ -637,34 +663,74 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
           << "  add condition (" << c_counter << "/" << d_conds.size()
           << "): " << ce << " -> " << ss.str() << std::endl;
     }
+    // cache the separation class
+    std::vector< Node > prev_sep_c = d_pt_sep.d_trie.d_rep_to_class[er];
+    // add new classifier
     d_pt_sep.d_trie.addClassifier(&d_pt_sep, c_counter);
     c_counter++;
     // add to explanation
     Node c_exp = d_unif->d_tds->getExplain()->getExplanationForEquality(ce, cv);
     exp.push_back(c_exp);
     std::map<Node, std::vector<Node>>::iterator itr =
-        d_pt_sep.d_trie.d_rep_to_class.find(er);
-    // since er is first in its separation class, it should remain a
-    // representative
-    Assert(itr != d_pt_sep.d_trie.d_rep_to_class.end());
+        d_pt_sep.d_trie.d_rep_to_class.find(e);
+    // since e is last in its separation class, if it becomes a representative,
+    // then it is separated from all values in prev_sep_c
+    if(itr != d_pt_sep.d_trie.d_rep_to_class.end())
+    {
+      Trace("sygus-unif-sol") << "  ...resolves separation conflict with all" << std::endl;
+      needs_sep_resolve = false;
+      continue;
+    }
+    itr = d_pt_sep.d_trie.d_rep_to_class.find(er);
+    // since er is last in its separation class, it remains a representative
+    Assert( itr!=d_pt_sep.d_trie.d_rep_to_class.end() );
     // is e still in the separation class of er?
-    std::vector<Node>& sepc_er = itr->second;
-    if (std::find(sepc_er.begin(), sepc_er.end(), e) != sepc_er.end())
+    if (std::find(itr->second.begin(), itr->second.end(), e) != itr->second.end())
     {
       // we are explaining the conflict, must include e!=er.
       exp.push_back(e.eqNode(er).negate());
       Trace("sygus-unif-sol")
-          << "  ...does not resolve separation conflict" << std::endl;
+          << "  ...does not resolve separation conflict with current" << std::endl;
       // the condition does not separate e and er
       // this violates the invariant that the i^th conditional enumerator
       // resolves the i^th separation conflict
-      Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
-      lemma = lemma.negate();
-      Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
-      lemmas.push_back(lemma);
-      return Node::null();
+      exp_conflict = true;
+      break;
     }
-    Trace("sygus-unif-sol") << "  ...resolves separation conflict" << std::endl;
+    Trace("sygus-unif-sol") << "  ...resolves separation conflict with current, but not all" << std::endl;
+    // find the new term to resolve a separation
+    Node new_er = Node::null();
+    // scan the previous list and find the representative of the class that e is now in
+    for( unsigned i=0, size=prev_sep_c.size(); i<size; i++ )
+    {
+      Node check_er = prev_sep_c[i];
+      if( check_er!=er && check_er!=e )
+      {
+        itr = d_pt_sep.d_trie.d_rep_to_class.find(check_er);
+        if( itr!=d_pt_sep.d_trie.d_rep_to_class.end() )
+        {
+          if(std::find(itr->second.begin(), itr->second.end(), e) != itr->second.end())
+          {
+            new_er = check_er;
+            break;
+          }
+        }
+      }
+    }
+    // should find exactly one
+    Assert( !new_er.isNull() );
+    er = new_er;
+    // must explain this
+    exp.push_back(e.eqNode(er).negate());
+    needs_sep_resolve = true;
+  }
+  if( exp_conflict )
+  {
+    Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+    lemma = lemma.negate();
+    Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
+    lemmas.push_back(lemma);
+    return Node::null();
   }
 
   Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
@@ -689,8 +755,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
       // leaf
       if (trie->d_children.empty())
       {
-        Assert(d_hd_values.find(trie->d_lazy_child) != d_hd_values.end());
-        cache[cur] = d_hd_values[trie->d_lazy_child];
+        Assert(hd_mv.find(trie->d_lazy_child) != hd_mv.end());
+        cache[cur] = hd_mv[trie->d_lazy_child];
         Trace("sygus-unif-sol-debug")
             << "......leaf, build "
             << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())

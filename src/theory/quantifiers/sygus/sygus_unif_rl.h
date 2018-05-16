@@ -94,6 +94,7 @@ class SygusUnifRl : public SygusUnif
    * point e is conds.
    */
   void setConditions(Node e,
+                     Node guard,
                      const std::vector<Node>& enums,
                      const std::vector<Node>& conds);
 
@@ -220,23 +221,28 @@ class SygusUnifRl : public SygusUnif
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
     NodePair d_template;
-    /** enumerated condition values */
+    /** enumerated condition values, this is set by setConditions(...). */
     std::vector<Node> d_conds;
     /** gathered evaluation point heads */
     std::vector<Node> d_hds;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** registered condition values */
-    void setConditions(const std::vector<Node>& enums,
+    void setConditions(Node guard, const std::vector<Node>& enums,
                        const std::vector<Node>& conds);
 
    private:
     /**
      * Conditional enumerator variables corresponding to the condition values in
      * d_conds. These are used for generating separation lemmas during
-     * buildSol.
+     * buildSol. This is set by setConditions(...).
      */
     std::vector<Node> d_enums;
+    /** 
+     * The guard literal whose semantics are "we need at most d_enums.size()
+     * conditions in our solution. This is set by setConditions(...).
+     */
+    Node d_guard;
     /**
      * reference to inferred strategy for the function-to-synthesize this DT is
      * associated with
@@ -254,8 +260,6 @@ class SygusUnifRl : public SygusUnif
      * decision tree.
      */
     Node d_cond_enum;
-    /** chache of model values of heads of evaluation points */
-    NodePairMap d_hd_values;
     /** Classifies evaluation points according to enumerated condition values
      *
      * Maintains the invariant that points evaluated in the same way in the
@@ -284,10 +288,6 @@ class SygusUnifRl : public SygusUnif
      * enumerated condiotion values
      */
     PointSeparator d_pt_sep;
-    /** adds the respective evaluation point of the head f to d_pt_sep */
-    void addPoint(Node f);
-    /** adds a value to the pool of condition values and to d_pt_sep */
-    void addCondValue(Node condv);
   };
   /** maps strategy points in the strategy tree to the above data */
   std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;
