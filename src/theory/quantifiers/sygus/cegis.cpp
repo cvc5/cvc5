@@ -240,6 +240,7 @@ void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& 
       Node srl = rl.substitute(term,val);
       if( srl!=rl )
       {
+        Trace("cegis-rl") << "* cegis-rl: replace: " << rl << " -> " << srl << std::endl;
         waiting.push_back(srl);
         to_rem.push_back(rl);
       }
