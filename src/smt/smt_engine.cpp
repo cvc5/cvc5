@@ -2647,10 +2647,9 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
-  d_preprocessingPassRegistry.registerPass("static-learning", std::move(staticLearning));
-  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
-  d_preprocessingPassRegistry.registerPass("static-learning",
+  d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
+  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
