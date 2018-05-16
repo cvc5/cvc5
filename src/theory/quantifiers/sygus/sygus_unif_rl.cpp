@@ -634,10 +634,11 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
         continue;
       }
     }
-    // must include in the explanation that we hit a conflict at this point in the construction
+    // must include in the explanation that we hit a conflict at this point in
+    // the construction
     exp.push_back(e.eqNode(er).negate());
     // we are in separation conflict, does the next condition resolve this?
-    // check whether we have have exhausted our condition pool. If so, we 
+    // check whether we have have exhausted our condition pool. If so, we
     // are in conflict and this conflict depends on the guard.
     if (c_counter >= d_conds.size())
     {
