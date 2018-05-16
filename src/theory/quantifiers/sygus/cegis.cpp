@@ -217,6 +217,11 @@ void Cegis::addRefinementLemmaConjunct( unsigned wcounter, std::vector< Node >& 
   }
   if( !val.isNull() )
   {
+    if( d_refinement_lemma_unit.find(lem)!=d_refinement_lemma_unit.end() )
+    {
+      // already added
+      return;
+    }
     Trace("cegis-rl") << "* cegis-rl: propagate: " << term << " -> " << val << std::endl;
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
