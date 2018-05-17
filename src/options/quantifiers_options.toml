@@ -1058,40 +1058,31 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
 
 [[option]]
-  name       = "sygusDirectEval"
+  name       = "sygusEvalUnfold"
   category   = "regular"
-  long       = "sygus-direct-eval"
+  long       = "sygus-eval-unfold"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "direct unfolding of evaluation functions"
+  help       = "do unfolding of sygus evaluation functions"
 
 [[option]]
-  name       = "sygusUnfoldBool"
+  name       = "sygusEvalUnfoldBool"
   category   = "regular"
-  long       = "sygus-unfold-bool"
+  long       = "sygus-eval-unfold-bool"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
-  name       = "sygusCRefEval"
+  name       = "sygusRefEval"
   category   = "regular"
-  long       = "sygus-cref-eval"
+  long       = "sygus-ref-eval"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "direct evaluation of refinement lemmas for conflict analysis"
-
-[[option]]
-  name       = "sygusCRefEvalMinExp"
-  category   = "regular"
-  long       = "sygus-cref-eval-min-exp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use min explain for direct evaluation of refinement lemmas for conflict analysis"
 
 [[option]]
   name       = "sygusStream"

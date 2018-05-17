@@ -72,11 +72,24 @@ class Cegis : public SygusModule
    * formula P( CegConjecture::d_candidates, y ).
    */
   Node d_base_body;
+  //----------------------------------cegis-implementation-specific
   /** do cegis-implementation-specific intialization for this class */
   virtual bool processInitialize(Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas);
-
+  /** do cegis-implementation-specific construct candidate 
+   * 
+   * satisfiedRl is whether all refinement lemmas are satisfied under the
+   * substitution { enums -> enum_values }.
+   */
+  virtual bool processConstructCandidates(const std::vector<Node>& enums,
+                                   const std::vector<Node>& enum_values,
+                                   const std::vector<Node>& candidates,
+                                   std::vector<Node>& candidate_values,
+                                   bool satisfiedRl,
+                                   std::vector<Node>& lems);
+  //----------------------------------end cegis-implementation-specific
+                                   
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
