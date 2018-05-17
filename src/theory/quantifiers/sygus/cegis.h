@@ -76,14 +76,31 @@ class Cegis : public SygusModule
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
-  /** get number of refinement lemmas we have added so far */
-  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
-  /** get refinement lemma
+  /** (processed) conjunctions of refinement lemmas that are not unit */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_conj;
+  /** (processed) conjunctions of refinement lemmas that are unit */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_unit;
+  /** substitution entailed by d_refinement_lemma_unit */
+  std::vector<Node> d_rl_eval_hds;
+  std::vector<Node> d_rl_vals;
+  /** adds lem as a refinement lemma */
+  void addRefinementLemma(Node lem);
+  /** add refinement lemma conjunct
    *
-   * If d_embed_quant is forall d. exists y. P( d, y ), then a refinement
-   * lemma is one of the form ~P( d_candidates, c ) for some c.
+   * This is a helper function for addRefinementLemma.
+   *
+   * This adds waiting[wcounter] to the proper vector (d_refinement_lemma_conj
+   * or d_refinement_lemma_unit). In the case that waiting[wcounter] corresponds
+   * to a value propagation, e.g. it is of the form:
+   *   (eval x c1...cn) = c
+   * then it is added to d_refinement_lemma_unit, (eval x c1...cn) -> c is added
+   * as a substitution in d_rl_eval_hds/d_rl_eval_vals, and applied to previous
+   * lemmas in d_refinement_lemma_conj and lemmas waiting[k] for k>wcounter.
+   * Each lemma in d_refinement_lemma_conj that is modifed in this process is
+   * moved to the vector waiting.
    */
-  Node getRefinementLemma(unsigned i) { return d_refinement_lemmas[i]; }
+  void addRefinementLemmaConjunct(unsigned wcounter,
+                                  std::vector<Node>& waiting);
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that

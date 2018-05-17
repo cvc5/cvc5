@@ -31,7 +31,6 @@ namespace quantifiers {
 CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
     : SygusModule(qe, p)
 {
-  d_tds = d_qe->getTermDatabaseSygus();
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_is_pbe = false;
@@ -441,7 +440,7 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     Node c = candidates[i];
     //build decision tree for candidate
     std::vector<Node> sol;
-    if (d_sygus_unif[c].constructSolution(sol))
+    if (d_sygus_unif[c].constructSolution(sol, lems))
     {
       Assert(sol.size() == 1);
       candidate_values.push_back(sol[0]);
