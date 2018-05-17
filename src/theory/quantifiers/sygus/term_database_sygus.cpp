@@ -685,6 +685,12 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }else{
           // no arguments to synthesis functions
         }
+        //register connected types
+        for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){
+          for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
+            registerSygusType( getArgType( dt[i], j ) );
+          }
+        }
         //iterate over constructors
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           Expr sop = dt[i].getSygusOp();
@@ -700,7 +706,24 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Trace("sygus-db") << ", constant";
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
+          }else if( sop.getKind()==LAMBDA ){
+            // do type checking
+            Assert( sop[0].getNumChildren()==dt[i].getNumArgs() );
+            for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ )
+            {
+              TypeNode ct =  TypeNode::fromType(dt[i].getArgType(j) );
+              TypeNode cbt = sygusToBuiltinType(ct);
+              TypeNode lat = TypeNode::fromType( sop[0][j].getType() );
+              CVC4_CHECK(cbt.isSubtypeOf(lat))
+                  << "In sygus datatype " << dt.getName()
+                  << ", argument to a lambda constructor is not " << lat << std::endl;
+            }
           }
+          // TODO (as part of #1170): we still do not properly catch type
+          // errors in sygus grammars for arguments of builtin operators.
+          // The challenge is that we easily ask for expected argument types of
+          // builtin operators e.g. PLUS. Hence the call to mkGeneric below
+          // will throw a type exception.
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
@@ -713,12 +736,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
           CVC4_CHECK(gtn.isSubtypeOf(btn))
               << "Sygus datatype " << dt.getName()
               << " encodes terms that are not of type " << btn << std::endl;
-        }
-        //register connected types
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-            registerSygusType( getArgType( dt[i], j ) );
-          }
         }
       }
     }

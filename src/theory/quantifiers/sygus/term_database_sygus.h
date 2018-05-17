@@ -189,6 +189,12 @@ class TermDbSygus {
    * and constants c1...cn.
    */
   bool isEvaluationPoint(Node n) const;
+  /** return the builtin type of tn 
+   * 
+   * The type tn should be a sygus datatype type that has been registered to
+   * this database.
+   */
+  TypeNode sygusToBuiltinType( TypeNode tn );
   //-----------------------------end conversion from sygus to builtin
 
  private:
@@ -285,7 +291,6 @@ private:
   unsigned getSelectorWeight(TypeNode tn, Node sel);
 
  public:
-  TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindConsNum( TypeNode tn, Kind k );
   int getConstConsNum( TypeNode tn, Node n );
   int getOpConsNum( TypeNode tn, Node n );
