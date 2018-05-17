@@ -1261,7 +1261,8 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 
 
 void TermDbSygus::registerEvalTerm( Node n ) {
-  if( options::sygusDirectEval() ){
+  if (options::sygusEvalUnfold())
+  {
     if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
       TypeNode tn = n[0].getType();
       if( tn.isDatatype() ){
@@ -1344,7 +1345,8 @@ void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms
           Node expn;
           // unfold?
           bool do_unfold = false;
-          if( options::sygusUnfoldBool() ){
+          if (options::sygusEvalUnfoldBool())
+          {
             if( bTerm.getKind()==ITE || bTerm.getType().isBoolean() ){
               do_unfold = true;
             }
