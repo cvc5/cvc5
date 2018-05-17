@@ -684,7 +684,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   StrategyRestrictions restrictions;
-  staticLearnRedundantOps(lemmas, restrictions);
+  staticLearnRedundantOps(strategy_lemmas, restrictions);
 }
 
 void SygusUnifStrategy::staticLearnRedundantOps(
@@ -719,7 +719,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
   staticLearnRedundantOps(
-      getRootEnumerator(), role_equal, visited, needs_cons, restrictions));
+      getRootEnumerator(), role_equal, visited, needs_cons, restrictions);
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
@@ -795,7 +795,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     needs_cons_curr[cindex] = false;
     // try to eliminate from etn's datatype all operators except TRUE/FALSE if
     // arguments of ITE are the same BOOL type
-    if (restrictions && restrictions->d_iteReturnBoolConst)
+    if (restrictions.d_iteReturnBoolConst)
     {
       const Datatype& dt =
           static_cast<DatatypeType>(etn.toType()).getDatatype();
@@ -840,13 +840,14 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     }
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
-      staticLearnRedundantOps(cec.first, cec.second, visited, needs_cons);
+      staticLearnRedundantOps(
+          cec.first, cec.second, visited, needs_cons, restrictions);
     }
   }
   // get the current datatype
   const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
   // do not use recursive Boolean connectives for conditions of ITEs
-  if (nrole == role_ite_condition)
+  if (nrole == role_ite_condition && restrictions.d_iteCondOnlyAtoms)
   {
     TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)

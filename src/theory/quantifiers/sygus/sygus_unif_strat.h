@@ -243,12 +243,19 @@ class EnumTypeInfoStrat
  */
 struct StrategyRestrictions
 {
-  StrategyRestrictions() : d_iteReturnBoolConst(false) {}
+  StrategyRestrictions() : d_iteReturnBoolConst(false), d_iteCondOnlyAtoms(true)
+  {
+  }
   /**
    * if this flag is true then staticLearnRedundantOps will also try to make
    * the return value of boolean ITEs to be restricted to constants
-    */
+   */
   bool d_iteReturnBoolConst;
+  /**
+   * if this flag is true then staticLearnRedundantOps will also try to make
+   * the condition values of ITEs to be restricted to atoms
+   */
+  bool d_iteCondOnlyAtoms;
 };
 
 /**
