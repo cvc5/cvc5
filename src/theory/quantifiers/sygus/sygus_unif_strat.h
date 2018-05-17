@@ -348,12 +348,12 @@ class SygusUnifStrategy
   //-----------------------end debug printing
 
   //------------------------------ strategy registration
-  /** collect enumerator types
+  /** build strategy graph
    *
    * This builds the strategy for enumerated values of type tn for the given
    * role of nrole, for solutions to function-to-synthesize of this class.
    */
-  void collectEnumeratorTypes(TypeNode tn, NodeRole nrole);
+  void buildStrategyGraph(TypeNode tn, NodeRole nrole);
   /** register enumerator
    *
    * This registers that et is an enumerator of type tn, having enumerator
@@ -364,7 +364,7 @@ class SygusUnifStrategy
    * we may use enumerators for which this flag is false to represent strategy
    * nodes that have child strategies.
    */
-  void registerEnumerator(Node et,
+  void registerStrategyPoint(Node et,
                           TypeNode tn,
                           EnumRole enum_role,
                           bool inSearch);
