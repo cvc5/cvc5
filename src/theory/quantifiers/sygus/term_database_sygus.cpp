@@ -685,10 +685,12 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }else{
           // no arguments to synthesis functions
         }
-        //register connected types
-        for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){
-          for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
-            registerSygusType( getArgType( dt[i], j ) );
+        // register connected types
+        for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+        {
+          for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+          {
+            registerSygusType(getArgType(dt[i], j));
           }
         }
         //iterate over constructors
@@ -706,17 +708,20 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Trace("sygus-db") << ", constant";
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
-          }else if( sop.getKind()==LAMBDA ){
+          }
+          else if (sop.getKind() == LAMBDA)
+          {
             // do type checking
-            Assert( sop[0].getNumChildren()==dt[i].getNumArgs() );
-            for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ )
+            Assert(sop[0].getNumChildren() == dt[i].getNumArgs());
+            for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
             {
-              TypeNode ct =  TypeNode::fromType(dt[i].getArgType(j) );
+              TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
               TypeNode cbt = sygusToBuiltinType(ct);
-              TypeNode lat = TypeNode::fromType( sop[0][j].getType() );
+              TypeNode lat = TypeNode::fromType(sop[0][j].getType());
               CVC4_CHECK(cbt.isSubtypeOf(lat))
                   << "In sygus datatype " << dt.getName()
-                  << ", argument to a lambda constructor is not " << lat << std::endl;
+                  << ", argument to a lambda constructor is not " << lat
+                  << std::endl;
             }
           }
           // TODO (as part of #1170): we still do not properly catch type
