@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -38,7 +39,12 @@ void SygusUnifRl::initializeCandidate(
   SygusUnif::initializeCandidate(qe, f, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
-  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
+  StrategyRestrictions restrictions;
+  if (options::sygusBoolIteReturnConst())
+  {
+    restrictions.d_iteReturnBoolConst = true;
+  }
+  d_strategy[f].staticLearnRedundantOps(strategy_lemmas, restrictions);
   registerStrategy(f, enums);
   // Copy candidates and check whether CegisUnif for any of them
   if (d_unif_candidates.find(f) != d_unif_candidates.end())
