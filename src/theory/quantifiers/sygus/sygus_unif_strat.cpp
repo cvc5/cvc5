@@ -88,7 +88,7 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
   d_qe = qe;
 
   // collect the enumerator types and form the strategy
-  collectEnumeratorTypes(d_root, role_equal);
+  buildStrategyGraph(d_root, role_equal);
   // add the enumerators
   enums.insert(enums.end(), d_esym_list.begin(), d_esym_list.end());
   // finish the initialization of the strategy
@@ -127,7 +127,7 @@ EnumTypeInfo& SygusUnifStrategy::getEnumTypeInfo(TypeNode tn)
 }
 // ----------------------------- establishing enumeration types
 
-void SygusUnifStrategy::registerEnumerator(Node et,
+void SygusUnifStrategy::registerStrategyPoint(Node et,
                                            TypeNode tn,
                                            EnumRole enum_role,
                                            bool inSearch)
@@ -162,7 +162,7 @@ void SygusUnifStrategy::registerEnumerator(Node et,
   }
 }
 
-void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
+void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = NodeManager::currentNM();
   if (d_tinfo.find(tn) == d_tinfo.end())
@@ -203,7 +203,7 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
   if (nrole == role_ite_condition)
   {
     Trace("sygus-unif-debug") << "...this register (non-io)" << std::endl;
-    registerEnumerator(ee, tn, erole, true);
+    registerStrategyPoint(ee, tn, erole, true);
     return;
   }
 
@@ -467,13 +467,9 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
         }
       }
     }
-    if (cop_to_strat.find(cop) == cop_to_strat.end())
-    {
-      Trace("sygus-unif") << "...constructor " << cop
-                          << " does not correspond to a strategy." << std::endl;
-      search_this = true;
-    }
-    else
+    
+    std::map<Node, std::vector<StrategyType> >::iterator itcs = cop_to_strat.find(cop);
+    if (itcs != cop_to_strat.end())
     {
       Trace("sygus-unif") << "-> constructor " << cop
                           << " matches strategy for " << eut.getKind() << "..."
@@ -481,19 +477,27 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
       // collect children types
       for (unsigned k = 0, size = cop_to_carg_list[cop].size(); k < size; k++)
       {
-        TypeNode tn = sktns[cop_to_carg_list[cop][k]];
+        TypeNode ctn = sktns[cop_to_carg_list[cop][k]];
         Trace("sygus-unif-debug")
             << "   Child type " << k << " : "
-            << static_cast<DatatypeType>(tn.toType()).getDatatype().getName()
+            << static_cast<DatatypeType>(ctn.toType()).getDatatype().getName()
             << std::endl;
-        cop_to_child_types[cop].push_back(tn);
+        cop_to_child_types[cop].push_back(ctn);
       }
+      // if there are checks on the consistency of child types wrt strategies,
+      // these should be enforced here. We currently have none.
+    }
+    if (cop_to_strat.find(cop) == cop_to_strat.end())
+    {
+      Trace("sygus-unif") << "...constructor " << cop
+                          << " does not correspond to a strategy." << std::endl;
+      search_this = true;
     }
   }
 
   // check whether we should also enumerate the current type
-  Trace("sygus-unif-debug2") << "  register this enumerator..." << std::endl;
-  registerEnumerator(ee, tn, erole, search_this);
+  Trace("sygus-unif-debug2") << "  register this strategy ..." << std::endl;
+  registerStrategyPoint(ee, tn, erole, search_this);
 
   if (cop_to_strat.empty())
   {
@@ -575,7 +579,7 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
                                              .getDatatype()
                                              .getName()
                                       << std::endl;
-            registerEnumerator(et, ct, erole_c, true);
+            registerStrategyPoint(et, ct, erole_c, true);
             d_einfo[et].d_template = cop_to_child_templ[cop][j];
             d_einfo[et].d_template_arg = cop_to_child_templ_arg[cop][j];
             Assert(!d_einfo[et].d_template.isNull());
@@ -587,7 +591,7 @@ void SygusUnifStrategy::collectEnumeratorTypes(TypeNode tn, NodeRole nrole)
                 << "...child type enumerate "
                 << ((DatatypeType)ct.toType()).getDatatype().getName()
                 << ", node role = " << nrole_c << std::endl;
-            collectEnumeratorTypes(ct, nrole_c);
+            buildStrategyGraph(ct, nrole_c);
             // otherwise use the previous
             Assert(d_tinfo[ct].d_enum.find(erole_c)
                    != d_tinfo[ct].d_enum.end());
@@ -915,7 +919,8 @@ void SygusUnifStrategy::debugPrint(
   if (ei.isTemplated())
   {
     Trace(c) << ", templated : (lambda " << ei.d_template_arg << " "
-             << ei.d_template << ")";
+             << ei.d_template << ")" << std::endl;
+    return;
   }
   Trace(c) << std::endl;
 
