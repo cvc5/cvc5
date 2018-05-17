@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
-#include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -713,7 +712,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
   staticLearnRedundantOps(
-      getRootEnumerator(), role_equal, visited, needs_cons, restrictions);
+      getRootEnumerator(), role_equal, visited, needs_cons, &(*restrictions));
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {

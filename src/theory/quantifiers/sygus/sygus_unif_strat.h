@@ -375,8 +375,9 @@ class SygusUnifStrategy
   void staticLearnRedundantOps(
       Node e,
       NodeRole nrole,
-      std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map<unsigned, bool> >& needs_cons);
+      std::map<Node, std::map<NodeRole, bool>>& visited,
+      std::map<Node, std::map<unsigned, bool>>& needs_cons,
+      StrategyRestrictions* restrictions = nullptr);
   /** finish initialization of the strategy tree
    *
    * (e, nrole) specify the strategy node in the graph we are currently
