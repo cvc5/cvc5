@@ -33,7 +33,7 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
 }
 
 CegisUnif::~CegisUnif() {}
-bool CegisUnif::initialize(Node n,
+bool CegisUnif::processInitialize(Node n,
                            const std::vector<Node>& candidates,
                            std::vector<Node>& lemmas)
 {

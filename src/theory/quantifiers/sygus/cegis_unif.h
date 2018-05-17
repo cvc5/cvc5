@@ -183,10 +183,6 @@ class CegisUnif : public Cegis
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
   ~CegisUnif();
-  /** initialize this class */
-  bool initialize(Node n,
-                  const std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas) override;
   /** Retrieves enumerators for constructing solutions
    *
    * Non-unification candidates have themselves as enumerators, while for
@@ -249,6 +245,10 @@ class CegisUnif : public Cegis
   Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
+  /** do cegis-implementation-specific intialization for this class */
+  bool processInitialize(Node n,
+                  const std::vector<Node>& candidates,
+                  std::vector<Node>& lemmas) override;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.

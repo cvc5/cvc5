@@ -72,6 +72,10 @@ class Cegis : public SygusModule
    * formula P( CegConjecture::d_candidates, y ).
    */
   Node d_base_body;
+  /** do cegis-implementation-specific intialization for this class */
+  virtual bool processInitialize(Node n,
+                          const std::vector<Node>& candidates,
+                          std::vector<Node>& lemmas);
 
   //-----------------------------------refinement lemmas
   /** refinement lemmas */

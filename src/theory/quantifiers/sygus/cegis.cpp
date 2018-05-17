@@ -27,6 +27,7 @@ namespace theory {
 namespace quantifiers {
 
 Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p) : SygusModule(qe, p) {}
+
 bool Cegis::initialize(Node n,
                        const std::vector<Node>& candidates,
                        std::vector<Node>& lemmas)
@@ -49,7 +50,13 @@ bool Cegis::initialize(Node n,
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
+  return processInitialize(n,candidates,lemmas);
+}
 
+bool Cegis::processInitialize(Node n,
+                       const std::vector<Node>& candidates,
+                       std::vector<Node>& lemmas)
+{
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < candidates.size(); i++)
   {
@@ -386,6 +393,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals,
                                      std::vector<Node>& lems)
 {
+  Trace("cegqi-engine") << "  *** Do sample add refinement..." << std::endl;
   if (Trace.isOn("cegis-sample"))
   {
     Trace("cegis-sample") << "Check sampling for candidate solution"
