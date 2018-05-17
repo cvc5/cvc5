@@ -238,6 +238,27 @@ class EnumTypeInfoStrat
 };
 
 /**
+ * flags for extra restrictions to be inferred during redundant operators
+ * learning
+ */
+struct StrategyRestrictions
+{
+  StrategyRestrictions() : d_iteReturnBoolConst(false), d_iteCondOnlyAtoms(true)
+  {
+  }
+  /**
+   * if this flag is true then staticLearnRedundantOps will also try to make
+   * the return value of boolean ITEs to be restricted to constants
+   */
+  bool d_iteReturnBoolConst;
+  /**
+   * if this flag is true then staticLearnRedundantOps will also try to make
+   * the condition values of ITEs to be restricted to atoms
+   */
+  bool d_iteCondOnlyAtoms;
+};
+
+/**
  * Stores strategy and enumeration information for a function-to-synthesize.
  *
  * When this class is initialized, we construct a "strategy tree" based on
@@ -279,6 +300,16 @@ class SygusUnifStrategy
    * These may correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
+   *
+   * then the module may also try to apply the given pruning restrictions (see
+   * StrategyRestrictions for more details)
+   */
+  void staticLearnRedundantOps(
+      std::map<Node, std::vector<Node>>& strategy_lemmas,
+      StrategyRestrictions& restrictions);
+  /**
+   * creates the default restrictions when they are not given and calls the
+   * above function
    */
   void staticLearnRedundantOps(
       std::map<Node, std::vector<Node>>& strategy_lemmas);
@@ -353,8 +384,9 @@ class SygusUnifStrategy
   void staticLearnRedundantOps(
       Node e,
       NodeRole nrole,
-      std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map<unsigned, bool> >& needs_cons);
+      std::map<Node, std::map<NodeRole, bool>>& visited,
+      std::map<Node, std::map<unsigned, bool>>& needs_cons,
+      StrategyRestrictions& restrictions);
   /** finish initialization of the strategy tree
    *
    * (e, nrole) specify the strategy node in the graph we are currently

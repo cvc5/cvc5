@@ -687,6 +687,14 @@ bool SygusUnifStrategy::inferTemplate(
 void SygusUnifStrategy::staticLearnRedundantOps(
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
+  StrategyRestrictions restrictions;
+  staticLearnRedundantOps(strategy_lemmas, restrictions);
+}
+
+void SygusUnifStrategy::staticLearnRedundantOps(
+    std::map<Node, std::vector<Node>>& strategy_lemmas,
+    StrategyRestrictions& restrictions)
+{
   for (unsigned i = 0; i < d_esym_list.size(); i++)
   {
     Node e = d_esym_list[i];
@@ -714,7 +722,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   debugPrint("sygus-unif");
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
-  staticLearnRedundantOps(getRootEnumerator(), role_equal, visited, needs_cons);
+  staticLearnRedundantOps(
+      getRootEnumerator(), role_equal, visited, needs_cons, restrictions);
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
@@ -757,8 +766,9 @@ void SygusUnifStrategy::debugPrint(const char* c)
 void SygusUnifStrategy::staticLearnRedundantOps(
     Node e,
     NodeRole nrole,
-    std::map<Node, std::map<NodeRole, bool> >& visited,
-    std::map<Node, std::map<unsigned, bool> >& needs_cons)
+    std::map<Node, std::map<NodeRole, bool>>& visited,
+    std::map<Node, std::map<unsigned, bool>>& needs_cons,
+    StrategyRestrictions& restrictions)
 {
   if (visited[e].find(nrole) != visited[e].end())
   {
@@ -782,26 +792,81 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
     EnumTypeInfoStrat* etis = snode.d_strats[j];
-    int cindex = Datatype::indexOf(etis->d_cons.toExpr());
-    Assert(cindex != -1);
-    Trace("sygus-strat-slearn")
-        << "...by strategy, can exclude operator " << etis->d_cons << std::endl;
-    needs_cons_curr[static_cast<unsigned>(cindex)] = false;
+    unsigned cindex =
+        static_cast<unsigned>(Datatype::indexOf(etis->d_cons.toExpr()));
+    Trace("sygus-strat-slearn") << "...by strategy, can exclude operator "
+                                << etis->d_cons << std::endl;
+    needs_cons_curr[cindex] = false;
+    // try to eliminate from etn's datatype all operators except TRUE/FALSE if
+    // arguments of ITE are the same BOOL type
+    if (restrictions.d_iteReturnBoolConst)
+    {
+      const Datatype& dt =
+          static_cast<DatatypeType>(etn.toType()).getDatatype();
+      Node op = Node::fromExpr(dt[cindex].getSygusOp());
+      TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
+      if (op.getKind() == kind::BUILTIN
+          && NodeManager::operatorToKind(op) == ITE
+          && sygus_tn.isBoolean()
+          && (TypeNode::fromType(dt[cindex].getArgType(1))
+              == TypeNode::fromType(dt[cindex].getArgType(2))))
+      {
+        unsigned ncons = dt.getNumConstructors(), indexT = ncons,
+                 indexF = ncons;
+        for (unsigned k = 0; k < ncons; ++k)
+        {
+          Node op_arg = Node::fromExpr(dt[k].getSygusOp());
+          if (dt[k].getNumArgs() > 0 || !op_arg.isConst())
+          {
+            continue;
+          }
+          if (op_arg.getConst<bool>())
+          {
+            indexT = k;
+          }
+          else
+          {
+            indexF = k;
+          }
+        }
+        if (indexT < ncons && indexF < ncons)
+        {
+          Trace("sygus-strat-slearn")
+              << "...for ite boolean arg, can exclude all operators but T/F\n";
+          for (unsigned k = 0; k < ncons; ++k)
+          {
+            needs_cons_curr[k] = false;
+          }
+          needs_cons_curr[indexT] = true;
+          needs_cons_curr[indexF] = true;
+        }
+      }
+    }
     for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
-      staticLearnRedundantOps(cec.first, cec.second, visited, needs_cons);
+      staticLearnRedundantOps(
+          cec.first, cec.second, visited, needs_cons, restrictions);
     }
   }
   // get the current datatype
   const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
   // do not use recursive Boolean connectives for conditions of ITEs
-  if (nrole == role_ite_condition)
+  if (nrole == role_ite_condition && restrictions.d_iteCondOnlyAtoms)
   {
+    TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
     for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
       Node op = Node::fromExpr(dt[j].getSygusOp());
       Trace("sygus-strat-slearn")
           << "...for ite condition, look at operator : " << op << std::endl;
+      if (op.isConst() && dt[j].getNumArgs() == 0)
+      {
+        Trace("sygus-strat-slearn")
+            << "...for ite condition, can exclude Boolean constant " << op
+            << std::endl;
+        needs_cons_curr[j] = false;
+        continue;
+      }
       if (op.getKind() == kind::BUILTIN)
       {
         Kind k = NodeManager::operatorToKind(op);
