@@ -681,8 +681,15 @@ bool SygusUnifStrategy::inferTemplate(
 }
 
 void SygusUnifStrategy::staticLearnRedundantOps(
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
+{
+  StrategyRestrictions restrictions;
+  staticLearnRedundantOps(lemmas, restrictions);
+}
+
+void SygusUnifStrategy::staticLearnRedundantOps(
     std::map<Node, std::vector<Node>>& strategy_lemmas,
-    StrategyRestrictions* restrictions)
+    StrategyRestrictions& restrictions)
 {
   for (unsigned i = 0; i < d_esym_list.size(); i++)
   {
@@ -712,7 +719,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
   staticLearnRedundantOps(
-      getRootEnumerator(), role_equal, visited, needs_cons, &(*restrictions));
+      getRootEnumerator(), role_equal, visited, needs_cons, restrictions));
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
@@ -757,7 +764,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool>>& visited,
     std::map<Node, std::map<unsigned, bool>>& needs_cons,
-    StrategyRestrictions* restrictions)
+    StrategyRestrictions& restrictions)
 {
   if (visited[e].find(nrole) != visited[e].end())
   {

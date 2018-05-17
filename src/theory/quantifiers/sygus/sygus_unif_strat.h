@@ -241,13 +241,9 @@ class EnumTypeInfoStrat
  * flags for extra restrictions to be inferred during redundant operators
  * learning
  */
-class StrategyRestrictions
+struct StrategyRestrictions
 {
- public:
-  StrategyRestrictions(bool iteReturnBoolConst)
-      : d_iteReturnBoolConst(iteReturnBoolConst)
-  {
-  }
+  StrategyRestrictions() : d_iteReturnBoolConst(false) {}
   /**
    * if this flag is true then staticLearnRedundantOps will also try to make
    * the return value of boolean ITEs to be restricted to constants
@@ -298,12 +294,18 @@ class SygusUnifStrategy
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
    *
-   * if restrictions is set, then the module may try to apply further pruning
-   * (see StrategyRestrictions for more details)
+   * then the module may also try to apply the given pruning restrictions (see
+   * StrategyRestrictions for more details)
    */
   void staticLearnRedundantOps(
       std::map<Node, std::vector<Node>>& strategy_lemmas,
-      StrategyRestrictions* restrictions = nullptr);
+      StrategyRestrictions& restrictions);
+  /**
+   * creates the default restrictions when they are not given and calls the
+   * above function
+   */
+  void staticLearnRedundantOps(
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
 
   /** debug print this strategy on Trace c */
   void debugPrint(const char* c);
@@ -377,7 +379,7 @@ class SygusUnifStrategy
       NodeRole nrole,
       std::map<Node, std::map<NodeRole, bool>>& visited,
       std::map<Node, std::map<unsigned, bool>>& needs_cons,
-      StrategyRestrictions* restrictions = nullptr);
+      StrategyRestrictions& restrictions);
   /** finish initialization of the strategy tree
    *
    * (e, nrole) specify the strategy node in the graph we are currently
