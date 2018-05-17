@@ -13,12 +13,12 @@
  **/
 
 #include "theory/quantifiers/sygus/cegis.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
-#include "options/base_options.h"
-#include "printer/printer.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -52,12 +52,12 @@ bool Cegis::initialize(Node n,
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
-  return processInitialize(n,candidates,lemmas);
+  return processInitialize(n, candidates, lemmas);
 }
 
 bool Cegis::processInitialize(Node n,
-                       const std::vector<Node>& candidates,
-                       std::vector<Node>& lemmas)
+                              const std::vector<Node>& candidates,
+                              std::vector<Node>& lemmas)
 {
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < candidates.size(); i++)
@@ -91,8 +91,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       {
         if (d_qe->addLemma(lem))
         {
-          Trace("cegqi-lemma") << "Cegqi::Lemma : ref evaluation : " << lem
-                               << std::endl;
+          Trace("cegqi-lemma")
+              << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
           addedEvalLemmas = true;
         }
       }
@@ -107,7 +107,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     for (unsigned i = 0, size = candidates.size(); i < size; ++i)
     {
       Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
-                          << candidate_values[i] << std::endl;
+                           << candidate_values[i] << std::endl;
       d_tds->registerModelValue(candidates[i],
                                 candidate_values[i],
                                 eager_terms,
@@ -115,15 +115,15 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                                 eager_exps);
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()
-                        << " evaluation unfold lemmas.\n";
+                         << " evaluation unfold lemmas.\n";
     for (unsigned i = 0, size = eager_terms.size(); i < size; ++i)
     {
       Node lem = nm->mkNode(
           OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
       if (d_qe->addLemma(lem))
       {
-        Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
-                            << std::endl;
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : evaluation unfold : " << lem << std::endl;
         addedEvalLemmas = true;
       }
     }
@@ -151,13 +151,18 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   }
   // evaluate on refinement lemmas
   bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
-  
+
   // try to construct candidates
-  if( !processConstructCandidates(enums,enum_values,candidates,candidate_values,!addedEvalLemmas,lems) )
+  if (!processConstructCandidates(enums,
+                                  enum_values,
+                                  candidates,
+                                  candidate_values,
+                                  !addedEvalLemmas,
+                                  lems))
   {
     return false;
   }
-  
+
   if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
@@ -165,30 +170,32 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     if (sampleAddRefinementLemma(enums, enum_values, lems))
     {
       // restart (should be guaranteed to add evaluation lemmas on this call)
-      return constructCandidates(enums,enum_values,candidates,candidate_values,lems);
+      return constructCandidates(
+          enums, enum_values, candidates, candidate_values, lems);
     }
   }
   return true;
 }
-  
+
 bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
-                                   const std::vector<Node>& enum_values,
-                                   const std::vector<Node>& candidates,
-                                   std::vector<Node>& candidate_values,
-                                   bool satisfiedRl,
-                                   std::vector<Node>& lems)
+                                       const std::vector<Node>& enum_values,
+                                       const std::vector<Node>& candidates,
+                                       std::vector<Node>& candidate_values,
+                                       bool satisfiedRl,
+                                       std::vector<Node>& lems)
 {
-  if( satisfiedRl )
+  if (satisfiedRl)
   {
-    candidate_values.insert(candidate_values.end(), enum_values.begin(), enum_values.end());
+    candidate_values.insert(
+        candidate_values.end(), enum_values.begin(), enum_values.end());
     return true;
   }
   SygusRepairConst* src = d_parent->getRepairConst();
-  if( src!=nullptr )
+  if (src != nullptr)
   {
     // it may be repairable
     std::vector<Node> fail_cvs = enum_values;
-    Assert( candidates.size()==fail_cvs.size() );
+    Assert(candidates.size() == fail_cvs.size());
     return src->repairSolution(candidates, fail_cvs, candidate_values);
   }
   return false;

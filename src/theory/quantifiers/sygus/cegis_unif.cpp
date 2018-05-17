@@ -34,8 +34,8 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
 
 CegisUnif::~CegisUnif() {}
 bool CegisUnif::processInitialize(Node n,
-                           const std::vector<Node>& candidates,
-                           std::vector<Node>& lemmas)
+                                  const std::vector<Node>& candidates,
+                                  std::vector<Node>& lemmas)
 {
   Trace("cegis-unif") << "Initialize CegisUnif : " << n << std::endl;
   // list of strategy points for unification candidates
@@ -100,13 +100,13 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
 }
 
 bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
-                                    const std::vector<Node>& enum_values,
-                                    const std::vector<Node>& candidates,
-                                    std::vector<Node>& candidate_values,
-                                    bool satisfiedRl,
-                                    std::vector<Node>& lems)
+                                           const std::vector<Node>& enum_values,
+                                           const std::vector<Node>& candidates,
+                                           std::vector<Node>& candidate_values,
+                                           bool satisfiedRl,
+                                           std::vector<Node>& lems)
 {
-  if( !satisfiedRl )
+  if (!satisfiedRl)
   {
     // if we didn't satisfy the specification, there is no way to repair
     return false;
@@ -126,9 +126,8 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     {
       for (unsigned index = 0; index < 2; index++)
       {
-        Trace("cegis")
-            << "  " << (index == 0 ? "Return values" : "Conditions") << " for "
-            << e << ":\n";
+        Trace("cegis") << "  " << (index == 0 ? "Return values" : "Conditions")
+                       << " for " << e << ":\n";
         // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(
             e, unif_enums[index][e], index);

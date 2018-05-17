@@ -220,8 +220,8 @@ class CegisUnif : public Cegis
  private:
   /** do cegis-implementation-specific intialization for this class */
   bool processInitialize(Node n,
-                  const std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas) override;
+                         const std::vector<Node>& candidates,
+                         std::vector<Node>& lemmas) override;
   /** Tries to build new candidate solutions with new enumerated expressions
    *
    * This function relies on a data-driven unification-based approach for
@@ -245,11 +245,11 @@ class CegisUnif : public Cegis
    * since { d -> +( x, 1 ) } has now been added to the database of this class.
    */
   bool processConstructCandidates(const std::vector<Node>& enums,
-                           const std::vector<Node>& enum_values,
-                           const std::vector<Node>& candidates,
-                           std::vector<Node>& candidate_values,
-                           bool satisfiedRl,
-                           std::vector<Node>& lems) override;
+                                  const std::vector<Node>& enum_values,
+                                  const std::vector<Node>& candidates,
+                                  std::vector<Node>& candidate_values,
+                                  bool satisfiedRl,
+                                  std::vector<Node>& lems) override;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.

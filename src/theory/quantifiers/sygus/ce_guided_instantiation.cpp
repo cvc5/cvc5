@@ -138,7 +138,8 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           addedLemma = true;
         }else{
           //this may happen if we eagerly unfold, simplify to true
-          Trace("cegqi-engine-debug") << "  ...FAILED to add candidate!" << std::endl;
+          Trace("cegqi-engine-debug")
+              << "  ...FAILED to add candidate!" << std::endl;
         }
       }
       if( addedLemma ){
