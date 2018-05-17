@@ -129,10 +129,22 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_STRREPL, "str.replace" );
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
-  addOperator(kind::STRING_ITOS, "int.to.str" );
-  addOperator(kind::STRING_STOI, "str.to.int" );
-  addOperator(kind::STRING_IN_REGEXP, "str.in.re");
-  addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+  // at the moment, we only use this syntax for smt2.6.1
+  if (getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  {
+    addOperator(kind::STRING_ITOS, "str.from-int");
+    addOperator(kind::STRING_STOI, "str.to-int");
+    addOperator(kind::STRING_IN_REGEXP, "str.in-re");
+    addOperator(kind::STRING_TO_REGEXP, "str.to-re");
+  }
+  else
+  {
+    addOperator(kind::STRING_ITOS, "int.to.str");
+    addOperator(kind::STRING_STOI, "str.to.int");
+    addOperator(kind::STRING_IN_REGEXP, "str.in.re");
+    addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+  }
+
   addOperator(kind::REGEXP_CONCAT, "re.++");
   addOperator(kind::REGEXP_UNION, "re.union");
   addOperator(kind::REGEXP_INTER, "re.inter");
@@ -141,6 +153,9 @@ void Smt2::addStringOperators() {
   addOperator(kind::REGEXP_OPT, "re.opt");
   addOperator(kind::REGEXP_RANGE, "re.range");
   addOperator(kind::REGEXP_LOOP, "re.loop");
+  addOperator(kind::STRING_CODE, "str.code");
+  addOperator(kind::STRING_LT, "str.<");
+  addOperator(kind::STRING_LEQ, "str.<=");
 }
 
 void Smt2::addFloatingPointOperators() {

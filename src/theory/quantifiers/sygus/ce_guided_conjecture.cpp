@@ -16,6 +16,7 @@
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
@@ -40,15 +41,22 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_si(new CegConjectureSingleInv(qe, this)),
       d_ceg_proc(new CegConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_sygus_rconst(new SygusRepairConst(qe)),
       d_ceg_pbe(new CegConjecturePbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, this)),
       d_master(nullptr),
+      d_repair_index(0),
       d_refine_count(0),
       d_syntax_guided(false)
 {
-  if (options::sygusPbe())
+  if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
   {
     d_modules.push_back(d_ceg_pbe.get());
+  }
+  if (options::sygusUnif())
+  {
+    d_modules.push_back(d_ceg_cegisUnif.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
 }
@@ -109,6 +117,12 @@ void CegConjecture::assign( Node q ) {
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
+
+  // initialize the sygus constant repair utility
+  if (options::sygusRepairConst())
+  {
+    d_sygus_rconst->initialize(d_base_inst, d_candidates);
+  }
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
@@ -237,14 +251,45 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);
 
-  // get their model value
+  Assert(!d_candidates.empty());
+
+  Trace("cegqi-check") << "CegConjuncture : check, build candidates..."
+                       << std::endl;
+  std::vector<Node> candidate_values;
+  bool constructed_cand = false;
+
+  if (options::sygusRepairConst())
+  {
+    // have we tried to repair the previous solution?
+    // if not, call the repair constant utility
+    unsigned ninst = d_cinfo[d_candidates[0]].d_inst.size();
+    if (d_repair_index < ninst)
+    {
+      std::vector<Node> fail_cvs;
+      for (const Node& cprog : d_candidates)
+      {
+        Assert(d_repair_index < d_cinfo[cprog].d_inst.size());
+        fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
+      }
+      d_repair_index++;
+      if (d_sygus_rconst->repairSolution(
+              d_candidates, fail_cvs, candidate_values))
+      {
+        constructed_cand = true;
+      }
+    }
+  }
+
+  // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
   getModelValues(terms, enum_values);
 
-  std::vector<Node> candidate_values;
-  Trace("cegqi-check") << "CegConjuncture : check, build candidates..." << std::endl;
-  bool constructed_cand = d_master->constructCandidates(
-      terms, enum_values, d_candidates, candidate_values, lems);
+  if (!constructed_cand)
+  {
+    Assert(candidate_values.empty());
+    constructed_cand = d_master->constructCandidates(
+        terms, enum_values, d_candidates, candidate_values, lems);
+  }
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -322,11 +367,9 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   {
     lem = Rewriter::rewrite( lem );
     //eagerly unfold applications of evaluation function
-    if( options::sygusDirectEval() ){
-      Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
-      std::map< Node, Node > visited_n;
-      lem = d_qe->getTermDatabaseSygus()->getEagerUnfold( lem, visited_n );
-    }
+    Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
+    std::map<Node, Node> visited_n;
+    lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
     // record the instantiation
     // this is used for remembering the solution
     recordInstantiation(candidate_values);
@@ -474,51 +517,74 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
     priority = 0;
     return feasible_guard;
-  }else{
-    if( value ){  
-      // the conjecture is feasible
-      if( options::sygusStream() ){
-        Assert( !isSingleInvocation() );
-        // if we are in sygus streaming mode, then get the "next guard" 
-        // which denotes "we have not yet generated the next solution to the conjecture"
-        Node curr_stream_guard = getCurrentStreamGuard();
-        bool needs_new_stream_guard = false;
-        if( curr_stream_guard.isNull() ){
-          needs_new_stream_guard = true;
-        }else{
-          // check the polarity of the guard
-          if( !d_qe->getValuation().hasSatValue( curr_stream_guard, value ) ) {
-            priority = 0;
-            return curr_stream_guard;
-          }else{
-            if( !value ){
-              Trace("cegqi-debug") << "getNextDecision : we have a new solution since stream guard was propagated false: " << curr_stream_guard << std::endl;
-              // need to make the next stream guard
-              needs_new_stream_guard = true;
-              // the guard has propagated false, indicating that a verify
-              // lemma was unsatisfiable. Hence, the previous candidate is
-              // an actual solution. We print and continue the stream.
-              printAndContinueStream();
-            }
-          }
-        }
-        if( needs_new_stream_guard ){
-          // generate a new stream guard
-          curr_stream_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G_Stream", NodeManager::currentNM()->booleanType() ) );
-          curr_stream_guard = d_qe->getValuation().ensureLiteral( curr_stream_guard );
-          AlwaysAssert( !curr_stream_guard.isNull() );
-          d_qe->getOutputChannel().requirePhase( curr_stream_guard, true );
-          d_stream_guards.push_back( curr_stream_guard );
-          Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : " << curr_stream_guard << std::endl;
-          // return it as a decision
-          priority = 0;
-          return curr_stream_guard;
-        }
-      }
-    }else{
-      Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible." << std::endl;
-    } 
   }
+  if (!value)
+  {
+    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible."
+                         << std::endl;
+    return Node::null();
+  }
+  // the conjecture is feasible
+  if (options::sygusStream())
+  {
+    Assert(!isSingleInvocation());
+    // if we are in sygus streaming mode, then get the "next guard"
+    // which denotes "we have not yet generated the next solution to the
+    // conjecture"
+    Node curr_stream_guard = getCurrentStreamGuard();
+    bool needs_new_stream_guard = false;
+    if (curr_stream_guard.isNull())
+    {
+      needs_new_stream_guard = true;
+    }else{
+      // check the polarity of the guard
+      if (!d_qe->getValuation().hasSatValue(curr_stream_guard, value))
+      {
+        priority = 0;
+        return curr_stream_guard;
+      }
+      if (!value)
+      {
+        Trace("cegqi-debug") << "getNextDecision : we have a new solution "
+                                "since stream guard was propagated false: "
+                             << curr_stream_guard << std::endl;
+        // need to make the next stream guard
+        needs_new_stream_guard = true;
+        // the guard has propagated false, indicating that a verify
+        // lemma was unsatisfiable. Hence, the previous candidate is
+        // an actual solution. We print and continue the stream.
+        printAndContinueStream();
+      }
+    }
+    if (needs_new_stream_guard)
+    {
+      // generate a new stream guard
+      curr_stream_guard = Rewriter::rewrite(NodeManager::currentNM()->mkSkolem(
+          "G_Stream", NodeManager::currentNM()->booleanType()));
+      curr_stream_guard = d_qe->getValuation().ensureLiteral(curr_stream_guard);
+      AlwaysAssert(!curr_stream_guard.isNull());
+      d_qe->getOutputChannel().requirePhase(curr_stream_guard, true);
+      d_stream_guards.push_back(curr_stream_guard);
+      Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : "
+                           << curr_stream_guard << std::endl;
+      // return it as a decision
+      priority = 0;
+      return curr_stream_guard;
+    }
+  }
+  // see if the master module has a decision
+  if (!isSingleInvocation())
+  {
+    Assert(d_master != nullptr);
+    Node mlit = d_master->getNextDecisionRequest(priority);
+    if (!mlit.isNull())
+    {
+      Trace("cegqi-debug") << "getNextDecision : master module returned : "
+                           << mlit << std::endl;
+      return mlit;
+    }
+  }
+
   return Node::null();
 }
 

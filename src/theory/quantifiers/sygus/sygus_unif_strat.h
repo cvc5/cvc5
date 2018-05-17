@@ -198,6 +198,8 @@ class EnumTypeInfo
   std::map<EnumRole, Node> d_enum;
   /** map from node roles to strategy nodes */
   std::map<NodeRole, StrategyNode> d_snodes;
+  /** get strategy node for node role */
+  StrategyNode& getStrategyNode(NodeRole nrole);
 };
 
 /** represents a strategy for a SyGuS datatype type
@@ -253,18 +255,10 @@ class SygusUnifStrategy
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums.
-   *
-   * This also may result in lemmas being added to lemmas,
-   * which correspond to static symmetry breaking predicates (for example,
-   * those that exclude ITE from enumerators whose role is enum_io when the
-   * strategy is ITE_strat).
    */
-  void initialize(QuantifiersEngine* qe,
-                  Node f,
-                  std::vector<Node>& enums,
-                  std::vector<Node>& lemmas);
+  void initialize(QuantifiersEngine* qe, Node f, std::vector<Node>& enums);
   /** Get the root enumerator for this class */
-  Node getRootEnumerator();
+  Node getRootEnumerator() const;
   /**
    * Get the enumerator info for enumerator e, where e must be an enumerator
    * initialized by this class (in enums after a call to initialize).
@@ -275,6 +269,22 @@ class SygusUnifStrategy
    * of some enumerator initialized by this class
    */
   EnumTypeInfo& getEnumTypeInfo(TypeNode tn);
+
+  /** static learn redundant operators
+   *
+   * This learns static lemmas for pruning enumerative space based on the
+   * strategy for the function-to-synthesize of this class, and stores these
+   * into strategy_lemmas.
+   *
+   * These may correspond to static symmetry breaking predicates (for example,
+   * those that exclude ITE from enumerators whose role is enum_io when the
+   * strategy is ITE_strat).
+   */
+  void staticLearnRedundantOps(
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
+
+  /** debug print this strategy on Trace c */
+  void debugPrint(const char* c);
 
  private:
   /** reference to quantifier engine */
@@ -332,13 +342,6 @@ class SygusUnifStrategy
                      Node n,
                      std::map<Node, unsigned>& templ_var_index,
                      std::map<unsigned, unsigned>& templ_injection);
-  /** static learn redundant operators
-   *
-   * This learns static lemmas for pruning enumerative space based on the
-   * strategy for the function-to-synthesize of this class, and stores these
-   * into lemmas.
-   */
-  void staticLearnRedundantOps(std::vector<Node>& lemmas);
   /** helper for static learn redundant operators
    *
    * (e, nrole) specify the strategy node in the graph we are currently
@@ -346,19 +349,38 @@ class SygusUnifStrategy
    *
    * This method builds the mapping needs_cons, which maps (master) enumerators
    * to a map from the constructors that it needs.
-   *
-   * ind is the depth in the strategy graph we are at (for debugging).
-   *
-   * isCond is whether the current enumerator is conditional (beneath a
-   * conditional of an strat_ITE strategy).
    */
   void staticLearnRedundantOps(
       Node e,
       NodeRole nrole,
       std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map<unsigned, bool> >& needs_cons,
-      int ind,
-      bool isCond);
+      std::map<Node, std::map<unsigned, bool> >& needs_cons);
+  /** finish initialization of the strategy tree
+   *
+   * (e, nrole) specify the strategy node in the graph we are currently
+   * analyzing, visited stores the nodes we have already visited.
+   *
+   * isCond is whether the current enumerator is conditional (beneath a
+   * conditional of an strat_ITE strategy).
+   */
+  void finishInit(Node e,
+                  NodeRole nrole,
+                  std::map<Node, std::map<NodeRole, bool> >& visited,
+                  bool isCond);
+  /** helper for debug print
+   *
+   * Prints the node e with role nrole on Trace(c).
+   *
+   * (e, nrole) specify the strategy node in the graph we are currently
+   * analyzing, visited stores the nodes we have already visited.
+   *
+   * ind is the current level of indentation (for debugging)
+   */
+  void debugPrint(const char* c,
+                  Node e,
+                  NodeRole nrole,
+                  std::map<Node, std::map<NodeRole, bool> >& visited,
+                  int ind);
   //------------------------------ end strategy registration
 };
 

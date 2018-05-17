@@ -80,8 +80,7 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
 
 void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
                                    Node f,
-                                   std::vector<Node>& enums,
-                                   std::vector<Node>& lemmas)
+                                   std::vector<Node>& enums)
 {
   Assert(d_candidate.isNull());
   d_candidate = f;
@@ -92,8 +91,10 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
   collectEnumeratorTypes(d_root, role_equal);
   // add the enumerators
   enums.insert(enums.end(), d_esym_list.begin(), d_esym_list.end());
-  // learn redundant ops
-  staticLearnRedundantOps(lemmas);
+  // finish the initialization of the strategy
+  // this computes if each node is conditional
+  std::map<Node, std::map<NodeRole, bool> > visited;
+  finishInit(getRootEnumerator(), role_equal, visited, false);
 }
 
 void SygusUnifStrategy::initializeType(TypeNode tn)
@@ -101,10 +102,13 @@ void SygusUnifStrategy::initializeType(TypeNode tn)
   d_tinfo[tn].d_this_type = tn;
 }
 
-Node SygusUnifStrategy::getRootEnumerator()
+Node SygusUnifStrategy::getRootEnumerator() const
 {
-  std::map<EnumRole, Node>::iterator it = d_tinfo[d_root].d_enum.find(enum_io);
-  Assert(it != d_tinfo[d_root].d_enum.end());
+  std::map<TypeNode, EnumTypeInfo>::const_iterator itt = d_tinfo.find(d_root);
+  Assert(itt != d_tinfo.end());
+  std::map<EnumRole, Node>::const_iterator it =
+      itt->second.d_enum.find(enum_io);
+  Assert(it != itt->second.d_enum.end());
   return it->second;
 }
 
@@ -676,7 +680,8 @@ bool SygusUnifStrategy::inferTemplate(
   return true;
 }
 
-void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
+void SygusUnifStrategy::staticLearnRedundantOps(
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   for (unsigned i = 0; i < d_esym_list.size(); i++)
   {
@@ -702,16 +707,17 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
   Trace("sygus-unif") << std::endl;
   Trace("sygus-unif") << "Strategy for candidate " << d_candidate
                       << " is : " << std::endl;
+  debugPrint("sygus-unif");
   std::map<Node, std::map<NodeRole, bool> > visited;
   std::map<Node, std::map<unsigned, bool> > needs_cons;
-  staticLearnRedundantOps(
-      getRootEnumerator(), role_equal, visited, needs_cons, 0, false);
+  staticLearnRedundantOps(getRootEnumerator(), role_equal, visited, needs_cons);
   // now, check the needs_cons map
   for (std::pair<const Node, std::map<unsigned, bool> >& nce : needs_cons)
   {
     Node em = nce.first;
     const Datatype& dt =
         static_cast<DatatypeType>(em.getType().toType()).getDatatype();
+    std::vector<Node> lemmas;
     for (std::pair<const unsigned, bool>& nc : nce.second)
     {
       Assert(nc.first < dt.getNumConstructors());
@@ -719,6 +725,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
       {
         Node tst =
             datatypes::DatatypesRewriter::mkTester(em, nc.first, dt).negate();
+
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {
           Trace("sygus-unif") << "...can exclude based on  : " << tst
@@ -727,6 +734,19 @@ void SygusUnifStrategy::staticLearnRedundantOps(std::vector<Node>& lemmas)
         }
       }
     }
+    if (!lemmas.empty())
+    {
+      strategy_lemmas[em] = lemmas;
+    }
+  }
+}
+
+void SygusUnifStrategy::debugPrint(const char* c)
+{
+  if (Trace.isOn(c))
+  {
+    std::map<Node, std::map<NodeRole, bool> > visited;
+    debugPrint(c, getRootEnumerator(), role_equal, visited, 0);
   }
 }
 
@@ -734,120 +754,197 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool> >& visited,
-    std::map<Node, std::map<unsigned, bool> >& needs_cons,
-    int ind,
-    bool isCond)
+    std::map<Node, std::map<unsigned, bool> >& needs_cons)
 {
-  std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
-  Assert(itn != d_einfo.end());
-
-  if (visited[e].find(nrole) == visited[e].end()
-      || (isCond && !itn->second.isConditional()))
+  if (visited[e].find(nrole) != visited[e].end())
   {
-    visited[e][nrole] = true;
-    // if conditional
-    if (isCond)
+    return;
+  }
+  Trace("sygus-strat-slearn") << "Learn redundant operators " << e << " "
+                              << nrole << "..." << std::endl;
+  visited[e][nrole] = true;
+  EnumInfo& ei = getEnumInfo(e);
+  if (ei.isTemplated())
+  {
+    return;
+  }
+  TypeNode etn = e.getType();
+  EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
+  StrategyNode& snode = tinfo.getStrategyNode(nrole);
+  std::map<unsigned, bool> needs_cons_curr;
+  // constructors that correspond to strategies are not needed
+  // the intuition is that the strategy itself is responsible for constructing
+  // all terms that use the given constructor
+  for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
+  {
+    EnumTypeInfoStrat* etis = snode.d_strats[j];
+    int cindex = Datatype::indexOf(etis->d_cons.toExpr());
+    Assert(cindex != -1);
+    Trace("sygus-strat-slearn")
+        << "...by strategy, can exclude operator " << etis->d_cons << std::endl;
+    needs_cons_curr[static_cast<unsigned>(cindex)] = false;
+    for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
     {
-      itn->second.setConditional();
+      staticLearnRedundantOps(cec.first, cec.second, visited, needs_cons);
     }
-    indent("sygus-unif", ind);
-    Trace("sygus-unif") << e << " :: node role : " << nrole;
-    Trace("sygus-unif")
-        << ", type : "
-        << ((DatatypeType)e.getType().toType()).getDatatype().getName();
-    if (isCond)
+  }
+  // get the current datatype
+  const Datatype& dt = static_cast<DatatypeType>(etn.toType()).getDatatype();
+  // do not use recursive Boolean connectives for conditions of ITEs
+  if (nrole == role_ite_condition)
+  {
+    for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
     {
-      Trace("sygus-unif") << ", conditional";
-    }
-    Trace("sygus-unif") << ", enum role : " << itn->second.getRole();
-
-    if (itn->second.isTemplated())
-    {
-      Trace("sygus-unif") << ", templated : (lambda "
-                          << itn->second.d_template_arg << " "
-                          << itn->second.d_template << ")" << std::endl;
-    }
-    else
-    {
-      Trace("sygus-unif") << std::endl;
-      TypeNode etn = e.getType();
-
-      // enumerator type info
-      std::map<TypeNode, EnumTypeInfo>::iterator itt = d_tinfo.find(etn);
-      Assert(itt != d_tinfo.end());
-      EnumTypeInfo& tinfo = itt->second;
-
-      // strategy info
-      std::map<NodeRole, StrategyNode>::iterator itsn =
-          tinfo.d_snodes.find(nrole);
-      Assert(itsn != tinfo.d_snodes.end());
-      StrategyNode& snode = itsn->second;
-
-      if (snode.d_strats.empty())
+      Node op = Node::fromExpr(dt[j].getSygusOp());
+      Trace("sygus-strat-slearn")
+          << "...for ite condition, look at operator : " << op << std::endl;
+      if (op.getKind() == kind::BUILTIN)
       {
-        return;
-      }
-      std::map<unsigned, bool> needs_cons_curr;
-      // various strategies
-      for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
-      {
-        EnumTypeInfoStrat* etis = snode.d_strats[j];
-        StrategyType strat = etis->d_this;
-        bool newIsCond = isCond || strat == strat_ITE;
-        indent("sygus-unif", ind + 1);
-        Trace("sygus-unif") << "Strategy : " << strat
-                            << ", from cons : " << etis->d_cons << std::endl;
-        int cindex = Datatype::indexOf(etis->d_cons.toExpr());
-        Assert(cindex != -1);
-        needs_cons_curr[static_cast<unsigned>(cindex)] = false;
-        for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
+        Kind k = NodeManager::operatorToKind(op);
+        if (k == NOT || k == OR || k == AND || k == ITE)
         {
-          // recurse
-          staticLearnRedundantOps(
-              cec.first, cec.second, visited, needs_cons, ind + 2, newIsCond);
-        }
-      }
-      // get the master enumerator for the type of this enumerator
-      std::map<TypeNode, Node>::iterator itse = d_master_enum.find(etn);
-      if (itse == d_master_enum.end())
-      {
-        return;
-      }
-      Node em = itse->second;
-      Assert(!em.isNull());
-      // get the current datatype
-      const Datatype& dt =
-          static_cast<DatatypeType>(etn.toType()).getDatatype();
-      // all constructors that are not a part of a strategy are needed
-      for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
-      {
-        if (needs_cons_curr.find(j) == needs_cons_curr.end())
-        {
-          needs_cons_curr[j] = true;
-        }
-      }
-      // update the constructors that the master enumerator needs
-      if (needs_cons.find(em) == needs_cons.end())
-      {
-        needs_cons[em] = needs_cons_curr;
-      }
-      else
-      {
-        for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
-        {
-          needs_cons[em][j] = needs_cons[em][j] || needs_cons_curr[j];
+          // can eliminate if their argument types are simple loops to this type
+          bool type_ok = true;
+          for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+          {
+            TypeNode tn = TypeNode::fromType(dt[j].getArgType(k));
+            if (tn != etn)
+            {
+              type_ok = false;
+              break;
+            }
+          }
+          if (type_ok)
+          {
+            Trace("sygus-strat-slearn")
+                << "...for ite condition, can exclude Boolean connective : "
+                << op << std::endl;
+            needs_cons_curr[j] = false;
+          }
         }
       }
     }
   }
+  // all other constructors are needed
+  for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
+  {
+    if (needs_cons_curr.find(j) == needs_cons_curr.end())
+    {
+      needs_cons_curr[j] = true;
+    }
+  }
+  // update the constructors that the master enumerator needs
+  if (needs_cons.find(e) == needs_cons.end())
+  {
+    needs_cons[e] = needs_cons_curr;
+  }
   else
   {
-    indent("sygus-unif", ind);
-    Trace("sygus-unif") << e << " :: node role : " << nrole << std::endl;
+    for (unsigned j = 0, size = dt.getNumConstructors(); j < size; j++)
+    {
+      needs_cons[e][j] = needs_cons[e][j] || needs_cons_curr[j];
+    }
+  }
+}
+
+void SygusUnifStrategy::finishInit(
+    Node e,
+    NodeRole nrole,
+    std::map<Node, std::map<NodeRole, bool> >& visited,
+    bool isCond)
+{
+  EnumInfo& ei = getEnumInfo(e);
+  if (visited[e].find(nrole) != visited[e].end()
+      && (!isCond || ei.isConditional()))
+  {
+    return;
+  }
+  visited[e][nrole] = true;
+  // set conditional
+  if (isCond)
+  {
+    ei.setConditional();
+  }
+  if (ei.isTemplated())
+  {
+    return;
+  }
+  TypeNode etn = e.getType();
+  EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
+  StrategyNode& snode = tinfo.getStrategyNode(nrole);
+  for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
+  {
+    EnumTypeInfoStrat* etis = snode.d_strats[j];
+    StrategyType strat = etis->d_this;
+    bool newIsCond = isCond || strat == strat_ITE;
+    for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
+    {
+      finishInit(cec.first, cec.second, visited, newIsCond);
+    }
+  }
+}
+
+void SygusUnifStrategy::debugPrint(
+    const char* c,
+    Node e,
+    NodeRole nrole,
+    std::map<Node, std::map<NodeRole, bool> >& visited,
+    int ind)
+{
+  if (visited[e].find(nrole) != visited[e].end())
+  {
+    indent(c, ind);
+    Trace(c) << e << " :: node role : " << nrole << std::endl;
+    return;
+  }
+  visited[e][nrole] = true;
+  EnumInfo& ei = getEnumInfo(e);
+
+  TypeNode etn = e.getType();
+
+  indent(c, ind);
+  Trace(c) << e << " :: node role : " << nrole;
+  Trace(c) << ", type : "
+           << static_cast<DatatypeType>(etn.toType()).getDatatype().getName();
+  if (ei.isConditional())
+  {
+    Trace(c) << ", conditional";
+  }
+  Trace(c) << ", enum role : " << ei.getRole();
+
+  if (ei.isTemplated())
+  {
+    Trace(c) << ", templated : (lambda " << ei.d_template_arg << " "
+             << ei.d_template << ")";
+  }
+  Trace(c) << std::endl;
+
+  EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
+  StrategyNode& snode = tinfo.getStrategyNode(nrole);
+  for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
+  {
+    EnumTypeInfoStrat* etis = snode.d_strats[j];
+    StrategyType strat = etis->d_this;
+    indent(c, ind + 1);
+    Trace(c) << "Strategy : " << strat << ", from cons : " << etis->d_cons
+             << std::endl;
+    for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
+    {
+      // recurse
+      debugPrint(c, cec.first, cec.second, visited, ind + 2);
+    }
   }
 }
 
 void EnumInfo::initialize(EnumRole role) { d_role = role; }
+
+StrategyNode& EnumTypeInfo::getStrategyNode(NodeRole nrole)
+{
+  std::map<NodeRole, StrategyNode>::iterator it = d_snodes.find(nrole);
+  Assert(it != d_snodes.end());
+  return it->second;
+}
+
 bool EnumTypeInfoStrat::isValid(UnifContext& x)
 {
   if ((x.getCurrentRole() == role_string_prefix

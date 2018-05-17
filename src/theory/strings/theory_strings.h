@@ -196,6 +196,7 @@ private:
   Node d_false;
   Node d_zero;
   Node d_one;
+  Node d_neg_one;
   CVC4::Rational RMAXINT;
   unsigned d_card_size;
   // Helper functions
@@ -294,18 +295,31 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
+  /** SAT-context-dependent information about an equivalence class */
   class EqcInfo {
   public:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
-    //constant in this eqc
+    /**
+     * If non-null, this is a term x from this eq class such that str.len( x )
+     * occurs as a term in this SAT context.
+     */
     context::CDO< Node > d_length_term;
+    /**
+     * If non-null, this is a term x from this eq class such that str.code( x )
+     * occurs as a term in this SAT context.
+     */
+    context::CDO<Node> d_code_term;
     context::CDO< unsigned > d_cardinality_lem_k;
-    // 1 = added length lemma
     context::CDO< Node > d_normalized_length;
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
+  /**
+   * Get the above information for equivalence class eqc. If doMake is true,
+   * we construct a new information class if one does not exist. The term eqc
+   * should currently be a representative of the equality engine of this class.
+   */
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   //maintain which concat terms have the length lemma instantiated
   NodeNodeMap d_proxy_var;
@@ -315,6 +329,8 @@ private:
 private:
   //any non-reduced extended functions exist
   context::CDO< bool > d_has_extf;
+  /** have we asserted any str.code terms? */
+  bool d_has_str_code;
   // static information about extf
   class ExtfInfo {
   public:
@@ -448,7 +464,24 @@ private:
   void addToExplanation(Node a, Node b, std::vector<Node>& exp);
   void addToExplanation(Node lit, std::vector<Node>& exp);
 
-  // register term
+  /** Register term
+   *
+   * This performs SAT-context-independent registration for a term n, which
+   * may cause lemmas to be sent on the output channel that involve
+   * "initial refinement lemmas" for n. This includes introducing proxy
+   * variables for string terms and asserting that str.code terms are within
+   * proper bounds.
+   *
+   * Effort is one of the following (TODO make enum #1881):
+   * 0 : upon preregistration or internal assertion
+   * 1 : upon occurrence in length term
+   * 2 : before normal form computation
+   * 3 : called on normal form terms
+   *
+   * Based on the strategy, we may choose to add these initial refinement
+   * lemmas at one of the following efforts, where if it is not the given
+   * effort, the call to this method does nothing.
+   */
   void registerTerm(Node n, int effort);
   // send lemma
   void sendInference(std::vector<Node>& exp,

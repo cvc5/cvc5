@@ -37,7 +37,7 @@ class UnifContextIo : public UnifContext
  public:
   UnifContextIo();
   /** get current role */
-  virtual NodeRole getCurrentRole() override;
+  NodeRole getCurrentRole() override;
 
   /**
    * This intiializes this context based on information in sui regarding the
@@ -122,7 +122,7 @@ class UnifContextIo : public UnifContext
   * This is the current set of enumerator/node role pairs we are currently
   * visiting. This set is cleared when the context is updated.
   */
-  std::map<Node, std::map<NodeRole, bool> > d_visit_role;
+  std::map<Node, std::map<NodeRole, bool>> d_visit_role;
 
   /** unif context enumerator information */
   class UEnumInfo
@@ -142,7 +142,7 @@ class UnifContextIo : public UnifContext
     * resulting in 2 and 4, are equal to the output value for the respective
     * pairs.
     */
-    std::map<Node, std::map<unsigned, Node> > d_look_ahead_sols;
+    std::map<Node, std::map<unsigned, Node>> d_look_ahead_sols;
   };
   /** map from enumerators to the above info class */
   std::map<Node, UEnumInfo> d_uinfo;
@@ -214,7 +214,7 @@ class SubsumeTrie
   */
   void getLeaves(const std::vector<Node>& vals,
                  bool pol,
-                 std::map<int, std::vector<Node> >& v);
+                 std::map<int, std::vector<Node>>& v);
   /** is this trie empty? */
   bool isEmpty() { return d_term.isNull() && d_children.empty(); }
   /** clear this trie */
@@ -242,7 +242,7 @@ class SubsumeTrie
   /** helper function for above functions */
   void getLeavesInternal(const std::vector<Node>& vals,
                          bool pol,
-                         std::map<int, std::vector<Node> >& v,
+                         std::map<int, std::vector<Node>>& v,
                          unsigned index,
                          int status);
 };
@@ -252,6 +252,16 @@ class SubsumeTrie
  * This class implement synthesis-by-unification, where the specification is
  * I/O examples. With respect to SygusUnif, it's main interface function is
  * addExample, which adds an I/O example to the specification.
+ *
+ * Since I/O specifications for multiple functions can be fully separated, we
+ * assume that this class is used only for a single function to synthesize.
+ *
+ * In addition to the base class which maintains a strategy tree, this class
+ * maintains:
+ * (1) A set of input/output examples that are the specification for f. This
+ * can be updated via calls to resetExmaples/addExamples,
+ * (2) A set of terms that have been enumerated for enumerators (d_ecache). This
+ * can be updated via calls to notifyEnumeration.
  */
 class SygusUnifIo : public SygusUnif
 {
@@ -261,15 +271,22 @@ class SygusUnifIo : public SygusUnif
   SygusUnifIo();
   ~SygusUnifIo();
 
-  /** initialize */
-  virtual void initialize(QuantifiersEngine* qe,
-                          Node f,
-                          std::vector<Node>& enums,
-                          std::vector<Node>& lemmas) override;
+  /** initialize
+   *
+   * We only initialize for one function f, since I/O specifications across
+   * multiple functions can be separated.
+   */
+  void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas) override;
   /** Notify enumeration */
-  virtual void notifyEnumeration(Node e,
-                                 Node v,
-                                 std::vector<Node>& lemmas) override;
+  void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
+
+  /** Construct solution */
+  bool constructSolution(std::vector<Node>& sols,
+                         std::vector<Node>& lemmas) override;
 
   /** add example
    *
@@ -281,11 +298,23 @@ class SygusUnifIo : public SygusUnif
   void addExample(const std::vector<Node>& input, Node output);
 
  protected:
+  /** the candidate */
+  Node d_candidate;
+  /**
+   * Whether we will try to construct solution on the next call to
+   * constructSolution. This flag is set to true when we successfully
+   * register a new value for an enumerator.
+   */
+  bool d_check_sol;
+  /** The number of values we have enumerated for all enumerators. */
+  unsigned d_cond_count;
+  /** The solution for the function of this class, if one has been found */
+  Node d_solution;
   /** true and false nodes */
   Node d_true;
   Node d_false;
   /** input of I/O examples */
-  std::vector<std::vector<Node> > d_examples;
+  std::vector<std::vector<Node>> d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
 
@@ -318,7 +347,7 @@ class SygusUnifIo : public SygusUnif
       * This either stores the values of f( I ) for inputs
       * or the value of f( I ) = O if d_role==enum_io
       */
-    std::vector<std::vector<Node> > d_enum_vals_res;
+    std::vector<std::vector<Node>> d_enum_vals_res;
     /**
     * The set of values in d_enum_vals that have been "subsumed" by others
     * (see SubsumeTrie for explanation of subsumed).
@@ -343,7 +372,13 @@ class SygusUnifIo : public SygusUnif
   };
   /** maps enumerators to the information above */
   std::map<Node, EnumCache> d_ecache;
-
+  /** Construct solution node
+   *
+   * This is called for the (single) function-to-synthesize during a call to
+   * constructSolution. If this returns a non-null node, then that term is a
+   * solution for the function-to-synthesize in the overall conjecture.
+   */
+  Node constructSolutionNode(std::vector<Node>& lemmas);
   /** domain-specific enumerator exclusion techniques
    *
    * Returns true if the value v for e can be excluded based on a
@@ -377,8 +412,14 @@ class SygusUnifIo : public SygusUnif
   UnifContextIo d_context;
   /** initialize construct solution */
   void initializeConstructSol() override;
+  /** initialize construct solution for */
+  void initializeConstructSolFor(Node f) override;
   /** construct solution */
-  Node constructSol(Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f,
+                    Node e,
+                    NodeRole nrole,
+                    int ind,
+                    std::vector<Node>& lemmas) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */

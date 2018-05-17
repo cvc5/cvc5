@@ -960,12 +960,12 @@ header = "options/quantifiers_options.h"
   help       = "abort if synthesis conjecture is not single invocation"
 
 [[option]]
-  name       = "sygusPbe"
+  name       = "sygusUnif"
   category   = "regular"
-  long       = "sygus-pbe"
+  long       = "sygus-unif"
   type       = "bool"
-  default    = "true"
-  help       = "sygus advanced pruning based on examples"
+  default    = "false"
+  help       = "Unification-based function synthesis"
 
 [[option]]
   name       = "sygusQePreproc"
@@ -975,6 +975,14 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "use quantifier elimination as a preprocessing step for sygus"
+
+[[option]]
+  name       = "sygusRepairConst"
+  category   = "regular"
+  long       = "sygus-repair-const"
+  type       = "bool"
+  default    = "true"
+  help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
   name       = "sygusMinGrammar"
@@ -990,7 +998,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-add-const-grammar"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
   help       = "statically add constants appearing in conjecture to grammars"
 
@@ -1042,49 +1050,39 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which automatically unfolds transition systems for directly solving invariant synthesis problems"
 
 [[option]]
-  name       = "sygusUnifCondSol"
+  name       = "sygusUnifPbe"
   category   = "regular"
-  long       = "sygus-unif-csol"
+  long       = "sygus-pbe"
+  type       = "bool"
+  default    = "true"
+  help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
+
+[[option]]
+  name       = "sygusEvalUnfold"
+  category   = "regular"
+  long       = "sygus-eval-unfold"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "enable new approach which unifies conditional solutions"
+  help       = "do unfolding of sygus evaluation functions"
 
 [[option]]
-  name       = "sygusDirectEval"
+  name       = "sygusEvalUnfoldBool"
   category   = "regular"
-  long       = "sygus-direct-eval"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "direct unfolding of evaluation functions"
-
-[[option]]
-  name       = "sygusUnfoldBool"
-  category   = "regular"
-  long       = "sygus-unfold-bool"
+  long       = "sygus-eval-unfold-bool"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
-  name       = "sygusCRefEval"
+  name       = "sygusRefEval"
   category   = "regular"
-  long       = "sygus-cref-eval"
+  long       = "sygus-ref-eval"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "direct evaluation of refinement lemmas for conflict analysis"
-
-[[option]]
-  name       = "sygusCRefEvalMinExp"
-  category   = "regular"
-  long       = "sygus-cref-eval-min-exp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use min explain for direct evaluation of refinement lemmas for conflict analysis"
 
 [[option]]
   name       = "sygusStream"
