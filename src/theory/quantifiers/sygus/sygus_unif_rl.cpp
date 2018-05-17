@@ -38,7 +38,9 @@ void SygusUnifRl::initializeCandidate(
   SygusUnif::initializeCandidate(qe, f, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
-  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
+  d_strategy[f].staticLearnRedundantOps(
+      strategy_lemmas,
+      options::sygusUnifBoolConst() ? &StrategyRestrictions(true) : nullptr);
   registerStrategy(f, enums);
   // Copy candidates and check whether CegisUnif for any of them
   if (d_unif_candidates.find(f) != d_unif_candidates.end())

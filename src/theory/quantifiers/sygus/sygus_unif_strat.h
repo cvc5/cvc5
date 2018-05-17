@@ -238,6 +238,24 @@ class EnumTypeInfoStrat
 };
 
 /**
+ * flags for extra restrictions to be inferred during redundant operators
+ * learning
+ */
+class StrategyRestrictions
+{
+ public:
+  StrategyRestrictions(bool iteReturnBoolConst)
+      : d_iteReturnBoolConst(iteReturnBoolConst)
+  {
+  }
+  /**
+   * if this flag is true then staticLearnRedundantOps will also try to make
+   * the return value of boolean ITEs to be restricted to constants
+    */
+  bool d_iteReturnBoolConst;
+};
+
+/**
  * Stores strategy and enumeration information for a function-to-synthesize.
  *
  * When this class is initialized, we construct a "strategy tree" based on
@@ -279,9 +297,13 @@ class SygusUnifStrategy
    * These may correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
+   *
+   * if restrictions is set, then the module may try to apply further pruning
+   * (see StrategyRestrictions for more details)
    */
   void staticLearnRedundantOps(
-      std::map<Node, std::vector<Node>>& strategy_lemmas);
+      std::map<Node, std::vector<Node>>& strategy_lemmas,
+      StrategyRestrictions* restrictions = nullptr);
 
   /** debug print this strategy on Trace c */
   void debugPrint(const char* c);
