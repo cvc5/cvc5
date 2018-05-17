@@ -183,10 +183,6 @@ class CegisUnif : public Cegis
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
   ~CegisUnif();
-  /** initialize this class */
-  bool initialize(Node n,
-                  const std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas) override;
   /** Retrieves enumerators for constructing solutions
    *
    * Non-unification candidates have themselves as enumerators, while for
@@ -195,33 +191,6 @@ class CegisUnif : public Cegis
    */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
-  /** Tries to build new candidate solutions with new enumerated expressions
-   *
-   * This function relies on a data-driven unification-based approach for
-   * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
-   * more details.
-   *
-   * Calls to this function are such that terms is the list of active
-   * enumerators (returned by getTermList), and term_values are their current
-   * model values. This function registers { terms -> terms_values } in
-   * the database of values that have been enumerated, which are in turn used
-   * for constructing candidate solutions when possible.
-   *
-   * This function also excludes models where (terms = terms_values) by adding
-   * blocking clauses to lems. For example, for grammar:
-   *   A -> A+A | x | 1 | 0
-   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
-   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
-   * to lems, where G is active guard of the enumerator d (see
-   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
-   * indicates that d should not be given the model value +( x, 1 ) anymore,
-   * since { d -> +( x, 1 ) } has now been added to the database of this class.
-   */
-  bool constructCandidates(const std::vector<Node>& enums,
-                           const std::vector<Node>& enum_values,
-                           const std::vector<Node>& candidates,
-                           std::vector<Node>& candidate_values,
-                           std::vector<Node>& lems) override;
 
   /** Communicates refinement lemma to unification utility and external modules
    *
@@ -249,6 +218,38 @@ class CegisUnif : public Cegis
   Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
+  /** do cegis-implementation-specific intialization for this class */
+  bool processInitialize(Node n,
+                         const std::vector<Node>& candidates,
+                         std::vector<Node>& lemmas) override;
+  /** Tries to build new candidate solutions with new enumerated expressions
+   *
+   * This function relies on a data-driven unification-based approach for
+   * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
+   * more details.
+   *
+   * Calls to this function are such that terms is the list of active
+   * enumerators (returned by getTermList), and term_values are their current
+   * model values. This function registers { terms -> terms_values } in
+   * the database of values that have been enumerated, which are in turn used
+   * for constructing candidate solutions when possible.
+   *
+   * This function also excludes models where (terms = terms_values) by adding
+   * blocking clauses to lems. For example, for grammar:
+   *   A -> A+A | x | 1 | 0
+   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
+   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
+   * to lems, where G is active guard of the enumerator d (see
+   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
+   * indicates that d should not be given the model value +( x, 1 ) anymore,
+   * since { d -> +( x, 1 ) } has now been added to the database of this class.
+   */
+  bool processConstructCandidates(const std::vector<Node>& enums,
+                                  const std::vector<Node>& enum_values,
+                                  const std::vector<Node>& candidates,
+                                  std::vector<Node>& candidate_values,
+                                  bool satisfiedRl,
+                                  std::vector<Node>& lems) override;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.

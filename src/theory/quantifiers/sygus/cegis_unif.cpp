@@ -33,9 +33,9 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
 }
 
 CegisUnif::~CegisUnif() {}
-bool CegisUnif::initialize(Node n,
-                           const std::vector<Node>& candidates,
-                           std::vector<Node>& lemmas)
+bool CegisUnif::processInitialize(Node n,
+                                  const std::vector<Node>& candidates,
+                                  std::vector<Node>& lemmas)
 {
   // list of strategy points for unification candidates
   std::vector<Node> unif_candidate_pts;
@@ -98,27 +98,16 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
   }
 }
 
-bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
-                                    const std::vector<Node>& enum_values,
-                                    const std::vector<Node>& candidates,
-                                    std::vector<Node>& candidate_values,
-                                    std::vector<Node>& lems)
+bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
+                                           const std::vector<Node>& enum_values,
+                                           const std::vector<Node>& candidates,
+                                           std::vector<Node>& candidate_values,
+                                           bool satisfiedRl,
+                                           std::vector<Node>& lems)
 {
-  if (Trace.isOn("cegis-unif-enum"))
+  if (!satisfiedRl)
   {
-    Trace("cegis-unif-enum") << "  Evaluation heads :\n";
-    for (unsigned i = 0, size = enums.size(); i < size; ++i)
-    {
-      Trace("cegis-unif-enum") << "    " << enums[i] << " -> ";
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())
-          ->toStreamSygus(ss, enum_values[i]);
-      Trace("cegis-unif-enum") << ss.str() << std::endl;
-    }
-  }
-  // evaluate on refinement lemmas
-  if (addEvalLemmas(enums, enum_values))
-  {
+    // if we didn't satisfy the specification, there is no way to repair
     return false;
   }
   // the unification enumerators (return values, conditions) and their model
@@ -136,9 +125,8 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
     {
       for (unsigned index = 0; index < 2; index++)
       {
-        Trace("cegis-unif-enum")
-            << "  " << (index == 0 ? "Return values" : "Conditions") << " for "
-            << e << ":\n";
+        Trace("cegis") << "  " << (index == 0 ? "Return values" : "Conditions")
+                       << " for " << e << ":\n";
         // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(
             e, unif_enums[index][e], index);
@@ -146,13 +134,13 @@ bool CegisUnif::constructCandidates(const std::vector<Node>& enums,
         for (const Node& eu : unif_enums[index][e])
         {
           Node m_eu = d_parent->getModelValue(eu);
-          if (Trace.isOn("cegis-unif-enum"))
+          if (Trace.isOn("cegis"))
           {
-            Trace("cegis-unif-enum") << "    " << eu << " -> ";
+            Trace("cegis") << "    " << eu << " -> ";
             std::stringstream ss;
             Printer::getPrinter(options::outputLanguage())
                 ->toStreamSygus(ss, m_eu);
-            Trace("cegis-unif-enum") << ss.str() << std::endl;
+            Trace("cegis") << ss.str() << std::endl;
           }
           unif_values[index][e].push_back(m_eu);
         }
