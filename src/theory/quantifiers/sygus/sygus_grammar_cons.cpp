@@ -452,6 +452,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     std::vector<std::string> cnames;
     std::vector<std::vector<CVC4::Type> > cargs;
+    /* Print callbacks for each constructor */
+    std::vector<std::shared_ptr<SygusPrintCallback>> pc;
+    /* Weights for each constructor */
+    std::vector<int> weight;
     Type unres_t = unres_types[i];
     //add variables
     for( unsigned j=0; j<sygus_vars.size(); j++ ){
@@ -462,6 +466,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         ops[i].push_back( sygus_vars[j].toExpr() );
         cnames.push_back( ss.str() );
         cargs.push_back( std::vector< CVC4::Type >() );
+        pc.push_back(nullptr);
+        weight.push_back(-1);
       }
     }
     //add constants
@@ -483,6 +489,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       ops[i].push_back( consts[j].toExpr() );
       cnames.push_back( ss.str() );
       cargs.push_back( std::vector< CVC4::Type >() );
+      pc.push_back(nullptr);
+      weight.push_back(-1);
     }
     //ITE
     CVC4::Kind k = kind::ITE;
@@ -493,6 +501,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     cargs.back().push_back(unres_bt);
     cargs.back().push_back(unres_t);
     cargs.back().push_back(unres_t);
+    pc.push_back(nullptr);
+    weight.push_back(-1);
 
     if (types[i].isReal())
     {
@@ -505,6 +515,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         cargs.push_back(std::vector<CVC4::Type>());
         cargs.back().push_back(unres_t);
         cargs.back().push_back(unres_t);
+        pc.push_back(nullptr);
+        weight.push_back(-1);
       }
       if (!types[i].isInteger())
       {
@@ -552,6 +564,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         cargs.push_back(std::vector<Type>());
         cargs.back().push_back(unres_t);
         cargs.back().push_back(unres_pos_int_t);
+        pc.push_back(nullptr);
+        weight.push_back(-1);
       }
     }else if( types[i].isDatatype() ){
       Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
@@ -566,6 +580,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           //Assert( type_to_unres.find(crange)!=type_to_unres.end() );
           cargs.back().push_back( type_to_unres[crange] );
         }
+        pc.push_back(nullptr);
+        weight.push_back(-1);
       }
     }else{
       std::stringstream sserr;
@@ -585,12 +601,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         cargs.push_back( std::vector< CVC4::Type >() );
         //Assert( type_to_unres.find(arg_type)!=type_to_unres.end() );
         cargs.back().push_back( type_to_unres[arg_type] );
+        pc.push_back(nullptr);
+        weight.push_back(-1);
       }
     }
     Trace("sygus-grammar-def") << "...make datatype " << datatypes[i] << std::endl;
     datatypes[i].setSygus( types[i].toType(), bvl.toExpr(), true, true );
     for( unsigned j=0; j<ops[i].size(); j++ ){
-      datatypes[i].addSygusConstructor( ops[i][j], cnames[j], cargs[j] );
+      datatypes[i].addSygusConstructor(
+          ops[i][j], cnames[j], cargs[j], pc, weight);
     }
     Trace("sygus-grammar-def")
         << "...built datatype " << datatypes[i] << " ";
