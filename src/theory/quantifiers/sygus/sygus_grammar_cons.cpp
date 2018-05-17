@@ -619,18 +619,18 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargs.push_back( std::vector< CVC4::Type >() );
     }
   }
-  //add constants if no variables and no connected types
-  if( ops.back().empty() && types.empty() ){
-    std::vector< Node > consts;
-    mkSygusConstantsForType( btype, consts );
-    for( unsigned j=0; j<consts.size(); j++ ){
-      std::stringstream ss;
-      ss << consts[j];
-      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-      ops.back().push_back( consts[j].toExpr() );
-      cnames.push_back( ss.str() );
-      cargs.push_back( std::vector< CVC4::Type >() );
-    }
+  //add constants
+  std::vector<Node> consts;
+  mkSygusConstantsForType(btype, consts);
+  for (unsigned j = 0; j < consts.size(); j++)
+  {
+    std::stringstream ss;
+    ss << consts[j];
+    Trace("sygus-grammar-def") << "...add for constant " << ss.str()
+                               << std::endl;
+    ops.back().push_back(consts[j].toExpr());
+    cnames.push_back(ss.str());
+    cargs.push_back(std::vector<CVC4::Type>());
   }
   //add operators
   for (unsigned i = 0; i < 4; i++)
@@ -638,6 +638,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     CVC4::Kind k = i == 0
                        ? kind::NOT
                        : (i == 1 ? kind::AND : (i == 2 ? kind::OR : kind::ITE));
+    // TODO #1935 ITEs are added to Boolean grammars so that we can infer
+    // unification strategies. We can do away with this if we can infer
+    // unification strategies from and/or/not
+    if (k == ITE && !options::sygusUnif())
+    {
+      continue;
+    }
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
     ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
     cnames.push_back(kind::kindToString(k));
