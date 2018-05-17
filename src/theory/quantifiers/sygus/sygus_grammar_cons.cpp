@@ -638,6 +638,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     CVC4::Kind k = i == 0
                        ? kind::NOT
                        : (i == 1 ? kind::AND : (i == 2 ? kind::OR : kind::ITE));
+    // TODO #1935 ITEs are added to Boolean grammars so that we can infer
+    // unification strategies. We can do away with this if we can infer
+    // unification strategies from and/or/not
     if (k == ITE && !options::sygusUnif())
     {
       continue;

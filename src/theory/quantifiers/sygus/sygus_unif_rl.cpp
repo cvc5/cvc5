@@ -40,7 +40,7 @@ void SygusUnifRl::initializeCandidate(
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
   StrategyRestrictions restrictions;
-  if (options::sygusUnifBoolConst())
+  if (options::sygusBoolIteReturnConst())
   {
     restrictions.d_iteReturnBoolConst = true;
   }
