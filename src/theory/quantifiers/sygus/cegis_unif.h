@@ -249,8 +249,6 @@ class CegisUnif : public Cegis
   Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
-  /** sygus term database of d_qe */
-  TermDbSygus* d_tds;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.
