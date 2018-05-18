@@ -83,7 +83,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
                             std::vector<Node>& enums)
 {
   // Non-unif candidate are themselves the enumerators
-  enums.insert(enums.end(),d_non_unif_candidates.begin(), d_non_unif_candidates.end());
+  enums.insert(
+      enums.end(), d_non_unif_candidates.begin(), d_non_unif_candidates.end());
   for (const Node& c : d_unif_candidates)
   {
     // Collect heads of candidates
@@ -103,10 +104,11 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
                                            bool satisfiedRl,
                                            std::vector<Node>& lems)
 {
-  if( d_unif_candidates.empty() )
+  if (d_unif_candidates.empty())
   {
-    Assert( d_non_unif_candidates.size()==candidates.size() );
-    return Cegis::processConstructCandidates(enums,enum_values,candidates,candidate_values);
+    Assert(d_non_unif_candidates.size() == candidates.size());
+    return Cegis::processConstructCandidates(
+        enums, enum_values, candidates, candidate_values);
   }
   if (!satisfiedRl)
   {
