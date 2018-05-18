@@ -99,6 +99,7 @@ Node CegGrammarConstructor::process(Node q,
     Trace("cegqi") << "CegConjecture : collect constants..." << std::endl;
     collectTerms( q[1], extra_cons );
   }
+  std::map<TypeNode, std::vector<Node>> exc_cons;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -140,20 +141,17 @@ Node CegGrammarConstructor::process(Node q,
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
-      std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+      std::unordered_set<Node, NodeHashFunction> term_irlv;
       // convert to term
-      for (std::unordered_set<unsigned>::iterator ita = arg_irrelevant.begin();
-           ita != arg_irrelevant.end();
-           ++ita)
+      for (const unsigned& arg : arg_irrelevant)
       {
-        unsigned arg = *ita;
         Assert(arg < sfvl.getNumChildren());
-        term_irrelevant.insert(sfvl[arg]);
+        term_irlv.insert(sfvl[arg]);
       }
 
       // make the default grammar
       tn = mkSygusDefaultType(
-          preGrammarType, sfvl, ss.str(), extra_cons, term_irrelevant);
+          preGrammarType, sfvl, ss.str(), extra_cons, exc_cons, term_irlv);
     }
 
     // normalize type
@@ -272,7 +270,7 @@ Node CegGrammarConstructor::process(Node q,
   }
   return nm->mkNode(kind::FORALL, qchildren);
 }
-  
+
 Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -389,7 +387,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     TypeNode range,
     Node bvl,
     const std::string& fun,
-    std::map<TypeNode, std::vector<Node> >& extra_cons,
+    std::map<TypeNode, std::vector<Node>>& extra_cons,
+    std::map<TypeNode, std::vector<Node>>& exc_cons,
     std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
     std::vector<CVC4::Datatype>& datatypes,
     std::set<Type>& unres)
@@ -607,9 +606,19 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     Trace("sygus-grammar-def") << "...make datatype " << datatypes[i] << std::endl;
     datatypes[i].setSygus( types[i].toType(), bvl.toExpr(), true, true );
-    for( unsigned j=0; j<ops[i].size(); j++ ){
-      datatypes[i].addSygusConstructor(
-          ops[i][j], cnames[j], cargs[j], pc, weight);
+    std::map<TypeNode, std::vector<Node>>::iterator itexc =
+        exc_cons.find(types[i]);
+    for (unsigned j = 0, size = ops[i].size(); j < size; j++)
+    {
+      // add the constructor if it is not excluded
+      Node opn = Node::fromExpr(ops[i][j]);
+      if (itexc == exc_cons.end()
+          || std::find(itexc->second.begin(), itexc->second.end(), opn)
+                 == itexc->second.end())
+      {
+        datatypes[i].addSygusConstructor(
+            ops[i][j], cnames[j], cargs[j], pc, weight);
+      }
     }
     Trace("sygus-grammar-def")
         << "...built datatype " << datatypes[i] << " ";
@@ -724,7 +733,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   //sorts.push_back( btype );
   Trace("sygus-grammar-def") << "...finished make default grammar for " << fun << " " << range << std::endl;
-  
+
   if( startIndex>0 ){
     CVC4::Datatype tmp_dt = datatypes[0];
     datatypes[0] = datatypes[startIndex];
@@ -736,7 +745,8 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     TypeNode range,
     Node bvl,
     const std::string& fun,
-    std::map<TypeNode, std::vector<Node> >& extra_cons,
+    std::map<TypeNode, std::vector<Node>>& extra_cons,
+    std::map<TypeNode, std::vector<Node>>& exclude_cons,
     std::unordered_set<Node, NodeHashFunction>& term_irrelevant)
 {
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
@@ -745,8 +755,14 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   }
   std::set<Type> unres;
   std::vector< CVC4::Datatype > datatypes;
-  mkSygusDefaultGrammar(
-      range, bvl, fun, extra_cons, term_irrelevant, datatypes, unres);
+  mkSygusDefaultGrammar(range,
+                        bvl,
+                        fun,
+                        extra_cons,
+                        exclude_cons,
+                        term_irrelevant,
+                        datatypes,
+                        unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert( !datatypes.empty() );
   std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
@@ -754,7 +770,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   return TypeNode::fromType( types[0] );
 }
 
-TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
                                               const std::string& fun, unsigned& tcount ) {
   if( templ==templ_arg ){
     //Assert( templ_arg.getType()==sygusToBuiltinType( templ_arg_sygus_type ) );
@@ -794,7 +810,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
   }
 }
 
-TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
                                                      const std::string& fun ) {
   unsigned tcount = 0;
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
