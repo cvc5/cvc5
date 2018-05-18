@@ -73,7 +73,7 @@ typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool> IsInterpretedFiniteComputedAttr;
 
 bool TypeNode::isInterpretedFinite() {
-  // TODO: cache 
+  // check it is already cached
   if( !getAttribute(IsInterpretedFiniteComputedAttr()) )
   {
     bool isInterpretedFinite = false;
