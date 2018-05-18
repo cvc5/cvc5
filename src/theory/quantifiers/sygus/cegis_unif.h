@@ -158,7 +158,7 @@ class CegisUnifEnumManager
    *   (0,2), (0,3), (1,1), (1,2), (1,3)                        [size 1]
    *   (0,4), ..., (0,7), (1,4), ..., (1,7), (2,0), ..., (2,7)  [size 2]
    *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
-   */  
+   */
   Node d_virtual_enum;
   /**
    * The minimal n such that G_uq_n is not asserted negatively in the
