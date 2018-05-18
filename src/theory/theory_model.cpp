@@ -207,6 +207,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       Debug("model-getvalue-debug") << "Get model value children " << n << std::endl;
       std::vector<Node> children;
       if (n.getKind() == APPLY_UF) {
+        Assert( options::assignFunctionValues() );
         Node op = getModelValue(n.getOperator(), hasBoundVars);
         Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
         children.push_back(op);
