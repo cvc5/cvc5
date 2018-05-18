@@ -1263,7 +1263,8 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 void TermDbSygus::registerEvalTerm( Node n ) {
   if (options::sygusEvalUnfold())
   {
-    if (n.getKind() == APPLY_UF)
+    // if (n.getKind() == APPLY_UF)
+    if (n.getKind() == APPLY_UF && !n.getType().isBoolean())
     {
       TypeNode tn = n[0].getType();
       if( tn.isDatatype() ){
