@@ -86,7 +86,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
   }
   SygusExplain* sy_exp = d_tds->getExplain();
   Trace("sygus-eval-unfold")
-      << "registerModelValue : " << a << ", has " << its->second.size()
+      << "SygusEvalUnfold: " << a << ", has " << its->second.size()
       << " registered subterms." << std::endl;
   for (std::map<Node, bool>::iterator itss = its->second.begin();
        itss != its->second.end();
@@ -115,10 +115,11 @@ void SygusEvalUnfold::registerModelValue(Node a,
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       Assert(dt.isSygus());
       Trace("sygus-eval-unfold")
-          << "TermDbSygus::eager: Register model value : " << vn << " for " << n
+          << "SygusEvalUnfold: Register model value : " << vn << " for " << n
           << std::endl;
+      unsigned curr_size = it->second.size();
       Trace("sygus-eval-unfold")
-          << "...it has " << it->second.size()
+          << "...it has " << curr_size
           << " evaluations, already processed " << start << "." << std::endl;
       Node bTerm = d_tds->sygusToBuiltin(vn, tn);
       Trace("sygus-eval-unfold") << "Built-in term : " << bTerm << std::endl;
@@ -133,11 +134,11 @@ void SygusEvalUnfold::registerModelValue(Node a,
       eval_children.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
       eval_children.push_back(n);
       // for each evaluation
-      for (unsigned i = start; i < it->second.size(); i++)
+      for (unsigned i = start; i < curr_size; i++)
       {
         Node res;
         Node expn;
-        // unfold?
+        // should we unfold?
         bool do_unfold = false;
         if (options::sygusEvalUnfoldBool())
         {
@@ -195,7 +196,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
             << ", given model value = " << d_eval_args_const[n][i] << std::endl;
         Trace("sygus-eval-unfold") << "   from " << expn << std::endl;
       }
-      d_node_mv_args_proc[n][vn] = it->second.size();
+      d_node_mv_args_proc[n][vn] = curr_size;
     }
   }
 }
