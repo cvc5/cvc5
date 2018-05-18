@@ -108,7 +108,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   {
     Assert(d_non_unif_candidates.size() == candidates.size());
     return Cegis::processConstructCandidates(
-        enums, enum_values, candidates, candidate_values);
+        enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
   }
   if (!satisfiedRl)
   {
