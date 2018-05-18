@@ -20,8 +20,8 @@
 #include <unordered_set>
 
 #include "theory/quantifiers/extended_rewrite.h"
-#include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
+#include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {

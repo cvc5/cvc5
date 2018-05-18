@@ -26,40 +26,44 @@ namespace theory {
 namespace quantifiers {
 
 class TermDbSygus;
-  
+
 /** SygusEvalUnfold
- * 
+ *
  * This class implements techniques for eagerly unfolding sygus evaluation
  * functions. For example, given sygus datatype type corresponding to grammar:
  *   A -> 0 | 1 | A+A
- * whose evaluation function is eval_A, this class adds lemmas 
+ * whose evaluation function is eval_A, this class adds lemmas
  */
-class SygusEvalUnfold 
+class SygusEvalUnfold
 {
-public:
-  SygusEvalUnfold( TermDbSygus* tds );
-  ~SygusEvalUnfold(){}
-  /** register evaluation term 
-   * 
-   * This is called by TermDatabase, during standard effort calls 
+ public:
+  SygusEvalUnfold(TermDbSygus* tds);
+  ~SygusEvalUnfold() {}
+  /** register evaluation term
+   *
+   * This is called by TermDatabase, during standard effort calls
    */
-  void registerEvalTerm( Node n );
-  /** register model value 
-   * 
+  void registerEvalTerm(Node n);
+  /** register model value
+   *
    */
-  void registerModelValue( Node n, Node v, std::vector< Node >& exps, std::vector< Node >& terms, std::vector< Node >& vals );
+  void registerModelValue(Node n,
+                          Node v,
+                          std::vector<Node>& exps,
+                          std::vector<Node>& terms,
+                          std::vector<Node>& vals);
+
  private:
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** the set of evaluation terms we have already processed */
   std::unordered_set<Node, NodeHashFunction> d_eval_processed;
-  std::map< Node, std::map< Node, bool > > d_subterms;
-  std::map< Node, std::vector< Node > > d_evals;
-  std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
-  std::map< Node, std::vector< bool > > d_eval_args_const;
-  std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
+  std::map<Node, std::map<Node, bool> > d_subterms;
+  std::map<Node, std::vector<Node> > d_evals;
+  std::map<Node, std::vector<std::vector<Node> > > d_eval_args;
+  std::map<Node, std::vector<bool> > d_eval_args_const;
+  std::map<Node, std::map<Node, unsigned> > d_node_mv_args_proc;
 };
-
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
