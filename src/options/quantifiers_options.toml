@@ -972,7 +972,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-bool-ite-return-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Only use Boolean constants for return values in unification-based function synthesis"
 
 [[option]]
