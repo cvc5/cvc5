@@ -70,7 +70,7 @@ class SygusEvalUnfold
    * C_op. If op is an ITE, or if C_op is a Boolean operator, then we add [B].
    * Otherwise, we add [A]. The intuition of why [B] is better than [A] for the
    * former is that evaluation unfolding can lead to useful conflict analysis.
-   * 
+   *
    * For each lemma C => eval( a, T ) = T' we infer is necessary, we add C to
    * exps, eval( a, T ) to terms, and T' to vals. The caller should send the
    * corresponding lemma on the output channel.
