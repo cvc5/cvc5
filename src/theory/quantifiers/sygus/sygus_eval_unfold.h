@@ -32,7 +32,9 @@ class TermDbSygus;
  * This class implements techniques for eagerly unfolding sygus evaluation
  * functions. For example, given sygus datatype type corresponding to grammar:
  *   A -> 0 | 1 | A+A
- * whose evaluation function is eval_A, this class adds lemmas
+ * whose evaluation function is eval, this class adds lemmas that "eagerly
+ * unfold" applications of eval based on the model values of evaluation heads
+ * in refinement lemmas.
  */
 class SygusEvalUnfold
 {
@@ -52,8 +54,8 @@ class SygusEvalUnfold
   void registerEvalTerm(Node n);
   /** register model value
    *
-   * This notifies this class that the model value of a term a is currently v.
-   * Assume in the following that the top symbol of v is some sygus datatype
+   * This notifies this class that the model value M(a) of term a is currently 
+   * v. Assume in the following that the top symbol of v is some sygus datatype
    * constructor C_op.
    * 
    * If we have registered terms eval( a, T1 ), ..., eval( a, Tm ), then we
@@ -80,9 +82,17 @@ class SygusEvalUnfold
   TermDbSygus* d_tds;
   /** the set of evaluation terms we have already processed */
   std::unordered_set<Node, NodeHashFunction> d_eval_processed;
-  std::map<Node, std::map<Node, bool> > d_subterms;
+  /** map from evaluation heads to evaluation function applications */
   std::map<Node, std::vector<Node> > d_evals;
+  /** 
+   * Map from evaluation function applications to their arguments (minus the
+   * evaluation head). For example, eval(x,0,1) is mapped to { 0, 1 }.
+   */
   std::map<Node, std::vector<std::vector<Node> > > d_eval_args;
+  /** 
+   * For each (a,M(a)) pair, the number of terms in d_evals that we have added
+   * lemmas for 
+   */
   std::map<Node, std::map<Node, unsigned> > d_node_mv_args_proc;
 };
 

@@ -74,7 +74,6 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
     d_eval_args[n[0]].back().push_back(n[j]);
   }
   Node a = TermDbSygus::getAnchor(n[0]);
-  d_subterms[a][n[0]] = true;
 }
 
 void SygusEvalUnfold::registerModelValue(Node a,
@@ -83,11 +82,6 @@ void SygusEvalUnfold::registerModelValue(Node a,
                                          std::vector<Node>& vals,
                                          std::vector<Node>& exps)
 {
-  std::map<Node, std::map<Node, bool> >::iterator its = d_subterms.find(a);
-  if (its == d_subterms.end())
-  {
-    return;
-  }
   SygusExplain* sy_exp = d_tds->getExplain();
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: " << a << ", has " << its->second.size()
