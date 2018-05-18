@@ -60,7 +60,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   d_eval_processed.insert(n);
   // is it the sygus evaluation function?
   Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
-  if( n.getOperator()!=eval_op )
+  if (n.getOperator() != eval_op)
   {
     Assert(false);
     return;
@@ -83,7 +83,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
                                          std::vector<Node>& vals,
                                          std::vector<Node>& exps)
 {
-  std::map<Node, std::unordered_set< Node, NodeHashFunction > >::iterator its = d_subterms.find(a);
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator its =
+      d_subterms.find(a);
   if (its == d_subterms.end())
   {
     return;
@@ -92,7 +93,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: " << a << ", has " << its->second.size()
       << " registered subterms." << std::endl;
-  for( const Node& n : its->second )
+  for (const Node& n : its->second)
   {
     Trace("sygus-eval-unfold-debug") << "...process : " << n << std::endl;
     std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -120,8 +121,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
           << std::endl;
       unsigned curr_size = it->second.size();
       Trace("sygus-eval-unfold")
-          << "...it has " << curr_size
-          << " evaluations, already processed " << start << "." << std::endl;
+          << "...it has " << curr_size << " evaluations, already processed "
+          << start << "." << std::endl;
       Node bTerm = d_tds->sygusToBuiltin(vn, tn);
       Trace("sygus-eval-unfold") << "Built-in term : " << bTerm << std::endl;
       std::vector<Node> vars;
