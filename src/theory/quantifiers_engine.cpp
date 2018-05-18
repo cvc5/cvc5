@@ -49,6 +49,7 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/ematching/trigger.h"
@@ -847,7 +848,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
     {
       if (d_sygus_tdb)
       {
-        d_sygus_tdb->registerEvalTerm(n);
+        d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
       }
 
       // added contains also the Node that just have been asserted in this

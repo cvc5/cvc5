@@ -65,6 +65,8 @@ class Cegis : public SygusModule
                                        std::vector<Node>& lems) override;
 
  protected:
+  /** the evaluation unfold utility of d_tds */
+  SygusEvalUnfold* d_eval_unfold;
   /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**
