@@ -152,8 +152,13 @@ class CegisUnifEnumManager
    * two) of (i-1). Due to the default fairness scheme in the quantifier-free
    * datatypes solver (if --sygus-fair-max is enabled), this ensures that other
    * enumerators are allowed to have at least this size. This affect other
-   * fairness schemes in an analogous fashion.
-   */
+   * fairness schemes in an analogous fashion. In particular, we enumerate
+   * based on the tuples for (term size, #conditions):
+   *   (0,0), (0,1)                                             [size 0]
+   *   (0,2), (0,3), (1,1), (1,2), (1,3)                        [size 1]
+   *   (0,4), ..., (0,7), (1,4), ..., (1,7), (2,0), ..., (2,7)  [size 2]
+   *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
+   */  
   Node d_virtual_enum;
   /**
    * The minimal n such that G_uq_n is not asserted negatively in the

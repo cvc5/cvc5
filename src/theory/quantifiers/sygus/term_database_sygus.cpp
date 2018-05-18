@@ -1050,7 +1050,6 @@ Node TermDbSygus::getConsNumConst( TypeNode tn, int i ) {
 }
 
 Kind TermDbSygus::getConsNumKind( TypeNode tn, int i ) {
-  Trace("ajr-temp") << "getConsNumKind " << tn << std::endl;
   Assert( isRegistered( tn ) );
   std::map< TypeNode, std::map< int, Kind > >::iterator itt = d_arg_kind.find( tn );
   if( itt!=d_arg_kind.end() ){

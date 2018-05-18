@@ -526,9 +526,9 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         // this lemma relates the number of conditions we enumerate and the
         // maximum size of a term that is part of our solution. It is of the
         // form:
-        //   G_uq_i => size(ve) >= log_2( i )
+        //   G_uq_i => size(ve) >= log_2( i-1 )
         // In other words, if we use i conditions, then we allow terms in our
-        // solution whose size is at most log_2(i).
+        // solution whose size is at most log_2(i-1).
         d_qe->getOutputChannel().lemma(fair_lemma);
       }
     }
