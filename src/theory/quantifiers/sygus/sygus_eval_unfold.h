@@ -54,15 +54,15 @@ class SygusEvalUnfold
   void registerEvalTerm(Node n);
   /** register model value
    *
-   * This notifies this class that the model value M(a) of term a is currently 
-   * v. Assume in the following that the top symbol of v is some sygus datatype
-   * constructor C_op.
+   * This notifies this class that the model value M(a) of an anchor term a is
+   * currently v. Assume in the following that the top symbol of v is some sygus
+   * datatype constructor C_op.
    * 
    * If we have registered terms eval( a, T1 ), ..., eval( a, Tm ), then we
    * ensure that for each i=1,...,m, a lemma of one of the two forms is
    * generated:
    * [A] a=v => eval( a, Ti ) = [[unfold( eval( v, Ti ) )]] 
-   * [B] is-C_op(v) => eval(a, Ti ) = op( eval( a.1, Ti ), ..., eval( a.k, Ti ) ),
+   * [B] is-C_op(v) => eval(a, Ti ) = op(eval( a.1, Ti ), ..., eval( a.k, Ti )),
    * where this corresponds to a "one step folding" of the sygus evaluation
    * function, i.e. op is a builtin operator encoded by constructor C_op.
    * 
@@ -70,6 +70,9 @@ class SygusEvalUnfold
    * C_op. If op is an ITE, or if C_op is a Boolean operator, then we add [B].
    * Otherwise, we add [A]. The intuition of why [B] is better than [A] for the
    * former is that evaluation unfolding can lead to useful conflict analysis.
+   * 
+   * We do the above scheme *for each* selector chain (see d_subterms below)
+   * applied to a.
    */
   void registerModelValue(Node a,
                           Node v,
@@ -94,6 +97,12 @@ class SygusEvalUnfold
    * lemmas for 
    */
   std::map<Node, std::map<Node, unsigned> > d_node_mv_args_proc;
+  /** subterms map
+   * 
+   * This maps anchor terms to the set of shared selector chains with
+   * them as an anchor, for example x may map to { x, x.1, x.2, x.1.1 }.
+   */
+  std::map<Node, std::unordered_set< Node, NodeHashFunction > > d_subterms;
 };
 
 } /* CVC4::theory::quantifiers namespace */
