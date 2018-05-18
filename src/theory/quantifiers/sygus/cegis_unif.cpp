@@ -53,9 +53,11 @@ bool CegisUnif::processInitialize(Node n,
     {
       Trace("cegis-unif") << "* non-unification candidate : " << f << std::endl;
       d_tds->registerEnumerator(f, f, d_parent);
+      d_non_unif_candidates.push_back(f);
     }
     else
     {
+      d_unif_candidates.push_back(f);
       Trace("cegis-unif") << "* unification candidate : " << f
                           << " with strategy points:" << std::endl;
       std::vector<Node>& enums = d_cand_to_strat_pt[f];
@@ -80,14 +82,11 @@ bool CegisUnif::processInitialize(Node n,
 void CegisUnif::getTermList(const std::vector<Node>& candidates,
                             std::vector<Node>& enums)
 {
-  for (const Node& c : candidates)
+  // Non-unif candidate are themselves the enumerators
+  enums.insert(
+      enums.end(), d_non_unif_candidates.begin(), d_non_unif_candidates.end());
+  for (const Node& c : d_unif_candidates)
   {
-    // Non-unif candidate are themselves the enumerators
-    if (!d_sygus_unif.usingUnif(c))
-    {
-      enums.push_back(c);
-      continue;
-    }
     // Collect heads of candidates
     for (const Node& hd : d_sygus_unif.getEvalPointHeads(c))
     {
@@ -105,6 +104,12 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
                                            bool satisfiedRl,
                                            std::vector<Node>& lems)
 {
+  if (d_unif_candidates.empty())
+  {
+    Assert(d_non_unif_candidates.size() == candidates.size());
+    return Cegis::processConstructCandidates(
+        enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
+  }
   if (!satisfiedRl)
   {
     // if we didn't satisfy the specification, there is no way to repair
@@ -117,7 +122,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   Node cost_lit = d_u_enum_manager.getCurrentLiteral();
   std::map<Node, std::vector<Node>> unif_enums[2];
   std::map<Node, std::vector<Node>> unif_values[2];
-  for (const Node& c : candidates)
+  for (const Node& c : d_unif_candidates)
   {
     // for each decision tree strategy allocated for c (these are referenced
     // by strategy points in d_cand_to_strat_pt[c])
@@ -196,7 +201,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     return false;
   }
   // set the conditions
-  for (const Node& c : candidates)
+  for (const Node& c : d_unif_candidates)
   {
     for (const Node& e : d_cand_to_strat_pt[c])
     {
