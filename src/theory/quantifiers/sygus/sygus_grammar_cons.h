@@ -69,13 +69,15 @@ public:
  *   fun is for naming
  *   extra_cons is a set of extra constant symbols to include in the grammar
  *   term_irrelevant is a set of terms that should not be included in the
- *      grammar.
+ *      grammar,
+ *   exclude_cons is used to exclude certain builtin kinds from the construction.
  */
  static TypeNode mkSygusDefaultType(
      TypeNode range,
      Node bvl,
      const std::string& fun,
      std::map<TypeNode, std::vector<Node> >& extra_cons,
+     std::map<TypeNode, std::vector<Node> >& exclude_cons,
      std::unordered_set<Node, NodeHashFunction>& term_irrelevant);
  /** make the default sygus datatype type corresponding to builtin type range */
  static TypeNode mkSygusDefaultType(TypeNode range,
@@ -83,8 +85,9 @@ public:
                                     const std::string& fun)
  {
    std::map<TypeNode, std::vector<Node> > extra_cons;
+   std::map<TypeNode, std::vector<Node> > exclude_cons;
    std::unordered_set<Node, NodeHashFunction> term_irrelevant;
-   return mkSygusDefaultType(range, bvl, fun, extra_cons, term_irrelevant);
+   return mkSygusDefaultType(range, bvl, fun, extra_cons, exclude_cons, term_irrelevant);
   }
   /** make the sygus datatype type that encodes the solution space (lambda
   * templ_arg. templ[templ_arg]) where templ_arg
@@ -138,6 +141,7 @@ public:
       Node bvl,
       const std::string& fun,
       std::map<TypeNode, std::vector<Node> >& extra_cons,
+      std::map<TypeNode, std::vector<Node> >& exclude_cons,
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
       std::vector<CVC4::Datatype>& datatypes,
       std::set<Type>& unres);
