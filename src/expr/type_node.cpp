@@ -67,29 +67,38 @@ Cardinality TypeNode::getCardinality() const {
 }
 
 /** Attribute true for types that are interpreted as finite */
-struct IsInterpretedFiniteTag { };
-struct IsInterpretedFiniteComputedTag { };
+struct IsInterpretedFiniteTag
+{
+};
+struct IsInterpretedFiniteComputedTag
+{
+};
 typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
-typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool> IsInterpretedFiniteComputedAttr;
+typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
+    IsInterpretedFiniteComputedAttr;
 
-bool TypeNode::isInterpretedFinite() {
+bool TypeNode::isInterpretedFinite()
+{
   // check it is already cached
-  if( !getAttribute(IsInterpretedFiniteComputedAttr()) )
+  if (!getAttribute(IsInterpretedFiniteComputedAttr()))
   {
     bool isInterpretedFinite = false;
-    if( getCardinality().isFinite() ){
+    if (getCardinality().isFinite())
+    {
       isInterpretedFinite = true;
     }
-    else if( options::finiteModelFind() )
+    else if (options::finiteModelFind())
     {
       if( isSort() ){
         isInterpretedFinite = true;
       }else if( isDatatype() ){
         TypeNode tn = *this;
         const Datatype& dt = getDatatype();
-        isInterpretedFinite = dt.isInterpretedFinite( tn.toType() );
+        isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
       }else if( isArray() ){
-        isInterpretedFinite = getArrayIndexType().isInterpretedFinite() && getArrayConstituentType().isInterpretedFinite();
+        isInterpretedFinite =
+            getArrayIndexType().isInterpretedFinite()
+            && getArrayConstituentType().isInterpretedFinite();
       }else if( isSet() ) {
         isInterpretedFinite = getSetElementType().isInterpretedFinite();
       }

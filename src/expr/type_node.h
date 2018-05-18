@@ -429,7 +429,6 @@ public:
    */
   bool isInterpretedFinite();
 
-
   /**
    * Is this a first-class type?
    * First-class types are types for which:
