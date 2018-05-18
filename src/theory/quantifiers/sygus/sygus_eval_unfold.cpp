@@ -30,11 +30,11 @@ SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
   Assert(options::sygusEvalUnfold());
+  // is this an APPLY_UF term with head that is a sygus datatype term?
   if (n.getKind() != APPLY_UF)
   {
     return;
   }
-  // is this an APPLY_UF term with head that is a sygus datatype term?
   TypeNode tn = n[0].getType();
   if (!tn.isDatatype())
   {
@@ -62,7 +62,6 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
   if (n.getOperator() != eval_op)
   {
-    Assert(false);
     return;
   }
   // register this evaluation term with its head
