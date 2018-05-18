@@ -513,7 +513,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
       {
         Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
         Node fair_lemma = nm->mkNode(GEQ,size_ve,nm->mkConst(Rational(pow_two-1)));
-        fair_lemma = nm->mkNode(OR,new_lit.negate(),fair_lemma);
+        fair_lemma = nm->mkNode(OR,new_lit,fair_lemma);
         Trace("cegis-unif-enum-lemma")
             << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
         // this lemma relates the number of conditions we enumerate and the
