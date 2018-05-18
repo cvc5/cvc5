@@ -143,8 +143,8 @@ class CegisUnifEnumManager
   /** Have we returned a decision in the current SAT context? */
   context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
-   * 
-   * This enumerator is used for enforcing fairness. In particular, we relate 
+   *
+   * This enumerator is used for enforcing fairness. In particular, we relate
    * its size to the number of conditions allocated by this class such that:
    *    ~G_uq_i => size(d_virtual_enum) >= floor( log2( i-1 ) )
    * In other words, if we are using (i-1) conditions in our solution,

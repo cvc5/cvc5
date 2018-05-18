@@ -752,13 +752,13 @@ void TermDbSygus::registerEnumerator(Node e,
                                      CegConjecture* conj,
                                      bool mkActiveGuard)
 {
-  if(d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
+  if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
     // already registered
     return;
   }
   Trace("sygus-db") << "Register enumerator : " << e << std::endl;
-  // register its type 
+  // register its type
   registerSygusType(e.getType());
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
