@@ -38,7 +38,13 @@ class TermDbSygus {
   bool reset(Theory::Effort e);
   /** Identify this utility */
   std::string identify() const { return "TermDbSygus"; }
-  /** register the sygus type */
+  /** register the sygus type
+   *
+   * This initializes this database for sygus datatype type tn. This may
+   * throw an assertion failure if the sygus grammar has type errors. Otherwise,
+   * after registering a sygus type, the query functions in this class (such
+   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   */
   void registerSygusType(TypeNode tn);
 
   //------------------------------utilities

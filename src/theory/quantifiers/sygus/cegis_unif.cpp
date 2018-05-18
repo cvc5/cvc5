@@ -330,11 +330,23 @@ void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
                                                        std::vector<Node>& es,
                                                        unsigned index) const
 {
-  std::map<Node, StrategyPtInfo>::const_iterator itc = d_ce_info.find(e);
-  Assert(itc != d_ce_info.end());
-  es.insert(es.end(),
-            itc->second.d_enums[index].begin(),
-            itc->second.d_enums[index].end());
+  // the number of active enumerators is related to the current cost value
+  unsigned num_enums = d_curr_guq_val.get();
+  Assert(num_enums > 0);
+  if (index == 1)
+  {
+    // we always use (cost-1) conditions
+    num_enums = num_enums - 1;
+  }
+  if (num_enums > 0)
+  {
+    std::map<Node, StrategyPtInfo>::const_iterator itc = d_ce_info.find(e);
+    Assert(itc != d_ce_info.end());
+    Assert(num_enums <= itc->second.d_enums[index].size());
+    es.insert(es.end(),
+              itc->second.d_enums[index].begin(),
+              itc->second.d_enums[index].begin() + num_enums);
+  }
 }
 
 void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
@@ -467,6 +479,57 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
                                  << " to new size " << new_size << "\n";
         registerEvalPtAtSize(c, ei, new_lit, new_size);
+      }
+    }
+    // enforce fairness between number of enumerators and enumerator size
+    if (new_size > 1)
+    {
+      // construct the "virtual enumerator"
+      if (d_virtual_enum.isNull())
+      {
+        // we construct the default integer grammar with no variables, e.g.:
+        //   A -> 0 | 1 | A+A
+        TypeNode intTn = nm->integerType();
+        // use a null variable list
+        Node bvl;
+        std::stringstream ss;
+        ss << "_virtual_enum_grammar";
+        std::string virtualEnumName(ss.str());
+        std::map<TypeNode, std::vector<Node>> extra_cons;
+        std::map<TypeNode, std::vector<Node>> exclude_cons;
+        // do not include "-", which is included by default for integers
+        exclude_cons[intTn].push_back(nm->operatorOf(MINUS));
+        std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+        TypeNode vtn =
+            CegGrammarConstructor::mkSygusDefaultType(intTn,
+                                                      bvl,
+                                                      virtualEnumName,
+                                                      extra_cons,
+                                                      exclude_cons,
+                                                      term_irrelevant);
+        d_virtual_enum = nm->mkSkolem("_ve", vtn);
+        d_tds->registerEnumerator(d_virtual_enum, Node::null(), d_parent);
+      }
+      // if new_size is a power of two, then isPow2 returns log2(new_size)+1
+      // otherwise, this returns 0. In the case it returns 0, we don't care
+      // since the floor( log2( i ) ) = floor( log2( i - 1 ) ) and we do not
+      // increase our size bound.
+      unsigned pow_two = Integer(new_size).isPow2();
+      if (pow_two > 0)
+      {
+        Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
+        Node fair_lemma =
+            nm->mkNode(GEQ, size_ve, nm->mkConst(Rational(pow_two - 1)));
+        fair_lemma = nm->mkNode(OR, new_lit, fair_lemma);
+        Trace("cegis-unif-enum-lemma")
+            << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
+        // this lemma relates the number of conditions we enumerate and the
+        // maximum size of a term that is part of our solution. It is of the
+        // form:
+        //   G_uq_i => size(ve) >= log_2( i-1 )
+        // In other words, if we use i conditions, then we allow terms in our
+        // solution whose size is at most log_2(i-1).
+        d_qe->getOutputChannel().lemma(fair_lemma);
       }
     }
   }
