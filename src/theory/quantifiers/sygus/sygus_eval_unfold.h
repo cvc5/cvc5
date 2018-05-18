@@ -41,13 +41,35 @@ class SygusEvalUnfold
   ~SygusEvalUnfold() {}
   /** register evaluation term
    *
-   * This is called by TermDatabase, during standard effort calls
+   * This is called by TermDatabase, during standard effort calls when a term
+   * n is registered as an equivalence class in the master equality engine.
+   * If this term is of the form:
+   *   eval( a, t1, ..., tn )
+   * where a is a symbolic term of sygus datatype type (not a application of a
+   * constructor), then we remember that n is an evaluation function application
+   * for evaluation head a.
    */
   void registerEvalTerm(Node n);
   /** register model value
    *
+   * This notifies this class that the model value of a term a is currently v.
+   * Assume in the following that the top symbol of v is some sygus datatype
+   * constructor C_op.
+   * 
+   * If we have registered terms eval( a, T1 ), ..., eval( a, Tm ), then we
+   * ensure that for each i=1,...,m, a lemma of one of the two forms is
+   * generated:
+   * [A] a=v => eval( a, Ti ) = [[unfold( eval( v, Ti ) )]] 
+   * [B] is-C_op(v) => eval(a, Ti ) = op( eval( a.1, Ti ), ..., eval( a.k, Ti ) ),
+   * where this corresponds to a "one step folding" of the sygus evaluation
+   * function, i.e. op is a builtin operator encoded by constructor C_op.
+   * 
+   * We decide which kind of lemma to send ([A] or [B]) based on the symbol 
+   * C_op. If op is an ITE, or if C_op is a Boolean operator, then we add [B].
+   * Otherwise, we add [A]. The intuition of why [B] is better than [A] for the
+   * former is that evaluation unfolding can lead to useful conflict analysis.
    */
-  void registerModelValue(Node n,
+  void registerModelValue(Node a,
                           Node v,
                           std::vector<Node>& exps,
                           std::vector<Node>& terms,
@@ -61,7 +83,6 @@ class SygusEvalUnfold
   std::map<Node, std::map<Node, bool> > d_subterms;
   std::map<Node, std::vector<Node> > d_evals;
   std::map<Node, std::vector<std::vector<Node> > > d_eval_args;
-  std::map<Node, std::vector<bool> > d_eval_args_const;
   std::map<Node, std::map<Node, unsigned> > d_node_mv_args_proc;
 };
 

@@ -30,10 +30,11 @@ SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
   Assert(options::sygusEvalUnfold());
-  if (n.getKind() != APPLY_UF || n.getType().isBoolean())
+  if (n.getKind() != APPLY_UF)
   {
     return;
   }
+  // is this an APPLY_UF term with head that is a sygus datatype term?
   TypeNode tn = n[0].getType();
   if (!tn.isDatatype())
   {
@@ -47,6 +48,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   Node f = n.getOperator();
   if (n[0].getKind() == APPLY_CONSTRUCTOR)
   {
+    // constructors should be unfolded and reduced already
     return;
   }
   if (d_eval_processed.find(n) != d_eval_processed.end())
@@ -56,19 +58,21 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: register eval term : " << n << std::endl;
   d_eval_processed.insert(n);
+  // is it the sygus evaluation function?
+  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
+  if( n.getOperator()!=eval_op )
+  {
+    Assert(false);
+    return;
+  }
+  // register this evaluation term with its head
   d_evals[n[0]].push_back(n);
   Node var_list = Node::fromExpr(dt.getSygusVarList());
   d_eval_args[n[0]].push_back(std::vector<Node>());
-  bool isConst = true;
   for (unsigned j = 1, size = n.getNumChildren(); j < size; j++)
   {
     d_eval_args[n[0]].back().push_back(n[j]);
-    if (!n[j].isConst())
-    {
-      isConst = false;
-    }
   }
-  d_eval_args_const[n[0]].push_back(isConst);
   Node a = TermDbSygus::getAnchor(n[0]);
   d_subterms[a][n[0]] = true;
 }
@@ -192,8 +196,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
         vals.push_back(res);
         exps.push_back(expn);
         Trace("sygus-eval-unfold")
-            << "Conclude : " << d_evals[n][i] << " == " << res
-            << ", given model value = " << d_eval_args_const[n][i] << std::endl;
+            << "Conclude : " << d_evals[n][i] << " == " << res << std::endl;
         Trace("sygus-eval-unfold") << "   from " << expn << std::endl;
       }
       d_node_mv_args_proc[n][vn] = curr_size;
