@@ -142,6 +142,24 @@ class CegisUnifEnumManager
   std::map<unsigned, Node> d_guq_lit;
   /** Have we returned a decision in the current SAT context? */
   context::CDO<bool> d_ret_dec;
+  /** the "virtual" enumerator
+   *
+   * This enumerator is used for enforcing fairness. In particular, we relate
+   * its size to the number of conditions allocated by this class such that:
+   *    ~G_uq_i => size(d_virtual_enum) >= floor( log2( i-1 ) )
+   * In other words, if we are using (i-1) conditions in our solution,
+   * the size of the virtual enumerator is at least the floor of the log (base
+   * two) of (i-1). Due to the default fairness scheme in the quantifier-free
+   * datatypes solver (if --sygus-fair-max is enabled), this ensures that other
+   * enumerators are allowed to have at least this size. This affect other
+   * fairness schemes in an analogous fashion. In particular, we enumerate
+   * based on the tuples for (term size, #conditions):
+   *   (0,0), (0,1)                                             [size 0]
+   *   (0,2), (0,3), (1,1), (1,2), (1,3)                        [size 1]
+   *   (0,4), ..., (0,7), (1,4), ..., (1,7), (2,0), ..., (2,7)  [size 2]
+   *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
+   */
+  Node d_virtual_enum;
   /**
    * The minimal n such that G_uq_n is not asserted negatively in the
    * current SAT context.
@@ -183,10 +201,6 @@ class CegisUnif : public Cegis
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
   ~CegisUnif();
-  /** initialize this class */
-  bool initialize(Node n,
-                  const std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas) override;
   /** Retrieves enumerators for constructing solutions
    *
    * Non-unification candidates have themselves as enumerators, while for
@@ -195,33 +209,6 @@ class CegisUnif : public Cegis
    */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& enums) override;
-  /** Tries to build new candidate solutions with new enumerated expressions
-   *
-   * This function relies on a data-driven unification-based approach for
-   * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
-   * more details.
-   *
-   * Calls to this function are such that terms is the list of active
-   * enumerators (returned by getTermList), and term_values are their current
-   * model values. This function registers { terms -> terms_values } in
-   * the database of values that have been enumerated, which are in turn used
-   * for constructing candidate solutions when possible.
-   *
-   * This function also excludes models where (terms = terms_values) by adding
-   * blocking clauses to lems. For example, for grammar:
-   *   A -> A+A | x | 1 | 0
-   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
-   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
-   * to lems, where G is active guard of the enumerator d (see
-   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
-   * indicates that d should not be given the model value +( x, 1 ) anymore,
-   * since { d -> +( x, 1 ) } has now been added to the database of this class.
-   */
-  bool constructCandidates(const std::vector<Node>& enums,
-                           const std::vector<Node>& enum_values,
-                           const std::vector<Node>& candidates,
-                           std::vector<Node>& candidate_values,
-                           std::vector<Node>& lems) override;
 
   /** Communicates refinement lemma to unification utility and external modules
    *
@@ -249,8 +236,38 @@ class CegisUnif : public Cegis
   Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
-  /** sygus term database of d_qe */
-  TermDbSygus* d_tds;
+  /** do cegis-implementation-specific intialization for this class */
+  bool processInitialize(Node n,
+                         const std::vector<Node>& candidates,
+                         std::vector<Node>& lemmas) override;
+  /** Tries to build new candidate solutions with new enumerated expressions
+   *
+   * This function relies on a data-driven unification-based approach for
+   * constructing solutions for the functions-to-synthesize. See SygusUnifRl for
+   * more details.
+   *
+   * Calls to this function are such that terms is the list of active
+   * enumerators (returned by getTermList), and term_values are their current
+   * model values. This function registers { terms -> terms_values } in
+   * the database of values that have been enumerated, which are in turn used
+   * for constructing candidate solutions when possible.
+   *
+   * This function also excludes models where (terms = terms_values) by adding
+   * blocking clauses to lems. For example, for grammar:
+   *   A -> A+A | x | 1 | 0
+   * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
+   *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
+   * to lems, where G is active guard of the enumerator d (see
+   * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
+   * indicates that d should not be given the model value +( x, 1 ) anymore,
+   * since { d -> +( x, 1 ) } has now been added to the database of this class.
+   */
+  bool processConstructCandidates(const std::vector<Node>& enums,
+                                  const std::vector<Node>& enum_values,
+                                  const std::vector<Node>& candidates,
+                                  std::vector<Node>& candidate_values,
+                                  bool satisfiedRl,
+                                  std::vector<Node>& lems) override;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.

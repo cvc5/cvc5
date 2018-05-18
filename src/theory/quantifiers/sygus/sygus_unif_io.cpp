@@ -680,9 +680,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   lemmas.push_back(exp_exc);
 }
 
-bool SygusUnifIo::constructSolution(std::vector<Node>& sols)
+bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
+                                    std::vector<Node>& lemmas)
 {
-  Node sol = constructSolutionNode();
+  Node sol = constructSolutionNode(lemmas);
   if (!sol.isNull())
   {
     sols.push_back(sol);
@@ -691,7 +692,7 @@ bool SygusUnifIo::constructSolution(std::vector<Node>& sols)
   return false;
 }
 
-Node SygusUnifIo::constructSolutionNode()
+Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 {
   Node c = d_candidate;
   if (!d_solution.isNull())
@@ -716,7 +717,7 @@ Node SygusUnifIo::constructSolutionNode()
       initializeConstructSolFor(c);
       // call the virtual construct solution method
       Node e = d_strategy[c].getRootEnumerator();
-      Node vcc = constructSol(c, e, role_equal, 1);
+      Node vcc = constructSol(c, e, role_equal, 1, lemmas);
       // if we constructed the solution, and we either did not previously have
       // a solution, or the new solution is better (smaller).
       if (!vcc.isNull()
@@ -854,7 +855,8 @@ void SygusUnifIo::initializeConstructSolFor(Node f)
   Assert(d_candidate == f);
 }
 
-Node SygusUnifIo::constructSol(Node f, Node e, NodeRole nrole, int ind)
+Node SygusUnifIo::constructSol(
+    Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas)
 {
   Assert(d_candidate == f);
   UnifContextIo& x = d_context;
@@ -1285,7 +1287,7 @@ Node SygusUnifIo::constructSol(Node f, Node e, NodeRole nrole, int ind)
           }
           else
           {
-            rec_c = constructSol(f, cenum.first, cenum.second, ind + 2);
+            rec_c = constructSol(f, cenum.first, cenum.second, ind + 2, lemmas);
           }
 
           // undo update the context

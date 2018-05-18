@@ -188,8 +188,6 @@ class CegConjecturePbe : public SygusModule
   Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
 
  private:
-  /** sygus term database of d_qe */
-  quantifiers::TermDbSygus* d_tds;
   /** true and false nodes */
   Node d_true;
   Node d_false;
