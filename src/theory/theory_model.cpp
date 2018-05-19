@@ -51,8 +51,9 @@ TheoryModel::TheoryModel(context::Context* c,
   // do not interpret APPLY_UF if we are not assigning function values
   if( !enableFuncModels )
   {
-    setNotInterpretedKind(kind::APPLY_UF);
+    setSemiEvaluatedKind(kind::APPLY_UF);
   }
+  setUnevaluatedKind(kind::BOUND_VARIABLE);
 }
 
 TheoryModel::~TheoryModel()
@@ -165,50 +166,29 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   }
   Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
   Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
-  Node ret = n;
+  if(n.isConst()) {
+    d_modelCache[n] = n;
+    return n;
+  }
+  
+  Node ret = n;  
   Kind nk = n.getKind();
-  if(nk == kind::EXISTS || nk == kind::FORALL || nk == kind::COMBINED_CARDINALITY_CONSTRAINT ) {
-    // We should have terms, thanks to TheoryQuantifiers::collectModelInfo().
-    // However, if the Decision Engine stops us early, there might be a
-    // quantifier that isn't assigned.  In conjunction with miniscoping, this
-    // might lead to a perfectly good model.  Think of
-    //     ASSERT FORALL(x) : p OR x=5
-    // The p is pulled out by miniscoping, and set to TRUE by the decision
-    // engine, then the quantifier's value in the model doesn't matter, so the
-    // Decision Engine stops.  So even though the top-level quantifier was
-    // asserted, it can't be checked directly: first, it doesn't "exist" in
-    // non-miniscoped form, and second, no quantifiers have been asserted, so
-    // none is in the model.  We used to fail an assertion here, but that's
-    // no good.  Instead, return the quantifier itself.  If we're in
-    // checkModel(), and the quantifier actually matters, we'll get an
-    // assert-fail since the quantifier isn't a constant.
-    Node nr = Rewriter::rewrite(n);
-    if(!d_equalityEngine->hasTerm(nr)) {
-      d_modelCache[n] = ret;
-      return ret;
-    } else {
-      ret = nr;
-    }
-  } else {
-    // FIXME : special case not necessary? (also address BV_ACKERMANNIZE
-    // functions below), github issue #1116
-    if(n.getKind() == kind::LAMBDA) {
-      NodeManager* nm = NodeManager::currentNM();
-      Node body = getModelValue(n[1], true);
-      body = Rewriter::rewrite(body);
-      ret = nm->mkNode(kind::LAMBDA, n[0], body);
-      ret = Rewriter::rewrite( ret );
-      d_modelCache[n] = ret;
-      return ret;
-    }
-    if(n.isConst() || (hasBoundVars && n.getKind() == kind::BOUND_VARIABLE)) {
-      d_modelCache[n] = ret;
-      return ret;
-    }
-
-    if (n.getNumChildren() > 0
-        && n.getKind() != kind::BITVECTOR_ACKERMANNIZE_UDIV
-        && n.getKind() != kind::BITVECTOR_ACKERMANNIZE_UREM)
+  NodeManager* nm = NodeManager::currentNM();
+  
+  // FIXME : special case not necessary? github issue #1116
+  if(nk == kind::LAMBDA) {
+    Node body = getModelValue(n[1], true);
+    body = Rewriter::rewrite(body);
+    ret = nm->mkNode(kind::LAMBDA, n[0], body);
+    ret = Rewriter::rewrite( ret );
+    d_modelCache[n] = ret;
+    return ret;
+  }
+  
+  // if it is an evaluated kind, compute model values for children and evaluate
+  if (n.getNumChildren() > 0)
+  {
+    if( d_not_evaluated_kinds.find(nk)==d_not_evaluated_kinds.end()  )
     {
       Debug("model-getvalue-debug") << "Get model value children " << n << std::endl;
       std::vector<Node> children;
@@ -226,86 +206,105 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
         Debug("model-getvalue-debug") << "  " << n << "[" << i << "] is " << ret << std::endl;
         children.push_back(ret);
       }
-      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+      ret = nm->mkNode(n.getKind(), children);
       Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
       ret = Rewriter::rewrite(ret);
       Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
+      // special cases
       if(ret.getKind() == kind::CARDINALITY_CONSTRAINT) {
         Debug("model-getvalue-debug") << "get cardinality constraint " << ret[0].getType() << std::endl;
-        ret = NodeManager::currentNM()->mkConst(getCardinality(ret[0].getType().toType()).getFiniteCardinality() <= ret[1].getConst<Rational>().getNumerator());
+        ret = nm->mkConst(getCardinality(ret[0].getType().toType()).getFiniteCardinality() <= ret[1].getConst<Rational>().getNumerator());
       }else if(ret.getKind() == kind::CARDINALITY_VALUE) {
         Debug("model-getvalue-debug") << "get cardinality value " << ret[0].getType() << std::endl;
-        ret = NodeManager::currentNM()->mkConst(Rational(getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
+        ret = nm->mkConst(Rational(getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
       }
       d_modelCache[n] = ret;
       return ret;
     }
-  
-    Debug("model-getvalue-debug") << "Handling special cases for types..." << std::endl;
-    TypeNode t = n.getType();
-    bool eeHasTerm;
-    if( !options::ufHo() && (t.isFunction() || t.isPredicate()) ){
-      // functions are in the equality engine, but *not* as first-class members
-      // when higher-order is disabled. In this case, we cannot query representatives for functions
-      // since they are "internal" nodes according to the equality engine despite hasTerm returning true. 
-      // However, they are first class members when higher-order is enabled. Hence, the special
-      // case here.
-      eeHasTerm = false;
-    }else{
-      eeHasTerm = d_equalityEngine->hasTerm(n);
-    }
-    // if the term does not exist in the equality engine, return an arbitrary value
-    if (!eeHasTerm) {
-      if (t.isFunction() || t.isPredicate()) {
-        if (d_enableFuncModels) {
-          std::map< Node, Node >::const_iterator it = d_uf_models.find(n);
-          if (it != d_uf_models.end()) {
-            // Existing function
-            ret = it->second;
-            d_modelCache[n] = ret;
-            return ret;
-          }
-          // Unknown function symbol: return LAMBDA x. c, where c is the first constant in the enumeration of the range type
-          vector<TypeNode> argTypes = t.getArgTypes();
-          vector<Node> args;
-          NodeManager* nm = NodeManager::currentNM();
-          for (unsigned i = 0; i < argTypes.size(); ++i) {
-            args.push_back(nm->mkBoundVar(argTypes[i]));
-          }
-          Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, args);
-          TypeEnumerator te(t.getRangeType());
-          ret = nm->mkNode(kind::LAMBDA, boundVarList, *te);
-        }else{
-          // TODO: if func models not enabled, throw an error?
-          Unreachable();
-        }
-      }
-      else if (!t.isFirstClass())
+    else
+    {
+      /*
+      Node nr = Rewriter::rewrite(n);
+      if( nr!=n )
       {
-        // this is the class for regular expressions
-        // we simply invoke the rewriter on them
-        ret = Rewriter::rewrite(ret);
-      } else {
-        if (options::omitDontCares() && useDontCares) {
-          return Node();
-        }
-        // Unknown term - return first enumerated value for this type
-        TypeEnumerator te(n.getType());
-        ret = *te;
+        // restart with rewritten form if it is different
+        return getModelValue(nr,hasBoundVars,useDontCares);
       }
+      */
+    }
+  }
+
+  // return the representative of the term in the equality engine, if it exists
+  TypeNode t = n.getType();
+  bool eeHasTerm;
+  if( !options::ufHo() && (t.isFunction() || t.isPredicate()) ){
+    // functions are in the equality engine, but *not* as first-class members
+    // when higher-order is disabled. In this case, we cannot query 
+    // representatives for functions since they are "internal" nodes according 
+    // to the equality engine despite hasTerm returning true. However, they are
+    // first class members when higher-order is enabled. Hence, the special
+    // case here.
+    eeHasTerm = false;
+  }else{
+    eeHasTerm = d_equalityEngine->hasTerm(n);
+  }
+  if( eeHasTerm )
+  {
+    Debug("model-getvalue-debug") << "get value from representative " << ret << "..." << std::endl;
+    ret = d_equalityEngine->getRepresentative(ret);
+    Assert(d_reps.find(ret) != d_reps.end());
+    std::map< Node, Node >::const_iterator it2 = d_reps.find( ret );
+    if (it2 != d_reps.end()) {
+      ret = it2->second;
       d_modelCache[n] = ret;
       return ret;
     }
   }
-  Debug("model-getvalue-debug") << "get value from representative " << ret << "..." << std::endl;
-  ret = d_equalityEngine->getRepresentative(ret);
-  Assert(d_reps.find(ret) != d_reps.end());
-  std::map< Node, Node >::const_iterator it2 = d_reps.find( ret );
-  if (it2 != d_reps.end()) {
-    ret = it2->second;
-  } else {
-    ret = Node::null();
+    
+  // if we are a semi-evaluated kind, return an arbitrary value
+  if( d_not_evaluated_kinds.find(nk)==d_not_evaluated_kinds.end() || d_semi_evaluated_kinds.find(nk)!=d_semi_evaluated_kinds.end() )
+  {
+    if (t.isFunction() || t.isPredicate()) {
+      if (d_enableFuncModels) {
+        std::map< Node, Node >::const_iterator it = d_uf_models.find(n);
+        if (it != d_uf_models.end()) {
+          // Existing function
+          ret = it->second;
+          d_modelCache[n] = ret;
+          return ret;
+        }
+        // Unknown function symbol: return LAMBDA x. c, where c is the first constant in the enumeration of the range type
+        vector<TypeNode> argTypes = t.getArgTypes();
+        vector<Node> args;
+        NodeManager* nm = NodeManager::currentNM();
+        for (unsigned i = 0; i < argTypes.size(); ++i) {
+          args.push_back(nm->mkBoundVar(argTypes[i]));
+        }
+        Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, args);
+        TypeEnumerator te(t.getRangeType());
+        ret = nm->mkNode(kind::LAMBDA, boundVarList, *te);
+      }else{
+        // TODO: if func models not enabled, throw an error?
+        Unreachable();
+      }
+    }
+    else if (!t.isFirstClass())
+    {
+      // this is the class for regular expressions
+      // we simply invoke the rewriter on them
+      ret = Rewriter::rewrite(ret);
+    } else {
+      if (options::omitDontCares() && useDontCares) {
+        return Node();
+      }
+      // Unknown term - return first enumerated value for this type
+      TypeEnumerator te(n.getType());
+      ret = *te;
+    }
+    d_modelCache[n] = ret;
+    return ret;
   }
+  
   d_modelCache[n] = ret;
   return ret;
 }
@@ -483,9 +482,15 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
 
-void TheoryModel::setNotInterpretedKind( Kind k )
+void TheoryModel::setUnevaluatedKind( Kind k )
 {
-  
+  d_not_evaluated_kinds.insert(k);
+}
+
+void TheoryModel::setSemiEvaluatedKind( Kind k )
+{
+  d_not_evaluated_kinds.insert(k);
+  d_semi_evaluated_kinds.insert(k);
 }
 
 bool TheoryModel::hasTerm(TNode a)
