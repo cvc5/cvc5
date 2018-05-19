@@ -277,6 +277,10 @@ class CegisUnif : public Cegis
   CegisUnifEnumManager d_u_enum_manager;
   /* The null node */
   Node d_null;
+  /** the unification candidates */
+  std::vector<Node> d_unif_candidates;
+  /** the non-unification candidates */
+  std::vector<Node> d_non_unif_candidates;
   /** list of strategy points per candidate */
   std::map<Node, std::vector<Node>> d_cand_to_strat_pt;
   /** map from conditional enumerators to their strategy point */

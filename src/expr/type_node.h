@@ -427,8 +427,7 @@ public:
    * If finite model finding is enabled, this assumes all uninterpreted sorts 
    *   are interpreted as finite.
    */
-  bool isInterpretedFinite() const;
-
+  bool isInterpretedFinite();
 
   /**
    * Is this a first-class type?
