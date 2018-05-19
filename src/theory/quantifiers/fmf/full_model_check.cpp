@@ -371,8 +371,9 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
 }
 
 bool FullModelChecker::processBuildModel(TheoryModel* m){
-  if( !options::assignFunctionValues() )
+  if( !m->areFunctionValuesEnabled() )
   {
+    // nothing to do if no functions
     return true;
   }
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();

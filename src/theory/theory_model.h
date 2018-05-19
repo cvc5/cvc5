@@ -161,6 +161,52 @@ public:
    * construction process.
    */
   void recordApproximation(TNode n, TNode pred);
+  /** set not/semi interpreted kind 
+   * 
+   * This informs this model that it should not build interpretations for 
+   * operators of terms whose kind is k. Instead, applications of kind k
+   * should be treated as variables. With respect to model values, there are 
+   * four categories of kinds:
+   * 
+   * [1] "Interpreted"
+   * This includes (standard) interpreted symbols like NOT, PLUS, UNION, etc. These 
+   * operators can be characterized by the invariant that they are 
+   * "evaluatable". That is, if they are applied to only constants, the rewriter
+   * is guaranteed to rewrite the application to a constant. When getting
+   * the model value of <k>( t1...tn ) where k is a kind of this category, we
+   * compute the (constant) value of t1...tn, say this returns c1...cn, we 
+   * return the (constant) result of rewriting <k>( c1...cn ).
+   * 
+   * [2] "Not interpreted"
+   * This includes interpreted symbols like FORALL, EXISTS, 
+   * CARDINALITY_CONSTRAINT, that are not evaluatable. When getting a model 
+   * value for a term <k>( t1...tn ) where k is a kind of this category, we 
+   * check whether <k>( t1...tn ) exists in the equality engine of this model. 
+   * If it does, we return its representative, otherwise we return the term 
+   * itself.
+   * 
+   * [3] "Semi-interpreted"
+   * This includes kinds like BV_ACKERMANNIZE_REM and others, typically
+   * those that correspond to abstractions. Like not-interpreted kinds, these
+   * kinds do not have an evaluator. In contrast to not-interpreted kinds, we
+   * interpret a term <k>( t1...tn ) as an arbitrary value when the term does 
+   * not appear in the equality engine (whereas not-interpreted returns the
+   * term itself).
+   * 
+   * [4] APPLY_UF, where getting the model value depends on an internally
+   * constructed representation of a lambda model value (d_uf_models).
+   * It is optional whether this kind is "interpreted" or "semi-interpreted".
+   * In the case that it is "interpreted", get model rewrites the application 
+   * of the lambda model value of its operator to its evaluated arguments.
+   * We set APPLY_UF to be semi-interpreted when the option
+   * assignFunctionValues is false.
+   * 
+   * By default, all kinds are considered "interpreted". The following methods
+   * change the interpretation of various (non-APPLY_UF) kinds to one of the 
+   * above categories.
+   */
+  void setNotInterpretedKind( Kind k );
+  void setSemiInterpretedKind( Kind k );
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -217,6 +263,8 @@ public:
   std::map< Node, std::vector< Node > > d_uf_terms;
   /** a map from functions f to a list of all HO_APPLY terms with first argument f */
   std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** are function values enabled? */
+  bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
   void assignFunctionDefinition( Node f, Node f_def );
   /** have we assigned function f? */
@@ -245,6 +293,8 @@ public:
   std::map<Node, Node> d_approximations;
   /** list of all approximations */
   std::vector<std::pair<Node, Node> > d_approx_list;
+  /** a set of kinds that this model does *not* interpret */
+  std::unordered_set< Kind, kind::KindHashFunction > d_not_interpret_kinds;
   /** map of representatives of equality engine to used representatives in
    * representative set */
   std::map<Node, Node> d_reps;

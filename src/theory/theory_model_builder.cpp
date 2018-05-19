@@ -930,7 +930,10 @@ bool TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m)
 
 bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 {
-  assignFunctions(m);
+  if( m->areFunctionValuesEnabled() )
+  {
+    assignFunctions(m);
+  }  
   return true;
 }
 

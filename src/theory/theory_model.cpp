@@ -48,6 +48,11 @@ TheoryModel::TheoryModel(context::Context* c,
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_eeContext->push();
+  // do not interpret APPLY_UF if we are not assigning function values
+  if( !enableFuncModels )
+  {
+    setNotInterpretedKind(kind::APPLY_UF);
+  }
 }
 
 TheoryModel::~TheoryModel()
@@ -161,7 +166,8 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
   Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
   Node ret = n;
-  if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL || n.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ) {
+  Kind nk = n.getKind();
+  if(nk == kind::EXISTS || nk == kind::FORALL || nk == kind::COMBINED_CARDINALITY_CONSTRAINT ) {
     // We should have terms, thanks to TheoryQuantifiers::collectModelInfo().
     // However, if the Decision Engine stops us early, there might be a
     // quantifier that isn't assigned.  In conjunction with miniscoping, this
@@ -207,7 +213,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       Debug("model-getvalue-debug") << "Get model value children " << n << std::endl;
       std::vector<Node> children;
       if (n.getKind() == APPLY_UF) {
-        Assert( options::assignFunctionValues() );
         Node op = getModelValue(n.getOperator(), hasBoundVars);
         Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
         children.push_back(op);
@@ -478,6 +483,11 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
 
+void TheoryModel::setNotInterpretedKind( Kind k )
+{
+  
+}
+
 bool TheoryModel::hasTerm(TNode a)
 {
   return d_equalityEngine->hasTerm( a );
@@ -545,6 +555,11 @@ void TheoryModel::printRepresentative( std::ostream& out, Node r ){
   }else{
     out << getRepresentative( r );
   }
+}
+
+bool TheoryModel::areFunctionValuesEnabled() const
+{
+  return d_enableFuncModels;
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {

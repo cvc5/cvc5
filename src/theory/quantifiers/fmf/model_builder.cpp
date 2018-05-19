@@ -183,8 +183,9 @@ Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::
 */
 
 bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
-  if( !options::assignFunctionValues() )
+  if( !m->areFunctionValuesEnabled() )
   {
+    // nothing to do if no functions
     return true;
   }
   FirstOrderModel* f = (FirstOrderModel*)m;
