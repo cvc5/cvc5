@@ -161,7 +161,7 @@ public:
    * construction process.
    */
   void recordApproximation(TNode n, TNode pred);
-  /** set not/semi interpreted kind 
+  /** set unevaluate/semi-evaluated kind 
    * 
    * This informs this model that it should not build interpretations for 
    * operators of terms whose kind is k. Instead, applications of kind k
@@ -182,8 +182,8 @@ public:
    * CARDINALITY_CONSTRAINT, that are not evaluatable. When getting a model 
    * value for a term <k>( t1...tn ) where k is a kind of this category, we 
    * check whether <k>( t1...tn ) exists in the equality engine of this model. 
-   * If it does, we return its representative, otherwise we return (the 
-   * rewritten form of) the term itself.
+   * If it does, we return its representative, otherwise we return the term 
+   * itself.
    * 
    * [3] "Semi-evaluated"
    * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV and others, typically

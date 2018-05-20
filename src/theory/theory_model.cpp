@@ -221,21 +221,11 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       d_modelCache[n] = ret;
       return ret;
     }
-    else
-    {
-      /*
-      Node nr = Rewriter::rewrite(n);
-      if( nr!=n )
-      {
-        // restart with rewritten form if it is different
-        return getModelValue(nr,hasBoundVars,useDontCares);
-      }
-      */
-    }
   }
-
+  // must rewrite the term at this point
+  ret = Rewriter::rewrite(n);
   // return the representative of the term in the equality engine, if it exists
-  TypeNode t = n.getType();
+  TypeNode t = ret.getType();
   bool eeHasTerm;
   if( !options::ufHo() && (t.isFunction() || t.isPredicate()) ){
     // functions are in the equality engine, but *not* as first-class members
@@ -246,7 +236,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     // case here.
     eeHasTerm = false;
   }else{
-    eeHasTerm = d_equalityEngine->hasTerm(n);
+    eeHasTerm = d_equalityEngine->hasTerm(ret);
   }
   if( eeHasTerm )
   {
@@ -305,8 +295,8 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     return ret;
   }
   
-  d_modelCache[n] = ret;
-  return ret;
+  d_modelCache[n] = n;
+  return n;
 }
 
 /** add substitution */
