@@ -76,8 +76,8 @@ void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheoryUF::finishInit() {
   // combined cardinality constraints are not evaluated in getModelValue
-  TheoryModel * tm = d_valuation.getModel();
-  Assert( tm!=nullptr );
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
   tm->setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
   // initialize the strong solver
   if (options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {

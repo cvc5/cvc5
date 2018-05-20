@@ -930,10 +930,10 @@ bool TheoryEngineModelBuilder::preProcessBuildModel(TheoryModel* m)
 
 bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 {
-  if( m->areFunctionValuesEnabled() )
+  if (m->areFunctionValuesEnabled())
   {
     assignFunctions(m);
-  }  
+  }
   return true;
 }
 
@@ -1101,7 +1101,7 @@ struct sortTypeSize
 
 void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 {
-  if( !options::assignFunctionValues() )
+  if (!options::assignFunctionValues())
   {
     return;
   }

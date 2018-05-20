@@ -189,9 +189,10 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
 
 void TheoryBV::finishInit()
 {
-  // these kinds correspond to abstracts that are semi-evaluated in getModelValue
-  TheoryModel * tm = d_valuation.getModel();
-  Assert( tm!=nullptr );
+  // these kinds correspond to abstracts that are semi-evaluated in
+  // getModelValue
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }

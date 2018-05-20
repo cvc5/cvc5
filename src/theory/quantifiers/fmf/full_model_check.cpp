@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "options/quantifiers_options.h"
-#include "options/uf_options.h"
 #include "options/theory_options.h"
+#include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
@@ -371,7 +371,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
 }
 
 bool FullModelChecker::processBuildModel(TheoryModel* m){
-  if( !m->areFunctionValuesEnabled() )
+  if (!m->areFunctionValuesEnabled())
   {
     // nothing to do if no functions
     return true;

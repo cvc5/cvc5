@@ -1314,7 +1314,7 @@ void SmtEngine::setDefaults() {
       options::cbqiMidpoint.set(true);
     }
     // do not assign function values (optimization)
-    if( !options::assignFunctionValues.wasSetByUser())
+    if (!options::assignFunctionValues.wasSetByUser())
     {
       options::assignFunctionValues.set(false);
     }
