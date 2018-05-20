@@ -176,17 +176,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   Kind nk = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
 
-  // FIXME : special case not necessary? github issue #1116
-  if (nk == kind::LAMBDA)
-  {
-    Node body = getModelValue(n[1], true);
-    body = Rewriter::rewrite(body);
-    ret = nm->mkNode(kind::LAMBDA, n[0], body);
-    ret = Rewriter::rewrite(ret);
-    d_modelCache[n] = ret;
-    return ret;
-  }
-
   // if it is an evaluated kind, compute model values for children and evaluate
   if (n.getNumChildren() > 0)
   {
