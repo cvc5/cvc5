@@ -126,6 +126,8 @@ class SygusModule
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** sygus term database of d_qe */
+  quantifiers::TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   CegConjecture* d_parent;
 };

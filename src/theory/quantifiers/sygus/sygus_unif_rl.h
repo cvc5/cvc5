@@ -59,7 +59,8 @@ class SygusUnifRl : public SygusUnif
   /** Notify enumeration (unused) */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
-  bool constructSolution(std::vector<Node>& sols) override;
+  bool constructSolution(std::vector<Node>& sols,
+                         std::vector<Node>& lemmas) override;
   /** add refinement lemma
    *
    * This adds a lemma to the specification. It returns the purified form
@@ -90,21 +91,17 @@ class SygusUnifRl : public SygusUnif
   /** set conditional enumerators
    *
    * This informs this class that the current set of conditions for evaluation
-   * point e is conds.
+   * point e are enumerated by "enums" and have values "conds"; "guard" is
+   * Boolean variable whose semantics correspond to "there is a solution using
+   * at most enums.size() conditions."
    */
-  void setConditions(Node e, const std::vector<Node>& conds);
+  void setConditions(Node e,
+                     Node guard,
+                     const std::vector<Node>& enums,
+                     const std::vector<Node>& conds);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
-
-  /**
-   * if a separation condition is necessary after a failed solution
-   * construction, then sepCond is assigned a pair (e, fi = fj) in which e is
-   * the strategy point and fi, fj head of evaluation points of a unif
-   * function-to-synthesize, such that fi could not be separated from fj by the
-   * current condition values
-   */
-  bool getSeparationPairs(std::map<Node, std::vector<Node>>& sepPairs);
 
  protected:
   /** reference to the parent conjecture */
@@ -112,7 +109,11 @@ class SygusUnifRl : public SygusUnif
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
   /** construct sol */
-  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f,
+                    Node e,
+                    NodeRole nrole,
+                    int ind,
+                    std::vector<Node>& lemmas) override;
   /** collects data from refinement lemmas to drive solution construction
    *
    * In particular it rebuilds d_app_to_pt whenever d_prev_rlemmas is different
@@ -123,12 +124,6 @@ class SygusUnifRl : public SygusUnif
   void initializeConstructSolFor(Node f) override;
   /** maps unif functions-to~synhesize to their last built solutions */
   std::map<Node, Node> d_cand_to_sol;
-  /** pair of strategy point and equality between evaluation point heads
-   *
-   * this pair is set when a unif solution cannot be built because a two
-   * evaluation point heads cannot be separated
-   */
-  std::map<Node, std::vector<Node>> d_sepPairs;
   /*
     --------------------------------------------------------------
         Purification
@@ -211,32 +206,39 @@ class SygusUnifRl : public SygusUnif
      *
      * The DT contains a solution when no class contains two heads of evaluation
      * points with different model values, i.e. when all points that must be
-     * separated indeed are separated.
-     */
-    Node buildSol(Node cons, std::vector<Node>& toSeparate);
-    /** whether all points that must be separated are separated
+     * separated indeed are separated by the current set of conditions.
      *
-     * This function tests separation of the points in the above sense and in
-     * case two heads cannot be separated, an equality between them is created
-     * and stored in toSeparate, so that a separation lemma can be generated to
-     * guide the synthesis search to yield either conditions that will separate
-     * these heads or equal values to them.
+     * This method either returns a solution (if all points are separated).
+     * It it fails, it adds a conflict lemma to lemmas.
      */
-    bool isSeparated(std::vector<Node>& toSeparate);
+    Node buildSol(Node cons, std::vector<Node>& lemmas);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
     NodePair d_template;
-    /** enumerated condition values */
+    /** enumerated condition values, this is set by setConditions(...). */
     std::vector<Node> d_conds;
     /** gathered evaluation point heads */
     std::vector<Node> d_hds;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
-    /** clear trie and registered condition values */
-    void resetPointSeparator(const std::vector<Node>& conds);
+    /** set conditions */
+    void setConditions(Node guard,
+                       const std::vector<Node>& enums,
+                       const std::vector<Node>& conds);
 
    private:
+    /**
+     * Conditional enumerator variables corresponding to the condition values in
+     * d_conds. These are used for generating separation lemmas during
+     * buildSol. This is set by setConditions(...).
+     */
+    std::vector<Node> d_enums;
+    /**
+     * The guard literal whose semantics is "we need at most d_enums.size()
+     * conditions in our solution. This is set by setConditions(...).
+     */
+    Node d_guard;
     /**
      * reference to inferred strategy for the function-to-synthesize this DT is
      * associated with
@@ -254,8 +256,6 @@ class SygusUnifRl : public SygusUnif
      * decision tree.
      */
     Node d_cond_enum;
-    /** chache of model values of heads of evaluation points */
-    NodePairMap d_hd_values;
     /** Classifies evaluation points according to enumerated condition values
      *
      * Maintains the invariant that points evaluated in the same way in the
@@ -284,10 +284,6 @@ class SygusUnifRl : public SygusUnif
      * enumerated condiotion values
      */
     PointSeparator d_pt_sep;
-    /** adds the respective evaluation point of the head f to d_pt_sep */
-    void addPoint(Node f);
-    /** adds a value to the pool of condition values and to d_pt_sep */
-    void addCondValue(Node condv);
   };
   /** maps strategy points in the strategy tree to the above data */
   std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;

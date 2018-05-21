@@ -285,7 +285,8 @@ class SygusUnifIo : public SygusUnif
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
 
   /** Construct solution */
-  bool constructSolution(std::vector<Node>& sols) override;
+  bool constructSolution(std::vector<Node>& sols,
+                         std::vector<Node>& lemmas) override;
 
   /** add example
    *
@@ -377,7 +378,7 @@ class SygusUnifIo : public SygusUnif
    * constructSolution. If this returns a non-null node, then that term is a
    * solution for the function-to-synthesize in the overall conjecture.
    */
-  Node constructSolutionNode();
+  Node constructSolutionNode(std::vector<Node>& lemmas);
   /** domain-specific enumerator exclusion techniques
    *
    * Returns true if the value v for e can be excluded based on a
@@ -414,7 +415,11 @@ class SygusUnifIo : public SygusUnif
   /** initialize construct solution for */
   void initializeConstructSolFor(Node f) override;
   /** construct solution */
-  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f,
+                    Node e,
+                    NodeRole nrole,
+                    int ind,
+                    std::vector<Node>& lemmas) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */
