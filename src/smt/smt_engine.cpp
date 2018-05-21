@@ -5136,11 +5136,11 @@ Model* SmtEngine::getModel() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetModelCommand();
   }
-  
+
   if (!options::assignFunctionValues())
   {
     const char* msg =
-      "Cannot get the model when --assign-function-values is false.";
+        "Cannot get the model when --assign-function-values is false.";
     throw RecoverableModalException(msg);
   }
 
