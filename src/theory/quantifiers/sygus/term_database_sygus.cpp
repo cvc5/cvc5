@@ -1291,8 +1291,7 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 void TermDbSygus::registerEvalTerm( Node n ) {
   if (options::sygusEvalUnfold())
   {
-    if (n.getKind() == APPLY_UF && !n.getType().isBoolean())
-    {
+    if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
       TypeNode tn = n[0].getType();
       if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
