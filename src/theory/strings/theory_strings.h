@@ -848,7 +848,7 @@ private:
   /** the effort levels */
   std::vector<int> d_infer_step_effort;
   /** the range (begin, end) of steps to run at given efforts */
-  std::map<Effort, std::pair<unsigned,unsigned> > d_strat_steps;
+  std::map<Effort, std::pair<unsigned, unsigned> > d_strat_steps;
   /** do we have a strategy for effort e? */
   bool hasStrategyEffort(Effort e) const;
   /** initialize the strategy

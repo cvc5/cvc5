@@ -803,7 +803,8 @@ void TheoryStrings::check(Effort e) {
   doPendingFacts();
 
   Assert(d_strategy_init);
-  std::map< Effort, std::pair< unsigned, unsigned > >::iterator itsr = d_strat_steps.find(e);
+  std::map<Effort, std::pair<unsigned, unsigned> >::iterator itsr =
+      d_strat_steps.find(e);
   if (!d_conflict && !d_valuation.needCheck() && itsr != d_strat_steps.end())
   {
     Trace("strings-check") << "Theory of strings " << e << " effort check "
@@ -4984,12 +4985,13 @@ void TheoryStrings::initializeStrategy()
       step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
     // set the beginning/ending ranges
-    for(const std::pair<const Effort, unsigned>& it_begin : step_begin )
+    for (const std::pair<const Effort, unsigned>& it_begin : step_begin)
     {
       Effort e = it_begin.first;
-      std::map<Effort,unsigned>::iterator it_end = step_end.find(e);
-      Assert( it_end!=step_end.end() );
-      d_step_range[e] = std::pair<unsigned,unsigned>(it_begin.first,it_end.first);
+      std::map<Effort, unsigned>::iterator it_end = step_end.find(e);
+      Assert(it_end != step_end.end());
+      d_step_range[e] =
+          std::pair<unsigned, unsigned>(it_begin.first, it_end.first);
     }
   }
 }
