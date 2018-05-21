@@ -330,12 +330,12 @@ void Smt2Printer::toStream(std::ostream& out,
       // or the logic is non-linear, whereas (to_real x) is compliant when
       // the logic is mixed int/real. The former occurs more frequently.
       bool is_int = force_nt.isInteger();
-      out << "(" << smtKindString(
-                        is_int ? kind::TO_INTEGER : kind::DIVISION,
-                        d_variant)
+      out << "("
+          << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
+                           d_variant)
           << " ";
       toStream(out, type_asc_arg, toDepth, types, TypeNode::null());
-      if( !is_int )
+      if (!is_int)
       {
         out << " 1";
       }
