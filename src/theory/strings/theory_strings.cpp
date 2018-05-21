@@ -1174,6 +1174,7 @@ void TheoryStrings::addToExplanation( Node lit, std::vector< Node >& exp ) {
 }
 
 void TheoryStrings::checkInit() {
+  Assert(d_infer_steps_run.empty());
   //build term index
   d_eqc_to_const.clear();
   d_eqc_to_const_base.clear();
@@ -1762,6 +1763,7 @@ void TheoryStrings::checkCycles()
 
 void TheoryStrings::checkFlatForms()
 {
+  Assert(d_infer_steps_run.find(CHECK_CYCLES)!=d_infer_steps_run.end());
   // debug print flat forms
   if (Trace.isOn("strings-ff"))
   {
@@ -4999,6 +5001,7 @@ void TheoryStrings::initializeStrategy()
 void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
 {
   Trace("strings-process") << "----check, next round---" << std::endl;
+  d_infer_steps_run.clear();
   for (unsigned i = sbegin; i <= send; i++)
   {
     InferStep curr = d_infer_steps[i];
@@ -5011,11 +5014,13 @@ void TheoryStrings::runStrategy(unsigned sbegin, unsigned send)
     }
     else
     {
-      runInferStep(curr, d_infer_step_effort[i]);
+      int curr_effort = d_infer_step_effort[i];
+      runInferStep(curr, curr_effort);
       if (d_conflict)
       {
         break;
       }
+      d_infer_steps_run[curr].push_back(curr_effort);
     }
   }
   Trace("strings-process") << "----finished round---" << std::endl;
