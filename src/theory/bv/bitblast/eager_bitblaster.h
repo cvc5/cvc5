@@ -36,7 +36,7 @@ class TheoryBV;
 class EagerBitblaster : public TBitblaster<Node>
 {
  public:
-  EagerBitblaster(TheoryBV* theory_bv);
+  EagerBitblaster(TheoryBV* theory_bv, context::Context* context);
   ~EagerBitblaster();
 
   void addAtom(TNode atom);
@@ -56,6 +56,7 @@ class EagerBitblaster : public TBitblaster<Node>
   void setProofLog(BitVectorProof* bvp);
 
  private:
+  context::Context* d_context;
   std::unique_ptr<context::Context> d_nullContext;
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;

@@ -53,6 +53,7 @@ class EagerBitblastSolver {
 
  private:
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
+  context::CDHashSet<Node, NodeHashFunction> d_assumptionSet;
   context::Context* d_context;
 
   /** Bitblasters */

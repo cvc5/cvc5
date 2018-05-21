@@ -30,8 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
+EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
+      d_context(c),
       d_nullContext(new context::Context()),
       d_satSolver(),
       d_bitblastingRegistrar(new BitblastingRegistrar(this)),
@@ -77,9 +78,8 @@ EagerBitblaster::~EagerBitblaster() {}
 
 void EagerBitblaster::bbFormula(TNode node)
 {
-  /* Do not assert formula if incremental solving is enabled since we use
-   * solving under assumptions in this case. */
-  if (options::incrementalSolving())
+  /* For incremental eager solving we assume formulas at context levels > 1. */
+  if (options::incrementalSolving() && d_context->getLevel() > 1)
   {
     d_cnfStream->ensureLiteral(node);
   }

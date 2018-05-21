@@ -29,6 +29,7 @@ namespace bv {
 
 EagerBitblastSolver::EagerBitblastSolver(context::Context* c, TheoryBV* bv)
     : d_assertionSet(c),
+      d_assumptionSet(c),
       d_context(c),
       d_bitblaster(),
       d_aigBitblaster(),
@@ -54,7 +55,7 @@ void EagerBitblastSolver::initialize() {
     Unreachable();
 #endif
   } else {
-    d_bitblaster.reset(new EagerBitblaster(d_bv));
+    d_bitblaster.reset(new EagerBitblaster(d_bv, d_context));
     THEORY_PROOF(if (d_bvp) {
       d_bitblaster->setProofLog(d_bvp);
       d_bvp->setBitblaster(d_bitblaster.get());
@@ -74,6 +75,10 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
   Assert(isInitialized());
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula " << formula
                            << "\n";
+  if (options::incrementalSolving() && d_context->getLevel() > 1)
+  {
+    d_assumptionSet.insert(formula);
+  }
   d_assertionSet.insert(formula);
   // ensures all atoms are bit-blasted and converted to AIG
   if (d_useAig) {
@@ -110,12 +115,12 @@ bool EagerBitblastSolver::checkSat() {
 
   if (options::incrementalSolving())
   {
-    std::vector<Node> assertions;
-    for (const Node& n : d_assertionSet)
+    std::vector<Node> assumptions;
+    for (const Node& n : d_assumptionSet)
     {
-      assertions.push_back(n);
+      assumptions.push_back(n);
     }
-    return d_bitblaster->solve(assertions);
+    return d_bitblaster->solve(assumptions);
   }
   return d_bitblaster->solve();
 }

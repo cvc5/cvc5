@@ -243,6 +243,23 @@ void TheoryBV::preRegisterTerm(TNode node) {
   d_calledPreregister = true;
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
+  if (options::bitblastMode() == BITBLAST_MODE_EAGER)
+  {
+    // the aig bit-blaster option is set heuristically
+    // if bv abstraction is used
+    if (!d_eagerSolver->isInitialized())
+    {
+      d_eagerSolver->initialize();
+    }
+
+    if (node.getKind() == kind::BITVECTOR_EAGER_ATOM)
+    {
+      Node formula = node[0];
+      d_eagerSolver->assertFormula(formula);
+    }
+    return;
+  }
+
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     d_subtheories[i]->preRegister(node);
   }
