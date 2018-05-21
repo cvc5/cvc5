@@ -1401,7 +1401,10 @@ void Smt2Printer::toStream(std::ostream& out,
     if (val.getKind() == kind::LAMBDA)
     {
       out << "(define-fun " << n << " " << val[0] << " "
-          << n.getType().getRangeType() << " " << val[1] << ")" << endl;
+          << n.getType().getRangeType() << " ";
+      // call toStream and force its type to be proper
+      toStream(out,val[1], -1, false,n.getType().getRangeType());
+      out << ")" << endl;
     }
     else
     {
@@ -1417,8 +1420,10 @@ void Smt2Printer::toStream(std::ostream& out,
               val, indexCard);
         }
       }
-      out << "(define-fun " << n << " () " << n.getType() << " " << val << ")"
-          << endl;
+      out << "(define-fun " << n << " () " << n.getType() << " ";
+      // call toStream and force its type to be proper
+      toStream(out,val, -1, false,n.getType());
+      out << ")" << endl;
     }
   }
   else if (const DatatypeDeclarationCommand* datatype_declaration_command =
