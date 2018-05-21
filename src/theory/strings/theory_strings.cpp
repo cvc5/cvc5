@@ -4919,7 +4919,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
 
 bool TheoryStrings::hasStrategyEffort(Effort e) const
 {
-  return d_step_begin.find(e) != d_step_begin.end();
+  return d_strat_steps.find(e) != d_strat_steps.end();
 }
 
 void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
@@ -4992,8 +4992,8 @@ void TheoryStrings::initializeStrategy()
       Effort e = it_begin.first;
       std::map<Effort, unsigned>::iterator it_end = step_end.find(e);
       Assert(it_end != step_end.end());
-      d_step_range[e] =
-          std::pair<unsigned, unsigned>(it_begin.first, it_end.first);
+      d_strat_steps[e] =
+          std::pair<unsigned, unsigned>(it_begin.second, it_end->second);
     }
   }
 }
