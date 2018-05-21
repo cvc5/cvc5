@@ -1763,7 +1763,7 @@ void TheoryStrings::checkCycles()
 
 void TheoryStrings::checkFlatForms()
 {
-  Assert(d_infer_steps_run.find(CHECK_CYCLES)!=d_infer_steps_run.end());
+  Assert(d_infer_steps_run.find(CHECK_CYCLES) != d_infer_steps_run.end());
   // debug print flat forms
   if (Trace.isOn("strings-ff"))
   {
@@ -2042,13 +2042,13 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       // strict prefix equality ( a.b = a ) where a,b non-empty
       //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       //  when len(b)!=0.
-      sendInference(
-          exp,
-          conc,
-          inf_type == 0
-              ? "F_Const"
-              : (inf_type == 1 ? "F_Unify" : (inf_type == 2 ? "F_EndpointEmp"
-                                                            : "F_EndpointEq")));
+      sendInference(exp,
+                    conc,
+                    inf_type == 0
+                        ? "F_Const"
+                        : (inf_type == 1 ? "F_Unify"
+                                         : (inf_type == 2 ? "F_EndpointEmp"
+                                                          : "F_EndpointEq")));
       if (d_conflict)
       {
         return;

@@ -755,7 +755,7 @@ private:
    * At a high level, we build normal forms for equivalence classes bottom-up,
    * starting with equivalence classes that are minimal with respect to the
    * containment ordering < computed during checkCycles. While computing a
-   * normal form for an equivalence class, we may infer equalities between 
+   * normal form for an equivalence class, we may infer equalities between
    * components of strings that must be equal (e.g. x=y when x++z == y++w when
    * len(x)==len(y) is asserted), derive conflicts if two strings have disequal
    * prefixes/suffixes (e.g. "a" ++ x == "b" ++ y is a conflict), or split
@@ -845,11 +845,11 @@ private:
   void runInferStep(InferStep s, int effort);
   /** the strategy */
   std::vector<InferStep> d_infer_steps;
-  /** 
+  /**
    * The steps we have run on this check (for debugging). We map to the list
    * of efforts we have run, for each InferStep.
    */
-  std::map<InferStep,std::vector<int> > d_infer_steps_run;
+  std::map<InferStep, std::vector<int> > d_infer_steps_run;
   /** the effort levels */
   std::vector<int> d_infer_step_effort;
   /** the range (begin, end) of steps to run at given efforts */
