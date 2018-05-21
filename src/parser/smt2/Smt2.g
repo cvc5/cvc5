@@ -2310,8 +2310,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); 
       if(expr.getType().isInteger()) {
-        //must cast to Real to ensure correct type is passed to parametric type constructors
-        expr = MK_EXPR(kind::TO_REAL, expr);
+        // Must cast to Real to ensure correct type is passed to parametric type constructors.
+        // We do this cast using division with 1.
+        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
+        expr = MK_EXPR(kind::DIVISION, expr, MK_CONST(Rational(1)));
       }  
     }
 
