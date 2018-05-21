@@ -1403,7 +1403,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(define-fun " << n << " " << val[0] << " "
           << n.getType().getRangeType() << " ";
       // call toStream and force its type to be proper
-      toStream(out,val[1], -1, false,n.getType().getRangeType());
+      toStream(out, val[1], -1, false, n.getType().getRangeType());
       out << ")" << endl;
     }
     else
@@ -1422,7 +1422,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       out << "(define-fun " << n << " () " << n.getType() << " ";
       // call toStream and force its type to be proper
-      toStream(out,val, -1, false,n.getType());
+      toStream(out, val, -1, false, n.getType());
       out << ")" << endl;
     }
   }
