@@ -930,7 +930,13 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   cargs[index][dindex].pop_back();
   collectSygusLetArgs( let_body, cargs[index][dindex], let_define_args );
 
-  Debug("parser-sygus") << "Make define-fun with " << cargs[index][dindex].size() << " arguments..." << std::endl;
+  Debug("parser-sygus") << "Make define-fun with " << cargs[index][dindex].size() << " operator arguments and " << let_define_args.size() << " provided arguments..." << std::endl;
+  if( cargs[index][dindex].size()!=let_define_args.size())
+  {
+    std::stringstream ss;
+    ss << "Wrong number of let body terms." << std::endl;
+    parseError(ss.str());
+  }
   std::vector<CVC4::Type> fsorts;
   for( unsigned i=0; i<cargs[index][dindex].size(); i++ ){
     Debug("parser-sygus") << "  " << i << " : " << let_define_args[i] << " " << let_define_args[i].getType() << " " << cargs[index][dindex][i] << std::endl;
