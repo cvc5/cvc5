@@ -55,7 +55,7 @@ static void printFpParameterizedOp(std::ostream& out, TNode n);
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
-                             bool decimal, 
+                             bool decimal,
                              Variant v);
 
 void Smt2Printer::toStream(
@@ -205,7 +205,8 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
-      toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger(), d_variant);
+      toStreamRational(
+          out, r, !force_nt.isNull() && !force_nt.isInteger(), d_variant);
       break;
     }
 
@@ -1336,7 +1337,8 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // print out the DeclareTypeCommand
     TypeNode tn = TypeNode::fromType((*dtc).getType());
-    const std::vector<Node>* type_refs = theory_model->getRepSet()->getTypeRepsOrNull(tn);
+    const std::vector<Node>* type_refs =
+        theory_model->getRepSet()->getTypeRepsOrNull(tn);
     if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
     {
       if (isVariant_2_6(d_variant))
@@ -1394,7 +1396,8 @@ void Smt2Printer::toStream(std::ostream& out,
       // don't print out internal stuff
       return;
     }
-    Node val = Node::fromExpr(theory_model->getSmtEngine()->getValue(n.toExpr()));
+    Node val =
+        Node::fromExpr(theory_model->getSmtEngine()->getValue(n.toExpr()));
     if (val.getKind() == kind::LAMBDA)
     {
       out << "(define-fun " << n << " " << val[0] << " "
@@ -1414,9 +1417,9 @@ void Smt2Printer::toStream(std::ostream& out,
               val, indexCard);
         }
       }
-      out << "(define-fun " << n << " () " << n.getType() << " " << val << ")" << endl;
+      out << "(define-fun " << n << " () " << n.getType() << " " << val << ")"
+          << endl;
     }
-      
   }
   else if (const DatatypeDeclarationCommand* datatype_declaration_command =
                dynamic_cast<const DatatypeDeclarationCommand*>(command))
@@ -1684,16 +1687,19 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   out << ")";
 }
 
-static void toStreamRational(std::ostream& out, const Rational& r, bool decimal, Variant v)
+static void toStreamRational(std::ostream& out,
+                             const Rational& r,
+                             bool decimal,
+                             Variant v)
 {
   bool neg = r.sgn() < 0;
   // Print the rational, possibly as decimal.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
   if(r.isIntegral()) {
-    if( neg )
+    if (neg)
     {
-      out << (v==sygus_variant ? "-" : "(- ") << -r;
+      out << (v == sygus_variant ? "-" : "(- ") << -r;
     }
     else
     {
@@ -1702,14 +1708,14 @@ static void toStreamRational(std::ostream& out, const Rational& r, bool decimal,
     if (decimal) { out << ".0"; }
     if (neg)
     {
-      out << (v==sygus_variant ? "" : ")");
+      out << (v == sygus_variant ? "" : ")");
     }
   }else{
     out << "(/ ";
     if(neg) {
       Rational abs_r = (-r);
-      out << (v==sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
-      out << (v==sygus_variant ? " " : ") ") << abs_r.getDenominator();
+      out << (v == sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
+      out << (v == sygus_variant ? " " : ") ") << abs_r.getDenominator();
     }else{
       out << r.getNumerator();
       out << ' ' << r.getDenominator();
