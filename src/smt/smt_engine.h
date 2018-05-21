@@ -654,10 +654,10 @@ class CVC4_PUBLIC SmtEngine {
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
-  
-  /** 
-   * Get synth solution 
-   * 
+
+  /**
+   * Get synth solution
+   *
    * This function adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
@@ -669,7 +669,7 @@ class CVC4_PUBLIC SmtEngine {
    *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
    * is a valid formula.
    */
-  void getSynthSolutions( std::map< Expr, Expr >& sol_map );
+  void getSynthSolutions(std::map<Expr, Expr>& sol_map);
 
   /**
    * Do quantifier elimination.

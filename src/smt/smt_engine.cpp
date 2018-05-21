@@ -2702,7 +2702,8 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       bool doExpand = k == kind::APPLY;
       if( !doExpand ){
         // options that assign substitutions to APPLY_UF
-        if( options::macrosQuant() || options::sygusInference() ){
+        if (options::macrosQuant() || options::sygusInference())
+        {
           //expand if we have inferred an operator corresponds to a defined function
           doExpand = k==kind::APPLY_UF && d_smt.isDefinedFunction( n.getOperator().toExpr() );
         }
@@ -5573,13 +5574,13 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-void SmtEngine::getSynthSolutions( std::map< Expr, Expr >& sol_map )
+void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
   map<Node, Node> sol_mapn;
-  Assert(d_theoryEngine!=nullptr);
+  Assert(d_theoryEngine != nullptr);
   d_theoryEngine->getSynthSolutions(sol_mapn);
-  for( std::pair< const Node, Node >& s : sol_mapn )
+  for (std::pair<const Node, Node>& s : sol_mapn)
   {
     sol_map[s.first.toExpr()] = s.second.toExpr();
   }
