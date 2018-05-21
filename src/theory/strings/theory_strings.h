@@ -663,7 +663,7 @@ private:
    * This method may infer various facts while building these term indices, for
    * instance, based on congruence. An example would be inferring:
    *   y ++ x ++ z = y ++ z
-   * in this example, if both terms are registered in this SAT context.
+   * if both terms are registered in this SAT context.
    *
    * This function should be called as a first step of any strategy.
    */
@@ -685,9 +685,10 @@ private:
    * is a (tuple of) equalities that are asserted in this SAT context, and
    * f( t1 ... tn ) is a term from this SAT context.
    *
-   * For more details, this is steps 4 (when effort=0) and step 6 (when
-   * effort=1) from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
-   * Solvers using Context-Dependent Simplification", CAV 2017.
+   * For more details, this is steps 4 when effort=0 and step 6 when
+   * effort=1 from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
+   * Solvers using Context-Dependent Simplification", CAV 2017. When called with
+   * effort=3, we apply context-dependent simplification based on model values.
    */
   void checkExtfEval(int effort);
   /** check cycles
@@ -714,10 +715,10 @@ private:
    * class { w, z }, then the flat form of t is [w, w]. Say t1 and t2 are terms
    * in the same equivalence classes with flat forms [r1...rn] and [s1...sm].
    * We may infer various facts based on this pair of terms. For example:
-   *   ri = si, if ri !== si, rj == sj for each j < i, and len(ri)=len(si),
+   *   ri = si, if ri != si, rj == sj for each j < i, and len(ri)=len(si),
    *   rn = sn, if n=m and rj == sj for each j < n,
    *   ri = empty, if n=m+1 and ri == rj for each i=1,...,m.
-   * We refer to these as "unify", "endpoint-eq" and "enpoint-emp" inferences
+   * We refer to these as "unify", "endpoint-eq" and "endpoint-emp" inferences
    * respectively.
    *
    * Notice that this inference scheme is an optimization and not needed for
@@ -817,7 +818,9 @@ private:
    * and F is a formula that constrains k based on the definition of f.
    *
    * For more details, this is step 7 from Strategy 1 in Reynolds et al,
-   * CAV 2017.
+   * CAV 2017. We stratify this in practice, where calling this with effort=1
+   * reduces some of the "easier" extended functions, and effort=2 reduces
+   * the rest.
    */
   void checkExtfReductions(int effort);
   /** check regular expression memberships

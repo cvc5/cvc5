@@ -844,7 +844,6 @@ void TheoryStrings::check(Effort e) {
     bool addedLemma = false;
     bool addedFact;
     do{
-      // run the strategy
       runStrategy(sbegin, send);
       // flush the facts
       addedFact = !d_pending.empty();
@@ -1308,12 +1307,13 @@ void TheoryStrings::checkConstantEquivalenceClasses()
 {
   // do fixed point
   unsigned prevSize;
+  std::vector<Node> vecc;
   do
   {
+    vecc.clear();
     Trace("strings-process-debug")
         << "Check constant equivalence classes..." << std::endl;
     prevSize = d_eqc_to_const.size();
-    std::vector<Node> vecc;
     checkConstantEquivalenceClasses(&d_term_index[kind::STRING_CONCAT], vecc);
   } while (!hasProcessed() && d_eqc_to_const.size() > prevSize);
 }
@@ -1793,7 +1793,7 @@ void TheoryStrings::checkFlatForms()
                 << c << std::endl;
             Trace("strings-ff-debug")
                 << "  indices = " << firstc << "/" << lastc << std::endl;
-            // conflict, explanation is n = base ^ base = c ^ relevant porition
+            // conflict, explanation is n = base ^ base = c ^ relevant portion
             // of ( n = f[n] )
             std::vector<Node> exp;
             Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
