@@ -387,8 +387,10 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
-void SygusUnifRl::registerStrategy(Node f, std::vector<Node>& enums, 
-  std::map< Node, std::unordered_set< unsigned > >& unused_strats)
+void SygusUnifRl::registerStrategy(
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -407,8 +409,8 @@ void SygusUnifRl::registerStrategyNode(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool>>& visited,
-    std::vector<Node>& enums, 
-  std::map< Node, std::unordered_set< unsigned > >& unused_strats)
+    std::vector<Node>& enums,
+    std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
@@ -450,7 +452,7 @@ void SygusUnifRl::registerStrategyNode(
         enums.push_back(e);
       }
     }
-    if( !success )
+    if (!success)
     {
       unused_strats[e].insert(j);
     }

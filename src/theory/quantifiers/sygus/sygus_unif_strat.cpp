@@ -788,16 +788,17 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   // the constructors of the current strategy point we need
   std::map<unsigned, bool> needs_cons_curr;
   // get the unused strategies
-  std::map< Node, std::unordered_set< unsigned > >::iterator itus = restrictions.d_unused_strategies.find(e);
-  std::unordered_set< unsigned > unused_strats;
-  if( itus!=restrictions.d_unused_strategies.end() )
+  std::map<Node, std::unordered_set<unsigned>>::iterator itus =
+      restrictions.d_unused_strategies.find(e);
+  std::unordered_set<unsigned> unused_strats;
+  if (itus != restrictions.d_unused_strategies.end())
   {
-    unused_strats.insert(itus->second.begin(),itus->second.end());
+    unused_strats.insert(itus->second.begin(), itus->second.end());
   }
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
     // if we are not using this strategy, there is nothing to do
-    if( unused_strats.find(j)!=unused_strats.end() )
+    if (unused_strats.find(j) != unused_strats.end())
     {
       continue;
     }
