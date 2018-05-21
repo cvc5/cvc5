@@ -27,6 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]) {
     output << SetBenchmarkStatusCommand(SMT_SATISFIABLE) << endl;
 
     // Make the variables the size of the string
-    hashsmt::cvc4_uchar8 *cvc4input = new hashsmt::cvc4_uchar8[msgSize];
+    std::vector<hashsmt::cvc4_uchar8> cvc4input(msgSize);
     for (unsigned i = 0; i < msgSize; ++ i) {
       stringstream ss;
       ss << "x" << i;
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     // Do the cvc4 encoding
     hashsmt::sha1 cvc4encoder;
-    cvc4encoder.process_bytes(cvc4input, msgSize);
+    cvc4encoder.process_bytes(cvc4input.data(), msgSize);
 
     // Get the digest as bitvectors
     hashsmt::cvc4_uint32 cvc4digest[5];
@@ -97,9 +98,6 @@ int main(int argc, char* argv[]) {
 
     // Checksat command
     output << CheckSatCommand() << endl;
-
-    delete cvc4input;
-
   } catch (CVC4::Exception& e) {
     cerr << e << endl;
   }

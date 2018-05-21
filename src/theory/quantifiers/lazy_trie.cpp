@@ -59,8 +59,6 @@ Node LazyTrie::add(Node n,
   return Node::null();
 }
 
-using IndTriePair = std::pair<unsigned, LazyTrie*>;
-
 void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
 {
   Trace("lazy-trie-multi") << "LazyTrieM: Adding classifier " << ntotal + 1
@@ -148,6 +146,12 @@ Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
   d_rep_to_class[res].clear();
   d_rep_to_class[res].push_back(f);
   return res;
+}
+
+void LazyTrieMulti::clear()
+{
+  d_trie.clear();
+  d_rep_to_class.clear();
 }
 
 } /* CVC4::theory::quantifiers namespace */

@@ -138,11 +138,8 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           addedLemma = true;
         }else{
           //this may happen if we eagerly unfold, simplify to true
-          if( !options::sygusDirectEval() ){
-            Trace("cegqi-warn") << "  ...FAILED to add candidate!" << std::endl;
-          }else{
-            Trace("cegqi-engine-debug") << "  ...FAILED to add candidate!" << std::endl;
-          }
+          Trace("cegqi-engine-debug")
+              << "  ...FAILED to add candidate!" << std::endl;
         }
       }
       if( addedLemma ){
@@ -200,10 +197,6 @@ void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
   if (d_conj->isAssigned())
   {
     d_conj->getSynthSolutions(sol_map, d_last_inst_si);
-  }
-  else
-  {
-    Assert(false);
   }
 }
 
