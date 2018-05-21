@@ -220,18 +220,23 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // make a separate smt call
+  SmtEngine * master_smte = smt::currentSmtEngine();
   SmtEngine rrSygus(nm->toExprManager());
   rrSygus.setLogic(smt::currentSmtEngine()->getLogicInfo());
   rrSygus.assertFormula(body.toExpr());
   Trace("sygus-infer") << "*** Check sat..." << std::endl;
   Result r = rrSygus.checkSat();
   Trace("sygus-infer") << "...result : " << r << std::endl;
-  
+  if(r.asSatisfiabilityResult().isSat() != Result::UNSAT) {
+    // failed, conjecture was infeasible
+    return false;
+  }
   // get the synthesis solutions 
   std::map<Expr, Expr > synth_sols;
   rrSygus.getSynthSolutions(synth_sols);
   
-
+  std::vector< Node > final_ff;
+  std::vector< Node > final_ff_sol;
   for( std::map<Expr, Expr >::iterator it = synth_sols.begin(); it != synth_sols.end(); ++it )
   {
     Node lambda = Node::fromExpr( it->second );
@@ -247,7 +252,9 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
         args.push_back( v.toExpr() );
       }
       Trace("sygus-infer") << "Define " << ff << " as " << it->second << std::endl;
-      smt::currentSmtEngine()->defineFunction( ff.toExpr(), args, it->second[1] );
+      final_ff.push_back(ff);
+      final_ff_sol.push_back(it->second);
+      master_smte->defineFunction( ff.toExpr(), args, it->second[1] );
     }
     else
     {
@@ -256,21 +263,19 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     }
   }
   
-  /*
-  // replace all assertions except the first with true
+  // apply substitution to everything, should result in SAT
   Node truen = nm->mkConst(true);
   for (unsigned i = 0, size = assertions.size(); i < size; i++)
   {
-    if (i == 0)
+    Node prev = assertions[i];
+    Node curr = assertions[i].substitute(final_ff.begin(),final_ff.end(),final_ff_sol.begin(),final_ff_sol.end());
+    if( curr!=prev )
     {
-      assertions[i] = body;
-    }
-    else
-    {
-      assertions[i] = truen;
+      curr = Rewriter::rewrite(curr);
+      Trace("sygus-infer-debug")  << "...rewrote " << prev << " to " << curr << std::endl;
+      assertions[i] = curr;
     }
   }
-  */
   return true;
 }
 

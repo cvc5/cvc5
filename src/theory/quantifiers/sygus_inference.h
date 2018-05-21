@@ -27,7 +27,10 @@ namespace quantifiers {
 /** SygusInference
  *
  * A preprocessing utility to turn a set of (quantified) assertions into a
- * single SyGuS conjecture.
+ * single SyGuS conjecture. If this is possible, we solve for this single Sygus
+ * conjecture using a separate copy of the SMT engine. If sygus successfully 
+ * solves the conjecture, we plug the synthesis solutions back into the original 
+ * problem, thus obtaining a model.
  */
 class SygusInference
 {
@@ -36,8 +39,12 @@ class SygusInference
   ~SygusInference() {}
   /** simplify assertions
    *
-   * Either replaces assertions with the negation of an equivalent SyGuS
-   * conjecture and returns true, or otherwise returns false.
+   * Either replaces all uninterpreted functions in assertions by a valid
+   * model, found by a separate call to an SMT engine and returns true,
+   * or leaves the assertions unmodified and returns false.
+   * 
+   * We fail if either a sygus conjecture that corresponds to assertions cannot
+   * be inferred, or the sygus conjecture we infer is infeasible.
    */
   bool simplify(std::vector<Node>& assertions);
 };
