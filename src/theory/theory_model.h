@@ -163,15 +163,12 @@ public:
   void recordApproximation(TNode n, TNode pred);
   /** set unevaluate/semi-evaluated kind
    *
-   * This informs this model that it should not build interpretations for
-   * operators of terms whose kind is k. Instead, applications of kind k
-   * should be treated as variables. With respect to model values, there are
-   * four categories of kinds:
+   * This informs this model how it should interpret applications of terms with
+   * kind k in getModelValue. We distinguish four categories of kinds:
    *
    * [1] "Evaluated"
    * This includes (standard) interpreted symbols like NOT, PLUS, UNION, etc.
-   * These
-   * operators can be characterized by the invariant that they are
+   * These operators can be characterized by the invariant that they are
    * "evaluatable". That is, if they are applied to only constants, the rewriter
    * is guaranteed to rewrite the application to a constant. When getting
    * the model value of <k>( t1...tn ) where k is a kind of this category, we
@@ -198,12 +195,13 @@ public:
    * It is optional whether this kind is "evaluated" or "semi-evaluated".
    * In the case that it is "evaluated", get model rewrites the application
    * of the lambda model value of its operator to its evaluated arguments.
-   * We set APPLY_UF to be semi-interpreted when the option
-   * assignFunctionValues is false.
    *
    * By default, all kinds are considered "evaluated". The following methods
    * change the interpretation of various (non-APPLY_UF) kinds to one of the
-   * above categories.
+   * above categories and should be called by the theories that own the kind
+   * during Theory::finishInit. We set APPLY_UF to be semi-interpreted when 
+   * this model does not enabled function values (this is the case for the model
+   * of TheoryEngine when the option assignFunctionValues is set to false).
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
