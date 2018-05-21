@@ -1311,8 +1311,8 @@ void TheoryStrings::checkConstantEquivalenceClasses()
   do
   {
     vecc.clear();
-    Trace("strings-process-debug")
-        << "Check constant equivalence classes..." << std::endl;
+    Trace("strings-process-debug") << "Check constant equivalence classes..."
+                                   << std::endl;
     prevSize = d_eqc_to_const.size();
     checkConstantEquivalenceClasses(&d_term_index[kind::STRING_CONCAT], vecc);
   } while (!hasProcessed() && d_eqc_to_const.size() > prevSize);
@@ -1788,11 +1788,11 @@ void TheoryStrings::checkFlatForms()
           if (!TheoryStringsRewriter::canConstantContainList(
                   c, d_flat_form[n], firstc, lastc))
           {
-            Trace("strings-ff-debug")
-                << "Flat form for " << n << " cannot be contained in constant "
-                << c << std::endl;
-            Trace("strings-ff-debug")
-                << "  indices = " << firstc << "/" << lastc << std::endl;
+            Trace("strings-ff-debug") << "Flat form for " << n
+                                      << " cannot be contained in constant "
+                                      << c << std::endl;
+            Trace("strings-ff-debug") << "  indices = " << firstc << "/"
+                                      << lastc << std::endl;
             // conflict, explanation is n = base ^ base = c ^ relevant portion
             // of ( n = f[n] )
             std::vector<Node> exp;
@@ -1966,19 +1966,19 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                 Node lcc = getLength(bc, lexp2);
                 if (areEqual(lcurr, lcc))
                 {
-                  Trace("strings-ff-debug")
-                      << "Infer " << ac << " == " << bc << " since " << lcurr
-                      << " == " << lcc << std::endl;
+                  Trace("strings-ff-debug") << "Infer " << ac << " == " << bc
+                                            << " since " << lcurr
+                                            << " == " << lcc << std::endl;
                   // exp_n.push_back( getLength( curr, true ).eqNode(
                   // getLength( cc, true ) ) );
-                  Trace("strings-ff-debug")
-                      << "Explanation for " << lcurr << " is ";
+                  Trace("strings-ff-debug") << "Explanation for " << lcurr
+                                            << " is ";
                   for (unsigned j = 0; j < lexp.size(); j++)
                   {
                     Trace("strings-ff-debug") << lexp[j] << std::endl;
                   }
-                  Trace("strings-ff-debug")
-                      << "Explanation for " << lcc << " is ";
+                  Trace("strings-ff-debug") << "Explanation for " << lcc
+                                            << " is ";
                   for (unsigned j = 0; j < lexp2.size(); j++)
                   {
                     Trace("strings-ff-debug") << lexp2[j] << std::endl;
@@ -2040,13 +2040,13 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       // strict prefix equality ( a.b = a ) where a,b non-empty
       //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       //  when len(b)!=0.
-      sendInference(exp,
-                    conc,
-                    inf_type == 0
-                        ? "F_Const"
-                        : (inf_type == 1 ? "F_Unify"
-                                         : (inf_type == 2 ? "F_EndpointEmp"
-                                                          : "F_EndpointEq")));
+      sendInference(
+          exp,
+          conc,
+          inf_type == 0
+              ? "F_Const"
+              : (inf_type == 1 ? "F_Unify" : (inf_type == 2 ? "F_EndpointEmp"
+                                                            : "F_EndpointEq")));
       if (d_conflict)
       {
         return;
