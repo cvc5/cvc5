@@ -55,7 +55,8 @@ static void printFpParameterizedOp(std::ostream& out, TNode n);
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
-                             bool decimal);
+                             bool decimal, 
+                             Variant v);
 
 void Smt2Printer::toStream(
     std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
@@ -204,15 +205,7 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
-      if(d_variant == sygus_variant ){
-        if(r < 0) {
-          out << "-" << -r;
-        }else{
-          toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger());
-        }
-      }else{
-        toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger());
-      }
+      toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger(), d_variant);
       break;
     }
 
@@ -1331,111 +1324,6 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
 }
 
-namespace {
-
-void DeclareTypeCommandToStream(std::ostream& out,
-                                const theory::TheoryModel& model,
-                                const DeclareTypeCommand& command,
-                                Variant variant)
-{
-  TypeNode tn = TypeNode::fromType(command.getType());
-  const std::vector<Node>* type_refs = model.getRepSet()->getTypeRepsOrNull(tn);
-  if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
-  {
-    if (isVariant_2_6(variant))
-    {
-      out << "(declare-datatypes ((" << command.getSymbol() << " 0)) (";
-    }
-    else
-    {
-      out << "(declare-datatypes () ((" << command.getSymbol() << " ";
-    }
-    for (Node type_ref : *type_refs)
-    {
-      out << "(" << type_ref << ")";
-    }
-    out << ")))" << endl;
-  }
-  else if (tn.isSort() && type_refs != nullptr)
-  {
-    // print the cardinality
-    out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
-    out << command << endl;
-    // print the representatives
-    for (Node type_ref : *type_refs)
-    {
-      if (type_ref.isVar())
-      {
-        out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
-            << endl;
-      }
-      else
-      {
-        out << "; rep: " << type_ref << endl;
-      }
-    }
-  }
-  else
-  {
-    out << command << endl;
-  }
-}
-
-void DeclareFunctionCommandToStream(std::ostream& out,
-                                    const theory::TheoryModel& model,
-                                    const DeclareFunctionCommand& command)
-{
-  Node n = Node::fromExpr(command.getFunction());
-  if (command.getPrintInModelSetByUser())
-  {
-    if (!command.getPrintInModel())
-    {
-      return;
-    }
-  }
-  else if (n.getKind() == kind::SKOLEM)
-  {
-    // don't print out internal stuff
-    return;
-  }
-  Node val = Node::fromExpr(model.getSmtEngine()->getValue(n.toExpr()));
-  if (val.getKind() == kind::LAMBDA)
-  {
-    out << "(define-fun " << n << " " << val[0] << " "
-        << n.getType().getRangeType() << " " << val[1] << ")" << endl;
-  }
-  else
-  {
-    if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
-    {
-      TypeNode tn = val[1].getType();
-      const std::vector<Node>* type_refs =
-          model.getRepSet()->getTypeRepsOrNull(tn);
-      if (tn.isSort() && type_refs != nullptr)
-      {
-        Cardinality indexCard(type_refs->size());
-        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
-            val, indexCard);
-      }
-    }
-    out << "(define-fun " << n << " () " << n.getType() << " ";
-    if (val.getType().isInteger() && n.getType().isReal()
-        && !n.getType().isInteger())
-    {
-      // toStreamReal(out, val, true);
-      toStreamRational(out, val.getConst<Rational>(), true);
-      // out << val << ".0";
-    }
-    else
-    {
-      out << val;
-    }
-    out << ")" << endl;
-  }
-}
-
-}  // namespace
-
 void Smt2Printer::toStream(std::ostream& out,
                            const Model& model,
                            const Command* command) const
@@ -1446,12 +1334,89 @@ void Smt2Printer::toStream(std::ostream& out,
   if (const DeclareTypeCommand* dtc =
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
-    DeclareTypeCommandToStream(out, *theory_model, *dtc, d_variant);
+    // print out the DeclareTypeCommand
+    TypeNode tn = TypeNode::fromType((*dtc).getType());
+    const std::vector<Node>* type_refs = theory_model->getRepSet()->getTypeRepsOrNull(tn);
+    if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
+    {
+      if (isVariant_2_6(d_variant))
+      {
+        out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
+      }
+      else
+      {
+        out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
+      }
+      for (Node type_ref : *type_refs)
+      {
+        out << "(" << type_ref << ")";
+      }
+      out << ")))" << endl;
+    }
+    else if (tn.isSort() && type_refs != nullptr)
+    {
+      // print the cardinality
+      out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
+      out << (*dtc) << endl;
+      // print the representatives
+      for (Node type_ref : *type_refs)
+      {
+        if (type_ref.isVar())
+        {
+          out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
+              << endl;
+        }
+        else
+        {
+          out << "; rep: " << type_ref << endl;
+        }
+      }
+    }
+    else
+    {
+      out << (*dtc) << endl;
+    }
   }
   else if (const DeclareFunctionCommand* dfc =
                dynamic_cast<const DeclareFunctionCommand*>(command))
   {
-    DeclareFunctionCommandToStream(out, *theory_model, *dfc);
+    // print out the DeclareFunctionCommand
+    Node n = Node::fromExpr((*dfc).getFunction());
+    if ((*dfc).getPrintInModelSetByUser())
+    {
+      if (!(*dfc).getPrintInModel())
+      {
+        return;
+      }
+    }
+    else if (n.getKind() == kind::SKOLEM)
+    {
+      // don't print out internal stuff
+      return;
+    }
+    Node val = Node::fromExpr(theory_model->getSmtEngine()->getValue(n.toExpr()));
+    if (val.getKind() == kind::LAMBDA)
+    {
+      out << "(define-fun " << n << " " << val[0] << " "
+          << n.getType().getRangeType() << " " << val[1] << ")" << endl;
+    }
+    else
+    {
+      if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+      {
+        TypeNode tn = val[1].getType();
+        const std::vector<Node>* type_refs =
+            theory_model->getRepSet()->getTypeRepsOrNull(tn);
+        if (tn.isSort() && type_refs != nullptr)
+        {
+          Cardinality indexCard(type_refs->size());
+          val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
+              val, indexCard);
+        }
+      }
+      out << "(define-fun " << n << " () " << n.getType() << " " << val << ")" << endl;
+    }
+      
   }
   else if (const DatatypeDeclarationCommand* datatype_declaration_command =
                dynamic_cast<const DatatypeDeclarationCommand*>(command))
@@ -1719,31 +1684,32 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   out << ")";
 }
 
-static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)
+static void toStreamRational(std::ostream& out, const Rational& r, bool decimal, Variant v)
 {
   bool neg = r.sgn() < 0;
   // Print the rational, possibly as decimal.
   // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
   // the former is compliant with real values in the smt lib standard.
   if(r.isIntegral()) {
-    if (neg) {
-      out << "(- ";
-      out << (-r);
-    }else {
+    if( neg )
+    {
+      out << (v==sygus_variant ? "-" : "(- ") << -r;
+    }
+    else
+    {
       out << r;
     }
     if (decimal) { out << ".0"; }
     if (neg)
     {
-      out << ")";
+      out << (v==sygus_variant ? "" : ")");
     }
   }else{
     out << "(/ ";
     if(neg) {
-      out << "(- ";
       Rational abs_r = (-r);
-      out << abs_r.getNumerator();
-      out << ") " << abs_r.getDenominator();
+      out << (v==sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
+      out << (v==sygus_variant ? " " : ") ") << abs_r.getDenominator();
     }else{
       out << r.getNumerator();
       out << ' ' << r.getDenominator();
