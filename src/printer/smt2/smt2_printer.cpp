@@ -213,20 +213,6 @@ void Smt2Printer::toStream(std::ostream& out,
       }else{
         toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger());
       }
-      // Rational r = n.getConst<Rational>();
-      // if(r < 0) {
-      //   if(r.isIntegral()) {
-      //     out << "(- " << -r << ')';
-      //   } else {
-      //     out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
-      //   }
-      // } else {
-      //   if(r.isIntegral()) {
-      //     out << r;
-      //   } else {
-      //     out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
-      //   }
-      // }
       break;
     }
 
@@ -339,11 +325,20 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     if (force_nt.isReal())
     {
+      // we prefer using (/ x 1) instead of (to_real x) here.
+      // the reason is that (/ x 1) is SMT-LIB compliant when x is a constant
+      // or the logic is non-linear, whereas (to_real x) is compliant when
+      // the logic is mixed int/real. The former occurs more frequently.
+      bool is_int = force_nt.isInteger();
       out << "(" << smtKindString(
-                        force_nt.isInteger() ? kind::TO_INTEGER : kind::TO_REAL,
+                        is_int ? kind::TO_INTEGER : kind::DIVISION,
                         d_variant)
           << " ";
       toStream(out, type_asc_arg, toDepth, types, TypeNode::null());
+      if( !is_int )
+      {
+        out << " 1";
+      }
       out << ")";
     }
     else
@@ -1715,14 +1710,10 @@ static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)
       out << "(- ";
       Rational abs_r = (-r);
       out << abs_r.getNumerator();
-      if(decimal) { out << ".0"; }
       out << ") " << abs_r.getDenominator();
-      if(decimal) { out << ".0"; }
     }else{
       out << r.getNumerator();
-      if(decimal) { out << ".0"; }
       out << ' ' << r.getDenominator();
-      if(decimal) { out << ".0"; }
     }
     out << ')';
   }

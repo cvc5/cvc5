@@ -1408,7 +1408,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
       Node value = Node::fromExpr(smtEngine->getValue(e));
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
-        // Need to wrap in special marker so that output printers know this
+        // Need to wrap in division-by-one so that output printers know this
         // is an integer-looking constant that really should be output as
         // a rational.  Necessary for SMT-LIB standards compliance.
         value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
