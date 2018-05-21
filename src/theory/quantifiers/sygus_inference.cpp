@@ -15,6 +15,9 @@
 #include "theory/quantifiers/sygus_inference.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
 
@@ -85,6 +88,15 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     }
     if (pas.getKind() == FORALL)
     {
+      // it must be a standard quantifier
+      QAttributes qa;
+      QuantAttributes::computeQuantAttributes( pas, qa );
+      if( !qa.isStandard() )
+      {
+        Trace("sygus-infer")
+              << "...fail: non-standard top-level quantifier." << std::endl;
+        return false;
+      }
       // infer prefix
       for (const Node& v : pas[0])
       {
@@ -170,10 +182,13 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   // for each free function symbol, make a bound variable of the same type
   Trace("sygus-infer") << "Do free function substitution..." << std::endl;
   std::vector<Node> ff_vars;
+  std::map<Node, Node> ff_var_to_ff;
   for (const Node& ff : free_functions)
   {
     Node ffv = nm->mkBoundVar(ff.getType());
     ff_vars.push_back(ffv);
+    Trace("sygus-infer") << "  synth-fun: " << ff << " as " << ffv << std::endl;
+    ff_var_to_ff[ffv] = ff;
   }
   // substitute free functions -> variables
   body = body.substitute(free_functions.begin(),
@@ -204,6 +219,44 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
 
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
+  // make a separate smt call
+  SmtEngine rrSygus(nm->toExprManager());
+  rrSygus.setLogic(smt::currentSmtEngine()->getLogicInfo());
+  rrSygus.assertFormula(body.toExpr());
+  Trace("sygus-infer") << "*** Check sat..." << std::endl;
+  Result r = rrSygus.checkSat();
+  Trace("sygus-infer") << "...result : " << r << std::endl;
+  
+  // get the synthesis solutions 
+  std::map<Expr, Expr > synth_sols;
+  rrSygus.getSynthSolutions(synth_sols);
+  
+
+  for( std::map<Expr, Expr >::iterator it = synth_sols.begin(); it != synth_sols.end(); ++it )
+  {
+    Node lambda = Node::fromExpr( it->second );
+    Trace("sygus-infer") << "  synth sol : " << it->first << " -> " << it->second << std::endl;
+    Node ffv = Node::fromExpr( it->first );
+    std::map< Node, Node >::iterator itffv = ff_var_to_ff.find(ffv);
+    if( itffv!=ff_var_to_ff.end() )
+    {
+      Node ff = itffv->second;
+      std::vector<Expr> args;
+      for( const Node& v : lambda[0] )
+      {
+        args.push_back( v.toExpr() );
+      }
+      Trace("sygus-infer") << "Define " << ff << " as " << it->second << std::endl;
+      smt::currentSmtEngine()->defineFunction( ff.toExpr(), args, it->second[1] );
+    }
+    else
+    {
+      // all synthesis solutions should correspond to a variable we introduced
+      Assert( false );
+    }
+  }
+  
+  /*
   // replace all assertions except the first with true
   Node truen = nm->mkConst(true);
   for (unsigned i = 0, size = assertions.size(); i < size; i++)
@@ -217,6 +270,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
       assertions[i] = truen;
     }
   }
+  */
   return true;
 }
 
