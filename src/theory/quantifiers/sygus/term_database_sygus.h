@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -52,6 +53,8 @@ class TermDbSygus {
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  /** evaluation unfolding utility */
+  SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -210,8 +213,10 @@ class TermDbSygus {
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
-  /** sygus explanation */
+  /** extended rewriter */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
+  /** evaluation function unfolding utility */
+  std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -344,21 +349,7 @@ public: // for symmetry breaking
   bool considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg );
   bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
-  
-//for eager instantiation
-  // TODO (as part of #1235) move some of these functions to sygus_explain.h
- private:
-  /** the set of evaluation terms we have already processed */
-  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
-  std::map< Node, std::map< Node, bool > > d_subterms;
-  std::map< Node, std::vector< Node > > d_evals;
-  std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
-  std::map< Node, std::vector< bool > > d_eval_args_const;
-  std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
-
 public:
-  void registerEvalTerm( Node n );
-  void registerModelValue( Node n, Node v, std::vector< Node >& exps, std::vector< Node >& terms, std::vector< Node >& vals );
   Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp = true );
   Node unfold( Node en ){
     std::map< Node, Node > vtm;

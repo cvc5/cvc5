@@ -481,6 +481,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_pbe.h \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.h \
+	theory/quantifiers/sygus/sygus_eval_unfold.cpp \
+	theory/quantifiers/sygus/sygus_eval_unfold.h \
 	theory/quantifiers/sygus/sygus_explain.cpp \
 	theory/quantifiers/sygus/sygus_explain.h \
 	theory/quantifiers/sygus/sygus_invariance.cpp \
