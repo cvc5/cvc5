@@ -199,7 +199,7 @@ public:
    * By default, all kinds are considered "evaluated". The following methods
    * change the interpretation of various (non-APPLY_UF) kinds to one of the
    * above categories and should be called by the theories that own the kind
-   * during Theory::finishInit. We set APPLY_UF to be semi-interpreted when 
+   * during Theory::finishInit. We set APPLY_UF to be semi-interpreted when
    * this model does not enabled function values (this is the case for the model
    * of TheoryEngine when the option assignFunctionValues is set to false).
    */
