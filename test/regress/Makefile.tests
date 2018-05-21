@@ -1471,6 +1471,7 @@ REG1_TESTS = \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegisunif-depth1.sy \
+	regress1/sygus/cegis-unif-inv-eq-fair.sy \
 	regress1/sygus/cggmp.sy \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
@@ -1480,11 +1481,13 @@ REG1_TESTS = \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
+	regress1/sygus/find_sc_bvult_bvnot.sy \
 	regress1/sygus/hd-01-d1-prog.sy \
 	regress1/sygus/hd-19-d1-prog-dup-op.sy \
 	regress1/sygus/hd-sdiv.sy \
 	regress1/sygus/icfp_14.12-flip-args.sy \
 	regress1/sygus/icfp_14.12.sy \
+	regress1/sygus/icfp_14_12_diff_types.sy \
 	regress1/sygus/icfp_28_10.sy \
 	regress1/sygus/icfp_easy-ite.sy \
 	regress1/sygus/inv-example.sy \
@@ -1803,6 +1806,7 @@ DISABLED_TESTS = \
 	regress0/sets/sets-new.smt2 \
 	regress0/sets/sets-testlemma-ints.smt2 \
 	regress0/sets/sets-testlemma-reals.smt2 \
+	regress0/sygus/sygus-uf.sy \
 	regress0/symmetric.smt \
 	regress0/tptp/BOO003-4.p \
 	regress0/tptp/BOO027-1.p \

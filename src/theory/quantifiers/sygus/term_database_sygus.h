@@ -38,7 +38,13 @@ class TermDbSygus {
   bool reset(Theory::Effort e);
   /** Identify this utility */
   std::string identify() const { return "TermDbSygus"; }
-  /** register the sygus type */
+  /** register the sygus type
+   *
+   * This initializes this database for sygus datatype type tn. This may
+   * throw an assertion failure if the sygus grammar has type errors. Otherwise,
+   * after registering a sygus type, the query functions in this class (such
+   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   */
   void registerSygusType(TypeNode tn);
 
   //------------------------------utilities
@@ -183,6 +189,18 @@ class TermDbSygus {
   /** same as above, but with a cache of visited nodes */
   Node evaluateWithUnfolding(
       Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
+  /** is evaluation point?
+   *
+   * Returns true if n is of the form eval( x, c1...cn ) for some variable x
+   * and constants c1...cn.
+   */
+  bool isEvaluationPoint(Node n) const;
+  /** return the builtin type of tn
+   *
+   * The type tn should be a sygus datatype type that has been registered to
+   * this database.
+   */
+  TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
 
  private:
@@ -279,7 +297,6 @@ private:
   unsigned getSelectorWeight(TypeNode tn, Node sel);
 
  public:
-  TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindConsNum( TypeNode tn, Kind k );
   int getConstConsNum( TypeNode tn, Node n );
   int getOpConsNum( TypeNode tn, Node n );
