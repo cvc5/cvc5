@@ -845,11 +845,6 @@ private:
   void runInferStep(InferStep s, int effort);
   /** the strategy */
   std::vector<InferStep> d_infer_steps;
-  /**
-   * The steps we have run on this check (for debugging). We map to the list
-   * of efforts we have run, for each InferStep.
-   */
-  std::map<InferStep, std::vector<int> > d_infer_steps_run;
   /** the effort levels */
   std::vector<int> d_infer_step_effort;
   /** the range (begin, end) of steps to run at given efforts */
