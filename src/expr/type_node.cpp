@@ -66,41 +66,68 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
-bool TypeNode::isInterpretedFinite() const {
-  if( getCardinality().isFinite() ){
-    return true;
-  }else{
-    if( options::finiteModelFind() ){
+/** Attribute true for types that are interpreted as finite */
+struct IsInterpretedFiniteTag
+{
+};
+struct IsInterpretedFiniteComputedTag
+{
+};
+typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
+typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
+    IsInterpretedFiniteComputedAttr;
+
+bool TypeNode::isInterpretedFinite()
+{
+  // check it is already cached
+  if (!getAttribute(IsInterpretedFiniteComputedAttr()))
+  {
+    bool isInterpretedFinite = false;
+    if (getCardinality().isFinite())
+    {
+      isInterpretedFinite = true;
+    }
+    else if (options::finiteModelFind())
+    {
       if( isSort() ){
-        return true;
+        isInterpretedFinite = true;
       }else if( isDatatype() ){
         TypeNode tn = *this;
         const Datatype& dt = getDatatype();
-        return dt.isInterpretedFinite( tn.toType() );
+        isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
       }else if( isArray() ){
-        return getArrayIndexType().isInterpretedFinite() && getArrayConstituentType().isInterpretedFinite();
+        isInterpretedFinite =
+            getArrayIndexType().isInterpretedFinite()
+            && getArrayConstituentType().isInterpretedFinite();
       }else if( isSet() ) {
-        return getSetElementType().isInterpretedFinite();
+        isInterpretedFinite = getSetElementType().isInterpretedFinite();
       }
       else if (isFunction())
       {
+        isInterpretedFinite = true;
         if (!getRangeType().isInterpretedFinite())
         {
-          return false;
+          isInterpretedFinite = false;
         }
-        std::vector<TypeNode> argTypes = getArgTypes();
-        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+        else
         {
-          if (!argTypes[i].isInterpretedFinite())
+          std::vector<TypeNode> argTypes = getArgTypes();
+          for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
           {
-            return false;
+            if (!argTypes[i].isInterpretedFinite())
+            {
+              isInterpretedFinite = false;
+              break;
+            }
           }
         }
-        return true;
       }
     }
-    return false;
+    setAttribute(IsInterpretedFiniteAttr(), isInterpretedFinite);
+    setAttribute(IsInterpretedFiniteComputedAttr(), true);
+    return isInterpretedFinite;
   }
+  return getAttribute(IsInterpretedFiniteAttr());
 }
 
 bool TypeNode::isFirstClass() const {
