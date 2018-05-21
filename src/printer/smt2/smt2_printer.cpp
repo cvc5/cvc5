@@ -450,6 +450,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::ARCCOSECANT:
   case kind::ARCSECANT:
   case kind::ARCCOTANGENT:
+  case kind::PI:
   case kind::SQRT:
   case kind::MINUS:
   case kind::UMINUS:
@@ -528,8 +529,11 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRREPL:
   case kind::STRING_PREFIX:
   case kind::STRING_SUFFIX:
+  case kind::STRING_LEQ:
+  case kind::STRING_LT:
   case kind::STRING_ITOS:
   case kind::STRING_STOI:
+  case kind::STRING_CODE:
   case kind::STRING_TO_REGEXP:
   case kind::REGEXP_CONCAT:
   case kind::REGEXP_UNION:
@@ -639,6 +643,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_ISNEG:
   case kind::FLOATINGPOINT_ISPOS:
   case kind::FLOATINGPOINT_TO_REAL:
+  case kind::FLOATINGPOINT_COMPONENT_NAN:
+  case kind::FLOATINGPOINT_COMPONENT_INF:
+  case kind::FLOATINGPOINT_COMPONENT_ZERO:
+  case kind::FLOATINGPOINT_COMPONENT_SIGN:
+  case kind::FLOATINGPOINT_COMPONENT_EXPONENT:
+  case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND:
+  case kind::ROUNDINGMODE_BITBLAST:
     out << smtKindString(k, d_variant) << ' ';
     break;
 
@@ -905,6 +916,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::ARCCOSECANT: return "arccsc";
   case kind::ARCSECANT: return "arcsec";
   case kind::ARCCOTANGENT: return "arccot";
+  case kind::PI: return "real.pi";
   case kind::SQRT: return "sqrt";
   case kind::MINUS: return "-";
   case kind::UMINUS: return "-";
@@ -1032,6 +1044,15 @@ static string smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
   case kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
+  case kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
+  case kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
+  case kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
+  case kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
+  case kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
+  case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
+  case kind::ROUNDINGMODE_BITBLAST:
+    return "RMBITBLAST";
+
   //string theory
   case kind::STRING_CONCAT: return "str.++";
   case kind::STRING_LENGTH: return v == z3str_variant ? "Length" : "str.len";
@@ -1042,6 +1063,9 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
+  case kind::STRING_LEQ: return "str.<=";
+  case kind::STRING_LT: return "str.<";
+  case kind::STRING_CODE: return "str.code";
   case kind::STRING_ITOS:
     return v == smt2_6_1_variant ? "str.from-int" : "int.to.str";
   case kind::STRING_STOI:
@@ -1285,6 +1309,15 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
   //print the model
   out << "(model" << endl;
+  // print approximations
+  if (m.hasApproximations())
+  {
+    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
+    for (unsigned i = 0, size = approx.size(); i < size; i++)
+    {
+      out << "(approximation " << approx[i].second << ")" << std::endl;
+    }
+  }
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists
@@ -1894,7 +1927,7 @@ static void toStream(std::ostream& out,
       const Datatype& d = i->getDatatype();
       out << "(";
       toStream(out, d);
-      out << ")" << endl;
+      out << ")";
     }
     out << ")";
   }
@@ -1909,11 +1942,11 @@ static void toStream(std::ostream& out,
       const Datatype& d = i->getDatatype();
       out << "(" << maybeQuoteSymbol(d.getName()) << " ";
       toStream(out, d);
-      out << ")" << endl;
+      out << ")";
     }
     out << ")";
   }
-  out << ")";
+  out << ")" << endl;
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c, Variant v)

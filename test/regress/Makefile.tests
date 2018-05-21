@@ -776,6 +776,7 @@ REG0_TESTS = \
 	regress0/strings/bug002.smt2 \
 	regress0/strings/bug612.smt2 \
 	regress0/strings/bug613.smt2 \
+	regress0/strings/code-sat-neg-one.smt2 \
 	regress0/strings/escchar.smt2 \
 	regress0/strings/escchar_25.smt2 \
 	regress0/strings/idof-rewrites.smt2 \
@@ -1034,6 +1035,7 @@ REG1_TESTS = \
 	regress1/bv/divtest.smt2 \
 	regress1/bv/fuzz34.smt \
 	regress1/bv/fuzz38.smt \
+	regress1/bv/test-bv-abstraction.smt2 \
 	regress1/bv/unsound1.smt2 \
 	regress1/bvdiv2.smt2 \
 	regress1/constarr3.cvc \
@@ -1410,6 +1412,7 @@ REG1_TESTS = \
 	regress1/strings/cmu-5042-0707-2.smt2 \
 	regress1/strings/cmu-inc-nlpp-071516.smt2 \
 	regress1/strings/cmu-substr-rw.smt2 \
+	regress1/strings/code-sequence.smt2 \
 	regress1/strings/crash-1019.smt2 \
 	regress1/strings/csp-prefix-exp-bug.smt2 \
 	regress1/strings/double-replace.smt2 \
@@ -1451,7 +1454,14 @@ REG1_TESTS = \
 	regress1/strings/str007.smt2 \
 	regress1/strings/string-unsound-sem.smt2 \
 	regress1/strings/strings-index-empty.smt2 \
+	regress1/strings/strings-leq-trans-unsat.smt2 \
+	regress1/strings/strings-lt-len5.smt2 \
+	regress1/strings/strings-lt-simple.smt2 \
 	regress1/strings/strip-endpt-sound.smt2 \
+	regress1/strings/str-code-sat.smt2 \
+	regress1/strings/str-code-unsat.smt2 \
+	regress1/strings/str-code-unsat-2.smt2 \
+	regress1/strings/str-code-unsat-3.smt2 \
 	regress1/strings/substr001.smt2 \
 	regress1/strings/type002.smt2 \
 	regress1/strings/type003.smt2 \
@@ -1460,22 +1470,29 @@ REG1_TESTS = \
 	regress1/sygus/array_search_2.sy \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/cegar1.sy \
+	regress1/sygus/cegisunif-depth1.sy \
+	regress1/sygus/cegis-unif-inv-eq-fair.sy \
 	regress1/sygus/cggmp.sy \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
 	regress1/sygus/constant.sy \
+	regress1/sygus/constant-ite-bv.sy \
+	regress1/sygus/crci-ssb-unk.sy \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
+	regress1/sygus/find_sc_bvult_bvnot.sy \
 	regress1/sygus/hd-01-d1-prog.sy \
 	regress1/sygus/hd-19-d1-prog-dup-op.sy \
 	regress1/sygus/hd-sdiv.sy \
 	regress1/sygus/icfp_14.12-flip-args.sy \
 	regress1/sygus/icfp_14.12.sy \
+	regress1/sygus/icfp_14_12_diff_types.sy \
 	regress1/sygus/icfp_28_10.sy \
 	regress1/sygus/icfp_easy-ite.sy \
 	regress1/sygus/inv-example.sy \
 	regress1/sygus/inv-unused.sy \
+	regress1/sygus/large-const-simp.sy \
 	regress1/sygus/list-head-x.sy \
 	regress1/sygus/max.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
@@ -1512,6 +1529,7 @@ REG1_TESTS = \
 	regress1/sym/sym4.smt2 \
 	regress1/sym/sym5.smt2 \
 	regress1/sym/sym6.smt2 \
+	regress1/sym/sym7-uf.smt2 \
 	regress1/test12.cvc \
 	regress1/trim.cvc \
 	regress1/uf2.smt2 \
@@ -1576,6 +1594,8 @@ REG2_TESTS = \
 	regress2/strings/norn-dis-0707-3.smt2 \
 	regress2/sygus/MPwL_d1s3.sy \
 	regress2/sygus/array_sum_dd.sy \
+	regress2/sygus/cegisunif-depth1-bv.sy \
+	regress2/sygus/ex23.sy \
 	regress2/sygus/icfp_easy_mt_ite.sy \
 	regress2/sygus/inv_gen_n_c11.sy \
 	regress2/sygus/lustre-real.sy \
@@ -1586,7 +1606,9 @@ REG2_TESTS = \
 	regress2/sygus/process-10-vars-2fun.sy \
 	regress2/sygus/process-arg-invariance.sy \
 	regress2/sygus/real-grammar-neg.sy \
+	regress2/sygus/sixfuncs.sy \
 	regress2/sygus/three.sy \
+	regress2/sygus/vcb.sy \
 	regress2/typed_v1l50016-simp.cvc \
 	regress2/uflia-error0.smt2 \
 	regress2/xs-09-16-3-4-1-5.decn.smt \
@@ -1784,6 +1806,7 @@ DISABLED_TESTS = \
 	regress0/sets/sets-new.smt2 \
 	regress0/sets/sets-testlemma-ints.smt2 \
 	regress0/sets/sets-testlemma-reals.smt2 \
+	regress0/sygus/sygus-uf.sy \
 	regress0/symmetric.smt \
 	regress0/tptp/BOO003-4.p \
 	regress0/tptp/BOO027-1.p \

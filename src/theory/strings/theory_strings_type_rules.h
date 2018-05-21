@@ -91,18 +91,21 @@ public:
   }
 };
 
-class StringContainTypeRule {
-public:
+class StringRelationTypeRule
+{
+ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting an original string term in string contain");
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string term in string relation");
       }
       t = n[1].getType(check);
       if (!t.isString()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a target string term in string contain");
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string term in string relation");
       }
     }
     return nodeManager->booleanType();
@@ -228,7 +231,9 @@ public:
     if( check ) {
       TypeNode t = n[0].getType(check);
       if (!t.isString()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting a string term in string to int 0");
+        std::stringstream ss;
+        ss << "expecting a string term in argument of " << n.getKind();
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->integerType();

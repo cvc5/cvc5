@@ -74,6 +74,20 @@ void CvcPrinter::toStream(
   }
 }
 
+void toStreamRational(std::ostream& out, Node n, bool forceRational)
+{
+  Assert(n.getKind() == kind::CONST_RATIONAL);
+  const Rational& rat = n.getConst<Rational>();
+  if (rat.isIntegral() && !forceRational)
+  {
+    out << rat.getNumerator();
+  }
+  else
+  {
+    out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
+  }
+}
+
 void CvcPrinter::toStream(
     std::ostream& out, TNode n, int depth, bool types, bool bracket) const
 {
@@ -141,12 +155,7 @@ void CvcPrinter::toStream(
       out << (n.getConst<bool>() ? "TRUE" : "FALSE");
       break;
     case kind::CONST_RATIONAL: {
-      const Rational& rat = n.getConst<Rational>();
-      if(rat.isIntegral()) {
-        out << rat.getNumerator();
-      } else {
-        out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
-      }
+      toStreamRational(out, n, false);
       break;
     }
     case kind::TYPE_CONSTANT:
@@ -404,14 +413,6 @@ void CvcPrinter::toStream(
           int sindex = dt[0].getSelectorIndexInternal( opn.toExpr() );
           Assert( sindex>=0 );
           out << '.' << sindex;
-        }else if( t.isRecord() ){
-          toStream(out, n[0], depth, types, true);
-          const Record& rec = t.getRecord();
-          const Datatype& dt = ((DatatypeType)t.toType()).getDatatype();
-          int sindex = dt[0].getSelectorIndexInternal( opn.toExpr() );
-          Assert( sindex>=0 );
-          std::pair<std::string, Type> fld = rec[sindex];
-          out << '.' << fld.first;
         }else{
           toStream(op, opn, depth, types, false);
         }
@@ -574,8 +575,16 @@ void CvcPrinter::toStream(
       opType = PREFIX;
       break;
     case kind::TO_REAL:
-      // ignore, there is no to-real in CVC language
-      toStream(out, n[0], depth, types, false);
+      if (n[0].getKind() == kind::CONST_RATIONAL)
+      {
+        // print the constant as a rational
+        toStreamRational(out, n[0], true);
+      }
+      else
+      {
+        // ignore, there is no to-real in CVC language
+        toStream(out, n[0], depth, types, false);
+      }
       return;
     case kind::DIVISIBLE:
       out << "DIVISIBLE(";
