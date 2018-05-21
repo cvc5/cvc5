@@ -689,7 +689,7 @@ private:
    * effort=1) from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
    * Solvers using Context-Dependent Simplification", CAV 2017.
    */
-  void checkExtfEval(int effort = 0);
+  void checkExtfEval(int effort);
   /** check cycles
    *
    * This inference schema ensures that a containment ordering < over the
@@ -794,7 +794,7 @@ private:
    * This inference schema ensures that constraints between str.code terms
    * are satisfied by models that correspond to extensions of the current
    * assignment. In particular, this method ensures that str.code can be
-   * given an interpretation that is injective for string arugments with length
+   * given an interpretation that is injective for string arguments with length
    * one. It may add lemmas of the form:
    *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
    */
@@ -847,9 +847,8 @@ private:
   std::vector<InferStep> d_infer_steps;
   /** the effort levels */
   std::vector<int> d_infer_step_effort;
-  /** the steps to run at various efforts */
-  std::map<Effort, unsigned> d_step_begin;
-  std::map<Effort, unsigned> d_step_end;
+  /** the range (begin, end) of steps to run at given efforts */
+  std::map<Effort, std::pair<unsigned,unsigned> > d_strat_steps;
   /** do we have a strategy for effort e? */
   bool hasStrategyEffort(Effort e) const;
   /** initialize the strategy

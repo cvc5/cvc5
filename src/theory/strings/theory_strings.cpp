@@ -62,7 +62,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case BREAK: out << "break"; break;
     case CHECK_INIT: out << "check_init"; break;
     case CHECK_CONST_EQC: out << "check_const_eqc"; break;
-    case CHECK_EXTF_EVAL: out << "check_ext_fun_evaluation"; break;
+    case CHECK_EXTF_EVAL: out << "check_ext_fun_eval"; break;
     case CHECK_CYCLES: out << "check_cycles"; break;
     case CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
     case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq"; break;
@@ -492,7 +492,6 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
-  // initialize the strategy
   initializeStrategy();
 }
 
@@ -804,7 +803,8 @@ void TheoryStrings::check(Effort e) {
   doPendingFacts();
 
   Assert(d_strategy_init);
-  if (!d_conflict && !d_valuation.needCheck() && hasStrategyEffort(e))
+  std::map< Effort, std::pair< unsigned, unsigned > >::iterator itsr = d_strat_steps.find(e);
+  if (!d_conflict && !d_valuation.needCheck() && itsr != d_strat_steps.end())
   {
     Trace("strings-check") << "Theory of strings " << e << " effort check "
                            << std::endl;
@@ -838,10 +838,8 @@ void TheoryStrings::check(Effort e) {
       }
       Trace("strings-eqc") << std::endl;
     }
-    Assert(d_step_begin.find(e) != d_step_begin.end());
-    unsigned sbegin = d_step_begin[e];
-    Assert(d_step_end.find(e) != d_step_end.end());
-    unsigned send = d_step_end[e];
+    unsigned sbegin = itsr->second.first;
+    unsigned send = itsr->second.second;
     bool addedLemma = false;
     bool addedFact;
     do{
@@ -4937,12 +4935,14 @@ void TheoryStrings::initializeStrategy()
   // initialize the strategy if not already done so
   if (!d_strategy_init)
   {
+    std::map<Effort, unsigned> step_begin;
+    std::map<Effort, unsigned> step_end;
     d_strategy_init = true;
     // beginning indices
-    d_step_begin[EFFORT_FULL] = 0;
+    step_begin[EFFORT_FULL] = 0;
     if (options::stringEager())
     {
-      d_step_begin[EFFORT_STANDARD] = 0;
+      step_begin[EFFORT_STANDARD] = 0;
     }
     // add the inference steps
     addStrategyStep(CHECK_INIT);
@@ -4953,8 +4953,8 @@ void TheoryStrings::initializeStrategy()
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
     if (options::stringEager())
     {
-      // only do the above inferences at standard effort, if applicable
-      d_step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
+      // do only the above inferences at standard effort, if applicable
+      step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
@@ -4974,14 +4974,22 @@ void TheoryStrings::initializeStrategy()
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);
-    d_step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
+    step_end[EFFORT_FULL] = d_infer_steps.size() - 1;
     if (options::stringExp() && options::stringGuessModel())
     {
-      d_step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
+      step_begin[EFFORT_LAST_CALL] = d_infer_steps.size();
       // these two steps are run in parallel
       addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
       addStrategyStep(CHECK_EXTF_EVAL, 3);
-      d_step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
+      step_end[EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
+    }
+    // set the beginning/ending ranges
+    for(const std::pair<const Effort, unsigned>& it_begin : step_begin )
+    {
+      Effort e = it_begin.first;
+      std::map<Effort,unsigned>::iterator it_end = step_end.find(e);
+      Assert( it_end!=step_end.end() );
+      d_step_range[e] = std::pair<unsigned,unsigned>(it_begin.first,it_end.first);
     }
   }
 }
