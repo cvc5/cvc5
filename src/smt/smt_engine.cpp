@@ -5136,6 +5136,13 @@ Model* SmtEngine::getModel() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetModelCommand();
   }
+  
+  if (!options::assignFunctionValues())
+  {
+    const char* msg =
+      "Cannot get the model when --assign-function-values is false.";
+    throw RecoverableModalException(msg);
+  }
 
   if(d_status.isNull() ||
      d_status.asSatisfiabilityResult() == Result::UNSAT ||
