@@ -88,6 +88,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
   {
     return;
   }
+  NodeManager * nm = NodeManager::currentNM();
   SygusExplain* sy_exp = d_tds->getExplain();
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: " << a << ", has " << its->second.size()
@@ -109,11 +110,11 @@ void SygusEvalUnfold::registerModelValue(Node a,
       sy_exp->getExplanationForEquality(n, vn, antec_exp);
       Node antec = antec_exp.size() == 1
                        ? antec_exp[0]
-                       : NodeManager::currentNM()->mkNode(kind::AND, antec_exp);
+                       : nm->mkNode(AND, antec_exp);
       // Node antec = n.eqNode( vn );
       TypeNode tn = n.getType();
       Assert(tn.isDatatype());
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
       Assert(dt.isSygus());
       Trace("sygus-eval-unfold")
           << "SygusEvalUnfold: Register model value : " << vn << " for " << n
@@ -150,20 +151,20 @@ void SygusEvalUnfold::registerModelValue(Node a,
         }
         if (do_unfold)
         {
-          // TODO : this is replicated for different values, possibly do better
-          // caching
+          // TODO (#1949) : this is replicated for different values, possibly 
+          // do better caching
           std::map<Node, Node> vtm;
           std::vector<Node> exp;
           vtm[n] = vn;
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node eval_fun =
-              NodeManager::currentNM()->mkNode(kind::APPLY_UF, eval_children);
+              nm->mkNode(APPLY_UF, eval_children);
           eval_children.resize(2);
           res = d_tds->unfold(eval_fun, vtm, exp);
           expn = exp.size() == 1
                      ? exp[0]
-                     : NodeManager::currentNM()->mkNode(kind::AND, exp);
+                     : nm->mkNode(AND, exp);
         }
         else
         {
@@ -171,10 +172,10 @@ void SygusEvalUnfold::registerModelValue(Node a,
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node conj =
-              NodeManager::currentNM()->mkNode(kind::APPLY_UF, eval_children);
+              nm->mkNode(APPLY_UF, eval_children);
           eval_children[1] = vn;
           Node eval_fun =
-              NodeManager::currentNM()->mkNode(kind::APPLY_UF, eval_children);
+              nm->mkNode(APPLY_UF, eval_children);
           res = d_tds->evaluateWithUnfolding(eval_fun);
           esit.init(conj, n, res);
           eval_children.resize(2);
@@ -186,7 +187,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           Assert(!mexp.empty());
           expn = mexp.size() == 1
                      ? mexp[0]
-                     : NodeManager::currentNM()->mkNode(kind::AND, mexp);
+                     : nm->mkNode(AND, mexp);
         }
         Assert(!res.isNull());
         terms.push_back(d_evals[n][i]);
