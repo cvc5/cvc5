@@ -88,7 +88,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
   {
     return;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   SygusExplain* sy_exp = d_tds->getExplain();
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: " << a << ", has " << its->second.size()
@@ -108,9 +108,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
       // get explanation in terms of testers
       std::vector<Node> antec_exp;
       sy_exp->getExplanationForEquality(n, vn, antec_exp);
-      Node antec = antec_exp.size() == 1
-                       ? antec_exp[0]
-                       : nm->mkNode(AND, antec_exp);
+      Node antec =
+          antec_exp.size() == 1 ? antec_exp[0] : nm->mkNode(AND, antec_exp);
       // Node antec = n.eqNode( vn );
       TypeNode tn = n.getType();
       Assert(tn.isDatatype());
@@ -151,31 +150,26 @@ void SygusEvalUnfold::registerModelValue(Node a,
         }
         if (do_unfold)
         {
-          // TODO (#1949) : this is replicated for different values, possibly 
+          // TODO (#1949) : this is replicated for different values, possibly
           // do better caching
           std::map<Node, Node> vtm;
           std::vector<Node> exp;
           vtm[n] = vn;
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
-          Node eval_fun =
-              nm->mkNode(APPLY_UF, eval_children);
+          Node eval_fun = nm->mkNode(APPLY_UF, eval_children);
           eval_children.resize(2);
           res = d_tds->unfold(eval_fun, vtm, exp);
-          expn = exp.size() == 1
-                     ? exp[0]
-                     : nm->mkNode(AND, exp);
+          expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
         }
         else
         {
           EvalSygusInvarianceTest esit;
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
-          Node conj =
-              nm->mkNode(APPLY_UF, eval_children);
+          Node conj = nm->mkNode(APPLY_UF, eval_children);
           eval_children[1] = vn;
-          Node eval_fun =
-              nm->mkNode(APPLY_UF, eval_children);
+          Node eval_fun = nm->mkNode(APPLY_UF, eval_children);
           res = d_tds->evaluateWithUnfolding(eval_fun);
           esit.init(conj, n, res);
           eval_children.resize(2);
@@ -185,9 +179,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           std::vector<Node> mexp;
           sy_exp->getExplanationFor(n, vn, mexp, esit);
           Assert(!mexp.empty());
-          expn = mexp.size() == 1
-                     ? mexp[0]
-                     : nm->mkNode(AND, mexp);
+          expn = mexp.size() == 1 ? mexp[0] : nm->mkNode(AND, mexp);
         }
         Assert(!res.isNull());
         terms.push_back(d_evals[n][i]);
@@ -202,6 +194,6 @@ void SygusEvalUnfold::registerModelValue(Node a,
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

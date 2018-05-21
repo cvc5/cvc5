@@ -109,8 +109,8 @@ class SygusEvalUnfold
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_subterms;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */
