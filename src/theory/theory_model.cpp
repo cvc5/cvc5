@@ -237,8 +237,8 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   }
   if (eeHasTerm)
   {
-    Debug("model-getvalue-debug") << "get value from representative " << ret
-                                  << "..." << std::endl;
+    Debug("model-getvalue-debug")
+        << "get value from representative " << ret << "..." << std::endl;
     ret = d_equalityEngine->getRepresentative(ret);
     Assert(d_reps.find(ret) != d_reps.end());
     std::map<Node, Node>::const_iterator it2 = d_reps.find(ret);
