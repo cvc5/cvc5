@@ -26,11 +26,12 @@ namespace quantifiers {
 
 /** SygusInference
  *
- * A preprocessing utility to turn a set of (quantified) assertions into a
+ * A preprocessing utility that turns a set of (quantified) assertions into a
  * single SyGuS conjecture. If this is possible, we solve for this single Sygus
  * conjecture using a separate copy of the SMT engine. If sygus successfully
  * solves the conjecture, we plug the synthesis solutions back into the original
- * problem, thus obtaining a model.
+ * problem, thus obtaining a set of model substitutions under which the 
+ * assertions should simplify to true.
  */
 class SygusInference
 {
@@ -39,9 +40,9 @@ class SygusInference
   ~SygusInference() {}
   /** simplify assertions
    *
-   * Either replaces all uninterpreted functions in assertions by a valid
-   * model, found by a separate call to an SMT engine and returns true,
-   * or leaves the assertions unmodified and returns false.
+   * Either replaces all uninterpreted functions in assertions by their
+   * interpretation in the solution found by a separate call to an SMT engine
+   * and returns true, or leaves the assertions unmodified and returns false.
    *
    * We fail if either a sygus conjecture that corresponds to assertions cannot
    * be inferred, or the sygus conjecture we infer is infeasible.

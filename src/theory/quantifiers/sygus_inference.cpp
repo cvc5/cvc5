@@ -247,6 +247,8 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
                          << it->second << std::endl;
     Node ffv = Node::fromExpr(it->first);
     std::map<Node, Node>::iterator itffv = ff_var_to_ff.find(ffv);
+    // all synthesis solutions should correspond to a variable we introduced
+    Assert( itffv != ff_var_to_ff.end() );
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
@@ -261,15 +263,9 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
       final_ff_sol.push_back(it->second);
       master_smte->defineFunction(ff.toExpr(), args, it->second[1]);
     }
-    else
-    {
-      // all synthesis solutions should correspond to a variable we introduced
-      Assert(false);
-    }
   }
 
   // apply substitution to everything, should result in SAT
-  Node truen = nm->mkConst(true);
   for (unsigned i = 0, size = assertions.size(); i < size; i++)
   {
     Node prev = assertions[i];
