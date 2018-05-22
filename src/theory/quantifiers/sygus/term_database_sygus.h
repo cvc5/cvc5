@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -38,7 +39,13 @@ class TermDbSygus {
   bool reset(Theory::Effort e);
   /** Identify this utility */
   std::string identify() const { return "TermDbSygus"; }
-  /** register the sygus type */
+  /** register the sygus type
+   *
+   * This initializes this database for sygus datatype type tn. This may
+   * throw an assertion failure if the sygus grammar has type errors. Otherwise,
+   * after registering a sygus type, the query functions in this class (such
+   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   */
   void registerSygusType(TypeNode tn);
 
   //------------------------------utilities
@@ -46,6 +53,8 @@ class TermDbSygus {
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  /** evaluation unfolding utility */
+  SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -128,6 +137,14 @@ class TermDbSygus {
   int getVarNum(Node n) { return d_fv_num[n]; }
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
+  /** get sygus proxy variable
+   *
+   * Returns a fresh variable of type tn with the SygusPrintProxyAttribute set
+   * to constant c. The type tn should be a sygus datatype type, and the type of
+   * c should be the analog type of tn. The semantics of the returned node
+   * is "the variable of sygus datatype tn that encodes constant c".
+   */
+  Node getProxyVariable(TypeNode tn, Node c);
   /** make generic
    *
    * This function returns a builtin term f( t1, ..., tn ) where f is the
@@ -152,6 +169,41 @@ class TermDbSygus {
   Node sygusToBuiltin(Node n, TypeNode tn);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
+  /** evaluate builtin
+   *
+   * bn is a term of some sygus datatype tn. This function returns the rewritten
+   * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
+   * list for type tn (see Datatype::getSygusVarList).
+   */
+  Node evaluateBuiltin(TypeNode tn, Node bn, std::vector<Node>& args);
+  /** evaluate with unfolding
+   *
+   * n is any term that may involve sygus evaluation functions. This function
+   * returns the result of unfolding the evaluation functions within n and
+   * rewriting the result. For example, if eval_A is the evaluation function
+   * for the datatype:
+   *   A -> C_0 | C_1 | C_x | C_+( C_A, C_A )
+   * corresponding to grammar:
+   *   A -> 0 | 1 | x | A + A
+   * then calling this function on eval( C_+( x, 1 ), 4 ) = y returns 5 = y.
+   * The node returned by this function is in (extended) rewritten form.
+   */
+  Node evaluateWithUnfolding(Node n);
+  /** same as above, but with a cache of visited nodes */
+  Node evaluateWithUnfolding(
+      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
+  /** is evaluation point?
+   *
+   * Returns true if n is of the form eval( x, c1...cn ) for some variable x
+   * and constants c1...cn.
+   */
+  bool isEvaluationPoint(Node n) const;
+  /** return the builtin type of tn
+   *
+   * The type tn should be a sygus datatype type that has been registered to
+   * this database.
+   */
+  TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
 
  private:
@@ -161,8 +213,10 @@ class TermDbSygus {
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
-  /** sygus explanation */
+  /** extended rewriter */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
+  /** evaluation function unfolding utility */
+  std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -201,6 +255,8 @@ class TermDbSygus {
   std::map<Node, int> d_fv_num;
   /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
   bool hasFreeVar(Node n, std::map<Node, bool>& visited);
+  /** cache of getProxyVariable */
+  std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
 
   // TODO :issue #1235 : below here needs refactor
@@ -246,7 +302,6 @@ private:
   unsigned getSelectorWeight(TypeNode tn, Node sel);
 
  public:
-  TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindConsNum( TypeNode tn, Kind k );
   int getConstConsNum( TypeNode tn, Node n );
   int getOpConsNum( TypeNode tn, Node n );
@@ -259,7 +314,7 @@ private:
   bool isKindArg( TypeNode tn, int i );
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
-  TypeNode getArgType(const DatatypeConstructor& c, unsigned i);
+  TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
   /** get first occurrence */
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
@@ -294,21 +349,7 @@ public: // for symmetry breaking
   bool considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg );
   bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
-  
-//for eager instantiation
-  // TODO (as part of #1235) move some of these functions to sygus_explain.h
- private:
-  /** the set of evaluation terms we have already processed */
-  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
-  std::map< Node, std::map< Node, bool > > d_subterms;
-  std::map< Node, std::vector< Node > > d_evals;
-  std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
-  std::map< Node, std::vector< bool > > d_eval_args_const;
-  std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
-
 public:
-  void registerEvalTerm( Node n );
-  void registerModelValue( Node n, Node v, std::vector< Node >& exps, std::vector< Node >& terms, std::vector< Node >& vals );
   Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp = true );
   Node unfold( Node en ){
     std::map< Node, Node > vtm;
@@ -316,13 +357,6 @@ public:
     return unfold( en, vtm, exp, false );
   }
   Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
-
-  // builtin evaluation, returns rewrite( bn [ args / vars(tn) ] )
-  Node evaluateBuiltin( TypeNode tn, Node bn, std::vector< Node >& args );
-  // evaluate with unfolding
-  Node evaluateWithUnfolding(
-      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
-  Node evaluateWithUnfolding( Node n );
 };
 
 }/* CVC4::theory::quantifiers namespace */

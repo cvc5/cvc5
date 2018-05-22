@@ -20,10 +20,14 @@
 #ifndef __CVC4__FLOATINGPOINT_H
 #define __CVC4__FLOATINGPOINT_H
 
-#include <fenv.h>
-
 #include "util/bitvector.h"
 #include "util/rational.h"
+
+#include <fenv.h>
+
+#ifdef CVC4_USE_SYMFPU
+#include "symfpu/core/unpackedFloat.h"
+#endif
 
 namespace CVC4 {
   // Inline these!
@@ -62,6 +66,22 @@ namespace CVC4 {
       return (e == fps.e) && (s == fps.s);
     }
 
+    // Implement the interface that symfpu uses for floating-point formats.
+    inline unsigned exponentWidth(void) const { return this->exponent(); }
+    inline unsigned significandWidth(void) const { return this->significand(); }
+    inline unsigned packedWidth(void) const
+    {
+      return this->exponentWidth() + this->significandWidth();
+    }
+    inline unsigned packedExponentWidth(void) const
+    {
+      return this->exponentWidth();
+    }
+    inline unsigned packedSignificandWidth(void) const
+    {
+      return this->significandWidth() - 1;
+    }
+
   }; /* class FloatingPointSize */
 
   struct CVC4_PUBLIC FloatingPointSizeHashFunction {
@@ -95,11 +115,181 @@ namespace CVC4 {
     }
   }; /* struct RoundingModeHashFunction */
 
+  /**
+   * This is a symfpu literal "back-end".  It allows the library to be used as
+   * an arbitrary precision floating-point implementation.  This is effectively
+   * the glue between symfpu's notion of "signed bit-vector" and CVC4's
+   * BitVector.
+   */
+  namespace symfpuLiteral {
+  // Forward declaration of wrapper so that traits can be defined early and so
+  // used in the implementation of wrappedBitVector.
+  template <bool T>
+  class wrappedBitVector;
+
+  // This is the template parameter for symfpu's templates.
+  class traits
+  {
+   public:
+    // The six key types that symfpu uses.
+    typedef unsigned bwt;
+    typedef bool prop;
+    typedef ::CVC4::RoundingMode rm;
+    typedef ::CVC4::FloatingPointSize fpt;
+    typedef wrappedBitVector<true> sbv;
+    typedef wrappedBitVector<false> ubv;
+
+    // Give concrete instances of each rounding mode, mainly for comparisons.
+    static rm RNE(void);
+    static rm RNA(void);
+    static rm RTP(void);
+    static rm RTN(void);
+    static rm RTZ(void);
+
+    // The sympfu properties.
+    static void precondition(const prop &p);
+    static void postcondition(const prop &p);
+    static void invariant(const prop &p);
+  };
+
+  // Use the same type names as symfpu.
+  typedef traits::bwt bwt;
+  typedef traits::prop prop;
+  typedef traits::rm rm;
+  typedef traits::fpt fpt;
+  typedef traits::ubv ubv;
+  typedef traits::sbv sbv;
+
+  // Type function for mapping between types
+  template <bool T>
+  struct signedToLiteralType;
+
+  template <>
+  struct signedToLiteralType<true>
+  {
+    typedef int literalType;
+  };
+  template <>
+  struct signedToLiteralType<false>
+  {
+    typedef unsigned int literalType;
+  };
+
+  // This is an additional interface for CVC4::BitVector.
+  // The template parameter distinguishes signed and unsigned bit-vectors, a
+  // distinction symfpu uses.
+  template <bool isSigned>
+  class wrappedBitVector : public BitVector
+  {
+   protected:
+    typedef typename signedToLiteralType<isSigned>::literalType literalType;
+
+    friend wrappedBitVector<!isSigned>;  // To allow conversion between the
+                                         // types
+#ifdef CVC4_USE_SYMFPU
+    friend ::symfpu::ite<prop, wrappedBitVector<isSigned> >;  // For ITE
+#endif
+
+   public:
+    wrappedBitVector(const bwt w, const unsigned v) : BitVector(w, v) {}
+    wrappedBitVector(const prop &p) : BitVector(1, p ? 1U : 0U) {}
+    wrappedBitVector(const wrappedBitVector<isSigned> &old) : BitVector(old) {}
+    wrappedBitVector(const BitVector &old) : BitVector(old) {}
+    bwt getWidth(void) const { return getSize(); }
+    /*** Constant creation and test ***/
+
+    static wrappedBitVector<isSigned> one(const bwt &w);
+    static wrappedBitVector<isSigned> zero(const bwt &w);
+    static wrappedBitVector<isSigned> allOnes(const bwt &w);
+
+    prop isAllOnes() const;
+    prop isAllZeros() const;
+
+    static wrappedBitVector<isSigned> maxValue(const bwt &w);
+    static wrappedBitVector<isSigned> minValue(const bwt &w);
+
+    /*** Operators ***/
+    wrappedBitVector<isSigned> operator<<(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator>>(
+        const wrappedBitVector<isSigned> &op) const;
+
+    /* Inherited but ...
+     * *sigh* if we use the inherited version then it will return a
+     * CVC4::BitVector which can be converted back to a
+     * wrappedBitVector<isSigned> but isn't done automatically when working
+     * out types for templates instantiation.  ITE is a particular
+     * problem as expressions and constants no longer derive the
+     * same type.  There aren't any good solutions in C++, we could
+     * use CRTP but Liana wouldn't appreciate that, so the following
+     * pointless wrapping functions are needed.
+     */
+    wrappedBitVector<isSigned> operator|(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator&(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator+(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator-(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator*(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator/(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator%(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> operator-(void) const;
+    wrappedBitVector<isSigned> operator~(void)const;
+
+    wrappedBitVector<isSigned> increment() const;
+    wrappedBitVector<isSigned> decrement() const;
+    wrappedBitVector<isSigned> signExtendRightShift(
+        const wrappedBitVector<isSigned> &op) const;
+
+    /*** Modular opertaions ***/
+    // No overflow checking so these are the same as other operations
+    wrappedBitVector<isSigned> modularLeftShift(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> modularRightShift(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> modularIncrement() const;
+    wrappedBitVector<isSigned> modularDecrement() const;
+    wrappedBitVector<isSigned> modularAdd(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> modularNegate() const;
+
+    /*** Comparisons ***/
+    // Inherited ... ish ...
+    prop operator==(const wrappedBitVector<isSigned> &op) const;
+    prop operator<=(const wrappedBitVector<isSigned> &op) const;
+    prop operator>=(const wrappedBitVector<isSigned> &op) const;
+    prop operator<(const wrappedBitVector<isSigned> &op) const;
+    prop operator>(const wrappedBitVector<isSigned> &op) const;
+
+    /*** Type conversion ***/
+    wrappedBitVector<true> toSigned(void) const;
+    wrappedBitVector<false> toUnsigned(void) const;
+
+    /*** Bit hacks ***/
+    wrappedBitVector<isSigned> extend(bwt extension) const;
+    wrappedBitVector<isSigned> contract(bwt reduction) const;
+    wrappedBitVector<isSigned> resize(bwt newSize) const;
+    wrappedBitVector<isSigned> matchWidth(
+        const wrappedBitVector<isSigned> &op) const;
+    wrappedBitVector<isSigned> append(
+        const wrappedBitVector<isSigned> &op) const;
+
+    // Inclusive of end points, thus if the same, extracts just one bit
+    wrappedBitVector<isSigned> extract(bwt upper, bwt lower) const;
+  };
+  }
 
   /**
    * A concrete floating point number
    */
-
+#ifdef CVC4_USE_SYMFPU
+  typedef ::symfpu::unpackedFloat<symfpuLiteral::traits> FloatingPointLiteral;
+#else
   class CVC4_PUBLIC FloatingPointLiteral {
   public :
     // This intentional left unfinished as the choice of literal
@@ -109,7 +299,6 @@ namespace CVC4 {
     FloatingPointLiteral(unsigned, unsigned, double) { unfinished(); }
     FloatingPointLiteral(unsigned, unsigned, const std::string &) { unfinished(); }
     FloatingPointLiteral(const FloatingPointLiteral &) { unfinished(); }
-
     bool operator == (const FloatingPointLiteral &op) const {
       unfinished();
       return false;
@@ -120,6 +309,7 @@ namespace CVC4 {
       return 23;
     }
   };
+#endif
 
   class CVC4_PUBLIC FloatingPoint {
   protected :
