@@ -110,7 +110,8 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
     TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
     // must be handled by counterexample-guided instantiation
     // don't do it for Boolean (not worth the trouble)
-    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED && !sygus_type.isBoolean())
+    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED
+        && !sygus_type.isBoolean())
     {
       Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
       // add an "any constant" proxy variable

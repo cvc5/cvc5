@@ -196,10 +196,13 @@ typedef expr::Attribute<SygusToBuiltinAttributeId, Node>
 
 Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn ) {
   std::map<TypeNode, int> var_count;
-  return sygusToBuiltin(n,tn,var_count);
+  return sygusToBuiltin(n, tn, var_count);
 }
 
-Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn, std::map<TypeNode, int>& var_count ) {
+Node TermDbSygus::sygusToBuiltin(Node n,
+                                 TypeNode tn,
+                                 std::map<TypeNode, int>& var_count)
+{
   Assert( n.getType()==tn );
   Assert( tn.isDatatype() );
 
@@ -220,16 +223,17 @@ Node TermDbSygus::sygusToBuiltin( Node n, TypeNode tn, std::map<TypeNode, int>& 
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
     {
       // if the child is a symbolic constructor, do not include it
-      if( !isSymbolicConsApp(n[j]) )
+      if (!isSymbolicConsApp(n[j]))
       {
-        pre[j] = sygusToBuiltin(n[j], TypeNode::fromType(dt[i].getArgType(j)), var_count);
+        pre[j] = sygusToBuiltin(
+            n[j], TypeNode::fromType(dt[i].getArgType(j)), var_count);
       }
     }
     Node ret = mkGeneric(dt, i, var_count, pre);
     Trace("sygus-db-debug")
         << "SygusToBuiltin : Generic is " << ret << std::endl;
     // cache if we had a fresh variable count
-    if( var_count_empty )
+    if (var_count_empty)
     {
       n.setAttribute(SygusToBuiltinAttribute(), ret);
     }
@@ -817,16 +821,15 @@ void TermDbSygus::registerEnumerator(Node e,
   // for each type of subterm of this enumerator
   for (const std::pair<const TypeNode, unsigned>& st : it->second)
   {
-    std::vector< unsigned > rm_indices;
+    std::vector<unsigned> rm_indices;
     TypeNode stn = st.first;
     Assert(stn.isDatatype());
-    const Datatype& dt =
-        static_cast<DatatypeType>(stn.toType()).getDatatype();
+    const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
     std::map<TypeNode, unsigned>::iterator itsa =
         d_sym_cons_any_constant.find(stn);
     if (itsa != d_sym_cons_any_constant.end())
     {
-      if( !useSymbolicCons )
+      if (!useSymbolicCons)
       {
         // do not use the symbolic constructor
         rm_indices.push_back(itsa->second);
@@ -834,12 +837,12 @@ void TermDbSygus::registerEnumerator(Node e,
       else
       {
         // can remove all other concrete constant constructors?
-        for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ )
+        for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
-          if( i!=itsa->second )
+          if (i != itsa->second)
           {
-            Node c_op = getConsNumConst(stn,i);
-            if( !c_op.isNull() )
+            Node c_op = getConsNumConst(stn, i);
+            if (!c_op.isNull())
             {
               rm_indices.push_back(i);
             }
@@ -847,13 +850,12 @@ void TermDbSygus::registerEnumerator(Node e,
         }
       }
     }
-    for( unsigned& rindex : rm_indices )
+    for (unsigned& rindex : rm_indices)
     {
       // make the apply-constructor corresponding to an application of the
       // "any constant" constructor
-      Node exc_val =
-          nm->mkNode(APPLY_CONSTRUCTOR,
-                      Node::fromExpr(dt[rindex].getConstructor()));
+      Node exc_val = nm->mkNode(APPLY_CONSTRUCTOR,
+                                Node::fromExpr(dt[rindex].getConstructor()));
       // should not include the constuctor in any subterm
       Node x = getFreeVar(stn, 0);
       Trace("sygus-db") << "Construct symmetry breaking lemma from " << x
@@ -965,7 +967,8 @@ unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
 
 void TermDbSygus::clearSymBreakLemmas(Node e) { d_enum_to_sb_lemmas.erase(e); }
 
-bool TermDbSygus::isRegistered( TypeNode tn ) const {
+bool TermDbSygus::isRegistered(TypeNode tn) const
+{
   return d_register.find( tn )!=d_register.end();
 }
 
@@ -1194,16 +1197,18 @@ bool TermDbSygus::isTypeMatch( const DatatypeConstructor& c1, const DatatypeCons
   }
 }
 
-int TermDbSygus::getAnyConstantConsNum( TypeNode tn ) const
+int TermDbSygus::getAnyConstantConsNum(TypeNode tn) const
 {
-  Assert( isRegistered( tn ) );
-  std::map< TypeNode, unsigned >::const_iterator itt = d_sym_cons_any_constant.find( tn );
-  if( itt!=d_sym_cons_any_constant.end() ){
+  Assert(isRegistered(tn));
+  std::map<TypeNode, unsigned>::const_iterator itt =
+      d_sym_cons_any_constant.find(tn);
+  if (itt != d_sym_cons_any_constant.end())
+  {
     return static_cast<int>(itt->second);
   }
   return -1;
 }
-  
+
 bool TermDbSygus::hasSubtermSymbolicCons(TypeNode tn) const
 {
   return d_has_subterm_sym_cons.find(tn) != d_has_subterm_sym_cons.end();
@@ -1211,7 +1216,7 @@ bool TermDbSygus::hasSubtermSymbolicCons(TypeNode tn) const
 
 bool TermDbSygus::isSymbolicConsApp(Node n) const
 {
-  if( n.getKind()!=APPLY_CONSTRUCTOR )
+  if (n.getKind() != APPLY_CONSTRUCTOR)
   {
     return false;
   }

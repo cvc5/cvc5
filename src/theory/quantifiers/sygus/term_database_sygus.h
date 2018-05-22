@@ -170,7 +170,7 @@ class TermDbSygus {
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
    * that is, the term that n encodes.
-   * 
+   *
    * Notice that each occurrence of a symbolic constructor application is
    * replaced by a unique variable. To track counters for introducing unique
    * variables, we use the var_count map.
@@ -322,7 +322,7 @@ class TermDbSygus {
   std::map<TypeNode, bool> d_has_subterm_sym_cons;
 
  public:  // general sygus utilities
-  bool isRegistered( TypeNode tn ) const;
+  bool isRegistered(TypeNode tn) const;
   // get the minimum depth of type in its parent grammar
   unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
   // get the minimum size for a constructor term
@@ -353,7 +353,7 @@ class TermDbSygus {
    * Get the index of the "any constant" constructor of type tn if it has one,
    * or returns -1 otherwise.
    */
-  int getAnyConstantConsNum( TypeNode tn ) const;
+  int getAnyConstantConsNum(TypeNode tn) const;
   /** has subterm symbolic constructor
    *
    * Returns true if any subterm of type tn can be a symbolic constructor.

@@ -408,7 +408,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
     //symmetry breaking
     Kind nk = d_tds->getConsNumKind( tn, tindex );
     if( options::sygusSymBreak() ){
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       // if less than the maximum depth we consider
       if( depth<2 ){
         //get children
@@ -485,20 +485,24 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
               unsigned c1 = deq_child[0][i];
               unsigned c2 = deq_child[1][i];
               TypeNode tnc = children[c1].getType();
-              if( tnc==children[c2].getType() && !tnc.getCardinality().isOne() ){
-                Node sym_lem_deq = children[c1].eqNode( children[c2] ).negate();
-                // must guard if there are symbolic constructors 
+              if (tnc == children[c2].getType()
+                  && !tnc.getCardinality().isOne())
+              {
+                Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
+                // must guard if there are symbolic constructors
                 int anyc_cons_num_c = d_tds->getAnyConstantConsNum(tnc);
-                if( anyc_cons_num_c!=-1 )
+                if (anyc_cons_num_c != -1)
                 {
-                  const Datatype& cdt = static_cast<DatatypeType>(tnc.toType()).getDatatype();
-                  Node guard_val = 
-          nm->mkNode(APPLY_CONSTRUCTOR,
+                  const Datatype& cdt =
+                      static_cast<DatatypeType>(tnc.toType()).getDatatype();
+                  Node guard_val = nm->mkNode(
+                      APPLY_CONSTRUCTOR,
                       Node::fromExpr(cdt[anyc_cons_num_c].getConstructor()));
-                  Node exp = d_tds->getExplain()->getExplanationForEquality(children[c1],guard_val);
-                  sym_lem_deq = nm->mkNode( OR, exp, sym_lem_deq );
+                  Node exp = d_tds->getExplain()->getExplanationForEquality(
+                      children[c1], guard_val);
+                  sym_lem_deq = nm->mkNode(OR, exp, sym_lem_deq);
                 }
-                sbp_conj.push_back( sym_lem_deq );
+                sbp_conj.push_back(sym_lem_deq);
               }
             }
             
@@ -538,9 +542,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
                   Kind nck = d_tds->getConsNumKind(tnc, k);
                   bool red = false;
                   // check if the argument is redundant
-                  if( static_cast<int>(k)==anyc_cons_num )
+                  if (static_cast<int>(k) == anyc_cons_num)
                   {
-                    // check if the any constant constructor is redundant at this argument position
+                    // check if the any constant constructor is redundant at
+                    // this argument position
                     // TODO
                   }
                   else if (nck != UNDEFINED_KIND)
@@ -581,15 +586,15 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
           // cannot be the "any constant" constructor
           unsigned dt_index_nargs = dt[tindex].getNumArgs();
           int tn_ac = d_tds->getAnyConstantConsNum(tn);
-          if( tn_ac!=-1 && dt_index_nargs>0 )
+          if (tn_ac != -1 && dt_index_nargs > 0)
           {
-            std::vector< Node > exp_all_anyc;
+            std::vector<Node> exp_all_anyc;
             bool success = true;
-            for( unsigned j=0; j<dt_index_nargs; j++ )
+            for (unsigned j = 0; j < dt_index_nargs; j++)
             {
               TypeNode ctn = TypeNode::fromType(dt[tindex].getArgType(j));
               int ctn_ac = d_tds->getAnyConstantConsNum(ctn);
-              if( ctn_ac==-1 )
+              if (ctn_ac == -1)
               {
                 success = false;
                 break;
@@ -598,15 +603,20 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
               {
                 Node nc = children[j];
                 TypeNode tnc = nc.getType();
-                const Datatype& cdt = static_cast<DatatypeType>(tnc.toType()).getDatatype();
-                exp_all_anyc.push_back( DatatypesRewriter::mkTester(nc, ctn_ac, cdt) );
+                const Datatype& cdt =
+                    static_cast<DatatypeType>(tnc.toType()).getDatatype();
+                exp_all_anyc.push_back(
+                    DatatypesRewriter::mkTester(nc, ctn_ac, cdt));
               }
             }
-            if( success )
+            if (success)
             {
-              Node expaan = exp_all_anyc.size()==1 ? exp_all_anyc[0] : nm->mkNode(AND,exp_all_anyc);
+              Node expaan = exp_all_anyc.size() == 1
+                                ? exp_all_anyc[0]
+                                : nm->mkNode(AND, exp_all_anyc);
               expaan = expaan.negate();
-              Trace("sygus-sb-simple-debug") << "Ensure not all any constant: " << expaan << std::endl;
+              Trace("sygus-sb-simple-debug")
+                  << "Ensure not all any constant: " << expaan << std::endl;
               sbp_conj.push_back(expaan);
             }
           }

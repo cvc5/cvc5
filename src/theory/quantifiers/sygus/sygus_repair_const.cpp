@@ -218,7 +218,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     std::vector<Node> sk_sygus_m;
     for (const Node& v : sk_vars)
     {
-      Assert( d_sk_to_fo.find(v)!=d_sk_to_fo.end());
+      Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
       Node fov = d_sk_to_fo[v];
       Node fov_m = Node::fromExpr(repcChecker.getValue(fov.toExpr()));
       Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
@@ -415,7 +415,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
 
   Trace("sygus-repair-const") << "  Introduce first-order vars..." << std::endl;
-  for( const Node& v : sk_vars )
+  for (const Node& v : sk_vars)
   {
     std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
     if (itf == d_sk_to_fo.end())
@@ -451,7 +451,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
         {
           std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
-          Assert (itf != d_sk_to_fo.end());
+          Assert(itf != d_sk_to_fo.end());
           visited[cur] = itf->second;
         }
       }
@@ -558,15 +558,15 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
     {
       visited.insert(cur);
       Kind ck = cur.getKind();
-      if (restrictLA && (ck == NONLINEAR_MULT || ck==DIVISION))
+      if (restrictLA && (ck == NONLINEAR_MULT || ck == DIVISION))
       {
-        for( unsigned j=0, size=cur.getNumChildren(); j<size; j++ )
+        for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
         {
           Node ccur = cur[j];
           std::map<Node, Node>::iterator itf = d_fo_to_sk.find(ccur);
           if (itf != d_fo_to_sk.end())
           {
-            if( ck == NONLINEAR_MULT || ( ck == DIVISION && j==1 ) )
+            if (ck == NONLINEAR_MULT || (ck == DIVISION && j == 1))
             {
               exvar = itf->second;
               return true;
