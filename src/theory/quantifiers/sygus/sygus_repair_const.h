@@ -71,8 +71,16 @@ class SygusRepairConst
    */
   bool repairSolution(const std::vector<Node>& candidates,
                       const std::vector<Node>& candidate_values,
-                      std::vector<Node>& repair_cv);
-
+                      std::vector<Node>& repair_cv,
+                      bool useConstants=true
+                     );
+  /** must repair? 
+   * 
+   * This returns true if n must be repaired for it to be a valid solution.
+   * This corresponds to whether n contains a subterm that is a symbolic
+   * constructor like the "any constant" constructor.
+   */
+  static bool mustRepair(Node n);
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -105,7 +113,14 @@ class SygusRepairConst
    * constants, and n encodes a constant. The term n must have a sygus datatype
    * type.
    */
-  bool isRepairableConstant(Node n);
+  inline bool isRepairableConstant(Node n) const;
+  /** is repairable? 
+   * 
+   * This returns true if n can be repaired by this class. In particular, we
+   * return true if n is an "any constant" constructor, or it is a constant
+   * in a type that allows all constants and useConstants is true.
+   */
+  inline bool isRepairable(Node n, bool useConstants=true) const;
   /** get skeleton
    *
    * Returns a skeleton for n, where the subterms of n that are repairable
@@ -119,7 +134,8 @@ class SygusRepairConst
   Node getSkeleton(Node n,
                    std::map<TypeNode, int>& free_var_count,
                    std::vector<Node>& sk_vars,
-                   std::map<Node, Node>& sk_vars_to_subs);
+                   std::map<Node, Node>& sk_vars_to_subs,
+                      bool useConstants);
   /** get first-order query
    *
    * This function returns a formula that is equivalent to the negation of the

@@ -812,8 +812,8 @@ void TermDbSygus::registerEnumerator(Node e,
         Node lem = getExplain()->getExplanationForEquality(x, exc_val);
         lem = lem.negate();
         Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << std::endl;
-        // the size of the subterm we are blocking is zero (any_constant is a nullary constructor)
-        registerSymBreakLemma(e, lem, stn, 0);
+        // the size of the subterm we are blocking is the weight of the constructor (usually zero)
+        registerSymBreakLemma(e, lem, stn, dt[itsa->second].getWeight());
       }
     }
   }
