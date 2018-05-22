@@ -72,6 +72,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_intro_pow2.h \
 	preprocessing/passes/int_to_bv.cpp \
 	preprocessing/passes/int_to_bv.h \
+	preprocessing/passes/nl_ext_purify.cpp \
+	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/bool_to_bv.cpp \
