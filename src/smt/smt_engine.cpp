@@ -1565,7 +1565,8 @@ void SmtEngine::setDefaults() {
 
   // by default, symmetry breaker is on only for QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
-    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified() && !options::proof();
+    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified()
+                 && !options::proof() && !options::unsatCores();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf << endl;
     options::ufSymmetryBreaker.set(qf_uf);
   }
