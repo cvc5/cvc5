@@ -52,9 +52,6 @@ namespace CVC4 {
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
 
-template <class Solver> class LFSCSatProof;
-typedef LFSCSatProof< CVC4::BVMinisat::Solver> LFSCBVSatProof;
-
 typedef std::unordered_set<Expr, ExprHashFunction> ExprSet;
 typedef std::unordered_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
 typedef std::unordered_map<Expr, unsigned, ExprHashFunction> ExprToId;

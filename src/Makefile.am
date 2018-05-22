@@ -117,6 +117,8 @@ libcvc4_la_SOURCES = \
 	proof/cnf_proof.h \
 	proof/lemma_proof.cpp \
 	proof/lemma_proof.h \
+	proof/lfsc_proof_printer.cpp \
+	proof/lfsc_proof_printer.h \
 	proof/proof.h \
 	proof/proof_manager.cpp \
 	proof/proof_manager.h \

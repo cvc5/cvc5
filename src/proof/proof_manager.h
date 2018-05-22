@@ -72,7 +72,7 @@ class ArrayProof;
 class BitVectorProof;
 
 template <class Solver> class LFSCSatProof;
-typedef LFSCSatProof< CVC4::Minisat::Solver> LFSCCoreSatProof;
+typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
 
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
@@ -303,7 +303,7 @@ class LFSCProof : public Proof
 {
  public:
   LFSCProof(SmtEngine* smtEngine,
-            LFSCCoreSatProof* sat,
+            CoreSatProof* sat,
             LFSCCnfProof* cnf,
             LFSCTheoryProofEngine* theory);
   ~LFSCProof() override {}
@@ -319,7 +319,7 @@ class LFSCProof : public Proof
 
   void checkUnrewrittenAssertion(const NodeSet& assertions) const;
 
-  LFSCCoreSatProof* d_satProof;
+  CoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;

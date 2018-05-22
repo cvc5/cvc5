@@ -15,11 +15,12 @@
 
 **/
 
+#include "proof/bitvector_proof.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
 #include "proof/array_proof.h"
-#include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
+#include "proof/lfsc_proof_printer.h"
 #include "proof/proof_output_channel.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
@@ -48,16 +49,15 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
 
 void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
-  d_resolutionProof = new LFSCBVSatProof(solver, &d_fakeContext, "bb", true);
+  d_resolutionProof = new BVSatProof(solver, &d_fakeContext, "bb", true);
 }
 
 theory::TheoryId BitVectorProof::getTheoryId() { return theory::THEORY_BV; }
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                   context::Context* cnf) {
+  Assert (d_resolutionProof != NULL);
   Assert (d_cnfProof == NULL);
   d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
-  Assert (d_resolutionProof != NULL);
-  d_resolutionProof->setCnfProof(d_cnfProof);
 
   // true and false have to be setup in a special way
   Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
@@ -515,7 +515,8 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     Expr lem = utils::mkOr(lemma);
     Assert (d_bbConflictMap.find(lem) != d_bbConflictMap.end());
     ClauseId lemma_id = d_bbConflictMap[lem];
-    d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
+    proof::LFSCProofPrinter::printAssumptionsResolution(
+        d_resolutionProof, lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
   } else {
 
@@ -615,7 +616,8 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
         }
 
         ClauseId lemma_id = it->second;
-        d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
+        proof::LFSCProofPrinter::printAssumptionsResolution(
+            d_resolutionProof, lemma_id, os, lemma_paren);
         os <<lemma_paren.str();
 
         return;
@@ -1039,7 +1041,7 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   }
 
   os << std::endl << " ;; Bit-blasting learned clauses \n" << std::endl;
-  d_resolutionProof->printResolutions(os, paren);
+  proof::LFSCProofPrinter::printResolutions(d_resolutionProof, os, paren);
 }
 
 std::string LFSCBitVectorProof::assignAlias(Expr expr) {
