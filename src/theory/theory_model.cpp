@@ -177,22 +177,28 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
   NodeManager* nm = NodeManager::currentNM();
 
   // if it is an evaluated kind, compute model values for children and evaluate
-  if (n.getNumChildren() > 0 && d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end())
+  if (n.getNumChildren() > 0
+      && d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end())
   {
-    Debug("model-getvalue-debug") << "Get model value children " << n << std::endl;
+    Debug("model-getvalue-debug")
+        << "Get model value children " << n << std::endl;
     std::vector<Node> children;
-    if (n.getKind() == APPLY_UF) {
+    if (n.getKind() == APPLY_UF)
+    {
       Node op = getModelValue(n.getOperator(), hasBoundVars);
       Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
-    else if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    else if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
       children.push_back(n.getOperator());
     }
-    //evaluate the children
-    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i) {
+    // evaluate the children
+    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
+    {
       ret = getModelValue(n[i], hasBoundVars);
-      Debug("model-getvalue-debug") << "  " << n << "[" << i << "] is " << ret << std::endl;
+      Debug("model-getvalue-debug")
+          << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
     }
     ret = nm->mkNode(n.getKind(), children);
@@ -200,13 +206,18 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     ret = Rewriter::rewrite(ret);
     Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
-    if(ret.getKind() == kind::CARDINALITY_CONSTRAINT) {
-      Debug("model-getvalue-debug") << "get cardinality constraint " << ret[0].getType() << std::endl;
+    if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
+    {
+      Debug("model-getvalue-debug")
+          << "get cardinality constraint " << ret[0].getType() << std::endl;
       ret = nm->mkConst(
           getCardinality(ret[0].getType().toType()).getFiniteCardinality()
           <= ret[1].getConst<Rational>().getNumerator());
-    }else if(ret.getKind() == kind::CARDINALITY_VALUE) {
-      Debug("model-getvalue-debug") << "get cardinality value " << ret[0].getType() << std::endl;
+    }
+    else if (ret.getKind() == kind::CARDINALITY_VALUE)
+    {
+      Debug("model-getvalue-debug")
+          << "get cardinality value " << ret[0].getType() << std::endl;
       ret = nm->mkConst(Rational(
           getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
     }
