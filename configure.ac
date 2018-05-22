@@ -1052,9 +1052,11 @@ AC_ARG_WITH([cxxtest-dir],
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
-# FIXME currently, unsat core regressions are disabled without LFSC
 if test "$with_lfsc" = yes; then
-  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
+  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--with-lfsc"
+fi
+if test "$enable_proof" = yes; then
+  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--enable-proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])
 AC_SUBST([RUN_REGRESSION_ARGS])
