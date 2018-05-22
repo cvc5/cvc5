@@ -271,7 +271,7 @@ class TermDbSygus {
   Node d_true;
   Node d_false;
 
-private:
+ private:
   /** computes the map d_min_type_depth */
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
