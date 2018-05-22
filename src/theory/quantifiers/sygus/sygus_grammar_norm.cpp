@@ -105,19 +105,12 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
                 sygus_norm->d_sygus_vars.toExpr(),
                 dt.getSygusAllowConst(),
                 dt.getSygusAllowAll());
-  for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
-  {
-    d_dt.addSygusConstructor(d_ops[i].toExpr(),
-                             d_cons_names[i],
-                             d_cons_args_t[i],
-                             d_pc[i],
-                             d_weight[i]);
-  }
   if (dt.getSygusAllowConst())
   {
     TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
     // must be handled by counterexample-guided instantiation
-    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED)
+    // don't do it for Boolean (not worth the trouble)
+    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED && !sygus_type.isBoolean())
     {
       Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
       // add an "any constant" proxy variable
@@ -129,8 +122,19 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
       ss << d_unres_tn << "_any_constant";
       std::string cname(ss.str());
       std::vector<Type> empty_arg_types;
+      // we add this constructor first since we use left associative chains
+      // and our symmetry breaking should group any constants together
+      // beneath the same application
       d_dt.addSygusConstructor(av.toExpr(), cname, empty_arg_types);
     }
+  }
+  for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
+  {
+    d_dt.addSygusConstructor(d_ops[i].toExpr(),
+                             d_cons_names[i],
+                             d_cons_args_t[i],
+                             d_pc[i],
+                             d_weight[i]);
   }
   Trace("sygus-grammar-normalize") << "...built datatype " << d_dt << " ";
   /* Add to global accumulators */

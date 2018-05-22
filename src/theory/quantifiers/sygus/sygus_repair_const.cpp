@@ -218,6 +218,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
     std::vector<Node> sk_sygus_m;
     for (const Node& v : sk_vars)
     {
+      Assert( d_sk_to_fo.find(v)!=d_sk_to_fo.end());
       Node fov = d_sk_to_fo[v];
       Node fov_m = Node::fromExpr(repcChecker.getValue(fov.toExpr()));
       Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
@@ -414,6 +415,19 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
 
   Trace("sygus-repair-const") << "  Introduce first-order vars..." << std::endl;
+  for( const Node& v : sk_vars )
+  {
+    std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
+    if (itf == d_sk_to_fo.end())
+    {
+      TypeNode builtinType = d_tds->sygusToBuiltinType(v.getType());
+      Node sk_fov = nm->mkSkolem("k", builtinType);
+      d_sk_to_fo[v] = sk_fov;
+      d_fo_to_sk[sk_fov] = v;
+      Trace("sygus-repair-const-debug")
+          << "Map " << v << " -> " << sk_fov << std::endl;
+    }
+  }
   // now, we must replace all terms of the form eval( z_i, t1...tn ) with
   // a fresh first-order variable w_i, where z_i is a variable introduced in
   // the skeleton inference step (z_i is a variable in sk_vars).
@@ -437,19 +451,8 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
         {
           std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
-          if (itf == d_sk_to_fo.end())
-          {
-            Node sk_fov = nm->mkSkolem("k", cur.getType());
-            d_sk_to_fo[v] = sk_fov;
-            d_fo_to_sk[sk_fov] = v;
-            visited[cur] = sk_fov;
-            Trace("sygus-repair-const-debug")
-                << "Map " << v << " -> " << sk_fov << std::endl;
-          }
-          else
-          {
-            visited[cur] = itf->second;
-          }
+          Assert (itf != d_sk_to_fo.end());
+          visited[cur] = itf->second;
         }
       }
       if (visited[cur].isNull())
@@ -554,15 +557,20 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
     if (it == visited.end())
     {
       visited.insert(cur);
-      if (restrictLA && cur.getKind() == NONLINEAR_MULT)
+      Kind ck = cur.getKind();
+      if (restrictLA && (ck == NONLINEAR_MULT || ck==DIVISION))
       {
-        for (const Node& ccur : cur)
+        for( unsigned j=0, size=cur.getNumChildren(); j<size; j++ )
         {
+          Node ccur = cur[j];
           std::map<Node, Node>::iterator itf = d_fo_to_sk.find(ccur);
           if (itf != d_fo_to_sk.end())
           {
-            exvar = itf->second;
-            return true;
+            if( ck == NONLINEAR_MULT || ( ck == DIVISION && j==1 ) )
+            {
+              exvar = itf->second;
+              return true;
+            }
           }
         }
         return false;

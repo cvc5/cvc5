@@ -170,8 +170,13 @@ class TermDbSygus {
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
    * that is, the term that n encodes.
+   * 
+   * Notice that each occurrence of a symbolic constructor application is
+   * replaced by a unique variable. To track counters for introducing unique
+   * variables, we use the var_count map.
    */
   Node sygusToBuiltin(Node n, TypeNode tn);
+  Node sygusToBuiltin(Node n, TypeNode tn, std::map<TypeNode, int>& var_count);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
   /** evaluate builtin
@@ -317,7 +322,7 @@ class TermDbSygus {
   std::map<TypeNode, bool> d_has_subterm_sym_cons;
 
  public:  // general sygus utilities
-  bool isRegistered( TypeNode tn );
+  bool isRegistered( TypeNode tn ) const;
   // get the minimum depth of type in its parent grammar
   unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
   // get the minimum size for a constructor term
@@ -344,11 +349,18 @@ class TermDbSygus {
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
+  /**
+   * Get the index of the "any constant" constructor of type tn if it has one,
+   * or returns -1 otherwise.
+   */
+  int getAnyConstantConsNum( TypeNode tn ) const;
   /** has subterm symbolic constructor
    *
    * Returns true if any subterm of type tn can be a symbolic constructor.
    */
   bool hasSubtermSymbolicCons(TypeNode tn) const;
+  /** return whether n is an application of a symbolic constructor */
+  bool isSymbolicConsApp(Node n) const;
 
   TypeNode getSygusTypeForVar( Node v );
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status --sygus-repair-const
 (set-logic LIA)
 
 (synth-inv inv-f ((y Int) (z Int) (c Int)))
@@ -19,5 +19,7 @@
 (not (and (< c 36) (or (< z 0) (>= z 4608)))))
 
 (inv-constraint inv-f pre-f trans-f post-f)
+
+; needs --sygus-repair-const, since easy solution involves the constant 4608
 
 (check-synth)
