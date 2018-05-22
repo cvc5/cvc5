@@ -192,7 +192,8 @@ class PartitionTrie
 
   /** Get all the new regions of a partition and store in part */
   void getNewPartition(Partition& part,
-                       PartitionTrie& pt, std::map< Node, Node >& var_to_svar);
+                       PartitionTrie& pt,
+                       std::map<Node, Node>& var_to_svar);
 };
 
 /**
@@ -232,11 +233,11 @@ class SymmetryDetect
    * are used in the domains of partitions (Partition::d_subvar_to_vars).
    */
   Node getSymBreakVariable(TypeNode tn, unsigned index);
-  /** 
-   * Get the index[tn]^th symmetry breaking variable for type tn using the 
+  /**
+   * Get the index[tn]^th symmetry breaking variable for type tn using the
    * above function and increment index[tn].
    */
-  Node getSymBreakVariableInc(TypeNode tn, std::map<TypeNode,unsigned>& index);
+  Node getSymBreakVariableInc(TypeNode tn, std::map<TypeNode, unsigned>& index);
 
   /** True and false constant nodes */
   Node d_trueNode;
@@ -296,7 +297,6 @@ class SymmetryDetect
                        std::vector<Partition>& partitions,
                        const std::vector<unsigned>& indices,
                        std::unordered_set<unsigned>& active_indices);
-
 };
 }  // namespace symbreak
 }  // namespace passes
