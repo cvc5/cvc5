@@ -30,7 +30,7 @@ header = "options/theory_options.h"
   long       = "assign-function-values"
   type       = "bool"
   default    = "true"
-  help       = "assign models for uninterpreted functions in the model"
+  help       = "assign values for uninterpreted functions in models"
 
 [[option]]
   name       = "condenseFunctionValues"
@@ -39,4 +39,4 @@ header = "options/theory_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "condense models for functions rather than explicitly representing them"
+  help       = "condense values for functions in models rather than explicitly representing them"
