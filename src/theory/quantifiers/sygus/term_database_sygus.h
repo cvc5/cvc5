@@ -113,8 +113,8 @@ class TermDbSygus {
   TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
   unsigned getSizeForSymBreakLemma(Node lem) const;
-  /** Clear information about symmetry breaking lemmas */
-  void clearSymBreakLemmas();
+  /** Clear information about symmetry breaking lemmas for e */
+  void clearSymBreakLemmas(Node e);
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin

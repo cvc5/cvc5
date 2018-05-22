@@ -1047,16 +1047,22 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   {
     for (const Node& a : anchors)
     {
-      std::vector<Node> sbl;
-      d_tds->getSymBreakLemmas(a, sbl);
-      for (const Node& lem : sbl)
+      // is this a registered enumerator?
+      if( d_register_st.find(a) != d_register_st.end() )
       {
-        TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
-        unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
-        registerSymBreakLemma(tn, lem, sz, a, lemmas);
+        // symmetry breaking lemmas should only be for enumerators
+        Assert( d_register_st[a] );
+        std::vector<Node> sbl;
+        d_tds->getSymBreakLemmas(a, sbl);
+        for (const Node& lem : sbl)
+        {
+          TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
+          unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
+          registerSymBreakLemma(tn, lem, sz, a, lemmas);
+        }
+        d_tds->clearSymBreakLemmas(a);
       }
     }
-    d_tds->clearSymBreakLemmas();
     if (!lemmas.empty())
     {
       return;

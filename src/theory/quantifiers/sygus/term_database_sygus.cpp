@@ -775,14 +775,15 @@ void TermDbSygus::registerEnumerator(Node e,
   registerSygusType(et);
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
+  NodeManager * nm = NodeManager::currentNM();
   if( mkActiveGuard ){
     // make the guard
-    Node eg = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "eG", NodeManager::currentNM()->booleanType() ) );
+    Node eg = Rewriter::rewrite( nm->mkSkolem( "eG", nm->booleanType() ) );
     eg = d_quantEngine->getValuation().ensureLiteral( eg );
     AlwaysAssert( !eg.isNull() );
     d_quantEngine->getOutputChannel().requirePhase( eg, true );
     //add immediate lemma
-    Node lem = NodeManager::currentNM()->mkNode( OR, eg, eg.negate() );
+    Node lem = nm->mkNode( OR, eg, eg.negate() );
     Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
     d_quantEngine->getOutputChannel().lemma( lem );
     d_enum_to_active_guard[e] = eg;
@@ -805,11 +806,13 @@ void TermDbSygus::registerEnumerator(Node e,
           const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
           // make the apply-constructor corresponding to an application of the
           // "any constant" constructor
-          Node exc_val = mkGeneric(dt,itsa->second);
+          Node exc_val = nm->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[itsa->second].getConstructor() ) );
           // should not include the constuctor in any subterm
           Node x = getFreeVar(stn, 0);
+          Trace("sygus-db") << "Construct symmetry breaking lemma from " << x << " == " << exc_val << ", subterm size " << st.second << std::endl;
           Node lem = getExplain()->getExplanationForEquality(x, exc_val);
-          Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << ", subterm size " << st.second << std::endl;
+          lem = lem.negate();
+          Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << std::endl;
           registerSymBreakLemma(e, lem, stn, st.second);
         }
       }
@@ -910,11 +913,9 @@ unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
   return it->second;
 }
 
-void TermDbSygus::clearSymBreakLemmas()
+void TermDbSygus::clearSymBreakLemmas(Node e)
 {
-  d_enum_to_sb_lemmas.clear();
-  d_sb_lemma_to_type.clear();
-  d_sb_lemma_to_size.clear();
+  d_enum_to_sb_lemmas.erase(e);
 }
 
 bool TermDbSygus::isRegistered( TypeNode tn ) {
