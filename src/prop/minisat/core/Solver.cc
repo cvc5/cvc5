@@ -26,11 +26,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <unordered_set>
 
 #include "base/output.h"
+#include "options/main_options.h"
 #include "options/prop_options.h"
+#include "options/smt_options.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "proof/sat_proof_implementation.h"
 #include "proof/sat_proof.h"
+#include "proof/sat_proof_implementation.h"
 #include "prop/minisat/minisat.h"
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/theory_proxy.h"
@@ -39,6 +41,22 @@ using namespace CVC4::prop;
 
 namespace CVC4 {
 namespace Minisat {
+
+namespace {
+/*
+ * Returns true if the solver should add all clauses at the current assertion
+ * level.
+ *
+ * FIXME: This is a workaround. Currently, our resolution proofs do not
+ * handle clauses with a lower-than-assertion-level correctly because the
+ * resolution proofs get removed when popping the context but the SAT solver
+ * keeps using them.
+ */
+bool assertionLevelOnly()
+{
+  return options::unsatCores() && options::incrementalSolving();
+}
+}  // namespace
 
 //=================================================================================================
 // Options:
@@ -242,43 +260,60 @@ CRef Solver::reason(Var x) {
 
     // Compute the assertion level for this clause
     int explLevel = 0;
-    int i, j;
-    Lit prev = lit_Undef;
-    for (i = 0, j = 0; i < explanation.size(); ++ i) {
-      // This clause is valid theory propagation, so its level is the level of the top literal
-      explLevel = std::max(explLevel, intro_level(var(explanation[i])));
+    if (assertionLevelOnly())
+    {
+      explLevel = assertionLevel;
+    }
+    else
+    {
+      int i, j;
+      Lit prev = lit_Undef;
+      for (i = 0, j = 0; i < explanation.size(); ++i)
+      {
+        // This clause is valid theory propagation, so its level is the level of
+        // the top literal
+        explLevel = std::max(explLevel, intro_level(var(explanation[i])));
 
-      Assert(value(explanation[i]) != l_Undef);
-      Assert(i == 0 || trail_index(var(explanation[0])) > trail_index(var(explanation[i])));
+        Assert(value(explanation[i]) != l_Undef);
+        Assert(i == 0
+               || trail_index(var(explanation[0]))
+                      > trail_index(var(explanation[i])));
 
-      // Always keep the first literal
-      if (i == 0) {
+        // Always keep the first literal
+        if (i == 0)
+        {
+          prev = explanation[j++] = explanation[i];
+          continue;
+        }
+        // Ignore duplicate literals
+        if (explanation[i] == prev)
+        {
+          continue;
+        }
+        // Ignore zero level literals
+        if (level(var(explanation[i])) == 0
+            && user_level(var(explanation[i]) == 0))
+        {
+          continue;
+        }
+        // Keep this literal
         prev = explanation[j++] = explanation[i];
-        continue;
       }
-      // Ignore duplicate literals
-      if (explanation[i] == prev) {
-        continue;
-      }
-      // Ignore zero level literals
-      if (level(var(explanation[i])) == 0 && user_level(var(explanation[i]) == 0)) {
-        continue;
-      }
-      // Keep this literal
-      prev = explanation[j++] = explanation[i];
-    }
-    explanation.shrink(i - j);
+      explanation.shrink(i - j);
 
-    Debug("pf::sat") << "Solver::reason: explanation = " ;
-    for (int i = 0; i < explanation.size(); ++i) {
-      Debug("pf::sat") << explanation[i] << " ";
-    }
-    Debug("pf::sat") << std::endl;
+      Debug("pf::sat") << "Solver::reason: explanation = ";
+      for (int i = 0; i < explanation.size(); ++i)
+      {
+        Debug("pf::sat") << explanation[i] << " ";
+      }
+      Debug("pf::sat") << std::endl;
 
-    // We need an explanation clause so we add a fake literal
-    if (j == 1) {
-      // Add not TRUE to the clause
-      explanation.push(mkLit(varTrue, true));
+      // We need an explanation clause so we add a fake literal
+      if (j == 1)
+      {
+        // Add not TRUE to the clause
+        explanation.push(mkLit(varTrue, true));
+      }
     }
 
     // Construct the reason
@@ -306,13 +341,15 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     Lit p; int i, j;
 
     // Which user-level to assert this clause at
-    int clauseLevel = removable ? 0 : assertionLevel;
+    int clauseLevel = (removable && !assertionLevelOnly()) ? 0 : assertionLevel;
 
     // Check the clause for tautologies and similar
     int falseLiteralsCount = 0;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
       // Update the level
-      clauseLevel = std::max(clauseLevel, intro_level(var(ps[i])));
+      clauseLevel = assertionLevelOnly()
+                        ? assertionLevel
+                        : std::max(clauseLevel, intro_level(var(ps[i])));
       // Tautologies are ignored
       if (ps[i] == ~p) {
         id = ClauseIdUndef;
@@ -1212,22 +1249,23 @@ lbool Solver::search(int nof_conflicts)
                 PROOF( ProofManager::getSatProof()->endResChain(learnt_clause[0]); )
 
             } else {
-                CRef cr = ca.alloc(max_level, learnt_clause, true);
-                clauses_removable.push(cr);
-                attachClause(cr);
-                claBumpActivity(ca[cr]);
-                uncheckedEnqueue(learnt_clause[0], cr);
-                PROOF(
-                      ClauseId id = ProofManager::getSatProof()->registerClause(cr, LEARNT);
-                      PSTATS(
-                      std::unordered_set<int> cl_levels;
-                      for (int i = 0; i < learnt_clause.size(); ++i) {
-                        cl_levels.insert(level(var(learnt_clause[i])));
-                      }
-                      ProofManager::getSatProof()->storeClauseGlue(id, cl_levels.size());
-                            )
-                      ProofManager::getSatProof()->endResChain(id);
-                      );
+              CRef cr =
+                  ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
+                           learnt_clause,
+                           true);
+              clauses_removable.push(cr);
+              attachClause(cr);
+              claBumpActivity(ca[cr]);
+              uncheckedEnqueue(learnt_clause[0], cr);
+              PROOF(ClauseId id =
+                        ProofManager::getSatProof()->registerClause(cr, LEARNT);
+                    PSTATS(std::unordered_set<int> cl_levels;
+                           for (int i = 0; i < learnt_clause.size(); ++i) {
+                             cl_levels.insert(level(var(learnt_clause[i])));
+                           } ProofManager::getSatProof()
+                               ->storeClauseGlue(id, cl_levels.size());)
+                        ProofManager::getSatProof()
+                            ->endResChain(id););
             }
 
             varDecayActivity();
@@ -1738,7 +1776,8 @@ CRef Solver::updateLemmas() {
     if (lemma.size() > 1) {
       // If the lemmas is removable, we can compute its level by the level
       int clauseLevel = assertionLevel;
-      if (removable) {
+      if (removable && !assertionLevelOnly())
+      {
         clauseLevel = 0;
         for (int i = 0; i < lemma.size(); ++ i) {
           clauseLevel = std::max(clauseLevel, intro_level(var(lemma[i])));
