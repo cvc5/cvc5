@@ -211,7 +211,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   repcChecker.assertFormula(fo_body.toExpr());
   Result r = repcChecker.checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat()
+  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT
       && !r.asSatisfiabilityResult().isUnknown())
   {
     std::vector<Node> sk_sygus_m;

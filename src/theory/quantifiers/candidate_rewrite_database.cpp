@@ -105,7 +105,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
         rrChecker.assertFormula(crr.toExpr());
         Result r = rrChecker.checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
-        if (r.asSatisfiabilityResult().isSat())
+        if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
           success = false;
