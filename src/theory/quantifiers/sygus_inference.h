@@ -30,7 +30,7 @@ namespace quantifiers {
  * single SyGuS conjecture. If this is possible, we solve for this single Sygus
  * conjecture using a separate copy of the SMT engine. If sygus successfully
  * solves the conjecture, we plug the synthesis solutions back into the original
- * problem, thus obtaining a set of model substitutions under which the 
+ * problem, thus obtaining a set of model substitutions under which the
  * assertions should simplify to true.
  */
 class SygusInference

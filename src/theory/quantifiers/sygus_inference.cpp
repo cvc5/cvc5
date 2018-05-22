@@ -248,7 +248,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     Node ffv = Node::fromExpr(it->first);
     std::map<Node, Node>::iterator itffv = ff_var_to_ff.find(ffv);
     // all synthesis solutions should correspond to a variable we introduced
-    Assert( itffv != ff_var_to_ff.end() );
+    Assert(itffv != ff_var_to_ff.end());
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
