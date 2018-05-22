@@ -63,7 +63,9 @@ class TermDbSygus {
    * conj : the conjecture that the enumeration of e is for.
    * f : the synth-fun that the enumeration of e is for.
    * mkActiveGuard : whether we want to make an active guard for e
-   * (see d_enum_to_active_guard).
+   * (see d_enum_to_active_guard),
+   * useSymbolicCons : whether we want model values for e to include symbolic
+   * constructors like the "any constant" variable.
    *
    * Notice that enumerator e may not be one-to-one with f in
    * synthesis-through-unification approaches (e.g. decision tree construction
@@ -72,7 +74,9 @@ class TermDbSygus {
   void registerEnumerator(Node e,
                           Node f,
                           CegConjecture* conj,
-                          bool mkActiveGuard = false);
+                          bool mkActiveGuard = false,
+                          bool useSymbolicCons = false
+                         );
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -161,6 +165,8 @@ class TermDbSygus {
                  std::map<int, Node>& pre);
   /** same as above, but with empty var_count */
   Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
+  /** same as above, but with empty pre */
+  Node mkGeneric(const Datatype& dt, int c);
   /** sygus to builtin
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
@@ -266,6 +272,7 @@ class TermDbSygus {
   Node d_false;
 
 private:
+  /** computes the map d_min_type_depth */
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
@@ -282,6 +289,14 @@ private:
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
   // grammar information
   // root -> type -> _
+  /**
+   * For each sygus type t1, this maps datatype types t2 to the smallest size of
+   * a term of type t1 that includes t2 as a subterm. For example, for grammar:
+   *   A -> B+B | 0 | B-D
+   *   B -> C+C
+   *   ...
+   * we have that d_min_type_depth[A] = { A -> 0, B -> 1, C -> 2, D -> 1 }.
+   */
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
   // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
   // d_consider_const;
@@ -290,6 +305,11 @@ private:
   std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
+  /** 
+   * For each sygus type, the index of the "any constant" constructor, if it
+   * has one. 
+   */
+  std::map<TypeNode, unsigned > d_sym_cons_any_constant;
 
  public:  // general sygus utilities
   bool isRegistered( TypeNode tn );

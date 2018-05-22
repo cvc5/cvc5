@@ -18,14 +18,12 @@
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory::inst;
 
 namespace CVC4 {
 namespace theory {
@@ -182,6 +180,12 @@ Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
 {
   std::map<TypeNode, int> var_count;
   return mkGeneric(dt, c, var_count, pre);
+}
+
+Node TermDbSygus::mkGeneric(const Datatype& dt, int c)
+{
+  std::map<int, Node> pre;
+  return mkGeneric(dt, c, pre);
 }
 
 struct SygusToBuiltinAttributeId
@@ -725,6 +729,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
                   << std::endl;
             }
           }
+          // symbolic constructors 
+          if( n.getAttribute(SygusAnyConstAttribute()) )
+          {
+            d_sym_cons_any_constant[tn] = i;
+          }
           // TODO (as part of #1170): we still do not properly catch type
           // errors in sygus grammars for arguments of builtin operators.
           // The challenge is that we easily ask for expected argument types of
@@ -736,13 +745,14 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
           // ensure that terms that this constructor encodes are
           // of the type specified in the datatype. This will fail if
           // e.g. bitvector-and is a constructor of an integer grammar.
-          std::map<int, Node> pre;
-          Node g = mkGeneric(dt, i, pre);
+          Node g = mkGeneric(dt, i);
           TypeNode gtn = g.getType();
           CVC4_CHECK(gtn.isSubtypeOf(btn))
               << "Sygus datatype " << dt.getName()
               << " encodes terms that are not of type " << btn << std::endl;
         }
+        // compute min type depth information
+        computeMinTypeDepthInternal( tn, tn, 0 );
       }
     }
   }
@@ -751,7 +761,8 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      CegConjecture* conj,
-                                     bool mkActiveGuard)
+                                     bool mkActiveGuard,
+                                     bool useSymbolicCons)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -760,7 +771,8 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "Register enumerator : " << e << std::endl;
   // register its type
-  registerSygusType(e.getType());
+  TypeNode et = e.getType();
+  registerSygusType(et);
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
   if( mkActiveGuard ){
@@ -774,6 +786,34 @@ void TermDbSygus::registerEnumerator(Node e,
     Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
     d_quantEngine->getOutputChannel().lemma( lem );
     d_enum_to_active_guard[e] = eg;
+  }
+  if( !useSymbolicCons )
+  {
+    // if not using symbolic constants, introduce symmetry breaking lemma
+    // templates for each relevant subtype of the grammar
+    std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it = d_min_type_depth.find(et);
+    if( it!=d_min_type_depth.end() )
+    {
+      // for each type of subterm of this enumerator 
+      for( const std::pair<const TypeNode, unsigned>& st : it->second )
+      {
+        TypeNode stn = st.first;
+        std::map<TypeNode, unsigned >::iterator itsa = d_sym_cons_any_constant.find(stn);
+        if( itsa!=d_sym_cons_any_constant.end() )
+        {
+          Assert( stn.isDatatype() );
+          const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
+          // make the apply-constructor corresponding to an application of the
+          // "any constant" constructor
+          Node exc_val = mkGeneric(dt,itsa->second);
+          // should not include the constuctor in any subterm
+          Node x = getFreeVar(stn, 0);
+          Node lem = getExplain()->getExplanationForEquality(x, exc_val);
+          Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << ", subterm size " << st.second << std::endl;
+          registerSymBreakLemma(e, lem, stn, st.second);
+        }
+      }
+    }
   }
 }
 
@@ -904,7 +944,6 @@ void TermDbSygus::computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, un
 unsigned TermDbSygus::getMinTypeDepth( TypeNode root_tn, TypeNode tn ){
   std::map< TypeNode, unsigned >::iterator it = d_min_type_depth[root_tn].find( tn );
   if( it==d_min_type_depth[root_tn].end() ){
-    computeMinTypeDepthInternal( root_tn, root_tn, 0 );
     Assert( d_min_type_depth[root_tn].find( tn )!=d_min_type_depth[root_tn].end() );  
     return d_min_type_depth[root_tn][tn];
   }else{
@@ -1338,8 +1377,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       cc.insert( cc.end(), args.begin(), args.end() );
       pre[j] = NodeManager::currentNM()->mkNode( kind::APPLY_UF, cc );
     }
-    std::map< TypeNode, int > var_count; 
-    Node ret = mkGeneric( dt, i, var_count, pre );
+    Node ret = mkGeneric( dt, i, pre );
     // if it is a variable, apply the substitution
     if( ret.getKind()==kind::BOUND_VARIABLE ){
       Assert( ret.hasAttribute(SygusVarNumAttribute()) );
