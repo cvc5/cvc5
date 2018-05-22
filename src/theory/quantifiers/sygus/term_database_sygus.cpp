@@ -813,8 +813,8 @@ void TermDbSygus::registerEnumerator(Node e,
     d_enum_to_active_guard[e] = eg;
   }
 
-  // if not using symbolic constants, introduce symmetry breaking lemma
-  // templates for each relevant subtype of the grammar
+  // depending on if we are using symbolic constructors, introduce symmetry
+  // breaking lemma templates for each relevant subtype of the grammar
   std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it =
       d_min_type_depth.find(et);
   Assert(it != d_min_type_depth.end());
@@ -836,7 +836,7 @@ void TermDbSygus::registerEnumerator(Node e,
       }
       else
       {
-        // can remove all other concrete constant constructors?
+        // can remove all other concrete constant constructors
         for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
           if (i != itsa->second)

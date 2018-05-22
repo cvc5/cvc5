@@ -85,7 +85,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
                                       std::vector<Node>& repair_cv,
-                                      bool useConstants)
+                                      bool useConstantsAsHoles)
 {
   Assert(candidates.size() == candidate_values.size());
 
@@ -116,7 +116,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   {
     Node cv = candidate_values[i];
     Node skeleton =
-        getSkeleton(cv, free_var_count, sk_vars, sk_vars_to_subs, useConstants);
+        getSkeleton(cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
     if (Trace.isOn("sygus-repair-const"))
     {
       Printer* p = Printer::getPrinter(options::outputLanguage());
