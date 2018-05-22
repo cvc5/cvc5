@@ -2620,6 +2620,8 @@ void SmtEnginePrivate::finishInit() {
       new BVToBool(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<NlExtPurify> nlExtPurify(
+      new NlExtPurify(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(

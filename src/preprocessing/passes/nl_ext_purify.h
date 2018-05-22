@@ -11,7 +11,8 @@
  **
  ** \brief The NlExtPurify preprocessing pass
  **
- ** Purifies non-linear terms
+ ** Purifies non-linear terms by replacing sums under multiplications by fresh
+ ** variables
  **/
 
 #include "cvc4_private.h"

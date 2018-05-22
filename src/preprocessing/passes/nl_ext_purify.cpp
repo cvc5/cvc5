@@ -14,11 +14,19 @@
  ** Purifies non-linear terms
  **/
 
-Node SmtEnginePrivate::purifyNlTerms(TNode n,
-                                     NodeMap& cache,
-                                     NodeMap& bcache,
-                                     std::vector<Node>& var_eq,
-                                     bool beneathMult)
+#include "preprocessing/passes/nl_ext_purify.h"
+
+namespace CVC4 {
+namespace preprocessing {
+namespace passes {
+
+using namespace CVC4::theory;
+
+Node NlExtPurify::purifyNlTerms(TNode n,
+                                NodeMap& cache,
+                                NodeMap& bcache,
+                                std::vector<Node>& var_eq,
+                                bool beneathMult)
 {
   if (beneathMult)
   {
@@ -116,3 +124,7 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
