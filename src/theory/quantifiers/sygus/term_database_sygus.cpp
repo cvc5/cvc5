@@ -793,28 +793,27 @@ void TermDbSygus::registerEnumerator(Node e,
     // if not using symbolic constants, introduce symmetry breaking lemma
     // templates for each relevant subtype of the grammar
     std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it = d_min_type_depth.find(et);
-    if( it!=d_min_type_depth.end() )
+    Assert( it!=d_min_type_depth.end() );
+    // for each type of subterm of this enumerator 
+    for( const std::pair<const TypeNode, unsigned>& st : it->second )
     {
-      // for each type of subterm of this enumerator 
-      for( const std::pair<const TypeNode, unsigned>& st : it->second )
+      TypeNode stn = st.first;
+      std::map<TypeNode, unsigned >::iterator itsa = d_sym_cons_any_constant.find(stn);
+      if( itsa!=d_sym_cons_any_constant.end() )
       {
-        TypeNode stn = st.first;
-        std::map<TypeNode, unsigned >::iterator itsa = d_sym_cons_any_constant.find(stn);
-        if( itsa!=d_sym_cons_any_constant.end() )
-        {
-          Assert( stn.isDatatype() );
-          const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
-          // make the apply-constructor corresponding to an application of the
-          // "any constant" constructor
-          Node exc_val = nm->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[itsa->second].getConstructor() ) );
-          // should not include the constuctor in any subterm
-          Node x = getFreeVar(stn, 0);
-          Trace("sygus-db") << "Construct symmetry breaking lemma from " << x << " == " << exc_val << ", subterm size " << st.second << std::endl;
-          Node lem = getExplain()->getExplanationForEquality(x, exc_val);
-          lem = lem.negate();
-          Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << std::endl;
-          registerSymBreakLemma(e, lem, stn, st.second);
-        }
+        Assert( stn.isDatatype() );
+        const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
+        // make the apply-constructor corresponding to an application of the
+        // "any constant" constructor
+        Node exc_val = nm->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[itsa->second].getConstructor() ) );
+        // should not include the constuctor in any subterm
+        Node x = getFreeVar(stn, 0);
+        Trace("sygus-db") << "Construct symmetry breaking lemma from " << x << " == " << exc_val << std::endl;
+        Node lem = getExplain()->getExplanationForEquality(x, exc_val);
+        lem = lem.negate();
+        Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << std::endl;
+        // the size of the subterm we are blocking is zero (any_constant is a nullary constructor)
+        registerSymBreakLemma(e, lem, stn, 0);
       }
     }
   }
