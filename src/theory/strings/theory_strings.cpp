@@ -4922,8 +4922,8 @@ bool TheoryStrings::hasStrategyEffort(Effort e) const
 
 void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
 {
-  // check init must be run first
-  Assert(s != CHECK_INIT || d_infer_steps.empty());
+  // must run check init first
+  Assert((s == CHECK_INIT)==d_infer_steps.empty());
   // must use check cycles when using flat forms
   Assert(s != CHECK_FLAT_FORMS
          || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)
