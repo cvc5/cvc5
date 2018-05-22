@@ -258,6 +258,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> candidate_values;
   bool constructed_cand = false;
 
+  /*
   if (options::sygusRepairConst())
   {
     // have we tried to repair the previous solution?
@@ -279,6 +280,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       }
     }
   }
+  */
 
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;

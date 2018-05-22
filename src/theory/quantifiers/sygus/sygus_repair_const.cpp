@@ -264,7 +264,8 @@ bool SygusRepairConst::mustRepair(Node n)
     visit.pop_back();
     if (visited.find(cur) == visited.end()) {
       visited.insert(cur);
-      if( n.getAttribute(SygusAnyConstAttribute()) )
+      Assert( cur.getKind()==APPLY_CONSTRUCTOR );
+      if( isRepairable(cur,false) )
       {
         return true;
       }
@@ -277,7 +278,7 @@ bool SygusRepairConst::mustRepair(Node n)
   return false;
 }
 
-bool SygusRepairConst::isRepairableConstant(Node n) const
+bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
 {
   if (n.getKind() != APPLY_CONSTRUCTOR)
   {
@@ -287,34 +288,36 @@ bool SygusRepairConst::isRepairableConstant(Node n) const
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
-  if (dt.getSygusAllowConst())
+  Node op = n.getOperator();    
+  unsigned cindex = Datatype::indexOf(op.toExpr());
+  if (dt[cindex].getNumArgs() > 0)
   {
-    Node op = n.getOperator();
-    unsigned cindex = Datatype::indexOf(op.toExpr());
-    if (dt[cindex].getNumArgs() == 0)
+    return false;
+  }
+  Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
+  if( sygusOp.getAttribute(SygusAnyConstAttribute()) )
+  {
+    // if it represents "any constant" then it is repairable
+    return true;
+  }
+  if (useConstantsAsHoles && dt.getSygusAllowConst())
+  {
+    if (sygusOp.isConst())
     {
-      Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
-      if (sygusOp.isConst())
-      {
-        return true;
-      }
+      // if a constant, it is repairable
+      return true;
     }
   }
   return false;
-}
-
-bool SygusRepairConst::isRepairable(Node n, bool useConstants) const
-{
-  return n.getAttribute(SygusAnyConstAttribute()) || ( useConstants && isRepairableConstant(n));
 }
 
 Node SygusRepairConst::getSkeleton(Node n,
                                    std::map<TypeNode, int>& free_var_count,
                                    std::vector<Node>& sk_vars,
                                    std::map<Node, Node>& sk_vars_to_subs,
-                                   bool useConstants)
+                                   bool useConstantsAsHoles)
 {
-  if (isRepairable(n))
+  if (isRepairable(n, useConstantsAsHoles))
   {
     Node sk_var = d_tds->getFreeVarInc(n.getType(), free_var_count);
     sk_vars.push_back(sk_var);
@@ -358,7 +361,7 @@ Node SygusRepairConst::getSkeleton(Node n,
       {
         Node child;
         // if it is repairable
-        if (isRepairable(cn))
+        if (isRepairable(cn, useConstantsAsHoles))
         {
           // replace it by the next free variable
           child = d_tds->getFreeVarInc(cn.getType(), free_var_count);

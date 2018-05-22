@@ -76,7 +76,7 @@ class SygusRepairConst
   bool repairSolution(const std::vector<Node>& candidates,
                       const std::vector<Node>& candidate_values,
                       std::vector<Node>& repair_cv,
-                      bool useConstantsAsHoles=true
+                      bool useConstantsAsHoles=false
                      );
   /** must repair? 
    * 
@@ -112,19 +112,14 @@ class SygusRepairConst
    * already registered types.
    */
   void registerSygusType(TypeNode tn, std::map<TypeNode, bool>& tprocessed);
-  /**
-   * Returns true if n is a term of a sygus datatype type that allows all
-   * constants, and n encodes a constant. The term n must have a sygus datatype
-   * type.
-   */
-  inline bool isRepairableConstant(Node n) const;
   /** is repairable? 
    * 
    * This returns true if n can be repaired by this class. In particular, we
-   * return true if n is an "any constant" constructor, or it is a constant
-   * in a type that allows all constants and useConstantsAsHoles is true.
+   * return true if n is an "any constant" constructor, or it is a constructor
+   * for a constant in a type that allows all constants and useConstantsAsHoles 
+   * is true.
    */
-  inline bool isRepairable(Node n, bool useConstantsAsHoles=true) const;
+  static bool isRepairable(Node n, bool useConstantsAsHoles);
   /** get skeleton
    *
    * Returns a skeleton for sygus datatype value n, where the subterms of n that

@@ -695,7 +695,13 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         {
           for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
           {
-            registerSygusType(getArgType(dt[i], j));
+            TypeNode ctn = TypeNode::fromType(dt[i].getArgType(j));
+            registerSygusType(ctn);
+            // carry type attributes
+            if( d_has_subterm_sym_cons.find(ctn)!=d_has_subterm_sym_cons.end() )
+            {
+              d_has_subterm_sym_cons[tn] = true;
+            }
           }
         }
         //iterate over constructors
@@ -733,6 +739,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
           if( n.getAttribute(SygusAnyConstAttribute()) )
           {
             d_sym_cons_any_constant[tn] = i;
+            d_has_subterm_sym_cons[tn] = true;
           }
           // TODO (as part of #1170): we still do not properly catch type
           // errors in sygus grammars for arguments of builtin operators.
@@ -1144,6 +1151,11 @@ bool TermDbSygus::isTypeMatch( const DatatypeConstructor& c1, const DatatypeCons
     }
     return true;
   }
+}
+
+bool TermDbSygus::hasSubtermSymbolicCons(TypeNode tn) const
+{
+  return d_has_subterm_sym_cons.find(tn)!=d_has_subterm_sym_cons.end();
 }
 
 Node TermDbSygus::minimizeBuiltinTerm( Node n ) {

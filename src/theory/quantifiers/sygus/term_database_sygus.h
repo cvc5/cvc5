@@ -310,6 +310,12 @@ private:
    * has one. 
    */
   std::map<TypeNode, unsigned > d_sym_cons_any_constant;
+  /** 
+   * Whether any subterm of this type contains a symbolic constructor. This
+   * corresponds to whether sygus repair techniques will ever have any effect
+   * for this type.
+   */
+  std::map< TypeNode, bool > d_has_subterm_sym_cons;
 
  public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
@@ -339,6 +345,11 @@ private:
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
+  /** has subterm symbolic constructor 
+   * 
+   * Returns true if any subterm of type tn can be a symbolic constructor.
+   */
+  bool hasSubtermSymbolicCons(TypeNode tn) const;
 
   TypeNode getSygusTypeForVar( Node v );
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );

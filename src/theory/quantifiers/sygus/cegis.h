@@ -79,7 +79,7 @@ class Cegis : public SygusModule
   virtual bool processInitialize(Node n,
                                  const std::vector<Node>& candidates,
                                  std::vector<Node>& lemmas);
-  /** do cegis-implementation-specific construct candidate
+  /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
    * substitution { enums -> enum_values }.
@@ -164,6 +164,12 @@ class Cegis : public SygusModule
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
+  
+  //---------------------------------for sygus repair
+  /** are we using grammar-based repair? */
+  bool d_using_gr_repair;
+  
+  //---------------------------------end for sygus repair
 };
 
 } /* CVC4::theory::quantifiers namespace */
