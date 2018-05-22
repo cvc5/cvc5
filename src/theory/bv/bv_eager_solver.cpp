@@ -102,8 +102,8 @@ bool EagerBitblastSolver::checkSat() {
 
   if (d_useAig) {
 #ifdef CVC4_USE_ABC
-    const std::vector<TNode> assertions = {d_assertionSet.begin(),
-                                           d_assertionSet.end()};
+    const std::vector<Node> assertions = {d_assertionSet.key_begin(),
+                                          d_assertionSet.key_end()};
     Assert(!assertions.empty());
 
     Node query = utils::mkAnd(assertions);
@@ -115,11 +115,8 @@ bool EagerBitblastSolver::checkSat() {
 
   if (options::incrementalSolving())
   {
-    std::vector<Node> assumptions;
-    for (const Node& n : d_assumptionSet)
-    {
-      assumptions.push_back(n);
-    }
+    const std::vector<Node> assumptions = {d_assumptionSet.key_begin(),
+                                           d_assumptionSet.key_end()};
     return d_bitblaster->solve(assumptions);
   }
   return d_bitblaster->solve();
