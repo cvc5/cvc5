@@ -93,6 +93,43 @@ enum Inference
 };
 std::ostream& operator<<(std::ostream& out, Inference i);
 
+/** inference steps
+ *
+ * Corresponds to a step in the overall strategy of the strings solver. For
+ * details on the individual steps, see documentation on the inference schemas
+ * within TheoryStrings.
+ */
+enum InferStep
+{
+  // indicates that the strategy should break if lemmas or facts are added
+  BREAK,
+  // check initial
+  CHECK_INIT,
+  // check constant equivalence classes
+  CHECK_CONST_EQC,
+  // check extended function evaluation
+  CHECK_EXTF_EVAL,
+  // check cycles
+  CHECK_CYCLES,
+  // check flat forms
+  CHECK_FLAT_FORMS,
+  // check normal forms equalities
+  CHECK_NORMAL_FORMS_EQ,
+  // check normal forms disequalities
+  CHECK_NORMAL_FORMS_DEQ,
+  // check codes
+  CHECK_CODES,
+  // check lengths for equivalence classes
+  CHECK_LENGTH_EQC,
+  // check extended function reductions
+  CHECK_EXTF_REDUCTION,
+  // check regular expression memberships
+  CHECK_MEMBERSHIP,
+  // check cardinality
+  CHECK_CARDINALITY,
+};
+std::ostream& operator<<(std::ostream& out, Inference i);
+
 struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
@@ -371,21 +408,25 @@ private:
     Node d_nf_pair[2];
     bool sendAsLemma();
   };
-  //initial check
-  void checkInit();
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  //extended functions evaluation check
-  void checkExtfEval( int effort = 0 );
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
-  void collectVars( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
-  //check extf reduction
-  void checkExtfReductions( int effort );
-  //flat forms check
-  void checkFlatForms();
+
+  //--------------------------for checkFlatForm
+  /**
+   * This checks whether there are flat form inferences between eqc[start] and
+   * eqc[j] for some j>start. If the flag isRev is true, we check for flat form
+   * interferences in the reverse direction of the flat forms. For more details,
+   * see checkFlatForms below.
+   */
+  void checkFlatForm(std::vector<Node>& eqc, unsigned start, bool isRev);
+  //--------------------------end for checkFlatForm
+
+  //--------------------------for checkCycles
   Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
-  //normal forms check
-  void checkNormalForms();
+  //--------------------------end for checkCycles
+
+  //--------------------------for checkNormalFormsEq
   void normalizeEquivalenceClass( Node n );
   void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
@@ -400,32 +441,30 @@ private:
   void processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
                          unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
+  //--------------------------end for checkNormalFormsEq
+
+  //--------------------------for checkNormalFormsDeq
   void processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
-  void checkDeqNF();
   void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
                                       unsigned i, int index, bool isRev, std::vector< Node >& curr_exp );
   void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                                         std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
                                         unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
+  //--------------------------end for checkNormalFormsDeq
 
-  Node collectConstantStringAt( std::vector< Node >& vec, int& index, bool isRev );
-
-  //check membership constraints
+  //--------------------------------for checkMemberships
+  // check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
   bool applyRConsume( CVC4::String &s, Node &r );
   Node applyRSplit( Node s1, Node s2, Node r );
   bool applyRLen( std::map< Node, std::vector< Node > > &XinR_with_exps );
-  void checkMemberships();
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
   void checkNegContains( std::vector< Node >& negContains );
-  //lengths normalize check
-  void checkLengthsEqc();
-  //cardinality check
-  void checkCardinality();
+  //--------------------------------end for checkMemberships
 
  private:
   void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
@@ -612,7 +651,232 @@ private:
     ~Statistics();
   };/* class TheoryStrings::Statistics */
   Statistics d_statistics;
-  
+
+ private:
+  //-----------------------inference steps
+  /** check initial
+   *
+   * This function initializes term indices for each strings function symbol.
+   * One key aspect of this construction is that concat terms are indexed by
+   * their list of non-empty components. For example, if x = "" is an equality
+   * asserted in this SAT context, then y ++ x ++ z may be indexed by (y,z).
+   * This method may infer various facts while building these term indices, for
+   * instance, based on congruence. An example would be inferring:
+   *   y ++ x ++ z = y ++ z
+   * if both terms are registered in this SAT context.
+   *
+   * This function should be called as a first step of any strategy.
+   */
+  void checkInit();
+  /** check constant equivalence classes
+   *
+   * This function infers whether CONCAT terms can be simplified to constants.
+   * For example, if x = "a" and y = "b" are equalities in the current SAT
+   * context, then we may infer x ++ "c" ++ y is equivalent to "acb". In this
+   * case, we infer the fact x ++ "c" ++ y = "acb".
+   */
+  void checkConstantEquivalenceClasses();
+  /** check extended functions evaluation
+   *
+   * This applies "context-dependent simplification" for all active extended
+   * function terms in this SAT context. This infers facts of the form:
+   *   x = c => f( t1 ... tn ) = c'
+   * where the rewritten form of f( t1...tn ) { x |-> c } is c', and x = c
+   * is a (tuple of) equalities that are asserted in this SAT context, and
+   * f( t1 ... tn ) is a term from this SAT context.
+   *
+   * For more details, this is steps 4 when effort=0 and step 6 when
+   * effort=1 from Strategy 1 in Reynolds et al, "Scaling up DPLL(T) String
+   * Solvers using Context-Dependent Simplification", CAV 2017. When called with
+   * effort=3, we apply context-dependent simplification based on model values.
+   */
+  void checkExtfEval(int effort);
+  /** check cycles
+   *
+   * This inference schema ensures that a containment ordering < over the
+   * string equivalence classes is acyclic. We define this ordering < such that
+   * for equivalence classes e1 = { t1...tn } and e2 = { s1...sm }, e1 < e2
+   * if there exists a ti whose flat form (see below) is [w1...sj...wk] for
+   * some i,j. If e1 < ... < en < e1 for some chain, we infer that the flat
+   * form components that do not constitute this chain, e.g. (w1...wk) \ sj
+   * in the flat form above, must be empty.
+   *
+   * For more details, see the inference S-Cycle in Liang et al CAV 2014.
+   */
+  void checkCycles();
+  /** check flat forms
+   *
+   * This applies an inference schema based on "flat forms". The flat form of a
+   * string term t is a vector of representative terms [r1, ..., rn] such that
+   * t is of the form t1 ++ ... ++ tm and r1 ++ ... ++ rn is equivalent to
+   * rewrite( [t1] ++ ... ++ [tm] ), where [t1] denotes the representative of
+   * the equivalence class containing t1. For example, if t is y ++ z ++ z,
+   * E is { y = "", w = z }, and w is the representative of the equivalence
+   * class { w, z }, then the flat form of t is [w, w]. Say t1 and t2 are terms
+   * in the same equivalence classes with flat forms [r1...rn] and [s1...sm].
+   * We may infer various facts based on this pair of terms. For example:
+   *   ri = si, if ri != si, rj == sj for each j < i, and len(ri)=len(si),
+   *   rn = sn, if n=m and rj == sj for each j < n,
+   *   ri = empty, if n=m+1 and ri == rj for each i=1,...,m.
+   * We refer to these as "unify", "endpoint-eq" and "endpoint-emp" inferences
+   * respectively.
+   *
+   * Notice that this inference scheme is an optimization and not needed for
+   * model-soundness. The motivation for this schema is that it is simpler than
+   * checkNormalFormsEq, which can be seen as a recursive version of this
+   * schema (see difference of "normal form" vs "flat form" below), and
+   * checkNormalFormsEq is complete, in the sense that if it passes with no
+   * inferences, we are ensured that all string equalities in the current
+   * context are satisfied.
+   *
+   * Must call checkCycles before this function in a strategy.
+   */
+  void checkFlatForms();
+  /** check normal forms equalities
+   *
+   * This applies an inference schema based on "normal forms". The normal form
+   * of an equivalence class of string terms e = {t1, ..., tn} union {x1....xn},
+   * where t1...tn are concatenation terms is a vector of representative terms
+   * [r1, ..., rm] such that:
+   * (1) if n=0, then m=1 and r1 is the representative of e,
+   * (2) if n>0, say
+   *   t1 = t^1_1 ++ ... ++ t^1_m_1
+   *   ...
+   *   tn = t^1_n ++ ... ++ t^_m_n
+   * for *each* i=1, ..., n, the result of concenating the normal forms of
+   * t^1_1 ++ ... ++ t^1_m_1 is equal to [r1, ..., rm]. If an equivalence class
+   * can be assigned a normal form, then all equalities between ti and tj are
+   * satisfied by all models that correspond to extensions of the current
+   * assignment. For further detail on this terminology, see Liang et al
+   * CAV 2014.
+   *
+   * Notice that all constant words are implicitly considered concatentation
+   * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
+   *
+   * At a high level, we build normal forms for equivalence classes bottom-up,
+   * starting with equivalence classes that are minimal with respect to the
+   * containment ordering < computed during checkCycles. While computing a
+   * normal form for an equivalence class, we may infer equalities between
+   * components of strings that must be equal (e.g. x=y when x++z == y++w when
+   * len(x)==len(y) is asserted), derive conflicts if two strings have disequal
+   * prefixes/suffixes (e.g. "a" ++ x == "b" ++ y is a conflict), or split
+   * string terms into smaller components using fresh skolem variables (see
+   * Inference values with names "SPLIT"). We also may introduce regular
+   * expression constraints in this method for looping word equations (see
+   * the Inference INFER_FLOOP).
+   *
+   * If this inference schema returns no facts, lemmas, or conflicts, then
+   * we have successfully assigned normal forms for all equivalence classes, as
+   * stored in d_normal_forms. Otherwise, this method may add a fact, lemma, or
+   * conflict based on inferences in the Inference enumeration above.
+   */
+  void checkNormalFormsEq();
+  /** check normal forms disequalities
+   *
+   * This inference schema can be seen as the converse of the above schema. In
+   * particular, it ensures that each pair of distinct equivalence classes
+   * e1 and e2 have distinct normal forms.
+   *
+   * This method considers all pairs of distinct equivalence classes (e1,e2)
+   * such that len(x1)==len(x2) is asserted for some x1 in e1 and x2 in e2. It
+   * then traverses the normal forms of x1 and x2, say they are [r1, ..., rn]
+   * and [s1, ..., sm]. For the minimial i such that ri!=si, if ri and si are
+   * disequal and have the same length, then x1 and x2 have distinct normal
+   * forms. Otherwise, we may add splitting lemmas on the length of ri and si,
+   * or split on an equality between ri and si.
+   *
+   * If this inference schema returns no facts, lemmas, or conflicts, then all
+   * disequalities between string terms are satisfied by all models that are
+   * extensions of the current assignment.
+   */
+  void checkNormalFormsDeq();
+  /** check codes
+   *
+   * This inference schema ensures that constraints between str.code terms
+   * are satisfied by models that correspond to extensions of the current
+   * assignment. In particular, this method ensures that str.code can be
+   * given an interpretation that is injective for string arguments with length
+   * one. It may add lemmas of the form:
+   *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
+   */
+  void checkCodes();
+  /** check lengths for equivalence classes
+   *
+   * This inference schema adds lemmas of the form:
+   *   E => len( x ) = rewrite( len( r1 ++ ... ++ rn ) )
+   * where [r1, ..., rn] is the normal form of the equivalence class containing
+   * x. This schema is not required for correctness but experimentally has
+   * shown to be helpful.
+   */
+  void checkLengthsEqc();
+  /** check extended function reductions
+   *
+   * This adds "reduction" lemmas for each active extended function in this SAT
+   * context. These are generally lemmas of the form:
+   *   F[t1...tn,k] ^ f( t1 ... tn ) = k
+   * where f( t1 ... tn ) is an active extended function, k is a fresh constant
+   * and F is a formula that constrains k based on the definition of f.
+   *
+   * For more details, this is step 7 from Strategy 1 in Reynolds et al,
+   * CAV 2017. We stratify this in practice, where calling this with effort=1
+   * reduces some of the "easier" extended functions, and effort=2 reduces
+   * the rest.
+   */
+  void checkExtfReductions(int effort);
+  /** check regular expression memberships
+   *
+   * This checks the satisfiability of all regular expression memberships
+   * of the form (not) s in R. We use various heuristic techniques based on
+   * unrolling, combined with techniques from Liang et al, "A Decision Procedure
+   * for Regular Membership and Length Constraints over Unbounded Strings",
+   * FroCoS 2015.
+   */
+  void checkMemberships();
+  /** check cardinality
+   *
+   * This function checks whether a cardinality inference needs to be applied
+   * to a set of equivalence classes. For details, see Step 5 of the proof
+   * procedure from Liang et al, CAV 2014.
+   */
+  void checkCardinality();
+  //-----------------------end inference steps
+
+  //-----------------------representation of the strategy
+  /** is strategy initialized */
+  bool d_strategy_init;
+  /** run the given inference step */
+  void runInferStep(InferStep s, int effort);
+  /** the strategy */
+  std::vector<InferStep> d_infer_steps;
+  /** the effort levels */
+  std::vector<int> d_infer_step_effort;
+  /** the range (begin, end) of steps to run at given efforts */
+  std::map<Effort, std::pair<unsigned, unsigned> > d_strat_steps;
+  /** do we have a strategy for effort e? */
+  bool hasStrategyEffort(Effort e) const;
+  /** initialize the strategy
+   *
+   * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
+   * d_infer_step_effort. This indicates that a call to runInferStep should
+   * be run as the next step in the strategy. If addBreak is true, we add
+   * a BREAK to the strategy following this step.
+   */
+  void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
+  /** initialize the strategy
+   *
+   * This initializes the above information based on the options. This makes
+   * a series of calls to addStrategyStep above.
+   */
+  void initializeStrategy();
+  /** run strategy
+   *
+   * This executes the inference steps starting at index sbegin and ending at
+   * index send. We exit if any step in this sequence adds a lemma or infers a
+   * fact.
+   */
+  void runStrategy(unsigned sbegin, unsigned send);
+  //-----------------------end representation of the strategy
+
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

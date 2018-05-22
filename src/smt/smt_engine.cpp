@@ -2702,7 +2702,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       // otherwise expand it
       bool doExpand = k == kind::APPLY;
       if( !doExpand ){
-        if( options::macrosQuant() ){
+        // options that assign substitutions to APPLY_UF
+        if (options::macrosQuant() || options::sygusInference())
+        {
           //expand if we have inferred an operator corresponds to a defined function
           doExpand = k==kind::APPLY_UF && d_smt.isDefinedFunction( n.getOperator().toExpr() );
         }
@@ -4005,17 +4007,7 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  if (options::sygusInference())
-  {
-    // try recast as sygus
-    quantifiers::SygusInference si;
-    if (si.simplify(d_assertions.ref()))
-    {
-      Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
-      d_smt.d_globalNegation = !d_smt.d_globalNegation;
-    }
-  }
-  else if (options::globalNegate())
+  if (options::globalNegate())
   {
     // global negation of the formula
     quantifiers::GlobalNegate gn;
@@ -4210,6 +4202,15 @@ void SmtEnginePrivate::processAssertions() {
           d_smt.d_fmfRecFunctionsConcrete[f].push_back( fdf.d_input_arg_inj[f][j] );
         }
         d_smt.d_fmfRecFunctionsDefined->push_back( f );
+      }
+    }
+    if (options::sygusInference())
+    {
+      // try recast as sygus
+      quantifiers::SygusInference si;
+      if (si.simplify(d_assertions.ref()))
+      {
+        Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
       }
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
@@ -5571,6 +5572,18 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
     d_theoryEngine->printSynthSolution( out );
   }else{
     Assert( false );
+  }
+}
+
+void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
+{
+  SmtScope smts(this);
+  map<Node, Node> sol_mapn;
+  Assert(d_theoryEngine != nullptr);
+  d_theoryEngine->getSynthSolutions(sol_mapn);
+  for (std::pair<const Node, Node>& s : sol_mapn)
+  {
+    sol_map[s.first.toExpr()] = s.second.toExpr();
   }
 }
 
