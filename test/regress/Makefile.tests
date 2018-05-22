@@ -1249,6 +1249,7 @@ REG1_TESTS = \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
+	regress1/quantifiers/horn-simple.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
@@ -1502,6 +1503,7 @@ REG1_TESTS = \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
 	regress1/sygus/pbe_multi.sy \
+	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \

@@ -297,21 +297,29 @@ class SygusUnifRl : public SygusUnif
    *
    * Initialize the above data for the relevant enumerators in the strategy tree
    * of candidate variable f. For each strategy point e which there is a
-   * decision tree strategy, we add e to enums.
+   * decision tree strategy, we add e to enums. For each strategy with index
+   * i in an strategy point e, if we are not using the strategy, we add i to
+   * unused_strats[e]. This map is later passed to
+   * SygusUnifStrategy::staticLearnRedundantOps.
    */
-  void registerStrategy(Node f, std::vector<Node>& enums);
+  void registerStrategy(
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::unordered_set<unsigned>>& unused_strats);
   /** register strategy node
    *
    * Called while traversing the strategy tree of f. The arguments e and nrole
    * indicate the current node in the tree we are traversing, and visited
-   * indicates the nodes we have already visited. If e has a decision tree
-   * strategy, it is added to enums.
+   * indicates the nodes we have already visited. The arguments enums and
+   * unused_strats are modified as described above.
    */
-  void registerStrategyNode(Node f,
-                            Node e,
-                            NodeRole nrole,
-                            std::map<Node, std::map<NodeRole, bool>>& visited,
-                            std::vector<Node>& enums);
+  void registerStrategyNode(
+      Node f,
+      Node e,
+      NodeRole nrole,
+      std::map<Node, std::map<NodeRole, bool>>& visited,
+      std::vector<Node>& enums,
+      std::map<Node, std::unordered_set<unsigned>>& unused_strats);
   /** register conditional enumerator
    *
    * Registers that cond is a conditional enumerator for building a (recursive)

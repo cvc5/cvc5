@@ -138,6 +138,12 @@ namespace CVC4 {
 #  define IS_READLINE_BUILD false
 #endif /* HAVE_LIBREADLINE */
 
+#ifdef CVC4_USE_SYMFPU
+#define IS_SYMFPU_BUILD true
+#else /* HAVE_SYMFPU_HEADERS */
+#define IS_SYMFPU_BUILD false
+#endif /* HAVE_SYMFPU_HEADERS */
+
 #if CVC4_GPL_DEPS
 #  define IS_GPL_BUILD true
 #else /* CVC4_GPL_DEPS */

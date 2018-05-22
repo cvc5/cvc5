@@ -28,7 +28,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p) : SygusModule(qe, p) {}
+Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p)
+    : SygusModule(qe, p), d_eval_unfold(nullptr)
+{
+  if (options::sygusEvalUnfold())
+  {
+    d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
+  }
+}
 
 bool Cegis::initialize(Node n,
                        const std::vector<Node>& candidates,
@@ -100,7 +107,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
          add the lemmas below as well, in parallel. */
     }
   }
-  if (options::sygusEvalUnfold())
+  if (d_eval_unfold != nullptr)
   {
     Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -108,11 +115,11 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     {
       Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
                            << candidate_values[i] << std::endl;
-      d_tds->registerModelValue(candidates[i],
-                                candidate_values[i],
-                                eager_terms,
-                                eager_vals,
-                                eager_exps);
+      d_eval_unfold->registerModelValue(candidates[i],
+                                        candidate_values[i],
+                                        eager_terms,
+                                        eager_vals,
+                                        eager_exps);
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()
                          << " evaluation unfold lemmas.\n";
