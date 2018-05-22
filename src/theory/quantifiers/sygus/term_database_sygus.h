@@ -75,8 +75,7 @@ class TermDbSygus {
                           Node f,
                           CegConjecture* conj,
                           bool mkActiveGuard = false,
-                          bool useSymbolicCons = false
-                         );
+                          bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -305,17 +304,17 @@ class TermDbSygus {
   std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
-  /** 
+  /**
    * For each sygus type, the index of the "any constant" constructor, if it
-   * has one. 
+   * has one.
    */
-  std::map<TypeNode, unsigned > d_sym_cons_any_constant;
-  /** 
+  std::map<TypeNode, unsigned> d_sym_cons_any_constant;
+  /**
    * Whether any subterm of this type contains a symbolic constructor. This
    * corresponds to whether sygus repair techniques will ever have any effect
    * for this type.
    */
-  std::map< TypeNode, bool > d_has_subterm_sym_cons;
+  std::map<TypeNode, bool> d_has_subterm_sym_cons;
 
  public:  // general sygus utilities
   bool isRegistered( TypeNode tn );
@@ -345,8 +344,8 @@ class TermDbSygus {
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
-  /** has subterm symbolic constructor 
-   * 
+  /** has subterm symbolic constructor
+   *
    * Returns true if any subterm of type tn can be a symbolic constructor.
    */
   bool hasSubtermSymbolicCons(TypeNode tn) const;

@@ -20,8 +20,8 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
 
@@ -115,7 +115,8 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
-    Node skeleton = getSkeleton(cv, free_var_count, sk_vars, sk_vars_to_subs, useConstants);
+    Node skeleton =
+        getSkeleton(cv, free_var_count, sk_vars, sk_vars_to_subs, useConstants);
     if (Trace.isOn("sygus-repair-const"))
     {
       Printer* p = Printer::getPrinter(options::outputLanguage());
@@ -253,28 +254,31 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   return false;
 }
 
-bool SygusRepairConst::mustRepair(Node n) 
+bool SygusRepairConst::mustRepair(Node n)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      Assert( cur.getKind()==APPLY_CONSTRUCTOR );
-      if( isRepairable(cur,false) )
+      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      if (isRepairable(cur, false))
       {
         return true;
       }
-      for (const Node& cn : cur ){
+      for (const Node& cn : cur)
+      {
         visit.push_back(cn);
       }
     }
   } while (!visit.empty());
-  
+
   return false;
 }
 
@@ -288,14 +292,14 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
-  Node op = n.getOperator();    
+  Node op = n.getOperator();
   unsigned cindex = Datatype::indexOf(op.toExpr());
   if (dt[cindex].getNumArgs() > 0)
   {
     return false;
   }
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
-  if( sygusOp.getAttribute(SygusAnyConstAttribute()) )
+  if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {
     // if it represents "any constant" then it is repairable
     return true;

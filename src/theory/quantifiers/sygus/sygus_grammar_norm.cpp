@@ -20,11 +20,11 @@
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 #include <numeric>  // for std::iota
 
@@ -113,25 +113,23 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
                              d_pc[i],
                              d_weight[i]);
   }
-  if( dt.getSygusAllowConst() )
+  if (dt.getSygusAllowConst())
   {
-    TypeNode sygus_type = TypeNode::fromType( dt.getSygusType() );
+    TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
     // must be handled by counterexample-guided instantiation
-    if( CegInstantiator::isCbqiSort( sygus_type )>=CEG_HANDLED )
+    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED)
     {
       Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
       // add an "any constant" proxy variable
-      Node av = NodeManager::currentNM()->mkSkolem("_any_constant",sygus_type);
+      Node av = NodeManager::currentNM()->mkSkolem("_any_constant", sygus_type);
       // mark that it represents any constant
       SygusAnyConstAttribute saca;
-      av.setAttribute(saca,true);
+      av.setAttribute(saca, true);
       std::stringstream ss;
       ss << d_unres_tn << "_any_constant";
       std::string cname(ss.str());
       std::vector<Type> empty_arg_types;
-      d_dt.addSygusConstructor(av.toExpr(),
-                              cname,
-                              empty_arg_types);
+      d_dt.addSygusConstructor(av.toExpr(), cname, empty_arg_types);
     }
   }
   Trace("sygus-grammar-normalize") << "...built datatype " << d_dt << " ";

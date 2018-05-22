@@ -845,14 +845,17 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, st
 void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node a, std::vector< Node >& lemmas ) {
   Assert( t.getType()==tn );
   Assert( !a.isNull() );
-  Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d << " " << a << std::endl;
+  Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
+                           << " " << a << std::endl;
   std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = d_cache[a].d_sb_lemmas.find( tn );
   if( its != d_cache[a].d_sb_lemmas.end() ){
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
     unsigned csz = getSearchSizeForAnchor( a );
     int max_sz = ((int)csz) - ((int)d);
-    Trace("sygus-sb-debug2") << "add lemmas up to size " << max_sz << ", which is (search_size) " << csz << " - (depth) " << d << std::endl;
+    Trace("sygus-sb-debug2")
+        << "add lemmas up to size " << max_sz << ", which is (search_size) "
+        << csz << " - (depth) " << d << std::endl;
     for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
       if( (int)it->first<=max_sz ){
         for( unsigned k=0; k<it->second.size(); k++ ){
@@ -1051,10 +1054,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     for (const Node& a : anchors)
     {
       // is this a registered enumerator?
-      if( d_register_st.find(a) != d_register_st.end() )
+      if (d_register_st.find(a) != d_register_st.end())
       {
         // symmetry breaking lemmas should only be for enumerators
-        Assert( d_register_st[a] );
+        Assert(d_register_st[a]);
         std::vector<Node> sbl;
         d_tds->getSymBreakLemmas(a, sbl);
         for (const Node& lem : sbl)

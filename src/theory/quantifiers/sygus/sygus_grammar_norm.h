@@ -37,8 +37,10 @@ namespace quantifiers {
 class SygusGrammarNorm;
 
 /** Attribute true for variables that represent any constant */
-struct SygusAnyConstAttributeId {};
-typedef expr::Attribute< SygusAnyConstAttributeId, bool > SygusAnyConstAttribute;
+struct SygusAnyConstAttributeId
+{
+};
+typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
 /** Operator position trie class
  *

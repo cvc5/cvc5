@@ -68,23 +68,23 @@ class SygusRepairConst
    * is a solution for the synthesis conjecture associated with this class.
    * Moreover, it is the case that
    *    repair_cv[j] != candidate_values[j], for at least one j.
-   * We always consider applications of the "any constant" constructors in 
-   * candidate_values to be repairable. In addition, if the flag 
+   * We always consider applications of the "any constant" constructors in
+   * candidate_values to be repairable. In addition, if the flag
    * useConstantsAsHoles is true, we consider all constants whose (sygus) type
    * admit alls constants to be repairable.
    */
   bool repairSolution(const std::vector<Node>& candidates,
                       const std::vector<Node>& candidate_values,
                       std::vector<Node>& repair_cv,
-                      bool useConstantsAsHoles=false
-                     );
-  /** must repair? 
-   * 
+                      bool useConstantsAsHoles = false);
+  /** must repair?
+   *
    * This returns true if n must be repaired for it to be a valid solution.
    * This corresponds to whether n contains a subterm that is a symbolic
    * constructor like the "any constant" constructor.
    */
   static bool mustRepair(Node n);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -112,11 +112,11 @@ class SygusRepairConst
    * already registered types.
    */
   void registerSygusType(TypeNode tn, std::map<TypeNode, bool>& tprocessed);
-  /** is repairable? 
-   * 
+  /** is repairable?
+   *
    * This returns true if n can be repaired by this class. In particular, we
    * return true if n is an "any constant" constructor, or it is a constructor
-   * for a constant in a type that allows all constants and useConstantsAsHoles 
+   * for a constant in a type that allows all constants and useConstantsAsHoles
    * is true.
    */
   static bool isRepairable(Node n, bool useConstantsAsHoles);

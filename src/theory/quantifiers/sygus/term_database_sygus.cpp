@@ -698,7 +698,8 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             TypeNode ctn = TypeNode::fromType(dt[i].getArgType(j));
             registerSygusType(ctn);
             // carry type attributes
-            if( d_has_subterm_sym_cons.find(ctn)!=d_has_subterm_sym_cons.end() )
+            if (d_has_subterm_sym_cons.find(ctn)
+                != d_has_subterm_sym_cons.end())
             {
               d_has_subterm_sym_cons[tn] = true;
             }
@@ -735,8 +736,8 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
                   << std::endl;
             }
           }
-          // symbolic constructors 
-          if( n.getAttribute(SygusAnyConstAttribute()) )
+          // symbolic constructors
+          if (n.getAttribute(SygusAnyConstAttribute()))
           {
             d_sym_cons_any_constant[tn] = i;
             d_has_subterm_sym_cons[tn] = true;
@@ -759,7 +760,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
               << " encodes terms that are not of type " << btn << std::endl;
         }
         // compute min type depth information
-        computeMinTypeDepthInternal( tn, tn, 0 );
+        computeMinTypeDepthInternal(tn, tn, 0);
       }
     }
   }
@@ -782,44 +783,53 @@ void TermDbSygus::registerEnumerator(Node e,
   registerSygusType(et);
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if( mkActiveGuard ){
     // make the guard
-    Node eg = Rewriter::rewrite( nm->mkSkolem( "eG", nm->booleanType() ) );
+    Node eg = Rewriter::rewrite(nm->mkSkolem("eG", nm->booleanType()));
     eg = d_quantEngine->getValuation().ensureLiteral( eg );
     AlwaysAssert( !eg.isNull() );
     d_quantEngine->getOutputChannel().requirePhase( eg, true );
     //add immediate lemma
-    Node lem = nm->mkNode( OR, eg, eg.negate() );
+    Node lem = nm->mkNode(OR, eg, eg.negate());
     Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
     d_quantEngine->getOutputChannel().lemma( lem );
     d_enum_to_active_guard[e] = eg;
   }
-  if( !useSymbolicCons )
+  if (!useSymbolicCons)
   {
     // if not using symbolic constants, introduce symmetry breaking lemma
     // templates for each relevant subtype of the grammar
-    std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it = d_min_type_depth.find(et);
-    Assert( it!=d_min_type_depth.end() );
-    // for each type of subterm of this enumerator 
-    for( const std::pair<const TypeNode, unsigned>& st : it->second )
+    std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it =
+        d_min_type_depth.find(et);
+    Assert(it != d_min_type_depth.end());
+    // for each type of subterm of this enumerator
+    for (const std::pair<const TypeNode, unsigned>& st : it->second)
     {
       TypeNode stn = st.first;
-      std::map<TypeNode, unsigned >::iterator itsa = d_sym_cons_any_constant.find(stn);
-      if( itsa!=d_sym_cons_any_constant.end() )
+      std::map<TypeNode, unsigned>::iterator itsa =
+          d_sym_cons_any_constant.find(stn);
+      if (itsa != d_sym_cons_any_constant.end())
       {
-        Assert( stn.isDatatype() );
-        const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
+        Assert(stn.isDatatype());
+        const Datatype& dt =
+            static_cast<DatatypeType>(stn.toType()).getDatatype();
         // make the apply-constructor corresponding to an application of the
         // "any constant" constructor
-        Node exc_val = nm->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[itsa->second].getConstructor() ) );
+        Node exc_val =
+            nm->mkNode(APPLY_CONSTRUCTOR,
+                       Node::fromExpr(dt[itsa->second].getConstructor()));
         // should not include the constuctor in any subterm
         Node x = getFreeVar(stn, 0);
-        Trace("sygus-db") << "Construct symmetry breaking lemma from " << x << " == " << exc_val << std::endl;
+        Trace("sygus-db") << "Construct symmetry breaking lemma from " << x
+                          << " == " << exc_val << std::endl;
         Node lem = getExplain()->getExplanationForEquality(x, exc_val);
         lem = lem.negate();
-        Trace("cegqi-lemma") << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem << std::endl;
-        // the size of the subterm we are blocking is the weight of the constructor (usually zero)
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : exclude symbolic cons lemma (template) : " << lem
+            << std::endl;
+        // the size of the subterm we are blocking is the weight of the
+        // constructor (usually zero)
         registerSymBreakLemma(e, lem, stn, dt[itsa->second].getWeight());
       }
     }
@@ -919,10 +929,7 @@ unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
   return it->second;
 }
 
-void TermDbSygus::clearSymBreakLemmas(Node e)
-{
-  d_enum_to_sb_lemmas.erase(e);
-}
+void TermDbSygus::clearSymBreakLemmas(Node e) { d_enum_to_sb_lemmas.erase(e); }
 
 bool TermDbSygus::isRegistered( TypeNode tn ) {
   return d_register.find( tn )!=d_register.end();
@@ -1155,7 +1162,7 @@ bool TermDbSygus::isTypeMatch( const DatatypeConstructor& c1, const DatatypeCons
 
 bool TermDbSygus::hasSubtermSymbolicCons(TypeNode tn) const
 {
-  return d_has_subterm_sym_cons.find(tn)!=d_has_subterm_sym_cons.end();
+  return d_has_subterm_sym_cons.find(tn) != d_has_subterm_sym_cons.end();
 }
 
 Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
@@ -1389,7 +1396,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       cc.insert( cc.end(), args.begin(), args.end() );
       pre[j] = NodeManager::currentNM()->mkNode( kind::APPLY_UF, cc );
     }
-    Node ret = mkGeneric( dt, i, pre );
+    Node ret = mkGeneric(dt, i, pre);
     // if it is a variable, apply the substitution
     if( ret.getKind()==kind::BOUND_VARIABLE ){
       Assert( ret.hasAttribute(SygusVarNumAttribute()) );

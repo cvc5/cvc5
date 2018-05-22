@@ -72,11 +72,11 @@ bool Cegis::processInitialize(Node n,
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
     bool do_repair_const = false;
-    if( options::sygusRepairConst() )
+    if (options::sygusRepairConst())
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);
-      if( d_tds->hasSubtermSymbolicCons(ctn))
+      if (d_tds->hasSubtermSymbolicCons(ctn))
       {
         do_repair_const = true;
         // remember that we are doing grammar-based repair
@@ -85,7 +85,8 @@ bool Cegis::processInitialize(Node n,
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, false, do_repair_const);
+    d_tds->registerEnumerator(
+        candidates[i], candidates[i], d_parent, false, do_repair_const);
   }
   return true;
 }
@@ -173,15 +174,15 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
   }
   // if we are using grammar-based repair
-  if( d_using_gr_repair )
+  if (d_using_gr_repair)
   {
     SygusRepairConst* src = d_parent->getRepairConst();
     Assert(src != nullptr);
     // check if any enum_values have symbolic terms that must be repaired
     bool mustRepair = false;
-    for( const Node& c : enum_values )
+    for (const Node& c : enum_values)
     {
-      if( SygusRepairConst::mustRepair(c) )
+      if (SygusRepairConst::mustRepair(c))
       {
         mustRepair = true;
         break;
@@ -189,30 +190,33 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
     Trace("cegis") << "...must repair is: " << mustRepair << std::endl;
     // if the solution contains a subterm that must be repaired
-    if( mustRepair )
+    if (mustRepair)
     {
       std::vector<Node> fail_cvs = enum_values;
       Assert(candidates.size() == fail_cvs.size());
-      if( src->repairSolution(candidates, fail_cvs, candidate_values) )
+      if (src->repairSolution(candidates, fail_cvs, candidate_values))
       {
         return true;
       }
       else
       {
-        // repair solution didn't work, exclude this solution 
-        std::vector< Node > exp;
-        for( unsigned i=0, size = enums.size(); i<size; i++ )
+        // repair solution didn't work, exclude this solution
+        std::vector<Node> exp;
+        for (unsigned i = 0, size = enums.size(); i < size; i++)
         {
-          d_tds->getExplain()->getExplanationForEquality(enums[i],enum_values[i], exp);
+          d_tds->getExplain()->getExplanationForEquality(
+              enums[i], enum_values[i], exp);
         }
-        Assert( !exp.empty() );
-        Node expn = exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( AND, exp );
-        lems.push_back( expn.negate() );
+        Assert(!exp.empty());
+        Node expn = exp.size() == 1
+                        ? exp[0]
+                        : NodeManager::currentNM()->mkNode(AND, exp);
+        lems.push_back(expn.negate());
         return false;
       }
     }
   }
-  
+
   // evaluate on refinement lemmas
   bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
 
@@ -240,7 +244,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   }
   return true;
 }
-  
+
 bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
                                        const std::vector<Node>& enum_values,
                                        const std::vector<Node>& candidates,

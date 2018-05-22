@@ -164,11 +164,11 @@ class Cegis : public SygusModule
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
-  
+
   //---------------------------------for sygus repair
   /** are we using grammar-based repair? */
   bool d_using_gr_repair;
-  
+
   //---------------------------------end for sygus repair
 };
 
