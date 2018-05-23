@@ -656,6 +656,22 @@ class CVC4_PUBLIC SmtEngine {
   void printSynthSolution( std::ostream& out );
 
   /**
+   * Get synth solution
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * Specifically, given a sygus conjecture of the form
+   *   exists x1...xn. forall y1...yn. P( x1...xn, y1...yn )
+   * where x1...xn are second order bound variables, we map each xi to
+   * lambda term in sol_map such that
+   *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
+   * is a valid formula.
+   */
+  void getSynthSolutions(std::map<Expr, Expr>& sol_map);
+
+  /**
    * Do quantifier elimination.
    *
    * This function takes as input a quantified formula e

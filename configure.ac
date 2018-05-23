@@ -1610,6 +1610,7 @@ GLPK         : $with_glpk
 LFSC         : $with_lfsc
 MP library   : $mplibrary
 Readline     : $with_readline
+SymFPU       : $with_symfpu
 
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS

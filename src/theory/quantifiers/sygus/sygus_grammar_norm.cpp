@@ -20,6 +20,7 @@
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -104,6 +105,33 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
                 sygus_norm->d_sygus_vars.toExpr(),
                 dt.getSygusAllowConst(),
                 dt.getSygusAllowAll());
+  if (dt.getSygusAllowConst())
+  {
+    TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
+    // must be handled by counterexample-guided instantiation
+    // don't do it for Boolean (not worth the trouble, since it has only
+    // minimal gain (1 any constant vs 2 constructors for true/false), and
+    // we need to do a lot of special symmetry breaking, e.g. for ensuring
+    // any constant constructors are not the 1st children of ITEs.
+    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED
+        && !sygus_type.isBoolean())
+    {
+      Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
+      // add an "any constant" proxy variable
+      Node av = NodeManager::currentNM()->mkSkolem("_any_constant", sygus_type);
+      // mark that it represents any constant
+      SygusAnyConstAttribute saca;
+      av.setAttribute(saca, true);
+      std::stringstream ss;
+      ss << d_unres_tn << "_any_constant";
+      std::string cname(ss.str());
+      std::vector<Type> empty_arg_types;
+      // we add this constructor first since we use left associative chains
+      // and our symmetry breaking should group any constants together
+      // beneath the same application
+      d_dt.addSygusConstructor(av.toExpr(), cname, empty_arg_types);
+    }
+  }
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
   {
     d_dt.addSygusConstructor(d_ops[i].toExpr(),
