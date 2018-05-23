@@ -610,9 +610,9 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
     }else if( pk==ITE ){
       if( arg==0 ){
         if( c==max_c ){
-          rt.d_children[2].d_req_type = tnp;
-        }else if( c==zero_c ){
           rt.d_children[1].d_req_type = tnp;
+        }else if( c==zero_c ){
+          rt.d_children[2].d_req_type = tnp;
         }
       }
     }else if( pk==STRING_SUBSTR ){
