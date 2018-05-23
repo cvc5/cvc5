@@ -483,7 +483,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             }
             // this code adds simple symmetry breaking predicates of the form
             // d.i != d.j, for example if we are considering an ITE constructor,
-            // we enforce that d.1 != d.2 since otherwise the ITE can be 
+            // we enforce that d.1 != d.2 since otherwise the ITE can be
             // simplified.
             for( unsigned i=0; i<deq_child[0].size(); i++ ){
               unsigned c1 = deq_child[0][i];

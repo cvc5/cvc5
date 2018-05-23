@@ -206,9 +206,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
             enums[i], enum_values[i], exp);
       }
       Assert(!exp.empty());
-      Node expn = exp.size() == 1
-                      ? exp[0]
-                      : NodeManager::currentNM()->mkNode(AND, exp);
+      Node expn =
+          exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
       lems.push_back(expn.negate());
       return false;
     }
