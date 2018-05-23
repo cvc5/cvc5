@@ -594,8 +594,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
           // if this type admits any constant, then at least one of my children
           // must not be the "any constant" constructor
           unsigned dt_index_nargs = dt[tindex].getNumArgs();
-          int tn_ac = d_tds->getAnyConstantConsNum(tn);
-          if (tn_ac != -1 && dt_index_nargs > 0)
+          if (dt.getSygusAllowConst() && dt_index_nargs > 0)
           {
             std::vector<Node> exp_all_anyc;
             bool success = true;
