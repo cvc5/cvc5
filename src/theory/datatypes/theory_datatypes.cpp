@@ -65,8 +65,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   //d_equalityEngine.addFunctionKind(kind::DT_SIZE);
   //d_equalityEngine.addFunctionKind(kind::DT_HEIGHT_BOUND);
-  //d_equalityEngine.addFunctionKind(kind::DT_SYGUS_TERM_ORDER);
-  //d_equalityEngine.addFunctionKind(kind::DT_SYGUS_IS_CONST);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
   //d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
@@ -530,6 +528,8 @@ void TheoryDatatypes::finishInit() {
     quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
     Assert( tds!=NULL );
     d_sygus_sym_break = new SygusSymBreakNew( this, tds, getSatContext() );
+    // do congruence on evaluation functions
+    d_equalityEngine.addFunctionKind(kind::DT_SYGUS_EVAL);
   }
 }
 

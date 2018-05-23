@@ -26,6 +26,11 @@
 
 namespace CVC4 {
 namespace theory {
+  
+/** sygus var num */
+struct SygusVarNumAttributeId {};
+typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
+
 namespace datatypes {
 
 class DatatypesRewriter {
@@ -102,7 +107,14 @@ public:
   *   C( x, y ) and z
   */
  static bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
-
+  /** make sygus term
+   *
+   * This function returns a builtin term f( children[0], ..., children[n] ) 
+   * where f is the builtin op of the i^th constructor of sygus datatype dt.
+   */
+  static Node mkSygusTerm(const Datatype& dt,
+                          unsigned i,
+                          std::vector< Node >& children);
 private:
  /** rewrite constructor term in */
  static RewriteResponse rewriteConstructor(TNode in);

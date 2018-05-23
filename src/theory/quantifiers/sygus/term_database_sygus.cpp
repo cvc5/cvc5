@@ -17,6 +17,7 @@
 #include "base/cvc4_check.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/term_database.h"
@@ -146,12 +147,12 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << op << " " << op.getKind() << "..." << std::endl;
   for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
   {
-    TypeNode tna = getArgType( dt[c], i );
     Node a;
     std::map< int, Node >::iterator it = pre.find( i );
     if( it!=pre.end() ){
       a = it->second;
     }else{
+      TypeNode tna = TypeNode::fromType(dt[c].getArgType(i));
       a = getFreeVarInc( tna, var_count, true );
     }
     Trace("sygus-db-debug")
@@ -1443,7 +1444,6 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
     for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
       std::vector< Node > cc;
       //get the evaluation argument for the selector
-      Type rt = dt[i][j].getRangeType();
       const Datatype & ad = ((DatatypeType)dt[i][j].getRangeType()).getDatatype();
       cc.push_back( Node::fromExpr( ad.getSygusEvaluationFunc() ) );
       Node s;

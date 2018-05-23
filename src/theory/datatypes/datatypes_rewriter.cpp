@@ -16,6 +16,9 @@
 
 #include "theory/datatypes/datatypes_rewriter.h"
 
+using namespace CVC4;
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
@@ -105,7 +108,39 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-
+  else if (k==kind::DT_SYGUS_EVAL)
+  {
+    // sygus evaluation function
+    Node ev = in[0];
+    if( ev.getKind()==kind::APPLY_CONSTRUCTOR )
+    {
+      NodeManager * nm = NodeManager::currentNM();
+      std::vector< Node > args;
+      for( unsigned i=1, nchild = in.getNumChildren(); i<nchild; i++ ){
+        args.push_back( in[i] );
+      }
+      const Datatype& dt = static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
+      unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
+      Assert( !dt.isParametric() );
+      std::vector< Node > children;
+      for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
+        std::vector< Node > cc;
+        cc.push_back( in[0][j] );
+        cc.insert( cc.end(), args.begin(), args.end() );
+        children.push_back( nm->mkNode( kind::DT_SYGUS_EVAL, cc ) );
+      }
+      Node ret = mkSygusTerm(dt, i, children);
+      // if it is a variable, apply the substitution
+      if( ret.getKind()==kind::BOUND_VARIABLE ){
+        Assert( ret.hasAttribute(SygusVarNumAttribute()) );
+        int i = ret.getAttribute(SygusVarNumAttribute());
+        Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
+        ret = args[i];
+      }
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+  
   if (k == kind::EQUAL)
   {
     if (in[0] == in[1])
@@ -136,6 +171,61 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
 
   return RewriteResponse(REWRITE_DONE, in);
+}
+
+Kind getOperatorKindForSygusBuiltin( Node op ) {
+  Assert( op.getKind()!=BUILTIN );
+  if (op.getKind() == LAMBDA)
+  {
+    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
+    // does beta-reduction but does not for APPLY
+    return APPLY_UF;
+  }else{
+    TypeNode tn = op.getType();
+    if( tn.isConstructor() ){
+      return APPLY_CONSTRUCTOR;
+    }
+    else if (tn.isSelector())
+    {
+      return APPLY_SELECTOR;
+    }
+    else if (tn.isTester())
+    {
+      return APPLY_TESTER;
+    }
+    else if (tn.isFunction())
+    {
+      return APPLY_UF;
+    }
+    return NodeManager::operatorToKind(op);
+  }
+}
+
+Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
+                unsigned i,
+                std::vector< Node >& children)
+{
+  Assert(i < dt.getNumConstructors());
+  Assert( dt.isSygus() );
+  Assert( !dt[i].getSygusOp().isNull() );
+  std::vector< Node > schildren;
+  Node op = Node::fromExpr( dt[i].getSygusOp() );
+  if( op.getKind()!=BUILTIN ){
+    schildren.push_back( op );
+  }
+  schildren.insert(schildren.end(),children.begin(), children.end());
+  Node ret;
+  if( op.getKind()==BUILTIN ){
+    ret = NodeManager::currentNM()->mkNode( op, schildren );
+  }else{
+    Kind ok = getOperatorKindForSygusBuiltin( op );
+    if( schildren.size()==1 && ok==kind::UNDEFINED_KIND ){
+      ret = schildren[0];
+    }else{
+      ret = NodeManager::currentNM()->mkNode( ok, schildren );
+    }
+  }
+  return ret;
 }
 
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)
