@@ -341,8 +341,10 @@ public:
     }
     return true;
   }
-  bool empty() {
-    return d_req_kind==UNDEFINED_KIND && d_req_const.isNull() && d_req_type.isNull();
+  bool empty()
+  {
+    return d_req_kind == UNDEFINED_KIND && d_req_const.isNull()
+           && d_req_type.isNull() && d_children.empty();
   }
 };
 
