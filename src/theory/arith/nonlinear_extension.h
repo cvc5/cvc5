@@ -690,7 +690,7 @@ class NonlinearExtension {
    * returns true, then l and u are updated to constants such that
    *   l <= sqrt( c ) <= u
    * The argument iter is the number of iterations in the binary search to
-   * perform. By default, this is set ot 15, which is usually enough to be
+   * perform. By default, this is set to 15, which is usually enough to be
    * precise in the majority of simple cases, whereas not prohibitively
    * expensive to compute.
    */
