@@ -662,8 +662,12 @@ bool SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d,
         // class
         // is it equivalent under examples?
         Node bvr_equiv;
-        if (aconj->getPbe()->hasExamples(a)) {
-          bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+        if (options::sygusSymBreakPbe())
+        {
+          if (aconj->getPbe()->hasExamples(a))
+          {
+            bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+          }
         }
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
@@ -1118,7 +1122,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   Trace("sygus-sb") << " SygusSymBreakNew::check: finished." << std::endl;
   
   if( Trace.isOn("cegqi-engine") ){
-    if( lemmas.empty() ){
+    if (lemmas.empty() && !d_szinfo.empty())
+    {
       Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
       for( std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.begin(); it != d_szinfo.end(); ++it ){
         SearchSizeInfo * s = it->second;

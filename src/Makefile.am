@@ -62,6 +62,10 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/passes/bv_abstraction.cpp \
+	preprocessing/passes/bv_abstraction.h \
+	preprocessing/passes/bv_ackermann.cpp \
+	preprocessing/passes/bv_ackermann.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
@@ -76,6 +80,10 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
+	preprocessing/passes/static_learning.cpp \
+	preprocessing/passes/static_learning.h \
+	preprocessing/passes/symmetry_breaker.cpp \
+	preprocessing/passes/symmetry_breaker.h \
 	preprocessing/passes/symmetry_detect.cpp \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/preprocessing_pass.cpp \
@@ -473,6 +481,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_pbe.h \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.h \
+	theory/quantifiers/sygus/sygus_eval_unfold.cpp \
+	theory/quantifiers/sygus/sygus_eval_unfold.h \
 	theory/quantifiers/sygus/sygus_explain.cpp \
 	theory/quantifiers/sygus/sygus_explain.h \
 	theory/quantifiers/sygus/sygus_invariance.cpp \
@@ -487,6 +497,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_module.h \
 	theory/quantifiers/sygus/sygus_process_conj.cpp \
 	theory/quantifiers/sygus/sygus_process_conj.h \
+	theory/quantifiers/sygus/sygus_repair_const.cpp \
+	theory/quantifiers/sygus/sygus_repair_const.h \
 	theory/quantifiers/sygus/sygus_unif.cpp \
 	theory/quantifiers/sygus/sygus_unif.h \
 	theory/quantifiers/sygus/sygus_unif_io.cpp \

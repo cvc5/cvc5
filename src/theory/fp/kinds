@@ -283,4 +283,28 @@ operator FLOATINGPOINT_TO_REAL_TOTAL 2 "floating-point to real (defined for all 
 typerule FLOATINGPOINT_TO_REAL_TOTAL   ::CVC4::theory::fp::FloatingPointToRealTotalTypeRule
 
 
+
+operator FLOATINGPOINT_COMPONENT_NAN 1 "NaN component of a word-blasted floating-point number"
+typerule FLOATINGPOINT_COMPONENT_NAN   ::CVC4::theory::fp::FloatingPointComponentBit
+
+operator FLOATINGPOINT_COMPONENT_INF 1 "Inf component of a word-blasted floating-point number"
+typerule FLOATINGPOINT_COMPONENT_INF   ::CVC4::theory::fp::FloatingPointComponentBit
+
+operator FLOATINGPOINT_COMPONENT_ZERO 1 "Zero component of a word-blasted floating-point number"
+typerule FLOATINGPOINT_COMPONENT_ZERO   ::CVC4::theory::fp::FloatingPointComponentBit
+
+operator FLOATINGPOINT_COMPONENT_SIGN 1 "Sign component of a word-blasted floating-point number"
+typerule FLOATINGPOINT_COMPONENT_SIGN   ::CVC4::theory::fp::FloatingPointComponentBit
+
+operator FLOATINGPOINT_COMPONENT_EXPONENT 1 "Exponent component of a word-blasted floating-point number"
+typerule FLOATINGPOINT_COMPONENT_EXPONENT   ::CVC4::theory::fp::FloatingPointComponentExponent
+
+operator FLOATINGPOINT_COMPONENT_SIGNIFICAND 1 "Significand component of a word-blasted floating-point number"
+typerule FLOATINGPOINT_COMPONENT_SIGNIFICAND   ::CVC4::theory::fp::FloatingPointComponentSignificand
+
+
+operator ROUNDINGMODE_BITBLAST 1 "The bit-vector for a non-deterministic rounding mode"
+typerule ROUNDINGMODE_BITBLAST    ::CVC4::theory::fp::RoundingModeBitBlast
+
+
 endtheory

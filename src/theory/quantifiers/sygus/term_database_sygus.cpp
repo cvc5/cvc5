@@ -34,7 +34,8 @@ namespace quantifiers {
 TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_syexp(new SygusExplain(this)),
-      d_ext_rw(new ExtendedRewriter(true))
+      d_ext_rw(new ExtendedRewriter(true)),
+      d_eval_unfold(new SygusEvalUnfold(this))
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -104,7 +105,28 @@ bool TermDbSygus::hasFreeVar( Node n ) {
   std::map< Node, bool > visited;
   return hasFreeVar( n, visited );
 }
-  
+
+Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
+{
+  Assert(tn.isDatatype());
+  Assert(static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus());
+  Assert(
+      TypeNode::fromType(
+          static_cast<DatatypeType>(tn.toType()).getDatatype().getSygusType())
+          .isComparableTo(c.getType()));
+
+  std::map<Node, Node>::iterator it = d_proxy_vars[tn].find(c);
+  if (it == d_proxy_vars[tn].end())
+  {
+    Node k = NodeManager::currentNM()->mkSkolem("sy", tn, "sygus proxy");
+    SygusPrintProxyAttribute spa;
+    k.setAttribute(spa, c);
+    d_proxy_vars[tn][c] = k;
+    return k;
+  }
+  return it->second;
+}
+
 TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
   Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
   return d_fv_stype[v];
@@ -264,11 +286,15 @@ public:
       }
     }
     if( !d_req_type.isNull() ){
+      Trace("sygus-sb-debug") << "- check if " << tn << " is type "
+                              << d_req_type << std::endl;
       if( tn!=d_req_type ){
         return false;
       }
     }
     if( d_req_kind!=UNDEFINED_KIND ){
+      Trace("sygus-sb-debug") << "- check if " << tn << " has " << d_req_kind
+                              << std::endl;
       int c = tdb->getKindConsNum( tn, d_req_kind );
       if( c!=-1 ){
         bool ret = true;
@@ -306,22 +332,37 @@ bool TermDbSygus::considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, i
   const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
   Assert( hasKind( tn, k ) );
   Assert( hasKind( tnp, pk ) );
-  Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk << ", arg = " << arg << "?" << std::endl;
+  Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk
+                          << ", arg = " << arg << " in " << tnp << "?"
+                          << std::endl;
   int c = getKindConsNum( tn, k );
   int pc = getKindConsNum( tnp, pk );
-  if( k==pk ){
     //check for associativity
-    if( quantifiers::TermUtil::isAssoc( k ) ){
-      //if the operator is associative, then a repeated occurrence should only occur in the leftmost argument position
-      int firstArg = getFirstArgOccurrence( pdt[pc], tn );
-      Assert( firstArg!=-1 );
-      if( arg!=firstArg ){
-        Trace("sygus-sb-simple") << "  sb-simple : do not consider " << k << " at child arg " << arg << " of " << k << " since it is associative, with first arg = " << firstArg << std::endl;
-        return false;
-      }else{
+  if (k == pk && quantifiers::TermUtil::isAssoc(k))
+  {
+    // if the operator is associative, then a repeated occurrence should only
+    // occur in the leftmost argument position
+    int firstArg = getFirstArgOccurrence(pdt[pc], tn);
+    Assert(firstArg != -1);
+    if (arg == firstArg)
+    {
+      return true;
+    }
+    // the argument types of the child must be the parent's type
+    for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
+    {
+      TypeNode tn = TypeNode::fromType(dt[c].getArgType(i));
+      if (tn != tnp)
+      {
         return true;
       }
     }
+    Trace("sygus-sb-simple")
+        << "  sb-simple : do not consider " << k << " at child arg " << arg
+        << " of " << k
+        << " since it is associative, with first arg = " << firstArg
+        << std::endl;
+    return false;
   }
   //describes the shape of an alternate term to construct
   //  we check whether this term is in the sygus grammar below
@@ -645,6 +686,14 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
         }else{
           // no arguments to synthesis functions
         }
+        // register connected types
+        for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+        {
+          for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+          {
+            registerSygusType(getArgType(dt[i], j));
+          }
+        }
         //iterate over constructors
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           Expr sop = dt[i].getSygusOp();
@@ -661,6 +710,26 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
           }
+          else if (sop.getKind() == LAMBDA)
+          {
+            // do type checking
+            Assert(sop[0].getNumChildren() == dt[i].getNumArgs());
+            for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+            {
+              TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
+              TypeNode cbt = sygusToBuiltinType(ct);
+              TypeNode lat = TypeNode::fromType(sop[0][j].getType());
+              CVC4_CHECK(cbt.isSubtypeOf(lat))
+                  << "In sygus datatype " << dt.getName()
+                  << ", argument to a lambda constructor is not " << lat
+                  << std::endl;
+            }
+          }
+          // TODO (as part of #1170): we still do not properly catch type
+          // errors in sygus grammars for arguments of builtin operators.
+          // The challenge is that we easily ask for expected argument types of
+          // builtin operators e.g. PLUS. Hence the call to mkGeneric below
+          // will throw a type exception.
           d_ops[tn][n] = i;
           d_arg_ops[tn][i] = n;
           Trace("sygus-db") << std::endl;
@@ -674,12 +743,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
               << "Sygus datatype " << dt.getName()
               << " encodes terms that are not of type " << btn << std::endl;
         }
-        //register connected types
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-            registerSygusType( getArgType( dt[i], j ) );
-          }
-        }
       }
     }
   }
@@ -690,8 +753,14 @@ void TermDbSygus::registerEnumerator(Node e,
                                      CegConjecture* conj,
                                      bool mkActiveGuard)
 {
-  Assert(d_enum_to_conjecture.find(e) == d_enum_to_conjecture.end());
-  Trace("sygus-db") << "Register measured term : " << e << std::endl;
+  if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
+  {
+    // already registered
+    return;
+  }
+  Trace("sygus-db") << "Register enumerator : " << e << std::endl;
+  // register its type
+  registerSygusType(e.getType());
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
   if( mkActiveGuard ){
@@ -1007,10 +1076,11 @@ bool TermDbSygus::isConstArg( TypeNode tn, int i ) {
   }
 }
 
-TypeNode TermDbSygus::getArgType(const DatatypeConstructor& c, unsigned i)
+TypeNode TermDbSygus::getArgType(const DatatypeConstructor& c, unsigned i) const
 {
   Assert(i < c.getNumArgs());
-  return TypeNode::fromType( ((SelectorType)c[i].getType()).getRangeType() );
+  return TypeNode::fromType(
+      static_cast<SelectorType>(c[i].getType()).getRangeType());
 }
 
 /** get first occurrence */
@@ -1218,160 +1288,6 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
   }
 }
 
-
-void TermDbSygus::registerEvalTerm( Node n ) {
-  if( options::sygusDirectEval() ){
-    if( n.getKind()==APPLY_UF && !n.getType().isBoolean() ){
-      TypeNode tn = n[0].getType();
-      if( tn.isDatatype() ){
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        if( dt.isSygus() ){
-          Node f = n.getOperator();
-          if( n[0].getKind()!=APPLY_CONSTRUCTOR ){
-            if (d_eval_processed.find(n) == d_eval_processed.end())
-            {
-              Trace("sygus-eager")
-                  << "TermDbSygus::eager: Register eval term : " << n
-                  << std::endl;
-              d_eval_processed.insert(n);
-              d_evals[n[0]].push_back(n);
-              TypeNode tn = n[0].getType();
-              Assert(tn.isDatatype());
-              const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-              Node var_list = Node::fromExpr(dt.getSygusVarList());
-              Assert(dt.isSygus());
-              d_eval_args[n[0]].push_back(std::vector<Node>());
-              bool isConst = true;
-              for (unsigned j = 1; j < n.getNumChildren(); j++)
-              {
-                d_eval_args[n[0]].back().push_back(n[j]);
-                if (!n[j].isConst())
-                {
-                  isConst = false;
-                }
-              }
-              d_eval_args_const[n[0]].push_back(isConst);
-              Node a = getAnchor(n[0]);
-              d_subterms[a][n[0]] = true;
-            }
-          }
-        }
-      }    
-    }
-  }
-}
-
-void TermDbSygus::registerModelValue( Node a, Node v, std::vector< Node >& terms, std::vector< Node >& vals, std::vector< Node >& exps ) {
-  std::map< Node, std::map< Node, bool > >::iterator its = d_subterms.find( a );
-  if( its!=d_subterms.end() ){
-    Trace("sygus-eager") << "registerModelValue : " << a << ", has " << its->second.size() << " registered subterms." << std::endl;
-    for( std::map< Node, bool >::iterator itss = its->second.begin(); itss != its->second.end(); ++itss ){
-      Node n = itss->first;
-      Trace("sygus-eager-debug") << "...process : " << n << std::endl;
-      std::map< Node, std::vector< std::vector< Node > > >::iterator it = d_eval_args.find( n );
-      if( it!=d_eval_args.end() && !it->second.empty() ){
-        TNode at = a;
-        TNode vt = v;
-        Node vn = n.substitute( at, vt );
-        vn = Rewriter::rewrite( vn );
-        unsigned start = d_node_mv_args_proc[n][vn];
-        // get explanation in terms of testers
-        std::vector< Node > antec_exp;
-        d_syexp->getExplanationForEquality(n, vn, antec_exp);
-        Node antec = antec_exp.size()==1 ? antec_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
-        //Node antec = n.eqNode( vn );
-        TypeNode tn = n.getType();
-        Assert( tn.isDatatype() );
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        Assert( dt.isSygus() );
-        Trace("sygus-eager") << "TermDbSygus::eager: Register model value : " << vn << " for " << n << std::endl;
-        Trace("sygus-eager") << "...it has " << it->second.size() << " evaluations, already processed " << start << "." << std::endl;
-        Node bTerm = sygusToBuiltin( vn, tn );
-        Trace("sygus-eager") << "Built-in term : " << bTerm << std::endl;
-        std::vector< Node > vars;
-        Node var_list = Node::fromExpr( dt.getSygusVarList() );
-        for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
-          vars.push_back( var_list[j] );
-        }
-        //evaluation children
-        std::vector< Node > eval_children;
-        eval_children.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
-        eval_children.push_back( n );
-        //for each evaluation
-        for( unsigned i=start; i<it->second.size(); i++ ){
-          Node res;
-          Node expn;
-          // unfold?
-          bool do_unfold = false;
-          if( options::sygusUnfoldBool() ){
-            if( bTerm.getKind()==ITE || bTerm.getType().isBoolean() ){
-              do_unfold = true;
-            }
-          }
-          if( do_unfold ){
-            // TODO : this is replicated for different values, possibly do better caching
-            std::map< Node, Node > vtm; 
-            std::vector< Node > exp;
-            vtm[n] = vn;
-            eval_children.insert( eval_children.end(), it->second[i].begin(), it->second[i].end() );
-            Node eval_fun = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
-            eval_children.resize( 2 );  
-            res = unfold( eval_fun, vtm, exp );
-            expn = exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( kind::AND, exp );
-          }else{
-
-            EvalSygusInvarianceTest esit;
-            eval_children.insert( eval_children.end(), it->second[i].begin(), it->second[i].end() );
-            Node conj =
-                NodeManager::currentNM()->mkNode(kind::APPLY_UF, eval_children);
-            eval_children[1] = vn;
-            Node eval_fun = NodeManager::currentNM()->mkNode( kind::APPLY_UF, eval_children );
-            res = evaluateWithUnfolding(eval_fun);
-            esit.init(conj, n, res);
-            eval_children.resize( 2 );  
-            eval_children[1] = n;
-            
-            //evaluate with minimal explanation
-            std::vector< Node > mexp;
-            d_syexp->getExplanationFor(n, vn, mexp, esit);
-            Assert( !mexp.empty() );
-            expn = mexp.size()==1 ? mexp[0] : NodeManager::currentNM()->mkNode( kind::AND, mexp );
-            
-            //if all constant, we can use evaluation to minimize the explanation
-            //Assert( i<d_eval_args_const[n].size() );
-            //if( d_eval_args_const[n][i] ){
-              /*
-              std::map< Node, Node > vtm; 
-              std::map< Node, Node > visited; 
-              std::map< Node, std::vector< Node > > exp;
-              vtm[n] = vn;
-              res = crefEvaluate( eval_fun, vtm, visited, exp );
-              Assert( !exp[eval_fun].empty() );
-              expn = exp[eval_fun].size()==1 ? exp[eval_fun][0] : NodeManager::currentNM()->mkNode( kind::AND, exp[eval_fun] );
-              */
-              /*
-            //otherwise, just do a substitution
-            }else{
-              Assert( vars.size()==it->second[i].size() );
-              res = bTerm.substitute( vars.begin(), vars.end(), it->second[i].begin(), it->second[i].end() );
-              res = Rewriter::rewrite( res );
-              expn = antec;
-            }
-            */
-          }
-          Assert( !res.isNull() );
-          terms.push_back( d_evals[n][i] );
-          vals.push_back( res );
-          exps.push_back( expn );
-          Trace("sygus-eager") << "Conclude : " << d_evals[n][i] << " == " << res << ", cref eval = " << d_eval_args_const[n][i] << std::endl;
-          Trace("sygus-eager") << "   from " << expn << std::endl;
-        }
-        d_node_mv_args_proc[n][vn] = it->second.size();
-      }
-    }
-  }
-}
-
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
   if( en.getKind()==kind::APPLY_UF ){
     Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
@@ -1554,6 +1470,33 @@ Node TermDbSygus::evaluateWithUnfolding(
 Node TermDbSygus::evaluateWithUnfolding( Node n ) {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
   return evaluateWithUnfolding( n, visited );
+}
+
+bool TermDbSygus::isEvaluationPoint(Node n) const
+{
+  if (n.getKind() != APPLY_UF || n.getNumChildren() == 0 || !n[0].isVar())
+  {
+    return false;
+  }
+  for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+  {
+    if (!n[i].isConst())
+    {
+      return false;
+    }
+  }
+  TypeNode tn = n[0].getType();
+  if (!tn.isDatatype())
+  {
+    return false;
+  }
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  if (!dt.isSygus())
+  {
+    return false;
+  }
+  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
+  return eval_op == n.getOperator();
 }
 
 }/* CVC4::theory::quantifiers namespace */

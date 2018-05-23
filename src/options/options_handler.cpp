@@ -1693,6 +1693,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());
+  print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
   print_config_cond("tls", Configuration::isBuiltWithTlsSupport());
   
   exit(0);

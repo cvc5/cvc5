@@ -113,6 +113,14 @@ header = "options/datatypes_options.h"
   help       = "dynamic sygus sym break lemmas"
 
 [[option]]
+  name       = "sygusSymBreakPbe"
+  category   = "regular"
+  long       = "sygus-sym-break-pbe"
+  type       = "bool"
+  default    = "true"
+  help       = "sygus sym break lemmas based on pbe conjectures"
+  
+[[option]]
   name       = "sygusOpt1"
   category   = "regular"
   long       = "sygus-opt1"

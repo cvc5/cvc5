@@ -55,7 +55,8 @@ static void printFpParameterizedOp(std::ostream& out, TNode n);
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
-                             bool decimal);
+                             bool decimal,
+                             Variant v);
 
 void Smt2Printer::toStream(
     std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
@@ -204,29 +205,8 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
-      if(d_variant == sygus_variant ){
-        if(r < 0) {
-          out << "-" << -r;
-        }else{
-          toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger());
-        }
-      }else{
-        toStreamRational(out, r, !force_nt.isNull() && !force_nt.isInteger());
-      }
-      // Rational r = n.getConst<Rational>();
-      // if(r < 0) {
-      //   if(r.isIntegral()) {
-      //     out << "(- " << -r << ')';
-      //   } else {
-      //     out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
-      //   }
-      // } else {
-      //   if(r.isIntegral()) {
-      //     out << r;
-      //   } else {
-      //     out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
-      //   }
-      // }
+      toStreamRational(
+          out, r, !force_nt.isNull() && !force_nt.isInteger(), d_variant);
       break;
     }
 
@@ -322,30 +302,51 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if (!force_nt.isNull())
+  // determine if we are printing out a type ascription, store the argument of
+  // the type ascription into type_asc_arg.
+  Node type_asc_arg;
+  if (n.getKind() == kind::APPLY_TYPE_ASCRIPTION)
   {
-    if (n.getType() != force_nt)
+    force_nt = TypeNode::fromType(
+        n.getOperator().getConst<AscriptionType>().getType());
+    type_asc_arg = n[0];
+  }
+  else if (!force_nt.isNull() && n.getType() != force_nt)
+  {
+    type_asc_arg = n;
+  }
+  if (!type_asc_arg.isNull())
+  {
+    if (force_nt.isReal())
     {
-      if (force_nt.isReal())
+      // we prefer using (/ x 1) instead of (to_real x) here.
+      // the reason is that (/ x 1) is SMT-LIB compliant when x is a constant
+      // or the logic is non-linear, whereas (to_real x) is compliant when
+      // the logic is mixed int/real. The former occurs more frequently.
+      bool is_int = force_nt.isInteger();
+      out << "("
+          << smtKindString(is_int ? kind::TO_INTEGER : kind::DIVISION,
+                           d_variant)
+          << " ";
+      toStream(out, type_asc_arg, toDepth, types, TypeNode::null());
+      if (!is_int)
       {
-        out << "(" << smtKindString(force_nt.isInteger() ? kind::TO_INTEGER
-                                                         : kind::TO_REAL,
-                                    d_variant)
-            << " ";
-        toStream(out, n, toDepth, types, TypeNode::null());
-        out << ")";
+        out << " 1";
       }
-      else
-      {
-        Node nn = NodeManager::currentNM()->mkNode(
-            kind::APPLY_TYPE_ASCRIPTION,
-            NodeManager::currentNM()->mkConst(
-                AscriptionType(force_nt.toType())),
-            n);
-        toStream(out, nn, toDepth, types, TypeNode::null());
-      }
-      return;
+      out << ")";
     }
+    else
+    {
+      // use type ascription
+      out << "(as ";
+      toStream(out,
+               type_asc_arg,
+               toDepth < 0 ? toDepth : toDepth - 1,
+               types,
+               TypeNode::null());
+      out << " " << force_nt << ")";
+    }
+    return;
   }
 
   // variable
@@ -636,6 +637,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::FLOATINGPOINT_ISNEG:
   case kind::FLOATINGPOINT_ISPOS:
   case kind::FLOATINGPOINT_TO_REAL:
+  case kind::FLOATINGPOINT_COMPONENT_NAN:
+  case kind::FLOATINGPOINT_COMPONENT_INF:
+  case kind::FLOATINGPOINT_COMPONENT_ZERO:
+  case kind::FLOATINGPOINT_COMPONENT_SIGN:
+  case kind::FLOATINGPOINT_COMPONENT_EXPONENT:
+  case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND:
+  case kind::ROUNDINGMODE_BITBLAST:
     out << smtKindString(k, d_variant) << ' ';
     break;
 
@@ -650,31 +658,6 @@ void Smt2Printer::toStream(std::ostream& out,
     printFpParameterizedOp(out, n);
     out << ' ';
     stillNeedToPrintParams = false;
-    break;
-
-    // datatypes
-  case kind::APPLY_TYPE_ASCRIPTION: {
-      TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
-      if(t.getKind() == kind::TYPE_CONSTANT &&
-         t.getConst<TypeConstant>() == REAL_TYPE &&
-         n[0].getType().isInteger()) {
-        // Special case, in model output integer constants that should be
-        // Real-sorted are wrapped in a type ascription.  Handle that here.
-
-        // Note: This is Tim making a guess about Morgan's Code.
-        Assert(n[0].getKind() == kind::CONST_RATIONAL);
-        toStreamRational(out, n[0].getConst<Rational>(), true);
-
-        //toStream(out, n[0], -1, false);
-        //out << ".0";
-
-        return;
-      }
-      out << "(as ";
-      toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
-      out << ' ' << (t.isFunctionLike() ? t.getRangeType() : t) << ')';
-      return;
-    }
     break;
 
     case kind::APPLY_CONSTRUCTOR:
@@ -1055,6 +1038,15 @@ static string smtKindString(Kind k, Variant v)
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
   case kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
+  case kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
+  case kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
+  case kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
+  case kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
+  case kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
+  case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
+  case kind::ROUNDINGMODE_BITBLAST:
+    return "RMBITBLAST";
+
   //string theory
   case kind::STRING_CONCAT: return "str.++";
   case kind::STRING_LENGTH: return v == z3str_variant ? "Length" : "str.len";
@@ -1333,111 +1325,6 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
 }
 
-namespace {
-
-void DeclareTypeCommandToStream(std::ostream& out,
-                                const theory::TheoryModel& model,
-                                const DeclareTypeCommand& command,
-                                Variant variant)
-{
-  TypeNode tn = TypeNode::fromType(command.getType());
-  const std::vector<Node>* type_refs = model.getRepSet()->getTypeRepsOrNull(tn);
-  if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
-  {
-    if (isVariant_2_6(variant))
-    {
-      out << "(declare-datatypes ((" << command.getSymbol() << " 0)) (";
-    }
-    else
-    {
-      out << "(declare-datatypes () ((" << command.getSymbol() << " ";
-    }
-    for (Node type_ref : *type_refs)
-    {
-      out << "(" << type_ref << ")";
-    }
-    out << ")))" << endl;
-  }
-  else if (tn.isSort() && type_refs != nullptr)
-  {
-    // print the cardinality
-    out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
-    out << command << endl;
-    // print the representatives
-    for (Node type_ref : *type_refs)
-    {
-      if (type_ref.isVar())
-      {
-        out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
-            << endl;
-      }
-      else
-      {
-        out << "; rep: " << type_ref << endl;
-      }
-    }
-  }
-  else
-  {
-    out << command << endl;
-  }
-}
-
-void DeclareFunctionCommandToStream(std::ostream& out,
-                                    const theory::TheoryModel& model,
-                                    const DeclareFunctionCommand& command)
-{
-  Node n = Node::fromExpr(command.getFunction());
-  if (command.getPrintInModelSetByUser())
-  {
-    if (!command.getPrintInModel())
-    {
-      return;
-    }
-  }
-  else if (n.getKind() == kind::SKOLEM)
-  {
-    // don't print out internal stuff
-    return;
-  }
-  Node val = Node::fromExpr(model.getSmtEngine()->getValue(n.toExpr()));
-  if (val.getKind() == kind::LAMBDA)
-  {
-    out << "(define-fun " << n << " " << val[0] << " "
-        << n.getType().getRangeType() << " " << val[1] << ")" << endl;
-  }
-  else
-  {
-    if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
-    {
-      TypeNode tn = val[1].getType();
-      const std::vector<Node>* type_refs =
-          model.getRepSet()->getTypeRepsOrNull(tn);
-      if (tn.isSort() && type_refs != nullptr)
-      {
-        Cardinality indexCard(type_refs->size());
-        val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
-            val, indexCard);
-      }
-    }
-    out << "(define-fun " << n << " () " << n.getType() << " ";
-    if (val.getType().isInteger() && n.getType().isReal()
-        && !n.getType().isInteger())
-    {
-      // toStreamReal(out, val, true);
-      toStreamRational(out, val.getConst<Rational>(), true);
-      // out << val << ".0";
-    }
-    else
-    {
-      out << val;
-    }
-    out << ")" << endl;
-  }
-}
-
-}  // namespace
-
 void Smt2Printer::toStream(std::ostream& out,
                            const Model& model,
                            const Command* command) const
@@ -1448,12 +1335,96 @@ void Smt2Printer::toStream(std::ostream& out,
   if (const DeclareTypeCommand* dtc =
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
-    DeclareTypeCommandToStream(out, *theory_model, *dtc, d_variant);
+    // print out the DeclareTypeCommand
+    TypeNode tn = TypeNode::fromType((*dtc).getType());
+    const std::vector<Node>* type_refs =
+        theory_model->getRepSet()->getTypeRepsOrNull(tn);
+    if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
+    {
+      if (isVariant_2_6(d_variant))
+      {
+        out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
+      }
+      else
+      {
+        out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
+      }
+      for (Node type_ref : *type_refs)
+      {
+        out << "(" << type_ref << ")";
+      }
+      out << ")))" << endl;
+    }
+    else if (tn.isSort() && type_refs != nullptr)
+    {
+      // print the cardinality
+      out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
+      out << (*dtc) << endl;
+      // print the representatives
+      for (Node type_ref : *type_refs)
+      {
+        if (type_ref.isVar())
+        {
+          out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
+              << endl;
+        }
+        else
+        {
+          out << "; rep: " << type_ref << endl;
+        }
+      }
+    }
+    else
+    {
+      out << (*dtc) << endl;
+    }
   }
   else if (const DeclareFunctionCommand* dfc =
                dynamic_cast<const DeclareFunctionCommand*>(command))
   {
-    DeclareFunctionCommandToStream(out, *theory_model, *dfc);
+    // print out the DeclareFunctionCommand
+    Node n = Node::fromExpr((*dfc).getFunction());
+    if ((*dfc).getPrintInModelSetByUser())
+    {
+      if (!(*dfc).getPrintInModel())
+      {
+        return;
+      }
+    }
+    else if (n.getKind() == kind::SKOLEM)
+    {
+      // don't print out internal stuff
+      return;
+    }
+    Node val =
+        Node::fromExpr(theory_model->getSmtEngine()->getValue(n.toExpr()));
+    if (val.getKind() == kind::LAMBDA)
+    {
+      out << "(define-fun " << n << " " << val[0] << " "
+          << n.getType().getRangeType() << " ";
+      // call toStream and force its type to be proper
+      toStream(out, val[1], -1, false, n.getType().getRangeType());
+      out << ")" << endl;
+    }
+    else
+    {
+      if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
+      {
+        TypeNode tn = val[1].getType();
+        const std::vector<Node>* type_refs =
+            theory_model->getRepSet()->getTypeRepsOrNull(tn);
+        if (tn.isSort() && type_refs != nullptr)
+        {
+          Cardinality indexCard(type_refs->size());
+          val = theory::arrays::TheoryArraysRewriter::normalizeConstant(
+              val, indexCard);
+        }
+      }
+      out << "(define-fun " << n << " () " << n.getType() << " ";
+      // call toStream and force its type to be proper
+      toStream(out, val, -1, false, n.getType());
+      out << ")" << endl;
+    }
   }
   else if (const DatatypeDeclarationCommand* datatype_declaration_command =
                dynamic_cast<const DatatypeDeclarationCommand*>(command))
@@ -1721,59 +1692,41 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   out << ")";
 }
 
-static void toStreamRational(std::ostream& out, const Rational& r, bool decimal)
+static void toStreamRational(std::ostream& out,
+                             const Rational& r,
+                             bool decimal,
+                             Variant v)
 {
   bool neg = r.sgn() < 0;
-
-  // TODO:
-  // We are currently printing (- (/ 5 3))
-  // instead of (/ (- 5) 3) which is what is in the SMT-LIB value in the theory definition.
-  // Before switching, I'll keep to what was there and send an email.
-
-  // Tim: Apologies for the ifs on one line but in this case they are cleaner.
-
-  if (neg) { out << "(- "; }
-
+  // Print the rational, possibly as decimal.
+  // Notice that we print (/ (- 5) 3) instead of (- (/ 5 3)),
+  // the former is compliant with real values in the smt lib standard.
   if(r.isIntegral()) {
-    if (neg) {
-      out << (-r);
-    }else {
+    if (neg)
+    {
+      out << (v == sygus_variant ? "-" : "(- ") << -r;
+    }
+    else
+    {
       out << r;
     }
     if (decimal) { out << ".0"; }
+    if (neg)
+    {
+      out << (v == sygus_variant ? "" : ")");
+    }
   }else{
     out << "(/ ";
     if(neg) {
       Rational abs_r = (-r);
-      out << abs_r.getNumerator();
-      if(decimal) { out << ".0"; }
-      out << ' ' << abs_r.getDenominator();
-      if(decimal) { out << ".0"; }
+      out << (v == sygus_variant ? "-" : "(- ") << abs_r.getNumerator();
+      out << (v == sygus_variant ? " " : ") ") << abs_r.getDenominator();
     }else{
       out << r.getNumerator();
-      if(decimal) { out << ".0"; }
       out << ' ' << r.getDenominator();
-      if(decimal) { out << ".0"; }
     }
     out << ')';
   }
-
-  if (neg) { out << ')';}
-
-  // if(r < 0) {
-  //   Rational abs_r = -r;
-  //   if(r.isIntegral()) {
-  //     out << "(- " << abs_r << ')';
-  //   } else {
-  //     out << "(- (/ " << (-r).getNumerator() << ' ' << (-r).getDenominator() << "))";
-  //   }
-  // } else {
-  //   if(r.isIntegral()) {
-  //         out << r;
-  //       } else {
-  //         out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
-  //       }
-  //     }
 }
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c)
@@ -1951,7 +1904,7 @@ static void toStream(std::ostream& out,
       const Datatype& d = i->getDatatype();
       out << "(";
       toStream(out, d);
-      out << ")" << endl;
+      out << ")";
     }
     out << ")";
   }
@@ -1966,11 +1919,11 @@ static void toStream(std::ostream& out,
       const Datatype& d = i->getDatatype();
       out << "(" << maybeQuoteSymbol(d.getName()) << " ";
       toStream(out, d);
-      out << ")" << endl;
+      out << ")";
     }
     out << ")";
   }
-  out << ")";
+  out << ")" << endl;
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c, Variant v)

@@ -487,6 +487,16 @@ void LogicInfo::setLogicString(std::string logicString)
       }
     }
   }
+
+  if (d_theories[THEORY_FP])
+  {
+    // THEORY_BV is needed for bit-blasting.
+    // We have to set this here rather than in expandDefinition as it
+    // is possible to create variables without any theory specific
+    // operations, so expandDefinition won't be called.
+    enableTheory(THEORY_BV);
+  }
+
   if(*p != '\0') {
     stringstream err;
     err << "LogicInfo::setLogicString(): ";

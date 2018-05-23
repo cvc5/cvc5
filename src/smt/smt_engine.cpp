@@ -69,12 +69,16 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/passes/bool_to_bv.h"
+#include "preprocessing/passes/bv_abstraction.h"
+#include "preprocessing/passes/bv_ackermann.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
+#include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -187,8 +191,6 @@ struct SmtEngineStatistics {
   IntStat d_numMiplibAssertionsRemoved;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
-  /** time spent in static learning */
-  TimerStat d_staticLearningTime;
   /** time spent in simplifying ITEs */
   TimerStat d_simpITETime;
   /** time spent in simplifying ITEs */
@@ -230,7 +232,6 @@ struct SmtEngineStatistics {
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
     d_numMiplibAssertionsRemoved("smt::SmtEngine::numMiplibAssertionsRemoved", 0),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-    d_staticLearningTime("smt::SmtEngine::staticLearningTime"),
     d_simpITETime("smt::SmtEngine::simpITETime"),
     d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
     d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
@@ -255,7 +256,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
     smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-    smtStatisticsRegistry()->registerStat(&d_staticLearningTime);
     smtStatisticsRegistry()->registerStat(&d_simpITETime);
     smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->registerStat(&d_iteRemovalTime);
@@ -281,7 +281,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
     smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-    smtStatisticsRegistry()->unregisterStat(&d_staticLearningTime);
     smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
     smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->unregisterStat(&d_iteRemovalTime);
@@ -612,10 +611,6 @@ public:
    * ite removal.
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
-
-  // Abstract common structure over small domains to UF
-  // return true if changes were made.
-  void bvAbstraction();
 
   // Simplify ITE structure
   bool simpITE();
@@ -1319,6 +1314,43 @@ void SmtEngine::setDefaults() {
       options::cbqiMidpoint.set(true);
     }
   }
+  else
+  {
+    // cannot use sygus repair constants
+    options::sygusRepairConst.set(false);
+  }
+
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Eager bit-blasting does not currently support incremental mode. "
+            "Try --bitblast=lazy"));
+      }
+      Notice() << "SmtEngine: turning off incremental to support eager "
+               << "bit-blasting" << endl;
+      setOption("incremental", SExpr("false"));
+    }
+    if (options::produceModels()
+        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+            || d_logic.isTheoryEnabled(THEORY_UF)))
+    {
+      if (options::bitblastMode.wasSetByUser()
+          || options::produceModels.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Eager bit-blasting currently does not support model generation "
+            "for the combination of bit-vectors with arrays or uinterpreted "
+            "functions. Try --bitblast=lazy"));
+      }
+      Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
+               << "generation" << endl;
+      setOption("bitblastMode", SExpr("lazy"));
+    }
+  }
 
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
@@ -1486,7 +1518,8 @@ void SmtEngine::setDefaults() {
 
   // cases where we need produce models
   if (!options::produceModels()
-      && (options::produceAssignments() || options::sygusRewSynthCheck()))
+      && (options::produceAssignments() || options::sygusRewSynthCheck()
+          || options::sygusRepairConst()))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -1532,7 +1565,8 @@ void SmtEngine::setDefaults() {
 
   // by default, symmetry breaker is on only for QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
-    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified() && !options::proof();
+    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified()
+                 && !options::proof() && !options::unsatCores();
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf << endl;
     options::ufSymmetryBreaker.set(qf_uf);
   }
@@ -1661,17 +1695,6 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
-  }
-
-
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      options::incrementalSolving()) {
-    if (options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
-                                         Try --bitblast=lazy"));
-    }
-    Notice() << "SmtEngine: turning off incremental to support eager bit-blasting" << endl;
-    setOption("incremental", SExpr("false"));
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&
@@ -1951,9 +1974,13 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // PBE and streaming modes are incompatible
-      if (!options::sygusPbe.wasSetByUser())
+      if (!options::sygusSymBreakPbe.wasSetByUser())
       {
-        options::sygusPbe.set(false);
+        options::sygusSymBreakPbe.set(false);
+      }
+      if (!options::sygusUnifPbe.wasSetByUser())
+      {
+        options::sygusUnifPbe.set(false);
       }
     }
     //do not allow partial functions
@@ -2588,6 +2615,10 @@ void SmtEnginePrivate::finishInit() {
   // actually assembling preprocessing pipelines).
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<BvAbstraction> bvAbstract(
+      new BvAbstraction(d_preprocessingPassContext.get()));
+  std::unique_ptr<BVAckermann> bvAckermann(
+      new BVAckermann(d_preprocessingPassContext.get()));
   std::unique_ptr<BVGauss> bvGauss(
       new BVGauss(d_preprocessingPassContext.get()));
   std::unique_ptr<BvIntroPow2> bvIntroPow2(
@@ -2600,7 +2631,15 @@ void SmtEnginePrivate::finishInit() {
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
+  std::unique_ptr<StaticLearning> staticLearning(
+      new StaticLearning(d_preprocessingPassContext.get()));
+  std::unique_ptr<SymBreakerPass> sbProc(
+      new SymBreakerPass(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
+  d_preprocessingPassRegistry.registerPass("bv-abstraction",
+                                           std::move(bvAbstract));
+  d_preprocessingPassRegistry.registerPass("bv-ackermann",
+                                           std::move(bvAckermann));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
@@ -2609,6 +2648,9 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
+  d_preprocessingPassRegistry.registerPass("static-learning", 
+                                           std::move(staticLearning));
+  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -2660,7 +2702,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       // otherwise expand it
       bool doExpand = k == kind::APPLY;
       if( !doExpand ){
-        if( options::macrosQuant() ){
+        // options that assign substitutions to APPLY_UF
+        if (options::macrosQuant() || options::sygusInference())
+        {
           //expand if we have inferred an operator corresponds to a defined function
           doExpand = k==kind::APPLY_UF && d_smt.isDefinedFunction( n.getOperator().toExpr() );
         }
@@ -2785,12 +2829,31 @@ Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, s
   }
   Node ret = n;
   if( n.getNumChildren()>0 ){
-    if( beneathMult && n.getKind()!=kind::MULT ){
-      //new variable
-      ret = NodeManager::currentNM()->mkSkolem("__purifyNl_var", n.getType(), "Variable introduced in purifyNl pass");
-      Node np = purifyNlTerms( n, cache, bcache, var_eq, false );
-      var_eq.push_back( np.eqNode( ret ) );
-    }else{
+    if (beneathMult
+        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
+    {
+      // don't do it if it rewrites to a constant
+      Node nr = Rewriter::rewrite(n);
+      if (nr.isConst())
+      {
+        // return the rewritten constant
+        ret = nr;
+      }
+      else
+      {
+        // new variable
+        ret = NodeManager::currentNM()->mkSkolem(
+            "__purifyNl_var",
+            n.getType(),
+            "Variable introduced in purifyNl pass");
+        Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
+        var_eq.push_back(np.eqNode(ret));
+        Trace("nl-ext-purify")
+            << "Purify : " << ret << " -> " << np << std::endl;
+      }
+    }
+    else
+    {
       bool beneathMultNew = beneathMult || n.getKind()==kind::MULT;
       bool childChanged = false;
       std::vector< Node > children;
@@ -2824,26 +2887,7 @@ void SmtEnginePrivate::removeITEs() {
   }
 }
 
-void SmtEnginePrivate::staticLearning() {
-  d_smt.finalOptionsAreSet();
-  spendResource(options::preprocessStep());
 
-  TimerStat::CodeTimer staticLearningTimer(d_smt.d_stats->d_staticLearningTime);
-
-  Trace("simplify") << "SmtEnginePrivate::staticLearning()" << endl;
-
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-
-    NodeBuilder<> learned(kind::AND);
-    learned << d_assertions[i];
-    d_smt.d_theoryEngine->ppStaticLearn(d_assertions[i], learned);
-    if(learned.getNumChildren() == 1) {
-      learned.clear();
-    } else {
-      d_assertions.replace(i, learned);
-    }
-  }
-}
 
 // do dumping (before/after any preprocessing pass)
 static void dumpAssertions(const char* key,
@@ -3183,24 +3227,6 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   d_propagatorNeedsFinish = true;
   return true;
 }
-
-void SmtEnginePrivate::bvAbstraction() {
-  Trace("bv-abstraction") << "SmtEnginePrivate::bvAbstraction()" << endl;
-  std::vector<Node> new_assertions;
-  bool changed = d_smt.d_theoryEngine->ppBvAbstraction(d_assertions.ref(), new_assertions);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(new_assertions[i]));
-  }
-  // if we are using the lazy solver and the abstraction
-  // applies, then UF symbols were introduced
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
-      changed) {
-    LogicRequest req(d_smt);
-    req.widenLogic(THEORY_UF);
-  }
-}
-
-
 
 bool SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
@@ -3981,17 +4007,7 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  if (options::sygusInference())
-  {
-    // try recast as sygus
-    quantifiers::SygusInference si;
-    if (si.simplify(d_assertions.ref()))
-    {
-      Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
-      d_smt.d_globalNegation = !d_smt.d_globalNegation;
-    }
-  }
-  else if (options::globalNegate())
+  if (options::globalNegate())
   {
     // global negation of the formula
     quantifiers::GlobalNegate gn;
@@ -4004,7 +4020,10 @@ void SmtEnginePrivate::processAssertions() {
     unordered_map<Node, Node, NodeHashFunction> bcache;
     std::vector< Node > var_eq;
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, purifyNlTerms(d_assertions[i], cache, bcache, var_eq));
+      Node a = d_assertions[i];
+      d_assertions.replace(i, purifyNlTerms(a, cache, bcache, var_eq));
+      Trace("nl-ext-purify")
+          << "Purify : " << a << " -> " << d_assertions[i] << std::endl;
     }
     if( !var_eq.empty() ){
       unsigned lastIndex = d_assertions.size()-1;
@@ -4038,15 +4057,14 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_smt.d_theoryEngine->mkAckermanizationAssertions(d_assertions.ref());
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
   }
 
-  if ( options::bvAbstraction() &&
-      !options::incrementalSolving()) {
-    dumpAssertions("pre-bv-abstraction", d_assertions);
-    bvAbstraction();
-    dumpAssertions("post-bv-abstraction", d_assertions);
+  if (options::bvAbstraction() && !options::incrementalSolving())
+  {
+    d_preprocessingPassRegistry.getPass("bv-abstraction")->apply(&d_assertions);
   }
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
@@ -4186,6 +4204,15 @@ void SmtEnginePrivate::processAssertions() {
         d_smt.d_fmfRecFunctionsDefined->push_back( f );
       }
     }
+    if (options::sygusInference())
+    {
+      // try recast as sygus
+      quantifiers::SygusInference si;
+      if (si.simplify(d_assertions.ref()))
+      {
+        Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
+      }
+    }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
 
@@ -4214,27 +4241,17 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryDetect())
+  if (options::symmetryBreakerExp())
   {
-    SymmetryDetect symd;
-    vector<vector<Node>> part;
-    symd.getPartition(part, d_assertions.ref());
+    // apply symmetry breaking
+    d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
-  dumpAssertions("pre-static-learning", d_assertions);
   if(options::doStaticLearning()) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-static-learning" << endl;
-    // Perform static learning
-    Chat() << "doing static learning..." << endl;
-    Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                      << "performing static learning" << endl;
-    staticLearning();
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-static-learning" << endl;
+    d_preprocessingPassRegistry.getPass("static-learning")
+        ->apply(&d_assertions);
   }
-  dumpAssertions("post-static-learning", d_assertions);
-
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-ite-removal" << endl;
   dumpAssertions("pre-ite-removal", d_assertions);
@@ -5384,6 +5401,11 @@ void SmtEngine::checkSynthSolution()
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
+  if (sol_map.empty())
+  {
+    Trace("check-synth-sol") << "No solution to check!\n";
+    return;
+  }
   Trace("check-synth-sol") << "Got solution map:\n";
   std::vector<Node> function_vars, function_sols;
   for (const auto& pair : sol_map)
@@ -5468,8 +5490,8 @@ void SmtEngine::checkSynthSolution()
     else if (r.asSatisfiabilityResult().isSat())
     {
       InternalError(
-          "SmtEngine::checkSynhtSol(): produced solution allows satisfiable "
-          "negated conjecture.");
+          "SmtEngine::checkSynthSolution(): produced solution leads to "
+          "satisfiable negated conjecture.");
     }
     solChecker.resetAssertions();
   }
@@ -5550,6 +5572,18 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
     d_theoryEngine->printSynthSolution( out );
   }else{
     Assert( false );
+  }
+}
+
+void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
+{
+  SmtScope smts(this);
+  map<Node, Node> sol_mapn;
+  Assert(d_theoryEngine != nullptr);
+  d_theoryEngine->getSynthSolutions(sol_mapn);
+  for (std::pair<const Node, Node>& s : sol_mapn)
+  {
+    sol_map[s.first.toExpr()] = s.second.toExpr();
   }
 }
 

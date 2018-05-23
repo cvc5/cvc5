@@ -100,6 +100,7 @@ Node BoolToBV::lowerNode(TNode current, bool topLevel)
         case kind::OR: new_kind = kind::BITVECTOR_OR; break;
         case kind::NOT: new_kind = kind::BITVECTOR_NOT; break;
         case kind::XOR: new_kind = kind::BITVECTOR_XOR; break;
+        case kind::IMPLIES: new_kind = kind::BITVECTOR_OR; break;
         case kind::ITE:
           if (current.getType().isBitVector() || current.getType().isBoolean())
           {
@@ -136,6 +137,13 @@ Node BoolToBV::lowerNode(TNode current, bool topLevel)
         converted = lowerNode(current[1]);
         builder << converted;
         converted = lowerNode(current[2]);
+        builder << converted;
+      }
+      else if (kind == kind::IMPLIES) {
+        // Special-case IMPLIES because needs to be rewritten.
+        converted = lowerNode(current[0]);
+        builder << nm->mkNode(kind::BITVECTOR_NOT, converted);
+        converted = lowerNode(current[1]);
         builder << converted;
       }
       else
