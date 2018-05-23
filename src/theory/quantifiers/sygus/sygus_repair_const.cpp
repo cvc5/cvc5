@@ -22,6 +22,7 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -445,7 +446,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      if (cur.getKind() == APPLY_UF && cur.getNumChildren() > 0)
+      if( datatypes::DatatypesRewriter::isSygusEvalApp(cur) )
       {
         Node v = cur[0];
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())

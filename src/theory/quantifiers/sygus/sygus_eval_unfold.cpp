@@ -45,9 +45,9 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
     return;
   }
   TypeNode tn = n[0].getType();
-  Assert(!tn.isDatatype());
+  Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(!dt.isSygus());
+  Assert(dt.isSygus());
   if (n[0].getKind() == APPLY_CONSTRUCTOR)
   {
     // constructors should be unfolded and reduced already

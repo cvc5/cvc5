@@ -19,6 +19,7 @@
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -80,7 +81,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // We retrive model value now because purified node may not have a value
   Node nv = n;
   // Whether application of a function-to-synthesize
-  bool fapp = k == APPLY_UF && size > 0;
+  bool fapp = datatypes::DatatypesRewriter::isSygusEvalApp(n);
   bool u_fapp = false;
   bool nu_fapp = false;
   if (fapp)
