@@ -1549,7 +1549,11 @@ Node TermDbSygus::evaluateWithUnfolding( Node n ) {
 
 bool TermDbSygus::isEvaluationPoint(Node n) const
 {
-  if (n.getKind() != APPLY_UF || n.getNumChildren() == 0 || !n[0].isVar())
+  if( !datatypes::DatatypesRewriter::isSygusEvalApp(n) )
+  {
+    return false;
+  }
+  if (!n[0].isVar())
   {
     return false;
   }
@@ -1560,18 +1564,7 @@ bool TermDbSygus::isEvaluationPoint(Node n) const
       return false;
     }
   }
-  TypeNode tn = n[0].getType();
-  if (!tn.isDatatype())
-  {
-    return false;
-  }
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if (!dt.isSygus())
-  {
-    return false;
-  }
-  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
-  return eval_op == n.getOperator();
+  return true;
 }
 
 }/* CVC4::theory::quantifiers namespace */

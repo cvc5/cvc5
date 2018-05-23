@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -302,20 +303,15 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         op = cur;
       }
       // is the operator a synth function?
+      bool makeEvalFun = false;
       if( !op.isNull() ){
         std::map< Node, Node >::iterator its = synth_fun_vars.find( op );
         if( its!=synth_fun_vars.end() ){
-          Assert( its->second.getType().isDatatype() );
-          // will make into an application of an evaluation function
-          const Datatype& dt = ((DatatypeType)its->second.getType().toType()).getDatatype();
-          Assert( dt.isSygus() );
-          children.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
           children.push_back( its->second );
-          childChanged = true;
-          ret_k = kind::APPLY_UF;
+          makeEvalFun = true;
         }
       }
-      if( !childChanged ){
+      if( !makeEvalFun ){
         // otherwise, we apply the previous operator
         if( cur.getMetaKind() == kind::metakind::PARAMETERIZED ){
           children.push_back( cur.getOperator() );
@@ -328,7 +324,16 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) {
+      if( makeEvalFun )
+      {
+        TypeNode tn = children[0].getType();
+        Assert( tn.isDatatype() );
+        // will make into an application of an evaluation function
+        const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+        ret = datatypes::DatatypesRewriter::mkSygusEvalApp(dt,children);
+      }
+      else if (childChanged)
+      {
         ret = NodeManager::currentNM()->mkNode(ret_k, children);
       }
       visited[cur] = ret;

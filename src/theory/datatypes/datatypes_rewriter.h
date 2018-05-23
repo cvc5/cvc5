@@ -110,11 +110,17 @@ public:
   /** make sygus term
    *
    * This function returns a builtin term f( children[0], ..., children[n] ) 
-   * where f is the builtin op of the i^th constructor of sygus datatype dt.
+   * where f is the builtin op that the i^th constructor of sygus datatype dt
+   * encodes.
    */
   static Node mkSygusTerm(const Datatype& dt,
                           unsigned i,
                           std::vector< Node >& children);
+  /** make sygus evaluation function application */
+  static Node mkSygusEvalApp(const Datatype& dt,
+                          std::vector< Node >& children);
+  /** is sygus evaluation function */
+  static bool isSygusEvalApp(Node n);
 private:
  /** rewrite constructor term in */
  static RewriteResponse rewriteConstructor(TNode in);

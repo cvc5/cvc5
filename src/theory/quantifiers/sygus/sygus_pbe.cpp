@@ -47,7 +47,7 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
     visited[n] = true;
     Node neval;
     Node n_output;
-    if( n.getKind()==APPLY_UF && n.getNumChildren()>0 ){
+    if( datatypes::DatatypesRewriter::isSygusEvalApp(n) ){
       neval = n;
       if( hasPol ){
         n_output = !pol ? d_true : d_false;
