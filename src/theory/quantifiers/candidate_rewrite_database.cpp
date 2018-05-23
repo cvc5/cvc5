@@ -170,20 +170,30 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           std::vector<Node> pt;
           for (const Node& v : vars)
           {
-            std::map<Node, unsigned>::iterator itf = fv_index.find(v);
             Node val;
-            if (itf == fv_index.end())
+            Node refv = v;
+            // if a bound variable, map to the skolem we introduce before
+            // looking up the model value
+            if( v.getKind()==BOUND_VARIABLE )
             {
-              // not in conjecture, can use arbitrary value
-              val = v.getType().mkGroundTerm();
+              std::map<Node, unsigned>::iterator itf = fv_index.find(v);
+              if (itf == fv_index.end())
+              {
+                // not in conjecture, can use arbitrary value
+                val = v.getType().mkGroundTerm();
+              }
+              else
+              {
+                // get the model value of its skolem
+                refv = sks[itf->second];
+              }
             }
-            else
+            if( val.isNull() )
             {
-              // get the model value of its skolem
-              Node sk = sks[itf->second];
-              val = Node::fromExpr(rrChecker.getValue(sk.toExpr()));
-              Trace("rr-check") << "  " << v << " -> " << val << std::endl;
+              Assert( !refv.isNull() && refv.getKind()!=BOUND_VARIABLE );
+              val = Node::fromExpr(rrChecker.getValue(refv.toExpr()));
             }
+            Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
           }
           d_sampler.addSamplePoint(pt);
