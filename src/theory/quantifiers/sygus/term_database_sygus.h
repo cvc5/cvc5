@@ -378,10 +378,6 @@ class TermDbSygus {
   Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
-  
-  /** get operator kind */
-  static Kind getOperatorKind( Node op );
-
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );

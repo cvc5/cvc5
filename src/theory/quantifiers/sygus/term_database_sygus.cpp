@@ -140,11 +140,7 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
   Assert( dt.isSygus() );
   Assert( !dt[c].getSygusOp().isNull() );
   std::vector< Node > children;
-  Node op = Node::fromExpr( dt[c].getSygusOp() );
-  if( op.getKind()!=BUILTIN ){
-    children.push_back( op );
-  }
-  Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << op << " " << op.getKind() << "..." << std::endl;
+  Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..." << std::endl;
   for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
   {
     Node a;
@@ -160,21 +156,7 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     Assert( !a.isNull() );
     children.push_back( a );
   }
-  Node ret;
-  if( op.getKind()==BUILTIN ){
-    Trace("sygus-db-debug") << "Make builtin node..." << std::endl;
-    ret = NodeManager::currentNM()->mkNode( op, children );
-  }else{
-    Kind ok = getOperatorKind( op );
-    Trace("sygus-db-debug") << "Operator kind is " << ok << std::endl;
-    if( children.size()==1 && ok==kind::UNDEFINED_KIND ){
-      ret = children[0];
-    }else{
-      ret = NodeManager::currentNM()->mkNode( ok, children );
-    }
-  }
-  Trace("sygus-db-debug") << "...returning " << ret << std::endl;
-  return ret;
+  return datatypes::DatatypesRewriter::mkSygusTerm(dt,c,children);
 }
 
 Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
@@ -1364,34 +1346,6 @@ void doStrReplace(std::string& str, const std::string& oldStr, const std::string
   while((pos = str.find(oldStr, pos)) != std::string::npos){
      str.replace(pos, oldStr.length(), newStr);
      pos += newStr.length();
-  }
-}
-
-Kind TermDbSygus::getOperatorKind( Node op ) {
-  Assert( op.getKind()!=BUILTIN );
-  if (op.getKind() == LAMBDA)
-  {
-    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
-    // does beta-reduction but does not for APPLY
-    return APPLY_UF;
-  }else{
-    TypeNode tn = op.getType();
-    if( tn.isConstructor() ){
-      return APPLY_CONSTRUCTOR;
-    }
-    else if (tn.isSelector())
-    {
-      return APPLY_SELECTOR;
-    }
-    else if (tn.isTester())
-    {
-      return APPLY_TESTER;
-    }
-    else if (tn.isFunction())
-    {
-      return APPLY_UF;
-    }
-    return NodeManager::operatorToKind(op);
   }
 }
 
