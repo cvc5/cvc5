@@ -46,10 +46,11 @@ class SygusUnif
   SygusUnif();
   virtual ~SygusUnif();
 
-  /** initialize
+  /** initialize candidate
    *
-   * This initializes this class with functions-to-synthesize funs. We also call
-   * these "candidate variables".
+   * This initializes this class with functions-to-synthesize f. We also call
+   * this a "candidate variable". This function can be called more than once
+   * for different functions-to-synthesize in the same conjecture.
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that
@@ -61,10 +62,11 @@ class SygusUnif
    * strategy is ITE_strat). The lemmas are associated with a strategy point of
    * the respective function-to-synthesize.
    */
-  virtual void initialize(QuantifiersEngine* qe,
-                          const std::vector<Node>& funs,
-                          std::vector<Node>& enums,
-                          std::map<Node, std::vector<Node>>& strategy_lemmas);
+  virtual void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
 
   /**
    * Notify that the value v has been enumerated for enumerator e. This call
@@ -78,8 +80,12 @@ class SygusUnif
    * based on the current set of enumerated values. Returns null if it cannot
    * for some function (for example, if the set of enumerated values is
    * insufficient, or if a non-deterministic strategy aborts).
+   *
+   * This call may add lemmas to lemmas that should be sent out on an output
+   * channel by the caller.
    */
-  virtual bool constructSolution(std::vector<Node>& sols);
+  virtual bool constructSolution(std::vector<Node>& sols,
+                                 std::vector<Node>& lemmas);
 
  protected:
   /** reference to quantifier engine */
@@ -148,7 +154,8 @@ class SygusUnif
    *
    * ind is the term depth of the context (for debugging).
    */
-  virtual Node constructSol(Node f, Node e, NodeRole nrole, int ind) = 0;
+  virtual Node constructSol(
+      Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas) = 0;
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   virtual Node constructBestSolvedTerm(const std::vector<Node>& solved);

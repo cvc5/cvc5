@@ -968,6 +968,14 @@ header = "options/quantifiers_options.h"
   help       = "Unification-based function synthesis"
 
 [[option]]
+  name       = "sygusBoolIteReturnConst"
+  category   = "regular"
+  long       = "sygus-bool-ite-return-const"
+  type       = "bool"
+  default    = "true"
+  help       = "Only use Boolean constants for return values in unification-based function synthesis"
+
+[[option]]
   name       = "sygusQePreproc"
   category   = "regular"
   long       = "sygus-qe-preproc"
@@ -981,7 +989,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-repair-const"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1058,40 +1066,31 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
 
 [[option]]
-  name       = "sygusDirectEval"
+  name       = "sygusEvalUnfold"
   category   = "regular"
-  long       = "sygus-direct-eval"
+  long       = "sygus-eval-unfold"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "direct unfolding of evaluation functions"
+  help       = "do unfolding of sygus evaluation functions"
 
 [[option]]
-  name       = "sygusUnfoldBool"
+  name       = "sygusEvalUnfoldBool"
   category   = "regular"
-  long       = "sygus-unfold-bool"
+  long       = "sygus-eval-unfold-bool"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
-  name       = "sygusCRefEval"
+  name       = "sygusRefEval"
   category   = "regular"
-  long       = "sygus-cref-eval"
+  long       = "sygus-ref-eval"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "direct evaluation of refinement lemmas for conflict analysis"
-
-[[option]]
-  name       = "sygusCRefEvalMinExp"
-  category   = "regular"
-  long       = "sygus-cref-eval-min-exp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use min explain for direct evaluation of refinement lemmas for conflict analysis"
 
 [[option]]
   name       = "sygusStream"

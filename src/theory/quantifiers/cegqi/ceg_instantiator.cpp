@@ -1110,22 +1110,26 @@ bool CegInstantiator::check() {
 void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq ) {
   if( n.getKind()==FORALL || n.getKind()==EXISTS ){
     //do nothing
-  }else{
-    if( n.getKind()==EQUAL ){
-      for( unsigned i=0; i<2; i++ ){
-        std::map< Node, std::vector< Node > >::iterator it = teq.find( n[i] );
-        if( it!=teq.end() ){
-          Node nn = n[ i==0 ? 1 : 0 ];
-          if( std::find( it->second.begin(), it->second.end(), nn )==it->second.end() ){
-            it->second.push_back( nn );
-            Trace("cbqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
-          }
-        }
+    return;
+  }
+  if (n.getKind() == EQUAL)
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {
+      Node nn = n[i == 0 ? 1 : 0];
+      std::map<Node, std::vector<Node> >::iterator it = teq.find(n[i]);
+      if (it != teq.end() && !nn.hasFreeVar()
+          && std::find(it->second.begin(), it->second.end(), nn)
+                 == it->second.end())
+      {
+        it->second.push_back(nn);
+        Trace("cbqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
       }
     }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      collectPresolveEqTerms( n[i], teq );
-    }
+  }
+  for (const Node& nc : n)
+  {
+    collectPresolveEqTerms(nc, teq);
   }
 }
 
@@ -1168,6 +1172,7 @@ void CegInstantiator::presolve( Node q ) {
       Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
+      Assert(!lem.hasFreeVar());
       d_qe->getOutputChannel().lemma( lem, false, true );
     }
   }

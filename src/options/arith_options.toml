@@ -512,10 +512,10 @@ header = "options/arith_options.h"
   help       = "initial degree of polynomials for Taylor approximation"
 
 [[option]]
-  name       = "nlExtTfIncPrecision"
+  name       = "nlExtIncPrecision"
   category   = "regular"
-  long       = "nl-ext-tf-inc-prec"
+  long       = "nl-ext-inc-prec"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "whether to increment the precision for transcendental function constraints"
+  help       = "whether to increment the precision for irrational function constraints"

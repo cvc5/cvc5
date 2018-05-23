@@ -16,6 +16,7 @@
  **/
 
 #include "theory/fp/theory_fp.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 #include <set>
@@ -95,8 +96,10 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context *c, context::UserContext *u,
-                   OutputChannel &out, Valuation valuation,
+TheoryFp::TheoryFp(context::Context *c,
+                   context::UserContext *u,
+                   OutputChannel &out,
+                   Valuation valuation,
                    const LogicInfo &logicInfo)
     : Theory(THEORY_FP, c, u, out, valuation, logicInfo),
       d_notification(*this),
@@ -110,7 +113,11 @@ TheoryFp::TheoryFp(context::Context *c, context::UserContext *u,
       d_maxMap(u),
       d_toUBVMap(u),
       d_toSBVMap(u),
-      d_toRealMap(u) {
+      d_toRealMap(u),
+      realToFloatMap(u),
+      floatToRealMap(u),
+      abstractionMap(u)
+{
   // Kinds that are to be handled in the congruence closure
 
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ABS);
@@ -156,6 +163,14 @@ TheoryFp::TheoryFp(context::Context *c, context::UserContext *u,
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_UBV_TOTAL);
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
+
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_NAN);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_INF);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_ZERO);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGN);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
+  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
+  d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
 
 } /* TheoryFp::TheoryFp() */
 
@@ -291,7 +306,7 @@ Node TheoryFp::toRealUF(Node node) {
     std::vector<TypeNode> args(1);
     args[0] = t;
     fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
-                       nm->mkFunctionType(t, nm->realType()),
+		       nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_to_real_infinity_and_NaN_case",
                        NodeManager::SKOLEM_EXACT_NAME);
     d_toRealMap.insert(t, fun);
@@ -301,16 +316,85 @@ Node TheoryFp::toRealUF(Node node) {
   return nm->mkNode(kind::APPLY_UF, fun, node[0]);
 }
 
-Node TheoryFp::expandDefinition(LogicRequest &lr, Node node) {
-  Trace("fp-expandDefinition")
-      << "TheoryFp::expandDefinition(): " << node << std::endl;
-
+void TheoryFp::enableUF(LogicRequest &lr)
+{
   if (!this->d_expansionRequested) {
-    lr.widenLogic(
-        THEORY_UF);  // Needed for conversions to/from real and min/max
-    lr.widenLogic(THEORY_BV);
+    // Needed for conversions to/from real and min/max
+    lr.widenLogic(THEORY_UF);
+    // THEORY_BV has to be enabled when the logic is set
     this->d_expansionRequested = true;
   }
+  return;
+}
+
+Node TheoryFp::abstractRealToFloat(Node node)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
+  TypeNode t(node.getType());
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
+
+  NodeManager *nm = NodeManager::currentNM();
+  ComparisonUFMap::const_iterator i(realToFloatMap.find(t));
+
+  Node fun;
+  if (i == realToFloatMap.end())
+  {
+    std::vector<TypeNode> args(2);
+    args[0] = node[0].getType();
+    args[1] = node[1].getType();
+    fun = nm->mkSkolem("floatingpoint_abstract_real_to_float",
+                       nm->mkFunctionType(args, node.getType()),
+                       "floatingpoint_abstract_real_to_float",
+                       NodeManager::SKOLEM_EXACT_NAME);
+    realToFloatMap.insert(t, fun);
+  }
+  else
+  {
+    fun = (*i).second;
+  }
+  Node uf = nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
+
+  abstractionMap.insert(uf, node);
+
+  return uf;
+}
+
+Node TheoryFp::abstractFloatToReal(Node node)
+{
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
+  TypeNode t(node[0].getType());
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
+
+  NodeManager *nm = NodeManager::currentNM();
+  ComparisonUFMap::const_iterator i(floatToRealMap.find(t));
+
+  Node fun;
+  if (i == floatToRealMap.end())
+  {
+    std::vector<TypeNode> args(2);
+    args[0] = t;
+    args[1] = nm->realType();
+    fun = nm->mkSkolem("floatingpoint_abstract_float_to_real",
+                       nm->mkFunctionType(args, nm->realType()),
+                       "floatingpoint_abstract_float_to_real",
+                       NodeManager::SKOLEM_EXACT_NAME);
+    floatToRealMap.insert(t, fun);
+  }
+  else
+  {
+    fun = (*i).second;
+  }
+  Node uf = nm->mkNode(kind::APPLY_UF, fun, node[0], node[1]);
+
+  abstractionMap.insert(uf, node);
+
+  return uf;
+}
+
+Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
+{
+  Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
+                               << std::endl;
 
   Node res = node;
 
@@ -318,14 +402,17 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node) {
     res = removeToFPGeneric::removeToFPGeneric(node);
 
   } else if (node.getKind() == kind::FLOATINGPOINT_MIN) {
+    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_MIN_TOTAL,
                                            node[0], node[1], minUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_MAX) {
+    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_MAX_TOTAL,
                                            node[0], node[1], maxUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_UBV) {
+    enableUF(lr);
     FloatingPointToUBV info = node.getOperator().getConst<FloatingPointToUBV>();
     FloatingPointToUBVTotal newInfo(info);
 
@@ -335,6 +422,7 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node) {
             toUBVUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_SBV) {
+    enableUF(lr);
     FloatingPointToSBV info = node.getOperator().getConst<FloatingPointToSBV>();
     FloatingPointToSBVTotal newInfo(info);
 
@@ -344,11 +432,19 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node) {
             toSBVUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_REAL) {
+    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                            node[0], toRealUF(node));
 
   } else {
     // Do nothing
+  }
+
+  // We will need to enable UF to abstract these in ppRewrite
+  if (res.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL
+      || res.getKind() == kind::FLOATINGPOINT_TO_FP_REAL)
+  {
+    enableUF(lr);
   }
 
   if (res != node) {
@@ -357,6 +453,290 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node) {
   }
 
   return res;
+}
+
+Node TheoryFp::ppRewrite(TNode node)
+{
+  Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
+
+  Node res = node;
+
+  // Abstract conversion functions
+  if (node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+  {
+    res = abstractFloatToReal(node);
+
+    // Generate some lemmas
+    NodeManager *nm = NodeManager::currentNM();
+
+    Node pd =
+        nm->mkNode(kind::IMPLIES,
+                   nm->mkNode(kind::OR,
+                              nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0]),
+                              nm->mkNode(kind::FLOATINGPOINT_ISINF, node[0])),
+                   nm->mkNode(kind::EQUAL, res, node[1]));
+    handleLemma(pd);
+
+    Node z =
+        nm->mkNode(kind::IMPLIES,
+                   nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
+                   nm->mkNode(kind::EQUAL, res, nm->mkConst(Rational(0U))));
+    handleLemma(z);
+
+    // TODO : bounds on the output from largest floats, #1914
+  }
+  else if (node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL)
+  {
+    res = abstractRealToFloat(node);
+
+    // Generate some lemmas
+    NodeManager *nm = NodeManager::currentNM();
+
+    Node nnan =
+        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, res));
+    handleLemma(nnan);
+
+    Node z = nm->mkNode(
+        kind::IMPLIES,
+        nm->mkNode(kind::EQUAL, node[1], nm->mkConst(Rational(0U))),
+        nm->mkNode(kind::EQUAL,
+                   res,
+                   nm->mkConst(FloatingPoint::makeZero(
+                       res.getType().getConst<FloatingPointSize>(), false))));
+    handleLemma(z);
+
+    // TODO : rounding-mode specific bounds on floats that don't give infinity
+    // BEWARE of directed rounding!   #1914
+  }
+
+  if (res != node)
+  {
+    Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
+                          << " rewritten to " << res << std::endl;
+  }
+
+  return res;
+}
+
+bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
+{
+  Trace("fp-refineAbstraction") << "TheoryFp::refineAbstraction(): " << abstract
+                                << " vs. " << concrete << std::endl;
+  Kind k = concrete.getKind();
+  if (k == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+  {
+    // Get the values
+    Assert(m->hasTerm(abstract));
+    Assert(m->hasTerm(concrete[0]));
+    Assert(m->hasTerm(concrete[1]));
+
+    Node abstractValue = m->getValue(abstract);
+    Node floatValue = m->getValue(concrete[0]);
+    Node undefValue = m->getValue(concrete[1]);
+
+    Assert(abstractValue.isConst());
+    Assert(floatValue.isConst());
+    Assert(undefValue.isConst());
+
+    // Work out the actual value for those args
+    NodeManager *nm = NodeManager::currentNM();
+
+    Node evaluate =
+        nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL, floatValue, undefValue);
+    Node concreteValue = Rewriter::rewrite(evaluate);
+    Assert(concreteValue.isConst());
+
+    Trace("fp-refineAbstraction")
+        << "TheoryFp::refineAbstraction(): " << concrete[0] << " = "
+        << floatValue << std::endl
+        << "TheoryFp::refineAbstraction(): " << concrete[1] << " = "
+        << undefValue << std::endl
+        << "TheoryFp::refineAbstraction(): " << abstract << " = "
+        << abstractValue << std::endl
+        << "TheoryFp::refineAbstraction(): " << concrete << " = "
+        << concreteValue << std::endl;
+
+    if (abstractValue != concreteValue)
+    {
+      // Need refinement lemmas
+      // only in the normal and subnormal case
+      Assert(floatValue.getConst<FloatingPoint>().isNormal()
+             || floatValue.getConst<FloatingPoint>().isSubnormal());
+
+      Node defined = nm->mkNode(
+          kind::AND,
+          nm->mkNode(kind::NOT,
+                     nm->mkNode(kind::FLOATINGPOINT_ISNAN, concrete[0])),
+          nm->mkNode(kind::NOT,
+                     nm->mkNode(kind::FLOATINGPOINT_ISINF, concrete[0])));
+      // First the "forward" constraints
+      Node fg = nm->mkNode(
+          kind::IMPLIES,
+          defined,
+          nm->mkNode(
+              kind::EQUAL,
+              nm->mkNode(kind::FLOATINGPOINT_GEQ, concrete[0], floatValue),
+              nm->mkNode(kind::GEQ, abstract, concreteValue)));
+      handleLemma(fg);
+
+      Node fl = nm->mkNode(
+          kind::IMPLIES,
+          defined,
+          nm->mkNode(
+              kind::EQUAL,
+              nm->mkNode(kind::FLOATINGPOINT_LEQ, concrete[0], floatValue),
+              nm->mkNode(kind::LEQ, abstract, concreteValue)));
+      handleLemma(fl);
+
+      // Then the backwards constraints
+      Node floatAboveAbstract = Rewriter::rewrite(
+          nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
+                     nm->mkConst(FloatingPointToFPReal(
+                         concrete[0].getType().getConst<FloatingPointSize>())),
+                     nm->mkConst(roundTowardPositive),
+                     abstractValue));
+
+      Node bg = nm->mkNode(
+          kind::IMPLIES,
+          defined,
+          nm->mkNode(
+              kind::EQUAL,
+              nm->mkNode(
+                  kind::FLOATINGPOINT_GEQ, concrete[0], floatAboveAbstract),
+              nm->mkNode(kind::GEQ, abstract, abstractValue)));
+      handleLemma(bg);
+
+      Node floatBelowAbstract = Rewriter::rewrite(
+          nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
+                     nm->mkConst(FloatingPointToFPReal(
+                         concrete[0].getType().getConst<FloatingPointSize>())),
+                     nm->mkConst(roundTowardNegative),
+                     abstractValue));
+
+      Node bl = nm->mkNode(
+          kind::IMPLIES,
+          defined,
+          nm->mkNode(
+              kind::EQUAL,
+              nm->mkNode(
+                  kind::FLOATINGPOINT_LEQ, concrete[0], floatBelowAbstract),
+              nm->mkNode(kind::LEQ, abstract, abstractValue)));
+      handleLemma(bl);
+      // TODO : see if the overflow conditions could be improved #1914
+
+      return true;
+    }
+    else
+    {
+      // No refinement needed
+      return false;
+    }
+  }
+  else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
+  {
+    // Get the values
+    Assert(m->hasTerm(abstract));
+    Assert(m->hasTerm(concrete[0]));
+    Assert(m->hasTerm(concrete[1]));
+
+    Node abstractValue = m->getValue(abstract);
+    Node rmValue = m->getValue(concrete[0]);
+    Node realValue = m->getValue(concrete[1]);
+
+    Assert(abstractValue.isConst());
+    Assert(rmValue.isConst());
+    Assert(realValue.isConst());
+
+    // Work out the actual value for those args
+    NodeManager *nm = NodeManager::currentNM();
+
+    Node evaluate =
+        nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
+                   nm->mkConst(FloatingPointToFPReal(
+                       concrete.getType().getConst<FloatingPointSize>())),
+                   rmValue,
+                   realValue);
+    Node concreteValue = Rewriter::rewrite(evaluate);
+    Assert(concreteValue.isConst());
+
+    Trace("fp-refineAbstraction")
+        << "TheoryFp::refineAbstraction(): " << concrete[0] << " = " << rmValue
+        << std::endl
+        << "TheoryFp::refineAbstraction(): " << concrete[1] << " = "
+        << realValue << std::endl
+        << "TheoryFp::refineAbstraction(): " << abstract << " = "
+        << abstractValue << std::endl
+        << "TheoryFp::refineAbstraction(): " << concrete << " = "
+        << concreteValue << std::endl;
+
+    if (abstractValue != concreteValue)
+    {
+      Assert(!abstractValue.getConst<FloatingPoint>().isNaN());
+      Assert(!concreteValue.getConst<FloatingPoint>().isNaN());
+
+      Node correctRoundingMode = nm->mkNode(kind::EQUAL, concrete[0], rmValue);
+      // TODO : Generalise to all rounding modes  #1914
+
+      // First the "forward" constraints
+      Node fg = nm->mkNode(
+          kind::IMPLIES,
+          correctRoundingMode,
+          nm->mkNode(
+              kind::EQUAL,
+              nm->mkNode(kind::GEQ, concrete[1], realValue),
+              nm->mkNode(kind::FLOATINGPOINT_GEQ, abstract, concreteValue)));
+      handleLemma(fg);
+
+      Node fl = nm->mkNode(
+          kind::IMPLIES,
+          correctRoundingMode,
+          nm->mkNode(
+              kind::EQUAL,
+              nm->mkNode(kind::LEQ, concrete[1], realValue),
+              nm->mkNode(kind::FLOATINGPOINT_LEQ, abstract, concreteValue)));
+      handleLemma(fl);
+
+      // Then the backwards constraints
+      if (!abstractValue.getConst<FloatingPoint>().isInfinite())
+      {
+        Node realValueOfAbstract =
+            Rewriter::rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                                         abstractValue,
+                                         nm->mkConst(Rational(0U))));
+
+        Node bg = nm->mkNode(
+            kind::IMPLIES,
+            correctRoundingMode,
+            nm->mkNode(
+                kind::EQUAL,
+                nm->mkNode(kind::GEQ, concrete[1], realValueOfAbstract),
+                nm->mkNode(kind::FLOATINGPOINT_GEQ, abstract, abstractValue)));
+        handleLemma(bg);
+
+        Node bl = nm->mkNode(
+            kind::IMPLIES,
+            correctRoundingMode,
+            nm->mkNode(
+                kind::EQUAL,
+                nm->mkNode(kind::LEQ, concrete[1], realValueOfAbstract),
+                nm->mkNode(kind::FLOATINGPOINT_LEQ, abstract, abstractValue)));
+        handleLemma(bl);
+      }
+
+      return true;
+    }
+    else
+    {
+      // No refinement needed
+      return false;
+    }
+  }
+  else
+  {
+    Unreachable("Unknown abstraction");
+  }
+
+  return false;
 }
 
 void TheoryFp::convertAndEquateTerm(TNode node) {
@@ -441,6 +821,52 @@ void TheoryFp::registerTerm(TNode node) {
       d_equalityEngine.addTerm(node);
     }
 
+    // Give the expansion of classifications in terms of equalities
+    // This should make equality reasoning slightly more powerful.
+    if ((node.getKind() == kind::FLOATINGPOINT_ISNAN)
+        || (node.getKind() == kind::FLOATINGPOINT_ISZ)
+        || (node.getKind() == kind::FLOATINGPOINT_ISINF))
+    {
+      NodeManager *nm = NodeManager::currentNM();
+      FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
+      Node equalityAlias = Node::null();
+
+      if (node.getKind() == kind::FLOATINGPOINT_ISNAN)
+      {
+        equalityAlias = nm->mkNode(
+            kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
+      }
+      else if (node.getKind() == kind::FLOATINGPOINT_ISZ)
+      {
+        equalityAlias = nm->mkNode(
+            kind::OR,
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeZero(s, true))),
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeZero(s, false))));
+      }
+      else if (node.getKind() == kind::FLOATINGPOINT_ISINF)
+      {
+        equalityAlias = nm->mkNode(
+            kind::OR,
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeInf(s, true))),
+            nm->mkNode(kind::EQUAL,
+                       node[0],
+                       nm->mkConst(FloatingPoint::makeInf(s, false))));
+      }
+      else
+      {
+        Unreachable("Only isNaN, isInf and isZero have aliases");
+      }
+
+      handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias));
+    }
+
+    // Use symfpu to produce an equivalent bit-vector statement
     convertAndEquateTerm(node);
   }
   return;
@@ -541,6 +967,25 @@ void TheoryFp::check(Effort level) {
         Debug("fp-eq") << "TheoryFp::check(): adding predicate " << predicate
                        << " is " << !negated << std::endl;
         d_equalityEngine.assertPredicate(predicate, !negated, fact);
+      }
+    }
+  }
+
+  // Resolve the abstractions for the conversion lemmas
+  //  if (level == EFFORT_COMBINATION) {
+  if (level == EFFORT_LAST_CALL)
+  {
+    Trace("fp") << "TheoryFp::check(): checking abstractions" << std::endl;
+    TheoryModel *m = getValuation().getModel();
+    bool lemmaAdded = false;
+
+    for (abstractionMapType::const_iterator i = abstractionMap.begin();
+         i != abstractionMap.end();
+         ++i)
+    {
+      if (m->hasTerm((*i).first))
+      {  // Is actually used in the model
+        lemmaAdded |= refineAbstraction(m, (*i).first, (*i).second);
       }
     }
   }

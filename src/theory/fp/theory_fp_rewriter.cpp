@@ -34,6 +34,7 @@
 #include <algorithm>
 
 #include "base/cvc4_assert.h"
+#include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
 
 namespace CVC4 {
@@ -787,6 +788,118 @@ namespace constantFold {
     }
   }
 
+  RewriteResponse componentFlag(TNode node, bool)
+  {
+    Kind k = node.getKind();
+
+    Assert((k == kind::FLOATINGPOINT_COMPONENT_NAN)
+           || (k == kind::FLOATINGPOINT_COMPONENT_INF)
+           || (k == kind::FLOATINGPOINT_COMPONENT_ZERO)
+           || (k == kind::FLOATINGPOINT_COMPONENT_SIGN));
+
+    FloatingPoint arg0(node[0].getConst<FloatingPoint>());
+
+    bool result;
+    switch (k)
+    {
+#ifdef CVC4_USE_SYMFPU
+      case kind::FLOATINGPOINT_COMPONENT_NAN:
+        result = arg0.getLiteral().nan;
+        break;
+      case kind::FLOATINGPOINT_COMPONENT_INF:
+        result = arg0.getLiteral().inf;
+        break;
+      case kind::FLOATINGPOINT_COMPONENT_ZERO:
+        result = arg0.getLiteral().zero;
+        break;
+      case kind::FLOATINGPOINT_COMPONENT_SIGN:
+        result = arg0.getLiteral().sign;
+        break;
+#endif
+      default: Unreachable("Unknown kind used in componentFlag"); break;
+    }
+
+    BitVector res(1U, (result) ? 1U : 0U);
+
+    return RewriteResponse(REWRITE_DONE,
+                           NodeManager::currentNM()->mkConst(res));
+  }
+
+  RewriteResponse componentExponent(TNode node, bool)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_EXPONENT);
+
+    FloatingPoint arg0(node[0].getConst<FloatingPoint>());
+
+    // \todo Add a proper interface for this sort of thing to FloatingPoint #1915
+    return RewriteResponse(
+        REWRITE_DONE,
+#ifdef CVC4_USE_SYMFPU
+        NodeManager::currentNM()->mkConst((BitVector)arg0.getLiteral().exponent)
+#else
+        node
+#endif
+            );
+  }
+
+  RewriteResponse componentSignificand(TNode node, bool)
+  {
+    Assert(node.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
+
+    FloatingPoint arg0(node[0].getConst<FloatingPoint>());
+
+    return RewriteResponse(REWRITE_DONE,
+#ifdef CVC4_USE_SYMFPU
+                           NodeManager::currentNM()->mkConst(
+                               (BitVector)arg0.getLiteral().significand)
+#else
+                           node
+#endif
+                               );
+  }
+
+  RewriteResponse roundingModeBitBlast(TNode node, bool)
+  {
+    Assert(node.getKind() == kind::ROUNDINGMODE_BITBLAST);
+
+    RoundingMode arg0(node[0].getConst<RoundingMode>());
+    BitVector value;
+
+#ifdef CVC4_USE_SYMFPU
+    /* \todo fix the numbering of rounding modes so this doesn't need
+     * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
+    switch (arg0)
+    {
+      case roundNearestTiesToEven:
+        value = symfpuSymbolic::traits::RNE().getConst<BitVector>();
+        break;
+
+      case roundNearestTiesToAway:
+        value = symfpuSymbolic::traits::RNA().getConst<BitVector>();
+        break;
+
+      case roundTowardPositive:
+        value = symfpuSymbolic::traits::RTP().getConst<BitVector>();
+        break;
+
+      case roundTowardNegative:
+        value = symfpuSymbolic::traits::RTN().getConst<BitVector>();
+        break;
+
+      case roundTowardZero:
+        value = symfpuSymbolic::traits::RTZ().getConst<BitVector>();
+        break;
+
+      default:
+        Unreachable("Unknown rounding mode in roundingModeBitBlast");
+        break;
+    }
+#else
+    value = BitVector(5U, 0U);
+#endif
+    return RewriteResponse(REWRITE_DONE,
+                           NodeManager::currentNM()->mkConst(value));
+  }
 
 };  /* CVC4::theory::fp::constantFold */
 
@@ -871,6 +984,16 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
     preRewriteTable[kind::EQUAL] = rewrite::equal;
 
 
+    /******** Components for bit-blasting ********/
+    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = rewrite::identity;
+    preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
+
+
 
 
     /* Set up the post-rewrite dispatch table */
@@ -942,6 +1065,15 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 
     postRewriteTable[kind::EQUAL] = rewrite::equal;
 
+
+    /******** Components for bit-blasting ********/
+    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = rewrite::identity;
+    postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
 
 
 
@@ -1016,6 +1148,15 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 
     constantFoldTable[kind::EQUAL] = constantFold::equal;
 
+
+    /******** Components for bit-blasting ********/
+    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_NAN] = constantFold::componentFlag;
+    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_INF] = constantFold::componentFlag;
+    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = constantFold::componentFlag;
+    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = constantFold::componentFlag;
+    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = constantFold::componentExponent;
+    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = constantFold::componentSignificand;
+    constantFoldTable[kind::ROUNDINGMODE_BITBLAST] = constantFold::roundingModeBitBlast;
 
 
   }
@@ -1106,12 +1247,15 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 	Node rn = res.node;                 // RewriteResponse is too functional..
 
 	if (apartFromRoundingMode) {
-	  if (!(res.node.getKind() == kind::EQUAL)) {  // Avoid infinite recursion...
-	    // We are close to being able to constant fold this
-	    // and in many cases the rounding mode really doesn't matter.
-	    // So we can try brute forcing our way through them.
+          if (!(res.node.getKind() == kind::EQUAL)
+              &&  // Avoid infinite recursion...
+              !(res.node.getKind() == kind::ROUNDINGMODE_BITBLAST))
+          {  // Don't eliminate the bit-blast
+            // We are close to being able to constant fold this
+            // and in many cases the rounding mode really doesn't matter.
+            // So we can try brute forcing our way through them.
 
-	    NodeManager *nm = NodeManager::currentNM();
+            NodeManager *nm = NodeManager::currentNM();
 
 	    Node RNE(nm->mkConst(roundNearestTiesToEven));
 	    Node RNA(nm->mkConst(roundNearestTiesToAway));

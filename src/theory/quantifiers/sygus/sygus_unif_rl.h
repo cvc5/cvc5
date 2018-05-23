@@ -50,14 +50,17 @@ class SygusUnifRl : public SygusUnif
   ~SygusUnifRl();
 
   /** initialize */
-  void initialize(QuantifiersEngine* qe,
-                  const std::vector<Node>& funs,
-                  std::vector<Node>& enums,
-                  std::map<Node, std::vector<Node>>& strategy_lemmas) override;
-  /** Notify enumeration */
+  void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas) override;
+
+  /** Notify enumeration (unused) */
   void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) override;
   /** Construct solution */
-  bool constructSolution(std::vector<Node>& sols) override;
+  bool constructSolution(std::vector<Node>& sols,
+                         std::vector<Node>& lemmas) override;
   /** add refinement lemma
    *
    * This adds a lemma to the specification. It returns the purified form
@@ -78,7 +81,24 @@ class SygusUnifRl : public SygusUnif
    * checked through wehether f has conditional or point enumerators (we use the
    * former)
     */
-  bool usingUnif(Node f);
+  bool usingUnif(Node f) const;
+  /** get condition for evaluation point
+   *
+   * Returns the strategy point corresponding to the condition of the strategy
+   * point e.
+   */
+  Node getConditionForEvaluationPoint(Node e) const;
+  /** set conditional enumerators
+   *
+   * This informs this class that the current set of conditions for evaluation
+   * point e are enumerated by "enums" and have values "conds"; "guard" is
+   * Boolean variable whose semantics correspond to "there is a solution using
+   * at most enums.size() conditions."
+   */
+  void setConditions(Node e,
+                     Node guard,
+                     const std::vector<Node>& enums,
+                     const std::vector<Node>& conds);
 
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
@@ -89,7 +109,11 @@ class SygusUnifRl : public SygusUnif
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
   /** construct sol */
-  Node constructSol(Node f, Node e, NodeRole nrole, int ind) override;
+  Node constructSol(Node f,
+                    Node e,
+                    NodeRole nrole,
+                    int ind,
+                    std::vector<Node>& lemmas) override;
   /** collects data from refinement lemmas to drive solution construction
    *
    * In particular it rebuilds d_app_to_pt whenever d_prev_rlemmas is different
@@ -176,33 +200,45 @@ class SygusUnifRl : public SygusUnif
                     SygusUnifRl* unif,
                     SygusUnifStrategy* strategy,
                     unsigned strategy_index);
-    /** adds the respective evaluation point of the head f  */
-    void addPoint(Node f);
-    /** adds a condition value to the pool of condition values */
-    void addCondValue(Node condv);
     /** returns index of strategy information of strategy node for this DT */
     unsigned getStrategyIndex() const;
     /** builds solution stored in DT, if any, using the given constructor
      *
      * The DT contains a solution when no class contains two heads of evaluation
      * points with different model values, i.e. when all points that must be
-     * separated indeed are separated.
+     * separated indeed are separated by the current set of conditions.
      *
-     * This function tests separation of the points in the above sense and may
-     * create separation lemmas to enforce guide the synthesis of conditons that
-     * will separate points not currently separated.
+     * This method either returns a solution (if all points are separated).
+     * It it fails, it adds a conflict lemma to lemmas.
      */
-    Node buildSol(Node cons);
-    /** whether all points that must be separated are separated **/
-    bool isSeparated();
+    Node buildSol(Node cons, std::vector<Node>& lemmas);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
     NodePair d_template;
-    /** enumerated condition values */
+    /** enumerated condition values, this is set by setConditions(...). */
     std::vector<Node> d_conds;
+    /** gathered evaluation point heads */
+    std::vector<Node> d_hds;
+    /** get condition enumerator */
+    Node getConditionEnumerator() const { return d_cond_enum; }
+    /** set conditions */
+    void setConditions(Node guard,
+                       const std::vector<Node>& enums,
+                       const std::vector<Node>& conds);
 
    private:
+    /**
+     * Conditional enumerator variables corresponding to the condition values in
+     * d_conds. These are used for generating separation lemmas during
+     * buildSol. This is set by setConditions(...).
+     */
+    std::vector<Node> d_enums;
+    /**
+     * The guard literal whose semantics is "we need at most d_enums.size()
+     * conditions in our solution. This is set by setConditions(...).
+     */
+    Node d_guard;
     /**
      * reference to inferred strategy for the function-to-synthesize this DT is
      * associated with
@@ -220,8 +256,6 @@ class SygusUnifRl : public SygusUnif
      * decision tree.
      */
     Node d_cond_enum;
-    /** chache of model values of heads of evaluation points */
-    NodePairMap d_hd_values;
     /** Classifies evaluation points according to enumerated condition values
      *
      * Maintains the invariant that points evaluated in the same way in the
@@ -262,41 +296,39 @@ class SygusUnifRl : public SygusUnif
   /** register strategy
    *
    * Initialize the above data for the relevant enumerators in the strategy tree
-   * of candidate variable f.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
+   * of candidate variable f. For each strategy point e which there is a
+   * decision tree strategy, we add e to enums. For each strategy with index
+   * i in an strategy point e, if we are not using the strategy, we add i to
+   * unused_strats[e]. This map is later passed to
+   * SygusUnifStrategy::staticLearnRedundantOps.
    */
-  void registerStrategy(Node f,
-                        std::map<Node, std::vector<Node>>& strategy_lemmas);
+  void registerStrategy(
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::unordered_set<unsigned>>& unused_strats);
   /** register strategy node
    *
    * Called while traversing the strategy tree of f. The arguments e and nrole
    * indicate the current node in the tree we are traversing, and visited
-   * indicates the nodes we have already visited.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
+   * indicates the nodes we have already visited. The arguments enums and
+   * unused_strats are modified as described above.
    */
-  void registerStrategyNode(Node f,
-                            Node e,
-                            NodeRole nrole,
-                            std::map<Node, std::map<NodeRole, bool>>& visited,
-                            std::map<Node, std::vector<Node>>& strategy_lemmas);
+  void registerStrategyNode(
+      Node f,
+      Node e,
+      NodeRole nrole,
+      std::map<Node, std::map<NodeRole, bool>>& visited,
+      std::vector<Node>& enums,
+      std::map<Node, std::unordered_set<unsigned>>& unused_strats);
   /** register conditional enumerator
    *
    * Registers that cond is a conditional enumerator for building a (recursive)
    * decision tree at strategy node e within the strategy tree of f.
-   *
-   * Lemmas to remove redundant operators from enumerators of specific strategy
-   * points, if any, are retrived from strategy_lemmas.
    */
-  void registerConditionalEnumerator(
-      Node f,
-      Node e,
-      Node cond,
-      unsigned strategy_index,
-      std::map<Node, std::vector<Node>>& strategy_lemmas);
+  void registerConditionalEnumerator(Node f,
+                                     Node e,
+                                     Node cond,
+                                     unsigned strategy_index);
 };
 
 } /* CVC4::theory::quantifiers namespace */

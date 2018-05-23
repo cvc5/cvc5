@@ -14,6 +14,9 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
+#include "options/base_options.h"
+#include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
@@ -25,58 +28,38 @@ namespace quantifiers {
 
 SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
 SygusUnifRl::~SygusUnifRl() {}
-void SygusUnifRl::initialize(QuantifiersEngine* qe,
-                             const std::vector<Node>& funs,
-                             std::vector<Node>& enums,
-                             std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnifRl::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   // initialize
   std::vector<Node> all_enums;
-  SygusUnif::initialize(qe, funs, all_enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(qe, f, all_enums, strategy_lemmas);
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
-  for (const Node& f : funs)
+  StrategyRestrictions restrictions;
+  if (options::sygusBoolIteReturnConst())
   {
-    d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-    registerStrategy(f, strategy_lemmas);
+    restrictions.d_iteReturnBoolConst = true;
   }
-  enums.insert(enums.end(), d_cond_enums.begin(), d_cond_enums.end());
+  // register the strategy
+  registerStrategy(f, enums, restrictions.d_unused_strategies);
+  d_strategy[f].staticLearnRedundantOps(strategy_lemmas, restrictions);
   // Copy candidates and check whether CegisUnif for any of them
-  for (const Node& c : d_unif_candidates)
+  if (d_unif_candidates.find(f) != d_unif_candidates.end())
   {
-    d_hd_to_pt[c].clear();
-    d_cand_to_eval_hds[c].clear();
-    d_cand_to_hd_count[c] = 0;
+    d_hd_to_pt[f].clear();
+    d_cand_to_eval_hds[f].clear();
+    d_cand_to_hd_count[f] = 0;
   }
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
-  Trace("sygus-unif-rl-notify") << "SyGuSUnifRl: Adding to enum " << e
-                                << " value " << v << "\n";
-  // Exclude v from next enumerations for e
-  Node exc_lemma =
-      d_tds->getExplain()->getExplanationForEquality(e, v).negate();
-  Trace("sygus-unif-rl-notify-debug")
-      << "SygusUnifRl : enumeration exclude lemma : " << exc_lemma << std::endl;
-  lemmas.push_back(exc_lemma);
-  // Update all desicion trees in which this enumerator is a conditional
-  // enumerator, if any
-  std::map<Node, std::vector<Node>>::iterator it = d_cenum_to_stratpt.find(e);
-  if (it == d_cenum_to_stratpt.end())
-  {
-    return;
-  }
-  for (const Node& stratpt : it->second)
-  {
-    Trace("sygus-unif-rl-dt")
-        << "...adding value " << v
-        << " to decision tree of strategy point  : " << stratpt << std::endl;
-    Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-    // Register new condition value
-    d_stratpt_to_dt[stratpt].addCondValue(v);
-    Trace("sygus-unif-rl-dt") << "...added\n";
-  }
+  // we do not use notify enumeration
+  Assert(false);
 }
 
 Node SygusUnifRl::purifyLemma(Node n,
@@ -126,8 +109,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       else
       {
         nv = d_parent->getModelValue(n);
-      Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
-                                    << " is " << nv << "\n";
+        Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
+                                      << " is " << nv << "\n";
       }
       Assert(n != nv);
     }
@@ -289,10 +272,11 @@ Node SygusUnifRl::addRefLemma(Node lemma,
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
           Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-          Trace("sygus-unif-rl-dt") << "Add point with head " << cp.second[j]
-                                    << " to strategy point " << stratpt << "\n";
+          Trace("sygus-unif-rl-dt") << "Register point with head "
+                                    << cp.second[j] << " to strategy point "
+                                    << stratpt << "\n";
           // Register new point from new head
-          d_stratpt_to_dt[stratpt].addPoint(cp.second[j]);
+          d_stratpt_to_dt[stratpt].d_hds.push_back(cp.second[j]);
         }
       }
     }
@@ -303,34 +287,37 @@ Node SygusUnifRl::addRefLemma(Node lemma,
 
 void SygusUnifRl::initializeConstructSol() {}
 void SygusUnifRl::initializeConstructSolFor(Node f) {}
-bool SygusUnifRl::constructSolution(std::vector<Node>& sols)
+bool SygusUnifRl::constructSolution(std::vector<Node>& sols,
+                                    std::vector<Node>& lemmas)
 {
   initializeConstructSol();
+  bool successful = true;
   for (const Node& c : d_candidates)
   {
     if (!usingUnif(c))
     {
       Node v = d_parent->getModelValue(c);
-      Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                                 << " to non-unif candidate " << c << "\n";
       sols.push_back(v);
       continue;
     }
     initializeConstructSolFor(c);
-    Node v = constructSol(c, d_strategy[c].getRootEnumerator(), role_equal, 0);
+    Node v = constructSol(
+        c, d_strategy[c].getRootEnumerator(), role_equal, 0, lemmas);
     if (v.isNull())
     {
-      return false;
+      // we continue trying to build solutions to accumulate potentitial
+      // separation conditions from other decision trees
+      successful = false;
+      continue;
     }
-    Trace("sygus-unif-rl-sol") << "Adding solution " << v
-                               << " to unif candidate " << c << "\n";
     sols.push_back(v);
     d_cand_to_sol[c] = v;
   }
-  return true;
+  return successful;
 }
 
-Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
+Node SygusUnifRl::constructSol(
+    Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas)
 {
   indent("sygus-unif-sol", ind);
   Trace("sygus-unif-sol") << "ConstructSol: SygusRL : " << e << std::endl;
@@ -359,12 +346,35 @@ Node SygusUnifRl::constructSol(Node f, Node e, NodeRole nrole, int ind)
     return d_parent->getModelValue(e);
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
-  return itd->second.buildSol(etis->d_cons);
+  Node sol = itd->second.buildSol(etis->d_cons, lemmas);
+  if (sol.isNull())
+  {
+    Assert(!lemmas.empty());
+  }
+  return sol;
 }
 
-bool SygusUnifRl::usingUnif(Node f)
+bool SygusUnifRl::usingUnif(Node f) const
 {
   return d_unif_candidates.find(f) != d_unif_candidates.end();
+}
+
+Node SygusUnifRl::getConditionForEvaluationPoint(Node e) const
+{
+  std::map<Node, DecisionTreeInfo>::const_iterator it = d_stratpt_to_dt.find(e);
+  Assert(it != d_stratpt_to_dt.end());
+  return it->second.getConditionEnumerator();
+}
+
+void SygusUnifRl::setConditions(Node e,
+                                Node guard,
+                                const std::vector<Node>& enums,
+                                const std::vector<Node>& conds)
+{
+  std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
+  Assert(it != d_stratpt_to_dt.end());
+  // set the conditions for the appropriate tree
+  it->second.setConditions(guard, enums, conds);
 }
 
 std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
@@ -378,7 +388,9 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
 }
 
 void SygusUnifRl::registerStrategy(
-    Node f, std::map<Node, std::vector<Node>>& strategy_lemmas)
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -389,7 +401,7 @@ void SygusUnifRl::registerStrategy(
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
-  registerStrategyNode(f, e, role_equal, visited, strategy_lemmas);
+  registerStrategyNode(f, e, role_equal, visited, enums, unused_strats);
 }
 
 void SygusUnifRl::registerStrategyNode(
@@ -397,7 +409,8 @@ void SygusUnifRl::registerStrategyNode(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool>>& visited,
-    std::map<Node, std::vector<Node>>& strategy_lemmas)
+    std::vector<Node>& enums,
+    std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
@@ -413,9 +426,10 @@ void SygusUnifRl::registerStrategyNode(
     EnumTypeInfoStrat* etis = snode.d_strats[j];
     StrategyType strat = etis->d_this;
     // is this a simple recursive ITE strategy?
+    bool success = false;
     if (strat == strat_ITE && nrole == role_equal)
     {
-      bool success = true;
+      success = true;
       for (unsigned c = 1; c <= 2; c++)
       {
         std::pair<Node, NodeRole> child = etis->d_cenum[c];
@@ -433,20 +447,29 @@ void SygusUnifRl::registerStrategyNode(
             << "  ...detected recursive ITE strategy, condition enumerator : "
             << cond << std::endl;
         // indicate that we will be enumerating values for cond
-        registerConditionalEnumerator(f, e, cond, j, strategy_lemmas);
+        registerConditionalEnumerator(f, e, cond, j);
+        // we will be using a strategy for e
+        enums.push_back(e);
       }
+    }
+    if (!success)
+    {
+      unused_strats[e].insert(j);
     }
     // TODO: recurse? for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
   }
 }
 
-void SygusUnifRl::registerConditionalEnumerator(
-    Node f,
-    Node e,
-    Node cond,
-    unsigned strategy_index,
-    std::map<Node, std::vector<Node>>& strategy_lemmas)
+void SygusUnifRl::registerConditionalEnumerator(Node f,
+                                                Node e,
+                                                Node cond,
+                                                unsigned strategy_index)
 {
+  // only allow one decision tree per strategy point
+  if (d_stratpt_to_dt.find(e) != d_stratpt_to_dt.end())
+  {
+    return;
+  }
   // we will do unification for this candidate
   d_unif_candidates.insert(f);
   // add to the list of all conditional enumerators
@@ -455,23 +478,7 @@ void SygusUnifRl::registerConditionalEnumerator(
   {
     d_cond_enums.push_back(cond);
     d_cand_cenums[f].push_back(cond);
-    // register the conditional enumerator
-    d_tds->registerEnumerator(cond, f, d_parent, true);
     d_cenum_to_stratpt[cond].clear();
-    // register lemmas to remove redundant operators from condition enumeration
-    std::map<const Node, std::vector<Node>>::iterator it =
-        strategy_lemmas.find(cond);
-    if (it != strategy_lemmas.end())
-    {
-      for (const Node& lemma : it->second)
-      {
-        Trace("cegis-unif-enum-debug")
-            << "* Registering lemma to remove redundand operators for " << cond
-            << " --> " << lemma << "\n";
-        d_qe->getOutputChannel().lemma(lemma);
-      }
-      strategy_lemmas.erase(cond);
-    }
   }
   // register that this strategy node has a decision tree construction
   d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], strategy_index);
@@ -495,15 +502,18 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
   d_pt_sep.initialize(this);
 }
 
-void SygusUnifRl::DecisionTreeInfo::addPoint(Node f)
+void SygusUnifRl::DecisionTreeInfo::setConditions(
+    Node guard, const std::vector<Node>& enums, const std::vector<Node>& conds)
 {
-  d_pt_sep.d_trie.add(f, &d_pt_sep, d_conds.size());
-}
-
-void SygusUnifRl::DecisionTreeInfo::addCondValue(Node condv)
-{
-  d_conds.push_back(condv);
-  d_pt_sep.d_trie.addClassifier(&d_pt_sep, d_conds.size() - 1);
+  Assert(enums.size() == conds.size());
+  // set the guard
+  d_guard = guard;
+  // clear old condition values
+  d_enums.clear();
+  d_conds.clear();
+  // set new condition values
+  d_enums.insert(d_enums.end(), enums.begin(), enums.end());
+  d_conds.insert(d_conds.end(), conds.begin(), conds.end());
 }
 
 unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
@@ -513,21 +523,235 @@ unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 
 using UNodePair = std::pair<unsigned, Node>;
 
-Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
+Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
+                                             std::vector<Node>& lemmas)
 {
   if (!d_template.first.isNull())
   {
     Trace("sygus-unif-sol") << "...templated conditions unsupported\n";
     return Node::null();
   }
-  if (!isSeparated())
+  Trace("sygus-unif-sol") << "Decision::buildSol with " << d_hds.size()
+                          << " evaluation heads and " << d_conds.size()
+                          << " conditions..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  // model values for evaluation heads
+  std::map<Node, Node> hd_mv;
+  // reset the trie
+  d_pt_sep.d_trie.clear();
+  // the current explanation of why there has not yet been a separation conflict
+  std::vector<Node> exp;
+  // is the above explanation ready to be sent out as a lemma?
+  bool exp_conflict = false;
+  // the index of the head we are considering
+  unsigned hd_counter = 0;
+  // the index of the condition we are considering
+  unsigned c_counter = 0;
+  // do we need to resolve a separation conflict?
+  bool needs_sep_resolve = false;
+  // This loop simultaneously builds the solution in terms of a lazy trie
+  // (LazyTrieMulti), and checks whether a separation conflict exists. We
+  // enforce that the separation conflicts we encounter while building
+  // this solution are resolved, in order, by the condition enumerators.
+  // If not, then we add a (conflict) lemma stating that the current model
+  // value of the condition enumerator must be different. We also call this
+  // a "separation lemma".
+  //
+  // As a simple example, say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2)
+  //   conditions: c1
+  // where M(e1) = x, M(e2) = y, and M(c1) = x>1. After adding e1 and e2, we are
+  // in conflict since { e1, e2 } form a separation class, M(e1)!=M(e2), and
+  // M(c1) does not separate e1 and e2 since:
+  //   (x>1){x->0,y->0} = (x>1){x->1,y->2} = false
+  // Hence, we would fail to build a solution in this case, and instead send a
+  // separation lemma of the form:
+  //   ~( e1 != e2 ^ c1 = [x<1] )
+  //
+  // Say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2), (eval e3 1 3)
+  //   conditions: c1 c2
+  // where M(e1) = x, M(e2) = y, M(e3) = x+1, M(c1) = x>0 and M(c2) = x<0.
+  // After adding e1 and e2, { e1, e2 } form a separation class, M(e1)!=M(e2),
+  // but M(c1) separates e1 and e2 since
+  //   (x>0){x->0,y->0} = false, and
+  //   (x>1){x->1,y->2} = true
+  // Hence, we get new separation classes { e1 } and { e2 }, and afterwards
+  // add e3. We then get { e2, e3 } as a separation class, which is also a
+  // conflict since M(e2)!=M(e3). We check if M(c2) resolves this conflict.
+  // It does not, since (x<1){x->0,y->0} = (x<1){x->1,y->2} = false. Hence,
+  // we get a separation lemma:
+  //  ~( c1 = [x>1] ^ e2 != e3 ^ c2 = [x<1] )
+  //
+  // Say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2), (eval e3 1 3)
+  //   conditions: c1
+  // where M(e1) = x, M(e2) = x, M(e3) = y, M(c1) = x>0.
+  // After adding e1 and e2, we have separation class { e1, e2 }. This is not a
+  // conflict since M(e1)=M(e2). We then add e3, obtaining separation class
+  // { e1, e2, e3 }, which is in conflict since M(e3)!=M(e1), and the condition
+  // c1 does not separate e3 and the representative of this class, e1. Hence we
+  // get a separation lemma of the form:
+  //  ~( e1 = e2 ^ e1 != e3 ^ c1 = [x>0] )
+  //
+  // It also may be the case that we exhaust the pool of condition enumerators.
+  // Say we have:
+  //   evalution heads: (eval e1 0 0), (eval e2 1 2), (eval e3 1 3)
+  //   conditions: c1
+  // where M(e1) = x, M(e2) = x, M(e3) = y, M(c1) = y>0. After adding e1, e2,
+  // and e3, we have a separation class { e1, e2, e3 } that is in conflict
+  // since M(e3)!=M(e1). We add the condition c1, which separates into new
+  // equivalence classes { e1 }, { e2, e3 }. We are still in separation conflict
+  // since M(e3)!=M(e2). However, we do not have any further conditions to use
+  // to resolve this conflict. Thus, we add the separation lemma:
+  //  ~( e1 = e2 ^ e1 != e3 ^ e2 != e3 ^ c1 = [y>0] ^ G_1 )
+  // where G_1 is a guard stating that we use at most 1 condition.
+  Node e;
+  Node er;
+  while (hd_counter < d_hds.size() || needs_sep_resolve)
   {
-    Trace("sygus-unif-sol") << "...separation check failed\n";
+    if (!needs_sep_resolve)
+    {
+      // add the head to the trie
+      e = d_hds[hd_counter];
+      hd_mv[e] = d_unif->d_parent->getModelValue(e);
+      if (Trace.isOn("sygus-unif-sol"))
+      {
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(ss, hd_mv[e]);
+        Trace("sygus-unif-sol")
+            << "  add evaluation head (" << hd_counter << "/" << d_hds.size()
+            << "): " << e << " -> " << ss.str() << std::endl;
+      }
+      hd_counter++;
+      // get the representative of the trie
+      er = d_pt_sep.d_trie.add(e, &d_pt_sep, c_counter);
+      Trace("sygus-unif-sol") << "  ...separation class " << er << std::endl;
+      // are we in conflict?
+      if (er == e)
+      {
+        // new separation class, no conflict
+        continue;
+      }
+      Assert(hd_mv.find(er) != hd_mv.end());
+      if (hd_mv[er] == hd_mv[e])
+      {
+        // merged into separation class with same model value, no conflict
+        // add to explanation
+        // this states that it mattered that (er = e) at the time that e was
+        // added to the trie. Notice that er and e may become separated later,
+        // but to ensure the overall invariant, this equality must persist in
+        // the explanation.
+        exp.push_back(er.eqNode(e));
+        Trace("sygus-unif-sol") << "  ...equal model values " << std::endl;
+        Trace("sygus-unif-sol")
+            << "  ...add to explanation " << er.eqNode(e) << std::endl;
+        continue;
+      }
+    }
+    // must include in the explanation that we hit a conflict at this point in
+    // the construction
+    exp.push_back(e.eqNode(er).negate());
+    // we are in separation conflict, does the next condition resolve this?
+    // check whether we have have exhausted our condition pool. If so, we
+    // are in conflict and this conflict depends on the guard.
+    if (c_counter >= d_conds.size())
+    {
+      // truncated separation lemma
+      Assert(!d_guard.isNull());
+      exp.push_back(d_guard);
+      exp_conflict = true;
+      break;
+    }
+    Assert(c_counter < d_conds.size());
+    Node ce = d_enums[c_counter];
+    Node cv = d_conds[c_counter];
+    Assert(ce.getType() == cv.getType());
+    if (Trace.isOn("sygus-unif-sol"))
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, cv);
+      Trace("sygus-unif-sol")
+          << "  add condition (" << c_counter << "/" << d_conds.size()
+          << "): " << ce << " -> " << ss.str() << std::endl;
+    }
+    // cache the separation class
+    std::vector<Node> prev_sep_c = d_pt_sep.d_trie.d_rep_to_class[er];
+    // add new classifier
+    d_pt_sep.d_trie.addClassifier(&d_pt_sep, c_counter);
+    c_counter++;
+    // add to explanation
+    // c_exp is a conjunction of testers applied to shared selector chains
+    Node c_exp = d_unif->d_tds->getExplain()->getExplanationForEquality(ce, cv);
+    exp.push_back(c_exp);
+    std::map<Node, std::vector<Node>>::iterator itr =
+        d_pt_sep.d_trie.d_rep_to_class.find(e);
+    // since e is last in its separation class, if it becomes a representative,
+    // then it is separated from all values in prev_sep_c
+    if (itr != d_pt_sep.d_trie.d_rep_to_class.end())
+    {
+      Trace("sygus-unif-sol")
+          << "  ...resolves separation conflict with all" << std::endl;
+      needs_sep_resolve = false;
+      continue;
+    }
+    itr = d_pt_sep.d_trie.d_rep_to_class.find(er);
+    // since er is first in its separation class, it remains a representative
+    Assert(itr != d_pt_sep.d_trie.d_rep_to_class.end());
+    // is e still in the separation class of er?
+    if (std::find(itr->second.begin(), itr->second.end(), e)
+        != itr->second.end())
+    {
+      Trace("sygus-unif-sol")
+          << "  ...does not resolve separation conflict with current"
+          << std::endl;
+      // the condition does not separate e and er
+      // this violates the invariant that the i^th conditional enumerator
+      // resolves the i^th separation conflict
+      exp_conflict = true;
+      break;
+    }
+    Trace("sygus-unif-sol")
+        << "  ...resolves separation conflict with current, but not all"
+        << std::endl;
+    // find the new term to resolve a separation
+    Node new_er = Node::null();
+    // scan the previous list and find the representative of the class that e is
+    // now in
+    for (unsigned i = 0, size = prev_sep_c.size(); i < size; i++)
+    {
+      Node check_er = prev_sep_c[i];
+      if (check_er != er && check_er != e)
+      {
+        itr = d_pt_sep.d_trie.d_rep_to_class.find(check_er);
+        if (itr != d_pt_sep.d_trie.d_rep_to_class.end())
+        {
+          if (std::find(itr->second.begin(), itr->second.end(), e)
+              != itr->second.end())
+          {
+            new_er = check_er;
+            break;
+          }
+        }
+      }
+    }
+    // should find exactly one
+    Assert(!new_er.isNull());
+    er = new_er;
+    needs_sep_resolve = true;
+  }
+  if (exp_conflict)
+  {
+    Node lemma = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+    lemma = lemma.negate();
+    Trace("sygus-unif-sol") << "  ......conflict is " << lemma << std::endl;
+    lemmas.push_back(lemma);
     return Node::null();
   }
+
   Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
   // Traverse trie and build ITE with cons
-  NodeManager* nm = NodeManager::currentNM();
   std::map<IndTriePair, Node> cache;
   std::map<IndTriePair, Node>::iterator it;
   std::vector<IndTriePair> visit;
@@ -548,8 +772,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
       // leaf
       if (trie->d_children.empty())
       {
-        Assert(d_hd_values.find(trie->d_lazy_child) != d_hd_values.end());
-        cache[cur] = d_hd_values[trie->d_lazy_child];
+        Assert(hd_mv.find(trie->d_lazy_child) != hd_mv.end());
+        cache[cur] = hd_mv[trie->d_lazy_child];
         Trace("sygus-unif-sol-debug")
             << "......leaf, build "
             << d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
@@ -602,60 +826,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons)
                                  cache[root], cache[root].getType())
                           << "\n";
   return cache[root];
-}
-
-bool SygusUnifRl::DecisionTreeInfo::isSeparated()
-{
-  d_hd_values.clear();
-  for (const std::pair<const Node, std::vector<Node>>& rep_to_class :
-       d_pt_sep.d_trie.d_rep_to_class)
-  {
-    Assert(!rep_to_class.second.empty());
-    Node v = d_unif->d_parent->getModelValue(rep_to_class.second[0]);
-    if (Trace.isOn("sygus-unif-rl-dt-debug"))
-    {
-      Trace("sygus-unif-rl-dt-debug") << "...class of ("
-                                      << rep_to_class.second[0];
-      Assert(d_unif->d_hd_to_pt.find(rep_to_class.second[0])
-             != d_unif->d_hd_to_pt.end());
-      for (const Node& pti : d_unif->d_hd_to_pt[rep_to_class.second[0]])
-      {
-        Trace("sygus-unif-rl-dt-debug") << " " << pti << " ";
-      }
-      Trace("sygus-unif-rl-dt-debug") << ") "
-                                      << " with hd value " << v << "\n";
-    }
-    d_hd_values[rep_to_class.second[0]] = v;
-    unsigned i, size = rep_to_class.second.size();
-    for (i = 1; i < size; ++i)
-    {
-      Node vi = d_unif->d_parent->getModelValue(rep_to_class.second[i]);
-      Assert(d_hd_values.find(rep_to_class.second[i]) == d_hd_values.end());
-      d_hd_values[rep_to_class.second[i]] = vi;
-      if (Trace.isOn("sygus-unif-rl-dt-debug"))
-      {
-        Trace("sygus-unif-rl-dt-debug") << "...class of ("
-                                        << rep_to_class.second[i];
-        Assert(d_unif->d_hd_to_pt.find(rep_to_class.second[i])
-               != d_unif->d_hd_to_pt.end());
-        for (const Node& pti : d_unif->d_hd_to_pt[rep_to_class.second[i]])
-        {
-          Trace("sygus-unif-rl-dt-debug") << " " << pti << " ";
-        }
-        Trace("sygus-unif-rl-dt-debug") << ") "
-                                        << " with hd value " << vi << "\n";
-      }
-      // Heads with different model values
-      if (v != vi)
-      {
-        Trace("sygus-unif-rl-dt") << "...in sep class heads with diff values: "
-                                  << rep_to_class.second[0] << " and "
-                                  << rep_to_class.second[i] << "\n";
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 void SygusUnifRl::DecisionTreeInfo::PointSeparator::initialize(
