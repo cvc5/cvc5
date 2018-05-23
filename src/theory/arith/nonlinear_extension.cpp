@@ -1335,7 +1335,8 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
 
 bool NonlinearExtension::simpleCheckModelLit(Node lit)
 {
-  Trace("nl-ext-cms") << "*** Simple check-model lit for " << lit << "..." << std::endl;
+  Trace("nl-ext-cms") << "*** Simple check-model lit for " << lit << "..."
+                      << std::endl;
   if (lit.isConst())
   {
     Trace("nl-ext-cms") << "  return constant." << std::endl;
@@ -1386,7 +1387,8 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     return true;
   }
   // can also try reasoning about univariate quadratic equations
-  Trace("nl-ext-cms-debug") << "* Try univariate quadratic analysis..." << std::endl;
+  Trace("nl-ext-cms-debug")
+      << "* Try univariate quadratic analysis..." << std::endl;
   std::vector<Node> vs_invalid;
   std::unordered_set<Node, NodeHashFunction> vs;
   std::map<Node, Node> v_a;
@@ -1403,8 +1405,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         vs.insert(v);
       }
       else if (v.getKind() == NONLINEAR_MULT && v.getNumChildren() == 2
-               && v[0] == v[1]
-               && v[0].isVar())
+               && v[0] == v[1] && v[0].isVar())
       {
         v_a[v[0]] = m.second.isNull() ? d_one : m.second;
         vs.insert(v[0]);
@@ -1416,60 +1417,65 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     }
   }
   // solve the valid variables...
-  Node invalid_vsum =
-      vs_invalid.empty() ? d_zero : (vs_invalid.size() == 1
-                                         ? vs_invalid[0]
-                                         : nm->mkNode(PLUS, vs_invalid));
+  Node invalid_vsum = vs_invalid.empty() ? d_zero
+                                         : (vs_invalid.size() == 1
+                                                ? vs_invalid[0]
+                                                : nm->mkNode(PLUS, vs_invalid));
   // substitution to try
-  std::vector< Node > qvars;
-  std::vector< Node > qsubs;
+  std::vector<Node> qvars;
+  std::vector<Node> qsubs;
   for (const Node& v : vs)
   {
     // is it a valid variable?
-    std::map<Node, std::pair<Node, Node> >::iterator bit = d_check_model_bounds.find(v);
-    if (!invalid_vsum.hasSubterm(v) && bit!=d_check_model_bounds.end())
+    std::map<Node, std::pair<Node, Node> >::iterator bit =
+        d_check_model_bounds.find(v);
+    if (!invalid_vsum.hasSubterm(v) && bit != d_check_model_bounds.end())
     {
       std::map<Node, Node>::iterator it = v_a.find(v);
       if (it != v_a.end())
       {
         Node a = it->second;
-        Assert( a.isConst() );
+        Assert(a.isConst());
         int asgn = a.getConst<Rational>().sgn();
-        Assert( asgn!=0 );
+        Assert(asgn != 0);
         Node t = nm->mkNode(MULT, a, v, v);
         Node b = d_zero;
         it = v_b.find(v);
         if (it != v_b.end())
         {
           b = it->second;
-          t = nm->mkNode( PLUS, t, nm->mkNode( MULT, b, v ) );
+          t = nm->mkNode(PLUS, t, nm->mkNode(MULT, b, v));
         }
-        t = Rewriter::rewrite( t );
-        Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic " << t << "..." << std::endl;
+        t = Rewriter::rewrite(t);
+        Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
+                                  << t << "..." << std::endl;
         // find maximal/minimal value on the interval
-        Node apex = nm->mkNode(DIVISION, nm->mkNode(UMINUS,b), nm->mkNode(MULT, d_two, a));
-        apex = Rewriter::rewrite( apex );
-        Assert( apex.isConst() );
+        Node apex = nm->mkNode(
+            DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
+        apex = Rewriter::rewrite(apex);
+        Assert(apex.isConst());
         bool cmp[2];
         Node boundn[2];
-        for( unsigned r=0; r<2; r++ )
+        for (unsigned r = 0; r < 2; r++)
         {
-          boundn[r] = r==0 ? bit->second.first : bit->second.second;
-          Node cmpn = nm->mkNode( LT, boundn[r], apex );
+          boundn[r] = r == 0 ? bit->second.first : bit->second.second;
+          Node cmpn = nm->mkNode(LT, boundn[r], apex);
           cmpn = Rewriter::rewrite(cmpn);
-          Assert( cmpn.isConst() );
+          Assert(cmpn.isConst());
           cmp[r] = cmpn.getConst<bool>();
         }
         Trace("nl-ext-cms-debug") << "  apex " << apex << std::endl;
-        Trace("nl-ext-cms-debug") << "  min " << boundn[0] << ", cmp: " << cmp[0] << std::endl;
-        Trace("nl-ext-cms-debug") << "  max " << boundn[1] << ", cmp: " << cmp[1] << std::endl;
+        Trace("nl-ext-cms-debug")
+            << "  min " << boundn[0] << ", cmp: " << cmp[0] << std::endl;
+        Trace("nl-ext-cms-debug")
+            << "  max " << boundn[1] << ", cmp: " << cmp[1] << std::endl;
         Node s;
         qvars.push_back(v);
-        if( cmp[0]!=cmp[1] )
+        if (cmp[0] != cmp[1])
         {
-          Assert( cmp[0] && !cmp[1] );
+          Assert(cmp[0] && !cmp[1]);
           // does the sign match the bound?
-          if( (asgn==1)==pol )
+          if ((asgn == 1) == pol)
           {
             // the apex is the max/min value
             s = apex;
@@ -1479,40 +1485,48 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           {
             // it is one of the endpoints, plug in and compare
             Node tcmpn[2];
-            for( unsigned r=0; r<2; r++ )
+            for (unsigned r = 0; r < 2; r++)
             {
               qsubs.push_back(boundn[r]);
-              Node ts = t.substitute(qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end() );
+              Node ts = t.substitute(
+                  qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
               tcmpn[r] = Rewriter::rewrite(ts);
               qsubs.pop_back();
             }
-            Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1] );
-            Trace("nl-ext-cms-debug") << "  ...both sides of apex, compare " << tcmp << std::endl;
-            tcmp = Rewriter::rewrite( tcmp );
-            Assert( tcmp.isConst() );
-            unsigned bindex_use = tcmp.getConst<bool>()==pol ? 1 : 0;
-            Trace("nl-ext-cms-debug") << "  ...set to " << (bindex_use==1 ? "max" : "min" ) << std::endl;
+            Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
+            Trace("nl-ext-cms-debug")
+                << "  ...both sides of apex, compare " << tcmp << std::endl;
+            tcmp = Rewriter::rewrite(tcmp);
+            Assert(tcmp.isConst());
+            unsigned bindex_use = tcmp.getConst<bool>() == pol ? 1 : 0;
+            Trace("nl-ext-cms-debug")
+                << "  ...set to " << (bindex_use == 1 ? "max" : "min")
+                << std::endl;
             s = boundn[bindex_use];
           }
         }
         else
         {
           // both to one side
-          unsigned bindex_use = ((asgn==1)==cmp[0])==pol ? 0 : 1;
-          Trace("nl-ext-cms-debug") << "  ...set to " << (bindex_use==1 ? "max" : "min" ) << std::endl;
+          unsigned bindex_use = ((asgn == 1) == cmp[0]) == pol ? 0 : 1;
+          Trace("nl-ext-cms-debug")
+              << "  ...set to " << (bindex_use == 1 ? "max" : "min")
+              << std::endl;
           s = boundn[bindex_use];
         }
-        Assert( !s.isNull() );
+        Assert(!s.isNull());
         qsubs.push_back(s);
-        Trace("nl-ext-cms") << "* set bound based on quadratic : " << v << " -> " << s << std::endl;
+        Trace("nl-ext-cms") << "* set bound based on quadratic : " << v
+                            << " -> " << s << std::endl;
       }
     }
   }
-  if( !qvars.empty() )
+  if (!qvars.empty())
   {
-    Assert( qvars.size()==qsubs.size() );
-    Node slit = lit.substitute( qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end() );
-    slit = Rewriter::rewrite( slit );
+    Assert(qvars.size() == qsubs.size());
+    Node slit =
+        lit.substitute(qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
+    slit = Rewriter::rewrite(slit);
     return simpleCheckModelLit(slit);
   }
   return false;
