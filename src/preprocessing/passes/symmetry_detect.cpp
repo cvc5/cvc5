@@ -374,7 +374,7 @@ void PartitionTrie::getNewPartition(Partition& part,
 {
   if (!pt.d_variables.empty())
   {
-    Assert(var_to_svar.find(pt.d_variables[0]) != pt.d_variables[0].end());
+    Assert(var_to_svar.find(pt.d_variables[0]) != var_to_svar.end());
     Node svar = var_to_svar[pt.d_variables[0]];
     Trace("sym-dt-debug")
         << "[sym-dt] A partition from leaves of the partition trie:{";
