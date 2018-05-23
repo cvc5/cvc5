@@ -1366,70 +1366,68 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 }
 
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
-  if( en.getKind()==kind::APPLY_UF ){
-    Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
-    Node ev = en[0];
-    if( track_exp ){
-      std::map< Node, Node >::iterator itv = vtm.find( en[0] );
-      if( itv!=vtm.end() ){
-        ev = itv->second;
-      }else{
-        Assert( false );
-      }
-      Assert( en[0].getType()==ev.getType() );
-      Assert( ev.isConst() );
-    }
-    Assert( ev.getKind()==kind::APPLY_CONSTRUCTOR );
-    std::vector< Node > args;
-    for( unsigned i=1; i<en.getNumChildren(); i++ ){
-      args.push_back( en[i] );
-    }
-    const Datatype& dt = ((DatatypeType)(ev.getType()).toType()).getDatatype();
-    unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
-    if( track_exp ){
-      //explanation
-      Node ee = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), en[0] );
-      if( std::find( exp.begin(), exp.end(), ee )==exp.end() ){
-        exp.push_back( ee );
-      }
-    }
-    Assert( !dt.isParametric() );
-    std::map< int, Node > pre;
-    for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-      std::vector< Node > cc;
-      //get the evaluation argument for the selector
-      const Datatype & ad = ((DatatypeType)dt[i][j].getRangeType()).getDatatype();
-      Node s;
-      if( en[0].getKind()==kind::APPLY_CONSTRUCTOR ){
-        s = en[0][j];
-      }else{
-        s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal( en[0].getType().toType(), j ), en[0] );
-      }
-      cc.push_back( s );
-      if( track_exp ){
-        //update vtm map
-        vtm[s] = ev[j];
-      }
-      cc.insert( cc.end(), args.begin(), args.end() );
-      pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(ad,cc);
-    }
-    Node ret = mkGeneric(dt, i, pre);
-    // if it is a variable, apply the substitution
-    if( ret.getKind()==kind::BOUND_VARIABLE ){
-      Assert( ret.hasAttribute(SygusVarNumAttribute()) );
-      int i = ret.getAttribute(SygusVarNumAttribute());
-      Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
-      ret = args[i];
-    }
-    else
-    {
-      ret = Rewriter::rewrite(ret);
-    }
-    return ret;
-  }else{
+  if( !datatypes::DatatypesRewriter::isSygusEvalApp(en) ){
     Assert( en.isConst() );
+    return en;
   }
-  return en;
+  Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
+  Node ev = en[0];
+  if( track_exp ){
+    std::map< Node, Node >::iterator itv = vtm.find( en[0] );
+    if( itv!=vtm.end() ){
+      ev = itv->second;
+    }else{
+      Assert( false );
+    }
+    Assert( en[0].getType()==ev.getType() );
+    Assert( ev.isConst() );
+  }
+  Assert( ev.getKind()==kind::APPLY_CONSTRUCTOR );
+  std::vector< Node > args;
+  for( unsigned i=1, nchild = en.getNumChildren(); i<nchild; i++ ){
+    args.push_back( en[i] );
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  const Datatype& dt = static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
+  unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
+  if( track_exp ){
+    //explanation
+    Node ee = nm->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), en[0] );
+    if( std::find( exp.begin(), exp.end(), ee )==exp.end() ){
+      exp.push_back( ee );
+    }
+  }
+  Assert( !dt.isParametric() );
+  std::map< int, Node > pre;
+  Type headType = en[0].getType().toType();
+  for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
+    std::vector< Node > cc;
+    //get the evaluation argument for the selector
+    const Datatype & ad = static_cast<DatatypeType>(dt[i].getArgType(j)).getDatatype();
+    Node s;
+    if( en[0].getKind()==kind::APPLY_CONSTRUCTOR ){
+      s = en[0][j];
+    }else{
+      s = nm->mkNode( kind::APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal( headType, j ), en[0] );
+    }
+    cc.push_back( s );
+    if( track_exp ){
+      //update vtm map
+      vtm[s] = ev[j];
+    }
+    cc.insert( cc.end(), args.begin(), args.end() );
+    pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(ad,cc);
+  }
+  Node ret = mkGeneric(dt, i, pre);
+  // if it is a variable, apply the substitution
+  if( ret.getKind()==kind::BOUND_VARIABLE ){
+    Assert( ret.hasAttribute(SygusVarNumAttribute()) );
+    int i = ret.getAttribute(SygusVarNumAttribute());
+    Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
+    return args[i];
+  }
+  ret = Rewriter::rewrite(ret);
+  return ret;
 }
 
 
@@ -1438,7 +1436,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
   if( itv==visited.end() ){
     Trace("cegqi-eager-debug") << "getEagerUnfold " << n << std::endl;
     Node ret;
-    if( n.getKind()==APPLY_UF ){
+    if( datatypes::DatatypesRewriter::isSygusEvalApp(n) ){
       TypeNode tn = n[0].getType();
       Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
       if( tn.isDatatype() ){
@@ -1515,7 +1513,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
-    while( ret.getKind()==APPLY_UF && ret[0].getKind()==APPLY_CONSTRUCTOR ){
+    while( datatypes::DatatypesRewriter::isSygusEvalApp(ret) && ret[0].getKind()==APPLY_CONSTRUCTOR ){
       ret = unfold( ret );
     }    
     if( ret.getNumChildren()>0 ){
