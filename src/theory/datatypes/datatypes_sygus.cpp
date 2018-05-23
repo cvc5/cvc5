@@ -408,6 +408,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
     //symmetry breaking
     Kind nk = d_tds->getConsNumKind( tn, tindex );
     if( options::sygusSymBreak() ){
+      NodeManager* nm = NodeManager::currentNM();
       // if less than the maximum depth we consider
       if( depth<2 ){
         //get children
@@ -480,13 +481,37 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             if( nk==STRING_STRREPL ){
               deq_child[0].push_back( 0 );deq_child[1].push_back( 1 );
             }
+            // this code adds simple symmetry breaking predicates of the form
+            // d.i != d.j, for example if we are considering an ITE constructor,
+            // we enforce that d.1 != d.2 since otherwise the ITE can be
+            // simplified.
             for( unsigned i=0; i<deq_child[0].size(); i++ ){
               unsigned c1 = deq_child[0][i];
               unsigned c2 = deq_child[1][i];
-              if( children[c1].getType()==children[c2].getType() ){
-                if( !children[c1].getType().getCardinality().isOne() ){
-                  sbp_conj.push_back( children[c1].eqNode( children[c2] ).negate() );
+              TypeNode tnc = children[c1].getType();
+              if (tnc == children[c2].getType()
+                  && !tnc.getCardinality().isOne())
+              {
+                Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
+                // must guard if there are symbolic constructors
+                // the issue is that ite( C, _any_constant, _any_constant ) is
+                // a useful solution, since the two instances of _any_constant
+                // can be repaired to different values. Hence, below, we say
+                // e.g. d.i is a symbolic constructor, or it must be different
+                // from d.j.
+                int anyc_cons_num_c = d_tds->getAnyConstantConsNum(tnc);
+                if (anyc_cons_num_c != -1)
+                {
+                  const Datatype& cdt =
+                      static_cast<DatatypeType>(tnc.toType()).getDatatype();
+                  Node guard_val = nm->mkNode(
+                      APPLY_CONSTRUCTOR,
+                      Node::fromExpr(cdt[anyc_cons_num_c].getConstructor()));
+                  Node exp = d_tds->getExplain()->getExplanationForEquality(
+                      children[c1], guard_val);
+                  sym_lem_deq = nm->mkNode(OR, exp, sym_lem_deq);
                 }
+                sbp_conj.push_back(sym_lem_deq);
               }
             }
             
@@ -520,12 +545,19 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
               // if not already solved
               if( children_solved.find( j )==children_solved.end() ){
                 TypeNode tnc = nc.getType();
+                int anyc_cons_num = d_tds->getAnyConstantConsNum(tnc);
                 const Datatype& cdt = ((DatatypeType)(tnc).toType()).getDatatype();
                 for( unsigned k=0; k<cdt.getNumConstructors(); k++ ){
                   Kind nck = d_tds->getConsNumKind(tnc, k);
                   bool red = false;
                   // check if the argument is redundant
-                  if (nck != UNDEFINED_KIND)
+                  if (static_cast<int>(k) == anyc_cons_num)
+                  {
+                    // check if the any constant constructor is redundant at
+                    // this argument position
+                    // TODO
+                  }
+                  else if (nck != UNDEFINED_KIND)
                   {
                     Trace("sygus-sb-simple-debug")
                         << "  argument " << j << " " << k << " is : " << nck
@@ -557,6 +589,42 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             }
           }else{
             // defined function?
+          }
+          // explicitly handle "any constant" constructors
+          // if this type admits any constant, then at least one of my children
+          // must not be the "any constant" constructor
+          unsigned dt_index_nargs = dt[tindex].getNumArgs();
+          int tn_ac = d_tds->getAnyConstantConsNum(tn);
+          if (tn_ac != -1 && dt_index_nargs > 0)
+          {
+            std::vector<Node> exp_all_anyc;
+            bool success = true;
+            for (unsigned j = 0; j < dt_index_nargs; j++)
+            {
+              TypeNode ctn = TypeNode::fromType(dt[tindex].getArgType(j));
+              int ctn_ac = d_tds->getAnyConstantConsNum(ctn);
+              if (ctn_ac == -1)
+              {
+                success = false;
+                break;
+              }
+              Node nc = children[j];
+              TypeNode tnc = nc.getType();
+              const Datatype& cdt =
+                  static_cast<DatatypeType>(tnc.toType()).getDatatype();
+              exp_all_anyc.push_back(
+                  DatatypesRewriter::mkTester(nc, ctn_ac, cdt));
+            }
+            if (success)
+            {
+              Node expaan = exp_all_anyc.size() == 1
+                                ? exp_all_anyc[0]
+                                : nm->mkNode(AND, exp_all_anyc);
+              expaan = expaan.negate();
+              Trace("sygus-sb-simple-debug")
+                  << "Ensure not all any constant: " << expaan << std::endl;
+              sbp_conj.push_back(expaan);
+            }
           }
         }else if( depth==2 ){
           if( nk!=UNDEFINED_KIND ){
@@ -845,12 +913,17 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, st
 void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node a, std::vector< Node >& lemmas ) {
   Assert( t.getType()==tn );
   Assert( !a.isNull() );
+  Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
+                           << " " << a << std::endl;
   std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = d_cache[a].d_sb_lemmas.find( tn );
   if( its != d_cache[a].d_sb_lemmas.end() ){
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
     unsigned csz = getSearchSizeForAnchor( a );
     int max_sz = ((int)csz) - ((int)d);
+    Trace("sygus-sb-debug2")
+        << "add lemmas up to size " << max_sz << ", which is (search_size) "
+        << csz << " - (depth) " << d << std::endl;
     for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
       if( (int)it->first<=max_sz ){
         for( unsigned k=0; k<it->second.size(); k++ ){
@@ -860,6 +933,7 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
       }
     }
   }
+  Trace("sygus-sb-debug2") << "...finished." << std::endl;
 }
 
 void SygusSymBreakNew::addSymBreakLemma(Node lem,
@@ -1047,16 +1121,22 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   {
     for (const Node& a : anchors)
     {
-      std::vector<Node> sbl;
-      d_tds->getSymBreakLemmas(a, sbl);
-      for (const Node& lem : sbl)
+      // is this a registered enumerator?
+      if (d_register_st.find(a) != d_register_st.end())
       {
-        TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
-        unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
-        registerSymBreakLemma(tn, lem, sz, a, lemmas);
+        // symmetry breaking lemmas should only be for enumerators
+        Assert(d_register_st[a]);
+        std::vector<Node> sbl;
+        d_tds->getSymBreakLemmas(a, sbl);
+        for (const Node& lem : sbl)
+        {
+          TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
+          unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
+          registerSymBreakLemma(tn, lem, sz, a, lemmas);
+        }
+        d_tds->clearSymBreakLemmas(a);
       }
     }
-    d_tds->clearSymBreakLemmas();
     if (!lemmas.empty())
     {
       return;
