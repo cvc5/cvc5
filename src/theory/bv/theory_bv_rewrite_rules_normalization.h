@@ -1502,8 +1502,6 @@ inline Node RewriteRule<NormalizeEqPlusNeg>::apply(TNode node)
 
   Node lhs = nb_lhs.getNumChildren() == 1 ? nb_lhs[0] : nb_lhs.constructNode();
   Node rhs = nb_rhs.getNumChildren() == 1 ? nb_rhs[0] : nb_rhs.constructNode();
-  std::cout << node << std::endl;
-  std::cout << lhs.eqNode(rhs) << std::endl;
   return nm->mkNode(node.getKind(), lhs, rhs);
 }
 
