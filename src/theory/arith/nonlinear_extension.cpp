@@ -1087,10 +1087,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         d_check_model_solved[eq] = Node::null();
         return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
   }
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
