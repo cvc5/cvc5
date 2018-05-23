@@ -1313,6 +1313,11 @@ void SmtEngine::setDefaults() {
     {
       options::cbqiMidpoint.set(true);
     }
+    // do not assign function values (optimization)
+    if (!options::assignFunctionValues.wasSetByUser())
+    {
+      options::assignFunctionValues.set(false);
+    }
   }
   else
   {
@@ -5187,6 +5192,13 @@ Model* SmtEngine::getModel() {
 
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetModelCommand();
+  }
+
+  if (!options::assignFunctionValues())
+  {
+    const char* msg =
+        "Cannot get the model when --assign-function-values is false.";
+    throw RecoverableModalException(msg);
   }
 
   if(d_status.isNull() ||
