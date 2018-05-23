@@ -258,7 +258,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     }
   }
 
-  // if we are a semi-evaluated kind, return an arbitrary value
+  // if we are a evaluated or semi-evaluated kind, return an arbitrary value
+  // if we are not in the d_not_evaluated_kinds map, we are evaluated
+  // if we are in the d_semi_evaluated_kinds, we are semi-evaluated
   if (d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end()
       || d_semi_evaluated_kinds.find(nk) != d_semi_evaluated_kinds.end())
   {
@@ -289,7 +291,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
       }
       else
       {
-        // TODO: if func models not enabled, throw an error?
+        // if func models not enabled, throw an error
         Unreachable();
       }
     }
