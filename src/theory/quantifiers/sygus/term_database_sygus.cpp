@@ -1399,7 +1399,6 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       std::vector< Node > cc;
       //get the evaluation argument for the selector
       const Datatype & ad = ((DatatypeType)dt[i][j].getRangeType()).getDatatype();
-      cc.push_back( Node::fromExpr( ad.getSygusEvaluationFunc() ) );
       Node s;
       if( en[0].getKind()==kind::APPLY_CONSTRUCTOR ){
         s = en[0][j];
@@ -1412,7 +1411,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
         vtm[s] = ev[j];
       }
       cc.insert( cc.end(), args.begin(), args.end() );
-      pre[j] = NodeManager::currentNM()->mkNode( kind::APPLY_UF, cc );
+      pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(ad,cc);
     }
     Node ret = mkGeneric(dt, i, pre);
     // if it is a variable, apply the substitution

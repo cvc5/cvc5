@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -30,27 +31,6 @@ SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
   Assert(options::sygusEvalUnfold());
-  // is this an APPLY_UF term with head that is a sygus datatype term?
-  if (n.getKind() != APPLY_UF)
-  {
-    return;
-  }
-  TypeNode tn = n[0].getType();
-  if (!tn.isDatatype())
-  {
-    return;
-  }
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if (!dt.isSygus())
-  {
-    return;
-  }
-  Node f = n.getOperator();
-  if (n[0].getKind() == APPLY_CONSTRUCTOR)
-  {
-    // constructors should be unfolded and reduced already
-    return;
-  }
   if (d_eval_processed.find(n) != d_eval_processed.end())
   {
     return;
@@ -58,10 +38,20 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   Trace("sygus-eval-unfold")
       << "SygusEvalUnfold: register eval term : " << n << std::endl;
   d_eval_processed.insert(n);
-  // is it the sygus evaluation function?
-  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
-  if (n.getOperator() != eval_op)
+  
+  // is this a sygus evaluation function application?
+  if( !datatypes::DatatypesRewriter::isSygusEvalApp(n) )
   {
+    return;
+  }
+  TypeNode tn = n[0].getType();
+  Assert(!tn.isDatatype());
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  Assert(!dt.isSygus());
+  if (n[0].getKind() == APPLY_CONSTRUCTOR)
+  {
+    // constructors should be unfolded and reduced already
+    Assert( false );
     return;
   }
   // register this evaluation term with its head
