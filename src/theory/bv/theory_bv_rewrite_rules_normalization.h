@@ -1497,11 +1497,34 @@ inline Node RewriteRule<NormalizeEqPlusNeg>::apply(TNode node)
   {
     nb_rhs << node[1];
   }
-  Assert(nb_rhs.getNumChildren() > 0);
-  Assert(nb_lhs.getNumChildren() > 0);
 
-  Node lhs = nb_lhs.getNumChildren() == 1 ? nb_lhs[0] : nb_lhs.constructNode();
-  Node rhs = nb_rhs.getNumChildren() == 1 ? nb_rhs[0] : nb_rhs.constructNode();
+  Node zero = utils::mkZero(utils::getSize(node[0]));
+
+  Node lhs, rhs;
+  if (nb_lhs.getNumChildren() == 0)
+  {
+    lhs = zero;
+  }
+  else if (nb_lhs.getNumChildren() == 1)
+  {
+    lhs = nb_lhs[0];
+  }
+  else
+  {
+    lhs = nb_lhs.constructNode();
+  }
+  if (nb_rhs.getNumChildren() == 0)
+  {
+    rhs = zero;
+  }
+  else if (nb_rhs.getNumChildren() == 1)
+  {
+    rhs = nb_rhs[0];
+  }
+  else
+  {
+    rhs = nb_rhs.constructNode();
+  }
   return nm->mkNode(node.getKind(), lhs, rhs);
 }
 
