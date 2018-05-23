@@ -198,22 +198,19 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       {
         return true;
       }
-      else
+      // repair solution didn't work, exclude this solution
+      std::vector<Node> exp;
+      for (unsigned i = 0, size = enums.size(); i < size; i++)
       {
-        // repair solution didn't work, exclude this solution
-        std::vector<Node> exp;
-        for (unsigned i = 0, size = enums.size(); i < size; i++)
-        {
-          d_tds->getExplain()->getExplanationForEquality(
-              enums[i], enum_values[i], exp);
-        }
-        Assert(!exp.empty());
-        Node expn = exp.size() == 1
-                        ? exp[0]
-                        : NodeManager::currentNM()->mkNode(AND, exp);
-        lems.push_back(expn.negate());
-        return false;
+        d_tds->getExplain()->getExplanationForEquality(
+            enums[i], enum_values[i], exp);
       }
+      Assert(!exp.empty());
+      Node expn = exp.size() == 1
+                      ? exp[0]
+                      : NodeManager::currentNM()->mkNode(AND, exp);
+      lems.push_back(expn.negate());
+      return false;
     }
   }
 

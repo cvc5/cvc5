@@ -109,7 +109,10 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
   {
     TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
     // must be handled by counterexample-guided instantiation
-    // don't do it for Boolean (not worth the trouble)
+    // don't do it for Boolean (not worth the trouble, since it has only
+    // minimal gain (1 any constant vs 2 constructors for true/false), and
+    // we need to do a lot of special symmetry breaking, e.g. for ensuring
+    // any constant constructors are not the 1st children of ITEs.
     if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED
         && !sygus_type.isBoolean())
     {

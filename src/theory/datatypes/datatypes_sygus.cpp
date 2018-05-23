@@ -481,6 +481,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             if( nk==STRING_STRREPL ){
               deq_child[0].push_back( 0 );deq_child[1].push_back( 1 );
             }
+            // this code adds simple symmetry breaking predicates of the form
+            // d.i != d.j, for example if we are considering an ITE constructor,
+            // we enforce that d.1 != d.2 since otherwise the ITE can be 
+            // simplified.
             for( unsigned i=0; i<deq_child[0].size(); i++ ){
               unsigned c1 = deq_child[0][i];
               unsigned c2 = deq_child[1][i];
@@ -490,6 +494,11 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
               {
                 Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
                 // must guard if there are symbolic constructors
+                // the issue is that ite( C, _any_constant, _any_constant ) is
+                // a useful solution, since the two instances of _any_constant
+                // can be repaired to different values. Hence, below, we say
+                // e.g. d.i is a symbolic constructor, or it must be different
+                // from d.j.
                 int anyc_cons_num_c = d_tds->getAnyConstantConsNum(tnc);
                 if (anyc_cons_num_c != -1)
                 {
@@ -582,8 +591,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             // defined function?
           }
           // explicitly handle "any constant" constructors
-          // if this type admits any constant, then at least one my children
-          // cannot be the "any constant" constructor
+          // if this type admits any constant, then at least one of my children
+          // must not be the "any constant" constructor
           unsigned dt_index_nargs = dt[tindex].getNumArgs();
           int tn_ac = d_tds->getAnyConstantConsNum(tn);
           if (tn_ac != -1 && dt_index_nargs > 0)
@@ -599,15 +608,12 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
                 success = false;
                 break;
               }
-              else
-              {
-                Node nc = children[j];
-                TypeNode tnc = nc.getType();
-                const Datatype& cdt =
-                    static_cast<DatatypeType>(tnc.toType()).getDatatype();
-                exp_all_anyc.push_back(
-                    DatatypesRewriter::mkTester(nc, ctn_ac, cdt));
-              }
+              Node nc = children[j];
+              TypeNode tnc = nc.getType();
+              const Datatype& cdt =
+                  static_cast<DatatypeType>(tnc.toType()).getDatatype();
+              exp_all_anyc.push_back(
+                  DatatypesRewriter::mkTester(nc, ctn_ac, cdt));
             }
             if (success)
             {

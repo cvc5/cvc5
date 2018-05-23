@@ -33,7 +33,7 @@ class CegConjecture;
  * This module is used to repair portions of candidate solutions. In particular,
  * given a synthesis conjecture:
  *   exists f. forall x. P( f, x )
- * and a candidate solution f = \x. t[x,r] where c are repairable terms, this
+ * and a candidate solution f = \x. t[x,r] where r are repairable terms, this
  * function checks whether there exists a term of the form \x. t[x,c'] for some
  * constants c' such that:
  *   forall x. P( (\x. t[x,c']), x )  [***]
