@@ -73,6 +73,15 @@ void TheoryQuantifiers::notifyEq(TNode lhs, TNode rhs) {
 
 }
 
+void TheoryQuantifiers::finishInit()
+{
+  // quantifiers are not evaluated in getModelValue
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setUnevaluatedKind(EXISTS);
+  tm->setUnevaluatedKind(FORALL);
+}
+
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
   Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
   if( n.getKind()==FORALL ){

@@ -42,6 +42,8 @@ class TheoryQuantifiers : public Theory {
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   void addSharedTerm(TNode t) override;
   void notifyEq(TNode lhs, TNode rhs);
+  /** finish initialization */
+  void finishInit() override;
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
