@@ -44,8 +44,9 @@ void SygusUnifRl::initializeCandidate(
   {
     restrictions.d_iteReturnBoolConst = true;
   }
+  // register the strategy
+  registerStrategy(f, enums, restrictions.d_unused_strategies);
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas, restrictions);
-  registerStrategy(f, enums);
   // Copy candidates and check whether CegisUnif for any of them
   if (d_unif_candidates.find(f) != d_unif_candidates.end())
   {
@@ -386,7 +387,10 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
-void SygusUnifRl::registerStrategy(Node f, std::vector<Node>& enums)
+void SygusUnifRl::registerStrategy(
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
@@ -397,7 +401,7 @@ void SygusUnifRl::registerStrategy(Node f, std::vector<Node>& enums)
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
   Node e = d_strategy[f].getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
-  registerStrategyNode(f, e, role_equal, visited, enums);
+  registerStrategyNode(f, e, role_equal, visited, enums, unused_strats);
 }
 
 void SygusUnifRl::registerStrategyNode(
@@ -405,7 +409,8 @@ void SygusUnifRl::registerStrategyNode(
     Node e,
     NodeRole nrole,
     std::map<Node, std::map<NodeRole, bool>>& visited,
-    std::vector<Node>& enums)
+    std::vector<Node>& enums,
+    std::map<Node, std::unordered_set<unsigned>>& unused_strats)
 {
   Trace("sygus-unif-rl-strat") << "  register node " << e << std::endl;
   if (visited[e].find(nrole) != visited[e].end())
@@ -421,9 +426,10 @@ void SygusUnifRl::registerStrategyNode(
     EnumTypeInfoStrat* etis = snode.d_strats[j];
     StrategyType strat = etis->d_this;
     // is this a simple recursive ITE strategy?
+    bool success = false;
     if (strat == strat_ITE && nrole == role_equal)
     {
-      bool success = true;
+      success = true;
       for (unsigned c = 1; c <= 2; c++)
       {
         std::pair<Node, NodeRole> child = etis->d_cenum[c];
@@ -445,6 +451,10 @@ void SygusUnifRl::registerStrategyNode(
         // we will be using a strategy for e
         enums.push_back(e);
       }
+    }
+    if (!success)
+    {
+      unused_strats[e].insert(j);
     }
     // TODO: recurse? for (std::pair<Node, NodeRole>& cec : etis->d_cenum)
   }

@@ -256,6 +256,13 @@ struct StrategyRestrictions
    * the condition values of ITEs to be restricted to atoms
    */
   bool d_iteCondOnlyAtoms;
+  /**
+   * A list of unused strategies. This maps strategy points to the indices
+   * in StrategyNode::d_strats that are not used by the caller of
+   * staticLearnRedundantOps, and hence should not be taken into account
+   * when doing redundant operator learning.
+   */
+  std::map<Node, std::unordered_set<unsigned>> d_unused_strategies;
 };
 
 /**

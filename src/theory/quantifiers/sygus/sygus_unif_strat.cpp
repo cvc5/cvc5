@@ -785,15 +785,29 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   TypeNode etn = e.getType();
   EnumTypeInfo& tinfo = getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
+  // the constructors of the current strategy point we need
   std::map<unsigned, bool> needs_cons_curr;
-  // constructors that correspond to strategies are not needed
-  // the intuition is that the strategy itself is responsible for constructing
-  // all terms that use the given constructor
+  // get the unused strategies
+  std::map<Node, std::unordered_set<unsigned>>::iterator itus =
+      restrictions.d_unused_strategies.find(e);
+  std::unordered_set<unsigned> unused_strats;
+  if (itus != restrictions.d_unused_strategies.end())
+  {
+    unused_strats.insert(itus->second.begin(), itus->second.end());
+  }
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
+    // if we are not using this strategy, there is nothing to do
+    if (unused_strats.find(j) != unused_strats.end())
+    {
+      continue;
+    }
     EnumTypeInfoStrat* etis = snode.d_strats[j];
     unsigned cindex =
         static_cast<unsigned>(Datatype::indexOf(etis->d_cons.toExpr()));
+    // constructors that correspond to strategies are not needed
+    // the intuition is that the strategy itself is responsible for constructing
+    // all terms that use the given constructor
     Trace("sygus-strat-slearn") << "...by strategy, can exclude operator "
                                 << etis->d_cons << std::endl;
     needs_cons_curr[cindex] = false;

@@ -1412,7 +1412,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-              ca.reloc(ws[j].cref, to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+              ca.reloc(ws[j].cref, to, d_bvp ? d_bvp->getSatProof() : NULL);
         }
 
     // All reasons:
@@ -1421,19 +1421,19 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-            ca.reloc(vardata[v].reason, to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+          ca.reloc(vardata[v].reason, to, d_bvp ? d_bvp->getSatProof() : NULL);
     }
 
     // All learnt:
     //
     for (int i = 0; i < learnts.size(); i++)
-        ca.reloc(learnts[i], to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+      ca.reloc(learnts[i], to, d_bvp ? d_bvp->getSatProof() : NULL);
 
     // All original:
     //
     for (int i = 0; i < clauses.size(); i++)
-        ca.reloc(clauses[i], to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
-	
+      ca.reloc(clauses[i], to, d_bvp ? d_bvp->getSatProof() : NULL);
+
     if(d_bvp){ d_bvp->getSatProof()->finishUpdateCRef(); }
 }
 
@@ -1451,7 +1451,9 @@ void Solver::garbageCollect()
     to.moveTo(ca);
 }
 
-void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* proxy)
+void ClauseAllocator::reloc(CRef& cr,
+                            ClauseAllocator& to,
+                            CVC4::TSatProof<Solver>* proof)
 {
   CRef old = cr;  // save the old reference
 
@@ -1460,8 +1462,9 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* p
   
   cr = to.alloc(c, c.learnt());
   c.relocate(cr);
-  if (proxy) {
-    proxy->updateCRef(old, cr); 
+  if (proof)
+  {
+    proof->updateCRef(old, cr);
   }
   
   // Copy extra data-fields: 
