@@ -1,3 +1,5 @@
+; COMMAND-LINE: --nl-ext-tplanes
+; EXPECT: unsat
 (set-logic QF_NRA)
 (set-info :status unsat)
 (declare-fun x () Real)
