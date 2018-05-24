@@ -45,7 +45,7 @@ ${mk_type_enumerator_type_constant_cases}
     }
     Unreachable();
 ${mk_type_enumerator_cases}
-#line 47 "${template}"
+#line 49 "${template}"
   default:
     {
       stringstream ss;

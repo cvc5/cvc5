@@ -862,12 +862,12 @@ namespace constantFold {
   {
     Assert(node.getKind() == kind::ROUNDINGMODE_BITBLAST);
 
-    RoundingMode arg0(node[0].getConst<RoundingMode>());
     BitVector value;
 
 #ifdef CVC4_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
+    RoundingMode arg0(node[0].getConst<RoundingMode>());
     switch (arg0)
     {
       case roundNearestTiesToEven:
