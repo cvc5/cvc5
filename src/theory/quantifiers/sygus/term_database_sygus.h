@@ -79,11 +79,13 @@ class TermDbSygus {
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e);
+  CegConjecture* getConjectureForEnumerator(Node e) const;
   /** return the function-to-synthesize e is associated with */
-  Node getSynthFunForEnumerator(Node e);
+  Node getSynthFunForEnumerator(Node e) const;
   /** get active guard for e */
-  Node getActiveGuardForEnumerator(Node e);
+  Node getActiveGuardForEnumerator(Node e) const;
+  /** are we using symbolic constructors for enumerator e? */
+  bool usingSymbolicConsForEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
@@ -242,6 +244,11 @@ class TermDbSygus {
    *   if G is true, then there are more values of e to enumerate".
    */
   std::map<Node, Node> d_enum_to_active_guard;
+  /**
+   * Mapping from enumerators to whether we allow symbolic constructors to
+   * appear as subterms of them.
+   */
+  std::map<Node, bool> d_enum_to_using_sym_cons;
   /** mapping from enumerators to symmetry breaking clauses for them */
   std::map<Node, std::vector<Node> > d_enum_to_sb_lemmas;
   /** mapping from symmetry breaking lemmas to type */

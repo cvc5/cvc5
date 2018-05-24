@@ -881,37 +881,43 @@ bool TermDbSygus::isEnumerator(Node e) const
   return d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end();
 }
 
-CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e)
+CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
 {
-  std::map<Node, CegConjecture*>::iterator itm = d_enum_to_conjecture.find(e);
+  std::map<Node, CegConjecture*>::const_iterator itm =
+      d_enum_to_conjecture.find(e);
   if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
-  }else{
-    return NULL;
   }
+  return nullptr;
 }
 
-Node TermDbSygus::getSynthFunForEnumerator(Node e)
+Node TermDbSygus::getSynthFunForEnumerator(Node e) const
 {
-  std::map<Node, Node>::iterator itsf = d_enum_to_synth_fun.find(e);
+  std::map<Node, Node>::const_iterator itsf = d_enum_to_synth_fun.find(e);
   if (itsf != d_enum_to_synth_fun.end())
   {
     return itsf->second;
   }
-  else
-  {
-    return Node::null();
-  }
+  return Node::null();
 }
 
-Node TermDbSygus::getActiveGuardForEnumerator(Node e)
+Node TermDbSygus::getActiveGuardForEnumerator(Node e) const
 {
-  std::map<Node, Node>::iterator itag = d_enum_to_active_guard.find(e);
+  std::map<Node, Node>::const_iterator itag = d_enum_to_active_guard.find(e);
   if (itag != d_enum_to_active_guard.end()) {
     return itag->second;
-  }else{
-    return Node::null();
   }
+  return Node::null();
+}
+
+bool TermDbSygus::usingSymbolicConsForEnumerator(Node e) const
+{
+  std::map<Node, bool>::const_iterator itus = d_enum_to_using_sym_cons.find(e);
+  if (itus != d_enum_to_using_sym_cons.end())
+  {
+    return itus->second;
+  }
+  return false;
 }
 
 void TermDbSygus::getEnumerators(std::vector<Node>& mts)
