@@ -541,10 +541,14 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             // right-associativity
             // simple rewrites
             unsigned dt_index_nargs = dt[tindex].getNumArgs();
-            // explanation of why all children of this are constant
+            // explanation of why not all children of this are constant
             std::vector<Node> exp_not_all_const;
-            bool hasAnyConstCons = d_tds->getAnyConstantConsNum(tn) != -1;
+            // is the above explanation valid? This is set to false if
+            // one child does not have a constant, hence making the explanation
+            // false.
             bool exp_not_all_const_valid = dt_index_nargs > 0;
+            // does the parent have an any constant constructor?
+            bool hasAnyConstCons = d_tds->getAnyConstantConsNum(tn) != -1;
             for (unsigned j = 0; j < dt_index_nargs; j++)
             {
               Node nc = children[j];
@@ -587,6 +591,14 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
                     red = !d_tds->considerConst(tnc, tn, cc, nk, j);
                     if (hasAnyConstCons)
                     {
+                      // we only consider concrete constant constructors
+                      // of children if we have the "any constant" constructor
+                      // otherwise, we would disallow solutions for grammars
+                      // like the following:
+                      //   A -> B+B
+                      //   B -> 4 | 8 | 100
+                      // where A allows all constants but is not using the
+                      // any constant constructor.
                       exp_const.push_back(tester);
                     }
                   }
