@@ -388,10 +388,17 @@ private:
    *   is-C( t ) => F[t]
    * where t is a search term, see registerSearchTerm for definition of search
    * term.
+   *
+   * usingSymCons is whether we are using symbolic constructors for subterms in
+   * the type tn. This may affect the form of the predicate we construct.
    */
-  Node getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth );
+  Node getSimpleSymBreakPred(TypeNode tn,
+                             int tindex,
+                             unsigned depth,
+                             bool usingSymCons);
   /** Cache of the above function */
-  std::map<TypeNode, std::map<int, std::map<unsigned, Node>>> d_simple_sb_pred;
+  std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>
+      d_simple_sb_pred;
   /**
    * For each search term, this stores the maximum depth for which we have added
    * a static symmetry breaking lemma.

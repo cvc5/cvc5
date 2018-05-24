@@ -324,8 +324,10 @@ public:
     }
     return true;
   }
-  bool empty() {
-    return d_req_kind==UNDEFINED_KIND && d_req_const.isNull() && d_req_type.isNull();
+  bool empty()
+  {
+    return d_req_kind == UNDEFINED_KIND && d_req_const.isNull()
+           && d_req_type.isNull() && d_children.empty();
   }
 };
 
@@ -593,9 +595,11 @@ bool TermDbSygus::considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind
     }else if( pk==ITE ){
       if( arg==0 ){
         if( c==max_c ){
-          rt.d_children[2].d_req_type = tnp;
-        }else if( c==zero_c ){
           rt.d_children[1].d_req_type = tnp;
+        }
+        else if (c == zero_c)
+        {
+          rt.d_children[2].d_req_type = tnp;
         }
       }
     }else if( pk==STRING_SUBSTR ){
@@ -860,37 +864,43 @@ bool TermDbSygus::isEnumerator(Node e) const
   return d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end();
 }
 
-CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e)
+CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
 {
-  std::map<Node, CegConjecture*>::iterator itm = d_enum_to_conjecture.find(e);
+  std::map<Node, CegConjecture*>::const_iterator itm =
+      d_enum_to_conjecture.find(e);
   if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
-  }else{
-    return NULL;
   }
+  return nullptr;
 }
 
-Node TermDbSygus::getSynthFunForEnumerator(Node e)
+Node TermDbSygus::getSynthFunForEnumerator(Node e) const
 {
-  std::map<Node, Node>::iterator itsf = d_enum_to_synth_fun.find(e);
+  std::map<Node, Node>::const_iterator itsf = d_enum_to_synth_fun.find(e);
   if (itsf != d_enum_to_synth_fun.end())
   {
     return itsf->second;
   }
-  else
-  {
-    return Node::null();
-  }
+  return Node::null();
 }
 
-Node TermDbSygus::getActiveGuardForEnumerator(Node e)
+Node TermDbSygus::getActiveGuardForEnumerator(Node e) const
 {
-  std::map<Node, Node>::iterator itag = d_enum_to_active_guard.find(e);
+  std::map<Node, Node>::const_iterator itag = d_enum_to_active_guard.find(e);
   if (itag != d_enum_to_active_guard.end()) {
     return itag->second;
-  }else{
-    return Node::null();
   }
+  return Node::null();
+}
+
+bool TermDbSygus::usingSymbolicConsForEnumerator(Node e) const
+{
+  std::map<Node, bool>::const_iterator itus = d_enum_to_using_sym_cons.find(e);
+  if (itus != d_enum_to_using_sym_cons.end())
+  {
+    return itus->second;
+  }
+  return false;
 }
 
 void TermDbSygus::getEnumerators(std::vector<Node>& mts)
