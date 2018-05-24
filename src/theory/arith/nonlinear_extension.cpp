@@ -1735,7 +1735,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
           }
           else
           {
-            vc_set_lower = (signs[i] == setAbs);
+            vc_set_lower = (signs[i] != setAbs);
           }
           Trace("nl-ext-cms-debug")
               << "..." << vc << " set to " << (vc_set_lower ? "lower" : "upper")
