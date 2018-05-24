@@ -244,11 +244,11 @@ class TermDbSygus {
    *   if G is true, then there are more values of e to enumerate".
    */
   std::map<Node, Node> d_enum_to_active_guard;
-  /** 
+  /**
    * Mapping from enumerators to whether we allow symbolic constructors to
    * appear as subterms of them.
    */
-  std::map<Node, bool > d_enum_to_using_sym_cons;
+  std::map<Node, bool> d_enum_to_using_sym_cons;
   /** mapping from enumerators to symmetry breaking clauses for them */
   std::map<Node, std::vector<Node> > d_enum_to_sb_lemmas;
   /** mapping from symmetry breaking lemmas to type */

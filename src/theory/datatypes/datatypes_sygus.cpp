@@ -386,110 +386,150 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
   }
 }
 
-Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth, bool usingSymCons ) {
-  std::map< unsigned, Node >::iterator it = d_simple_sb_pred[tn][tindex][usingSymCons].find( depth );
-  if( it!=d_simple_sb_pred[tn][tindex][usingSymCons].end() ){
+Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
+                                             int tindex,
+                                             unsigned depth,
+                                             bool usingSymCons)
+{
+  std::map<unsigned, Node>::iterator it =
+      d_simple_sb_pred[tn][tindex][usingSymCons].find(depth);
+  if (it != d_simple_sb_pred[tn][tindex][usingSymCons].end())
+  {
     return it->second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node n = getFreeVar( tn );
+  Node n = getFreeVar(tn);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert( tindex>=0 && tindex<static_cast<int>(dt.getNumConstructors()) ); 
-  //conjunctive conclusion of lemma
-  std::vector< Node > sbp_conj;
-  
-  if( depth==0 ){
-    //fairness
-    if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
-      Node szl = nm->mkNode( DT_SIZE, n );
-      Node szr = nm->mkNode( DT_SIZE, DatatypesRewriter::getInstCons( n, dt, tindex ) );
-      szr = Rewriter::rewrite( szr );
-      sbp_conj.push_back( szl.eqNode( szr ) );
+  Assert(tindex >= 0 && tindex < static_cast<int>(dt.getNumConstructors()));
+  // conjunctive conclusion of lemma
+  std::vector<Node> sbp_conj;
+
+  if (depth == 0)
+  {
+    // fairness
+    if (options::sygusFair() == SYGUS_FAIR_DT_SIZE)
+    {
+      Node szl = nm->mkNode(DT_SIZE, n);
+      Node szr =
+          nm->mkNode(DT_SIZE, DatatypesRewriter::getInstCons(n, dt, tindex));
+      szr = Rewriter::rewrite(szr);
+      sbp_conj.push_back(szl.eqNode(szr));
     }
   }
-  
-  //symmetry breaking
-  Kind nk = d_tds->getConsNumKind( tn, tindex );
+
+  // symmetry breaking
+  Kind nk = d_tds->getConsNumKind(tn, tindex);
   // only do simple symmetry breaking up to depth 2
-  if( options::sygusSymBreak() && depth<2 ){
+  if (options::sygusSymBreak() && depth < 2)
+  {
     unsigned dt_index_nargs = dt[tindex].getNumArgs();
-    //builtin type
-    TypeNode tnb = TypeNode::fromType( dt.getSygusType() );
-    //get children
-    std::vector< Node > children;
-    for( unsigned j=0; j<dt_index_nargs; j++ ){
-      Node sel = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( tn.toType(), j ) ), n );
-      Assert( sel.getType().isDatatype() );
-      children.push_back( sel );
+    // builtin type
+    TypeNode tnb = TypeNode::fromType(dt.getSygusType());
+    // get children
+    std::vector<Node> children;
+    for (unsigned j = 0; j < dt_index_nargs; j++)
+    {
+      Node sel = nm->mkNode(
+          APPLY_SELECTOR_TOTAL,
+          Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), j)),
+          n);
+      Assert(sel.getType().isDatatype());
+      children.push_back(sel);
     }
-    
+
     // direct solving for children
     //   for instance, we may want to insist that the LHS of MINUS is 0
-    std::map< unsigned, unsigned > children_solved;
-    for( unsigned j=0; j<dt_index_nargs; j++ ){
-      int i = d_tds->solveForArgument( tn, tindex, j );
-      if( i>=0 ){
+    std::map<unsigned, unsigned> children_solved;
+    for (unsigned j = 0; j < dt_index_nargs; j++)
+    {
+      int i = d_tds->solveForArgument(tn, tindex, j);
+      if (i >= 0)
+      {
         children_solved[j] = i;
         TypeNode ctn = children[j].getType();
-        const Datatype& cdt = static_cast<DatatypeType>(ctn.toType()).getDatatype();
-        Assert( i<static_cast<int>(cdt.getNumConstructors()) );
-        sbp_conj.push_back( DatatypesRewriter::mkTester( children[j], i, cdt ) );
+        const Datatype& cdt =
+            static_cast<DatatypeType>(ctn.toType()).getDatatype();
+        Assert(i < static_cast<int>(cdt.getNumConstructors()));
+        sbp_conj.push_back(DatatypesRewriter::mkTester(children[j], i, cdt));
       }
     }
     // depth 1 symmetry breaking : talks about direct children
-    if( depth==1 ){
-      if( nk!=UNDEFINED_KIND ){
-        // commutative operators 
-        if( quantifiers::TermUtil::isComm( nk ) ){
-          if( children.size()==2 ){
-            if( children[0].getType()==children[1].getType() ){
-              Node order_pred = getTermOrderPredicate( children[0], children[1] );
-              sbp_conj.push_back( order_pred );
+    if (depth == 1)
+    {
+      if (nk != UNDEFINED_KIND)
+      {
+        // commutative operators
+        if (quantifiers::TermUtil::isComm(nk))
+        {
+          if (children.size() == 2)
+          {
+            if (children[0].getType() == children[1].getType())
+            {
+              Node order_pred = getTermOrderPredicate(children[0], children[1]);
+              sbp_conj.push_back(order_pred);
             }
           }
         }
         // operators whose arguments are non-additive (e.g. should be different)
-        std::vector< unsigned > deq_child[2];
-        if( children.size()==2 && children[0].getType()==tn ){
+        std::vector<unsigned> deq_child[2];
+        if (children.size() == 2 && children[0].getType() == tn)
+        {
           bool argDeq = false;
-          if( quantifiers::TermUtil::isNonAdditive( nk ) ){
+          if (quantifiers::TermUtil::isNonAdditive(nk))
+          {
             argDeq = true;
-          }else{
-            //other cases of rewriting x k x -> x'
+          }
+          else
+          {
+            // other cases of rewriting x k x -> x'
             Node req_const;
-            if( nk==GT || nk==LT || nk==XOR || nk==MINUS || nk==BITVECTOR_SUB || nk==BITVECTOR_XOR || nk==BITVECTOR_UREM_TOTAL ){
-              //must have the zero element
+            if (nk == GT || nk == LT || nk == XOR || nk == MINUS
+                || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
+                || nk == BITVECTOR_UREM_TOTAL)
+            {
+              // must have the zero element
               req_const = quantifiers::TermUtil::mkTypeValue(tnb, 0);
-            }else if( nk==EQUAL || nk==LEQ || nk==GEQ || nk==BITVECTOR_XNOR ){
+            }
+            else if (nk == EQUAL || nk == LEQ || nk == GEQ
+                     || nk == BITVECTOR_XNOR)
+            {
               req_const = quantifiers::TermUtil::mkTypeMaxValue(tnb);
             }
             // cannot do division since we have to consider when both are zero
-            if( !req_const.isNull() ){
-              if( d_tds->hasConst( tn, req_const ) ){
+            if (!req_const.isNull())
+            {
+              if (d_tds->hasConst(tn, req_const))
+              {
                 argDeq = true;
               }
             }
           }
-          if( argDeq ){
-            deq_child[0].push_back( 0 );deq_child[1].push_back( 1 );
+          if (argDeq)
+          {
+            deq_child[0].push_back(0);
+            deq_child[1].push_back(1);
           }
         }
-        if( nk==ITE || nk==STRING_STRREPL ){
-          deq_child[0].push_back( 1 );deq_child[1].push_back( 2 );
+        if (nk == ITE || nk == STRING_STRREPL)
+        {
+          deq_child[0].push_back(1);
+          deq_child[1].push_back(2);
         }
-        if( nk==STRING_STRREPL ){
-          deq_child[0].push_back( 0 );deq_child[1].push_back( 1 );
+        if (nk == STRING_STRREPL)
+        {
+          deq_child[0].push_back(0);
+          deq_child[1].push_back(1);
         }
         // this code adds simple symmetry breaking predicates of the form
         // d.i != d.j, for example if we are considering an ITE constructor,
         // we enforce that d.1 != d.2 since otherwise the ITE can be
         // simplified.
-        for( unsigned i=0, size = deq_child[0].size(); i<size; i++ ){
+        for (unsigned i = 0, size = deq_child[0].size(); i < size; i++)
+        {
           unsigned c1 = deq_child[0][i];
           unsigned c2 = deq_child[1][i];
           TypeNode tnc = children[c1].getType();
-          if (tnc == children[c2].getType()
-              && !tnc.getCardinality().isOne())
+          if (tnc == children[c2].getType() && !tnc.getCardinality().isOne())
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
             // must guard if there are symbolic constructors
@@ -513,9 +553,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             sbp_conj.push_back(sym_lem_deq);
           }
         }
-        
-        Trace("sygus-sb-simple-debug") << "Process arguments for " << tn << " : " << nk << " : " << std::endl;
-        // singular arguments (e.g. 0 for mult) 
+
+        Trace("sygus-sb-simple-debug") << "Process arguments for " << tn
+                                       << " : " << nk << " : " << std::endl;
+        // singular arguments (e.g. 0 for mult)
         // redundant arguments (e.g. 0 for plus, 1 for mult)
         // right-associativity
         // simple rewrites
@@ -526,7 +567,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
         // false.
         bool exp_not_all_const_valid = dt_index_nargs > 0;
         // does the parent have an any constant constructor?
-        bool usingAnyConstCons = usingSymCons && (d_tds->getAnyConstantConsNum(tn) != -1);
+        bool usingAnyConstCons =
+            usingSymCons && (d_tds->getAnyConstantConsNum(tn) != -1);
         for (unsigned j = 0; j < dt_index_nargs; j++)
         {
           Node nc = children[j];
@@ -540,8 +582,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
           const Datatype& cdt =
               static_cast<DatatypeType>(tnc.toType()).getDatatype();
           std::vector<Node> exp_const;
-          for (unsigned k = 0, ncons = cdt.getNumConstructors(); k < ncons;
-                k++)
+          for (unsigned k = 0, ncons = cdt.getNumConstructors(); k < ncons; k++)
           {
             Kind nck = d_tds->getConsNumKind(tnc, k);
             bool red = false;
@@ -553,9 +594,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             }
             else if (nck != UNDEFINED_KIND)
             {
-              Trace("sygus-sb-simple-debug")
-                  << "  argument " << j << " " << k << " is : " << nck
-                  << std::endl;
+              Trace("sygus-sb-simple-debug") << "  argument " << j << " " << k
+                                             << " is : " << nck << std::endl;
               red = !d_tds->considerArgKind(tnc, tn, nck, nk, j);
             }
             else
@@ -564,8 +604,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
               if (!cc.isNull())
               {
                 Trace("sygus-sb-simple-debug")
-                    << "  argument " << j << " " << k
-                    << " is constant : " << cc << std::endl;
+                    << "  argument " << j << " " << k << " is constant : " << cc
+                    << std::endl;
                 red = !d_tds->considerConst(tnc, tn, cc, nk, j);
                 if (usingAnyConstCons)
                 {
@@ -587,8 +627,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             }
             if (red)
             {
-              Trace("sygus-sb-simple-debug")
-                  << "  ...redundant." << std::endl;
+              Trace("sygus-sb-simple-debug") << "  ...redundant." << std::endl;
               sbp_conj.push_back(tester.negate());
             }
           }
@@ -599,7 +638,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
           else
           {
             Node ecn = exp_const.size() == 1 ? exp_const[0]
-                                              : nm->mkNode(OR, exp_const);
+                                             : nm->mkNode(OR, exp_const);
             exp_not_all_const.push_back(ecn.negate());
           }
         }
@@ -621,29 +660,42 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
       {
         // defined function?
       }
-    }else if( depth==2 ){
-      // commutative operators 
-      if( quantifiers::TermUtil::isComm( nk ) && children.size()==2 && children[0].getType()==tn && children[1].getType()==tn ){
-        //chainable
-        Node child11 = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( tn.toType(), 1 ) ), children[0] );
-        Assert( child11.getType()==children[1].getType() );
-        Node order_pred_trans = nm->mkNode( OR, DatatypesRewriter::mkTester( children[0], tindex, dt ).negate(),
-                                                                  getTermOrderPredicate( child11, children[1] ) );
-        sbp_conj.push_back( order_pred_trans );
+    }
+    else if (depth == 2)
+    {
+      // commutative operators
+      if (quantifiers::TermUtil::isComm(nk) && children.size() == 2
+          && children[0].getType() == tn && children[1].getType() == tn)
+      {
+        // chainable
+        Node child11 = nm->mkNode(
+            APPLY_SELECTOR_TOTAL,
+            Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), 1)),
+            children[0]);
+        Assert(child11.getType() == children[1].getType());
+        Node order_pred_trans = nm->mkNode(
+            OR,
+            DatatypesRewriter::mkTester(children[0], tindex, dt).negate(),
+            getTermOrderPredicate(child11, children[1]));
+        sbp_conj.push_back(order_pred_trans);
       }
     }
   }
-  
+
   Node sb_pred;
-  if( !sbp_conj.empty() ){
-    sb_pred = sbp_conj.size()==1 ? sbp_conj[0] : nm->mkNode( kind::AND, sbp_conj );
-    Trace("sygus-sb-simple") << "Simple predicate for " << tn << " index " << tindex << " (" << nk << ") at depth " << depth << " : " << std::endl;
+  if (!sbp_conj.empty())
+  {
+    sb_pred =
+        sbp_conj.size() == 1 ? sbp_conj[0] : nm->mkNode(kind::AND, sbp_conj);
+    Trace("sygus-sb-simple")
+        << "Simple predicate for " << tn << " index " << tindex << " (" << nk
+        << ") at depth " << depth << " : " << std::endl;
     Trace("sygus-sb-simple") << "   " << sb_pred << std::endl;
-    sb_pred = nm->mkNode( kind::OR, DatatypesRewriter::mkTester( n, tindex, dt ).negate(), sb_pred );
+    sb_pred = nm->mkNode(
+        kind::OR, DatatypesRewriter::mkTester(n, tindex, dt).negate(), sb_pred);
   }
   d_simple_sb_pred[tn][tindex][usingSymCons][depth] = sb_pred;
   return sb_pred;
-
 }
 
 TNode SygusSymBreakNew::getFreeVar( TypeNode tn ) {

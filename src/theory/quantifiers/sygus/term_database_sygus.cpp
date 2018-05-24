@@ -883,7 +883,8 @@ bool TermDbSygus::isEnumerator(Node e) const
 
 CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
 {
-  std::map<Node, CegConjecture*>::const_iterator itm = d_enum_to_conjecture.find(e);
+  std::map<Node, CegConjecture*>::const_iterator itm =
+      d_enum_to_conjecture.find(e);
   if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
   }
@@ -911,8 +912,8 @@ Node TermDbSygus::getActiveGuardForEnumerator(Node e) const
 
 bool TermDbSygus::usingSymbolicConsForEnumerator(Node e) const
 {
-  std::map<Node, bool >::const_iterator itus = d_enum_to_using_sym_cons.find(e);
-  if( itus!=d_enum_to_using_sym_cons.end() )
+  std::map<Node, bool>::const_iterator itus = d_enum_to_using_sym_cons.find(e);
+  if (itus != d_enum_to_using_sym_cons.end())
   {
     return itus->second;
   }
