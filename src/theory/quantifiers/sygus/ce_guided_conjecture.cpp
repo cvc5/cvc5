@@ -382,6 +382,7 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   Node ce_q = d_ce_sk[0];
   if (!ce_q.isNull())
   {
+    Trace("cegqi-refine") << "Get skolem constants for : " << ce_q << std::endl;
     std::vector<Node> skolems;
     d_qe->getSkolemize()->getSkolemConstants(ce_q, skolems);
     Assert(d_inner_vars.size() == skolems.size());
@@ -413,12 +414,13 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
 
   Assert( sk_vars.size()==sk_subs.size() );
 
-  Trace("cegqi-refine") << "doRefine : construct and finalize lemmas..." << std::endl;
-
+  Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+  Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = Rewriter::rewrite( base_lem );
+  Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem << "..." << std::endl;
   d_master->registerRefinementLemma(sk_vars, base_lem, lems);
-
+  Trace("cegqi-refine") << "doRefine : finished" << std::endl;
   d_ce_sk.clear();
 }
 

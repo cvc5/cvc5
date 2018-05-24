@@ -110,6 +110,15 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
   else if (k==kind::DT_SYGUS_EVAL)
   {
+        return RewriteResponse(REWRITE_DONE, in);
+    // rewrite if all constant
+    for( const Node& inc : in )
+    {
+      if( !inc.isConst() )
+      {
+        return RewriteResponse(REWRITE_DONE, in);
+      }
+    }
     // sygus evaluation function
     Node ev = in[0];
     if( ev.getKind()==kind::APPLY_CONSTRUCTOR )
@@ -205,6 +214,7 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
                 unsigned i,
                 std::vector< Node >& children)
 {
+  Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i << "] with children: " << children << std::endl;
   Assert(i < dt.getNumConstructors());
   Assert( dt.isSygus() );
   Assert( !dt[i].getSygusOp().isNull() );
@@ -230,15 +240,28 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
 Node DatatypesRewriter::mkSygusEvalApp(const Datatype& dt,
                     std::vector< Node >& children)
 {
+#if 0
+  return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL,children);
+#else
   Assert( dt.isSygus() );
   std::vector< Node > schildren;
   schildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
   schildren.insert(schildren.end(),children.begin(),children.end());
   return NodeManager::currentNM()->mkNode(APPLY_UF,schildren);
+#endif
+}
+Node DatatypesRewriter::mkSygusEvalApp(std::vector< Node >& children)
+{
+  Assert( !children.empty() && children[0].getType().isDatatype() );
+  const Datatype& dt = static_cast<DatatypeType>(children[0].getType().toType()).getDatatype();
+  return mkSygusEvalApp(dt,children);
 }
 
 bool DatatypesRewriter::isSygusEvalApp(Node n)
 {
+#if 0
+  return n.getKind()==DT_SYGUS_EVAL;
+#else
   if (n.getKind() != APPLY_UF || n.getNumChildren() == 0)
   {
     return false;
@@ -255,6 +278,7 @@ bool DatatypesRewriter::isSygusEvalApp(Node n)
   }
   Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
   return eval_op == n.getOperator();
+#endif
 }
 
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)

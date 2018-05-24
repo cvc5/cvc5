@@ -195,9 +195,9 @@ Node SygusUnifRl::purifyLemma(Node n,
         Trace("sygus-unif-rl-purify-debug") << ")\n";
       }
       // replace first child and rebulid node
-      children[1] = new_f;
+      children[0] = new_f;
       Assert(children.size() > 1);
-      np = NodeManager::currentNM()->mkNode(k, children);
+      np = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
       d_app_to_purified[nb] = np;
     }
     else

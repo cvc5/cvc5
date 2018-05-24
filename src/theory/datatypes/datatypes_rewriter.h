@@ -119,6 +119,7 @@ public:
   /** make sygus evaluation function application */
   static Node mkSygusEvalApp(const Datatype& dt,
                           std::vector< Node >& children);
+  static Node mkSygusEvalApp(std::vector< Node >& children);
   /** is sygus evaluation function */
   static bool isSygusEvalApp(Node n);
 private:
