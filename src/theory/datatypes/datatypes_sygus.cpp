@@ -461,13 +461,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
         // commutative operators
         if (quantifiers::TermUtil::isComm(nk))
         {
-          if (children.size() == 2)
+          if (children.size() == 2 && children[0].getType() == children[1].getType())
           {
-            if (children[0].getType() == children[1].getType())
-            {
-              Node order_pred = getTermOrderPredicate(children[0], children[1]);
-              sbp_conj.push_back(order_pred);
-            }
+            Node order_pred = getTermOrderPredicate(children[0], children[1]);
+            sbp_conj.push_back(order_pred);
           }
         }
         // operators whose arguments are non-additive (e.g. should be different)
