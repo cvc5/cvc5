@@ -1448,17 +1448,20 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         t = Rewriter::rewrite(t);
         Trace("nl-ext-cms-debug") << "Trying to find min/max for quadratic "
                                   << t << "..." << std::endl;
+        Trace("nl-ext-cms-debug") << "    a = " << a << std::endl;
+        Trace("nl-ext-cms-debug") << "    b = " << b << std::endl;
         // find maximal/minimal value on the interval
         Node apex = nm->mkNode(
             DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
         apex = Rewriter::rewrite(apex);
         Assert(apex.isConst());
+        // for lower, upper, whether we are greater than the apex
         bool cmp[2];
         Node boundn[2];
         for (unsigned r = 0; r < 2; r++)
         {
           boundn[r] = r == 0 ? bit->second.first : bit->second.second;
-          Node cmpn = nm->mkNode(LT, boundn[r], apex);
+          Node cmpn = nm->mkNode(GT, boundn[r], apex);
           cmpn = Rewriter::rewrite(cmpn);
           Assert(cmpn.isConst());
           cmp[r] = cmpn.getConst<bool>();
@@ -1468,6 +1471,8 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
             << "  min " << boundn[0] << ", cmp: " << cmp[0] << std::endl;
         Trace("nl-ext-cms-debug")
             << "  max " << boundn[1] << ", cmp: " << cmp[1] << std::endl;
+        Assert(boundn[0].getConst<Rational>()
+               <= boundn[1].getConst<Rational>());
         Node s;
         qvars.push_back(v);
         if (cmp[0] != cmp[1])
@@ -1497,19 +1502,25 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
                 << "  ...both sides of apex, compare " << tcmp << std::endl;
             tcmp = Rewriter::rewrite(tcmp);
             Assert(tcmp.isConst());
-            unsigned bindex_use = tcmp.getConst<bool>() == pol ? 1 : 0;
+            unsigned bindex_use = (tcmp.getConst<bool>() == pol) ? 1 : 0;
             Trace("nl-ext-cms-debug")
-                << "  ...set to " << (bindex_use == 1 ? "max" : "min")
+                << "  ...set to " << (bindex_use == 1 ? "upper" : "lower")
                 << std::endl;
             s = boundn[bindex_use];
           }
         }
         else
         {
-          // both to one side
-          unsigned bindex_use = ((asgn == 1) == cmp[0]) == pol ? 0 : 1;
+          // both to one side of the apex
+          // we figure out which bound to use (lower or upper) based on
+          // three factors:
+          // (1) whether a's sign is positive,
+          // (2) whether we are greater than the apex of the parabola,
+          // (3) the polarity of the constraint, i.e. >= or <=.
+          // there are 8 cases of these factors, which we test here.
+          unsigned bindex_use = (((asgn == 1) == cmp[0]) == pol) ? 0 : 1;
           Trace("nl-ext-cms-debug")
-              << "  ...set to " << (bindex_use == 1 ? "max" : "min")
+              << "  ...set to " << (bindex_use == 1 ? "upper" : "lower")
               << std::endl;
           s = boundn[bindex_use];
         }
