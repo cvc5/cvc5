@@ -38,8 +38,6 @@
 // Forward declarations.
 namespace CVC4 {
 class CnfProof;
-template <class Solver>
-class ProofProxy;
 } /* namespace CVC4 */
 
 namespace CVC4 {
@@ -192,7 +190,6 @@ class TSatProof {
    */
   void storeUnitResolution(typename Solver::TLit lit);
 
-  ProofProxy<Solver>* getProxy() { return d_proxy; }
   /**
    * Constructs the SAT proof for the given clause,
    * by collecting the needed clauses in the d_seen
@@ -341,8 +338,6 @@ class TSatProof {
 
   const ClauseId d_emptyClauseId;
   const ClauseId d_nullId;
-  // proxy class to break circular dependencies
-  ProofProxy<Solver>* d_proxy;
 
   // temporary map for updating CRefs
   ClauseIdMap d_temp_clauseId;
@@ -378,16 +373,6 @@ class TSatProof {
   bool d_satProofConstructed;
   Statistics d_statistics;
 }; /* class TSatProof */
-
-template <class S>
-class ProofProxy {
- private:
-  TSatProof<S>* d_proof;
-
- public:
-  ProofProxy(TSatProof<S>* pf);
-  void updateCRef(typename S::TCRef oldref, typename S::TCRef newref);
-}; /* class ProofProxy */
 
 template <class SatSolver>
 class LFSCSatProof : public TSatProof<SatSolver> {
