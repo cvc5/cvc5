@@ -1038,7 +1038,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 {
   // should not substitute the same variable twice
-  Assert(v.isVar());
   Assert(!hasCheckModelAssignment(v));
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
