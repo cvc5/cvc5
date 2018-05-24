@@ -43,11 +43,11 @@ class TheoryFp : public Theory {
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
-  Node ppRewrite(TNode node);
+  Node ppRewrite(TNode node) override;
 
   void check(Effort) override;
 
-  bool needsCheckLastEffort() { return true; }
+  bool needsCheckLastEffort() override { return true; }
   Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m) override;
 
