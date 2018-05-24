@@ -1611,6 +1611,9 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
       int choose_index = -1;
       std::vector<Node> ls;
       std::vector<Node> us;
+      // the relevant sign information for variables with odd exponents:
+      //   1: both signs of the interval of this variable are positive,
+      //  -1: both signs of the interval of this variable are negative.
       std::vector<int> signs;
       Trace("nl-ext-cms-debug") << "get sign information..." << std::endl;
       for (unsigned i = 0, size = vars.size(); i < size; i++)
@@ -1635,9 +1638,10 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
           Node u = bit->second.second;
           ls.push_back(l);
           us.push_back(u);
-          int vsign = 1;
+          int vsign = 0;
           if (vcfact % 2 == 1)
           {
+            vsign = 1;
             int lsgn = l.getConst<Rational>().sgn();
             int usgn = u.getConst<Rational>().sgn();
             Trace("nl-ext-cms-debug")
@@ -1680,7 +1684,8 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
         }
       }
       // whether we will try to minimize/maximize (-1/1) the absolute value
-      int minimizeAbs = set_lower == has_neg_factor ? -1 : 1;
+      int setAbs = (set_lower == has_neg_factor) ? 1 : -1;
+      Trace("nl-ext-cms-debug") << "set absolute value to " << (setAbs==1 ? "maximal" : "minimal") << std::endl;
 
       std::vector<Node> vbs;
       Trace("nl-ext-cms-debug") << "set bounds..." << std::endl;
@@ -1691,6 +1696,8 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
         Node l = ls[i];
         Node u = us[i];
         bool vc_set_lower;
+        int vcsign = signs[i];
+        Trace("nl-ext-cms-debug") << "Bounds for " << vc << " : " << l << ", " << u << ", sign : " << vcsign << ", factor : " << vcfact << std::endl;
         if (l == u)
         {
           // by convention, always say it is lower if they are the same
@@ -1700,15 +1707,31 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
         }
         else
         {
-          if (signs[i] == 0)
+          if( vcfact%2==0 )
+          {
+            // minimize or maximize its absolute value
+            Rational la = l.getConst<Rational>().abs();
+            Rational ua = u.getConst<Rational>().abs();
+            if( la==ua )
+            {
+              // by convention, always say it is lower if abs are the same
+              vc_set_lower = true;
+              Trace("nl-ext-cms-debug")
+                  << "..." << vc << " equal abs, set to lower" << std::endl;
+            }
+            else
+            {
+              vc_set_lower = (la>ua)==(setAbs==1);
+            }
+          }
+          else if (signs[i] == 0)
           {
             // we choose this index to match the overall set_lower
             vc_set_lower = set_lower;
           }
           else
           {
-            // minimize or maximize its absolute value
-            vc_set_lower = (signs[i] == minimizeAbs);
+            vc_set_lower = (signs[i] == setAbs);
           }
           Trace("nl-ext-cms-debug")
               << "..." << vc << " set to " << (vc_set_lower ? "lower" : "upper")
@@ -1726,8 +1749,8 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
               << "  failed due to conflicting bound for " << vc << std::endl;
           return false;
         }
-        // must over/under approximate
-        Node vb = set_lower ? l : u;
+        // must over/under approximate based on vc_set_lower, computed above
+        Node vb = vc_set_lower ? l : u;
         for (unsigned i = 0; i < vcfact; i++)
         {
           vbs.push_back(vb);
