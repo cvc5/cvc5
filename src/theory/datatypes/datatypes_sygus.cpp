@@ -388,6 +388,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
 Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth ) {
   std::map< unsigned, Node >::iterator it = d_simple_sb_pred[tn][tindex].find( depth );
   if( it==d_simple_sb_pred[tn][tindex].end() ){
+    NodeManager* nm = NodeManager::currentNM();
     Node n = getFreeVar( tn );
     const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     Assert( tindex>=0 && tindex<(int)dt.getNumConstructors() ); 
@@ -408,7 +409,6 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
     //symmetry breaking
     Kind nk = d_tds->getConsNumKind( tn, tindex );
     if( options::sygusSymBreak() ){
-      NodeManager* nm = NodeManager::currentNM();
       // if less than the maximum depth we consider
       if( depth<2 ){
         //get children
@@ -540,90 +540,86 @@ Node SygusSymBreakNew::getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned 
             // redundant arguments (e.g. 0 for plus, 1 for mult)
             // right-associativity
             // simple rewrites
-            for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
+            unsigned dt_index_nargs = dt[tindex].getNumArgs();
+            // explanation of why all children of this are constant
+            std::vector<Node> exp_not_all_const;
+            bool hasAnyConstCons = d_tds->getAnyConstantConsNum(tn)!=-1;
+            bool exp_not_all_const_valid = dt_index_nargs>0;
+            for( unsigned j=0; j<dt_index_nargs; j++ ){
               Node nc = children[j];
               // if not already solved
-              if( children_solved.find( j )==children_solved.end() ){
-                TypeNode tnc = nc.getType();
-                int anyc_cons_num = d_tds->getAnyConstantConsNum(tnc);
-                const Datatype& cdt = ((DatatypeType)(tnc).toType()).getDatatype();
-                for( unsigned k=0; k<cdt.getNumConstructors(); k++ ){
-                  Kind nck = d_tds->getConsNumKind(tnc, k);
-                  bool red = false;
-                  // check if the argument is redundant
-                  if (static_cast<int>(k) == anyc_cons_num)
-                  {
-                    // check if the any constant constructor is redundant at
-                    // this argument position
-                    // TODO
-                  }
-                  else if (nck != UNDEFINED_KIND)
+              if( children_solved.find( j )!=children_solved.end() ){
+                continue;
+              }
+              TypeNode tnc = nc.getType();
+              int anyc_cons_num = d_tds->getAnyConstantConsNum(tnc);
+              const Datatype& cdt = ((DatatypeType)(tnc).toType()).getDatatype();
+              std::vector< Node > exp_const;
+              for( unsigned k=0, ncons = cdt.getNumConstructors(); k<ncons; k++ ){
+                Kind nck = d_tds->getConsNumKind(tnc, k);
+                bool red = false;
+                Node tester = DatatypesRewriter::mkTester(nc, k, cdt);
+                // check if the argument is redundant
+                if (static_cast<int>(k) == anyc_cons_num)
+                {
+                  exp_const.push_back(tester);
+                }
+                else if (nck != UNDEFINED_KIND)
+                {
+                  Trace("sygus-sb-simple-debug")
+                      << "  argument " << j << " " << k << " is : " << nck
+                      << std::endl;
+                  red = !d_tds->considerArgKind(tnc, tn, nck, nk, j);
+                }
+                else
+                {
+                  Node cc = d_tds->getConsNumConst(tnc, k);
+                  if (!cc.isNull())
                   {
                     Trace("sygus-sb-simple-debug")
-                        << "  argument " << j << " " << k << " is : " << nck
-                        << std::endl;
-                    red = !d_tds->considerArgKind(tnc, tn, nck, nk, j);
-                  }
-                  else
-                  {
-                    Node cc = d_tds->getConsNumConst(tnc, k);
-                    if (!cc.isNull())
+                        << "  argument " << j << " " << k
+                        << " is constant : " << cc << std::endl;
+                    red = !d_tds->considerConst(tnc, tn, cc, nk, j);
+                    if( hasAnyConstCons )
                     {
-                      Trace("sygus-sb-simple-debug")
-                          << "  argument " << j << " " << k
-                          << " is constant : " << cc << std::endl;
-                      red = !d_tds->considerConst(tnc, tn, cc, nk, j);
-                    }else{
-                      // defined function?
+                      exp_const.push_back(tester);
                     }
-                  }
-                  if (red)
-                  {
-                    Trace("sygus-sb-simple-debug")
-                        << "  ...redundant." << std::endl;
-                    sbp_conj.push_back(
-                        DatatypesRewriter::mkTester(nc, k, cdt).negate());
+                  }else{
+                    // defined function?
                   }
                 }
+                if (red)
+                {
+                  Trace("sygus-sb-simple-debug")
+                      << "  ...redundant." << std::endl;
+                  sbp_conj.push_back(tester.negate());
+                }
               }
+              if( exp_const.empty() )
+              {
+                exp_not_all_const_valid = false;
+              }
+              else
+              {
+                Node ecn = exp_const.size()==1 ? exp_const[0] : nm->mkNode( OR, exp_const );
+                exp_not_all_const.push_back(ecn.negate());
+              }
+            }
+            // explicitly handle constants and "any constant" constructors
+            // if this type admits any constant, then at least one of my children
+            // must not be a constant or the "any constant" constructor
+            if (dt.getSygusAllowConst() && exp_not_all_const_valid)
+            {
+              Assert( !exp_not_all_const.empty() );
+              Node expaan = exp_not_all_const.size() == 1
+                                ? exp_not_all_const[0]
+                                : nm->mkNode(OR, exp_not_all_const);
+              Trace("sygus-sb-simple-debug")
+                  << "Ensure not all constant: " << expaan << std::endl;
+              sbp_conj.push_back(expaan);
             }
           }else{
             // defined function?
-          }
-          // explicitly handle "any constant" constructors
-          // if this type admits any constant, then at least one of my children
-          // must not be the "any constant" constructor
-          unsigned dt_index_nargs = dt[tindex].getNumArgs();
-          if (dt.getSygusAllowConst() && dt_index_nargs > 0)
-          {
-            std::vector<Node> exp_all_anyc;
-            bool success = true;
-            for (unsigned j = 0; j < dt_index_nargs; j++)
-            {
-              TypeNode ctn = TypeNode::fromType(dt[tindex].getArgType(j));
-              int ctn_ac = d_tds->getAnyConstantConsNum(ctn);
-              if (ctn_ac == -1)
-              {
-                success = false;
-                break;
-              }
-              Node nc = children[j];
-              TypeNode tnc = nc.getType();
-              const Datatype& cdt =
-                  static_cast<DatatypeType>(tnc.toType()).getDatatype();
-              exp_all_anyc.push_back(
-                  DatatypesRewriter::mkTester(nc, ctn_ac, cdt));
-            }
-            if (success)
-            {
-              Node expaan = exp_all_anyc.size() == 1
-                                ? exp_all_anyc[0]
-                                : nm->mkNode(AND, exp_all_anyc);
-              expaan = expaan.negate();
-              Trace("sygus-sb-simple-debug")
-                  << "Ensure not all any constant: " << expaan << std::endl;
-              sbp_conj.push_back(expaan);
-            }
           }
         }else if( depth==2 ){
           if( nk!=UNDEFINED_KIND ){
