@@ -1685,7 +1685,9 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
       }
       // whether we will try to minimize/maximize (-1/1) the absolute value
       int setAbs = (set_lower == has_neg_factor) ? 1 : -1;
-      Trace("nl-ext-cms-debug") << "set absolute value to " << (setAbs==1 ? "maximal" : "minimal") << std::endl;
+      Trace("nl-ext-cms-debug")
+          << "set absolute value to " << (setAbs == 1 ? "maximal" : "minimal")
+          << std::endl;
 
       std::vector<Node> vbs;
       Trace("nl-ext-cms-debug") << "set bounds..." << std::endl;
@@ -1697,7 +1699,9 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
         Node u = us[i];
         bool vc_set_lower;
         int vcsign = signs[i];
-        Trace("nl-ext-cms-debug") << "Bounds for " << vc << " : " << l << ", " << u << ", sign : " << vcsign << ", factor : " << vcfact << std::endl;
+        Trace("nl-ext-cms-debug")
+            << "Bounds for " << vc << " : " << l << ", " << u
+            << ", sign : " << vcsign << ", factor : " << vcfact << std::endl;
         if (l == u)
         {
           // by convention, always say it is lower if they are the same
@@ -1707,12 +1711,12 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
         }
         else
         {
-          if( vcfact%2==0 )
+          if (vcfact % 2 == 0)
           {
             // minimize or maximize its absolute value
             Rational la = l.getConst<Rational>().abs();
             Rational ua = u.getConst<Rational>().abs();
-            if( la==ua )
+            if (la == ua)
             {
               // by convention, always say it is lower if abs are the same
               vc_set_lower = true;
@@ -1721,7 +1725,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
             }
             else
             {
-              vc_set_lower = (la>ua)==(setAbs==1);
+              vc_set_lower = (la > ua) == (setAbs == 1);
             }
           }
           else if (signs[i] == 0)
