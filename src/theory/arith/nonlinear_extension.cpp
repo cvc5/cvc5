@@ -1056,9 +1056,9 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
 {
   Assert(!hasCheckModelAssignment(v));
-  Assert( l.isConst() );
-  Assert( u.isConst() );
-  Assert( l.getConst<Rational>()<=u.getConst<Rational>() );
+  Assert(l.isConst());
+  Assert(u.isConst());
+  Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
 }
 
@@ -1297,9 +1297,9 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
           MULT, coeffa, nm->mkNode(r == 0 ? MINUS : PLUS, negb, val));
       approx = Rewriter::rewrite(approx);
       bounds[r][b] = approx;
-      Assert( approx.isConst() );
+      Assert(approx.isConst());
     }
-    if(bounds[r][0].getConst<Rational>()>bounds[r][1].getConst<Rational>())
+    if (bounds[r][0].getConst<Rational>() > bounds[r][1].getConst<Rational>())
     {
       // ensure bound is (lower, upper)
       Node tmp = bounds[r][0];
