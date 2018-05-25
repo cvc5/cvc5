@@ -139,7 +139,8 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
   Assert( dt.isSygus() );
   Assert( !dt[c].getSygusOp().isNull() );
   std::vector< Node > children;
-  Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..." << std::endl;
+  Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
+                          << std::endl;
   for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
   {
     Node a;
@@ -155,7 +156,7 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     Assert( !a.isNull() );
     children.push_back( a );
   }
-  return datatypes::DatatypesRewriter::mkSygusTerm(dt,c,children);
+  return datatypes::DatatypesRewriter::mkSygusTerm(dt, c, children);
 }
 
 Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
@@ -176,11 +177,10 @@ struct SygusToBuiltinAttributeId
 typedef expr::Attribute<SygusToBuiltinAttributeId, Node>
     SygusToBuiltinAttribute;
 
-Node TermDbSygus::sygusToBuiltin(Node n,
-                                 TypeNode tn)
+Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
 {
   Assert( n.getType()==tn );
-  if( !tn.isDatatype() )
+  if (!tn.isDatatype())
   {
     return n;
   }
@@ -228,13 +228,14 @@ Node TermDbSygus::sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& ar
 }
 
 unsigned TermDbSygus::getSygusTermSize( Node n ){
-  if(n.getKind() != APPLY_CONSTRUCTOR)
+  if (n.getKind() != APPLY_CONSTRUCTOR)
   {
     return 0;
   }
   unsigned sum = 0;
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    sum += getSygusTermSize( n[i] );
+  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  {
+    sum += getSygusTermSize(n[i]);
   }
   const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
   int cindex = Datatype::indexOf(n.getOperator().toExpr());
@@ -786,7 +787,8 @@ void TermDbSygus::registerEnumerator(Node e,
     d_enum_to_active_guard[e] = eg;
   }
 
-  Trace("sygus-db") << "  registering symmetry breaking clauses..." << std::endl;
+  Trace("sygus-db") << "  registering symmetry breaking clauses..."
+                    << std::endl;
   // depending on if we are using symbolic constructors, introduce symmetry
   // breaking lemma templates for each relevant subtype of the grammar
   std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it =
@@ -824,7 +826,7 @@ void TermDbSygus::registerEnumerator(Node e,
         }
       }
     }
-    if( rm_indices.empty() )
+    if (rm_indices.empty())
     {
       continue;
     }
@@ -835,8 +837,8 @@ void TermDbSygus::registerEnumerator(Node e,
       // we call getInstCons since in the case of any constant constructors, it
       // is necessary to generate a term of the form any_constant( x.0 ) for a
       // fresh variable x.0.
-      Node fv = getFreeVar(stn,0);
-      Node exc_val = datatypes::DatatypesRewriter::getInstCons(fv,dt,rindex);
+      Node fv = getFreeVar(stn, 0);
+      Node exc_val = datatypes::DatatypesRewriter::getInstCons(fv, dt, rindex);
       // should not include the constuctor in any subterm
       Node x = getFreeVar(stn, 0);
       Trace("sygus-db") << "Construct symmetry breaking lemma from " << x
@@ -968,7 +970,7 @@ TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
 void TermDbSygus::computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth ) {
   std::map< TypeNode, unsigned >::iterator it = d_min_type_depth[root_tn].find( tn );
   if( it==d_min_type_depth[root_tn].end() || type_depth<it->second ){
-    if( !tn.isDatatype() )
+    if (!tn.isDatatype())
     {
       // do not recurse to non-datatype types
       return;
@@ -1375,79 +1377,98 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 }
 
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
-  if( !datatypes::DatatypesRewriter::isSygusEvalApp(en) ){
-    Assert( en.isConst() );
+  if (!datatypes::DatatypesRewriter::isSygusEvalApp(en))
+  {
+    Assert(en.isConst());
     return en;
   }
   Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
   Node ev = en[0];
-  if( track_exp ){
-    std::map< Node, Node >::iterator itv = vtm.find( en[0] );
-    if( itv!=vtm.end() ){
+  if (track_exp)
+  {
+    std::map<Node, Node>::iterator itv = vtm.find(en[0]);
+    if (itv != vtm.end())
+    {
       ev = itv->second;
-    }else{
-      Assert( false );
     }
-    Assert( en[0].getType()==ev.getType() );
-    Assert( ev.isConst() );
+    else
+    {
+      Assert(false);
+    }
+    Assert(en[0].getType() == ev.getType());
+    Assert(ev.isConst());
   }
-  Assert( ev.getKind()==kind::APPLY_CONSTRUCTOR );
-  std::vector< Node > args;
-  for( unsigned i=1, nchild = en.getNumChildren(); i<nchild; i++ ){
-    args.push_back( en[i] );
+  Assert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
+  std::vector<Node> args;
+  for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
+  {
+    args.push_back(en[i]);
   }
-  
+
   Type headType = en[0].getType().toType();
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
-  unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
-  if( track_exp ){
-    //explanation
-    Node ee = nm->mkNode( kind::APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), en[0] );
-    if( std::find( exp.begin(), exp.end(), ee )==exp.end() ){
-      exp.push_back( ee );
+  unsigned i = Datatype::indexOf(ev.getOperator().toExpr());
+  if (track_exp)
+  {
+    // explanation
+    Node ee = nm->mkNode(
+        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+    if (std::find(exp.begin(), exp.end(), ee) == exp.end())
+    {
+      exp.push_back(ee);
     }
   }
   // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = Node::fromExpr( dt[i].getSygusOp() );
-  if( sop.getAttribute(SygusAnyConstAttribute()) )
+  Node sop = Node::fromExpr(dt[i].getSygusOp());
+  if (sop.getAttribute(SygusAnyConstAttribute()))
   {
-    Trace("sygus-db-debug") << "...it is an any-constant constructor" << std::endl;
-    Assert( dt[i].getNumArgs()==1 );
-    if( en[0].getKind()==APPLY_CONSTRUCTOR )
+    Trace("sygus-db-debug")
+        << "...it is an any-constant constructor" << std::endl;
+    Assert(dt[i].getNumArgs() == 1);
+    if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       return en[0][0];
     }
     else
     {
-      return nm->mkNode( APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal( headType, 0 ), en[0] );
+      return nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
     }
   }
-  
-  Assert( !dt.isParametric() );
-  std::map< int, Node > pre;
-  for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
-    std::vector< Node > cc;
+
+  Assert(!dt.isParametric());
+  std::map<int, Node> pre;
+  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+  {
+    std::vector<Node> cc;
     Node s;
-    if( en[0].getKind()==kind::APPLY_CONSTRUCTOR ){
+    if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
+    {
       s = en[0][j];
-    }else{
-      s = nm->mkNode( kind::APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal( headType, j ), en[0] );
     }
-    cc.push_back( s );
-    if( track_exp ){
-      //update vtm map
+    else
+    {
+      s = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
+                     dt[i].getSelectorInternal(headType, j),
+                     en[0]);
+    }
+    cc.push_back(s);
+    if (track_exp)
+    {
+      // update vtm map
       vtm[s] = ev[j];
     }
-    cc.insert( cc.end(), args.begin(), args.end() );
+    cc.insert(cc.end(), args.begin(), args.end());
     pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(cc);
   }
   Node ret = mkGeneric(dt, i, pre);
   // if it is a variable, apply the substitution
-  if( ret.getKind()==kind::BOUND_VARIABLE ){
-    Assert( ret.hasAttribute(SygusVarNumAttribute()) );
+  if (ret.getKind() == kind::BOUND_VARIABLE)
+  {
+    Assert(ret.hasAttribute(SygusVarNumAttribute()));
     int i = ret.getAttribute(SygusVarNumAttribute());
-    Assert( Node::fromExpr( dt.getSygusVarList() )[i]==ret );
+    Assert(Node::fromExpr(dt.getSygusVarList())[i] == ret);
     return args[i];
   }
   ret = Rewriter::rewrite(ret);
@@ -1460,7 +1481,8 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
   if( itv==visited.end() ){
     Trace("cegqi-eager-debug") << "getEagerUnfold " << n << std::endl;
     Node ret;
-    if( datatypes::DatatypesRewriter::isSygusEvalApp(n) ){
+    if (datatypes::DatatypesRewriter::isSygusEvalApp(n))
+    {
       TypeNode tn = n[0].getType();
       Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
       if( tn.isDatatype() ){
@@ -1537,7 +1559,9 @@ Node TermDbSygus::evaluateWithUnfolding(
       visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
-    while( datatypes::DatatypesRewriter::isSygusEvalApp(ret) && ret[0].getKind()==APPLY_CONSTRUCTOR ){
+    while (datatypes::DatatypesRewriter::isSygusEvalApp(ret)
+           && ret[0].getKind() == APPLY_CONSTRUCTOR)
+    {
       ret = unfold( ret );
     }    
     if( ret.getNumChildren()>0 ){
@@ -1570,7 +1594,7 @@ Node TermDbSygus::evaluateWithUnfolding( Node n ) {
 
 bool TermDbSygus::isEvaluationPoint(Node n) const
 {
-  if( !datatypes::DatatypesRewriter::isSygusEvalApp(n) )
+  if (!datatypes::DatatypesRewriter::isSygusEvalApp(n))
   {
     return false;
   }

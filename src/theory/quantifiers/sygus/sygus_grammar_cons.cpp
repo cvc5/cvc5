@@ -18,12 +18,12 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
+#include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -311,7 +311,8 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
           makeEvalFun = true;
         }
       }
-      if( !makeEvalFun ){
+      if (!makeEvalFun)
+      {
         // otherwise, we apply the previous operator
         if( cur.getMetaKind() == kind::metakind::PARAMETERIZED ){
           children.push_back( cur.getOperator() );
@@ -324,7 +325,7 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
-      if( makeEvalFun )
+      if (makeEvalFun)
       {
         // will make into an application of an evaluation function
         ret = datatypes::DatatypesRewriter::mkSygusEvalApp(children);

@@ -20,12 +20,12 @@
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 
 #include <numeric>  // for std::iota
 
@@ -131,7 +131,7 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
       // we add this constructor first since we use left associative chains
       // and our symmetry breaking should group any constants together
       // beneath the same application
-      // we set its weight to zero since it should not be 
+      // we set its weight to zero since it should not be
       d_dt.addSygusConstructor(av.toExpr(), cname, builtin_arg, nullptr, 0);
     }
   }

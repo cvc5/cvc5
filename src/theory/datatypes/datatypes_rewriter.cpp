@@ -108,47 +108,50 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (k==kind::DT_SYGUS_EVAL)
+  else if (k == kind::DT_SYGUS_EVAL)
   {
     // sygus evaluation function
     Node ev = in[0];
-    if( ev.getKind()==kind::APPLY_CONSTRUCTOR )
+    if (ev.getKind() == kind::APPLY_CONSTRUCTOR)
     {
       // if it is the "any constant" constructor, return its argument
       if (ev.getOperator().getAttribute(SygusAnyConstAttribute()))
       {
-        Assert( ev.getNumChildren()==1 );
-        Assert( ev[0].getType().isComparableTo(in.getType()) );
+        Assert(ev.getNumChildren() == 1);
+        Assert(ev[0].getType().isComparableTo(in.getType()));
         return RewriteResponse(REWRITE_AGAIN_FULL, ev[0]);
       }
-      NodeManager * nm = NodeManager::currentNM();
-      std::vector< Node > args;
-      for( unsigned j=1, nchild = in.getNumChildren(); j<nchild; j++ ){
-        args.push_back( in[j] );
-      }
-      const Datatype& dt = static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
-      Assert( !dt.isParametric() );
-      std::vector< Node > children;
-      for( const Node& evc : ev )
+      NodeManager* nm = NodeManager::currentNM();
+      std::vector<Node> args;
+      for (unsigned j = 1, nchild = in.getNumChildren(); j < nchild; j++)
       {
-        std::vector< Node > cc;
-        cc.push_back( evc );
-        cc.insert( cc.end(), args.begin(), args.end() );
-        children.push_back( nm->mkNode( kind::DT_SYGUS_EVAL, cc ) );
+        args.push_back(in[j]);
       }
-      unsigned i = Datatype::indexOf( ev.getOperator().toExpr() );
+      const Datatype& dt =
+          static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
+      Assert(!dt.isParametric());
+      std::vector<Node> children;
+      for (const Node& evc : ev)
+      {
+        std::vector<Node> cc;
+        cc.push_back(evc);
+        cc.insert(cc.end(), args.begin(), args.end());
+        children.push_back(nm->mkNode(kind::DT_SYGUS_EVAL, cc));
+      }
+      unsigned i = Datatype::indexOf(ev.getOperator().toExpr());
       Node ret = mkSygusTerm(dt, i, children);
       // if it is a variable, apply the substitution
-      if( ret.getKind()==kind::BOUND_VARIABLE ){
-        Assert( ret.hasAttribute(SygusVarNumAttribute()) );
+      if (ret.getKind() == kind::BOUND_VARIABLE)
+      {
+        Assert(ret.hasAttribute(SygusVarNumAttribute()));
         int vn = ret.getAttribute(SygusVarNumAttribute());
-        Assert( Node::fromExpr( dt.getSygusVarList() )[vn]==ret );
+        Assert(Node::fromExpr(dt.getSygusVarList())[vn] == ret);
         ret = args[vn];
       }
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  
+
   if (k == kind::EQUAL)
   {
     if (in[0] == in[1])
@@ -181,16 +184,20 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
-Kind getOperatorKindForSygusBuiltin( Node op ) {
-  Assert( op.getKind()!=BUILTIN );
+Kind getOperatorKindForSygusBuiltin(Node op)
+{
+  Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
   {
     // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
     // does beta-reduction but does not for APPLY
     return APPLY_UF;
-  }else{
+  }
+  else
+  {
     TypeNode tn = op.getType();
-    if( tn.isConstructor() ){
+    if (tn.isConstructor())
+    {
       return APPLY_CONSTRUCTOR;
     }
     else if (tn.isSelector())
@@ -210,61 +217,70 @@ Kind getOperatorKindForSygusBuiltin( Node op ) {
 }
 
 Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
-                unsigned i,
-                std::vector< Node >& children)
+                                    unsigned i,
+                                    std::vector<Node>& children)
 {
-  Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i << "] with children: " << children << std::endl;
+  Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
+                         << "] with children: " << children << std::endl;
   Assert(i < dt.getNumConstructors());
-  Assert( dt.isSygus() );
-  Assert( !dt[i].getSygusOp().isNull() );
-  std::vector< Node > schildren;
-  Node op = Node::fromExpr( dt[i].getSygusOp() );
+  Assert(dt.isSygus());
+  Assert(!dt[i].getSygusOp().isNull());
+  std::vector<Node> schildren;
+  Node op = Node::fromExpr(dt[i].getSygusOp());
   // if it is the any constant, we simply return the child
   if (op.getAttribute(SygusAnyConstAttribute()))
   {
-    Assert( children.size()==1 );
+    Assert(children.size() == 1);
     return children[0];
   }
-  if( op.getKind()!=BUILTIN ){
-    schildren.push_back( op );
+  if (op.getKind() != BUILTIN)
+  {
+    schildren.push_back(op);
   }
-  schildren.insert(schildren.end(),children.begin(), children.end());
+  schildren.insert(schildren.end(), children.begin(), children.end());
   Node ret;
-  if( op.getKind()==BUILTIN ){
-    ret = NodeManager::currentNM()->mkNode( op, schildren );
-  }else{
-    Kind ok = getOperatorKindForSygusBuiltin( op );
-    if( schildren.size()==1 && ok==kind::UNDEFINED_KIND ){
+  if (op.getKind() == BUILTIN)
+  {
+    ret = NodeManager::currentNM()->mkNode(op, schildren);
+  }
+  else
+  {
+    Kind ok = getOperatorKindForSygusBuiltin(op);
+    if (schildren.size() == 1 && ok == kind::UNDEFINED_KIND)
+    {
       ret = schildren[0];
-    }else{
-      ret = NodeManager::currentNM()->mkNode( ok, schildren );
+    }
+    else
+    {
+      ret = NodeManager::currentNM()->mkNode(ok, schildren);
     }
   }
   Trace("dt-sygus-util") << "...return " << ret << std::endl;
   return ret;
 }
-Node DatatypesRewriter::mkSygusEvalApp(std::vector< Node >& children)
+Node DatatypesRewriter::mkSygusEvalApp(std::vector<Node>& children)
 {
-  if( options::sygusEvalBuiltin() )
+  if (options::sygusEvalBuiltin())
   {
-    return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL,children);
+    return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL, children);
   }
   // otherwise, using APPLY_UF
-  Assert( !children.empty() );
-  Assert( children[0].getType().isDatatype() );
-  const Datatype& dt = static_cast<DatatypeType>(children[0].getType().toType()).getDatatype();
-  Assert( dt.isSygus() );
-  std::vector< Node > schildren;
+  Assert(!children.empty());
+  Assert(children[0].getType().isDatatype());
+  const Datatype& dt =
+      static_cast<DatatypeType>(children[0].getType().toType()).getDatatype();
+  Assert(dt.isSygus());
+  std::vector<Node> schildren;
   schildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
-  schildren.insert(schildren.end(),children.begin(),children.end());
-  return NodeManager::currentNM()->mkNode(APPLY_UF,schildren);
+  schildren.insert(schildren.end(), children.begin(), children.end());
+  return NodeManager::currentNM()->mkNode(APPLY_UF, schildren);
 }
 
 bool DatatypesRewriter::isSygusEvalApp(Node n)
 {
-  if( options::sygusEvalBuiltin() )
+  if (options::sygusEvalBuiltin())
   {
-    return n.getKind()==DT_SYGUS_EVAL;
+    return n.getKind() == DT_SYGUS_EVAL;
   }
   // otherwise, using APPLY_UF
   if (n.getKind() != APPLY_UF || n.getNumChildren() == 0)

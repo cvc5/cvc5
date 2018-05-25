@@ -48,7 +48,8 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
     Node neval;
     Node n_output;
     bool neval_is_evalapp = false;
-    if( datatypes::DatatypesRewriter::isSygusEvalApp(n) ){
+    if (datatypes::DatatypesRewriter::isSygusEvalApp(n))
+    {
       neval = n;
       if( hasPol ){
         n_output = !pol ? d_true : d_false;
@@ -56,7 +57,8 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
       neval_is_evalapp = true;
     }else if( n.getKind()==EQUAL && hasPol && !pol ){
       for( unsigned r=0; r<2; r++ ){
-        if( datatypes::DatatypesRewriter::isSygusEvalApp(n[r]) ){
+        if (datatypes::DatatypesRewriter::isSygusEvalApp(n[r]))
+        {
           neval = n[r];
           if( n[1-r].isConst() ){
             n_output = n[1-r];
@@ -66,31 +68,39 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
       }
     }
     // is it an evaluation function?
-    if( neval_is_evalapp && d_examples.find( neval[0] )!=d_examples.end() ){
+    if (neval_is_evalapp && d_examples.find(neval[0]) != d_examples.end())
+    {
       // get the evaluation head
       Node eh = neval[0];
-      std::map< Node, bool >::iterator itx = d_examples_invalid.find( eh );
-      if( itx==d_examples_invalid.end() ){
-        //collect example
+      std::map<Node, bool>::iterator itx = d_examples_invalid.find(eh);
+      if (itx == d_examples_invalid.end())
+      {
+        // collect example
         bool success = true;
-        std::vector< Node > ex;
-        for( unsigned j=1, nchild = neval.getNumChildren(); j<nchild; j++ ){
-          if( !neval[j].isConst() ){
+        std::vector<Node> ex;
+        for (unsigned j = 1, nchild = neval.getNumChildren(); j < nchild; j++)
+        {
+          if (!neval[j].isConst())
+          {
             success = false;
             break;
           }
-          ex.push_back( neval[j] );
+          ex.push_back(neval[j]);
         }
-        if( success ){
-          d_examples[eh].push_back( ex );
-          d_examples_out[eh].push_back( n_output );
-          d_examples_term[eh].push_back( neval );
-          if( n_output.isNull() ){
+        if (success)
+        {
+          d_examples[eh].push_back(ex);
+          d_examples_out[eh].push_back(n_output);
+          d_examples_term[eh].push_back(neval);
+          if (n_output.isNull())
+          {
             d_examples_out_invalid[eh] = true;
-          }else{
-            Assert( n_output.isConst() );
           }
-          //finished processing this node
+          else
+          {
+            Assert(n_output.isConst());
+          }
+          // finished processing this node
           return;
         }
         d_examples_invalid[eh] = true;

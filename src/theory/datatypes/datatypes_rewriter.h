@@ -26,9 +26,11 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 /** sygus var num */
-struct SygusVarNumAttributeId {};
+struct SygusVarNumAttributeId
+{
+};
 typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
 /** Attribute true for variables that represent any constant */
@@ -113,25 +115,26 @@ public:
   *   C( x, y ) and z
   */
  static bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
-  /** make sygus term
-   *
-   * This function returns a builtin term f( children[0], ..., children[n] ) 
-   * where f is the builtin op that the i^th constructor of sygus datatype dt
-   * encodes.
-   */
-  static Node mkSygusTerm(const Datatype& dt,
-                          unsigned i,
-                          std::vector< Node >& children);
-  /** make sygus evaluation function application */
-  static Node mkSygusEvalApp(std::vector< Node >& children);
-  /** is sygus evaluation function */
-  static bool isSygusEvalApp(Node n);
-  /** 
-   * Get the builtin sygus operator for constructor term n of sygus datatype 
-   * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
-   * constructorwhose sygus op is the builtin operator +, this method returns +.
-   */
-  static Node getSygusOpForCTerm(Node n);
+ /** make sygus term
+  *
+  * This function returns a builtin term f( children[0], ..., children[n] )
+  * where f is the builtin op that the i^th constructor of sygus datatype dt
+  * encodes.
+  */
+ static Node mkSygusTerm(const Datatype& dt,
+                         unsigned i,
+                         std::vector<Node>& children);
+ /** make sygus evaluation function application */
+ static Node mkSygusEvalApp(std::vector<Node>& children);
+ /** is sygus evaluation function */
+ static bool isSygusEvalApp(Node n);
+ /**
+  * Get the builtin sygus operator for constructor term n of sygus datatype
+  * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
+  * constructorwhose sygus op is the builtin operator +, this method returns +.
+  */
+ static Node getSygusOpForCTerm(Node n);
+
 private:
  /** rewrite constructor term in */
  static RewriteResponse rewriteConstructor(TNode in);

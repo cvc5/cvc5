@@ -297,7 +297,8 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
         sb_lemmas.push_back(ipred);
       }
       // static conjecture-dependent symmetry breaking
-      Trace("sygus-sb-debug") << "  conjecture-dependent symmetry breaking...\n";
+      Trace("sygus-sb-debug")
+          << "  conjecture-dependent symmetry breaking...\n";
       std::map<Node, quantifiers::CegConjecture*>::iterator itc =
           d_anchor_to_conj.find(a);
       if (itc != d_anchor_to_conj.end())
@@ -401,19 +402,21 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
   {
     return it->second;
   }
-  Assert( tn.isDatatype() );
+  Assert(tn.isDatatype());
   NodeManager* nm = NodeManager::currentNM();
   Node n = getFreeVar(tn);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert( dt.isSygus() );
+  Assert(dt.isSygus());
   Assert(tindex >= 0 && tindex < static_cast<int>(dt.getNumConstructors()));
-  
-  Trace("sygus-sb-simple-debug") << "Simple symmetry breaking for " << dt.getName() << ", constructor " << dt[tindex].getName() << ", at depth " << depth << std::endl;
-  
+
+  Trace("sygus-sb-simple-debug")
+      << "Simple symmetry breaking for " << dt.getName() << ", constructor "
+      << dt[tindex].getName() << ", at depth " << depth << std::endl;
+
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
   Node sop = Node::fromExpr(dt[tindex].getSygusOp());
-  if (sop.getAttribute(SygusAnyConstAttribute()) || depth>2)
+  if (sop.getAttribute(SygusAnyConstAttribute()) || depth > 2)
   {
     d_simple_sb_pred[tn][tindex][usingSymCons][depth] = Node::null();
     return Node::null();
@@ -441,7 +444,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
   {
     // the number of (sygus) arguments
     unsigned dt_index_nargs = dt[tindex].getNumArgs();
-    
+
     // builtin type
     TypeNode tnb = TypeNode::fromType(dt.getSygusType());
     // get children
@@ -478,7 +481,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
     {
       if (nk != UNDEFINED_KIND)
       {
-        Trace("sygus-sb-simple-debug") << "  Equality reasoning about children..." << std::endl;
+        Trace("sygus-sb-simple-debug")
+            << "  Equality reasoning about children..." << std::endl;
         // commutative operators
         if (quantifiers::TermUtil::isComm(nk))
         {
@@ -562,8 +566,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
             {
               const Datatype& cdt =
                   static_cast<DatatypeType>(tnc.toType()).getDatatype();
-              Node fv = d_tds->getFreeVar(tnc,0);
-              Node guard_val = datatypes::DatatypesRewriter::getInstCons(fv,cdt,anyc_cons_num_c);
+              Node fv = d_tds->getFreeVar(tnc, 0);
+              Node guard_val = datatypes::DatatypesRewriter::getInstCons(
+                  fv, cdt, anyc_cons_num_c);
               Node exp = d_tds->getExplain()->getExplanationForEquality(
                   children[c1], guard_val);
               sym_lem_deq = nm->mkNode(OR, exp, sym_lem_deq);
@@ -572,7 +577,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
           }
         }
 
-        Trace("sygus-sb-simple-debug") << "  Redundant operators..." << std::endl;
+        Trace("sygus-sb-simple-debug")
+            << "  Redundant operators..." << std::endl;
         // singular arguments (e.g. 0 for mult)
         // redundant arguments (e.g. 0 for plus, 1 for mult)
         // right-associativity
@@ -735,37 +741,43 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
   }
 }
 
-Node SygusSymBreakNew::registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas ) {
+Node SygusSymBreakNew::registerSearchValue(
+    Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas)
+{
   Assert( n.getType()==nv.getType() );
-  TypeNode tn = n.getType(); 
-  if( !tn.isDatatype() )
+  TypeNode tn = n.getType();
+  if (!tn.isDatatype())
   {
-    // don't register non-(sygus-)datatype terms, instead we return the 
+    // don't register non-(sygus-)datatype terms, instead we return the
     // selector chain n.
     return n;
   }
-  Assert( nv.getKind()==APPLY_CONSTRUCTOR );
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(nv.getKind() == APPLY_CONSTRUCTOR);
+  NodeManager* nm = NodeManager::currentNM();
   // currently bottom-up, could be top-down?
   if( nv.getNumChildren()>0 ){
     const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
     unsigned cindex = Datatype::indexOf( nv.getOperator().toExpr() );
-    std::vector< Node > rcons_children;
+    std::vector<Node> rcons_children;
     rcons_children.push_back(nv.getOperator());
     bool childrenChanged = false;
     for( unsigned i=0; i<nv.getNumChildren(); i++ ){
-      Node sel = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), n );
-      Node nvc = registerSearchValue( a, sel, nv[i], d+1, lemmas );
-      if( nvc.isNull() ){
+      Node sel = nm->mkNode(
+          APPLY_SELECTOR_TOTAL,
+          Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
+          n);
+      Node nvc = registerSearchValue(a, sel, nv[i], d + 1, lemmas);
+      if (nvc.isNull())
+      {
         return Node::null();
       }
       rcons_children.push_back(nvc);
-      childrenChanged = childrenChanged || nvc!=nv[i];
+      childrenChanged = childrenChanged || nvc != nv[i];
     }
     // reconstruct the value, which may be a skeleton
-    if( childrenChanged )
+    if (childrenChanged)
     {
-      nv = nm->mkNode(APPLY_CONSTRUCTOR,rcons_children);
+      nv = nm->mkNode(APPLY_CONSTRUCTOR, rcons_children);
     }
   }
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
@@ -1216,8 +1228,9 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   for( std::map< Node, bool >::iterator it = d_register_st.begin(); it != d_register_st.end(); ++it ){
     if( it->second ){
       Node prog = it->first;
-      Trace("dt-sygus-debug") << "Checking model value of " << prog << "..." << std::endl;
-      Assert( prog.getType().isDatatype() );
+      Trace("dt-sygus-debug")
+          << "Checking model value of " << prog << "..." << std::endl;
+      Assert(prog.getType().isDatatype());
       Node progv = d_td->getValuation().getModel()->getValue( prog );
       if (Trace.isOn("dt-sygus"))
       {
@@ -1253,8 +1266,9 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
         if( options::sygusSymBreakDynamic() ){
-          Node rsv = registerSearchValue( prog, prog, progv, 0, lemmas );
-          if( rsv.isNull() ){
+          Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
+          if (rsv.isNull())
+          {
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
           }
           else
@@ -1292,10 +1306,10 @@ bool SygusSymBreakNew::checkTesters(Node n,
                                     int ind,
                                     std::vector<Node>& lemmas)
 {
-  if( vn.getKind()!=kind::APPLY_CONSTRUCTOR )
+  if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {
     // all datatype terms should be constant here
-    Assert( !vn.getType().isDatatype() );
+    Assert(!vn.getType().isDatatype());
     return true;
   }
   if( Trace.isOn("sygus-sb-warn") ){

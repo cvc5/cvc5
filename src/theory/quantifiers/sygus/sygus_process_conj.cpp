@@ -17,9 +17,9 @@
 #include <stack>
 
 #include "expr/datatype.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;

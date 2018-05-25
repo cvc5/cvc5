@@ -129,9 +129,9 @@ void SygusExplain::getExplanationForEquality(Node n,
     return;
   }
   TypeNode tn = n.getType();
-  if(!tn.isDatatype())
+  if (!tn.isDatatype())
   {
-    // sygus datatype fields that are not sygus datatypes are treated as 
+    // sygus datatype fields that are not sygus datatypes are treated as
     // abstractions only, hence we disregard this field
     return;
   }
@@ -185,9 +185,9 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   Assert(vnr.isNull() || vn != vnr);
   Assert(n.getType() == vn.getType());
   TypeNode ntn = n.getType();
-  if( !ntn.isDatatype() )
+  if (!ntn.isDatatype())
   {
-    // sygus datatype fields that are not sygus datatypes are treated as 
+    // sygus datatype fields that are not sygus datatypes are treated as
     // abstractions only, hence we disregard this field
     return;
   }

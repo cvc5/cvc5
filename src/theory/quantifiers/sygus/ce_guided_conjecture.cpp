@@ -239,9 +239,7 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   }
 }
 
-bool CegConjecture::needsRefinement() const { 
-  return d_set_ce_sk_vars;
-}
+bool CegConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 
 void CegConjecture::doCheck(std::vector<Node>& lems)
 {
@@ -305,7 +303,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       recordInstantiation(candidate_values);
       return;
     }
-    Assert( !d_set_ce_sk_vars );
+    Assert(!d_set_ce_sk_vars);
   }else{
     if( !constructed_cand ){
       return;
@@ -318,22 +316,23 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
   {
     // introduce the skolem variables
-    std::vector< Node > sks;
+    std::vector<Node> sks;
     if (constructed_cand)
     {
-      std::vector< Node > vars;
-      for( const Node& v : inst[0][0] )
+      std::vector<Node> vars;
+      for (const Node& v : inst[0][0])
       {
-        Node sk = nm->mkSkolem("rsk",v.getType());
+        Node sk = nm->mkSkolem("rsk", v.getType());
         sks.push_back(sk);
         vars.push_back(v);
       }
-      lem = inst[0][1].substitute(vars.begin(),vars.end(),sks.begin(),sks.end());
+      lem = inst[0][1].substitute(
+          vars.begin(), vars.end(), sks.begin(), sks.end());
       lem = lem.negate();
     }
     if (sk_refine)
     {
-      d_ce_sk_vars.insert(d_ce_sk_vars.end(),sks.begin(),sks.end());
+      d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
     }
     Assert(!isGround());
   }
@@ -378,7 +377,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
         
 void CegConjecture::doRefine( std::vector< Node >& lems ){
   Assert( lems.empty() );
-  Assert( d_set_ce_sk_vars );
+  Assert(d_set_ce_sk_vars);
 
   //first, make skolem substitution
   Trace("cegqi-refine") << "doRefine : construct skolem substitution..." << std::endl;
@@ -404,7 +403,8 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   Trace("cegqi-refine-debug")
       << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
   Node base_lem;
-  if (d_base_inst.getKind() == kind::NOT && d_base_inst[0].getKind() == kind::FORALL)
+  if (d_base_inst.getKind() == kind::NOT
+      && d_base_inst[0].getKind() == kind::FORALL)
   {
     base_lem = d_base_inst[0][1];
   }
@@ -419,7 +419,8 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = Rewriter::rewrite( base_lem );
-  Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem << "..." << std::endl;
+  Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
+                        << "..." << std::endl;
   d_master->registerRefinementLemma(sk_vars, base_lem, lems);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
   d_set_ce_sk_vars = false;

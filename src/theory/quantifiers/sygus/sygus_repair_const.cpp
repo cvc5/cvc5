@@ -19,10 +19,10 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -78,7 +78,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
       {
         TypeNode tnc = d_tds->getArgType(dtc, j);
         // avoid recursing on non-sygus-datatype children
-        if( tnc.isDatatype() )
+        if (tnc.isDatatype())
         {
           registerSygusType(tnc, tprocessed);
         }
@@ -450,7 +450,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      if( datatypes::DatatypesRewriter::isSygusEvalApp(cur) )
+      if (datatypes::DatatypesRewriter::isSygusEvalApp(cur))
       {
         Node v = cur[0];
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
