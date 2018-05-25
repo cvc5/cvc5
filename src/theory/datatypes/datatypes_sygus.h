@@ -290,7 +290,7 @@ private:
    * contains occurrences of the "any constant" constructor. For example, if
    * nv is C_+( C_x(), C_{any_constant}( 5 ) ), then the return value of this
    * function will either be null, or C_+( C_x(), C_{any_constant}( n.1.0 ) ),
-   * where n.2.1 is the appropriate selector chain applied to n.
+   * where n.1.0 is the appropriate selector chain applied to n.
    */
   Node registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
   /** Register symmetry breaking lemma
