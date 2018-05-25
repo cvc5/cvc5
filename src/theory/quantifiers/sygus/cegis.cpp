@@ -397,10 +397,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
   lems.push_back(rlem);
 }
 
-bool Cegis::usingRepairConst()
-{
-  return d_using_gr_repair;
-}
+bool Cegis::usingRepairConst() { return d_using_gr_repair; }
 
 void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,

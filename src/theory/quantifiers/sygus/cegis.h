@@ -65,6 +65,7 @@ class Cegis : public SygusModule
                                        std::vector<Node>& lems) override;
   /** using repair const */
   virtual bool usingRepairConst() override;
+
  protected:
   /** the evaluation unfold utility of d_tds */
   SygusEvalUnfold* d_eval_unfold;

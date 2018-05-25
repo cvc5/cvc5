@@ -164,11 +164,11 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
     fo_body = fitToLogic(logic,
-                        fo_body,
-                        candidates,
-                        candidate_skeletons,
-                        sk_vars,
-                        sk_vars_to_subs);
+                         fo_body,
+                         candidates,
+                         candidate_skeletons,
+                         sk_vars,
+                         sk_vars_to_subs);
   }
 
   if (fo_body.isNull() || sk_vars.empty())
