@@ -642,14 +642,6 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
         return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
       }
     }
-    if (RewriteRule<NormalizeEqPlusNeg>::applies(resultNode))
-    {
-      resultNode = RewriteRule<NormalizeEqPlusNeg>::run<false>(resultNode);
-      if (resultNode != node)
-      {
-        return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-      }
-    }
     return RewriteResponse(REWRITE_DONE, resultNode); 
   }
 }

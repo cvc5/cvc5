@@ -757,6 +757,10 @@ Node TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
+  else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))
+  {
+    res = RewriteRule<NormalizeEqPlusNeg>::run<false>(t);
+  }
 
   // if(t.getKind() == kind::EQUAL &&
   //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() ==
