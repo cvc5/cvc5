@@ -789,6 +789,7 @@ void TermDbSygus::registerEnumerator(Node e,
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
+  d_enum_to_using_sym_cons[e] = useSymbolicCons;
   // depending on if we are using symbolic constructors, introduce symmetry
   // breaking lemma templates for each relevant subtype of the grammar
   std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it =

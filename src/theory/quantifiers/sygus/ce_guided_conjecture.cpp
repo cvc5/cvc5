@@ -256,6 +256,33 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> candidate_values;
   bool constructed_cand = false;
 
+  // If a module is not trying to repair constants in solutions and the option
+  // sygusRepairConst  is true, we use a default scheme for trying to repair
+  // constants here.
+  if (options::sygusRepairConst() && !d_master->usingRepairConst())
+  {
+    Trace("cegqi-check") << "CegConjuncture : repair previous solution..."
+                         << std::endl;
+    // have we tried to repair the previous solution?
+    // if not, call the repair constant utility
+    unsigned ninst = d_cinfo[d_candidates[0]].d_inst.size();
+    if (d_repair_index < ninst)
+    {
+      std::vector<Node> fail_cvs;
+      for (const Node& cprog : d_candidates)
+      {
+        Assert(d_repair_index < d_cinfo[cprog].d_inst.size());
+        fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
+      }
+      d_repair_index++;
+      if (d_sygus_rconst->repairSolution(
+              d_candidates, fail_cvs, candidate_values))
+      {
+        constructed_cand = true;
+      }
+    }
+  }
+
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
   getModelValues(terms, enum_values);
