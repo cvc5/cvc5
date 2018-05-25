@@ -63,7 +63,8 @@ class Cegis : public SygusModule
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
                                        Node lem,
                                        std::vector<Node>& lems) override;
-
+  /** using repair const */
+  virtual bool usingRepairConst() override;
  protected:
   /** the evaluation unfold utility of d_tds */
   SygusEvalUnfold* d_eval_unfold;

@@ -122,7 +122,13 @@ class SygusModule
   {
     return Node::null();
   }
-
+  /** 
+   * Are we trying to repair constants in candidate solutions?
+   * If a module returns false for this and the option sygusRepairConst
+   * is true, we use a default scheme for trying to repair constants in
+   * candidate solutions in CegConjecture.
+   */
+  virtual bool usingRepairConst() { return false; }
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
