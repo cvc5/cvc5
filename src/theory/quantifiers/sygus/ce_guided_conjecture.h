@@ -60,7 +60,7 @@ public:
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
-  bool needsRefinement();
+  bool needsRefinement() const;
   /** do single invocation check 
   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
   */
@@ -177,7 +177,8 @@ private:
    * we must refine. This may be added to during calls to doCheck(). The model
    * values for skolems of these formulas are analyzed during doRefine().
    */
-  std::vector<Node> d_ce_sk;
+  bool d_set_ce_sk_vars;
+  std::vector<Node> d_ce_sk_vars;
 
   /** the asserted (negated) conjecture */
   Node d_quant;

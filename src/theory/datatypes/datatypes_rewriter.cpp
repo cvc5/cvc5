@@ -110,8 +110,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
   else if (k==kind::DT_SYGUS_EVAL)
   {
-        return RewriteResponse(REWRITE_DONE, in);
-    // rewrite if all constant
+        //return RewriteResponse(REWRITE_DONE, in);
+    // only rewrite if all constant
     for( const Node& inc : in )
     {
       if( !inc.isConst() )
