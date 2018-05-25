@@ -172,13 +172,8 @@ class TermDbSygus {
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
    * that is, the term that n encodes.
-   *
-   * Notice that each occurrence of a symbolic constructor application is
-   * replaced by a unique variable. To track counters for introducing unique
-   * variables, we use the var_count map.
    */
   Node sygusToBuiltin(Node n, TypeNode tn);
-  Node sygusToBuiltin(Node n, TypeNode tn, std::map<TypeNode, int>& var_count);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
   /** evaluate builtin
@@ -395,6 +390,13 @@ public: // for symmetry breaking
   bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
 public:
+  /** unfold 
+   * 
+   * This method 
+   *
+   * TODO 
+   * 
+   */
   Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp = true );
   Node unfold( Node en ){
     std::map< Node, Node > vtm;

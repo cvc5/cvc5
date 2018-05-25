@@ -77,7 +77,11 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
         TypeNode tnc = d_tds->getArgType(dtc, j);
-        registerSygusType(tnc, tprocessed);
+        // avoid recursing on non-sygus-datatype children
+        if( tnc.isDatatype() )
+        {
+          registerSygusType(tnc, tprocessed);
+        }
       }
     }
   }
@@ -296,15 +300,15 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   Assert(dt.isSygus());
   Node op = n.getOperator();
   unsigned cindex = Datatype::indexOf(op.toExpr());
-  if (dt[cindex].getNumArgs() > 0)
-  {
-    return false;
-  }
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {
     // if it represents "any constant" then it is repairable
     return true;
+  }
+  if (dt[cindex].getNumArgs() > 0)
+  {
+    return false;
   }
   if (useConstantsAsHoles && dt.getSygusAllowConst())
   {

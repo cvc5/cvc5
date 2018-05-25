@@ -31,6 +31,12 @@ namespace theory {
 struct SygusVarNumAttributeId {};
 typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
+/** Attribute true for variables that represent any constant */
+struct SygusAnyConstAttributeId
+{
+};
+typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
+
 namespace datatypes {
 
 class DatatypesRewriter {
@@ -120,6 +126,12 @@ public:
   static Node mkSygusEvalApp(std::vector< Node >& children);
   /** is sygus evaluation function */
   static bool isSygusEvalApp(Node n);
+  /** 
+   * Get the builtin sygus operator for constructor term n of sygus datatype 
+   * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
+   * constructorwhose sygus op is the builtin operator +, this method returns +.
+   */
+  static Node getSygusOpForCTerm(Node n);
 private:
  /** rewrite constructor term in */
  static RewriteResponse rewriteConstructor(TNode in);

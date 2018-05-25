@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 #include <numeric>  // for std::iota
 
@@ -125,11 +126,13 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
       std::stringstream ss;
       ss << d_unres_tn << "_any_constant";
       std::string cname(ss.str());
-      std::vector<Type> empty_arg_types;
+      std::vector<Type> builtin_arg;
+      builtin_arg.push_back(dt.getSygusType());
       // we add this constructor first since we use left associative chains
       // and our symmetry breaking should group any constants together
       // beneath the same application
-      d_dt.addSygusConstructor(av.toExpr(), cname, empty_arg_types);
+      // we set its weight to zero since it should not be 
+      d_dt.addSygusConstructor(av.toExpr(), cname, builtin_arg, nullptr, 0);
     }
   }
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)

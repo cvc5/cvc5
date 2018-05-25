@@ -128,9 +128,14 @@ void SygusExplain::getExplanationForEquality(Node n,
   {
     return;
   }
-  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode tn = n.getType();
-  Assert(tn.isDatatype());
+  if(!tn.isDatatype())
+  {
+    // sygus datatype fields that are not sygus datatypes are treated as 
+    // abstractions only, hence we disregard this field
+    return;
+  }
+  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
   int i = Datatype::indexOf(vn.getOperator().toExpr());
   Node tst = datatypes::DatatypesRewriter::mkTester(n, i, dt);
@@ -178,10 +183,16 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      int& sz)
 {
   Assert(vnr.isNull() || vn != vnr);
-  Assert(vn.getKind() == APPLY_CONSTRUCTOR);
-  Assert(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
   Assert(n.getType() == vn.getType());
   TypeNode ntn = n.getType();
+  if( !ntn.isDatatype() )
+  {
+    // sygus datatype fields that are not sygus datatypes are treated as 
+    // abstractions only, hence we disregard this field
+    return;
+  }
+  Assert(vn.getKind() == APPLY_CONSTRUCTOR);
+  Assert(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
   std::map<unsigned, bool> cexc;
   // for each child, 
   // check whether replacing that child by a fresh variable
