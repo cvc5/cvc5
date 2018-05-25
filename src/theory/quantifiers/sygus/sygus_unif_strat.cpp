@@ -252,7 +252,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     {
       echildren.push_back(sbv);
     }
-    Node eut = datatypes::DatatypesRewriter::mkSygusEvalApp(dt,echildren);
+    Node eut = datatypes::DatatypesRewriter::mkSygusEvalApp(echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold(eut);
@@ -291,12 +291,10 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
       for (unsigned k = 0, sksize = sks.size(); k < sksize; k++)
       {
         Assert(sks[k].getType().isDatatype());
-        const Datatype& cdt =
-            static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
         echildren[0] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
                                    << std::endl;
-        Node esk = datatypes::DatatypesRewriter::mkSygusEvalApp(cdt,echildren);
+        Node esk = datatypes::DatatypesRewriter::mkSygusEvalApp(echildren);
         vs.push_back(esk);
         Node tvar = nm->mkSkolem("templ", esk.getType());
         templ_var_index[tvar] = k;

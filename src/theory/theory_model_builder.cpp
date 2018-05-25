@@ -914,9 +914,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      Trace("model-builder-debug") << "Rewritten : " << retNode << std::endl;
       Assert(retNode.getKind() == kind::APPLY_UF
-            || retNode.getKind() == kind::DT_SYGUS_EVAL
              || !retNode.getType().isFirstClass()
              || retNode.isConst());
     }

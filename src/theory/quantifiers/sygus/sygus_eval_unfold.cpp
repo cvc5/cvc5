@@ -145,7 +145,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           vtm[n] = vn;
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
-          Node eval_fun = datatypes::DatatypesRewriter::mkSygusEvalApp(dt,eval_children);
+          Node eval_fun = datatypes::DatatypesRewriter::mkSygusEvalApp(eval_children);
           eval_children.resize(1);
           res = d_tds->unfold(eval_fun, vtm, exp);
           expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
@@ -155,9 +155,9 @@ void SygusEvalUnfold::registerModelValue(Node a,
           EvalSygusInvarianceTest esit;
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
-          Node conj = datatypes::DatatypesRewriter::mkSygusEvalApp(dt,eval_children);
+          Node conj = datatypes::DatatypesRewriter::mkSygusEvalApp(eval_children);
           eval_children[0] = vn;
-          Node eval_fun = datatypes::DatatypesRewriter::mkSygusEvalApp(dt,eval_children);
+          Node eval_fun = datatypes::DatatypesRewriter::mkSygusEvalApp(eval_children);
           res = d_tds->evaluateWithUnfolding(eval_fun);
           esit.init(conj, n, res);
           eval_children.resize(1);

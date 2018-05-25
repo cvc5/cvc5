@@ -326,11 +326,8 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
       }
       if( makeEvalFun )
       {
-        TypeNode tn = children[0].getType();
-        Assert( tn.isDatatype() );
         // will make into an application of an evaluation function
-        const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-        ret = datatypes::DatatypesRewriter::mkSygusEvalApp(dt,children);
+        ret = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
       }
       else if (childChanged)
       {

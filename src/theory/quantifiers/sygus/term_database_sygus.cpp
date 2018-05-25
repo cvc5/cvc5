@@ -1413,7 +1413,6 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ ){
     std::vector< Node > cc;
     //get the evaluation argument for the selector
-    const Datatype & ad = static_cast<DatatypeType>(dt[i].getArgType(j)).getDatatype();
     Node s;
     if( en[0].getKind()==kind::APPLY_CONSTRUCTOR ){
       s = en[0][j];
@@ -1426,7 +1425,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       vtm[s] = ev[j];
     }
     cc.insert( cc.end(), args.begin(), args.end() );
-    pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(ad,cc);
+    pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(cc);
   }
   Node ret = mkGeneric(dt, i, pre);
   // if it is a variable, apply the substitution
