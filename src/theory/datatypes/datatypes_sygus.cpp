@@ -408,6 +408,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
   Assert( dt.isSygus() );
   Assert(tindex >= 0 && tindex < static_cast<int>(dt.getNumConstructors()));
   
+  Trace("sygus-sb-simple-debug") << "Simple symmetry breaking for " << dt.getName() << ", constructor " << dt[tindex].getName() << ", at depth " << depth << std::endl;
+  
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
   Node sop = Node::fromExpr(dt[tindex].getSygusOp());
@@ -421,6 +423,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
 
   if (depth == 0)
   {
+    Trace("sygus-sb-simple-debug") << "  Size..." << std::endl;
     // fairness
     if (options::sygusFair() == SYGUS_FAIR_DT_SIZE)
     {
@@ -455,6 +458,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
 
     // direct solving for children
     //   for instance, we may want to insist that the LHS of MINUS is 0
+    Trace("sygus-sb-simple-debug") << "  Solve children..." << std::endl;
     std::map<unsigned, unsigned> children_solved;
     for (unsigned j = 0; j < dt_index_nargs; j++)
     {
@@ -474,6 +478,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
     {
       if (nk != UNDEFINED_KIND)
       {
+        Trace("sygus-sb-simple-debug") << "  Equality reasoning about children..." << std::endl;
         // commutative operators
         if (quantifiers::TermUtil::isComm(nk))
         {
@@ -557,9 +562,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
             {
               const Datatype& cdt =
                   static_cast<DatatypeType>(tnc.toType()).getDatatype();
-              Node guard_val = nm->mkNode(
-                  APPLY_CONSTRUCTOR,
-                  Node::fromExpr(cdt[anyc_cons_num_c].getConstructor()));
+              Node fv = d_tds->getFreeVar(tnc,0);
+              Node guard_val = datatypes::DatatypesRewriter::getInstCons(fv,cdt,anyc_cons_num_c);
               Node exp = d_tds->getExplain()->getExplanationForEquality(
                   children[c1], guard_val);
               sym_lem_deq = nm->mkNode(OR, exp, sym_lem_deq);
@@ -568,8 +572,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
           }
         }
 
-        Trace("sygus-sb-simple-debug") << "Process arguments for " << tn
-                                       << " : " << nk << " : " << std::endl;
+        Trace("sygus-sb-simple-debug") << "  Redundant operators..." << std::endl;
         // singular arguments (e.g. 0 for mult)
         // redundant arguments (e.g. 0 for plus, 1 for mult)
         // right-associativity
