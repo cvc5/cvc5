@@ -421,11 +421,19 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 );
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if(ca[confl].size() == 1) {
-              PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
-            } else {
-              PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
+            if (PROOF_ON())
+            {
+              if (ca[confl].size() == 1)
+              {
+                id = ProofManager::getSatProof()->storeUnitConflict(
+                    ca[confl][0], LEARNT);
+                ProofManager::getSatProof()->finalizeProof(
+                    CVC4::Minisat::CRef_Lazy);
+              }
+              else
+              {
+                ProofManager::getSatProof()->finalizeProof(confl);
+              }
             }
           }
           return ok;
