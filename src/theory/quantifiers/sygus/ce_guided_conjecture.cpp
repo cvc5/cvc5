@@ -258,6 +258,9 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> candidate_values;
   bool constructed_cand = false;
 
+  // If a module is not trying to repair constants in solutions and the option
+  // sygusRepairConst  is true, we use a default scheme for trying to repair
+  // constants here.
   if (options::sygusRepairConst() && !d_master->usingRepairConst())
   {
     Trace("cegqi-check") << "CegConjuncture : repair previous solution..."

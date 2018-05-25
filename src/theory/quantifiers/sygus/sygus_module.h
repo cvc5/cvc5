@@ -124,9 +124,8 @@ class SygusModule
   }
   /**
    * Are we trying to repair constants in candidate solutions?
-   * If a module returns false for this and the option sygusRepairConst
-   * is true, we use a default scheme for trying to repair constants in
-   * candidate solutions in CegConjecture.
+   * If we return true for usingRepairConst is true, then this module has
+   * attmepted to repair any solutions returned by constructCandidates.
    */
   virtual bool usingRepairConst() { return false; }
 
