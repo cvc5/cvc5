@@ -671,7 +671,7 @@ unsigned DatatypesRewriter::indexOf(Node n)
 {
   if( !n.hasAttribute(DtIndexAttribute()) )
   {
-    unsigned index = Datatype::indexOf(n.toExpr());
+    unsigned index = Datatype::indexOfInternal(n.toExpr());
     n.setAttribute(DtIndexAttribute(),index);
     return index;
   }
