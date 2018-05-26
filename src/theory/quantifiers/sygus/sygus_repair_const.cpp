@@ -62,10 +62,16 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
   if (tprocessed.find(tn) == tprocessed.end())
   {
     tprocessed[tn] = true;
-    Assert(tn.isDatatype());
+    if(!tn.isDatatype())
+    {
+      // may have recursed to a non-datatype, e.g. in the case that we have
+      // "any constant" constructors
+      return;
+    }
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
     if(!dt.isSygus())
     {
+      // may have recursed to a non-sygus-datatype
       return;
     }
     // check if this datatype allows all constants
@@ -80,11 +86,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
         TypeNode tnc = d_tds->getArgType(dtc, j);
-        // avoid recursing on non-sygus-datatype children
-        if (tnc.isDatatype())
-        {
-          registerSygusType(tnc, tprocessed);
-        }
+        registerSygusType(tnc, tprocessed);
       }
     }
   }
