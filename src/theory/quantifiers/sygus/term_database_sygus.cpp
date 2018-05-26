@@ -1220,6 +1220,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
     return false;
   }
   TypeNode tn = n.getType();
+  Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
   unsigned cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());

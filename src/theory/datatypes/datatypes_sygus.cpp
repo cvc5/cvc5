@@ -412,6 +412,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
   {
     return it->second;
   }
+  // this function is only called on sygus datatype types
   Assert(tn.isDatatype());
   NodeManager* nm = NodeManager::currentNM();
   Node n = getFreeVar(tn);
@@ -771,7 +772,7 @@ Node SygusSymBreakNew::registerSearchValue(
     std::vector<Node> rcons_children;
     rcons_children.push_back(nv.getOperator());
     bool childrenChanged = false;
-    for( unsigned i=0; i<nv.getNumChildren(); i++ ){
+    for( unsigned i=0, nchild = nv.getNumChildren(); i<nchild; i++ ){
       Node sel = nm->mkNode(
           APPLY_SELECTOR_TOTAL,
           Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),

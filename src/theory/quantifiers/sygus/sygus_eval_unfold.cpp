@@ -44,6 +44,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
       << "SygusEvalUnfold: register eval term : " << n << std::endl;
   d_eval_processed.insert(n);
   TypeNode tn = n[0].getType();
+  // since n[0] is an evaluation head, we know tn is a sygus datatype
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
@@ -101,6 +102,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           antec_exp.size() == 1 ? antec_exp[0] : nm->mkNode(AND, antec_exp);
       // Node antec = n.eqNode( vn );
       TypeNode tn = n.getType();
+      // n occurs as an evaluation head, thus it has sygus datatype type
       Assert(tn.isDatatype());
       const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
       Assert(dt.isSygus());

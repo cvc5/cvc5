@@ -208,6 +208,8 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
   }
 
   // look at information on how we will construct solutions for this type
+  // we know this is a sygus datatype since it is either the top-level type
+  // in the strategy graph, or was recursed by a strategy we inferred.
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
