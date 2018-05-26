@@ -546,7 +546,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     Node selector_use;
     TypeNode ndt = n[0].getType();
     if( options::dtSharedSelectors() ){
-      size_t selectorIndex = Datatype::indexOf(selectorExpr);
+      size_t selectorIndex = DatatypesRewriter::indexOf(selector);
       Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
       Assert( selectorIndex<c.getNumArgs() );
       selector_use = Node::fromExpr( c.getSelectorInternal( ndt.toType(), selectorIndex ) );
@@ -961,7 +961,7 @@ Node TheoryDatatypes::getLabel( Node n ) {
 
 int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
   if( eqc && !eqc->d_constructor.get().isNull() ){
-    return Datatype::indexOf( eqc->d_constructor.get().getOperator().toExpr() );
+    return DatatypesRewriter::indexOf( eqc->d_constructor.get().getOperator() );
   }else{
     Node lbl = getLabel( n );
     if( lbl.isNull() ){
@@ -970,7 +970,6 @@ int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
       int tindex = DatatypesRewriter::isTester( lbl );
       Assert( tindex!=-1 );
       return tindex;
-      //return Datatype::indexOf( getLabel( n ).getOperator().toExpr() );
     }
   }
 }
@@ -998,7 +997,6 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
       for( int i=0; i<n_lbl; i++ ){
         Node t = d_labels_data[n][i];
         Assert( t.getKind()==NOT );
-        //pcons[ Datatype::indexOf( t[0].getOperator().toExpr() ) ] = false;
         int tindex = DatatypesRewriter::isTester( t[0] );
         Assert( tindex!=-1 );
         pcons[ tindex ] = false;
@@ -1077,7 +1075,6 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
       Assert( ti.getKind()==NOT );
       j = ti;
       jt = j[0];
-      //int jtindex = Datatype::indexOf( jt.getOperator().toExpr() );
       int jtindex = DatatypesRewriter::isTester( jt );
       Assert( jtindex!=-1 );
       if( jtindex==ttindex ){
@@ -1212,7 +1209,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   //check labels
   NodeIntMap::iterator lbl_i = d_labels.find( n );
   if( lbl_i != d_labels.end() ){
-    size_t constructorIndex = Datatype::indexOf(c.getOperator().toExpr());
+    size_t constructorIndex = DatatypesRewriter::indexOf(c.getOperator());
     int n_lbl = (*lbl_i).second;
     for( int i=0; i<n_lbl; i++ ){
       Node t = d_labels_data[n][i];
@@ -1296,7 +1293,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   }
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     Expr selectorExpr = s.getOperator().toExpr();
-    size_t constructorIndex = Datatype::indexOf(c.getOperator().toExpr());
+    size_t constructorIndex = DatatypesRewriter::indexOf(c.getOperator());
     const Datatype& dt = Datatype::datatypeOf(selectorExpr);
     const DatatypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal( selectorExpr );
@@ -1305,10 +1302,6 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     //if( wrong ){
     //  return;
     //}
-    //if( Datatype::indexOf(c.getOperator().toExpr())!=Datatype::cindexOf(s.getOperator().toExpr()) ){
-    //  mkExpDefSkolem( s.getOperator(), s[0].getType(), s.getType() );
-    //  r = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[s.getOperator().toExpr()], s[0] );
-    //}else{
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
     if( options::dtRefIntro() ){
       use_s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), use_s );
@@ -2267,7 +2260,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
       Node r = d_equalityEngine.getRepresentative( n );
       EqcInfo * ei = getOrMakeEqcInfo( r, false );
       int l_index = getLabelIndex( ei, r );
-      int t_index = (int)Datatype::indexOf( atom.getOperator().toExpr() );
+      int t_index = static_cast<int>(DatatypesRewriter::indexOf( atom.getOperator()));
       Trace("dt-entail") << "  Tester indices are " << t_index << " and " << l_index << std::endl;
       if( l_index!=-1 && (l_index==t_index)==pol ){
         std::vector< TNode > exp_c;

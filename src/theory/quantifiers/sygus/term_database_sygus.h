@@ -390,13 +390,6 @@ public: // for symmetry breaking
   bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
 public:
- /** unfold
-  *
-  * This method
-  *
-  * TODO
-  *
-  */
  Node unfold(Node en,
              std::map<Node, Node>& vtm,
              std::vector<Node>& exp,

@@ -72,11 +72,13 @@ const Datatype& Datatype::datatypeOf(Expr item) {
 
 size_t Datatype::indexOf(Expr item) {
   ExprManagerScope ems(item);
+  /*
   PrettyCheckArgument(item.getType().isConstructor() ||
                 item.getType().isTester() ||
                 item.getType().isSelector(),
                 item,
                 "arg must be a datatype constructor, selector, or tester");
+                */
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return indexOf( item[0] );
@@ -88,9 +90,11 @@ size_t Datatype::indexOf(Expr item) {
 
 size_t Datatype::cindexOf(Expr item) {
   ExprManagerScope ems(item);
+  /*
   PrettyCheckArgument(item.getType().isSelector(),
                 item,
                 "arg must be a datatype selector");
+                */
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return cindexOf( item[0] );

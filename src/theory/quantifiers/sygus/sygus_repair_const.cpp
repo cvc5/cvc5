@@ -64,7 +64,10 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
     tprocessed[tn] = true;
     Assert(tn.isDatatype());
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    Assert(dt.isSygus());
+    if(!dt.isSygus())
+    {
+      return;
+    }
     // check if this datatype allows all constants
     if (dt.getSygusAllowConst())
     {
@@ -299,7 +302,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
   Node op = n.getOperator();
-  unsigned cindex = Datatype::indexOf(op.toExpr());
+  unsigned cindex = datatypes::DatatypesRewriter::indexOf(op);
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {

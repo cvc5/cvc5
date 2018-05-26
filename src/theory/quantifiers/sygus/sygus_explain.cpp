@@ -137,7 +137,7 @@ void SygusExplain::getExplanationForEquality(Node n,
   }
   Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  int i = Datatype::indexOf(vn.getOperator().toExpr());
+  int i = datatypes::DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = datatypes::DatatypesRewriter::mkTester(n, i, dt);
   exp.push_back(tst);
   for (unsigned j = 0; j < vn.getNumChildren(); j++)
@@ -221,7 +221,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     }
   }
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
-  int cindex = Datatype::indexOf(vn.getOperator().toExpr());
+  int cindex = datatypes::DatatypesRewriter::indexOf(vn.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   Node tst = datatypes::DatatypesRewriter::mkTester(n, cindex, dt);
   exp.push_back(tst);

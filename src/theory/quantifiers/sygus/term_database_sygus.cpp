@@ -194,7 +194,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
-    unsigned i = Datatype::indexOf(n.getOperator().toExpr());
+    unsigned i = datatypes::DatatypesRewriter::indexOf(n.getOperator());
     Assert(n.getNumChildren() == dt[i].getNumArgs());
     std::map<int, Node> pre;
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
@@ -238,7 +238,7 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
     sum += getSygusTermSize(n[i]);
   }
   const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-  int cindex = Datatype::indexOf(n.getOperator().toExpr());
+  int cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   unsigned weight = dt[cindex].getWeight();
   return weight + sum;
@@ -1218,7 +1218,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   TypeNode tn = n.getType();
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
-  unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
+  unsigned cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   // it is symbolic if it represents "any constant"
   return sygusOp.getAttribute(SygusAnyConstAttribute());
@@ -1409,7 +1409,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   Type headType = en[0].getType().toType();
   NodeManager* nm = NodeManager::currentNM();
   const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
-  unsigned i = Datatype::indexOf(ev.getOperator().toExpr());
+  unsigned i = datatypes::DatatypesRewriter::indexOf(ev.getOperator());
   if (track_exp)
   {
     // explanation

@@ -799,8 +799,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       continue;
     }
     EnumTypeInfoStrat* etis = snode.d_strats[j];
-    unsigned cindex =
-        static_cast<unsigned>(Datatype::indexOf(etis->d_cons.toExpr()));
+    unsigned cindex = datatypes::DatatypesRewriter::indexOf(etis->d_cons);
     // constructors that correspond to strategies are not needed
     // the intuition is that the strategy itself is responsible for constructing
     // all terms that use the given constructor
