@@ -614,12 +614,12 @@ public:
    * always the first index.)
    */
   static size_t cindexOf(Expr item) CVC4_PUBLIC;
-  
-  /** 
-   * Same as above, but without checks. These methods should be used by 
+
+  /**
+   * Same as above, but without checks. These methods should be used by
    * internal (Node-level) code.
    */
-  static size_t indexOfInternal(Expr item);  
+  static size_t indexOfInternal(Expr item);
   static size_t cindexOfInternal(Expr item);
 
   /** The type for iterators over constructors. */

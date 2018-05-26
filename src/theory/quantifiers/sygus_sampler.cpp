@@ -605,12 +605,12 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
                                        double rinc,
                                        unsigned depth)
 {
-  if(!tn.isDatatype())
+  if (!tn.isDatatype())
   {
     return getRandomValue(tn);
   }
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if(!dt.isSygus())
+  if (!dt.isSygus())
   {
     return getRandomValue(tn);
   }
@@ -677,12 +677,12 @@ void SygusSampler::registerSygusType(TypeNode tn)
   if (d_rvalue_cindices.find(tn) == d_rvalue_cindices.end())
   {
     d_rvalue_cindices[tn].clear();
-    if(!tn.isDatatype())
+    if (!tn.isDatatype())
     {
       return;
     }
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    if(!dt.isSygus())
+    if (!dt.isSygus())
     {
       return;
     }

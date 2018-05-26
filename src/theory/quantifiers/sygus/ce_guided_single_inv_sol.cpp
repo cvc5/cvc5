@@ -1211,7 +1211,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
   Node sc;
   d_builtin_const_to_sygus[tn][c] = sc;
   Assert(c.isConst());
-  if(!tn.isDatatype())
+  if (!tn.isDatatype())
   {
     // if we've traversed to a builtin type, simply return c
     d_builtin_const_to_sygus[tn][c] = c;
@@ -1220,7 +1220,7 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Trace("csi-rcons-debug") << "Try to reconstruct " << c << " in "
                            << dt.getName() << std::endl;
-  if(!dt.isSygus())
+  if (!dt.isSygus())
   {
     // if we've traversed to a builtin datatype type, simply return c
     d_builtin_const_to_sygus[tn][c] = c;

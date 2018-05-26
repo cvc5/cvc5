@@ -459,8 +459,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
 {
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
-    bool result = indexOf(in.getOperator())
-                  == indexOf(in[0].getOperator());
+    bool result = indexOf(in.getOperator()) == indexOf(in[0].getOperator());
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;
@@ -668,15 +667,14 @@ typedef expr::Attribute<DtIndexAttributeId, uint64_t> DtIndexAttribute;
 
 unsigned DatatypesRewriter::indexOf(Node n)
 {
-  if( !n.hasAttribute(DtIndexAttribute()) )
+  if (!n.hasAttribute(DtIndexAttribute()))
   {
     unsigned index = Datatype::indexOfInternal(n.toExpr());
-    n.setAttribute(DtIndexAttribute(),index);
+    n.setAttribute(DtIndexAttribute(), index);
     return index;
   }
   return n.getAttribute(DtIndexAttribute());
 }
-
 
 Node DatatypesRewriter::mkTester(Node n, int i, const Datatype& dt)
 {

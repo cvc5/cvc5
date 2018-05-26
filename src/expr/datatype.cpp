@@ -80,7 +80,8 @@ size_t Datatype::indexOf(Expr item) {
   return indexOfInternal(item);
 }
 
-size_t Datatype::indexOfInternal(Expr item) {
+size_t Datatype::indexOfInternal(Expr item)
+{
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return indexOf( item[0] );
@@ -97,7 +98,8 @@ size_t Datatype::cindexOf(Expr item) {
                 "arg must be a datatype selector");
   return cindexOfInternal(item);
 }
-size_t Datatype::cindexOfInternal(Expr item) {
+size_t Datatype::cindexOfInternal(Expr item)
+{
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return cindexOf( item[0] );

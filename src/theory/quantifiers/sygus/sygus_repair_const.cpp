@@ -62,14 +62,14 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
   if (tprocessed.find(tn) == tprocessed.end())
   {
     tprocessed[tn] = true;
-    if(!tn.isDatatype())
+    if (!tn.isDatatype())
     {
       // may have recursed to a non-datatype, e.g. in the case that we have
       // "any constant" constructors
       return;
     }
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    if(!dt.isSygus())
+    if (!dt.isSygus())
     {
       // may have recursed to a non-sygus-datatype
       return;
@@ -302,7 +302,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if(!dt.isSygus())
+  if (!dt.isSygus())
   {
     return false;
   }

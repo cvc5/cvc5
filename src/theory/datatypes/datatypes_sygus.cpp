@@ -215,20 +215,21 @@ bool SygusSymBreakNew::computeTopLevel( TypeNode tn, Node n ){
 
 void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas ) {
   TypeNode ntn = n.getType();
-  if( !ntn.isDatatype() )
+  if (!ntn.isDatatype())
   {
     // nothing to do for non-datatype types
     return;
-  } 
+  }
   const Datatype& dt = static_cast<DatatypeType>(ntn.toType()).getDatatype();
-  if( !dt.isSygus() )
+  if (!dt.isSygus())
   {
     // nothing to do for non-sygus-datatype type
     return;
   }
-  d_active_terms.insert( n );
-  Trace("sygus-sb-debug2") << "Sygus : activate term : " << n << " : " << exp << std::endl; 
-  
+  d_active_terms.insert(n);
+  Trace("sygus-sb-debug2") << "Sygus : activate term : " << n << " : " << exp
+                           << std::endl;
+
   // get the search size for this
   Assert( d_term_to_anchor.find( n )!=d_term_to_anchor.end() );
   Node a = d_term_to_anchor[n];
@@ -755,7 +756,7 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
 Node SygusSymBreakNew::registerSearchValue(
     Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas)
 {
-  Assert( n.getType().isComparableTo( nv.getType() ) );
+  Assert(n.getType().isComparableTo(nv.getType()));
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {
@@ -768,11 +769,12 @@ Node SygusSymBreakNew::registerSearchValue(
   // currently bottom-up, could be top-down?
   if( nv.getNumChildren()>0 ){
     const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-    unsigned cindex = DatatypesRewriter::indexOf( nv.getOperator() );
+    unsigned cindex = DatatypesRewriter::indexOf(nv.getOperator());
     std::vector<Node> rcons_children;
     rcons_children.push_back(nv.getOperator());
     bool childrenChanged = false;
-    for( unsigned i=0, nchild = nv.getNumChildren(); i<nchild; i++ ){
+    for (unsigned i = 0, nchild = nv.getNumChildren(); i < nchild; i++)
+    {
       Node sel = nm->mkNode(
           APPLY_SELECTOR_TOTAL,
           Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
@@ -1333,7 +1335,7 @@ bool SygusSymBreakNew::checkTesters(Node n,
   }
   TypeNode tn = n.getType();
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  int cindex = DatatypesRewriter::indexOf( vn.getOperator() );
+  int cindex = DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
   bool hastst = d_td->getValuation().getModel()->hasTerm( tst );
   Node tstrep = d_td->getValuation().getModel()->getRepresentative( tst );

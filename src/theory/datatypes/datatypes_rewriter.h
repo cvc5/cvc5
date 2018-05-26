@@ -73,10 +73,10 @@ public:
  /** is tester, same as above but does not update an argument */
  static int isTester(Node n);
  /**
-   * Get the index of a constructor or tester in its datatype, or the
-   * index of a selector in its constructor.  (Zero is always the
-   * first index.)
-   */
+  * Get the index of a constructor or tester in its datatype, or the
+  * index of a selector in its constructor.  (Zero is always the
+  * first index.)
+  */
  static unsigned indexOf(Node n);
  /** make tester is-C( n ), where C is the i^{th} constructor of dt */
  static Node mkTester(Node n, int i, const Datatype& dt);
