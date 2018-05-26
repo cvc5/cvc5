@@ -196,27 +196,24 @@ Kind getOperatorKindForSygusBuiltin(Node op)
     // does beta-reduction but does not for APPLY
     return APPLY_UF;
   }
-  else
+  TypeNode tn = op.getType();
+  if (tn.isConstructor())
   {
-    TypeNode tn = op.getType();
-    if (tn.isConstructor())
-    {
-      return APPLY_CONSTRUCTOR;
-    }
-    else if (tn.isSelector())
-    {
-      return APPLY_SELECTOR;
-    }
-    else if (tn.isTester())
-    {
-      return APPLY_TESTER;
-    }
-    else if (tn.isFunction())
-    {
-      return APPLY_UF;
-    }
-    return NodeManager::operatorToKind(op);
+    return APPLY_CONSTRUCTOR;
   }
+  else if (tn.isSelector())
+  {
+    return APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return APPLY_TESTER;
+  }
+  else if (tn.isFunction())
+  {
+    return APPLY_UF;
+  }
+  return NodeManager::operatorToKind(op);
 }
 
 Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,

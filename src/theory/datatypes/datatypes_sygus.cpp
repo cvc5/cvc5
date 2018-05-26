@@ -760,15 +760,21 @@ Node SygusSymBreakNew::registerSearchValue(
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {
-    // don't register non-(sygus-)datatype terms, instead we return the
+    // don't register non-datatype terms, instead we return the
     // selector chain n.
+    return n;
+  }
+  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+  if( !dt.isSygus() )
+  {
+    // don't register non-sygus-datatype terms
     return n;
   }
   Assert(nv.getKind() == APPLY_CONSTRUCTOR);
   NodeManager* nm = NodeManager::currentNM();
-  // currently bottom-up, could be top-down?
+  // we call the body of this function in a bottom-up fashion
+  // this ensures that the "abstraction" of the model value is available
   if( nv.getNumChildren()>0 ){
-    const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
     unsigned cindex = DatatypesRewriter::indexOf(nv.getOperator());
     std::vector<Node> rcons_children;
     rcons_children.push_back(nv.getOperator());

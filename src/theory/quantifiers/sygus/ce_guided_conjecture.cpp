@@ -276,7 +276,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       }
       d_repair_index++;
       if (d_sygus_rconst->repairSolution(
-              d_candidates, fail_cvs, candidate_values))
+              d_candidates, fail_cvs, candidate_values, true))
       {
         constructed_cand = true;
       }
