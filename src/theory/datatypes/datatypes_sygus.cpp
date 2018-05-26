@@ -219,10 +219,15 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   {
     // nothing to do for non-datatype types
     return;
+  } 
+  const Datatype& dt = static_cast<DatatypeType>(ntn.toType()).getDatatype();
+  if( !dt.isSygus() )
+  {
+    // nothing to do for non-sygus-datatype type
+    return;
   }
   d_active_terms.insert( n );
-  Trace("sygus-sb-debug2") << "Sygus : activate term : " << n << " : " << exp << std::endl;  
-  const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
+  Trace("sygus-sb-debug2") << "Sygus : activate term : " << n << " : " << exp << std::endl; 
   
   // get the search size for this
   Assert( d_term_to_anchor.find( n )!=d_term_to_anchor.end() );

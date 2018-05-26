@@ -181,6 +181,6 @@ header = "options/datatypes_options.h"
   category   = "regular"
   long       = "sygus-eval-builtin"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   read_only  = true
   help       = "use builtin kind for evaluation functions in sygus"
