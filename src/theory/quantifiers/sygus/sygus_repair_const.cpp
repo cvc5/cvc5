@@ -300,7 +300,10 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  if(!dt.isSygus())
+  {
+    return false;
+  }
   Node op = n.getOperator();
   unsigned cindex = datatypes::DatatypesRewriter::indexOf(op);
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());

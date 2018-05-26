@@ -192,6 +192,10 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   Trace("sygus-db-debug") << "SygusToBuiltin : compute for " << n
                           << ", type = " << tn << std::endl;
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  if( !dt.isSygus() )
+  {
+    return n;
+  }
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
     unsigned i = datatypes::DatatypesRewriter::indexOf(n.getOperator());

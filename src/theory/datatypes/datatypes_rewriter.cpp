@@ -245,18 +245,17 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   if (op.getKind() == BUILTIN)
   {
     ret = NodeManager::currentNM()->mkNode(op, schildren);
+    Trace("dt-sygus-util") << "...return (builtin) " << ret << std::endl;
+    return ret;
+  }
+  Kind ok = getOperatorKindForSygusBuiltin(op);
+  if (schildren.size() == 1 && ok == kind::UNDEFINED_KIND)
+  {
+    ret = schildren[0];
   }
   else
   {
-    Kind ok = getOperatorKindForSygusBuiltin(op);
-    if (schildren.size() == 1 && ok == kind::UNDEFINED_KIND)
-    {
-      ret = schildren[0];
-    }
-    else
-    {
-      ret = NodeManager::currentNM()->mkNode(ok, schildren);
-    }
+    ret = NodeManager::currentNM()->mkNode(ok, schildren);
   }
   Trace("dt-sygus-util") << "...return " << ret << std::endl;
   return ret;
