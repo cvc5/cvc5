@@ -713,7 +713,9 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       // Quantified Linear Arithmetic by Counterexample Guided Instantiation",
       // FMSD 2017. We throw an assertion failure if we detect a case where the
       // strategy was not monotonic.
-      if( options::cbqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH) && d_qe->getLogicInfo().isLinear()){
+      if (options::cbqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH)
+          && d_qe->getLogicInfo().isLinear())
+      {
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
         Assert( false );
       }
