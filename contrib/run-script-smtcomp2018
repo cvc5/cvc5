@@ -85,21 +85,21 @@ UFBV)
   # most problems in UFBV are essentially BV
   trywith 300 --full-saturate-quant --decision=internal
   trywith 300 --full-saturate-quant --cbqi-nested-qe --decision=internal
-  trywith 30 --full-saturate-quant --cbqi-no-innermost --global-negate
+  trywith 30 --full-saturate-quant --no-cbqi-innermost --global-negate
   finishwith --finite-model-find
   ;;
 BV)
   trywith 120 --full-saturate-quant
-  trywith 120 --full-saturate-quant --cbqi-no-innermost
+  trywith 120 --full-saturate-quant --no-cbqi-innermost
   trywith 300 --full-saturate-quant --cbqi-nested-qe --decision=internal
   trywith 30 --full-saturate-quant --no-cbqi-bv
   trywith 30 --full-saturate-quant --cbqi-bv-ineq=eq-slack
   # finish 10min
-  finishwith --full-saturate-quant --cbqi-no-innermost --global-negate
+  finishwith --full-saturate-quant --no-cbqi-innermost --global-negate
   ;;
 LIA|LRA|NIA|NRA)
   trywith 30 --full-saturate-quant --nl-ext-tplanes
-  trywith 300 --full-saturate-quant --cbqi-no-innermost
+  trywith 300 --full-saturate-quant --no-cbqi-innermost
   trywith 300 --full-saturate-quant --cbqi-nested-qe
   finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
