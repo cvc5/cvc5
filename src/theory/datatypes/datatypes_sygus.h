@@ -292,7 +292,7 @@ private:
    * function will either be null, or C_+( C_x(), C_{any_constant}( n.1.0 ) ),
    * where n.1.0 is the appropriate selector chain applied to n. We build this
    * abstraction since the semantics of C_{any_constant} is "any constant" and
-   * not "some constant". Thus, we should consider the subterm 
+   * not "some constant". Thus, we should consider the subterm
    * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
    * by a selector chain), instead of the concrete value 5.
    */

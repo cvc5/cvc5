@@ -1422,8 +1422,8 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   Node sop = Node::fromExpr(dt[i].getSygusOp());
   if (sop.getAttribute(SygusAnyConstAttribute()))
   {
-    Trace("sygus-db-debug")
-        << "...it is an any-constant constructor" << std::endl;
+    Trace("sygus-db-debug") << "...it is an any-constant constructor"
+                            << std::endl;
     Assert(dt[i].getNumArgs() == 1);
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
@@ -1483,7 +1483,7 @@ Node TermDbSygus::unfold(Node en)
   std::vector<Node> exp;
   return unfold(en, vtm, exp, false);
 }
-    
+
 Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator itv = visited.find( n );
   if( itv==visited.end() ){

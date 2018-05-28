@@ -240,7 +240,6 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
 }
 
 bool CegConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
-
 void CegConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);

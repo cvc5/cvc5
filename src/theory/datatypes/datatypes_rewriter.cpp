@@ -665,9 +665,8 @@ unsigned DatatypesRewriter::indexOf(Node n)
 {
   if (!n.hasAttribute(DtIndexAttribute()))
   {
-    Assert(n.getType().isConstructor() ||
-                n.getType().isTester() ||
-                n.getType().isSelector());
+    Assert(n.getType().isConstructor() || n.getType().isTester()
+           || n.getType().isSelector());
     unsigned index = Datatype::indexOfInternal(n.toExpr());
     n.setAttribute(DtIndexAttribute(), index);
     return index;

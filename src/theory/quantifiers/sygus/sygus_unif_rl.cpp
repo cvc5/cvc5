@@ -138,8 +138,8 @@ Node SygusUnifRl::purifyLemma(Node n,
   {
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
-      Trace("sygus-unif-rl-purify-debug")
-          << "Node " << n << " is parameterized\n";
+      Trace("sygus-unif-rl-purify-debug") << "Node " << n
+                                          << " is parameterized\n";
       children.insert(children.begin(), n.getOperator());
     }
     if (Trace.isOn("sygus-unif-rl-purify-debug"))
@@ -192,8 +192,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       // replace first child and rebulid node
       Assert(children.size() > 0);
       children[0] = new_f;
-      Trace("sygus-unif-rl-purify-debug")
-          << "Make sygus eval app " << children << std::endl;
+      Trace("sygus-unif-rl-purify-debug") << "Make sygus eval app " << children
+                                          << std::endl;
       np = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
       d_app_to_purified[nb] = np;
     }
@@ -846,8 +846,8 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::evaluate(Node n,
   // compute the result
   if (Trace.isOn("sygus-unif-rl-sep"))
   {
-    Trace("sygus-unif-rl-sep")
-        << "Evaluate cond " << builtin_cond << " on pt " << n << " ( ";
+    Trace("sygus-unif-rl-sep") << "Evaluate cond " << builtin_cond << " on pt "
+                               << n << " ( ";
     for (const Node& pti : pt)
     {
       Trace("sygus-unif-rl-sep") << pti << " ";

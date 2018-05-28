@@ -173,12 +173,12 @@ private:
   /** list of variables on inner quantification */
   std::vector< Node > d_inner_vars;
   /**
-   * The set of skolems for the current "verification" lemma, if one exists. 
+   * The set of skolems for the current "verification" lemma, if one exists.
    * This may be added to during calls to doCheck(). The model values for these
    * skolems are analyzed during doRefine().
    */
   std::vector<Node> d_ce_sk_vars;
-  /** 
+  /**
    * Whether the above vector has been set. We have this flag since the above
    * vector may be set to empty (e.g. for ground synthesis conjectures).
    */

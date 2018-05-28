@@ -589,8 +589,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
           }
         }
 
-        Trace("sygus-sb-simple-debug")
-            << "  Redundant operators..." << std::endl;
+        Trace("sygus-sb-simple-debug") << "  Redundant operators..."
+                                       << std::endl;
         // singular arguments (e.g. 0 for mult)
         // redundant arguments (e.g. 0 for plus, 1 for mult)
         // right-associativity
@@ -765,7 +765,7 @@ Node SygusSymBreakNew::registerSearchValue(
     return n;
   }
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  if( !dt.isSygus() )
+  if (!dt.isSygus())
   {
     // don't register non-sygus-datatype terms
     return n;
@@ -1247,8 +1247,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   for( std::map< Node, bool >::iterator it = d_register_st.begin(); it != d_register_st.end(); ++it ){
     if( it->second ){
       Node prog = it->first;
-      Trace("dt-sygus-debug")
-          << "Checking model value of " << prog << "..." << std::endl;
+      Trace("dt-sygus-debug") << "Checking model value of " << prog << "..."
+                              << std::endl;
       Assert(prog.getType().isDatatype());
       Node progv = d_td->getValuation().getModel()->getValue( prog );
       if (Trace.isOn("dt-sygus"))
