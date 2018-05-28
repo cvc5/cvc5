@@ -354,7 +354,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
               lhs_value = Rewriter::rewrite( lhs_value );
             }
             Trace("cegqi-arith-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
-            Assert( lhs_value!=rhs_value );
+            // it generally should be the case that lhs_value!=rhs_value
+            // however, this assertion is violated e.g. if non-linear is enabled
+            // since the quantifier-free arithmetic solver may pass full
+            // effort with no lemmas even when we are not guaranteed to have a
+            // model. By convention, we use GEQ to compare the values here.
             Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
             cmp = Rewriter::rewrite( cmp );
             Assert( cmp.isConst() );

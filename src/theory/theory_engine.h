@@ -773,7 +773,8 @@ public:
   inline bool isTheoryEnabled(theory::TheoryId theoryId) const {
     return d_logicInfo.isTheoryEnabled(theoryId);
   }
-
+  /** get the logic info used by this theory engine */
+  const LogicInfo& getLogicInfo() const;
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.
