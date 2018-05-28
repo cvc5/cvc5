@@ -108,11 +108,11 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
-  else if (k == kind::DT_SYGUS_EVAL)
+  else if (k == DT_SYGUS_EVAL)
   {
     // sygus evaluation function
     Node ev = in[0];
-    if (ev.getKind() == kind::APPLY_CONSTRUCTOR)
+    if (ev.getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("dt-sygus-util") << "Rewrite " << in << " by unfolding...\n";
       const Datatype& dt =
@@ -126,7 +126,6 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         Assert(ev[0].getType().isComparableTo(in.getType()));
         return RewriteResponse(REWRITE_AGAIN_FULL, ev[0]);
       }
-      NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> args;
       for (unsigned j = 1, nchild = in.getNumChildren(); j < nchild; j++)
       {
@@ -139,11 +138,11 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         std::vector<Node> cc;
         cc.push_back(evc);
         cc.insert(cc.end(), args.begin(), args.end());
-        children.push_back(nm->mkNode(kind::DT_SYGUS_EVAL, cc));
+        children.push_back(nm->mkNode(DT_SYGUS_EVAL, cc));
       }
       Node ret = mkSygusTerm(dt, i, children);
       // if it is a variable, apply the substitution
-      if (ret.getKind() == kind::BOUND_VARIABLE)
+      if (ret.getKind() == BOUND_VARIABLE)
       {
         Assert(ret.hasAttribute(SygusVarNumAttribute()));
         int vn = ret.getAttribute(SygusVarNumAttribute());
@@ -218,7 +217,7 @@ Kind getOperatorKindForSygusBuiltin(Node op)
 
 Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
                                     unsigned i,
-                                    std::vector<Node>& children)
+                                    const std::vector<Node>& children)
 {
   Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
                          << "] with children: " << children << std::endl;
@@ -257,7 +256,7 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Trace("dt-sygus-util") << "...return " << ret << std::endl;
   return ret;
 }
-Node DatatypesRewriter::mkSygusEvalApp(std::vector<Node>& children)
+Node DatatypesRewriter::mkSygusEvalApp(const std::vector<Node>& children)
 {
   if (options::sygusEvalBuiltin())
   {
@@ -666,6 +665,9 @@ unsigned DatatypesRewriter::indexOf(Node n)
 {
   if (!n.hasAttribute(DtIndexAttribute()))
   {
+    Assert(n.getType().isConstructor() ||
+                n.getType().isTester() ||
+                n.getType().isSelector());
     unsigned index = Datatype::indexOfInternal(n.toExpr());
     n.setAttribute(DtIndexAttribute(), index);
     return index;

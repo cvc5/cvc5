@@ -831,10 +831,6 @@ void TermDbSygus::registerEnumerator(Node e,
         }
       }
     }
-    if (rm_indices.empty())
-    {
-      continue;
-    }
     for (unsigned& rindex : rm_indices)
     {
       // make the apply-constructor corresponding to an application of the
@@ -1393,13 +1389,10 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   if (track_exp)
   {
     std::map<Node, Node>::iterator itv = vtm.find(en[0]);
+    Assert(itv != vtm.end());
     if (itv != vtm.end())
     {
       ev = itv->second;
-    }
-    else
-    {
-      Assert(false);
     }
     Assert(en[0].getType() == ev.getType());
     Assert(ev.isConst());
@@ -1449,8 +1442,11 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   {
     std::vector<Node> cc;
     Node s;
+    // get the j^th subfield of en
     if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
     {
+      // if it is a concrete constructor application, as an optimization,
+      // just return the argument
       s = en[0][j];
     }
     else
@@ -1481,7 +1477,13 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   return ret;
 }
 
-
+Node TermDbSygus::unfold(Node en)
+{
+  std::map<Node, Node> vtm;
+  std::vector<Node> exp;
+  return unfold(en, vtm, exp, false);
+}
+    
 Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator itv = visited.find( n );
   if( itv==visited.end() ){

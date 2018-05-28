@@ -129,15 +129,15 @@ public:
   */
  static Node mkSygusTerm(const Datatype& dt,
                          unsigned i,
-                         std::vector<Node>& children);
+                         const std::vector<Node>& children);
  /** make sygus evaluation function application */
- static Node mkSygusEvalApp(std::vector<Node>& children);
+ static Node mkSygusEvalApp(const std::vector<Node>& children);
  /** is sygus evaluation function */
  static bool isSygusEvalApp(Node n);
  /**
   * Get the builtin sygus operator for constructor term n of sygus datatype
   * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
-  * constructorwhose sygus op is the builtin operator +, this method returns +.
+  * constructor whose sygus op is the builtin operator +, this method returns +.
   */
  static Node getSygusOpForCTerm(Node n);
 

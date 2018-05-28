@@ -123,7 +123,9 @@ void SygusExplain::getExplanationForEquality(Node n,
                                              std::vector<Node>& exp,
                                              std::map<unsigned, bool>& cexc)
 {
-  Assert(n.getType() == vn.getType());
+  // since builtin types occur in grammar, types are comparable but not
+  // necessarily equal
+  Assert(n.getType().isComparableTo(n.getType()));
   if (n == vn)
   {
     return;
@@ -183,7 +185,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      int& sz)
 {
   Assert(vnr.isNull() || vn != vnr);
-  Assert(n.getType() == vn.getType());
+  Assert(n.getType().isComparableTo(vn.getType()));
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {

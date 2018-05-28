@@ -430,8 +430,7 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   Trace("cegqi-refine-debug")
       << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
   Node base_lem;
-  if (d_base_inst.getKind() == kind::NOT
-      && d_base_inst[0].getKind() == kind::FORALL)
+  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {
     base_lem = d_base_inst[0][1];
   }

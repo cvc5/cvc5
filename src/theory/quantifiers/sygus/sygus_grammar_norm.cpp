@@ -131,7 +131,8 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
       // we add this constructor first since we use left associative chains
       // and our symmetry breaking should group any constants together
       // beneath the same application
-      // we set its weight to zero since it should not be
+      // we set its weight to zero since it should be considered at the
+      // same level as constants.
       d_dt.addSygusConstructor(av.toExpr(), cname, builtin_arg, nullptr, 0);
     }
   }
