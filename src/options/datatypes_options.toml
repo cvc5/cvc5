@@ -175,3 +175,12 @@ header = "options/datatypes_options.h"
   default    = "-1"
   read_only  = true
   help       = "tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)"
+
+[[option]]
+  name       = "sygusEvalBuiltin"
+  category   = "regular"
+  long       = "sygus-eval-builtin"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use builtin kind for evaluation functions in sygus"

@@ -208,6 +208,8 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
   }
 
   // look at information on how we will construct solutions for this type
+  // we know this is a sygus datatype since it is either the top-level type
+  // in the strategy graph, or was recursed by a strategy we inferred.
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
@@ -246,14 +248,13 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     }
     Node ut = nm->mkNode(APPLY_CONSTRUCTOR, utchildren);
     std::vector<Node> echildren;
-    echildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
     echildren.push_back(ut);
     Node sbvl = Node::fromExpr(dt.getSygusVarList());
     for (const Node& sbv : sbvl)
     {
       echildren.push_back(sbv);
     }
-    Node eut = nm->mkNode(APPLY_UF, echildren);
+    Node eut = datatypes::DatatypesRewriter::mkSygusEvalApp(echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
     eut = d_qe->getTermDatabaseSygus()->unfold(eut);
@@ -292,13 +293,10 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
       for (unsigned k = 0, sksize = sks.size(); k < sksize; k++)
       {
         Assert(sks[k].getType().isDatatype());
-        const Datatype& cdt =
-            static_cast<DatatypeType>(sks[k].getType().toType()).getDatatype();
-        echildren[0] = Node::fromExpr(cdt.getSygusEvaluationFunc());
-        echildren[1] = sks[k];
+        echildren[0] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
                                    << std::endl;
-        Node esk = nm->mkNode(APPLY_UF, echildren);
+        Node esk = datatypes::DatatypesRewriter::mkSygusEvalApp(echildren);
         vs.push_back(esk);
         Node tvar = nm->mkSkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
@@ -803,8 +801,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       continue;
     }
     EnumTypeInfoStrat* etis = snode.d_strats[j];
-    unsigned cindex =
-        static_cast<unsigned>(Datatype::indexOf(etis->d_cons.toExpr()));
+    unsigned cindex = datatypes::DatatypesRewriter::indexOf(etis->d_cons);
     // constructors that correspond to strategies are not needed
     // the intuition is that the strategy itself is responsible for constructing
     // all terms that use the given constructor

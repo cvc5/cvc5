@@ -23,7 +23,6 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -46,6 +45,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_ceg_cegis(new Cegis(qe, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, this)),
       d_master(nullptr),
+      d_set_ce_sk_vars(false),
       d_repair_index(0),
       d_refine_count(0),
       d_syntax_guided(false)
@@ -239,10 +239,7 @@ void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
   }
 }
 
-bool CegConjecture::needsRefinement() { 
-  return !d_ce_sk.empty();
-}
-
+bool CegConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 void CegConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
@@ -278,7 +275,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       }
       d_repair_index++;
       if (d_sygus_rconst->repairSolution(
-              d_candidates, fail_cvs, candidate_values))
+              d_candidates, fail_cvs, candidate_values, true))
       {
         constructed_cand = true;
       }
@@ -332,7 +329,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       recordInstantiation(candidate_values);
       return;
     }
-    Assert( d_ce_sk.empty() );
+    Assert(!d_set_ce_sk_vars);
   }else{
     if( !constructed_cand ){
       return;
@@ -340,33 +337,40 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   }
   
   //immediately skolemize inner existentials
-  Node instr = Rewriter::rewrite(inst);
+  d_set_ce_sk_vars = sk_refine;
   Node lem;
-  if (instr.getKind() == NOT && instr[0].getKind() == FORALL)
+  if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
   {
+    // introduce the skolem variables
+    std::vector<Node> sks;
     if (constructed_cand)
     {
-      lem = d_qe->getSkolemize()->getSkolemizedBody(instr[0]).negate();
+      std::vector<Node> vars;
+      for (const Node& v : inst[0][0])
+      {
+        Node sk = nm->mkSkolem("rsk", v.getType());
+        sks.push_back(sk);
+        vars.push_back(v);
+      }
+      lem = inst[0][1].substitute(
+          vars.begin(), vars.end(), sks.begin(), sks.end());
+      lem = lem.negate();
     }
     if (sk_refine)
     {
-      Assert(!isGround());
-      d_ce_sk.push_back(instr[0]);
+      d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
     }
+    Assert(!isGround());
   }
   else
   {
     if (constructed_cand)
     {
       // use the instance itself
-      lem = instr;
+      lem = inst;
     }
-    if (sk_refine)
-    {
-      // we add null so that one test of the conjecture for the empty
-      // substitution is checked
-      d_ce_sk.push_back(Node::null());
-    }
+    // we add null so that one test of the conjecture for the empty
+    // substitution is checked
   }
   if (!lem.isNull())
   {
@@ -399,21 +403,19 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
         
 void CegConjecture::doRefine( std::vector< Node >& lems ){
   Assert( lems.empty() );
-  Assert( d_ce_sk.size()==1 );
+  Assert(d_set_ce_sk_vars);
 
   //first, make skolem substitution
   Trace("cegqi-refine") << "doRefine : construct skolem substitution..." << std::endl;
   std::vector< Node > sk_vars;
   std::vector< Node > sk_subs;
   //collect the substitution over all disjuncts
-  Node ce_q = d_ce_sk[0];
-  if (!ce_q.isNull())
+  if (!d_ce_sk_vars.empty())
   {
-    std::vector<Node> skolems;
-    d_qe->getSkolemize()->getSkolemConstants(ce_q, skolems);
-    Assert(d_inner_vars.size() == skolems.size());
+    Trace("cegqi-refine") << "Get model values for skolems..." << std::endl;
+    Assert(d_inner_vars.size() == d_ce_sk_vars.size());
     std::vector<Node> model_values;
-    getModelValues(skolems, model_values);
+    getModelValues(d_ce_sk_vars, model_values);
     sk_vars.insert(sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end());
     sk_subs.insert(sk_subs.end(), model_values.begin(), model_values.end());
   }
@@ -425,12 +427,10 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
   std::vector< Node > lem_c;
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..." << std::endl;
   Trace("cegqi-refine-debug")
-      << "  For counterexample point : " << ce_q << std::endl;
+      << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
   Node base_lem;
-  if (!ce_q.isNull())
+  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {
-    Assert(d_base_inst.getKind() == kind::NOT
-           && d_base_inst[0].getKind() == kind::FORALL);
     base_lem = d_base_inst[0][1];
   }
   else
@@ -440,13 +440,16 @@ void CegConjecture::doRefine( std::vector< Node >& lems ){
 
   Assert( sk_vars.size()==sk_subs.size() );
 
-  Trace("cegqi-refine") << "doRefine : construct and finalize lemmas..." << std::endl;
-
+  Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
   base_lem = base_lem.substitute( sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end() );
+  Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = Rewriter::rewrite( base_lem );
+  Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
+                        << "..." << std::endl;
   d_master->registerRefinementLemma(sk_vars, base_lem, lems);
-
-  d_ce_sk.clear();
+  Trace("cegqi-refine") << "doRefine : finished" << std::endl;
+  d_set_ce_sk_vars = false;
+  d_ce_sk_vars.clear();
 }
 
 void CegConjecture::preregisterConjecture( Node q ) {
@@ -483,15 +486,8 @@ Node CegConjecture::getModelValue( Node n ) {
 
 void CegConjecture::debugPrint( const char * c ) {
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
-  Trace(c) << "  * Candidate program/output symbol : ";
-  for( unsigned i=0; i<d_candidates.size(); i++ ){
-    Trace(c) << d_candidates[i] << " ";
-  }
-  Trace(c) << std::endl;
-  Trace(c) << "  * Candidate ce skolems : ";
-  for( unsigned i=0; i<d_ce_sk.size(); i++ ){
-    Trace(c) << d_ce_sk[i] << " ";
-  }
+  Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
+  Trace(c) << "  * Counterexample skolems : " << d_ce_sk_vars << std::endl;
 }
 
 Node CegConjecture::getCurrentStreamGuard() const {
@@ -604,7 +600,8 @@ void CegConjecture::printAndContinueStream()
 
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
-  d_ce_sk.clear();
+  d_set_ce_sk_vars = false;
+  d_ce_sk_vars.clear();
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution.
   std::vector<Node> terms;
