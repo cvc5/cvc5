@@ -344,7 +344,7 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
   }
 }
 
-void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
+void InstStrategyCbqi::checkOwnership( Node q ) {
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
     if (d_do_cbqi[q] == CEG_HANDLED)
     {
@@ -376,7 +376,7 @@ void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
   }
 }
 
-void InstStrategyCbqi::registerQuantifier( Node q ) {
+void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
   if( doCbqi( q ) ){
     if( registerCbqiLemma( q ) ){
       Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
@@ -673,7 +673,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   }
 }
 
-void InstStrategyCegqi::registerQuantifier( Node q ) {
+void InstStrategyCegqi::preRegisterQuantifier( Node q ) {
   if( doCbqi( q ) ){
     // get the instantiator  
     if( options::cbqiPreRegInst() ){

@@ -173,6 +173,8 @@ private:
  private:
   /** list of all quantifiers seen */
   std::map< Node, bool > d_quants;
+  /** quantifiers pre-registered */
+  NodeSet d_quants_prereg;
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map< Node, Node > d_quants_red_lem;
@@ -277,8 +279,12 @@ public:
   void check( Theory::Effort e );
   /** notify that theories were combined */
   void notifyCombineTheories();
-  /** register quantifier */
-  bool registerQuantifier( Node f );
+  /** preRegister quantifier 
+   * 
+   * This function is called after registerQuantifier for quantified formulas
+   * that are pre-registered to the quantifiers theory.
+   */
+  void preRegisterQuantifier( Node q );
   /** register quantifier */
   void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
@@ -288,6 +294,14 @@ public:
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
 private:
+  /** (context-indepentent) register quantifier internal
+   * 
+   * This is called when a quantified formula q is pre-registered to the
+   * quantifiers theory, and updates the modules in this class with
+   * context-dependent information about how to handle q.
+   * This includes basic information such as which module owns it.
+   */
+  void registerQuantifierInternal( Node q );
   /** reduceQuantifier, return true if reduced */
   bool reduceQuantifier( Node q );
   /** flush lemmas */

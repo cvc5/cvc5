@@ -103,8 +103,8 @@ class InstStrategyCbqi : public QuantifiersModule {
   void check(Theory::Effort e, QEffort quant_e) override;
   bool checkComplete() override;
   bool checkCompleteFor(Node q) override;
+  void checkOwnership(Node q) override;
   void preRegisterQuantifier(Node q) override;
-  void registerQuantifier(Node q) override;
   /** get next decision request */
   Node getNextDecisionRequest(unsigned& priority) override;
 };
@@ -147,8 +147,8 @@ class InstStrategyCegqi : public InstStrategyCbqi {
 
   //get instantiator for quantifier
   CegInstantiator * getInstantiator( Node q );
-  //register quantifier
-  void registerQuantifier(Node q) override;
+  /** pre-register quantifier */
+  void preRegisterQuantifier(Node q) override;
   //presolve
   void presolve() override;
 };

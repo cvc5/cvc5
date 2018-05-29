@@ -72,8 +72,6 @@ class InstStrategyEnum : public QuantifiersModule
    * quantified formulas via calls to process(...)
    */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /** Register quantifier. */
-  void registerQuantifier(Node q) override;
   /** Identify. */
   std::string identify() const override
   {

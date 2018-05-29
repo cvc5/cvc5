@@ -384,9 +384,9 @@ void BoundedIntegers::setBoundedVar( Node q, Node v, unsigned bound_type ) {
   Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl; 
 }
 
-void BoundedIntegers::preRegisterQuantifier( Node f ) {
+void BoundedIntegers::checkOwnership( Node f ) {
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
-  Trace("bound-int") << "preRegister quantifier " << f << std::endl;
+  Trace("bound-int") << "check ownership quantifier " << f << std::endl;
   
   bool success;
   do{

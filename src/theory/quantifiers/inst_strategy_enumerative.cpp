@@ -295,7 +295,6 @@ bool InstStrategyEnum::process(Node f, bool fullEffort)
   return false;
 }
 
-void InstStrategyEnum::registerQuantifier(Node q) {}
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

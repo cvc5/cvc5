@@ -56,7 +56,7 @@ private:
 public:
   LtePartialInst( QuantifiersEngine * qe, context::Context* c );
   /** determine whether this quantified formula will be reduced */
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
   /** was invoked */
   bool wasInvoked() { return d_wasInvoked; }
   
