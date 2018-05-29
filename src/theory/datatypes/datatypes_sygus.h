@@ -283,8 +283,21 @@ private:
    * z -> t for all terms t of appropriate depth, including d.
    * This function strengthens blocking clauses using generalization techniques
    * described in Reynolds et al SYNT 2017.
+   *
+   * The return value of this function is an abstraction of model assignment
+   * of nv to n, or null if we wish to exclude the model assignment nv to n.
+   * The return value of this method is different from nv itself, e.g. if it
+   * contains occurrences of the "any constant" constructor. For example, if
+   * nv is C_+( C_x(), C_{any_constant}( 5 ) ), then the return value of this
+   * function will either be null, or C_+( C_x(), C_{any_constant}( n.1.0 ) ),
+   * where n.1.0 is the appropriate selector chain applied to n. We build this
+   * abstraction since the semantics of C_{any_constant} is "any constant" and
+   * not "some constant". Thus, we should consider the subterm
+   * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
+   * by a selector chain), instead of the concrete value 5.
    */
-  bool registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
+  Node registerSearchValue(
+      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of

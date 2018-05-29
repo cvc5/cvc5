@@ -218,6 +218,8 @@ public:
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
+  /** get the logic info for the quantifiers engine */
+  const LogicInfo& getLogicInfo() const;
   /** get relevant domain */
   quantifiers::RelevantDomain* getRelevantDomain() { return d_rel_dom; }
   /** get the BV inverter utility */

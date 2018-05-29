@@ -76,10 +76,6 @@ typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
-/** sygus var num */
-struct SygusVarNumAttributeId {};
-typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
-
 /** Attribute to mark Skolems as virtual terms */
 struct VirtualTermSkolemAttributeId {};
 typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
