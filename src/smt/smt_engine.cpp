@@ -2200,7 +2200,11 @@ void SmtEngine::setDefaults() {
     // introduces new literals into the search. This includes quantifiers
     // (quantifier instantiation), and the lemma schemas used in non-linear
     // and sets. We also can't use it if models are enabled.
-    if( d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() || ( d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear())){
+    if (d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified()
+        || options::produceModels() || options::produceAssignments()
+        || options::checkModels()
+        || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()))
+    {
       options::minisatUseElim.set( false );
     }
   }
