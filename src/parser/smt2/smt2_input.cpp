@@ -34,7 +34,7 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-Smt2Input::Smt2Input(AntlrInputStream& inputStream, InputLanguage lang) :
+Smt2Input::Smt2Input(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
 
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
@@ -56,18 +56,11 @@ Smt2Input::Smt2Input(AntlrInputStream& inputStream, InputLanguage lang) :
   }
 
   setAntlr3Parser(d_pSmt2Parser->pParser);
-
-  setLanguage(lang);
 }
 
 Smt2Input::~Smt2Input() {
   d_pSmt2Lexer->free(d_pSmt2Lexer);
   d_pSmt2Parser->free(d_pSmt2Parser);
-}
-
-void Smt2Input::setLanguage(InputLanguage lang) {
-  CheckArgument(language::isInputLang_smt2(lang), lang);
-  d_lang = lang;
 }
 
 Command* Smt2Input::parseCommand() {

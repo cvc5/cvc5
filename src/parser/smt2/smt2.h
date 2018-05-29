@@ -153,7 +153,7 @@ public:
   const LogicInfo& getLogic() const { return d_logic; }
 
   bool v2_0() const {
-    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_0;
+    return getLanguage() == language::input::LANG_SMTLIB_V2_0;
   }
   /**
    * Are we using smtlib 2.5 or above? If exact=true, then this method returns
@@ -161,7 +161,7 @@ public:
    */
   bool v2_5(bool exact = false) const
   {
-    return language::isInputLang_smt2_5(getInput()->getLanguage(), exact);
+    return language::isInputLang_smt2_5(getLanguage(), exact);
   }
   /**
    * Are we using smtlib 2.6 or above? If exact=true, then this method returns
@@ -169,13 +169,11 @@ public:
    */
   bool v2_6(bool exact = false) const
   {
-    return language::isInputLang_smt2_6(getInput()->getLanguage(), exact);
+    return language::isInputLang_smt2_6(getLanguage(), exact);
   }
   bool sygus() const {
-    return getInput()->getLanguage() == language::input::LANG_SYGUS;
+    return getLanguage() == language::input::LANG_SYGUS;
   }
-
-  void setLanguage(InputLanguage lang);
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 
@@ -396,6 +394,8 @@ private:
   void addFloatingPointOperators();
 
   void addSepOperators();
+
+  InputLanguage getLanguage() const;
 };/* class Smt2 */
 
 }/* CVC4::parser namespace */
