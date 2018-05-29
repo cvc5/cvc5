@@ -1246,7 +1246,8 @@ const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
   preemptCommand(cattr);
 }
 
-InputLanguage Smt2::getLanguage() const {
+InputLanguage Smt2::getLanguage() const
+{
   ExprManager* em = getExprManager();
   return em->getOptions().getInputLanguage();
 }

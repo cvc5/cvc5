@@ -34,9 +34,8 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-Smt2Input::Smt2Input(AntlrInputStream& inputStream) :
-  AntlrInput(inputStream, 2) {
-
+Smt2Input::Smt2Input(AntlrInputStream& inputStream) : AntlrInput(inputStream, 2)
+{
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
   assert( input != NULL );
 
