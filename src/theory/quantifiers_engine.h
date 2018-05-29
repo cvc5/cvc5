@@ -298,8 +298,8 @@ private:
   *
   * This is called when a quantified formula q is pre-registered to the
   * quantifiers theory, and updates the modules in this class with
-  * context-dependent information about how to handle q.
-  * This includes basic information such as which module owns it.
+  * context-independent information about how to handle q. This includes basic
+  * information such as which module owns q.
   */
  void registerQuantifierInternal(Node q);
  /** reduceQuantifier, return true if reduced */

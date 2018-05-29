@@ -547,10 +547,6 @@ void BoundedIntegers::checkOwnership(Node f)
   }
 }
 
-void BoundedIntegers::registerQuantifier( Node q ) {
-
-}
-
 void BoundedIntegers::assertNode( Node n ) {
   Trace("bound-int-assert") << "Assert " << n << std::endl;
   Node nlit = n.getKind()==NOT ? n[0] : n;

@@ -739,9 +739,9 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
 {
   std::map< Node, bool >::iterator it = d_quants.find( f );
   if( it==d_quants.end() ){
-    // Assert( d_lemmas_waiting.empty() );
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
     Trace("quant") << " : " << f << std::endl;
+    unsigned prev_lemma_waiting = d_lemmas_waiting.size();
     ++(d_statistics.d_num_quant);
     Assert( f.getKind()==FORALL );
     // register with utilities
@@ -769,14 +769,15 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       Trace("quant-debug") << "register with " << d_modules[i]->identify()
                            << "..." << std::endl;
       d_modules[i]->registerQuantifier(f);
+      // since this is context-independent, we should not add any lemmas during
+      // this call
+      Assert( d_lemmas_waiting.size()==prev_lemma_waiting );
     }
     // TODO: remove this
     Node ceBody = d_term_util->getInstConstantBody(f);
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
-    // since this is context-independent, we should not add any lemmas during
-    // this call
-    // Assert( d_lemmas_waiting.empty() );
+    AlwaysAssert( d_lemmas_waiting.size()==prev_lemma_waiting );
   }
 }
 
@@ -787,6 +788,7 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   {
     return;
   }
+  Trace("quant-debug") << "QuantifiersEngine : Pre-register " << q << std::endl;
   d_quants_prereg.insert(q);
   // ensure that it is registered
   registerQuantifierInternal(q);
@@ -799,6 +801,7 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   }
   // flush the lemmas
   flushLemmas();
+  Trace("quant-debug") << "...finish pre-register " << q<< "..." << std::endl;
 }
 
 void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
