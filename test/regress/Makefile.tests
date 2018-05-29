@@ -475,7 +475,8 @@ REG0_TESTS = \
 	regress0/ite4.smt2 \
 	regress0/ite_real_int_type.smt \
 	regress0/ite_real_valid.smt \
-	regress0/lang_opts.smt2 \
+	regress0/lang_opts_2_5.smt2 \
+	regress0/lang_opts_2_6_1.smt2 \
 	regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smt \
 	regress0/lemmas/fs_not_sc_seen.induction.smt \
 	regress0/lemmas/mode_cntrl.induction.smt \
