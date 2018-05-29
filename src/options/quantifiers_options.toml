@@ -1109,14 +1109,6 @@ header = "options/quantifiers_options.h"
   help       = "use extended rewriter for sygus"
 
 [[option]]
-  name       = "sygusSilent"
-  category   = "regular"
-  long       = "sygus-silent"
-  type       = "bool"
-  default    = "true"
-  help       = "do not print sygus"
-
-[[option]]
   name       = "cegisSample"
   category   = "regular"
   long       = "cegis-sample=MODE"
