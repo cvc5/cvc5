@@ -771,13 +771,13 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       d_modules[i]->registerQuantifier(f);
       // since this is context-independent, we should not add any lemmas during
       // this call
-      Assert( d_lemmas_waiting.size()==prev_lemma_waiting );
+      Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
     }
     // TODO: remove this
     Node ceBody = d_term_util->getInstConstantBody(f);
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
-    AlwaysAssert( d_lemmas_waiting.size()==prev_lemma_waiting );
+    AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);
   }
 }
 
@@ -801,7 +801,7 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   }
   // flush the lemmas
   flushLemmas();
-  Trace("quant-debug") << "...finish pre-register " << q<< "..." << std::endl;
+  Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
 }
 
 void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {

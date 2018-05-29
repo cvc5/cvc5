@@ -306,6 +306,7 @@ private:
  bool reduceQuantifier(Node q);
  /** flush lemmas */
  void flushLemmas();
+
 public:
   /** add lemma lem */
   bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
