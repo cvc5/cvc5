@@ -162,11 +162,11 @@ REG0_TESTS = \
 	regress0/bv/bug734.smt2 \
 	regress0/bv/bv-int-collapse1.smt2 \
 	regress0/bv/bv-int-collapse2.smt2 \
-	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv-options1.smt2 \
 	regress0/bv/bv-options2.smt2 \
 	regress0/bv/bv-options3.smt2 \
 	regress0/bv/bv-options4.smt2 \
+	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv2nat-ground-c.smt2 \
 	regress0/bv/bv2nat-simp-range.smt2 \
 	regress0/bv/bvmul-pow2-only.smt2 \
@@ -475,6 +475,8 @@ REG0_TESTS = \
 	regress0/ite4.smt2 \
 	regress0/ite_real_int_type.smt \
 	regress0/ite_real_valid.smt \
+	regress0/lang_opts_2_5.smt2 \
+	regress0/lang_opts_2_6_1.smt2 \
 	regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smt \
 	regress0/lemmas/fs_not_sc_seen.induction.smt \
 	regress0/lemmas/mode_cntrl.induction.smt \
@@ -595,9 +597,9 @@ REG0_TESTS = \
 	regress0/quantifiers/ex3.smt2 \
 	regress0/quantifiers/ex6.smt2 \
 	regress0/quantifiers/floor.smt2 \
-	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
+	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
