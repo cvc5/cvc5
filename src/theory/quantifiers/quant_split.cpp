@@ -31,7 +31,8 @@ QuantifiersModule( qe ), d_added_split( qe->getUserContext() ){
 
 }
 
-void QuantDSplit::checkOwnership( Node q ) {
+void QuantDSplit::checkOwnership(Node q)
+{
   int max_index = -1;
   int max_score = -1;
   if( q.getNumChildren()==3 ){

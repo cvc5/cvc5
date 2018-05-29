@@ -735,7 +735,8 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
   }
 }
 
-void QuantifiersEngine::registerQuantifierInternal( Node f ){
+void QuantifiersEngine::registerQuantifierInternal(Node f)
+{
   std::map< Node, bool >::iterator it = d_quants.find( f );
   if( it==d_quants.end() ){
     // Assert( d_lemmas_waiting.empty() );
@@ -751,43 +752,50 @@ void QuantifiersEngine::registerQuantifierInternal( Node f ){
     // compute attributes
     d_quant_attr->computeAttributes(f);
 
-    for( unsigned i=0; i<d_modules.size(); i++ ){
-      Trace("quant-debug") << "check ownership with " << d_modules[i]->identify() << "..." << std::endl;
-      d_modules[i]->checkOwnership( f );
+    for (unsigned i = 0; i < d_modules.size(); i++)
+    {
+      Trace("quant-debug") << "check ownership with "
+                           << d_modules[i]->identify() << "..." << std::endl;
+      d_modules[i]->checkOwnership(f);
     }
-    QuantifiersModule * qm = getOwner( f );
-    if( qm!=NULL ){
+    QuantifiersModule* qm = getOwner(f);
+    if (qm != NULL)
+    {
       Trace("quant") << "   Owner : " << qm->identify() << std::endl;
     }
-    //register with each module
-    for( unsigned i=0; i<d_modules.size(); i++ ){
-      Trace("quant-debug") << "register with " << d_modules[i]->identify() << "..." << std::endl;
-      d_modules[i]->registerQuantifier( f );
+    // register with each module
+    for (unsigned i = 0; i < d_modules.size(); i++)
+    {
+      Trace("quant-debug") << "register with " << d_modules[i]->identify()
+                           << "..." << std::endl;
+      d_modules[i]->registerQuantifier(f);
     }
-    //TODO: remove this
-    Node ceBody = d_term_util->getInstConstantBody( f );
-    Trace("quant-debug")  << "...finish." << std::endl;
+    // TODO: remove this
+    Node ceBody = d_term_util->getInstConstantBody(f);
+    Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
-    // since this is context-independent, we should not add any lemmas during 
+    // since this is context-independent, we should not add any lemmas during
     // this call
     // Assert( d_lemmas_waiting.empty() );
   }
 }
 
-void QuantifiersEngine::preRegisterQuantifier( Node q )
+void QuantifiersEngine::preRegisterQuantifier(Node q)
 {
-  NodeSet::const_iterator it = d_quants_prereg.find( q );
-  if( it!=d_quants_prereg.end() ){
+  NodeSet::const_iterator it = d_quants_prereg.find(q);
+  if (it != d_quants_prereg.end())
+  {
     return;
   }
   d_quants_prereg.insert(q);
   // ensure that it is registered
   registerQuantifierInternal(q);
-  //register with each module
+  // register with each module
   for (QuantifiersModule*& mdl : d_modules)
   {
-    Trace("quant-debug") << "pre-register with " << mdl->identify() << "..." << std::endl;
-    mdl->preRegisterQuantifier( q );
+    Trace("quant-debug") << "pre-register with " << mdl->identify() << "..."
+                         << std::endl;
+    mdl->preRegisterQuantifier(q);
   }
   // flush the lemmas
   flushLemmas();
@@ -801,32 +809,35 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 }
 
 void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
-  if( reduceQuantifier( f ) ){
+  if (reduceQuantifier(f))
+  {
     // if we can reduce it, nothing left to do
     return;
   }
   if( !pol ){
-    //do skolemization
+    // do skolemization
     Node lem = d_skolemize->process(f);
     if (!lem.isNull())
     {
-      if( Trace.isOn("quantifiers-sk-debug") ){
-        Node slem = Rewriter::rewrite( lem );
-        Trace("quantifiers-sk-debug") << "Skolemize lemma : " << slem << std::endl;
+      if (Trace.isOn("quantifiers-sk-debug"))
+      {
+        Node slem = Rewriter::rewrite(lem);
+        Trace("quantifiers-sk-debug")
+            << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma( lem, false, true );
+      getOutputChannel().lemma(lem, false, true);
     }
     return;
   }
   // ensure the quantified formula is registered
-  registerQuantifierInternal( f );
+  registerQuantifierInternal(f);
   // assert it to each module
-  d_model->assertQuantifier( f );
+  d_model->assertQuantifier(f);
   for (QuantifiersModule*& mdl : d_modules)
   {
-    mdl->assertNode( f );
+    mdl->assertNode(f);
   }
-  addTermToDatabase( d_term_util->getInstConstantBody( f ), true );
+  addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
 void QuantifiersEngine::propagate( Theory::Effort level ){

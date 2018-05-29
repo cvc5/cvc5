@@ -113,21 +113,21 @@ class QuantifiersModule {
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory.
    */
-  virtual void checkOwnership( Node q ) { }
+  virtual void checkOwnership(Node q) {}
   /** Register quantifier
    *
-   * Called once for new quantified formulas q that are pre-registered by the 
-   * quantifiers theory, after internal ownership of quantified formulas is 
+   * Called once for new quantified formulas q that are pre-registered by the
+   * quantifiers theory, after internal ownership of quantified formulas is
    * finalized. This does context-dependent initialization of this module.
    */
-  virtual void registerQuantifier( Node q ) {}
+  virtual void registerQuantifier(Node q) {}
   /** Pre-register quantifier
    *
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory, after
    * internal ownership of quantified formulas is finalized.
    */
-  virtual void preRegisterQuantifier( Node q ) {}
+  virtual void preRegisterQuantifier(Node q) {}
   /** Assert node.
    *
    * Called when a quantified formula q is asserted to the quantifiers theory
