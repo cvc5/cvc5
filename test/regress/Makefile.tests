@@ -406,7 +406,6 @@ REG0_TESTS = \
 	regress0/expect/scrub.03.smt2 \
 	regress0/expect/scrub.04.smt2 \
 	regress0/expect/scrub.06.cvc \
-	regress0/expect/scrub.07.sy \
 	regress0/expect/scrub.08.sy \
 	regress0/expect/scrub.09.p \
 	regress0/flet.smt \
@@ -1107,6 +1106,8 @@ REG1_TESTS = \
 	regress1/lemmas/pursuit-safety-8.smt \
 	regress1/lemmas/simple_startup_9nodes.abstract.base.smt \
 	regress1/nl/NAVIGATION2.smt2 \
+	regress1/nl/approx-sqrt.smt2 \
+	regress1/nl/approx-sqrt-unsat.smt2 \
 	regress1/nl/arctan2-expdef.smt2 \
 	regress1/nl/arrowsmith-050317.smt2 \
 	regress1/nl/bad-050217.smt2 \
@@ -1152,6 +1153,7 @@ REG1_TESTS = \
 	regress1/nl/sin1-ub.smt2 \
 	regress1/nl/sin2-lb.smt2 \
 	regress1/nl/sin2-ub.smt2 \
+	regress1/nl/solve-eq-small-qf-nra.smt2 \
 	regress1/nl/sqrt-problem-1.smt2 \
 	regress1/nl/sugar-ident-2.smt2 \
 	regress1/nl/sugar-ident-3.smt2 \
@@ -1249,6 +1251,7 @@ REG1_TESTS = \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
+	regress1/quantifiers/horn-simple.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
@@ -1471,6 +1474,7 @@ REG1_TESTS = \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegisunif-depth1.sy \
+	regress1/sygus/cegis-unif-inv-eq-fair.sy \
 	regress1/sygus/cggmp.sy \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
@@ -1486,6 +1490,7 @@ REG1_TESTS = \
 	regress1/sygus/hd-sdiv.sy \
 	regress1/sygus/icfp_14.12-flip-args.sy \
 	regress1/sygus/icfp_14.12.sy \
+	regress1/sygus/icfp_14_12_diff_types.sy \
 	regress1/sygus/icfp_28_10.sy \
 	regress1/sygus/icfp_easy-ite.sy \
 	regress1/sygus/inv-example.sy \
@@ -1500,6 +1505,7 @@ REG1_TESTS = \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
 	regress1/sygus/pbe_multi.sy \
+	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
@@ -1804,6 +1810,7 @@ DISABLED_TESTS = \
 	regress0/sets/sets-new.smt2 \
 	regress0/sets/sets-testlemma-ints.smt2 \
 	regress0/sets/sets-testlemma-reals.smt2 \
+	regress0/sygus/sygus-uf.sy \
 	regress0/symmetric.smt \
 	regress0/tptp/BOO003-4.p \
 	regress0/tptp/BOO027-1.p \
@@ -1969,7 +1976,6 @@ TESTS_EXPECT = \
 	regress0/decision/wchains010ue.smt.expect \
 	regress0/expect/scrub.01.smt.expect \
 	regress0/expect/scrub.03.smt2.expect \
-	regress0/expect/scrub.07.sy.expect \
 	regress0/quantifiers/bug291.smt2.expect \
 	regress0/uflia/check02.smt2.expect \
 	regress0/uflia/check03.smt2.expect \

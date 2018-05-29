@@ -142,6 +142,24 @@ class CegisUnifEnumManager
   std::map<unsigned, Node> d_guq_lit;
   /** Have we returned a decision in the current SAT context? */
   context::CDO<bool> d_ret_dec;
+  /** the "virtual" enumerator
+   *
+   * This enumerator is used for enforcing fairness. In particular, we relate
+   * its size to the number of conditions allocated by this class such that:
+   *    ~G_uq_i => size(d_virtual_enum) >= floor( log2( i-1 ) )
+   * In other words, if we are using (i-1) conditions in our solution,
+   * the size of the virtual enumerator is at least the floor of the log (base
+   * two) of (i-1). Due to the default fairness scheme in the quantifier-free
+   * datatypes solver (if --sygus-fair-max is enabled), this ensures that other
+   * enumerators are allowed to have at least this size. This affect other
+   * fairness schemes in an analogous fashion. In particular, we enumerate
+   * based on the tuples for (term size, #conditions):
+   *   (0,0), (0,1)                                             [size 0]
+   *   (0,2), (0,3), (1,1), (1,2), (1,3)                        [size 1]
+   *   (0,4), ..., (0,7), (1,4), ..., (1,7), (2,0), ..., (2,7)  [size 2]
+   *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
+   */
+  Node d_virtual_enum;
   /**
    * The minimal n such that G_uq_n is not asserted negatively in the
    * current SAT context.
@@ -259,6 +277,10 @@ class CegisUnif : public Cegis
   CegisUnifEnumManager d_u_enum_manager;
   /* The null node */
   Node d_null;
+  /** the unification candidates */
+  std::vector<Node> d_unif_candidates;
+  /** the non-unification candidates */
+  std::vector<Node> d_non_unif_candidates;
   /** list of strategy points per candidate */
   std::map<Node, std::vector<Node>> d_cand_to_strat_pt;
   /** map from conditional enumerators to their strategy point */

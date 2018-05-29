@@ -265,7 +265,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
   default:
     if (language::isInputLang_smt2(lang))
     {
-      input = new Smt2Input(inputStream, lang);
+      input = new Smt2Input(inputStream);
     }
     else
     {

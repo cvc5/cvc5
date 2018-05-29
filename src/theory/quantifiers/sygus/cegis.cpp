@@ -28,7 +28,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p) : SygusModule(qe, p) {}
+Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p)
+    : SygusModule(qe, p), d_eval_unfold(nullptr), d_using_gr_repair(false)
+{
+  if (options::sygusEvalUnfold())
+  {
+    d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
+  }
+}
 
 bool Cegis::initialize(Node n,
                        const std::vector<Node>& candidates,
@@ -59,10 +66,27 @@ bool Cegis::processInitialize(Node n,
                               const std::vector<Node>& candidates,
                               std::vector<Node>& lemmas)
 {
+  Trace("cegis") << "Initialize cegis..." << std::endl;
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < candidates.size(); i++)
   {
-    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent);
+    Trace("cegis") << "...register enumerator " << candidates[i];
+    bool do_repair_const = false;
+    if (options::sygusRepairConst())
+    {
+      TypeNode ctn = candidates[i].getType();
+      d_tds->registerSygusType(ctn);
+      if (d_tds->hasSubtermSymbolicCons(ctn))
+      {
+        do_repair_const = true;
+        // remember that we are doing grammar-based repair
+        d_using_gr_repair = true;
+        Trace("cegis") << " (using repair)";
+      }
+    }
+    Trace("cegis") << std::endl;
+    d_tds->registerEnumerator(
+        candidates[i], candidates[i], d_parent, false, do_repair_const);
   }
   return true;
 }
@@ -100,7 +124,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
          add the lemmas below as well, in parallel. */
     }
   }
-  if (options::sygusEvalUnfold())
+  if (d_eval_unfold != nullptr)
   {
     Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -108,11 +132,11 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     {
       Trace("cegqi-debug") << "  register " << candidates[i] << " -> "
                            << candidate_values[i] << std::endl;
-      d_tds->registerModelValue(candidates[i],
-                                candidate_values[i],
-                                eager_terms,
-                                eager_vals,
-                                eager_exps);
+      d_eval_unfold->registerModelValue(candidates[i],
+                                        candidate_values[i],
+                                        eager_terms,
+                                        eager_vals,
+                                        eager_exps);
     }
     Trace("cegqi-debug") << "...produced " << eager_terms.size()
                          << " evaluation unfold lemmas.\n";
@@ -149,6 +173,46 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       Trace("cegis") << ss.str() << std::endl;
     }
   }
+  // if we are using grammar-based repair
+  if (d_using_gr_repair)
+  {
+    SygusRepairConst* src = d_parent->getRepairConst();
+    Assert(src != nullptr);
+    // check if any enum_values have symbolic terms that must be repaired
+    bool mustRepair = false;
+    for (const Node& c : enum_values)
+    {
+      if (SygusRepairConst::mustRepair(c))
+      {
+        mustRepair = true;
+        break;
+      }
+    }
+    Trace("cegis") << "...must repair is: " << mustRepair << std::endl;
+    // if the solution contains a subterm that must be repaired
+    if (mustRepair)
+    {
+      std::vector<Node> fail_cvs = enum_values;
+      Assert(candidates.size() == fail_cvs.size());
+      if (src->repairSolution(candidates, fail_cvs, candidate_values))
+      {
+        return true;
+      }
+      // repair solution didn't work, exclude this solution
+      std::vector<Node> exp;
+      for (unsigned i = 0, size = enums.size(); i < size; i++)
+      {
+        d_tds->getExplain()->getExplanationForEquality(
+            enums[i], enum_values[i], exp);
+      }
+      Assert(!exp.empty());
+      Node expn =
+          exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
+      lems.push_back(expn.negate());
+      return false;
+    }
+  }
+
   // evaluate on refinement lemmas
   bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
 
@@ -189,14 +253,6 @@ bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
     candidate_values.insert(
         candidate_values.end(), enum_values.begin(), enum_values.end());
     return true;
-  }
-  SygusRepairConst* src = d_parent->getRepairConst();
-  if (src != nullptr)
-  {
-    // it may be repairable
-    std::vector<Node> fail_cvs = enum_values;
-    Assert(candidates.size() == fail_cvs.size());
-    return src->repairSolution(candidates, fail_cvs, candidate_values);
   }
   return false;
 }
@@ -340,6 +396,8 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
       NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem);
   lems.push_back(rlem);
 }
+
+bool Cegis::usingRepairConst() { return d_using_gr_repair; }
 
 void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,

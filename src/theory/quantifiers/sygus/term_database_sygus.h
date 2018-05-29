@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -38,7 +39,13 @@ class TermDbSygus {
   bool reset(Theory::Effort e);
   /** Identify this utility */
   std::string identify() const { return "TermDbSygus"; }
-  /** register the sygus type */
+  /** register the sygus type
+   *
+   * This initializes this database for sygus datatype type tn. This may
+   * throw an assertion failure if the sygus grammar has type errors. Otherwise,
+   * after registering a sygus type, the query functions in this class (such
+   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   */
   void registerSygusType(TypeNode tn);
 
   //------------------------------utilities
@@ -46,6 +53,8 @@ class TermDbSygus {
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  /** evaluation unfolding utility */
+  SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -54,7 +63,9 @@ class TermDbSygus {
    * conj : the conjecture that the enumeration of e is for.
    * f : the synth-fun that the enumeration of e is for.
    * mkActiveGuard : whether we want to make an active guard for e
-   * (see d_enum_to_active_guard).
+   * (see d_enum_to_active_guard),
+   * useSymbolicCons : whether we want model values for e to include symbolic
+   * constructors like the "any constant" variable.
    *
    * Notice that enumerator e may not be one-to-one with f in
    * synthesis-through-unification approaches (e.g. decision tree construction
@@ -63,15 +74,18 @@ class TermDbSygus {
   void registerEnumerator(Node e,
                           Node f,
                           CegConjecture* conj,
-                          bool mkActiveGuard = false);
+                          bool mkActiveGuard = false,
+                          bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e);
+  CegConjecture* getConjectureForEnumerator(Node e) const;
   /** return the function-to-synthesize e is associated with */
-  Node getSynthFunForEnumerator(Node e);
+  Node getSynthFunForEnumerator(Node e) const;
   /** get active guard for e */
-  Node getActiveGuardForEnumerator(Node e);
+  Node getActiveGuardForEnumerator(Node e) const;
+  /** are we using symbolic constructors for enumerator e? */
+  bool usingSymbolicConsForEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
@@ -100,8 +114,8 @@ class TermDbSygus {
   TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
   unsigned getSizeForSymBreakLemma(Node lem) const;
-  /** Clear information about symmetry breaking lemmas */
-  void clearSymBreakLemmas();
+  /** Clear information about symmetry breaking lemmas for enumerator e */
+  void clearSymBreakLemmas(Node e);
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
@@ -152,6 +166,8 @@ class TermDbSygus {
                  std::map<int, Node>& pre);
   /** same as above, but with empty var_count */
   Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
+  /** same as above, but with empty pre */
+  Node mkGeneric(const Datatype& dt, int c);
   /** sygus to builtin
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
@@ -189,6 +205,12 @@ class TermDbSygus {
    * and constants c1...cn.
    */
   bool isEvaluationPoint(Node n) const;
+  /** return the builtin type of tn
+   *
+   * The type tn should be a sygus datatype type that has been registered to
+   * this database.
+   */
+  TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
 
  private:
@@ -198,8 +220,10 @@ class TermDbSygus {
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
-  /** sygus explanation */
+  /** extended rewriter */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
+  /** evaluation function unfolding utility */
+  std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
 
   //------------------------------enumerators
@@ -215,6 +239,11 @@ class TermDbSygus {
    *   if G is true, then there are more values of e to enumerate".
    */
   std::map<Node, Node> d_enum_to_active_guard;
+  /**
+   * Mapping from enumerators to whether we allow symbolic constructors to
+   * appear as subterms of them.
+   */
+  std::map<Node, bool> d_enum_to_using_sym_cons;
   /** mapping from enumerators to symmetry breaking clauses for them */
   std::map<Node, std::vector<Node> > d_enum_to_sb_lemmas;
   /** mapping from symmetry breaking lemmas to type */
@@ -248,7 +277,8 @@ class TermDbSygus {
   Node d_true;
   Node d_false;
 
-private:
+ private:
+  /** computes the map d_min_type_depth */
   void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
@@ -265,6 +295,14 @@ private:
   std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
   // grammar information
   // root -> type -> _
+  /**
+   * For each sygus type t1, this maps datatype types t2 to the smallest size of
+   * a term of type t1 that includes t2 as a subterm. For example, for grammar:
+   *   A -> B+B | 0 | B-D
+   *   B -> C+C
+   *   ...
+   * we have that d_min_type_depth[A] = { A -> 0, B -> 1, C -> 2, D -> 1 }.
+   */
   std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
   // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
   // d_consider_const;
@@ -273,9 +311,20 @@ private:
   std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
+  /**
+   * For each sygus type, the index of the "any constant" constructor, if it
+   * has one.
+   */
+  std::map<TypeNode, unsigned> d_sym_cons_any_constant;
+  /**
+   * Whether any subterm of this type contains a symbolic constructor. This
+   * corresponds to whether sygus repair techniques will ever have any effect
+   * for this type.
+   */
+  std::map<TypeNode, bool> d_has_subterm_sym_cons;
 
  public:  // general sygus utilities
-  bool isRegistered( TypeNode tn );
+  bool isRegistered(TypeNode tn) const;
   // get the minimum depth of type in its parent grammar
   unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
   // get the minimum size for a constructor term
@@ -285,7 +334,6 @@ private:
   unsigned getSelectorWeight(TypeNode tn, Node sel);
 
  public:
-  TypeNode sygusToBuiltinType( TypeNode tn );
   int getKindConsNum( TypeNode tn, Kind k );
   int getConstConsNum( TypeNode tn, Node n );
   int getOpConsNum( TypeNode tn, Node n );
@@ -303,6 +351,18 @@ private:
   int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
+  /**
+   * Get the index of the "any constant" constructor of type tn if it has one,
+   * or returns -1 otherwise.
+   */
+  int getAnyConstantConsNum(TypeNode tn) const;
+  /** has subterm symbolic constructor
+   *
+   * Returns true if any subterm of type tn can be a symbolic constructor.
+   */
+  bool hasSubtermSymbolicCons(TypeNode tn) const;
+  /** return whether n is an application of a symbolic constructor */
+  bool isSymbolicConsApp(Node n) const;
 
   TypeNode getSygusTypeForVar( Node v );
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
@@ -320,10 +380,6 @@ private:
   Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
-  
-  /** get operator kind */
-  static Kind getOperatorKind( Node op );
-
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
@@ -333,27 +389,32 @@ public: // for symmetry breaking
   bool considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg );
   bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
-  
-//for eager instantiation
-  // TODO (as part of #1235) move some of these functions to sygus_explain.h
- private:
-  /** the set of evaluation terms we have already processed */
-  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
-  std::map< Node, std::map< Node, bool > > d_subterms;
-  std::map< Node, std::vector< Node > > d_evals;
-  std::map< Node, std::vector< std::vector< Node > > > d_eval_args;
-  std::map< Node, std::vector< bool > > d_eval_args_const;
-  std::map< Node, std::map< Node, unsigned > > d_node_mv_args_proc;
 
-public:
-  void registerEvalTerm( Node n );
-  void registerModelValue( Node n, Node v, std::vector< Node >& exps, std::vector< Node >& terms, std::vector< Node >& vals );
-  Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp = true );
-  Node unfold( Node en ){
-    std::map< Node, Node > vtm;
-    std::vector< Node > exp;
-    return unfold( en, vtm, exp, false );
-  }
+ public:
+  /** unfold
+   *
+   * This method returns the one-step unfolding of an evaluation function
+   * application. An example of a one step unfolding is:
+   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
+   *
+   * This function does this unfolding for a (possibly symbolic) evaluation
+   * head, where the argument "variable to model" vtm stores the model value of
+   * variables from this head. This allows us to track an explanation of the
+   * unfolding in the vector exp when track_exp is true.
+   *
+   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
+   * this method applied to eval( d, t ) will return
+   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
+   */
+  Node unfold(Node en,
+              std::map<Node, Node>& vtm,
+              std::vector<Node>& exp,
+              bool track_exp = true);
+  /**
+   * Same as above, but without explanation tracking. This is used for concrete
+   * evaluation heads
+   */
+  Node unfold(Node en);
   Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 };
 

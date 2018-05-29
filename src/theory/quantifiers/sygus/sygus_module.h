@@ -122,6 +122,12 @@ class SygusModule
   {
     return Node::null();
   }
+  /**
+   * Are we trying to repair constants in candidate solutions?
+   * If we return true for usingRepairConst is true, then this module has
+   * attmepted to repair any solutions returned by constructCandidates.
+   */
+  virtual bool usingRepairConst() { return false; }
 
  protected:
   /** reference to quantifier engine */

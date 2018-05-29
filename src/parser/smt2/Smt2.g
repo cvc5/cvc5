@@ -1128,21 +1128,6 @@ metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
     { name = AntlrInput::tokenText($KEYWORD);
       if(name == ":cvc4-logic" || name == ":cvc4_logic") {
         PARSER_STATE->setLogic(sexpr.getValue());
-      } else if(name == ":smt-lib-version") {
-        // if we don't recognize the revision name, just keep the current mode
-        if( (sexpr.isRational() && sexpr.getRationalValue() == Rational(2)) ||
-            sexpr.getValue() == "2" ||
-            sexpr.getValue() == "2.0" ) {
-          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_0);
-        } else if( (sexpr.isRational() &&
-                    sexpr.getRationalValue() == Rational(5, 2)) ||
-                  sexpr.getValue() == "2.5" ) {
-          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_5);
-        } else if( (sexpr.isRational() &&
-                    sexpr.getRationalValue() == Rational(13, 5)) ||
-                  sexpr.getValue() == "2.6" ) {
-          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_6);
-        }
       }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd->reset(new SetInfoCommand(name.c_str() + 1, sexpr));
@@ -2310,8 +2295,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); 
       if(expr.getType().isInteger()) {
-        //must cast to Real to ensure correct type is passed to parametric type constructors
-        expr = MK_EXPR(kind::TO_REAL, expr);
+        // Must cast to Real to ensure correct type is passed to parametric type constructors.
+        // We do this cast using division with 1.
+        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
+        expr = MK_EXPR(kind::DIVISION, expr, MK_CONST(Rational(1)));
       }  
     }
 
