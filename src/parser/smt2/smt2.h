@@ -171,9 +171,8 @@ public:
   {
     return language::isInputLang_smt2_6(getLanguage(), exact);
   }
-  bool sygus() const {
-    return getLanguage() == language::input::LANG_SYGUS;
-  }
+
+  bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 
