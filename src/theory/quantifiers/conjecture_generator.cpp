@@ -923,14 +923,6 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
   return addedLemmas;
 }
 
-void ConjectureGenerator::registerQuantifier( Node q ) {
-
-}
-
-void ConjectureGenerator::assertNode( Node n ) {
-
-}
-
 bool ConjectureGenerator::considerTermCanon( Node ln, bool genRelevant ){
   if( !ln.isNull() ){
     //do not consider if it is non-canonical, and either:
