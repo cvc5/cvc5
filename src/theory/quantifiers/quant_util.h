@@ -108,10 +108,11 @@ class QuantifiersModule {
    * we are incomplete for other reasons.
    */
   virtual bool checkCompleteFor( Node q ) { return false; }
-  /** Pre register quantifier.
+  /** Check ownership
    *
-   * Called once for new quantified formulas that are
-   * pre-registered by the quantifiers theory.
+   * Called once for new quantified formulas that are registered by the
+   * quantifiers theory. The primary purpose of this function is to establish
+   * if this module is the owner of quantified formula q.
    */
   virtual void checkOwnership(Node q) {}
   /** Register quantifier

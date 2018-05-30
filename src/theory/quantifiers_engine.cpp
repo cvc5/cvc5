@@ -752,28 +752,25 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     // compute attributes
     d_quant_attr->computeAttributes(f);
 
-    for (unsigned i = 0; i < d_modules.size(); i++)
+    for (QuantifiersModule*& mdl : d_modules)
     {
       Trace("quant-debug") << "check ownership with "
-                           << d_modules[i]->identify() << "..." << std::endl;
-      d_modules[i]->checkOwnership(f);
+                           << mdl->identify() << "..." << std::endl;
+      mdl->checkOwnership(f);
     }
     QuantifiersModule* qm = getOwner(f);
-    if (qm != NULL)
-    {
-      Trace("quant") << "   Owner : " << qm->identify() << std::endl;
-    }
+    Trace("quant") << " Owner : " << (qm==nullptr ? "[none]" : qm->identify()) << std::endl;
     // register with each module
-    for (unsigned i = 0; i < d_modules.size(); i++)
+    for (QuantifiersModule*& mdl : d_modules)
     {
-      Trace("quant-debug") << "register with " << d_modules[i]->identify()
+      Trace("quant-debug") << "register with " << mdl->identify()
                            << "..." << std::endl;
-      d_modules[i]->registerQuantifier(f);
+      mdl->registerQuantifier(f);
       // since this is context-independent, we should not add any lemmas during
       // this call
       Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
     }
-    // TODO: remove this
+    // TODO (#2020): remove this
     Node ceBody = d_term_util->getInstConstantBody(f);
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
