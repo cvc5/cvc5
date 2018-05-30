@@ -34,7 +34,7 @@ private:
 public:
   QuantDSplit( QuantifiersEngine * qe, context::Context* c );
   /** determine whether this quantified formula will be reduced */
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
 
   /* whether this module needs to check this round */
   bool needsCheck(Theory::Effort e) override;

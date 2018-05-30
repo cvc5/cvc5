@@ -157,7 +157,8 @@ bool InstantiationEngine::checkCompleteFor( Node q ) {
   return false;
 }
 
-void InstantiationEngine::preRegisterQuantifier( Node q ) {
+void InstantiationEngine::checkOwnership(Node q)
+{
   if( options::strictTriggers() && q.getNumChildren()==3 ){
     //if strict triggers, take ownership of this quantified formula
     bool hasPat = false;
