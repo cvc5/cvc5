@@ -357,25 +357,28 @@ void InstStrategyCbqi::checkOwnership(Node q)
 
 void InstStrategyCbqi::preRegisterQuantifier(Node q)
 {
-  //mark all nested quantifiers with id
-  if( options::cbqiNestedQE() ){
-    std::map< Node, Node > visited;
-    Node mq = getIdMarkedQuantNode( q[1], visited );
-    if( mq!=q[1] ){
+  // mark all nested quantifiers with id
+  if (options::cbqiNestedQE())
+  {
+    std::map<Node, Node> visited;
+    Node mq = getIdMarkedQuantNode(q[1], visited);
+    if (mq != q[1])
+    {
       // do not do cbqi, we are reducing this quantified formula to a marked
       // one
       d_do_cbqi[q] = CEG_UNHANDLED;
-      //instead do reduction
-      std::vector< Node > qqc;
-      qqc.push_back( q[0] );
-      qqc.push_back( mq );
-      if( q.getNumChildren()==3 ){
-        qqc.push_back( q[2] );
+      // instead do reduction
+      std::vector<Node> qqc;
+      qqc.push_back(q[0]);
+      qqc.push_back(mq);
+      if (q.getNumChildren() == 3)
+      {
+        qqc.push_back(q[2]);
       }
-      Node qq = NodeManager::currentNM()->mkNode( FORALL, qqc );
-      Node mlem = NodeManager::currentNM()->mkNode( IMPLIES, q, qq );
+      Node qq = NodeManager::currentNM()->mkNode(FORALL, qqc);
+      Node mlem = NodeManager::currentNM()->mkNode(IMPLIES, q, qq);
       Trace("cbqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
-      d_quantEngine->addLemma( mlem );
+      d_quantEngine->addLemma(mlem);
     }
   }
   if( doCbqi( q ) ){

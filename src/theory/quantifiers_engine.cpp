@@ -754,17 +754,18 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
 
     for (QuantifiersModule*& mdl : d_modules)
     {
-      Trace("quant-debug") << "check ownership with "
-                           << mdl->identify() << "..." << std::endl;
+      Trace("quant-debug") << "check ownership with " << mdl->identify()
+                           << "..." << std::endl;
       mdl->checkOwnership(f);
     }
     QuantifiersModule* qm = getOwner(f);
-    Trace("quant") << " Owner : " << (qm==nullptr ? "[none]" : qm->identify()) << std::endl;
+    Trace("quant") << " Owner : " << (qm == nullptr ? "[none]" : qm->identify())
+                   << std::endl;
     // register with each module
     for (QuantifiersModule*& mdl : d_modules)
     {
-      Trace("quant-debug") << "register with " << mdl->identify()
-                           << "..." << std::endl;
+      Trace("quant-debug") << "register with " << mdl->identify() << "..."
+                           << std::endl;
       mdl->registerQuantifier(f);
       // since this is context-independent, we should not add any lemmas during
       // this call

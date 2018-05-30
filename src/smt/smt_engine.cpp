@@ -2093,7 +2093,7 @@ void SmtEngine::setDefaults() {
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
     }
-    if( options::incrementalSolving() )
+    if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode
       options::cbqiNestedQE.set(false);
