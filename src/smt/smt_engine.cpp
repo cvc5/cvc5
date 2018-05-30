@@ -2363,7 +2363,9 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   } else if(key == "name") {
     d_filename = value.getValue();
     return;
-  } else if(key == "smt-lib-version") {
+  }
+  else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
+  {
     language::input::Language ilang = language::input::LANG_AUTO;
     if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
         (value.isRational() && value.getRationalValue() == Rational(2)) ||
