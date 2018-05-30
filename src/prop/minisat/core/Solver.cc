@@ -29,8 +29,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "options/prop_options.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "proof/sat_proof_implementation.h"
 #include "proof/sat_proof.h"
+#include "proof/sat_proof_implementation.h"
 #include "prop/minisat/minisat.h"
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/theory_proxy.h"
@@ -421,11 +421,19 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 );
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if(ca[confl].size() == 1) {
-              PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
-            } else {
-              PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
+            if (PROOF_ON())
+            {
+              if (ca[confl].size() == 1)
+              {
+                id = ProofManager::getSatProof()->storeUnitConflict(
+                    ca[confl][0], LEARNT);
+                ProofManager::getSatProof()->finalizeProof(
+                    CVC4::Minisat::CRef_Lazy);
+              }
+              else
+              {
+                ProofManager::getSatProof()->finalizeProof(confl);
+              }
             }
           }
           return ok;
@@ -1528,7 +1536,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-              ca.reloc(ws[j].cref, to,   NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+              ca.reloc(ws[j].cref, to, NULLPROOF(ProofManager::getSatProof()));
         }
 
     // All reasons:
@@ -1537,19 +1545,22 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (hasReasonClause(v) && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-          ca.reloc(vardata[v].reason, to, NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+          ca.reloc(
+              vardata[v].reason, to, NULLPROOF(ProofManager::getSatProof()));
     }
     // All learnt:
     //
     for (int i = 0; i < clauses_removable.size(); i++)
-      ca.reloc(clauses_removable[i], to,  NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+      ca.reloc(
+          clauses_removable[i], to, NULLPROOF(ProofManager::getSatProof()));
 
     // All original:
     //
     for (int i = 0; i < clauses_persistent.size(); i++)
-      ca.reloc(clauses_persistent[i], to,  NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+      ca.reloc(
+          clauses_persistent[i], to, NULLPROOF(ProofManager::getSatProof()));
 
-      PROOF( ProofManager::getSatProof()->finishUpdateCRef(); )
+    PROOF(ProofManager::getSatProof()->finishUpdateCRef();)
 }
 
 
@@ -1811,7 +1822,9 @@ CRef Solver::updateLemmas() {
   return conflict;
 }
 
-void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy)
+void ClauseAllocator::reloc(CRef& cr,
+                            ClauseAllocator& to,
+                            CVC4::TSatProof<Solver>* proof)
 {
 
   // FIXME what is this CRef_lazy
@@ -1823,8 +1836,9 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy*
 
   cr = to.alloc(c.level(), c, c.removable());
   c.relocate(cr);
-  if (proxy) {
-    proxy->updateCRef(old, cr);
+  if (proof)
+  {
+    proof->updateCRef(old, cr);
   }
   // Copy extra data-fields:
   // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)

@@ -162,11 +162,11 @@ REG0_TESTS = \
 	regress0/bv/bug734.smt2 \
 	regress0/bv/bv-int-collapse1.smt2 \
 	regress0/bv/bv-int-collapse2.smt2 \
-	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv-options1.smt2 \
 	regress0/bv/bv-options2.smt2 \
 	regress0/bv/bv-options3.smt2 \
 	regress0/bv/bv-options4.smt2 \
+	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv2nat-ground-c.smt2 \
 	regress0/bv/bv2nat-simp-range.smt2 \
 	regress0/bv/bvmul-pow2-only.smt2 \
@@ -406,7 +406,6 @@ REG0_TESTS = \
 	regress0/expect/scrub.03.smt2 \
 	regress0/expect/scrub.04.smt2 \
 	regress0/expect/scrub.06.cvc \
-	regress0/expect/scrub.07.sy \
 	regress0/expect/scrub.08.sy \
 	regress0/expect/scrub.09.p \
 	regress0/flet.smt \
@@ -476,6 +475,8 @@ REG0_TESTS = \
 	regress0/ite4.smt2 \
 	regress0/ite_real_int_type.smt \
 	regress0/ite_real_valid.smt \
+	regress0/lang_opts_2_5.smt2 \
+	regress0/lang_opts_2_6_1.smt2 \
 	regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smt \
 	regress0/lemmas/fs_not_sc_seen.induction.smt \
 	regress0/lemmas/mode_cntrl.induction.smt \
@@ -596,9 +597,9 @@ REG0_TESTS = \
 	regress0/quantifiers/ex3.smt2 \
 	regress0/quantifiers/ex6.smt2 \
 	regress0/quantifiers/floor.smt2 \
-	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
+	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
@@ -1107,6 +1108,8 @@ REG1_TESTS = \
 	regress1/lemmas/pursuit-safety-8.smt \
 	regress1/lemmas/simple_startup_9nodes.abstract.base.smt \
 	regress1/nl/NAVIGATION2.smt2 \
+	regress1/nl/approx-sqrt.smt2 \
+	regress1/nl/approx-sqrt-unsat.smt2 \
 	regress1/nl/arctan2-expdef.smt2 \
 	regress1/nl/arrowsmith-050317.smt2 \
 	regress1/nl/bad-050217.smt2 \
@@ -1152,6 +1155,7 @@ REG1_TESTS = \
 	regress1/nl/sin1-ub.smt2 \
 	regress1/nl/sin2-lb.smt2 \
 	regress1/nl/sin2-ub.smt2 \
+	regress1/nl/solve-eq-small-qf-nra.smt2 \
 	regress1/nl/sqrt-problem-1.smt2 \
 	regress1/nl/sugar-ident-2.smt2 \
 	regress1/nl/sugar-ident-3.smt2 \
@@ -1974,7 +1978,6 @@ TESTS_EXPECT = \
 	regress0/decision/wchains010ue.smt.expect \
 	regress0/expect/scrub.01.smt.expect \
 	regress0/expect/scrub.03.smt2.expect \
-	regress0/expect/scrub.07.sy.expect \
 	regress0/quantifiers/bug291.smt2.expect \
 	regress0/uflia/check02.smt2.expect \
 	regress0/uflia/check03.smt2.expect \

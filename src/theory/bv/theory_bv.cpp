@@ -187,6 +187,16 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   Unreachable();
 }
 
+void TheoryBV::finishInit()
+{
+  // these kinds are semi-evaluated in getModelValue (applications of this
+  // kind are treated as variables)
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
+}
+
 Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 

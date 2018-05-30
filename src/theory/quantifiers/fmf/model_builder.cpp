@@ -183,6 +183,11 @@ Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::
 */
 
 bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
+  if (!m->areFunctionValuesEnabled())
+  {
+    // nothing to do if no functions
+    return true;
+  }
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelIG* fm = f->asFirstOrderModelIG();
   Trace("model-engine-debug") << "Process build model " << optUseModel() << std::endl;

@@ -131,9 +131,6 @@ class CVC4_PUBLIC Input {
   /** Destructor. Frees the input stream and closes the input. */
   virtual ~Input();
 
-  /** Get the language that this Input is reading. */
-  virtual InputLanguage getLanguage() const = 0;
-
   /** Retrieve the name of the input stream */
   const std::string getInputStreamName() { return getInputStream()->getName(); }
  protected:

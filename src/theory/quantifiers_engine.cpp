@@ -317,6 +317,11 @@ Valuation& QuantifiersEngine::getValuation()
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getValuation();
 }
 
+const LogicInfo& QuantifiersEngine::getLogicInfo() const
+{
+  return d_te->getLogicInfo();
+}
+
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
   std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );
   if( it==d_owner.end() ){
