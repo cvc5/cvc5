@@ -153,7 +153,7 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 
   // CBQI typically works for satisfaction-complete theories
   TheoryId t = kindToTheoryId(k);
-  if (t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL)
+  if (t == THEORY_BV || t == THEORY_FP || t == THEORY_DATATYPES || t == THEORY_BOOL)
   {
     return CEG_HANDLED;
   }
@@ -221,7 +221,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     return itv->second;
   }
   CegHandledStatus ret = CEG_UNHANDLED;
-  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector())
+  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() || tn.isFloatingPoint())
   {
     ret = CEG_HANDLED;
   }
