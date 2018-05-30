@@ -358,9 +358,9 @@ void InstStrategyCbqi::checkOwnership(Node q)
 void InstStrategyCbqi::preRegisterQuantifier(Node q)
 {
   // mark all nested quantifiers with id
-  if( d_quantEngine->getOwner(q)==this )
+  if (options::cbqiNestedQE())
   {
-    if (options::cbqiNestedQE())
+    if( d_quantEngine->getOwner(q)==this )
     {
       std::map<Node, Node> visited;
       Node mq = getIdMarkedQuantNode(q[1], visited);
