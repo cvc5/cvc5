@@ -1462,7 +1462,8 @@ inline bool RewriteRule<NormalizeEqPlusNeg>::applies(TNode node)
 template <>
 inline Node RewriteRule<NormalizeEqPlusNeg>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<NormalizeEqPlusNeg>(" << node << ")"
+                      << std::endl;
 
   NodeBuilder<> nb_lhs(kind::BITVECTOR_PLUS);
   NodeBuilder<> nb_rhs(kind::BITVECTOR_PLUS);
