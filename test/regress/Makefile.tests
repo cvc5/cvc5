@@ -160,6 +160,7 @@ REG0_TESTS = \
 	regress0/bv/bug440.smt \
 	regress0/bv/bug733.smt2 \
 	regress0/bv/bug734.smt2 \
+	regress0/bv/bv-abstr-bug.smt2 \
 	regress0/bv/bv-int-collapse1.smt2 \
 	regress0/bv/bv-int-collapse2.smt2 \
 	regress0/bv/bv-options1.smt2 \

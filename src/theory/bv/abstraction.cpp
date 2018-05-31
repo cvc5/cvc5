@@ -36,13 +36,14 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
 
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
 
+  TNodeSet seen;
   for (unsigned i = 0; i < assertions.size(); ++i)
   {
     if (assertions[i].getKind() == kind::OR)
     {
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j)
       {
-        if (!isConjunctionOfAtoms(assertions[i][j]))
+        if (!isConjunctionOfAtoms(assertions[i][j], seen))
         {
           continue;
         }
@@ -107,25 +108,24 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
   return d_funcToSignature.size() != 0;
 }
 
-bool AbstractionModule::isConjunctionOfAtoms(TNode node) {
-  TNodeSet seen;
-  return isConjunctionOfAtomsRec(node, seen);
-}
-
-bool AbstractionModule::isConjunctionOfAtomsRec(TNode node, TNodeSet& seen) {
+bool AbstractionModule::isConjunctionOfAtoms(TNode node, TNodeSet& seen)
+{
   if (seen.find(node)!= seen.end())
     return true;
 
-  if (!node.getType().isBitVector()) {
-    return (node.getKind() == kind::AND || utils::isBVPredicate(node));
+  if (!node.getType().isBitVector() && node.getKind() != kind::AND)
+  {
+    return utils::isBVPredicate(node);
   }
 
   if (node.getNumChildren() == 0)
     return true;
 
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    if (!isConjunctionOfAtomsRec(node[i], seen))
+    if (!isConjunctionOfAtoms(node[i], seen))
+    {
       return false;
+    }
   }
   seen.insert(node);
   return true;

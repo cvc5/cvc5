@@ -155,8 +155,7 @@ class AbstractionModule {
   Node abstractSignatures(TNode assertion);
   Node computeSignature(TNode node);
 
-  bool isConjunctionOfAtoms(TNode node);
-  bool isConjunctionOfAtomsRec(TNode node, TNodeSet& seen);
+  bool isConjunctionOfAtoms(TNode node, TNodeSet& seen);
 
   TNode getGeneralization(TNode term);
   void storeGeneralization(TNode s, TNode t);
