@@ -1063,6 +1063,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
     postRewriteTable[kind::VARIABLE] = rewrite::variable;
     postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
     postRewriteTable[kind::SKOLEM] = rewrite::variable;
+    postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
 
     postRewriteTable[kind::EQUAL] = rewrite::equal;
 
