@@ -23,10 +23,10 @@
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
-#include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;
@@ -219,8 +219,8 @@ Node QuantifierMacros::solveInEquality( Node n, Node lit ){
         return lit[i==0 ? 1 : 0].negate();
       }
     }
-    std::map< Node, Node > msum;
-    if( ArithMSum::getMonomialSumLit(lit, msum) )
+    std::map<Node, Node> msum;
+    if (ArithMSum::getMonomialSumLit(lit, msum))
     {
       Node veq_c;
       Node val;
