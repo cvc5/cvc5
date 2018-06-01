@@ -1475,6 +1475,9 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
     Node rlem = lems[i];
     rlem = Rewriter::rewrite( rlem );
+    // also must preprocess to ensure that the counterexample atoms we
+    // collect below are identical to the atoms that we add to the CNF stream
+    rlem = d_qe->getTheoryEngine()->preprocess(rlem);
     Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
     //record the literals that imply auxiliary variables to be equal to terms
     if( lems[i].getKind()==ITE && rlem.getKind()==ITE ){
@@ -1497,11 +1500,6 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
       }
     }*/
     lems[i] = rlem;
-  }
-  // apply preprocessing
-  for( unsigned i=0, size=lems.size(); i<size; i++ )
-  {
-    lems[i] = d_qe->getTheoryEngine()->preprocess(lems[i]);
   }
   // determine variable order: must do Reals before Ints
   Trace("cbqi-debug") << "Determine variable order..." << std::endl;
