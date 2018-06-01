@@ -788,6 +788,12 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   }
   Trace("quant-debug") << "QuantifiersEngine : Pre-register " << q << std::endl;
   d_quants_prereg.insert(q);
+  // try to reduce
+  if (reduceQuantifier(q))
+  {
+    // if we can reduce it, nothing left to do
+    return;
+  }
   // ensure that it is registered
   registerQuantifierInternal(q);
   // register with each module
