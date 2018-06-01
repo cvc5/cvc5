@@ -925,13 +925,13 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
   }
   Assert(lit.getKind() == EQUAL);
   // TODO (#1494) : linearize the literal using utility
-  
+
   // compute a subset active_args of the bound variables args that occur in lit
-  std::vector< Node > active_args;
-  computeArgVec(args,active_args,lit);
+  std::vector<Node> active_args;
+  computeArgVec(args, active_args, lit);
 
   BvInverter binv;
-  for( const Node& cvar : active_args )
+  for (const Node& cvar : active_args)
   {
     // solve for the variable on this path using the inverter
     std::vector<unsigned> path;
@@ -946,7 +946,7 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
         // if this is a proper variable elimination, that is, var = slv where
         // var is not in the free variables of slv, then we can return this
         // as the variable elimination for lit.
-        if( isVariableElim(var,slv) )
+        if (isVariableElim(var, slv))
         {
           return slv;
         }
