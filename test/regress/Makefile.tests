@@ -1229,6 +1229,7 @@ REG1_TESTS = \
 	regress1/push-pop/quant-fun-proc-unmacro.smt2 \
 	regress1/push-pop/quant-fun-proc.smt2 \
 	regress1/quantifiers/006-cbqi-ite.smt2 \
+	regress1/quantifiers/015-psyco-pp.smt2 \
 	regress1/quantifiers/AdditiveMethods_OwnedResults.Mz.smt2 \
 	regress1/quantifiers/Arrays_Q1-noinfer.smt2 \
 	regress1/quantifiers/NUM878.smt2 \

@@ -1464,11 +1464,6 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   //remove ITEs
   IteSkolemMap iteSkolemMap;
   d_qe->getTheoryEngine()->getTermFormulaRemover()->run(lems, iteSkolemMap);
-  // apply preprocessing
-  for( unsigned i=0, size=lems.size(); i<size; i++ )
-  {
-    lems[i] = d_qe->getTheoryEngine()->preprocess(lems[i]);
-  }
   //Assert( d_aux_vars.empty() );
   d_aux_vars.clear();
   d_aux_eq.clear();
@@ -1503,7 +1498,11 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }*/
     lems[i] = rlem;
   }
-
+  // apply preprocessing
+  for( unsigned i=0, size=lems.size(); i<size; i++ )
+  {
+    lems[i] = d_qe->getTheoryEngine()->preprocess(lems[i]);
+  }
   // determine variable order: must do Reals before Ints
   Trace("cbqi-debug") << "Determine variable order..." << std::endl;
   if (!d_vars.empty())
