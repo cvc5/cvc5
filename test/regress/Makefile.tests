@@ -605,6 +605,7 @@ REG0_TESTS = \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
+	regress0/quantifiers/issue2033-macro-arith.smt2 \
 	regress0/quantifiers/matching-lia-1arg.smt2 \
 	regress0/quantifiers/mix-complete-strat.smt2 \
 	regress0/quantifiers/mix-match.smt2 \
@@ -1230,6 +1231,7 @@ REG1_TESTS = \
 	regress1/push-pop/quant-fun-proc-unmacro.smt2 \
 	regress1/push-pop/quant-fun-proc.smt2 \
 	regress1/quantifiers/006-cbqi-ite.smt2 \
+	regress1/quantifiers/015-psyco-pp.smt2 \
 	regress1/quantifiers/AdditiveMethods_OwnedResults.Mz.smt2 \
 	regress1/quantifiers/Arrays_Q1-noinfer.smt2 \
 	regress1/quantifiers/NUM878.smt2 \
@@ -1295,6 +1297,7 @@ REG1_TESTS = \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
 	regress1/quantifiers/set8.smt2 \
 	regress1/quantifiers/small-pipeline-fixpoint-3.smt2 \
+	regress1/quantifiers/smtcomp-qbv-053118.smt2 \
 	regress1/quantifiers/smtlib384a03.smt2 \
 	regress1/quantifiers/smtlib46f14a.smt2 \
 	regress1/quantifiers/smtlibe99bbe.smt2 \
