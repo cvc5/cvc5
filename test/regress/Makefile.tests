@@ -433,6 +433,7 @@ REG0_TESTS = \
 	regress0/fmf/sc_bad_model_1221.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
+	regress0/fp/simple.smt2 \
 	regress0/fuzz_1.smt \
 	regress0/fuzz_3.smt \
 	regress0/get-value-incremental.smt2 \
@@ -601,10 +602,10 @@ REG0_TESTS = \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
 	regress0/quantifiers/issue1805.smt2 \
+	regress0/quantifiers/issue2033-macro-arith.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
-	regress0/quantifiers/issue2033-macro-arith.smt2 \
 	regress0/quantifiers/matching-lia-1arg.smt2 \
 	regress0/quantifiers/mix-complete-strat.smt2 \
 	regress0/quantifiers/mix-match.smt2 \

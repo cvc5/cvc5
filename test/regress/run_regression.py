@@ -23,6 +23,7 @@ EXPECT = 'EXPECT: '
 EXPECT_ERROR = 'EXPECT-ERROR: '
 EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
+REQUIRES = 'REQUIRES: '
 
 
 def run_process(args, cwd, timeout, s_input=None):
@@ -42,15 +43,35 @@ def run_process(args, cwd, timeout, s_input=None):
     out = ''
     err = ''
     exit_status = 124
-    timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
     try:
-        timer.start()
+        if timeout:
+            timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
+            timer.start()
         out, err = proc.communicate(input=s_input)
         exit_status = proc.returncode
     finally:
-        timer.cancel()
+        if timeout:
+            timer.cancel()
 
     return out, err, exit_status
+
+
+def get_cvc4_features(cvc4_binary):
+    """Returns a list of features supported by the CVC4 binary `cvc4_binary`."""
+
+    output, _, _ = run_process([cvc4_binary, '--show-config'], None, None)
+    if isinstance(output, bytes):
+        output = output.decode()
+
+    features = []
+    for line in output.split('\n'):
+        tokens = [t.strip() for t in line.split(':')]
+        if len(tokens) == 2:
+            key, value = tokens
+            if value == 'yes':
+                features.append(key)
+
+    return features
 
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
@@ -113,6 +134,8 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
+    cvc4_features = get_cvc4_features(cvc4_binary)
+
     basic_command_line_args = []
 
     benchmark_basename = os.path.basename(benchmark_path)
@@ -167,6 +190,7 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     expected_error = ''
     expected_exit_status = None
     command_lines = []
+    requires = []
     for line in metadata_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
@@ -185,6 +209,8 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
             expected_exit_status = int(line[len(EXIT):])
         elif line.startswith(COMMAND_LINE):
             command_lines.append(line[len(COMMAND_LINE):])
+        elif line.startswith(REQUIRES):
+            requires.append(line[len(REQUIRES):].strip())
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
@@ -216,6 +242,12 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
             '1..0 # Skipped regression: unsat cores not supported without proof support'
         )
         return
+
+    for req_feature in requires:
+        if req_feature not in cvc4_features:
+            print('1..0 # Skipped regression: {} not supported'.format(
+                req_feature))
+            return
 
     if not command_lines:
         command_lines.append('')
@@ -251,8 +283,8 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
                    not cvc4_binary.endswith('pcvc4'):
                     extra_command_line_args += ['--check-unsat-cores']
             if extra_command_line_args:
-                command_line_args_configs.append(
-                    all_args + extra_command_line_args)
+                command_line_args_configs.append(all_args +
+                                                 extra_command_line_args)
 
     # Run CVC4 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
