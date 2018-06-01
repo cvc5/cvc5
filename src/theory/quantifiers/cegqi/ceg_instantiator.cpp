@@ -1548,7 +1548,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }
   }
 
-  //collect atoms from all lemmas: we will only do bounds coming from original body
+  // collect atoms from all lemmas: we will only solve for literals coming from
+  // the original body
   d_is_nested_quant = false;
   std::map< Node, bool > visited;
   for( unsigned i=0; i<lems.size(); i++ ){
