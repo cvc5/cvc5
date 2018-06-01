@@ -431,9 +431,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
-  if( d_conflict_c.get() )
+  if (d_conflict_c.get())
   {
-    if( e<Theory::EFFORT_LAST_CALL )
+    if (e < Theory::EFFORT_LAST_CALL)
     {
       // this can happen in rare cases when quantifiers is the first to realize
       // there is a quantifier-free conflict, for example, when it discovers
@@ -445,14 +445,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
       // there is a conflict. In this case, we return, trusting that theory
       // combination will do the right thing (split on equalities until there is
       // a conflict at the quantifier-free level).
-      Trace("quant-engine-debug") << "Conflicting lemma already reported by quantifiers, return." << std::endl;
+      Trace("quant-engine-debug")
+          << "Conflicting lemma already reported by quantifiers, return."
+          << std::endl;
       return;
     }
     // we reported what we thought was a conflicting lemma, but now we have
     // gotten a check at LAST_CALL effort, indicating that the lemma we reported
     // was not conflicting. This should never happen, but in production mode, we
     // proceed with the check.
-    Assert( false );
+    Assert(false);
   }
   bool needsCheck = !d_lemmas_waiting.empty();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
@@ -641,7 +643,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 setIncomplete = true;
               }
             }
-            if( d_conflict_c.get() )
+            if (d_conflict_c.get())
             {
               // we reported a conflicting lemma, should return
               setIncomplete = true;
