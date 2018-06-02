@@ -1085,6 +1085,7 @@ REG1_TESTS = \
 	regress1/fmf/german169.smt2 \
 	regress1/fmf/german73.smt2 \
 	regress1/fmf/issue916-fmf-or.smt2 \
+	regress1/fmf/issue2034-preinit.smt2 \
 	regress1/fmf/jasmin-cdt-crash.smt2 \
 	regress1/fmf/ko-bound-set.cvc \
 	regress1/fmf/loopy_coda.smt2 \
@@ -1589,7 +1590,6 @@ REG2_TESTS = \
 	regress2/ooo.tag10.smt2 \
 	regress2/piVC_5581bd.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
-	regress2/quantifiers/ForElimination-scala-9.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \
 	regress2/quantifiers/javafe.ast.WhileStmt.447.smt2 \
@@ -1958,6 +1958,7 @@ DISABLED_TESTS = \
 	regress2/bug396.smt2 \
 	regress2/nl/dumortier-050317.smt2 \
 	regress2/nl/nt-lemmas-bad.smt2 \
+	regress2/quantifiers/ForElimination-scala-9.smt2 \
 	regress2/quantifiers/small-bug1-fixpoint-3.smt2 \
 	regress2/xs-11-20-5-2-5-3.smt \
 	regress2/xs-11-20-5-2-5-3.smt2
