@@ -1012,10 +1012,10 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
     if( d_pol ){
       tat = qe->getTermDatabase()->getTermArgTrie( d_eqc, d_op );
     }else{
-      Node r = qe->getEqualityQuery()->getRepresentative( d_eqc );
       //iterate over all classes except r
       tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
-      if( tat ){
+      if( tat && !qe->inConflict() ){
+        Node r = qe->getEqualityQuery()->getRepresentative( d_eqc );
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
           if( it->first!=r ){
             InstMatch m( q );
@@ -1025,12 +1025,12 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
             }
           }
         }
-        tat = NULL;
       }
+      tat = nullptr;
     }
   }
   Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;
-  if( tat ){
+  if( tat && !qe->inConflict() ){
     InstMatch m( q );
     addInstantiations( m, qe, addedLemmas, 0, tat );
   }
