@@ -1085,6 +1085,7 @@ REG1_TESTS = \
 	regress1/fmf/german169.smt2 \
 	regress1/fmf/german73.smt2 \
 	regress1/fmf/issue916-fmf-or.smt2 \
+	regress1/fmf/issue2034-preinit.smt2 \
 	regress1/fmf/jasmin-cdt-crash.smt2 \
 	regress1/fmf/ko-bound-set.cvc \
 	regress1/fmf/loopy_coda.smt2 \
