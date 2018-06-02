@@ -67,6 +67,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   // the thing we are checking for sat
   Abc_Obj_t* d_aigOutputNode;
 
+  std::unique_ptr<MinisatEmptyNotify> d_notify;
+
   void addAtom(TNode atom);
   void simplifyAig();
   void storeBBAtom(TNode atom, Abc_Obj_t* atom_bb) override;
