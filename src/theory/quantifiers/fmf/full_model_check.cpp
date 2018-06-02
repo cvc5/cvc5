@@ -465,7 +465,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     for( size_t i=0; i<add_conds.size(); i++ ){
       Node c = add_conds[i];
       Node v = add_values[i];
-      Trace("fmc-model-debug") << "Add cond/value : " << c << " -> " << v << std::endl;
+      Trace("fmc-model-debug")
+          << "Add cond/value : " << c << " -> " << v << std::endl;
       std::vector< Node > children;
       std::vector< Node > entry_children;
       children.push_back(op);
@@ -491,7 +492,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       }
       Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
       Node nv = fm->getRepresentative( v );
-      Trace("fmc-model-debug") << "Representative of " << v << " is " << nv << std::endl;
+      Trace("fmc-model-debug")
+          << "Representative of " << v << " is " << nv << std::endl;
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
         Assert( false );
@@ -574,17 +576,18 @@ void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn )
       // equivalence class of its type.
       if (!fm->hasTerm(mb) && !mb.isConst())
       {
-        std::map< TypeNode, Node >::iterator itpe = d_preinitialized_eqc.find(tn);
-        if( itpe==d_preinitialized_eqc.end() )
+        std::map<TypeNode, Node>::iterator itpe = d_preinitialized_eqc.find(tn);
+        if (itpe == d_preinitialized_eqc.end())
         {
           Trace("fmc") << "...add model basis term to EE of model " << mb << " "
-                      << tn << std::endl;
+                       << tn << std::endl;
           fm->d_equalityEngine->addTerm(mb);
         }
         else
         {
-          Trace("fmc") << "...add model basis eqc equality to model " << mb << " == " << itpe->second << " " << tn << std::endl;
-          bool ret = fm->assertEquality(mb,itpe->second,true);
+          Trace("fmc") << "...add model basis eqc equality to model " << mb
+                       << " == " << itpe->second << " " << tn << std::endl;
+          bool ret = fm->assertEquality(mb, itpe->second, true);
           AlwaysAssert(ret);
         }
       }
