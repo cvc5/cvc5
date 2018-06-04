@@ -56,7 +56,7 @@ private:
 public:
   LtePartialInst( QuantifiersEngine * qe, context::Context* c );
   /** determine whether this quantified formula will be reduced */
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
   /** was invoked */
   bool wasInvoked() { return d_wasInvoked; }
   
@@ -64,11 +64,8 @@ public:
   bool needsCheck(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /* Called for new quantifiers */
-  void registerQuantifier(Node q) override {}
   /* check complete */
   bool checkComplete() override { return !d_wasInvoked; }
-  void assertNode(Node n) override {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "LtePartialInst"; }
 };

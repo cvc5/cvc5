@@ -153,7 +153,8 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 
   // CBQI typically works for satisfaction-complete theories
   TheoryId t = kindToTheoryId(k);
-  if (t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL)
+  if (t == THEORY_BV || t == THEORY_FP || t == THEORY_DATATYPES
+      || t == THEORY_BOOL)
   {
     return CEG_HANDLED;
   }
@@ -221,7 +222,8 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     return itv->second;
   }
   CegHandledStatus ret = CEG_UNHANDLED;
-  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector())
+  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector()
+      || tn.isFloatingPoint())
   {
     ret = CEG_HANDLED;
   }
@@ -1475,6 +1477,9 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
     Node rlem = lems[i];
     rlem = Rewriter::rewrite( rlem );
+    // also must preprocess to ensure that the counterexample atoms we
+    // collect below are identical to the atoms that we add to the CNF stream
+    rlem = d_qe->getTheoryEngine()->preprocess(rlem);
     Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
     //record the literals that imply auxiliary variables to be equal to terms
     if( lems[i].getKind()==ITE && rlem.getKind()==ITE ){
@@ -1498,7 +1503,6 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }*/
     lems[i] = rlem;
   }
-
   // determine variable order: must do Reals before Ints
   Trace("cbqi-debug") << "Determine variable order..." << std::endl;
   if (!d_vars.empty())
@@ -1546,7 +1550,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }
   }
 
-  //collect atoms from all lemmas: we will only do bounds coming from original body
+  // collect atoms from all lemmas: we will only solve for literals coming from
+  // the original body
   d_is_nested_quant = false;
   std::map< Node, bool > visited;
   for( unsigned i=0; i<lems.size(); i++ ){

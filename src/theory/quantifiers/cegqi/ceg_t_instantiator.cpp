@@ -198,6 +198,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         Assert( ci->getOutput()->isEligibleForInstantiation( realPart ) );
         //re-isolate
         Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
+        veq_c = Node::null();
         ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
         Trace("cegqi-arith-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cegqi-arith-debug") << "                 real part : " << realPart << std::endl;
