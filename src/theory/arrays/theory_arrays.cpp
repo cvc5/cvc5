@@ -668,6 +668,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     {
       d_equalityEngine.addTerm(node);
     }
+    Assert((d_isPreRegistered.insert(node), true));
 
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       // Apply RIntro1 rule to any stores equal to store if not done already
@@ -717,7 +718,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       d_reads.push_back(node);
     }
 
-    Assert((d_isPreRegistered.insert(node), true));
     checkRowForIndex(node[1], store);
     break;
   }
