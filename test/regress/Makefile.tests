@@ -513,6 +513,8 @@ REG0_TESTS = \
 	regress0/parser/as.smt2 \
 	regress0/parser/constraint.smt2 \
 	regress0/parser/declarefun-emptyset-uf.smt2 \
+	regress0/parser/shadow_fun_symbol_all.smt2 \
+	regress0/parser/shadow_fun_symbol_nirat.smt2 \
 	regress0/parser/strings20.smt2 \
 	regress0/parser/strings25.smt2 \
 	regress0/precedence/and-not.cvc \
@@ -602,8 +604,8 @@ REG0_TESTS = \
 	regress0/quantifiers/floor.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
-	regress0/quantifiers/issue2031-bv-var-elim.smt2 \
 	regress0/quantifiers/issue1805.smt2 \
+	regress0/quantifiers/issue2031-bv-var-elim.smt2 \
 	regress0/quantifiers/issue2033-macro-arith.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \

@@ -36,6 +36,7 @@ LogicInfo::LogicInfo()
       d_sharingTheories(0),
       d_integers(true),
       d_reals(true),
+      d_transcendentals(true),
       d_linear(false),
       d_differenceLogic(false),
       d_cardinalityConstraints(false),
@@ -53,6 +54,7 @@ LogicInfo::LogicInfo(std::string logicString)
       d_sharingTheories(0),
       d_integers(false),
       d_reals(false),
+      d_transcendentals(false),
       d_linear(false),
       d_differenceLogic(false),
       d_cardinalityConstraints(false),
@@ -69,6 +71,7 @@ LogicInfo::LogicInfo(const char* logicString)
       d_sharingTheories(0),
       d_integers(false),
       d_reals(false),
+      d_transcendentals(false),
       d_linear(false),
       d_differenceLogic(false),
       d_cardinalityConstraints(false),
@@ -154,6 +157,18 @@ bool LogicInfo::areRealsUsed() const {
       isTheoryEnabled(theory::THEORY_ARITH), *this,
       "Arithmetic not used in this LogicInfo; cannot ask whether reals are used");
   return d_reals;
+}
+
+bool LogicInfo::areTranscendentalsUsed() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  PrettyCheckArgument(isTheoryEnabled(theory::THEORY_ARITH),
+                      *this,
+                      "Arithmetic not used in this LogicInfo; cannot ask "
+                      "whether transcendentals are used");
+  return d_transcendentals;
 }
 
 bool LogicInfo::isLinear() const {
@@ -301,6 +316,7 @@ std::string LogicInfo::getLogicString() const {
           ss << (areIntegersUsed() ? "I" : "");
           ss << (areRealsUsed() ? "R" : "");
           ss << "A";
+          ss << (areTranscendentalsUsed() ? "T" : "");
         }
         ++seen;
       }
@@ -471,11 +487,21 @@ void LogicInfo::setLogicString(std::string logicString)
         enableReals();
         arithNonLinear();
         p += 3;
+        if (*p == 'T')
+        {
+          arithTranscendentals();
+          p += 1;
+        }
       } else if(!strncmp(p, "NIRA", 4)) {
         enableIntegers();
         enableReals();
         arithNonLinear();
         p += 4;
+        if (*p == 'T')
+        {
+          arithTranscendentals();
+          p += 1;
+        }
       }
       if(!strncmp(p, "FS", 2)) {
         enableTheory(THEORY_SETS);
@@ -578,6 +604,22 @@ void LogicInfo::disableReals() {
   d_reals = false;
   if(!d_integers) {
     disableTheory(THEORY_ARITH);
+  }
+}
+
+void LogicInfo::arithTranscendentals()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  d_logicString = "";
+  d_transcendentals = true;
+  if (!d_reals)
+  {
+    enableReals();
+  }
+  if (d_linear)
+  {
+    arithNonLinear();
   }
 }
 

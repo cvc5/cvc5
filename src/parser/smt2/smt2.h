@@ -40,21 +40,23 @@ class Smt2 : public Parser {
   friend class ParserBuilder;
 
 public:
-  enum Theory {
-    THEORY_ARRAYS,
-    THEORY_BITVECTORS,
-    THEORY_CORE,
-    THEORY_DATATYPES,
-    THEORY_INTS,
-    THEORY_REALS,
-    THEORY_REALS_INTS,
-    THEORY_QUANTIFIERS,
-    THEORY_SETS,
-    THEORY_STRINGS,
-    THEORY_UF,
-    THEORY_FP,
-    THEORY_SEP
-  };
+ enum Theory
+ {
+   THEORY_ARRAYS,
+   THEORY_BITVECTORS,
+   THEORY_CORE,
+   THEORY_DATATYPES,
+   THEORY_INTS,
+   THEORY_REALS,
+   THEORY_TRANSCENDENTALS,
+   THEORY_REALS_INTS,
+   THEORY_QUANTIFIERS,
+   THEORY_SETS,
+   THEORY_STRINGS,
+   THEORY_UF,
+   THEORY_FP,
+   THEORY_SEP
+ };
 
 private:
   bool d_logicSet;
@@ -184,6 +186,12 @@ public:
     if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
       std::stringstream ss;
       ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIB";
+      parseError(ss.str());
+    }
+    else if (isOperatorEnabled(name))
+    {
+      std::stringstream ss;
+      ss << "Symbol `" << name << "' is shadowing a theory function symbol";
       parseError(ss.str());
     }
   }
@@ -385,6 +393,8 @@ private:
                              std::vector<Expr>& lvars);
 
   void addArithmeticOperators();
+
+  void addTranscendentalOperators();
 
   void addBitvectorOperators();
 

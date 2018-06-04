@@ -51,7 +51,10 @@ void Smt2::addArithmeticOperators() {
   Parser::addOperator(kind::LEQ);
   Parser::addOperator(kind::GT);
   Parser::addOperator(kind::GEQ);
-  
+}
+
+void Smt2::addTranscendentalOperators()
+{
   addOperator(kind::POW, "^");
   addOperator(kind::EXPONENTIAL, "exp");
   addOperator(kind::SINE, "sin");
@@ -66,7 +69,6 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::ARCCOSECANT, "arccsc");
   addOperator(kind::ARCSECANT, "arcsec");
   addOperator(kind::ARCCOTANGENT, "arccot");
-
   addOperator(kind::SQRT, "sqrt");
 }
 
@@ -248,6 +250,8 @@ void Smt2::addTheory(Theory theory) {
     addArithmeticOperators();
     Parser::addOperator(kind::DIVISION);
     break;
+
+  case THEORY_TRANSCENDENTALS: addTranscendentalOperators(); break;
 
   case THEORY_QUANTIFIERS:
     break;
@@ -485,6 +489,11 @@ void Smt2::setLogic(std::string name) {
       }
     } else if(d_logic.areRealsUsed()) {
       addTheory(THEORY_REALS);
+    }
+
+    if (d_logic.areTranscendentalsUsed())
+    {
+      addTheory(THEORY_TRANSCENDENTALS);
     }
   }
 
