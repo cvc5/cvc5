@@ -65,9 +65,6 @@ class TheoryQuantifiers : public Theory {
   void assertUniversal( Node n );
   void assertExistential( Node n );
   void computeCareGraph() override;
-
-  using BoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
-
   /** number of instantiations */
   int d_numInstantiations;
   int d_baseDecLevel;

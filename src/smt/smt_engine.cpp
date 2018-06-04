@@ -2093,6 +2093,11 @@ void SmtEngine::setDefaults() {
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
     }
+    if (options::incrementalSolving())
+    {
+      // cannot do nested quantifier elimination in incremental mode
+      options::cbqiNestedQE.set(false);
+    }
     if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
     {
       options::cbqiAll.set( false );
@@ -2354,10 +2359,12 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if(key == "source" ||
-     key == "category" ||
-     key == "difficulty" ||
-     key == "notes") {
+  if (key == "source"
+   || key == "category"
+   || key == "difficulty"
+   || key == "notes"
+   || key == "license")
+  {
     // ignore these
     return;
   } else if(key == "name") {

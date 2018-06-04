@@ -81,7 +81,7 @@ class InstantiationEngine : public QuantifiersModule {
   void reset_round(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
   bool checkCompleteFor(Node q) override;
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
   void registerQuantifier(Node q) override;
   Node explain(TNode n) { return Node::null(); }
   /** add user pattern */
