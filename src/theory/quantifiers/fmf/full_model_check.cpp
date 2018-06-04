@@ -339,12 +339,14 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
   Trace("fmc") << "---Full Model Check preprocess() " << std::endl;
+  d_preinitialized_eqc.clear();
   d_preinitialized_types.clear();
   //traverse equality engine
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( fm->d_equalityEngine );
   while( !eqcs_i.isFinished() ){
-    TypeNode tr = (*eqcs_i).getType();
-    d_preinitialized_types[tr] = true;
+    Node r = *eqcs_i;
+    TypeNode tr = r.getType();
+    d_preinitialized_eqc[tr] = r;
     ++eqcs_i;
   }
 
@@ -352,8 +354,10 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   fm->initialize();
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
     Node op = it->first;
+    Trace("fmc") << "preInitialize types for " << op << std::endl;
     TypeNode tno = op.getType();
     for( unsigned i=0; i<tno.getNumChildren(); i++) {
+      Trace("fmc") << "preInitializeType " << tno[i] << std::endl;
       preInitializeType( fm, tno[i] );
     }
   }
@@ -461,6 +465,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     for( size_t i=0; i<add_conds.size(); i++ ){
       Node c = add_conds[i];
       Node v = add_values[i];
+      Trace("fmc-model-debug")
+          << "Add cond/value : " << c << " -> " << v << std::endl;
       std::vector< Node > children;
       std::vector< Node > entry_children;
       children.push_back(op);
@@ -486,6 +492,8 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
       }
       Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
       Node nv = fm->getRepresentative( v );
+      Trace("fmc-model-debug")
+          << "Representative of " << v << " is " << nv << std::endl;
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
         Assert( false );
@@ -562,11 +570,26 @@ void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn )
     if (!tn.isFunction() || options::ufHo())
     {
       Node mb = fm->getModelBasisTerm(tn);
-      if (!mb.isConst())
+      // if the model basis term does not exist in the model,
+      // either add it directly to the model's equality engine if no other terms
+      // of this type exist, or otherwise assert that it is equal to the first
+      // equivalence class of its type.
+      if (!fm->hasTerm(mb) && !mb.isConst())
       {
-        Trace("fmc") << "...add model basis term to EE of model " << mb << " "
-                     << tn << std::endl;
-        fm->d_equalityEngine->addTerm(mb);
+        std::map<TypeNode, Node>::iterator itpe = d_preinitialized_eqc.find(tn);
+        if (itpe == d_preinitialized_eqc.end())
+        {
+          Trace("fmc") << "...add model basis term to EE of model " << mb << " "
+                       << tn << std::endl;
+          fm->d_equalityEngine->addTerm(mb);
+        }
+        else
+        {
+          Trace("fmc") << "...add model basis eqc equality to model " << mb
+                       << " == " << itpe->second << " " << tn << std::endl;
+          bool ret = fm->assertEquality(mb, itpe->second, true);
+          AlwaysAssert(ret);
+        }
       }
     }
   }

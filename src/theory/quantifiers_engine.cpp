@@ -431,6 +431,31 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
+  if (d_conflict_c.get())
+  {
+    if (e < Theory::EFFORT_LAST_CALL)
+    {
+      // this can happen in rare cases when quantifiers is the first to realize
+      // there is a quantifier-free conflict, for example, when it discovers
+      // disequal and congruent terms in the master equality engine during
+      // term indexing. In such cases, quantifiers reports a "conflicting lemma"
+      // that is, one that is entailed to be false by the current assignment.
+      // If this lemma is not a SAT conflict, we may get another call to full
+      // effort check and the quantifier-free solvers still haven't realized
+      // there is a conflict. In this case, we return, trusting that theory
+      // combination will do the right thing (split on equalities until there is
+      // a conflict at the quantifier-free level).
+      Trace("quant-engine-debug")
+          << "Conflicting lemma already reported by quantifiers, return."
+          << std::endl;
+      return;
+    }
+    // we reported what we thought was a conflicting lemma, but now we have
+    // gotten a check at LAST_CALL effort, indicating that the lemma we reported
+    // was not conflicting. This should never happen, but in production mode, we
+    // proceed with the check.
+    Assert(false);
+  }
   bool needsCheck = !d_lemmas_waiting.empty();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
@@ -457,8 +482,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    //this will fail if a set of instances is marked as a conflict, but is not
-    Assert( !d_conflict_c.get() );
     //flush previous lemmas (for instance, if was interupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
@@ -619,6 +642,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
                                             << " was incomplete." << std::endl;
                 setIncomplete = true;
               }
+            }
+            if (d_conflict_c.get())
+            {
+              // we reported a conflicting lemma, should return
+              setIncomplete = true;
             }
             //if we have a chance not to set incomplete
             if( !setIncomplete ){
