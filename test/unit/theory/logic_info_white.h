@@ -322,6 +322,7 @@ public:
     TS_ASSERT( info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT(!info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -339,6 +340,7 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT(!info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -355,6 +357,7 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(!info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -372,6 +375,7 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(!info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -389,6 +393,7 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(!info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -406,6 +411,7 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT(!info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -424,6 +430,7 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(info.areTranscendentalsUsed());
     TS_ASSERT( !info.hasEverything() );
     TS_ASSERT( !info.hasNothing() );
 
@@ -495,6 +502,7 @@ public:
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(info.areTranscendentalsUsed());
     TS_ASSERT( !info.isLinear() );
 
     TS_ASSERT_THROWS( info.arithOnlyLinear(), CVC4::IllegalArgumentException );
@@ -561,6 +569,7 @@ public:
     TS_ASSERT_THROWS( info.areIntegersUsed(), IllegalArgumentException );
     TS_ASSERT_THROWS( info.isDifferenceLogic(), IllegalArgumentException );
     TS_ASSERT_THROWS( info.areRealsUsed(), IllegalArgumentException );
+    TS_ASSERT_THROWS(info.areTranscendentalsUsed(), IllegalArgumentException);
 
     // check copy is unchanged
     info = info.getUnlockedCopy();
@@ -580,6 +589,7 @@ public:
     TS_ASSERT_THROWS( info.areIntegersUsed(), IllegalArgumentException );
     TS_ASSERT_THROWS( info.isDifferenceLogic(), IllegalArgumentException );
     TS_ASSERT_THROWS( info.areRealsUsed(), IllegalArgumentException );
+    TS_ASSERT_THROWS(info.areTranscendentalsUsed(), IllegalArgumentException);
 
     // check all-included logic
     info = info.getUnlockedCopy();
@@ -600,6 +610,7 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(info.areTranscendentalsUsed());
 
     // check copy is unchanged
     info = info.getUnlockedCopy();
@@ -619,6 +630,7 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT(info.areTranscendentalsUsed());
   }
 
   void eq(const LogicInfo& logic1, const LogicInfo& logic2) const {
@@ -966,6 +978,7 @@ public:
     lt("QF_IDL", "QF_UFIDL");
     lt("QF_IDL", "QF_NIA");
     nc("QF_IDL", "QF_NRA");
+    nc("QF_IDL", "QF_NRAT");
     lt("QF_IDL", "QF_AUFNIRA");
     nc("QF_IDL", "LRA");
     nc("QF_IDL", "NRA");
@@ -1075,6 +1088,7 @@ public:
     nc("QF_NRA", "AUFLIA");
     nc("QF_NRA", "AUFLIRA");
     lt("QF_NRA", "AUFNIRA");
+    lt("QF_NRA", "QF_NRAT");
 
     gt("QF_AUFNIRA", "QF_UF");
     gt("QF_AUFNIRA", "QF_LRA");
@@ -1100,6 +1114,7 @@ public:
     nc("QF_AUFNIRA", "AUFLIA");
     nc("QF_AUFNIRA", "AUFLIRA");
     lt("QF_AUFNIRA", "AUFNIRA");
+    lt("QF_AUFNIRA", "QF_AUFNIRAT");
 
     nc("LRA", "QF_UF");
     gt("LRA", "QF_LRA");
@@ -1300,6 +1315,7 @@ public:
     gt("AUFNIRA", "AUFLIA");
     gt("AUFNIRA", "AUFLIRA");
     eq("AUFNIRA", "AUFNIRA");
+    lt("AUFNIRA", "AUFNIRAT");
   }
 
 };/* class LogicInfoWhite */

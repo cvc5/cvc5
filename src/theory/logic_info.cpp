@@ -208,11 +208,10 @@ bool LogicInfo::operator==(const LogicInfo& other) const {
   PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
   if(isTheoryEnabled(theory::THEORY_ARITH)) {
-    return
-        d_integers == other.d_integers &&
-        d_reals == other.d_reals &&
-        d_linear == other.d_linear &&
-        d_differenceLogic == other.d_differenceLogic;
+    return d_integers == other.d_integers && d_reals == other.d_reals
+           && d_transcendentals == other.d_transcendentals
+           && d_linear == other.d_linear
+           && d_differenceLogic == other.d_differenceLogic;
   } else {
     return true;
   }
@@ -229,11 +228,10 @@ bool LogicInfo::operator<=(const LogicInfo& other) const {
   PrettyCheckArgument(d_sharingTheories <= other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
   if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
-    return
-        (!d_integers || other.d_integers) &&
-        (!d_reals || other.d_reals) &&
-        (d_linear || !other.d_linear) &&
-        (d_differenceLogic || !other.d_differenceLogic);
+    return (!d_integers || other.d_integers) && (!d_reals || other.d_reals)
+           && (!d_transcendentals || other.d_transcendentals)
+           && (d_linear || !other.d_linear)
+           && (d_differenceLogic || !other.d_differenceLogic);
   } else {
     return true;
   }
@@ -250,11 +248,10 @@ bool LogicInfo::operator>=(const LogicInfo& other) const {
   PrettyCheckArgument(d_sharingTheories >= other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
   if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
-    return
-        (d_integers || !other.d_integers) &&
-        (d_reals || !other.d_reals) &&
-        (!d_linear || other.d_linear) &&
-        (!d_differenceLogic || other.d_differenceLogic);
+    return (d_integers || !other.d_integers) && (d_reals || !other.d_reals)
+           && (d_transcendentals || !other.d_transcendentals)
+           && (!d_linear || other.d_linear)
+           && (!d_differenceLogic || other.d_differenceLogic);
     } else {
     return true;
   }
@@ -628,6 +625,7 @@ void LogicInfo::arithOnlyDifference() {
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = true;
+  d_transcendentals = false;
 }
 
 void LogicInfo::arithOnlyLinear() {
@@ -635,6 +633,7 @@ void LogicInfo::arithOnlyLinear() {
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = false;
+  d_transcendentals = false;
 }
 
 void LogicInfo::arithNonLinear() {
