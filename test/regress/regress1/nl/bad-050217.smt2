@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --nl-ext
 ; EXPECT: sat
-(set-logic QF_NRA)
+(set-logic QF_NRAT)
 (set-info :status sat)
 (declare-fun time__AT0@0 () Real)
 (declare-fun instance.y__AT0@0 () Real)
