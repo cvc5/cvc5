@@ -51,11 +51,13 @@ void Smt2::addArithmeticOperators() {
   Parser::addOperator(kind::LEQ);
   Parser::addOperator(kind::GT);
   Parser::addOperator(kind::GEQ);
+
+  // NOTE: this operator is non-standard
+  addOperator(kind::POW, "^");
 }
 
 void Smt2::addTranscendentalOperators()
 {
-  addOperator(kind::POW, "^");
   addOperator(kind::EXPONENTIAL, "exp");
   addOperator(kind::SINE, "sin");
   addOperator(kind::COSINE, "cos");
