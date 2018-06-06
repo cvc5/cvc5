@@ -289,7 +289,7 @@ void TheoryDatatypes::check(Effort e) {
                   //if only one constructor, then this term must be this constructor
                   Node t = DatatypesRewriter::mkTester( n, 0, dt );
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
-                  doSendLemma( t );
+                  doSendLemma(t);
                 }else{
                   Assert( consIndex!=-1 || dt.isSygus() );
                   if( options::dtBinarySplit() && consIndex!=-1 ){
@@ -310,7 +310,8 @@ void TheoryDatatypes::check(Effort e) {
                   }
                 }
                 added_split = true;
-                if( !options::dtBlastSplits() ){
+                if (!options::dtBlastSplits())
+                {
                   return;
                 }
               }else{
