@@ -463,18 +463,9 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
                            NodeManager::currentNM()->mkConst(result));
   }
   const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
-  if (dt.getNumConstructors() == 1)
-  {
-    // only one constructor, so it must be
-    Trace("datatypes-rewrite")
-        << "DatatypesRewriter::postRewrite: "
-        << "only one ctor for " << dt.getName() << " and that is "
-        << dt[0].getName() << std::endl;
-    return RewriteResponse(REWRITE_DONE,
-                           NodeManager::currentNM()->mkConst(true));
-  }
+
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
-  else if (!options::dtUseTesters())
+  if (!options::dtUseTesters())
   {
     unsigned tindex = indexOf(in.getOperator());
     Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "

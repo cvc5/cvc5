@@ -284,34 +284,25 @@ void TheoryDatatypes::check(Effort e) {
               }
 
               if( needSplit ) {
-                if( dt.getNumConstructors()==1 ){
-                  //this may not be necessary?
-                  //if only one constructor, then this term must be this constructor
-                  Node t = DatatypesRewriter::mkTester( n, 0, dt );
-                  Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
-                  doSendLemma(t);
+                Assert( consIndex!=-1 || dt.isSygus() );
+                if( options::dtBinarySplit() && consIndex!=-1 ){
+                  Node test = DatatypesRewriter::mkTester( n, consIndex, dt );
+                  Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
+                  test = Rewriter::rewrite( test );
+                  NodeBuilder<> nb(kind::OR);
+                  nb << test << test.notNode();
+                  Node lemma = nb;
+                  doSendLemma( lemma );
+                  d_out->requirePhase( test, true );
                 }else{
-                  Assert( consIndex!=-1 || dt.isSygus() );
-                  if( options::dtBinarySplit() && consIndex!=-1 ){
-                    Node test = DatatypesRewriter::mkTester( n, consIndex, dt );
-                    Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
-                    test = Rewriter::rewrite( test );
-                    NodeBuilder<> nb(kind::OR);
-                    nb << test << test.notNode();
-                    Node lemma = nb;
-                    doSendLemma( lemma );
-                    d_out->requirePhase( test, true );
-                  }else{
-                    Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
-                    Node lemma = DatatypesRewriter::mkSplit(n, dt);
-                    Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    //doSendLemma( lemma );
-                    d_out->lemma( lemma, false, false, true );
-                  }
+                  Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
+                  Node lemma = DatatypesRewriter::mkSplit(n, dt);
+                  Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
+                  //doSendLemma( lemma );
+                  d_out->lemma( lemma, false, false, true );
                 }
                 added_split = true;
-                if (!options::dtBlastSplits())
-                {
+                if( !options::dtBlastSplits() ){
                   return;
                 }
               }else{
@@ -1113,6 +1104,15 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
           }
         }
       }else{
+        if( dt.getNumConstructors()==1 )
+        {
+          // conflict by itself
+          d_conflictNode = t;
+          Trace("dt-conflict") << "CONFLICT: 1-cons conflict : " << d_conflictNode << std::endl;
+          d_out->conflict( d_conflictNode );
+          d_conflict = true;
+          return;
+        }
         //check if we have reached the maximum number of testers
         // in this case, add the positive tester
         //this should not be done for sygus, since cases may be limited
