@@ -462,11 +462,14 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(result));
   }
-  const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
-
-  // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
+  // Notice that we do *not* rewrite testers for 1-constructor datatypes to true
+  // here. Among other reasons, we don't do this to be consistent with the sygus
+  // extension of the quantifier-free datatype solver, which expects testers are
+  // asserted for all relevant terms. This invariant would be broken in the case
+  // of 1-constructor datatypes if we rewrote their testers to true.
   if (!options::dtUseTesters())
   {
+    const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
     unsigned tindex = indexOf(in.getOperator());
     Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "
                                      << in[0] << " " << tindex << std::endl;
