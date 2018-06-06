@@ -469,7 +469,8 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
   // of 1-constructor datatypes if we rewrote their testers to true.
   if (!options::dtUseTesters())
   {
-    const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
+    const Datatype& dt =
+        static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
     unsigned tindex = indexOf(in.getOperator());
     Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "
                                      << in[0] << " " << tindex << std::endl;

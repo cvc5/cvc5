@@ -635,11 +635,12 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
     }
     return nn;
   }
-  if( in.getKind()==APPLY_TESTER )
+  if (in.getKind() == APPLY_TESTER)
   {
     // if only one constructor, it is true
-    const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
-    if( dt.getNumConstructors()==1 )
+    const Datatype& dt =
+        static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
+    if (dt.getNumConstructors() == 1)
     {
       return NodeManager::currentNM()->mkConst(true);
     }
@@ -1122,14 +1123,14 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
         if (dt.getNumConstructors() == 1)
         {
           // If the datatype has only one constructor, this negated tester is a
-          // conflict by itself. Notice that we otherwise would not catch this 
-          // case, because the code below propagates a positive tester when 
+          // conflict by itself. Notice that we otherwise would not catch this
+          // case, because the code below propagates a positive tester when
           // there is exactly one possible constructor to assign remaining. In
-          // the case of 1-constructor datatypes, this condition would be 
+          // the case of 1-constructor datatypes, this condition would be
           // triggered immediately when registering any term t of 1-constructor
-          // datatype type. However, such a propagation would be too eager, 
+          // datatype type. However, such a propagation would be too eager,
           // since it would introduce selector terms for t that otherwise did
-          // not exist. This leads to infinite loops for 1-constructor 
+          // not exist. This leads to infinite loops for 1-constructor
           // non-well-founded codatatypes.
           d_conflictNode = t;
           Trace("dt-conflict")
