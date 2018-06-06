@@ -288,10 +288,8 @@ void TheoryDatatypes::check(Effort e) {
                   //this may not be necessary?
                   //if only one constructor, then this term must be this constructor
                   Node t = DatatypesRewriter::mkTester( n, 0, dt );
-                  d_pending.push_back( t );
-                  d_pending_exp[ t ] = d_true;
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
-                  d_infer.push_back( t );
+                  doSendLemma( t );
                 }else{
                   Assert( consIndex!=-1 || dt.isSygus() );
                   if( options::dtBinarySplit() && consIndex!=-1 ){
@@ -310,10 +308,10 @@ void TheoryDatatypes::check(Effort e) {
                     //doSendLemma( lemma );
                     d_out->lemma( lemma, false, false, true );
                   }
-                  added_split = true;
-                  if( !options::dtBlastSplits() ){
-                    return;
-                  }
+                }
+                added_split = true;
+                if( !options::dtBlastSplits() ){
+                  return;
                 }
               }else{
                 Trace("dt-split-debug") << "Do not split constructor for " << n << " : " << n.getType() << " " << dt.getNumConstructors() << std::endl;
