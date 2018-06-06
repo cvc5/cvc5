@@ -437,10 +437,11 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
       }
     }
   }
-  else if( n.getKind()==APPLY_TESTER )
+  else if (n.getKind() == APPLY_TESTER)
   {
-    const Datatype& dt = static_cast<DatatypeType>(n[0].getType().toType()).getDatatype();
-    if( dt.getNumConstructors()==1 )
+    const Datatype& dt =
+        static_cast<DatatypeType>(n[0].getType().toType()).getDatatype();
+    if (dt.getNumConstructors() == 1)
     {
       return 1;
     }
@@ -500,7 +501,7 @@ void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::v
           Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[oindex].getTester() ), n[0] );
           addEntailedCond( t, true, currCond, new_cond, conflict );
         }
-        else if( dt.getNumConstructors()==1 )
+        else if (dt.getNumConstructors() == 1)
         {
           conflict = true;
         }
