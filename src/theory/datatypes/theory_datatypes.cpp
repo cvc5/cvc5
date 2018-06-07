@@ -323,15 +323,18 @@ void TheoryDatatypes::check(Effort e) {
         }
         ++eqcs_i;
       }
-      if( d_addedLemma ){
+      if (d_addedLemma)
+      {
         // clear pending facts: we added a lemma, so internal inferences are
         // no longer necessary
         d_pending.clear();
         d_pending_exp.clear();
-      }else{
+      }
+      else
+      {
         // we did not add a lemma, process internal inferences. This loop
         // will repeat.
-        Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
+        Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
         flushPendingFacts();
       }
       /*
