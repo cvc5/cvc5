@@ -188,7 +188,6 @@ void TheoryDatatypes::check(Effort e) {
     Trace("datatypes-debug") << "Check for splits " << e << endl;
     do {
       d_addedFact = false;
-      bool added_split = false;
       std::map< TypeNode, Node > rec_singletons;
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
@@ -307,12 +306,11 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = DatatypesRewriter::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    //doSendLemma( lemma );
                     d_out->lemma( lemma, false, false, true );
+                    d_addedLemma = true;
                   }
-                  added_split = true;
                   if( !options::dtBlastSplits() ){
-                    return;
+                    break;
                   }
                 }
               }else{
@@ -325,11 +323,20 @@ void TheoryDatatypes::check(Effort e) {
         }
         ++eqcs_i;
       }
-      if( added_split ){
-        return;
+      if (d_addedLemma)
+      {
+        // clear pending facts: we added a lemma, so internal inferences are
+        // no longer necessary
+        d_pending.clear();
+        d_pending_exp.clear();
       }
-      Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
-      flushPendingFacts();
+      else
+      {
+        // we did not add a lemma, process internal inferences. This loop
+        // will repeat.
+        Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
+        flushPendingFacts();
+      }
       /*
       if( !d_conflict ){
         if( options::dtRewriteErrorSel() ){
