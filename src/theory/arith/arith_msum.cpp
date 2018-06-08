@@ -148,6 +148,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k)
 {
+  Assert(veq_c.isNull());
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {

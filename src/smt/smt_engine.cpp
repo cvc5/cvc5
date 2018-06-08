@@ -2071,11 +2071,15 @@ void SmtEngine::setDefaults() {
   }
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if( d_logic.isQuantified() && 
-      ( ( options::decisionMode()!=decision::DECISION_STRATEGY_INTERNAL &&
-          ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
-        d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV) ||
-        options::cbqiAll() ) ){
+  if (d_logic.isQuantified()
+      && ((options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL
+           && (d_logic.isTheoryEnabled(THEORY_ARITH)
+               || d_logic.isTheoryEnabled(THEORY_DATATYPES)
+               || d_logic.isTheoryEnabled(THEORY_BV)
+               || d_logic.isTheoryEnabled(THEORY_FP)))
+          || d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV)
+          || options::cbqiAll()))
+  {
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
     }
@@ -2092,6 +2096,11 @@ void SmtEngine::setDefaults() {
     //must rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
+    }
+    if (options::incrementalSolving())
+    {
+      // cannot do nested quantifier elimination in incremental mode
+      options::cbqiNestedQE.set(false);
     }
     if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
     {
@@ -2196,8 +2205,15 @@ void SmtEngine::setDefaults() {
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
-    //AJR: cannot use minisat elim for new implementation of sets TODO: why?
-    if( d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
+    // cannot use minisat elimination for logics where a theory solver
+    // introduces new literals into the search. This includes quantifiers
+    // (quantifier instantiation), and the lemma schemas used in non-linear
+    // and sets. We also can't use it if models are enabled.
+    if (d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified()
+        || options::produceModels() || options::produceAssignments()
+        || options::checkModels()
+        || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()))
+    {
       options::minisatUseElim.set( false );
     }
   }
@@ -2347,16 +2363,20 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if(key == "source" ||
-     key == "category" ||
-     key == "difficulty" ||
-     key == "notes") {
+  if (key == "source"
+   || key == "category"
+   || key == "difficulty"
+   || key == "notes"
+   || key == "license")
+  {
     // ignore these
     return;
   } else if(key == "name") {
     d_filename = value.getValue();
     return;
-  } else if(key == "smt-lib-version") {
+  }
+  else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
+  {
     language::input::Language ilang = language::input::LANG_AUTO;
     if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
         (value.isRational() && value.getRationalValue() == Rational(2)) ||

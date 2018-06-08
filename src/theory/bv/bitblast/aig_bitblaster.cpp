@@ -139,7 +139,8 @@ AigBitblaster::AigBitblaster()
       d_nullContext(new context::Context()),
       d_aigCache(),
       d_bbAtoms(),
-      d_aigOutputNode(NULL)
+      d_aigOutputNode(NULL),
+      d_notify()
 {
   prop::SatSolver* solver = nullptr;
   switch (options::bvSatSolver())
@@ -149,8 +150,8 @@ AigBitblaster::AigBitblaster()
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
-      MinisatEmptyNotify notify;
-      minisat->setNotify(&notify);
+      d_notify.reset(new MinisatEmptyNotify());
+      minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }
