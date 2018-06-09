@@ -244,7 +244,13 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
         return
 
     for req_feature in requires:
-        if req_feature not in cvc4_features:
+        if req_feature.startswith("no-"):
+            inv_feature = req_feature[len("no-"):]
+            if inv_feature in cvc4_features:
+                print('1..0 # Skipped regression: not valid with {}'.format(
+                    inv_feature))
+                return
+        elif req_feature not in cvc4_features:
             print('1..0 # Skipped regression: {} not supported'.format(
                 req_feature))
             return
