@@ -344,7 +344,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     // Fit to size
     ps.shrink(i - j);
 
-    // If we are in solve or decision level > 0
+    // If we are in solve_ or propagate
     if (minisat_busy)
     {
       Debug("pf::sat") << "Add clause adding a new lemma: ";
