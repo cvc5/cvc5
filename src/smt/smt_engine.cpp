@@ -4709,6 +4709,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       }
     }
 
+    d_propEngine->resetTrail();
+
     // Pop the context
     if (didInternalPush)
     {

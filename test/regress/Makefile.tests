@@ -570,6 +570,7 @@ REG0_TESTS = \
 	regress0/push-pop/boolean/fuzz_48.smt2 \
 	regress0/push-pop/boolean/fuzz_49.smt2 \
 	regress0/push-pop/boolean/fuzz_50.smt2 \
+	regress0/push-pop/bug1990.smt2 \
 	regress0/push-pop/bug233.cvc \
 	regress0/push-pop/bug654-dd.smt2 \
 	regress0/push-pop/bug691.smt2 \
