@@ -140,6 +140,13 @@ void ModelOracle::check(Theory::Effort e, QEffort quant_e)
   {
     query = query.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
   }
+  query = Rewriter::rewrite( query );
+  if( query.isConst() )
+  {
+    Trace("mb-oracle") << "  ...query simplifies to constant " << query << std::endl;
+    d_check_success = !query.getConst<bool>();
+    return;
+  }
   // also include distinctness of variables introduced as constants
   for( const std::pair< TypeNode, std::vector< Node > >& fv : d_fresh_var_type )
   {
@@ -159,7 +166,6 @@ void ModelOracle::check(Theory::Effort e, QEffort quant_e)
   
   // make a separate smt call
   Trace("mb-oracle") << "  make the satisfiability call...\n";
-  query = Rewriter::rewrite( query );
   Trace("mb-oracle-debug") << "  ...query is : " << query << std::endl;
   SmtEngine mbOracle(nm->toExprManager());
   mbOracle.setLogic(smt::currentSmtEngine()->getLogicInfo());
