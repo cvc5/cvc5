@@ -186,6 +186,14 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "do global negation of input formula"
 
+[[option]]
+  name       = "quantModelOracle"
+  category   = "regular"
+  long       = "quant-model-oracle"
+  type       = "bool"
+  default    = "false"
+  help       = "use an oracle for determining satisfiable instances"
+
 #### E-matching options
 
 [[option]]

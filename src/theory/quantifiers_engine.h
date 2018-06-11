@@ -76,6 +76,7 @@ namespace quantifiers {
   class QuantDSplit;
   class QuantAntiSkolem;
   class EqualityInference;
+  class ModelOracle;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -159,7 +160,8 @@ private:
   quantifiers::QuantAntiSkolem * d_anti_skolem;
   /** quantifiers instantiation propagtor */
   quantifiers::InstPropagator * d_inst_prop;
-
+  /** quantifiers model oracle */
+  std::unique_ptr<quantifiers::ModelOracle> d_model_oracle;
  private:  //this information is reset during check
     /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;

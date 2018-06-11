@@ -445,6 +445,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/local_theory_ext.h \
 	theory/quantifiers/macros.cpp \
 	theory/quantifiers/macros.h \
+	theory/quantifiers/model_oracle.cpp \
+	theory/quantifiers/model_oracle.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_epr.cpp \

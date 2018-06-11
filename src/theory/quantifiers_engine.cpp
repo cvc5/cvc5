@@ -53,6 +53,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/model_oracle.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -74,6 +75,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_instantiate(new quantifiers::Instantiate(this, u)),
       d_skolemize(new quantifiers::Skolemize(this, u)),
       d_term_enum(new quantifiers::TermEnumeration),
+      d_model_oracle(new quantifiers::ModelOracle(this)),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_prereg(u),
@@ -202,6 +204,10 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     d_modules.push_back( d_ceg_inst );
     //needsBuilder = true;
   }  
+  if( options::quantModelOracle() )
+  {
+    d_modules.push_back(d_model_oracle.get());
+  }
   //finite model finding
   if( options::finiteModelFind() ){
     if( options::fmfBound() ){
