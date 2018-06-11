@@ -1,4 +1,5 @@
 (set-logic QF_S)
+(set-info :status sat)
 
 (declare-const action String)
 (declare-const example_key String)
@@ -17,4 +18,3 @@
          ))
 
 (check-sat)
-(get-model)
