@@ -28,7 +28,7 @@ namespace theory {
 namespace strings {
 
 class TheoryStringsRewriter {
-private:
+ private:
   /** simple regular expression consume 
    * 
    * This method is called when we are rewriting a membership of the form
