@@ -1557,7 +1557,8 @@ REG1_TESTS = \
 	regress1/uflia/microwave21.ec.minimized.smt2 \
 	regress1/uflia/simple_cyclic2.smt2 \
 	regress1/uflia/speed2_e8_449_e8_517.ec.smt2 \
-	regress1/uflia/stalmark_e7_27_e7_31.ec.smt2
+	regress1/uflia/stalmark_e7_27_e7_31.ec.smt2 \
+	regress1/wrong-qfabvfp-smtcomp2018.smt2
 
 REG2_TESTS = \
 	regress2/DTP_k2_n35_c175_s15.smt2 \

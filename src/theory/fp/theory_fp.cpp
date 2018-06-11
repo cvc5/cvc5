@@ -907,8 +907,9 @@ bool TheoryFp::handlePropagation(TNode node) {
 
   bool stat = d_out->propagate(node);
 
-  if (!stat) handleConflict(node);
-
+  if (!stat) {
+    d_conflict = true;
+  }
   return stat;
 }
 
