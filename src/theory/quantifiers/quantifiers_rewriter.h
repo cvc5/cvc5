@@ -98,6 +98,7 @@ private:
   static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector<TNode>& fvs);
 public:
   static Node rewriteRewriteRule( Node r );
+  /** returns true if n contains any quantified formula as a subterm */
   static bool containsQuantifiers( Node n );
   static bool isPrenexNormalForm( Node n );
   /** preprocess
