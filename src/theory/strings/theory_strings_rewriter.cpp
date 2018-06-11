@@ -31,7 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
 Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir<0 ? 0 : dir;
   unsigned tmax = dir<0 ? 1 : dir;
   //try to remove off front and back
@@ -62,7 +62,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
               if( index==0 ){
                 mchildren.push_back( s );
               }else{
-                children.push_back( nm->mkNode( STRING_TO_REGEXP, s ) );
+                children.push_back(nm->mkNode(STRING_TO_REGEXP, s));
               }
             }
             do_next = true;

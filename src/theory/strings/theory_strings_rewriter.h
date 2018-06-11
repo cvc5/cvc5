@@ -29,29 +29,29 @@ namespace strings {
 
 class TheoryStringsRewriter {
  private:
-  /** simple regular expression consume 
-   * 
+  /** simple regular expression consume
+   *
    * This method is called when we are rewriting a membership of the form
    *   s1 ++ ... ++ sn in r1 ++ ... ++ rm
    * We have that mchildren consists of the strings s1...sn, and children
-   * consists of the regular expressions r1...rm. 
-   * 
+   * consists of the regular expressions r1...rm.
+   *
    * This method tries to strip off parts of the concatenation terms. It updates
    * the vectors such that the resulting vectors are such that the membersip
    * mchildren[n'...n''] in children[m'...m''] is equivalent to the input
    * membership. The argument dir indicates the direction to consider, where
    * 0 means strip off the front, 1 off the back, and < 0 off of both.
-   * 
+   *
    * If this method returns the false node, then we have inferred that the input
    * membership is equivalent to false.
-   * 
-   * For example, given input 
-   *   mchildren = { "ab", x }, children = { "a", ("cd")* } and dir = 0, 
+   *
+   * For example, given input
+   *   mchildren = { "ab", x }, children = { "a", ("cd")* } and dir = 0,
    * this method updates:
    *   mchildren = { "b", x }, children = { ("cd")* }
-   * 
-   * For example, given input 
-   *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1, 
+   *
+   * For example, given input
+   *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1,
    * this method updates:
    *   { "b" }, { [[y]] }
    * where [[.]] denotes str.to.re.
