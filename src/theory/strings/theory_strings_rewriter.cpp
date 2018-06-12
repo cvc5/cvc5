@@ -2918,7 +2918,7 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
           unsigned svsize = svec.size();
           for (unsigned i = 0; i < svsize; i++)
           {
-            unsigned sindex = r == 0 ? i : (svsize-1) - i;
+            unsigned sindex = r == 0 ? i : (svsize - 1) - i;
             if (String::isDigit(svec[sindex]))
             {
               break;
