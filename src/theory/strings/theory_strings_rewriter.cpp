@@ -2915,9 +2915,10 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
         {
           const std::vector<unsigned>& svec = s.getVec();
           // can remove up to the first occurrence of a digit
-          for (unsigned i = 0; i < svec.size(); i++)
+          unsigned svsize = svec.size();
+          for (unsigned i = 0; i < svsize; i++)
           {
-            unsigned sindex = r == 0 ? i : (svec.size()-1) - i;
+            unsigned sindex = r == 0 ? i : (svsize-1) - i;
             if (String::isDigit(svec[sindex]))
             {
               break;
