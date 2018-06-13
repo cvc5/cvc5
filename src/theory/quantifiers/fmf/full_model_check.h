@@ -93,8 +93,25 @@ protected:
   std::map< TypeNode, Node > d_array_cond;
   std::map< Node, Node > d_array_term_cond;
   std::map< Node, std::vector< int > > d_star_insts;
-  std::map< TypeNode, bool > d_preinitialized_types;
+  //--------------------for preinitialization
+  /** preInitializeType
+   *
+   * This function ensures that the model fm is properly initialized with
+   * respect to type tn.
+   *
+   * In particular, this class relies on the use of "model basis" terms, which
+   * are distinguished terms that are used to specify default values for
+   * uninterpreted functions. This method enforces that the model basis term
+   * occurs in the model for each relevant type T, where a type T is relevant
+   * if a bound variable is of type T, or an uninterpreted function has an
+   * argument or a return value of type T.
+   */
   void preInitializeType( FirstOrderModelFmc * fm, TypeNode tn );
+  /** for each type, an equivalence class of that type from the model */
+  std::map<TypeNode, Node> d_preinitialized_eqc;
+  /** map from types to whether we have called the method above */
+  std::map<TypeNode, bool> d_preinitialized_types;
+  //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
   bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
 protected:

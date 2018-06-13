@@ -80,10 +80,6 @@ class LFSCUFProof;
 class LFSCBitVectorProof;
 class LFSCRewriterProof;
 
-template <class Solver> class ProofProxy;
-typedef ProofProxy< CVC4::Minisat::Solver> CoreProofProxy;
-typedef ProofProxy< CVC4::BVMinisat::Solver> BVProofProxy;
-
 namespace prop {
   typedef uint64_t SatVariable;
   class SatLiteral;

@@ -198,6 +198,7 @@ int ArithInstantiator::solve_arith( CegInstantiator * ci, Node pv, Node atom, No
         Assert( ci->getOutput()->isEligibleForInstantiation( realPart ) );
         //re-isolate
         Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
+        veq_c = Node::null();
         ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
         Trace("cegqi-arith-debug") << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " " << atom.getKind() << " " << val << std::endl;
         Trace("cegqi-arith-debug") << "                 real part : " << realPart << std::endl;
@@ -354,7 +355,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
               lhs_value = Rewriter::rewrite( lhs_value );
             }
             Trace("cegqi-arith-debug") << "Disequality : check model values " << lhs_value << " " << rhs_value << std::endl;
-            Assert( lhs_value!=rhs_value );
+            // it generally should be the case that lhs_value!=rhs_value
+            // however, this assertion is violated e.g. if non-linear is enabled
+            // since the quantifier-free arithmetic solver may pass full
+            // effort with no lemmas even when we are not guaranteed to have a
+            // model. By convention, we use GEQ to compare the values here.
             Node cmp = NodeManager::currentNM()->mkNode( GEQ, lhs_value, rhs_value );
             cmp = Rewriter::rewrite( cmp );
             Assert( cmp.isConst() );
