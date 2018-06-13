@@ -188,7 +188,7 @@ Node BvInverter::getPathToPv(
     TNode tpvs = pvs;
     Node prev_lit = slit;
     slit = slit.substitute(tpv, tpvs);
-    if( !projectNonLinear && slit!=prev_lit )
+    if( !projectNl && slit!=prev_lit )
     {
       // found another occurrence of pv that was not on the solve path,
       // hence lit is non-linear wrt pv and we return null.
