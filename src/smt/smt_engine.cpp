@@ -1424,6 +1424,46 @@ void SmtEngine::setDefaults() {
       setOption("produce-assertions", SExpr("true"));
   }
 
+  // Disable options incompatible with incremental solving, unsat cores, and
+  // proofs or output an error if enabled explicitly
+  if (options::incrementalSolving() || options::unsatCores()
+      || options::proof())
+  {
+    if (options::unconstrainedSimp())
+    {
+      if (options::unconstrainedSimp.wasSetByUser())
+      {
+        throw OptionException(
+            "unconstrained simplification not supported with unsat "
+            "cores/proofs/incremental solving");
+      }
+      Notice() << "SmtEngine: turning off unconstrained simplification to "
+                  "support unsat cores/proofs/incremental solving"
+               << endl;
+      options::unconstrainedSimp.set(false);
+    }
+  }
+  else
+  {
+    // Turn on unconstrained simplification for QF_AUFBV
+    if (!options::unconstrainedSimp.wasSetByUser())
+    {
+      //    bool qf_sat = d_logic.isPure(THEORY_BOOL) &&
+      //    !d_logic.isQuantified(); bool uncSimp = false && !qf_sat &&
+      //    !options::incrementalSolving();
+      bool uncSimp = !d_logic.isQuantified() && !options::produceModels()
+                     && !options::produceAssignments()
+                     && !options::checkModels()
+                     && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                         && d_logic.isTheoryEnabled(THEORY_BV));
+      Trace("smt") << "setting unconstrained simplification to " << uncSimp
+                   << endl;
+      options::unconstrainedSimp.set(uncSimp);
+    }
+  }
+
+  // Disable options incompatible with unsat cores and proofs or output an
+  // error if enabled explicitly
   if (options::unsatCores() || options::proof())
   {
     if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
@@ -1437,20 +1477,6 @@ void SmtEngine::setDefaults() {
                   "cores/proofs"
                << endl;
       options::simplificationMode.set(SIMPLIFICATION_MODE_NONE);
-    }
-
-    if (options::unconstrainedSimp())
-    {
-      if (options::unconstrainedSimp.wasSetByUser())
-      {
-        throw OptionException(
-            "unconstrained simplification not supported with unsat "
-            "cores/proofs");
-      }
-      Notice() << "SmtEngine: turning off unconstrained simplification to "
-                  "support unsat cores/proofs"
-               << endl;
-      options::unconstrainedSimp.set(false);
     }
 
     if (options::pbRewrites())
@@ -1570,24 +1596,6 @@ void SmtEngine::setDefaults() {
       // quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
       options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE
                                              : SIMPLIFICATION_MODE_BATCH);
-    }
-
-    // Turn on unconstrained simplification for QF_AUFBV
-    if (!options::unconstrainedSimp.wasSetByUser()
-        || options::incrementalSolving())
-    {
-      //    bool qf_sat = d_logic.isPure(THEORY_BOOL) &&
-      //    !d_logic.isQuantified(); bool uncSimp = false && !qf_sat &&
-      //    !options::incrementalSolving();
-      bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified()
-                     && !options::produceModels()
-                     && !options::produceAssignments()
-                     && !options::checkModels()
-                     && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
-                         && d_logic.isTheoryEnabled(THEORY_BV));
-      Trace("smt") << "setting unconstrained simplification to " << uncSimp
-                   << endl;
-      options::unconstrainedSimp.set(uncSimp);
     }
   }
 
