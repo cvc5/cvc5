@@ -14,14 +14,16 @@ function trywith {
   result="$(ulimit -S -t "$limit";$cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
-    *)         echo "$result" >&2;;
   esac
 }
 
 # use: finishwith [params..]
 # to run cvc4 and let it output whatever it will to stdout.
 function finishwith {
-  $cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench
+  result="$($cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench)"
+  case "$result" in
+    sat|unsat) echo "$result"; exit 0;;
+  esac
 }
 
 case "$logic" in
