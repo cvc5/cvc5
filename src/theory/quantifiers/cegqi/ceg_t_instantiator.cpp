@@ -991,9 +991,9 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   std::vector<unsigned> path;
   Node sv = d_inverter->getSolveVariable(pv.getType());
   Node pvs = ci->getModelValue(pv);
-  Trace("cegqi-bv") << "Get path to pv : " << lit << std::endl;
+  Trace("cegqi-bv") << "Get path to " << pv << " : " << lit << std::endl;
   Node slit = d_inverter->getPathToPv(
-      lit, pv, sv, pvs, path, !options::cbqiBvSolveNl());
+      lit, pv, sv, pvs, path, options::cbqiBvSolveNl());
   if (!slit.isNull())
   {
     CegInstantiatorBvInverterQuery m(ci);
@@ -1017,6 +1017,10 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
     {
       Trace("cegqi-bv") << "...failed to solve." << std::endl;
     }
+  }
+  else
+  {
+    Trace("cegqi-bv") << "...no path." << std::endl;
   }
 }
 
@@ -1982,7 +1986,10 @@ void BvInstantiatorPreprocess::collectExtracts(
       {
         if (cur.getKind() == BITVECTOR_EXTRACT)
         {
-          extract_map[cur[0]].push_back(cur);
+          if( cur[0].getKind()==INST_CONSTANT )
+          {
+            extract_map[cur[0]].push_back(cur);
+          }
         }
 
         for (const Node& nc : cur)
