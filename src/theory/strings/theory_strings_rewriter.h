@@ -55,7 +55,7 @@ class TheoryStringsRewriter {
    *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1,
    * this method updates:
    *   { "b" }, { [[y]] }
-   * where [[.]] denotes str.to.re.
+   * where [[.]] denotes str.to.re, and returns null.
    */
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
