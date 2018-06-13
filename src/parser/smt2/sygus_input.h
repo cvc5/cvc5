@@ -61,12 +61,6 @@ class SygusInput : public AntlrInput {
   /** Destructor. Frees the lexer and the parser. */
   virtual ~SygusInput();
 
-  /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const override
-  {
-    return language::input::LANG_SYGUS;
-  }
-
  protected:
   /**
    * Parse a command from the input. Returns <code>NULL</code> if

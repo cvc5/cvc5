@@ -6,7 +6,7 @@
 
 (assert (forall ((x Int)) (=> (= x 0) (I x))))
 
-(assert (forall ((x Int)) (=> (and (I x) (< x 1)) (I (+ x 1)))))
+(assert (forall ((x Int)) (=> (and (I x) (< x 6)) (I (+ x 1)))))
 
 (assert (forall ((x Int)) (=> (I x) (<= x 10))))
 

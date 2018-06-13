@@ -160,13 +160,15 @@ REG0_TESTS = \
 	regress0/bv/bug440.smt \
 	regress0/bv/bug733.smt2 \
 	regress0/bv/bug734.smt2 \
+	regress0/bv/bv-abstr-bug.smt2 \
+	regress0/bv/bv-abstr-bug2.smt2 \
 	regress0/bv/bv-int-collapse1.smt2 \
 	regress0/bv/bv-int-collapse2.smt2 \
-	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv-options1.smt2 \
 	regress0/bv/bv-options2.smt2 \
 	regress0/bv/bv-options3.smt2 \
 	regress0/bv/bv-options4.smt2 \
+	regress0/bv/bv-to-bool.smt \
 	regress0/bv/bv2nat-ground-c.smt2 \
 	regress0/bv/bv2nat-simp-range.smt2 \
 	regress0/bv/bvmul-pow2-only.smt2 \
@@ -432,6 +434,7 @@ REG0_TESTS = \
 	regress0/fmf/sc_bad_model_1221.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
+	regress0/fp/simple.smt2 \
 	regress0/fuzz_1.smt \
 	regress0/fuzz_3.smt \
 	regress0/get-value-incremental.smt2 \
@@ -475,6 +478,8 @@ REG0_TESTS = \
 	regress0/ite4.smt2 \
 	regress0/ite_real_int_type.smt \
 	regress0/ite_real_valid.smt \
+	regress0/lang_opts_2_5.smt2 \
+	regress0/lang_opts_2_6_1.smt2 \
 	regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smt \
 	regress0/lemmas/fs_not_sc_seen.induction.smt \
 	regress0/lemmas/mode_cntrl.induction.smt \
@@ -508,6 +513,8 @@ REG0_TESTS = \
 	regress0/parser/as.smt2 \
 	regress0/parser/constraint.smt2 \
 	regress0/parser/declarefun-emptyset-uf.smt2 \
+	regress0/parser/shadow_fun_symbol_all.smt2 \
+	regress0/parser/shadow_fun_symbol_nirat.smt2 \
 	regress0/parser/strings20.smt2 \
 	regress0/parser/strings25.smt2 \
 	regress0/precedence/and-not.cvc \
@@ -563,6 +570,7 @@ REG0_TESTS = \
 	regress0/push-pop/boolean/fuzz_48.smt2 \
 	regress0/push-pop/boolean/fuzz_49.smt2 \
 	regress0/push-pop/boolean/fuzz_50.smt2 \
+	regress0/push-pop/bug1990.smt2 \
 	regress0/push-pop/bug233.cvc \
 	regress0/push-pop/bug654-dd.smt2 \
 	regress0/push-pop/bug691.smt2 \
@@ -595,9 +603,11 @@ REG0_TESTS = \
 	regress0/quantifiers/ex3.smt2 \
 	regress0/quantifiers/ex6.smt2 \
 	regress0/quantifiers/floor.smt2 \
-	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
+	regress0/quantifiers/issue1805.smt2 \
+	regress0/quantifiers/issue2031-bv-var-elim.smt2 \
+	regress0/quantifiers/issue2033-macro-arith.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
@@ -796,6 +806,7 @@ REG0_TESTS = \
 	regress0/strings/str005.smt2 \
 	regress0/strings/strings-charat.cvc \
 	regress0/strings/strings-native-simple.cvc \
+	regress0/strings/strip-endpoint-itos.smt2 \
 	regress0/strings/substr-rewrites.smt2 \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
@@ -1080,6 +1091,7 @@ REG1_TESTS = \
 	regress1/fmf/german169.smt2 \
 	regress1/fmf/german73.smt2 \
 	regress1/fmf/issue916-fmf-or.smt2 \
+	regress1/fmf/issue2034-preinit.smt2 \
 	regress1/fmf/jasmin-cdt-crash.smt2 \
 	regress1/fmf/ko-bound-set.cvc \
 	regress1/fmf/loopy_coda.smt2 \
@@ -1226,6 +1238,7 @@ REG1_TESTS = \
 	regress1/push-pop/quant-fun-proc-unmacro.smt2 \
 	regress1/push-pop/quant-fun-proc.smt2 \
 	regress1/quantifiers/006-cbqi-ite.smt2 \
+	regress1/quantifiers/015-psyco-pp.smt2 \
 	regress1/quantifiers/AdditiveMethods_OwnedResults.Mz.smt2 \
 	regress1/quantifiers/Arrays_Q1-noinfer.smt2 \
 	regress1/quantifiers/NUM878.smt2 \
@@ -1250,6 +1263,7 @@ REG1_TESTS = \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
+	regress1/quantifiers/fp-cegqi-unsat.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
 	regress1/quantifiers/horn-simple.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
@@ -1291,6 +1305,7 @@ REG1_TESTS = \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
 	regress1/quantifiers/set8.smt2 \
 	regress1/quantifiers/small-pipeline-fixpoint-3.smt2 \
+	regress1/quantifiers/smtcomp-qbv-053118.smt2 \
 	regress1/quantifiers/smtlib384a03.smt2 \
 	regress1/quantifiers/smtlib46f14a.smt2 \
 	regress1/quantifiers/smtlibe99bbe.smt2 \
@@ -1543,7 +1558,8 @@ REG1_TESTS = \
 	regress1/uflia/microwave21.ec.minimized.smt2 \
 	regress1/uflia/simple_cyclic2.smt2 \
 	regress1/uflia/speed2_e8_449_e8_517.ec.smt2 \
-	regress1/uflia/stalmark_e7_27_e7_31.ec.smt2
+	regress1/uflia/stalmark_e7_27_e7_31.ec.smt2 \
+	regress1/wrong-qfabvfp-smtcomp2018.smt2
 
 REG2_TESTS = \
 	regress2/DTP_k2_n35_c175_s15.smt2 \
@@ -1582,7 +1598,6 @@ REG2_TESTS = \
 	regress2/ooo.tag10.smt2 \
 	regress2/piVC_5581bd.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
-	regress2/quantifiers/ForElimination-scala-9.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \
 	regress2/quantifiers/javafe.ast.WhileStmt.447.smt2 \
@@ -1951,6 +1966,7 @@ DISABLED_TESTS = \
 	regress2/bug396.smt2 \
 	regress2/nl/dumortier-050317.smt2 \
 	regress2/nl/nt-lemmas-bad.smt2 \
+	regress2/quantifiers/ForElimination-scala-9.smt2 \
 	regress2/quantifiers/small-bug1-fixpoint-3.smt2 \
 	regress2/xs-11-20-5-2-5-3.smt \
 	regress2/xs-11-20-5-2-5-3.smt2

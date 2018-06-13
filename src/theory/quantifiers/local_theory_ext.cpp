@@ -32,7 +32,8 @@ QuantifiersModule( qe ), d_wasInvoked( false ), d_needsCheck( false ){
 }
 
 /** add quantifier */
-void LtePartialInst::preRegisterQuantifier( Node q ) {
+void LtePartialInst::checkOwnership(Node q)
+{
   if( !q.getAttribute(LtePartialInstAttribute()) ){
     if( d_do_inst.find( q )!=d_do_inst.end() ){
       if( d_do_inst[q] ){

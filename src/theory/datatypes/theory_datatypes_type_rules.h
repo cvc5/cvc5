@@ -359,6 +359,52 @@ class DtSygusBoundTypeRule {
   }
 }; /* class DtSygusBoundTypeRule */
 
+class DtSyguEvalTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode headType = n[0].getType(check);
+    if (!headType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype sygus eval takes a datatype head");
+    }
+    const Datatype& dt =
+        static_cast<DatatypeType>(headType.toType()).getDatatype();
+    if (!dt.isSygus())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype sygus eval must have a datatype head that is sygus");
+    }
+    if (check)
+    {
+      Node svl = Node::fromExpr(dt.getSygusVarList());
+      if (svl.getNumChildren() + 1 != n.getNumChildren())
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "wrong number of arguments to a "
+                                           "datatype sygus evaluation "
+                                           "function");
+      }
+      for (unsigned i = 0, nvars = svl.getNumChildren(); i < nvars; i++)
+      {
+        TypeNode vtype = svl[i].getType(check);
+        TypeNode atype = n[i + 1].getType(check);
+        if (!vtype.isComparableTo(atype))
+        {
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "argument type mismatch in a datatype sygus evaluation function");
+        }
+      }
+    }
+    return TypeNode::fromType(dt.getSygusType());
+  }
+}; /* class DtSygusBoundTypeRule */
+
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

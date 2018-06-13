@@ -344,8 +344,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     // Fit to size
     ps.shrink(i - j);
 
-    // If we are in solve or decision level > 0
-    if (minisat_busy || decisionLevel() > 0) {
+    // If we are in solve_ or propagate
+    if (minisat_busy)
+    {
       Debug("pf::sat") << "Add clause adding a new lemma: ";
       for (int k = 0; k < ps.size(); ++k) {
         Debug("pf::sat") << ps[k] << " ";
@@ -369,6 +370,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // Debug("cores") << "lemma push " << proof_id << " " << (proof_id & 0xffffffff) << std::endl;
       // lemmas_proof_id.push(proof_id);
     } else {
+      assert(decisionLevel() == 0);
+
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
         if(PROOF_ON()) {
@@ -421,11 +424,19 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 );
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if(ca[confl].size() == 1) {
-              PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
-            } else {
-              PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
+            if (PROOF_ON())
+            {
+              if (ca[confl].size() == 1)
+              {
+                id = ProofManager::getSatProof()->storeUnitConflict(
+                    ca[confl][0], LEARNT);
+                ProofManager::getSatProof()->finalizeProof(
+                    CVC4::Minisat::CRef_Lazy);
+              }
+              else
+              {
+                ProofManager::getSatProof()->finalizeProof(confl);
+              }
             }
           }
           return ok;
@@ -526,9 +537,7 @@ void Solver::cancelUntil(int level) {
     }
 }
 
-void Solver::popTrail() {
-  cancelUntil(0);
-}
+void Solver::resetTrail() { cancelUntil(0); }
 
 //=================================================================================================
 // Major methods:
@@ -1383,7 +1392,7 @@ lbool Solver::solve_()
 
     ScopedBool scoped_bool(minisat_busy, true);
 
-    popTrail();
+    assert(decisionLevel() == 0);
 
     model.clear();
     conflict.clear();
@@ -1572,8 +1581,8 @@ void Solver::garbageCollect()
 void Solver::push()
 {
   assert(enable_incremental);
+  assert(decisionLevel() == 0);
 
-  popTrail();
   ++assertionLevel;
   Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
   trail_ok.push(ok);
@@ -1588,8 +1597,6 @@ void Solver::pop()
 {
   assert(enable_incremental);
 
-  // Pop the trail to 0 level
-  popTrail();
   assert(decisionLevel() == 0);
 
   // Pop the trail below the user level

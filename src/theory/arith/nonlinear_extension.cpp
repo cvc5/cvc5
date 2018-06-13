@@ -1038,7 +1038,13 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 {
   // should not substitute the same variable twice
-  Assert(!hasCheckModelAssignment(v));
+  Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s << std::endl;
+  // should not set exact bound more than once
+  if(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)!=d_check_model_vars.end())
+  {
+    Assert( false );
+    return;
+  }
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
     Node ms = d_check_model_subs[i];
@@ -1055,7 +1061,15 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 
 void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
 {
-  Assert(!hasCheckModelAssignment(v));
+  Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " " << u << "]" << std::endl;
+  if( l==u )
+  {
+    // bound is exact, can add as substitution
+    addCheckModelSubstitution(v,l);
+    return;
+  }
+  // should not set a bound for a value that is exact
+  Assert(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)==d_check_model_vars.end());
   Assert(l.isConst());
   Assert(u.isConst());
   Assert(l.getConst<Rational>() <= u.getConst<Rational>());
@@ -1488,7 +1502,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         qvars.push_back(v);
         if (cmp[0] != cmp[1])
         {
-          Assert(cmp[0] && !cmp[1]);
+          Assert(!cmp[0] && cmp[1]);
           // does the sign match the bound?
           if ((asgn == 1) == pol)
           {
@@ -2302,7 +2316,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       if (complete_status == 0)
       {
         Trace("nl-ext")
-            << "Checking model based on bounds for transcendental functions..."
+            << "Check model based on bounds for irrational-valued functions..."
             << std::endl;
         // check the model based on simple solving of equalities and using
         // error bounds on the Taylor approximation of transcendental functions.

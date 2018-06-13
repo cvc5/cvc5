@@ -146,8 +146,7 @@ public:
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
-  void registerQuantifier(Node q) override;
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
   void assertNode(Node n) override;
   Node getNextDecisionRequest(unsigned& priority) override;
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }

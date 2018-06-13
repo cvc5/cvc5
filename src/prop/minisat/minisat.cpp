@@ -232,6 +232,8 @@ void MinisatSatSolver::pop() {
   d_minisat->pop();
 }
 
+void MinisatSatSolver::resetTrail() { d_minisat->resetTrail(); }
+
 /// Statistics for MinisatSatSolver
 
 MinisatSatSolver::Statistics::Statistics(StatisticsRegistry* registry) :

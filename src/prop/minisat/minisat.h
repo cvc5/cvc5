@@ -74,6 +74,8 @@ public:
 
   void pop() override;
 
+  void resetTrail() override;
+
   void requirePhase(SatLiteral lit) override;
 
   bool flipDecision() override;

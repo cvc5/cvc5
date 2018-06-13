@@ -19,6 +19,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -61,9 +62,18 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
   if (tprocessed.find(tn) == tprocessed.end())
   {
     tprocessed[tn] = true;
-    Assert(tn.isDatatype());
+    if (!tn.isDatatype())
+    {
+      // may have recursed to a non-datatype, e.g. in the case that we have
+      // "any constant" constructors
+      return;
+    }
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    Assert(dt.isSygus());
+    if (!dt.isSygus())
+    {
+      // may have recursed to a non-sygus-datatype
+      return;
+    }
     // check if this datatype allows all constants
     if (dt.getSygusAllowConst())
     {
@@ -292,18 +302,21 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
-  Node op = n.getOperator();
-  unsigned cindex = Datatype::indexOf(op.toExpr());
-  if (dt[cindex].getNumArgs() > 0)
+  if (!dt.isSygus())
   {
     return false;
   }
+  Node op = n.getOperator();
+  unsigned cindex = datatypes::DatatypesRewriter::indexOf(op);
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {
     // if it represents "any constant" then it is repairable
     return true;
+  }
+  if (dt[cindex].getNumArgs() > 0)
+  {
+    return false;
   }
   if (useConstantsAsHoles && dt.getSygusAllowConst())
   {
@@ -445,7 +458,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      if (cur.getKind() == APPLY_UF && cur.getNumChildren() > 0)
+      if (datatypes::DatatypesRewriter::isSygusEvalApp(cur))
       {
         Node v = cur[0];
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
