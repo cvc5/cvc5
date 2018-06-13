@@ -29,10 +29,18 @@ using namespace std;
 using namespace CVC4::context;
 using namespace CVC4;
 
-struct DtorSensitiveObject {
-  bool& d_dtorCalled;
-  DtorSensitiveObject(bool& dtorCalled) : d_dtorCalled(dtorCalled) {}
-  ~DtorSensitiveObject() { d_dtorCalled = true; }
+struct TestObject
+{
+  bool* d_cleanupCalled;
+  TestObject(bool* cleanupCalled) : d_cleanupCalled(cleanupCalled) {}
+};
+
+class TestCleanup
+{
+ private:
+ public:
+  TestCleanup() {}
+  void operator()(TestObject* o) { *(o->d_cleanupCalled) = true; }
 };
 
 class CDListBlack : public CxxTest::TestSuite {
@@ -86,14 +94,14 @@ class CDListBlack : public CxxTest::TestSuite {
     bool shouldAlsoRemainFalse = false;
     bool aThirdFalse = false;
 
-    CDList<DtorSensitiveObject> listT(d_context, true);
-    CDList<DtorSensitiveObject> listF(d_context, false);
+    CDList<TestObject, TestCleanup> listT(d_context, true, TestCleanup());
+    CDList<TestObject, TestCleanup> listF(d_context, false, TestCleanup());
 
-    DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
-    DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
-    DtorSensitiveObject alsoFlipToTrueDSO(alsoFlipToTrue);
-    DtorSensitiveObject shouldAlsoRemainFalseDSO(shouldAlsoRemainFalse);
-    DtorSensitiveObject aThirdFalseDSO(aThirdFalse);
+    TestObject shouldRemainFalseDSO(&shouldRemainFalse);
+    TestObject shouldFlipToTrueDSO(&shouldFlipToTrue);
+    TestObject alsoFlipToTrueDSO(&alsoFlipToTrue);
+    TestObject shouldAlsoRemainFalseDSO(&shouldAlsoRemainFalse);
+    TestObject aThirdFalseDSO(&aThirdFalse);
 
     listT.push_back(shouldAlsoRemainFalseDSO);
     listF.push_back(shouldAlsoRemainFalseDSO);

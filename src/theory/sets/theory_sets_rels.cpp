@@ -1580,7 +1580,10 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 
   void TheorySetsRels::doPendingMerge() {
-    for( NodeList::const_iterator itr = d_pending_merge.begin(); itr != d_pending_merge.end(); itr++ ) {
+    for (NodeList::const_iterator itr = d_pending_merge.begin();
+         itr != d_pending_merge.end();
+         ++itr)
+    {
       if( !holds(*itr) ) {
         if( d_lemmas_produced.find(*itr)==d_lemmas_produced.end() ) {
           Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "

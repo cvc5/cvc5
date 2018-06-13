@@ -43,6 +43,7 @@ libcvc4_la_SOURCES = \
 	context/cdhashset_forward.h \
 	context/cdinsert_hashmap.h \
 	context/cdinsert_hashmap_forward.h \
+	context/cdlist.cpp \
 	context/cdlist.h \
 	context/cdlist_forward.h \
 	context/cdmaybe.h \
@@ -56,6 +57,7 @@ libcvc4_la_SOURCES = \
 	context/context.h \
 	context/context_mm.cpp \
 	context/context_mm.h \
+	context/default_clean_up.h \
 	decision/decision_attributes.h \
 	decision/decision_engine.cpp \
 	decision/decision_engine.h \

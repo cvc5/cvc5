@@ -34,16 +34,12 @@
 
 #include <memory>
 
+#include "context/default_clean_up.h"
+
 /// \cond internals
 
 namespace CVC4 {
 namespace context {
-
-template <class T>
-class DefaultCleanUp {
-public:
-  inline void operator()(T* t) const{}
-};
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
 class CDList;

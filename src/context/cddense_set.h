@@ -23,9 +23,9 @@
 
 #include <vector>
 
-#include "context/context.h"
-#include "context/cdlist_forward.h"
 #include "context/cdlist.h"
+#include "context/context.h"
+#include "context/default_clean_up.h"
 
 #include "util/index.h"
 

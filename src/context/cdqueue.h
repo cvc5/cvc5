@@ -66,13 +66,11 @@ protected:
     // We save the d_size in d_lastsave and we should never destruct below this
     // indices before the corresponding restore.
     d_lastsave = ParentType::d_size;
-    Debug("cdqueue") << "save " << this
-                     << " at level " << this->getContext()->getLevel()
-                     << " size at " << this->d_size
-                     << " iter at " << this->d_iter
-                     << " lastsave at " << this->d_lastsave
-                     << " d_list is " << this->d_list
-                     << " data:" << data << std::endl;
+    Debug("cdqueue") << "save " << this << " at level "
+                     << this->getContext()->getLevel() << " size at "
+                     << this->d_size << " iter at " << this->d_iter
+                     << " lastsave at " << this->d_lastsave << " d_list is "
+                     << this->d_list.data() << " data:" << data << std::endl;
     return data;
   }
 
@@ -94,19 +92,19 @@ protected:
 public:
 
   /** Creates a new CDQueue associated with the current context. */
-  CDQueue(Context* context,
-          bool callDestructor = true,
-          const CleanUp& cleanup = CleanUp(),
-          const Allocator& alloc = Allocator())
-    : ParentType(context, callDestructor, cleanup, alloc),
-      d_iter(0),
-      d_lastsave(0)
-  {}
+ CDQueue(Context* context,
+         bool callCleanup = true,
+         const CleanUp& cleanup = CleanUp(),
+         const Allocator& alloc = Allocator())
+     : ParentType(context, callCleanup, cleanup), d_iter(0), d_lastsave(0)
+ {
+ }
 
-  /** Returns true if the queue is empty in the current context. */
-  bool empty() const{
-    Assert(d_iter <= ParentType::d_size);
-    return d_iter == ParentType::d_size;
+ /** Returns true if the queue is empty in the current context. */
+ bool empty() const
+ {
+   Assert(d_iter <= ParentType::d_size);
+   return d_iter == ParentType::d_size;
   }
 
   /** Returns the number of elements that have not been dequeued in the context. */
