@@ -1427,6 +1427,14 @@ header = "options/quantifiers_options.h"
   help       = "linearize adder chains for variables"
 
 [[option]]
+  name       = "cbqiBvSolveNl"
+  category   = "regular"
+  long       = "cbqi-bv-solve-nl"
+  type       = "bool"
+  default    = "true"
+  help       = "try to solve non-linear bv literals"
+
+[[option]]
   name       = "cbqiBvConcInv"
   category   = "regular"
   long       = "cbqi-bv-concat-inv"

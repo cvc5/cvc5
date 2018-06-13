@@ -992,7 +992,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   Node sv = d_inverter->getSolveVariable(pv.getType());
   Node pvs = ci->getModelValue(pv);
   Trace("cegqi-bv") << "Get path to pv : " << lit << std::endl;
-  Node slit = d_inverter->getPathToPv(lit, pv, sv, pvs, path);
+  Node slit = d_inverter->getPathToPv(lit, pv, sv, pvs, path, !options::cbqiBvSolveNl());
   if (!slit.isNull())
   {
     CegInstantiatorBvInverterQuery m(ci);
