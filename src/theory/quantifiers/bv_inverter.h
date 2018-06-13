@@ -59,12 +59,16 @@ class BvInverter
    * pvs (if pvs is non-null). If return value R is non-null, then :
    *   lit.path = pv R.path = sv
    *   R.path' = pvs for all lit.path' = pv, where path' != path
-   * 
+   *
    * If the flag projectNl is false, we return the null node if the
    * literal lit is non-linear with respect to pv.
    */
-  Node getPathToPv(
-      Node lit, Node pv, Node sv, Node pvs, std::vector<unsigned>& path, bool projectNl);
+  Node getPathToPv(Node lit,
+                   Node pv,
+                   Node sv,
+                   Node pvs,
+                   std::vector<unsigned>& path,
+                   bool projectNl);
 
   /**
    * Same as above, but does not linearize lit for pv.
