@@ -42,6 +42,8 @@ class TheoryQuantifiers : public Theory {
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   void addSharedTerm(TNode t) override;
   void notifyEq(TNode lhs, TNode rhs);
+  /** finish initialization */
+  void finishInit() override;
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
@@ -63,9 +65,6 @@ class TheoryQuantifiers : public Theory {
   void assertUniversal( Node n );
   void assertExistential( Node n );
   void computeCareGraph() override;
-
-  using BoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
-
   /** number of instantiations */
   int d_numInstantiations;
   int d_baseDecLevel;

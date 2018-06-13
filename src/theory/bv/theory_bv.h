@@ -66,6 +66,8 @@ public:
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
+  void finishInit() override;
+
   Node expandDefinition(LogicRequest& logicRequest, Node node) override;
 
   void preRegisterTerm(TNode n) override;

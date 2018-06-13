@@ -16,6 +16,9 @@
 
 #include "theory/datatypes/datatypes_rewriter.h"
 
+using namespace CVC4;
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
@@ -50,7 +53,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         }
       }
       TNode constructor = in[0].getOperator();
-      size_t constructorIndex = Datatype::indexOf(constructor.toExpr());
+      size_t constructorIndex = indexOf(constructor);
       const Datatype& dt = Datatype::datatypeOf(constructor.toExpr());
       const DatatypeConstructor& c = dt[constructorIndex];
       unsigned weight = c.getWeight();
@@ -105,6 +108,51 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
+  else if (k == DT_SYGUS_EVAL)
+  {
+    // sygus evaluation function
+    Node ev = in[0];
+    if (ev.getKind() == APPLY_CONSTRUCTOR)
+    {
+      Trace("dt-sygus-util") << "Rewrite " << in << " by unfolding...\n";
+      const Datatype& dt =
+          static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
+      unsigned i = indexOf(ev.getOperator());
+      Node op = Node::fromExpr(dt[i].getSygusOp());
+      // if it is the "any constant" constructor, return its argument
+      if (op.getAttribute(SygusAnyConstAttribute()))
+      {
+        Assert(ev.getNumChildren() == 1);
+        Assert(ev[0].getType().isComparableTo(in.getType()));
+        return RewriteResponse(REWRITE_AGAIN_FULL, ev[0]);
+      }
+      std::vector<Node> args;
+      for (unsigned j = 1, nchild = in.getNumChildren(); j < nchild; j++)
+      {
+        args.push_back(in[j]);
+      }
+      Assert(!dt.isParametric());
+      std::vector<Node> children;
+      for (const Node& evc : ev)
+      {
+        std::vector<Node> cc;
+        cc.push_back(evc);
+        cc.insert(cc.end(), args.begin(), args.end());
+        children.push_back(nm->mkNode(DT_SYGUS_EVAL, cc));
+      }
+      Node ret = mkSygusTerm(dt, i, children);
+      // if it is a variable, apply the substitution
+      if (ret.getKind() == BOUND_VARIABLE)
+      {
+        Assert(ret.hasAttribute(SygusVarNumAttribute()));
+        int vn = ret.getAttribute(SygusVarNumAttribute());
+        Assert(Node::fromExpr(dt.getSygusVarList())[vn] == ret);
+        ret = args[vn];
+      }
+      Trace("dt-sygus-util") << "...got " << ret << "\n";
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
 
   if (k == kind::EQUAL)
   {
@@ -138,6 +186,119 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
+Kind getOperatorKindForSygusBuiltin(Node op)
+{
+  Assert(op.getKind() != BUILTIN);
+  if (op.getKind() == LAMBDA)
+  {
+    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
+    // does beta-reduction but does not for APPLY
+    return APPLY_UF;
+  }
+  TypeNode tn = op.getType();
+  if (tn.isConstructor())
+  {
+    return APPLY_CONSTRUCTOR;
+  }
+  else if (tn.isSelector())
+  {
+    return APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return APPLY_TESTER;
+  }
+  else if (tn.isFunction())
+  {
+    return APPLY_UF;
+  }
+  return NodeManager::operatorToKind(op);
+}
+
+Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
+                                    unsigned i,
+                                    const std::vector<Node>& children)
+{
+  Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
+                         << "] with children: " << children << std::endl;
+  Assert(i < dt.getNumConstructors());
+  Assert(dt.isSygus());
+  Assert(!dt[i].getSygusOp().isNull());
+  std::vector<Node> schildren;
+  Node op = Node::fromExpr(dt[i].getSygusOp());
+  // if it is the any constant, we simply return the child
+  if (op.getAttribute(SygusAnyConstAttribute()))
+  {
+    Assert(children.size() == 1);
+    return children[0];
+  }
+  if (op.getKind() != BUILTIN)
+  {
+    schildren.push_back(op);
+  }
+  schildren.insert(schildren.end(), children.begin(), children.end());
+  Node ret;
+  if (op.getKind() == BUILTIN)
+  {
+    ret = NodeManager::currentNM()->mkNode(op, schildren);
+    Trace("dt-sygus-util") << "...return (builtin) " << ret << std::endl;
+    return ret;
+  }
+  Kind ok = getOperatorKindForSygusBuiltin(op);
+  if (schildren.size() == 1 && ok == kind::UNDEFINED_KIND)
+  {
+    ret = schildren[0];
+  }
+  else
+  {
+    ret = NodeManager::currentNM()->mkNode(ok, schildren);
+  }
+  Trace("dt-sygus-util") << "...return " << ret << std::endl;
+  return ret;
+}
+Node DatatypesRewriter::mkSygusEvalApp(const std::vector<Node>& children)
+{
+  if (options::sygusEvalBuiltin())
+  {
+    return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL, children);
+  }
+  // otherwise, using APPLY_UF
+  Assert(!children.empty());
+  Assert(children[0].getType().isDatatype());
+  const Datatype& dt =
+      static_cast<DatatypeType>(children[0].getType().toType()).getDatatype();
+  Assert(dt.isSygus());
+  std::vector<Node> schildren;
+  schildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
+  schildren.insert(schildren.end(), children.begin(), children.end());
+  return NodeManager::currentNM()->mkNode(APPLY_UF, schildren);
+}
+
+bool DatatypesRewriter::isSygusEvalApp(Node n)
+{
+  if (options::sygusEvalBuiltin())
+  {
+    return n.getKind() == DT_SYGUS_EVAL;
+  }
+  // otherwise, using APPLY_UF
+  if (n.getKind() != APPLY_UF || n.getNumChildren() == 0)
+  {
+    return false;
+  }
+  TypeNode tn = n[0].getType();
+  if (!tn.isDatatype())
+  {
+    return false;
+  }
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  if (!dt.isSygus())
+  {
+    return false;
+  }
+  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
+  return eval_op == n.getOperator();
+}
+
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)
 {
   Trace("datatypes-rewrite-debug") << "pre-rewriting " << in << std::endl;
@@ -162,7 +323,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         Node op = in.getOperator();
         // get the constructor object
         const DatatypeConstructor& dtc =
-            Datatype::datatypeOf(op.toExpr())[Datatype::indexOf(op.toExpr())];
+            Datatype::datatypeOf(op.toExpr())[indexOf(op)];
         // create ascribed constructor type
         Node tc = NodeManager::currentNM()->mkConst(
             AscriptionType(dtc.getSpecializedConstructorType(t)));
@@ -214,7 +375,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     TypeNode argType = in[0].getType();
     TNode selector = in.getOperator();
     TNode constructor = in[0].getOperator();
-    size_t constructorIndex = Datatype::indexOf(constructor.toExpr());
+    size_t constructorIndex = indexOf(constructor);
     const Datatype& dt = Datatype::datatypeOf(selector.toExpr());
     const DatatypeConstructor& c = dt[constructorIndex];
     Trace("datatypes-rewrite-debug") << "Rewriting collapsable selector : "
@@ -294,8 +455,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
 {
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
-    bool result = Datatype::indexOf(in.getOperator().toExpr())
-                  == Datatype::indexOf(in[0].getOperator().toExpr());
+    bool result = indexOf(in.getOperator()) == indexOf(in[0].getOperator());
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;
@@ -313,11 +473,10 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
     return RewriteResponse(REWRITE_DONE,
                            NodeManager::currentNM()->mkConst(true));
   }
-  // could try dt.getNumConstructors()==2 &&
-  // Datatype::indexOf(in.getOperator())==1 ?
+  // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
   else if (!options::dtUseTesters())
   {
-    unsigned tindex = Datatype::indexOf(in.getOperator().toExpr());
+    unsigned tindex = indexOf(in.getOperator());
     Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "
                                      << in[0] << " " << tindex << std::endl;
     Node neq = mkTester(in[0], tindex, dt);
@@ -416,7 +575,7 @@ int DatatypesRewriter::isInstCons(Node t, Node n, const Datatype& dt)
 {
   if (n.getKind() == kind::APPLY_CONSTRUCTOR)
   {
-    int index = Datatype::indexOf(n.getOperator().toExpr());
+    int index = indexOf(n.getOperator());
     const DatatypeConstructor& c = dt[index];
     Type nt = n.getType().toType();
     for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
@@ -440,7 +599,7 @@ int DatatypesRewriter::isTester(Node n, Node& a)
     if (n.getKind() == kind::APPLY_TESTER)
     {
       a = n[0];
-      return Datatype::indexOf(n.getOperator().toExpr());
+      return indexOf(n.getOperator());
     }
   }
   else
@@ -472,7 +631,7 @@ int DatatypesRewriter::isTester(Node n)
   {
     if (n.getKind() == kind::APPLY_TESTER)
     {
-      return Datatype::indexOf(n.getOperator().toExpr());
+      return indexOf(n.getOperator().toExpr());
     }
   }
   else
@@ -495,6 +654,24 @@ int DatatypesRewriter::isTester(Node n)
     }
   }
   return -1;
+}
+
+struct DtIndexAttributeId
+{
+};
+typedef expr::Attribute<DtIndexAttributeId, uint64_t> DtIndexAttribute;
+
+unsigned DatatypesRewriter::indexOf(Node n)
+{
+  if (!n.hasAttribute(DtIndexAttribute()))
+  {
+    Assert(n.getType().isConstructor() || n.getType().isTester()
+           || n.getType().isSelector());
+    unsigned index = Datatype::indexOfInternal(n.toExpr());
+    n.setAttribute(DtIndexAttribute(), index);
+    return index;
+  }
+  return n.getAttribute(DtIndexAttribute());
 }
 
 Node DatatypesRewriter::mkTester(Node n, int i, const Datatype& dt)

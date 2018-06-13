@@ -1,4 +1,4 @@
-(set-logic QF_NRA)
+(set-logic QF_NRAT)
 (set-info :status unsat)
 (set-option :arith-no-partial-fun true)
 (declare-fun lat1 () Real)

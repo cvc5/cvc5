@@ -232,7 +232,8 @@ void TheoryEngine::finishInit() {
     d_curr_model_builder = d_quantEngine->getModelBuilder();
     d_curr_model = d_quantEngine->getModel();
   } else {
-    d_curr_model = new theory::TheoryModel(d_userContext, "DefaultModel", true);
+    d_curr_model = new theory::TheoryModel(
+        d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
@@ -1466,6 +1467,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   return !d_inConflict;
 }
 
+const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType().isComparableTo(b.getType()));

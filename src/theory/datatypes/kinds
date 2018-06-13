@@ -114,4 +114,7 @@ typerule DT_SIZE_BOUND ::CVC4::theory::datatypes::DtBoundTypeRule
 operator DT_SYGUS_BOUND 2 "datatypes sygus bound"
 typerule DT_SYGUS_BOUND ::CVC4::theory::datatypes::DtSygusBoundTypeRule
 
+operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
+typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSyguEvalTypeRule
+
 endtheory

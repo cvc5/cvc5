@@ -744,6 +744,11 @@ QModelBuilder( c, qe ){
 //------------------------model construction----------------------------
 
 bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
+  if (!m->areFunctionValuesEnabled())
+  {
+    // nothing to do if no functions
+    return true;
+  }
   Trace("ambqi-debug") << "process build model " << std::endl;
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelAbs* fm = f->asFirstOrderModelAbs();

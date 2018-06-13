@@ -184,16 +184,6 @@ void ResChain<Solver>::addRedundantLit(typename Solver::TLit lit) {
   }
 }
 
-/// ProxyProof
-template <class Solver>
-ProofProxy<Solver>::ProofProxy(TSatProof<Solver>* proof) : d_proof(proof) {}
-
-template <class Solver>
-void ProofProxy<Solver>::updateCRef(typename Solver::TCRef oldref,
-                                    typename Solver::TCRef newref) {
-  d_proof->updateCRef(oldref, newref);
-}
-
 /// SatProof
 template <class Solver>
 TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
@@ -227,13 +217,10 @@ TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
       d_seenLemmas(),
       d_satProofConstructed(false),
       d_statistics(name) {
-  d_proxy = new ProofProxy<Solver>(this);
 }
 
 template <class Solver>
 TSatProof<Solver>::~TSatProof() {
-  delete d_proxy;
-
   // FIXME: double free if deleted clause also appears in d_seenLemmas?
   IdToSatClause::const_iterator it = d_deletedTheoryLemmas.begin();
   IdToSatClause::const_iterator end = d_deletedTheoryLemmas.end();

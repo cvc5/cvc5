@@ -18,9 +18,10 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
+#include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -302,20 +303,16 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         op = cur;
       }
       // is the operator a synth function?
+      bool makeEvalFun = false;
       if( !op.isNull() ){
         std::map< Node, Node >::iterator its = synth_fun_vars.find( op );
         if( its!=synth_fun_vars.end() ){
-          Assert( its->second.getType().isDatatype() );
-          // will make into an application of an evaluation function
-          const Datatype& dt = ((DatatypeType)its->second.getType().toType()).getDatatype();
-          Assert( dt.isSygus() );
-          children.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
           children.push_back( its->second );
-          childChanged = true;
-          ret_k = kind::APPLY_UF;
+          makeEvalFun = true;
         }
       }
-      if( !childChanged ){
+      if (!makeEvalFun)
+      {
         // otherwise, we apply the previous operator
         if( cur.getMetaKind() == kind::metakind::PARAMETERIZED ){
           children.push_back( cur.getOperator() );
@@ -328,7 +325,13 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) {
+      if (makeEvalFun)
+      {
+        // will make into an application of an evaluation function
+        ret = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
+      }
+      else if (childChanged)
+      {
         ret = NodeManager::currentNM()->mkNode(ret_k, children);
       }
       visited[cur] = ret;

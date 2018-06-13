@@ -53,12 +53,6 @@ public:
   /** Destructor. Frees the lexer and the parser. */
   virtual ~Smt1Input();
 
-  /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const override
-  {
-    return language::input::LANG_SMTLIB_V1;
-  }
-
  protected:
   /**
    * Parse a command from the input. Returns <code>NULL</code> if

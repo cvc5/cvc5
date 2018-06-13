@@ -15,8 +15,8 @@
  **/
 #include "parser/smt2/smt2.h"
 
-
 #include "expr/type.h"
+#include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
@@ -42,10 +42,6 @@ Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
   }
 }
 
-void Smt2::setLanguage(InputLanguage lang) {
-  ((Smt2Input*) getInput())->setLanguage(lang);
-}
-
 void Smt2::addArithmeticOperators() {
   Parser::addOperator(kind::PLUS);
   Parser::addOperator(kind::MINUS);
@@ -55,8 +51,13 @@ void Smt2::addArithmeticOperators() {
   Parser::addOperator(kind::LEQ);
   Parser::addOperator(kind::GT);
   Parser::addOperator(kind::GEQ);
-  
+
+  // NOTE: this operator is non-standard
   addOperator(kind::POW, "^");
+}
+
+void Smt2::addTranscendentalOperators()
+{
   addOperator(kind::EXPONENTIAL, "exp");
   addOperator(kind::SINE, "sin");
   addOperator(kind::COSINE, "cos");
@@ -70,7 +71,6 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::ARCCOSECANT, "arccsc");
   addOperator(kind::ARCSECANT, "arcsec");
   addOperator(kind::ARCCOTANGENT, "arccot");
-
   addOperator(kind::SQRT, "sqrt");
 }
 
@@ -130,7 +130,7 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
-  if (getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
+  if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
     addOperator(kind::STRING_ITOS, "str.from-int");
     addOperator(kind::STRING_STOI, "str.to-int");
@@ -252,6 +252,8 @@ void Smt2::addTheory(Theory theory) {
     addArithmeticOperators();
     Parser::addOperator(kind::DIVISION);
     break;
+
+  case THEORY_TRANSCENDENTALS: addTranscendentalOperators(); break;
 
   case THEORY_QUANTIFIERS:
     break;
@@ -489,6 +491,11 @@ void Smt2::setLogic(std::string name) {
       }
     } else if(d_logic.areRealsUsed()) {
       addTheory(THEORY_REALS);
+    }
+
+    if (d_logic.areTranscendentalsUsed())
+    {
+      addTheory(THEORY_TRANSCENDENTALS);
     }
   }
 
@@ -930,7 +937,16 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   cargs[index][dindex].pop_back();
   collectSygusLetArgs( let_body, cargs[index][dindex], let_define_args );
 
-  Debug("parser-sygus") << "Make define-fun with " << cargs[index][dindex].size() << " arguments..." << std::endl;
+  Debug("parser-sygus") << "Make define-fun with "
+                        << cargs[index][dindex].size()
+                        << " operator arguments and " << let_define_args.size()
+                        << " provided arguments..." << std::endl;
+  if (cargs[index][dindex].size() != let_define_args.size())
+  {
+    std::stringstream ss;
+    ss << "Wrong number of let body terms." << std::endl;
+    parseError(ss.str());
+  }
   std::vector<CVC4::Type> fsorts;
   for( unsigned i=0; i<cargs[index][dindex].size(); i++ ){
     Debug("parser-sygus") << "  " << i << " : " << let_define_args[i] << " " << let_define_args[i].getType() << " " << cargs[index][dindex][i] << std::endl;
@@ -1239,6 +1255,12 @@ const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
       new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
   cattr->setMuted(true);
   preemptCommand(cattr);
+}
+
+InputLanguage Smt2::getLanguage() const
+{
+  ExprManager* em = getExprManager();
+  return em->getOptions().getInputLanguage();
 }
 
 }/* CVC4::parser namespace */

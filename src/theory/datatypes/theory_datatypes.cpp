@@ -65,8 +65,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   //d_equalityEngine.addFunctionKind(kind::DT_SIZE);
   //d_equalityEngine.addFunctionKind(kind::DT_HEIGHT_BOUND);
-  //d_equalityEngine.addFunctionKind(kind::DT_SYGUS_TERM_ORDER);
-  //d_equalityEngine.addFunctionKind(kind::DT_SYGUS_IS_CONST);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
   //d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
@@ -190,7 +188,6 @@ void TheoryDatatypes::check(Effort e) {
     Trace("datatypes-debug") << "Check for splits " << e << endl;
     do {
       d_addedFact = false;
-      bool added_split = false;
       std::map< TypeNode, Node > rec_singletons;
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
@@ -309,12 +306,11 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = DatatypesRewriter::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    //doSendLemma( lemma );
                     d_out->lemma( lemma, false, false, true );
+                    d_addedLemma = true;
                   }
-                  added_split = true;
                   if( !options::dtBlastSplits() ){
-                    return;
+                    break;
                   }
                 }
               }else{
@@ -327,11 +323,20 @@ void TheoryDatatypes::check(Effort e) {
         }
         ++eqcs_i;
       }
-      if( added_split ){
-        return;
+      if (d_addedLemma)
+      {
+        // clear pending facts: we added a lemma, so internal inferences are
+        // no longer necessary
+        d_pending.clear();
+        d_pending_exp.clear();
       }
-      Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
-      flushPendingFacts();
+      else
+      {
+        // we did not add a lemma, process internal inferences. This loop
+        // will repeat.
+        Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
+        flushPendingFacts();
+      }
       /*
       if( !d_conflict ){
         if( options::dtRewriteErrorSel() ){
@@ -530,6 +535,8 @@ void TheoryDatatypes::finishInit() {
     quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
     Assert( tds!=NULL );
     d_sygus_sym_break = new SygusSymBreakNew( this, tds, getSatContext() );
+    // do congruence on evaluation functions
+    d_equalityEngine.addFunctionKind(kind::DT_SYGUS_EVAL);
   }
 }
 
@@ -546,7 +553,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     Node selector_use;
     TypeNode ndt = n[0].getType();
     if( options::dtSharedSelectors() ){
-      size_t selectorIndex = Datatype::indexOf(selectorExpr);
+      size_t selectorIndex = DatatypesRewriter::indexOf(selector);
       Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
       Assert( selectorIndex<c.getNumArgs() );
       selector_use = Node::fromExpr( c.getSelectorInternal( ndt.toType(), selectorIndex ) );
@@ -961,7 +968,7 @@ Node TheoryDatatypes::getLabel( Node n ) {
 
 int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
   if( eqc && !eqc->d_constructor.get().isNull() ){
-    return Datatype::indexOf( eqc->d_constructor.get().getOperator().toExpr() );
+    return DatatypesRewriter::indexOf(eqc->d_constructor.get().getOperator());
   }else{
     Node lbl = getLabel( n );
     if( lbl.isNull() ){
@@ -970,7 +977,6 @@ int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
       int tindex = DatatypesRewriter::isTester( lbl );
       Assert( tindex!=-1 );
       return tindex;
-      //return Datatype::indexOf( getLabel( n ).getOperator().toExpr() );
     }
   }
 }
@@ -998,7 +1004,6 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
       for( int i=0; i<n_lbl; i++ ){
         Node t = d_labels_data[n][i];
         Assert( t.getKind()==NOT );
-        //pcons[ Datatype::indexOf( t[0].getOperator().toExpr() ) ] = false;
         int tindex = DatatypesRewriter::isTester( t[0] );
         Assert( tindex!=-1 );
         pcons[ tindex ] = false;
@@ -1077,7 +1082,6 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
       Assert( ti.getKind()==NOT );
       j = ti;
       jt = j[0];
-      //int jtindex = Datatype::indexOf( jt.getOperator().toExpr() );
       int jtindex = DatatypesRewriter::isTester( jt );
       Assert( jtindex!=-1 );
       if( jtindex==ttindex ){
@@ -1212,7 +1216,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   //check labels
   NodeIntMap::iterator lbl_i = d_labels.find( n );
   if( lbl_i != d_labels.end() ){
-    size_t constructorIndex = Datatype::indexOf(c.getOperator().toExpr());
+    size_t constructorIndex = DatatypesRewriter::indexOf(c.getOperator());
     int n_lbl = (*lbl_i).second;
     for( int i=0; i<n_lbl; i++ ){
       Node t = d_labels_data[n][i];
@@ -1296,7 +1300,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   }
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     Expr selectorExpr = s.getOperator().toExpr();
-    size_t constructorIndex = Datatype::indexOf(c.getOperator().toExpr());
+    size_t constructorIndex = DatatypesRewriter::indexOf(c.getOperator());
     const Datatype& dt = Datatype::datatypeOf(selectorExpr);
     const DatatypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal( selectorExpr );
@@ -1305,10 +1309,6 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     //if( wrong ){
     //  return;
     //}
-    //if( Datatype::indexOf(c.getOperator().toExpr())!=Datatype::cindexOf(s.getOperator().toExpr()) ){
-    //  mkExpDefSkolem( s.getOperator(), s[0].getType(), s.getType() );
-    //  r = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[s.getOperator().toExpr()], s[0] );
-    //}else{
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
     if( options::dtRefIntro() ){
       use_s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), use_s );
@@ -2267,7 +2267,8 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
       Node r = d_equalityEngine.getRepresentative( n );
       EqcInfo * ei = getOrMakeEqcInfo( r, false );
       int l_index = getLabelIndex( ei, r );
-      int t_index = (int)Datatype::indexOf( atom.getOperator().toExpr() );
+      int t_index =
+          static_cast<int>(DatatypesRewriter::indexOf(atom.getOperator()));
       Trace("dt-entail") << "  Tester indices are " << t_index << " and " << l_index << std::endl;
       if( l_index!=-1 && (l_index==t_index)==pol ){
         std::vector< TNode > exp_c;

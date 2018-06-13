@@ -381,8 +381,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     // Fit to size
     ps.shrink(i - j);
 
-    // If we are in solve or decision level > 0
-    if (minisat_busy || decisionLevel() > 0) {
+    // If we are in solve_ or propagate
+    if (minisat_busy)
+    {
       Debug("pf::sat") << "Add clause adding a new lemma: ";
       for (int k = 0; k < ps.size(); ++k) {
         Debug("pf::sat") << ps[k] << " ";
@@ -406,6 +407,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // Debug("cores") << "lemma push " << proof_id << " " << (proof_id & 0xffffffff) << std::endl;
       // lemmas_proof_id.push(proof_id);
     } else {
+      assert(decisionLevel() == 0);
+
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
         if(PROOF_ON()) {
@@ -458,11 +461,19 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 );
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if(ca[confl].size() == 1) {
-              PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
-              PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
-            } else {
-              PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
+            if (PROOF_ON())
+            {
+              if (ca[confl].size() == 1)
+              {
+                id = ProofManager::getSatProof()->storeUnitConflict(
+                    ca[confl][0], LEARNT);
+                ProofManager::getSatProof()->finalizeProof(
+                    CVC4::Minisat::CRef_Lazy);
+              }
+              else
+              {
+                ProofManager::getSatProof()->finalizeProof(confl);
+              }
             }
           }
           return ok;
@@ -563,9 +574,7 @@ void Solver::cancelUntil(int level) {
     }
 }
 
-void Solver::popTrail() {
-  cancelUntil(0);
-}
+void Solver::resetTrail() { cancelUntil(0); }
 
 //=================================================================================================
 // Major methods:
@@ -1421,7 +1430,7 @@ lbool Solver::solve_()
 
     ScopedBool scoped_bool(minisat_busy, true);
 
-    popTrail();
+    assert(decisionLevel() == 0);
 
     model.clear();
     conflict.clear();
@@ -1566,7 +1575,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-              ca.reloc(ws[j].cref, to,   NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+              ca.reloc(ws[j].cref, to, NULLPROOF(ProofManager::getSatProof()));
         }
 
     // All reasons:
@@ -1575,19 +1584,22 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (hasReasonClause(v) && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-          ca.reloc(vardata[v].reason, to, NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+          ca.reloc(
+              vardata[v].reason, to, NULLPROOF(ProofManager::getSatProof()));
     }
     // All learnt:
     //
     for (int i = 0; i < clauses_removable.size(); i++)
-      ca.reloc(clauses_removable[i], to,  NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+      ca.reloc(
+          clauses_removable[i], to, NULLPROOF(ProofManager::getSatProof()));
 
     // All original:
     //
     for (int i = 0; i < clauses_persistent.size(); i++)
-      ca.reloc(clauses_persistent[i], to,  NULLPROOF( ProofManager::getSatProof()->getProxy() ));
+      ca.reloc(
+          clauses_persistent[i], to, NULLPROOF(ProofManager::getSatProof()));
 
-      PROOF( ProofManager::getSatProof()->finishUpdateCRef(); )
+    PROOF(ProofManager::getSatProof()->finishUpdateCRef();)
 }
 
 
@@ -1607,8 +1619,8 @@ void Solver::garbageCollect()
 void Solver::push()
 {
   assert(enable_incremental);
+  assert(decisionLevel() == 0);
 
-  popTrail();
   ++assertionLevel;
   Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
   trail_ok.push(ok);
@@ -1623,8 +1635,6 @@ void Solver::pop()
 {
   assert(enable_incremental);
 
-  // Pop the trail to 0 level
-  popTrail();
   assert(decisionLevel() == 0);
 
   // Pop the trail below the user level
@@ -1850,7 +1860,9 @@ CRef Solver::updateLemmas() {
   return conflict;
 }
 
-void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy)
+void ClauseAllocator::reloc(CRef& cr,
+                            ClauseAllocator& to,
+                            CVC4::TSatProof<Solver>* proof)
 {
 
   // FIXME what is this CRef_lazy
@@ -1862,8 +1874,9 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy*
 
   cr = to.alloc(c.level(), c, c.removable());
   c.relocate(cr);
-  if (proxy) {
-    proxy->updateCRef(old, cr);
+  if (proof)
+  {
+    proof->updateCRef(old, cr);
   }
   // Copy extra data-fields:
   // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
