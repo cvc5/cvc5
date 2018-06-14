@@ -1986,7 +1986,7 @@ void BvInstantiatorPreprocess::collectExtracts(
       {
         if (cur.getKind() == BITVECTOR_EXTRACT)
         {
-          if( cur[0].getKind()==INST_CONSTANT || !options::cbqiBvRmExtractVarOnly() )
+          if( cur[0].getKind()==INST_CONSTANT )
           {
             extract_map[cur[0]].push_back(cur);
           }

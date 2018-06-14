@@ -1419,14 +1419,6 @@ header = "options/quantifiers_options.h"
   help       = "replaces extract terms with variables for counterexample-guided instantiation for bit-vectors"
 
 [[option]]
-  name       = "cbqiBvRmExtractVarOnly"
-  category   = "regular"
-  long       = "cbqi-bv-rm-extract-var-only"
-  type       = "bool"
-  default    = "true"
-  help       = "only replace extract terms applied to variables"
-
-[[option]]
   name       = "cbqiBvLinearize"
   category   = "regular"
   long       = "cbqi-bv-linear"
@@ -1439,8 +1431,8 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "cbqi-bv-solve-nl"
   type       = "bool"
-  default    = "true"
-  help       = "try to solve non-linear bv literals"
+  default    = "false"
+  help       = "try to solve non-linear bv literals using model value projections"
 
 [[option]]
   name       = "cbqiBvConcInv"
