@@ -13,17 +13,17 @@
  **
  ** This implements a generic module, used by theory solvers, for performing
  ** "context-dependent simplification", as described in Reynolds et al
- ** "Designing Theory Solvers with Extensions", FroCoS 2017. 
+ ** "Designing Theory Solvers with Extensions", FroCoS 2017.
  **
  ** At a high level, this technique implements a generic inference scheme based
- ** on the combination of SAT-context-dependent equality reasoning and 
+ ** on the combination of SAT-context-dependent equality reasoning and
  ** SAT-context-indepedent rewriting.
  **
  ** As a simple example, say
  ** (1) TheoryStrings tells us that the following facts hold in the SAT context:
  **     x = "A" ^ str.contains( str.++( x, z ), "B" ) = true.
  ** (2) The Rewriter tells us that:
- **     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ). 
+ **     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ).
  ** From this, this class may infer that the following lemma is T-valid:
  **   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
  **/

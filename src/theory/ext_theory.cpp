@@ -13,7 +13,7 @@
  **
  ** This implements a generic module, used by theory solvers, for performing
  ** "context-dependent simplification", as described in Reynolds et al
- ** "Designing Theory Solvers with Extensions", FroCoS 2017. 
+ ** "Designing Theory Solvers with Extensions", FroCoS 2017.
  **/
 
 #include "theory/ext_theory.h"
