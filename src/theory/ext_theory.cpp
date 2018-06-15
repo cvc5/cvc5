@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory.cpp
+/*! \file ext_theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Dejan Jovanovic
@@ -9,9 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Base for theory interface.
+ ** \brief Extended theory interface.
  **
- ** Base for theory interface.
+ ** This implements a generic module, used by theory solvers, for performing
+ ** "context-dependent simplification", as described in Reynolds et al
+ ** "Designing Theory Solvers with Extensions", FroCoS 2017. 
  **/
 
 #include "theory/ext_theory.h"

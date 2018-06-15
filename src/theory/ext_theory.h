@@ -9,9 +9,23 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Base of the extended theory interface.
+ ** \brief Extended theory interface.
  **
- ** Base of the extended theory interface.
+ ** This implements a generic module, used by theory solvers, for performing
+ ** "context-dependent simplification", as described in Reynolds et al
+ ** "Designing Theory Solvers with Extensions", FroCoS 2017. 
+ **
+ ** At a high level, this technique implements a generic inference scheme based
+ ** on the combination of SAT-context-dependent equality reasoning and 
+ ** SAT-context-indepedent rewriting.
+ **
+ ** As a simple example, say
+ ** (1) TheoryStrings tells us that the following facts hold in the SAT context:
+ **     x = "A" ^ str.contains( str.++( x, z ), "B" ) = true.
+ ** (2) The Rewriter tells us that:
+ **     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ). 
+ ** From this, this class may infer that the following lemma is T-valid:
+ **   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
  **/
 
 #include "cvc4_private.h"
@@ -119,7 +133,7 @@ class ExtTheory
    *
    * This function performs "context-dependent simplification". The method takes
    * as input:
-   *  effort: an identifier used to determine which terms with reduce and the
+   *  effort: an identifier used to determine which terms we reduce and the
    *          form of the derivable substitution we will use,
    *  terms: the set of terms to simplify,
    *  batch: if this flag is true, we send lemmas for all terms; if it is false
@@ -149,7 +163,7 @@ class ExtTheory
    *
    * This method has the same interface as doInferences. In contrast to
    * doInfereces, this method will send reduction lemmas of the form ( t = t' )
-   * where t is in terms, t' is equivalent, reduced term.
+   * where t is in terms and t' is an equivalent reduced term.
    */
   bool doReductions(int effort,
                     const std::vector<Node>& terms,
@@ -189,7 +203,7 @@ class ExtTheory
   NodeBoolMap d_ext_func_terms;
   /**
    * The set of terms from d_ext_func_terms that are SAT-context-independent
-   * inactive. For instance, a term t if SAT-context-independent inactive if
+   * inactive. For instance, a term t is SAT-context-independent inactive if
    * a reduction lemma of the form t = t' was added in this user-context level.
    */
   NodeSet d_ci_inactive;
