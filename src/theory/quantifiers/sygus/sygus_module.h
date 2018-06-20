@@ -49,7 +49,7 @@ class SygusModule
 {
  public:
   SygusModule(QuantifiersEngine* qe, CegConjecture* p);
-  ~SygusModule() {}
+  virtual ~SygusModule() {}
   /** initialize
    *
    * n is the "base instantiation" of the deep-embedding version of the
