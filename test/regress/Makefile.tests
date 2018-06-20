@@ -1284,6 +1284,7 @@ REG1_TESTS = \
 	regress1/quantifiers/psyco-196.smt2 \
 	regress1/quantifiers/qbv-disequality3.smt2 \
 	regress1/quantifiers/qbv-simple-2vars-vo.smt2 \
+	regress1/quantifiers/qbv-subcall.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvashr-0.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvashr-1.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvcomp.smt2 \
@@ -1513,6 +1514,7 @@ REG1_TESTS = \
 	regress1/sygus/inv-unused.sy \
 	regress1/sygus/large-const-simp.sy \
 	regress1/sygus/list-head-x.sy \
+	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \
