@@ -31,7 +31,6 @@ libutil_la_SOURCES = \
 	divisible.h \
 	dynamic_array.h \
 	floatingpoint.cpp \
-	floatingpoint.h \
 	gmp_util.h \
 	hash.h \
 	index.cpp \
@@ -64,8 +63,9 @@ libutil_la_SOURCES = \
 	utility.h
 
 BUILT_SOURCES = \
-	rational.h \
-	integer.h
+	floatingpoint.h \
+	integer.h \
+	rational.h
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \
@@ -84,6 +84,7 @@ EXTRA_DIST = \
 	bool.i \
 	cardinality.i \
 	divisible.i \
+	floatingpoint.h.in \
 	floatingpoint.i \
 	hash.i \
 	integer.h.in \
@@ -109,7 +110,9 @@ EXTRA_DIST = \
 
 
 DISTCLEANFILES = \
+	floatingpoint.h.tmp \
 	integer.h.tmp \
 	rational.h.tmp \
+	floatingpoint.h \
 	integer.h \
 	rational.h
