@@ -24,8 +24,7 @@ namespace theory {
 namespace quantifiers {
 
 DynamicRewriter::DynamicRewriter(const std::string& name, QuantifiersEngine* qe)
-    : d_qe(qe),
-      d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true),
+    : d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true),
       d_rewrites(qe->getUserContext())
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);

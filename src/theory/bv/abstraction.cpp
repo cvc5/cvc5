@@ -667,7 +667,7 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
   }
 
   if (signature.getNumChildren() == 0) {
-    Assert(signature.getKind() != kind::metakind::VARIABLE);
+    Assert(signature.getMetaKind() != kind::metakind::VARIABLE);
     seen[signature] = signature;
     return signature;
   }

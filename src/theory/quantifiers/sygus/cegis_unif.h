@@ -200,7 +200,7 @@ class CegisUnif : public Cegis
 {
  public:
   CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
-  ~CegisUnif();
+  ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
    *
    * Non-unification candidates have themselves as enumerators, while for
