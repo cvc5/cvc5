@@ -411,10 +411,11 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
   if( !enums.empty() ){
     unsigned min_term_size = 0;
     Trace("sygus-pbe-enum") << "Register new enumerated values : " << std::endl;
-    std::vector< unsigned > szs;
-    for( unsigned i=0, esize = enums.size(); i<esize; i++ ){
+    std::vector<unsigned> szs;
+    for (unsigned i = 0, esize = enums.size(); i < esize; i++)
+    {
       Trace("sygus-pbe-enum") << "  " << enums[i] << " -> ";
-      TermDbSygus::toStreamSygus("sygus-pbe-enum",enum_values[i]);
+      TermDbSygus::toStreamSygus("sygus-pbe-enum", enum_values[i]);
       Trace("sygus-pbe-enum") << std::endl;
       unsigned sz = d_tds->getSygusTermSize( enum_values[i] );
       szs.push_back(sz);
@@ -423,14 +424,15 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       }
     }
     unsigned allowDiff = options::sygusPbeMultiFair() ? 0 : 1;
-    std::vector< unsigned > enum_consider;
-    for( unsigned i=0, esize = enums.size(); i<esize; i++ ){
-      if( szs[i]-min_term_size<=allowDiff )
+    std::vector<unsigned> enum_consider;
+    for (unsigned i = 0, esize = enums.size(); i < esize; i++)
+    {
+      if (szs[i] - min_term_size <= allowDiff)
       {
         enum_consider.push_back( i );
       }
     }
-    
+
     // only consider the enumerators that are at minimum size (for fairness)
     Trace("sygus-pbe-enum") << "...register " << enum_consider.size() << " / " << enums.size() << std::endl;
     NodeManager* nm = NodeManager::currentNM();
