@@ -232,19 +232,22 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
   return currentlyShared;
 }
 
-
-void Theory::collectTerms(TNode n, set<Kind>& irr_kinds, set<Node>& termSet) const
+void Theory::collectTerms(TNode n,
+                          set<Kind>& irr_kinds,
+                          set<Node>& termSet) const
 {
   if (termSet.find(n) != termSet.end()) {
     return;
   }
   Kind nk = n.getKind();
-  if( irr_kinds.find(nk)==irr_kinds.end() )
+  if (irr_kinds.find(nk) == irr_kinds.end())
   {
-    Trace("theory::collectTerms") << "Theory::collectTerms: adding " << n << endl;
+    Trace("theory::collectTerms")
+        << "Theory::collectTerms: adding " << n << endl;
     termSet.insert(n);
   }
-  if (nk == kind::NOT || nk == kind::EQUAL || !isLeaf(n)) {
+  if (nk == kind::NOT || nk == kind::EQUAL || !isLeaf(n))
+  {
     for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
       collectTerms(*child_it, irr_kinds, termSet);
     }
@@ -255,10 +258,12 @@ void Theory::collectTerms(TNode n, set<Kind>& irr_kinds, set<Node>& termSet) con
 void Theory::computeRelevantTerms(set<Node>& termSet, bool includeShared) const
 {
   set<Kind> irr_kinds;
-  computeRelevantTerms(termSet,irr_kinds,includeShared);
+  computeRelevantTerms(termSet, irr_kinds, includeShared);
 }
 
-void Theory::computeRelevantTerms(set<Node>& termSet, set<Kind>& irr_kinds, bool includeShared) const
+void Theory::computeRelevantTerms(set<Node>& termSet,
+                                  set<Kind>& irr_kinds,
+                                  bool includeShared) const
 {
   // Collect all terms appearing in assertions
   irr_kinds.insert(kind::EQUAL);
