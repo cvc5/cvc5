@@ -116,7 +116,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 
  private:
   /** the formulas we are evaluating */
-  std::vector< Node > d_conj;
+  std::vector<Node> d_conj;
   /** the variable */
   TNode d_var;
   /** the result of the evaluation */

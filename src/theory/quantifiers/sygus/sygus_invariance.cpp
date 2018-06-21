@@ -29,9 +29,10 @@ void EvalSygusInvarianceTest::init(Node conj, Node var, Node res)
 {
   d_conj.clear();
   // simple miniscope
-  if( ( conj.getKind()==AND || conj.getKind()==OR ) && res.isConst() && res.getConst<bool>()==(conj.getKind()==AND) )
+  if ((conj.getKind() == AND || conj.getKind() == OR) && res.isConst()
+      && res.getConst<bool>() == (conj.getKind() == AND))
   {
-    for( const Node& c : conj )
+    for (const Node& c : conj)
     {
       d_conj.push_back(c);
     }
@@ -53,14 +54,14 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
   std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-  for( const Node& c : d_conj )
+  for (const Node& c : d_conj)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
     Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
     Trace("sygus-cref-eval2-debug")
         << "  ...check unfolding : " << conj_subs_unfold << std::endl;
-    Trace("sygus-cref-eval2-debug") << "  ......from : " << conj_subs
-                                    << std::endl;
+    Trace("sygus-cref-eval2-debug")
+        << "  ......from : " << conj_subs << std::endl;
     if (conj_subs_unfold != d_result)
     {
       return false;
