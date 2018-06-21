@@ -148,6 +148,12 @@ public:
 
   virtual void pop() = 0;
 
+  /*
+   * Reset the decisions in the DPLL(T) SAT solver at the current assertion
+   * level.
+   */
+  virtual void resetTrail() = 0;
+
   virtual bool properExplanation(SatLiteral lit, SatLiteral expl) const = 0;
 
   virtual void requirePhase(SatLiteral lit) = 0;

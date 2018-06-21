@@ -213,6 +213,12 @@ public:
    */
   void pop();
 
+  /*
+   * Reset the decisions in the DPLL(T) SAT solver at the current assertion
+   * level.
+   */
+  void resetTrail();
+
   /**
    * Get the assertion level of the SAT solver.
    */

@@ -116,10 +116,11 @@ a given benchmark when a feature is supported. For example:
 ; REQUIRES: symfpu
 ```
 
-This benchmark is only run when symfpu has been configured.
-Multiple `REQUIRES` directives are supported. For a list of
-features that can be listed as a requirement, refer to CVC4's
-`--show-config` output.
+This benchmark is only run when symfpu has been configured.  Multiple
+`REQUIRES` directives are supported. For a list of features that can be listed
+as a requirement, refer to CVC4's `--show-config` output. Features can also be
+excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
+not valid for builds that include symfpu support.
 
 Sometimes it is useful to keep the directives separate. You can separate the
 benchmark from the output expectations by putting the benchmark in `<benchmark
