@@ -72,7 +72,7 @@ private:
    * This method quickly tries to match sol to the grammar induced by stn. If
    * this fails, we use enumerative techniques to try to repair the solution.
    * The number of iterations for this enumeration is bounded by the argument
-   * enumLimit if it is positive, and unbounded otherwise. 
+   * enumLimit if it is positive, and unbounded otherwise.
    */
   Node reconstructSolution(Node sol,
                            TypeNode stn,

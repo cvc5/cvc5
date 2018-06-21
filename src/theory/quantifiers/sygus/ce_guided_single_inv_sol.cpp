@@ -678,7 +678,7 @@ Node CegConjectureSingleInvSol::reconstructSolution(Node sol,
       Assert(!it->second.empty());
     }
   }
-  if (enumLimit!=0)
+  if (enumLimit != 0)
   {
     int index = 0;
     std::map< TypeNode, bool > active;
@@ -727,7 +727,7 @@ Node CegConjectureSingleInvSol::reconstructSolution(Node sol,
       if( index%100==0 ){
         Trace("csi-rcons-stats") << "Tried " << index << " for each type."  << std::endl;
       }
-    }while( !active.empty() && ( enumLimit<0 || index<enumLimit) );
+    } while (!active.empty() && (enumLimit < 0 || index < enumLimit));
   }
 
   // we ran out of elements, return null

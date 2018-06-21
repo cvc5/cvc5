@@ -189,12 +189,12 @@ class CegConjectureSingleInv {
   // initialize this class for synthesis conjecture q
   void initialize( Node q );
   /** finish initialize
-   * 
+   *
    * This method sets up final decisions about whether to use single invocation
-   * techniques. The argument syntaxRestricted is whether the syntax for 
+   * techniques. The argument syntaxRestricted is whether the syntax for
    * solutions for the initialized conjecture is restricted.
    */
-  void finishInit( bool syntaxRestricted );
+  void finishInit(bool syntaxRestricted);
   //check
   bool check( std::vector< Node >& lems );
   //get solution

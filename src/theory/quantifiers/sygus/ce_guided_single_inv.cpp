@@ -290,7 +290,8 @@ void CegConjectureSingleInv::initialize( Node q ) {
   }
 }
 
-void CegConjectureSingleInv::finishInit( bool syntaxRestricted ) {
+void CegConjectureSingleInv::finishInit(bool syntaxRestricted)
+{
   Trace("cegqi-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and CEGQI_SI_MODE_ALL is not enabled
   if( options::cegqiSingleInvMode()==CEGQI_SI_MODE_USE && d_single_invocation && syntaxRestricted ){
@@ -570,11 +571,12 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
   {
     d_sol->preregisterConjecture( d_orig_conjecture );
     int enumLimit = -1;
-    if( options::cegqiSingleInvReconstruct() == CEGQI_SI_RCONS_MODE_TRY )
+    if (options::cegqiSingleInvReconstruct() == CEGQI_SI_RCONS_MODE_TRY)
     {
       enumLimit = 0;
     }
-    else if( options::cegqiSingleInvReconstruct() == CEGQI_SI_RCONS_MODE_ALL_LIMIT )
+    else if (options::cegqiSingleInvReconstruct()
+             == CEGQI_SI_RCONS_MODE_ALL_LIMIT)
     {
       enumLimit = options::cegqiSingleInvReconstructLimit();
     }
