@@ -941,6 +941,7 @@ if test $have_symfpu_headers -eq 1; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$SYMFPU_HOME"
 fi
 AM_CONDITIONAL([CVC4_USE_SYMFPU], [test $have_symfpu_headers -eq 1])
+AC_SUBST([CVC4_USE_SYMFPU], [$have_symfpu_headers])
 
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates std::hash<uint64_t> or not.  Some do, some don't.
@@ -1561,6 +1562,7 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/floatingpoint.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 
