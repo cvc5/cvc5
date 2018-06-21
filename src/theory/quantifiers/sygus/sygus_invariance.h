@@ -115,8 +115,8 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
-  /** the formula we are evaluating */
-  Node d_conj;
+  /** the formulas we are evaluating */
+  std::vector< Node > d_conj;
   /** the variable */
   TNode d_var;
   /** the result of the evaluation */

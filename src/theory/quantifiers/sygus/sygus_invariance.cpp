@@ -27,7 +27,19 @@ namespace quantifiers {
 
 void EvalSygusInvarianceTest::init(Node conj, Node var, Node res)
 {
-  d_conj = conj;
+  d_conj.clear();
+  // simple miniscope
+  if( ( conj.getKind()==AND || conj.getKind()==OR ) && res.isConst() && res.getConst<bool>()==(conj.getKind()==AND) )
+  {
+    for( const Node& c : conj )
+    {
+      d_conj.push_back(c);
+    }
+  }
+  else
+  {
+    d_conj.push_back(conj);
+  }
   d_var = var;
   d_result = res;
 }
@@ -40,21 +52,25 @@ Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
-  Node conj_subs = d_conj.substitute(d_var, tnvn);
-  Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
-  Trace("sygus-cref-eval2-debug")
-      << "  ...check unfolding : " << conj_subs_unfold << std::endl;
-  Trace("sygus-cref-eval2-debug") << "  ......from : " << conj_subs
-                                  << std::endl;
-  if (conj_subs_unfold == d_result)
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  for( const Node& c : d_conj )
   {
+    Node conj_subs = c.substitute(d_var, tnvn, cache);
+    Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
+    Trace("sygus-cref-eval2-debug")
+        << "  ...check unfolding : " << conj_subs_unfold << std::endl;
+    Trace("sygus-cref-eval2-debug") << "  ......from : " << conj_subs
+                                    << std::endl;
+    if (conj_subs_unfold != d_result)
+    {
+      return false;
+    }
     Trace("sygus-cref-eval2") << "Evaluation min explain : " << conj_subs
                               << " still evaluates to " << d_result
                               << " regardless of ";
     Trace("sygus-cref-eval2") << x << std::endl;
-    return true;
   }
-  return false;
+  return true;
 }
 
 void EquivSygusInvarianceTest::init(
