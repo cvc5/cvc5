@@ -187,7 +187,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   if (new_ret.isNull())
   {
     TheoryId tid;
-    if( ret.getKind()==ITE )
+    if (ret.getKind() == ITE)
     {
       tid = Theory::theoryOf(ret.getType());
     }
@@ -195,7 +195,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       tid = Theory::theoryOf(ret);
     }
-    Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid << std::endl;
+    Trace("q-ext-rewrite-debug")
+        << "theoryOf( " << ret << " )= " << tid << std::endl;
     if (tid == THEORY_ARITH)
     {
       new_ret = extendedRewriteArith(ret);
@@ -982,7 +983,7 @@ class SimpSubsumeTrie
   /** the term at this node */
   Node d_data;
   /** add term to the trie
-   * 
+   *
    * This adds term c to this trie, whose atom list is alist. This adds terms
    * s to subsumes such that the atom list of s is a subset of the atom list
    * of c. For example, say:
@@ -999,10 +1000,10 @@ class SimpSubsumeTrie
    *   addTerm c5 results in subsumes = { c1, c2, c3 }
    * Notice that the intended use case of this trie is to add term t before t'
    * only when size( t.alist ) <= size( t'.alist ).
-   * 
+   *
    * The last two arguments describe the state of the path [t0...tn] we
    * have followed in the trie during the recursive call.
-   * If doAdd = true, 
+   * If doAdd = true,
    *   then n+1 = index and alist[1]...alist[n] = t1...tn. If index=alist.size()
    *   we add c as the current node of this trie.
    * If doAdd = false,
@@ -1473,9 +1474,9 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     Node v[2];
     for (unsigned i = 0; i < 2; i++)
     {
-      if( n[i].isConst() )
+      if (n[i].isConst())
       {
-        vars.push_back(n[1-i]);
+        vars.push_back(n[1 - i]);
         subs.push_back(n[i]);
         return true;
       }

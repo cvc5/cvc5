@@ -89,7 +89,7 @@ class ExtendedRewriter
    */
   Node extendedRewriteIte(Kind itek, Node n, bool full = true);
   /** Rewrite AND/OR
-   * 
+   *
    * This implements BCP, factoring, and equality resolution for the Boolean
    * term n whose top symbolic is AND/OR.
    */
@@ -138,7 +138,7 @@ class ExtendedRewriter
    *
    *   ( A V B ) ^ ( A V C ) ----> A V ( B ^ C )
    *   ( A ^ B ) V ( A ^ C ) ----> A ^ ( B V C )
-   * 
+   *
    * This function takes as arguments the kinds that specify AND, OR, NOT.
    */
   Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n);
