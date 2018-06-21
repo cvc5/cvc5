@@ -353,8 +353,14 @@ command [std::unique_ptr<CVC4::Command>* cmd]
                                       "be declared in logic ");
       }
       // we allow overloading for function declarations
-      Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-      cmd->reset(new DeclareFunctionCommand(name, func, t));
+      if( PARSER_STATE->sygus() ){
+        // it is a higher-order universal variable
+        PARSER_STATE->mkSygusVar(name, t);
+        cmd->reset(new EmptyCommand());
+      }else{
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        cmd->reset(new DeclareFunctionCommand(name, func, t));
+      }
     }
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -829,6 +835,14 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       for( unsigned i=0; i<4; i++ ){
         Expr op = terms[i];
         Debug("parser-sygus") << "Make inv-constraint term #" << i << " : " << op  << "..." << std::endl;
+        Debug("parser-sygus") << primed[0].size() << " " << primed[1].size() << " " << static_cast<FunctionType>(op.getType()).getArgTypes().size() << std::endl;
+        for( unsigned j=0; j<2; j++ )
+        {
+          for( unsigned i=0; i<primed[j].size(); i++ )
+          {
+          Debug("parser-sygus") << "primed[" << j << "][" << i << "] = " << primed[j][i] << std::endl;
+          }
+        }
         std::vector< Expr > children;
         children.push_back( op );
         if( i==2 ){
@@ -837,6 +851,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
           children.insert( children.end(), primed[0].begin(), primed[0].end() );
         }
         terms[i] = EXPR_MANAGER->mkExpr( i==0 ? kind::APPLY_UF : kind::APPLY,children);
+        Debug("parser-sygus")  << "...made " << terms[i] << std::endl;
         if( i==0 ){
           std::vector< Expr > children2;
           children2.push_back( op );
