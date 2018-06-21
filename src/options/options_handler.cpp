@@ -492,6 +492,29 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cegqiSingleInvRconsHelp =
+    "\
+Modes for reconstruction solutions while using single invocation techniques, supported by --cegqi-si-rcons:\n\
+\n\
+none \n\
++ Do not try to reconstruct solutions in the original (user-provided) grammar\
+  when using single invocation techniques. In this mode, solutions produced by\
+  CVC4 may violate grammar restrictions.\n\
+\n\
+try \n\
++ Try to reconstruction solutions in the original grammar when using single\
+  invocation techniques in an incomplete (fail-fast) manner.\n\
+\n\
+all \n\
++ Try to reconstruct solutions in the original grammar. In this mode,\
+  we do not terminate until a solution is successfully reconstructed. \n\
+\n\
+all-limit \n\
++ Try to reconstruct solutions in the original grammar, but termintate if a\
+  maximum number of rounds for reconstruction is exceeded.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_cegisSampleHelp =
     "\
 Modes for sampling with counterexample-guided inductive synthesis (CEGIS),\
@@ -883,8 +906,6 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
     return theory::quantifiers::CEGQI_SI_MODE_NONE;
   } else if(optarg == "use" || optarg == "default") {
     return theory::quantifiers::CEGQI_SI_MODE_USE;
-  } else if(optarg == "all-abort") {
-    return theory::quantifiers::CEGQI_SI_MODE_ALL_ABORT;
   } else if(optarg == "all") {
     return theory::quantifiers::CEGQI_SI_MODE_ALL;
   } else if(optarg ==  "help") {
@@ -893,6 +914,38 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
   } else {
     throw OptionException(std::string("unknown option for --cegqi-si: `") +
                           optarg + "'.  Try --cegqi-si help.");
+  }
+}
+
+theory::quantifiers::CegqiSingleInvRconsMode
+OptionsHandler::stringToCegqiSingleInvRconsMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_NONE;
+  }
+  else if (optarg == "try")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_TRY;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL;
+  }
+  else if (optarg == "all-limit")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL_LIMIT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cegqiSingleInvRconsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cegqi-si-rcons: `")
+                          + optarg + "'.  Try --cegqi-si-rcons help.");
   }
 }
 
