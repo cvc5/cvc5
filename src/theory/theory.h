@@ -161,7 +161,7 @@ private:
   /**
    * Helper function for computeRelevantTerms
    */
-  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  void collectTerms(TNode n, std::set<Kind>& irr_kinds, std::set<Node>& termSet) const;
 
   /**
    * Scans the current set of assertions and shared terms top-down
@@ -169,6 +169,7 @@ private:
    * termSet.  This is used by collectModelInfo to delimit the set of
    * terms that should be used when constructing a model
    */
+  void computeRelevantTerms(std::set<Node>& termSet, std::set<Kind>& irr_kinds, bool includeShared = true) const;
   void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
 
   /**
