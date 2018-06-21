@@ -301,15 +301,13 @@ class ExtendedRewriter
    *   n2 is equivalent to nv[0] ++ ... ++ (~)nv[i] ++ ... ++ nv[k-1], and
    *   nv[i] is a constant of bit-width one.
    */
-  int spliceBvConstBit(Node n1,
-                       Node n2,
-                       std::vector<Node>& nv);
+  int spliceBvConstBit(Node n1, Node n2, std::vector<Node>& nv);
   /** extend
-   * 
-   * This returns the concatentation node of the form 
+   *
+   * This returns the concatentation node of the form
    */
-  Node extendBv(Node n, std::map< unsigned, Node >& ex_map);
-  Node extendBv(Node n, std::vector< Node >& exs);
+  Node extendBv(Node n, std::map<unsigned, Node>& ex_map);
+  Node extendBv(Node n, std::vector<Node>& exs);
   //--------------------------------------end bit-vectors
 };
 
