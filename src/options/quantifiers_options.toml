@@ -1066,6 +1066,14 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
 
 [[option]]
+  name       = "sygusPbeMultiFair"
+  category   = "regular"
+  long       = "sygus-pbe-multi-fair"
+  type       = "bool"
+  default    = "true"
+  help       = "when using multiple enumerators, ensure that we only register value of minimial term size"
+
+[[option]]
   name       = "sygusEvalUnfold"
   category   = "regular"
   long       = "sygus-eval-unfold"
