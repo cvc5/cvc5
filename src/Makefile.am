@@ -179,6 +179,8 @@ libcvc4_la_SOURCES = \
 	theory/atom_requests.cpp \
 	theory/atom_requests.h \
 	theory/care_graph.h \
+	theory/evaluator.cpp \
+	theory/evaluator.h \
 	theory/interrupted.h \
 	theory/ite_utilities.cpp \
 	theory/ite_utilities.h \
