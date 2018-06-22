@@ -112,7 +112,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2017 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2018 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
