@@ -441,7 +441,7 @@ enum CVC4_PUBLIC Kind
    */
   SINE,
   /**
-   * Consine.
+   * Cosine.
    * Parameters: 1
    *   -[1]: Term of Sort Integer, Real
    * Create with:
@@ -489,7 +489,7 @@ enum CVC4_PUBLIC Kind
    */
   ARCSINE,
   /**
-   * Arc consine.
+   * Arc cosine.
    * Parameters: 1
    *   -[1]: Term of Sort Integer, Real
    * Create with:
@@ -1157,7 +1157,6 @@ enum CVC4_PUBLIC Kind
 
   /**
    * Floating-point constant, constructed from a double or string.
-   * !! Note: Currently unsupported !!
    * Parameters: 3
    *   -[1]: size of the exponent
    *   -[2]: size of the significand
@@ -1998,21 +1997,28 @@ enum CVC4_PUBLIC Kind
    */
   STRING_LENGTH,
   /**
-   * String substr.
+   * String substring.
+   * Extracts a substring, starting at index i and of length l, from a string
+   * s.  If the start index is negative, the start index is greater than the
+   * length of the string, or the length is negative, the result is the empty
+   * string.
    * Parameters: 3
-   *   -[1]: ???
-   *   -[2]: ???
-   *   -[3]: ???
+   *   -[1]: Term of sort String
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Integer (length l)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_SUBSTR,
   /**
-   * String ???.
+   * String character at.
+   * Returns the character at index i from a string s. If the index is negative
+   * or the index is greater than the length of the string, the result is the
+   * empty string. Otherwise the result is a string of length 1.
    * Parameters: 2
-   *   -[1]: ???
-   *   -[2]: ???
+   *   -[1]: Term of sort String (string s)
+   *   -[2]: Term of sort Integer (index i)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2020,9 +2026,11 @@ enum CVC4_PUBLIC Kind
   STRING_CHARAT,
   /**
    * String contains.
+   * Checks whether a string s1 contains another string s2. If s2 is empty, the
+   * result is always true.
    * Parameters: 2
-   *   -[1]: ???
-   *   -[2]: ???
+   *   -[1]: Term of sort String (the string s1)
+   *   -[2]: Term of sort String (the string s2)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2030,10 +2038,13 @@ enum CVC4_PUBLIC Kind
   STRING_STRCTN,
   /**
    * String index-of.
+   * Returns the index of a substring s2 in a string s1 starting at index i. If
+   * the index is negative or greater than the length of string s1 or the
+   * substring s2 does not appear in string s1 after index i, the result is -1.
    * Parameters: 3
-   *   -[1]: ???
-   *   -[2]: ???
-   *   -[3]: ???
+   *   -[1]: Term of sort String (substring s1)
+   *   -[2]: Term of sort String (substring s2)
+   *   -[3]: Term of sort Integer (index i)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2041,10 +2052,12 @@ enum CVC4_PUBLIC Kind
   STRING_STRIDOF,
   /**
    * String replace.
+   * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
+   * in s1, s1 is returned unmodified.
    * Parameters: 3
-   *   -[1]: ???
-   *   -[2]: ???
-   *   -[3]: ???
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort String (string s2)
+   *   -[3]: Term of sort String (string s3)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2052,9 +2065,11 @@ enum CVC4_PUBLIC Kind
   STRING_STRREPL,
   /**
    * String prefix-of.
+   * Checks whether a string s1 is a prefix of string s2. If string s1 is
+   * empty, this operator returns true.
    * Parameters: 2
-   *   -[1]: ???
-   *   -[2]: ???
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort String (string s2)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2062,9 +2077,11 @@ enum CVC4_PUBLIC Kind
   STRING_PREFIX,
   /**
    * String suffix-of.
+   * Checks whether a string s1 is a suffix of string 2. If string s1 is empty,
+   * this operator returns true.
    * Parameters: 2
-   *   -[1]: ???
-   *   -[2]: ???
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort String (string s2)
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -2072,6 +2089,7 @@ enum CVC4_PUBLIC Kind
   STRING_SUFFIX,
   /**
    * Integer to string.
+   * If the integer is negative this operator returns the empty string.
    * Parameters: 1
    *   -[1]: Term of sort Integer
    * Create with:
@@ -2080,6 +2098,8 @@ enum CVC4_PUBLIC Kind
   STRING_ITOS,
   /**
    * String to integer (total function).
+   * If the string does not contain an integer or the integer is negative, the
+   * operator returns -1.
    * Parameters: 1
    *   -[1]: Term of sort String
    * Create with:
@@ -2087,7 +2107,7 @@ enum CVC4_PUBLIC Kind
    */
   STRING_STOI,
   /**
-   * String of characters constant.
+   * Constant string.
    * Parameters:
    *   See mkString()
    * Create with:

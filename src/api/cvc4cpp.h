@@ -88,7 +88,7 @@ class CVC4_PUBLIC Result
 
     /**
      * Return true if query was a checkValid() or checkValidAssuming() query
-     * and CVC4 was not able to determine (in)validity..
+     * and CVC4 was not able to determine (in)validity.
      */
     bool isValidUnknown () const;
 
@@ -124,8 +124,12 @@ class CVC4_PUBLIC Result
      */
     Result (const CVC4::Result& r);
 
-    /* The interal result wrapped by this result. */
-    const CVC4::Result* d_result;
+    /**
+     * The interal result wrapped by this result.
+     * This is a shared_ptr rather than a unique_ptr since CVC4::Result is
+     * not ref counted.
+     */
+    std::shared_ptr<CVC4::Result> d_result;
 };
 
 /**
@@ -161,6 +165,11 @@ class CVC4_PUBLIC Sort
      * Copy constructor.
      */
     Sort(const Sort& s);
+
+    /**
+     * Move constructor.
+     */
+    Sort(Sort&& s);
 
     /**
      * Destructor.
@@ -284,7 +293,7 @@ class CVC4_PUBLIC Sort
      * Is this a sort kind?
      * @return true if this is a sort kind
      */
-    bool isSort() const;
+    bool isUninterpretedSort() const;
 
     /**
      * Is this a sort constructor kind?
@@ -323,8 +332,12 @@ class CVC4_PUBLIC Sort
      */
     Sort(const CVC4::Type& t);
 
-    /* The interal type wrapped by this sort. */
-    CVC4::Type* d_type;
+    /**
+     * The interal type wrapped by this sort.
+     * This is a unique_ptr rather than a shared_ptr since CVC4::Type is
+     * already ref counted.
+     */
+    std::unique_ptr<CVC4::Type> d_type;
 };
 
 /**
@@ -368,6 +381,11 @@ class CVC4_PUBLIC Term
      * Copy constructor.
      */
     Term(const Term& t);
+
+    /**
+     * Move constructor.
+     */
+    Term(Term&& t);
 
     /**
      * Destructor.
@@ -422,7 +440,7 @@ class CVC4_PUBLIC Term
     Term notTerm() const;
 
     /**
-     * Boolean or.
+     * Boolean and.
      * @param t a Boolean term
      * @return the conjunction of this term and the given term
      */
@@ -556,8 +574,12 @@ class CVC4_PUBLIC Term
      */
     Term(const CVC4::Expr& e);
 
-    /* The internal expression wrapped by this term. */
-    CVC4::Expr* d_expr;
+    /**
+     * The internal expression wrapped by this term.
+     * This is a unique_ptr rather than a shared_ptr since CVC4::Expr is
+     * already ref counted.
+     */
+    std::unique_ptr<CVC4::Expr> d_expr;
 };
 
 /**
@@ -654,6 +676,11 @@ class CVC4_PUBLIC OpTerm
     OpTerm(const OpTerm& t);
 
     /**
+     * Move constructor.
+     */
+    OpTerm(OpTerm&& t);
+
+    /**
      * Destructor.
      */
     ~OpTerm();
@@ -712,8 +739,12 @@ class CVC4_PUBLIC OpTerm
      */
     OpTerm(const CVC4::Expr& e);
 
-    /* The internal expression wrapped by this operator term. */
-    CVC4::Expr* d_expr;
+    /**
+     * The internal expression wrapped by this operator term.
+     * This is a unique_ptr rather than a shared_ptr since CVC4::Expr is
+     * already ref counted.
+     */
+    std::unique_ptr<CVC4::Expr> d_expr;
 };
 
 /**
@@ -799,11 +830,6 @@ class CVC4_PUBLIC DatatypeConstructorDecl
     DatatypeConstructorDecl(const std::string& name);
 
     /**
-     * Destructor.
-     */
-    ~DatatypeConstructorDecl();
-
-    /**
      * Add datatype selector declaration.
      * @param stor the datatype selector declaration to add
      */
@@ -815,8 +841,12 @@ class CVC4_PUBLIC DatatypeConstructorDecl
     std::string toString() const;
 
   private:
-    /* The internal (intermediate) datatype constructor wrapped by this
-     * datatype constructor declaration. */
+    /**
+     * The internal (intermediate) datatype constructor wrapped by this
+     * datatype constructor declaration.
+     * This is a shared_ptr rather than a unique_ptr since
+     * CVC4::DatatypeConstructor is not ref counted.
+     */
     std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
 };
 
@@ -876,7 +906,10 @@ class CVC4_PUBLIC DatatypeDecl
 
   private:
     /* The internal (intermediate) datatype wrapped by this datatype
-     * declaration */
+     * declaration
+     * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+     * not ref counted.
+     */
     std::shared_ptr<CVC4::Datatype> d_dtype;
 };
 
@@ -911,7 +944,11 @@ class CVC4_PUBLIC DatatypeSelector
      */
     DatatypeSelector(const CVC4::DatatypeConstructorArg& stor);
 
-    /* The internal datatype selector wrapped by this datatype selector. */
+    /**
+     * The internal datatype selector wrapped by this datatype selector.
+     * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+     * not ref counted.
+     */
     std::shared_ptr<CVC4::DatatypeConstructorArg> d_stor;
 };
 
@@ -1046,7 +1083,11 @@ class CVC4_PUBLIC DatatypeConstructor
      */
     DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
 
-    /* The internal datatype constructor wrapped by this datatype constructor.*/
+    /**
+     * The internal datatype constructor wrapped by this datatype constructor.
+     * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+     * not ref counted.
+     */
     std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
 };
 
@@ -1175,7 +1216,11 @@ class CVC4_PUBLIC Datatype
      */
     Datatype(const CVC4::Datatype& dtype);
 
-    /* The internal datatype wrapped by this datatype. */
+    /**
+     * The internal datatype wrapped by this datatype.
+     * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+     * not ref counted.
+     */
     std::shared_ptr<CVC4::Datatype> d_dtype;
 };
 
@@ -1703,7 +1748,7 @@ class CVC4_PUBLIC Solver
      * @param den the value of the denominator
      * @return the Rational constant
      */
-    Term mkRational(int32_t num, int32_t den) const;
+    Term mkReal(int32_t num, int32_t den) const;
 
     /**
      * Create an Rational constant.
@@ -1711,7 +1756,7 @@ class CVC4_PUBLIC Solver
      * @param den the value of the denominator
      * @return the Rational constant
      */
-    Term mkRational(int64_t num, int64_t den) const;
+    Term mkReal(int64_t num, int64_t den) const;
 
     /**
      * Create an Rational constant.
@@ -1719,7 +1764,7 @@ class CVC4_PUBLIC Solver
      * @param den the value of the denominator
      * @return the Rational constant
      */
-    Term mkRational(uint32_t num, uint32_t den) const;
+    Term mkReal(uint32_t num, uint32_t den) const;
 
     /**
      * Create an Rational constant.
@@ -1727,7 +1772,7 @@ class CVC4_PUBLIC Solver
      * @param den the value of the denominator
      * @return the Rational constant
      */
-    Term mkRational(uint64_t num, uint64_t den) const;
+    Term mkReal(uint64_t num, uint64_t den) const;
 
     /**
      * Create a regular expression empty term.
@@ -2006,13 +2051,6 @@ class CVC4_PUBLIC Solver
      * @param arg2 the second argument to this kind
      * @param arg3 the third argument to this kind
      */
-#if 0
-    Term mkConst(Kind kind, uint32_t arg1, uint32_t arg2, double arg3) const;
-    Term mkConst(Kind kind,
-                 uint32_t arg1,
-                 uint32_t arg2,
-                 const std::string& arg3) const;
-#endif
     Term mkConst(Kind kind,
                  uint32_t arg1,
                  uint32_t arg2,
