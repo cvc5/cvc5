@@ -28,6 +28,17 @@ namespace quantifiers {
 
 /** Arithmetic instantiator
  * 
+ * This implements a selection function for arithmetic, which is based on
+ * variants of:
+ * - Loos/Weispfenning's method (virtual term substitution) for linear real 
+ *    arithmetic,
+ * - Ferrante/Rackoff's method (interior points) for linear real arithmetic,
+ * - Cooper's method for linear arithmetic.
+ * For details, see Reynolds et al, "Solving Linear Arithmetic Using 
+ * Counterexample-Guided Instantiation", FMSD 2017.
+ * 
+ * This class contains all necessary information for instantiating a single
+ * real or integer typed variable of a single quantified formula.
  */
 class ArithInstantiator : public Instantiator {
  public:
@@ -40,10 +51,7 @@ class ArithInstantiator : public Instantiator {
   bool hasProcessEquality(CegInstantiator* ci,
                           SolvedForm& sf,
                           Node pv,
-                          CegInstEffort effort) override
-  {
-    return true;
-  }
+                          CegInstEffort effort) override;
   bool processEquality(CegInstantiator* ci,
                        SolvedForm& sf,
                        Node pv,
@@ -53,10 +61,7 @@ class ArithInstantiator : public Instantiator {
   bool hasProcessAssertion(CegInstantiator* ci,
                            SolvedForm& sf,
                            Node pv,
-                           CegInstEffort effort) override
-  {
-    return true;
-  }
+                           CegInstEffort effort) override;
   Node hasProcessAssertion(CegInstantiator* ci,
                            SolvedForm& sf,
                            Node pv,
@@ -82,16 +87,29 @@ class ArithInstantiator : public Instantiator {
                                            CegInstEffort effort,
                                            std::vector<Node>& lemmas) override;
   std::string identify() const override { return "Arith"; }
-
  private:
   /** zero/one */
   Node d_zero;
   Node d_one;
+  //--------------------------------------current bounds
+  /** Virtual term symbols (vts), where 0: infinity, 1: delta. */
   Node d_vts_sym[2];
+  /** Current 0:lower, 1:upper bounds for the variable to instantiate */
   std::vector<Node> d_mbp_bounds[2];
+  /** Coefficients for the lower/upper bounds for the variable to instantiate */
   std::vector<Node> d_mbp_coeff[2];
+  /** Coefficients for virtual terms for each bound. */
   std::vector<Node> d_mbp_vts_coeff[2][2];
+  /** The source literal (explanation) for each bound. */
   std::vector<Node> d_mbp_lit[2];
+  //--------------------------------------end current bounds
+  /** solve arith 
+   * 
+   * Given variable to instantiate pv, this isolates the atom into solved form:
+   *    veq_c * pv <> val + vts_coeff_delta * delta + vts_coeff_inf * inf
+   * where we ensure val has Int type if pv has Int type, and val does not
+   * contain vts symbols.
+   */
   int solve_arith(CegInstantiator* ci,
                   Node v,
                   Node atom,
@@ -99,6 +117,10 @@ class ArithInstantiator : public Instantiator {
                   Node& val,
                   Node& vts_coeff_inf,
                   Node& vts_coeff_delta);
+  /** get model based projection value 
+   * 
+   * 
+   */
   Node getModelBasedProjectionValue(CegInstantiator* ci,
                                     Node e,
                                     Node t,

@@ -29,8 +29,12 @@ namespace quantifiers {
 /** Bitvector instantiator
  *
  * This implements an approach for counterexample-guided instantiation
- * for bit-vector variables based on word-level inversions.
- * It is enabled by --cbqi-bv.
+ * for bit-vector variables based on word-level inversions. For details,
+ * see Niemetz et al, "Solving Quantified Bit-Vectors Using Invertibility
+ * Conditions", CAV 2018. It is enabled by --cbqi-bv.
+ * 
+ * This class contains all necessary information for instantiating a single
+ * bit-vector variable of a single quantified formula.
  */
 class BvInstantiator : public Instantiator {
  public:

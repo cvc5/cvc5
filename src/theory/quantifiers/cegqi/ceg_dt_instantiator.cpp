@@ -39,7 +39,7 @@ Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
   }else if( !a.isNull() && a.getKind()==APPLY_CONSTRUCTOR ){
     if( !b.isNull() && b.getKind()==APPLY_CONSTRUCTOR ){
       if( a.getOperator()==b.getOperator() ){
-        for( unsigned i=0; i<a.getNumChildren(); i++ ){
+        for( unsigned i=0, nchild = a.getNumChildren(); i<nchild; i++ ){
           Node s = solve_dt( v, a[i], b[i], sa[i], sb[i] );
           if( !s.isNull() ){
             return s;
@@ -47,11 +47,12 @@ Node DtInstantiator::solve_dt( Node v, Node a, Node b, Node sa, Node sb ) {
         }
       }
     }else{
+      NodeManager * nm = NodeManager::currentNM();
       unsigned cindex = Datatype::indexOf( a.getOperator().toExpr() );
       TypeNode tn = a.getType();
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for( unsigned i=0; i<a.getNumChildren(); i++ ){
-        Node nn = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), sb );
+      for( unsigned i=0, nchild = a.getNumChildren(); i<nchild; i++ ){
+        Node nn = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), sb );
         Node s = solve_dt( v, a[i], Node::null(), sa[i], nn );
         if( !s.isNull() ){
           return s;
@@ -80,7 +81,8 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
   Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
                           << std::endl;
   // look in equivalence class for a constructor
-  for( unsigned k=0; k<eqc.size(); k++ ){
+  NodeManager * nm = NodeManager::currentNM();
+  for( unsigned k=0, size = eqc.size(); k<size; k++ ){
     Node n = eqc[k];
     if( n.getKind()==APPLY_CONSTRUCTOR ){
       Trace("cegqi-dt-debug") << "...try based on constructor term " << n << std::endl;
@@ -89,23 +91,22 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       const Datatype& dt = ((DatatypeType)(d_type).toType()).getDatatype();
       unsigned cindex = Datatype::indexOf( n.getOperator().toExpr() );
       //now must solve for selectors applied to pv
-      for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
-        Node c = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( d_type.toType(), j ) ), pv );
+      for( unsigned j=0, nargs = dt[cindex].getNumArgs(); j<nargs; j++ ){
+        Node c = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( d_type.toType(), j ) ), pv );
         ci->pushStackVariable( c );
         children.push_back( c );
       }
-      Node val = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+      Node val = nm->mkNode( kind::APPLY_CONSTRUCTOR, children );
       TermProperties pv_prop_dt;
       if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
       {
         return true;
-      }else{
-        //cleanup
-        for( unsigned j=0; j<dt[cindex].getNumArgs(); j++ ){
-          ci->popStackVariable();
-        }
-        break;
       }
+      //cleanup
+      for( unsigned j=0, nargs = dt[cindex].getNumArgs(); j<nargs; j++ ){
+        ci->popStackVariable();
+      }
+      break;
     }
   }
   return false;
