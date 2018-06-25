@@ -1657,12 +1657,12 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  // by default, symmetry breaker is on only for QF_UF
+  // by default, symmetry breaker is on only for non-incremental QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
-    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified()
-                 && !options::proof() && !options::unsatCores();
-    Trace("smt") << "setting uf symmetry breaker to " << qf_uf << endl;
-    options::ufSymmetryBreaker.set(qf_uf);
+    bool qf_uf_noinc = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified()
+                 && !options::incrementalSolving() && !options::proof() && !options::unsatCores();
+    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc << endl;
+    options::ufSymmetryBreaker.set(qf_uf_noinc);
   }
 
   // If in arrays, set the UF handler to arrays
