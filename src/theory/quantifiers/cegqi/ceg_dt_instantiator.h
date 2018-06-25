@@ -26,7 +26,8 @@ namespace quantifiers {
 
 /** Datatypes Instantiator
  *
- * This class 
+ * This class implements a selection function for datatypes based on solving
+ * for occurrences of variables in subfields of datatypes.
  */
 class DtInstantiator : public Instantiator
 {

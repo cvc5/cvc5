@@ -29,22 +29,35 @@ class TermArgTrie;
 
 /** Effectively Propositional (EPR) Instantiator
  *
+ * This implements a selection function for the EPR fragment.
  */
 class EprInstantiator : public Instantiator
 {
  public:
   EprInstantiator(QuantifiersEngine* qe, TypeNode tn) : Instantiator(qe, tn) {}
   virtual ~EprInstantiator() {}
+  /** reset */
   void reset(CegInstantiator* ci,
              SolvedForm& sf,
              Node pv,
              CegInstEffort effort) override;
+  /** process equal terms 
+   * 
+   * This adds n to the set of equal terms d_equal_terms if matching heuristics
+   * are enabled (--quant-epr-match), or simply tries the substitution pv -> n
+   * otherwise.
+   */
   bool processEqualTerm(CegInstantiator* ci,
                         SolvedForm& sf,
                         Node pv,
                         TermProperties& pv_prop,
                         Node n,
                         CegInstEffort effort) override;
+  /** process equal terms 
+   * 
+   * Called when pv is equal to the set eqc. If matching heuristics are enabled,
+   * this adds the substitution pv -> n based on the best term n in eqc.
+   */
   bool processEqualTerms(CegInstantiator* ci,
                          SolvedForm& sf,
                          Node pv,
@@ -53,7 +66,23 @@ class EprInstantiator : public Instantiator
   /** identify */
   std::string identify() const override { return "Epr"; }
  private:
+  /** 
+   * The current set of terms that are equal to the variable-to-instantate of 
+   * this class. 
+   */
   std::vector<Node> d_equal_terms;
+  /** compute match score 
+   * 
+   * This method computes the map match_score, from ground term t to the
+   * number of times that occur in simple matches for a quantified formula.
+   * For example, for quantified formula forall xy. P( x ) V Q( x, y ) and 
+   * ground terms { P( a ), Q( a, a ), Q( b, c ), Q( a, c ) }, we compute for x:
+   *   match_score[a] = 3,
+   *   match_score[b] = 1,
+   *   match_score[c] = 0.
+   * The higher the match score for a term, the more likely this class is to use
+   * t in instantiations.
+   */
   void computeMatchScore(CegInstantiator* ci,
                          Node pv,
                          Node catom,

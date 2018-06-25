@@ -47,11 +47,52 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
     d_equal_terms.push_back(n);
     return false;
   }
-  else
+  pv_prop.d_type = 0;
+  return ci->constructInstantiationInc(pv, n, pv_prop, sf);
+}
+
+
+struct sortEqTermsMatch
+{
+  std::map<Node, int> d_match_score;
+  bool operator()(Node i, Node j)
   {
-    pv_prop.d_type = 0;
-    return ci->constructInstantiationInc(pv, n, pv_prop, sf);
+    int match_score_i = d_match_score[i];
+    int match_score_j = d_match_score[j];
+    return match_score_i > match_score_j
+           || (match_score_i == match_score_j && i < j);
   }
+};
+
+bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
+                                        SolvedForm& sf,
+                                        Node pv,
+                                        std::vector<Node>& eqc,
+                                        CegInstEffort effort)
+{
+  if (!options::quantEprMatching())
+  {
+    return false;
+  }
+  // heuristic for best matching constant
+  sortEqTermsMatch setm;
+  for (unsigned i = 0; i < ci->getNumCEAtoms(); i++)
+  {
+    Node catom = ci->getCEAtom(i);
+    computeMatchScore(ci, pv, catom, catom, setm.d_match_score);
+  }
+  // sort by match score
+  std::sort(d_equal_terms.begin(), d_equal_terms.end(), setm);
+  TermProperties pv_prop;
+  pv_prop.d_type = 0;
+  for (unsigned i = 0, size = d_equal_terms.size(); i < size; i++)
+  {
+    if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 void EprInstantiator::computeMatchScore(CegInstantiator* ci,
@@ -123,49 +164,6 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
   {
     computeMatchScore(ci, pv, catom, arg_reps, tat, 0, match_score);
   }
-}
-
-struct sortEqTermsMatch
-{
-  std::map<Node, int> d_match_score;
-  bool operator()(Node i, Node j)
-  {
-    int match_score_i = d_match_score[i];
-    int match_score_j = d_match_score[j];
-    return match_score_i > match_score_j
-           || (match_score_i == match_score_j && i < j);
-  }
-};
-
-bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
-                                        SolvedForm& sf,
-                                        Node pv,
-                                        std::vector<Node>& eqc,
-                                        CegInstEffort effort)
-{
-  if (!options::quantEprMatching())
-  {
-    return false;
-  }
-  // heuristic for best matching constant
-  sortEqTermsMatch setm;
-  for (unsigned i = 0; i < ci->getNumCEAtoms(); i++)
-  {
-    Node catom = ci->getCEAtom(i);
-    computeMatchScore(ci, pv, catom, catom, setm.d_match_score);
-  }
-  // sort by match score
-  std::sort(d_equal_terms.begin(), d_equal_terms.end(), setm);
-  TermProperties pv_prop;
-  pv_prop.d_type = 0;
-  for (unsigned i = 0, size = d_equal_terms.size(); i < size; i++)
-  {
-    if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
-    {
-      return true;
-    }
-  }
-  return false;
 }
 
 }  // namespace quantifiers
