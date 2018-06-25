@@ -1851,7 +1851,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   std::map< Node, Node > mvarg_to_term;
   std::vector<Node> tr_no_base;
   bool needPi = false;
-  for( unsigned i=0, xsize = xts.size(); i<xsize; i++ ){
+  for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
+  {
     Node a = xts[i];
     computeModelValue(a, 0);
     computeModelValue(a, 1);
@@ -1898,10 +1899,11 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       }
       bool consider = true;
       // if is an unpurified application of SINE, or it is a transcendental
-      // applied to a trancendental, purify. 
-      if( isTranscendentalKind(ak) )
+      // applied to a trancendental, purify.
+      if (isTranscendentalKind(ak))
       {
-        if( ( ak == SINE && d_tr_is_base.find( a )==d_tr_is_base.end() ) || isTranscendentalKind(a[0].getKind()) )
+        if ((ak == SINE && d_tr_is_base.find(a) == d_tr_is_base.end())
+            || isTranscendentalKind(a[0].getKind()))
         {
           consider = false;
           tr_no_base.push_back(a);
@@ -1909,8 +1911,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       }
       if( consider ){
         Node r = d_containing.getValuation().getModel()->getRepresentative(a[0]);
-        std::map< Node, Node >::iterator itrm = d_tf_rep_map[ak].find( r );
-        if( itrm!=d_tf_rep_map[ak].end() ){
+        std::map<Node, Node>::iterator itrm = d_tf_rep_map[ak].find(r);
+        if (itrm != d_tf_rep_map[ak].end())
+        {
           //verify they have the same model value
           if( d_mv[1][a]!=d_mv[1][itrm->second] ){
             // if not, add congruence lemma
@@ -1958,10 +1961,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       d_tr_is_base[new_a] = true;
       d_tr_base[a] = new_a;
       Node lem;
-      if( a.getKind()==SINE )
+      if (a.getKind() == SINE)
       {
         Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
-                          << std::endl;
+                           << std::endl;
         Assert(!d_pi.isNull());
         Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
         // FIXME : do not introduce shift here, instead needs model-based
@@ -1982,9 +1985,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       else
       {
         // do both equalities to ensure that new_a becomes a preregistered term
-        lem = nm->mkNode( AND, 
-                                  a.eqNode(new_a),
-                                  a[0].eqNode(y) );
+        lem = nm->mkNode(AND, a.eqNode(new_a), a[0].eqNode(y));
       }
       // must do preprocess on this one
       Trace("nl-ext-lemma")
@@ -3781,7 +3782,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
           symn = Rewriter::rewrite( symn );
           //can assume its basis since phase is split over 0
           d_tr_is_base[symn] = true;
-          Assert( d_tr_is_base.find( t ) != d_tr_is_base.end() );
+          Assert(d_tr_is_base.find(t) != d_tr_is_base.end());
           std::vector< Node > children;
 
           lem = NodeManager::currentNM()->mkNode(
@@ -4187,7 +4188,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     {
       Trace("nl-ext-tftp-debug2") << "...model value of " << pab << " is "
                                   << v_pab << std::endl;
-                                  
+
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
       Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
