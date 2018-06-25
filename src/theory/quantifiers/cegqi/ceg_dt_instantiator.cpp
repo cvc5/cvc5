@@ -29,6 +29,81 @@ void DtInstantiator::reset(CegInstantiator* ci,
 {
 }
 
+bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
+                                       SolvedForm& sf,
+                                       Node pv,
+                                       std::vector<Node>& eqc,
+                                       CegInstEffort effort)
+{
+  Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
+                          << std::endl;
+  // look in equivalence class for a constructor
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned k = 0, size = eqc.size(); k < size; k++)
+  {
+    Node n = eqc[k];
+    if (n.getKind() == APPLY_CONSTRUCTOR)
+    {
+      Trace("cegqi-dt-debug")
+          << "...try based on constructor term " << n << std::endl;
+      std::vector<Node> children;
+      children.push_back(n.getOperator());
+      const Datatype& dt = static_cast<DatatypeType>(d_type.toType()).getDatatype();
+      unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
+      // now must solve for selectors applied to pv
+      for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
+      {
+        Node c = nm->mkNode(
+            APPLY_SELECTOR_TOTAL,
+            Node::fromExpr(dt[cindex].getSelectorInternal(d_type.toType(), j)),
+            pv);
+        ci->pushStackVariable(c);
+        children.push_back(c);
+      }
+      Node val = nm->mkNode(kind::APPLY_CONSTRUCTOR, children);
+      TermProperties pv_prop_dt;
+      if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
+      {
+        return true;
+      }
+      // cleanup
+      for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
+      {
+        ci->popStackVariable();
+      }
+      break;
+    }
+  }
+  return false;
+}
+
+bool DtInstantiator::hasProcessEquality(CegInstantiator* ci,
+                        SolvedForm& sf,
+                        Node pv,
+                        CegInstEffort effort)
+{
+  return true;
+}
+
+bool DtInstantiator::processEquality(CegInstantiator* ci,
+                                     SolvedForm& sf,
+                                     Node pv,
+                                     std::vector<TermProperties>& term_props,
+                                     std::vector<Node>& terms,
+                                     CegInstEffort effort)
+{
+  Node val = solve_dt(pv, terms[0], terms[1], terms[0], terms[1]);
+  if (!val.isNull())
+  {
+    TermProperties pv_prop;
+    if (ci->constructInstantiationInc(pv, val, pv_prop, sf))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
 {
   Trace("cegqi-arith-debug2") << "Solve dt : " << v << " " << a << " " << b
@@ -63,7 +138,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       NodeManager* nm = NodeManager::currentNM();
       unsigned cindex = Datatype::indexOf(a.getOperator().toExpr());
       TypeNode tn = a.getType();
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
       for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)
       {
         Node nn = nm->mkNode(
@@ -80,84 +155,18 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
   }
   else if (!b.isNull() && b.getKind() == APPLY_CONSTRUCTOR)
   {
+    // flip sides
     return solve_dt(v, b, a, sb, sa);
   }
   if (!ret.isNull())
   {
-    // ensure does not contain
+    // ensure does not contain v
     if (ret.hasSubterm(v))
     {
       ret = Node::null();
     }
   }
   return ret;
-}
-
-bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
-                                       SolvedForm& sf,
-                                       Node pv,
-                                       std::vector<Node>& eqc,
-                                       CegInstEffort effort)
-{
-  Trace("cegqi-dt-debug") << "try based on constructors in equivalence class."
-                          << std::endl;
-  // look in equivalence class for a constructor
-  NodeManager* nm = NodeManager::currentNM();
-  for (unsigned k = 0, size = eqc.size(); k < size; k++)
-  {
-    Node n = eqc[k];
-    if (n.getKind() == APPLY_CONSTRUCTOR)
-    {
-      Trace("cegqi-dt-debug")
-          << "...try based on constructor term " << n << std::endl;
-      std::vector<Node> children;
-      children.push_back(n.getOperator());
-      const Datatype& dt = ((DatatypeType)(d_type).toType()).getDatatype();
-      unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
-      // now must solve for selectors applied to pv
-      for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
-      {
-        Node c = nm->mkNode(
-            APPLY_SELECTOR_TOTAL,
-            Node::fromExpr(dt[cindex].getSelectorInternal(d_type.toType(), j)),
-            pv);
-        ci->pushStackVariable(c);
-        children.push_back(c);
-      }
-      Node val = nm->mkNode(kind::APPLY_CONSTRUCTOR, children);
-      TermProperties pv_prop_dt;
-      if (ci->constructInstantiationInc(pv, val, pv_prop_dt, sf))
-      {
-        return true;
-      }
-      // cleanup
-      for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
-      {
-        ci->popStackVariable();
-      }
-      break;
-    }
-  }
-  return false;
-}
-
-bool DtInstantiator::processEquality(CegInstantiator* ci,
-                                     SolvedForm& sf,
-                                     Node pv,
-                                     std::vector<TermProperties>& term_props,
-                                     std::vector<Node>& terms,
-                                     CegInstEffort effort)
-{
-  Node val = solve_dt(pv, terms[0], terms[1], terms[0], terms[1]);
-  if (!val.isNull())
-  {
-    TermProperties pv_prop;
-    if (ci->constructInstantiationInc(pv, val, pv_prop, sf))
-    {
-      return true;
-    }
-  }
-  return false;
 }
 
 }  // namespace quantifiers

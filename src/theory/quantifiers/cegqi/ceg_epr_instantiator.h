@@ -50,8 +50,8 @@ class EprInstantiator : public Instantiator
                          Node pv,
                          std::vector<Node>& eqc,
                          CegInstEffort effort) override;
+  /** identify */
   std::string identify() const override { return "Epr"; }
-
  private:
   std::vector<Node> d_equal_terms;
   void computeMatchScore(CegInstantiator* ci,
