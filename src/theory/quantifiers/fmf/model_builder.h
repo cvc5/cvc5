@@ -64,26 +64,6 @@ public:
   bool addTerm(FirstOrderModel* fm, Node n, unsigned argIndex = 0);
 };/* class TermArgBasisTrie */
 
-/**
- * This class stores temporary information useful to model engine for
- * constructing models for uninterpreted functions.
- */
-class UfModelPreferenceData
-{
- public:
-  UfModelPreferenceData() : d_reconsiderModel(false) {}
-  virtual ~UfModelPreferenceData() {}
-  Node d_const_val;
-  // preferences for default values
-  std::vector<Node> d_values;
-  std::map<Node, std::vector<Node> > d_value_pro_con[2];
-  std::map<Node, std::vector<Node> > d_term_pro_con[2];
-  bool d_reconsiderModel;
-  /** set value preference */
-  void setValuePreference(Node f, Node n, Node r, bool isPro);
-  /** get best default value */
-  Node getBestDefaultValue(Node defaultTerm, TheoryModel* m);
-};
 
 /** model builder class
   *  This class is capable of building candidate models based on the current quantified formulas
@@ -97,8 +77,30 @@ class QModelBuilderIG : public QModelBuilder
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
 
  protected:
-  BoolMap d_basisNoMatch;
-  //map from operators to model preference data
+  /**
+  * This class stores temporary information useful to model engine for
+  * constructing models for uninterpreted functions.
+  */
+  class UfModelPreferenceData
+  {
+   public:
+    UfModelPreferenceData() {}
+    virtual ~UfModelPreferenceData() {}
+    /** any constant value of the type */
+    Node d_const_val;
+    /** list of possible default values */
+    std::vector<Node> d_values;
+    /** 
+     * Map from values to the set of quantified formulas that are (pro, con) 
+     * that value. 
+     */
+    std::map<Node, std::vector<Node> > d_value_pro_con[2];
+    /** set that quantified formula q is pro/con the default value of r */
+    void setValuePreference(Node q, Node r, bool isPro);
+    /** get best default value */
+    Node getBestDefaultValue(Node defaultTerm, TheoryModel* m);
+  };
+  /** map from operators to model preference data */
   std::map<Node, UfModelPreferenceData> d_uf_prefs;
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
@@ -206,8 +208,6 @@ class QModelBuilderDefault : public QModelBuilderIG
  public:
   QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
 
-  //options
-  bool optReconsiderFuncConstants() { return true; }
   //has inst gen
   bool hasInstGen(Node f) override
   {

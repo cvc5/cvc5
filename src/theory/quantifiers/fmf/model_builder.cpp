@@ -166,8 +166,7 @@ bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
   }
 }
 
-void UfModelPreferenceData::setValuePreference(Node f,
-                                               Node n,
+void QModelBuilderIG::UfModelPreferenceData::setValuePreference(Node q,
                                                Node r,
                                                bool isPro)
 {
@@ -177,15 +176,14 @@ void UfModelPreferenceData::setValuePreference(Node f,
   }
   int index = isPro ? 0 : 1;
   if (std::find(
-          d_value_pro_con[index][r].begin(), d_value_pro_con[index][r].end(), f)
+          d_value_pro_con[index][r].begin(), d_value_pro_con[index][r].end(), q)
       == d_value_pro_con[index][r].end())
   {
-    d_value_pro_con[index][r].push_back(f);
+    d_value_pro_con[index][r].push_back(q);
   }
-  d_term_pro_con[index][n].push_back(f);
 }
 
-Node UfModelPreferenceData::getBestDefaultValue(Node defaultTerm,
+Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(Node defaultTerm,
                                                 TheoryModel* m)
 {
   Node defaultVal;
@@ -243,7 +241,6 @@ Node UfModelPreferenceData::getBestDefaultValue(Node defaultTerm,
 
 QModelBuilderIG::QModelBuilderIG(context::Context* c, QuantifiersEngine* qe)
     : QModelBuilder(c, qe),
-      d_basisNoMatch(c),
       d_didInstGen(false),
       d_numQuantSat(0),
       d_numQuantInstGen(0),
@@ -422,7 +419,6 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
   //determine if any functions are constant
   for( std::map< Node, uf::UfModelTree >::iterator it = fmig->d_uf_model_tree.begin(); it != fmig->d_uf_model_tree.end(); ++it ){
     Node op = it->first;
-    TermArgBasisTrie tabt;
     std::map< Node, std::vector< Node > >::iterator itut = fmig->d_uf_terms.find( op );
     if( itut!=fmig->d_uf_terms.end() ){
       for( size_t i=0; i<itut->second.size(); i++ ){
@@ -434,14 +430,6 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
         }else if( v!=d_uf_prefs[op].d_const_val ){
           d_uf_prefs[op].d_const_val = Node::null();
           break;
-        }
-        //for calculating terms that we don't need to consider
-        //if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
-        if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
-          //need to consider if it is not congruent modulo model basis
-          if( !tabt.addTerm( fmig, n ) ){
-            d_basisNoMatch[n] = true;
-          }
         }
       }
     }
@@ -679,15 +667,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
             d_qe->getModel()->setQuantifierActive( f, false );
             //check if choosing this literal would add any additional constraints to default definitions
             selectLitConstraints = false;
-            for( int j=0; j<(int)uf_terms.size(); j++ ){
-              Node op = uf_terms[j].getOperator();
-              if( d_uf_prefs[op].d_reconsiderModel ){
-                selectLitConstraints = true;
-              }
-            }
-            if( !selectLitConstraints ){
-              selectLit = true;
-            }
+            selectLit = true;
           }
           //also check if it is naturally a better literal
           if( !selectLit ){
@@ -737,7 +717,6 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
       Debug("fmf-model-prefs") << "  * Constant SAT due to definition of ops: ";
       for( int i=0; i<(int)selectionLitTerms.size(); i++ ){
         Debug("fmf-model-prefs") << selectionLitTerms[i] << " ";
-        d_uf_prefs[ selectionLitTerms[i].getOperator() ].d_reconsiderModel = false;
       }
       Debug("fmf-model-prefs") << std::endl;
     }else{
@@ -746,7 +725,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
         for( int j=0; j<(int)pro_con[k].size(); j++ ){
           Node op = pro_con[k][j].getOperator();
           Node r = fmig->getRepresentative( pro_con[k][j] );
-          d_uf_prefs[op].setValuePreference( f, pro_con[k][j], r, k==0 );
+          d_uf_prefs[op].setValuePreference( f, r, k==0 );
         }
       }
     }
@@ -806,21 +785,6 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
 
 void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
   FirstOrderModelIG* fmig = fm->asFirstOrderModelIG();
-  if( optReconsiderFuncConstants() ){
-    //reconsider constant functions that weren't necessary
-    if( d_uf_model_constructed[op] ){
-      if( d_uf_prefs[op].d_reconsiderModel ){
-        //if we are allowed to reconsider default value, then see if the default value can be improved
-        Node v = d_uf_prefs[op].d_const_val;
-        if( d_uf_prefs[op].d_value_pro_con[0][v].empty() ){
-          Debug("fmf-model-cons-debug") << "Consider changing the default value for " << op << std::endl;
-          fmig->d_uf_model_tree[op].clear();
-          fmig->d_uf_model_gen[op].clear();
-          d_uf_model_constructed[op] = false;
-        }
-      }
-    }
-  }
   if( !d_uf_model_constructed[op] ){
     //construct the model for the uninterpretted function/predicate
     bool setDefaultVal = true;

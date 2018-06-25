@@ -222,9 +222,15 @@ class FirstOrderModelIG : public FirstOrderModel
    public:
     /** the overall default value */
     Node d_default_value;
-    /** stores (required, ground) values */
+    /**
+     * Stores (required, ground) values in key, value pairs of the form 
+     * ( P( a, b ), c ), which indicates P( a, b ) has value c in the model.
+     * The "non-ground" values indicate that the key has a "model-basis"
+     * variable, for example, ( P( _, b ), c ) indicates that P( x, b ) has the
+     * value b for any value of x.
+     */
     std::map<Node, Node> d_set_values[2][2];
-    /** stores the set of non-ground defined values */
+    /** stores the set of non-ground keys in the above maps */
     std::vector<Node> d_defaults;
     /**
     * Returns the term corresponding to the intersection of n1 and n2, if it
