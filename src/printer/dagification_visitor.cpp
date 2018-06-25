@@ -47,10 +47,11 @@ DagificationVisitor::~DagificationVisitor() {
 
 bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   Kind ck = current.getKind();
-  if( ck==kind::FORALL || ck==kind::EXISTS || ck==kind::LAMBDA || ck==kind::CHOICE )
+  if (ck == kind::FORALL || ck == kind::EXISTS || ck == kind::LAMBDA
+      || ck == kind::CHOICE)
   {
     // for quantifiers, we visit them but we don't recurse on them
-    visit(current,parent);
+    visit(current, parent);
     return true;
   }
   // don't visit variables, constants, or those exprs that we've
@@ -58,15 +59,12 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   // the count beyond the threshold already, we've done the same
   // for all subexpressions, so it isn't useful to traverse and
   // increment again (they'll be dagified anyway).
-  return current.isVar() ||
-         current.getMetaKind() == kind::metakind::CONSTANT ||
-         current.getNumChildren()==0 ||
-         ( ( ck == kind::NOT ||
-             ck == kind::UMINUS ) &&
-           ( current[0].isVar() ||
-             current[0].getMetaKind() == kind::metakind::CONSTANT ) ) ||
-         ck == kind::SORT_TYPE ||
-         d_nodeCount[current] > d_threshold;
+  return current.isVar() || current.getMetaKind() == kind::metakind::CONSTANT
+         || current.getNumChildren() == 0
+         || ((ck == kind::NOT || ck == kind::UMINUS)
+             && (current[0].isVar()
+                 || current[0].getMetaKind() == kind::metakind::CONSTANT))
+         || ck == kind::SORT_TYPE || d_nodeCount[current] > d_threshold;
 }
 
 void DagificationVisitor::visit(TNode current, TNode parent) {
