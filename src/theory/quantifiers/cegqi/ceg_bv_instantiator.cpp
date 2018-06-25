@@ -127,6 +127,14 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   }
 }
 
+bool BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
+                          SolvedForm& sf,
+                          Node pv,
+                          CegInstEffort effort)
+{
+  return true;
+}
+
 Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                          SolvedForm& sf,
                                          Node pv,
@@ -269,112 +277,112 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
 {
   std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::iterator
       iti = d_var_to_inst_id.find(pv);
-  if (iti != d_var_to_inst_id.end())
+  if (iti == d_var_to_inst_id.end())
   {
-    Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv
+    // no bounds
+    return false;
+  }
+  Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv
+                    << std::endl;
+  // if interleaving, do not do inversion half the time
+  if (options::cbqiBvInterleaveValue()
+      && Random::getRandom().pickWithProb(0.5))
+  {
+    Trace("cegqi-bv") << "...do not do instantiation for " << pv
+                      << " (skip, based on heuristic)" << std::endl;
+  }    
+  bool firstVar = sf.empty();
+  // get inst id list
+  if (Trace.isOn("cegqi-bv"))
+  {
+    Trace("cegqi-bv") << "  " << iti->second.size()
+                      << " candidate instantiations for " << pv << " : "
                       << std::endl;
-    // if interleaving, do not do inversion half the time
-    if (!options::cbqiBvInterleaveValue()
-        || Random::getRandom().pickWithProb(0.5))
+    if (firstVar)
     {
-      bool firstVar = sf.empty();
-      // get inst id list
-      if (Trace.isOn("cegqi-bv"))
-      {
-        Trace("cegqi-bv") << "  " << iti->second.size()
-                          << " candidate instantiations for " << pv << " : "
-                          << std::endl;
-        if (firstVar)
-        {
-          Trace("cegqi-bv") << "  ...this is the first variable" << std::endl;
-        }
-      }
-      // until we have a model-preserving selection function for BV, this must
-      // be heuristic (we only pick one literal)
-      // hence we randomize the list
-      // this helps robustness, since picking the same literal every time may
-      // lead to a stream of value instantiations, whereas with randomization
-      // we may find an invertible literal that leads to a useful instantiation.
-      std::random_shuffle(iti->second.begin(), iti->second.end());
-
-      if (Trace.isOn("cegqi-bv"))
-      {
-        for (unsigned j = 0, size = iti->second.size(); j < size; j++)
-        {
-          unsigned inst_id = iti->second[j];
-          Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
-          Node inst_term = d_inst_id_to_term[inst_id];
-          Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
-          Node alit = d_inst_id_to_alit[inst_id];
-
-          // get the slack value introduced for the asserted literal
-          Node curr_slack_val;
-          std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
-              d_alit_to_model_slack.find(alit);
-          if (itms != d_alit_to_model_slack.end())
-          {
-            curr_slack_val = itms->second;
-          }
-
-          // debug printing
-          Trace("cegqi-bv") << "   [" << j << "] : ";
-          Trace("cegqi-bv") << inst_term << std::endl;
-          if (!curr_slack_val.isNull())
-          {
-            Trace("cegqi-bv")
-                << "   ...with slack value : " << curr_slack_val << std::endl;
-          }
-          Trace("cegqi-bv-debug") << "   ...from : " << alit << std::endl;
-          Trace("cegqi-bv") << std::endl;
-        }
-      }
-
-      // Now, try all instantiation ids we want to try
-      // Typically we try only one, otherwise worst-case performance
-      // for constructing instantiations is exponential on the number of
-      // variables in this quantifier prefix.
-      bool ret = false;
-      bool tryMultipleInst = firstVar && options::cbqiMultiInst();
-      bool revertOnSuccess = tryMultipleInst;
-      for (unsigned j = 0, size = iti->second.size(); j < size; j++)
-      {
-        unsigned inst_id = iti->second[j];
-        Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
-        Node inst_term = d_inst_id_to_term[inst_id];
-        Node alit = d_inst_id_to_alit[inst_id];
-        // try instantiation pv -> inst_term
-        TermProperties pv_prop_bv;
-        Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
-                          << std::endl;
-        d_var_to_curr_inst_id[pv] = inst_id;
-        d_tried_assertion_inst = true;
-        ci->markSolved(alit);
-        if (ci->constructInstantiationInc(
-                pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
-        {
-          ret = true;
-        }
-        ci->markSolved(alit, false);
-        // we are done unless we try multiple instances
-        if (!tryMultipleInst)
-        {
-          break;
-        }
-      }
-      if (ret)
-      {
-        return true;
-      }
-      Trace("cegqi-bv") << "...failed to add instantiation for " << pv
-                        << std::endl;
-      d_var_to_curr_inst_id.erase(pv);
-    }
-    else
-    {
-      Trace("cegqi-bv") << "...do not do instantiation for " << pv
-                        << " (skip, based on heuristic)" << std::endl;
+      Trace("cegqi-bv") << "  ...this is the first variable" << std::endl;
     }
   }
+  // until we have a model-preserving selection function for BV, this must
+  // be heuristic (we only pick one literal)
+  // hence we randomize the list
+  // this helps robustness, since picking the same literal every time may
+  // lead to a stream of value instantiations, whereas with randomization
+  // we may find an invertible literal that leads to a useful instantiation.
+  std::random_shuffle(iti->second.begin(), iti->second.end());
+
+  if (Trace.isOn("cegqi-bv"))
+  {
+    for (unsigned j = 0, size = iti->second.size(); j < size; j++)
+    {
+      unsigned inst_id = iti->second[j];
+      Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+      Node inst_term = d_inst_id_to_term[inst_id];
+      Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
+      Node alit = d_inst_id_to_alit[inst_id];
+
+      // get the slack value introduced for the asserted literal
+      Node curr_slack_val;
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator itms =
+          d_alit_to_model_slack.find(alit);
+      if (itms != d_alit_to_model_slack.end())
+      {
+        curr_slack_val = itms->second;
+      }
+
+      // debug printing
+      Trace("cegqi-bv") << "   [" << j << "] : ";
+      Trace("cegqi-bv") << inst_term << std::endl;
+      if (!curr_slack_val.isNull())
+      {
+        Trace("cegqi-bv")
+            << "   ...with slack value : " << curr_slack_val << std::endl;
+      }
+      Trace("cegqi-bv-debug") << "   ...from : " << alit << std::endl;
+      Trace("cegqi-bv") << std::endl;
+    }
+  }
+
+  // Now, try all instantiation ids we want to try
+  // Typically we try only one, otherwise worst-case performance
+  // for constructing instantiations is exponential on the number of
+  // variables in this quantifier prefix.
+  bool ret = false;
+  bool tryMultipleInst = firstVar && options::cbqiMultiInst();
+  bool revertOnSuccess = tryMultipleInst;
+  for (unsigned j = 0, size = iti->second.size(); j < size; j++)
+  {
+    unsigned inst_id = iti->second[j];
+    Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+    Node inst_term = d_inst_id_to_term[inst_id];
+    Node alit = d_inst_id_to_alit[inst_id];
+    // try instantiation pv -> inst_term
+    TermProperties pv_prop_bv;
+    Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
+                      << std::endl;
+    d_var_to_curr_inst_id[pv] = inst_id;
+    d_tried_assertion_inst = true;
+    ci->markSolved(alit);
+    if (ci->constructInstantiationInc(
+            pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
+    {
+      ret = true;
+    }
+    ci->markSolved(alit, false);
+    // we are done unless we try multiple instances
+    if (!tryMultipleInst)
+    {
+      break;
+    }
+  }
+  if (ret)
+  {
+    return true;
+  }
+  Trace("cegqi-bv") << "...failed to add instantiation for " << pv
+                    << std::endl;
+  d_var_to_curr_inst_id.erase(pv);
+
 
   return false;
 }
