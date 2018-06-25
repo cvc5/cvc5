@@ -46,6 +46,13 @@ DagificationVisitor::~DagificationVisitor() {
 }
 
 bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
+  Kind ck = current.getKind();
+  if( ck==kind::FORALL || ck==kind::EXISTS || ck==kind::LAMBDA || ck==kind::CHOICE )
+  {
+    // for quantifiers, we visit them but we don't recurse on them
+    visit(current,parent);
+    return true;
+  }
   // don't visit variables, constants, or those exprs that we've
   // already seen more than the threshold: if we've increased
   // the count beyond the threshold already, we've done the same
@@ -54,11 +61,11 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   return current.isVar() ||
          current.getMetaKind() == kind::metakind::CONSTANT ||
          current.getNumChildren()==0 ||
-         ( ( current.getKind() == kind::NOT ||
-             current.getKind() == kind::UMINUS ) &&
+         ( ( ck == kind::NOT ||
+             ck == kind::UMINUS ) &&
            ( current[0].isVar() ||
              current[0].getMetaKind() == kind::metakind::CONSTANT ) ) ||
-         current.getKind() == kind::SORT_TYPE ||
+         ck == kind::SORT_TYPE ||
          d_nodeCount[current] > d_threshold;
 }
 
