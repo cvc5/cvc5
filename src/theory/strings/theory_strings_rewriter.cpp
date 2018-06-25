@@ -31,6 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
 Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
+  NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir<0 ? 0 : dir;
   unsigned tmax = dir<0 ? 1 : dir;
   //try to remove off front and back
@@ -61,7 +62,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
               if( index==0 ){
                 mchildren.push_back( s );
               }else{
-                children.push_back( s );
+                children.push_back(nm->mkNode(STRING_TO_REGEXP, s));
               }
             }
             do_next = true;
@@ -2915,9 +2916,10 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
         {
           const std::vector<unsigned>& svec = s.getVec();
           // can remove up to the first occurrence of a digit
-          for (unsigned i = 0; i < svec.size(); i++)
+          unsigned svsize = svec.size();
+          for (unsigned i = 0; i < svsize; i++)
           {
-            unsigned sindex = r == 0 ? i : svec.size() - i;
+            unsigned sindex = r == 0 ? i : (svsize - 1) - i;
             if (String::isDigit(svec[sindex]))
             {
               break;

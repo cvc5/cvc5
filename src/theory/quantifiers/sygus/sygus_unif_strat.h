@@ -93,6 +93,8 @@ std::ostream& operator<<(std::ostream& os, StrategyType st);
 class UnifContext
 {
  public:
+  virtual ~UnifContext() {}
+
   /** Get the current role
    *
    * In a particular context when constructing solutions in synthesis by
