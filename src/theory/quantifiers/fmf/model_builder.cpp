@@ -166,6 +166,62 @@ bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
   }
 }
 
+
+void UfModelPreferenceData::setValuePreference( Node f, Node n, Node r, bool isPro ){
+  if( std::find( d_values.begin(), d_values.end(), r )==d_values.end() ){
+    d_values.push_back( r );
+  }
+  int index = isPro ? 0 : 1;
+  if( std::find( d_value_pro_con[index][r].begin(), d_value_pro_con[index][r].end(), f )==d_value_pro_con[index][r].end() ){
+    d_value_pro_con[index][r].push_back( f );
+  }
+  d_term_pro_con[index][n].push_back( f );
+}
+
+Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* m ){
+  Node defaultVal;
+  double maxScore = -1;
+  for( size_t i=0; i<d_values.size(); i++ ){
+    Node v = d_values[i];
+    double score = ( 1.0 + (double)d_value_pro_con[0][v].size() )/( 1.0 + (double)d_value_pro_con[1][v].size() );
+    Debug("fmf-model-cons-debug") << "  - score( ";
+    m->printRepresentativeDebug( "fmf-model-cons-debug", v );
+    Debug("fmf-model-cons-debug") << " ) = " << score << std::endl;
+    if( score>maxScore ){
+      defaultVal = v;
+      maxScore = score;
+    }
+  }
+#ifdef RECONSIDER_FUNC_DEFAULT_VALUE
+  if( maxScore<1.0 ){
+    //consider finding another value, if possible
+    Debug("fmf-model-cons-debug") << "Poor choice for default value, score = " << maxScore << std::endl;
+    TypeNode tn = defaultTerm.getType();
+    Node newDefaultVal = m->getRepSet()->getDomainValue(tn, d_values);
+    if( !newDefaultVal.isNull() ){
+      defaultVal = newDefaultVal;
+      Debug("fmf-model-cons-debug") << "-> Change default value to ";
+      m->printRepresentativeDebug( "fmf-model-cons-debug", defaultVal );
+      Debug("fmf-model-cons-debug") << std::endl;
+    }else{
+      Debug("fmf-model-cons-debug") << "-> Could not find arbitrary element of type " << tn[(int)tn.getNumChildren()-1] << std::endl;
+      Debug("fmf-model-cons-debug") << "      Excluding: ";
+      for( int i=0; i<(int)d_values.size(); i++ ){
+        Debug("fmf-model-cons-debug") << d_values[i] << " ";
+      }
+      Debug("fmf-model-cons-debug") << std::endl;
+    }
+  }
+#endif
+  //get the default term (this term must be defined non-ground in model)
+  Debug("fmf-model-cons-debug") << "  Choose ";
+  m->printRepresentativeDebug("fmf-model-cons-debug", defaultVal );
+  Debug("fmf-model-cons-debug") << " as default value (" << defaultTerm << ")" << std::endl;
+  Debug("fmf-model-cons-debug") << "     # quantifiers pro = " << d_value_pro_con[0][defaultVal].size() << std::endl;
+  Debug("fmf-model-cons-debug") << "     # quantifiers con = " << d_value_pro_con[1][defaultVal].size() << std::endl;
+  return defaultVal;
+}
+
 QModelBuilderIG::QModelBuilderIG(context::Context* c, QuantifiersEngine* qe)
     : QModelBuilder(c, qe),
       d_basisNoMatch(c),

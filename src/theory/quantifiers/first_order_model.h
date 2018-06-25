@@ -196,13 +196,39 @@ class FirstOrderModel : public TheoryModel
 };/* class FirstOrderModel */
 
 
+
+
+
 class FirstOrderModelIG : public FirstOrderModel
 {
 public: //for Theory UF:
+  class UfModelTreeGenerator
+  {
+  public:
+    //store for set values
+    Node d_default_value;
+    std::map< Node, Node > d_set_values[2][2];
+    // defaults
+    std::vector< Node > d_defaults;
+    Node getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround );
+  public:
+    UfModelTreeGenerator(){}
+    ~UfModelTreeGenerator(){}
+    /** set default value */
+    void setDefaultValue( Node v ) { d_default_value = v; }
+    /** set value */
+    void setValue( TheoryModel* m, Node n, Node v, bool ground = true, bool isReq = true );
+    /** make model */
+    void makeModel( TheoryModel* m, uf::UfModelTree& tree );
+    /** uses partial default values */
+    bool optUsePartialDefaults();
+    /** reset */
+    void clear();
+  };  
   //models for each UF operator
   std::map< Node, uf::UfModelTree > d_uf_model_tree;
   //model generators
-  std::map< Node, uf::UfModelTreeGenerator > d_uf_model_gen;
+  std::map< Node, UfModelTreeGenerator > d_uf_model_gen;
 private:
   //map from terms to the models used to calculate their value
   std::map< Node, bool > d_eval_uf_use_default;

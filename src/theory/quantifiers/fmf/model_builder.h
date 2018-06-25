@@ -68,6 +68,25 @@ public:
   bool addTerm(FirstOrderModel* fm, Node n, unsigned argIndex = 0);
 };/* class TermArgBasisTrie */
 
+
+//this class stores temporary information useful to model engine for constructing model
+class UfModelPreferenceData
+{
+public:
+  UfModelPreferenceData() : d_reconsiderModel( false ){}
+  virtual ~UfModelPreferenceData(){}
+  Node d_const_val;
+  // preferences for default values
+  std::vector< Node > d_values;
+  std::map< Node, std::vector< Node > > d_value_pro_con[2];
+  std::map< Node, std::vector< Node > > d_term_pro_con[2];
+  bool d_reconsiderModel;
+  /** set value preference */
+  void setValuePreference( Node f, Node n, Node r, bool isPro );
+  /** get best default value */
+  Node getBestDefaultValue( Node defaultTerm, TheoryModel* m );
+};
+
 /** model builder class
   *  This class is capable of building candidate models based on the current quantified formulas
   *  that are asserted.  Use:
@@ -82,7 +101,7 @@ class QModelBuilderIG : public QModelBuilder
  protected:
   BoolMap d_basisNoMatch;
   //map from operators to model preference data
-  std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
+  std::map< Node, UfModelPreferenceData > d_uf_prefs;
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
   //whether inst gen was done
