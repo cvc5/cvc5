@@ -1160,10 +1160,9 @@ enum CVC4_PUBLIC Kind
    * Parameters: 3
    *   -[1]: size of the exponent
    *   -[2]: size of the significand
-   *   -[3]: the value of the floating-point constant
+   *   -[3]: the value of the floating-point constant as a bit-vector term
    * Create with:
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2, double arg3)
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2, const std::string& arg3)
+   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3)
    */
   CONST_FLOATINGPOINT,
   /**
@@ -1173,13 +1172,13 @@ enum CVC4_PUBLIC Kind
    */
   CONST_ROUNDINGMODE,
   /**
-   * A floating-point constant, constructed from a bit vector.
+   * Create floating-point literal from bit-vector triple.
    * Parameters: 3
-   *   -[1]: size of the exponent
-   *   -[2]: size of the significand
-   *   -[3]: the value of the floating-point as a bit-vector
+   *   -[1]: the sign bit as a bit-vector term
+   *   -[2]: the exponent bits as a bit-vector term
+   *   -[3]: the significand bits as a bit-vector term (without hidden bit)
    * Create with:
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    */
   FLOATINGPOINT_FP,
   /**
