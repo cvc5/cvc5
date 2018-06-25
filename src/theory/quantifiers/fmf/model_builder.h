@@ -68,26 +68,25 @@ public:
   bool addTerm(FirstOrderModel* fm, Node n, unsigned argIndex = 0);
 };/* class TermArgBasisTrie */
 
-
-/** 
- * This class stores temporary information useful to model engine for 
+/**
+ * This class stores temporary information useful to model engine for
  * constructing models for uninterpreted functions.
  */
 class UfModelPreferenceData
 {
-public:
-  UfModelPreferenceData() : d_reconsiderModel( false ){}
-  virtual ~UfModelPreferenceData(){}
+ public:
+  UfModelPreferenceData() : d_reconsiderModel(false) {}
+  virtual ~UfModelPreferenceData() {}
   Node d_const_val;
   // preferences for default values
-  std::vector< Node > d_values;
-  std::map< Node, std::vector< Node > > d_value_pro_con[2];
-  std::map< Node, std::vector< Node > > d_term_pro_con[2];
+  std::vector<Node> d_values;
+  std::map<Node, std::vector<Node> > d_value_pro_con[2];
+  std::map<Node, std::vector<Node> > d_term_pro_con[2];
   bool d_reconsiderModel;
   /** set value preference */
-  void setValuePreference( Node f, Node n, Node r, bool isPro );
+  void setValuePreference(Node f, Node n, Node r, bool isPro);
   /** get best default value */
-  Node getBestDefaultValue( Node defaultTerm, TheoryModel* m );
+  Node getBestDefaultValue(Node defaultTerm, TheoryModel* m);
 };
 
 /** model builder class
@@ -104,7 +103,7 @@ class QModelBuilderIG : public QModelBuilder
  protected:
   BoolMap d_basisNoMatch;
   //map from operators to model preference data
-  std::map< Node, UfModelPreferenceData > d_uf_prefs;
+  std::map<Node, UfModelPreferenceData> d_uf_prefs;
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
   //whether inst gen was done
