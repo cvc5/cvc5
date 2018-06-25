@@ -64,7 +64,6 @@ public:
   bool addTerm(FirstOrderModel* fm, Node n, unsigned argIndex = 0);
 };/* class TermArgBasisTrie */
 
-
 /** model builder class
   *  This class is capable of building candidate models based on the current quantified formulas
   *  that are asserted.  Use:
@@ -78,9 +77,9 @@ class QModelBuilderIG : public QModelBuilder
 
  protected:
   /**
-  * This class stores temporary information useful to model engine for
-  * constructing models for uninterpreted functions.
-  */
+   * This class stores temporary information useful to model engine for
+   * constructing models for uninterpreted functions.
+   */
   class UfModelPreferenceData
   {
    public:
@@ -90,9 +89,9 @@ class QModelBuilderIG : public QModelBuilder
     Node d_const_val;
     /** list of possible default values */
     std::vector<Node> d_values;
-    /** 
-     * Map from values to the set of quantified formulas that are (pro, con) 
-     * that value. 
+    /**
+     * Map from values to the set of quantified formulas that are (pro, con)
+     * that value.
      */
     std::map<Node, std::vector<Node> > d_value_pro_con[2];
     /** set that quantified formula q is pro/con the default value of r */

@@ -167,8 +167,8 @@ bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
 }
 
 void QModelBuilderIG::UfModelPreferenceData::setValuePreference(Node q,
-                                               Node r,
-                                               bool isPro)
+                                                                Node r,
+                                                                bool isPro)
 {
   if (std::find(d_values.begin(), d_values.end(), r) == d_values.end())
   {
@@ -183,8 +183,8 @@ void QModelBuilderIG::UfModelPreferenceData::setValuePreference(Node q,
   }
 }
 
-Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(Node defaultTerm,
-                                                TheoryModel* m)
+Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
+    Node defaultTerm, TheoryModel* m)
 {
   Node defaultVal;
   double maxScore = -1;
@@ -725,7 +725,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
         for( int j=0; j<(int)pro_con[k].size(); j++ ){
           Node op = pro_con[k][j].getOperator();
           Node r = fmig->getRepresentative( pro_con[k][j] );
-          d_uf_prefs[op].setValuePreference( f, r, k==0 );
+          d_uf_prefs[op].setValuePreference(f, r, k == 0);
         }
       }
     }
