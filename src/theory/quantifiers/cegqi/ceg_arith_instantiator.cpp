@@ -687,7 +687,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   }
   Node veq;
   if (ArithMSum::isolate(sf.d_vars[index], msum, veq, EQUAL, true) == 0)
-  {    
+  {
     Trace("cegqi-arith-debug") << "...failed to isolate." << std::endl;
     return false;
   }
@@ -715,16 +715,14 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
           sf.d_subs[index],
           nm->mkNode(
               ITE,
-              nm->mkNode(EQUAL,
-                          nm->mkNode(INTS_MODULUS_TOTAL, veq[1], veq_c),
-                          d_zero),
+              nm->mkNode(
+                  EQUAL, nm->mkNode(INTS_MODULUS_TOTAL, veq[1], veq_c), d_zero),
               d_zero,
               d_one));
     }
   }
-  Trace("cegqi-arith-debug")
-      << "...normalize integers : " << sf.d_vars[index] << " -> "
-      << sf.d_subs[index] << std::endl;
+  Trace("cegqi-arith-debug") << "...normalize integers : " << sf.d_vars[index]
+                             << " -> " << sf.d_subs[index] << std::endl;
   return true;
 }
 
@@ -833,7 +831,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
                         ->d_one.getConst<Rational>()
                         .getNumerator();
     for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
-          ++it)
+         ++it)
     {
       if (it->first.isNull() || it->first.getType().isInteger())
       {
@@ -848,7 +846,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
     Node rcoeff = nm->mkConst(Rational(coeff));
     std::vector<Node> real_part;
     for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
-          ++it)
+         ++it)
     {
       if (useCoeff)
       {
@@ -864,10 +862,9 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
       }
       if (!it->first.isNull() && !it->first.getType().isInteger())
       {
-        real_part.push_back(
-            msum[it->first].isNull()
-                ? it->first
-                : nm->mkNode(MULT, msum[it->first], it->first));
+        real_part.push_back(msum[it->first].isNull()
+                                ? it->first
+                                : nm->mkNode(MULT, msum[it->first], it->first));
       }
     }
     // remove delta
@@ -875,13 +872,12 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
     // multiply inf
     if (!vts_coeff[0].isNull())
     {
-      vts_coeff[0] =
-          Rewriter::rewrite(nm->mkNode(MULT, rcoeff, vts_coeff[0]));
+      vts_coeff[0] = Rewriter::rewrite(nm->mkNode(MULT, rcoeff, vts_coeff[0]));
     }
     Node realPart = real_part.empty()
-                    ? d_zero
-                    : (real_part.size() == 1 ? real_part[0]
-                                            : nm->mkNode(PLUS, real_part));
+                        ? d_zero
+                        : (real_part.size() == 1 ? real_part[0]
+                                                 : nm->mkNode(PLUS, real_part));
     Assert(ci->getOutput()->isEligibleForInstantiation(realPart));
     // re-isolate
     Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
@@ -895,13 +891,12 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
     if (ires != 0)
     {
       int ires_use =
-          (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1)
-              ? 1
-              : -1;
+          (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
+                                                                          : -1;
       val = Rewriter::rewrite(
           nm->mkNode(ires_use == -1 ? PLUS : MINUS,
-                      nm->mkNode(ires_use == -1 ? MINUS : PLUS, val, realPart),
-                      nm->mkNode(TO_INTEGER, realPart)));
+                     nm->mkNode(ires_use == -1 ? MINUS : PLUS, val, realPart),
+                     nm->mkNode(TO_INTEGER, realPart)));
       // could round up for upper bounds here
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
       Assert(val.getType().isInteger());
