@@ -69,7 +69,10 @@ public:
 };/* class TermArgBasisTrie */
 
 
-//this class stores temporary information useful to model engine for constructing model
+/** 
+ * This class stores temporary information useful to model engine for 
+ * constructing models for uninterpreted functions.
+ */
 class UfModelPreferenceData
 {
 public:

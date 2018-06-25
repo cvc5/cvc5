@@ -24,10 +24,6 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 
-
-#define RECONSIDER_FUNC_DEFAULT_VALUE
-#define USE_PARTIAL_DEFAULT_VALUES
-
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::kind;

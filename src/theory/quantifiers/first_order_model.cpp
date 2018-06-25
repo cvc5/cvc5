@@ -408,7 +408,7 @@ void FirstOrderModel::computeModelBasisArgAttribute(Node n)
     }
     uint64_t val = 0;
     // determine if it has model basis attribute
-    for (unsigned j = 0; j < n.getNumChildren(); j++)
+    for (unsigned j = 0, nchild = n.getNumChildren(); j < nchild; j++)
     {
       if (n[j].getAttribute(ModelBasisAttribute()))
       {
@@ -426,13 +426,12 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
   return n.getAttribute(ModelBasisArgAttribute());
 }
 
-
 Node FirstOrderModelIG::UfModelTreeGenerator::getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround ){
   //Notice() << "Get intersection " << n1 << " " << n2 << std::endl;
   isGround = true;
   std::vector< Node > children;
   children.push_back( n1.getOperator() );
-  for( int i=0; i<(int)n1.getNumChildren(); i++ ){
+  for( unsigned i=0, size = n1.getNumChildren(); i<size; i++ ){
     if( n1[i]==n2[i] ){
       if( n1[i].getAttribute(ModelBasisAttribute()) ){
         isGround = false;
@@ -455,31 +454,29 @@ void FirstOrderModelIG::UfModelTreeGenerator::setValue( TheoryModel* m, Node n, 
   Assert( !n.isNull() );
   Assert( !v.isNull() );
   d_set_values[ isReq ? 1 : 0 ][ ground ? 1 : 0 ][n] = v;
-  if( optUsePartialDefaults() ){
-    if( !ground ){
-      int defSize = (int)d_defaults.size();
-      for( int i=0; i<defSize; i++ ){
-        //for soundness, to allow variable order-independent function interpretations,
-        //  we must ensure that the intersection of all default terms
-        //  is also defined.
-        //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
-        //  then we must define f( b, a ).
-        bool isGround;
-        Node ni = getIntersection( m, n, d_defaults[i], isGround );
-        if( !ni.isNull() ){
-          //if the intersection exists, and is not already defined
-          if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
-              d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
-            //use the current value
-            setValue( m, ni, v, isGround, false );
-          }
+  if( !ground ){
+    unsigned defSize = d_defaults.size();
+    for( unsigned i=0; i<defSize; i++ ){
+      // for correctness, to allow variable order-independent function 
+      // interpretations, we must ensure that the intersection of all default
+      // terms is also defined.
+      // for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
+      // then we must define f( b, a ).
+      bool isGround;
+      Node ni = getIntersection( m, n, d_defaults[i], isGround );
+      if( !ni.isNull() ){
+        //if the intersection exists, and is not already defined
+        if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
+            d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
+          //use the current value
+          setValue( m, ni, v, isGround, false );
         }
       }
-      d_defaults.push_back( n );
     }
-    if( isReq && d_set_values[0][ ground ? 1 : 0 ].find( n )!=d_set_values[0][ ground ? 1 : 0 ].end()){
-      d_set_values[0][ ground ? 1 : 0 ].erase( n );
-    }
+    d_defaults.push_back( n );
+  }
+  if( isReq && d_set_values[0][ ground ? 1 : 0 ].find( n )!=d_set_values[0][ ground ? 1 : 0 ].end()){
+    d_set_values[0][ ground ? 1 : 0 ].erase( n );
   }
 }
 
@@ -495,14 +492,6 @@ void FirstOrderModelIG::UfModelTreeGenerator::makeModel( TheoryModel* m, uf::UfM
     tree.setDefaultValue( m, d_default_value );
   }
   tree.simplify();
-}
-
-bool FirstOrderModelIG::UfModelTreeGenerator::optUsePartialDefaults(){
-#ifdef USE_PARTIAL_DEFAULT_VALUES
-  return true;
-#else
-  return false;
-#endif
 }
 
 void FirstOrderModelIG::UfModelTreeGenerator::clear(){

@@ -181,7 +181,7 @@ void UfModelPreferenceData::setValuePreference( Node f, Node n, Node r, bool isP
 Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* m ){
   Node defaultVal;
   double maxScore = -1;
-  for( size_t i=0; i<d_values.size(); i++ ){
+  for( size_t i=0, size = d_values.size(); i<size; i++ ){
     Node v = d_values[i];
     double score = ( 1.0 + (double)d_value_pro_con[0][v].size() )/( 1.0 + (double)d_value_pro_con[1][v].size() );
     Debug("fmf-model-cons-debug") << "  - score( ";
@@ -192,7 +192,6 @@ Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* 
       maxScore = score;
     }
   }
-#ifdef RECONSIDER_FUNC_DEFAULT_VALUE
   if( maxScore<1.0 ){
     //consider finding another value, if possible
     Debug("fmf-model-cons-debug") << "Poor choice for default value, score = " << maxScore << std::endl;
@@ -205,14 +204,10 @@ Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* 
       Debug("fmf-model-cons-debug") << std::endl;
     }else{
       Debug("fmf-model-cons-debug") << "-> Could not find arbitrary element of type " << tn[(int)tn.getNumChildren()-1] << std::endl;
-      Debug("fmf-model-cons-debug") << "      Excluding: ";
-      for( int i=0; i<(int)d_values.size(); i++ ){
-        Debug("fmf-model-cons-debug") << d_values[i] << " ";
-      }
+      Debug("fmf-model-cons-debug") << "      Excluding: " << d_values;
       Debug("fmf-model-cons-debug") << std::endl;
     }
   }
-#endif
   //get the default term (this term must be defined non-ground in model)
   Debug("fmf-model-cons-debug") << "  Choose ";
   m->printRepresentativeDebug("fmf-model-cons-debug", defaultVal );
@@ -821,19 +816,11 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
         //set n = v in the model tree
         //set it as ground value
         fmig->d_uf_model_gen[op].setValue( fm, n, v );
-        if( fmig->d_uf_model_gen[op].optUsePartialDefaults() ){
-          //also set as default value if necessary
-          if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
-            Trace("fmf-model-cons") << "  Set as default." << std::endl;
-            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
-            if( n==defaultTerm ){
-              //incidentally already set, we will not need to find a default value
-              setDefaultVal = false;
-            }
-          }
-        }else{
+        //also set as default value if necessary
+        if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
+          Trace("fmf-model-cons") << "  Set as default." << std::endl;
+          fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
           if( n==defaultTerm ){
-            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
             //incidentally already set, we will not need to find a default value
             setDefaultVal = false;
           }
