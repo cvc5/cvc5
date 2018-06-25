@@ -277,7 +277,7 @@ bool QuantInfo::reset_round( QuantConflictFind * p ) {
   }
   d_mg->reset_round( p );
   for( std::map< int, MatchGen * >::iterator it = d_var_mg.begin(); it != d_var_mg.end(); ++it ){
-    if( !it->second->reset_round( p ) )
+    if (!it->second->reset_round(p))
     {
       return false;
     }
@@ -1200,11 +1200,11 @@ void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars
   }
 }
 
-
-bool MatchGen::reset_round( QuantConflictFind * p ) {
+bool MatchGen::reset_round(QuantConflictFind* p)
+{
   d_wasSet = false;
   for( unsigned i=0; i<d_children.size(); i++ ){
-    if( !d_children[i].reset_round( p ) )
+    if (!d_children[i].reset_round(p))
     {
       return false;
     }
@@ -1219,25 +1219,26 @@ bool MatchGen::reset_round( QuantConflictFind * p ) {
     //}else if( e==-1 ){
     //  d_ground_eval[0] = p->d_false;
     //}
-    //modified 
-    TermDb * tdb = p->getTermDatabase();
-    QuantifiersEngine * qe = p->getQuantifiersEngine();
-    for( unsigned i=0; i<2; i++ ){ 
-      if( tdb->isEntailed( d_n, i==0 ) ){
+    //modified
+    TermDb* tdb = p->getTermDatabase();
+    QuantifiersEngine* qe = p->getQuantifiersEngine();
+    for( unsigned i=0; i<2; i++ ){
+      if (tdb->isEntailed(d_n, i == 0))
+      {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
       }
-      if( qe->inConflict() )
+      if (qe->inConflict())
       {
         return false;
       }
     }
   }else if( d_type==typ_eq ){
-    TermDb * tdb = p->getTermDatabase();
-    QuantifiersEngine * qe = p->getQuantifiersEngine();
+    TermDb* tdb = p->getTermDatabase();
+    QuantifiersEngine* qe = p->getQuantifiersEngine();
     for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
       if( !d_n[i].hasBoundVar() ){
-        TNode t = tdb->getEntailedTerm( d_n[i] );
-        if( qe->inConflict() )
+        TNode t = tdb->getEntailedTerm(d_n[i]);
+        if (qe->inConflict())
         {
           return false;
         }
@@ -2182,7 +2183,8 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
                 }
                 Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
               }
-              if( d_conflict || d_quantEngine->inConflict() ){
+              if (d_conflict || d_quantEngine->inConflict())
+              {
                 break;
               }
             }

@@ -414,7 +414,7 @@ int InstMatchGenerator::getNextMatch(Node f,
   Node t = d_curr_first_candidate;
   do{
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
-    Assert( !qe->inConflict() );
+    Assert(!qe->inConflict());
     //if t not null, try to fit it into match m
     if( !t.isNull() ){
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
@@ -1015,8 +1015,9 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
     }else{
       //iterate over all classes except r
       tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
-      if( tat && !qe->inConflict() ){
-        Node r = qe->getEqualityQuery()->getRepresentative( d_eqc );
+      if (tat && !qe->inConflict())
+      {
+        Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
           if( it->first!=r ){
             InstMatch m( q );
@@ -1031,7 +1032,8 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
     }
   }
   Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;
-  if( tat && !qe->inConflict() ){
+  if (tat && !qe->inConflict())
+  {
     InstMatch m( q );
     addInstantiations( m, qe, addedLemmas, 0, tat );
   }
