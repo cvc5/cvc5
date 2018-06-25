@@ -281,6 +281,12 @@ void PropEngine::pop() {
   Debug("prop") << "pop()" << endl;
 }
 
+void PropEngine::resetTrail()
+{
+  d_satSolver->resetTrail();
+  Debug("prop") << "resetTrail()" << endl;
+}
+
 unsigned PropEngine::getAssertionLevel() const {
   return d_satSolver->getAssertionLevel();
 }

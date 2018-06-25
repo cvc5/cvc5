@@ -38,11 +38,11 @@ QF_NIA)
   trywith 300 --nl-ext-tplanes --decision=internal
   trywith 30 --no-nl-ext-tplanes --decision=internal
   # this totals up to more than 20 minutes, although notice that smaller bit-widths may quickly fail
-  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig
-  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig
-  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig
-  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig
-  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig
+  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
   ;;
 QF_NRA)
   trywith 300 --nl-ext-tplanes --decision=internal
@@ -51,7 +51,7 @@ QF_NRA)
   finishwith --nl-ext-tplanes --decision=justification
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA)
   # the following is designed for a run time of 20 min.
   # initial runs 1min
   trywith 30 --simplification=none --full-saturate-quant
@@ -80,6 +80,9 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 60 --finite-model-find --fmf-inst-engine
   # long runs 9min
   trywith 240 --finite-model-find --decision=internal
+  finishwith --full-saturate-quant
+  ;;
+ABVFP|BVFP|FP)
   finishwith --full-saturate-quant
   ;;
 UFBV)
@@ -117,7 +120,7 @@ QF_UFBV)
   finishwith --bitblast=eager --bv-sat-solver=cadical
   ;;
 QF_BV)
-  finishwith --unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --bv-abstraction --bv-eq-slicer=auto
+  finishwith --unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --bv-eq-slicer=auto --no-bv-abstraction
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
@@ -135,6 +138,15 @@ QF_ALIA)
 QF_SLIA)
   trywith 500 --strings-exp --rewrite-divk --lang=smt2.6.1
   finishwith --strings-exp --rewrite-divk --lang=smt2.6.1 --strings-fmf
+  ;;
+QF_ABVFP)
+  finishwith
+  ;;
+QF_BVFP)
+  finishwith
+  ;;
+QF_FP)
+  finishwith
   ;;
 *)
   # just run the default

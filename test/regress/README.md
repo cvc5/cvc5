@@ -108,6 +108,20 @@ string `TERM` to make the regression test robust to the actual term printed
 (e.g. there could be multiple non-linear facts and it is ok if any of them is
 printed).
 
+Sometimes, certain benchmarks only apply to certain CVC4
+configurations. The `REQUIRES` directive can be used to only run
+a given benchmark when a feature is supported. For example:
+
+```
+; REQUIRES: symfpu
+```
+
+This benchmark is only run when symfpu has been configured.  Multiple
+`REQUIRES` directives are supported. For a list of features that can be listed
+as a requirement, refer to CVC4's `--show-config` output. Features can also be
+excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
+not valid for builds that include symfpu support.
+
 Sometimes it is useful to keep the directives separate. You can separate the
 benchmark from the output expectations by putting the benchmark in `<benchmark
 file>.smt` and the directives in `<benchmark file>.smt.expect`, which is looked

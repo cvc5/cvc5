@@ -914,7 +914,11 @@ void CvcPrinter::toStream(
 
   switch (opType) {
   case PREFIX:
-    out << op.str() << '(';
+    out << op.str();
+    if (n.getNumChildren() > 0)
+    {
+      out << '(';
+    }
     break;
   case INFIX:
     if (bracket) {
@@ -939,7 +943,10 @@ void CvcPrinter::toStream(
 
   switch (opType) {
     case PREFIX:
-      out << ')';
+      if (n.getNumChildren() > 0)
+      {
+        out << ')';
+      }
       break;
     case INFIX:
       if (bracket) {

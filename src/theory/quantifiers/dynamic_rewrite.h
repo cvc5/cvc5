@@ -65,8 +65,6 @@ class DynamicRewriter
   bool areEqual(Node a, Node b);
 
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   /** index over argument types to function skolems
    *
    * The purpose of this trie is to associate a class of interpreted operator

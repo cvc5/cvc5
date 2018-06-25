@@ -42,7 +42,7 @@ class Cegis : public SygusModule
 {
  public:
   Cegis(QuantifiersEngine* qe, CegConjecture* p);
-  ~Cegis() {}
+  ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node n,
                           const std::vector<Node>& candidates,
