@@ -128,9 +128,9 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
 }
 
 bool BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
-                          SolvedForm& sf,
-                          Node pv,
-                          CegInstEffort effort)
+                                         SolvedForm& sf,
+                                         Node pv,
+                                         CegInstEffort effort)
 {
   return true;
 }
@@ -285,12 +285,11 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv
                     << std::endl;
   // if interleaving, do not do inversion half the time
-  if (options::cbqiBvInterleaveValue()
-      && Random::getRandom().pickWithProb(0.5))
+  if (options::cbqiBvInterleaveValue() && Random::getRandom().pickWithProb(0.5))
   {
     Trace("cegqi-bv") << "...do not do instantiation for " << pv
                       << " (skip, based on heuristic)" << std::endl;
-  }    
+  }
   bool firstVar = sf.empty();
   // get inst id list
   if (Trace.isOn("cegqi-bv"))
@@ -335,8 +334,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       Trace("cegqi-bv") << inst_term << std::endl;
       if (!curr_slack_val.isNull())
       {
-        Trace("cegqi-bv")
-            << "   ...with slack value : " << curr_slack_val << std::endl;
+        Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
+                          << std::endl;
       }
       Trace("cegqi-bv-debug") << "   ...from : " << alit << std::endl;
       Trace("cegqi-bv") << std::endl;
@@ -358,8 +357,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
     Node alit = d_inst_id_to_alit[inst_id];
     // try instantiation pv -> inst_term
     TermProperties pv_prop_bv;
-    Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term
-                      << std::endl;
+    Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
     d_var_to_curr_inst_id[pv] = inst_id;
     d_tried_assertion_inst = true;
     ci->markSolved(alit);
@@ -379,10 +377,8 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   {
     return true;
   }
-  Trace("cegqi-bv") << "...failed to add instantiation for " << pv
-                    << std::endl;
+  Trace("cegqi-bv") << "...failed to add instantiation for " << pv << std::endl;
   d_var_to_curr_inst_id.erase(pv);
-
 
   return false;
 }

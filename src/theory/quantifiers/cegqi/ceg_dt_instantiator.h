@@ -39,8 +39,8 @@ class DtInstantiator : public Instantiator
              SolvedForm& sf,
              Node pv,
              CegInstEffort effort) override;
-  /** process equal terms 
-   * 
+  /** process equal terms
+   *
    * This tries to find an equality eqc[i] = eqc[j] such that pv can be solved
    * for (via solve_dt). If a solved form for pv can be found in this way, we
    * add the substitution for pv to sf and recurse.
@@ -55,9 +55,9 @@ class DtInstantiator : public Instantiator
                           SolvedForm& sf,
                           Node pv,
                           CegInstEffort effort) override;
-  /** process equality 
-   * 
-   * This tries to find a solved form for pv based on the equality 
+  /** process equality
+   *
+   * This tries to find a solved form for pv based on the equality
    * terms[0] = terms[1] via solve_dt. If a solved form for pv can be found in
    * this way, we add the substitution for pv to sf and recurse.
    */
@@ -69,15 +69,16 @@ class DtInstantiator : public Instantiator
                        CegInstEffort effort) override;
   /** identify */
   std::string identify() const override { return "Dt"; }
+
  private:
-  /** solve datatype 
-   * 
-   * If this method returns a non-null node ret, then v -> ret is a 
+  /** solve datatype
+   *
+   * If this method returns a non-null node ret, then v -> ret is a
    * solution for v in the equality a = b and ret does not contain v.
-   * 
+   *
    * For example, if cons( v, nil ) = cons( 5, nil ), this method returns 5.
    * For example, if cons( v, nil ) = L, this method returns head( L ).
-   * For example, if cons( v, nil ) = cons( v+1, nil ), this method returns 
+   * For example, if cons( v, nil ) = cons( v+1, nil ), this method returns
    * the null node.
    */
   Node solve_dt(Node v, Node a, Node b, Node sa, Node sb);

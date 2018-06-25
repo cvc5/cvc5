@@ -167,7 +167,7 @@ class ArithInstantiator : public Instantiator
    * is satisfied in the current model M, and such that the divisibilty
    * constraint is also satisfied:
    *   ret^M mod c*theta = (c*e)^M mod c*theta
-   * where the input theta is a constant (which is assumed to be 1 if null). The 
+   * where the input theta is a constant (which is assumed to be 1 if null). The
    * values of me and mt are the current model values of e and t respectively.
    *
    * For example, if e has Real type and:
@@ -181,7 +181,7 @@ class ArithInstantiator : public Instantiator
    * For example, if e has Int type and:
    *   isLower = false, e^M = 1, t^M = 5, theta = 3
    * Then, this function returns t-1, noting that (t-1)^M mod 3 = e^M mod 3 = 1.
-   * 
+   *
    * The value that is added or substracted from t in the return value when e
    * is an integer is the value of "rho" from Figure 6 of Reynolds et al,
    * "Solving Linear Arithmetic Using Counterexample-Guided Instantiation",

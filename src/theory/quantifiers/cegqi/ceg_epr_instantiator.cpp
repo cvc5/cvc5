@@ -51,7 +51,6 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
-
 struct sortEqTermsMatch
 {
   std::map<Node, int> d_match_score;

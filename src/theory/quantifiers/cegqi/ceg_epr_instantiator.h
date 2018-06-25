@@ -41,8 +41,8 @@ class EprInstantiator : public Instantiator
              SolvedForm& sf,
              Node pv,
              CegInstEffort effort) override;
-  /** process equal terms 
-   * 
+  /** process equal terms
+   *
    * This adds n to the set of equal terms d_equal_terms if matching heuristics
    * are enabled (--quant-epr-match), or simply tries the substitution pv -> n
    * otherwise.
@@ -53,8 +53,8 @@ class EprInstantiator : public Instantiator
                         TermProperties& pv_prop,
                         Node n,
                         CegInstEffort effort) override;
-  /** process equal terms 
-   * 
+  /** process equal terms
+   *
    * Called when pv is equal to the set eqc. If matching heuristics are enabled,
    * this adds the substitution pv -> n based on the best term n in eqc.
    */
@@ -65,17 +65,18 @@ class EprInstantiator : public Instantiator
                          CegInstEffort effort) override;
   /** identify */
   std::string identify() const override { return "Epr"; }
+
  private:
-  /** 
-   * The current set of terms that are equal to the variable-to-instantate of 
-   * this class. 
+  /**
+   * The current set of terms that are equal to the variable-to-instantate of
+   * this class.
    */
   std::vector<Node> d_equal_terms;
-  /** compute match score 
-   * 
+  /** compute match score
+   *
    * This method computes the map match_score, from ground term t to the
    * number of times that occur in simple matches for a quantified formula.
-   * For example, for quantified formula forall xy. P( x ) V Q( x, y ) and 
+   * For example, for quantified formula forall xy. P( x ) V Q( x, y ) and
    * ground terms { P( a ), Q( a, a ), Q( b, c ), Q( a, c ) }, we compute for x:
    *   match_score[a] = 3,
    *   match_score[b] = 1,

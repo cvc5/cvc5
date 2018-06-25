@@ -48,7 +48,8 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
           << "...try based on constructor term " << n << std::endl;
       std::vector<Node> children;
       children.push_back(n.getOperator());
-      const Datatype& dt = static_cast<DatatypeType>(d_type.toType()).getDatatype();
+      const Datatype& dt =
+          static_cast<DatatypeType>(d_type.toType()).getDatatype();
       unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
       // now must solve for selectors applied to pv
       for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
@@ -78,9 +79,9 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
 }
 
 bool DtInstantiator::hasProcessEquality(CegInstantiator* ci,
-                        SolvedForm& sf,
-                        Node pv,
-                        CegInstEffort effort)
+                                        SolvedForm& sf,
+                                        Node pv,
+                                        CegInstEffort effort)
 {
   return true;
 }
