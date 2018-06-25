@@ -44,43 +44,83 @@ class ArithInstantiator : public Instantiator {
  public:
   ArithInstantiator( QuantifiersEngine * qe, TypeNode tn );
   virtual ~ArithInstantiator(){}
+  /** reset */
   void reset(CegInstantiator* ci,
              SolvedForm& sf,
              Node pv,
              CegInstEffort effort) override;
+  /** this instantiator processes equalities */
   bool hasProcessEquality(CegInstantiator* ci,
                           SolvedForm& sf,
                           Node pv,
                           CegInstEffort effort) override;
+  /** 
+   * Process the equality term[0]=term[1]. If this equality is equivalent to one
+   * of the form c * pv = t, then we add the substitution c * pv -> t to sf and
+   * recurse.
+   */
   bool processEquality(CegInstantiator* ci,
                        SolvedForm& sf,
                        Node pv,
                        std::vector<TermProperties>& term_props,
                        std::vector<Node>& terms,
                        CegInstEffort effort) override;
+  /** this instantiator processes assertions */
   bool hasProcessAssertion(CegInstantiator* ci,
                            SolvedForm& sf,
                            Node pv,
                            CegInstEffort effort) override;
+  /** this instantiator processes literals lit of kinds EQUAL and GEQ */
   Node hasProcessAssertion(CegInstantiator* ci,
                            SolvedForm& sf,
                            Node pv,
                            Node lit,
                            CegInstEffort effort) override;
+  /** process assertion lit
+   * 
+   * If lit can be turned into a bound of the form c * pv <> t, then we store
+   * information about this bound (see d_mbp_bounds). 
+   * 
+   * If cbqiModel is false (not the default), we recursively try adding the 
+   * substitution { c * pv -> t } to sf and recursing.
+   */
   bool processAssertion(CegInstantiator* ci,
                         SolvedForm& sf,
                         Node pv,
                         Node lit,
                         Node alit,
                         CegInstEffort effort) override;
+  /** process assertions
+   * 
+   * This is called after processAssertion has been called on all current bounds
+   * for pv. This method selects the "best" bound of those we have seen, which
+   * can be one of the following:
+   * - Maximal lower bound, 
+   * - Minimal upper bound,
+   * - Midpoint of maximal lower and minimal upper bounds, [if pv is not Int,
+   *   and --cbqi-midpoint]
+   * - (+-) Infinity, [if no upper (resp. lower) bounds, and --cbqi-use-vts-inf]
+   * - Zero, [if no bounds]
+   * - Non-optimal bounds. [if the above bounds fail, and --cbqi-nopt]
+   */
   bool processAssertions(CegInstantiator* ci,
                          SolvedForm& sf,
                          Node pv,
                          CegInstEffort effort) override;
+  /** 
+   * This instantiator needs to postprocess variables that have substitutions
+   * with coefficients, i.e. c*x -> t.
+   */
   bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
                                                 SolvedForm& sf,
                                                 Node pv,
                                                 CegInstEffort effort) override;
+  /** post-process instantiation for variable 
+   * 
+   * If the solved form for integer variable pv is a substitution with 
+   * coefficients c*x -> t, this turns its solved form into x -> div(t,c), where
+   * div is integer division.
+   */
   bool postProcessInstantiationForVariable(CegInstantiator* ci,
                                            SolvedForm& sf,
                                            Node pv,
@@ -119,7 +159,27 @@ class ArithInstantiator : public Instantiator {
                   Node& vts_coeff_delta);
   /** get model based projection value 
    * 
+   * Given a implied (non-strict) bound:
+   *   c*e <=/>= t + inf_coeff*INF + delta_coeff*DELTA
+   * this method returns ret, the minimal (resp. maximal) term such that:
+   *   c*ret <> t + inf_coeff*INF + delta_coeff*DELTA
+   * is satisfied in the current model M, and that satisfies the divisibilty 
+   * constraint:
+   *   ret^M mod c*theta = (c*e)^M mod c*theta
+   * where theta is a constant. The values of me and mt are the current model
+   * values of e and t respectively.
    * 
+   * For example, if e has Real type and:
+   *   isLower = false, e^M = 0, t^M = 2, inf_coeff = 0, delta_coeff = 2
+   * Then, this function returns t+2*delta.
+   * 
+   * For example, if e has Int type and:
+   *   isLower = true, e^M = 4, t^M = 2, theta = 3
+   * Then, this function returns t+2, noting that (t+2)^M mod 3 = e^M mod 3 = 2.
+   * 
+   * For example, if e has Int type and:
+   *   isLower = false, e^M = 1, t^M = 5, theta = 3
+   * Then, this function returns t-1, noting that (t-1)^M mod 3 = e^M mod 3 = 1.
    */
   Node getModelBasedProjectionValue(CegInstantiator* ci,
                                     Node e,
