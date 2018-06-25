@@ -25,25 +25,25 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
 /** Arithmetic instantiator
- * 
+ *
  * This implements a selection function for arithmetic, which is based on
  * variants of:
- * - Loos/Weispfenning's method (virtual term substitution) for linear real 
+ * - Loos/Weispfenning's method (virtual term substitution) for linear real
  *    arithmetic,
  * - Ferrante/Rackoff's method (interior points) for linear real arithmetic,
  * - Cooper's method for linear arithmetic.
- * For details, see Reynolds et al, "Solving Linear Arithmetic Using 
+ * For details, see Reynolds et al, "Solving Linear Arithmetic Using
  * Counterexample-Guided Instantiation", FMSD 2017.
- * 
+ *
  * This class contains all necessary information for instantiating a single
  * real or integer typed variable of a single quantified formula.
  */
-class ArithInstantiator : public Instantiator {
+class ArithInstantiator : public Instantiator
+{
  public:
-  ArithInstantiator( QuantifiersEngine * qe, TypeNode tn );
-  virtual ~ArithInstantiator(){}
+  ArithInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  virtual ~ArithInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,
              SolvedForm& sf,
@@ -54,7 +54,7 @@ class ArithInstantiator : public Instantiator {
                           SolvedForm& sf,
                           Node pv,
                           CegInstEffort effort) override;
-  /** 
+  /**
    * Process the equality term[0]=term[1]. If this equality is equivalent to one
    * of the form c * pv = t, then we add the substitution c * pv -> t to sf and
    * recurse.
@@ -77,11 +77,11 @@ class ArithInstantiator : public Instantiator {
                            Node lit,
                            CegInstEffort effort) override;
   /** process assertion lit
-   * 
+   *
    * If lit can be turned into a bound of the form c * pv <> t, then we store
-   * information about this bound (see d_mbp_bounds). 
-   * 
-   * If cbqiModel is false (not the default), we recursively try adding the 
+   * information about this bound (see d_mbp_bounds).
+   *
+   * If cbqiModel is false (not the default), we recursively try adding the
    * substitution { c * pv -> t } to sf and recursing.
    */
   bool processAssertion(CegInstantiator* ci,
@@ -91,11 +91,11 @@ class ArithInstantiator : public Instantiator {
                         Node alit,
                         CegInstEffort effort) override;
   /** process assertions
-   * 
+   *
    * This is called after processAssertion has been called on all current bounds
    * for pv. This method selects the "best" bound of those we have seen, which
    * can be one of the following:
-   * - Maximal lower bound, 
+   * - Maximal lower bound,
    * - Minimal upper bound,
    * - Midpoint of maximal lower and minimal upper bounds, [if pv is not Int,
    *   and --cbqi-midpoint]
@@ -107,7 +107,7 @@ class ArithInstantiator : public Instantiator {
                          SolvedForm& sf,
                          Node pv,
                          CegInstEffort effort) override;
-  /** 
+  /**
    * This instantiator needs to postprocess variables that have substitutions
    * with coefficients, i.e. c*x -> t.
    */
@@ -115,9 +115,9 @@ class ArithInstantiator : public Instantiator {
                                                 SolvedForm& sf,
                                                 Node pv,
                                                 CegInstEffort effort) override;
-  /** post-process instantiation for variable 
-   * 
-   * If the solved form for integer variable pv is a substitution with 
+  /** post-process instantiation for variable
+   *
+   * If the solved form for integer variable pv is a substitution with
    * coefficients c*x -> t, this turns its solved form into x -> div(t,c), where
    * div is integer division.
    */
@@ -127,6 +127,7 @@ class ArithInstantiator : public Instantiator {
                                            CegInstEffort effort,
                                            std::vector<Node>& lemmas) override;
   std::string identify() const override { return "Arith"; }
+
  private:
   /** zero/one */
   Node d_zero;
@@ -143,8 +144,8 @@ class ArithInstantiator : public Instantiator {
   /** The source literal (explanation) for each bound. */
   std::vector<Node> d_mbp_lit[2];
   //--------------------------------------end current bounds
-  /** solve arith 
-   * 
+  /** solve arith
+   *
    * Given variable to instantiate pv, this isolates the atom into solved form:
    *    veq_c * pv <> val + vts_coeff_delta * delta + vts_coeff_inf * inf
    * where we ensure val has Int type if pv has Int type, and val does not
@@ -157,26 +158,26 @@ class ArithInstantiator : public Instantiator {
                   Node& val,
                   Node& vts_coeff_inf,
                   Node& vts_coeff_delta);
-  /** get model based projection value 
-   * 
+  /** get model based projection value
+   *
    * Given a implied (non-strict) bound:
    *   c*e <=/>= t + inf_coeff*INF + delta_coeff*DELTA
    * this method returns ret, the minimal (resp. maximal) term such that:
    *   c*ret <> t + inf_coeff*INF + delta_coeff*DELTA
-   * is satisfied in the current model M, and that satisfies the divisibilty 
+   * is satisfied in the current model M, and that satisfies the divisibilty
    * constraint:
    *   ret^M mod c*theta = (c*e)^M mod c*theta
    * where theta is a constant. The values of me and mt are the current model
    * values of e and t respectively.
-   * 
+   *
    * For example, if e has Real type and:
    *   isLower = false, e^M = 0, t^M = 2, inf_coeff = 0, delta_coeff = 2
    * Then, this function returns t+2*delta.
-   * 
+   *
    * For example, if e has Int type and:
    *   isLower = true, e^M = 4, t^M = 2, theta = 3
    * Then, this function returns t+2, noting that (t+2)^M mod 3 = e^M mod 3 = 2.
-   * 
+   *
    * For example, if e has Int type and:
    *   isLower = false, e^M = 1, t^M = 5, theta = 3
    * Then, this function returns t-1, noting that (t-1)^M mod 3 = e^M mod 3 = 1.
@@ -193,8 +194,8 @@ class ArithInstantiator : public Instantiator {
                                     Node delta_coeff);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */

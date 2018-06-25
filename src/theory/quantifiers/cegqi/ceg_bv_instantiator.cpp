@@ -28,12 +28,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-struct BvLinearAttributeId {};
+struct BvLinearAttributeId
+{
+};
 using BvLinearAttribute = expr::Attribute<BvLinearAttributeId, bool>;
 
-
-
-// this class can be used to query the model value through the CegInstaniator class
+// this class can be used to query the model value through the CegInstaniator
+// class
 class CegInstantiatorBvInverterQuery : public BvInverterQuery
 {
  public:
@@ -52,7 +53,7 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
 
  protected:
   // pointer to class that is able to query model values
-  CegInstantiator * d_ci;
+  CegInstantiator* d_ci;
 };
 
 BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
@@ -60,14 +61,13 @@ BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
 {
   // get the global inverter utility
   // this must be global since we need to:
-  // * process Skolem functions properly across multiple variables within the same quantifier
+  // * process Skolem functions properly across multiple variables within the
+  // same quantifier
   // * cache Skolem variables uniformly across multiple quantified formulas
   d_inverter = qe->getBvInverter();
 }
 
-BvInstantiator::~BvInstantiator(){
-
-}
+BvInstantiator::~BvInstantiator() {}
 void BvInstantiator::reset(CegInstantiator* ci,
                            SolvedForm& sf,
                            Node pv,
@@ -187,7 +187,9 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     {
       ret = s.eqNode(t);
     }
-  } else {
+  }
+  else
+  {
     // turn disequality into an inequality
     // e.g. s != t becomes s < t or t < s
     if (k == EQUAL)
@@ -208,7 +210,9 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     if (!pol)
     {
       ret = s.eqNode(t);
-    } else {
+    }
+    else
+    {
       Node bv_one = bv::utils::mkOne(bv::utils::getSize(s));
       ret = nm->mkNode(BITVECTOR_PLUS, s, bv_one).eqNode(t);
     }
@@ -224,14 +228,20 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
                                       Node alit,
                                       CegInstEffort effort)
 {
-  // if option enabled, use approach for word-level inversion for BV instantiation
-  if( options::cbqiBv() ){
-    // get the best rewritten form of lit for solving for pv 
-    //   this should remove instances of non-invertible operators, and "linearize" lit with respect to pv as much as possible
+  // if option enabled, use approach for word-level inversion for BV
+  // instantiation
+  if (options::cbqiBv())
+  {
+    // get the best rewritten form of lit for solving for pv
+    //   this should remove instances of non-invertible operators, and
+    //   "linearize" lit with respect to pv as much as possible
     Node rlit = rewriteAssertionForSolvePv(ci, pv, lit);
-    if( Trace.isOn("cegqi-bv") ){
-      Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv << " in " << lit << std::endl;
-      if( lit!=rlit ){
+    if (Trace.isOn("cegqi-bv"))
+    {
+      Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv
+                        << " in " << lit << std::endl;
+      if (lit != rlit)
+      {
         Trace("cegqi-bv") << "...rewritten to " << rlit << std::endl;
       }
     }
@@ -257,11 +267,15 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
                                        Node pv,
                                        CegInstEffort effort)
 {
-  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction >::iterator iti = d_var_to_inst_id.find( pv );
-  if( iti!=d_var_to_inst_id.end() ){
-    Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv << std::endl;
+  std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>::iterator
+      iti = d_var_to_inst_id.find(pv);
+  if (iti != d_var_to_inst_id.end())
+  {
+    Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv
+                      << std::endl;
     // if interleaving, do not do inversion half the time
-    if (!options::cbqiBvInterleaveValue() || Random::getRandom().pickWithProb(0.5))
+    if (!options::cbqiBvInterleaveValue()
+        || Random::getRandom().pickWithProb(0.5))
     {
       bool firstVar = sf.empty();
       // get inst id list
@@ -305,9 +319,10 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
           // debug printing
           Trace("cegqi-bv") << "   [" << j << "] : ";
           Trace("cegqi-bv") << inst_term << std::endl;
-          if (!curr_slack_val.isNull()) {
-            Trace("cegqi-bv") << "   ...with slack value : " << curr_slack_val
-                              << std::endl;
+          if (!curr_slack_val.isNull())
+          {
+            Trace("cegqi-bv")
+                << "   ...with slack value : " << curr_slack_val << std::endl;
           }
           Trace("cegqi-bv-debug") << "   ...from : " << alit << std::endl;
           Trace("cegqi-bv") << std::endl;
@@ -353,7 +368,9 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
       Trace("cegqi-bv") << "...failed to add instantiation for " << pv
                         << std::endl;
       d_var_to_curr_inst_id.erase(pv);
-    } else {
+    }
+    else
+    {
       Trace("cegqi-bv") << "...do not do instantiation for " << pv
                         << " (skip, based on heuristic)" << std::endl;
     }
@@ -377,7 +394,8 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   TNode cur;
   visit.push(std::stack<TNode>());
   visit.top().push(lit);
-  do {
+  do
+  {
     cur = visit.top().top();
     visit.top().pop();
     it = visited.top().find(cur);
@@ -416,15 +434,19 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
           visit.top().push(cur[i]);
         }
       }
-    } else if (it->second.isNull()) {
+    }
+    else if (it->second.isNull())
+    {
       Node ret;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      bool contains_pv = ( cur==pv );
-      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
+      bool contains_pv = (cur == pv);
+      for (unsigned i = 0; i < cur.getNumChildren(); i++)
+      {
         it = visited.top().find(cur[i]);
         Assert(it != visited.top().end());
         Assert(!it->second.isNull());
@@ -439,10 +461,14 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       ret = rewriteTermForSolvePv(pv, cur, children, visited_contains_pv);
 
       // return original if the above function does not produce a result
-      if (ret.isNull()) {
-        if (childChanged) {
+      if (ret.isNull())
+      {
+        if (childChanged)
+        {
           ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
-        }else{
+        }
+        else
+        {
           ret = cur;
         }
       }
@@ -991,8 +1017,8 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     std::unordered_set<TNode, TNodeHashFunction> visited;
     for (unsigned i = 0, size = lems.size(); i < size; i++)
     {
-      Trace("cegqi-bv-pp-debug2") << "Register ce lemma # " << i << " : "
-                                  << lems[i] << std::endl;
+      Trace("cegqi-bv-pp-debug2")
+          << "Register ce lemma # " << i << " : " << lems[i] << std::endl;
       collectExtracts(lems[i], extract_map, visited);
     }
     for (std::pair<const Node, std::vector<Node> >& es : extract_map)
@@ -1051,7 +1077,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);
       Trace("cegqi-bv-pp") << "...finished processing extracts for term "
-                            << es.first << std::endl;
+                           << es.first << std::endl;
     }
     Trace("cegqi-bv-pp") << "-----done remove extracts" << std::endl;
   }
@@ -1104,6 +1130,6 @@ void BvInstantiatorPreprocess::collectExtracts(
   } while (!visit.empty());
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

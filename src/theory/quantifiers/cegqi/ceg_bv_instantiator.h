@@ -25,18 +25,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
 /** Bitvector instantiator
  *
  * This implements an approach for counterexample-guided instantiation
  * for bit-vector variables based on word-level inversions. For details,
  * see Niemetz et al, "Solving Quantified Bit-Vectors Using Invertibility
  * Conditions", CAV 2018. It is enabled by --cbqi-bv.
- * 
+ *
  * This class contains all necessary information for instantiating a single
  * bit-vector variable of a single quantified formula.
  */
-class BvInstantiator : public Instantiator {
+class BvInstantiator : public Instantiator
+{
  public:
   BvInstantiator(QuantifiersEngine* qe, TypeNode tn);
   ~BvInstantiator() override;
@@ -79,21 +79,23 @@ class BvInstantiator : public Instantiator {
 
  private:
   // point to the bv inverter class
-  BvInverter * d_inverter;
+  BvInverter* d_inverter;
   unsigned d_inst_id_counter;
   /** information about solved forms */
-  std::unordered_map< Node, std::vector< unsigned >, NodeHashFunction > d_var_to_inst_id;
-  std::unordered_map< unsigned, Node > d_inst_id_to_term;
+  std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>
+      d_var_to_inst_id;
+  std::unordered_map<unsigned, Node> d_inst_id_to_term;
   std::unordered_map<unsigned, Node> d_inst_id_to_alit;
   // variable to current id we are processing
-  std::unordered_map< Node, unsigned, NodeHashFunction > d_var_to_curr_inst_id;
+  std::unordered_map<Node, unsigned, NodeHashFunction> d_var_to_curr_inst_id;
   /** the amount of slack we added for asserted literals */
   std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
   /** whether we have tried an instantiation based on assertion in this round */
   bool d_tried_assertion_inst;
   /** rewrite assertion for solve pv
-  * returns a literal that is equivalent to lit that leads to best solved form for pv
-  */
+   * returns a literal that is equivalent to lit that leads to best solved form
+   * for pv
+   */
   Node rewriteAssertionForSolvePv(CegInstantiator* ci, Node pv, Node lit);
   /** rewrite term for solve pv
    * This is a helper function for rewriteAssertionForSolvePv.
@@ -112,10 +114,10 @@ class BvInstantiator : public Instantiator {
       std::vector<Node>& children,
       std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
   /** process literal, called from processAssertion
-  * lit is the literal to solve for pv that has been rewritten according to
-  * internal rules here.
-  * alit is the asserted literal that lit is derived from.
-  */
+   * lit is the literal to solve for pv that has been rewritten according to
+   * internal rules here.
+   * alit is the asserted literal that lit is derived from.
+   */
   void processLiteral(CegInstantiator* ci,
                       SolvedForm& sf,
                       Node pv,
@@ -176,8 +178,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
                        std::unordered_set<TNode, TNodeHashFunction>& visited);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */

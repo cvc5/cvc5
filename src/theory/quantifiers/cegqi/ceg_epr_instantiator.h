@@ -17,8 +17,8 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
 #define __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
 
-#include <vector>
 #include <map>
+#include <vector>
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 namespace CVC4 {
@@ -28,12 +28,13 @@ namespace quantifiers {
 class TermArgTrie;
 
 /** Effectively Propositional (EPR) Instantiator
- * 
+ *
  */
-class EprInstantiator : public Instantiator {
+class EprInstantiator : public Instantiator
+{
  public:
-  EprInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
-  virtual ~EprInstantiator(){}
+  EprInstantiator(QuantifiersEngine* qe, TypeNode tn) : Instantiator(qe, tn) {}
+  virtual ~EprInstantiator() {}
   void reset(CegInstantiator* ci,
              SolvedForm& sf,
              Node pv,
@@ -67,9 +68,8 @@ class EprInstantiator : public Instantiator {
                          std::map<Node, int>& match_score);
 };
 
-
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H */

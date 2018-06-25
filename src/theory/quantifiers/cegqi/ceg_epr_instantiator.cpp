@@ -25,7 +25,7 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 void EprInstantiator::reset(CegInstantiator* ci,
                             SolvedForm& sf,
                             Node pv,
@@ -41,68 +41,99 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
                                        Node n,
                                        CegInstEffort effort)
 {
-  if( options::quantEprMatching() ){
-    Assert( pv_prop.isBasic() );
-    d_equal_terms.push_back( n );
+  if (options::quantEprMatching())
+  {
+    Assert(pv_prop.isBasic());
+    d_equal_terms.push_back(n);
     return false;
-  }else{
+  }
+  else
+  {
     pv_prop.d_type = 0;
     return ci->constructInstantiationInc(pv, n, pv_prop, sf);
   }
 }
 
-void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node catom, std::vector< Node >& arg_reps, TermArgTrie * tat, unsigned index, std::map< Node, int >& match_score ) {
-  if( index==catom.getNumChildren() ){
-    Assert( tat->hasNodeData() );
+void EprInstantiator::computeMatchScore(CegInstantiator* ci,
+                                        Node pv,
+                                        Node catom,
+                                        std::vector<Node>& arg_reps,
+                                        TermArgTrie* tat,
+                                        unsigned index,
+                                        std::map<Node, int>& match_score)
+{
+  if (index == catom.getNumChildren())
+  {
+    Assert(tat->hasNodeData());
     Node gcatom = tat->getNodeData();
-    Trace("cegqi-epr") << "Matched : " << catom << " and " << gcatom << std::endl;
-    for( unsigned i=0, nchild = catom.getNumChildren(); i<nchild; i++ ){
-      if( catom[i]==pv ){
+    Trace("cegqi-epr") << "Matched : " << catom << " and " << gcatom
+                       << std::endl;
+    for (unsigned i = 0, nchild = catom.getNumChildren(); i < nchild; i++)
+    {
+      if (catom[i] == pv)
+      {
         Trace("cegqi-epr") << "...increment " << gcatom[i] << std::endl;
         match_score[gcatom[i]]++;
-      }else{
-        //recursive matching
-        computeMatchScore( ci, pv, catom[i], gcatom[i], match_score );
+      }
+      else
+      {
+        // recursive matching
+        computeMatchScore(ci, pv, catom[i], gcatom[i], match_score);
       }
     }
     return;
   }
-  std::map< TNode, TermArgTrie >::iterator it = tat->d_data.find( arg_reps[index] );
-  if( it!=tat->d_data.end() ){
-    computeMatchScore( ci, pv, catom, arg_reps, &it->second, index+1, match_score );
+  std::map<TNode, TermArgTrie>::iterator it = tat->d_data.find(arg_reps[index]);
+  if (it != tat->d_data.end())
+  {
+    computeMatchScore(
+        ci, pv, catom, arg_reps, &it->second, index + 1, match_score);
   }
 }
 
-void EprInstantiator::computeMatchScore( CegInstantiator * ci, Node pv, Node catom, Node eqc, std::map< Node, int >& match_score ) {
+void EprInstantiator::computeMatchScore(CegInstantiator* ci,
+                                        Node pv,
+                                        Node catom,
+                                        Node eqc,
+                                        std::map<Node, int>& match_score)
+{
   if (!inst::Trigger::isAtomicTrigger(catom) || !catom.hasSubterm(pv))
   {
     return;
   }
   Trace("cegqi-epr") << "Find matches for " << catom << "..." << std::endl;
-  eq::EqualityEngine* ee = ci->getQuantifiersEngine()->getMasterEqualityEngine();
-  std::vector< Node > arg_reps;
-  for( unsigned j=0, nchild = catom.getNumChildren(); j<nchild; j++ ){
-    arg_reps.push_back( ee->getRepresentative( catom[j] ) );
+  eq::EqualityEngine* ee =
+      ci->getQuantifiersEngine()->getMasterEqualityEngine();
+  std::vector<Node> arg_reps;
+  for (unsigned j = 0, nchild = catom.getNumChildren(); j < nchild; j++)
+  {
+    arg_reps.push_back(ee->getRepresentative(catom[j]));
   }
-  if( !ee->hasTerm( eqc ) ){
+  if (!ee->hasTerm(eqc))
+  {
     return;
   }
-  TermDb * tdb = ci->getQuantifiersEngine()->getTermDatabase();
-  Node rep = ee->getRepresentative( eqc );
-  Node op = tdb->getMatchOperator( catom );
-  TermArgTrie * tat = tdb->getTermArgTrie( rep, op );
-  Trace("cegqi-epr") << "EPR instantiation match term : " << catom << ", check ground terms=" << (tat!=NULL) << std::endl;
-  if( tat ){
-    computeMatchScore( ci, pv, catom, arg_reps, tat, 0, match_score );
+  TermDb* tdb = ci->getQuantifiersEngine()->getTermDatabase();
+  Node rep = ee->getRepresentative(eqc);
+  Node op = tdb->getMatchOperator(catom);
+  TermArgTrie* tat = tdb->getTermArgTrie(rep, op);
+  Trace("cegqi-epr") << "EPR instantiation match term : " << catom
+                     << ", check ground terms=" << (tat != NULL) << std::endl;
+  if (tat)
+  {
+    computeMatchScore(ci, pv, catom, arg_reps, tat, 0, match_score);
   }
 }
 
-struct sortEqTermsMatch {
-  std::map< Node, int > d_match_score;
-  bool operator() (Node i, Node j) {
+struct sortEqTermsMatch
+{
+  std::map<Node, int> d_match_score;
+  bool operator()(Node i, Node j)
+  {
     int match_score_i = d_match_score[i];
     int match_score_j = d_match_score[j];
-    return match_score_i>match_score_j || ( match_score_i==match_score_j && i<j );
+    return match_score_i > match_score_j
+           || (match_score_i == match_score_j && i < j);
   }
 };
 
@@ -112,20 +143,23 @@ bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
                                         std::vector<Node>& eqc,
                                         CegInstEffort effort)
 {
-  if( !options::quantEprMatching() ){
+  if (!options::quantEprMatching())
+  {
     return false;
   }
-  //heuristic for best matching constant
+  // heuristic for best matching constant
   sortEqTermsMatch setm;
-  for( unsigned i=0; i<ci->getNumCEAtoms(); i++ ){
-    Node catom = ci->getCEAtom( i );
-    computeMatchScore( ci, pv, catom, catom, setm.d_match_score );
+  for (unsigned i = 0; i < ci->getNumCEAtoms(); i++)
+  {
+    Node catom = ci->getCEAtom(i);
+    computeMatchScore(ci, pv, catom, catom, setm.d_match_score);
   }
-  //sort by match score
-  std::sort( d_equal_terms.begin(), d_equal_terms.end(), setm );
+  // sort by match score
+  std::sort(d_equal_terms.begin(), d_equal_terms.end(), setm);
   TermProperties pv_prop;
   pv_prop.d_type = 0;
-  for( unsigned i=0, size = d_equal_terms.size(); i<size; i++ ){
+  for (unsigned i = 0, size = d_equal_terms.size(); i < size; i++)
+  {
     if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))
     {
       return true;
@@ -134,6 +168,6 @@ bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
   return false;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

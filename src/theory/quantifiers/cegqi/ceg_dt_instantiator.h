@@ -25,12 +25,13 @@ namespace theory {
 namespace quantifiers {
 
 /** Datatypes Instantiator
- * 
+ *
  */
-class DtInstantiator : public Instantiator {
-public:
-  DtInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
-  virtual ~DtInstantiator(){}
+class DtInstantiator : public Instantiator
+{
+ public:
+  DtInstantiator(QuantifiersEngine* qe, TypeNode tn) : Instantiator(qe, tn) {}
+  virtual ~DtInstantiator() {}
   void reset(CegInstantiator* ci,
              SolvedForm& sf,
              Node pv,
@@ -59,8 +60,8 @@ public:
   Node solve_dt(Node v, Node a, Node b, Node sa, Node sb);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */
