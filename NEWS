@@ -8,7 +8,8 @@ New Features:
 * Novel approach for solving quantified bit-vectors (BV).
 * Eager bit-blasting: Support for SAT solver CaDiCaL.
 * A new Gaussian Elimination preprocessing pass for the theory of bit-vectors.
-* Support for transcendental functions (sin, cos, exp).
+* Support for transcendental functions (sin, cos, exp). In SMT2 input, this
+  can be enabled by adding T to the logic (e.g., QF_NRAT).
 * Support for new operators in strings, including string inequality (str.<=)
   and string code (str.code).
 * Support for automated rewrite rule generation from sygus (*.sy) inputs using
@@ -16,7 +17,6 @@ New Features:
 
 Improvements:
 * Incremental unsat core support.
-* Strings rewriter.
 * Further development of rewrite rules for the theory of strings and regular
   expressions.
 * Many optimizations for syntax-guided synthesis, including improved symmetry
