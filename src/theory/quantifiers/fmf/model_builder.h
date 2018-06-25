@@ -56,10 +56,6 @@ public:
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
 };
 
-
-
-
-
 class TermArgBasisTrie {
 public:
   /** the data */
