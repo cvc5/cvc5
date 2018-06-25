@@ -135,10 +135,7 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return lit;
   }
-  else
-  {
-    return Node::null();
-  }
+  return Node::null();
 }
 
 bool ArithInstantiator::processAssertion(CegInstantiator* ci,
@@ -683,57 +680,51 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   eq = Rewriter::rewrite(eq);
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map<Node, Node> msum;
-  if (ArithMSum::getMonomialSumLit(eq, msum))
-  {
-    Node veq;
-    if (ArithMSum::isolate(sf.d_vars[index], msum, veq, EQUAL, true) != 0)
-    {
-      Node veq_c;
-      if (veq[0] != sf.d_vars[index])
-      {
-        Node veq_v;
-        if (ArithMSum::getMonomial(veq[0], veq_c, veq_v))
-        {
-          Assert(veq_v == sf.d_vars[index]);
-        }
-      }
-      sf.d_subs[index] = veq[1];
-      if (!veq_c.isNull())
-      {
-        NodeManager* nm = NodeManager::currentNM();
-        sf.d_subs[index] = nm->mkNode(INTS_DIVISION_TOTAL, veq[1], veq_c);
-        Trace("cegqi-arith-debug")
-            << "...bound type is : " << sf.d_props[index].d_type << std::endl;
-        // intger division rounding up if from a lower bound
-        if (sf.d_props[index].d_type == 1 && options::cbqiRoundUpLowerLia())
-        {
-          sf.d_subs[index] = nm->mkNode(
-              PLUS,
-              sf.d_subs[index],
-              nm->mkNode(
-                  ITE,
-                  nm->mkNode(EQUAL,
-                             nm->mkNode(INTS_MODULUS_TOTAL, veq[1], veq_c),
-                             d_zero),
-                  d_zero,
-                  d_one));
-        }
-      }
-      Trace("cegqi-arith-debug")
-          << "...normalize integers : " << sf.d_vars[index] << " -> "
-          << sf.d_subs[index] << std::endl;
-    }
-    else
-    {
-      Trace("cegqi-arith-debug") << "...failed to isolate." << std::endl;
-      return false;
-    }
-  }
-  else
+  if (!ArithMSum::getMonomialSumLit(eq, msum))
   {
     Trace("cegqi-arith-debug") << "...failed to get monomial sum." << std::endl;
     return false;
   }
+  Node veq;
+  if (ArithMSum::isolate(sf.d_vars[index], msum, veq, EQUAL, true) == 0)
+  {    
+    Trace("cegqi-arith-debug") << "...failed to isolate." << std::endl;
+    return false;
+  }
+  Node veq_c;
+  if (veq[0] != sf.d_vars[index])
+  {
+    Node veq_v;
+    if (ArithMSum::getMonomial(veq[0], veq_c, veq_v))
+    {
+      Assert(veq_v == sf.d_vars[index]);
+    }
+  }
+  sf.d_subs[index] = veq[1];
+  if (!veq_c.isNull())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    sf.d_subs[index] = nm->mkNode(INTS_DIVISION_TOTAL, veq[1], veq_c);
+    Trace("cegqi-arith-debug")
+        << "...bound type is : " << sf.d_props[index].d_type << std::endl;
+    // intger division rounding up if from a lower bound
+    if (sf.d_props[index].d_type == 1 && options::cbqiRoundUpLowerLia())
+    {
+      sf.d_subs[index] = nm->mkNode(
+          PLUS,
+          sf.d_subs[index],
+          nm->mkNode(
+              ITE,
+              nm->mkNode(EQUAL,
+                          nm->mkNode(INTS_MODULUS_TOTAL, veq[1], veq_c),
+                          d_zero),
+              d_zero,
+              d_one));
+    }
+  }
+  Trace("cegqi-arith-debug")
+      << "...normalize integers : " << sf.d_vars[index] << " -> "
+      << sf.d_subs[index] << std::endl;
   return true;
 }
 
@@ -750,7 +741,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
   Trace("cegqi-arith-debug")
       << "isolate for " << pv << " in " << atom << std::endl;
   std::map<Node, Node> msum;
-  if (ArithMSum::getMonomialSumLit(atom, msum))
+  if (!ArithMSum::getMonomialSumLit(atom, msum))
   {
     Trace("cegqi-arith-debug")
         << "fail : could not get monomial sum" << std::endl;
@@ -809,109 +800,111 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
   }
 
   ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
-  if (ires != 0)
+  if (ires == 0)
   {
-    Node realPart;
-    if (Trace.isOn("cegqi-arith-debug"))
+    Trace("cegqi-arith-debug") << "fail : isolate" << std::endl;
+    return 0;
+  }
+  if (Trace.isOn("cegqi-arith-debug"))
+  {
+    Trace("cegqi-arith-debug") << "Isolate : ";
+    if (!veq_c.isNull())
     {
-      Trace("cegqi-arith-debug") << "Isolate : ";
-      if (!veq_c.isNull())
-      {
-        Trace("cegqi-arith-debug") << veq_c << " * ";
-      }
-      Trace("cegqi-arith-debug")
-          << pv << " " << atom.getKind() << " " << val << std::endl;
+      Trace("cegqi-arith-debug") << veq_c << " * ";
     }
-    // when not pure LIA/LRA, we must check whether the lhs contains pv
-    if (val.hasSubterm(pv))
+    Trace("cegqi-arith-debug")
+        << pv << " " << atom.getKind() << " " << val << std::endl;
+  }
+  // when not pure LIA/LRA, we must check whether the lhs contains pv
+  if (val.hasSubterm(pv))
+  {
+    Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
+    return 0;
+  }
+  // if its type is integer but the substitution is not integer
+  if (pvtn.isInteger()
+      && ((!veq_c.isNull() && !veq_c.getType().isInteger())
+          || !val.getType().isInteger()))
+  {
+    // redo, split integer/non-integer parts
+    bool useCoeff = false;
+    Integer coeff = ci->getQuantifiersEngine()
+                        ->getTermUtil()
+                        ->d_one.getConst<Rational>()
+                        .getNumerator();
+    for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
+          ++it)
     {
-      Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
-      return 0;
+      if (it->first.isNull() || it->first.getType().isInteger())
+      {
+        if (!it->second.isNull())
+        {
+          coeff = coeff.lcm(it->second.getConst<Rational>().getDenominator());
+          useCoeff = true;
+        }
+      }
     }
-    if (pvtn.isInteger()
-        && ((!veq_c.isNull() && !veq_c.getType().isInteger())
-            || !val.getType().isInteger()))
+    // multiply everything by this coefficient
+    Node rcoeff = nm->mkConst(Rational(coeff));
+    std::vector<Node> real_part;
+    for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
+          ++it)
     {
-      // redo, split integer/non-integer parts
-      bool useCoeff = false;
-      Integer coeff = ci->getQuantifiersEngine()
-                          ->getTermUtil()
-                          ->d_one.getConst<Rational>()
-                          .getNumerator();
-      for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
-           ++it)
+      if (useCoeff)
       {
-        if (it->first.isNull() || it->first.getType().isInteger())
+        if (it->second.isNull())
         {
-          if (!it->second.isNull())
-          {
-            coeff = coeff.lcm(it->second.getConst<Rational>().getDenominator());
-            useCoeff = true;
-          }
+          msum[it->first] = rcoeff;
+        }
+        else
+        {
+          msum[it->first] =
+              Rewriter::rewrite(nm->mkNode(MULT, it->second, rcoeff));
         }
       }
-      // multiply everything by this coefficient
-      Node rcoeff = nm->mkConst(Rational(coeff));
-      std::vector<Node> real_part;
-      for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
-           ++it)
+      if (!it->first.isNull() && !it->first.getType().isInteger())
       {
-        if (useCoeff)
-        {
-          if (it->second.isNull())
-          {
-            msum[it->first] = rcoeff;
-          }
-          else
-          {
-            msum[it->first] =
-                Rewriter::rewrite(nm->mkNode(MULT, it->second, rcoeff));
-          }
-        }
-        if (!it->first.isNull() && !it->first.getType().isInteger())
-        {
-          real_part.push_back(
-              msum[it->first].isNull()
-                  ? it->first
-                  : nm->mkNode(MULT, msum[it->first], it->first));
-        }
+        real_part.push_back(
+            msum[it->first].isNull()
+                ? it->first
+                : nm->mkNode(MULT, msum[it->first], it->first));
       }
-      // remove delta
-      vts_coeff[1] = Node::null();
-      // multiply inf
-      if (!vts_coeff[0].isNull())
-      {
-        vts_coeff[0] =
-            Rewriter::rewrite(nm->mkNode(MULT, rcoeff, vts_coeff[0]));
-      }
-      realPart = real_part.empty()
-                     ? d_zero
-                     : (real_part.size() == 1 ? real_part[0]
-                                              : nm->mkNode(PLUS, real_part));
-      Assert(ci->getOutput()->isEligibleForInstantiation(realPart));
-      // re-isolate
-      Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
-      veq_c = Node::null();
-      ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
-      Trace("cegqi-arith-debug")
-          << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " "
-          << atom.getKind() << " " << val << std::endl;
-      Trace("cegqi-arith-debug")
-          << "                 real part : " << realPart << std::endl;
-      if (ires != 0)
-      {
-        int ires_use =
-            (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1)
-                ? 1
-                : -1;
-        val = Rewriter::rewrite(
-            nm->mkNode(ires_use == -1 ? PLUS : MINUS,
-                       nm->mkNode(ires_use == -1 ? MINUS : PLUS, val, realPart),
-                       nm->mkNode(TO_INTEGER, realPart)));
-        // could round up for upper bounds here
-        Trace("cegqi-arith-debug") << "result : " << val << std::endl;
-        Assert(val.getType().isInteger());
-      }
+    }
+    // remove delta
+    vts_coeff[1] = Node::null();
+    // multiply inf
+    if (!vts_coeff[0].isNull())
+    {
+      vts_coeff[0] =
+          Rewriter::rewrite(nm->mkNode(MULT, rcoeff, vts_coeff[0]));
+    }
+    Node realPart = real_part.empty()
+                    ? d_zero
+                    : (real_part.size() == 1 ? real_part[0]
+                                            : nm->mkNode(PLUS, real_part));
+    Assert(ci->getOutput()->isEligibleForInstantiation(realPart));
+    // re-isolate
+    Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
+    veq_c = Node::null();
+    ires = ArithMSum::isolate(pv, msum, veq_c, val, atom.getKind());
+    Trace("cegqi-arith-debug")
+        << "Isolate for mixed Int/Real : " << veq_c << " * " << pv << " "
+        << atom.getKind() << " " << val << std::endl;
+    Trace("cegqi-arith-debug")
+        << "                 real part : " << realPart << std::endl;
+    if (ires != 0)
+    {
+      int ires_use =
+          (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1)
+              ? 1
+              : -1;
+      val = Rewriter::rewrite(
+          nm->mkNode(ires_use == -1 ? PLUS : MINUS,
+                      nm->mkNode(ires_use == -1 ? MINUS : PLUS, val, realPart),
+                      nm->mkNode(TO_INTEGER, realPart)));
+      // could round up for upper bounds here
+      Trace("cegqi-arith-debug") << "result : " << val << std::endl;
+      Assert(val.getType().isInteger());
     }
   }
   vts_coeff_inf = vts_coeff[0];
