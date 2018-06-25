@@ -421,7 +421,7 @@ int InstMatchGenerator::getNextMatch(Node f,
         Trace("matching-summary") << "Try " << d_match_pattern << " : " << t << std::endl;
         success = getMatch(f, t, m, qe, tparent);
         if( d_independent_gen && success<0 ){
-          Assert( d_eq_class.isNull() );
+          Assert( d_eq_class.isNull() || !d_eq_class_rel.isNull() );
           d_curr_exclude_match[t] = true;
         }
       }
