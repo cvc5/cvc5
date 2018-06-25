@@ -387,8 +387,14 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/candidate_rewrite_database.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
-	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
-	theory/quantifiers/cegqi/ceg_t_instantiator.h \
+	theory/quantifiers/cegqi/ceg_arith_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_arith_instantiator.h \
+	theory/quantifiers/cegqi/ceg_bv_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_bv_instantiator.h \
+	theory/quantifiers/cegqi/ceg_dt_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_dt_instantiator.h \
+	theory/quantifiers/cegqi/ceg_epr_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_epr_instantiator.h \
 	theory/quantifiers/cegqi/inst_strategy_cbqi.cpp \
 	theory/quantifiers/cegqi/inst_strategy_cbqi.h \
 	theory/quantifiers/conjecture_generator.cpp \
