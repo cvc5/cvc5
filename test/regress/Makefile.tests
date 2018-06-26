@@ -806,6 +806,7 @@ REG0_TESTS = \
 	regress0/strings/str005.smt2 \
 	regress0/strings/strings-charat.cvc \
 	regress0/strings/strings-native-simple.cvc \
+	regress0/strings/strip-endpoint-itos.smt2 \
 	regress0/strings/substr-rewrites.smt2 \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
@@ -1283,6 +1284,7 @@ REG1_TESTS = \
 	regress1/quantifiers/psyco-196.smt2 \
 	regress1/quantifiers/qbv-disequality3.smt2 \
 	regress1/quantifiers/qbv-simple-2vars-vo.smt2 \
+	regress1/quantifiers/qbv-subcall.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvashr-0.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvashr-1.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvcomp.smt2 \
@@ -1443,6 +1445,7 @@ REG1_TESTS = \
 	regress1/strings/idof-triv.smt2 \
 	regress1/strings/ilc-l-nt.smt2 \
 	regress1/strings/issue1105.smt2 \
+	regress1/strings/issue2060.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
 	regress1/strings/loop003.smt2 \
@@ -1511,6 +1514,7 @@ REG1_TESTS = \
 	regress1/sygus/inv-unused.sy \
 	regress1/sygus/large-const-simp.sy \
 	regress1/sygus/list-head-x.sy \
+	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \

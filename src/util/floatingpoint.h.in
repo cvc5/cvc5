@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file floatingpoint.h
+/*! \file floatingpoint.h.in
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Tim King, Paul Meng
+ **   Martin Brain, Tim King, Andres Noetzli
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,9 +25,9 @@
 
 #include <fenv.h>
 
-#ifdef CVC4_USE_SYMFPU
-#include "symfpu/core/unpackedFloat.h"
-#endif
+#if @CVC4_USE_SYMFPU@
+#include <symfpu/core/unpackedFloat.h>
+#endif /* @CVC4_USE_SYMFPU@ */
 
 namespace CVC4 {
   // Inline these!
@@ -186,9 +186,9 @@ namespace CVC4 {
 
     friend wrappedBitVector<!isSigned>;  // To allow conversion between the
                                          // types
-#ifdef CVC4_USE_SYMFPU
+#if @CVC4_USE_SYMFPU@
     friend ::symfpu::ite<prop, wrappedBitVector<isSigned> >;  // For ITE
-#endif
+#endif /* @CVC4_USE_SYMFPU@ */
 
    public:
     wrappedBitVector(const bwt w, const unsigned v) : BitVector(w, v) {}
@@ -287,7 +287,7 @@ namespace CVC4 {
   /**
    * A concrete floating point number
    */
-#ifdef CVC4_USE_SYMFPU
+#if @CVC4_USE_SYMFPU@
   typedef ::symfpu::unpackedFloat<symfpuLiteral::traits> FloatingPointLiteral;
 #else
   class CVC4_PUBLIC FloatingPointLiteral {
@@ -309,7 +309,7 @@ namespace CVC4 {
       return 23;
     }
   };
-#endif
+#endif /* @CVC4_USE_SYMFPU@ */
 
   class CVC4_PUBLIC FloatingPoint {
   protected :

@@ -2,9 +2,9 @@
 /*! \file theory_strings_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
 Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
+  NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir<0 ? 0 : dir;
   unsigned tmax = dir<0 ? 1 : dir;
   //try to remove off front and back
@@ -61,7 +62,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
               if( index==0 ){
                 mchildren.push_back( s );
               }else{
-                children.push_back( s );
+                children.push_back(nm->mkNode(STRING_TO_REGEXP, s));
               }
             }
             do_next = true;
@@ -2915,9 +2916,10 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
         {
           const std::vector<unsigned>& svec = s.getVec();
           // can remove up to the first occurrence of a digit
-          for (unsigned i = 0; i < svec.size(); i++)
+          unsigned svsize = svec.size();
+          for (unsigned i = 0; i < svsize; i++)
           {
-            unsigned sindex = r == 0 ? i : svec.size() - i;
+            unsigned sindex = r == 0 ? i : (svsize - 1) - i;
             if (String::isDigit(svec[sindex]))
             {
               break;
