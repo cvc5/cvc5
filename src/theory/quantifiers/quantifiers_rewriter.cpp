@@ -1153,6 +1153,7 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
       break;
     }
   }
+  /*
   if( options::dtVarExpandQuant() && vars.empty() )
   {
     // eliminate variables with 1-argument constructors
@@ -1179,6 +1180,7 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
       }
     }
   }
+  */
   Trace("var-elim-quant-debug") << "...variables to eliminate : " << vars.size() << "/" << args.size() << std::endl;
   
   if( !vars.empty() ){
