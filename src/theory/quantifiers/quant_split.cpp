@@ -50,9 +50,9 @@ void QuantDSplit::checkOwnership(Node q)
           if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
             if (dt.isInterpretedFinite(tn.toType()))
             {
-            // split if goes from being unhandled -> handled by finite
-            // instantiation. An example is datatypes with uninterpreted sort 
-            // fields which are "interpreted finite" but not "finite".
+              // split if goes from being unhandled -> handled by finite
+              // instantiation. An example is datatypes with uninterpreted sort
+              // fields which are "interpreted finite" but not "finite".
               score = 1;
             }
             else if (dt.getNumConstructors() == 1 && !dt.isCodatatype())
@@ -104,7 +104,8 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
        ++it)
   {
     Node q = it->first;
-    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q) && d_added_split.find(q) == d_added_split.end())
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
+        && d_added_split.find(q) == d_added_split.end())
     {
       d_added_split.insert(q);
       std::vector<Node> bvs;
@@ -155,13 +156,12 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       }
       Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(kind::AND, cons);
       disj.push_back(conc);
-      lemmas.push_back(disj.size() == 1 ? disj[0]
-                                        : nm->mkNode(kind::OR, disj));
+      lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(kind::OR, disj));
     }
   }
 
   // add lemmas to quantifiers engine
-  for( const Node& lem : lemmas )
+  for (const Node& lem : lemmas)
   {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
     d_quantEngine->addLemma(lem, false);
