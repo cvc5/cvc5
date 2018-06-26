@@ -1,4 +1,5 @@
 % EXPECT: sat
+AJR-FIX
 OPTION "produce-models";
 OPTION "fmf-bound";
 

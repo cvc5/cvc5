@@ -1153,18 +1153,23 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
       break;
     }
   }
-  if( vars.empty() )
+  if( options::dtVarExpandQuant() && vars.empty() )
   {
-    // 1-argument constructors
-    for( const Node& v : vars )
+    // eliminate variables with 1-argument constructors
+    std::vector< Node > tmp_args = args;
+    for( const Node& v : tmp_args )
     {
       TypeNode tn = v.getType();
       if( tn.isDatatype() )
       {
         const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-        if( dt.getNumConstructors()==1 )
+        // to avoid infinite loops, do not apply to codatatypes
+        if( dt.getNumConstructors()==1 && !dt.isCodatatype() )
         {
+          Trace("var-elim-quant-debug") << "Elim 1-cons var: " << v << std::endl;
           Node s = datatypeExpand( 0, v, args );
+          Trace("var-elim-quant-debug") << "..got : " << s << std::endl;
+          Assert( v.getType()==s.getType() );
           if( !s.isNull() )
           {
             vars.push_back( v );
@@ -1174,9 +1179,9 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
       }
     }
   }
+  Trace("var-elim-quant-debug") << "...variables to eliminate : " << vars.size() << "/" << args.size() << std::endl;
   
   if( !vars.empty() ){
-    Trace("var-elim-quant-debug") << "VE " << vars.size() << "/" << args.size() << std::endl;
     //remake with eliminated nodes
     body = body.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     body = Rewriter::rewrite( body );
