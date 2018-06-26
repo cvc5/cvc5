@@ -47,16 +47,17 @@ void QuantDSplit::checkOwnership(Node q)
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
           score = dt.isInterpretedFinite( tn.toType() ) ? 1 : 0;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          //split if goes from being unhandled -> handled by finite instantiation
-          //  an example is datatypes with uninterpreted sort fields, which are "interpreted finite" but not "finite"
           if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
-            if( dt.isInterpretedFinite( tn.toType() ) )
+            if (dt.isInterpretedFinite(tn.toType()))
             {
+            // split if goes from being unhandled -> handled by finite
+            // instantiation. An example is datatypes with uninterpreted sort 
+            // fields which are "interpreted finite" but not "finite".
               score = 1;
             }
-            else if( dt.getNumConstructors()==1 && !dt.isCodatatype() )
+            else if (dt.getNumConstructors() == 1 && !dt.isCodatatype())
             {
-              // split if only one constructor 
+              // split if only one constructor
               score = 1;
             }
           }
@@ -95,70 +96,85 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   FirstOrderModel* m = d_quantEngine->getModel();
-  std::vector< Node > lemmas;
-  for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
+  std::vector<Node> lemmas;
+  for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
+       it != d_quant_to_reduce.end();
+       ++it)
+  {
     Node q = it->first;
-    if( m->isQuantifierAsserted( q ) && m->isQuantifierActive( q ) ){
-      if( d_added_split.find( q )==d_added_split.end() ){
-        d_added_split.insert( q );
-        std::vector< Node > bvs;
-        for( unsigned i=0, nvars = q[0].getNumChildren(); i<nvars; i++ ){
-          if( static_cast<int>(i)!=it->second ){
-            bvs.push_back( q[0][i] );
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
+    {
+      if (d_added_split.find(q) == d_added_split.end())
+      {
+        d_added_split.insert(q);
+        std::vector<Node> bvs;
+        for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+        {
+          if (static_cast<int>(i) != it->second)
+          {
+            bvs.push_back(q[0][i]);
           }
         }
-        std::vector< Node > disj;
-        disj.push_back( q.negate() );
+        std::vector<Node> disj;
+        disj.push_back(q.negate());
         TNode svar = q[0][it->second];
         TypeNode tn = svar.getType();
-        if( tn.isDatatype() ){
-          std::vector< Node > cons;
+        if (tn.isDatatype())
+        {
+          std::vector<Node> cons;
           const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-          for( unsigned j=0, ncons = dt.getNumConstructors(); j<ncons; j++ ){
-            std::vector< Node > vars;
-            for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-              TypeNode tns = TypeNode::fromType( dt[j][k].getRangeType() );
-              Node v = nm->mkBoundVar( tns );
-              vars.push_back( v );
+          for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+          {
+            std::vector<Node> vars;
+            for (unsigned k = 0; k < dt[j].getNumArgs(); k++)
+            {
+              TypeNode tns = TypeNode::fromType(dt[j][k].getRangeType());
+              Node v = nm->mkBoundVar(tns);
+              vars.push_back(v);
             }
-            std::vector< Node > bvs_cmb;
-            bvs_cmb.insert( bvs_cmb.end(), bvs.begin(), bvs.end() );
-            bvs_cmb.insert( bvs_cmb.end(), vars.begin(), vars.end() );
-            vars.insert( vars.begin(), Node::fromExpr( dt[j].getConstructor() ) );
-            Node c = nm->mkNode( kind::APPLY_CONSTRUCTOR, vars );
+            std::vector<Node> bvs_cmb;
+            bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
+            bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
+            vars.insert(vars.begin(), Node::fromExpr(dt[j].getConstructor()));
+            Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
             TNode ct = c;
-            Node body = q[1].substitute( svar, ct );
-            if( !bvs_cmb.empty() ){
-              Node bvl = nm->mkNode( kind::BOUND_VAR_LIST, bvs_cmb );
-              std::vector< Node > children;
+            Node body = q[1].substitute(svar, ct);
+            if (!bvs_cmb.empty())
+            {
+              Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs_cmb);
+              std::vector<Node> children;
               children.push_back(bvl);
               children.push_back(body);
-              if( q.getNumChildren()==3 )
+              if (q.getNumChildren() == 3)
               {
-                Node ipls = q[2].substitute( svar, ct );
+                Node ipls = q[2].substitute(svar, ct);
                 children.push_back(ipls);
               }
-              body = nm->mkNode( kind::FORALL, children );
+              body = nm->mkNode(kind::FORALL, children);
             }
-            cons.push_back( body );
+            cons.push_back(body);
           }
-          Node conc = cons.size()==1 ? cons[0] : nm->mkNode( kind::AND, cons );
-          disj.push_back( conc );
-        }else{
-          Assert( false );
+          Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(kind::AND, cons);
+          disj.push_back(conc);
         }
-        lemmas.push_back( disj.size()==1 ? disj[0] : nm->mkNode( kind::OR, disj ) );
+        else
+        {
+          Assert(false);
+        }
+        lemmas.push_back(disj.size() == 1 ? disj[0]
+                                          : nm->mkNode(kind::OR, disj));
       }
     }
   }
 
-  //add lemmas to quantifiers engine
-  for( unsigned i=0; i<lemmas.size(); i++ ){
+  // add lemmas to quantifiers engine
+  for (unsigned i = 0; i < lemmas.size(); i++)
+  {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lemmas[i] << std::endl;
-    d_quantEngine->addLemma( lemmas[i], false );
+    d_quantEngine->addLemma(lemmas[i], false);
   }
-  //d_quant_to_reduce.clear();
+  // d_quant_to_reduce.clear();
 }
 

@@ -1010,13 +1010,14 @@ bool QuantifiersRewriter::computeVariableElimLit(
   }else if( lit.getKind()==APPLY_TESTER && pol && lit[0].getKind()==BOUND_VARIABLE && options::dtVarExpandQuant() ){
     Trace("var-elim-dt") << "Expand datatype variable based on : " << lit << std::endl;
     Expr testerExpr = lit.getOperator().toExpr();
-    unsigned index = Datatype::indexOf( testerExpr );
-    Node s = datatypeExpand( index, lit[0], args );
-    if( !s.isNull() )
+    unsigned index = Datatype::indexOf(testerExpr);
+    Node s = datatypeExpand(index, lit[0], args);
+    if (!s.isNull())
     {
       vars.push_back(lit[0]);
       subs.push_back(s);
-      Trace("var-elim-dt") << "...apply substitution " << s << "/" << lit[0] << std::endl;
+      Trace("var-elim-dt") << "...apply substitution " << s << "/" << lit[0]
+                           << std::endl;
       return true;
     }
   }else if( lit.getKind()==BOUND_VARIABLE && options::varElimQuant() ){
@@ -1112,33 +1113,37 @@ bool QuantifiersRewriter::computeVariableElimLit(
   return false;
 }
 
-Node QuantifiersRewriter::datatypeExpand( unsigned index, Node v, std::vector< Node >& args )
+Node QuantifiersRewriter::datatypeExpand(unsigned index,
+                                         Node v,
+                                         std::vector<Node>& args)
 {
-  if( !v.getType().isDatatype() )
+  if (!v.getType().isDatatype())
   {
     return Node::null();
   }
-  std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), v );
-  if( ita==args.end() )
+  std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
+  if (ita == args.end())
   {
     return Node::null();
   }
-  Assert( v.getType().isDatatype() );
-  const Datatype& dt = static_cast<DatatypeType>(v.getType().toType()).getDatatype();
-  Assert( index<dt.getNumConstructors() );
+  Assert(v.getType().isDatatype());
+  const Datatype& dt =
+      static_cast<DatatypeType>(v.getType().toType()).getDatatype();
+  Assert(index < dt.getNumConstructors());
   const DatatypeConstructor& c = dt[index];
-  std::vector< Node > newChildren;
-  newChildren.push_back( Node::fromExpr( c.getConstructor() ) );
-  std::vector< Node > newVars;
-  for( unsigned j=0, nargs = c.getNumArgs(); j<nargs; j++ ){
-    TypeNode tn = TypeNode::fromType( c.getArgType(j) );
-    Node vn = NodeManager::currentNM()->mkBoundVar( tn );
-    newChildren.push_back( vn );
-    newVars.push_back( vn );
+  std::vector<Node> newChildren;
+  newChildren.push_back(Node::fromExpr(c.getConstructor()));
+  std::vector<Node> newVars;
+  for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
+  {
+    TypeNode tn = TypeNode::fromType(c.getArgType(j));
+    Node vn = NodeManager::currentNM()->mkBoundVar(tn);
+    newChildren.push_back(vn);
+    newVars.push_back(vn);
   }
-  args.erase( ita );
-  args.insert( args.end(), newVars.begin(), newVars.end() );
-  return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, newChildren );
+  args.erase(ita);
+  args.insert(args.end(), newVars.begin(), newVars.end());
+  return NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, newChildren);
 }
 
 Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa ){
@@ -1163,12 +1168,13 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
       TypeNode tn = v.getType();
       if( tn.isDatatype() )
       {
-        const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+        const Datatype& dt =
+  static_cast<DatatypeType>(tn.toType()).getDatatype();
         // to avoid infinite loops, do not apply to codatatypes
         if( dt.getNumConstructors()==1 && !dt.isCodatatype() )
         {
-          Trace("var-elim-quant-debug") << "Elim 1-cons var: " << v << std::endl;
-          Node s = datatypeExpand( 0, v, args );
+          Trace("var-elim-quant-debug") << "Elim 1-cons var: " << v <<
+  std::endl; Node s = datatypeExpand( 0, v, args );
           Trace("var-elim-quant-debug") << "..got : " << s << std::endl;
           Assert( v.getType()==s.getType() );
           if( !s.isNull() )
@@ -1181,8 +1187,9 @@ Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >
     }
   }
   */
-  Trace("var-elim-quant-debug") << "...variables to eliminate : " << vars.size() << "/" << args.size() << std::endl;
-  
+  Trace("var-elim-quant-debug") << "...variables to eliminate : " << vars.size()
+                                << "/" << args.size() << std::endl;
+
   if( !vars.empty() ){
     //remake with eliminated nodes
     body = body.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );

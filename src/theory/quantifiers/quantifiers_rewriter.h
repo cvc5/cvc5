@@ -52,13 +52,13 @@ private:
   static bool computeVariableElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& var, std::vector< Node >& subs,
                                       std::map< Node, std::map< bool, std::map< Node, bool > > >& num_bounds );
   static Node computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa );
-  /** datatype expand 
-   * 
-   * If v occurs in args and has a datatype type whose index^th constructor is 
+  /** datatype expand
+   *
+   * If v occurs in args and has a datatype type whose index^th constructor is
    * C, this method returns a node of the form C( x1, ..., xn ), removes v from
    * args and adds x1...xn to args.
    */
-  static Node datatypeExpand( unsigned index, Node v, std::vector< Node >& args );
+  static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
   /** variable eliminate for bit-vector literals
    *
    * If this returns a non-null value ret, then var is updated to a member of
