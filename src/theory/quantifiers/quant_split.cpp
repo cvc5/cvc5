@@ -104,77 +104,67 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
        ++it)
   {
     Node q = it->first;
-    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q))
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q) && d_added_split.find(q) == d_added_split.end())
     {
-      if (d_added_split.find(q) == d_added_split.end())
+      d_added_split.insert(q);
+      std::vector<Node> bvs;
+      for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
       {
-        d_added_split.insert(q);
-        std::vector<Node> bvs;
-        for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+        if (static_cast<int>(i) != it->second)
         {
-          if (static_cast<int>(i) != it->second)
-          {
-            bvs.push_back(q[0][i]);
-          }
+          bvs.push_back(q[0][i]);
         }
-        std::vector<Node> disj;
-        disj.push_back(q.negate());
-        TNode svar = q[0][it->second];
-        TypeNode tn = svar.getType();
-        if (tn.isDatatype())
-        {
-          std::vector<Node> cons;
-          const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-          for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
-          {
-            std::vector<Node> vars;
-            for (unsigned k = 0; k < dt[j].getNumArgs(); k++)
-            {
-              TypeNode tns = TypeNode::fromType(dt[j][k].getRangeType());
-              Node v = nm->mkBoundVar(tns);
-              vars.push_back(v);
-            }
-            std::vector<Node> bvs_cmb;
-            bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
-            bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
-            vars.insert(vars.begin(), Node::fromExpr(dt[j].getConstructor()));
-            Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
-            TNode ct = c;
-            Node body = q[1].substitute(svar, ct);
-            if (!bvs_cmb.empty())
-            {
-              Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs_cmb);
-              std::vector<Node> children;
-              children.push_back(bvl);
-              children.push_back(body);
-              if (q.getNumChildren() == 3)
-              {
-                Node ipls = q[2].substitute(svar, ct);
-                children.push_back(ipls);
-              }
-              body = nm->mkNode(kind::FORALL, children);
-            }
-            cons.push_back(body);
-          }
-          Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(kind::AND, cons);
-          disj.push_back(conc);
-        }
-        else
-        {
-          Assert(false);
-        }
-        lemmas.push_back(disj.size() == 1 ? disj[0]
-                                          : nm->mkNode(kind::OR, disj));
       }
+      std::vector<Node> disj;
+      disj.push_back(q.negate());
+      TNode svar = q[0][it->second];
+      TypeNode tn = svar.getType();
+      Assert(tn.isDatatype());
+      std::vector<Node> cons;
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+      {
+        std::vector<Node> vars;
+        for (unsigned k = 0; k < dt[j].getNumArgs(); k++)
+        {
+          TypeNode tns = TypeNode::fromType(dt[j][k].getRangeType());
+          Node v = nm->mkBoundVar(tns);
+          vars.push_back(v);
+        }
+        std::vector<Node> bvs_cmb;
+        bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
+        bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
+        vars.insert(vars.begin(), Node::fromExpr(dt[j].getConstructor()));
+        Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
+        TNode ct = c;
+        Node body = q[1].substitute(svar, ct);
+        if (!bvs_cmb.empty())
+        {
+          Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs_cmb);
+          std::vector<Node> children;
+          children.push_back(bvl);
+          children.push_back(body);
+          if (q.getNumChildren() == 3)
+          {
+            Node ipls = q[2].substitute(svar, ct);
+            children.push_back(ipls);
+          }
+          body = nm->mkNode(kind::FORALL, children);
+        }
+        cons.push_back(body);
+      }
+      Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(kind::AND, cons);
+      disj.push_back(conc);
+      lemmas.push_back(disj.size() == 1 ? disj[0]
+                                        : nm->mkNode(kind::OR, disj));
     }
   }
 
   // add lemmas to quantifiers engine
-  for (unsigned i = 0; i < lemmas.size(); i++)
+  for( const Node& lem : lemmas )
   {
-    Trace("quant-dsplit") << "QuantDSplit lemma : " << lemmas[i] << std::endl;
-    d_quantEngine->addLemma(lemmas[i], false);
+    Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
+    d_quantEngine->addLemma(lem, false);
   }
-  // d_quant_to_reduce.clear();
 }
 

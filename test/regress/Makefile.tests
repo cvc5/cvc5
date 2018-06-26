@@ -1270,6 +1270,7 @@ REG1_TESTS = \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
 	regress1/quantifiers/isaplanner-goal20.smt2 \
+	regress1/quantifiers/issue993.smt2 \
 	regress1/quantifiers/is-even.smt2 \
 	regress1/quantifiers/javafe.ast.StmtVec.009.smt2 \
 	regress1/quantifiers/mix-coeff.smt2 \
