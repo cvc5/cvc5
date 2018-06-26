@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ${filename}$.h
+/*! \file module_template.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mathias Preiner
