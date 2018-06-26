@@ -2,7 +2,7 @@
 /*! \file bv_to_bool.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Paul Meng
+ **   Liana Hadarean, Yoni Zohar, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
