@@ -173,7 +173,7 @@ private:
    *
    * irr_kinds: The kinds of terms that appear in assertions that should *not*
    * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * added to this set.
+   * treated as irrelevant kinds.
    *
    * includeShared: Whether to include shared terms in termSet. Notice that
    * shared terms are not influenced by irr_kinds.
