@@ -126,7 +126,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         std::vector<Node> vars;
-        for (unsigned k = 0; k < dt[j].getNumArgs(); k++)
+        for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode tns = TypeNode::fromType(dt[j][k].getRangeType());
           Node v = nm->mkBoundVar(tns);
