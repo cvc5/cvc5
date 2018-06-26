@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,7 +38,7 @@ namespace theory {
  */
 struct EvalResult
 {
-  // Describes which type of result is being stored
+  /* Describes which type of result is being stored */
   enum
   {
     BOOL,
@@ -48,7 +48,7 @@ struct EvalResult
     INVALID
   } d_tag;
 
-  // Stores the actual result
+  /* Stores the actual result */
   union
   {
     bool d_bool;
@@ -75,6 +75,11 @@ struct EvalResult
   Node toNode() const;
 };
 
+/**
+ * The class that performs the actual evaluation of a term under a
+ * substitution. Right now, the class does not cache anything between different
+ * calls to `eval` but this might change in the future.
+ */
 class Evaluator
 {
  public:

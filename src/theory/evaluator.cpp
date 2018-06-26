@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -172,9 +172,13 @@ EvalResult Evaluator::evalInternal(TNode n,
       else if (currNode.getKind() == kind::APPLY_UF
                && currNode.getOperator().getKind() == kind::LAMBDA)
       {
+        // Create a copy of the current substitutions
         std::vector<Node> lambdaArgs(args);
         std::vector<Node> lambdaVals(vals);
 
+        // Add the values for the arguments of the lambda as substitutions at
+        // the beginning of the vector to shadow variables from outer scopes
+        // with the same name
         Node op = currNode.getOperator();
         for (const auto& lambdaArg : op[0])
         {
@@ -186,6 +190,8 @@ EvalResult Evaluator::evalInternal(TNode n,
           lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
         }
 
+        // Lambdas are evaluated in a recursive fashion because each evaluation
+        // requires different substitutions
         results[currNode] = evalInternal(op[1], lambdaArgs, lambdaVals);
         continue;
       }
