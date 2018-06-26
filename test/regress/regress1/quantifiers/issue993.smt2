@@ -1,4 +1,5 @@
 (set-logic AUFBVDTNIRA)
+(set-info :smt-lib-version 2.0)
 (set-info :status unsat)
 (declare-sort us_private 0)
 
