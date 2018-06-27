@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -921,14 +921,6 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
     d_waiting_conjectures.clear();
   }
   return addedLemmas;
-}
-
-void ConjectureGenerator::registerQuantifier( Node q ) {
-
-}
-
-void ConjectureGenerator::assertNode( Node n ) {
-
 }
 
 bool ConjectureGenerator::considerTermCanon( Node ln, bool genRelevant ){

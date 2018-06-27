@@ -2,9 +2,9 @@
 /*! \file theory_model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -666,7 +666,14 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         if (assignable)
         {
           Assert(!evaluable || assignOne);
-          Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
+          // this assertion ensures that if we are assigning to a term of
+          // Boolean type, then the term is either a variable or an APPLY_UF.
+          // Note we only assign to terms of Boolean type if the term occurs in
+          // a singleton equivalence class; otherwise the term would have been
+          // in the equivalence class of true or false and would not need
+          // assigning.
+          Assert(!t.isBoolean() || (*i2).isVar()
+                 || (*i2).getKind() == kind::APPLY_UF);
           Node n;
           if (t.getCardinality().isInfinite())
           {

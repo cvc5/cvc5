@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --nl-ext
 ; EXPECT: unsat
-(set-logic QF_NRA)
+(set-logic QF_NRAT)
 (set-info :status unsat)
 (declare-fun time__AT0@0 () Real)
 (declare-fun instance.location.0__AT0@0 () Bool)

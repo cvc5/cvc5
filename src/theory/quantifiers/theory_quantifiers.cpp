@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -83,13 +83,23 @@ void TheoryQuantifiers::finishInit()
 }
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
-  Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
-  if( n.getKind()==FORALL ){
-    if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n) ){
-      getQuantifiersEngine()->registerQuantifier( n );
-      Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() done " << n << endl;
-    }
+  if (n.getKind() != FORALL)
+  {
+    return;
   }
+  Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
+  if (options::cbqi() && !options::recurseCbqi()
+      && TermUtil::hasInstConstAttr(n))
+  {
+    Debug("quantifiers-prereg")
+        << "TheoryQuantifiers::preRegisterTerm() done, unused " << n << endl;
+    return;
+  }
+  // Preregister the quantified formula.
+  // This initializes the modules used for handling n in this user context.
+  getQuantifiersEngine()->preRegisterQuantifier(n);
+  Debug("quantifiers-prereg")
+      << "TheoryQuantifiers::preRegisterTerm() done " << n << endl;
 }
 
 

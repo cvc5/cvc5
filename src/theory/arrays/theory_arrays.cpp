@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -659,6 +659,17 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     // The may equal needs the store
     d_mayEqualEqualityEngine.addTerm(store);
 
+    if (node.getType().isArray())
+    {
+      d_mayEqualEqualityEngine.addTerm(node);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
+    }
+    else
+    {
+      d_equalityEngine.addTerm(node);
+    }
+    Assert((d_isPreRegistered.insert(node), true));
+
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       // Apply RIntro1 rule to any stores equal to store if not done already
       const CTNodeList* stores = d_infoMap.getStores(store);
@@ -677,14 +688,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           Assert(++it == stores->end());
         }
       }
-    }
-
-    if (node.getType().isArray()) {
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
-    }
-    else {
-      d_equalityEngine.addTerm(node);
     }
 
     Assert(d_equalityEngine.getRepresentative(store) == store);
@@ -715,7 +718,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       d_reads.push_back(node);
     }
 
-    Assert((d_isPreRegistered.insert(node), true));
     checkRowForIndex(node[1], store);
     break;
   }

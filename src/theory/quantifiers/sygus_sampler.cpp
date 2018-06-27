@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -626,9 +626,15 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
                                        double rinc,
                                        unsigned depth)
 {
-  Assert(tn.isDatatype());
+  if (!tn.isDatatype())
+  {
+    return getRandomValue(tn);
+  }
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  if (!dt.isSygus())
+  {
+    return getRandomValue(tn);
+  }
   Assert(d_rvalue_cindices.find(tn) != d_rvalue_cindices.end());
   Trace("sygus-sample-grammar")
       << "Sygus random value " << tn << ", depth = " << depth
@@ -692,9 +698,15 @@ void SygusSampler::registerSygusType(TypeNode tn)
   if (d_rvalue_cindices.find(tn) == d_rvalue_cindices.end())
   {
     d_rvalue_cindices[tn].clear();
-    Assert(tn.isDatatype());
+    if (!tn.isDatatype())
+    {
+      return;
+    }
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    Assert(dt.isSygus());
+    if (!dt.isSygus())
+    {
+      return;
+    }
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DatatypeConstructor& dtc = dt[i];

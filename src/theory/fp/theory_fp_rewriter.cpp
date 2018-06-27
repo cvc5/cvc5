@@ -2,10 +2,10 @@
 /*! \file theory_fp_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Paul Meng, Tim King
+ **   Martin Brain, Clark Barrett, Andrew Reynolds
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -862,12 +862,12 @@ namespace constantFold {
   {
     Assert(node.getKind() == kind::ROUNDINGMODE_BITBLAST);
 
-    RoundingMode arg0(node[0].getConst<RoundingMode>());
     BitVector value;
 
 #ifdef CVC4_USE_SYMFPU
     /* \todo fix the numbering of rounding modes so this doesn't need
      * to call symfpu at all and remove the dependency on fp_converter.h #1915 */
+    RoundingMode arg0(node[0].getConst<RoundingMode>());
     switch (arg0)
     {
       case roundNearestTiesToEven:
@@ -980,6 +980,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
     preRewriteTable[kind::VARIABLE] = rewrite::variable;
     preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
     preRewriteTable[kind::SKOLEM] = rewrite::variable;
+    preRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
 
     preRewriteTable[kind::EQUAL] = rewrite::equal;
 
@@ -1062,6 +1063,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
     postRewriteTable[kind::VARIABLE] = rewrite::variable;
     postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
     postRewriteTable[kind::SKOLEM] = rewrite::variable;
+    postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
 
     postRewriteTable[kind::EQUAL] = rewrite::equal;
 

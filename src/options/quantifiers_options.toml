@@ -989,7 +989,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-repair-const"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1117,6 +1117,14 @@ header = "options/quantifiers_options.h"
   handler    = "stringToCegisSampleMode"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
+
+[[option]]
+  name       = "sygusEvalOpt"
+  category   = "regular"
+  long       = "sygus-eval-opt"
+  type       = "bool"
+  default    = "true"
+  help       = "use optimized approach for evaluation in sygus"
 
 # Internal uses of sygus
 
@@ -1425,6 +1433,14 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   help       = "linearize adder chains for variables"
+
+[[option]]
+  name       = "cbqiBvSolveNl"
+  category   = "regular"
+  long       = "cbqi-bv-solve-nl"
+  type       = "bool"
+  default    = "false"
+  help       = "try to solve non-linear bv literals using model value projections"
 
 [[option]]
   name       = "cbqiBvConcInv"

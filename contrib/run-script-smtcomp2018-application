@@ -49,6 +49,33 @@ QF_BV)
 QF_LIA)
   runcvc4 --tear-down-incremental=1 --unconstrained-simp
   ;;
+QF_UFBV)
+  runcvc4 --incremental
+  ;;
+QF_UF)
+  runcvc4 --incremental
+  ;;
+QF_AUFBV)
+  runcvc4 --incremental
+  ;;
+QF_ABV)
+  runcvc4 --incremental
+  ;;
+ABVFP)
+  runcvc4 --incremental
+  ;;
+BVFP)
+  runcvc4 --incremental
+  ;;
+QF_ABVFP)
+  runcvc4 --incremental
+  ;;
+QF_BVFP)
+  runcvc4 --incremental
+  ;;
+QF_FP)
+  runcvc4 --incremental
+  ;;
 *)
   # just run the default
   runcvc4 --incremental

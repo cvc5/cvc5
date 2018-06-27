@@ -2,9 +2,9 @@
 /*! \file sygus_grammar_norm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
@@ -125,11 +126,14 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
       std::stringstream ss;
       ss << d_unres_tn << "_any_constant";
       std::string cname(ss.str());
-      std::vector<Type> empty_arg_types;
+      std::vector<Type> builtin_arg;
+      builtin_arg.push_back(dt.getSygusType());
       // we add this constructor first since we use left associative chains
       // and our symmetry breaking should group any constants together
       // beneath the same application
-      d_dt.addSygusConstructor(av.toExpr(), cname, empty_arg_types);
+      // we set its weight to zero since it should be considered at the
+      // same level as constants.
+      d_dt.addSygusConstructor(av.toExpr(), cname, builtin_arg, nullptr, 0);
     }
   }
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)

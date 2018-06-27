@@ -1423,155 +1423,181 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning on produce-assertions to support "
                << "check-models or check-synth-sol." << endl;
       setOption("produce-assertions", SExpr("true"));
+  }
+
+  // Disable options incompatible with incremental solving, unsat cores, and
+  // proofs or output an error if enabled explicitly
+  if (options::incrementalSolving() || options::unsatCores()
+      || options::proof())
+  {
+    if (options::unconstrainedSimp())
+    {
+      if (options::unconstrainedSimp.wasSetByUser())
+      {
+        throw OptionException(
+            "unconstrained simplification not supported with unsat "
+            "cores/proofs/incremental solving");
+      }
+      Notice() << "SmtEngine: turning off unconstrained simplification to "
+                  "support unsat cores/proofs/incremental solving"
+               << endl;
+      options::unconstrainedSimp.set(false);
+    }
+  }
+  else
+  {
+    // Turn on unconstrained simplification for QF_AUFBV
+    if (!options::unconstrainedSimp.wasSetByUser())
+    {
+      //    bool qf_sat = d_logic.isPure(THEORY_BOOL) &&
+      //    !d_logic.isQuantified(); bool uncSimp = false && !qf_sat &&
+      //    !options::incrementalSolving();
+      bool uncSimp = !d_logic.isQuantified() && !options::produceModels()
+                     && !options::produceAssignments()
+                     && !options::checkModels()
+                     && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                         && d_logic.isTheoryEnabled(THEORY_BV));
+      Trace("smt") << "setting unconstrained simplification to " << uncSimp
+                   << endl;
+      options::unconstrainedSimp.set(uncSimp);
+    }
+  }
+
+  // Disable options incompatible with unsat cores and proofs or output an
+  // error if enabled explicitly
+  if (options::unsatCores() || options::proof())
+  {
+    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    {
+      if (options::simplificationMode.wasSetByUser())
+      {
+        throw OptionException(
+            "simplification not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off simplification to support unsat "
+                  "cores/proofs"
+               << endl;
+      options::simplificationMode.set(SIMPLIFICATION_MODE_NONE);
     }
 
-    if (options::unsatCores() || options::proof())
+    if (options::pbRewrites())
     {
-      if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+      if (options::pbRewrites.wasSetByUser())
       {
-        if (options::simplificationMode.wasSetByUser())
-        {
-          throw OptionException(
-              "simplification not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off simplification to support unsat "
-                    "cores/proofs"
-                 << endl;
-        options::simplificationMode.set(SIMPLIFICATION_MODE_NONE);
+        throw OptionException(
+            "pseudoboolean rewrites not supported with unsat cores/proofs");
       }
-
-      if (options::unconstrainedSimp())
-      {
-        if (options::unconstrainedSimp.wasSetByUser())
-        {
-          throw OptionException(
-              "unconstrained simplification not supported with unsat "
-              "cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off unconstrained simplification to "
-                    "support unsat cores/proofs"
-                 << endl;
-        options::unconstrainedSimp.set(false);
-      }
-
-      if (options::pbRewrites())
-      {
-        if (options::pbRewrites.wasSetByUser())
-        {
-          throw OptionException(
-              "pseudoboolean rewrites not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
-                    "unsat cores/proofs"
-                 << endl;
-        setOption("pb-rewrites", false);
-      }
-
-      if (options::sortInference())
-      {
-        if (options::sortInference.wasSetByUser())
-        {
-          throw OptionException(
-              "sort inference not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off sort inference to support unsat "
-                    "cores/proofs"
-                 << endl;
-        options::sortInference.set(false);
-      }
-
-      if (options::preSkolemQuant())
-      {
-        if (options::preSkolemQuant.wasSetByUser())
-        {
-          throw OptionException(
-              "pre-skolemization not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off pre-skolemization to support unsat "
-                    "cores/proofs"
-                 << endl;
-        options::preSkolemQuant.set(false);
-      }
-
-      if (options::bitvectorToBool())
-      {
-        if (options::bitvectorToBool.wasSetByUser())
-        {
-          throw OptionException(
-              "bv-to-bool not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off bitvector-to-bool to support unsat "
-                    "cores/proofs"
-                 << endl;
-        options::bitvectorToBool.set(false);
-      }
-
-      if (options::boolToBitvector())
-      {
-        if (options::boolToBitvector.wasSetByUser())
-        {
-          throw OptionException(
-              "bool-to-bv not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
-                    "cores/proofs"
-                 << endl;
-        options::boolToBitvector.set(false);
-      }
-
-      if (options::bvIntroducePow2())
-      {
-        if (options::bvIntroducePow2.wasSetByUser())
-        {
-          throw OptionException(
-              "bv-intro-pow2 not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off bv-intro-pow2 to support "
-                    "unsat-cores/proofs"
-                 << endl;
-        setOption("bv-intro-pow2", false);
-      }
-
-      if (options::repeatSimp())
-      {
-        if (options::repeatSimp.wasSetByUser())
-        {
-          throw OptionException(
-              "repeat-simp not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off repeat-simp to support unsat "
-                    "cores/proofs"
-                 << endl;
-        setOption("repeat-simp", false);
-      }
-
-      if (options::globalNegate())
-      {
-        if (options::globalNegate.wasSetByUser())
-        {
-          throw OptionException(
-              "global-negate not supported with unsat cores/proofs");
-        }
-        Notice() << "SmtEngine: turning off global-negate to support unsat "
-                    "cores/proofs"
-                 << endl;
-        setOption("global-negate", false);
-      }
+      Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
+                  "unsat cores/proofs"
+               << endl;
+      setOption("pb-rewrites", false);
     }
-    else
+
+    if (options::sortInference())
     {
-      // by default, nonclausal simplification is off for QF_SAT
-      if (!options::simplificationMode.wasSetByUser())
+      if (options::sortInference.wasSetByUser())
       {
-        bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
-        Trace("smt") << "setting simplification mode to <"
-                     << d_logic.getLogicString() << "> " << (!qf_sat) << endl;
-        // simplification=none works better for SMT LIB benchmarks with
-        // quantifiers, not others options::simplificationMode.set(qf_sat ||
-        // quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
-        options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE
-                                               : SIMPLIFICATION_MODE_BATCH);
+        throw OptionException(
+            "sort inference not supported with unsat cores/proofs");
       }
+      Notice() << "SmtEngine: turning off sort inference to support unsat "
+                  "cores/proofs"
+               << endl;
+      options::sortInference.set(false);
+    }
+
+    if (options::preSkolemQuant())
+    {
+      if (options::preSkolemQuant.wasSetByUser())
+      {
+        throw OptionException(
+            "pre-skolemization not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off pre-skolemization to support unsat "
+                  "cores/proofs"
+               << endl;
+      options::preSkolemQuant.set(false);
+    }
+
+    if (options::bitvectorToBool())
+    {
+      if (options::bitvectorToBool.wasSetByUser())
+      {
+        throw OptionException(
+            "bv-to-bool not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off bitvector-to-bool to support unsat "
+                  "cores/proofs"
+               << endl;
+      options::bitvectorToBool.set(false);
+    }
+
+    if (options::boolToBitvector())
+    {
+      if (options::boolToBitvector.wasSetByUser())
+      {
+        throw OptionException(
+            "bool-to-bv not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
+                  "cores/proofs"
+               << endl;
+      options::boolToBitvector.set(false);
+    }
+
+    if (options::bvIntroducePow2())
+    {
+      if (options::bvIntroducePow2.wasSetByUser())
+      {
+        throw OptionException(
+            "bv-intro-pow2 not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off bv-intro-pow2 to support "
+                  "unsat-cores/proofs"
+               << endl;
+      setOption("bv-intro-pow2", false);
+    }
+
+    if (options::repeatSimp())
+    {
+      if (options::repeatSimp.wasSetByUser())
+      {
+        throw OptionException(
+            "repeat-simp not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off repeat-simp to support unsat "
+                  "cores/proofs"
+               << endl;
+      setOption("repeat-simp", false);
+    }
+
+    if (options::globalNegate())
+    {
+      if (options::globalNegate.wasSetByUser())
+      {
+        throw OptionException(
+            "global-negate not supported with unsat cores/proofs");
+      }
+      Notice() << "SmtEngine: turning off global-negate to support unsat "
+                  "cores/proofs"
+               << endl;
+      setOption("global-negate", false);
+    }
+  }
+  else
+  {
+    // by default, nonclausal simplification is off for QF_SAT
+    if (!options::simplificationMode.wasSetByUser())
+    {
+      bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
+      Trace("smt") << "setting simplification mode to <"
+                   << d_logic.getLogicString() << "> " << (!qf_sat) << endl;
+      // simplification=none works better for SMT LIB benchmarks with
+      // quantifiers, not others options::simplificationMode.set(qf_sat ||
+      // quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
+      options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE
+                                             : SIMPLIFICATION_MODE_BATCH);
+    }
   }
 
   if (options::cbqiBv() && d_logic.isQuantified())
@@ -1632,12 +1658,13 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  // by default, symmetry breaker is on only for QF_UF
+  // by default, symmetry breaker is on only for non-incremental QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
-    bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified()
-                 && !options::proof() && !options::unsatCores();
-    Trace("smt") << "setting uf symmetry breaker to " << qf_uf << endl;
-    options::ufSymmetryBreaker.set(qf_uf);
+    bool qf_uf_noinc = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified()
+                       && !options::incrementalSolving() && !options::proof()
+                       && !options::unsatCores();
+    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc << endl;
+    options::ufSymmetryBreaker.set(qf_uf_noinc);
   }
 
   // If in arrays, set the UF handler to arrays
@@ -1717,21 +1744,6 @@ void SmtEngine::setDefaults() {
                       !options::unsatCores();
     Trace("smt") << "setting repeat simplification to " << repeatSimp << endl;
     options::repeatSimp.set(repeatSimp);
-  }
-  // Turn on unconstrained simplification for QF_AUFBV
-  if(!options::unconstrainedSimp.wasSetByUser() ||
-      options::incrementalSolving()) {
-    //    bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
-    //    bool uncSimp = false && !qf_sat && !options::incrementalSolving();
-    bool uncSimp = !options::incrementalSolving() &&
-                   !d_logic.isQuantified() &&
-                   !options::produceModels() &&
-                   !options::produceAssignments() &&
-                   !options::checkModels() &&
-                   !options::unsatCores() &&
-                   (d_logic.isTheoryEnabled(THEORY_ARRAYS) && d_logic.isTheoryEnabled(THEORY_BV));
-    Trace("smt") << "setting unconstrained simplification to " << uncSimp << endl;
-    options::unconstrainedSimp.set(uncSimp);
   }
   // Unconstrained simp currently does *not* support model generation
   if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp()) {
@@ -2072,11 +2084,15 @@ void SmtEngine::setDefaults() {
   }
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if( d_logic.isQuantified() && 
-      ( ( options::decisionMode()!=decision::DECISION_STRATEGY_INTERNAL &&
-          ( d_logic.isTheoryEnabled(THEORY_ARITH) || d_logic.isTheoryEnabled(THEORY_DATATYPES) || d_logic.isTheoryEnabled(THEORY_BV) ) ) ||
-        d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV) ||
-        options::cbqiAll() ) ){
+  if (d_logic.isQuantified()
+      && ((options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL
+           && (d_logic.isTheoryEnabled(THEORY_ARITH)
+               || d_logic.isTheoryEnabled(THEORY_DATATYPES)
+               || d_logic.isTheoryEnabled(THEORY_BV)
+               || d_logic.isTheoryEnabled(THEORY_FP)))
+          || d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV)
+          || options::cbqiAll()))
+  {
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
     }
@@ -2093,6 +2109,11 @@ void SmtEngine::setDefaults() {
     //must rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
+    }
+    if (options::incrementalSolving())
+    {
+      // cannot do nested quantifier elimination in incremental mode
+      options::cbqiNestedQE.set(false);
     }
     if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
     {
@@ -2197,8 +2218,15 @@ void SmtEngine::setDefaults() {
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
-    //AJR: cannot use minisat elim for new implementation of sets TODO: why?
-    if( d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
+    // cannot use minisat elimination for logics where a theory solver
+    // introduces new literals into the search. This includes quantifiers
+    // (quantifier instantiation), and the lemma schemas used in non-linear
+    // and sets. We also can't use it if models are enabled.
+    if (d_logic.isTheoryEnabled(THEORY_SETS) || d_logic.isQuantified()
+        || options::produceModels() || options::produceAssignments()
+        || options::checkModels()
+        || (d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()))
+    {
       options::minisatUseElim.set( false );
     }
   }
@@ -2348,16 +2376,20 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if(key == "source" ||
-     key == "category" ||
-     key == "difficulty" ||
-     key == "notes") {
+  if (key == "source"
+   || key == "category"
+   || key == "difficulty"
+   || key == "notes"
+   || key == "license")
+  {
     // ignore these
     return;
   } else if(key == "name") {
     d_filename = value.getValue();
     return;
-  } else if(key == "smt-lib-version") {
+  }
+  else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
+  {
     language::input::Language ilang = language::input::LANG_AUTO;
     if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
         (value.isRational() && value.getRationalValue() == Rational(2)) ||
@@ -4698,6 +4730,8 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                                                      inUnsatCore);
       }
     }
+
+    d_propEngine->resetTrail();
 
     // Pop the context
     if (didInternalPush)

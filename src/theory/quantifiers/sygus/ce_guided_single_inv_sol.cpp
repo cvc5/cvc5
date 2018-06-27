@@ -2,9 +2,9 @@
 /*! \file ce_guided_single_inv_sol.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1211,11 +1211,21 @@ Node CegConjectureSingleInvSol::builtinToSygusConst(Node c,
   Node sc;
   d_builtin_const_to_sygus[tn][c] = sc;
   Assert(c.isConst());
-  Assert(tn.isDatatype());
+  if (!tn.isDatatype())
+  {
+    // if we've traversed to a builtin type, simply return c
+    d_builtin_const_to_sygus[tn][c] = c;
+    return c;
+  }
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Trace("csi-rcons-debug") << "Try to reconstruct " << c << " in "
                            << dt.getName() << std::endl;
-  Assert(dt.isSygus());
+  if (!dt.isSygus())
+  {
+    // if we've traversed to a builtin datatype type, simply return c
+    d_builtin_const_to_sygus[tn][c] = c;
+    return c;
+  }
   // if we are not interested in reconstructing constants, or the grammar allows
   // them, return a proxy
   if (!options::cegqiSingleInvReconstructConst() || dt.getSygusAllowConst())
@@ -1496,9 +1506,7 @@ Node CegConjectureSingleInvSol::getGenericBase(TypeNode tn,
   }
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   Assert(tds->isRegistered(tn));
-  std::map<TypeNode, int> var_count;
-  std::map<int, Node> pre;
-  Node g = tds->mkGeneric(dt, c, var_count, pre);
+  Node g = tds->mkGeneric(dt, c);
   Trace("csi-sol-debug") << "Generic is " << g << std::endl;
   Node gr = Rewriter::rewrite(g);
   Trace("csi-sol-debug") << "Generic rewritten is " << gr << std::endl;

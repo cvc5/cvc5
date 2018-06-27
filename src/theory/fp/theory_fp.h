@@ -2,9 +2,9 @@
 /*! \file theory_fp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Paul Meng, Tim King
+ **   Martin Brain, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,11 +43,11 @@ class TheoryFp : public Theory {
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
-  Node ppRewrite(TNode node);
+  Node ppRewrite(TNode node) override;
 
   void check(Effort) override;
 
-  bool needsCheckLastEffort() { return true; }
+  bool needsCheckLastEffort() override { return true; }
   Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m) override;
 
