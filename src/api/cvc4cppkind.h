@@ -1,7 +1,8 @@
 /*********************                                                        */
-/*! \file cvc4cpp.h
+/*! \file cvc4cppkind.h
  ** \verbatim
- ** Top authors (to current version): Aina Niemetz
+ ** Top contributors (to current version):
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
