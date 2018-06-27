@@ -162,16 +162,6 @@ class CVC4_PUBLIC Sort
 
   public:
     /**
-     * Copy constructor.
-     */
-    Sort(const Sort& s);
-
-    /**
-     * Move constructor.
-     */
-    Sort(Sort&& s);
-
-    /**
      * Destructor.
      */
     ~Sort();
@@ -334,10 +324,11 @@ class CVC4_PUBLIC Sort
 
     /**
      * The interal type wrapped by this sort.
-     * This is a unique_ptr rather than a shared_ptr since CVC4::Type is
-     * already ref counted.
+     * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
+     * memory allocation (CVC4::Type is already ref counted, so this could be
+     * a unique_ptr instead).
      */
-    std::unique_ptr<CVC4::Type> d_type;
+    std::shared_ptr<CVC4::Type> d_type;
 };
 
 /**
@@ -376,16 +367,6 @@ class CVC4_PUBLIC Term
      * Constructor.
      */
     Term();
-
-    /**
-     * Copy constructor.
-     */
-    Term(const Term& t);
-
-    /**
-     * Move constructor.
-     */
-    Term(Term&& t);
 
     /**
      * Destructor.
@@ -576,10 +557,11 @@ class CVC4_PUBLIC Term
 
     /**
      * The internal expression wrapped by this term.
-     * This is a unique_ptr rather than a shared_ptr since CVC4::Expr is
-     * already ref counted.
+     * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
+     * memory allocation (CVC4::Expr is already ref counted, so this could be
+     * a unique_ptr instead).
      */
-    std::unique_ptr<CVC4::Expr> d_expr;
+    std::shared_ptr<CVC4::Expr> d_expr;
 };
 
 /**
@@ -671,16 +653,6 @@ class CVC4_PUBLIC OpTerm
     OpTerm();
 
     /**
-     * Copy constructor.
-     */
-    OpTerm(const OpTerm& t);
-
-    /**
-     * Move constructor.
-     */
-    OpTerm(OpTerm&& t);
-
-    /**
      * Destructor.
      */
     ~OpTerm();
@@ -741,10 +713,11 @@ class CVC4_PUBLIC OpTerm
 
     /**
      * The internal expression wrapped by this operator term.
-     * This is a unique_ptr rather than a shared_ptr since CVC4::Expr is
-     * already ref counted.
+     * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
+     * memory allocation (CVC4::Expr is already ref counted, so this could be
+     * a unique_ptr instead).
      */
-    std::unique_ptr<CVC4::Expr> d_expr;
+    std::shared_ptr<CVC4::Expr> d_expr;
 };
 
 /**
