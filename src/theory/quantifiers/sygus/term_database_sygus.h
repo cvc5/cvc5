@@ -185,8 +185,10 @@ class TermDbSygus {
    * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
    * list for type tn (see Datatype::getSygusVarList).
    */
-  Node evaluateBuiltin(TypeNode tn, Node bn, std::vector<Node>& args,
-bool tryEval = true);
+  Node evaluateBuiltin(TypeNode tn,
+                       Node bn,
+                       std::vector<Node>& args,
+                       bool tryEval = true);
   /** evaluate with unfolding
    *
    * n is any term that may involve sygus evaluation functions. This function
