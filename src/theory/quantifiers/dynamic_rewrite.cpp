@@ -23,15 +23,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-<<<<<<< HEAD
 DynamicRewriter::DynamicRewriter(const std::string& name,
                                  context::UserContext* u)
     : d_equalityEngine(u, "DynamicRewriter::" + name, true), d_rewrites(u)
-=======
-DynamicRewriter::DynamicRewriter(const std::string& name, QuantifiersEngine* qe)
-    : d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true),
-      d_rewrites(qe->getUserContext())
->>>>>>> a236ade3242599d4916fd9ee676c2c68c7c004b1
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
