@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -91,7 +91,7 @@ void BoundedIntegers::IntRangeModel::assertNode(Node n) {
     }
   }else{
     Message() << "Could not find literal " << nlit << " for range " << d_range << std::endl;
-    exit(0);
+    AlwaysAssert(false);
   }
 }
 
@@ -384,10 +384,11 @@ void BoundedIntegers::setBoundedVar( Node q, Node v, unsigned bound_type ) {
   Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl; 
 }
 
-void BoundedIntegers::preRegisterQuantifier( Node f ) {
+void BoundedIntegers::checkOwnership(Node f)
+{
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
-  Trace("bound-int") << "preRegister quantifier " << f << std::endl;
-  
+  Trace("bound-int") << "check ownership quantifier " << f << std::endl;
+
   bool success;
   do{
     std::map< Node, unsigned > bound_lit_type_map;
@@ -544,10 +545,6 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
       }
     }
   }
-}
-
-void BoundedIntegers::registerQuantifier( Node q ) {
-
 }
 
 void BoundedIntegers::assertNode( Node n ) {

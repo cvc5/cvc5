@@ -2,9 +2,9 @@
 /*! \file smt1.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Clark Barrett
+ **   Christopher L. Conway, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -61,6 +61,7 @@ std::unordered_map<std::string, Smt1::Logic> Smt1::newLogicMap() {
   logicMap["ALL_SUPPORTED"] = ALL_SUPPORTED;
   logicMap["QF_ALL"] = QF_ALL_SUPPORTED;
   logicMap["ALL"] = ALL_SUPPORTED;
+  logicMap["HORN"] = ALL_SUPPORTED;
   return logicMap;
 }
 

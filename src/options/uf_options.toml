@@ -12,15 +12,6 @@ header = "options/uf_options.h"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "condenseFunctionValues"
-  category   = "regular"
-  long       = "condense-function-values"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "condense models for functions rather than explicitly representing them"
-
-[[option]]
   name       = "ufssRegions"
   category   = "regular"
   long       = "uf-ss-regions"
@@ -75,33 +66,6 @@ header = "options/uf_options.h"
   help       = "tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
 
 [[option]]
-  name       = "ufssExplainedCliques"
-  category   = "regular"
-  long       = "uf-ss-explained-cliques"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use explained clique lemmas for uf strong solver"
-
-[[option]]
-  name       = "ufssSimpleCliques"
-  category   = "regular"
-  long       = "uf-ss-simple-cliques"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "always use simple clique lemmas for uf strong solver"
-
-[[option]]
-  name       = "ufssDiseqPropagation"
-  category   = "regular"
-  long       = "uf-ss-deq-prop"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "eagerly propagate disequalities for uf strong solver"
-
-[[option]]
   name       = "ufssMode"
   category   = "regular"
   long       = "uf-ss=MODE"
@@ -120,15 +84,6 @@ header = "options/uf_options.h"
   default    = "false"
   read_only  = true
   help       = "use cliques instead of splitting on demand to shrink model"
-
-[[option]]
-  name       = "ufssSymBreak"
-  category   = "regular"
-  long       = "uf-ss-sym-break"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "finite model finding symmetry breaking techniques"
 
 [[option]]
   name       = "ufssFairness"

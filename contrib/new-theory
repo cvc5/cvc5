@@ -16,6 +16,13 @@ if [ ! -e src/theory/theory_engine.h ]; then
   exit 1
 fi
 
+# Trailing whitespaces in src/Makefile.am mess with the regexps (and are
+# generally undesirable, so we throw an error instead of ignoring them).
+if grep -q '[[:blank:]]$' src/Makefile.am; then
+	echo "ERROR: trailing whitespaces in src/Makefile.am" >&2
+	exit 1
+fi
+
 if [ $# -ge 1 -a "$1" = --alternate ]; then
   shift
   alternate=true

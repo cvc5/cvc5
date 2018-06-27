@@ -175,8 +175,12 @@ Node BvInverter::getPathToPv(
   return Node::null();
 }
 
-Node BvInverter::getPathToPv(
-    Node lit, Node pv, Node sv, Node pvs, std::vector<unsigned>& path)
+Node BvInverter::getPathToPv(Node lit,
+                             Node pv,
+                             Node sv,
+                             Node pvs,
+                             std::vector<unsigned>& path,
+                             bool projectNl)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   Node slit = getPathToPv(lit, pv, sv, path, visited);
@@ -186,7 +190,14 @@ Node BvInverter::getPathToPv(
     // substitute pvs for the other occurrences of pv
     TNode tpv = pv;
     TNode tpvs = pvs;
+    Node prev_lit = slit;
     slit = slit.substitute(tpv, tpvs);
+    if (!projectNl && slit != prev_lit)
+    {
+      // found another occurrence of pv that was not on the solve path,
+      // hence lit is non-linear wrt pv and we return null.
+      return Node::null();
+    }
   }
   return slit;
 }
@@ -2834,7 +2845,8 @@ Node BvInverter::solveBvLit(Node sv,
   litk = k = lit.getKind();
 
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
-   *       is enabled. We currently do not support Boolean operators
+   *       is enabled and the logic is quantified. 
+   *       We currently do not support Boolean operators
    *       that are interpreted as bit-vector operators of width 1.  */
 
   /* Boolean layer ----------------------------------------------- */

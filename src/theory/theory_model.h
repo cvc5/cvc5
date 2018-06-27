@@ -2,9 +2,9 @@
 /*! \file theory_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -139,6 +139,72 @@ public:
    * during Theory's collectModelInfo( ... ) functions.
    */
   void assertSkeleton(TNode n);
+  /** record approximation
+   *
+   * This notifies this model that the value of n was approximated in this
+   * model such that the predicate pred (involving n) holds. For example,
+   * for transcendental functions, we may determine an error bound on the
+   * value of a transcendental function, say c-e <= y <= c+e where
+   * c and e are constants. We call this function with n set to sin( x ) and
+   * pred set to c-e <= sin( x ) <= c+e.
+   *
+   * If recordApproximation is called at least once during the model
+   * construction process, then check-model is not guaranteed to succeed.
+   * However, there are cases where we can establish the input is satisfiable
+   * without constructing an exact model. For example, if x=.77, sin(x)=.7, and
+   * say we have computed c=.7 and e=.01 as an approximation in the above
+   * example, then we may reason that the set of assertions { sin(x)>.6 } is
+   * satisfiable, albiet without establishing an exact (irrational) value for
+   * sin(x).
+   *
+   * This function is simply for bookkeeping, it does not affect the model
+   * construction process.
+   */
+  void recordApproximation(TNode n, TNode pred);
+  /** set unevaluate/semi-evaluated kind
+   *
+   * This informs this model how it should interpret applications of terms with
+   * kind k in getModelValue. We distinguish four categories of kinds:
+   *
+   * [1] "Evaluated"
+   * This includes (standard) interpreted symbols like NOT, PLUS, UNION, etc.
+   * These operators can be characterized by the invariant that they are
+   * "evaluatable". That is, if they are applied to only constants, the rewriter
+   * is guaranteed to rewrite the application to a constant. When getting
+   * the model value of <k>( t1...tn ) where k is a kind of this category, we
+   * compute the (constant) value of t1...tn, say this returns c1...cn, we
+   * return the (constant) result of rewriting <k>( c1...cn ).
+   *
+   * [2] "Unevaluated"
+   * This includes interpreted symbols like FORALL, EXISTS,
+   * CARDINALITY_CONSTRAINT, that are not evaluatable. When getting a model
+   * value for a term <k>( t1...tn ) where k is a kind of this category, we
+   * check whether <k>( t1...tn ) exists in the equality engine of this model.
+   * If it does, we return its representative, otherwise we return the term
+   * itself.
+   *
+   * [3] "Semi-evaluated"
+   * This includes kinds like BITVECTOR_ACKERMANNIZE_UDIV and others, typically
+   * those that correspond to abstractions. Like unevaluated kinds, these
+   * kinds do not have an evaluator. In contrast to unevaluated kinds, we
+   * interpret a term <k>( t1...tn ) not appearing in the equality engine as an
+   * arbitrary value instead of the term itself.
+   *
+   * [4] APPLY_UF, where getting the model value depends on an internally
+   * constructed representation of a lambda model value (d_uf_models).
+   * It is optional whether this kind is "evaluated" or "semi-evaluated".
+   * In the case that it is "evaluated", get model rewrites the application
+   * of the lambda model value of its operator to its evaluated arguments.
+   *
+   * By default, all kinds are considered "evaluated". The following methods
+   * change the interpretation of various (non-APPLY_UF) kinds to one of the
+   * above categories and should be called by the theories that own the kind
+   * during Theory::finishInit. We set APPLY_UF to be semi-interpreted when
+   * this model does not enabled function values (this is the case for the model
+   * of TheoryEngine when the option assignFunctionValues is set to false).
+   */
+  void setUnevaluatedKind(Kind k);
+  void setSemiEvaluatedKind(Kind k);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -171,6 +237,10 @@ public:
   bool getHeapModel(Expr& h, Expr& neq) const override;
   //---------------------------- end separation logic
 
+  /** is the list of approximations non-empty? */
+  bool hasApproximations() const override;
+  /** get approximations */
+  std::vector<std::pair<Expr, Expr> > getApproximations() const override;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -191,6 +261,8 @@ public:
   std::map< Node, std::vector< Node > > d_uf_terms;
   /** a map from functions f to a list of all HO_APPLY terms with first argument f */
   std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** are function values enabled? */
+  bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
   void assignFunctionDefinition( Node f, Node f_def );
   /** have we assigned function f? */
@@ -215,6 +287,14 @@ public:
   context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
+  /** approximations (see recordApproximation) */
+  std::map<Node, Node> d_approximations;
+  /** list of all approximations */
+  std::vector<std::pair<Node, Node> > d_approx_list;
+  /** a set of kinds that are not evaluated */
+  std::unordered_set<Kind, kind::KindHashFunction> d_not_evaluated_kinds;
+  /** a set of kinds that are semi-evaluated */
+  std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
   /** map of representatives of equality engine to used representatives in
    * representative set */
   std::map<Node, Node> d_reps;

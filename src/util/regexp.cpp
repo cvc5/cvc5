@@ -2,9 +2,9 @@
 /*! \file regexp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tianyi Liang, Andrew Reynolds
+ **   Tim King, Tianyi Liang, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,32 @@ using namespace std;
 namespace CVC4 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
+
+unsigned String::convertCharToUnsignedInt(unsigned char c)
+{
+  return convertCodeToUnsignedInt(static_cast<unsigned>(c));
+}
+unsigned char String::convertUnsignedIntToChar(unsigned i)
+{
+  Assert(i < num_codes());
+  return static_cast<unsigned char>(convertUnsignedIntToCode(i));
+}
+bool String::isPrintable(unsigned i)
+{
+  Assert(i < num_codes());
+  unsigned char c = convertUnsignedIntToChar(i);
+  return (c >= ' ' && c <= '~');
+}
+unsigned String::convertCodeToUnsignedInt(unsigned c)
+{
+  Assert(c < num_codes());
+  return (c < start_code() ? c + num_codes() : c) - start_code();
+}
+unsigned String::convertUnsignedIntToCode(unsigned i)
+{
+  Assert(i < num_codes());
+  return (i + start_code()) % num_codes();
+}
 
 int String::cmp(const String &y) const {
   if (size() != y.size()) {
@@ -272,6 +298,26 @@ std::string String::toString(bool useEscSequences) const {
   return str;
 }
 
+bool String::isLeq(const String &y) const
+{
+  for (unsigned i = 0; i < size(); ++i)
+  {
+    if (i >= y.size())
+    {
+      return false;
+    }
+    if (d_str[i] > y.d_str[i])
+    {
+      return false;
+    }
+    if (d_str[i] < y.d_str[i])
+    {
+      return true;
+    }
+  }
+  return true;
+}
+
 bool String::isRepeated() const {
   if (size() > 1) {
     unsigned int f = d_str[0];
@@ -402,10 +448,6 @@ unsigned char String::hexToDec(unsigned char c) {
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
   return os << "\"" << s.toString(true) << "\"";
-}
-
-std::ostream &operator<<(std::ostream &out, const RegExp &s) {
-  return out << "regexp(" << s.getType() << ')';
 }
 
 }  // namespace CVC4

@@ -2,9 +2,9 @@
 /*! \file term_formula_removal.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,10 +29,6 @@
 #include "util/hash.h"
 
 namespace CVC4 {
-
-namespace theory {
-  class ContainsTermITEVisitor;
-}/* CVC4::theory namespace */
 
 typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
@@ -151,13 +147,6 @@ public:
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-
-  /** Return the RemoveTermFormulas's containsVisitor. */
-  theory::ContainsTermITEVisitor* getContainsVisitor();
-
-private:
-  theory::ContainsTermITEVisitor* d_containsVisitor;
-
 };/* class RemoveTTE */
 
 }/* CVC4 namespace */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,12 +18,14 @@
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quant_epr.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -56,6 +58,18 @@ std::ostream& operator<<(std::ostream& os, CegInstPhase phase)
     case CEG_INST_PHASE_EQUAL: os << "eq"; break;
     case CEG_INST_PHASE_ASSERTION: os << "as"; break;
     case CEG_INST_PHASE_MVALUE: os << "mv"; break;
+    default: Unreachable();
+  }
+  return os;
+}
+std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
+{
+  switch (status)
+  {
+    case CEG_UNHANDLED: os << "unhandled"; break;
+    case CEG_PARTIALLY_HANDLED: os << "partially_handled"; break;
+    case CEG_HANDLED: os << "handled"; break;
+    case CEG_HANDLED_UNCONDITIONAL: os << "unhandled_unc"; break;
     default: Unreachable();
   }
   return os;
@@ -127,21 +141,221 @@ bool CegInstantiator::isEligible( Node n ) {
   return d_inelig.find( n )==d_inelig.end();
 }
 
-bool CegInstantiator::isCbqiKind(Kind k)
+CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
       || k == EQUAL
       || k == MULT
       || k == NONLINEAR_MULT)
   {
-    return true;
+    return CEG_HANDLED;
+  }
+
+  // CBQI typically works for satisfaction-complete theories
+  TheoryId t = kindToTheoryId(k);
+  if (t == THEORY_BV || t == THEORY_FP || t == THEORY_DATATYPES
+      || t == THEORY_BOOL)
+  {
+    return CEG_HANDLED;
+  }
+  return CEG_UNHANDLED;
+}
+
+CegHandledStatus CegInstantiator::isCbqiTerm(Node n)
+{
+  CegHandledStatus ret = CEG_HANDLED;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() != BOUND_VARIABLE && TermUtil::hasBoundVarAttr(cur))
+      {
+        if (cur.getKind() == FORALL || cur.getKind() == CHOICE)
+        {
+          visit.push_back(cur[1]);
+        }
+        else
+        {
+          CegHandledStatus curr = isCbqiKind(cur.getKind());
+          if (curr < ret)
+          {
+            ret = curr;
+            Trace("cbqi-debug2") << "Non-cbqi kind : " << cur.getKind()
+                                 << " in " << n << std::endl;
+            if (curr == CEG_UNHANDLED)
+            {
+              return CEG_UNHANDLED;
+            }
+          }
+          for (const Node& nc : cur)
+          {
+            visit.push_back(nc);
+          }
+        }
+      }
+    }
+  } while (!visit.empty());
+  return ret;
+}
+
+CegHandledStatus CegInstantiator::isCbqiSort(TypeNode tn, QuantifiersEngine* qe)
+{
+  std::map<TypeNode, CegHandledStatus> visited;
+  return isCbqiSort(tn, visited, qe);
+}
+
+CegHandledStatus CegInstantiator::isCbqiSort(
+    TypeNode tn,
+    std::map<TypeNode, CegHandledStatus>& visited,
+    QuantifiersEngine* qe)
+{
+  std::map<TypeNode, CegHandledStatus>::iterator itv = visited.find(tn);
+  if (itv != visited.end())
+  {
+    return itv->second;
+  }
+  CegHandledStatus ret = CEG_UNHANDLED;
+  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector()
+      || tn.isFloatingPoint())
+  {
+    ret = CEG_HANDLED;
+  }
+  else if (tn.isDatatype())
+  {
+    // recursive calls to this datatype are handlable
+    visited[tn] = CEG_HANDLED;
+    // if not recursive, it is finite and we can handle it regardless of body
+    // hence, we initialize ret to CEG_HANDLED_UNCONDITIONAL.
+    ret = CEG_HANDLED_UNCONDITIONAL;
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      {
+        TypeNode crange = TypeNode::fromType(
+            static_cast<SelectorType>(dt[i][j].getType()).getRangeType());
+        CegHandledStatus cret = isCbqiSort(crange, visited, qe);
+        if (cret == CEG_UNHANDLED)
+        {
+          visited[tn] = CEG_UNHANDLED;
+          return CEG_UNHANDLED;
+        }
+        else if (cret < ret)
+        {
+          ret = cret;
+        }
+      }
+    }
+  }
+  else if (tn.isSort())
+  {
+    QuantEPR* qepr = qe != nullptr ? qe->getQuantEPR() : nullptr;
+    if (qepr != nullptr)
+    {
+      if (qepr->isEPR(tn))
+      {
+        ret = CEG_HANDLED_UNCONDITIONAL;
+      }
+    }
+  }
+  // sets, arrays, functions and others are not supported
+  visited[tn] = ret;
+  return ret;
+}
+
+CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
+                                                    QuantifiersEngine* qe)
+{
+  CegHandledStatus hmin = CEG_HANDLED_UNCONDITIONAL;
+  for (const Node& v : q[0])
+  {
+    TypeNode tn = v.getType();
+    CegHandledStatus handled = isCbqiSort(tn, qe);
+    if (handled == CEG_UNHANDLED)
+    {
+      return CEG_UNHANDLED;
+    }
+    else if (handled < hmin)
+    {
+      hmin = handled;
+    }
+  }
+  return hmin;
+}
+
+CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
+{
+  // compute attributes
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  if (qa.d_quant_elim)
+  {
+    return CEG_HANDLED;
+  }
+  if (qa.d_sygus)
+  {
+    return CEG_UNHANDLED;
+  }
+  Assert(!qa.d_quant_elim_partial);
+  // if has an instantiation pattern, don't do it
+  if (q.getNumChildren() == 3)
+  {
+    for (const Node& pat : q[2])
+    {
+      if (pat.getKind() == INST_PATTERN)
+      {
+        return CEG_UNHANDLED;
+      }
+    }
+  }
+  CegHandledStatus ret = CEG_HANDLED;
+  // if quantifier has a non-handled variable, then do not use cbqi
+  // if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
+  CegHandledStatus ncbqiv = CegInstantiator::isCbqiQuantPrefix(q, qe);
+  Trace("cbqi-quant-debug") << "isCbqiQuantPrefix returned " << ncbqiv
+                            << std::endl;
+  if (ncbqiv == CEG_UNHANDLED)
+  {
+    // unhandled variable type
+    ret = CEG_UNHANDLED;
   }
   else
   {
-    // CBQI typically works for satisfaction-complete theories
-    TheoryId t = kindToTheoryId(k);
-    return t == THEORY_BV || t == THEORY_DATATYPES || t == THEORY_BOOL;
+    CegHandledStatus cbqit = CegInstantiator::isCbqiTerm(q);
+    Trace("cbqi-quant-debug") << "isCbqiTerm returned " << cbqit << std::endl;
+    if (cbqit == CEG_UNHANDLED)
+    {
+      if (ncbqiv == CEG_HANDLED_UNCONDITIONAL)
+      {
+        // all variables are fully handled, this implies this will be handlable
+        // regardless of body (e.g. for EPR)
+        //  so, try but not exclusively
+        ret = CEG_PARTIALLY_HANDLED;
+      }
+      else
+      {
+        // cannot be handled
+        ret = CEG_UNHANDLED;
+      }
+    }
+    else if (cbqit == CEG_PARTIALLY_HANDLED)
+    {
+      ret = CEG_PARTIALLY_HANDLED;
+    }
   }
+  if (ret == CEG_UNHANDLED && options::cbqiAll())
+  {
+    // try but not exclusively
+    ret = CEG_PARTIALLY_HANDLED;
+  }
+  return ret;
 }
 
 bool CegInstantiator::hasVariable( Node n, Node pv ) {
@@ -495,7 +709,15 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
 #ifdef CVC4_ASSERTIONS
-      if( pvtn.isReal() && options::cbqiNestedQE() && !options::cbqiAll() ){
+      // the instantiation strategy for quantified linear integer/real
+      // arithmetic with arbitrary quantifier nesting is "monotonic" as a
+      // consequence of Lemmas 5, 9 and Theorem 4 of Reynolds et al, "Solving
+      // Quantified Linear Arithmetic by Counterexample Guided Instantiation",
+      // FMSD 2017. We throw an assertion failure if we detect a case where the
+      // strategy was not monotonic.
+      if (options::cbqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH)
+          && d_qe->getLogicInfo().isLinear())
+      {
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
         Assert( false );
       }
@@ -878,10 +1100,6 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
 }
   
 bool CegInstantiator::check() {
-  if( d_qe->getTheoryEngine()->needCheck() ){
-    Trace("cbqi-engine") << "  CEGQI instantiator : wait until all ground theories are finished." << std::endl;
-    return false;
-  }
   processAssertions();
   for( unsigned r=0; r<2; r++ ){
     d_effort = r == 0 ? CEG_INST_EFFORT_STANDARD : CEG_INST_EFFORT_FULL;
@@ -902,22 +1120,26 @@ bool CegInstantiator::check() {
 void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq ) {
   if( n.getKind()==FORALL || n.getKind()==EXISTS ){
     //do nothing
-  }else{
-    if( n.getKind()==EQUAL ){
-      for( unsigned i=0; i<2; i++ ){
-        std::map< Node, std::vector< Node > >::iterator it = teq.find( n[i] );
-        if( it!=teq.end() ){
-          Node nn = n[ i==0 ? 1 : 0 ];
-          if( std::find( it->second.begin(), it->second.end(), nn )==it->second.end() ){
-            it->second.push_back( nn );
-            Trace("cbqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
-          }
-        }
+    return;
+  }
+  if (n.getKind() == EQUAL)
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {
+      Node nn = n[i == 0 ? 1 : 0];
+      std::map<Node, std::vector<Node> >::iterator it = teq.find(n[i]);
+      if (it != teq.end() && !nn.hasFreeVar()
+          && std::find(it->second.begin(), it->second.end(), nn)
+                 == it->second.end())
+      {
+        it->second.push_back(nn);
+        Trace("cbqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
       }
     }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      collectPresolveEqTerms( n[i], teq );
-    }
+  }
+  for (const Node& nc : n)
+  {
+    collectPresolveEqTerms(nc, teq);
   }
 }
 
@@ -960,6 +1182,7 @@ void CegInstantiator::presolve( Node q ) {
       Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
+      Assert(!lem.hasFreeVar());
       d_qe->getOutputChannel().lemma( lem, false, true );
     }
   }
@@ -1254,6 +1477,9 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     Trace("cbqi-debug") << "Counterexample lemma (pre-rewrite)  " << i << " : " << lems[i] << std::endl;
     Node rlem = lems[i];
     rlem = Rewriter::rewrite( rlem );
+    // also must preprocess to ensure that the counterexample atoms we
+    // collect below are identical to the atoms that we add to the CNF stream
+    rlem = d_qe->getTheoryEngine()->preprocess(rlem);
     Trace("cbqi-debug") << "Counterexample lemma (post-rewrite) " << i << " : " << rlem << std::endl;
     //record the literals that imply auxiliary variables to be equal to terms
     if( lems[i].getKind()==ITE && rlem.getKind()==ITE ){
@@ -1277,7 +1503,6 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }*/
     lems[i] = rlem;
   }
-
   // determine variable order: must do Reals before Ints
   Trace("cbqi-debug") << "Determine variable order..." << std::endl;
   if (!d_vars.empty())
@@ -1325,7 +1550,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
     }
   }
 
-  //collect atoms from all lemmas: we will only do bounds coming from original body
+  // collect atoms from all lemmas: we will only solve for literals coming from
+  // the original body
   d_is_nested_quant = false;
   std::map< Node, bool > visited;
   for( unsigned i=0; i<lems.size(); i++ ){

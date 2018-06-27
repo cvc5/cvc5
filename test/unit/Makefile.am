@@ -6,15 +6,16 @@ UNIT_TESTS = \
 	util/cardinality_public
 if WHITE_AND_BLACK_TESTS
 UNIT_TESTS += \
+	theory/evaluator_white \
 	theory/logic_info_white \
-	theory/theory_engine_white \
-	theory/theory_black \
-	theory/theory_white \
 	theory/theory_arith_white \
+	theory/theory_black \
 	theory/theory_bv_white \
-	theory/theory_bv_bvgauss_white \
+	theory/theory_engine_white \
 	theory/theory_quantifiers_bv_instantiator_white \
 	theory/theory_quantifiers_bv_inverter_white \
+	theory/theory_strings_rewriter_white \
+	theory/theory_white \
 	theory/type_enumerator_white \
 	expr/node_white \
 	expr/node_black \
@@ -30,6 +31,7 @@ UNIT_TESTS += \
 	expr/type_node_white \
 	parser/parser_black \
 	parser/parser_builder_black \
+	preprocessing/pass_bv_gauss_white \
 	prop/cnf_stream_white \
 	context/context_black \
 	context/context_white \

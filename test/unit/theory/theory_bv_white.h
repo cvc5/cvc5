@@ -2,9 +2,9 @@
 /*! \file theory_bv_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Paul Meng
+ **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/eager_bitblaster.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"

@@ -2,7 +2,7 @@
 /*! \file node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -434,6 +434,12 @@ public:
    * @return true iff this node contains a bound variable.
    */
   bool hasBoundVar();
+
+  /**
+   * Returns true iff this node contains a free variable.
+   * @return true iff this node contains a free variable.
+   */
+  bool hasFreeVar();
 
   /**
    * Convert this Node into an Expr using the currently-in-scope
@@ -1533,6 +1539,10 @@ bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) con
 
   for (unsigned i = 0; i < toProcess.size(); ++ i) {
     TNode current = toProcess[i];
+    if (current.hasOperator() && current.getOperator() == t)
+    {
+      return true;
+    }
     for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
       TNode child = current[j];
       if (child == t) {

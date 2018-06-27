@@ -2,9 +2,9 @@
 /*! \file ce_guided_conjecture.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,11 +20,14 @@
 
 #include <memory>
 
+#include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
+#include "theory/quantifiers/sygus/cegis_unif.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
@@ -57,7 +60,7 @@ public:
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
-  bool needsRefinement();
+  bool needsRefinement() const;
   /** do single invocation check 
   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
   */
@@ -117,10 +120,12 @@ public:
   /** get model value for term n */
   Node getModelValue( Node n );
 
-  /** get program by examples utility */
-  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get utility for static preprocessing and analysis of conjectures */
   CegConjectureProcess* getProcess() { return d_ceg_proc.get(); }
+  /** get constant repair utility */
+  SygusRepairConst* getRepairConst() { return d_sygus_rconst.get(); }
+  /** get program by examples module */
+  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
@@ -135,12 +140,16 @@ private:
   std::unique_ptr<CegConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  /** repair constant utility */
+  std::unique_ptr<SygusRepairConst> d_sygus_rconst;
 
   //------------------------modules
   /** program by examples module */
   std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
   /** CEGIS module */
   std::unique_ptr<Cegis> d_ceg_cegis;
+  /** CEGIS UNIF module */
+  std::unique_ptr<CegisUnif> d_ceg_cegisUnif;
   /** the set of active modules (subset of the above list) */
   std::vector<SygusModule*> d_modules;
   /** master module
@@ -157,17 +166,23 @@ private:
   std::vector< Node > d_candidates;
   /** base instantiation
   * If d_embed_quant is forall d. exists y. P( d, y ), then
-  * this is the formula  exists y. P( d_candidates, y ).
+  * this is the formula  exists y. P( d_candidates, y ). Notice that
+  * (exists y. F) is shorthand above for ~( forall y. ~F ).
   */
   Node d_base_inst;
   /** list of variables on inner quantification */
   std::vector< Node > d_inner_vars;
   /**
-   * The set of current existentially quantified formulas whose couterexamples
-   * we must refine. This may be added to during calls to doCheck(). The model
-   * values for skolems of these formulas are analyzed during doRefine().
+   * The set of skolems for the current "verification" lemma, if one exists.
+   * This may be added to during calls to doCheck(). The model values for these
+   * skolems are analyzed during doRefine().
    */
-  std::vector<Node> d_ce_sk;
+  std::vector<Node> d_ce_sk_vars;
+  /**
+   * Whether the above vector has been set. We have this flag since the above
+   * vector may be set to empty (e.g. for ground synthesis conjectures).
+   */
+  bool d_set_ce_sk_vars;
 
   /** the asserted (negated) conjecture */
   Node d_quant;
@@ -182,7 +197,12 @@ private:
     /** list of terms we have instantiated candidates with */
     std::vector< Node > d_inst;
   };
-  std::map< Node, CandidateInfo > d_cinfo;  
+  std::map<Node, CandidateInfo> d_cinfo;
+  /**
+   * The first index of an instantiation in CandidateInfo::d_inst that we have
+   * not yet tried to repair.
+   */
+  unsigned d_repair_index;
   /** number of times we have called doRefine */
   unsigned d_refine_count;
   /** get candidadate */
@@ -241,12 +261,12 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
-  /** sygus sampler objects for each program variable
+  /** candidate rewrite objects for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, SygusSamplerExt> d_sampler;
+  std::map<Node, CandidateRewriteDatabase> d_crrdb;
 };
 
 } /* namespace CVC4::theory::quantifiers */

@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,55 +14,16 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
+#include "theory/quantifiers/lazy_trie.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-Node LazyTrie::add(Node n,
-                   LazyTrieEvaluator* ev,
-                   unsigned index,
-                   unsigned ntotal,
-                   bool forceKeep)
-{
-  LazyTrie* lt = this;
-  while (lt != NULL)
-  {
-    if (index == ntotal)
-    {
-      // lazy child holds the leaf data
-      if (lt->d_lazy_child.isNull() || forceKeep)
-      {
-        lt->d_lazy_child = n;
-      }
-      return lt->d_lazy_child;
-    }
-    std::vector<Node> ex;
-    if (lt->d_children.empty())
-    {
-      if (lt->d_lazy_child.isNull())
-      {
-        // no one has been here, we are done
-        lt->d_lazy_child = n;
-        return lt->d_lazy_child;
-      }
-      // evaluate the lazy child
-      Node e_lc = ev->evaluate(lt->d_lazy_child, index);
-      // store at next level
-      lt->d_children[e_lc].d_lazy_child = lt->d_lazy_child;
-      // replace
-      lt->d_lazy_child = Node::null();
-    }
-    // recurse
-    Node e = ev->evaluate(n, index);
-    lt = &lt->d_children[e];
-    index = index + 1;
-  }
-  return Node::null();
-}
 
 SygusSampler::SygusSampler()
     : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
@@ -71,7 +32,8 @@ SygusSampler::SygusSampler()
 
 void SygusSampler::initialize(TypeNode tn,
                               std::vector<Node>& vars,
-                              unsigned nsamples)
+                              unsigned nsamples,
+                              bool unique_type_ids)
 {
   d_tds = nullptr;
   d_use_sygus_type = false;
@@ -82,23 +44,33 @@ void SygusSampler::initialize(TypeNode tn,
   d_vars.clear();
   d_rvalue_cindices.clear();
   d_rvalue_null_cindices.clear();
+  d_rstring_alphabet.clear();
   d_var_sygus_types.clear();
+  d_const_sygus_types.clear();
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
   std::map<TypeNode, unsigned> type_to_type_id;
   unsigned type_id_counter = 0;
   for (const Node& sv : d_vars)
   {
     TypeNode svt = sv.getType();
-    unsigned tnid;
-    std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
-    if (itt == type_to_type_id.end())
+    unsigned tnid = 0;
+    if (unique_type_ids)
     {
-      type_to_type_id[svt] = type_id_counter;
+      tnid = type_id_counter;
       type_id_counter++;
     }
     else
     {
-      tnid = itt->second;
+      std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
+      if (itt == type_to_type_id.end())
+      {
+        type_to_type_id[svt] = type_id_counter;
+        type_id_counter++;
+      }
+      else
+      {
+        tnid = itt->second;
+      }
     }
     Trace("sygus-sample-debug")
         << "Type id for " << sv << " is " << tnid << std::endl;
@@ -406,11 +378,12 @@ bool SygusSampler::isOrdered(Node n)
   return true;
 }
 
-bool SygusSampler::containsFreeVariables(Node a, Node b)
+bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
 {
   // compute free variables in a
   std::vector<Node> fvs;
   computeFreeVariables(a, fvs);
+  std::vector<Node> fv_found;
 
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -429,6 +402,17 @@ bool SygusSampler::containsFreeVariables(Node a, Node b)
         if (std::find(fvs.begin(), fvs.end(), cur) == fvs.end())
         {
           return false;
+        }
+        else if (strict)
+        {
+          if (fv_found.size() + 1 == fvs.size())
+          {
+            return false;
+          }
+          // cur should only be visited once
+          Assert(std::find(fv_found.begin(), fv_found.end(), cur)
+                 == fv_found.end());
+          fv_found.push_back(cur);
         }
       }
       for (const Node& cn : cur)
@@ -507,13 +491,63 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   }
   else if (tn.isString() || tn.isInteger())
   {
+    // if string, determine the alphabet
+    if (tn.isString() && d_rstring_alphabet.empty())
+    {
+      Trace("sygus-sample-str-alpha")
+          << "Setting string alphabet..." << std::endl;
+      std::unordered_set<unsigned> alphas;
+      for (const std::pair<const Node, std::vector<TypeNode> >& c :
+           d_const_sygus_types)
+      {
+        if (c.first.getType().isString())
+        {
+          Trace("sygus-sample-str-alpha")
+              << "...have constant " << c.first << std::endl;
+          Assert(c.first.isConst());
+          std::vector<unsigned> svec = c.first.getConst<String>().getVec();
+          for (unsigned ch : svec)
+          {
+            alphas.insert(ch);
+          }
+        }
+      }
+      // can limit to 1 extra characters beyond those in the grammar (2 if
+      // there are none in the grammar)
+      unsigned num_fresh_char = alphas.empty() ? 2 : 1;
+      unsigned fresh_char = 0;
+      for (unsigned i = 0; i < num_fresh_char; i++)
+      {
+        while (alphas.find(fresh_char) != alphas.end())
+        {
+          fresh_char++;
+        }
+        alphas.insert(fresh_char);
+      }
+      Trace("sygus-sample-str-alpha")
+          << "Sygus sampler: limit strings alphabet to : " << std::endl
+          << " ";
+      for (unsigned ch : alphas)
+      {
+        d_rstring_alphabet.push_back(ch);
+        Trace("sygus-sample-str-alpha")
+            << " \"" << String::convertUnsignedIntToChar(ch) << "\"";
+      }
+      Trace("sygus-sample-str-alpha") << std::endl;
+    }
+
     std::vector<unsigned> vec;
     double ext_freq = .5;
-    unsigned base = 10;
+    unsigned base = tn.isString() ? d_rstring_alphabet.size() : 10;
     while (Random::getRandom().pickWithProb(ext_freq))
     {
       // add a digit
-      vec.push_back(Random::getRandom().pick(0, base));
+      unsigned digit = Random::getRandom().pick(0, base - 1);
+      if (tn.isString())
+      {
+        digit = d_rstring_alphabet[digit];
+      }
+      vec.push_back(digit);
     }
     if (tn.isString())
     {
@@ -561,7 +595,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
     if (!s.isNull() && !r.isNull())
     {
       Rational sr = s.getConst<Rational>();
-      Rational rr = s.getConst<Rational>();
+      Rational rr = r.getConst<Rational>();
       if (rr.sgn() == 0)
       {
         return s;
@@ -572,7 +606,19 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
     }
   }
-  return Node::null();
+  // default: use type enumerator
+  unsigned counter = 0;
+  while (Random::getRandom().pickWithProb(0.5))
+  {
+    counter++;
+  }
+  Node ret = d_tenum.getEnumerateTerm(tn, counter);
+  if (ret.isNull())
+  {
+    // beyond bounds, return the first
+    ret = d_tenum.getEnumerateTerm(tn, 0);
+  }
+  return ret;
 }
 
 Node SygusSampler::getSygusRandomValue(TypeNode tn,
@@ -580,9 +626,15 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
                                        double rinc,
                                        unsigned depth)
 {
-  Assert(tn.isDatatype());
+  if (!tn.isDatatype())
+  {
+    return getRandomValue(tn);
+  }
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  if (!dt.isSygus())
+  {
+    return getRandomValue(tn);
+  }
   Assert(d_rvalue_cindices.find(tn) != d_rvalue_cindices.end());
   Trace("sygus-sample-grammar")
       << "Sygus random value " << tn << ", depth = " << depth
@@ -646,9 +698,15 @@ void SygusSampler::registerSygusType(TypeNode tn)
   if (d_rvalue_cindices.find(tn) == d_rvalue_cindices.end())
   {
     d_rvalue_cindices[tn].clear();
-    Assert(tn.isDatatype());
+    if (!tn.isDatatype())
+    {
+      return;
+    }
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    Assert(dt.isSygus());
+    if (!dt.isSygus())
+    {
+      return;
+    }
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       const DatatypeConstructor& dtc = dt[i];
@@ -666,6 +724,10 @@ void SygusSampler::registerSygusType(TypeNode tn)
         if (dtc.getNumArgs() == 0)
         {
           d_rvalue_null_cindices[tn].push_back(i);
+          if (sop.isConst())
+          {
+            d_const_sygus_types[sop].push_back(tn);
+          }
         }
       }
       // recurse on all subfields
@@ -678,28 +740,29 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
-                                         Node f,
-                                         unsigned nsamples,
-                                         bool useSygusType)
-{
-  SygusSampler::initializeSygus(
-      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
+SygusSamplerExt::SygusSamplerExt() : d_drewrite(nullptr), d_ssenm(*this) {}
 
-  // initialize the dynamic rewriter
-  std::stringstream ss;
-  ss << f;
-  d_drewrite =
-      std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
+void SygusSamplerExt::initializeSygus(TermDbSygus* tds,
+                                      Node f,
+                                      unsigned nsamples,
+                                      bool useSygusType)
+{
+  SygusSampler::initializeSygus(tds, f, nsamples, useSygusType);
+  d_pairs.clear();
+  d_match_trie.clear();
+}
+
+void SygusSamplerExt::setDynamicRewriter(DynamicRewriter* dr)
+{
+  d_drewrite = dr;
 }
 
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
 {
   Node eq_n = SygusSampler::registerTerm(n, forceKeep);
-  Trace("sygus-synth-rr") << "sygusSampleExt : " << n << "..." << eq_n
-                          << std::endl;
   if (eq_n == n)
   {
+    // this is a unique term
     return n;
   }
   Node bn = n;
@@ -709,61 +772,344 @@ Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
-  // one of eq_n or n must be ordered
-  bool eqor = isOrdered(beq_n);
-  bool nor = isOrdered(bn);
-  Trace("sygus-synth-rr-debug")
-      << "Ordered? : " << nor << " " << eqor << std::endl;
-  bool isUnique = false;
-  if (eqor || nor)
-  {
-    isUnique = true;
-    // if only one is ordered, then the ordered one must contain the
-    // free variables of the other
-    if (!eqor)
-    {
-      isUnique = containsFreeVariables(bn, beq_n);
-    }
-    else if (!nor)
-    {
-      isUnique = containsFreeVariables(beq_n, bn);
-    }
-  }
-  Trace("sygus-synth-rr-debug") << "AlphaEq unique: " << isUnique << std::endl;
-  bool rewRedundant = false;
-  if (d_drewrite != nullptr)
-  {
-    Trace("sygus-synth-rr-debug") << "Add rewrite..." << std::endl;
-    if (!d_drewrite->addRewrite(bn, beq_n))
-    {
-      rewRedundant = isUnique;
-      // must be unique according to the dynamic rewriter
-      isUnique = false;
-    }
-  }
-  Trace("sygus-synth-rr-debug") << "Rewrite unique: " << isUnique << std::endl;
+  Trace("sygus-synth-rr") << "sygusSampleExt : " << bn << "..." << beq_n
+                          << std::endl;
+  // whether we will keep this pair
+  bool keep = true;
 
-  if (isUnique)
+  // ----- check ordering redundancy
+  if (options::sygusRewSynthFilterOrder())
   {
-    // if the previous value stored was unordered, but this is
-    // ordered, we prefer this one. Thus, we force its addition to the
-    // sampler database.
-    if (!eqor)
+    bool nor = isOrdered(bn);
+    bool eqor = isOrdered(beq_n);
+    Trace("sygus-synth-rr-debug") << "Ordered? : " << nor << " " << eqor
+                                  << std::endl;
+    if (eqor || nor)
     {
-      SygusSampler::registerTerm(n, true);
+      // if only one is ordered, then we require that the ordered one's
+      // variables cannot be a strict subset of the variables of the other.
+      if (!eqor)
+      {
+        if (containsFreeVariables(beq_n, bn, true))
+        {
+          keep = false;
+        }
+        else
+        {
+          // if the previous value stored was unordered, but n is
+          // ordered, we prefer n. Thus, we force its addition to the
+          // sampler database.
+          SygusSampler::registerTerm(n, true);
+        }
+      }
+      else if (!nor)
+      {
+        keep = !containsFreeVariables(bn, beq_n, true);
+      }
     }
+    else
+    {
+      keep = false;
+    }
+    if (!keep)
+    {
+      Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
+    }
+  }
+
+  // ----- check rewriting redundancy
+  if (keep && d_drewrite != nullptr)
+  {
+    Trace("sygus-synth-rr-debug") << "Check equal rewrite pair..." << std::endl;
+    if (d_drewrite->areEqual(bn, beq_n))
+    {
+      // must be unique according to the dynamic rewriter
+      Trace("sygus-synth-rr") << "...redundant (rewritable)" << std::endl;
+      keep = false;
+    }
+  }
+
+  if (options::sygusRewSynthFilterMatch())
+  {
+    // ----- check matchable
+    // check whether the pair is matchable with a previous one
+    d_curr_pair_rhs = beq_n;
+    Trace("sse-match") << "SSE check matches : " << bn << " [rhs = " << beq_n
+                       << "]..." << std::endl;
+    if (!d_match_trie.getMatches(bn, &d_ssenm))
+    {
+      keep = false;
+      Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
+      // regardless, would help to remember it
+      registerRelevantPair(n, eq_n);
+    }
+  }
+
+  if (keep)
+  {
     return eq_n;
   }
-  else if (Trace.isOn("sygus-synth-rr"))
+  if (Trace.isOn("sygus-rr-filter"))
   {
-    Trace("sygus-synth-rr") << "Redundant rewrite : " << eq_n << " " << n;
-    if (rewRedundant)
-    {
-      Trace("sygus-synth-rr") << " (by rewriting)";
-    }
-    Trace("sygus-synth-rr") << std::endl;
+    Printer* p = Printer::getPrinter(options::outputLanguage());
+    std::stringstream ss;
+    ss << "(redundant-rewrite ";
+    p->toStreamSygus(ss, n);
+    ss << " ";
+    p->toStreamSygus(ss, eq_n);
+    ss << ")";
+    Trace("sygus-rr-filter") << ss.str() << std::endl;
   }
   return Node::null();
+}
+
+void SygusSamplerExt::registerRelevantPair(Node n, Node eq_n)
+{
+  Node bn = n;
+  Node beq_n = eq_n;
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    beq_n = d_tds->sygusToBuiltin(eq_n);
+  }
+  // ----- check rewriting redundancy
+  if (d_drewrite != nullptr)
+  {
+    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
+    Assert(!d_drewrite->areEqual(bn, beq_n));
+    d_drewrite->addRewrite(bn, beq_n);
+  }
+  if (options::sygusRewSynthFilterMatch())
+  {
+    // add to match information
+    for (unsigned r = 0; r < 2; r++)
+    {
+      Node t = r == 0 ? bn : beq_n;
+      Node to = r == 0 ? beq_n : bn;
+      // insert in match trie if first time
+      if (d_pairs.find(t) == d_pairs.end())
+      {
+        Trace("sse-match") << "SSE add term : " << t << std::endl;
+        d_match_trie.addTerm(t);
+      }
+      d_pairs[t].insert(to);
+    }
+  }
+}
+
+bool SygusSamplerExt::notify(Node s,
+                             Node n,
+                             std::vector<Node>& vars,
+                             std::vector<Node>& subs)
+{
+  Assert(!d_curr_pair_rhs.isNull());
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
+      d_pairs.find(n);
+  if (Trace.isOn("sse-match"))
+  {
+    Trace("sse-match") << "  " << s << " matches " << n
+                       << " under:" << std::endl;
+    for (unsigned i = 0, size = vars.size(); i < size; i++)
+    {
+      Trace("sse-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
+      // TODO (#1923) ensure that we use an internal representation to
+      // ensure polymorphism is handled correctly
+      Assert(vars[i].getType().isComparableTo(subs[i].getType()));
+    }
+  }
+  Assert(it != d_pairs.end());
+  for (const Node& nr : it->second)
+  {
+    Node nrs =
+        nr.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+    bool areEqual = (nrs == d_curr_pair_rhs);
+    if (!areEqual && d_drewrite != nullptr)
+    {
+      // if dynamic rewriter is available, consult it
+      areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);
+    }
+    if (areEqual)
+    {
+      Trace("sse-match") << "*** Match, current pair: " << std::endl;
+      Trace("sse-match") << "  (" << s << ", " << d_curr_pair_rhs << ")"
+                         << std::endl;
+      Trace("sse-match") << "is an instance of previous pair:" << std::endl;
+      Trace("sse-match") << "  (" << n << ", " << nr << ")" << std::endl;
+      return false;
+    }
+  }
+  return true;
+}
+
+bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
+{
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  std::map<Node, Node> smap;
+
+  std::vector<std::vector<Node> > visit;
+  std::vector<MatchTrie*> visit_trie;
+  std::vector<int> visit_var_index;
+  std::vector<bool> visit_bound_var;
+
+  visit.push_back(std::vector<Node>{n});
+  visit_trie.push_back(this);
+  visit_var_index.push_back(-1);
+  visit_bound_var.push_back(false);
+  while (!visit.empty())
+  {
+    std::vector<Node> cvisit = visit.back();
+    MatchTrie* curr = visit_trie.back();
+    if (cvisit.empty())
+    {
+      Assert(n
+             == curr->d_data.substitute(
+                    vars.begin(), vars.end(), subs.begin(), subs.end()));
+      Trace("sse-match-debug") << "notify : " << curr->d_data << std::endl;
+      if (!ntm->notify(n, curr->d_data, vars, subs))
+      {
+        return false;
+      }
+      visit.pop_back();
+      visit_trie.pop_back();
+      visit_var_index.pop_back();
+      visit_bound_var.pop_back();
+    }
+    else
+    {
+      Node cn = cvisit.back();
+      Trace("sse-match-debug")
+          << "traverse : " << cn << " at depth " << visit.size() << std::endl;
+      unsigned index = visit.size() - 1;
+      int vindex = visit_var_index[index];
+      if (vindex == -1)
+      {
+        if (!cn.isVar())
+        {
+          Node op = cn.hasOperator() ? cn.getOperator() : cn;
+          unsigned nchild = cn.hasOperator() ? cn.getNumChildren() : 0;
+          std::map<unsigned, MatchTrie>::iterator itu =
+              curr->d_children[op].find(nchild);
+          if (itu != curr->d_children[op].end())
+          {
+            // recurse on the operator or self
+            cvisit.pop_back();
+            if (cn.hasOperator())
+            {
+              for (const Node& cnc : cn)
+              {
+                cvisit.push_back(cnc);
+              }
+            }
+            Trace("sse-match-debug") << "recurse op : " << op << std::endl;
+            visit.push_back(cvisit);
+            visit_trie.push_back(&itu->second);
+            visit_var_index.push_back(-1);
+            visit_bound_var.push_back(false);
+          }
+        }
+        visit_var_index[index]++;
+      }
+      else
+      {
+        // clean up if we previously bound a variable
+        if (visit_bound_var[index])
+        {
+          Assert(!vars.empty());
+          smap.erase(vars.back());
+          vars.pop_back();
+          subs.pop_back();
+          visit_bound_var[index] = false;
+        }
+
+        if (vindex == static_cast<int>(curr->d_vars.size()))
+        {
+          Trace("sse-match-debug")
+              << "finished checking " << curr->d_vars.size()
+              << " variables at depth " << visit.size() << std::endl;
+          // finished
+          visit.pop_back();
+          visit_trie.pop_back();
+          visit_var_index.pop_back();
+          visit_bound_var.pop_back();
+        }
+        else
+        {
+          Trace("sse-match-debug") << "check variable #" << vindex
+                                   << " at depth " << visit.size() << std::endl;
+          Assert(vindex < static_cast<int>(curr->d_vars.size()));
+          // recurse on variable?
+          Node var = curr->d_vars[vindex];
+          bool recurse = true;
+          // check if it is already bound
+          std::map<Node, Node>::iterator its = smap.find(var);
+          if (its != smap.end())
+          {
+            if (its->second != cn)
+            {
+              recurse = false;
+            }
+          }
+          else
+          {
+            vars.push_back(var);
+            subs.push_back(cn);
+            smap[var] = cn;
+            visit_bound_var[index] = true;
+          }
+          if (recurse)
+          {
+            Trace("sse-match-debug") << "recurse var : " << var << std::endl;
+            cvisit.pop_back();
+            visit.push_back(cvisit);
+            visit_trie.push_back(&curr->d_children[var][0]);
+            visit_var_index.push_back(-1);
+            visit_bound_var.push_back(false);
+          }
+          visit_var_index[index]++;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+void MatchTrie::addTerm(Node n)
+{
+  std::vector<Node> visit;
+  visit.push_back(n);
+  MatchTrie* curr = this;
+  while (!visit.empty())
+  {
+    Node cn = visit.back();
+    visit.pop_back();
+    if (cn.hasOperator())
+    {
+      curr = &(curr->d_children[cn.getOperator()][cn.getNumChildren()]);
+      for (const Node& cnc : cn)
+      {
+        visit.push_back(cnc);
+      }
+    }
+    else
+    {
+      if (cn.isVar()
+          && std::find(curr->d_vars.begin(), curr->d_vars.end(), cn)
+                 == curr->d_vars.end())
+      {
+        curr->d_vars.push_back(cn);
+      }
+      curr = &(curr->d_children[cn][0]);
+    }
+  }
+  curr->d_data = n;
+}
+
+void MatchTrie::clear()
+{
+  d_children.clear();
+  d_vars.clear();
+  d_data = Node::null();
 }
 
 } /* CVC4::theory::quantifiers namespace */

@@ -2,9 +2,9 @@
 /*! \file tptp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Francois Bobot, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -257,9 +257,9 @@ Expr Tptp::convertRatToUnsorted(Expr expr) {
 
 Expr Tptp::convertStrToUnsorted(std::string str) {
   Expr& e = d_distinct_objects[str];
-  if (e.isNull()) {
-    e = getExprManager()->mkConst(
-        UninterpretedConstant(d_unsorted, d_distinct_objects.size() - 1));
+  if (e.isNull())
+  {
+    e = getExprManager()->mkVar(str, d_unsorted);
   }
   return e;
 }
@@ -322,6 +322,20 @@ Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
       break;
   }
   assert(false);  // unreachable
+  return d_nullExpr;
+}
+
+Expr Tptp::getAssertionDistinctConstants()
+{
+  std::vector<Expr> constants;
+  for (std::pair<const std::string, Expr>& cs : d_distinct_objects)
+  {
+    constants.push_back(cs.second);
+  }
+  if (constants.size() > 1)
+  {
+    return getExprManager()->mkExpr(kind::DISTINCT, constants);
+  }
   return d_nullExpr;
 }
 

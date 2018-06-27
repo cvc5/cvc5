@@ -2,7 +2,7 @@
 /*! \file bv_quick_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Liana Hadarean, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -17,7 +17,7 @@
 #include "theory/bv/bv_quick_check.h"
 
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/lazy_bitblaster.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4::prop;

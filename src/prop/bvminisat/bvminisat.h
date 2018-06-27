@@ -2,9 +2,9 @@
 /*! \file bvminisat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Tim King
+ **   Dejan Jovanovic, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,8 @@
 #include "cvc4_private.h"
 
 #pragma once
+
+#include <memory>
 
 #include "context/cdo.h"
 #include "proof/clause_id.h"
@@ -49,8 +51,8 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
     void safePoint(unsigned amount) override { d_notify->safePoint(amount); }
   };
 
-  BVMinisat::SimpSolver* d_minisat;
-  MinisatNotify* d_minisatNotify;
+	std::unique_ptr<BVMinisat::SimpSolver> d_minisat;
+	std::unique_ptr<MinisatNotify> d_minisatNotify;
 
   unsigned d_assertionsCount;
   context::CDO<unsigned> d_assertionsRealCount;

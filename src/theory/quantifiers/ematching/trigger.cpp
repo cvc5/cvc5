@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/candidate_generator.h"
+#include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
@@ -36,7 +36,7 @@ namespace inst {
 
 void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
   if( d_fv.empty() ){
-    quantifiers::TermUtil::getVarContainsNode( q, n, d_fv );
+    quantifiers::TermUtil::computeInstConstContainsForQuant(q, n, d_fv);
   }
   if( d_reqPol==0 ){
     d_reqPol = reqPol;
@@ -134,7 +134,11 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
   std::map< Node, std::vector< Node > > patterns;
   size_t varCount = 0;
   std::map< Node, std::vector< Node > > varContains;
-  quantifiers::TermUtil::getVarContains( q, temp, varContains );
+  for (const Node& pat : temp)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(
+        q, pat, varContains[pat]);
+  }
   for( unsigned i=0; i<temp.size(); i++ ){
     bool foundVar = false;
     for( unsigned j=0; j<varContains[ temp[i] ].size(); j++ ){
@@ -262,9 +266,8 @@ bool Trigger::isUsable( Node n, Node q ){
       return true;
     }else{
       std::map< Node, Node > coeffs;
-      if( isBooleanTermTrigger( n ) ){
-        return true;
-      }else if( options::purifyTriggers() ){
+      if (options::purifyTriggers())
+      {
         Node x = getInversionVariable( n );
         if( !x.isNull() ){
           return true;
@@ -301,7 +304,9 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
       }
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
-    if( options::relationalTriggers() && n2.getKind()==INST_CONSTANT && !quantifiers::TermUtil::containsTerm( n1, n2 ) ){
+    if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
+        && !n1.hasSubterm(n2))
+    {
       return true;
     }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
       return true;
@@ -520,22 +525,6 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
       }
     }
   }
-}
-
-bool Trigger::isBooleanTermTrigger( Node n ) {
-  if( n.getKind()==ITE ){
-    //check for boolean term converted to ITE
-    if( n[0].getKind()==INST_CONSTANT &&
-        n[1].getKind()==CONST_BITVECTOR &&
-        n[2].getKind()==CONST_BITVECTOR ){
-      if( ((BitVectorType)n[1].getType().toType()).getSize()==1 &&
-          n[1].getConst<BitVector>().toInteger()==1 &&
-          n[2].getConst<BitVector>().toInteger()==0 ){
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 bool Trigger::isPureTheoryTrigger( Node n ) {
@@ -759,7 +748,7 @@ void Trigger::filterTriggerInstances(std::vector<Node>& nodes)
   std::map<unsigned, std::vector<Node> > fvs;
   for (unsigned i = 0, size = nodes.size(); i < size; i++)
   {
-    quantifiers::TermUtil::computeVarContains(nodes[i], fvs[i]);
+    quantifiers::TermUtil::computeInstConstContains(nodes[i], fvs[i]);
   }
   std::vector<bool> active;
   active.resize(nodes.size(), true);
@@ -885,8 +874,9 @@ void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
   std::vector< Node > exclude;
   collectPatTerms(q, n, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo);
   //collect all variables from all patterns in patTerms, add to t_vars
-  for( unsigned i=0; i<patTerms.size(); i++ ){
-    quantifiers::TermUtil::getVarContainsNode( q, patTerms[i], t_vars );
+  for (const Node& pat : patTerms)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(q, pat, t_vars);
   }
 }
 

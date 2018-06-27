@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -738,22 +738,21 @@ void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
     std::map< Node, std::map< Node, Node > >::iterator it = d_pol_mems[0].find( s );
     if( it!=d_pol_mems[0].end() ){
       for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        if( !it2->first.getType().isSubtypeOf( mct ) ){          
+        if (!it2->first.getType().isSubtypeOf(mct))
+        {
           Node mctt = d_most_common_type_term[s];
           std::vector< Node > exp;
           exp.push_back( it2->second );
           Assert( ee_areEqual( mctt, it2->second[1] ) );
           exp.push_back( mctt.eqNode( it2->second[1] ) );
-          Node etc = TypeNode::getEnsureTypeCondition( it2->first, mct );
-          if( !etc.isNull() ){
+          Node tc_k = getTypeConstraintSkolem(it2->first, mct);
+          if (!tc_k.isNull())
+          {
+            Node etc = tc_k.eqNode(it2->first);
             assertInference( etc, exp, lemmas, "subtype-clash" );
             if( d_conflict ){
               return;
-            } 
-          }else{
-            // very strange situation : we have a member in a set that is not a subtype, and we do not have a type condition for it
-            d_full_check_incomplete = true;
-            Trace("sets-incomplete") << "Sets : incomplete because of unknown type constraint." << std::endl;
+            }
           }
         }
       }
@@ -1684,6 +1683,18 @@ void TheorySetsPrivate::debugPrintSet( Node s, const char * c ) {
 void TheorySetsPrivate::lastCallEffortCheck() {
   Trace("sets") << "----- Last call effort check ------" << std::endl;
 
+}
+
+Node TheorySetsPrivate::getTypeConstraintSkolem(Node n, TypeNode tn)
+{
+  std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
+  if (it == d_tc_skolem[n].end())
+  {
+    Node k = NodeManager::currentNM()->mkSkolem("tc_k", tn);
+    d_tc_skolem[n][tn] = k;
+    return k;
+  }
+  return it->second;
 }
 
 /**************************** TheorySetsPrivate *****************************/

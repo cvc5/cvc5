@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,19 +27,17 @@ namespace prop {
 BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name)
 : context::ContextNotifyObj(mainSatContext, false),
   d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
-  d_minisatNotify(0),
+  d_minisatNotify(nullptr),
   d_assertionsCount(0),
   d_assertionsRealCount(mainSatContext, 0),
   d_lastPropagation(mainSatContext, 0),
   d_statistics(registry, name)
 {
-  d_statistics.init(d_minisat);
+  d_statistics.init(d_minisat.get());
 }
 
 
 BVMinisatSatSolver::~BVMinisatSatSolver() {
-  delete d_minisat;
-  delete d_minisatNotify;
 }
 
 void BVMinisatSatSolver::MinisatNotify::notify(
@@ -54,8 +52,8 @@ void BVMinisatSatSolver::MinisatNotify::notify(
 }
 
 void BVMinisatSatSolver::setNotify(Notify* notify) {
-  d_minisatNotify = new MinisatNotify(notify);
-  d_minisat->setNotify(d_minisatNotify);
+  d_minisatNotify.reset(new MinisatNotify(notify));
+  d_minisat->setNotify(d_minisatNotify.get());
 }
 
 ClauseId BVMinisatSatSolver::addClause(SatClause& clause,

@@ -2,9 +2,9 @@
 /*! \file ite_utilities.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Morgan Deters
+ **   Tim King, Paul Meng, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,35 +32,11 @@
 namespace CVC4 {
 namespace theory {
 
-class ContainsTermITEVisitor;
 class IncomingArcCounter;
 class TermITEHeightCounter;
 class ITECompressor;
 class ITESimplifier;
 class ITECareSimplifier;
-
-class ITEUtilities {
-public:
-  ITEUtilities(ContainsTermITEVisitor* containsVisitor);
-  ~ITEUtilities();
-
-  Node simpITE(TNode assertion);
-
-  bool simpIteDidALotOfWorkHeuristic() const;
-
-  /* returns false if an assertion is discovered to be equal to false. */
-  bool compress(std::vector<Node>& assertions);
-
-  Node simplifyWithCare(TNode e);
-
-  void clear();
-
-private:
-  ContainsTermITEVisitor* d_containsVisitor;
-  ITECompressor* d_compressor;
-  ITESimplifier* d_simplifier;
-  ITECareSimplifier* d_careSimp;
-};
 
 /**
  * A caching visitor that computes whether a node contains a term ite.
@@ -82,6 +58,40 @@ public:
 private:
   typedef std::unordered_map<Node, bool, NodeHashFunction> NodeBoolMap;
   NodeBoolMap d_cache;
+};
+
+class ITEUtilities
+{
+ public:
+  ITEUtilities();
+  ~ITEUtilities();
+
+  Node simpITE(TNode assertion);
+
+  bool simpIteDidALotOfWorkHeuristic() const;
+
+  /* returns false if an assertion is discovered to be equal to false. */
+  bool compress(std::vector<Node>& assertions);
+
+  Node simplifyWithCare(TNode e);
+
+  void clear();
+
+  ContainsTermITEVisitor* getContainsVisitor()
+  {
+    return d_containsVisitor.get();
+  }
+
+  bool containsTermITE(TNode n)
+  {
+    return d_containsVisitor->containsTermITE(n);
+  }
+
+ private:
+  std::unique_ptr<ContainsTermITEVisitor> d_containsVisitor;
+  ITECompressor* d_compressor;
+  ITESimplifier* d_simplifier;
+  ITECareSimplifier* d_careSimp;
 };
 
 class IncomingArcCounter {

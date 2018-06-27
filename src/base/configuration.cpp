@@ -2,9 +2,9 @@
 /*! \file configuration.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Francois Bobot, Tim King
+ **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -112,7 +112,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2017 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2018 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -133,10 +133,10 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc()
-      || Configuration::isBuiltWithLfsc()
+  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
       || Configuration::isBuiltWithCadical()
-      || Configuration::isBuiltWithCryptominisat())
+      || Configuration::isBuiltWithCryptominisat()
+      || Configuration::isBuiltWithSymFPU())
   {
     ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
        << "third party libraries.\n\n";
@@ -160,6 +160,12 @@ std::string Configuration::copyright() {
     {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
          << "  See https://github.com/msoos/cryptominisat for copyright "
+         << "information.\n\n";
+    }
+    if (Configuration::isBuiltWithSymFPU())
+    {
+      ss << "  SymFPU - The Symbolic Floating Point Unit\n"
+         << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
          << "information.\n\n";
     }
   }
@@ -255,6 +261,8 @@ bool Configuration::isBuiltWithTlsSupport() {
 bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
 }
+
+bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }
 
 unsigned Configuration::getNumDebugTags() {
 #if defined(CVC4_DEBUG) && defined(CVC4_TRACING)

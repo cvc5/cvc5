@@ -2,9 +2,9 @@
 /*! \file model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -183,6 +183,11 @@ Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::
 */
 
 bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
+  if (!m->areFunctionValuesEnabled())
+  {
+    // nothing to do if no functions
+    return true;
+  }
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelIG* fm = f->asFirstOrderModelIG();
   Trace("model-engine-debug") << "Process build model " << optUseModel() << std::endl;

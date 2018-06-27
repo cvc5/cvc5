@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -269,22 +269,6 @@ bool Instantiate::addInstantiation(
   }
 
   Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
-
-  // get relevancy conditions
-  if (options::instRelevantCond())
-  {
-    std::vector<Node> rlv_cond;
-    for (Node& t : terms)
-    {
-      quantifiers::TermUtil::getRelevancyCondition(t, rlv_cond);
-    }
-    if (!rlv_cond.empty())
-    {
-      rlv_cond.push_back(lem);
-      lem = NodeManager::currentNM()->mkNode(kind::OR, rlv_cond);
-    }
-  }
-
   lem = Rewriter::rewrite(lem);
 
   // check for lemma duplication

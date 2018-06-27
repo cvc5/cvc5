@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Clark Barrett, Morgan Deters
+ **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -73,8 +73,9 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
       RewriteRule<SignExtendUltConst>,
       RewriteRule<ZeroExtendUltConst>
        >::apply(node);
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+
+  return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN_FULL,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUltBv(TNode node, bool prerewrite) {

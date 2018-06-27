@@ -2,9 +2,9 @@
 /*! \file theory_uf_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Paul Meng
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -148,7 +148,11 @@ public: //conversion between HO_APPLY AND APPLY_UF
     // cannot construct APPLY_UF if operator is partially applied or is not standard       
     return Node::null();
   }
-  // collects arguments into args, returns operator of a curried HO_APPLY node
+  /**
+   * Given a curried HO_APPLY term n, this method adds its arguments into args
+   * and returns its operator. If the argument opInArgs is true, then we add
+   * its operator to args.
+   */
   static Node decomposeHoApply(TNode n, std::vector<TNode>& args, bool opInArgs = false) {
     TNode curr = n;
     while( curr.getKind() == kind::HO_APPLY ){

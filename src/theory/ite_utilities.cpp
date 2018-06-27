@@ -2,9 +2,9 @@
 /*! \file ite_utilities.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Kshitij Bansal
+ **   Tim King, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,11 +79,11 @@ struct CTIVStackElement {
 
 } /* CVC4::theory::ite */
 
-ITEUtilities::ITEUtilities(ContainsTermITEVisitor* containsVisitor)
-  : d_containsVisitor(containsVisitor)
-  , d_compressor(NULL)
-  , d_simplifier(NULL)
-  , d_careSimp(NULL)
+ITEUtilities::ITEUtilities()
+    : d_containsVisitor(new ContainsTermITEVisitor()),
+      d_compressor(NULL),
+      d_simplifier(NULL),
+      d_careSimp(NULL)
 {
   Assert(d_containsVisitor != NULL);
 }
@@ -103,7 +103,7 @@ ITEUtilities::~ITEUtilities(){
 
 Node ITEUtilities::simpITE(TNode assertion){
   if(d_simplifier == NULL){
-    d_simplifier = new ITESimplifier(d_containsVisitor);
+    d_simplifier = new ITESimplifier(d_containsVisitor.get());
   }
   return d_simplifier->simpITE(assertion);
 }
@@ -119,7 +119,7 @@ bool ITEUtilities::simpIteDidALotOfWorkHeuristic() const{
 /* returns false if an assertion is discovered to be equal to false. */
 bool ITEUtilities::compress(std::vector<Node>& assertions){
   if(d_compressor == NULL){
-     d_compressor = new ITECompressor(d_containsVisitor);
+    d_compressor = new ITECompressor(d_containsVisitor.get());
   }
   return d_compressor->compress(assertions);
 }
@@ -141,6 +141,7 @@ void ITEUtilities::clear(){
   if(d_careSimp != NULL){
     d_careSimp->clear();
   }
+  d_containsVisitor->garbageCollect();
 }
 
 /*********************                                                        */

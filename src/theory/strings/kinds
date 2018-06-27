@@ -18,12 +18,15 @@ operator STRING_LENGTH 1 "string length"
 operator STRING_SUBSTR 3 "string substr"
 operator STRING_CHARAT 2 "string charat"
 operator STRING_STRCTN 2 "string contains"
+operator STRING_LT 2 "string less than"
+operator STRING_LEQ 2 "string less than or equal"
 operator STRING_STRIDOF 3 "string indexof"
 operator STRING_STRREPL 3 "string replace"
 operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_ITOS 1 "integer to string"
 operator STRING_STOI 1 "string to integer (total function)"
+operator STRING_CODE 1 "string to code, returns the code of the first character of the string if it has length one, -1 otherwise"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
@@ -42,7 +45,7 @@ sort STRING_TYPE \
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-        "NodeManager::currentNM()->mkConst(::CVC4::RegExp())" \
+        "NodeManager::currentNM()->mkNode(REGEXP_EMPTY, std::vector<Node>() )" \
         "util/regexp.h" \
     "RegExp type"
 
@@ -60,14 +63,7 @@ constant CONST_STRING \
     "util/regexp.h" \
     "a string of characters"
 
-constant CONST_REGEXP \
-    ::CVC4::RegExp \
-    ::CVC4::RegExpHashFunction \
-    "util/regexp.h" \
-    "a regular expression"
-
 typerule CONST_STRING ::CVC4::theory::strings::StringConstantTypeRule
-typerule CONST_REGEXP ::CVC4::theory::strings::RegExpConstantTypeRule
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
@@ -103,13 +99,16 @@ typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
 typerule STRING_LENGTH ::CVC4::theory::strings::StringLengthTypeRule
 typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
 typerule STRING_CHARAT ::CVC4::theory::strings::StringCharAtTypeRule
-typerule STRING_STRCTN ::CVC4::theory::strings::StringContainTypeRule
+typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
+typerule STRING_LT ::CVC4::theory::strings::StringRelationTypeRule
+typerule STRING_LEQ ::CVC4::theory::strings::StringRelationTypeRule
 typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
 typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
 typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
 typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
 typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule
 typerule STRING_STOI ::CVC4::theory::strings::StringStrToIntTypeRule
+typerule STRING_CODE ::CVC4::theory::strings::StringStrToIntTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
 

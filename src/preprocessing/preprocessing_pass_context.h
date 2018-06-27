@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **  Justin Xu
+ **   Justin Xu, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,10 +21,9 @@
 #ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
+#include "context/context.h"
 #include "decision/decision_engine.h"
 #include "smt/smt_engine.h"
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -37,6 +36,10 @@ class PreprocessingPassContext {
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
+  context::Context* getUserContext() { return d_smt->d_userContext; }
+
+  /* Widen the logic to include the given theory. */
+  void widenLogic(theory::TheoryId id);
 
  private:
   /* Pointer to the SmtEngine that this context was created in. */

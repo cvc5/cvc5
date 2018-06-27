@@ -2,9 +2,9 @@
 /*! \file regexp_operation.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tianyi Liang, Andrew Reynolds
+ **   Tianyi Liang, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,7 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-    : d_lastchar(options::stdASCII() ? '\x7f' : '\xff'),
+    : d_lastchar(options::stdPrintASCII() ? '\x7f' : '\xff'),
       d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
       d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
@@ -39,8 +39,9 @@ RegExpOpr::RegExpOpr()
       d_char_end(),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
-      d_sigma_star(
-          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)) {}
+      d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
+{
+}
 
 RegExpOpr::~RegExpOpr() {}
 

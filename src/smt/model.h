@@ -2,9 +2,9 @@
 /*! \file model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,6 +69,14 @@ public:
   virtual void getComments(std::ostream& out) const {}
   /** get heap model (for separation logic) */
   virtual bool getHeapModel( Expr& h, Expr& ne ) const { return false; }
+  /** are there any approximations in this model? */
+  virtual bool hasApproximations() const { return false; }
+  /** get the list of approximations
+   *
+   * This is a list of pairs of the form (t,p), where t is a term and p
+   * is a predicate over t that indicates a property that t satisfies.
+   */
+  virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
 };/* class Model */
 
 class ModelBuilder {

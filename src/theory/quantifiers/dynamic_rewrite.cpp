@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file dynamic_rewriter.cpp
+/*! \file dynamic_rewrite.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,47 +23,60 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-DynamicRewriter::DynamicRewriter(const std::string& name, QuantifiersEngine* qe)
-    : d_qe(qe),
-      d_equalityEngine(qe->getUserContext(), "DynamicRewriter::" + name, true),
-      d_rewrites(qe->getUserContext())
+DynamicRewriter::DynamicRewriter(const std::string& name,
+                                 context::UserContext* u)
+    : d_equalityEngine(u, "DynamicRewriter::" + name, true), d_rewrites(u)
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
-bool DynamicRewriter::addRewrite(Node a, Node b)
+void DynamicRewriter::addRewrite(Node a, Node b)
 {
   Trace("dyn-rewrite") << "Dyn-Rewriter : " << a << " == " << b << std::endl;
   if (a == b)
   {
-    Trace("dyn-rewrite") << "...fail, equal." << std::endl;
-    return false;
+    Trace("dyn-rewrite") << "...equal." << std::endl;
+    return;
   }
 
   // add to the equality engine
   Node ai = toInternal(a);
   Node bi = toInternal(b);
-  Trace("dyn-rewrite-debug") << "Internal : " << ai << " " << bi << std::endl;
-  d_equalityEngine.addTerm(ai);
-  d_equalityEngine.addTerm(bi);
-
-  Trace("dyn-rewrite-debug") << "get reps..." << std::endl;
-  // may already be equal by congruence
-  Node air = d_equalityEngine.getRepresentative(ai);
-  Node bir = d_equalityEngine.getRepresentative(bi);
-  Trace("dyn-rewrite-debug") << "Reps : " << air << " " << bir << std::endl;
-  if (air == bir)
+  if (ai.isNull() || bi.isNull())
   {
-    Trace("dyn-rewrite") << "...fail, congruent." << std::endl;
-    return false;
+    Trace("dyn-rewrite") << "...not internalizable." << std::endl;
+    return;
   }
+  Trace("dyn-rewrite-debug") << "Internal : " << ai << " " << bi << std::endl;
 
   Trace("dyn-rewrite-debug") << "assert eq..." << std::endl;
   Node eq = ai.eqNode(bi);
   d_rewrites.push_back(eq);
   d_equalityEngine.assertEquality(eq, true, eq);
+  Assert(d_equalityEngine.consistent());
   Trace("dyn-rewrite-debug") << "Finished" << std::endl;
-  return true;
+}
+
+bool DynamicRewriter::areEqual(Node a, Node b)
+{
+  if (a == b)
+  {
+    return true;
+  }
+  Trace("dyn-rewrite-debug") << "areEqual? : " << a << " " << b << std::endl;
+  // add to the equality engine
+  Node ai = toInternal(a);
+  Node bi = toInternal(b);
+  if (ai.isNull() || bi.isNull())
+  {
+    Trace("dyn-rewrite") << "...not internalizable." << std::endl;
+    return false;
+  }
+  Trace("dyn-rewrite-debug") << "internal : " << ai << " " << bi << std::endl;
+  d_equalityEngine.addTerm(ai);
+  d_equalityEngine.addTerm(bi);
+  Trace("dyn-rewrite-debug") << "...added terms" << std::endl;
+  return d_equalityEngine.areEqual(ai, bi);
 }
 
 Node DynamicRewriter::toInternal(Node a)
@@ -84,6 +97,12 @@ Node DynamicRewriter::toInternal(Node a)
       if (a.getKind() != APPLY_UF)
       {
         op = d_ois_trie[op].getSymbol(a);
+        // if this term involves an argument that is not of first class type,
+        // we cannot reason about it. This includes operators like str.in-re.
+        if (op.isNull())
+        {
+          return Node::null();
+        }
       }
       children.push_back(op);
     }
@@ -120,6 +139,11 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   OpInternalSymTrie* curr = this;
   for (unsigned i = 0, size = ctypes.size(); i < size; i++)
   {
+    // cannot handle certain types (e.g. regular expressions or functions)
+    if (!ctypes[i].isFirstClass())
+    {
+      return Node::null();
+    }
     curr = &(curr->d_children[ctypes[i]]);
   }
   if (!curr->d_sym.isNull())

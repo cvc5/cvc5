@@ -2,9 +2,9 @@
 /*! \file theory_strings_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,35 @@ namespace theory {
 namespace strings {
 
 class TheoryStringsRewriter {
-private:
+ private:
+  /** simple regular expression consume
+   *
+   * This method is called when we are rewriting a membership of the form
+   *   s1 ++ ... ++ sn in r1 ++ ... ++ rm
+   * We have that mchildren consists of the strings s1...sn, and children
+   * consists of the regular expressions r1...rm.
+   *
+   * This method tries to strip off parts of the concatenation terms. It updates
+   * the vectors such that the resulting vectors are such that the membership
+   * mchildren[n'...n''] in children[m'...m''] is equivalent to the input
+   * membership. The argument dir indicates the direction to consider, where
+   * 0 means strip off the front, 1 off the back, and < 0 off of both.
+   *
+   * If this method returns the false node, then we have inferred that the input
+   * membership is equivalent to false. Otherwise, it returns the null node.
+   *
+   * For example, given input
+   *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 0,
+   * this method updates:
+   *   mchildren = { "b", x }, children = { ("cd")* }
+   * and returns null.
+   *
+   * For example, given input
+   *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1,
+   * this method updates:
+   *   { "b" }, { [[y]] }
+   * where [[.]] denotes str.to.re, and returns null.
+   */
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
@@ -103,12 +131,24 @@ private:
   * Returns the rewritten form of node.
   */
   static Node rewriteReplace(Node node);
+  /** rewrite string less than or equal
+  * This is the entry point for post-rewriting terms n of the form
+  *   str.<=( t, s )
+  * Returns the rewritten form of n.
+  */
+  static Node rewriteStringLeq(Node n);
   /** rewrite prefix/suffix
   * This is the entry point for post-rewriting terms n of the form
   *   str.prefixof( s, t ) / str.suffixof( s, t )
   * Returns the rewritten form of node.
   */
   static Node rewritePrefixSuffix(Node node);
+  /** rewrite str.code
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.code( t )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStringCode(Node node);
 
   /** gets the "vector form" of term n, adds it to c.
   * For example:
@@ -356,6 +396,57 @@ private:
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= 0 (if strict is false) or
+   * assumption |= a > 0 (if strict is true), where assumption is an equality
+   * assumption. The assumption must be in rewritten form.
+   *
+   * Example:
+   *
+   * checkEntailArithWithEqAssumption(x + (str.len y) = 0, -x, false) = true
+   *
+   * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
+   */
+  static bool checkEntailArithWithEqAssumption(Node assumption,
+                                               Node a,
+                                               bool strict = false);
+
+  /**
+   * Checks whether assumption |= a >= b (if strict is false) or
+   * assumption |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumption
+   * must be in rewritten form. Assumption may be an equality or an inequality.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumption(x + (str.len y) = 0, 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumption(Node assumption,
+                                             Node a,
+                                             Node b,
+                                             bool strict = false);
+
+  /**
+   * Checks whether assumptions |= a >= b (if strict is false) or
+   * assumptions |= a > b (if strict is true). The function returns true if it
+   * can be shown that the entailment holds and false otherwise. Assumptions
+   * must be in rewritten form. Assumptions may be an equalities or an
+   * inequalities.
+   *
+   * Example:
+   *
+   * checkEntailArithWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
+   *
+   * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   */
+  static bool checkEntailArithWithAssumptions(std::vector<Node> assumptions,
+                                              Node a,
+                                              Node b,
+                                              bool strict = false);
+
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
    * then ret is a rational constant and
@@ -386,6 +477,23 @@ private:
   static Node mkSubstrChain(Node base,
                             const std::vector<Node>& ss,
                             const std::vector<Node>& ls);
+
+  /**
+   * Overapproximates the possible values of node n. This overapproximation
+   * assumes that n can return a value x or the empty string and tries to find
+   * the simplest x such that this holds. In the general case, x is the same as
+   * the input n. This overapproximation can be used to sort terms with the
+   * same possible values in string concatenation for example.
+   *
+   * Example:
+   *
+   * getStringOrEmpty( (str.replace "" x y) ) --> y because (str.replace "" x y)
+   * either returns y or ""
+   *
+   * getStringOrEmpty( (str.substr "ABC" x y) ) --> (str.substr "ABC" x y)
+   * because the function could not compute a simpler
+   */
+  static Node getStringOrEmpty(Node n);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

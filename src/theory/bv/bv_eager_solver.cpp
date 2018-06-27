@@ -2,9 +2,9 @@
 /*! \file bv_eager_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Paul Meng, Tim King
+ **   Liana Hadarean, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,9 +15,11 @@
  **/
 
 #include "theory/bv/bv_eager_solver.h"
+
 #include "options/bv_options.h"
 #include "proof/bitvector_proof.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/aig_bitblaster.h"
+#include "theory/bv/bitblast/eager_bitblaster.h"
 
 using namespace std;
 

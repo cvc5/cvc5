@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Paul Meng, Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -420,6 +420,7 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 public:
   ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
+  ~ConjectureGenerator();
 
   /* needs check */
   bool needsCheck(Theory::Effort e) override;
@@ -427,9 +428,6 @@ public:
   void reset_round(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /* Called for new quantifiers */
-  void registerQuantifier(Node q) override;
-  void assertNode(Node n) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "ConjectureGenerator"; }
   // options

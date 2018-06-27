@@ -2,9 +2,9 @@
 /*! \file bounded_integers.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -146,8 +146,7 @@ public:
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
-  void registerQuantifier(Node q) override;
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
   void assertNode(Node n) override;
   Node getNextDecisionRequest(unsigned& priority) override;
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }

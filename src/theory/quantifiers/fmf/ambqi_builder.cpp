@@ -2,9 +2,9 @@
 /*! \file ambqi_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -605,10 +605,6 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
       construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
     }
     Assert( is_normalized() );
-    //if( !is_normalized() ){
-    //  std::cout << "NON NORMALIZED DEFINITION" << std::endl;
-    //  exit( 10 );
-    //}
     return true;
   }else if( varChCount==1 && ( n.getKind()==EQUAL && !n[0].getType().isBoolean() ) ){
     Trace("ambqi-check-debug2") << "Expand variable child..." << std::endl;
@@ -748,6 +744,11 @@ QModelBuilder( c, qe ){
 //------------------------model construction----------------------------
 
 bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
+  if (!m->areFunctionValuesEnabled())
+  {
+    // nothing to do if no functions
+    return true;
+  }
   Trace("ambqi-debug") << "process build model " << std::endl;
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelAbs* fm = f->asFirstOrderModelAbs();

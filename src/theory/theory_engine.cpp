@@ -232,7 +232,8 @@ void TheoryEngine::finishInit() {
     d_curr_model_builder = d_quantEngine->getModelBuilder();
     d_curr_model = d_quantEngine->getModel();
   } else {
-    d_curr_model = new theory::TheoryModel(d_userContext, "DefaultModel", true);
+    d_curr_model = new theory::TheoryModel(
+        d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
@@ -314,7 +315,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
-  d_bvToBoolPreprocessor(),
   d_theoryAlternatives(),
   d_attr_handle(),
   d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
@@ -334,7 +334,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
 
-  d_iteUtilities = new ITEUtilities(d_tform_remover.getContainsVisitor());
+  d_iteUtilities = new ITEUtilities();
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -393,6 +393,10 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         d_sharedTerms.addEqualityToPropagate(preprocessed);
       }
 
+      // the atom should not have free variables
+      Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
+                      << std::endl;
+      Assert(!preprocessed.hasFreeVar());
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);
@@ -609,7 +613,8 @@ void TheoryEngine::check(Theory::Effort effort) {
           }
         }
       }
-      if( ! d_inConflict && ! needCheck() ){
+      if (!d_inConflict)
+      {
         if(d_logicInfo.isQuantified()) {
           // quantifiers engine must check at last call effort
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
@@ -639,7 +644,14 @@ void TheoryEngine::check(Theory::Effort effort) {
         AlwaysAssert(d_curr_model->isBuiltSuccess());
         if (options::produceModels())
         {
-          d_curr_model_builder->debugCheckModel(d_curr_model);
+          // if we are incomplete, there is no guarantee on the model.
+          // thus, we do not check the model here. (related to #1693)
+          // we also don't debug-check the model if the checkModels()
+          // is not enabled.
+          if (!d_incomplete && options::checkModels())
+          {
+            d_curr_model_builder->debugCheckModel(d_curr_model);
+          }
           // Do post-processing of model from the theories (used for THEORY_SEP
           // to construct heap model)
           postProcessModel(d_curr_model);
@@ -1049,9 +1061,15 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
   Node newTerm;
-  if (theoryOf(term)->ppDontRewriteSubterm(term)) {
+  // do not rewrite inside quantifiers
+  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS
+      || term.getKind() == kind::CHOICE
+      || term.getKind() == kind::LAMBDA)
+  {
     newTerm = Rewriter::rewrite(term);
-  } else {
+  }
+  else
+  {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
       newNode << term.getOperator();
@@ -1449,6 +1467,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   return !d_inConflict;
 }
 
+const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType().isComparableTo(b.getType()));
@@ -1975,27 +1994,10 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.liftBvToBool(assertions, new_assertions);
-}
-
-void TheoryEngine::ppBoolToBv(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.lowerBoolToBv(assertions, new_assertions);
-}
-
-bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-  return bv_theory->applyAbstraction(assertions, new_assertions);
-}
-
-void TheoryEngine::mkAckermanizationAssertions(std::vector<Node>& assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-  bv_theory->mkAckermanizationAssertions(assertions);
-}
-
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
-  if (!d_tform_remover.containsTermITE(assertion)) {
+  if (!d_iteUtilities->containsTermITE(assertion))
+  {
     return assertion;
   } else {
     Node result = d_iteUtilities->simpITE(assertion);
@@ -2036,7 +2038,6 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
         d_iteUtilities->clear();
         Rewriter::clearCaches();
-        d_tform_remover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
       }
@@ -2047,7 +2048,8 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
      && !options::incrementalSolving() ){
     if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains = *d_tform_remover.getContainsVisitor();
+      ContainsTermITEVisitor& contains =
+          *(d_iteUtilities->getContainsVisitor());
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
       bool anyItes = false;
       for(size_t i = 0;  i < assertions.size(); ++i){

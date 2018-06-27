@@ -439,15 +439,6 @@ header = "options/quantifiers_options.h"
   help       = "selection mode for representatives in quantifiers engine"
 
 [[option]]
-  name       = "instRelevantCond"
-  category   = "regular"
-  long       = "inst-rlv-cond"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add relevancy conditions for instantiations"
-
-[[option]]
   name       = "fullSaturateQuant"
   category   = "regular"
   long       = "full-saturate-quant"
@@ -888,6 +879,15 @@ header = "options/quantifiers_options.h"
 ### Synthesis options
 
 [[option]]
+  name       = "sygusInference"
+  category   = "regular"
+  long       = "sygus-inference"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
+
+[[option]]
   name       = "ceGuidedInst"
   category   = "regular"
   long       = "cegqi"
@@ -960,12 +960,20 @@ header = "options/quantifiers_options.h"
   help       = "abort if synthesis conjecture is not single invocation"
 
 [[option]]
-  name       = "sygusPbe"
+  name       = "sygusUnif"
   category   = "regular"
-  long       = "sygus-pbe"
+  long       = "sygus-unif"
+  type       = "bool"
+  default    = "false"
+  help       = "Unification-based function synthesis"
+
+[[option]]
+  name       = "sygusBoolIteReturnConst"
+  category   = "regular"
+  long       = "sygus-bool-ite-return-const"
   type       = "bool"
   default    = "true"
-  help       = "sygus advanced pruning based on examples"
+  help       = "Only use Boolean constants for return values in unification-based function synthesis"
 
 [[option]]
   name       = "sygusQePreproc"
@@ -975,6 +983,14 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "use quantifier elimination as a preprocessing step for sygus"
+
+[[option]]
+  name       = "sygusRepairConst"
+  category   = "regular"
+  long       = "sygus-repair-const"
+  type       = "bool"
+  default    = "true"
+  help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
   name       = "sygusMinGrammar"
@@ -990,7 +1006,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-add-const-grammar"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
   help       = "statically add constants appearing in conjecture to grammars"
 
@@ -1017,11 +1033,20 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-inv-templ=MODE"
   type       = "CVC4::theory::quantifiers::SygusInvTemplMode"
-  default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_NONE"
+  default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_POST"
   handler    = "stringToSygusInvTemplMode"
   includes   = ["options/quantifiers_modes.h"]
   read_only  = true
-  help       = "template mode for sygus invariant synthesis"
+  help       = "template mode for sygus invariant synthesis (weaken pre-condition, strengthen post-condition, or none)"
+
+[[option]]
+  name       = "sygusInvTemplWhenSyntax"
+  category   = "regular"
+  long       = "sygus-inv-templ-when-sg"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "use invariant templates (with solution reconstruction) for syntax guided problems"
 
 [[option]]
   name       = "sygusInvAutoUnfold"
@@ -1033,49 +1058,39 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which automatically unfolds transition systems for directly solving invariant synthesis problems"
 
 [[option]]
-  name       = "sygusUnifCondSol"
+  name       = "sygusUnifPbe"
   category   = "regular"
-  long       = "sygus-unif-csol"
+  long       = "sygus-pbe"
+  type       = "bool"
+  default    = "true"
+  help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
+
+[[option]]
+  name       = "sygusEvalUnfold"
+  category   = "regular"
+  long       = "sygus-eval-unfold"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "enable new approach which unifies conditional solutions"
+  help       = "do unfolding of sygus evaluation functions"
 
 [[option]]
-  name       = "sygusDirectEval"
+  name       = "sygusEvalUnfoldBool"
   category   = "regular"
-  long       = "sygus-direct-eval"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "direct unfolding of evaluation functions"
-
-[[option]]
-  name       = "sygusUnfoldBool"
-  category   = "regular"
-  long       = "sygus-unfold-bool"
+  long       = "sygus-eval-unfold-bool"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "do unfolding of Boolean evaluation functions that appear in refinement lemmas"
 
 [[option]]
-  name       = "sygusCRefEval"
+  name       = "sygusRefEval"
   category   = "regular"
-  long       = "sygus-cref-eval"
+  long       = "sygus-ref-eval"
   type       = "bool"
   default    = "true"
   read_only  = true
   help       = "direct evaluation of refinement lemmas for conflict analysis"
-
-[[option]]
-  name       = "sygusCRefEvalMinExp"
-  category   = "regular"
-  long       = "sygus-cref-eval-min-exp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use min explain for direct evaluation of refinement lemmas for conflict analysis"
 
 [[option]]
   name       = "sygusStream"
@@ -1086,6 +1101,14 @@ header = "options/quantifiers_options.h"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
+  name       = "sygusExtRew"
+  category   = "regular"
+  long       = "sygus-ext-rew"
+  type       = "bool"
+  default    = "true"
+  help       = "use extended rewriter for sygus"
+
+[[option]]
   name       = "cegisSample"
   category   = "regular"
   long       = "cegis-sample=MODE"
@@ -1094,6 +1117,14 @@ header = "options/quantifiers_options.h"
   handler    = "stringToCegisSampleMode"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
+
+[[option]]
+  name       = "sygusEvalOpt"
+  category   = "regular"
+  long       = "sygus-eval-opt"
+  type       = "bool"
+  default    = "true"
+  help       = "use optimized approach for evaluation in sygus"
 
 # Internal uses of sygus
 
@@ -1115,12 +1146,44 @@ header = "options/quantifiers_options.h"
   help       = "use sygus to enumerate candidate rewrite rules via sampling"
 
 [[option]]
+  name       = "sygusRewSynthFilterOrder"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-order"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on variable ordering"
+
+[[option]]
+  name       = "sygusRewSynthFilterMatch"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-match"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on matching"
+
+[[option]]
+  name       = "sygusRewSynthFilterCong"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-cong"
+  type       = "bool"
+  default    = "true"
+  help       = "filter candidate rewrites based on congruence"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
   type       = "bool"
   default    = "false"
   help       = "use sygus to verify the correctness of rewrite rules via sampling"
+
+[[option]]
+  name       = "sygusRewVerifyAbort"
+  category   = "regular"
+  long       = "sygus-rr-verify-abort"
+  type       = "bool"
+  default    = "true"
+  help       = "abort when sygus-rr-verify finds an instance of unsoundness"
 
 [[option]]
   name       = "sygusSamples"
@@ -1139,6 +1202,21 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "when applicable, use grammar for choosing sample points"
 
+[[option]]
+  name       = "sygusRewSynthAccel"
+  category   = "regular"
+  long       = "sygus-rr-synth-accel"
+  type       = "bool"
+  default    = "false"
+  help       = "add dynamic symmetry breaking clauses based on candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthCheck"
+  category   = "regular"
+  long       = "sygus-rr-synth-check"
+  type       = "bool"
+  default    = "false"
+  help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 # CEGQI applied to general quantified formulas
 
@@ -1357,6 +1435,14 @@ header = "options/quantifiers_options.h"
   help       = "linearize adder chains for variables"
 
 [[option]]
+  name       = "cbqiBvSolveNl"
+  category   = "regular"
+  long       = "cbqi-bv-solve-nl"
+  type       = "bool"
+  default    = "false"
+  help       = "try to solve non-linear bv literals using model value projections"
+
+[[option]]
   name       = "cbqiBvConcInv"
   category   = "regular"
   long       = "cbqi-bv-concat-inv"
@@ -1440,17 +1526,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "perform anti-skolemization for quantified formulas"
-
-### e-unification options
-
-[[option]]
-  name       = "quantEqualityEngine"
-  category   = "regular"
-  long       = "quant-ee"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "maintain congrunce closure over universal equalities"
 
 ### Higher-order options
 

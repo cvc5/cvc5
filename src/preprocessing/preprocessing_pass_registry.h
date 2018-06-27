@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_registry.h
  ** \verbatim
  ** Top contributors (to current version):
- **  Justin Xu
+ **   Justin Xu, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,11 +24,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "decision/decision_engine.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "theory/arith/pseudoboolean_proc.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -45,6 +41,11 @@ class PreprocessingPassRegistry {
    * Retrieves a pass with a given name from registry.
    */
   PreprocessingPass* getPass(const std::string& ppName);
+
+  /**
+   Clears all passes from the registry.
+   */
+  void unregisterPasses();
 
  private:
   bool hasPass(const std::string& ppName);

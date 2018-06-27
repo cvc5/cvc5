@@ -2,9 +2,9 @@
 /*! \file tptp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Francois Bobot, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,6 +46,11 @@ class Tptp : public Parser {
   std::vector< Expr > getFreeVar();
 
   Expr convertRatToUnsorted(Expr expr);
+  /**
+   * Returns a free constant corresponding to the string str. We ensure that
+   * these constants are one-to-one with str. We assert that all these free
+   * constants are pairwise distinct before issuing satisfiability queries.
+   */
   Expr convertStrToUnsorted(std::string str);
 
   // CNF and FOF are unsorted so we define this common type.
@@ -97,7 +102,15 @@ class Tptp : public Parser {
   * For example, if the role is "conjecture", then the return value is the negation of expr.
   */
   Expr getAssertionExpr(FormulaRole fr, Expr expr);
-  
+
+  /** get assertion for distinct constants
+   *
+   * This returns a node of the form distinct( k1, ..., kn ) where k1, ..., kn
+   * are the distinct constants introduced by this parser (see
+   * convertStrToUnsorted) if n>1, or null otherwise.
+   */
+  Expr getAssertionDistinctConstants();
+
   /** returns the appropriate AssertCommand, given a role, expression expr to assert,
   * and information about the assertion.
   *   The assertion expr is literally what should be asserted (it is already been processed

@@ -2,9 +2,9 @@
 /*! \file bitvector_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Guy Katz, Liana Hadarean, Paul Meng
+ **   Liana Hadarean, Guy Katz, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,7 @@
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
-#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 
@@ -51,6 +51,7 @@ void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   d_resolutionProof = new LFSCBVSatProof(solver, &d_fakeContext, "bb", true);
 }
 
+theory::TheoryId BitVectorProof::getTheoryId() { return theory::THEORY_BV; }
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                   context::Context* cnf) {
   Assert (d_cnfProof == NULL);

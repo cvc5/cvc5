@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_bitblast.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Tim King
+ **   Liana Hadarean, Dejan Jovanovic, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,14 +20,13 @@
 
 #include <unordered_map>
 
-#include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class LazyBitblaster;
+class TLazyBitblaster;
 class AbstractionModule;
 class BVQuickCheck;
 class QuickXPlain;
