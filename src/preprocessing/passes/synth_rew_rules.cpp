@@ -26,7 +26,11 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-// attribute for whether we have computed rewrite rules for a given term
+// Attribute for whether we have computed rewrite rules for a given term.
+// Notice that this currently must be a global attribute, since if
+// we've computed rewrites for a term, we should not compute rewrites for the
+// same term in a subcall to another SmtEngine (for instance, when using
+// "exact" equivalence checking).
 struct SynthRrComputedAttributeId
 {
 };
