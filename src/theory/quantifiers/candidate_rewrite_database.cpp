@@ -288,9 +288,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)
-    : d_nsamples(nsamples)
+    : d_vars(vars.begin(), vars.end()),
+    d_nsamples(nsamples)
 {
-  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 }
 
 bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)

@@ -9,16 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief synth_rew_rules
+ ** \brief A technique for synthesizing candidate rewrites of the form t1 = t2,
+ ** where t1 and t2 are subterms of the input.
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H_
-#define __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H_
-
-#include <map>
-#include <string>
-#include <vector>
-#include "expr/node.h"
+#ifndef __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
+#define __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -49,4 +45,4 @@ class SynthRewRulesPass : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H_ */
+#endif /* __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H */

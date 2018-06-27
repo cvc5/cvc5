@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief synth_rew_rules pass
+ ** \brief A technique for synthesizing candidate rewrites of the form t1 = t2,
+ ** where t1 and t2 are subterms of the input.
  **/
 
 #include "preprocessing/passes/synth_rew_rules.h"
@@ -50,13 +51,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   
   // initialize the candidate rewrite
   std::unique_ptr<theory::quantifiers::CandidateRewriteDatabaseGen> crdg;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
   // two passes: the first collects the variables, the second registers the
   // terms
   for (unsigned r = 0; r < 2; r++)
   {
-    std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
-    std::vector<TNode> visit;
+    visited.clear();
+    visit.clear();
     TNode cur;
     for (const Node& a : assertions)
     {

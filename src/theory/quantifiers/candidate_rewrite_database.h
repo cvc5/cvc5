@@ -18,7 +18,9 @@
 #define __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 
 #include <map>
+#include <memory>
 #include <unordered_set>
+#include <vector>
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
