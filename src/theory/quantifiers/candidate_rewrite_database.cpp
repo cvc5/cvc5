@@ -174,7 +174,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             Node refv = v;
             // if a bound variable, map to the skolem we introduce before
             // looking up the model value
-            if( v.getKind()==BOUND_VARIABLE )
+            if (v.getKind() == BOUND_VARIABLE)
             {
               std::map<Node, unsigned>::iterator itf = fv_index.find(v);
               if (itf == fv_index.end())
@@ -188,9 +188,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
                 refv = sks[itf->second];
               }
             }
-            if( val.isNull() )
+            if (val.isNull())
             {
-              Assert( !refv.isNull() && refv.getKind()!=BOUND_VARIABLE );
+              Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
               val = Node::fromExpr(rrChecker.getValue(refv.toExpr()));
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
@@ -288,8 +288,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)
-    : d_vars(vars.begin(), vars.end()),
-    d_nsamples(nsamples)
+    : d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
 {
 }
 

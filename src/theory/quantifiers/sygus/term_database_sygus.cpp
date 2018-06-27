@@ -15,15 +15,15 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 #include "base/cvc4_check.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "printer/printer.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "options/base_options.h"
-#include "printer/printer.h"
 
 using namespace CVC4::kind;
 

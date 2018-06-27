@@ -26,10 +26,13 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-//attribute for whether we have computed rewrite rules for a given term
-struct SynthRrComputedAttributeId {};
-typedef expr::Attribute<SynthRrComputedAttributeId, bool> SynthRrComputedAttribute;
-  
+// attribute for whether we have computed rewrite rules for a given term
+struct SynthRrComputedAttributeId
+{
+};
+typedef expr::Attribute<SynthRrComputedAttributeId, bool>
+    SynthRrComputedAttribute;
+
 SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "synth-rr"){};
 
@@ -48,7 +51,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   // attribute to mark processed terms
   SynthRrComputedAttribute srrca;
-  
+
   // initialize the candidate rewrite
   std::unique_ptr<theory::quantifiers::CandidateRewriteDatabaseGen> crdg;
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
@@ -70,9 +73,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         visit.pop_back();
         it = visited.find(cur);
         // if already processed, ignore
-        if( cur.getAttribute(SynthRrComputedAttribute()) )
+        if (cur.getAttribute(SynthRrComputedAttribute()))
         {
-          Trace("synth-rr-pass-debug") << "...already processed " << cur << std::endl;
+          Trace("synth-rr-pass-debug")
+              << "...already processed " << cur << std::endl;
         }
         else if (it == visited.end())
         {
@@ -108,7 +112,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           }
           if (childrenValid)
           {
-            Trace("synth-rr-pass-debug") << "...children are valid, check rewrites..." << std::endl;
+            Trace("synth-rr-pass-debug")
+                << "...children are valid, check rewrites..." << std::endl;
             if (r == 0)
             {
               if (cur.isVar())
@@ -120,7 +125,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             {
               Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
               // mark as processed
-              cur.setAttribute(srrca,true);
+              cur.setAttribute(srrca, true);
               bool ret = crdg->addTerm(cur, *nodeManagerOptions.getOut());
               Trace("synth-rr-pass-debug") << "...return " << ret << std::endl;
               // if we want only rewrites of minimal size terms, we would set
