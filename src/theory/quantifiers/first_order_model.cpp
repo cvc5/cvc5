@@ -901,7 +901,8 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       std::vector< Node > children;
       for( unsigned j=0; j<cond.getNumChildren(); j++) {
         TypeNode tn = vars[j].getType();
-        if( !isStar(cond[j]) ){
+        if (!isStar(cond[j]))
+        {
           Node c = getRepresentative( cond[j] );
           c = getRepresentative( c );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );

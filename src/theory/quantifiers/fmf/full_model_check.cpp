@@ -91,13 +91,16 @@ int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>
   }else{
     int minIndex = -1;
     Node st = m->getStar(inst[index].getType());
-    if(d_child.find(st)!=d_child.end()) {
-      minIndex = d_child[st].getGeneralizationIndex(m, inst, index+1);
+    if (d_child.find(st) != d_child.end())
+    {
+      minIndex = d_child[st].getGeneralizationIndex(m, inst, index + 1);
     }
     Node cc = inst[index];
-    if( cc!=st && d_child.find( cc )!=d_child.end() ){
-      int gindex = d_child[ cc ].getGeneralizationIndex(m, inst, index+1);
-      if (minIndex==-1 || (gindex!=-1 && gindex<minIndex) ){
+    if (cc != st && d_child.find(cc) != d_child.end())
+    {
+      int gindex = d_child[cc].getGeneralizationIndex(m, inst, index + 1);
+      if (minIndex == -1 || (gindex != -1 && gindex < minIndex))
+      {
         minIndex = gindex;
       }
     }
@@ -218,7 +221,8 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
     bool last_all_stars = true;
     Node cc = d_cond[d_cond.size()-1];
     for( unsigned i=0; i<cc.getNumChildren(); i++ ){
-      if( !m->isStar(cc[i]) ){
+      if (!m->isStar(cc[i]))
+      {
         last_all_stars = false;
         break;
       }
@@ -425,10 +429,13 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node ri = fm->getRepresentative( c[i] );
         children.push_back(ri);
         bool isStar = false;
-        if (fm->isModelBasisTerm(ri) ) {
-          ri = fm->getStar( ri.getType() );
+        if (fm->isModelBasisTerm(ri))
+        {
+          ri = fm->getStar(ri.getType());
           isStar = true;
-        }else{
+        }
+        else
+        {
           hasNonStar = true;
         }
         if( !isStar && !ri.isConst() ){
@@ -554,7 +561,8 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
   else if(fm->isStar(n) && dispStar) {
     Trace(tr) << "*";
   }
-  else{
+  else
+  {
     TypeNode tn = n.getType();
     if( tn.isSort() && d_rep_ids.find(tn)!=d_rep_ids.end() ){
       if (d_rep_ids[tn].find(n)!=d_rep_ids[tn].end()) {
@@ -1059,7 +1067,8 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     if( !v.isNull() && v.getKind()==kind::BOUND_VARIABLE ){
       int j = fm->getVariableId(f, v);
       Trace("fmc-uf-process") << v << " is variable #" << j << std::endl;
-      if (!fm->isStar(cond[j+1])) {
+      if (!fm->isStar(cond[j + 1]))
+      {
         v = cond[j+1];
       }else{
         bind_var = true;
@@ -1068,22 +1077,30 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     if (bind_var) {
       Trace("fmc-uf-process") << "bind variable..." << std::endl;
       int j = fm->getVariableId(f, v);
-      Assert( fm->isStar(cond[j+1]) );
-      for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin(); it != curr.d_child.end(); ++it) {
-        cond[j+1] = it->first;
-        doUninterpretedCompose2(fm, f, entries, index+1, cond, val, it->second);
+      Assert(fm->isStar(cond[j + 1]));
+      for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin();
+           it != curr.d_child.end();
+           ++it)
+      {
+        cond[j + 1] = it->first;
+        doUninterpretedCompose2(
+            fm, f, entries, index + 1, cond, val, it->second);
       }
-      cond[j+1] = fm->getStar(v.getType());
+      cond[j + 1] = fm->getStar(v.getType());
     }else{
       if( !v.isNull() ){
-        if (curr.d_child.find(v)!=curr.d_child.end()) {
+        if (curr.d_child.find(v) != curr.d_child.end())
+        {
           Trace("fmc-uf-process") << "follow value..." << std::endl;
-          doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[v]);
+          doUninterpretedCompose2(
+              fm, f, entries, index + 1, cond, val, curr.d_child[v]);
         }
         Node st = fm->getStar(v.getType());
-        if (curr.d_child.find(st)!=curr.d_child.end()) {
+        if (curr.d_child.find(st) != curr.d_child.end())
+        {
           Trace("fmc-uf-process") << "follow star..." << std::endl;
-          doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[st]);
+          doUninterpretedCompose2(
+              fm, f, entries, index + 1, cond, val, curr.d_child[st]);
         }
       }
     }
@@ -1136,8 +1153,8 @@ int FullModelChecker::isCompat( FirstOrderModelFmc * fm, std::vector< Node > & c
   Trace("fmc-debug3") << "isCompat " << c << std::endl;
   Assert(cond.size()==c.getNumChildren()+1);
   for (unsigned i=1; i<cond.size(); i++) {
-
-    if( cond[i]!=c[i-1] && !fm->isStar(cond[i]) && !fm->isStar(c[i-1]) ) {
+    if (cond[i] != c[i - 1] && !fm->isStar(cond[i]) && !fm->isStar(c[i - 1]))
+    {
       return 0;
     }
   }
@@ -1149,9 +1166,12 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   Assert(cond.size()==c.getNumChildren()+1);
   for (unsigned i=1; i<cond.size(); i++) {
     if( cond[i]!=c[i-1] ) {
-      if( fm->isStar(cond[i]) ){
-        cond[i] = c[i-1];
-      }else if( !fm->isStar(c[i-1]) ){
+      if (fm->isStar(cond[i]))
+      {
+        cond[i] = c[i - 1];
+      }
+      else if (!fm->isStar(c[i - 1]))
+      {
         return false;
       }
     }
@@ -1174,7 +1194,7 @@ void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::v
   //get function symbol for f
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
-    Node ts = fm->getStar( f[0][i].getType() );
+    Node ts = fm->getStar(f[0][i].getType());
     Assert( ts.getType()==f[0][i].getType() );
     cond.push_back(ts);
   }
