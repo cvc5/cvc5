@@ -334,12 +334,6 @@ prop-eq \n\
 conflict \n\
 + Apply QCF algorithm to find conflicts only.\n\
 \n\
-partial \n\
-+ Apply QCF algorithm to instantiate heuristically as well. \n\
-\n\
-mc \n\
-+ Apply QCF algorithm in a complete way, so that a model is ensured when it fails. \n\
-\n\
 ";
 
 const std::string OptionsHandler::s_userPatModeHelp = "\
@@ -697,8 +691,6 @@ theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
     return theory::quantifiers::QCF_CONFLICT_ONLY;
   } else if(optarg ==  "default" || optarg == "prop-eq") {
     return theory::quantifiers::QCF_PROP_EQ;
-  } else if(optarg == "partial") {
-    return theory::quantifiers::QCF_PARTIAL;
   } else if(optarg ==  "help") {
     puts(s_qcfModeHelp.c_str());
     exit(1);
