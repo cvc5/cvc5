@@ -97,12 +97,12 @@ class SygusInvarianceTest
 class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EvalSygusInvarianceTest() {}
+  EvalSygusInvarianceTest() : d_kind(kind::UNDEFINED_KIND) {}
 
   /** initialize this invariance test
-    * This sets d_conj/d_var/d_result, where
+    * This sets d_terms/d_var/d_result, where
     * we are checking whether:
-    *   d_conj { d_var -> n } ----> d_result.
+    *   <d_kind>(d_terms) { d_var -> n } ----> d_result.
     * for terms n.
     */
   void init(Node conj, Node var, Node res);
@@ -111,16 +111,28 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
   Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
 
  protected:
-  /** does d_conj{ d_var -> nvn } still rewrite to d_result? */
+  /** does d_terms{ d_var -> nvn } still rewrite to d_result? */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
   /** the formulas we are evaluating */
-  std::vector<Node> d_conj;
+  std::vector<Node> d_terms;
   /** the variable */
   TNode d_var;
   /** the result of the evaluation */
   Node d_result;
+  /** the parent kind we are checking, undefined if size(d_terms) is 1. */
+  Kind d_kind;
+  /** whether we are conjunctive
+   * 
+   * If this flag is true, then the evaluation tests:
+   *   d_terms[1] {d_var -> n} = d_result ... d_term[k] {d_var -> n} = d_result
+   * should be processed conjunctively, that is, 
+   * <d_kind>(d_terms) { d_var -> n } = d_result only if each of the above
+   * holds. If this flag is false, then these tests are interpreted 
+   * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
+   */
+  bool d_is_conjunctive;
   /** cache of n -> the simplified form of eval( n ) */
   std::unordered_map<Node, Node, NodeHashFunction> d_visited;
 };
