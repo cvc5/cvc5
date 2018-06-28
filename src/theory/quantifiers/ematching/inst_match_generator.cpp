@@ -174,20 +174,23 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
 
     //create candidate generator
     if( Trigger::isAtomicTrigger( d_match_pattern ) ){
-      if( d_match_pattern.getKind()==APPLY_CONSTRUCTOR )
+      if (d_match_pattern.getKind() == APPLY_CONSTRUCTOR)
       {
         // 1-constructors have a trivially way of generating candidates in a
         // given equivalence class
-        const Datatype& dt = static_cast<DatatypeType>(d_match_pattern.getType().toType()).getDatatype();
-        if( dt.getNumConstructors()==1 )
+        const Datatype& dt =
+            static_cast<DatatypeType>(d_match_pattern.getType().toType())
+                .getDatatype();
+        if (dt.getNumConstructors() == 1)
         {
-          d_cg = new inst::CandidateGeneratorConsExpand( qe, d_match_pattern );
+          d_cg = new inst::CandidateGeneratorConsExpand(qe, d_match_pattern);
         }
       }
-      if( d_cg==nullptr )
+      if (d_cg == nullptr)
       {
-        //we will be scanning lists trying to find d_match_pattern.getOperator()
-        d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern );
+        // we will be scanning lists trying to find
+        // d_match_pattern.getOperator()
+        d_cg = new inst::CandidateGeneratorQE(qe, d_match_pattern);
       }
       //if matching on disequality, inform the candidate generator not to match on eqc
       if( d_pattern.getKind()==NOT && d_pattern[0].getKind()==EQUAL ){

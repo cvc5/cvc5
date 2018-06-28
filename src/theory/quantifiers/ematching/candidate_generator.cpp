@@ -112,7 +112,8 @@ Node CandidateGeneratorQE::getNextCandidate(){
     }
   }else if( d_mode==cand_term_ident ){
     Debug("cand-gen-qe") << "...get next candidate identity" << std::endl;
-    if( !d_eqc.isNull() ){
+    if (!d_eqc.isNull())
+    {
       Node n = d_eqc;
       d_eqc = Node::null();
       if( isLegalOpCandidate( n ) ){
@@ -234,15 +235,18 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   return Node::null();
 }
 
-CandidateGeneratorConsExpand::CandidateGeneratorConsExpand( QuantifiersEngine* qe, Node mpat ) : 
-CandidateGeneratorQE( qe, mpat ){
-  Assert( mpat.getKind()==APPLY_CONSTRUCTOR );
+CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(
+    QuantifiersEngine* qe, Node mpat)
+    : CandidateGeneratorQE(qe, mpat)
+{
+  Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
   d_mpat_type = static_cast<DatatypeType>(mpat.getType().toType());
 }
 
-void CandidateGeneratorConsExpand::reset( Node eqc ) {
+void CandidateGeneratorConsExpand::reset(Node eqc)
+{
   d_term_iter = 0;
-  if( eqc.isNull() )
+  if (eqc.isNull())
   {
     d_mode = cand_term_db;
   }
@@ -250,36 +254,36 @@ void CandidateGeneratorConsExpand::reset( Node eqc ) {
   {
     d_eqc = eqc;
     d_mode = cand_term_ident;
-    Assert( d_eqc.getType().toType()==d_mpat_type ); 
+    Assert(d_eqc.getType().toType() == d_mpat_type);
   }
 }
 
-Node CandidateGeneratorConsExpand::getNextCandidate() 
+Node CandidateGeneratorConsExpand::getNextCandidate()
 {
   // get the next term from the base class
   Node curr = CandidateGeneratorQE::getNextCandidate();
-  if( curr.isNull() || ( curr.hasOperator() && curr.getOperator()==d_op ) )
+  if (curr.isNull() || (curr.hasOperator() && curr.getOperator() == d_op))
   {
     return curr;
   }
   // expand it
-  NodeManager * nm = NodeManager::currentNM();
-  std::vector< Node > children;
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> children;
   const Datatype& dt = d_mpat_type.getDatatype();
-  Assert( dt.getNumConstructors()==1 );
+  Assert(dt.getNumConstructors() == 1);
   children.push_back(d_op);
-  for( unsigned i=0, nargs = dt[0].getNumArgs(); i<nargs; i++ )
+  for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {
-    Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL,
-        Node::fromExpr(dt[0].getSelectorInternal(d_mpat_type, i)),
-        curr);
+    Node sel =
+        nm->mkNode(APPLY_SELECTOR_TOTAL,
+                   Node::fromExpr(dt[0].getSelectorInternal(d_mpat_type, i)),
+                   curr);
     children.push_back(sel);
   }
-  return nm->mkNode( APPLY_CONSTRUCTOR, children );
+  return nm->mkNode(APPLY_CONSTRUCTOR, children);
 }
 
-bool CandidateGeneratorConsExpand::isLegalOpCandidate( Node n ) 
-{ 
+bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
+{
   return isLegalCandidate(n);
 }
