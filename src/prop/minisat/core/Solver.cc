@@ -707,32 +707,40 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           Clause& c = ca[confl];
           max_resolution_level = std::max(max_resolution_level, c.level());
 
-          if (c.removable())
-              claBumpActivity(c);
+          if (c.removable()) claBumpActivity(c);
         }
 
-        for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size(); j < size; j++){
-            Lit q = ca[confl][j];
+        for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size();
+             j < size;
+             j++)
+        {
+          Lit q = ca[confl][j];
 
-            if (!seen[var(q)] && level(var(q)) > 0) {
-                varBumpActivity(var(q));
-                seen[var(q)] = 1;
-                if (level(var(q)) >= decisionLevel())
-                    pathC++;
-                else
-                    out_learnt.push(q);
-            } else {
-              // We could be resolving a literal propagated by a clause/theory using
-              // information from a higher level
-              if (!seen[var(q)] && level(var(q)) == 0) {
-                max_resolution_level = std::max(max_resolution_level, user_level(var(q)));
-              }
-
-              // FIXME: can we do it lazily if we actually need the proof?
-              if (level(var(q)) == 0) {
-                PROOF( ProofManager::getSatProof()->resolveOutUnit(q); )
-              }
+          if (!seen[var(q)] && level(var(q)) > 0)
+          {
+            varBumpActivity(var(q));
+            seen[var(q)] = 1;
+            if (level(var(q)) >= decisionLevel())
+              pathC++;
+            else
+              out_learnt.push(q);
+          }
+          else
+          {
+            // We could be resolving a literal propagated by a clause/theory
+            // using information from a higher level
+            if (!seen[var(q)] && level(var(q)) == 0)
+            {
+              max_resolution_level =
+                  std::max(max_resolution_level, user_level(var(q)));
             }
+
+            // FIXME: can we do it lazily if we actually need the proof?
+            if (level(var(q)) == 0)
+            {
+              PROOF(ProofManager::getSatProof()->resolveOutUnit(q);)
+            }
+          }
         }
 
         // Select next clause to look at:
