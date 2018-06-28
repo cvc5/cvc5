@@ -642,24 +642,6 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
     }else{
       return chEnt;
     }
-/*
-    if( chEnt ){
-      //check if it is entailed
-      Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
-      std::pair<bool, Node> et = p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, rew );
-      ++(p->d_statistics.d_entailment_checks);
-      Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
-      if( !et.first ){
-        Trace("qcf-tconstraint-debug") << "...cannot show entailment of " << rew << "." << std::endl;
-        return false;
-      }else{
-        return true;
-      }
-    }else{
-      Trace("qcf-tconstraint-debug") << "...does not need to be entailed." << std::endl;
-      return true;
-    }
-*/
   }else{
     Trace("qcf-tconstraint-debug") << "...rewrites to true." << std::endl;
     return true;
