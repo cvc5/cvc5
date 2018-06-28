@@ -21,7 +21,7 @@
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
