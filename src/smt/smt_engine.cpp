@@ -1929,8 +1929,7 @@ void SmtEngine::setDefaults() {
     options::finiteModelFind.set( true );
     if( ! options::mbqiMode.wasSetByUser() ||
         ( options::mbqiMode()!=quantifiers::MBQI_NONE &&
-          options::mbqiMode()!=quantifiers::MBQI_FMC &&
-          options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL ) ){
+          options::mbqiMode()!=quantifiers::MBQI_FMC ) ){
       //if bounded integers are set, use no MBQI by default
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }

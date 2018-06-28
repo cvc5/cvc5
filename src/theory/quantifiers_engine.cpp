@@ -247,7 +247,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
+    if( options::mbqiMode()==quantifiers::MBQI_FMC ||
         options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBound() ){
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
