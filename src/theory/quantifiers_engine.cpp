@@ -21,7 +21,7 @@
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
@@ -799,8 +799,6 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       // this call
       Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
     }
-    // TODO (#2020): remove this
-    Node ceBody = d_term_util->getInstConstantBody(f);
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
     AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);

@@ -19,6 +19,7 @@
 
 #include <unordered_set>
 
+#include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
@@ -53,6 +54,8 @@ class TermDbSygus {
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  /** get the evaluator */
+  Evaluator* getEvaluator() { return d_eval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
@@ -182,7 +185,10 @@ class TermDbSygus {
    * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
    * list for type tn (see Datatype::getSygusVarList).
    */
-  Node evaluateBuiltin(TypeNode tn, Node bn, std::vector<Node>& args);
+  Node evaluateBuiltin(TypeNode tn,
+                       Node bn,
+                       std::vector<Node>& args,
+                       bool tryEval = true);
   /** evaluate with unfolding
    *
    * n is any term that may involve sygus evaluation functions. This function
@@ -222,6 +228,8 @@ class TermDbSygus {
   std::unique_ptr<SygusExplain> d_syexp;
   /** extended rewriter */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
+  /** evaluator */
+  std::unique_ptr<Evaluator> d_eval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities

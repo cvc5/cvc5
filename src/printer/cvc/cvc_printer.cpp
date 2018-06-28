@@ -907,6 +907,17 @@ void CvcPrinter::toStream(
       out << "INST_PATTERN_LIST";
       break;
 
+    // string operators
+    case kind::STRING_CONCAT:
+      out << "CONCAT";
+      break;
+    case kind::STRING_CHARAT:
+      out << "CHARAT";
+      break;
+    case kind::STRING_LENGTH:
+      out << "LENGTH";
+      break;
+
     default:
       Warning() << "Kind printing not implemented for the case of " << n.getKind() << endl;
       break;
