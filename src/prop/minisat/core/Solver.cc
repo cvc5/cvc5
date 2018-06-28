@@ -698,14 +698,21 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     PROOF( ProofManager::getSatProof()->startResChain(confl); )
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
-        Clause& c = ca[confl];
-        max_resolution_level = std::max(max_resolution_level, c.level());
 
-        if (c.removable())
-            claBumpActivity(c);
+        {
+          // ! IMPORTANT !
+          // It is not safe to use c after this block of code because
+          // resolveOutUnit() below may lead to clauses being allocated, which
+          // in turn may lead to reallocations that invalidate c.
+          Clause& c = ca[confl];
+          max_resolution_level = std::max(max_resolution_level, c.level());
 
-        for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
-            Lit q = c[j];
+          if (c.removable())
+              claBumpActivity(c);
+        }
+
+        for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size(); j < size; j++){
+            Lit q = ca[confl][j];
 
             if (!seen[var(q)] && level(var(q)) > 0) {
                 varBumpActivity(var(q));
