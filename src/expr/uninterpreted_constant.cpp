@@ -34,15 +34,7 @@ UninterpretedConstant::UninterpretedConstant(Type type, Integer index)
 }
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
-  stringstream ss;
-  ss << uc.getType();
-  string t = ss.str();
-  size_t i = 0;
-  // replace everything that isn't in [a-zA-Z0-9_] with an _
-  while((i = t.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_", i)) != string::npos) {
-    t.replace(i, 1, 1, '_');
-  }
-  return out << "uc_" << t << '_' << uc.getIndex();
+  return out << "uc_" << uc.getType() << '_' << uc.getIndex();
 }
 
 }/* CVC4 namespace */

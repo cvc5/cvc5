@@ -267,7 +267,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
-      out << '@' << uc;
+      std::stringstream ss;
+      ss << '@' << uc;
+      out << maybeQuoteSymbol(ss.str());
       break;
     }
 
