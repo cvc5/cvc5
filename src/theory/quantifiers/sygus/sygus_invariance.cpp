@@ -66,14 +66,14 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
         << "  ......from : " << conj_subs << std::endl;
     if (conj_subs_unfold != d_result)
     {
-      if( d_is_conjunctive )
+      if (d_is_conjunctive)
       {
         // ti /--> true  implies and( t1, ..., tn ) /--> true, where "/-->" is
         // "does not evaluate to".
         return false;
       }
     }
-    else if( !d_is_conjunctive )
+    else if (!d_is_conjunctive)
     {
       // ti --> true  implies or( t1, ..., tn ) --> true
       return true;

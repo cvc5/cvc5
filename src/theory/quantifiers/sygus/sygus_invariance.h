@@ -100,11 +100,11 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
   EvalSygusInvarianceTest() : d_kind(kind::UNDEFINED_KIND) {}
 
   /** initialize this invariance test
-    * This sets d_terms/d_var/d_result, where
-    * we are checking whether:
-    *   <d_kind>(d_terms) { d_var -> n } ----> d_result.
-    * for terms n.
-    */
+   * This sets d_terms/d_var/d_result, where
+   * we are checking whether:
+   *   <d_kind>(d_terms) { d_var -> n } ----> d_result.
+   * for terms n.
+   */
   void init(Node conj, Node var, Node res);
 
   /** do evaluate with unfolding, using the cache of this class */
@@ -124,12 +124,12 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
   /** the parent kind we are checking, undefined if size(d_terms) is 1. */
   Kind d_kind;
   /** whether we are conjunctive
-   * 
+   *
    * If this flag is true, then the evaluation tests:
    *   d_terms[1] {d_var -> n} = d_result ... d_term[k] {d_var -> n} = d_result
-   * should be processed conjunctively, that is, 
+   * should be processed conjunctively, that is,
    * <d_kind>(d_terms) { d_var -> n } = d_result only if each of the above
-   * holds. If this flag is false, then these tests are interpreted 
+   * holds. If this flag is false, then these tests are interpreted
    * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
    */
   bool d_is_conjunctive;
