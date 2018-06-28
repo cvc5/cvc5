@@ -197,12 +197,19 @@ void MatchTrie::clear()
 
 // the number of d_drewrite objects we have allocated (to avoid name conflicts)
 static unsigned drewrite_counter = 0;
-  
-CandidateRewriteFilter::CandidateRewriteFilter() : d_ss(nullptr), d_tds(nullptr), d_use_sygus_type( false ), d_drewrite(nullptr), d_ssenm(*this) {
 
+CandidateRewriteFilter::CandidateRewriteFilter()
+    : d_ss(nullptr),
+      d_tds(nullptr),
+      d_use_sygus_type(false),
+      d_drewrite(nullptr),
+      d_ssenm(*this)
+{
 }
 
-void CandidateRewriteFilter::initialize(SygusSampler* ss, TermDbSygus* tds, bool useSygusType)
+void CandidateRewriteFilter::initialize(SygusSampler* ss,
+                                        TermDbSygus* tds,
+                                        bool useSygusType)
 {
   d_ss = ss;
   d_use_sygus_type = false;
@@ -240,8 +247,8 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     bool nor = d_ss->isOrdered(bn);
     bool eqor = d_ss->isOrdered(beq_n);
-    Trace("sygus-synth-rr-debug") << "Ordered? : " << nor << " " << eqor
-                                  << std::endl;
+    Trace("sygus-synth-rr-debug")
+        << "Ordered? : " << nor << " " << eqor << std::endl;
     if (eqor || nor)
     {
       // if only one is ordered, then we require that the ordered one's
@@ -356,9 +363,9 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
 }
 
 bool CandidateRewriteFilter::notify(Node s,
-                             Node n,
-                             std::vector<Node>& vars,
-                             std::vector<Node>& subs)
+                                    Node n,
+                                    std::vector<Node>& vars,
+                                    std::vector<Node>& subs)
 {
   Assert(!d_curr_pair_rhs.isNull());
   std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
@@ -399,7 +406,6 @@ bool CandidateRewriteFilter::notify(Node s,
   return true;
 }
 
-
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

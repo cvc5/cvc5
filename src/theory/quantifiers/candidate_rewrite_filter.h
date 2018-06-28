@@ -78,8 +78,8 @@ class MatchTrie
   Node d_data;
 };
 
-/** candidate rewrite filter 
- * 
+/** candidate rewrite filter
+ *
  * This class is responsible for various filtering techniques for candidate
  * rewrite rules, including:
  * (1) filtering based on variable ordering,
@@ -87,11 +87,11 @@ class MatchTrie
  * (3) filtering based on matching.
  * For details, see Reynolds et al "Rewrites for SMT Solvers using Syntax-Guided
  * Enumeration", SMT 2018.
- * 
- * In the following, we assume that the registerRelevantPair method of this 
+ *
+ * In the following, we assume that the registerRelevantPair method of this
  * class been called for some pairs of terms. For each such call to
  * registerRelevantPair( t, s ), we say that (t,s) and (s,t) are "relevant
- * pairs". A relevant pair ( t, s ) typically corresponds to a (candidate) 
+ * pairs". A relevant pair ( t, s ) typically corresponds to a (candidate)
  * rewrite t = s.
  */
 class CandidateRewriteFilter
@@ -100,7 +100,7 @@ class CandidateRewriteFilter
   CandidateRewriteFilter();
 
   /** initialize
-   * 
+   *
    * Initializes this class, ss is the sygus sampler that this class is
    * filtering rewrite rule pairs for, and tds is a point to the sygus term
    * database utility class.
@@ -112,13 +112,13 @@ class CandidateRewriteFilter
    */
   void initialize(SygusSampler* ss, TermDbSygus* tds, bool useSygusType);
   /** filter pair
-   * 
+   *
    * This method returns true if the pair (n, eq_n) should be filtered. If it
-   * is not filtered, then the caller may choose to call 
+   * is not filtered, then the caller may choose to call
    * registerRelevantPair(n, eq_n) below, although it may not, say if it finds
    * another reason to discard the pair.
    *
-   * If this method returns false, then for all previous relevant pairs 
+   * If this method returns false, then for all previous relevant pairs
    * ( a, eq_a ), we have that n = eq_n is not an instance of a = eq_a
    * modulo symmetry of equality, nor is n = eq_n derivable from the set of
    * all previous relevant pairs. The latter is determined by the d_drewrite
@@ -145,12 +145,12 @@ class CandidateRewriteFilter
 
  private:
   /** pointer to the sygus sampler that this class is filtering rewrites for */
-  SygusSampler * d_ss;
+  SygusSampler* d_ss;
   /** pointer to the sygus term database, used if d_use_sygus_type is true */
   TermDbSygus* d_tds;
   /** whether we are registering sygus terms with this class */
   bool d_use_sygus_type;
-  
+
   //----------------------------congruence filtering
   /** a (dummy) user context, used for d_drewrite */
   context::UserContext d_fake_context;
@@ -172,7 +172,9 @@ class CandidateRewriteFilter
     CandidateRewriteFilter& d_sse;
 
    public:
-    CandidateRewriteFilterNotifyMatch(CandidateRewriteFilter& sse) : d_sse(sse) {}
+    CandidateRewriteFilterNotifyMatch(CandidateRewriteFilter& sse) : d_sse(sse)
+    {
+    }
     /** notify match */
     bool notify(Node n,
                 Node s,
@@ -208,8 +210,8 @@ class CandidateRewriteFilter
   //----------------------------end match filtering
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS___H */

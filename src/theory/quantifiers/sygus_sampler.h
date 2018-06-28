@@ -120,7 +120,7 @@ class SygusSampler : public LazyTrieEvaluator
    * diverge, or -1 if no such sample point exists.
    */
   int getDiffSamplePointIndex(Node a, Node b);
-  
+
   //--------------------------queries about terms
   /** is contiguous
    *
@@ -147,7 +147,7 @@ class SygusSampler : public LazyTrieEvaluator
    */
   bool containsFreeVariables(Node a, Node b, bool strict = false);
   //--------------------------end queries about terms
-  
+
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;

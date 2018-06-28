@@ -38,7 +38,6 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
       d_ext_rewrite(nullptr),
       d_using_sygus(false)
 {
-
 }
 void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
                                           TypeNode tn,
@@ -84,7 +83,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
   {
     is_unique_term = false;
     // should we filter the pair?
-    if (!d_crewrite_filter.filterPair( sol, eq_sol ))
+    if (!d_crewrite_filter.filterPair(sol, eq_sol))
     {
       // get the actual term
       Node solb = sol;
