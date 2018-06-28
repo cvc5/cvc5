@@ -24,6 +24,11 @@
 namespace CVC4 {
 namespace preprocessing {
 
+AssertionPipeline::AssertionPipeline(context::Context* context)
+    : d_substitutionsIndex(context, 0), d_topLevelSubstitutions(context)
+{
+}
+
 void AssertionPipeline::replace(size_t i, Node n) {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
   d_nodes[i] = n;

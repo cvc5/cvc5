@@ -19,8 +19,11 @@
 namespace CVC4 {
 namespace preprocessing {
 
-PreprocessingPassContext::PreprocessingPassContext(SmtEngine* smt)
-    : d_smt(smt) {}
+PreprocessingPassContext::PreprocessingPassContext(
+    SmtEngine* smt, ResourceManager* resourceManager)
+    : d_smt(smt), d_resourceManager(resourceManager)
+{
+}
 
 void PreprocessingPassContext::widenLogic(theory::TheoryId id)
 {
