@@ -33,38 +33,10 @@ bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
-void CandidateGeneratorQueue::addCandidate( Node n ) {
-  if( isLegalCandidate( n ) ){
-    d_candidates.push_back( n );
-  }
-}
-
-void CandidateGeneratorQueue::reset( Node eqc ){
-  if( d_candidate_index>0 ){
-    d_candidates.erase( d_candidates.begin(), d_candidates.begin() + d_candidate_index );
-    d_candidate_index = 0;
-  }
-  if( !eqc.isNull() ){
-    d_candidates.push_back( eqc );
-  }
-}
-Node CandidateGeneratorQueue::getNextCandidate(){
-  if( d_candidate_index<(int)d_candidates.size() ){
-    Node n = d_candidates[d_candidate_index];
-    d_candidate_index++;
-    return n;
-  }else{
-    d_candidate_index = 0;
-    d_candidates.clear();
-    return Node::null();
-  }
-}
-
 CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node pat ) :
 CandidateGenerator( qe ), d_term_iter( -1 ){
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
   Assert( !d_op.isNull() );
-  d_op_arity = pat.getNumChildren();
 }
 
 void CandidateGeneratorQE::resetInstantiationRound(){
@@ -83,22 +55,16 @@ void CandidateGeneratorQE::reset( Node eqc ){
       if( ee->hasTerm( eqc ) ){
         quantifiers::TermArgTrie * tat = d_qe->getTermDatabase()->getTermArgTrie( eqc, d_op );
         if( tat ){
-#if 1
           //create an equivalence class iterator in eq class eqc
           Node rep = ee->getRepresentative( eqc );
           d_eqc_iter = eq::EqClassIterator( rep, ee );
           d_mode = cand_term_eqc;
-#else
-          d_tindex.push_back( tat );
-          d_tindex_iter.push_back( tat->d_data.begin() );
-          d_mode = cand_term_tindex;
-#endif     
         }else{
           d_mode = cand_term_none;
         }   
       }else{
         //the only match is this term itself
-        d_n = eqc;
+        d_eqc = eqc;
         d_mode = cand_term_ident;
       }
     }
@@ -144,41 +110,11 @@ Node CandidateGeneratorQE::getNextCandidate(){
         return n;
       }
     }
-  }else if( d_mode==cand_term_tindex ){
-    Debug("cand-gen-qe") << "...get next candidate in tindex " << d_op << " " << d_op_arity << std::endl;
-    //increment the term index iterator
-    if( !d_tindex.empty() ){
-      //populate the vector
-      while( d_tindex_iter.size()<=d_op_arity ){
-        Assert( !d_tindex_iter.empty() );
-        Assert( !d_tindex_iter.back()->second.d_data.empty() );
-        d_tindex.push_back( &(d_tindex_iter.back()->second) );
-        d_tindex_iter.push_back( d_tindex_iter.back()->second.d_data.begin() );
-      }
-      //get the current node
-      Assert( d_tindex_iter.back()->second.hasNodeData() );
-      Node n = d_tindex_iter.back()->second.getNodeData();
-      Debug("cand-gen-qe") << "...returning " << n << std::endl;
-      Assert( !n.isNull() );
-      Assert( isLegalOpCandidate( n ) );
-      //increment
-      bool success = false;
-      do{
-        ++d_tindex_iter.back();
-        if( d_tindex_iter.back()==d_tindex.back()->d_data.end() ){
-          d_tindex.pop_back();
-          d_tindex_iter.pop_back();
-        }else{
-          success = true;
-        }
-      }while( !success && !d_tindex.empty() );
-      return n;   
-    } 
   }else if( d_mode==cand_term_ident ){
     Debug("cand-gen-qe") << "...get next candidate identity" << std::endl;
-    if( !d_n.isNull() ){
-      Node n = d_n;
-      d_n = Node::null();
+    if( !d_eqc.isNull() ){
+      Node n = d_eqc;
+      d_eqc = Node::null();
       if( isLegalOpCandidate( n ) ){
         return n;
       }
@@ -196,9 +132,7 @@ CandidateGeneratorQELitEq::CandidateGeneratorQELitEq( QuantifiersEngine* qe, Nod
     }
   }
 }
-void CandidateGeneratorQELitEq::resetInstantiationRound(){
 
-}
 void CandidateGeneratorQELitEq::reset( Node eqc ){
   if( d_match_gterm.isNull() ){
     d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
@@ -233,10 +167,6 @@ CandidateGenerator( qe ), d_match_pattern( mpat ){
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
-void CandidateGeneratorQELitDeq::resetInstantiationRound(){
-
-}
-
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
   Node false_term = d_qe->getEqualityQuery()->getEngine()->getRepresentative( NodeManager::currentNM()->mkConst<bool>(false) );
   d_eqc_false = eq::EqClassIterator( false_term, d_qe->getEqualityQuery()->getEngine() );
@@ -267,10 +197,6 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
   d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
   d_index = mpat.getAttribute(InstVarNumAttribute());
   d_firstTime = false;
-}
-
-void CandidateGeneratorQEAll::resetInstantiationRound() {
-
 }
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
@@ -306,4 +232,54 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     return d_qe->getInstantiate()->getTermForType(d_match_pattern_type);
   }
   return Node::null();
+}
+
+CandidateGeneratorConsExpand::CandidateGeneratorConsExpand( QuantifiersEngine* qe, Node mpat ) : 
+CandidateGeneratorQE( qe, mpat ){
+  Assert( mpat.getKind()==APPLY_CONSTRUCTOR );
+  d_mpat_type = static_cast<DatatypeType>(mpat.getType().toType());
+}
+
+void CandidateGeneratorConsExpand::reset( Node eqc ) {
+  d_term_iter = 0;
+  if( eqc.isNull() )
+  {
+    d_mode = cand_term_db;
+  }
+  else
+  {
+    d_eqc = eqc;
+    d_mode = cand_term_ident;
+    Assert( d_eqc.getType().toType()==d_mpat_type ); 
+  }
+}
+
+Node CandidateGeneratorConsExpand::getNextCandidate() 
+{
+  // get the next term from the base class
+  Node curr = CandidateGeneratorQE::getNextCandidate();
+  if( curr.isNull() || ( curr.hasOperator() && curr.getOperator()==d_op ) )
+  {
+    return curr;
+  }
+  // expand it
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector< Node > children;
+  const Datatype& dt = d_mpat_type.getDatatype();
+  Assert( dt.getNumConstructors()==1 );
+  children.push_back(d_op);
+  for( unsigned i=0, nargs = dt[0].getNumArgs(); i<nargs; i++ )
+  {
+    Node sel = nm->mkNode(
+        APPLY_SELECTOR_TOTAL,
+        Node::fromExpr(dt[0].getSelectorInternal(d_mpat_type, i)),
+        curr);
+    children.push_back(sel);
+  }
+  return nm->mkNode( APPLY_CONSTRUCTOR, children );
+}
+
+bool CandidateGeneratorConsExpand::isLegalOpCandidate( Node n ) 
+{ 
+  return isLegalCandidate(n);
 }
