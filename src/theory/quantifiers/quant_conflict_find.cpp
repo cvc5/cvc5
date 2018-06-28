@@ -1265,11 +1265,14 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     TNode f = getMatchOperator( p, d_n );
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
     TermArgTrie * qni = p->getTermDatabase()->getTermArgTrie( Node::null(), f );
-    if( qni==nullptr || qni->empty() ){
+    if (qni == nullptr || qni->empty())
+    {
       //inform irrelevant quantifiers
       p->setIrrelevantFunction( f );
-    }else{
-      d_qn.push_back( qni );
+    }
+    else
+    {
+      d_qn.push_back(qni);
     }
     d_matched_basis = false;
   }else if( d_type==typ_tsym || d_type==typ_tconstraint ){
@@ -1504,7 +1507,9 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
     Debug("qcf-match") << "    ...finished matching for " << d_n << ", success = " << success << std::endl;
     d_wasSet = success;
     return success;
-  }else if( d_type==typ_formula ){
+  }
+  else if (d_type == typ_formula)
+  {
     bool success = false;
     if( d_child_counter<0 ){
       if( d_child_counter<-1 ){
@@ -1575,7 +1580,8 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
               d_child_counter++;
               getChild( d_child_counter==5 ? 2 : (d_tgt==(d_child_counter==1) ? 1 : 2) )->reset( p, d_tgt, qi );
             }else{
-              if( d_child_counter==4 ){
+              if (d_child_counter == 4)
+              {
                 d_child_counter = -1;
               }else{
                 d_child_counter +=2;
@@ -1925,7 +1931,8 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
 inline QuantConflictFind::Effort QcfEffortEnd() {
-  return options::qcfMode()==QCF_PROP_EQ ? QuantConflictFind::EFFORT_PROP_EQ : QuantConflictFind::EFFORT_CONFLICT;
+  return options::qcfMode() == QCF_PROP_EQ ? QuantConflictFind::EFFORT_PROP_EQ
+                                           : QuantConflictFind::EFFORT_CONFLICT;
 }
 
 }  // namespace
