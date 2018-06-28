@@ -1600,6 +1600,7 @@ REG2_TESTS = \
 	regress2/ooo.rf6.smt2 \
 	regress2/ooo.tag10.smt2 \
 	regress2/piVC_5581bd.smt2 \
+	regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \

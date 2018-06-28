@@ -13,7 +13,11 @@
  **/
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
+
+#include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
