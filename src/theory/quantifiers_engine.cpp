@@ -799,8 +799,6 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       // this call
       Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
     }
-    // TODO (#2020): remove this
-    Node ceBody = d_term_util->getInstConstantBody(f);
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
     AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);

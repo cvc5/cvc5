@@ -658,11 +658,20 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             d_crrdb.find(prog);
         if (its == d_crrdb.end())
         {
-          d_crrdb[prog].initialize(
+          d_crrdb[prog].initializeSygus(
               d_qe, d_candidates[i], options::sygusSamples(), true);
           its = d_crrdb.find(prog);
         }
-        is_unique_term = d_crrdb[prog].addTerm(sol, out);
+        bool rew_print = false;
+        is_unique_term = d_crrdb[prog].addTerm(sol, out, rew_print);
+        if (rew_print)
+        {
+          ++(cei->d_statistics.d_candidate_rewrites_print);
+        }
+        if (!is_unique_term)
+        {
+          ++(cei->d_statistics.d_candidate_rewrites);
+        }
       }
       if (is_unique_term)
       {
