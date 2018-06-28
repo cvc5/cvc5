@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass_context.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Mathias Preiner
+ **   Justin Xu, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
