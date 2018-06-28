@@ -1483,7 +1483,10 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
-  if (var.isConst()) return var;  // FIXME: HACK!!!
+  if (var.isConst()){
+    // the model value of a constant must be itself
+    return var;
+  }
   Assert(d_sharedTerms.isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
