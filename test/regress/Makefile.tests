@@ -1262,6 +1262,7 @@ REG1_TESTS = \
 	regress1/quantifiers/constfunc.cvc \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
+	regress1/quantifiers/f993-loss-easy.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
 	regress1/quantifiers/fp-cegqi-unsat.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
