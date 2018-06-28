@@ -1483,7 +1483,8 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
-  if (var.isConst()){
+  if (var.isConst())
+  {
     // the model value of a constant must be itself
     return var;
   }
