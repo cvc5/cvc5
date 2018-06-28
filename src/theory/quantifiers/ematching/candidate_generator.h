@@ -130,24 +130,9 @@ class CandidateGeneratorQE : public CandidateGenerator
 
 };
 
-class CandidateGeneratorQELitEq : public CandidateGenerator
-{
- private:
-  //the equality classes iterator
-  eq::EqClassesIterator d_eq;
-  //equality you are trying to match equalities for
-  Node d_match_pattern;
-  Node d_match_gterm;
-  bool d_do_mgt;
-
- public:
-  CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat );
-  /** reset */
-  void reset(Node eqc) override;
-  /** get next candidate */
-  Node getNextCandidate() override;
-};
-
+/**
+ * Generate terms based on disequality.
+ */
 class CandidateGeneratorQELitDeq : public CandidateGenerator
 {
  private:

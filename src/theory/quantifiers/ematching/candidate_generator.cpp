@@ -124,43 +124,6 @@ Node CandidateGeneratorQE::getNextCandidate(){
   return Node::null();
 }
 
-CandidateGeneratorQELitEq::CandidateGeneratorQELitEq( QuantifiersEngine* qe, Node mpat ) :
-  CandidateGenerator( qe ), d_match_pattern( mpat ){
-  Assert( mpat.getKind()==EQUAL );
-  for( unsigned i=0; i<2; i++ ){
-    if( !quantifiers::TermUtil::hasInstConstAttr(mpat[i]) ){
-      d_match_gterm = mpat[i];
-    }
-  }
-}
-
-void CandidateGeneratorQELitEq::reset( Node eqc ){
-  if( d_match_gterm.isNull() ){
-    d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
-  }else{
-    d_do_mgt = true;
-  }
-}
-Node CandidateGeneratorQELitEq::getNextCandidate(){
-  if( d_match_gterm.isNull() ){
-    while( !d_eq.isFinished() ){
-      Node n = (*d_eq);
-      ++d_eq;
-      if( n.getType().isComparableTo( d_match_pattern[0].getType() ) ){
-        //an equivalence class with the same type as the pattern, return reflexive equality
-        return NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), n, n );
-      }
-    }
-  }else{
-    if( d_do_mgt ){
-      d_do_mgt = false;
-      return NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), d_match_gterm, d_match_gterm );
-    }
-  }
-  return Node::null();
-}
-
-
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
 CandidateGenerator( qe ), d_match_pattern( mpat ){
 

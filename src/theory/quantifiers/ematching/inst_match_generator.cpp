@@ -212,13 +212,9 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }else if( d_match_pattern.getKind()==EQUAL &&
               d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
-      if( d_pattern.getKind()!=NOT ){
-        //candidates will be all equalities
-        d_cg = new inst::CandidateGeneratorQELitEq( qe, d_match_pattern );
-      }else{
-        //candidates will be all disequalities
-        d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
-      }
+      Assert( d_pattern.getKind()==NOT );
+      //candidates will be all disequalities
+      d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
     }else{
       Trace("inst-match-gen-warn") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
     }
