@@ -80,6 +80,7 @@
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
+#include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -2727,6 +2728,8 @@ void SmtEnginePrivate::finishInit() {
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
+  std::unique_ptr<SynthRewRulesPass> srrProc(
+      new SynthRewRulesPass(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -2743,6 +2746,7 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
+  d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -4321,6 +4325,12 @@ void SmtEnginePrivate::processAssertions() {
   if( options::pbRewrites() ){
     d_preprocessingPassRegistry.getPass("pseudo-boolean-processor")
         ->apply(&d_assertions);
+  }
+
+  if (options::synthRrPrep())
+  {
+    // do candidate rewrite rule synthesis
+    d_preprocessingPassRegistry.getPass("synth-rr")->apply(&d_assertions);
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
