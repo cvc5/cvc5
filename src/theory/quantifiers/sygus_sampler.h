@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include "theory/quantifiers/dynamic_rewrite.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 
 namespace CVC4 {
 namespace theory {
@@ -69,14 +70,20 @@ class SygusSampler : public LazyTrieEvaluator
 
   /** initialize
    *
-   * tn : the return type of terms we will be testing with this class
-   * vars : the variables we are testing substitutions for
-   * nsamples : number of sample points this class will test.
+   * tn : the return type of terms we will be testing with this class,
+   * vars : the variables we are testing substitutions for,
+   * nsamples : number of sample points this class will test,
+   * unique_type_ids : if this is set to true, then we consider each variable
+   * in vars to have a unique "type id". A type id is a finer-grained notion of
+   * type that is used to determine when a rewrite rule is redundant.
    */
-  void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
+  virtual void initialize(TypeNode tn,
+                          std::vector<Node>& vars,
+                          unsigned nsamples,
+                          bool unique_type_ids = false);
   /** initialize sygus
    *
-   * tds : pointer to sygus database,
+   * qe : pointer to quantifiers engine,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f,
    * nsamples : number of sample points this class will test,
@@ -85,10 +92,10 @@ class SygusSampler : public LazyTrieEvaluator
    * terms of the analog of the type of f, that is, the builtin type that
    * f's type encodes in the deep embedding.
    */
-  void initializeSygus(TermDbSygus* tds,
-                       Node f,
-                       unsigned nsamples,
-                       bool useSygusType);
+  virtual void initializeSygus(TermDbSygus* tds,
+                               Node f,
+                               unsigned nsamples,
+                               bool useSygusType);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
@@ -145,6 +152,8 @@ class SygusSampler : public LazyTrieEvaluator
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
+  /** term enumerator object (used for random sampling) */
+  TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
   /** data structure to check duplication of sample points */
@@ -278,6 +287,8 @@ class SygusSampler : public LazyTrieEvaluator
 class NotifyMatch
 {
  public:
+  virtual ~NotifyMatch() {}
+
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.
@@ -328,11 +339,19 @@ class SygusSamplerExt : public SygusSampler
 {
  public:
   SygusSamplerExt();
-  /** initialize extended */
-  void initializeSygusExt(QuantifiersEngine* qe,
-                          Node f,
-                          unsigned nsamples,
-                          bool useSygusType);
+  /** initialize */
+  void initializeSygus(TermDbSygus* tds,
+                       Node f,
+                       unsigned nsamples,
+                       bool useSygusType) override;
+  /** set dynamic rewriter
+   *
+   * This tells this class to use the dynamic rewriter object dr. This utility
+   * is used to query whether pairs of terms are already entailed to be
+   * equal based on previous rewrite rules.
+   */
+  void setDynamicRewriter(DynamicRewriter* dr);
+
   /** register term n with this sampler database
    *
    *  For each call to registerTerm( t, ... ) that returns s, we say that
@@ -364,7 +383,6 @@ class SygusSamplerExt : public SygusSampler
    * d_drewrite utility, or is an instance of a previous pair
    */
   Node registerTerm(Node n, bool forceKeep = false) override;
-
   /** register relevant pair
    *
    * This should be called after registerTerm( n ) returns eq_n.
@@ -373,8 +391,8 @@ class SygusSamplerExt : public SygusSampler
   void registerRelevantPair(Node n, Node eq_n);
 
  private:
-  /** dynamic rewriter class */
-  std::unique_ptr<DynamicRewriter> d_drewrite;
+  /** pointer to the dynamic rewriter class */
+  DynamicRewriter* d_drewrite;
 
   //----------------------------match filtering
   /**

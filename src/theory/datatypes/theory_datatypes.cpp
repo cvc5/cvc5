@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -188,7 +188,6 @@ void TheoryDatatypes::check(Effort e) {
     Trace("datatypes-debug") << "Check for splits " << e << endl;
     do {
       d_addedFact = false;
-      bool added_split = false;
       std::map< TypeNode, Node > rec_singletons;
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
@@ -284,32 +283,25 @@ void TheoryDatatypes::check(Effort e) {
               }
 
               if( needSplit ) {
-                Assert(consIndex != -1 || dt.isSygus());
-                if (options::dtBinarySplit() && consIndex != -1)
-                {
-                  Node test = DatatypesRewriter::mkTester(n, consIndex, dt);
-                  Trace("dt-split")
-                      << "*************Split for possible constructor "
-                      << dt[consIndex] << " for " << n << endl;
-                  test = Rewriter::rewrite(test);
+                Assert( consIndex!=-1 || dt.isSygus() );
+                if( options::dtBinarySplit() && consIndex!=-1 ){
+                  Node test = DatatypesRewriter::mkTester( n, consIndex, dt );
+                  Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
+                  test = Rewriter::rewrite( test );
                   NodeBuilder<> nb(kind::OR);
                   nb << test << test.notNode();
                   Node lemma = nb;
-                  doSendLemma(lemma);
-                  d_out->requirePhase(test, true);
+                  doSendLemma( lemma );
+                  d_out->requirePhase( test, true );
                 }else{
-                  Trace("dt-split")
-                      << "*************Split for constructors on " << n << endl;
+                  Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                   Node lemma = DatatypesRewriter::mkSplit(n, dt);
-                  Trace("dt-split-debug")
-                      << "Split lemma is : " << lemma << std::endl;
-                  // doSendLemma( lemma );
-                  d_out->lemma(lemma, false, false, true);
+                  Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
+                  d_out->lemma( lemma, false, false, true );
+                  d_addedLemma = true;
                 }
-                added_split = true;
-                if (!options::dtBlastSplits())
-                {
-                  return;
+                if( !options::dtBlastSplits() ){
+                  break;
                 }
               }else{
                 Trace("dt-split-debug") << "Do not split constructor for " << n << " : " << n.getType() << " " << dt.getNumConstructors() << std::endl;
@@ -321,11 +313,20 @@ void TheoryDatatypes::check(Effort e) {
         }
         ++eqcs_i;
       }
-      if( added_split ){
-        return;
+      if (d_addedLemma)
+      {
+        // clear pending facts: we added a lemma, so internal inferences are
+        // no longer necessary
+        d_pending.clear();
+        d_pending_exp.clear();
       }
-      Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
-      flushPendingFacts();
+      else
+      {
+        // we did not add a lemma, process internal inferences. This loop
+        // will repeat.
+        Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
+        flushPendingFacts();
+      }
       /*
       if( !d_conflict ){
         if( options::dtRewriteErrorSel() ){

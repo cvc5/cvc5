@@ -1,5 +1,34 @@
 This file contains a summary of important user-visible changes. 
 
+Changes since 1.5
+=================
+
+New Features:
+* A new theory of floating points.
+* Novel approach for solving quantified bit-vectors (BV).
+* Eager bit-blasting: Support for SAT solver CaDiCaL.
+* A new Gaussian Elimination preprocessing pass for the theory of bit-vectors.
+* Support for transcendental functions (sin, cos, exp). In SMT2 input, this
+  can be enabled by adding T to the logic (e.g., QF_NRAT).
+* Support for new operators in strings, including string inequality (str.<=)
+  and string code (str.code).
+* Support for automated rewrite rule generation from sygus (*.sy) inputs using
+  syntax-guided enumeration (option --sygus-rr).
+
+Improvements:
+* Incremental unsat core support.
+* Further development of rewrite rules for the theory of strings and regular
+  expressions.
+* Many optimizations for syntax-guided synthesis, including improved symmetry
+  breaking for enumerative search and specialized algorithms for
+  programming-by-examples conjectures.
+
+Changes:
+* Eager bit-blasting: Removed support for SAT solver CryptoMinisat 4, added
+  support for CryptoMinisat 5.
+* The LFSC proof checker now resides in its own repository on GitHub at
+  https://github.com/CVC4/LFSC. It is not distributed with CVC4 anymore.
+
 Changes since 1.4
 =================
 

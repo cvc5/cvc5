@@ -21,7 +21,7 @@ elif test -n "$with_cryptominisat"; then
       [path to top level of cryptominisat source tree]
     ),
     CRYPTOMINISAT_HOME="$withval",
-    [ if test -z "$CRYPTOMINISAT_HOME" && ! test -e "$ac_abs_confdir/cryptominisat5/install/bin/cryptominisat5"; then
+    [ if test -z "$CRYPTOMINISAT_HOME" && ! test -e "$ac_abs_confdir/cryptominisat5/install/bin/cryptominisat5_simple"; then
         AC_MSG_FAILURE([must give --with-cryptominisat-dir=PATH, define environment variable CRYPTOMINISAT_HOME, or use contrib/get-cryptominisat to setup cryptominisat5 for CVC4!])
       fi
     ]
@@ -29,14 +29,14 @@ elif test -n "$with_cryptominisat"; then
 
   # Check if cryptominisat5 was installed via contrib/get-cryptominisat
   AC_MSG_CHECKING([whether cryptominisat5 was already installed via contrib/get-cryptominisat])
-  if test -z "$CRYPTOMINISAT_HOME" && test -e "$ac_abs_confdir/cryptominisat5/install/bin/cryptominisat5"; then
+  if test -z "$CRYPTOMINISAT_HOME" && test -e "$ac_abs_confdir/cryptominisat5/install/bin/cryptominisat5_simple"; then
     CRYPTOMINISAT_HOME="$ac_abs_confdir/cryptominisat5"
     AC_MSG_RESULT([yes, $CRYPTOMINISAT_HOME])
   else
     AC_MSG_RESULT([no])
   fi
 
-  if ! test -d "$CRYPTOMINISAT_HOME" || ! test -x "$CRYPTOMINISAT_HOME/install/bin/cryptominisat5" ; then
+  if ! test -d "$CRYPTOMINISAT_HOME" || ! test -x "$CRYPTOMINISAT_HOME/install/bin/cryptominisat5_simple" ; then
     AC_MSG_FAILURE([either $CRYPTOMINISAT_HOME is not an cryptominisat install tree or it's not yet built])
   fi
 

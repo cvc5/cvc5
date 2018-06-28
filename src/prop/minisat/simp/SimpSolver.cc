@@ -120,7 +120,7 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
       toDimacs(); 
       return l_Undef; 
     }
-    popTrail();
+    assert(decisionLevel() == 0);
 
     vec<Var> extra_frozen;
     lbool    result = l_True;
