@@ -1504,7 +1504,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
     Debug("qcf-match") << "    ...finished matching for " << d_n << ", success = " << success << std::endl;
     d_wasSet = success;
     return success;
-  }else if( d_type==typ_formula || d_type==typ_ite_var ){
+  }else if( d_type==typ_formula ){
     bool success = false;
     if( d_child_counter<0 ){
       if( d_child_counter<-1 ){
@@ -1575,7 +1575,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
               d_child_counter++;
               getChild( d_child_counter==5 ? 2 : (d_tgt==(d_child_counter==1) ? 1 : 2) )->reset( p, d_tgt, qi );
             }else{
-              if( d_child_counter==4 || ( d_type==typ_ite_var && d_child_counter==2 ) ){
+              if( d_child_counter==4 ){
                 d_child_counter = -1;
               }else{
                 d_child_counter +=2;
@@ -1743,7 +1743,6 @@ void MatchGen::debugPrintType( const char * c, short typ, bool isTrace ) {
     case typ_pred: Trace(c) << "pred";break;
     case typ_formula: Trace(c) << "formula";break;
     case typ_var: Trace(c) << "var";break;
-    case typ_ite_var: Trace(c) << "ite_var";break;
     case typ_bool_var: Trace(c) << "bool_var";break;
     }
   }else{
@@ -1754,7 +1753,6 @@ void MatchGen::debugPrintType( const char * c, short typ, bool isTrace ) {
     case typ_pred: Debug(c) << "pred";break;
     case typ_formula: Debug(c) << "formula";break;
     case typ_var: Debug(c) << "var";break;
-    case typ_ite_var: Debug(c) << "ite_var";break;
     case typ_bool_var: Debug(c) << "bool_var";break;
     }
   }

@@ -75,7 +75,6 @@ public:
     typ_eq,
     typ_formula,
     typ_var,
-    typ_ite_var,
     typ_bool_var,
     typ_tconstraint,
     typ_tsym,
