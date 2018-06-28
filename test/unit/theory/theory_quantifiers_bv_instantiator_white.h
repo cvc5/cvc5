@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file theory_bv_bvgauss_white.h
+/*! \file theory_quantifiers_bv_instantiator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.cpp"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator.cpp"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>

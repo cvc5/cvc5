@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,7 +13,11 @@
  **/
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
+
+#include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"

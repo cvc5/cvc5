@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file dynamic_rewriter.h
+/*! \file dynamic_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
 #include <map>
 
 #include "context/cdlist.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -55,7 +54,7 @@ class DynamicRewriter
   typedef context::CDList<Node> NodeList;
 
  public:
-  DynamicRewriter(const std::string& name, QuantifiersEngine* qe);
+  DynamicRewriter(const std::string& name, context::UserContext* u);
   ~DynamicRewriter() {}
   /** inform this class that the equality a = b holds. */
   void addRewrite(Node a, Node b);
