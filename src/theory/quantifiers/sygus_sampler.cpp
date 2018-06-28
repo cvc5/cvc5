@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,8 @@ SygusSampler::SygusSampler()
 
 void SygusSampler::initialize(TypeNode tn,
                               std::vector<Node>& vars,
-                              unsigned nsamples)
+                              unsigned nsamples,
+                              bool unique_type_ids)
 {
   d_tds = nullptr;
   d_use_sygus_type = false;
@@ -53,15 +54,23 @@ void SygusSampler::initialize(TypeNode tn,
   {
     TypeNode svt = sv.getType();
     unsigned tnid = 0;
-    std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
-    if (itt == type_to_type_id.end())
+    if (unique_type_ids)
     {
-      type_to_type_id[svt] = type_id_counter;
+      tnid = type_id_counter;
       type_id_counter++;
     }
     else
     {
-      tnid = itt->second;
+      std::map<TypeNode, unsigned>::iterator itt = type_to_type_id.find(svt);
+      if (itt == type_to_type_id.end())
+      {
+        type_to_type_id[svt] = type_id_counter;
+        type_id_counter++;
+      }
+      else
+      {
+        tnid = itt->second;
+      }
     }
     Trace("sygus-sample-debug")
         << "Type id for " << sv << " is " << tnid << std::endl;
@@ -586,7 +595,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
     if (!s.isNull() && !r.isNull())
     {
       Rational sr = s.getConst<Rational>();
-      Rational rr = s.getConst<Rational>();
+      Rational rr = r.getConst<Rational>();
       if (rr.sgn() == 0)
       {
         return s;
@@ -597,7 +606,19 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
     }
   }
-  return Node::null();
+  // default: use type enumerator
+  unsigned counter = 0;
+  while (Random::getRandom().pickWithProb(0.5))
+  {
+    counter++;
+  }
+  Node ret = d_tenum.getEnumerateTerm(tn, counter);
+  if (ret.isNull())
+  {
+    // beyond bounds, return the first
+    ret = d_tenum.getEnumerateTerm(tn, 0);
+  }
+  return ret;
 }
 
 Node SygusSampler::getSygusRandomValue(TypeNode tn,
@@ -719,26 +740,21 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-SygusSamplerExt::SygusSamplerExt() : d_ssenm(*this) {}
+SygusSamplerExt::SygusSamplerExt() : d_drewrite(nullptr), d_ssenm(*this) {}
 
-void SygusSamplerExt::initializeSygusExt(QuantifiersEngine* qe,
-                                         Node f,
-                                         unsigned nsamples,
-                                         bool useSygusType)
+void SygusSamplerExt::initializeSygus(TermDbSygus* tds,
+                                      Node f,
+                                      unsigned nsamples,
+                                      bool useSygusType)
 {
-  SygusSampler::initializeSygus(
-      qe->getTermDatabaseSygus(), f, nsamples, useSygusType);
-
-  // initialize the dynamic rewriter
-  std::stringstream ss;
-  ss << f;
-  if (options::sygusRewSynthFilterCong())
-  {
-    d_drewrite =
-        std::unique_ptr<DynamicRewriter>(new DynamicRewriter(ss.str(), qe));
-  }
+  SygusSampler::initializeSygus(tds, f, nsamples, useSygusType);
   d_pairs.clear();
   d_match_trie.clear();
+}
+
+void SygusSamplerExt::setDynamicRewriter(DynamicRewriter* dr)
+{
+  d_drewrite = dr;
 }
 
 Node SygusSamplerExt::registerTerm(Node n, bool forceKeep)
@@ -896,6 +912,9 @@ bool SygusSamplerExt::notify(Node s,
     for (unsigned i = 0, size = vars.size(); i < size; i++)
     {
       Trace("sse-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
+      // TODO (#1923) ensure that we use an internal representation to
+      // ensure polymorphism is handled correctly
+      Assert(vars[i].getType().isComparableTo(subs[i].getType()));
     }
   }
   Assert(it != d_pairs.end());
