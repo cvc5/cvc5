@@ -100,8 +100,8 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
   EvalSygusInvarianceTest() : d_kind(kind::UNDEFINED_KIND) {}
 
   /** initialize this invariance test
-   * This sets d_terms/d_var/d_result, where
-   * we are checking whether:
+   *
+   * This sets d_terms/d_var/d_result, where we are checking whether:
    *   <d_kind>(d_terms) { d_var -> n } ----> d_result.
    * for terms n.
    */
