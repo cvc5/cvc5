@@ -77,6 +77,7 @@
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
+#include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
@@ -2724,6 +2725,8 @@ void SmtEnginePrivate::finishInit() {
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
+  std::unique_ptr<Rewrite> rewrite(
+      new Rewrite(d_preprocessingPassContext.get()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
@@ -2743,6 +2746,7 @@ void SmtEnginePrivate::finishInit() {
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
+  d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
@@ -4181,10 +4185,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
     dumpAssertions("pre-unconstrained-simp", d_assertions);
-    Chat() << "...doing unconstrained simplification..." << endl;
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-    }
+	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
     unconstrainedSimp();
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
     dumpAssertions("post-unconstrained-simp", d_assertions);
@@ -4200,9 +4201,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if(options::unsatCores()) {
     // special rewriting pass for unsat cores, since many of the passes below are skipped
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-    }
+	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
   } else {
     applySubstitutionsToAssertions();
   }
