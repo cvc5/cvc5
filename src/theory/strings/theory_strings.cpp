@@ -885,7 +885,8 @@ void TheoryStrings::checkExtfReductions( int effort ) {
     Assert( nr.isNull() );
     if( ret!=0 ){
       getExtTheory()->markReduced( extf[i] );
-      if( hasProcessed() ){
+      if (hasProcessed())
+      {
         return;
       }
     }
@@ -4421,7 +4422,7 @@ void TheoryStrings::checkMemberships() {
 
   Trace("regexp-debug") << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma << std::endl;
   if(!addedLemma) {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
       //check regular expression membership
       Node assertion = d_regexp_memberships[i];
@@ -4436,25 +4437,33 @@ void TheoryStrings::checkMemberships() {
         Node r = atom[1];
         std::vector< Node > rnfexp;
 
-
-        if(!x.isConst()) {
-          x = getNormalString( x, rnfexp);
+        if (!x.isConst())
+        {
+          x = getNormalString(x, rnfexp);
           changed = true;
         }
-        if(!d_regexp_opr.checkConstRegExp(r)) {
+        if (!d_regexp_opr.checkConstRegExp(r))
+        {
           r = getNormalSymRegExp(r, rnfexp);
           changed = true;
         }
-        Trace("strings-regexp-nf") << "Term " << atom << " is normalized to " << x << " IN " << r << std::endl;
-        if(changed) {
-          Node tmp = Rewriter::rewrite( nm->mkNode(kind::STRING_IN_REGEXP, x, r) );
-          if(!polarity) {
+        Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
+                                   << x << " IN " << r << std::endl;
+        if (changed)
+        {
+          Node tmp =
+              Rewriter::rewrite(nm->mkNode(kind::STRING_IN_REGEXP, x, r));
+          if (!polarity)
+          {
             tmp = tmp.negate();
           }
-          if(tmp == d_true) {
+          if (tmp == d_true)
+          {
             d_regexp_ccached.insert(assertion);
             continue;
-          } else if(tmp == d_false) {
+          }
+          else if (tmp == d_false)
+          {
             Node antec = mkRegExpAntec(assertion, mkExplain(rnfexp));
             Node conc = Node::null();
             sendLemma(antec, conc, "REGEXP NF Conflict");

@@ -92,7 +92,7 @@ public:
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );
   Node intersect(Node r1, Node r2, bool &spflag);
-  
+
   std::string mkString( Node r );
 };
 
