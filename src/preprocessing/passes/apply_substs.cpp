@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file apply_substs.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Aina Niemetz
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Apply substitutions preprocessing pass.
+ **
+ ** Apply top level substitutions to assertions, rewrite, and store back into
+ ** assertions.
+ **/
+
 #include "preprocessing/passes/apply_substs.h"
 
 #include "context/cdo.h"
@@ -19,7 +36,7 @@ PreprocessingPassResult ApplySubsts::applyInternal(
   if (!options::unsatCores())
   {
     Chat() << "applying substitutions..." << std::endl;
-    Trace("simplify") << "SmtEnginePrivate::processAssertions(): "
+    Trace("apply-substs") << "SmtEnginePrivate::processAssertions(): "
                       << "applying substitutions" << std::endl;
     // TODO(#1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
@@ -37,14 +54,16 @@ PreprocessingPassResult ApplySubsts::applyInternal(
       {
         continue;
       }
-      Trace("simplify") << "applying to " << (*assertionsToPreprocess)[i]
+      Trace("apply-substs") << "applying to " << (*assertionsToPreprocess)[i]
                         << std::endl;
       d_preprocContext->spendResource(options::preprocessStep());
       assertionsToPreprocess->replace(
           i,
           theory::Rewriter::rewrite(
-              assertionsToPreprocess->getTopLevelSubstitutions().apply((*assertionsToPreprocess)[i])));
-      Trace("simplify") << "  got " << (*assertionsToPreprocess)[i] << std::endl;
+              assertionsToPreprocess->getTopLevelSubstitutions().apply(
+                  (*assertionsToPreprocess)[i])));
+      Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
+                        << std::endl;
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

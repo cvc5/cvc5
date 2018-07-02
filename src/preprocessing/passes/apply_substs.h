@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_gauss.h
+/*! \file apply_substs.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -9,9 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief TODO.
+ ** \brief Apply substitutions preprocessing pass.
  **
- ** TODO
+ ** Apply top level substitutions to assertions, rewrite, and store back into
+ ** assertions.
  **/
 
 #include "cvc4_private.h"
@@ -29,17 +30,16 @@ namespace passes {
 class ApplySubsts : public PreprocessingPass
 {
  public:
-   ApplySubsts(PreprocessingPassContext* preprocContext);
+  ApplySubsts(PreprocessingPassContext* preprocContext);
 
  protected:
   /**
-   * TODO
-   * Apply the substitutions in d_topLevelAssertions and the rewriter to each of
-   * the assertions in d_assertions, and store the result back in d_assertions.
-   * TODO
+   * Apply assertionsToPreprocess->getTopLevelSubstitutions() to the
+   * assertions, in assertionsToPreprocess, rewrite, and store back into
+   * given assertion pipeline.
    */
-   PreprocessingPassResult applyInternal(
-       AssertionPipeline* assertionsToPreprocess) override;
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
 };
 
 }  // namespace passes
@@ -47,4 +47,3 @@ class ApplySubsts : public PreprocessingPass
 }  // namespace CVC4
 
 #endif
-
