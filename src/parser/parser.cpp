@@ -269,7 +269,8 @@ void Parser::defineVar(const std::string& name, const Expr& val,
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
   if (!d_symtab->bind(name, val, levelZero, doOverload)) {
     std::stringstream ss;
-    ss << "Failed to bind " << name << " to symbol of type " << val.getType();
+    ss << "Cannot bind " << name << " to symbol of type " << val.getType();
+    ss << ", maybe the symbol has already been defined?";
     parseError(ss.str()); 
   }
   assert(isDeclared(name));
