@@ -73,7 +73,7 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
     case CEG_UNHANDLED: os << "unhandled"; break;
     case CEG_PARTIALLY_HANDLED: os << "partially_handled"; break;
     case CEG_HANDLED: os << "handled"; break;
-    case CEG_HANDLED_UNCONDITIONAL: os << "unhandled_unc"; break;
+    case CEG_HANDLED_UNCONDITIONAL: os << "handled_unc"; break;
     default: Unreachable();
   }
   return os;
@@ -235,9 +235,9 @@ CegHandledStatus CegInstantiator::isCbqiSort(
   {
     // recursive calls to this datatype are handlable
     visited[tn] = CEG_HANDLED;
-    // if not recursive, it is finite and we can handle it regardless of body
-    // hence, we initialize ret to CEG_HANDLED_UNCONDITIONAL.
-    ret = CEG_HANDLED_UNCONDITIONAL;
+    // we initialize to handled, we remain handled as long as all subfields
+    // of this datatype are not unhandled.
+    ret = CEG_HANDLED;
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {

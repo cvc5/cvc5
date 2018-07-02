@@ -35,6 +35,9 @@ nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
+	api/cvc4cpp.h \
+	api/cvc4cppkind.h \
+	api/cvc4cpp.cpp \
 	context/backtrackable.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
