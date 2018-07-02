@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu
+ **   Justin Xu, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -34,19 +34,24 @@
 #include <string>
 #include <vector>
 
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
-/* Assertion Pipeline stores a list of assertions modified by preprocessing
- * passes. */
-class AssertionPipeline {
-  std::vector<Node> d_nodes;
-
+/**
+ * Assertion Pipeline stores a list of assertions modified by preprocessing
+ * passes.
+ */
+class AssertionPipeline
+{
  public:
+  AssertionPipeline(context::Context* context);
+
   size_t size() const { return d_nodes.size(); }
 
   void resize(size_t n) { d_nodes.resize(n); }
@@ -80,6 +85,26 @@ class AssertionPipeline {
    * dependencies.
    */
   void replace(size_t i, const std::vector<Node>& ns);
+
+  context::CDO<unsigned>& getSubstitutionsIndex()
+  {
+    return d_substitutionsIndex;
+  }
+
+  theory::SubstitutionMap& getTopLevelSubstitutions()
+  {
+    return d_topLevelSubstitutions;
+  }
+
+ private:
+  std::vector<Node> d_nodes;
+
+  /* Index for where to store substitutions */
+  context::CDO<unsigned> d_substitutionsIndex;
+
+  /* The top level substitutions */
+  theory::SubstitutionMap d_topLevelSubstitutions;
+
 }; /* class AssertionPipeline */
 
 /**
