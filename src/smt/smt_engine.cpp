@@ -112,6 +112,7 @@
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus_inference.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
