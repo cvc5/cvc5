@@ -14,14 +14,15 @@
  ** Unit tests for Gaussian Elimination preprocessing pass.
  **/
 
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/passes/bv_gauss.cpp"
+#include "preprocessing/preprocessing_pass.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 
 #include <cxxtest/TestSuite.h>
@@ -2377,7 +2378,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node a = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::AND, eq1, eq2), eq3);
 
-    AssertionPipeline apipe;
+    context::Context context;
+    AssertionPipeline apipe(&context);
     apipe.push_back(a);
     passes::BVGauss bgauss(nullptr);
     std::unordered_map<Node, Node, NodeHashFunction> res;
@@ -2459,7 +2461,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node a = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::AND, eq1, eq2), eq3);
 
-    AssertionPipeline apipe;
+    context::Context context;
+    AssertionPipeline apipe(&context);
     apipe.push_back(a);
     apipe.push_back(eq4);
     apipe.push_back(eq5);
@@ -2510,7 +2513,8 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
             d_p),
         d_nine);
 
-    AssertionPipeline apipe;
+    context::Context context;
+    AssertionPipeline apipe(&context);
     apipe.push_back(eq1);
     apipe.push_back(eq2);
     passes::BVGauss bgauss(nullptr);
