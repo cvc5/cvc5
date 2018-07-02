@@ -19,6 +19,7 @@
 #include "base/cvc4_assert.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "expr/type.h"
 #include "util/result.h"
 
 #include <sstream>
@@ -92,6 +93,184 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
   out << r.toString();
   return out;
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* Sort                                                                       */
+/* -------------------------------------------------------------------------- */
+
+Sort::Sort(const CVC4::Type& t) : d_type(new CVC4::Type(t))
+{
+}
+
+Sort::~Sort()
+{
+}
+
+Sort& Sort::operator=(const Sort& s)
+{
+  // CHECK: valid sort s?
+  if (this != &s)
+  {
+    *d_type = *s.d_type;
+  }
+  return *this;
+}
+
+bool Sort::operator==(const Sort& s) const
+{
+  // CHECK: valid sort s?
+  return *d_type == *s.d_type;
+}
+
+bool Sort::operator!=(const Sort& s) const
+{
+  // CHECK: valid sort s?
+  return *d_type != *s.d_type;
+}
+
+bool Sort::isBoolean() const
+{
+  // CHECK: valid sort s?
+  return d_type->isBoolean();
+}
+
+bool Sort::isInteger() const
+{
+  // CHECK: valid sort s?
+  return d_type->isInteger();
+}
+
+bool Sort::isReal() const
+{
+  // CHECK: valid sort s?
+  return d_type->isReal();
+}
+
+bool Sort::isString() const
+{
+  // CHECK: valid sort s?
+  return d_type->isString();
+}
+
+bool Sort::isRegExp() const
+{
+  // CHECK: valid sort s?
+  return d_type->isRegExp();
+}
+
+bool Sort::isRoundingMode() const
+{
+  // CHECK: valid sort s?
+  return d_type->isRoundingMode();
+}
+
+bool Sort::isBitVector() const
+{
+  // CHECK: valid sort s?
+  return d_type->isBitVector();
+}
+
+bool Sort::isFloatingPoint() const
+{
+  // CHECK: valid sort s?
+  return d_type->isFloatingPoint();
+}
+
+bool Sort::isDatatype() const
+{
+  // CHECK: valid sort s?
+  return d_type->isDatatype();
+}
+
+bool Sort::isFunction() const
+{
+  // CHECK: valid sort s?
+  return d_type->isFunction();
+}
+
+bool Sort::isPredicate() const
+{
+  // CHECK: valid sort s?
+  return d_type->isPredicate();
+}
+
+bool Sort::isTuple() const
+{
+  // CHECK: valid sort s?
+  return d_type->isTuple();
+}
+
+bool Sort::isRecord() const
+{
+  // CHECK: valid sort s?
+  return d_type->isRecord();
+}
+
+bool Sort::isArray() const
+{
+  // CHECK: valid sort s?
+  return d_type->isArray();
+}
+
+bool Sort::isSet() const
+{
+  // CHECK: valid sort s?
+  return d_type->isSet();
+}
+
+bool Sort::isUninterpretedSort() const
+{
+  // CHECK: valid sort s?
+  return d_type->isSort();
+}
+
+bool Sort::isSortConstructor() const
+{
+  // CHECK: valid sort s?
+  return d_type->isSortConstructor();
+}
+
+#if 0
+Datatype Sort::getDatatype() const
+{
+  // CHECK: is this a datatype sort?
+  DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
+  return type->getDatatype();
+}
+
+Sort Sort::instantiate(const std::vector<Sort>& params) const
+{
+  // CHECK: Is this a datatype/sort constructor sort?
+  std::vector<Type> tparams;
+  for (const Sort& s : params) { tparams.push_back(*s.d_type.get()); }
+  if (d_type->isDatatype())
+  {
+    // CHECK: is parametric?
+    DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
+    return type->instantiate(tparams);
+  }
+  Assert (d_type->isSortConstructor());
+  return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
+}
+#endif
+
+std::string Sort::toString() const
+{
+  // CHECK: valid sort s?
+  return d_type->toString();
+}
+
+std::ostream& operator<< (std::ostream& out, const Sort& s)
+{
+  out << s.toString();
+  return out;
+}
+
+size_t SortHashFunction::operator()(const Sort& s) const {
+  return TypeHashFunction()(*s.d_type);
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* OpTerm                                                                     */
