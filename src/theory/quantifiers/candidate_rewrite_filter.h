@@ -33,7 +33,6 @@ class NotifyMatch
 {
  public:
   virtual ~NotifyMatch() {}
-
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.

@@ -63,8 +63,8 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
     else
     {
       Node cn = cvisit.back();
-      Trace("crf-match-debug")
-          << "traverse : " << cn << " at depth " << visit.size() << std::endl;
+      Trace("crf-match-debug") << "traverse : " << cn << " at depth "
+                               << visit.size() << std::endl;
       unsigned index = visit.size() - 1;
       int vindex = visit_var_index[index];
       if (vindex == -1)
@@ -240,7 +240,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
   Trace("cr-filter") << "crewriteFilter : " << bn << "..." << beq_n
-                          << std::endl;
+                     << std::endl;
   // whether we will keep this pair
   bool keep = true;
 
@@ -249,8 +249,8 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     bool nor = d_ss->isOrdered(bn);
     bool eqor = d_ss->isOrdered(beq_n);
-    Trace("cr-filter-debug")
-        << "Ordered? : " << nor << " " << eqor << std::endl;
+    Trace("cr-filter-debug") << "Ordered? : " << nor << " " << eqor
+                             << std::endl;
     if (eqor || nor)
     {
       // if only one is ordered, then we require that the ordered one's
