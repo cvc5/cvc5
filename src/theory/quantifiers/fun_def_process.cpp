@@ -98,16 +98,27 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::map< int, std::map< Node, Node > > visited_cons;
   for( unsigned i=0; i<assertions.size(); i++ ){
     bool is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end();
-    std::vector< Node > constraints;
-    Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is function definition = " << is_fd << std::endl;
-    Node n = simplifyFormula( assertions[i], true, true, constraints, is_fd ? subs_head[i] : Node::null(), is_fd, visited, visited_cons );
-    Assert( constraints.empty() );
-    if( n!=assertions[i] ){
-      n = Rewriter::rewrite( n );
-      Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
+    std::vector<Node> constraints;
+    Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i]
+                                 << ", is function definition = " << is_fd
+                                 << std::endl;
+    Node n = simplifyFormula(assertions[i],
+                             true,
+                             true,
+                             constraints,
+                             is_fd ? subs_head[i] : Node::null(),
+                             is_fd,
+                             visited,
+                             visited_cons);
+    Assert(constraints.empty());
+    if (n != assertions[i])
+    {
+      n = Rewriter::rewrite(n);
+      Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i]
+                                   << std::endl;
       Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
       Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-      PROOF( ProofManager::currentPM()->addDependence(n, assertions[i]); );
+      PROOF(ProofManager::currentPM()->addDependence(n, assertions[i]););
       assertions[i] = n;
     }
   }
