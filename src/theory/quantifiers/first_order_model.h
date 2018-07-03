@@ -137,8 +137,6 @@ class FirstOrderModel : public TheoryModel
   Node getModelBasisOpTerm(Node op);
   /** get model basis */
   Node getModelBasis(Node q, Node n);
-  /** get model basis body */
-  Node getModelBasisBody(Node q);
   /** get model basis arg */
   unsigned getModelBasisArg(Node n);
   /** get some domain element */
@@ -234,10 +232,6 @@ public:
 private:
   //default evaluate term function
   Node evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri  );
-  //temporary storing which literals have failed
-  void clearEvalFailed( int index );
-  std::map< Node, bool > d_eval_failed;
-  std::map< int, std::vector< Node > > d_eval_failed_lits;
 };/* class FirstOrderModelIG */
 
 
@@ -253,7 +247,6 @@ class FirstOrderModelFmc : public FirstOrderModel
   /** models for UF */
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
-  Node intervalOp;
   /** get current model value */
   void processInitializeModelForTerm(Node n) override;
 
@@ -267,10 +260,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 
   bool isStar(Node n);
   Node getStar(TypeNode tn);
-  Node getStarElement(TypeNode tn);
-  bool isInterval(Node n);
-  Node getInterval( Node lb, Node ub );
-  bool isInRange( Node v, Node i );
 };/* class FirstOrderModelFmc */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */

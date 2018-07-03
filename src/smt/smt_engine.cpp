@@ -1292,8 +1292,10 @@ void SmtEngine::setDefaults() {
     options::bitvectorDivByZeroConst.set(
         language::isInputLang_smt2_6(options::inputLanguage()));
   }
+  bool is_sygus = false;
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
+    is_sygus = true;
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
@@ -1303,16 +1305,13 @@ void SmtEngine::setDefaults() {
     {
       options::cbqiMidpoint.set(true);
     }
-    // do not assign function values (optimization)
-    if (!options::assignFunctionValues.wasSetByUser())
+    if (options::sygusRepairConst())
     {
-      options::assignFunctionValues.set(false);
+      if (!options::cbqi.wasSetByUser())
+      {
+        options::cbqi.set(true);
+      }
     }
-  }
-  else
-  {
-    // cannot use sygus repair constants
-    options::sygusRepairConst.set(false);
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
@@ -1603,7 +1602,7 @@ void SmtEngine::setDefaults() {
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || options::sygusRepairConst()))
+          || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -1916,10 +1915,10 @@ void SmtEngine::setDefaults() {
   if( options::fmfBound() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );
-    if( ! options::mbqiMode.wasSetByUser() ||
-        ( options::mbqiMode()!=quantifiers::MBQI_NONE &&
-          options::mbqiMode()!=quantifiers::MBQI_FMC &&
-          options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL ) ){
+    if (!options::mbqiMode.wasSetByUser()
+        || (options::mbqiMode() != quantifiers::MBQI_NONE
+            && options::mbqiMode() != quantifiers::MBQI_FMC))
+    {
       //if bounded integers are set, use no MBQI by default
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
