@@ -289,8 +289,6 @@ public:
   void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
   void assertQuantifier( Node q, bool pol );
-  /** propagate */
-  void propagate( Theory::Effort level );
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
 private:
@@ -314,10 +312,6 @@ public:
   bool removeLemma( Node lem );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
-  /** split on node n */
-  bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
-  /** add split equality */
-  bool addSplitEquality( Node n1, Node n2, bool reqPhase = false, bool reqPhasePol = true );
   /** add EPR axiom */
   bool addEPRAxiom( TypeNode tn );
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
