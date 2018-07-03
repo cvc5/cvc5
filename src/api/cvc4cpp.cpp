@@ -388,10 +388,7 @@ Term::const_iterator::const_iterator(const const_iterator& it)
 
 Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
 {
-  if (d_iterator != nullptr)
-  {
-    delete static_cast<CVC4::Expr::const_iterator*>(d_iterator);
-  }
+  delete static_cast<CVC4::Expr::const_iterator*>(d_iterator);
   d_iterator = new CVC4::Expr::const_iterator(
       *static_cast<CVC4::Expr::const_iterator*>(it.d_iterator));
   return *this;
@@ -399,10 +396,7 @@ Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
 
 Term::const_iterator::~const_iterator()
 {
-  if (d_iterator != nullptr)
-  {
-    delete static_cast<CVC4::Expr::const_iterator*>(d_iterator);
-  }
+  delete static_cast<CVC4::Expr::const_iterator*>(d_iterator);
 }
 
 bool Term::const_iterator::operator==(const const_iterator& it) const
