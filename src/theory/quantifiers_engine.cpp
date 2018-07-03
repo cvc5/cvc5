@@ -247,8 +247,10 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
-        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBound() ){
+    if (options::mbqiMode() == quantifiers::MBQI_FMC
+        || options::mbqiMode() == quantifiers::MBQI_TRUST
+        || options::fmfBound())
+    {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
       d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
@@ -873,11 +875,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-void QuantifiersEngine::propagate( Theory::Effort level ){
-  CodeTimer codeTimer(d_statistics.d_time);
-
-}
-
 Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
   unsigned min_priority = 0;
   Node dec;  
@@ -987,23 +984,6 @@ bool QuantifiersEngine::removeLemma( Node lem ) {
 
 void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
-}
-
-bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
-  n = Rewriter::rewrite( n );
-  Node lem = NodeManager::currentNM()->mkNode( OR, n, n.notNode() );
-  if( addLemma( lem ) ){
-    Debug("inst") << "*** Add split " << n<< std::endl;
-    return true;
-  }
-  return false;
-}
-
-bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool reqPhasePol ){
-  //Assert( !areEqual( n1, n2 ) );
-  //Assert( !areDisequal( n1, n2 ) );
-  Node fm = NodeManager::currentNM()->mkNode( EQUAL, n1, n2 );
-  return addSplit( fm );
 }
 
 bool QuantifiersEngine::addEPRAxiom( TypeNode tn ) {

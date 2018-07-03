@@ -67,7 +67,9 @@ bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
           }
           Trace("term-db-lemma") << "  add split on : " << eq << std::endl;
         }
-        d_qe->addSplit( eq );
+        eq = Rewriter::rewrite(eq);
+        Node split = NodeManager::currentNM()->mkNode(OR, eq, eq.negate());
+        d_qe->addLemma(split);
         return false;
       }else{
         ee->assertEquality( eq, true, eq_exp );
