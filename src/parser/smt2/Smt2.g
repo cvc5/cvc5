@@ -1799,7 +1799,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patconds;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  Type type;
+  Type type, type2;
   std::string s;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
@@ -1990,7 +1990,15 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-
+  | LPAREN 'emp' 
+    sortSymbol[type,CHECK_DECLARED]
+    sortSymbol[type2,CHECK_DECLARED]
+    RPAREN
+    {
+      Expr v1 = PARSER_STATE->mkVar("_emp1", type);
+      Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
+      op = MK_EXPR(kind::SEP_EMP,v1,v2);
+    }
   | LPAREN_TOK
     ( /* An indexed function application */
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
@@ -2557,6 +2565,8 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
 @init {
   Expr expr;
   Expr expr2;
+  Type t1;
+  Type t2;
 }
   : LPAREN_TOK INDEX_TOK
     ( 'extract' n1=INTEGER_LITERAL n2=INTEGER_LITERAL
