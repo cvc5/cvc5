@@ -97,7 +97,7 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
 /* -------------------------------------------------------------------------- */
 
 /* Mapping from external (API) kind to internal kind. */
-static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
+const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {INTERNAL_KIND, CVC4::Kind::UNDEFINED_KIND},
     {UNDEFINED_KIND, CVC4::Kind::UNDEFINED_KIND},
     {NULL_EXPR, CVC4::Kind::NULL_EXPR},
@@ -345,7 +345,7 @@ static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
 };
 
 /* Mapping from internal kind to external (API) kind. */
-static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
+const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     s_kinds_internal{
         {CVC4::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
         {CVC4::Kind::NULL_EXPR, NULL_EXPR},
@@ -605,7 +605,9 @@ namespace {
 
   CVC4::Kind extToIntKind(Kind k)
   {
-    return s_kinds[k];
+    auto it = s_kinds.find(k);
+    if (it == s_kinds.end()) { return CVC4::Kind::UNDEFINED_KIND; }
+    return it->second;
   }
 }
 
@@ -614,7 +616,7 @@ std::ostream& operator<<(std::ostream& out, Kind k)
   switch (k)
   {
     case INTERNAL_KIND: out << "INTERNAL_KIND"; break;
-    default: out << s_kinds[k];
+    default: out << extToIntKind(k);
   }
   return out;
 }
