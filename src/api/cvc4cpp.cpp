@@ -95,6 +95,7 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/* Mapping from external (API) kind to internal kind. */
 static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {INTERNAL_KIND, CVC4::Kind::UNDEFINED_KIND},
     {UNDEFINED_KIND, CVC4::Kind::UNDEFINED_KIND},
@@ -342,22 +343,20 @@ static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {LAST_KIND, CVC4::Kind::LAST_KIND},
 };
 
-std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
+/* Mapping from internal kind to external (API) kind. */
+static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     s_kinds_internal{
         {CVC4::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
         {CVC4::Kind::NULL_EXPR, NULL_EXPR},
         /* Builtin --------------------------------------------------------- */
         {CVC4::Kind::UNINTERPRETED_CONSTANT, UNINTERPRETED_CONSTANT},
         {CVC4::Kind::ABSTRACT_VALUE, ABSTRACT_VALUE},
-        {CVC4::Kind::BUILTIN, INTERNAL_KIND},
         {CVC4::Kind::FUNCTION, FUNCTION},
         {CVC4::Kind::APPLY, APPLY},
         {CVC4::Kind::EQUAL, EQUAL},
         {CVC4::Kind::DISTINCT, DISTINCT},
         {CVC4::Kind::VARIABLE, VARIABLE},
         {CVC4::Kind::BOUND_VARIABLE, BOUND_VARIABLE},
-        {CVC4::Kind::SKOLEM, INTERNAL_KIND},
-        {CVC4::Kind::SEXPR, INTERNAL_KIND},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::CHOICE, CHOICE},
         {CVC4::Kind::CHAIN, CHAIN},
@@ -372,16 +371,11 @@ std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::ITE, ITE},
         /* UF -------------------------------------------------------------- */
         {CVC4::Kind::APPLY_UF, APPLY_UF},
-        {CVC4::Kind::BOOLEAN_TERM_VARIABLE, INTERNAL_KIND},
         {CVC4::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
-        {CVC4::Kind::COMBINED_CARDINALITY_CONSTRAINT, INTERNAL_KIND},
-        {CVC4::Kind::PARTIAL_APPLY_UF, INTERNAL_KIND},
-        {CVC4::Kind::CARDINALITY_VALUE, INTERNAL_KIND},
         {CVC4::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
         {CVC4::Kind::PLUS, PLUS},
         {CVC4::Kind::MULT, MULT},
-        {CVC4::Kind::NONLINEAR_MULT, INTERNAL_KIND},
         {CVC4::Kind::MINUS, MINUS},
         {CVC4::Kind::UMINUS, UMINUS},
         {CVC4::Kind::DIVISION, DIVISION},
@@ -455,17 +449,12 @@ std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
         {CVC4::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
         {CVC4::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
-        {CVC4::Kind::BITVECTOR_EAGER_ATOM, INTERNAL_KIND},
-        {CVC4::Kind::BITVECTOR_ACKERMANNIZE_UDIV, INTERNAL_KIND},
-        {CVC4::Kind::BITVECTOR_ACKERMANNIZE_UREM, INTERNAL_KIND},
-        {CVC4::Kind::BITVECTOR_BITOF_OP, INTERNAL_KIND},
         {CVC4::Kind::BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT_OP},
         {CVC4::Kind::BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT_OP},
         {CVC4::Kind::BITVECTOR_ZERO_EXTEND_OP, BITVECTOR_ZERO_EXTEND_OP},
         {CVC4::Kind::BITVECTOR_SIGN_EXTEND_OP, BITVECTOR_SIGN_EXTEND_OP},
         {CVC4::Kind::BITVECTOR_ROTATE_LEFT_OP, BITVECTOR_ROTATE_LEFT_OP},
         {CVC4::Kind::BITVECTOR_ROTATE_RIGHT_OP, BITVECTOR_ROTATE_RIGHT_OP},
-        {CVC4::Kind::BITVECTOR_BITOF, INTERNAL_KIND},
         {CVC4::Kind::BITVECTOR_EXTRACT, BITVECTOR_EXTRACT},
         {CVC4::Kind::BITVECTOR_REPEAT, BITVECTOR_REPEAT},
         {CVC4::Kind::BITVECTOR_ZERO_EXTEND, BITVECTOR_ZERO_EXTEND},
@@ -492,8 +481,6 @@ std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::FLOATINGPOINT_RTI, FLOATINGPOINT_RTI},
         {CVC4::Kind::FLOATINGPOINT_MIN, FLOATINGPOINT_MIN},
         {CVC4::Kind::FLOATINGPOINT_MAX, FLOATINGPOINT_MAX},
-        {CVC4::Kind::FLOATINGPOINT_MIN_TOTAL, INTERNAL_KIND},
-        {CVC4::Kind::FLOATINGPOINT_MAX_TOTAL, INTERNAL_KIND},
         {CVC4::Kind::FLOATINGPOINT_LEQ, FLOATINGPOINT_LEQ},
         {CVC4::Kind::FLOATINGPOINT_LT, FLOATINGPOINT_LT},
         {CVC4::Kind::FLOATINGPOINT_GEQ, FLOATINGPOINT_GEQ},
@@ -542,32 +529,21 @@ std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::SELECT, SELECT},
         {CVC4::Kind::STORE, STORE},
         {CVC4::Kind::STORE_ALL, STORE_ALL},
-        {CVC4::Kind::ARR_TABLE_FUN, INTERNAL_KIND},
-        {CVC4::Kind::ARRAY_LAMBDA, INTERNAL_KIND},
-        {CVC4::Kind::PARTIAL_SELECT_0, INTERNAL_KIND},
-        {CVC4::Kind::PARTIAL_SELECT_1, INTERNAL_KIND},
         /* Datatypes ------------------------------------------------------- */
         {CVC4::Kind::APPLY_SELECTOR, APPLY_SELECTOR},
         {CVC4::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {CVC4::Kind::APPLY_SELECTOR_TOTAL, APPLY_SELECTOR_TOTAL},
         {CVC4::Kind::APPLY_TESTER, APPLY_TESTER},
-        {CVC4::Kind::PARAMETRIC_DATATYPE, INTERNAL_KIND},
-        {CVC4::Kind::APPLY_TYPE_ASCRIPTION, INTERNAL_KIND},
         {CVC4::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE_OP},
         {CVC4::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
         {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE_OP},
         {CVC4::Kind::RECORD_UPDATE, RECORD_UPDATE},
-        {CVC4::Kind::DT_SIZE, INTERNAL_KIND},
-        {CVC4::Kind::DT_HEIGHT_BOUND, INTERNAL_KIND},
-        {CVC4::Kind::DT_SIZE_BOUND, INTERNAL_KIND},
-        {CVC4::Kind::DT_SYGUS_BOUND, INTERNAL_KIND},
         /* Separation Logic ------------------------------------------------ */
         {CVC4::Kind::SEP_NIL, SEP_NIL},
         {CVC4::Kind::SEP_EMP, SEP_EMP},
         {CVC4::Kind::SEP_PTO, SEP_PTO},
         {CVC4::Kind::SEP_STAR, SEP_STAR},
         {CVC4::Kind::SEP_WAND, SEP_WAND},
-        {CVC4::Kind::SEP_LABEL, INTERNAL_KIND},
         /* Sets ------------------------------------------------------------ */
         {CVC4::Kind::EMPTYSET, EMPTYSET},
         {CVC4::Kind::UNION, UNION},
@@ -611,39 +587,26 @@ std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
-        {CVC4::Kind::REGEXP_RV, INTERNAL_KIND},
         /* Quantifiers ----------------------------------------------------- */
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
-        {CVC4::Kind::INST_CONSTANT, INTERNAL_KIND},
-        {CVC4::Kind::INST_PATTERN, INTERNAL_KIND},
-        {CVC4::Kind::BOUND_VAR_LIST, INTERNAL_KIND},
-        {CVC4::Kind::INST_NO_PATTERN, INTERNAL_KIND},
-        {CVC4::Kind::INST_ATTRIBUTE, INTERNAL_KIND},
-        {CVC4::Kind::INST_PATTERN_LIST, INTERNAL_KIND},
-        {CVC4::Kind::INST_CLOSURE, INTERNAL_KIND},
-        {CVC4::Kind::REWRITE_RULE, INTERNAL_KIND},
-        {CVC4::Kind::RR_REWRITE, INTERNAL_KIND},
-        {CVC4::Kind::RR_REDUCTION, INTERNAL_KIND},
-        {CVC4::Kind::RR_DEDUCTION, INTERNAL_KIND},
-        /* Sort kinds ------------------------------------------------------ */
-        {CVC4::Kind::ARRAY_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::ASCRIPTION_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::CONSTRUCTOR_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::DATATYPE_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::SELECTOR_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::SET_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::SORT_TAG, INTERNAL_KIND},
-        {CVC4::Kind::SORT_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::TESTER_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::TYPE_CONSTANT, INTERNAL_KIND},
-        {CVC4::Kind::FUNCTION_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::SEXPR_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::BITVECTOR_TYPE, INTERNAL_KIND},
-        {CVC4::Kind::FLOATINGPOINT_TYPE, INTERNAL_KIND},
         /* ----------------------------------------------------------------- */
         {CVC4::Kind::LAST_KIND, LAST_KIND},
     };
+
+namespace {
+  Kind intToExtKind(CVC4::Kind k)
+  {
+    auto it = s_kinds_internal.find(k);
+    if (it == s_kinds_internal.end()) { return INTERNAL_KIND; }
+    return it->second;
+  }
+
+  CVC4::Kind extToIntKind(Kind k)
+  {
+    return s_kinds[k];
+  }
+}
 
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
