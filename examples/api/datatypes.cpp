@@ -106,9 +106,11 @@ int main() {
   Type sort = em.mkSort("T", ExprManager::SORT_FLAG_PLACEHOLDER);
   Datatype paramConsListSpec("list", std::vector<Type>{sort});
   DatatypeConstructor paramCons("cons");
+  DatatypeConstructor paramNil("nil");
   paramCons.addArg("head", sort);
   paramCons.addArg("tail", DatatypeSelfType());
   paramConsListSpec.addConstructor(paramCons);
+  paramConsListSpec.addConstructor(paramNil);
 
   DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
   Type paramConsIntListType = paramConsListType.instantiate(std::vector<Type>{em.integerType()});

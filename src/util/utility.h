@@ -19,6 +19,7 @@
 #ifndef __CVC4__UTILITY_H
 #define __CVC4__UTILITY_H
 
+#include <algorithm>
 #include <utility>
 #include <functional>
 
