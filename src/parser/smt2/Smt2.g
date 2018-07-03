@@ -1454,6 +1454,10 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
+  | DECLARE_HEAP LPAREN_TOK 
+    sortSymbol[t,CHECK_DECLARED] 
+    sortSymbol[t, CHECK_DECLARED]
+    RPAREN_TOK
   ;
 
 
@@ -3135,6 +3139,7 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
+DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands
 SYNTH_FUN_TOK : 'synth-fun';
