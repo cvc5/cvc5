@@ -1990,7 +1990,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN 'emp' 
+  | LPAREN INDEX_TOK EMP_TOK 
     sortSymbol[type,CHECK_DECLARED]
     sortSymbol[type2,CHECK_DECLARED]
     RPAREN
@@ -3150,6 +3150,7 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 DECLARE_HEAP : 'declare-heap';
+EMP_TOK : 'emp';
 
 // SyGuS commands
 SYNTH_FUN_TOK : 'synth-fun';
