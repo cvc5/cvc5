@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
+#include "theory/evaluator.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -155,6 +156,8 @@ class SygusSampler : public LazyTrieEvaluator
   TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
+  /** evaluator class */
+  Evaluator d_eval;
   /** data structure to check duplication of sample points */
   class PtTrie
   {

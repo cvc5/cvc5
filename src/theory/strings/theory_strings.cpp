@@ -885,7 +885,8 @@ void TheoryStrings::checkExtfReductions( int effort ) {
     Assert( nr.isNull() );
     if( ret!=0 ){
       getExtTheory()->markReduced( extf[i] );
-      if( options::stringOpt1() && hasProcessed() ){
+      if (hasProcessed())
+      {
         return;
       }
     }
@@ -4338,57 +4339,6 @@ Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
   }
 }
 
-bool TheoryStrings::applyRConsume( CVC4::String &s, Node &r) {
-  Trace("regexp-derivative") << "TheoryStrings::derivative: s=" << s << ", r= " << r << std::endl;
-  Assert( d_regexp_opr.checkConstRegExp(r) );
-
-  if( !s.isEmptyString() ) {
-    Node dc = r;
-
-    for(unsigned i=0; i<s.size(); ++i) {
-      CVC4::String c = s.substr(i, 1);
-      Node dc2;
-      int rt = d_regexp_opr.derivativeS(dc, c, dc2);
-      dc = dc2;
-      if(rt == 0) {
-        Unreachable();
-      } else if(rt == 2) {
-        return false;
-      }
-    }
-    r = dc;
-  }
-
-  return true;
-}
-
-Node TheoryStrings::applyRSplit(Node s1, Node s2, Node r) {
-  Assert(d_regexp_opr.checkConstRegExp(r));
-
-  std::vector< std::pair< Node, Node > > vec_can;
-  d_regexp_opr.splitRegExp(r, vec_can);
-  //TODO: lazy cache or eager?
-  std::vector< Node > vec_or;
-
-  for(unsigned int i=0; i<vec_can.size(); i++) {
-    Node m1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, vec_can[i].first);
-    Node m2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s2, vec_can[i].second);
-    Node c = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, m1, m2) );
-    vec_or.push_back( c );
-  }
-  Node conc = vec_or.size()==0? Node::null() : vec_or.size()==1 ? vec_or[0] : Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::OR, vec_or) );
-  return conc;
-}
-
-bool TheoryStrings::applyRLen(std::map< Node, std::vector< Node > > &XinR_with_exps) {
-  if(XinR_with_exps.size() > 0) {
-    //TODO: get vector, var, store.
-    return true;
-  } else  {
-    return false;
-  }
-}
-
 void TheoryStrings::checkMemberships() {
   //add the memberships
   std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
@@ -4472,6 +4422,7 @@ void TheoryStrings::checkMemberships() {
 
   Trace("regexp-debug") << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma << std::endl;
   if(!addedLemma) {
+    NodeManager* nm = NodeManager::currentNM();
     for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
       //check regular expression membership
       Node assertion = d_regexp_memberships[i];
@@ -4486,71 +4437,43 @@ void TheoryStrings::checkMemberships() {
         Node r = atom[1];
         std::vector< Node > rnfexp;
 
-        //if(options::stringOpt1()) {
-        if(true){
-          if(!x.isConst()) {
-            x = getNormalString( x, rnfexp);
-            changed = true;
+        if (!x.isConst())
+        {
+          x = getNormalString(x, rnfexp);
+          changed = true;
+        }
+        if (!d_regexp_opr.checkConstRegExp(r))
+        {
+          r = getNormalSymRegExp(r, rnfexp);
+          changed = true;
+        }
+        Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
+                                   << x << " IN " << r << std::endl;
+        if (changed)
+        {
+          Node tmp =
+              Rewriter::rewrite(nm->mkNode(kind::STRING_IN_REGEXP, x, r));
+          if (!polarity)
+          {
+            tmp = tmp.negate();
           }
-          if(!d_regexp_opr.checkConstRegExp(r)) {
-            r = getNormalSymRegExp(r, rnfexp);
-            changed = true;
+          if (tmp == d_true)
+          {
+            d_regexp_ccached.insert(assertion);
+            continue;
           }
-          Trace("strings-regexp-nf") << "Term " << atom << " is normalized to " << x << " IN " << r << std::endl;
-          if(changed) {
-            Node tmp = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, r) );
-            if(!polarity) {
-              tmp = tmp.negate();
-            }
-            if(tmp == d_true) {
-              d_regexp_ccached.insert(assertion);
-              continue;
-            } else if(tmp == d_false) {
-              Node antec = mkRegExpAntec(assertion, mkExplain(rnfexp));
-              Node conc = Node::null();
-              sendLemma(antec, conc, "REGEXP NF Conflict");
-              addedLemma = true;
-              break;
-            }
+          else if (tmp == d_false)
+          {
+            Node antec = mkRegExpAntec(assertion, mkExplain(rnfexp));
+            Node conc = Node::null();
+            sendLemma(antec, conc, "REGEXP NF Conflict");
+            addedLemma = true;
+            break;
           }
         }
 
         if( polarity ) {
           flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
-          if(options::stringOpt2() && flag) {
-            if(d_regexp_opr.checkConstRegExp(r) && x.getKind()==kind::STRING_CONCAT) {
-              std::vector< std::pair< Node, Node > > vec_can;
-              d_regexp_opr.splitRegExp(r, vec_can);
-              //TODO: lazy cache or eager?
-              std::vector< Node > vec_or;
-              std::vector< Node > vec_s2;
-              for(unsigned int s2i=1; s2i<x.getNumChildren(); s2i++) {
-                vec_s2.push_back(x[s2i]);
-              }
-              Node s1 = x[0];
-              Node s2 = mkConcat(vec_s2);
-              for(unsigned int i=0; i<vec_can.size(); i++) {
-                Node m1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, vec_can[i].first);
-                Node m2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s2, vec_can[i].second);
-                Node c = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, m1, m2) );
-                vec_or.push_back( c );
-              }
-              Node conc = vec_or.size()==1 ? vec_or[0] : Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::OR, vec_or) );
-              //Trace("regexp-split") << "R " << r << " to " << conc << std::endl;
-              Node antec = mkRegExpAntec(atom, mkExplain(rnfexp));
-              if(conc == d_true) {
-                if(changed) {
-                  cprocessed.push_back( assertion );
-                } else {
-                  processed.push_back( assertion );
-                }
-              } else {
-                sendLemma(antec, conc, "RegExp-CST-SP");
-              }
-              addedLemma = true;
-              flag = false;
-            }
-          }
         } else {
           if(! options::stringExp()) {
             throw LogicException("Strings Incomplete (due to Negative Membership) by default, try --strings-exp option.");

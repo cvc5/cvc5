@@ -457,9 +457,6 @@ private:
   //--------------------------------for checkMemberships
   // check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
-  bool applyRConsume( CVC4::String &s, Node &r );
-  Node applyRSplit( Node s1, Node s2, Node r );
-  bool applyRLen( std::map< Node, std::vector< Node > > &XinR_with_exps );
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
