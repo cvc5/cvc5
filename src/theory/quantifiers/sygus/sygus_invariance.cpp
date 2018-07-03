@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,7 +27,22 @@ namespace quantifiers {
 
 void EvalSygusInvarianceTest::init(Node conj, Node var, Node res)
 {
-  d_conj = conj;
+  d_terms.clear();
+  // simple miniscope
+  if ((conj.getKind() == AND || conj.getKind() == OR) && res.isConst())
+  {
+    for (const Node& c : conj)
+    {
+      d_terms.push_back(c);
+    }
+    d_kind = conj.getKind();
+    d_is_conjunctive = res.getConst<bool>() == (d_kind == AND);
+  }
+  else
+  {
+    d_terms.push_back(conj);
+    d_is_conjunctive = true;
+  }
   d_var = var;
   d_result = res;
 }
@@ -40,21 +55,35 @@ Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
-  Node conj_subs = d_conj.substitute(d_var, tnvn);
-  Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
-  Trace("sygus-cref-eval2-debug")
-      << "  ...check unfolding : " << conj_subs_unfold << std::endl;
-  Trace("sygus-cref-eval2-debug") << "  ......from : " << conj_subs
-                                  << std::endl;
-  if (conj_subs_unfold == d_result)
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  for (const Node& c : d_terms)
   {
+    Node conj_subs = c.substitute(d_var, tnvn, cache);
+    Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
+    Trace("sygus-cref-eval2-debug")
+        << "  ...check unfolding : " << conj_subs_unfold << std::endl;
+    Trace("sygus-cref-eval2-debug")
+        << "  ......from : " << conj_subs << std::endl;
+    if (conj_subs_unfold != d_result)
+    {
+      if (d_is_conjunctive)
+      {
+        // ti /--> true  implies and( t1, ..., tn ) /--> true, where "/-->" is
+        // "does not evaluate to".
+        return false;
+      }
+    }
+    else if (!d_is_conjunctive)
+    {
+      // ti --> true  implies or( t1, ..., tn ) --> true
+      return true;
+    }
     Trace("sygus-cref-eval2") << "Evaluation min explain : " << conj_subs
                               << " still evaluates to " << d_result
                               << " regardless of ";
     Trace("sygus-cref-eval2") << x << std::endl;
-    return true;
   }
-  return false;
+  return d_is_conjunctive;
 }
 
 void EquivSygusInvarianceTest::init(

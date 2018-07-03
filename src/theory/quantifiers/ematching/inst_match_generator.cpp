@@ -2,9 +2,9 @@
 /*! \file inst_match_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -421,7 +421,7 @@ int InstMatchGenerator::getNextMatch(Node f,
         Trace("matching-summary") << "Try " << d_match_pattern << " : " << t << std::endl;
         success = getMatch(f, t, m, qe, tparent);
         if( d_independent_gen && success<0 ){
-          Assert( d_eq_class.isNull() );
+          Assert(d_eq_class.isNull() || !d_eq_class_rel.isNull());
           d_curr_exclude_match[t] = true;
         }
       }

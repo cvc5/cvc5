@@ -2,9 +2,9 @@
 /*! \file regexp_operation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tianyi Liang, Tim King
+ **   Tianyi Liang, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,7 +75,6 @@ private:
   Node mkAllExceptOne( unsigned char c );
   bool isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2);
 
-  void getCharSet( Node r, std::set<unsigned char> &pcset, SetNodes &pvset );
   bool containC2(unsigned cnt, Node n);
   Node convert1(unsigned cnt, Node n);
   void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
@@ -83,20 +82,6 @@ private:
   Node intersectInternal( Node r1, Node r2, std::map< PairNodes, Node > cache, unsigned cnt );
   Node removeIntersection(Node r);
   void firstChars( Node r, std::set<unsigned char> &pcset, SetNodes &pvset );
-
-  //TODO: for intersection
-  bool follow( Node r, CVC4::String c, std::vector< unsigned char > &vec_chars );
-
-  /*class CState {
-  public:
-    Node r1;
-    Node r2;
-    unsigned cnt;
-    Node head;
-    CState(Node rr1, Node rr2, Node rcnt, Node rhead)
-      : r1(rr1), r2(rr2), cnt(rcnt), head(rhead) {}
-  };*/
-
 public:
   RegExpOpr();
   ~RegExpOpr();
@@ -106,12 +91,7 @@ public:
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );
-  bool guessLength( Node r, int &co );
   Node intersect(Node r1, Node r2, bool &spflag);
-  Node complement(Node r, int &ret);
-  void splitRegExp(Node r, std::vector< PairNodes > &pset);
-  void flattenRegExp(Node r, std::vector< std::pair< CVC4::String, unsigned > > &fvec);
-  void disjunctRegExp(Node r, std::vector<Node> &vec_or);
 
   std::string mkString( Node r );
 };
