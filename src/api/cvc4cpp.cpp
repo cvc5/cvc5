@@ -16,6 +16,8 @@
 
 #include "api/cvc4cpp.h"
 
+#include "expr/expr.h"
+#include "expr/expr_manager.h"
 #include "expr/type.h"
 #include "util/result.h"
 
@@ -267,6 +269,118 @@ size_t SortHashFunction::operator()(const Sort& s) const {
   return TypeHashFunction()(*s.d_type);
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* Datatypes                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/* DatatypeSelectorDecl ----------------------------------------------------- */
+
+DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name, Sort sort)
+    : d_name(name), d_sort(sort)
+{
+}
+
+DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name,
+                                           DatatypeDeclSelfSort sort)
+    : d_name(name), d_sort(Sort(CVC4::Type()))
+{
+}
+
+std::string DatatypeSelectorDecl::toString() const
+{
+  std::stringstream ss;
+  ss << d_name << ": " << d_sort;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
+{
+  out << dtdecl.toString();
+  return out;
+}
+
+/* DatatypeConstructorDecl -------------------------------------------------- */
+
+DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
+    : d_ctor(new CVC4::DatatypeConstructor(name))
+{
+}
+
+void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor)
+{
+  CVC4::Type t = *stor.d_sort.d_type;
+  if (t.isNull())
+  {
+    d_ctor->addArg(stor.d_name, DatatypeSelfType());
+  }
+  else
+  {
+    d_ctor->addArg(stor.d_name, t);
+  }
+}
+
+std::string DatatypeConstructorDecl::toString() const
+{
+  std::stringstream ss;
+  ss << *d_ctor;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out,
+                         const DatatypeConstructorDecl& ctordecl)
+{
+  out << ctordecl.toString();
+  return out;
+}
+
+/* DatatypeDecl ------------------------------------------------------------- */
+
+DatatypeDecl::DatatypeDecl(const std::string& name, bool isCoDatatype)
+    : d_dtype(new CVC4::Datatype(name, isCoDatatype))
+{
+}
+
+DatatypeDecl::DatatypeDecl(const std::string& name,
+                           Sort param,
+                           bool isCoDatatype)
+    : d_dtype(new CVC4::Datatype(
+          name, std::vector<Type>{*param.d_type}, isCoDatatype))
+{
+}
+
+DatatypeDecl::DatatypeDecl(const std::string& name,
+                           const std::vector<Sort>& params,
+                           bool isCoDatatype)
+{
+  std::vector<Type> tparams;
+  for (const Sort& s : params) { tparams.push_back(*s.d_type); }
+  d_dtype = std::shared_ptr<CVC4::Datatype>(
+      new CVC4::Datatype(name, tparams, isCoDatatype));
+}
+
+DatatypeDecl::~DatatypeDecl()
+{
+}
+
+void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
+{
+  d_dtype->addConstructor(*ctor.d_ctor);
+}
+
+std::string DatatypeDecl::toString() const
+{
+  std::stringstream ss;
+  ss << *d_dtype;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out,
+                         const DatatypeSelectorDecl& stordecl)
+{
+  out << stordecl.toString();
+  return out;
+}
 
 }  // namespace api
 }  // namespace CVC4
