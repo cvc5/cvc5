@@ -844,17 +844,15 @@ bool Term::operator!=(const Term& t) const
   return *d_expr != *t.d_expr;
 }
 
-#if 0
 Kind Term::getKind() const
 {
-  return s_kinds_internal[d_expr->getKind()];
+  return intToExtKind(d_expr->getKind());
 }
 
 Sort Term::getSort() const
 {
   return Sort(d_expr->getType());
 }
-#endif
 
 bool Term::isNull() const
 {
