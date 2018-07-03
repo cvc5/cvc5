@@ -9,13 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief candidate_rewrite_filter
+ ** \brief Implements techniques for candidate rewrite rule filtering, which
+ ** filters the output of --sygus-rr-synth. The classes in this file implement
+ ** filtering based on congruence, variable ordering, and matching.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS___H
-#define __CVC4__THEORY__QUANTIFIERS___H
+#ifndef __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
+#define __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
 
 #include <map>
 #include "theory/quantifiers/dynamic_rewrite.h"
@@ -214,4 +216,4 @@ class CandidateRewriteFilter
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS___H */
+#endif /* __CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */

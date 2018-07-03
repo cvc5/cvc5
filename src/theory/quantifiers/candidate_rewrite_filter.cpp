@@ -9,7 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of candidate_rewrite_filter
+ ** \brief Implements techniques for candidate rewrite rule filtering, which
+ ** filters the output of --sygus-rr-synth. The classes in this file implement
+ ** filtering based on congruence, variable ordering, and matching.
  **/
 
 #include "theory/quantifiers/candidate_rewrite_filter.h"
@@ -48,7 +50,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
       Assert(n
              == curr->d_data.substitute(
                     vars.begin(), vars.end(), subs.begin(), subs.end()));
-      Trace("sse-match-debug") << "notify : " << curr->d_data << std::endl;
+      Trace("crf-match-debug") << "notify : " << curr->d_data << std::endl;
       if (!ntm->notify(n, curr->d_data, vars, subs))
       {
         return false;
@@ -61,7 +63,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
     else
     {
       Node cn = cvisit.back();
-      Trace("sse-match-debug")
+      Trace("crf-match-debug")
           << "traverse : " << cn << " at depth " << visit.size() << std::endl;
       unsigned index = visit.size() - 1;
       int vindex = visit_var_index[index];
@@ -84,7 +86,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
                 cvisit.push_back(cnc);
               }
             }
-            Trace("sse-match-debug") << "recurse op : " << op << std::endl;
+            Trace("crf-match-debug") << "recurse op : " << op << std::endl;
             visit.push_back(cvisit);
             visit_trie.push_back(&itu->second);
             visit_var_index.push_back(-1);
@@ -107,7 +109,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
 
         if (vindex == static_cast<int>(curr->d_vars.size()))
         {
-          Trace("sse-match-debug")
+          Trace("crf-match-debug")
               << "finished checking " << curr->d_vars.size()
               << " variables at depth " << visit.size() << std::endl;
           // finished
@@ -118,7 +120,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
         }
         else
         {
-          Trace("sse-match-debug") << "check variable #" << vindex
+          Trace("crf-match-debug") << "check variable #" << vindex
                                    << " at depth " << visit.size() << std::endl;
           Assert(vindex < static_cast<int>(curr->d_vars.size()));
           // recurse on variable?
@@ -142,7 +144,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
           }
           if (recurse)
           {
-            Trace("sse-match-debug") << "recurse var : " << var << std::endl;
+            Trace("crf-match-debug") << "recurse var : " << var << std::endl;
             cvisit.pop_back();
             visit.push_back(cvisit);
             visit_trie.push_back(&curr->d_children[var][0]);
@@ -237,7 +239,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     bn = d_tds->sygusToBuiltin(n);
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
-  Trace("sygus-synth-rr") << "sygusSampleExt : " << bn << "..." << beq_n
+  Trace("cr-filter") << "crewriteFilter : " << bn << "..." << beq_n
                           << std::endl;
   // whether we will keep this pair
   bool keep = true;
@@ -247,7 +249,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     bool nor = d_ss->isOrdered(bn);
     bool eqor = d_ss->isOrdered(beq_n);
-    Trace("sygus-synth-rr-debug")
+    Trace("cr-filter-debug")
         << "Ordered? : " << nor << " " << eqor << std::endl;
     if (eqor || nor)
     {
@@ -278,18 +280,18 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     }
     if (!keep)
     {
-      Trace("sygus-synth-rr") << "...redundant (unordered)" << std::endl;
+      Trace("cr-filter") << "...redundant (unordered)" << std::endl;
     }
   }
 
   // ----- check rewriting redundancy
   if (keep && d_drewrite != nullptr)
   {
-    Trace("sygus-synth-rr-debug") << "Check equal rewrite pair..." << std::endl;
+    Trace("cr-filter-debug") << "Check equal rewrite pair..." << std::endl;
     if (d_drewrite->areEqual(bn, beq_n))
     {
       // must be unique according to the dynamic rewriter
-      Trace("sygus-synth-rr") << "...redundant (rewritable)" << std::endl;
+      Trace("cr-filter") << "...redundant (rewritable)" << std::endl;
       keep = false;
     }
   }
@@ -299,12 +301,12 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     // ----- check matchable
     // check whether the pair is matchable with a previous one
     d_curr_pair_rhs = beq_n;
-    Trace("sse-match") << "SSE check matches : " << bn << " [rhs = " << beq_n
+    Trace("crf-match") << "CRF check matches : " << bn << " [rhs = " << beq_n
                        << "]..." << std::endl;
     if (!d_match_trie.getMatches(bn, &d_ssenm))
     {
       keep = false;
-      Trace("sygus-synth-rr") << "...redundant (matchable)" << std::endl;
+      Trace("cr-filter") << "...redundant (matchable)" << std::endl;
       // regardless, would help to remember it
       registerRelevantPair(n, eq_n);
     }
@@ -340,7 +342,7 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
   // ----- check rewriting redundancy
   if (d_drewrite != nullptr)
   {
-    Trace("sygus-synth-rr-debug") << "Add rewrite pair..." << std::endl;
+    Trace("cr-filter-debug") << "Add rewrite pair..." << std::endl;
     Assert(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
   }
@@ -354,7 +356,7 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
       // insert in match trie if first time
       if (d_pairs.find(t) == d_pairs.end())
       {
-        Trace("sse-match") << "SSE add term : " << t << std::endl;
+        Trace("crf-match") << "CRF add term : " << t << std::endl;
         d_match_trie.addTerm(t);
       }
       d_pairs[t].insert(to);
@@ -370,13 +372,13 @@ bool CandidateRewriteFilter::notify(Node s,
   Assert(!d_curr_pair_rhs.isNull());
   std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
       d_pairs.find(n);
-  if (Trace.isOn("sse-match"))
+  if (Trace.isOn("crf-match"))
   {
-    Trace("sse-match") << "  " << s << " matches " << n
+    Trace("crf-match") << "  " << s << " matches " << n
                        << " under:" << std::endl;
     for (unsigned i = 0, size = vars.size(); i < size; i++)
     {
-      Trace("sse-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
+      Trace("crf-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
       // TODO (#1923) ensure that we use an internal representation to
       // ensure polymorphism is handled correctly
       Assert(vars[i].getType().isComparableTo(subs[i].getType()));
@@ -395,11 +397,11 @@ bool CandidateRewriteFilter::notify(Node s,
     }
     if (areEqual)
     {
-      Trace("sse-match") << "*** Match, current pair: " << std::endl;
-      Trace("sse-match") << "  (" << s << ", " << d_curr_pair_rhs << ")"
+      Trace("crf-match") << "*** Match, current pair: " << std::endl;
+      Trace("crf-match") << "  (" << s << ", " << d_curr_pair_rhs << ")"
                          << std::endl;
-      Trace("sse-match") << "is an instance of previous pair:" << std::endl;
-      Trace("sse-match") << "  (" << n << ", " << nr << ")" << std::endl;
+      Trace("crf-match") << "is an instance of previous pair:" << std::endl;
+      Trace("crf-match") << "  (" << n << ", " << nr << ")" << std::endl;
       return false;
     }
   }
