@@ -421,18 +421,11 @@ size_t String::maxSize()
 {
   return std::numeric_limits<size_t>::max();
 }
-
-int String::toNumber() const {
-  if (isNumber()) {
-    int ret = 0;
-    for (unsigned int i = 0; i < size(); ++i) {
-      unsigned char c = convertUnsignedIntToChar(d_str[i]);
-      ret = ret * 10 + (int)c - (int)'0';
-    }
-    return ret;
-  } else {
-    return -1;
-  }
+Rational String::toNumber() const
+{
+  // when smt2 standard for strings is set, this may change, based on the
+  // semantics of str.from.int for leading zeros
+  return Rational(toString());
 }
 
 unsigned char String::hexToDec(unsigned char c) {

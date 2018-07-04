@@ -382,302 +382,6 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   return retNode;
 }
 
-
-void TheoryStringsRewriter::mergeInto(std::vector<Node> &t, const std::vector<Node> &s) {
-  for(std::vector<Node>::const_iterator itr=s.begin(); itr!=s.end(); itr++) {
-    if(std::find(t.begin(), t.end(), (*itr)) == t.end()) {
-      t.push_back( *itr );
-    }
-  }
-}
-
-void TheoryStringsRewriter::shrinkConVec(std::vector<Node> &vec) {
-  unsigned i = 0;
-  Node emptysingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( CVC4::String("") ) );
-  while(i < vec.size()) {
-    if( vec[i] == emptysingleton ) {
-      vec.erase(vec.begin() + i);
-    } else if(vec[i].getKind()==kind::STRING_TO_REGEXP && i<vec.size()-1 && vec[i+1].getKind()==kind::STRING_TO_REGEXP) {
-      Node tmp = NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, vec[i][0], vec[i+1][0]);
-      tmp = rewriteConcat(tmp);
-      vec[i] = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, tmp);
-      vec.erase(vec.begin() + i + 1);
-    } else {
-      i++;
-    }
-  }
-}
-
-Node TheoryStringsRewriter::applyAX( TNode node ) {
-  Trace("regexp-ax") << "Regexp::AX start " << node << std::endl;
-  Node retNode = node;
-
-  int k = node.getKind();
-  switch( k ) {
-    case kind::REGEXP_UNION: {
-      std::vector<Node> vec_nodes;
-      for(unsigned i=0; i<node.getNumChildren(); i++) {
-        Node tmp = applyAX(node[i]);
-        if(tmp.getKind() == kind::REGEXP_UNION) {
-          for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-            if(std::find(vec_nodes.begin(), vec_nodes.end(), tmp[j]) == vec_nodes.end()) {
-              vec_nodes.push_back(tmp[j]);
-            }
-          }
-        } else if(tmp.getKind() == kind::REGEXP_EMPTY) {
-          // do nothing
-        } else {
-          if(std::find(vec_nodes.begin(), vec_nodes.end(), tmp) == vec_nodes.end()) {
-            vec_nodes.push_back(tmp);
-          }
-        }
-      }
-      if(vec_nodes.empty()) {
-        std::vector< Node > nvec;
-        retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
-      } else {
-        retNode = vec_nodes.size() == 1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes );
-      }
-      break;
-    }
-    case kind::REGEXP_CONCAT: {
-      std::vector< std::vector<Node> > vec_nodes;
-      bool emptyflag = false;
-      Node emptysingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( CVC4::String("") ) );
-      for(unsigned i=0; i<node.getNumChildren(); i++) {
-        Node tmp = applyAX(node[i]);
-        if(tmp.getKind() == kind::REGEXP_EMPTY) {
-          emptyflag = true;
-          break;
-        } else if(tmp == emptysingleton) {
-          //do nothing
-        } else if(vec_nodes.empty()) {
-          if(tmp.getKind() == kind::REGEXP_UNION) {
-            for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-              std::vector<Node> vtmp;
-              if(tmp[j].getKind() == kind::REGEXP_CONCAT) {
-                for(unsigned j2=0; j2<tmp[j].getNumChildren(); j2++) {
-                  vtmp.push_back(tmp[j][j2]);
-                }
-              } else {
-                vtmp.push_back(tmp[j]);
-              }
-              vec_nodes.push_back(vtmp);
-            }
-          } else if(tmp.getKind() == kind::REGEXP_CONCAT) {
-            std::vector<Node> vtmp;
-            for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-              vtmp.push_back(tmp[j]);
-            }
-            vec_nodes.push_back(vtmp);
-          } else {
-            std::vector<Node> vtmp;
-            vtmp.push_back(tmp);
-            vec_nodes.push_back(vtmp);
-          }
-        } else {
-          //non-empty vec
-          if(tmp.getKind() == kind::REGEXP_UNION) {
-            unsigned cnt = vec_nodes.size();
-            for(unsigned i2=0; i2<cnt; i2++) {
-              //std::vector<Node> vleft( vec_nodes[i2] );
-              for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-                if(tmp[j] == emptysingleton) {
-                  vec_nodes.push_back( vec_nodes[i2] );
-                } else {
-                  std::vector<Node> vt( vec_nodes[i2] );
-                  if(tmp[j].getKind() != kind::REGEXP_CONCAT) {
-                    vt.push_back( tmp[j] );
-                  } else {
-                    for(unsigned j2=0; j2<tmp[j].getNumChildren(); j2++) {
-                      vt.push_back(tmp[j][j2]);
-                    }
-                  }
-                  vec_nodes.push_back(vt);
-                }
-              }
-            }
-            vec_nodes.erase(vec_nodes.begin(), vec_nodes.begin() + cnt);
-          } else if(tmp.getKind() == kind::REGEXP_CONCAT) {
-            for(unsigned i2=0; i2<vec_nodes.size(); i2++) {
-              for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-                vec_nodes[i2].push_back(tmp[j]);
-              }
-            }
-          } else {
-            for(unsigned i2=0; i2<vec_nodes.size(); i2++) {
-              vec_nodes[i2].push_back(tmp);
-            }
-          }
-        }
-      }
-      if(emptyflag) {
-        std::vector< Node > nvec;
-        retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
-      } else if(vec_nodes.empty()) {
-        retNode = emptysingleton;
-      } else if(vec_nodes.size() == 1) {
-        shrinkConVec(vec_nodes[0]);
-        retNode = vec_nodes[0].empty()? emptysingleton
-          : vec_nodes[0].size()==1? vec_nodes[0][0]
-          : NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes[0]);
-      } else {
-        std::vector<Node> vtmp;
-        for(unsigned i=0; i<vec_nodes.size(); i++) {
-          shrinkConVec(vec_nodes[i]);
-          if(!vec_nodes[i].empty()) {
-            Node ntmp = vec_nodes[i].size()==1? vec_nodes[i][0]
-              : NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes[i]);
-            vtmp.push_back(ntmp);
-          }
-        }
-        retNode = vtmp.empty()? emptysingleton
-          : vtmp.size()==1? vtmp[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vtmp);
-      }
-      break;
-    }
-    case kind::REGEXP_STAR: {
-      Node tmp = applyAX(node[0]);
-      Node emptysingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( CVC4::String("") ) );
-      if(tmp.getKind() == kind::REGEXP_EMPTY || tmp == emptysingleton) {
-        retNode = emptysingleton;
-      } else {
-        if(tmp.getKind() == kind::REGEXP_UNION) {
-          std::vector<Node> vec;
-          for(unsigned i=0; i<tmp.getNumChildren(); i++) {
-            if(tmp[i] != emptysingleton) {
-              vec.push_back(tmp[i]);
-            }
-          }
-          if(vec.size() != tmp.getNumChildren()) {
-            tmp = vec.size()==1? vec[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec) ;
-          }
-        } else if(tmp.getKind() == kind::REGEXP_STAR) {
-          tmp = tmp[0];
-        }
-        if(tmp != node[0]) {
-          retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, tmp );
-        }
-      }
-      break;
-    }
-    case kind::REGEXP_INTER: {
-      std::vector< std::vector<Node> > vec_nodes;
-      bool emptyflag = false;
-      bool epsflag = false;
-      Node emptysingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( CVC4::String("") ) );
-      for(unsigned i=0; i<node.getNumChildren(); i++) {
-        Node tmp = applyAX(node[i]);
-        if(tmp.getKind() == kind::REGEXP_EMPTY) {
-          emptyflag = true;
-          break;
-        } else if(vec_nodes.empty()) {
-          if(tmp.getKind() == kind::REGEXP_INTER) {
-            std::vector<Node> vtmp;
-            for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-              vtmp.push_back(tmp[j]);
-            }
-            vec_nodes.push_back(vtmp);
-          } else if(tmp.getKind() == kind::REGEXP_UNION) {
-            for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-              std::vector<Node> vtmp;
-              if(tmp[j].getKind() == kind::REGEXP_INTER) {
-                for(unsigned j2=0; j2<tmp[j].getNumChildren(); j2++) {
-                  vtmp.push_back(tmp[j][j2]);
-                }
-              } else {
-                vtmp.push_back(tmp[j]);
-              }
-              vec_nodes.push_back(vtmp);
-            }
-          } else {
-            if(tmp == emptysingleton) {
-              epsflag = true;
-            }
-            std::vector<Node> vtmp;
-            vtmp.push_back(tmp);
-            vec_nodes.push_back(vtmp);
-          }
-        } else {
-          //non-empty vec
-          if(tmp.getKind() == kind::REGEXP_INTER) {
-            for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-              for(unsigned i2=0; i2<vec_nodes.size(); i2++) {
-                if(std::find(vec_nodes[i2].begin(), vec_nodes[i2].end(), tmp[j]) == vec_nodes[i2].end()) {
-                  vec_nodes[i2].push_back(tmp[j]);
-                }
-              }
-            }
-          } else if(tmp == emptysingleton) {
-            if(!epsflag) {
-              epsflag = true;
-              for(unsigned j=0; j<vec_nodes.size(); j++) {
-                vec_nodes[j].insert(vec_nodes[j].begin(), emptysingleton);
-              }
-            }
-          } else if(tmp.getKind() == kind::REGEXP_UNION) {
-            unsigned cnt = vec_nodes.size();
-            for(unsigned i2=0; i2<cnt; i2++) {
-              //std::vector<Node> vleft( vec_nodes[i2] );
-              for(unsigned j=0; j<tmp.getNumChildren(); j++) {
-                std::vector<Node> vt(vec_nodes[i2]);
-                if(tmp[j].getKind() != kind::REGEXP_INTER) {
-                  if(std::find(vt.begin(), vt.end(), tmp[j]) == vt.end()) {
-                    vt.push_back(tmp[j]);
-                  }
-                } else {
-                  std::vector<Node> vtmp;
-                  for(unsigned j2=0; j2<tmp[j].getNumChildren(); j2++) {
-                    vtmp.push_back(tmp[j][j2]);
-                  }
-                  mergeInto(vt, vtmp);
-                }
-                vec_nodes.push_back(vt);
-              }
-            }
-            vec_nodes.erase(vec_nodes.begin(), vec_nodes.begin() + cnt);
-          } else {
-            for(unsigned j=0; j<vec_nodes.size(); j++) {
-              if(std::find(vec_nodes[j].begin(), vec_nodes[j].end(), tmp) == vec_nodes[j].end()) {
-                vec_nodes[j].push_back(tmp);
-              }
-            }
-          }
-        }
-      }
-      if(emptyflag) {
-        std::vector< Node > nvec;
-        retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
-      } else if(vec_nodes.empty()) {
-        //to check?
-        retNode = emptysingleton;
-      } else if(vec_nodes.size() == 1) {
-        retNode = vec_nodes[0].empty() ? emptysingleton : vec_nodes[0].size() == 1 ? vec_nodes[0][0] : NodeManager::currentNM()->mkNode( kind::REGEXP_INTER, vec_nodes[0] );
-      } else {
-        std::vector<Node> vtmp;
-        for(unsigned i=0; i<vec_nodes.size(); i++) {
-          Node tmp = vec_nodes[i].empty()? emptysingleton : vec_nodes[i].size() == 1 ? vec_nodes[i][0] : NodeManager::currentNM()->mkNode( kind::REGEXP_INTER, vec_nodes[i] );
-          vtmp.push_back(tmp);
-        }
-        retNode = vtmp.size() == 1? vtmp[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vtmp );
-      }
-      break;
-    }
-    case kind::REGEXP_SIGMA: {
-      break;
-    }
-    case kind::REGEXP_EMPTY: {
-      break;
-    }
-    //default: {
-      //to check?
-    //}
-  }
-
-  Trace("regexp-ax") << "Regexp::AX end " << node << " to\n               " << retNode << std::endl;
-  return retNode;
-}
-
 Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
   Assert( node.getKind() == kind::REGEXP_CONCAT );
   Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp start " << node << std::endl;
@@ -1023,7 +727,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
 Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   Node retNode = node;
   Node x = node[0];
-  Node r = node[1];//applyAX(node[1]);
+  Node r = node[1];
 
   if(r.getKind() == kind::REGEXP_EMPTY) {
     retNode = NodeManager::currentNM()->mkConst( false );
@@ -1129,6 +833,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 
 RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   Trace("strings-postrewrite") << "Strings::postRewrite start " << node << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
   Node orig = retNode;
 
@@ -1177,7 +882,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (node.getKind() == kind::STRING_LT)
   {
-    NodeManager* nm = NodeManager::currentNM();
     // eliminate s < t ---> s != t AND s <= t
     retNode = nm->mkNode(AND,
                          node[0].eqNode(node[1]).negate(),
@@ -1209,16 +913,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     if(node[0].isConst()) {
       CVC4::String s = node[0].getConst<String>();
       if(s.isNumber()) {
-        std::string stmp = s.toString();
-        //TODO: leading zeros : when smt2 standard for strings is set, uncomment this if applicable
-        //if(stmp[0] == '0' && stmp.size() != 1) {
-          //retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
-        //} else {
-          CVC4::Rational r2(stmp.c_str());
-          retNode = NodeManager::currentNM()->mkConst( r2 );
-        //}
+        retNode = nm->mkConst(s.toNumber());
       } else {
-        retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
+        retNode = nm->mkConst(::CVC4::Rational(-1));
       }
     } else if(node[0].getKind() == kind::STRING_CONCAT) {
       for(unsigned i=0; i<node[0].getNumChildren(); ++i) {
