@@ -1023,5 +1023,74 @@ size_t TermHashFunction::operator()(const Term& t) const
   return ExprHashFunction()(*t.d_expr);
 }
 
+/* -------------------------------------------------------------------------- */
+/* OpTerm                                                                     */
+/* -------------------------------------------------------------------------- */
+
+OpTerm::OpTerm() : d_expr(new CVC4::Expr())
+{
+}
+
+OpTerm::OpTerm(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e))
+{
+}
+
+OpTerm::~OpTerm()
+{
+}
+
+OpTerm& OpTerm::operator=(const OpTerm& t)
+{
+  // CHECK: expr managers must match
+  if (this != &t)
+  {
+    *d_expr = *t.d_expr;
+  }
+  return *this;
+}
+
+bool OpTerm::operator==(const OpTerm& t) const
+{
+  // CHECK: expr managers must match
+  return *d_expr == *t.d_expr;
+}
+
+bool OpTerm::operator!=(const OpTerm& t) const
+{
+  // CHECK: expr managers must match
+  return *d_expr != *t.d_expr;
+}
+
+Kind OpTerm::getKind() const
+{
+  return intToExtKind(d_expr->getKind());
+}
+
+Sort OpTerm::getSort() const
+{
+  return Sort(d_expr->getType());
+}
+
+bool OpTerm::isNull() const
+{
+  return d_expr->isNull();
+}
+
+std::string OpTerm::toString() const
+{
+  return d_expr->toString();
+}
+
+std::ostream& operator<< (std::ostream& out, const OpTerm& t)
+{
+  out << t.toString();
+  return out;
+}
+
+size_t OpTermHashFunction::operator()(const OpTerm& t) const
+{
+  return ExprHashFunction()(*t.d_expr);
+}
+
 }  // namespace api
 }  // namespace CVC4
