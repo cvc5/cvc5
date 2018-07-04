@@ -1806,8 +1806,8 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       //
       // These equalities can be used by other rewrites for subtitutions.
 
-      // Find all non-const components that appear in the second argument but
-      // not the first
+      // Find all non-const components that appear more times in second
+      // argument than the first
       std::unordered_set<Node, NodeHashFunction> nConstEmpty;
       for (std::pair<const Node, unsigned>& nncp : num_nconst[1])
       {
@@ -2287,8 +2287,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       Node nn2 = node[2].substitute(
           emptyNodes.begin(), emptyNodes.end(), substs.begin(), substs.end());
 
-      Node res = nm->mkNode(kind::STRING_STRREPL, node[0], node[1], nn2);
-      return returnRewrite(node, res, "rpl-cnts-substs");
+      if (nn2 != node[2])
+      {
+        Node res = nm->mkNode(kind::STRING_STRREPL, node[0], node[1], nn2);
+        return returnRewrite(node, res, "rpl-cnts-substs");
+      }
     }
   }
 
@@ -2330,7 +2333,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     //
     // Reasoning: If the string to be replaced is longer than x, then it does
     // not matter how much longer it is, the result is always x. Thus, it is
-    // fine to only look at the prefix of length len(x) + 1 - len(...).
+    // fine to only look at the prefix of length len(x) + 1 - len(t).
 
     children1.pop_back();
     // Length of the non-substr components in the second argument
@@ -2342,6 +2345,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     Node one = nm->mkConst(Rational(1));
     Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
     Node len0_1 = nm->mkNode(kind::PLUS, len0, one);
+    // Check len(t) + j > len(x) + 1
     if (checkEntailArith(maxLen1, len0_1, true))
     {
       children1.push_back(nm->mkNode(
