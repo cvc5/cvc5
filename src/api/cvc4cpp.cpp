@@ -1061,17 +1061,15 @@ bool OpTerm::operator!=(const OpTerm& t) const
   return *d_expr != *t.d_expr;
 }
 
-#if 0
 Kind OpTerm::getKind() const
 {
-  return s_kinds_internal[d_expr->getKind()];
+  return intToExtKind(d_expr->getKind());
 }
 
 Sort OpTerm::getSort() const
 {
   return Sort(d_expr->getType());
 }
-#endif
 
 bool OpTerm::isNull() const
 {
