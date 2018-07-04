@@ -1204,5 +1204,385 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Rounding Mode for Floating Points                                          */
+/* -------------------------------------------------------------------------- */
+
+const static std::unordered_map<RoundingMode,
+                          CVC4::RoundingMode,
+                          RoundingModeHashFunction> s_rmodes
+{
+  { ROUND_NEAREST_TIES_TO_EVEN,  CVC4::RoundingMode::roundNearestTiesToEven },
+  { ROUND_TOWARD_POSITIVE,       CVC4::RoundingMode::roundTowardPositive },
+  { ROUND_TOWARD_NEGATIVE,       CVC4::RoundingMode::roundTowardNegative },
+  { ROUND_TOWARD_ZERO,           CVC4::RoundingMode::roundTowardZero },
+  { ROUND_NEAREST_TIES_TO_AWAY,  CVC4::RoundingMode::roundNearestTiesToAway },
+};
+
+const static std::unordered_map<CVC4::RoundingMode,
+                          RoundingMode,
+                          CVC4::RoundingModeHashFunction> s_rmodes_internal
+{
+  { CVC4::RoundingMode::roundNearestTiesToEven,  ROUND_NEAREST_TIES_TO_EVEN },
+  { CVC4::RoundingMode::roundTowardPositive,     ROUND_TOWARD_POSITIVE },
+  { CVC4::RoundingMode::roundTowardNegative,     ROUND_TOWARD_NEGATIVE },
+  { CVC4::RoundingMode::roundTowardZero,         ROUND_TOWARD_ZERO },
+  { CVC4::RoundingMode::roundNearestTiesToAway,  ROUND_NEAREST_TIES_TO_AWAY },
+};
+
+size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
+{
+  return size_t(rm);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solver                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/* Create constants --------------------------------------------------------- */
+
+Term Solver::mkTrue(void) const { return d_exprMgr->mkConst<bool>(true); }
+
+Term Solver::mkFalse(void) const { return d_exprMgr->mkConst<bool>(false); }
+
+Term Solver::mkBoolean(bool val) const { return d_exprMgr->mkConst<bool>(val); }
+
+Term Solver::mkInteger(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkInteger(const std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkInteger(int32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(uint32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(int64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(uint64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkPi() const
+{
+  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+}
+
+Term Solver::mkReal(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkReal(const std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkReal(int32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(int64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(uint32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(uint64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(int32_t num, int32_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(int64_t num, int64_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(uint32_t num, uint32_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(uint64_t num, uint64_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkRegexpEmpty() const
+{
+  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>());
+}
+
+Term Solver::mkRegexpSigma() const
+{
+  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>());
+}
+
+Term Solver::mkEmptySet(Sort s) const
+{
+  return d_exprMgr->mkConst(EmptySet(*s.d_type));
+}
+
+Term Solver::mkSepNil(Sort sort) const
+{
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
+}
+
+Term Solver::mkString(const char* s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkString(const std::string& s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkString(const unsigned char c) const
+{
+  return d_exprMgr->mkConst(String(c));
+}
+
+Term Solver::mkString(const std::vector<unsigned>& s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkUniverseSet(Sort sort) const
+{
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
+}
+
+Term Solver::mkBitVector(uint32_t size) const
+{
+  return d_exprMgr->mkConst(BitVector(size));
+}
+
+Term Solver::mkBitVector(uint32_t size, uint32_t val) const
+{
+  return d_exprMgr->mkConst(BitVector(size, val));
+}
+
+Term Solver::mkBitVector(uint32_t size, uint64_t val) const
+{
+  return d_exprMgr->mkConst(BitVector(size, val));
+}
+
+Term Solver::mkBitVector(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(BitVector(s, base));
+}
+
+Term Solver::mkBitVector(std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(BitVector(s, base));
+}
+
+Term Solver::mkConst(RoundingMode rm) const
+{
+  // CHECK: kind == CONST_ROUNDINGMODE
+  // CHECK: valid rm?
+  return d_exprMgr->mkConst(s_rmodes.at(rm));
+}
+
+Term Solver::mkConst(Kind kind, Sort arg) const
+{
+  // CHECK: kind == EMPTYSET
+  return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
+}
+
+Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
+{
+  // CHECK: kind == UNINTERPRETED_CONSTANT
+  return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
+}
+
+Term Solver::mkConst(Kind kind, bool arg) const
+{
+  // CHECK: kind == CONST_BOOLEAN
+  return d_exprMgr->mkConst<bool>(arg);
+}
+
+Term Solver::mkConst(Kind kind, const char* arg) const
+{
+  // CHECK: kind == CONST_STRING
+  return d_exprMgr->mkConst(CVC4::String(arg));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg) const
+{
+  // CHECK: kind == CONST_STRING
+  return d_exprMgr->mkConst(CVC4::String(arg));
+}
+
+Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg));
+}
+
+Term Solver::mkConst(Kind kind, int32_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, int64_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
+{
+  // CHECK: kind == CONST_BITVECTOR
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
+{
+  // CHECK: kind == CONST_FLOATINGPOINT
+  // CHECK: arg 3 is bit-vector term
+  return d_exprMgr->mkConst(
+      CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
+}
+
+/* Create variables --------------------------------------------------- */
+
+Term Solver::mkVar(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkVar(symbol, *sort.d_type);
+}
+
+Term Solver::mkVar(Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkVar(*sort.d_type);
+}
+
+Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkBoundVar(symbol, *sort.d_type);
+}
+
+Term Solver::mkBoundVar(Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkBoundVar(*sort.d_type);
+}
+
 }  // namespace api
 }  // namespace CVC4
