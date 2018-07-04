@@ -495,6 +495,15 @@ Node SygusSampler::getRandomValue(TypeNode tn)
     }
     return nm->mkConst(BitVector(ss.str(), 2));
   }
+  else if (tn.isFloatingPoint() )
+  {
+    // extremely naive uniform generation of floating points
+    unsigned e = tn.getFloatingPointExponentSize();
+    unsigned s = tn.getFloatingPointSignificandSize();
+    TypeNode bvt = nm->mkBitVectorType(e+s);
+    Node bvc = getRandomValue(bvt);
+    return nm->mkConst(FloatingPoint(e,s,bvc.getConst<BitVector>()));
+  }
   else if (tn.isString() || tn.isInteger())
   {
     // if string, determine the alphabet
