@@ -25,6 +25,7 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include "util/rational.h"
 
 namespace CVC4 {
 
@@ -178,8 +179,13 @@ class CVC4_PUBLIC String {
   */
   std::size_t roverlap(const String& y) const;
 
+  /** 
+   * Returns true if this string corresponds in text to a number, for example
+   * this returns true for "7", "12", "004", and false for "abc", "4a", "".
+   */
   bool isNumber() const;
-  int toNumber() const;
+  /** Returns the corresponding rational for the text of this string. */
+  Rational toNumber() const;
 
   const std::vector<unsigned>& getVec() const { return d_str; }
   /** is the unsigned a digit?
