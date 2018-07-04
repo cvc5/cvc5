@@ -197,12 +197,14 @@ void SygusSampler::initializeSamples(unsigned nsamples)
         if (sts[j] != d_var_sygus_types.end())
         {
           unsigned ntypes = sts[j]->second.size();
-          Assert(ntypes > 0);
-          unsigned index = Random::getRandom().pick(0, ntypes - 1);
-          if (index < ntypes)
+          if(ntypes > 0)
           {
-            // currently hard coded to 0.0, 0.5
-            r = getSygusRandomValue(sts[j]->second[index], 0.0, 0.5);
+            unsigned index = Random::getRandom().pick(0, ntypes - 1);
+            if (index < ntypes)
+            {
+              // currently hard coded to 0.0, 0.5
+              r = getSygusRandomValue(sts[j]->second[index], 0.0, 0.5);
+            }
           }
         }
       }
