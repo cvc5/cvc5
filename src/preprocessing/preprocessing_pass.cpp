@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu
+ **   Justin Xu, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -23,6 +23,11 @@
 
 namespace CVC4 {
 namespace preprocessing {
+
+AssertionPipeline::AssertionPipeline(context::Context* context)
+    : d_substitutionsIndex(context, 0), d_topLevelSubstitutions(context)
+{
+}
 
 void AssertionPipeline::replace(size_t i, Node n) {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
