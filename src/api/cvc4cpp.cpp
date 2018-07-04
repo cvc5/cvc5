@@ -21,6 +21,10 @@
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
 #include "expr/type.h"
+#include "options/options.h"
+#include "options/main_options.h"
+#include "smt/smt_engine.h"
+#include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
 
@@ -1176,14 +1180,15 @@ DatatypeDecl::DatatypeDecl(const std::string& name,
                            bool isCoDatatype)
 {
   std::vector<Type> tparams;
-  for (const Sort& s : params) { tparams.push_back(*s.d_type); }
+  for (const Sort& s : params)
+  {
+    tparams.push_back(*s.d_type);
+  }
   d_dtype = std::shared_ptr<CVC4::Datatype>(
       new CVC4::Datatype(name, tparams, isCoDatatype));
 }
 
-DatatypeDecl::~DatatypeDecl()
-{
-}
+DatatypeDecl::~DatatypeDecl() {}
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
@@ -1202,6 +1207,175 @@ std::ostream& operator<<(std::ostream& out,
 {
   out << stordecl.toString();
   return out;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solver                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Solver::Solver (Options* opts)
+{
+  d_opts = std::unique_ptr<Options>(new Options());
+  if (opts) d_opts->copyValues(*opts);
+  d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
+  d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
+  d_rng = std::unique_ptr<Random>(new Random((*d_opts)[options::seed]));
+}
+
+Solver::~Solver()
+{
+}
+
+/* Sorts Handling                                                             */
+/* -------------------------------------------------------------------------- */
+
+Sort Solver::getBooleanSort (void) const
+{
+  return d_exprMgr->booleanType();
+}
+
+Sort Solver::getIntegerSort (void) const
+{
+  return d_exprMgr->integerType();
+}
+
+Sort Solver::getRealSort (void) const
+{
+  return d_exprMgr->realType();
+}
+
+Sort Solver::getRegExpSort (void) const
+{
+  return d_exprMgr->regExpType();
+}
+
+Sort Solver::getStringSort (void) const
+{
+  return d_exprMgr->stringType();
+}
+
+Sort Solver::getRoundingmodeSort (void) const
+{
+  return d_exprMgr->roundingModeType();
+}
+
+/* Create sorts ------------------------------------------------------- */
+
+Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
+{
+  // CHECK: indexSort exists
+  // CHECK: elemSort exists
+  return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
+}
+
+Sort Solver::mkBitVectorSort(uint32_t size) const
+{
+  // CHECK: size > 0
+  return d_exprMgr->mkBitVectorType(size);
+}
+
+Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
+{
+  // CHECK: num constructors > 0
+  return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
+}
+
+Sort Solver::mkFunctionSort(Sort domain, Sort range) const
+{
+  // CHECK: domain exists
+  // CHECK: range exists
+  // CHECK:
+  // domain.isFirstClass()
+  // else "can not create function type for domain type that is not
+  //       first class"
+  // CHECK:
+  // range.isFirstClass()
+  // else "can not create function type for range type that is not
+  //       first class"
+  // CHECK:
+  // !range.isFunction()
+  // else "must flatten function types"
+  return d_exprMgr->mkFunctionType(*domain.d_type, *range.d_type);
+}
+
+Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts,
+                            Sort range) const
+{
+  // CHECK: for all s in argSorts, s exists
+  // CHECK: range exists
+  // CHECK: argSorts.size() >= 1
+  // CHECK:
+  // for (unsigned i = 0; i < argSorts.size(); ++ i)
+  //   argSorts[i].isFirstClass()
+  // else "can not create function type for argument type that is not
+  //       first class"
+  // CHECK:
+  // range.isFirstClass()
+  // else "can not create function type for range type that is not
+  //       first class"
+  // CHECK:
+  // !range.isFunction()
+  // else "must flatten function types"
+  std::vector<Type> argTypes = sortVectorToTypes(argSorts);
+  return d_exprMgr->mkFunctionType(argTypes, *range.d_type);
+}
+
+Sort Solver::mkParamSort(const std::string& symbol) const
+{
+  return d_exprMgr->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER);
+}
+
+Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK: sorts.size() >= 1
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   sorts[i].isFirstClass()
+  // else "can not create predicate type for argument type that is not
+  //       first class"
+  std::vector<Type> types = sortVectorToTypes(sorts);
+  return d_exprMgr->mkPredicateType(types);
+}
+
+Sort Solver::mkRecordSort(
+    const std::vector<std::pair<std::string, Sort>>& fields) const
+{
+  std::vector<std::pair<std::string, Type>> f;
+  for (const auto& p : fields)
+  {
+    f.emplace_back(p.first, *p.second.d_type);
+  }
+  return d_exprMgr->mkRecordType(Record(f));
+}
+
+Sort Solver::mkSetSort(Sort elemSort) const
+{
+  return d_exprMgr->mkSetType(*elemSort.d_type);
+}
+
+Sort Solver::mkUninterpretedSort(const std::string& symbol) const
+{
+  return d_exprMgr->mkSort(symbol);
+}
+
+Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   !sorts[i].isFunctionLike()
+  // else "function-like types in tuples not allowed"
+  std::vector<Type> types = sortVectorToTypes(sorts);
+  return d_exprMgr->mkTupleType(types);
+}
+
+std::vector<Type> Solver::sortVectorToTypes(
+    const std::vector<Sort>& vector) const
+{
+  std::vector<Type> res;
+  for (const Sort& s : vector) { res.push_back(*s.d_type); }
+  return res;
 }
 
 }  // namespace api
