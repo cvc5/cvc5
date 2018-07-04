@@ -21,8 +21,8 @@
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "options/options.h"
 #include "options/main_options.h"
+#include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/random.h"
 #include "util/result.h"
@@ -1213,7 +1213,7 @@ std::ostream& operator<<(std::ostream& out,
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver (Options* opts)
+Solver::Solver(Options* opts)
 {
   d_opts = std::unique_ptr<Options>(new Options());
   if (opts) d_opts->copyValues(*opts);
@@ -1222,39 +1222,22 @@ Solver::Solver (Options* opts)
   d_rng = std::unique_ptr<Random>(new Random((*d_opts)[options::seed]));
 }
 
-Solver::~Solver()
-{
-}
+Solver::~Solver() {}
 
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
-Sort Solver::getBooleanSort (void) const
-{
-  return d_exprMgr->booleanType();
-}
+Sort Solver::getBooleanSort(void) const { return d_exprMgr->booleanType(); }
 
-Sort Solver::getIntegerSort (void) const
-{
-  return d_exprMgr->integerType();
-}
+Sort Solver::getIntegerSort(void) const { return d_exprMgr->integerType(); }
 
-Sort Solver::getRealSort (void) const
-{
-  return d_exprMgr->realType();
-}
+Sort Solver::getRealSort(void) const { return d_exprMgr->realType(); }
 
-Sort Solver::getRegExpSort (void) const
-{
-  return d_exprMgr->regExpType();
-}
+Sort Solver::getRegExpSort(void) const { return d_exprMgr->regExpType(); }
 
-Sort Solver::getStringSort (void) const
-{
-  return d_exprMgr->stringType();
-}
+Sort Solver::getStringSort(void) const { return d_exprMgr->stringType(); }
 
-Sort Solver::getRoundingmodeSort (void) const
+Sort Solver::getRoundingmodeSort(void) const
 {
   return d_exprMgr->roundingModeType();
 }
@@ -1298,8 +1281,7 @@ Sort Solver::mkFunctionSort(Sort domain, Sort range) const
   return d_exprMgr->mkFunctionType(*domain.d_type, *range.d_type);
 }
 
-Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts,
-                            Sort range) const
+Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const
 {
   // CHECK: for all s in argSorts, s exists
   // CHECK: range exists
@@ -1374,7 +1356,10 @@ std::vector<Type> Solver::sortVectorToTypes(
     const std::vector<Sort>& vector) const
 {
   std::vector<Type> res;
-  for (const Sort& s : vector) { res.push_back(*s.d_type); }
+  for (const Sort& s : vector)
+  {
+    res.push_back(*s.d_type);
+  }
   return res;
 }
 
