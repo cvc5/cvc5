@@ -40,7 +40,6 @@ UNIT_TESTS += \
 	context/cdlist_black \
 	context/cdmap_black \
 	context/cdmap_white \
-	context/cdvector_black \
 	util/array_store_all_black \
 	util/assert_white \
 	util/check_white \
