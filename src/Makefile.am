@@ -393,6 +393,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_rewrite_database.cpp \
 	theory/quantifiers/candidate_rewrite_database.h \
+	theory/quantifiers/candidate_rewrite_filter.cpp \
+	theory/quantifiers/candidate_rewrite_filter.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_arith_instantiator.cpp \
