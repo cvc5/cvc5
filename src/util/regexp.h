@@ -179,7 +179,7 @@ class CVC4_PUBLIC String {
   */
   std::size_t roverlap(const String& y) const;
 
-  /** 
+  /**
    * Returns true if this string corresponds in text to a number, for example
    * this returns true for "7", "12", "004", and false for "abc", "4a", "".
    */

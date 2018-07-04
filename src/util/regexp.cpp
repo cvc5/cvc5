@@ -421,8 +421,8 @@ size_t String::maxSize()
 {
   return std::numeric_limits<size_t>::max();
 }
-
-Rational String::toNumber() const {
+Rational String::toNumber() const
+{
   // when smt2 standard for strings is set, this may change, based on the
   // semantics of str.from.int for leading zeros
   return Rational(toString());
