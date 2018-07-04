@@ -377,6 +377,22 @@ class TheoryStringsRewriter {
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+
+  /**
+   * Given a symbolic length n, returns the canonical string for that length.
+   * For example if n is constant, this function returns a string consisting of
+   * "A" repeated n times. Returns the null node if no such string exists.
+   */
+  static Node canonicalStrForSymbolicLength(Node n);
+
+  /** length preserving rewrite
+   *
+   * Given input n, this returns a string n' whose length is equivalent to n.
+   * We apply certain normalizations to n', such as replacing all constants
+   * that are not relevant to length by "A".
+   */
+  static Node lengthPreserveRewrite(Node n);
+
   /** entail non-empty
    *
    * Checks whether string a is entailed to be non-empty. Is equivalent to
