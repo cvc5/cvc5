@@ -18,7 +18,6 @@
  **          (= x (fp.neg x)) --> (isNaN x)
  **          (fp.eq x (fp.neg x)) --> (isZero x)   (previous and reorganise should be sufficient)
  **          (fp.eq x const) --> various = depending on const
- **          (fp.abs (fp.neg x)) --> (fp.abs x)
  **          (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
  **          (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
  **          (fp.isPositive (fp.abs x)) --> (not (isNaN x))
@@ -69,6 +68,16 @@ namespace rewrite {
   RewriteResponse removeDoubleNegation (TNode node, bool) {
     Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
     if (node[0].getKind() == kind::FLOATINGPOINT_NEG) {
+      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    }
+
+    return RewriteResponse(REWRITE_DONE, node);
+  }
+
+  RewriteResponse compactAbs (TNode node, bool) {
+    Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
+    if (node[0].getKind() == kind::FLOATINGPOINT_NEG ||
+	node[0].getKind() == kind::FLOATINGPOINT_ABS) {
       return RewriteResponse(REWRITE_AGAIN, node[0][0]);
     }
 
@@ -931,7 +940,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
       
     /******** Operations ********/
     preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
     preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
     preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::convertSubtractionToAddition;
@@ -1014,7 +1023,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
       
     /******** Operations ********/
     postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
     postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
     postRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::reorderBinaryOperation;
     postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
