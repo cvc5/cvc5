@@ -532,6 +532,15 @@ private:
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  /** send length lemma
+   * 
+   * This method is called on non-constant string terms n. It sends a lemma
+   * on the output channel that ensures that len( n ) >= 0. In particular, the
+   * this lemma is typically of the form:
+   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
+   * This method also ensures that the left branch is taken first via calls to
+   * requirePhase.
+   */
   void sendLengthLemma(Node n);
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
