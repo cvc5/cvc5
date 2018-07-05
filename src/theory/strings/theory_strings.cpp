@@ -3726,8 +3726,9 @@ void TheoryStrings::sendLengthLemma( Node n ){
     }
     else if (!case_empty.getConst<bool>())
     {
+      // the rewriter knows that n is non-empty
       Trace("strings-lemma")
-          << "Strings::Lemma LENGTH >= 0 (non-empty): " << case_nempty
+          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
           << std::endl;
       d_out->lemma(case_nempty);
     }

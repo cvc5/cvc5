@@ -538,8 +538,8 @@ private:
    * on the output channel that ensures that len( n ) >= 0. In particular, the
    * this lemma is typically of the form:
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
-   * This method also ensures that the left branch is taken first via calls to
-   * requirePhase.
+   * This method also ensures that, when applicable, the left branch is taken
+   * first via calls to requirePhase.
    */
   void sendLengthLemma(Node n);
   /** mkConcat **/
