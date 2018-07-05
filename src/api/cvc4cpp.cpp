@@ -1214,8 +1214,8 @@ std::ostream& operator<<(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 Solver::Solver(Options* opts)
+  : d_opts(new Options())
 {
-  d_opts = std::unique_ptr<Options>(new Options());
   if (opts) d_opts->copyValues(*opts);
   d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
   d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
@@ -1353,10 +1353,10 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 }
 
 std::vector<Type> Solver::sortVectorToTypes(
-    const std::vector<Sort>& vector) const
+    const std::vector<Sort>& sorts) const
 {
   std::vector<Type> res;
-  for (const Sort& s : vector)
+  for (const Sort& s : sorts)
   {
     res.push_back(*s.d_type);
   }
