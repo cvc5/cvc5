@@ -1422,10 +1422,10 @@ Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 }
 
 std::vector<Expr> Solver::termVectorToExprs(
-    const std::vector<Term>& vector) const
+    const std::vector<Term>& terms) const
 {
   std::vector<Expr> res;
-  for (const Term& t : vector)
+  for (const Term& t : terms)
   {
     res.push_back(*t.d_expr);
   }
