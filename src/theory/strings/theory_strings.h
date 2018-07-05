@@ -533,7 +533,7 @@ private:
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
   /** send length lemma
-   * 
+   *
    * This method is called on non-constant string terms n. It sends a lemma
    * on the output channel that ensures that len( n ) >= 0. In particular, the
    * this lemma is typically of the form:
