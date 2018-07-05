@@ -1281,7 +1281,7 @@ DatatypeConstructor::const_iterator DatatypeConstructor::end() const
 DatatypeConstructor::const_iterator::const_iterator(
     const CVC4::DatatypeConstructor& ctor, bool begin)
 {
-  d_int_stors = ctor.getSelectors();
+  d_int_stors = ctor.getArgs();
   const std::vector<CVC4::DatatypeConstructorArg>* sels =
       static_cast<const std::vector<CVC4::DatatypeConstructorArg>*>(
           d_int_stors);

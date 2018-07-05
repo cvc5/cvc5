@@ -451,9 +451,9 @@ class CVC4_PUBLIC DatatypeConstructor {
   void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
 
   /**
-   * Get the list of selectors.
+   * Get the list of arguments to this constructor.
    */
-  const std::vector<DatatypeConstructorArg>* getSelectors() const;
+  const std::vector<DatatypeConstructorArg>* getArgs() const;
 
  private:
   /** the name of the constructor */

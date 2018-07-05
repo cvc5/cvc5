@@ -839,7 +839,7 @@ void DatatypeConstructor::setSygus(Expr op,
   d_sygus_pc = spc;
 }
 
-const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getSelectors()
+const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
     const
 {
   return &d_args;
