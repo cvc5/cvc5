@@ -255,6 +255,34 @@ namespace rewrite {
     } 
   }
 
+  RewriteResponse compactRemainder (TNode node, bool isPreRewrite) {
+    Assert(node.getKind() == kind::FLOATINGPOINT_REM);
+    Assert(!isPreRewrite);  // status assumes parts have been rewritten
+
+    Node working = node;
+
+    // (fp.rem (fp.rem X Y) Y) == (fp.rem X Y)
+    if (working[0].getKind() == kind::FLOATINGPOINT_REM && // short-cut matters!
+	working[0][1] == working[1]) {
+      working = working[0];
+    }
+
+    // Sign of the RHS does not matter
+    if (working[1].getKind() == kind::FLOATINGPOINT_NEG ||
+	working[1].getKind() == kind::FLOATINGPOINT_ABS) {
+      working[1] = working[1][0];
+    }
+
+    // Lift negation out of the LHS so it can be cancelled out
+    if (working[0].getKind() == kind::FLOATINGPOINT_NEG) {
+      NodeManager * nm = NodeManager::currentNM();
+      working = nm->mkNode(kind::FLOATINGPOINT_NEG,
+			   nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
+    }
+
+    return RewriteResponse(REWRITE_DONE, working);
+  }
+
 }; /* CVC4::theory::fp::rewrite */
 
 
@@ -1031,7 +1059,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
     postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::reorderFMA;
     postRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::compactRemainder;
     postRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
     postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
