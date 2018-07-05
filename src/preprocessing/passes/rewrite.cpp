@@ -9,11 +9,14 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
+ ** \brief The rewrite preprocessing pass
+ **
+ ** Calls the rewriter on every assertion
  **/
 
 #include "preprocessing/passes/rewrite.h"
 
-#include "theory/theory.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace preprocessing {

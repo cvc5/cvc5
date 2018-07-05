@@ -9,6 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
+ ** \brief The rewrite preprocessing pass
+ **
+ ** Calls the rewriter on every assertion
  **/
 
 #include "cvc4_private.h"
@@ -34,7 +37,7 @@ class Rewrite : public PreprocessingPass
 };
 
 }  // namespace passes
-}  // namespace preprocessingn
+}  // namespace preprocessing
 }  // namespace CVC4
 
 #endif /* __CVC4__PREPROCESSING__PASSES__REWRITE_H */
