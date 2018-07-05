@@ -1553,7 +1553,7 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
   // CHECK: kind == CONST_FLOATINGPOINT
-  // CHECK: arg 3 is bit-vector term
+  // CHECK: arg 3 is bit-vector constant
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
