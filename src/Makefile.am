@@ -35,6 +35,9 @@ nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
+	api/cvc4cpp.h \
+	api/cvc4cppkind.h \
+	api/cvc4cpp.cpp \
 	context/backtrackable.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
@@ -52,7 +55,6 @@ libcvc4_la_SOURCES = \
 	context/cdtrail_hashmap.h \
 	context/cdtrail_hashmap_forward.h \
 	context/cdtrail_queue.h \
-	context/cdvector.h \
 	context/context.cpp \
 	context/context.h \
 	context/context_mm.cpp \
@@ -64,6 +66,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/passes/apply_substs.cpp \
+	preprocessing/passes/apply_substs.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
@@ -88,6 +92,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/symmetry_breaker.h \
 	preprocessing/passes/symmetry_detect.cpp \
 	preprocessing/passes/symmetry_detect.h \
+	preprocessing/passes/synth_rew_rules.cpp \
+	preprocessing/passes/synth_rew_rules.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -181,6 +187,8 @@ libcvc4_la_SOURCES = \
 	theory/atom_requests.cpp \
 	theory/atom_requests.h \
 	theory/care_graph.h \
+	theory/evaluator.cpp \
+	theory/evaluator.h \
 	theory/interrupted.h \
 	theory/ite_utilities.cpp \
 	theory/ite_utilities.h \
@@ -387,10 +395,18 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_rewrite_database.cpp \
 	theory/quantifiers/candidate_rewrite_database.h \
+	theory/quantifiers/candidate_rewrite_filter.cpp \
+	theory/quantifiers/candidate_rewrite_filter.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
-	theory/quantifiers/cegqi/ceg_t_instantiator.cpp \
-	theory/quantifiers/cegqi/ceg_t_instantiator.h \
+	theory/quantifiers/cegqi/ceg_arith_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_arith_instantiator.h \
+	theory/quantifiers/cegqi/ceg_bv_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_bv_instantiator.h \
+	theory/quantifiers/cegqi/ceg_dt_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_dt_instantiator.h \
+	theory/quantifiers/cegqi/ceg_epr_instantiator.cpp \
+	theory/quantifiers/cegqi/ceg_epr_instantiator.h \
 	theory/quantifiers/cegqi/inst_strategy_cbqi.cpp \
 	theory/quantifiers/cegqi/inst_strategy_cbqi.h \
 	theory/quantifiers/conjecture_generator.cpp \
@@ -729,6 +745,7 @@ install-data-local:
 	(echo include/cvc4.h; \
 	 echo include/cvc4_public.h; \
 	 echo include/cvc4parser_public.h; \
+	 echo util/floatingpoint.h; \
 	 echo util/integer.h; \
 	 echo util/rational.h; \
 	 find * -name '*.h' | \
@@ -761,6 +778,7 @@ uninstall-local:
 	-(echo include/cvc4.h; \
 	  echo include/cvc4_public.h; \
 	  echo include/cvc4parser_public.h; \
+	  echo util/floatingpoint.h; \
 	  echo util/integer.h; \
 	  echo util/rational.h; \
 	  find * -name '*.h' | \

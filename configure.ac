@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 m4_define(_CVC4_MAJOR,          1)       dnl version (major)
-m4_define(_CVC4_MINOR,          6)       dnl version (minor)
+m4_define(_CVC4_MINOR,          7)       dnl version (minor)
 m4_define(_CVC4_RELEASE,        0)       dnl version (alpha)
 m4_define(_CVC4_EXTRAVERSION,   [-prerelease])      dnl version (extra)
 m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[0],,[.]_CVC4_RELEASE)_CVC4_EXTRAVERSION) dnl version string
@@ -941,6 +941,7 @@ if test $have_symfpu_headers -eq 1; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$SYMFPU_HOME"
 fi
 AM_CONDITIONAL([CVC4_USE_SYMFPU], [test $have_symfpu_headers -eq 1])
+AC_SUBST([CVC4_USE_SYMFPU], [$have_symfpu_headers])
 
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates std::hash<uint64_t> or not.  Some do, some don't.
@@ -987,6 +988,7 @@ CVC4_CXX_OPTION([-Wno-parentheses], [WNO_PARENTHESES])
 CVC4_CXX_OPTION([-Wno-uninitialized], [WNO_UNINITIALIZED])
 CVC4_CXX_OPTION([-Wno-unused-variable], [WNO_UNUSED_VARIABLE])
 CVC4_CXX_OPTION([-Wsuggest-override], [W_SUGGEST_OVERRIDE])
+CVC4_CXX_OPTION([-Wnon-virtual-dtor], [W_NON_VIRTUAL_DTOR])
 CVC4_CXX_OPTION([-fno-strict-aliasing], [FNO_STRICT_ALIASING])
 AC_SUBST([WERROR])
 AC_SUBST([WNO_CONVERSION_NULL])
@@ -995,9 +997,11 @@ AC_SUBST([WNO_PARENTHESES])
 AC_SUBST([WNO_UNINITIALIZED])
 AC_SUBST([WNO_UNUSED_VARIABLE])
 AC_SUBST([W_SUGGEST_OVERRIDE])
+AC_SUBST([W_NON_VIRTUAL_DTOR])
 AC_SUBST([FNO_STRICT_ALIASING])
 
 CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${W_SUGGEST_OVERRIDE}"
+CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${W_NON_VIRTUAL_DTOR}"
 
 # On Mac, we have to fix the visibility of standard library symbols.
 # Otherwise, exported template instantiations---even though explicitly
@@ -1052,9 +1056,11 @@ AC_ARG_WITH([cxxtest-dir],
 
 TESTS_ENVIRONMENT=
 RUN_REGRESSION_ARGS=
-# FIXME currently, unsat core regressions are disabled without LFSC
 if test "$with_lfsc" = yes; then
-  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
+  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--with-lfsc"
+fi
+if test "$enable_proof" = yes; then
+  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--enable-proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])
 AC_SUBST([RUN_REGRESSION_ARGS])
@@ -1559,6 +1565,7 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/floatingpoint.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 

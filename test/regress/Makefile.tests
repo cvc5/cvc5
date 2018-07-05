@@ -579,6 +579,7 @@ REG0_TESTS = \
 	regress0/push-pop/inc-define.smt2 \
 	regress0/push-pop/inc-double-u.smt2 \
 	regress0/push-pop/incremental-subst-bug.cvc \
+	regress0/push-pop/issue1986.smt2 \
 	regress0/push-pop/quant-fun-proc-unfd.smt2 \
 	regress0/push-pop/simple_unsat_cores.smt2 \
 	regress0/push-pop/test.00.cvc \
@@ -1284,6 +1285,7 @@ REG1_TESTS = \
 	regress1/quantifiers/psyco-196.smt2 \
 	regress1/quantifiers/qbv-disequality3.smt2 \
 	regress1/quantifiers/qbv-simple-2vars-vo.smt2 \
+	regress1/quantifiers/qbv-subcall.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvashr-0.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvashr-1.smt2 \
 	regress1/quantifiers/qbv-test-invert-bvcomp.smt2 \
@@ -1444,6 +1446,7 @@ REG1_TESTS = \
 	regress1/strings/idof-triv.smt2 \
 	regress1/strings/ilc-l-nt.smt2 \
 	regress1/strings/issue1105.smt2 \
+	regress1/strings/issue2060.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
 	regress1/strings/loop003.smt2 \
@@ -1512,6 +1515,7 @@ REG1_TESTS = \
 	regress1/sygus/inv-unused.sy \
 	regress1/sygus/large-const-simp.sy \
 	regress1/sygus/list-head-x.sy \
+	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \
@@ -1597,6 +1601,7 @@ REG2_TESTS = \
 	regress2/ooo.rf6.smt2 \
 	regress2/ooo.tag10.smt2 \
 	regress2/piVC_5581bd.smt2 \
+	regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \
@@ -1604,6 +1609,7 @@ REG2_TESTS = \
 	regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2 \
 	regress2/quantifiers/javafe.tc.FlowInsensitiveChecks.682.smt2 \
 	regress2/quantifiers/mutualrec2.cvc \
+	regress2/quantifiers/net-policy-no-time.smt2 \
 	regress2/quantifiers/nunchaku2309663.nun.min.smt2 \
 	regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
 	regress2/strings/cmu-dis-0707-3.smt2 \
