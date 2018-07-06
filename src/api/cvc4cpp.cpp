@@ -1363,5 +1363,228 @@ std::vector<Type> Solver::sortVectorToTypes(
   return res;
 }
 
+/* Create terms ------------------------------------------------------- */
+
+Term Solver::mkTerm(Kind kind) const
+{
+  // CHECK: kind == PI
+  //          || kind == REGEXP_EMPTY
+  //          || kind == REGEXP_SIGMA
+  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+  {
+    return d_exprMgr->mkExpr(extToIntKind(kind), std::vector<Expr>());
+  }
+  Assert(kind == PI);
+  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+}
+
+Term Solver::mkTerm(Kind kind, Sort sort) const
+{
+  // CHECK: kind == SEP_NIL
+  //          || kind == UNIVERSE_SET
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
+}
+
+Term Solver::mkTerm(Kind kind, Term child) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
+}
+
+Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
+}
+
+Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child3.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
+  CVC4::Kind k = extToIntKind(kind);
+  return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                : d_exprMgr->mkExpr(k, echildren);
+}
+
+Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
+{
+  // CHECK:
+  // for c in children:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(c.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
+  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
+  // must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  std::vector<Expr> echildren = termVectorToExprs(children);
+  CVC4::Kind k = extToIntKind(kind);
+  return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                : d_exprMgr->mkExpr(k, echildren);
+}
+
+Term Solver::mkTerm(OpTerm opTerm) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  return d_exprMgr->mkExpr(*opTerm.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, Term child) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child3.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(
+      *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // for c in children:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(c.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
+  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
+  // must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  std::vector<Expr> echildren = termVectorToExprs(children);
+  return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
+}
+
+std::vector<Expr> Solver::termVectorToExprs(
+    const std::vector<Term>& terms) const
+{
+  std::vector<Expr> res;
+  for (const Term& t : terms)
+  {
+    res.push_back(*t.d_expr);
+  }
+  return res;
+}
 }  // namespace api
 }  // namespace CVC4
