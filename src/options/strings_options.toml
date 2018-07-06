@@ -57,24 +57,6 @@ header = "options/strings_options.h"
   help       = "the eager intersection used by the theory of strings"
 
 [[option]]
-  name       = "stringOpt1"
-  category   = "regular"
-  long       = "strings-opt1"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "internal option1 for strings: normal form"
-
-[[option]]
-  name       = "stringOpt2"
-  category   = "regular"
-  long       = "strings-opt2"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "internal option2 for strings: constant regexp splitting"
-
-[[option]]
   name       = "stringIgnNegMembership"
   category   = "regular"
   long       = "strings-inm"

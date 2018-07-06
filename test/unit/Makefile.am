@@ -6,6 +6,7 @@ UNIT_TESTS = \
 	util/cardinality_public
 if WHITE_AND_BLACK_TESTS
 UNIT_TESTS += \
+	theory/evaluator_white \
 	theory/logic_info_white \
 	theory/theory_arith_white \
 	theory/theory_black \
@@ -39,7 +40,6 @@ UNIT_TESTS += \
 	context/cdlist_black \
 	context/cdmap_black \
 	context/cdmap_white \
-	context/cdvector_black \
 	util/array_store_all_black \
 	util/assert_white \
 	util/check_white \

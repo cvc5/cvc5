@@ -698,34 +698,49 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     PROOF( ProofManager::getSatProof()->startResChain(confl); )
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
-        Clause& c = ca[confl];
-        max_resolution_level = std::max(max_resolution_level, c.level());
 
-        if (c.removable())
-            claBumpActivity(c);
+        {
+          // ! IMPORTANT !
+          // It is not safe to use c after this block of code because
+          // resolveOutUnit() below may lead to clauses being allocated, which
+          // in turn may lead to reallocations that invalidate c.
+          Clause& c = ca[confl];
+          max_resolution_level = std::max(max_resolution_level, c.level());
 
-        for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
-            Lit q = c[j];
+          if (c.removable()) claBumpActivity(c);
+        }
 
-            if (!seen[var(q)] && level(var(q)) > 0) {
-                varBumpActivity(var(q));
-                seen[var(q)] = 1;
-                if (level(var(q)) >= decisionLevel())
-                    pathC++;
-                else
-                    out_learnt.push(q);
-            } else {
-              // We could be resolving a literal propagated by a clause/theory using
-              // information from a higher level
-              if (!seen[var(q)] && level(var(q)) == 0) {
-                max_resolution_level = std::max(max_resolution_level, user_level(var(q)));
-              }
+        for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size();
+             j < size;
+             j++)
+        {
+          Lit q = ca[confl][j];
 
-              // FIXME: can we do it lazily if we actually need the proof?
-              if (level(var(q)) == 0) {
-                PROOF( ProofManager::getSatProof()->resolveOutUnit(q); )
-              }
+          if (!seen[var(q)] && level(var(q)) > 0)
+          {
+            varBumpActivity(var(q));
+            seen[var(q)] = 1;
+            if (level(var(q)) >= decisionLevel())
+              pathC++;
+            else
+              out_learnt.push(q);
+          }
+          else
+          {
+            // We could be resolving a literal propagated by a clause/theory
+            // using information from a higher level
+            if (!seen[var(q)] && level(var(q)) == 0)
+            {
+              max_resolution_level =
+                  std::max(max_resolution_level, user_level(var(q)));
             }
+
+            // FIXME: can we do it lazily if we actually need the proof?
+            if (level(var(q)) == 0)
+            {
+              PROOF(ProofManager::getSatProof()->resolveOutUnit(q);)
+            }
+          }
         }
 
         // Select next clause to look at:
