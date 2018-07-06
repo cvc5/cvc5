@@ -116,8 +116,13 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
         NodeManager* nm = NodeManager::currentNM();
-        SmtEngine rrChecker(nm->toExprManager());
+        Options opts;
+        ExprManager em(nm->getOptions());
+        ExprManagerMapCollection varMap;
+        SmtEngine rrChecker(&em);
+        rrChecker.setTimeLimit(options::sygusRewSynthCheckTimeout(), true);
         rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
+
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
         // quantify over the free variables in crr
@@ -146,7 +151,8 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           }
           crr = crr.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
         }
-        rrChecker.assertFormula(crr.toExpr());
+        Expr eccr = crr.toExpr().exportTo(&em, varMap);
+        rrChecker.assertFormula(eccr);
         Result r = rrChecker.checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -179,7 +185,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             if (val.isNull())
             {
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
-              val = Node::fromExpr(rrChecker.getValue(refv.toExpr()));
+              Expr erefv = refv.toExpr().exportTo(&em, varMap);
+              val = Node::fromExpr(rrChecker.getValue(erefv).exportTo(
+                  nm->toExprManager(), varMap));
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
