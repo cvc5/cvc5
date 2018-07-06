@@ -497,7 +497,9 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   {
     unsigned e = tn.getFloatingPointExponentSize();
     unsigned s = tn.getFloatingPointSignificandSize();
-    return nm->mkConst(Sampler::pickFpBiased(e, s));
+    return nm->mkConst(options::sygusSampleFpUniform()
+                           ? Sampler::pickFpUniform(e, s)
+                           : Sampler::pickFpBiased(e, s));
   }
   else if (tn.isString() || tn.isInteger())
   {
