@@ -36,7 +36,6 @@ typedef expr::Attribute<ExtRewriteAttributeId, Node> ExtRewriteAttribute;
 ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
 }
-
 void ExtendedRewriter::setCache(Node n, Node ret)
 {
   ExtRewriteAttribute era;
@@ -195,8 +194,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       tid = Theory::theoryOf(ret);
     }
-    Trace("q-ext-rewrite-debug")
-        << "theoryOf( " << ret << " )= " << tid << std::endl;
+    Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
+                                 << std::endl;
     if (tid == THEORY_ARITH)
     {
       new_ret = extendedRewriteArith(ret);
@@ -817,7 +816,8 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
     {
       for (const Node& ncl : nc)
       {
-        if( std::find(lit_to_cl[ncl].begin(),lit_to_cl[ncl].end(),nc)==lit_to_cl[ncl].end())
+        if (std::find(lit_to_cl[ncl].begin(), lit_to_cl[ncl].end(), nc)
+            == lit_to_cl[ncl].end())
         {
           lit_to_cl[ncl].push_back(nc);
           cl_to_lits[nc].push_back(ncl);
@@ -973,7 +973,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
 
 /** sort pairs by their second (unsigned) argument */
 static bool sortPairSecond(const std::pair<Node, unsigned>& a,
-                    const std::pair<Node, unsigned>& b)
+                           const std::pair<Node, unsigned>& b)
 {
   return (a.second < b.second);
 }
@@ -1186,19 +1186,21 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     atom_count.push_back(std::pair<Node, unsigned>(c, alist[c].size()));
   }
   // sort the atoms in each atom list
-  for( std::map<Node, std::vector<Node> >::iterator it = alist.begin(); it != alist.end(); ++it )
+  for (std::map<Node, std::vector<Node> >::iterator it = alist.begin();
+       it != alist.end();
+       ++it)
   {
-    std::sort( it->second.begin(), it->second.end() );
+    std::sort(it->second.begin(), it->second.end());
   }
   // check subsumptions
   // sort by #atoms
   std::sort(atom_count.begin(), atom_count.end(), sortPairSecond);
-  if( Trace.isOn("ext-rew-eqchain") )
+  if (Trace.isOn("ext-rew-eqchain"))
   {
     for (const std::pair<Node, unsigned>& ac : atom_count)
     {
       Trace("ext-rew-eqchain") << "  eqchain-simplify: " << ac.first << " has "
-                              << ac.second << " atoms." << std::endl;
+                               << ac.second << " atoms." << std::endl;
     }
     Trace("ext-rew-eqchain") << "  eqchain-simplify: compute subsumptions...\n";
   }
@@ -1213,8 +1215,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     Node c = cp.first;
     std::map<Node, std::map<Node, bool> >::iterator itc = atoms.find(c);
     Assert(itc != atoms.end());
-    Trace("ext-rew-eqchain")
-        << "  - add term " << c << " with atom list " << alist[c] << "...\n";
+    Trace("ext-rew-eqchain") << "  - add term " << c << " with atom list "
+                             << alist[c] << "...\n";
     std::vector<Node> subsumes;
     sst.addTerm(c, alist[c], subsumes);
     for (const Node& cc : subsumes)
@@ -1224,8 +1226,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         // subsumes a child that was already eliminated
         continue;
       }
-      Trace("ext-rew-eqchain")
-          << "  eqchain-simplify: " << c << " subsumes " << cc << std::endl;
+      Trace("ext-rew-eqchain") << "  eqchain-simplify: " << c << " subsumes "
+                               << cc << std::endl;
       // for each of the atoms in cc
       std::map<Node, std::map<Node, bool> >::iterator itcc = atoms.find(cc);
       Assert(itcc != atoms.end());
@@ -1238,9 +1240,9 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         bool polcc = ap.second;
         Assert(itc->second.find(a) != itc->second.end());
         bool polc = itc->second[a];
-        Trace("ext-rew-eqchain")
-            << "    eqchain-simplify: atom " << a
-            << " has polarities : " << polc << " " << polcc << "\n";
+        Trace("ext-rew-eqchain") << "    eqchain-simplify: atom " << a
+                                 << " has polarities : " << polc << " " << polcc
+                                 << "\n";
         Node lit = polc ? a : TermUtil::mkNegate(notk, a);
         if (polc != polcc)
         {
