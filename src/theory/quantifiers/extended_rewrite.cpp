@@ -334,9 +334,10 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         Node new_ret = nm->mkNode(retk, cond, other);
         if (full)
         {
-          // for example:
-          //   ite( A, false, B ) ---> ~A ^ B
-          //   ite( A, B, true ) ---> ~A V B
+          // ite( A, true, B ) ---> A V B
+          // ite( A, false, B ) ---> ~A /\ B
+          // ite( A, B,  true ) ---> ~A V B
+          // ite( A, B, false ) ---> A /\ B
           debugExtendedRewrite(n, new_ret, "ITE const return");
         }
         return new_ret;
@@ -816,8 +817,11 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
     {
       for (const Node& ncl : nc)
       {
-        lit_to_cl[ncl].push_back(nc);
-        cl_to_lits[nc].push_back(ncl);
+        if( std::find(lit_to_cl[ncl].begin(),lit_to_cl[ncl].end(),nc)==lit_to_cl[ncl].end())
+        {
+          lit_to_cl[ncl].push_back(nc);
+          cl_to_lits[nc].push_back(ncl);
+        }
       }
     }
     else
@@ -968,7 +972,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
 }
 
 /** sort pairs by their second (unsigned) argument */
-bool sortPairSecond(const std::pair<Node, unsigned>& a,
+static bool sortPairSecond(const std::pair<Node, unsigned>& a,
                     const std::pair<Node, unsigned>& b)
 {
   return (a.second < b.second);
@@ -1128,7 +1132,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         Node ca = pol ? cl : cl[0];
         Assert(atoms[c].find(ca) == atoms[c].end());
         // polarity is flipped when we are AND
-        atoms[c][ca] = pol == (ck == ork);
+        atoms[c][ca] = (ck == andk ? !pol : pol);
         alist[c].push_back(ca);
 
         // if this already exists as a child of the equality chain, eliminate.
@@ -1181,15 +1185,23 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     }
     atom_count.push_back(std::pair<Node, unsigned>(c, alist[c].size()));
   }
+  // sort the atoms in each atom list
+  for( std::pair<Node, std::vector<Node> >& als : alist )
+  {
+    std::sort( als.second.begin(), als.second.end() );
+  }
   // check subsumptions
   // sort by #atoms
   std::sort(atom_count.begin(), atom_count.end(), sortPairSecond);
-  for (const std::pair<Node, unsigned>& ac : atom_count)
+  if( Trace.isOn("ext-rew-eqchain") )
   {
-    Trace("ext-rew-eqchain") << "  eqchain-simplify: " << ac.first << " has "
-                             << ac.second << " atoms." << std::endl;
+    for (const std::pair<Node, unsigned>& ac : atom_count)
+    {
+      Trace("ext-rew-eqchain") << "  eqchain-simplify: " << ac.first << " has "
+                              << ac.second << " atoms." << std::endl;
+    }
+    Trace("ext-rew-eqchain") << "  eqchain-simplify: compute subsumptions...\n";
   }
-  Trace("ext-rew-eqchain") << "  eqchain-simplify: compute subsumptions...\n";
   SimpSubsumeTrie sst;
   for (std::pair<const Node, bool>& cp : cstatus)
   {
@@ -1199,6 +1211,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
       continue;
     }
     Node c = cp.first;
+    std::map<Node, std::map<Node, bool> >::iterator itc = atoms.find(c);
+    Assert(itc != atoms.end());
     Trace("ext-rew-eqchain")
         << "  - add term " << c << " with atom list " << alist[c] << "...\n";
     std::vector<Node> subsumes;
@@ -1213,8 +1227,6 @@ Node ExtendedRewriter::extendedRewriteEqChain(
       Trace("ext-rew-eqchain")
           << "  eqchain-simplify: " << c << " subsumes " << cc << std::endl;
       // for each of the atoms in cc
-      std::map<Node, std::map<Node, bool> >::iterator itc = atoms.find(c);
-      Assert(itc != atoms.end());
       std::map<Node, std::map<Node, bool> >::iterator itcc = atoms.find(cc);
       Assert(itcc != atoms.end());
       std::vector<Node> common_children;

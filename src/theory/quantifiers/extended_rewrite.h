@@ -140,6 +140,7 @@ class ExtendedRewriter
    *   ( A ^ B ) V ( A ^ C ) ----> A ^ ( B V C )
    *
    * This function takes as arguments the kinds that specify AND, OR, NOT.
+   * We assume that the children of n do not contain duplicates.
    */
   Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n);
   /** (type-independent) equality resolution, for example:
