@@ -1218,6 +1218,13 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
+[[option]]
+  name       = "sygusRewSynthCheckTimeout"
+  category   = "regular"
+  long       = "sygus-rr-synth-check-timeout"
+  type       = "unsigned long"
+  help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
+
 # CEGQI applied to general quantified formulas
 
 [[option]]
