@@ -1186,7 +1186,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     atom_count.push_back(std::pair<Node, unsigned>(c, alist[c].size()));
   }
   // sort the atoms in each atom list
-  for( std::pair<Node, std::vector<Node> >& als : alist )
+  for( const std::pair<Node, std::vector<Node> >& als : alist )
   {
     std::sort( als.second.begin(), als.second.end() );
   }
