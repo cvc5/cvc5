@@ -20,6 +20,7 @@
 #include "theory/quantifiers/lazy_trie.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "util/sampler.h"
 
 namespace CVC4 {
 namespace theory {
@@ -490,21 +491,13 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   else if (tn.isBitVector())
   {
     unsigned sz = tn.getBitVectorSize();
-    std::stringstream ss;
-    for (unsigned i = 0; i < sz; i++)
-    {
-      ss << (Random::getRandom().pickWithProb(0.5) ? "1" : "0");
-    }
-    return nm->mkConst(BitVector(ss.str(), 2));
+    return nm->mkConst(Sampler::pickBvUniform(sz));
   }
-  else if (tn.isFloatingPoint() )
+  else if (tn.isFloatingPoint())
   {
-    // extremely naive uniform generation of floating points
     unsigned e = tn.getFloatingPointExponentSize();
     unsigned s = tn.getFloatingPointSignificandSize();
-    TypeNode bvt = nm->mkBitVectorType(e+s);
-    Node bvc = getRandomValue(bvt);
-    return nm->mkConst(FloatingPoint(e,s,bvc.getConst<BitVector>()));
+    return nm->mkConst(Sampler::pickFpBiased(e, s));
   }
   else if (tn.isString() || tn.isInteger())
   {
