@@ -3702,16 +3702,43 @@ bool TheoryStrings::sendSplit(Node a, Node b, const char* c, bool preq)
 void TheoryStrings::sendLengthLemma( Node n ){
   Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
   if( options::stringSplitEmp() || !options::stringLenGeqZ() ){
+    NodeManager* nm = NodeManager::currentNM();
     Node n_len_eq_z = n_len.eqNode( d_zero );
     Node n_len_eq_z_2 = n.eqNode( d_emptyString );
-    n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-    n_len_eq_z_2 = Rewriter::rewrite( n_len_eq_z_2 );
-    Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, NodeManager::currentNM()->mkNode( kind::AND, n_len_eq_z, n_len_eq_z_2 ),
-                NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-    Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
-    d_out->lemma(n_len_geq_zero);
-    d_out->requirePhase( n_len_eq_z, true );
-    d_out->requirePhase( n_len_eq_z_2, true );
+    Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
+    case_empty = Rewriter::rewrite(case_empty);
+    Node case_nempty = nm->mkNode(GT, n_len, d_zero);
+    if (!case_empty.isConst())
+    {
+      Node lem = nm->mkNode(OR, case_empty, case_nempty);
+      d_out->lemma(lem);
+      Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
+                             << std::endl;
+      // prefer trying the empty case first
+      // notice that requirePhase must only be called on rewritten literals that
+      // occur in the CNF stream.
+      n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
+      Assert(!n_len_eq_z.isConst());
+      d_out->requirePhase(n_len_eq_z, true);
+      n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
+      Assert(!n_len_eq_z_2.isConst());
+      d_out->requirePhase(n_len_eq_z_2, true);
+    }
+    else if (!case_empty.getConst<bool>())
+    {
+      // the rewriter knows that n is non-empty
+      Trace("strings-lemma")
+          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
+          << std::endl;
+      d_out->lemma(case_nempty);
+    }
+    else
+    {
+      // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
+      // n ---> "". Since this method is only called on non-constants n, it must
+      // be that n = "" ^ len( n ) = 0 does not rewrite to true.
+      Assert(false);
+    }
   }
   //AJR: probably a good idea
   if( options::stringLenGeqZ() ){
