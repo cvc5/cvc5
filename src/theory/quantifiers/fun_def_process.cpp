@@ -2,9 +2,9 @@
 /*! \file fun_def_process.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -98,20 +98,28 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::map< int, std::map< Node, Node > > visited_cons;
   for( unsigned i=0; i<assertions.size(); i++ ){
     bool is_fd = std::find( fd_assertions.begin(), fd_assertions.end(), i )!=fd_assertions.end();
-    //constant boolean function definitions do not add domain constraints
-    if( !is_fd || ( is_fd && assertions[i][1].getKind()==EQUAL ) ){
-      std::vector< Node > constraints;
-      Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i] << ", is function definition = " << is_fd << std::endl;
-      Node n = simplifyFormula( assertions[i], true, true, constraints, is_fd ? subs_head[i] : Node::null(), is_fd, visited, visited_cons );
-      Assert( constraints.empty() );
-      if( n!=assertions[i] ){
-        n = Rewriter::rewrite( n );
-        Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i] << std::endl;
-        Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
-        Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
-        PROOF( ProofManager::currentPM()->addDependence(n, assertions[i]); );
-        assertions[i] = n;
-      }
+    std::vector<Node> constraints;
+    Trace("fmf-fun-def-rewrite") << "Rewriting " << assertions[i]
+                                 << ", is function definition = " << is_fd
+                                 << std::endl;
+    Node n = simplifyFormula(assertions[i],
+                             true,
+                             true,
+                             constraints,
+                             is_fd ? subs_head[i] : Node::null(),
+                             is_fd,
+                             visited,
+                             visited_cons);
+    Assert(constraints.empty());
+    if (n != assertions[i])
+    {
+      n = Rewriter::rewrite(n);
+      Trace("fmf-fun-def-rewrite") << "FMF fun def : rewrite " << assertions[i]
+                                   << std::endl;
+      Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
+      Trace("fmf-fun-def-rewrite") << "  " << n << std::endl;
+      PROOF(ProofManager::currentPM()->addDependence(n, assertions[i]););
+      assertions[i] = n;
     }
   }
 }

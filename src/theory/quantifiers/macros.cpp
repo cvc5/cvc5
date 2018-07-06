@@ -2,9 +2,9 @@
 /*! \file macros.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,10 @@
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;
@@ -218,41 +219,15 @@ Node QuantifierMacros::solveInEquality( Node n, Node lit ){
         return lit[i==0 ? 1 : 0].negate();
       }
     }
-    //must solve for term n in the literal lit
-    if( lit[0].getType().isInteger() || lit[0].getType().isReal() ){
-      Node coeff;
-      Node term;
-      //could be solved for on LHS
-      if( lit[0].getKind()==MULT && lit[0][1]==n ){
-        Assert( lit[0][0].isConst() );
-        term = lit[1];
-        coeff = lit[0][0];
-      }else{
-        Assert( lit[1].getKind()==PLUS );
-        std::vector< Node > plus_children;
-        //find monomial with n
-        for( size_t j=0; j<lit[1].getNumChildren(); j++ ){
-          if( lit[1][j]==n ){
-            Assert( coeff.isNull() );
-            coeff = NodeManager::currentNM()->mkConst( Rational(1) );
-          }else if( lit[1][j].getKind()==MULT && lit[1][j][1]==n ){
-            Assert( coeff.isNull() );
-            Assert( lit[1][j][0].isConst() );
-            coeff = lit[1][j][0];
-          }else{
-            plus_children.push_back( lit[1][j] );
-          }
-        }
-        if( !coeff.isNull() ){
-          term = plus_children.size()==1 ? plus_children[0] : NodeManager::currentNM()->mkNode( PLUS, plus_children );
-          term = NodeManager::currentNM()->mkNode( MINUS, lit[0], term );
-        }
-      }
-      if( !coeff.isNull() ){
-        coeff = NodeManager::currentNM()->mkConst( Rational(1) / coeff.getConst<Rational>() );
-        term = NodeManager::currentNM()->mkNode( MULT, coeff, term );
-        term = Rewriter::rewrite( term );
-        return term;
+    std::map<Node, Node> msum;
+    if (ArithMSum::getMonomialSumLit(lit, msum))
+    {
+      Node veq_c;
+      Node val;
+      int res = ArithMSum::isolate(n, msum, veq_c, val, EQUAL);
+      if (res != 0 && veq_c.isNull())
+      {
+        return val;
       }
     }
   }

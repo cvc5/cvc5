@@ -2,9 +2,9 @@
 /*! \file term_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Paul Meng, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
@@ -808,6 +809,11 @@ Node TermUtil::mkNegate(Kind notk, Node n)
     return n[0];
   }
   return NodeManager::currentNM()->mkNode(notk, n);
+}
+
+bool TermUtil::isNegate(Kind k)
+{
+  return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
 }
 
 bool TermUtil::isAssoc( Kind k ) {

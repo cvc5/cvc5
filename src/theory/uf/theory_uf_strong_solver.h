@@ -2,9 +2,9 @@
 /*! \file theory_uf_strong_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,6 @@
 namespace CVC4 {
 class SortInference;
 namespace theory {
-class SubsortSymmetryBreaker;
 namespace uf {
 class TheoryUF;
 } /* namespace CVC4::theory::uf */
@@ -370,8 +369,6 @@ public:
   ~StrongSolverTheoryUF();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** symmetry breaker */
-  SubsortSymmetryBreaker* getSymmetryBreaker() { return d_sym_break; }
   /** get sort inference module */
   SortInference* getSortInference();
   /** get default sat context */
@@ -421,7 +418,6 @@ public:
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
     IntStat d_disamb_term_lemmas;
-    IntStat d_sym_break_lemmas;
     IntStat d_totality_lemmas;
     IntStat d_max_model_size;
     Statistics();
@@ -468,8 +464,6 @@ public:
   context::CDO<int> d_min_pos_tn_master_card;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
-  /** symmetry breaking techniques */
-  SubsortSymmetryBreaker* d_sym_break;
 }; /* class StrongSolverTheoryUF */
 
 

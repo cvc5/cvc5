@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,9 +64,8 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
-    if(opts.getOutputLanguage() == output::LANG_SMTLIB_V2_0 ||
-       opts.getOutputLanguage() == output::LANG_SMTLIB_V2_5 ||
-       opts.getOutputLanguage() == output::LANG_SMTLIB_V2_6) {
+    if (language::isOutputLang_smt2(opts.getOutputLanguage()))
+    {
       *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
       *opts.getErr() << "CVC4 Error:" << endl << e << endl;

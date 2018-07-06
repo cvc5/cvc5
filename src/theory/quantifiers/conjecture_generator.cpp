@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -93,6 +93,19 @@ d_ee_conjectures( c ){
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
   d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
 
+}
+
+ConjectureGenerator::~ConjectureGenerator()
+{
+  for (std::map<Node, EqcInfo*>::iterator i = d_eqc_info.begin(),
+                                          iend = d_eqc_info.end();
+       i != iend;
+       ++i)
+  {
+    EqcInfo* current = (*i).second;
+    Assert(current != nullptr);
+    delete current;
+  }
 }
 
 void ConjectureGenerator::eqNotifyNewClass( TNode t ){
@@ -910,14 +923,6 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
   return addedLemmas;
 }
 
-void ConjectureGenerator::registerQuantifier( Node q ) {
-
-}
-
-void ConjectureGenerator::assertNode( Node n ) {
-
-}
-
 bool ConjectureGenerator::considerTermCanon( Node ln, bool genRelevant ){
   if( !ln.isNull() ){
     //do not consider if it is non-canonical, and either:
@@ -1470,6 +1475,9 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
           d_status_child_num++;
           return getNextTerm( s, depth );
         }else{
+          Trace("sg-gen-tg-debug2")
+              << "...remove child from context " << std::endl;
+          s->changeContext(false);
           d_children.pop_back();
           d_status_child_num--;
           return getNextTerm( s, depth );
@@ -1492,11 +1500,7 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
     d_status_num = -1;
     return getNextTerm( s, depth );
   }else{
-    //clean up
     Assert( d_children.empty() );
-    Trace("sg-gen-tg-debug2") << "...remove from context " << this << std::endl;
-    s->changeContext( false );
-    Assert( d_id==s->d_tg_id );
     return false;
   }
 }
@@ -1815,9 +1819,10 @@ bool TermGenEnv::getNextTerm() {
     }else{
       return true;
     }
-  }else{
-    return false;
   }
+  Trace("sg-gen-tg-debug2") << "...remove from context " << std::endl;
+  changeContext(false);
+  return false;
 }
 
 //reset matching

@@ -26,20 +26,20 @@ QF_NRA)
   finishwith --nl-ext --nl-ext-tplanes
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|ABVFP|BVFP|FP)
   finishwith --full-saturate-quant
   ;;
 UFBV)
   finishwith --finite-model-find
   ;;
 BV)
-  finishwith --full-saturate-quant --cbqi --decision=internal
+  finishwith --full-saturate-quant --decision=internal
   ;;
 LIA|LRA)
-  finishwith --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
+  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 NIA|NRA)
-  finishwith --full-saturate-quant --cbqi --cbqi-nested-qe --decision=internal
+  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
   finishwith --decision=justification-stoponly
@@ -64,6 +64,15 @@ QF_AUFNIA)
   ;;
 QF_ALIA)
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_ABVFP)
+  finishwith
+  ;;
+QF_BVFP)
+  finishwith
+  ;;
+QF_FP)
+  finishwith
   ;;
 *)
   # just run the default

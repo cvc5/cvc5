@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -66,6 +66,13 @@ class ExtendedRewriter
   bool d_aggr;
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret);
+  /** add to children
+   *
+   * Adds nc to the vector of children, if dropDup is true, we do not add
+   * nc if it already occurs in children. This method returns false in this
+   * case, otherwise it returns true.
+   */
+  bool addToChildren(Node nc, std::vector<Node>& children, bool dropDup);
 
   //--------------------------------------generic utilities
   /** Rewrite ITE, for example:
@@ -120,6 +127,26 @@ class ExtendedRewriter
    */
   Node extendedRewriteBcp(
       Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
+  /** (type-independent) equality resolution, for example:
+   *
+   *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
+   *   ( A V ~B ) & ( A = B ) ----> ( A = B )
+   *   ( A V B ) & ( A xor B ) ----> ( A xor B )
+   *   ( A & B ) V ( A xor B ) ----> B V ( A xor B )
+   *
+   * This function takes as arguments the kinds that specify AND, OR, EQUAL,
+   * and NOT. The equal kind eqk is interpreted as XOR if isXor is true.
+   * It additionally takes as argument a map bcp_kinds, which
+   * serves the same purpose as the above function.
+   * If this function returns a non-null node ret, then n ---> ret.
+   */
+  Node extendedRewriteEqRes(Kind andk,
+                            Kind ork,
+                            Kind eqk,
+                            Kind notk,
+                            std::map<Kind, bool>& bcp_kinds,
+                            Node n,
+                            bool isXor = false);
   /** (type-independent) Equality chain rewriting, for example:
    *
    *   A = ( A = B ) ---> B

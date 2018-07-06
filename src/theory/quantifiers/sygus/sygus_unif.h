@@ -2,9 +2,9 @@
 /*! \file sygus_unif.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,18 +29,13 @@ namespace quantifiers {
 /** Sygus unification utility
  *
  * This utility implements synthesis-by-unification style approaches for a
- * single function to synthesize f.
- * These approaches include a combination of:
+ * set of functions-to-synthesize. These approaches include a combination of:
  * (1) Decision tree learning, inspired by Alur et al TACAS 2017,
  * (2) Divide-and-conquer via string concatenation.
  *
- * This class maintains:
+ * This class maintains, for each function-to-synthesize f:
  * (1) A "strategy tree" based on the syntactic restrictions for f that is
  * constructed during initialize (d_strategy),
- * (2) A set of input/output examples that are the specification for f. This
- * can be updated via calls to resetExmaples/addExamples,
- * (3) A set of terms that have been enumerated for enumerators (d_ecache). This
- * can be updated via calls to notifyEnumeration.
  *
  * Based on the above, solutions can be constructed via calls to
  * constructSolution.
@@ -51,24 +46,27 @@ class SygusUnif
   SygusUnif();
   virtual ~SygusUnif();
 
-  /** initialize
+  /** initialize candidate
    *
-   * This initializes this class with function-to-synthesize f. We also call
-   * f the candidate variable.
+   * This initializes this class with functions-to-synthesize f. We also call
+   * this a "candidate variable". This function can be called more than once
+   * for different functions-to-synthesize in the same conjecture.
    *
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums. These enumerators are those that
    * should be later given to calls to notifyEnumeration below.
    *
-   * This also may result in lemmas being added to lemmas,
+   * This also may result in lemmas being added to strategy_lemmas,
    * which correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
-   * strategy is ITE_strat).
+   * strategy is ITE_strat). The lemmas are associated with a strategy point of
+   * the respective function-to-synthesize.
    */
-  virtual void initialize(QuantifiersEngine* qe,
-                          Node f,
-                          std::vector<Node>& enums,
-                          std::vector<Node>& lemmas);
+  virtual void initializeCandidate(
+      QuantifiersEngine* qe,
+      Node f,
+      std::vector<Node>& enums,
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
 
   /**
    * Notify that the value v has been enumerated for enumerator e. This call
@@ -78,12 +76,16 @@ class SygusUnif
   virtual void notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas) = 0;
   /** construct solution
    *
-   * This attempts to construct a solution based on the current set of
-   * enumerated values. Returns null if it cannot (for example, if the
-   * set of enumerated values is insufficient, or if a non-deterministic
-   * strategy aborts).
+   * This attempts to construct a solution for each function-to-synthesize
+   * based on the current set of enumerated values. Returns null if it cannot
+   * for some function (for example, if the set of enumerated values is
+   * insufficient, or if a non-deterministic strategy aborts).
+   *
+   * This call may add lemmas to lemmas that should be sent out on an output
+   * channel by the caller.
    */
-  virtual Node constructSolution();
+  virtual bool constructSolution(std::vector<Node>& sols,
+                                 std::vector<Node>& lemmas);
 
  protected:
   /** reference to quantifier engine */
@@ -99,22 +101,10 @@ class SygusUnif
                         std::vector<Node>& vals,
                         bool pol = true);
   //-----------------------end debug printing
-
-
-  /**
-   * Whether we will try to construct solution on the next call to
-   * constructSolution. This flag is set to true when we successfully
-   * register a new value for an enumerator.
-   */
-  bool d_check_sol;
-  /** The number of values we have enumerated for all enumerators. */
-  unsigned d_cond_count;
-  /** The solution for the function of this class, if one has been found */
-  Node d_solution;
-  /** the candidate for this class */
-  Node d_candidate;
+  /** the candidates for this class */
+  std::vector<Node> d_candidates;
   /** maps a function-to-synthesize to the above information */
-  SygusUnifStrategy d_strategy;
+  std::map<Node, SygusUnifStrategy> d_strategy;
 
   /** domain-specific enumerator exclusion techniques
    *
@@ -151,6 +141,12 @@ class SygusUnif
    * Called once before each attempt to construct solutions.
    */
   virtual void initializeConstructSol() = 0;
+  /** implementation-dependent initialize construct solution
+   *
+   * Called once before each attempt to construct solution for a
+   * function-to-synthesize f.
+   */
+  virtual void initializeConstructSolFor(Node f) = 0;
   /** implementation-dependent function for construct solution.
    *
    * Construct a solution based on enumerator e for function-to-synthesize of
@@ -158,7 +154,8 @@ class SygusUnif
    *
    * ind is the term depth of the context (for debugging).
    */
-  virtual Node constructSol(Node e, NodeRole nrole, int ind) = 0;
+  virtual Node constructSol(
+      Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas) = 0;
   /** Heuristically choose the best solved term from solved in context x,
    * currently return the first. */
   virtual Node constructBestSolvedTerm(const std::vector<Node>& solved);

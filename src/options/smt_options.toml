@@ -296,6 +296,22 @@ header = "options/smt_options.h"
   help       = "use aggressive extended rewriter as a preprocessing pass"
 
 [[option]]
+  name       = "synthRrPrep"
+  category   = "regular"
+  long       = "synth-rr-prep"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize and output rewrite rules during preprocessing"
+
+[[option]]
+  name       = "synthRrPrepExtRew"
+  category   = "regular"
+  long       = "synth-rr-prep-ext-rew"
+  type       = "bool"
+  default    = "false"
+  help       = "use the extended rewriter for synthRrPrep"
+
+[[option]]
   name       = "simplifyWithCareEnabled"
   category   = "regular"
   long       = "simp-with-care"
@@ -342,15 +358,15 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-   
+  
 [[option]]
-  name       = "symmetryDetect"
+  name       = "symmetryBreakerExp"
   category   = "regular"
-  long       = "symmetry-detect"
+  long       = "symmetry-breaker-exp"
   type       = "bool"
   default    = "false"
-  help       = "compute symmetries in the input as a preprocessing pass"    
-
+  help       = "generate symmetry breaking constraints after symmetry detection"    
+  
 [[option]]
   name       = "incrementalSolving"
   category   = "common"
@@ -622,4 +638,4 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "attempt to solve a pure real satisfiable problem as a integer problem (for non-linear)"
+  help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"

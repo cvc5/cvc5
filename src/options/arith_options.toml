@@ -451,11 +451,19 @@ header = "options/arith_options.h"
   help       = "use non-terminating tangent plane strategy for non-linear"
 
 [[option]]
+  name       = "nlExtTangentPlanesInterleave"
+  category   = "regular"
+  long       = "nl-ext-tplanes-interleave"
+  type       = "bool"
+  default    = "false"
+  help       = "interleave tangent plane strategy for non-linear"
+
+[[option]]
   name       = "nlExtTfTangentPlanes"
   category   = "regular"
   long       = "nl-ext-tf-tplanes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   read_only  = true
   help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear"
 
@@ -476,15 +484,6 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "do rewrites in non-linear solver"
-
-[[option]]
-  name       = "nlExtSolveSubs"
-  category   = "regular"
-  long       = "nl-ext-solve-subs"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "do solving for determining constant substitutions"
 
 [[option]]
   name       = "nlExtPurify"
@@ -513,10 +512,10 @@ header = "options/arith_options.h"
   help       = "initial degree of polynomials for Taylor approximation"
 
 [[option]]
-  name       = "nlExtTfIncPrecision"
+  name       = "nlExtIncPrecision"
   category   = "regular"
-  long       = "nl-ext-tf-inc-prec"
+  long       = "nl-ext-inc-prec"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "whether to increment the precision for transcendental function constraints"
+  help       = "whether to increment the precision for irrational function constraints"

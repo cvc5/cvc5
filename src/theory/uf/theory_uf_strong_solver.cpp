@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/theory_model.h"
-#include "theory/quantifiers/symmetry_breaking.h"
 
 //#define ONE_SPLIT_REGION
 //#define DISABLE_QUICK_CLIQUE_CHECKS
@@ -144,9 +143,6 @@ void Region::setEqual( Node a, Node b ){
         if( !isDisequal( a, n, t ) ){
           setDisequal( a, n, t, true );
           nr->setDisequal( n, a, t, true );
-          if( options::ufssSymBreak() ){
-            d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
-          }
         }
         setDisequal( b, n, t, false );
         nr->setDisequal( n, b, t, false );
@@ -608,12 +604,6 @@ void SortModel::merge( Node a, Node b ){
         d_regions_map[b] = -1;
       }
       d_reps = d_reps - 1;
-
-      if( !d_conflict ){
-        if( options::ufssSymBreak() ){
-          d_thss->getSymmetryBreaker()->merge(a, b);
-        }
-      }
     }
   }
 }
@@ -658,12 +648,6 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
           d_regions[bi]->setDisequal( b, a, 0, true );
           checkRegion( ai );
           checkRegion( bi );
-        }
-
-        if( !d_conflict ){
-          if( options::ufssSymBreak() ){
-            d_thss->getSymmetryBreaker()->assertDisequal(a, b);
-          }
         }
       }
     }
@@ -1508,7 +1492,8 @@ Node SortModel::getCardinalityLiteral( int c ) {
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
                                            context::UserContext* u,
-                                           OutputChannel& out, TheoryUF* th)
+                                           OutputChannel& out,
+                                           TheoryUF* th)
     : d_out(&out),
       d_th(th),
       d_conflict(c, false),
@@ -1518,20 +1503,14 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_min_pos_com_card(c, -1),
       d_card_assertions_eqv_lemma(u),
       d_min_pos_tn_master_card(c, -1),
-      d_rel_eqc(c),
-      d_sym_break(NULL) {
-  if (options::ufssSymBreak()) {
-    d_sym_break = new SubsortSymmetryBreaker(th->getQuantifiersEngine(), c);
-  }
+      d_rel_eqc(c)
+{
 }
 
 StrongSolverTheoryUF::~StrongSolverTheoryUF() {
   for (std::map<TypeNode, SortModel*>::iterator it = d_rep_model.begin();
        it != d_rep_model.end(); ++it) {
     delete it->second;
-  }
-  if (d_sym_break) {
-    delete d_sym_break;
   }
 }
 
@@ -1555,9 +1534,6 @@ void StrongSolverTheoryUF::ensureEqc( SortModel* c, Node a ) {
     d_rel_eqc[a] = true;
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << a << " : " << a.getType() << std::endl;
     c->newEqClass( a );
-    if( options::ufssSymBreak() ){
-      d_sym_break->newEqClass( a );
-    }
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
   }
 }
@@ -1589,9 +1565,6 @@ void StrongSolverTheoryUF::newEqClass( Node a ){
 #else
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << a << " : " << a.getType() << std::endl;
     c->newEqClass( a );
-    if( options::ufssSymBreak() ){
-      d_sym_break->newEqClass( a );
-    }
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
 #endif
   }
@@ -1789,10 +1762,6 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
           d_conflict = true;
           break;
         }
-      }
-      //check symmetry breaker
-      if( !d_conflict && options::ufssSymBreak() ){
-        d_sym_break->check( level );
       }
     }else if( options::ufssMode()==UF_SS_NO_MINIMAL ){
       if( level==Theory::EFFORT_FULL ){
@@ -2125,7 +2094,6 @@ StrongSolverTheoryUF::Statistics::Statistics():
   d_clique_lemmas("StrongSolverTheoryUF::Clique_Lemmas", 0),
   d_split_lemmas("StrongSolverTheoryUF::Split_Lemmas", 0),
   d_disamb_term_lemmas("StrongSolverTheoryUF::Disambiguate_Term_Lemmas", 0),
-  d_sym_break_lemmas("StrongSolverTheoryUF::Symmetry_Breaking_Lemmas", 0),
   d_totality_lemmas("StrongSolverTheoryUF::Totality_Lemmas", 0),
   d_max_model_size("StrongSolverTheoryUF::Max_Model_Size", 1)
 {
@@ -2133,7 +2101,6 @@ StrongSolverTheoryUF::Statistics::Statistics():
   smtStatisticsRegistry()->registerStat(&d_clique_lemmas);
   smtStatisticsRegistry()->registerStat(&d_split_lemmas);
   smtStatisticsRegistry()->registerStat(&d_disamb_term_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_sym_break_lemmas);
   smtStatisticsRegistry()->registerStat(&d_totality_lemmas);
   smtStatisticsRegistry()->registerStat(&d_max_model_size);
 }
@@ -2143,7 +2110,6 @@ StrongSolverTheoryUF::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_clique_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_split_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_disamb_term_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_sym_break_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_totality_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_max_model_size);
 }

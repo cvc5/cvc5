@@ -2,9 +2,9 @@
 /*! \file array_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Guy Katz, Liana Hadarean, Tim King
+ **   Liana Hadarean, Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,8 +79,9 @@ protected:
   ExprSet d_declarations; // all the variable/function declarations
   ExprSet d_skolemDeclarations; // all the skolem variable declarations
   std::map<Expr, std::string> d_skolemToLiteral;
+  theory::TheoryId getTheoryId() override;
 
-public:
+ public:
   ArrayProof(theory::arrays::TheoryArrays* arrays, TheoryProofEngine* proofEngine);
 
   std::string skolemToLiteral(Expr skolem);

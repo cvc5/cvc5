@@ -2,9 +2,9 @@
 /*! \file datatypes_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Tim King
+ **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,6 +40,17 @@ namespace datatypes {
 
 class TheoryDatatypes;
 
+/**
+ * This is the sygus extension of the decision procedure for quantifier-free
+ * inductive datatypes. At a high level, this class takes as input a
+ * set of asserted testers is-C1( x ), is-C2( x.1 ), is-C3( x.2 ), and
+ * generates lemmas that restrict the models of x, if x is a "sygus enumerator"
+ * (see TermDbSygus::registerEnumerator).
+ *
+ * Some of these techniques are described in these papers:
+ * "Refutation-Based Synthesis in SMT", Reynolds et al 2017.
+ * "Sygus Techniques in the Core of an SMT Solver", Reynolds et al 2017.
+ */
 class SygusSymBreakNew
 {
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
@@ -52,11 +63,53 @@ class SygusSymBreakNew
                    quantifiers::TermDbSygus* tds,
                    context::Context* c);
   ~SygusSymBreakNew();
-  /** add tester */
+  /**
+   * Notify this class that tester for constructor tindex has been asserted for
+   * n. Exp is the literal corresponding to this tester. This method may add
+   * lemmas to the vector lemmas, for details see assertTesterInternal below.
+   * These lemmas are sent out on the output channel of datatypes by the caller.
+   */
   void assertTester(int tindex, TNode n, Node exp, std::vector<Node>& lemmas);
+  /**
+   * Notify this class that literal n has been asserted with the given
+   * polarity. This method may add lemmas to the vector lemmas, for instance
+   * based on inferring consequences of (not) n. One example is if n is
+   * (DT_SIZE_BOUND x n), we add the lemma:
+   *   (DT_SIZE_BOUND x n) <=> ((DT_SIZE x) <= n )
+   */
   void assertFact(Node n, bool polarity, std::vector<Node>& lemmas);
+  /** pre-register term n
+   *
+   * This is called when n is pre-registered with the theory of datatypes.
+   * If n is a sygus enumerator, then we may add lemmas to the vector lemmas
+   * that are used to enforce fairness regarding the size of n.
+   */
   void preRegisterTerm(TNode n, std::vector<Node>& lemmas);
+  /** check
+   *
+   * This is called at last call effort, when the current model assignment is
+   * satisfiable according to the quantifier-free decision procedures and a
+   * model is built. This method may add lemmas to the vector lemmas based
+   * on dynamic symmetry breaking techniques, based on the model values of
+   * all preregistered enumerators.
+   */
   void check(std::vector<Node>& lemmas);
+  /** get next decision request
+   *
+   * This function has the same interface as Theory::getNextDecisionRequest.
+   *
+   * The decisions returned by this method are of one of two forms:
+   * (1) Positive decisions on the active guards G of enumerators e registered
+   * to this class. These assert "there are more values to enumerate for e".
+   * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
+   * where n is a non-negative integer. This asserts "the measure of terms
+   * we are enumerating for enumerators whose measure term m is at most n",
+   * where measure is commonly term size, but can also be height.
+   *
+   * We prioritize decisions of form (1) before (2). For both decisions,
+   * we set the priority argument to "1", indicating that the decision is
+   * critical for solution completeness.
+   */
   Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
 
  private:
@@ -64,11 +117,33 @@ class SygusSymBreakNew
   TheoryDatatypes* d_td;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
+  /**
+   * Map from terms to the index of the tester that is asserted for them in
+   * the current SAT context. In other words, if d_testers[n] = 2, then the
+   * tester is-C_2(n) is asserted in this SAT context.
+   */
   IntMap d_testers;
-  IntMap d_is_const;
+  /**
+   * Map from terms to the tester asserted for them. In the example above,
+   * d_testers[n] = is-C_2(n).
+   */
   NodeMap d_testers_exp;
+  /**
+   * The set of (selector chain) terms that are active in the current SAT
+   * context. A selector chain term S_n( ... S_1( x )... ) is active if either:
+   * (1) n=0 and x is a sygus enumerator,
+   *   or:
+   * (2.1) S_{n-1}( ... S_1( x )) is active,
+   * (2.2) is-C( S_{n-1}( ... S_1( x )) ) is asserted in this SAT context, and
+   * (2.3) S_n is a selector for constructor C.
+   */
   NodeSet d_active_terms;
+  /**
+   * Map from enumerators to a lower bound on their size in the current SAT
+   * context.
+   */
   IntMap d_currTermSize;
+  /** zero */
   Node d_zero;
   /**
    * Map from terms (selector chains) to their anchors. The anchor of a
@@ -96,7 +171,6 @@ class SygusSymBreakNew
    *   S4 : T1 -> T3
    * Then, x, S1( x ), and S4( S3( S2( S1( x ) ) ) ) are top-level terms,
    * whereas S2( S1( x ) ) and S3( S2( S1( x ) ) ) are not.
-   *
    */
   std::unordered_map<Node, bool, NodeHashFunction> d_is_top_level;
   /**
@@ -209,8 +283,21 @@ private:
    * z -> t for all terms t of appropriate depth, including d.
    * This function strengthens blocking clauses using generalization techniques
    * described in Reynolds et al SYNT 2017.
+   *
+   * The return value of this function is an abstraction of model assignment
+   * of nv to n, or null if we wish to exclude the model assignment nv to n.
+   * The return value of this method is different from nv itself, e.g. if it
+   * contains occurrences of the "any constant" constructor. For example, if
+   * nv is C_+( C_x(), C_{any_constant}( 5 ) ), then the return value of this
+   * function will either be null, or C_+( C_x(), C_{any_constant}( n.1.0 ) ),
+   * where n.1.0 is the appropriate selector chain applied to n. We build this
+   * abstraction since the semantics of C_{any_constant} is "any constant" and
+   * not "some constant". Thus, we should consider the subterm
+   * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
+   * by a selector chain), instead of the concrete value 5.
    */
-  bool registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
+  Node registerSearchValue(
+      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
@@ -314,10 +401,17 @@ private:
    *   is-C( t ) => F[t]
    * where t is a search term, see registerSearchTerm for definition of search
    * term.
+   *
+   * usingSymCons is whether we are using symbolic constructors for subterms in
+   * the type tn. This may affect the form of the predicate we construct.
    */
-  Node getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth );
+  Node getSimpleSymBreakPred(TypeNode tn,
+                             int tindex,
+                             unsigned depth,
+                             bool usingSymCons);
   /** Cache of the above function */
-  std::map<TypeNode, std::map<int, std::map<unsigned, Node>>> d_simple_sb_pred;
+  std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>
+      d_simple_sb_pred;
   /**
    * For each search term, this stores the maximum depth for which we have added
    * a static symmetry breaking lemma.
@@ -330,59 +424,207 @@ private:
 
   /** Get the canonical free variable for type tn */
   TNode getFreeVar( TypeNode tn );
+  /** get term order predicate
+   *
+   * Assuming that n1 and n2 are children of a commutative operator, this
+   * returns a symmetry breaking predicate that can be instantiated for n1 and
+   * n2 while preserving satisfiability. By default, this is the predicate
+   *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
+   */
   Node getTermOrderPredicate( Node n1, Node n2 );
-private:
- /**
-  * Map from registered variables to whether they are a sygus enumerator.
-  *
-  * This should be user context-dependent if sygus is updated to work in
-  * incremental mode.
-  */
- std::map<Node, bool> d_register_st;
- void registerSizeTerm(Node e, std::vector<Node>& lemmas);
- class SearchSizeInfo
- {
-  public:
+
+ private:
+  /**
+   * Map from registered variables to whether they are a sygus enumerator.
+   *
+   * This should be user context-dependent if sygus is updated to work in
+   * incremental mode.
+   */
+  std::map<Node, bool> d_register_st;
+  //----------------------search size information
+  /**
+   * Checks whether e is a sygus enumerator, that is, a term for which this
+   * class will track size for.
+   *
+   * We associate each sygus enumerator e with a "measure term", which is used
+   * for bounding the size of terms for the models of e. The measure term for a
+   * sygus enumerator may be e itself (if e has an active guard), or an
+   * arbitrary sygus variable otherwise. A measure term m is one for which our
+   * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
+   *
+   * After determining the measure term m for e, if applicable, we initialize
+   * SearchSizeInfo for m below. This may result in lemmas
+   */
+  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+  /** information for each measure term allocated by this class */
+  class SearchSizeInfo
+  {
+   public:
     SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
+    /** the measure term */
     Node d_this;
+    /**
+     * For each size n, an explanation for why this measure term has size at
+     * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
+     * we call the (n^th) "fairness literal" for m.
+     */
     std::map< unsigned, Node > d_search_size_exp;
+    /**
+     * For each size, whether we have called SygusSymBreakNew::notifySearchSize.
+     */
     std::map< unsigned, bool > d_search_size;
+    /**
+     * The current search size. This corresponds to the number of times
+     * incrementCurrentSearchSize has been called for this measure term.
+     */
     unsigned d_curr_search_size;
-    Node d_sygus_measure_term;
-    Node d_sygus_measure_term_active;
+    /** the list of all enumerators whose measure term is this */
     std::vector< Node > d_anchors;
-    Node getOrMkSygusMeasureTerm( std::vector< Node >& lemmas );
-    Node getOrMkSygusActiveMeasureTerm( std::vector< Node >& lemmas );
-  public:
-    /** current cardinality */
+    /** get or make the measure value
+     *
+     * The measure value is an integer variable v that is a (symbolic) integer
+     * value that is constrained to be less than or equal to the current search
+     * size. For example, if we are using the fairness strategy
+     * SYGUS_FAIR_DT_SIZE (see options/datatype_options.h), then we constrain:
+     *   (DT_SYGUS_BOUND m n) <=> (v <= n)
+     * for all asserted fairness literals. Then, if we are enforcing fairness
+     * based on the maximum size, we assert:
+     *   (DT_SIZE e) <= v
+     * for all enumerators e.
+     */
+    Node getOrMkMeasureValue(std::vector<Node>& lemmas);
+    /** get or make the active measure value
+     *
+     * The active measure value av is an integer variable that corresponds to
+     * the (symbolic) value of the sum of enumerators that are yet to be
+     * registered. This is to enforce the "sum of measures" strategy. For
+     * example, if we are using the fairness strategy SYGUS_FAIR_DT_SIZE,
+     * then initially av is equal to the measure value v, and the constraints
+     *   (DT_SYGUS_BOUND m n) <=> (v <= n)
+     * are added as before. When an enumerator e is registered, we add the
+     * lemma:
+     *   av = (DT_SIZE e) + av'
+     * and update the active measure value to av'. This ensures that the sum
+     * of sizes of active enumerators is at most n.
+     *
+     * If the flag mkNew is set to true, then we return a fresh variable and
+     * update the active measure value.
+     */
+    Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
+                                   bool mkNew = false);
+    /**
+     * The current search size literal for this measure term. This corresponds
+     * to the minimial n such that (DT_SYGUS_BOUND d_this n) is asserted in
+     * this SAT context.
+     */
     context::CDO< unsigned > d_curr_lit;
+    /**
+     * Map from integers n to the fairness literal, for each n such that this
+     * literal has been allocated (by getFairnessLiteral below).
+     */
     std::map< unsigned, Node > d_lits;
+    /**
+     * Returns the s^th fairness literal for this measure term. This adds a
+     * split on this literal to lemmas.
+     */
     Node getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas );
+    /** get the current fairness literal */
     Node getCurrentFairnessLiteral( TheoryDatatypes * d, std::vector< Node >& lemmas ) { 
       return getFairnessLiteral( d_curr_lit.get(), d, lemmas ); 
     }
     /** increment current term size */
     void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
-  };
-  std::map< Node, SearchSizeInfo * > d_szinfo;
-  std::map< Node, Node > d_anchor_to_measure_term;
-  std::map< Node, Node > d_anchor_to_active_guard;
-  Node d_generic_measure_term;
-  void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
-  void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  void registerMeasureTerm( Node m );
-  unsigned getSearchSizeFor( Node n );
-  unsigned getSearchSizeForAnchor( Node n );
-  unsigned getSearchSizeForMeasureTerm(Node m);
 
- private:
-  unsigned processSelectorChain( Node n, std::map< TypeNode, Node >& top_level, 
-                                 std::map< Node, unsigned >& tdepth, std::vector< Node >& lemmas );
-  bool debugTesters( Node n, Node vn, int ind, std::vector< Node >& lemmas );
+   private:
+    /** the measure value */
+    Node d_measure_value;
+    /** the sygus measure value */
+    Node d_measure_value_active;
+  };
+  /** the above information for each registered measure term */
+  std::map< Node, SearchSizeInfo * > d_szinfo;
+  /** map from enumerators (anchors) to their associated measure term */
+  std::map< Node, Node > d_anchor_to_measure_term;
+  /** map from enumerators (anchors) to their active guard*/
+  std::map< Node, Node > d_anchor_to_active_guard;
+  /** generic measure term
+   *
+   * This is a global term that is used as the measure term for all sygus
+   * enumerators that do not have active guards. This class enforces that
+   * all enumerators have size at most n, where n is the minimal integer
+   * such that (DT_SYGUS_BOUND d_generic_measure_term n) is asserted.
+   */
+  Node d_generic_measure_term;
+  /**
+   * This increments the current search size for measure term m. This may
+   * cause lemmas to be added to lemmas based on the fact that symmetry
+   * breaking lemmas are now relevant for new search terms, see discussion
+   * of how search size affects which lemmas are relevant above
+   * addSymBreakLemmasFor.
+   */
+  void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
+  /**
+   * Notify this class that we are currently searching for terms of size at
+   * most s as model values for measure term m. Literal exp corresponds to the
+   * explanation of why the measure term has size at most n. This calls
+   * incrementSearchSize above, until the total number of times we have called
+   * incrementSearchSize so far is at least s.
+   */
+  void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
+  /** Allocates a SearchSizeInfo object in d_szinfo. */
+  void registerMeasureTerm( Node m );
+  /**
+   * Return the current search size for arbitrary term n. This is the current
+   * search size of the anchor of n.
+   */
+  unsigned getSearchSizeFor( Node n );
+  /** return the current search size for enumerator (anchor) e */
+  unsigned getSearchSizeForAnchor(Node e);
+  /** Get the current search size for measure term m in this SAT context. */
+  unsigned getSearchSizeForMeasureTerm(Node m);
+  /** get current template
+   *
+   * For debugging. This returns a term that corresponds to the current
+   * inferred shape of n. For example, if the testers
+   *   is-C1( n ) and is-C2( n.1 )
+   * have been asserted where C1 and C2 are binary constructors, then this
+   * method may return a term of the form:
+   *   C1( C2( x1, x2 ), x3 )
+   * for fresh variables x1, x2, x3. The map var_count maintains the variable
+   * count for generating these fresh variables.
+   */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
+  //----------------------end search size information
+  /** check testers
+   *
+   * This is called when we have a model assignment vn for n, where n is
+   * a selector chain applied to an enumerator (a search term). This function
+   * ensures that testers have been asserted for each subterm of vn. This is
+   * critical for ensuring that the proper steps have been taken by this class
+   * regarding whether or not vn is a legal value for n (not greater than the
+   * current search size and not a value that can be blocked by symmetry
+   * breaking).
+   *
+   * For example, if vn = +( x(), x() ), then we ensure that the testers
+   *   is-+( n ), is-x( n.1 ), is-x( n.2 )
+   * have been asserted to this class. If a tester is not asserted for some
+   * relevant selector chain S( n ) of n, then we add a lemma L for that
+   * selector chain to lemmas, where L is the "splitting lemma" for S( n ), that
+   * states that the top symbol of S( n ) must be one of the constructors of
+   * its type.
+   *
+   * Notice that this function is a sanity check. Typically, it should be the
+   * case that testers are asserted for all subterms of vn, and hence this
+   * method should not ever add anything to lemmas. However, due to its
+   * importance, we check this regardless.
+   */
+  bool checkTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  /**
+   * Get the current SAT status of the guard g.
+   * In particular, this returns 1 if g is asserted true, -1 if it is asserted
+   * false, and 0 if it is not asserted.
+   */
   int getGuardStatus( Node g );
-private:
-  void assertIsConst( Node n, bool polarity, std::vector< Node >& lemmas );
 };
 
 }

@@ -2,9 +2,9 @@
 /*! \file configuration_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, ACSYS
+ **   Christopher L. Conway, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -137,6 +137,12 @@ namespace CVC4 {
 #else /* HAVE_LIBREADLINE */
 #  define IS_READLINE_BUILD false
 #endif /* HAVE_LIBREADLINE */
+
+#ifdef CVC4_USE_SYMFPU
+#define IS_SYMFPU_BUILD true
+#else /* HAVE_SYMFPU_HEADERS */
+#define IS_SYMFPU_BUILD false
+#endif /* HAVE_SYMFPU_HEADERS */
 
 #if CVC4_GPL_DEPS
 #  define IS_GPL_BUILD true

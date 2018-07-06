@@ -2,9 +2,9 @@
 /*! \file sygus_unif_io.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -459,23 +459,26 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-SygusUnifIo::SygusUnifIo()
+SygusUnifIo::SygusUnifIo() : d_check_sol(false), d_cond_count(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 SygusUnifIo::~SygusUnifIo() {}
-
-void SygusUnifIo::initialize(QuantifiersEngine* qe,
-                             Node f,
-                             std::vector<Node>& enums,
-                             std::vector<Node>& lemmas)
+void SygusUnifIo::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   d_examples.clear();
   d_examples_out.clear();
   d_ecache.clear();
-  SygusUnif::initialize(qe, f, enums, lemmas);
+  d_candidate = f;
+  SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
+  // learn redundant operators based on the strategy
+  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
 }
 
 void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
@@ -492,7 +495,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Assert(!d_examples.empty());
   Assert(d_examples.size() == d_examples_out.size());
 
-  EnumInfo& ei = d_strategy.getEnumInfo(e);
+  EnumInfo& ei = d_strategy[c].getEnumInfo(e);
   // The explanation for why the current value should be excluded in future
   // iterations.
   Node exp_exc;
@@ -528,7 +531,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     {
       Node xs = ei.d_enum_slave[s];
 
-      EnumInfo& eiv = d_strategy.getEnumInfo(xs);
+      EnumInfo& eiv = d_strategy[c].getEnumInfo(xs);
 
       EnumCache& ecv = d_ecache[xs];
 
@@ -677,6 +680,67 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   lemmas.push_back(exp_exc);
 }
 
+bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
+                                    std::vector<Node>& lemmas)
+{
+  Node sol = constructSolutionNode(lemmas);
+  if (!sol.isNull())
+  {
+    sols.push_back(sol);
+    return true;
+  }
+  return false;
+}
+
+Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
+{
+  Node c = d_candidate;
+  if (!d_solution.isNull())
+  {
+    // already has a solution
+    return d_solution;
+  }
+  // only check if an enumerator updated
+  if (d_check_sol)
+  {
+    Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
+                       << std::endl;
+    d_check_sol = false;
+    // try multiple times if we have done multiple conditions, due to
+    // non-determinism
+    Node vc;
+    for (unsigned i = 0; i <= d_cond_count; i++)
+    {
+      Trace("sygus-pbe-dt") << "ConstructPBE for candidate: " << c << std::endl;
+      // initialize a call to construct solution
+      initializeConstructSol();
+      initializeConstructSolFor(c);
+      // call the virtual construct solution method
+      Node e = d_strategy[c].getRootEnumerator();
+      Node vcc = constructSol(c, e, role_equal, 1, lemmas);
+      // if we constructed the solution, and we either did not previously have
+      // a solution, or the new solution is better (smaller).
+      if (!vcc.isNull()
+          && (vc.isNull() || (!vc.isNull()
+                              && d_tds->getSygusTermSize(vcc)
+                                     < d_tds->getSygusTermSize(vc))))
+      {
+        Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = " << vcc
+                           << std::endl;
+        Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
+        vc = vcc;
+      }
+    }
+    if (!vc.isNull())
+    {
+      d_solution = vc;
+      return vc;
+    }
+    Trace("sygus-pbe") << "...failed to solve." << std::endl;
+  }
+  return Node::null();
+}
+
 // ------------------------------------ solution construction from enumeration
 
 bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
@@ -692,10 +756,11 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
     Trace("sygus-sui-enum-debug")
         << "Is " << e << " is str.contains exclusion?" << std::endl;
     d_use_str_contains_eexc[e] = true;
-    EnumInfo& ei = d_strategy.getEnumInfo(e);
+    Node c = d_candidate;
+    EnumInfo& ei = d_strategy[c].getEnumInfo(e);
     for (const Node& sn : ei.d_enum_slave)
     {
-      EnumInfo& eis = d_strategy.getEnumInfo(sn);
+      EnumInfo& eis = d_strategy[c].getEnumInfo(sn);
       EnumRole er = eis.getRole();
       if (er != enum_io && er != enum_concat_term)
       {
@@ -785,9 +850,15 @@ void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 }
 
 void SygusUnifIo::initializeConstructSol() { d_context.initialize(this); }
-
-Node SygusUnifIo::constructSol(Node e, NodeRole nrole, int ind)
+void SygusUnifIo::initializeConstructSolFor(Node f)
 {
+  Assert(d_candidate == f);
+}
+
+Node SygusUnifIo::constructSol(
+    Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas)
+{
+  Assert(d_candidate == f);
   UnifContextIo& x = d_context;
   TypeNode etn = e.getType();
   if (Trace.isOn("sygus-sui-dt-debug"))
@@ -810,10 +881,10 @@ Node SygusUnifIo::constructSol(Node e, NodeRole nrole, int ind)
     Trace("sygus-sui-dt-debug") << std::endl;
   }
   // enumerator type info
-  EnumTypeInfo& tinfo = d_strategy.getEnumTypeInfo(etn);
+  EnumTypeInfo& tinfo = d_strategy[f].getEnumTypeInfo(etn);
 
   // get the enumerator information
-  EnumInfo& einfo = d_strategy.getEnumInfo(e);
+  EnumInfo& einfo = d_strategy[f].getEnumInfo(e);
 
   EnumCache& ecache = d_ecache[e];
 
@@ -1216,7 +1287,7 @@ Node SygusUnifIo::constructSol(Node e, NodeRole nrole, int ind)
           }
           else
           {
-            rec_c = constructSol(cenum.first, cenum.second, ind + 2);
+            rec_c = constructSol(f, cenum.first, cenum.second, ind + 2, lemmas);
           }
 
           // undo update the context

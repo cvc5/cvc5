@@ -2,9 +2,9 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Dejan Jovanovic
+ **   Liana Hadarean, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -66,9 +66,9 @@ public:
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  void finishInit() override;
 
-  void mkAckermanizationAssertions(std::vector<Node>& assertions);
+  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
@@ -136,8 +136,6 @@ private:
   Node getBVDivByZero(Kind k, unsigned width);
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  void collectFunctionSymbols(TNode term, TNodeSet& seen);
-  void storeFunction(TNode func, TNode term);
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
 
@@ -148,12 +146,7 @@ private:
   std::unordered_map<unsigned, Node> d_BVDivByZero;
   std::unordered_map<unsigned, Node> d_BVRemByZero;
 
-
-  typedef std::unordered_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
   typedef std::unordered_map<Node, Node, NodeHashFunction>  NodeToNode;
-  // for ackermanization
-  FunctionToArgs d_funcToArgs;
-  CVC4::theory::SubstitutionMap d_funcToSkolem;
 
   context::CDO<bool> d_lemmasAdded;
 

@@ -2,9 +2,9 @@
 /*! \file aig_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Tim King
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -139,7 +139,8 @@ AigBitblaster::AigBitblaster()
       d_nullContext(new context::Context()),
       d_aigCache(),
       d_bbAtoms(),
-      d_aigOutputNode(NULL)
+      d_aigOutputNode(NULL),
+      d_notify()
 {
   prop::SatSolver* solver = nullptr;
   switch (options::bvSatSolver())
@@ -149,8 +150,8 @@ AigBitblaster::AigBitblaster()
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
-      MinisatEmptyNotify notify;
-      minisat->setNotify(&notify);
+      d_notify.reset(new MinisatEmptyNotify());
+      minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }

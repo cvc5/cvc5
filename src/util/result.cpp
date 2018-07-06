@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -349,24 +349,21 @@ void Result::toStreamTptp(std::ostream& out) const {
 
 void Result::toStream(std::ostream& out, OutputLanguage language) const {
   switch (language) {
-    case language::output::LANG_SMTLIB_V2_0:
-    case language::output::LANG_SMTLIB_V2_5:
-    case language::output::LANG_SMTLIB_V2_6:
     case language::output::LANG_SYGUS:
-    case language::output::LANG_Z3STR:
       toStreamSmt2(out);
       break;
     case language::output::LANG_TPTP:
       toStreamTptp(out);
       break;
-    case language::output::LANG_AST:
-    case language::output::LANG_AUTO:
-    case language::output::LANG_CVC3:
-    case language::output::LANG_CVC4:
-    case language::output::LANG_MAX:
-    case language::output::LANG_SMTLIB_V1:
     default:
-      toStreamDefault(out);
+      if (language::isOutputLang_smt2(language))
+      {
+        toStreamSmt2(out);
+      }
+      else
+      {
+        toStreamDefault(out);
+      }
       break;
   };
 }

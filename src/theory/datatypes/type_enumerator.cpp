@@ -2,9 +2,9 @@
 /*! \file type_enumerator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -188,7 +188,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      Debug("dt-enum-debug") << "done : " << t << std::endl;
      Assert( t.getKind()==kind::APPLY_CONSTRUCTOR );
      // start with the constructor for which a ground term is constructed
-     d_zeroCtor = Datatype::indexOf( t.getOperator().toExpr() );
+     d_zeroCtor = datatypes::DatatypesRewriter::indexOf(t.getOperator());
      d_has_debruijn = 0;
    }
    Debug("dt-enum") << "zero ctor : " << d_zeroCtor << std::endl;
