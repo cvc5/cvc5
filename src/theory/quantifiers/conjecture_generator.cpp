@@ -1089,16 +1089,17 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         vec_sum = 0;
         vec.push_back( size_limit );
       }else{
+        int vecindex = (index < vec.size()) ? vec[index] : 0;
         //see if we can iterate current
         if (vec_sum < size_limit
-            && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
+            && !te->getEnumerateTerm(types[index], vecindex + 1).isNull())
         {
-          vec[index]++;
+          vec.assign(index, vecindex + 1);
           vec_sum++;
           vec.push_back( size_limit - vec_sum );
         }else{
-          vec_sum -= vec[index];
-          vec[index] = 0;
+          vec_sum -= vecindex;
+          vec.assign(index, 0);
           index++;
           if( index==n.getNumChildren() ){
             success = false;
