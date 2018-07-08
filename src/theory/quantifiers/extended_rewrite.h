@@ -87,6 +87,12 @@ class ExtendedRewriter
    * strictly decrease the term size of n.
    */
   Node extendedRewriteIte(Kind itek, Node n, bool full = true);
+  /** Rewrite AND/OR
+   *
+   * This implements BCP, factoring, and equality resolution for the Boolean
+   * term n whose top symbolic is AND/OR.
+   */
+  Node extendedRewriteAndOr(Node n);
   /** Pull ITE, for example:
    *
    *   D=C2 ---> false
@@ -127,6 +133,15 @@ class ExtendedRewriter
    */
   Node extendedRewriteBcp(
       Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
+  /** (type-independent) factoring, for example:
+   *
+   *   ( A V B ) ^ ( A V C ) ----> A V ( B ^ C )
+   *   ( A ^ B ) V ( A ^ C ) ----> A ^ ( B V C )
+   *
+   * This function takes as arguments the kinds that specify AND, OR, NOT.
+   * We assume that the children of n do not contain duplicates.
+   */
+  Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n);
   /** (type-independent) equality resolution, for example:
    *
    *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
@@ -211,7 +226,7 @@ class ExtendedRewriter
 
   //--------------------------------------theory-specific top-level calls
   /** extended rewrite arith */
-  Node extendedRewriteArith(Node ret, bool& pol);
+  Node extendedRewriteArith(Node ret);
   //--------------------------------------end theory-specific top-level calls
 };
 
