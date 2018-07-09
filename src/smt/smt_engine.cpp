@@ -1312,6 +1312,14 @@ void SmtEngine::setDefaults() {
         options::cbqi.set(true);
       }
     }
+    if (d_logic.isTheoryEnabled(THEORY_FP)
+        && !options::sygusEvalOpt.wasSetByUser())
+    {
+      Notice() << "SmtEngine: turning off evaluator for floating-point logics "
+                  "for better performance"
+               << endl;
+      options::sygusEvalOpt.set(false);
+    }
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)

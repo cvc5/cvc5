@@ -26,6 +26,8 @@
 #include "base/output.h"
 #include "expr/node.h"
 #include "util/bitvector.h"
+#include "util/floatingpoint.h"
+#include "util/hash.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 
@@ -43,6 +45,8 @@ struct EvalResult
   {
     BOOL,
     BITVECTOR,
+    ROUNDINGMODE,
+    FLOATINGPOINT,
     RATIONAL,
     STRING,
     INVALID
@@ -53,6 +57,8 @@ struct EvalResult
   {
     bool d_bool;
     BitVector d_bv;
+    RoundingMode d_rm;
+    FloatingPoint d_fp;
     Rational d_rat;
     String d_str;
   };
@@ -61,7 +67,9 @@ struct EvalResult
   EvalResult() : d_tag(INVALID) {}
   EvalResult(bool b) : d_tag(BOOL), d_bool(b) {}
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
-  EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
+  EvalResult(const RoundingMode& rm) : d_tag(ROUNDINGMODE), d_rm(rm) {}
+  EvalResult(const FloatingPoint& fp) : d_tag(FLOATINGPOINT), d_fp(fp) {}
+  EvalResult(const Rational& r) : d_tag(RATIONAL), d_rat(r) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
 
   EvalResult& operator=(const EvalResult& other);
@@ -88,6 +96,9 @@ class Evaluator
    * `args` and the corresponding values `vals`. The function returns a null
    * node if there is a subterm that is not constant under the substitution or
    * if an operator is not supported by the evaluator.
+   *
+   * Note: The evaluator expects that `n` has been rewritten to the point where
+   * it does not contain non-essential operators (e.g. FLOATINGPOINT_EQ).
    */
   Node eval(TNode n,
             const std::vector<Node>& args,

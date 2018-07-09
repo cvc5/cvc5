@@ -1572,11 +1572,6 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
     }
     if (!res.isNull())
     {
-      Assert(res
-             == Rewriter::rewrite(bn.substitute(it->second.begin(),
-                                                it->second.end(),
-                                                args.begin(),
-                                                args.end())));
       return res;
     }
     else

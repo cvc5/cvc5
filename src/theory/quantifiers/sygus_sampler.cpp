@@ -451,16 +451,23 @@ void SygusSampler::addSamplePoint(std::vector<Node>& pt)
 Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
-  // use efficient rewrite for substitution + rewrite
-  Node ev = d_eval.eval(n, d_vars, d_samples[index]);
-  Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
-  if (!ev.isNull())
-  {
-    Trace("sygus-sample-ev") << ev << std::endl;
-    return ev;
-  }
-  // substitution + rewrite
+
   std::vector<Node>& pt = d_samples[index];
+
+  Node ev;
+  if (options::sygusEvalOpt())
+  {
+  // use efficient rewrite for substitution + rewrite
+    ev = d_eval.eval(n, d_vars, pt);
+    Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
+    if (!ev.isNull())
+    {
+      Trace("sygus-sample-ev") << ev << std::endl;
+      return ev;
+    }
+  }
+
+  // substitution + rewrite
   ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
   ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << ev << std::endl;
