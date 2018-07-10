@@ -579,6 +579,7 @@ REG0_TESTS = \
 	regress0/push-pop/inc-define.smt2 \
 	regress0/push-pop/inc-double-u.smt2 \
 	regress0/push-pop/incremental-subst-bug.cvc \
+	regress0/push-pop/issue1986.smt2 \
 	regress0/push-pop/quant-fun-proc-unfd.smt2 \
 	regress0/push-pop/simple_unsat_cores.smt2 \
 	regress0/push-pop/test.00.cvc \
@@ -1600,6 +1601,7 @@ REG2_TESTS = \
 	regress2/ooo.rf6.smt2 \
 	regress2/ooo.tag10.smt2 \
 	regress2/piVC_5581bd.smt2 \
+	regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \
@@ -1607,6 +1609,7 @@ REG2_TESTS = \
 	regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2 \
 	regress2/quantifiers/javafe.tc.FlowInsensitiveChecks.682.smt2 \
 	regress2/quantifiers/mutualrec2.cvc \
+	regress2/quantifiers/net-policy-no-time.smt2 \
 	regress2/quantifiers/nunchaku2309663.nun.min.smt2 \
 	regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
 	regress2/strings/cmu-dis-0707-3.smt2 \

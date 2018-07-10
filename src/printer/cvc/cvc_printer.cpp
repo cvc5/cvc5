@@ -2,7 +2,7 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -907,6 +907,17 @@ void CvcPrinter::toStream(
       out << "INST_PATTERN_LIST";
       break;
 
+    // string operators
+    case kind::STRING_CONCAT:
+      out << "CONCAT";
+      break;
+    case kind::STRING_CHARAT:
+      out << "CHARAT";
+      break;
+    case kind::STRING_LENGTH:
+      out << "LENGTH";
+      break;
+
     default:
       Warning() << "Kind printing not implemented for the case of " << n.getKind() << endl;
       break;
@@ -914,7 +925,11 @@ void CvcPrinter::toStream(
 
   switch (opType) {
   case PREFIX:
-    out << op.str() << '(';
+    out << op.str();
+    if (n.getNumChildren() > 0)
+    {
+      out << '(';
+    }
     break;
   case INFIX:
     if (bracket) {
@@ -939,7 +954,10 @@ void CvcPrinter::toStream(
 
   switch (opType) {
     case PREFIX:
-      out << ')';
+      if (n.getNumChildren() > 0)
+      {
+        out << ')';
+      }
       break;
     case INFIX:
       if (bracket) {
