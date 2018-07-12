@@ -20,6 +20,7 @@
 #include "theory/quantifiers/lazy_trie.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "util/sampler.h"
 
 namespace CVC4 {
 namespace theory {
@@ -197,12 +198,14 @@ void SygusSampler::initializeSamples(unsigned nsamples)
         if (sts[j] != d_var_sygus_types.end())
         {
           unsigned ntypes = sts[j]->second.size();
-          Assert(ntypes > 0);
-          unsigned index = Random::getRandom().pick(0, ntypes - 1);
-          if (index < ntypes)
+          if(ntypes > 0)
           {
-            // currently hard coded to 0.0, 0.5
-            r = getSygusRandomValue(sts[j]->second[index], 0.0, 0.5);
+            unsigned index = Random::getRandom().pick(0, ntypes - 1);
+            if (index < ntypes)
+            {
+              // currently hard coded to 0.0, 0.5
+              r = getSygusRandomValue(sts[j]->second[index], 0.0, 0.5);
+            }
           }
         }
       }
@@ -488,12 +491,15 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   else if (tn.isBitVector())
   {
     unsigned sz = tn.getBitVectorSize();
-    std::stringstream ss;
-    for (unsigned i = 0; i < sz; i++)
-    {
-      ss << (Random::getRandom().pickWithProb(0.5) ? "1" : "0");
-    }
-    return nm->mkConst(BitVector(ss.str(), 2));
+    return nm->mkConst(Sampler::pickBvUniform(sz));
+  }
+  else if (tn.isFloatingPoint())
+  {
+    unsigned e = tn.getFloatingPointExponentSize();
+    unsigned s = tn.getFloatingPointSignificandSize();
+    return nm->mkConst(options::sygusSampleFpUniform()
+                           ? Sampler::pickFpUniform(e, s)
+                           : Sampler::pickFpBiased(e, s));
   }
   else if (tn.isString() || tn.isInteger())
   {
