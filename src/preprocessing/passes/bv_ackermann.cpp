@@ -60,7 +60,7 @@ void storeFunction(
         "BVSKOLEM$$",
         tn,
         "is a variable created by the ackermannization "
-        "preprocessing pass for theory BV");
+        "preprocessing pass for theory BV for the term " + term.toString());
     fun_to_skolem.addSubstitution(term, skolem);
   }
 }
