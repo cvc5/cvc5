@@ -59,8 +59,6 @@ enum MbqiMode {
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** mbqi with integer intervals */
-  MBQI_FMC_INTERVAL,
   /** abstract mbqi algorithm */
   MBQI_ABS,
   /** mbqi trust (produce no instantiations) */

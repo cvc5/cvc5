@@ -695,6 +695,11 @@ bool Datatype::involvesUninterpretedType() const{
   return d_involvesUt;
 }
 
+const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
+{
+  return &d_constructors;
+}
+
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
                                   const std::map<std::string, DatatypeType>& resolutions,
                                   const std::vector<Type>& placeholders,
@@ -832,6 +837,12 @@ void DatatypeConstructor::setSygus(Expr op,
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_sygus_op = op;
   d_sygus_pc = spc;
+}
+
+const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
+    const
+{
+  return &d_args;
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {

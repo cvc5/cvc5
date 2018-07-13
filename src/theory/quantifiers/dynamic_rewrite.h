@@ -20,7 +20,6 @@
 #include <map>
 
 #include "context/cdlist.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -55,7 +54,7 @@ class DynamicRewriter
   typedef context::CDList<Node> NodeList;
 
  public:
-  DynamicRewriter(const std::string& name, QuantifiersEngine* qe);
+  DynamicRewriter(const std::string& name, context::UserContext* u);
   ~DynamicRewriter() {}
   /** inform this class that the equality a = b holds. */
   void addRewrite(Node a, Node b);

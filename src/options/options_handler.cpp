@@ -299,9 +299,6 @@ gen-ev \n\
 + Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
   model finding paper based on generalizing evaluations.\n\
 \n\
-fmc-interval \n\
-+ Same as default, but with intervals for models of integer functions.\n\
-\n\
 abs \n\
 + Use abstract MBQI algorithm (uses disjoint sets). \n\
 \n\
@@ -650,8 +647,6 @@ theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
     return theory::quantifiers::MBQI_NONE;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return theory::quantifiers::MBQI_FMC;
-  } else if(optarg == "fmc-interval") {
-    return theory::quantifiers::MBQI_FMC_INTERVAL;
   } else if(optarg == "abs") {
     return theory::quantifiers::MBQI_ABS;
   } else if(optarg == "trust") {
