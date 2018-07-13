@@ -1244,7 +1244,158 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/* Create constants --------------------------------------------------------- */
+Solver::Solver(Options* opts)
+  : d_opts(new Options())
+{
+  if (opts) d_opts->copyValues(*opts);
+  d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
+  d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
+  d_rng = std::unique_ptr<Random>(new Random((*d_opts)[options::seed]));
+}
+
+Solver::~Solver() {}
+
+/* Sorts Handling                                                             */
+/* -------------------------------------------------------------------------- */
+
+Sort Solver::getBooleanSort(void) const { return d_exprMgr->booleanType(); }
+
+Sort Solver::getIntegerSort(void) const { return d_exprMgr->integerType(); }
+
+Sort Solver::getRealSort(void) const { return d_exprMgr->realType(); }
+
+Sort Solver::getRegExpSort(void) const { return d_exprMgr->regExpType(); }
+
+Sort Solver::getStringSort(void) const { return d_exprMgr->stringType(); }
+
+Sort Solver::getRoundingmodeSort(void) const
+{
+  return d_exprMgr->roundingModeType();
+}
+
+/* Create sorts ------------------------------------------------------- */
+
+Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
+{
+  // CHECK: indexSort exists
+  // CHECK: elemSort exists
+  return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
+}
+
+Sort Solver::mkBitVectorSort(uint32_t size) const
+{
+  // CHECK: size > 0
+  return d_exprMgr->mkBitVectorType(size);
+}
+
+Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
+{
+  // CHECK: num constructors > 0
+  return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
+}
+
+Sort Solver::mkFunctionSort(Sort domain, Sort range) const
+{
+  // CHECK: domain exists
+  // CHECK: range exists
+  // CHECK:
+  // domain.isFirstClass()
+  // else "can not create function type for domain type that is not
+  //       first class"
+  // CHECK:
+  // range.isFirstClass()
+  // else "can not create function type for range type that is not
+  //       first class"
+  // CHECK:
+  // !range.isFunction()
+  // else "must flatten function types"
+  return d_exprMgr->mkFunctionType(*domain.d_type, *range.d_type);
+}
+
+Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const
+{
+  // CHECK: for all s in argSorts, s exists
+  // CHECK: range exists
+  // CHECK: argSorts.size() >= 1
+  // CHECK:
+  // for (unsigned i = 0; i < argSorts.size(); ++ i)
+  //   argSorts[i].isFirstClass()
+  // else "can not create function type for argument type that is not
+  //       first class"
+  // CHECK:
+  // range.isFirstClass()
+  // else "can not create function type for range type that is not
+  //       first class"
+  // CHECK:
+  // !range.isFunction()
+  // else "must flatten function types"
+  std::vector<Type> argTypes = sortVectorToTypes(argSorts);
+  return d_exprMgr->mkFunctionType(argTypes, *range.d_type);
+}
+
+Sort Solver::mkParamSort(const std::string& symbol) const
+{
+  return d_exprMgr->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER);
+}
+
+Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK: sorts.size() >= 1
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   sorts[i].isFirstClass()
+  // else "can not create predicate type for argument type that is not
+  //       first class"
+  std::vector<Type> types = sortVectorToTypes(sorts);
+  return d_exprMgr->mkPredicateType(types);
+}
+
+Sort Solver::mkRecordSort(
+    const std::vector<std::pair<std::string, Sort>>& fields) const
+{
+  std::vector<std::pair<std::string, Type>> f;
+  for (const auto& p : fields)
+  {
+    f.emplace_back(p.first, *p.second.d_type);
+  }
+  return d_exprMgr->mkRecordType(Record(f));
+}
+
+Sort Solver::mkSetSort(Sort elemSort) const
+{
+  return d_exprMgr->mkSetType(*elemSort.d_type);
+}
+
+Sort Solver::mkUninterpretedSort(const std::string& symbol) const
+{
+  return d_exprMgr->mkSort(symbol);
+}
+
+Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   !sorts[i].isFunctionLike()
+  // else "function-like types in tuples not allowed"
+  std::vector<Type> types = sortVectorToTypes(sorts);
+  return d_exprMgr->mkTupleType(types);
+}
+
+std::vector<Type> Solver::sortVectorToTypes(
+    const std::vector<Sort>& sorts) const
+{
+  std::vector<Type> res;
+  for (const Sort& s : sorts)
+  {
+    res.push_back(*s.d_type);
+  }
+  return res;
+}
+
+/* Create consts                                                              */
+/* -------------------------------------------------------------------------- */
 
 Term Solver::mkTrue(void) const { return d_exprMgr->mkConst<bool>(true); }
 
@@ -1563,7 +1714,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
 
-/* Create variables --------------------------------------------------- */
+/* Create variables                                                           */
+/* -------------------------------------------------------------------------- */
 
 Term Solver::mkVar(const std::string& symbol, Sort sort) const
 {
@@ -1589,161 +1741,8 @@ Term Solver::mkBoundVar(Sort sort) const
   return d_exprMgr->mkBoundVar(*sort.d_type);
 }
 
+/* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
-/* Solver                                                                     */
-/* -------------------------------------------------------------------------- */
-
-Solver::Solver(Options* opts)
-  : d_opts(new Options())
-{
-  if (opts) d_opts->copyValues(*opts);
-  d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
-  d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
-  d_rng = std::unique_ptr<Random>(new Random((*d_opts)[options::seed]));
-}
-
-Solver::~Solver() {}
-
-/* Sorts Handling                                                             */
-/* -------------------------------------------------------------------------- */
-
-Sort Solver::getBooleanSort(void) const { return d_exprMgr->booleanType(); }
-
-Sort Solver::getIntegerSort(void) const { return d_exprMgr->integerType(); }
-
-Sort Solver::getRealSort(void) const { return d_exprMgr->realType(); }
-
-Sort Solver::getRegExpSort(void) const { return d_exprMgr->regExpType(); }
-
-Sort Solver::getStringSort(void) const { return d_exprMgr->stringType(); }
-
-Sort Solver::getRoundingmodeSort(void) const
-{
-  return d_exprMgr->roundingModeType();
-}
-
-/* Create sorts ------------------------------------------------------- */
-
-Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
-{
-  // CHECK: indexSort exists
-  // CHECK: elemSort exists
-  return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
-}
-
-Sort Solver::mkBitVectorSort(uint32_t size) const
-{
-  // CHECK: size > 0
-  return d_exprMgr->mkBitVectorType(size);
-}
-
-Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
-{
-  // CHECK: num constructors > 0
-  return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
-}
-
-Sort Solver::mkFunctionSort(Sort domain, Sort range) const
-{
-  // CHECK: domain exists
-  // CHECK: range exists
-  // CHECK:
-  // domain.isFirstClass()
-  // else "can not create function type for domain type that is not
-  //       first class"
-  // CHECK:
-  // range.isFirstClass()
-  // else "can not create function type for range type that is not
-  //       first class"
-  // CHECK:
-  // !range.isFunction()
-  // else "must flatten function types"
-  return d_exprMgr->mkFunctionType(*domain.d_type, *range.d_type);
-}
-
-Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const
-{
-  // CHECK: for all s in argSorts, s exists
-  // CHECK: range exists
-  // CHECK: argSorts.size() >= 1
-  // CHECK:
-  // for (unsigned i = 0; i < argSorts.size(); ++ i)
-  //   argSorts[i].isFirstClass()
-  // else "can not create function type for argument type that is not
-  //       first class"
-  // CHECK:
-  // range.isFirstClass()
-  // else "can not create function type for range type that is not
-  //       first class"
-  // CHECK:
-  // !range.isFunction()
-  // else "must flatten function types"
-  std::vector<Type> argTypes = sortVectorToTypes(argSorts);
-  return d_exprMgr->mkFunctionType(argTypes, *range.d_type);
-}
-
-Sort Solver::mkParamSort(const std::string& symbol) const
-{
-  return d_exprMgr->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER);
-}
-
-Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
-{
-  // CHECK: for all s in sorts, s exists
-  // CHECK: sorts.size() >= 1
-  // CHECK:
-  // for (unsigned i = 0; i < sorts.size(); ++ i)
-  //   sorts[i].isFirstClass()
-  // else "can not create predicate type for argument type that is not
-  //       first class"
-  std::vector<Type> types = sortVectorToTypes(sorts);
-  return d_exprMgr->mkPredicateType(types);
-}
-
-Sort Solver::mkRecordSort(
-    const std::vector<std::pair<std::string, Sort>>& fields) const
-{
-  std::vector<std::pair<std::string, Type>> f;
-  for (const auto& p : fields)
-  {
-    f.emplace_back(p.first, *p.second.d_type);
-  }
-  return d_exprMgr->mkRecordType(Record(f));
-}
-
-Sort Solver::mkSetSort(Sort elemSort) const
-{
-  return d_exprMgr->mkSetType(*elemSort.d_type);
-}
-
-Sort Solver::mkUninterpretedSort(const std::string& symbol) const
-{
-  return d_exprMgr->mkSort(symbol);
-}
-
-Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
-{
-  // CHECK: for all s in sorts, s exists
-  // CHECK:
-  // for (unsigned i = 0; i < sorts.size(); ++ i)
-  //   !sorts[i].isFunctionLike()
-  // else "function-like types in tuples not allowed"
-  std::vector<Type> types = sortVectorToTypes(sorts);
-  return d_exprMgr->mkTupleType(types);
-}
-
-std::vector<Type> Solver::sortVectorToTypes(
-    const std::vector<Sort>& sorts) const
-{
-  std::vector<Type> res;
-  for (const Sort& s : sorts)
-  {
-    res.push_back(*s.d_type);
-  }
-  return res;
-}
-
-/* Create terms ------------------------------------------------------- */
 
 Term Solver::mkTerm(Kind kind) const
 {
