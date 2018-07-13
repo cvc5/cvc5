@@ -2,9 +2,9 @@
 /*! \file parser.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -269,7 +269,8 @@ void Parser::defineVar(const std::string& name, const Expr& val,
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
   if (!d_symtab->bind(name, val, levelZero, doOverload)) {
     std::stringstream ss;
-    ss << "Failed to bind " << name << " to symbol of type " << val.getType();
+    ss << "Cannot bind " << name << " to symbol of type " << val.getType();
+    ss << ", maybe the symbol has already been defined?";
     parseError(ss.str()); 
   }
   assert(isDeclared(name));

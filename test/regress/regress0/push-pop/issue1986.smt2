@@ -1,0 +1,22 @@
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+(set-logic SAT)
+(set-option :incremental true)
+(declare-fun v1 () Bool)
+(declare-fun v2 () Bool)
+(declare-fun v3 () Bool)
+(declare-fun v4 () Bool)
+(declare-fun v5 () Bool)
+(check-sat)
+(push)
+(assert (or (and (or true v1) (and (and (or v1 v1) true) true)) (or v2 (and v2 false))))
+(check-sat)
+(assert (or (and (and v3 (and (or v4 v3) (and v1 false))) (and (and (or v2 true) v5) (and (and false v1) true))) v3))
+(push)
+(pop)
+(pop)
+(assert true)
+(push)
+(assert (and (or v4 v5) true))
+(check-sat)

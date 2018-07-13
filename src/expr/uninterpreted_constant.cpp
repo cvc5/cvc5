@@ -2,9 +2,9 @@
 /*! \file uninterpreted_constant.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,15 +34,7 @@ UninterpretedConstant::UninterpretedConstant(Type type, Integer index)
 }
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
-  stringstream ss;
-  ss << uc.getType();
-  string t = ss.str();
-  size_t i = 0;
-  // replace everything that isn't in [a-zA-Z0-9_] with an _
-  while((i = t.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_", i)) != string::npos) {
-    t.replace(i, 1, 1, '_');
-  }
-  return out << "uc_" << t << '_' << uc.getIndex();
+  return out << "uc_" << uc.getType() << '_' << uc.getIndex();
 }
 
 }/* CVC4 namespace */
