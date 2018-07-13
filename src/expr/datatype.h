@@ -450,6 +450,11 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
 
+  /**
+   * Get the list of arguments to this constructor.
+   */
+  const std::vector<DatatypeConstructorArg>* getArgs() const;
+
  private:
   /** the name of the constructor */
   std::string d_name;
@@ -937,6 +942,11 @@ public:
    * in any constructor that is an uninterpreted type.
    */
   bool involvesUninterpretedType() const;
+
+  /**
+   * Get the list of constructors.
+   */
+  const std::vector<DatatypeConstructor>* getConstructors() const;
 
  private:
   /** name of this datatype */

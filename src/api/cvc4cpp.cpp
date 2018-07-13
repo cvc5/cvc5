@@ -769,7 +769,6 @@ bool Sort::isSortConstructor() const
   return d_type->isSortConstructor();
 }
 
-#if 0
 Datatype Sort::getDatatype() const
 {
   // CHECK: is this a datatype sort?
@@ -791,7 +790,6 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   Assert (d_type->isSortConstructor());
   return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
 }
-#endif
 
 std::string Sort::toString() const
 {
@@ -1209,6 +1207,286 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
+/* DatatypeSelector --------------------------------------------------------- */
+
+DatatypeSelector::DatatypeSelector()
+{
+  d_stor = nullptr;
+}
+
+DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
+    : d_stor(new CVC4::DatatypeConstructorArg(stor))
+{
+}
+
+DatatypeSelector::~DatatypeSelector()
+{
+}
+
+std::string DatatypeSelector::toString() const
+{
+  std::stringstream ss;
+  ss << *d_stor;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
+{
+  out << stor.toString();
+  return out;
+}
+
+/* DatatypeConstructor ------------------------------------------------------ */
+
+DatatypeConstructor::DatatypeConstructor()
+{
+  d_ctor = nullptr;
+}
+
+DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
+: d_ctor(new CVC4::DatatypeConstructor(ctor))
+{
+}
+
+DatatypeConstructor::~DatatypeConstructor()
+{
+}
+
+DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
+{
+  // CHECK: selector with name exists?
+  // CHECK: is resolved?
+  return (*d_ctor)[name];
+}
+
+DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return (*d_ctor)[name];
+}
+
+Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return d_ctor->getSelector(name);
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
+{
+  return DatatypeConstructor::const_iterator(*d_ctor, true);
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::end() const
+{
+  return DatatypeConstructor::const_iterator(*d_ctor, false);
+}
+
+DatatypeConstructor::const_iterator::const_iterator(
+    const CVC4::DatatypeConstructor& ctor, bool begin)
+{
+  d_int_stors = ctor.getArgs();
+  const std::vector<CVC4::DatatypeConstructorArg>* sels =
+      static_cast<const std::vector<CVC4::DatatypeConstructorArg>*>(
+          d_int_stors);
+  for (const auto& s : *sels)
+  {
+    /* Can not use emplace_back here since constructor is private. */
+    d_stors.push_back(DatatypeSelector(s));
+  }
+  d_idx = begin ? 0 : sels->size();
+}
+
+DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
+operator=(const DatatypeConstructor::const_iterator& it)
+{
+  d_int_stors = it.d_int_stors;
+  d_stors = it.d_stors;
+  d_idx = it.d_idx;
+  return *this;
+}
+
+const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const
+{
+  return d_stors[d_idx];
+}
+
+const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const
+{
+  return &d_stors[d_idx];
+}
+
+DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
+operator++()
+{
+  ++d_idx;
+  return *this;
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::const_iterator::
+operator++(int)
+{
+  DatatypeConstructor::const_iterator it(*this);
+  ++d_idx;
+  return it;
+}
+
+bool DatatypeConstructor::const_iterator::operator==(
+    const DatatypeConstructor::const_iterator& other) const
+{
+  return d_int_stors == other.d_int_stors && d_idx == other.d_idx;
+}
+
+bool DatatypeConstructor::const_iterator::operator!=(
+    const DatatypeConstructor::const_iterator& other) const
+{
+  return d_int_stors != other.d_int_stors || d_idx != other.d_idx;
+}
+
+std::string DatatypeConstructor::toString() const
+{
+  std::stringstream ss;
+  ss << *d_ctor;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
+{
+  out << ctor.toString();
+  return out;
+}
+
+/* Datatype ----------------------------------------------------------------- */
+
+Datatype::Datatype(const CVC4::Datatype& dtype)
+: d_dtype(new CVC4::Datatype(dtype))
+{
+}
+
+Datatype::~Datatype()
+{
+}
+
+DatatypeConstructor Datatype::operator[](const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return (*d_dtype)[name];
+}
+
+DatatypeConstructor Datatype::getConstructor(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return (*d_dtype)[name];
+}
+
+Term Datatype::getConstructorTerm(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return d_dtype->getConstructor(name);
+}
+
+Datatype::const_iterator Datatype::begin() const
+{
+  return Datatype::const_iterator(*d_dtype, true);
+}
+
+Datatype::const_iterator Datatype::end() const
+{
+  return Datatype::const_iterator(*d_dtype, false);
+}
+
+Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype, bool begin)
+{
+  d_int_ctors = dtype.getConstructors();
+  const std::vector<CVC4::DatatypeConstructor>* cons =
+    static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
+  for (const auto& c : *cons)
+  {
+    /* Can not use emplace_back here since constructor is private. */
+    d_ctors.push_back(DatatypeConstructor(c));
+  }
+  d_idx = begin ? 0 : cons->size();
+}
+
+Datatype::const_iterator& Datatype::const_iterator::operator=(
+    const Datatype::const_iterator& it)
+{
+  d_int_ctors = it.d_int_ctors;
+  d_ctors = it.d_ctors;
+  d_idx = it.d_idx;
+  return *this;
+}
+
+const DatatypeConstructor& Datatype::const_iterator::operator*() const
+{
+  return d_ctors[d_idx];
+}
+
+const DatatypeConstructor* Datatype::const_iterator::operator->() const
+{
+  return &d_ctors[d_idx];
+}
+
+Datatype::const_iterator& Datatype::const_iterator::operator++()
+{
+  ++d_idx;
+  return *this;
+}
+
+Datatype::const_iterator Datatype::const_iterator::operator++(int)
+{
+  Datatype::const_iterator it(*this);
+  ++d_idx;
+  return it;
+}
+
+bool Datatype::const_iterator::operator==(
+    const Datatype::const_iterator& other) const
+{
+  return d_int_ctors == other.d_int_ctors && d_idx == other.d_idx;
+}
+
+bool Datatype::const_iterator::operator!=(
+    const Datatype::const_iterator& other) const
+{
+  return d_int_ctors != other.d_int_ctors || d_idx != other.d_idx;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Rounding Mode for Floating Points                                          */
+/* -------------------------------------------------------------------------- */
+
+const static std::unordered_map<RoundingMode,
+                          CVC4::RoundingMode,
+                          RoundingModeHashFunction> s_rmodes
+{
+  { ROUND_NEAREST_TIES_TO_EVEN,  CVC4::RoundingMode::roundNearestTiesToEven },
+  { ROUND_TOWARD_POSITIVE,       CVC4::RoundingMode::roundTowardPositive },
+  { ROUND_TOWARD_NEGATIVE,       CVC4::RoundingMode::roundTowardNegative },
+  { ROUND_TOWARD_ZERO,           CVC4::RoundingMode::roundTowardZero },
+  { ROUND_NEAREST_TIES_TO_AWAY,  CVC4::RoundingMode::roundNearestTiesToAway },
+};
+
+const static std::unordered_map<CVC4::RoundingMode,
+                          RoundingMode,
+                          CVC4::RoundingModeHashFunction> s_rmodes_internal
+{
+  { CVC4::RoundingMode::roundNearestTiesToEven,  ROUND_NEAREST_TIES_TO_EVEN },
+  { CVC4::RoundingMode::roundTowardPositive,     ROUND_TOWARD_POSITIVE },
+  { CVC4::RoundingMode::roundTowardNegative,     ROUND_TOWARD_NEGATIVE },
+  { CVC4::RoundingMode::roundTowardZero,         ROUND_TOWARD_ZERO },
+  { CVC4::RoundingMode::roundNearestTiesToAway,  ROUND_NEAREST_TIES_TO_AWAY },
+};
+
+size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
+{
+  return size_t(rm);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -1363,7 +1641,355 @@ std::vector<Type> Solver::sortVectorToTypes(
   return res;
 }
 
-/* Create terms ------------------------------------------------------- */
+/* Create consts                                                              */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::mkTrue(void) const { return d_exprMgr->mkConst<bool>(true); }
+
+Term Solver::mkFalse(void) const { return d_exprMgr->mkConst<bool>(false); }
+
+Term Solver::mkBoolean(bool val) const { return d_exprMgr->mkConst<bool>(val); }
+
+Term Solver::mkInteger(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkInteger(const std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkInteger(int32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(uint32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(int64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(uint64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkPi() const
+{
+  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+}
+
+Term Solver::mkReal(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkReal(const std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkReal(int32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(int64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(uint32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(uint64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(int32_t num, int32_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(int64_t num, int64_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(uint32_t num, uint32_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(uint64_t num, uint64_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkRegexpEmpty() const
+{
+  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>());
+}
+
+Term Solver::mkRegexpSigma() const
+{
+  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>());
+}
+
+Term Solver::mkEmptySet(Sort s) const
+{
+  return d_exprMgr->mkConst(EmptySet(*s.d_type));
+}
+
+Term Solver::mkSepNil(Sort sort) const
+{
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
+}
+
+Term Solver::mkString(const char* s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkString(const std::string& s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkString(const unsigned char c) const
+{
+  return d_exprMgr->mkConst(String(c));
+}
+
+Term Solver::mkString(const std::vector<unsigned>& s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkUniverseSet(Sort sort) const
+{
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
+}
+
+Term Solver::mkBitVector(uint32_t size) const
+{
+  return d_exprMgr->mkConst(BitVector(size));
+}
+
+Term Solver::mkBitVector(uint32_t size, uint32_t val) const
+{
+  return d_exprMgr->mkConst(BitVector(size, val));
+}
+
+Term Solver::mkBitVector(uint32_t size, uint64_t val) const
+{
+  return d_exprMgr->mkConst(BitVector(size, val));
+}
+
+Term Solver::mkBitVector(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(BitVector(s, base));
+}
+
+Term Solver::mkBitVector(std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(BitVector(s, base));
+}
+
+Term Solver::mkConst(RoundingMode rm) const
+{
+  // CHECK: kind == CONST_ROUNDINGMODE
+  // CHECK: valid rm?
+  return d_exprMgr->mkConst(s_rmodes.at(rm));
+}
+
+Term Solver::mkConst(Kind kind, Sort arg) const
+{
+  // CHECK: kind == EMPTYSET
+  return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
+}
+
+Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
+{
+  // CHECK: kind == UNINTERPRETED_CONSTANT
+  return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
+}
+
+Term Solver::mkConst(Kind kind, bool arg) const
+{
+  // CHECK: kind == CONST_BOOLEAN
+  return d_exprMgr->mkConst<bool>(arg);
+}
+
+Term Solver::mkConst(Kind kind, const char* arg) const
+{
+  // CHECK: kind == CONST_STRING
+  return d_exprMgr->mkConst(CVC4::String(arg));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg) const
+{
+  // CHECK: kind == CONST_STRING
+  return d_exprMgr->mkConst(CVC4::String(arg));
+}
+
+Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg));
+}
+
+Term Solver::mkConst(Kind kind, int32_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, int64_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
+{
+  // CHECK: kind == CONST_BITVECTOR
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
+{
+  // CHECK: kind == CONST_FLOATINGPOINT
+  // CHECK: arg 3 is bit-vector constant
+  return d_exprMgr->mkConst(
+      CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
+}
+
+/* Create variables                                                           */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::mkVar(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkVar(symbol, *sort.d_type);
+}
+
+Term Solver::mkVar(Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkVar(*sort.d_type);
+}
+
+Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkBoundVar(symbol, *sort.d_type);
+}
+
+Term Solver::mkBoundVar(Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkBoundVar(*sort.d_type);
+}
+
+/* Create terms                                                               */
+/* -------------------------------------------------------------------------- */
 
 Term Solver::mkTerm(Kind kind) const
 {
@@ -1586,5 +2212,6 @@ std::vector<Expr> Solver::termVectorToExprs(
   }
   return res;
 }
+
 }  // namespace api
 }  // namespace CVC4
