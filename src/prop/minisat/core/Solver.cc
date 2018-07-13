@@ -328,7 +328,7 @@ CRef Solver::reason(Var x) {
           // explainPropagation() pushes the explanation on the assertion stack
           // in CnfProof, so we need to pop it here. This is important because
           // reason() may be called indirectly while adding a clause, which can
-          // lead to a wrongassertion being associated with the clause being
+          // lead to a wrong assertion being associated with the clause being
           // added (see issue #2137).
           ProofManager::getCnfProof()->popCurrentAssertion(););
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
