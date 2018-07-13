@@ -2213,5 +2213,20 @@ std::vector<Expr> Solver::termVectorToExprs(
   return res;
 }
 
+/**
+ *  ( declare-datatype <symbol> <datatype_decl>)
+ */
+Sort Solver::declareDatatype(
+    const std::string& symbol,
+    const std::vector<DatatypeConstructorDecl>& ctors) const
+{
+  DatatypeDecl dtdecl(symbol);
+  for (const DatatypeConstructorDecl& ctor : ctors)
+  {
+    dtdecl.addConstructor(ctor);
+  }
+  return mkDatatypeSort(dtdecl);
+}
+
 }  // namespace api
 }  // namespace CVC4
