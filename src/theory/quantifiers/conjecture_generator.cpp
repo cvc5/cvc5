@@ -1088,7 +1088,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       if( vec_sum==-1 ){
         vec_sum = 0;
         vec.push_back( size_limit );
-      }else{
+      }else if( index<vec.size() ){
+        Assert( index<types.size() );
         //see if we can iterate current
         if (vec_sum < size_limit
             && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
@@ -1104,6 +1105,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             success = false;
           }
         }
+      }else{
+        Assert(false);
       }
       if( success ){
         if( vec.size()==n.getNumChildren() ){
