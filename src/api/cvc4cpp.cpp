@@ -2213,5 +2213,97 @@ std::vector<Expr> Solver::termVectorToExprs(
   return res;
 }
 
+
+/* Non-SMT-LIB commands                                                       */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::simplify(const Term& t)
+{
+  return d_smtEngine->simplify(*t.d_expr);
+}
+
+Result Solver::checkValid (void) const
+{
+  // CHECK:
+  // if d_queryMade -> incremental enabled
+  CVC4::Result r = d_smtEngine->query();
+  return Result(r);
+}
+
+Result Solver::checkValidAssuming (Term assumption) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  CVC4::Result r = d_smtEngine->query(*assumption.d_expr);
+  return Result(r);
+}
+
+Result Solver::checkValidAssuming (const std::vector<Term>& assumptions) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
+  CVC4::Result r = d_smtEngine->query(eassumptions);
+  return Result(r);
+}
+
+
+/* SMT-LIB commands                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ *  ( assert <term> )
+ */
+void Solver::assertFormula (Term term) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  d_smtEngine->assertFormula(*term.d_expr);
+}
+
+/**
+ *  ( check-sat )
+ */
+Result Solver::checkSat (void) const
+{
+  // CHECK:
+  // if d_queryMade -> incremental enabled
+  CVC4::Result r = d_smtEngine->checkSat();
+  return Result(r);
+}
+
+/**
+ *  ( check-sat-assuming ( <prop_literal> ) )
+ */
+Result Solver::checkSatAssuming (Term assumption) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  CVC4::Result r = d_smtEngine->checkSat(*assumption.d_expr);
+  return Result(r);
+}
+
+/**
+ *  ( check-sat-assuming ( <prop_literal>* ) )
+ */
+Result Solver::checkSatAssuming (const std::vector<Term>& assumptions) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
+  CVC4::Result r = d_smtEngine->checkSat(eassumptions);
+  return Result(r);
+}
+
+/**
+ *  ( declare-const <symbol> <sort> )
+ */
+Term Solver::declareConst (const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists
+  return d_exprMgr->mkVar(symbol, *sort.d_type);
+}
+
 }  // namespace api
 }  // namespace CVC4
