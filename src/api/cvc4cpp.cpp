@@ -2213,5 +2213,120 @@ std::vector<Expr> Solver::termVectorToExprs(
   return res;
 }
 
+/* Create operator terms                                                      */
+/* -------------------------------------------------------------------------- */
+
+OpTerm Solver::mkOpTerm(Kind kind, Kind k)
+{
+  // CHECK: kind == CHAIN_OP
+  return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
+}
+
+OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
+{
+  // CHECK:
+  // kind == RECORD_UPDATE_OP
+  return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
+}
+
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
+{
+  OpTerm res;
+  if (kind == DIVISIBLE_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::Divisible(arg));
+  }
+  else if (kind == BITVECTOR_REPEAT_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::BitVectorRepeat(arg));
+  }
+  else if (kind == BITVECTOR_ZERO_EXTEND_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::BitVectorZeroExtend(arg));
+  }
+  else if (kind == BITVECTOR_SIGN_EXTEND_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::BitVectorSignExtend(arg));
+  }
+  else if (kind == BITVECTOR_ROTATE_LEFT_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::BitVectorRotateLeft(arg));
+  }
+  else if (kind == BITVECTOR_ROTATE_RIGHT_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::BitVectorRotateRight(arg));
+  }
+  else if (kind == INT_TO_BITVECTOR_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::IntToBitVector(arg));
+  }
+  else if (kind == FLOATINGPOINT_TO_UBV_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::FloatingPointToUBV(arg));
+  }
+  else if (kind == FLOATINGPOINT_TO_UBV_TOTAL_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::FloatingPointToUBVTotal(arg));
+  }
+  else if (kind == FLOATINGPOINT_TO_SBV_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::FloatingPointToSBV(arg));
+  }
+  else if (kind == FLOATINGPOINT_TO_SBV_TOTAL_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::FloatingPointToSBVTotal(arg));
+  }
+  else if (kind == TUPLE_UPDATE_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
+  }
+  // CHECK: kind valid?
+  Assert(!res.isNull());
+  return res;
+}
+
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
+{
+  OpTerm res;
+  if (kind == BITVECTOR_EXTRACT_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::BitVectorExtract(arg1, arg2));
+    std::cout << res << std::endl;
+  }
+  else if (kind == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP)
+  {
+    res = d_exprMgr->mkConst(
+        CVC4::FloatingPointToFPIEEEBitVector(arg1, arg2));
+  }
+  else if (kind == FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP)
+  {
+    res = d_exprMgr->mkConst(
+        CVC4::FloatingPointToFPFloatingPoint(arg1, arg2));
+  }
+  else if (kind == FLOATINGPOINT_TO_FP_REAL_OP)
+  {
+    res =
+        d_exprMgr->mkConst(CVC4::FloatingPointToFPReal(arg1, arg2));
+  }
+  else if (kind == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP)
+  {
+    res = d_exprMgr->mkConst(
+        CVC4::FloatingPointToFPSignedBitVector(arg1, arg2));
+  }
+  else if (kind == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP)
+  {
+    res = d_exprMgr->mkConst(
+        CVC4::FloatingPointToFPUnsignedBitVector(arg1, arg2));
+  }
+  else if (kind == FLOATINGPOINT_TO_FP_GENERIC_OP)
+  {
+    res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
+  }
+  // CHECK: kind valid?
+  Assert(!res.isNull());
+  return res;
+}
+
+
 }  // namespace api
 }  // namespace CVC4
