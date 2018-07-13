@@ -71,7 +71,6 @@ private:
   void simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes );
   void simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes );
   std::string niceChar( Node r );
-  int gcd ( int a, int b );
   Node mkAllExceptOne( unsigned char c );
   bool isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2);
 

@@ -1203,6 +1203,14 @@ header = "options/quantifiers_options.h"
   help       = "when applicable, use grammar for choosing sample points"
 
 [[option]]
+  name       = "sygusSampleFpUniform"
+  category   = "regular"
+  long       = "sygus-sample-fp-uniform"
+  type       = "bool"
+  default    = "false"
+  help       = "sample floating-point values uniformly instead of in a biased fashion"
+
+[[option]]
   name       = "sygusRewSynthAccel"
   category   = "regular"
   long       = "sygus-rr-synth-accel"
@@ -1217,6 +1225,13 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthCheckTimeout"
+  category   = "regular"
+  long       = "sygus-rr-synth-check-timeout"
+  type       = "unsigned long"
+  help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
 
 # CEGQI applied to general quantified formulas
 

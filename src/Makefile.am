@@ -84,6 +84,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
+	preprocessing/passes/rewrite.cpp \
+	preprocessing/passes/rewrite.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
 	preprocessing/passes/symmetry_breaker.cpp \
@@ -369,6 +371,8 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/type_enumerator.h \
+	theory/ext_theory.cpp \
+	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \
 	theory/fp/theory_fp.h \
 	theory/fp/theory_fp_rewriter.cpp \
