@@ -2,9 +2,9 @@
 /*! \file dagification_visitor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,20 +46,25 @@ DagificationVisitor::~DagificationVisitor() {
 }
 
 bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
+  Kind ck = current.getKind();
+  if (ck == kind::FORALL || ck == kind::EXISTS || ck == kind::LAMBDA
+      || ck == kind::CHOICE)
+  {
+    // for quantifiers, we visit them but we don't recurse on them
+    visit(current, parent);
+    return true;
+  }
   // don't visit variables, constants, or those exprs that we've
   // already seen more than the threshold: if we've increased
   // the count beyond the threshold already, we've done the same
   // for all subexpressions, so it isn't useful to traverse and
   // increment again (they'll be dagified anyway).
-  return current.isVar() ||
-         current.getMetaKind() == kind::metakind::CONSTANT ||
-         current.getNumChildren()==0 ||
-         ( ( current.getKind() == kind::NOT ||
-             current.getKind() == kind::UMINUS ) &&
-           ( current[0].isVar() ||
-             current[0].getMetaKind() == kind::metakind::CONSTANT ) ) ||
-         current.getKind() == kind::SORT_TYPE ||
-         d_nodeCount[current] > d_threshold;
+  return current.isVar() || current.getMetaKind() == kind::metakind::CONSTANT
+         || current.getNumChildren() == 0
+         || ((ck == kind::NOT || ck == kind::UMINUS)
+             && (current[0].isVar()
+                 || current[0].getMetaKind() == kind::metakind::CONSTANT))
+         || ck == kind::SORT_TYPE || d_nodeCount[current] > d_threshold;
 }
 
 void DagificationVisitor::visit(TNode current, TNode parent) {
