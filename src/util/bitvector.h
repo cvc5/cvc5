@@ -19,6 +19,7 @@
 #ifndef __CVC4__BITVECTOR_H
 #define __CVC4__BITVECTOR_H
 
+#include <cstdint>
 #include <iosfwd>
 
 #include "base/exception.h"
@@ -36,12 +37,12 @@ class CVC4_PUBLIC BitVector
 
   BitVector(unsigned size = 0) : d_size(size), d_value(0) {}
 
-  BitVector(unsigned size, unsigned int z) : d_size(size), d_value(z)
+  BitVector(unsigned size, uint32_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }
 
-  BitVector(unsigned size, unsigned long int z) : d_size(size), d_value(z)
+  BitVector(unsigned size, uint64_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }

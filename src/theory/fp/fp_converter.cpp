@@ -275,7 +275,7 @@ symbolicProposition symbolicRoundingMode::valid(void) const
 {
   NodeManager *nm = NodeManager::currentNM();
   Node zero(nm->mkConst(
-      BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, (long unsigned int)0)));
+      BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, static_cast<uint32_t>(0))));
 
   // Is there a better encoding of this?
   return symbolicProposition(nm->mkNode(
@@ -287,7 +287,7 @@ symbolicProposition symbolicRoundingMode::valid(void) const
                                        *this,
                                        nm->mkConst(BitVector(
                                            SYMFPU_NUMBER_OF_ROUNDING_MODES,
-                                           (long unsigned int)1)))),
+                                           static_cast<uint32_t>(1))))),
                  zero),
       nm->mkNode(kind::BITVECTOR_NOT,
                  nm->mkNode(kind::BITVECTOR_COMP, *this, zero))));
