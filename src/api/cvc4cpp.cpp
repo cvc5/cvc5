@@ -21,6 +21,10 @@
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
 #include "expr/type.h"
+#include "options/main_options.h"
+#include "options/options.h"
+#include "smt/smt_engine.h"
+#include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
 
@@ -765,7 +769,6 @@ bool Sort::isSortConstructor() const
   return d_type->isSortConstructor();
 }
 
-#if 0
 Datatype Sort::getDatatype() const
 {
   // CHECK: is this a datatype sort?
@@ -787,7 +790,6 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   Assert (d_type->isSortConstructor());
   return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
 }
-#endif
 
 std::string Sort::toString() const
 {
@@ -1021,6 +1023,1194 @@ std::ostream& operator<<(
 size_t TermHashFunction::operator()(const Term& t) const
 {
   return ExprHashFunction()(*t.d_expr);
+}
+
+/* -------------------------------------------------------------------------- */
+/* OpTerm                                                                     */
+/* -------------------------------------------------------------------------- */
+
+OpTerm::OpTerm() : d_expr(new CVC4::Expr())
+{
+}
+
+OpTerm::OpTerm(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e))
+{
+}
+
+OpTerm::~OpTerm()
+{
+}
+
+OpTerm& OpTerm::operator=(const OpTerm& t)
+{
+  // CHECK: expr managers must match
+  if (this != &t)
+  {
+    *d_expr = *t.d_expr;
+  }
+  return *this;
+}
+
+bool OpTerm::operator==(const OpTerm& t) const
+{
+  // CHECK: expr managers must match
+  return *d_expr == *t.d_expr;
+}
+
+bool OpTerm::operator!=(const OpTerm& t) const
+{
+  // CHECK: expr managers must match
+  return *d_expr != *t.d_expr;
+}
+
+Kind OpTerm::getKind() const
+{
+  return intToExtKind(d_expr->getKind());
+}
+
+Sort OpTerm::getSort() const
+{
+  return Sort(d_expr->getType());
+}
+
+bool OpTerm::isNull() const
+{
+  return d_expr->isNull();
+}
+
+std::string OpTerm::toString() const
+{
+  return d_expr->toString();
+}
+
+std::ostream& operator<< (std::ostream& out, const OpTerm& t)
+{
+  out << t.toString();
+  return out;
+}
+
+size_t OpTermHashFunction::operator()(const OpTerm& t) const
+{
+  return ExprHashFunction()(*t.d_expr);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Datatypes                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/* DatatypeSelectorDecl ----------------------------------------------------- */
+
+DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name, Sort sort)
+    : d_name(name), d_sort(sort)
+{
+}
+
+DatatypeSelectorDecl::DatatypeSelectorDecl(const std::string& name,
+                                           DatatypeDeclSelfSort sort)
+    : d_name(name), d_sort(Sort(CVC4::Type()))
+{
+}
+
+std::string DatatypeSelectorDecl::toString() const
+{
+  std::stringstream ss;
+  ss << d_name << ": " << d_sort;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
+{
+  out << dtdecl.toString();
+  return out;
+}
+
+/* DatatypeConstructorDecl -------------------------------------------------- */
+
+DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
+    : d_ctor(new CVC4::DatatypeConstructor(name))
+{
+}
+
+void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor)
+{
+  CVC4::Type t = *stor.d_sort.d_type;
+  if (t.isNull())
+  {
+    d_ctor->addArg(stor.d_name, DatatypeSelfType());
+  }
+  else
+  {
+    d_ctor->addArg(stor.d_name, t);
+  }
+}
+
+std::string DatatypeConstructorDecl::toString() const
+{
+  std::stringstream ss;
+  ss << *d_ctor;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out,
+                         const DatatypeConstructorDecl& ctordecl)
+{
+  out << ctordecl.toString();
+  return out;
+}
+
+/* DatatypeDecl ------------------------------------------------------------- */
+
+DatatypeDecl::DatatypeDecl(const std::string& name, bool isCoDatatype)
+    : d_dtype(new CVC4::Datatype(name, isCoDatatype))
+{
+}
+
+DatatypeDecl::DatatypeDecl(const std::string& name,
+                           Sort param,
+                           bool isCoDatatype)
+    : d_dtype(new CVC4::Datatype(
+          name, std::vector<Type>{*param.d_type}, isCoDatatype))
+{
+}
+
+DatatypeDecl::DatatypeDecl(const std::string& name,
+                           const std::vector<Sort>& params,
+                           bool isCoDatatype)
+{
+  std::vector<Type> tparams;
+  for (const Sort& s : params)
+  {
+    tparams.push_back(*s.d_type);
+  }
+  d_dtype = std::shared_ptr<CVC4::Datatype>(
+      new CVC4::Datatype(name, tparams, isCoDatatype));
+}
+
+DatatypeDecl::~DatatypeDecl() {}
+
+void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
+{
+  d_dtype->addConstructor(*ctor.d_ctor);
+}
+
+std::string DatatypeDecl::toString() const
+{
+  std::stringstream ss;
+  ss << *d_dtype;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out,
+                         const DatatypeSelectorDecl& stordecl)
+{
+  out << stordecl.toString();
+  return out;
+}
+
+/* DatatypeSelector --------------------------------------------------------- */
+
+DatatypeSelector::DatatypeSelector()
+{
+  d_stor = nullptr;
+}
+
+DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
+    : d_stor(new CVC4::DatatypeConstructorArg(stor))
+{
+}
+
+DatatypeSelector::~DatatypeSelector()
+{
+}
+
+std::string DatatypeSelector::toString() const
+{
+  std::stringstream ss;
+  ss << *d_stor;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
+{
+  out << stor.toString();
+  return out;
+}
+
+/* DatatypeConstructor ------------------------------------------------------ */
+
+DatatypeConstructor::DatatypeConstructor()
+{
+  d_ctor = nullptr;
+}
+
+DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
+: d_ctor(new CVC4::DatatypeConstructor(ctor))
+{
+}
+
+DatatypeConstructor::~DatatypeConstructor()
+{
+}
+
+DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
+{
+  // CHECK: selector with name exists?
+  // CHECK: is resolved?
+  return (*d_ctor)[name];
+}
+
+DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return (*d_ctor)[name];
+}
+
+Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return d_ctor->getSelector(name);
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
+{
+  return DatatypeConstructor::const_iterator(*d_ctor, true);
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::end() const
+{
+  return DatatypeConstructor::const_iterator(*d_ctor, false);
+}
+
+DatatypeConstructor::const_iterator::const_iterator(
+    const CVC4::DatatypeConstructor& ctor, bool begin)
+{
+  d_int_stors = ctor.getArgs();
+  const std::vector<CVC4::DatatypeConstructorArg>* sels =
+      static_cast<const std::vector<CVC4::DatatypeConstructorArg>*>(
+          d_int_stors);
+  for (const auto& s : *sels)
+  {
+    /* Can not use emplace_back here since constructor is private. */
+    d_stors.push_back(DatatypeSelector(s));
+  }
+  d_idx = begin ? 0 : sels->size();
+}
+
+DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
+operator=(const DatatypeConstructor::const_iterator& it)
+{
+  d_int_stors = it.d_int_stors;
+  d_stors = it.d_stors;
+  d_idx = it.d_idx;
+  return *this;
+}
+
+const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const
+{
+  return d_stors[d_idx];
+}
+
+const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const
+{
+  return &d_stors[d_idx];
+}
+
+DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
+operator++()
+{
+  ++d_idx;
+  return *this;
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::const_iterator::
+operator++(int)
+{
+  DatatypeConstructor::const_iterator it(*this);
+  ++d_idx;
+  return it;
+}
+
+bool DatatypeConstructor::const_iterator::operator==(
+    const DatatypeConstructor::const_iterator& other) const
+{
+  return d_int_stors == other.d_int_stors && d_idx == other.d_idx;
+}
+
+bool DatatypeConstructor::const_iterator::operator!=(
+    const DatatypeConstructor::const_iterator& other) const
+{
+  return d_int_stors != other.d_int_stors || d_idx != other.d_idx;
+}
+
+std::string DatatypeConstructor::toString() const
+{
+  std::stringstream ss;
+  ss << *d_ctor;
+  return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
+{
+  out << ctor.toString();
+  return out;
+}
+
+/* Datatype ----------------------------------------------------------------- */
+
+Datatype::Datatype(const CVC4::Datatype& dtype)
+: d_dtype(new CVC4::Datatype(dtype))
+{
+}
+
+Datatype::~Datatype()
+{
+}
+
+DatatypeConstructor Datatype::operator[](const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return (*d_dtype)[name];
+}
+
+DatatypeConstructor Datatype::getConstructor(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return (*d_dtype)[name];
+}
+
+Term Datatype::getConstructorTerm(const std::string& name) const
+{
+  // CHECK: cons with name exists?
+  // CHECK: is resolved?
+  return d_dtype->getConstructor(name);
+}
+
+Datatype::const_iterator Datatype::begin() const
+{
+  return Datatype::const_iterator(*d_dtype, true);
+}
+
+Datatype::const_iterator Datatype::end() const
+{
+  return Datatype::const_iterator(*d_dtype, false);
+}
+
+Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype, bool begin)
+{
+  d_int_ctors = dtype.getConstructors();
+  const std::vector<CVC4::DatatypeConstructor>* cons =
+    static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
+  for (const auto& c : *cons)
+  {
+    /* Can not use emplace_back here since constructor is private. */
+    d_ctors.push_back(DatatypeConstructor(c));
+  }
+  d_idx = begin ? 0 : cons->size();
+}
+
+Datatype::const_iterator& Datatype::const_iterator::operator=(
+    const Datatype::const_iterator& it)
+{
+  d_int_ctors = it.d_int_ctors;
+  d_ctors = it.d_ctors;
+  d_idx = it.d_idx;
+  return *this;
+}
+
+const DatatypeConstructor& Datatype::const_iterator::operator*() const
+{
+  return d_ctors[d_idx];
+}
+
+const DatatypeConstructor* Datatype::const_iterator::operator->() const
+{
+  return &d_ctors[d_idx];
+}
+
+Datatype::const_iterator& Datatype::const_iterator::operator++()
+{
+  ++d_idx;
+  return *this;
+}
+
+Datatype::const_iterator Datatype::const_iterator::operator++(int)
+{
+  Datatype::const_iterator it(*this);
+  ++d_idx;
+  return it;
+}
+
+bool Datatype::const_iterator::operator==(
+    const Datatype::const_iterator& other) const
+{
+  return d_int_ctors == other.d_int_ctors && d_idx == other.d_idx;
+}
+
+bool Datatype::const_iterator::operator!=(
+    const Datatype::const_iterator& other) const
+{
+  return d_int_ctors != other.d_int_ctors || d_idx != other.d_idx;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Rounding Mode for Floating Points                                          */
+/* -------------------------------------------------------------------------- */
+
+const static std::unordered_map<RoundingMode,
+                          CVC4::RoundingMode,
+                          RoundingModeHashFunction> s_rmodes
+{
+  { ROUND_NEAREST_TIES_TO_EVEN,  CVC4::RoundingMode::roundNearestTiesToEven },
+  { ROUND_TOWARD_POSITIVE,       CVC4::RoundingMode::roundTowardPositive },
+  { ROUND_TOWARD_NEGATIVE,       CVC4::RoundingMode::roundTowardNegative },
+  { ROUND_TOWARD_ZERO,           CVC4::RoundingMode::roundTowardZero },
+  { ROUND_NEAREST_TIES_TO_AWAY,  CVC4::RoundingMode::roundNearestTiesToAway },
+};
+
+const static std::unordered_map<CVC4::RoundingMode,
+                          RoundingMode,
+                          CVC4::RoundingModeHashFunction> s_rmodes_internal
+{
+  { CVC4::RoundingMode::roundNearestTiesToEven,  ROUND_NEAREST_TIES_TO_EVEN },
+  { CVC4::RoundingMode::roundTowardPositive,     ROUND_TOWARD_POSITIVE },
+  { CVC4::RoundingMode::roundTowardNegative,     ROUND_TOWARD_NEGATIVE },
+  { CVC4::RoundingMode::roundTowardZero,         ROUND_TOWARD_ZERO },
+  { CVC4::RoundingMode::roundNearestTiesToAway,  ROUND_NEAREST_TIES_TO_AWAY },
+};
+
+size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
+{
+  return size_t(rm);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solver                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Solver::Solver(Options* opts)
+  : d_opts(new Options())
+{
+  if (opts) d_opts->copyValues(*opts);
+  d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
+  d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
+  d_rng = std::unique_ptr<Random>(new Random((*d_opts)[options::seed]));
+}
+
+Solver::~Solver() {}
+
+/* Sorts Handling                                                             */
+/* -------------------------------------------------------------------------- */
+
+Sort Solver::getBooleanSort(void) const { return d_exprMgr->booleanType(); }
+
+Sort Solver::getIntegerSort(void) const { return d_exprMgr->integerType(); }
+
+Sort Solver::getRealSort(void) const { return d_exprMgr->realType(); }
+
+Sort Solver::getRegExpSort(void) const { return d_exprMgr->regExpType(); }
+
+Sort Solver::getStringSort(void) const { return d_exprMgr->stringType(); }
+
+Sort Solver::getRoundingmodeSort(void) const
+{
+  return d_exprMgr->roundingModeType();
+}
+
+/* Create sorts ------------------------------------------------------- */
+
+Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
+{
+  // CHECK: indexSort exists
+  // CHECK: elemSort exists
+  return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
+}
+
+Sort Solver::mkBitVectorSort(uint32_t size) const
+{
+  // CHECK: size > 0
+  return d_exprMgr->mkBitVectorType(size);
+}
+
+Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
+{
+  // CHECK: num constructors > 0
+  return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
+}
+
+Sort Solver::mkFunctionSort(Sort domain, Sort range) const
+{
+  // CHECK: domain exists
+  // CHECK: range exists
+  // CHECK:
+  // domain.isFirstClass()
+  // else "can not create function type for domain type that is not
+  //       first class"
+  // CHECK:
+  // range.isFirstClass()
+  // else "can not create function type for range type that is not
+  //       first class"
+  // CHECK:
+  // !range.isFunction()
+  // else "must flatten function types"
+  return d_exprMgr->mkFunctionType(*domain.d_type, *range.d_type);
+}
+
+Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const
+{
+  // CHECK: for all s in argSorts, s exists
+  // CHECK: range exists
+  // CHECK: argSorts.size() >= 1
+  // CHECK:
+  // for (unsigned i = 0; i < argSorts.size(); ++ i)
+  //   argSorts[i].isFirstClass()
+  // else "can not create function type for argument type that is not
+  //       first class"
+  // CHECK:
+  // range.isFirstClass()
+  // else "can not create function type for range type that is not
+  //       first class"
+  // CHECK:
+  // !range.isFunction()
+  // else "must flatten function types"
+  std::vector<Type> argTypes = sortVectorToTypes(argSorts);
+  return d_exprMgr->mkFunctionType(argTypes, *range.d_type);
+}
+
+Sort Solver::mkParamSort(const std::string& symbol) const
+{
+  return d_exprMgr->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER);
+}
+
+Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK: sorts.size() >= 1
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   sorts[i].isFirstClass()
+  // else "can not create predicate type for argument type that is not
+  //       first class"
+  std::vector<Type> types = sortVectorToTypes(sorts);
+  return d_exprMgr->mkPredicateType(types);
+}
+
+Sort Solver::mkRecordSort(
+    const std::vector<std::pair<std::string, Sort>>& fields) const
+{
+  std::vector<std::pair<std::string, Type>> f;
+  for (const auto& p : fields)
+  {
+    f.emplace_back(p.first, *p.second.d_type);
+  }
+  return d_exprMgr->mkRecordType(Record(f));
+}
+
+Sort Solver::mkSetSort(Sort elemSort) const
+{
+  return d_exprMgr->mkSetType(*elemSort.d_type);
+}
+
+Sort Solver::mkUninterpretedSort(const std::string& symbol) const
+{
+  return d_exprMgr->mkSort(symbol);
+}
+
+Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   !sorts[i].isFunctionLike()
+  // else "function-like types in tuples not allowed"
+  std::vector<Type> types = sortVectorToTypes(sorts);
+  return d_exprMgr->mkTupleType(types);
+}
+
+std::vector<Type> Solver::sortVectorToTypes(
+    const std::vector<Sort>& sorts) const
+{
+  std::vector<Type> res;
+  for (const Sort& s : sorts)
+  {
+    res.push_back(*s.d_type);
+  }
+  return res;
+}
+
+/* Create consts                                                              */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::mkTrue(void) const { return d_exprMgr->mkConst<bool>(true); }
+
+Term Solver::mkFalse(void) const { return d_exprMgr->mkConst<bool>(false); }
+
+Term Solver::mkBoolean(bool val) const { return d_exprMgr->mkConst<bool>(val); }
+
+Term Solver::mkInteger(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkInteger(const std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkInteger(int32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(uint32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(int64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkInteger(uint64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkPi() const
+{
+  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+}
+
+Term Solver::mkReal(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkReal(const std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(Rational(s, base));
+}
+
+Term Solver::mkReal(int32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(int64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(uint32_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(uint64_t val) const
+{
+  return d_exprMgr->mkConst(Rational(val));
+}
+
+Term Solver::mkReal(int32_t num, int32_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(int64_t num, int64_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(uint32_t num, uint32_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkReal(uint64_t num, uint64_t den) const
+{
+  return d_exprMgr->mkConst(Rational(num, den));
+}
+
+Term Solver::mkRegexpEmpty() const
+{
+  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>());
+}
+
+Term Solver::mkRegexpSigma() const
+{
+  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>());
+}
+
+Term Solver::mkEmptySet(Sort s) const
+{
+  return d_exprMgr->mkConst(EmptySet(*s.d_type));
+}
+
+Term Solver::mkSepNil(Sort sort) const
+{
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
+}
+
+Term Solver::mkString(const char* s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkString(const std::string& s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkString(const unsigned char c) const
+{
+  return d_exprMgr->mkConst(String(c));
+}
+
+Term Solver::mkString(const std::vector<unsigned>& s) const
+{
+  return d_exprMgr->mkConst(String(s));
+}
+
+Term Solver::mkUniverseSet(Sort sort) const
+{
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
+}
+
+Term Solver::mkBitVector(uint32_t size) const
+{
+  return d_exprMgr->mkConst(BitVector(size));
+}
+
+Term Solver::mkBitVector(uint32_t size, uint32_t val) const
+{
+  return d_exprMgr->mkConst(BitVector(size, val));
+}
+
+Term Solver::mkBitVector(uint32_t size, uint64_t val) const
+{
+  return d_exprMgr->mkConst(BitVector(size, val));
+}
+
+Term Solver::mkBitVector(const char* s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(BitVector(s, base));
+}
+
+Term Solver::mkBitVector(std::string& s, uint32_t base) const
+{
+  return d_exprMgr->mkConst(BitVector(s, base));
+}
+
+Term Solver::mkConst(RoundingMode rm) const
+{
+  // CHECK: kind == CONST_ROUNDINGMODE
+  // CHECK: valid rm?
+  return d_exprMgr->mkConst(s_rmodes.at(rm));
+}
+
+Term Solver::mkConst(Kind kind, Sort arg) const
+{
+  // CHECK: kind == EMPTYSET
+  return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
+}
+
+Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
+{
+  // CHECK: kind == UNINTERPRETED_CONSTANT
+  return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
+}
+
+Term Solver::mkConst(Kind kind, bool arg) const
+{
+  // CHECK: kind == CONST_BOOLEAN
+  return d_exprMgr->mkConst<bool>(arg);
+}
+
+Term Solver::mkConst(Kind kind, const char* arg) const
+{
+  // CHECK: kind == CONST_STRING
+  return d_exprMgr->mkConst(CVC4::String(arg));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg) const
+{
+  // CHECK: kind == CONST_STRING
+  return d_exprMgr->mkConst(CVC4::String(arg));
+}
+
+Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  //           || kind == CONST_BITVECTOR
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  if (kind == CONST_RATIONAL)
+  {
+    return d_exprMgr->mkConst(CVC4::Rational(arg));
+  }
+  return d_exprMgr->mkConst(CVC4::BitVector(arg));
+}
+
+Term Solver::mkConst(Kind kind, int32_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, int64_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg) const
+{
+  // CHECK: kind == ABSTRACT_VALUE
+  //           || kind == CONST_RATIONAL
+  if (kind == ABSTRACT_VALUE)
+  {
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+  }
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
+{
+  // CHECK: kind == CONST_RATIONAL
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
+{
+  // CHECK: kind == CONST_BITVECTOR
+  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
+{
+  // CHECK: kind == CONST_FLOATINGPOINT
+  // CHECK: arg 3 is bit-vector constant
+  return d_exprMgr->mkConst(
+      CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
+}
+
+/* Create variables                                                           */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::mkVar(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkVar(symbol, *sort.d_type);
+}
+
+Term Solver::mkVar(Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkVar(*sort.d_type);
+}
+
+Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkBoundVar(symbol, *sort.d_type);
+}
+
+Term Solver::mkBoundVar(Sort sort) const
+{
+  // CHECK: sort exists?
+  return d_exprMgr->mkBoundVar(*sort.d_type);
+}
+
+/* Create terms                                                               */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::mkTerm(Kind kind) const
+{
+  // CHECK: kind == PI
+  //          || kind == REGEXP_EMPTY
+  //          || kind == REGEXP_SIGMA
+  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+  {
+    return d_exprMgr->mkExpr(extToIntKind(kind), std::vector<Expr>());
+  }
+  Assert(kind == PI);
+  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+}
+
+Term Solver::mkTerm(Kind kind, Sort sort) const
+{
+  // CHECK: kind == SEP_NIL
+  //          || kind == UNIVERSE_SET
+  return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
+}
+
+Term Solver::mkTerm(Kind kind, Term child) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
+}
+
+Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
+}
+
+Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child3.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
+  CVC4::Kind k = extToIntKind(kind);
+  return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                : d_exprMgr->mkExpr(k, echildren);
+}
+
+Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
+{
+  // CHECK:
+  // for c in children:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(c.getExprManager())
+  // CHECK:
+  // const Metakind mk = kind::metaKindOf(kind);
+  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
+  // else "Only operator-style expressions are made with mkExpr(); "
+  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
+  //      "and mkConst()."
+  // CHECK:
+  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
+  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
+  // must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  std::vector<Expr> echildren = termVectorToExprs(children);
+  CVC4::Kind k = extToIntKind(kind);
+  return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                : d_exprMgr->mkExpr(k, echildren);
+}
+
+Term Solver::mkTerm(OpTerm opTerm) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  return d_exprMgr->mkExpr(*opTerm.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, Term child) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child1.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child2.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(child3.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  // n < minArity(kind) || n > maxArity(kind)
+  // else "Exprs with kind %s must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  return d_exprMgr->mkExpr(
+      *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+}
+
+Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(opExpr.getExprManager())
+  // for c in children:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(c.getExprManager())
+  // CHECK:
+  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
+  // opExpr.getKind() != kind::BUILTIN
+  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
+  // else "This Expr constructor is for parameterized kinds only"
+  // CHECK:
+  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
+  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
+  // must have at least %u children and "
+  //      "at most %u children (the one under construction has %u)"
+  std::vector<Expr> echildren = termVectorToExprs(children);
+  return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
+}
+
+std::vector<Expr> Solver::termVectorToExprs(
+    const std::vector<Term>& terms) const
+{
+  std::vector<Expr> res;
+  for (const Term& t : terms)
+  {
+    res.push_back(*t.d_expr);
+  }
+  return res;
 }
 
 }  // namespace api
