@@ -233,14 +233,14 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
 }
 
 void Theory::collectTerms(TNode n,
-                          set<Kind>& irr_kinds,
+                          set<Kind>& irrKinds,
                           set<Node>& termSet) const
 {
   if (termSet.find(n) != termSet.end()) {
     return;
   }
   Kind nk = n.getKind();
-  if (irr_kinds.find(nk) == irr_kinds.end())
+  if (irrKinds.find(nk) == irrKinds.end())
   {
     Trace("theory::collectTerms")
         << "Theory::collectTerms: adding " << n << endl;
@@ -249,7 +249,7 @@ void Theory::collectTerms(TNode n,
   if (nk == kind::NOT || nk == kind::EQUAL || !isLeaf(n))
   {
     for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
-      collectTerms(*child_it, irr_kinds, termSet);
+      collectTerms(*child_it, irrKinds, termSet);
     }
   }
 }
@@ -257,20 +257,20 @@ void Theory::collectTerms(TNode n,
 
 void Theory::computeRelevantTerms(set<Node>& termSet, bool includeShared) const
 {
-  set<Kind> irr_kinds;
-  computeRelevantTerms(termSet, irr_kinds, includeShared);
+  set<Kind> irrKinds;
+  computeRelevantTerms(termSet, irrKinds, includeShared);
 }
 
 void Theory::computeRelevantTerms(set<Node>& termSet,
-                                  set<Kind>& irr_kinds,
+                                  set<Kind>& irrKinds,
                                   bool includeShared) const
 {
   // Collect all terms appearing in assertions
-  irr_kinds.insert(kind::EQUAL);
-  irr_kinds.insert(kind::NOT);
+  irrKinds.insert(kind::EQUAL);
+  irrKinds.insert(kind::NOT);
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it) {
-    collectTerms(*assert_it, irr_kinds, termSet);
+    collectTerms(*assert_it, irrKinds, termSet);
   }
 
   if (!includeShared) return;

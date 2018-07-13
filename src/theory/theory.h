@@ -162,7 +162,7 @@ private:
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n,
-                    std::set<Kind>& irr_kinds,
+                    std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
 
   /**
@@ -171,17 +171,17 @@ private:
    * termSet.  This is used by collectModelInfo to delimit the set of
    * terms that should be used when constructing a model.
    *
-   * irr_kinds: The kinds of terms that appear in assertions that should *not*
+   * irrKinds: The kinds of terms that appear in assertions that should *not*
    * be included in termSet. Note that the kinds EQUAL and NOT are always
    * treated as irrelevant kinds.
    *
    * includeShared: Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irr_kinds.
+   * shared terms are not influenced by irrKinds.
    */
   void computeRelevantTerms(std::set<Node>& termSet,
-                            std::set<Kind>& irr_kinds,
+                            std::set<Kind>& irrKinds,
                             bool includeShared = true) const;
-  /** same as above, but with empty irr_kinds */
+  /** same as above, but with empty irrKinds */
   void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
 
   /**
