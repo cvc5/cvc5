@@ -137,25 +137,26 @@ class CandidateGeneratorQE : public CandidateGenerator
 class CandidateGeneratorQELitDeq : public CandidateGenerator
 {
  public:
-  /** 
-   * mpat is an equality that we are matching to equalities in the equivalence 
-   * class of false 
+  /**
+   * mpat is an equality that we are matching to equalities in the equivalence
+   * class of false
    */
   CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
+
  private:
   /** the equality class iterator for false */
   eq::EqClassIterator d_eqc_false;
-  /** 
-   * equality you are trying to match against ground equalities that are 
-   * assigned to false 
+  /**
+   * equality you are trying to match against ground equalities that are
+   * assigned to false
    */
   Node d_match_pattern;
   /** type of the terms we are generating */
-  TypeNode d_match_pattern_type;  
+  TypeNode d_match_pattern_type;
 };
 
 /**
