@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -57,22 +57,6 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
 TheoryQuantifiers::~TheoryQuantifiers() {
 }
 
-void TheoryQuantifiers::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-
-}
-
-void TheoryQuantifiers::addSharedTerm(TNode t) {
-  Debug("quantifiers-other") << "TheoryQuantifiers::addSharedTerm(): "
-                     << t << endl;
-}
-
-
-void TheoryQuantifiers::notifyEq(TNode lhs, TNode rhs) {
-  Debug("quantifiers-other") << "TheoryQuantifiers::notifyEq(): "
-                     << lhs << " = " << rhs << endl;
-
-}
-
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
@@ -117,27 +101,6 @@ void TheoryQuantifiers::ppNotifyAssertions(
   if (getQuantifiersEngine()) {
     getQuantifiersEngine()->ppNotifyAssertions(assertions);
   }
-}
-
-Node TheoryQuantifiers::getValue(TNode n) {
-  //NodeManager* nodeManager = NodeManager::currentNM();
-  switch(n.getKind()) {
-  case FORALL:
-  case EXISTS:
-    bool value;
-    if( d_valuation.hasSatValue( n, value ) ){
-      return NodeManager::currentNM()->mkConst(value);
-    }else{
-      return NodeManager::currentNM()->mkConst(false);  //FIX_THIS?
-    }
-    break;
-  default:
-    Unhandled(n.getKind());
-  }
-}
-
-void TheoryQuantifiers::computeCareGraph() {
-  //do nothing
 }
 
 bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)

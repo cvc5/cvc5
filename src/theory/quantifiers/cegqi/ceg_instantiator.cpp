@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,7 +13,11 @@
  **/
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
+
+#include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
+#include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
@@ -69,7 +73,7 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
     case CEG_UNHANDLED: os << "unhandled"; break;
     case CEG_PARTIALLY_HANDLED: os << "partially_handled"; break;
     case CEG_HANDLED: os << "handled"; break;
-    case CEG_HANDLED_UNCONDITIONAL: os << "unhandled_unc"; break;
+    case CEG_HANDLED_UNCONDITIONAL: os << "handled_unc"; break;
     default: Unreachable();
   }
   return os;
@@ -231,9 +235,9 @@ CegHandledStatus CegInstantiator::isCbqiSort(
   {
     // recursive calls to this datatype are handlable
     visited[tn] = CEG_HANDLED;
-    // if not recursive, it is finite and we can handle it regardless of body
-    // hence, we initialize ret to CEG_HANDLED_UNCONDITIONAL.
-    ret = CEG_HANDLED_UNCONDITIONAL;
+    // we initialize to handled, we remain handled as long as all subfields
+    // of this datatype are not unhandled.
+    ret = CEG_HANDLED;
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
