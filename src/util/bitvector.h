@@ -37,11 +37,25 @@ class CVC4_PUBLIC BitVector
 
   BitVector(unsigned size = 0) : d_size(size), d_value(0) {}
 
+  /**
+   * BitVector constructor using a 32-bit unsigned integer for the value.
+   *
+   * Note: we use an explicit bit-width here to be consistent across
+   * platforms (long is 32-bit when compiling 64-bit binaries on
+   * Windows but 64-bit on Linux) and to prevent ambiguous overloads.
+   */
   BitVector(unsigned size, uint32_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }
 
+  /**
+   * BitVector constructor using a 64-bit unsigned integer for the value.
+   *
+   * Note: we use an explicit bit-width here to be consistent across
+   * platforms (long is 32-bit when compiling 64-bit binaries on
+   * Windows but 64-bit on Linux) and to prevent ambiguous overloads.
+   */
   BitVector(unsigned size, uint64_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
