@@ -1066,7 +1066,7 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
     TermEnumeration* te = d_quantEngine->getTermEnumeration();
-    // below, we do a fair enumeration of vectors vec of indices whose sum is 
+    // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
     std::vector< int > vec;
     std::vector< TypeNode > types;
@@ -1097,7 +1097,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         // since sum is 0, the index of last child is limit
         vec.push_back( size_limit );
       }
-      else if( index < vec.size() )
+      else if (index < vec.size())
       {
         Assert(index < types.size());
         //see if we can iterate current
@@ -1114,7 +1114,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           vec_sum -= vec[index];
           vec[index] = 0;
           index++;
-          if( index==vec.size() ){
+          if (index == vec.size())
+          {
             // no more indices to iterate, we increment limit and reset below
             success = false;
           }
@@ -1122,7 +1123,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       }
       else
       {
-        Assert( false );
+        Assert(false);
         return;
       }
       if( success ){
