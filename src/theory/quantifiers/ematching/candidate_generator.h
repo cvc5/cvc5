@@ -131,24 +131,31 @@ class CandidateGeneratorQE : public CandidateGenerator
 };
 
 /**
- * Generate terms based on disequality.
+ * Generate terms based on a disequality, that is, we match (= t[x] s[x])
+ * with equalities (= g1 g2) in the equivalence class of false.
  */
 class CandidateGeneratorQELitDeq : public CandidateGenerator
 {
- private:
-  //the equality class iterator for false
-  eq::EqClassIterator d_eqc_false;
-  //equality you are trying to match disequalities for
-  Node d_match_pattern;
-  //type of disequality
-  TypeNode d_match_pattern_type;
-
  public:
+  /** 
+   * mpat is an equality that we are matching to equalities in the equivalence 
+   * class of false 
+   */
   CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
+ private:
+  /** the equality class iterator for false */
+  eq::EqClassIterator d_eqc_false;
+  /** 
+   * equality you are trying to match against ground equalities that are 
+   * assigned to false 
+   */
+  Node d_match_pattern;
+  /** type of the terms we are generating */
+  TypeNode d_match_pattern_type;  
 };
 
 /**
