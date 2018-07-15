@@ -342,6 +342,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   // t1.getKind() == kind::TYPE_CONSTANT
   switch(t0.getKind()) {
   case kind::BITVECTOR_TYPE:
+  case kind::FLOATINGPOINT_TYPE:
   case kind::SORT_TYPE:
   case kind::CONSTRUCTOR_TYPE:
   case kind::SELECTOR_TYPE:
