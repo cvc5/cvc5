@@ -202,6 +202,13 @@ class SygusExplain
                          Node vn,
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
+                         Node vnr,
+                         std::map<TypeNode, int>& var_count,
+                         unsigned& sz);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
                          bool strict = true);
   void getExplanationFor(Node n,
                          Node vn,

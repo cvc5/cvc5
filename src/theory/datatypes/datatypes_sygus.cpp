@@ -44,6 +44,7 @@ SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
       d_active_terms(c),
       d_currTermSize(c) {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
@@ -160,7 +161,59 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
 
   return nm->mkNode(kind::OR, comm_disj);
 }
-  
+
+Node SygusSymBreakNew::getIsConstantPredicate(TNode n)
+{
+  TypeNode tn = n.getType();
+  Node constPred;
+  TNode x = getFreeVar(tn);
+  std::map<TypeNode, Node>::iterator itcp = d_isconst_pred.find(tn);
+  if (itcp == d_isconst_pred.end())
+  {
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    std::vector<Node> exp_const;
+    int anyc_cons_num = d_tds->getAnyConstantConsNum(tn);
+    for (unsigned k = 0, ncons = dt.getNumConstructors(); k < ncons; k++)
+    {
+      Kind nck = d_tds->getConsNumKind(tn, k);
+      bool is_const = false;
+      if (static_cast<int>(k) == anyc_cons_num)
+      {
+        is_const = true;
+      }
+      else if (nck == UNDEFINED_KIND)
+      {
+        Node cc = d_tds->getConsNumConst(tn, k);
+        if (!cc.isNull())
+        {
+          is_const = true;
+        }
+      }
+      if (is_const)
+      {
+        Node tester = DatatypesRewriter::mkTester(x, k, dt);
+        exp_const.push_back(tester);
+      }
+    }
+    if (!exp_const.empty())
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      constPred =
+          exp_const.size() == 1 ? exp_const[0] : nm->mkNode(OR, exp_const);
+    }
+    d_isconst_pred[tn] = constPred;
+  }
+  else
+  {
+    constPred = itcp->second;
+  }
+  if (constPred.isNull())
+  {
+    return constPred;
+  }
+  return constPred.substitute(x, n);
+}
+
 void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
   if( d_is_top_level.find( n )==d_is_top_level.end() ){
     d_is_top_level[n] = false;
@@ -293,6 +346,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   Trace("sygus-sb-debug") << "Get simple symmetry breaking predicates...\n";
   unsigned max_depth = ssz>=d ? ssz-d : 0;
   unsigned min_depth = d_simple_proc[exp];
+  NodeManager* nm = NodeManager::currentNM();
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
     std::vector<Node> sb_lemmas;
@@ -324,15 +378,16 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
     }
 
     // add the above symmetry breaking predicates to lemmas
+    std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
     Node rlv = getRelevancyCondition(n);
-    for (unsigned i = 0; i < sb_lemmas.size(); i++)
+    for (const Node& slem : sb_lemmas)
     {
-      Node pred = sb_lemmas[i].substitute(x, n);
+      Node sslem = slem.substitute(x, n, cache);
       if (!rlv.isNull())
       {
-        pred = NodeManager::currentNM()->mkNode(kind::OR, rlv.negate(), pred);
+        sslem = nm->mkNode(OR, rlv, sslem);
       }
-      lemmas.push_back(pred);
+      lemmas.push_back(sslem);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
@@ -371,7 +426,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
           int sindexi = dt[i].getSelectorIndexInternal(selExpr);
           if (sindexi != -1)
           {
-            disj.push_back(DatatypesRewriter::mkTester(n[0], i, dt));
+            disj.push_back(DatatypesRewriter::mkTester(n[0], i, dt).negate());
           }
           else
           {
@@ -380,18 +435,20 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
         }
         Assert( !disj.empty() );
         if( excl ){
-          cond = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
+          cond = disj.size() == 1
+                     ? disj[0]
+                     : NodeManager::currentNM()->mkNode(kind::AND, disj);
         }
       }else{
         int sindex = Datatype::cindexOf( selExpr );
         Assert( sindex!=-1 );
-        cond = DatatypesRewriter::mkTester( n[0], sindex, dt );
+        cond = DatatypesRewriter::mkTester(n[0], sindex, dt).negate();
       }
       Node c1 = getRelevancyCondition( n[0] );
       if( cond.isNull() ){
         cond = c1;
       }else if( !c1.isNull() ){
-        cond = NodeManager::currentNM()->mkNode( kind::AND, cond, c1 );
+        cond = NodeManager::currentNM()->mkNode(kind::OR, cond, c1);
       }
     }
     Trace("sygus-sb-debug2") << "Relevancy condition for " << n << " is " << cond << std::endl;
@@ -567,24 +624,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
           if (tnc == children[c2].getType() && !tnc.getCardinality().isOne())
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
-            // must guard if there are symbolic constructors
-            // the issue is that ite( C, _any_constant, _any_constant ) is
-            // a useful solution, since the two instances of _any_constant
-            // can be repaired to different values. Hence, below, we say
-            // e.g. d.i is a symbolic constructor, or it must be different
-            // from d.j.
-            int anyc_cons_num_c = d_tds->getAnyConstantConsNum(tnc);
-            if (anyc_cons_num_c != -1)
-            {
-              const Datatype& cdt =
-                  static_cast<DatatypeType>(tnc.toType()).getDatatype();
-              Node fv = d_tds->getFreeVar(tnc, 0);
-              Node guard_val = datatypes::DatatypesRewriter::getInstCons(
-                  fv, cdt, anyc_cons_num_c);
-              Node exp = d_tds->getExplain()->getExplanationForEquality(
-                  children[c1], guard_val);
-              sym_lem_deq = nm->mkNode(OR, exp, sym_lem_deq);
-            }
+            // notice that this symmetry breaking still allows for
+            //   ite( C, any_constant(x), any_constant(y) )
+            // since any_constant takes a builtin argument.
             sbp_conj.push_back(sym_lem_deq);
           }
         }
@@ -800,15 +842,21 @@ Node SygusSymBreakNew::registerSearchValue(
     }
   }
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
+  std::map<TypeNode, int> var_count;
+  Node cnv = d_tds->canonizeBuiltin(nv, var_count);
+  Trace("sygus-sb-debug") << "  ...canonized value is " << cnv << std::endl;
   // must do this for all nodes, regardless of top-level
-  if( d_cache[a].d_search_val_proc.find( nv )==d_cache[a].d_search_val_proc.end() ){
-    d_cache[a].d_search_val_proc.insert(nv);
+  if (d_cache[a].d_search_val_proc.find(cnv)
+      == d_cache[a].d_search_val_proc.end())
+  {
+    d_cache[a].d_search_val_proc.insert(cnv);
     // get the root (for PBE symmetry breaking)
     Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
     quantifiers::CegConjecture* aconj = d_anchor_to_conj[a];
     Assert(aconj != NULL);
-    Trace("sygus-sb-debug") << "  ...register search value " << nv << ", type=" << tn << std::endl;
-    Node bv = d_tds->sygusToBuiltin( nv, tn );
+    Trace("sygus-sb-debug")
+        << "  ...register search value " << cnv << ", type=" << tn << std::endl;
+    Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
     Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......rewrites to " << bvr << std::endl;
@@ -816,8 +864,10 @@ Node SygusSymBreakNew::registerSearchValue(
     unsigned sz = d_tds->getSygusTermSize( nv );      
     if( d_tds->involvesDivByZero( bvr ) ){
       quantifiers::DivByZeroSygusInvarianceTest dbzet;
-      Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in " << d_tds->sygusToBuiltin( nv ) << std::endl;
-      registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), lemmas);
+      Trace("sygus-sb-mexp-debug")
+          << "Minimize explanation for div-by-zero in " << bv << std::endl;
+      registerSymBreakLemmaForValue(
+          a, nv, dbzet, Node::null(), var_count, lemmas);
       return Node::null();
     }else{
       std::unordered_map<Node, Node, NodeHashFunction>::iterator itsv =
@@ -853,6 +903,13 @@ Node SygusSymBreakNew::registerSearchValue(
         //store rewritten values, regardless of whether it will be considered
         d_cache[a].d_search_val[tn][bvr] = nv;
         d_cache[a].d_search_val_sz[tn][bvr] = sz;
+        if (options::sygusSymBreakAllConst())
+        {
+          if (bvr.isConst())
+          {
+            d_cache[a].d_search_val_consts[tn].insert(bvr);
+          }
+        }
       }else{
         bad_val_bvr = bvr;
         if( Trace.isOn("sygus-sb-exc") ){
@@ -945,14 +1002,112 @@ Node SygusSymBreakNew::registerSearchValue(
         } 
         Assert( d_tds->getSygusTermSize( bad_val )==sz );
 
-        Node x = getFreeVar( tn );
-        
-        // do analysis of the evaluation  FIXME: does not work (evaluation is non-constant)
+        // generalize the explanation for why the analog of bad_val
+        // is equivalent to bvr
         quantifiers::EquivSygusInvarianceTest eset;
         eset.init(d_tds, tn, aconj, a, bvr);
 
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, lemmas);
+        registerSymBreakLemmaForValue(
+            a, bad_val, eset, bad_val_o, var_count, lemmas);
+
+        // other generalization criteria
+
+        //-----------------------------------------------constant evaluation
+        // if we have enumerated all the constants for this type,
+        // then we want to ensure that we don't enumerate any more constants
+        if (options::sygusSymBreakAllConst() && bvr.isConst())
+        {
+          std::map<TypeNode, Node>::iterator iticr =
+              d_cache[a].d_isconst_rec_pred.find(tn);
+          if (iticr == d_cache[a].d_isconst_rec_pred.end())
+          {
+            int card = -1;
+            // get the finite cardinality
+            std::map<TypeNode, int>::iterator itcc =
+                d_cache[a].d_search_val_const_cardinality.find(tn);
+            if (itcc == d_cache[a].d_search_val_const_cardinality.end())
+            {
+              // get the cardinality of the builtin type
+              TypeNode btn = bvr.getType();
+              Cardinality tnc = btn.getCardinality();
+              if (tnc.isFinite() && !tnc.isLargeFinite())
+              {
+                Rational cardr = Rational(tnc.getFiniteCardinality());
+                if (cardr < Rational(LONG_MAX))
+                {
+                  card = cardr.getNumerator().toUnsignedInt();
+                }
+              }
+              if (card == -1)
+              {
+                d_cache[a].d_isconst_rec_pred[tn] = Node::null();
+                Trace("sygus-sb-all-const")
+                    << "Builtin type for " << tn
+                    << " does not have a small finite cardinality (" << btn
+                    << "), ignore." << std::endl;
+              }
+              d_cache[a].d_search_val_const_cardinality[tn] = card;
+            }
+            else
+            {
+              card = itcc->second;
+            }
+            Assert(card != 0);
+            if (card > 0
+                && static_cast<int>(d_cache[a].d_search_val_consts[tn].size())
+                       == card)
+            {
+              TNode x = getFreeVar(tn);
+              // construct the explanation for why *any* term of type tn is a
+              // constant, which is a disjunction of the explanations for each
+              // of the constants we have enumerated
+              quantifiers::SygusExplain* exp = d_tds->getExplain();
+              std::vector<Node> exp_const_rec;
+              Trace("sygus-sb-all-const") << "Enumerated all constants of type "
+                                          << tn << ":" << std::endl;
+              for (const Node& c : d_cache[a].d_search_val_consts[tn])
+              {
+                Assert(d_cache[a].d_search_val[tn].find(c)
+                       != d_cache[a].d_search_val[tn].end());
+                Node dc = d_cache[a].d_search_val[tn][c];
+                Trace("sygus-sb-all-const")
+                    << "  " << c << " from " << dc << std::endl;
+                Node expc = exp->getExplanationForEquality(x, dc);
+                exp_const_rec.push_back(expc);
+              }
+              Assert(static_cast<int>(exp_const_rec.size()) == card);
+              Node exprn = exp_const_rec.size() == 1
+                               ? exp_const_rec[0]
+                               : nm->mkNode(OR, exp_const_rec);
+              Trace("sygus-sb-all-const")
+                  << "...explanation is " << exprn << std::endl;
+              d_cache[a].d_isconst_rec_pred[tn] = exprn;
+            }
+          }
+          iticr = d_cache[a].d_isconst_rec_pred.find(tn);
+          if (iticr != d_cache[a].d_isconst_rec_pred.end()
+              && !iticr->second.isNull())
+          {
+            // generalize the shape of bad_val such that all terms of this shape
+            // also reduce to constants
+            std::vector<Node> exp;
+            Node x = getFreeVar(tn);
+            if (getExplanationForEvalConstant(x, bad_val, exp))
+            {
+              Trace("sygus-sb-all-const")
+                  << "...can exclude the current value " << bv
+                  << " based on all-constant reasoning." << std::endl;
+              Node lem = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+              lem = lem.negate();
+              unsigned sz = d_tds->getSygusTermSize(bad_val);
+              Trace("sygus-sb-all-const") << "...lemma is " << lem << std::endl;
+              registerSymBreakLemma(tn, lem, sz, a, lemmas);
+            }
+          }
+        }
+        //-----------------------------------------------end constant evaluation
+
         return Node::null();
       }
     }
@@ -965,13 +1120,14 @@ void SygusSymBreakNew::registerSymBreakLemmaForValue(
     Node val,
     quantifiers::SygusInvarianceTest& et,
     Node valr,
+    std::map<TypeNode, int>& var_count,
     std::vector<Node>& lemmas)
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
   unsigned sz = d_tds->getSygusTermSize(val);
   std::vector<Node> exp;
-  d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, sz);
+  d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
   Node lem =
       exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
   lem = lem.negate();
@@ -992,13 +1148,22 @@ void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
   int max_depth = ((int)csz)-((int)sz);
+  NodeManager* nm = NodeManager::currentNM();
   for( int d=0; d<=max_depth; d++ ){
     std::map< unsigned, std::vector< Node > >::iterator itt = d_cache[a].d_search_terms[tn].find( d );
     if( itt!=d_cache[a].d_search_terms[tn].end() ){
-      for( unsigned k=0; k<itt->second.size(); k++ ){
-        TNode t = itt->second[k];  
-        if( !options::sygusSymBreakLazy() || d_active_terms.find( t )!=d_active_terms.end() ){
-          addSymBreakLemma(lem, x, t, lemmas);
+      for (const TNode& t : itt->second)
+      {
+        if (!options::sygusSymBreakLazy()
+            || d_active_terms.find(t) != d_active_terms.end())
+        {
+          Node slem = lem.substitute(x, t);
+          Node rlv = getRelevancyCondition(t);
+          if (!rlv.isNull())
+          {
+            slem = nm->mkNode(OR, rlv, slem);
+          }
+          lemmas.push_back(slem);
         }
       }
     }
@@ -1016,6 +1181,8 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
   Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
                            << " " << a << std::endl;
   std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = d_cache[a].d_sb_lemmas.find( tn );
+  Node rlv = getRelevancyCondition(t);
+  NodeManager* nm = NodeManager::currentNM();
   if( its != d_cache[a].d_sb_lemmas.end() ){
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
@@ -1024,11 +1191,18 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
     Trace("sygus-sb-debug2")
         << "add lemmas up to size " << max_sz << ", which is (search_size) "
         << csz << " - (depth) " << d << std::endl;
+    std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
     for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
       if( (int)it->first<=max_sz ){
-        for( unsigned k=0; k<it->second.size(); k++ ){
-          Node lem = it->second[k];
-          addSymBreakLemma(lem, x, t, lemmas);
+        for (const Node& lem : it->second)
+        {
+          Node slem = lem.substitute(x, t, cache);
+          // add the relevancy condition for t
+          if (!rlv.isNull())
+          {
+            slem = nm->mkNode(OR, rlv, slem);
+          }
+          lemmas.push_back(slem);
         }
       }
     }
@@ -1036,22 +1210,54 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
   Trace("sygus-sb-debug2") << "...finished." << std::endl;
 }
 
-void SygusSymBreakNew::addSymBreakLemma(Node lem,
-                                        TNode x,
-                                        TNode n,
-                                        std::vector<Node>& lemmas)
+bool SygusSymBreakNew::getExplanationForEvalConstant(Node x,
+                                                     Node n,
+                                                     std::vector<Node>& exp)
 {
-  Assert( !options::sygusSymBreakLazy() || d_active_terms.find( n )!=d_active_terms.end() );
-  // apply lemma
-  Node slem = lem.substitute( x, n );
-  Trace("sygus-sb-exc-debug") << "SymBreak lemma : " << slem << std::endl;
-  Node rlv = getRelevancyCondition( n );
-  if( !rlv.isNull() ){
-    slem = NodeManager::currentNM()->mkNode( kind::OR, rlv.negate(), slem );
+  Assert(x.getType() == n.getType());
+  Assert(n.isConst());
+  TypeNode tn = n.getType();
+  if (!tn.isDatatype())
+  {
+    // symbolic constant field, ignore
+    return true;
   }
-  lemmas.push_back( slem );
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  if (!dt.isSygus())
+  {
+    // symbolic constant datatype field, ignore
+    return true;
+  }
+  Assert(n.getKind() == APPLY_CONSTRUCTOR);
+  NodeManager* nm = NodeManager::currentNM();
+  unsigned cindex = DatatypesRewriter::indexOf(n.getOperator());
+  if (n.getNumChildren() > 0)
+  {
+    exp.push_back(datatypes::DatatypesRewriter::mkTester(x, cindex, dt));
+    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      Node sel = nm->mkNode(
+          APPLY_SELECTOR_TOTAL,
+          Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
+          x);
+      if (!getExplanationForEvalConstant(sel, n[i], exp))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  // leaf: check if it is a constant
+  Node cc = d_tds->getConsNumConst(tn, cindex);
+  if (!cc.isNull())
+  {
+    Node exp_const_leaf = getIsConstantPredicate(x);
+    exp.push_back(exp_const_leaf);
+    return true;
+  }
+  return false;
 }
-  
+
 void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) {
   if( n.isVar() ){
     Trace("sygus-sb-debug") << "Pre-register variable : " << n << std::endl;
@@ -1181,6 +1387,7 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
   Assert( itsz!=d_szinfo.end() );
   itsz->second->d_curr_search_size++;
   Trace("sygus-fair") << "  register search size " << itsz->second->d_curr_search_size << " for " << m << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for( std::map< Node, SearchCache >::iterator itc = d_cache.begin(); itc != d_cache.end(); ++itc ){
     Node a = itc->first;
     Trace("sygus-fair-debug") << "  look at anchor " << a << "..." << std::endl;
@@ -1196,12 +1403,19 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
           int new_depth = ((int)itsz->second->d_curr_search_size) - ((int)sz);
           std::map< unsigned, std::vector< Node > >::iterator itt = itc->second.d_search_terms[tn].find( new_depth );
           if( itt!=itc->second.d_search_terms[tn].end() ){
-            for( unsigned k=0; k<itt->second.size(); k++ ){
-              TNode t = itt->second[k];
-              if( !options::sygusSymBreakLazy() || d_active_terms.find( t )!=d_active_terms.end() ){
-                for( unsigned j=0; j<it->second.size(); j++ ){
-                  Node lem = it->second[j];
-                  addSymBreakLemma(lem, x, t, lemmas);
+            for (const TNode& t : itt->second)
+            {
+              if (!options::sygusSymBreakLazy()
+                  || d_active_terms.find(t) != d_active_terms.end()
+                         && !it->second.empty())
+              {
+                Node rlv = getRelevancyCondition(t);
+                std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+                for (const Node& lem : it->second)
+                {
+                  Node slem = lem.substitute(x, t, cache);
+                  slem = nm->mkNode(OR, rlv, slem);
+                  lemmas.push_back(slem);
                 }
               }
             }
@@ -1343,9 +1557,14 @@ bool SygusSymBreakNew::checkTesters(Node n,
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
   int cindex = DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
-  bool hastst = d_td->getValuation().getModel()->hasTerm( tst );
-  Node tstrep = d_td->getValuation().getModel()->getRepresentative( tst );
-  if( !hastst || tstrep!=NodeManager::currentNM()->mkConst( true ) ){
+  bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
+  Node tstrep;
+  if (hastst)
+  {
+    tstrep = d_td->getEqualityEngine()->getRepresentative(tst);
+  }
+  if (!hastst || tstrep != d_true)
+  {
     Trace("sygus-sb-warn") << "- has tester : " << tst << " : " << ( hastst ? "true" : "false" );
     Trace("sygus-sb-warn") << ", value=" << tstrep << std::endl;
     if( !hastst ){

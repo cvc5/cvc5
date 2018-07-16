@@ -145,6 +145,8 @@ class SygusSymBreakNew
   IntMap d_currTermSize;
   /** zero */
   Node d_zero;
+  /** true */
+  Node d_true;
   /**
    * Map from terms (selector chains) to their anchors. The anchor of a
    * selector chain S1( ... Sn( x ) ... ) is x.
@@ -203,6 +205,19 @@ private:
     /** the size of terms in the range of d_search val. */
     std::map<TypeNode, std::unordered_map<Node, unsigned, NodeHashFunction>>
         d_search_val_sz;
+    /**
+     * For each type tn, this stores all builtin constants in the domain of
+     * d_search_val[tn].
+     */
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
+        d_search_val_consts;
+    /**
+     * The (finite) cardinality of each type if it exists, or -1 if the
+     * cardinality of the type is large or infinite).
+     */
+    std::map<TypeNode, int> d_search_val_const_cardinality;
+    /** explanation for why any search value is a constant */
+    std::map<TypeNode, Node> d_isconst_rec_pred;
     /** For each term, whether this cache has processed that term */
     std::unordered_set<Node, NodeHashFunction> d_search_val_proc;
   };
@@ -337,6 +352,7 @@ private:
                                      Node val,
                                      quantifiers::SygusInvarianceTest& et,
                                      Node valr,
+                                     std::map<TypeNode, int>& var_count,
                                      std::vector<Node>& lemmas);
   /** Add symmetry breaking lemmas for term
    *
@@ -358,20 +374,20 @@ private:
       TypeNode tn, Node t, unsigned d, Node a, std::vector<Node>& lemmas);
   /** calls the above function where a is the anchor t */
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
-  /** add symmetry breaking lemma
+  /** get explanation for constant evaluation
    *
-   * This adds the lemma R => lem{ x -> n } to lemmas, where R is a "relevancy
-   * condition" that states which contexts n is relevant in (see
-   * getRelevancyCondition).
+   * If this method returns true, then exp implies that the builtin analog of x
+   * rewrites to a constant.
    */
-  void addSymBreakLemma(Node lem, TNode x, TNode n, std::vector<Node>& lemmas);
+  bool getExplanationForEvalConstant(Node x, Node n, std::vector<Node>& exp);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
    *
-   * This returns a predicate that holds in the contexts in which the selector
-   * chain n is specified. For example, the relevancy condition for
-   * sel_{C2,1}( sel_{C1,1}( d ) ) is is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ).
+   * This returns (the negation of) a predicate that holds in the contexts in
+   * which the selector chain n is specified. For example, the negation of the
+   * relevancy condition for sel_{C2,1}( sel_{C1,1}( d ) ) is
+   *    ~( is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ) )
    * If shared selectors are enabled, this is a conjunction of disjunctions,
    * since shared selectors may apply to multiple constructors.
    */
@@ -432,6 +448,21 @@ private:
    *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
    */
   Node getTermOrderPredicate( Node n1, Node n2 );
+  /** get is-constant predicate
+   *
+   * Given a term n of sygus datatype type, this returns a predicate that holds
+   * iff the builtin version of n is a (possibly symbolic) constant. For
+   * example, for:
+   *   A -> 0 | 1 | x | A+A
+   * this returns the predicate is-0( n ) V is-1( n ).
+   */
+  Node getIsConstantPredicate(TNode n);
+  /** the is-constant predicate, per sygus datatype type
+   *
+   * For each sygus datatype tn, this predicate states that x is a sygus
+   * datatype value corresponding to a constant, where x is getFreeVar( tn ).
+   */
+  std::map<TypeNode, Node> d_isconst_pred;
 
  private:
   /**
