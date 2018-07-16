@@ -162,58 +162,6 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
   return nm->mkNode(kind::OR, comm_disj);
 }
 
-Node SygusSymBreakNew::getIsConstantPredicate(TNode n)
-{
-  TypeNode tn = n.getType();
-  Node constPred;
-  TNode x = getFreeVar(tn);
-  std::map<TypeNode, Node>::iterator itcp = d_isconst_pred.find(tn);
-  if (itcp == d_isconst_pred.end())
-  {
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    std::vector<Node> exp_const;
-    int anyc_cons_num = d_tds->getAnyConstantConsNum(tn);
-    for (unsigned k = 0, ncons = dt.getNumConstructors(); k < ncons; k++)
-    {
-      Kind nck = d_tds->getConsNumKind(tn, k);
-      bool is_const = false;
-      if (static_cast<int>(k) == anyc_cons_num)
-      {
-        is_const = true;
-      }
-      else if (nck == UNDEFINED_KIND)
-      {
-        Node cc = d_tds->getConsNumConst(tn, k);
-        if (!cc.isNull())
-        {
-          is_const = true;
-        }
-      }
-      if (is_const)
-      {
-        Node tester = DatatypesRewriter::mkTester(x, k, dt);
-        exp_const.push_back(tester);
-      }
-    }
-    if (!exp_const.empty())
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      constPred =
-          exp_const.size() == 1 ? exp_const[0] : nm->mkNode(OR, exp_const);
-    }
-    d_isconst_pred[tn] = constPred;
-  }
-  else
-  {
-    constPred = itcp->second;
-  }
-  if (constPred.isNull())
-  {
-    return constPred;
-  }
-  return constPred.substitute(x, n);
-}
-
 void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
   if( d_is_top_level.find( n )==d_is_top_level.end() ){
     d_is_top_level[n] = false;
@@ -903,13 +851,6 @@ Node SygusSymBreakNew::registerSearchValue(
         //store rewritten values, regardless of whether it will be considered
         d_cache[a].d_search_val[tn][bvr] = nv;
         d_cache[a].d_search_val_sz[tn][bvr] = sz;
-        if (options::sygusSymBreakAllConst())
-        {
-          if (bvr.isConst())
-          {
-            d_cache[a].d_search_val_consts[tn].insert(bvr);
-          }
-        }
       }else{
         bad_val_bvr = bvr;
         if( Trace.isOn("sygus-sb-exc") ){
@@ -1011,103 +952,7 @@ Node SygusSymBreakNew::registerSearchValue(
         registerSymBreakLemmaForValue(
             a, bad_val, eset, bad_val_o, var_count, lemmas);
 
-        // other generalization criteria
-
-        //-----------------------------------------------constant evaluation
-        // if we have enumerated all the constants for this type,
-        // then we want to ensure that we don't enumerate any more constants
-        if (options::sygusSymBreakAllConst() && bvr.isConst())
-        {
-          std::map<TypeNode, Node>::iterator iticr =
-              d_cache[a].d_isconst_rec_pred.find(tn);
-          if (iticr == d_cache[a].d_isconst_rec_pred.end())
-          {
-            int card = -1;
-            // get the finite cardinality
-            std::map<TypeNode, int>::iterator itcc =
-                d_cache[a].d_search_val_const_cardinality.find(tn);
-            if (itcc == d_cache[a].d_search_val_const_cardinality.end())
-            {
-              // get the cardinality of the builtin type
-              TypeNode btn = bvr.getType();
-              Cardinality tnc = btn.getCardinality();
-              if (tnc.isFinite() && !tnc.isLargeFinite())
-              {
-                Rational cardr = Rational(tnc.getFiniteCardinality());
-                if (cardr < Rational(LONG_MAX))
-                {
-                  card = cardr.getNumerator().toUnsignedInt();
-                }
-              }
-              if (card == -1)
-              {
-                d_cache[a].d_isconst_rec_pred[tn] = Node::null();
-                Trace("sygus-sb-all-const")
-                    << "Builtin type for " << tn
-                    << " does not have a small finite cardinality (" << btn
-                    << "), ignore." << std::endl;
-              }
-              d_cache[a].d_search_val_const_cardinality[tn] = card;
-            }
-            else
-            {
-              card = itcc->second;
-            }
-            Assert(card != 0);
-            if (card > 0
-                && static_cast<int>(d_cache[a].d_search_val_consts[tn].size())
-                       == card)
-            {
-              TNode x = getFreeVar(tn);
-              // construct the explanation for why *any* term of type tn is a
-              // constant, which is a disjunction of the explanations for each
-              // of the constants we have enumerated
-              quantifiers::SygusExplain* exp = d_tds->getExplain();
-              std::vector<Node> exp_const_rec;
-              Trace("sygus-sb-all-const") << "Enumerated all constants of type "
-                                          << tn << ":" << std::endl;
-              for (const Node& c : d_cache[a].d_search_val_consts[tn])
-              {
-                Assert(d_cache[a].d_search_val[tn].find(c)
-                       != d_cache[a].d_search_val[tn].end());
-                Node dc = d_cache[a].d_search_val[tn][c];
-                Trace("sygus-sb-all-const")
-                    << "  " << c << " from " << dc << std::endl;
-                Node expc = exp->getExplanationForEquality(x, dc);
-                exp_const_rec.push_back(expc);
-              }
-              Assert(static_cast<int>(exp_const_rec.size()) == card);
-              Node exprn = exp_const_rec.size() == 1
-                               ? exp_const_rec[0]
-                               : nm->mkNode(OR, exp_const_rec);
-              Trace("sygus-sb-all-const")
-                  << "...explanation is " << exprn << std::endl;
-              d_cache[a].d_isconst_rec_pred[tn] = exprn;
-            }
-          }
-          iticr = d_cache[a].d_isconst_rec_pred.find(tn);
-          if (iticr != d_cache[a].d_isconst_rec_pred.end()
-              && !iticr->second.isNull())
-          {
-            // generalize the shape of bad_val such that all terms of this shape
-            // also reduce to constants
-            std::vector<Node> exp;
-            Node x = getFreeVar(tn);
-            if (getExplanationForEvalConstant(x, bad_val, exp))
-            {
-              Trace("sygus-sb-all-const")
-                  << "...can exclude the current value " << bv
-                  << " based on all-constant reasoning." << std::endl;
-              Node lem = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
-              lem = lem.negate();
-              unsigned sz = d_tds->getSygusTermSize(bad_val);
-              Trace("sygus-sb-all-const") << "...lemma is " << lem << std::endl;
-              registerSymBreakLemma(tn, lem, sz, a, lemmas);
-            }
-          }
-        }
-        //-----------------------------------------------end constant evaluation
-
+        // other generalization criteria go here
         return Node::null();
       }
     }
@@ -1210,53 +1055,6 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
   Trace("sygus-sb-debug2") << "...finished." << std::endl;
 }
 
-bool SygusSymBreakNew::getExplanationForEvalConstant(Node x,
-                                                     Node n,
-                                                     std::vector<Node>& exp)
-{
-  Assert(x.getType() == n.getType());
-  Assert(n.isConst());
-  TypeNode tn = n.getType();
-  if (!tn.isDatatype())
-  {
-    // symbolic constant field, ignore
-    return true;
-  }
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if (!dt.isSygus())
-  {
-    // symbolic constant datatype field, ignore
-    return true;
-  }
-  Assert(n.getKind() == APPLY_CONSTRUCTOR);
-  NodeManager* nm = NodeManager::currentNM();
-  unsigned cindex = DatatypesRewriter::indexOf(n.getOperator());
-  if (n.getNumChildren() > 0)
-  {
-    exp.push_back(datatypes::DatatypesRewriter::mkTester(x, cindex, dt));
-    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
-    {
-      Node sel = nm->mkNode(
-          APPLY_SELECTOR_TOTAL,
-          Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
-          x);
-      if (!getExplanationForEvalConstant(sel, n[i], exp))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-  // leaf: check if it is a constant
-  Node cc = d_tds->getConsNumConst(tn, cindex);
-  if (!cc.isNull())
-  {
-    Node exp_const_leaf = getIsConstantPredicate(x);
-    exp.push_back(exp_const_leaf);
-    return true;
-  }
-  return false;
-}
 
 void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) {
   if( n.isVar() ){

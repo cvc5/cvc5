@@ -374,12 +374,6 @@ private:
       TypeNode tn, Node t, unsigned d, Node a, std::vector<Node>& lemmas);
   /** calls the above function where a is the anchor t */
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
-  /** get explanation for constant evaluation
-   *
-   * If this method returns true, then exp implies that the builtin analog of x
-   * rewrites to a constant.
-   */
-  bool getExplanationForEvalConstant(Node x, Node n, std::vector<Node>& exp);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
@@ -448,15 +442,6 @@ private:
    *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
    */
   Node getTermOrderPredicate( Node n1, Node n2 );
-  /** get is-constant predicate
-   *
-   * Given a term n of sygus datatype type, this returns a predicate that holds
-   * iff the builtin version of n is a (possibly symbolic) constant. For
-   * example, for:
-   *   A -> 0 | 1 | x | A+A
-   * this returns the predicate is-0( n ) V is-1( n ).
-   */
-  Node getIsConstantPredicate(TNode n);
   /** the is-constant predicate, per sygus datatype type
    *
    * For each sygus datatype tn, this predicate states that x is a sygus

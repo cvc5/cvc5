@@ -104,6 +104,15 @@ header = "options/datatypes_options.h"
   help       = "simple sygus sym break lemmas"
 
 [[option]]
+  name       = "sygusSymBreakAgg"
+  category   = "regular"
+  long       = "sygus-sym-break-agg"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use aggressive checks for simple sygus sym break lemmas"
+
+[[option]]
   name       = "sygusSymBreakDynamic"
   category   = "regular"
   long       = "sygus-sym-break-dynamic"
