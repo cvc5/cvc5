@@ -562,8 +562,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
-  if (getExplanationForEnumeratorExclude(
-          e, v, base_results, srmap, true, exp_exc_vec))
+  if (getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
     Assert(!exp_exc_vec.empty());
     exp_exc = exp_exc_vec.size() == 1
@@ -711,20 +710,8 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   // exclude this value on subsequent iterations
   if (exp_exc.isNull())
   {
-    std::vector<Node> exp_exc_vec;
-    if (getExplanationForEnumeratorExclude(
-            e, v, base_results, srmap, false, exp_exc_vec))
-    {
-      Assert(!exp_exc_vec.empty());
-      exp_exc = exp_exc_vec.size() == 1
-                    ? exp_exc_vec[0]
-                    : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
-    }
-    else
-    {
-      // if we did not already explain why this should be excluded, use default
-      exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
-    }
+    // if we did not already explain why this should be excluded, use default
+    exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
   }
   exp_exc = exp_exc.negate();
   Trace("sygus-sui-enum-lemma")
@@ -844,12 +831,10 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     Node e,
     Node v,
     std::vector<Node>& results,
-    std::map<Node, std::vector<Node>>& srmap,
-    bool prereg,
     std::vector<Node>& exp)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (prereg && useStrContainsEnumeratorExclude(e))
+  if (useStrContainsEnumeratorExclude(e))
   {
     // This check whether the example evaluates to something that is larger than
     // the output for some input/output pair. If so, then this term is never

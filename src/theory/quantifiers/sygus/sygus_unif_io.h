@@ -419,8 +419,6 @@ class SygusUnifIo : public SygusUnif
       Node e,
       Node v,
       std::vector<Node>& results,
-      std::map<Node, std::vector<Node>>& srmap,
-      bool prereg,
       std::vector<Node>& exp);
   /** returns true if we can exlude values of e based on negative str.contains
    *
