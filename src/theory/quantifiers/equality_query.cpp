@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -67,7 +67,9 @@ bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
           }
           Trace("term-db-lemma") << "  add split on : " << eq << std::endl;
         }
-        d_qe->addSplit( eq );
+        eq = Rewriter::rewrite(eq);
+        Node split = NodeManager::currentNM()->mkNode(OR, eq, eq.negate());
+        d_qe->addLemma(split);
         return false;
       }else{
         ee->assertEquality( eq, true, eq_exp );

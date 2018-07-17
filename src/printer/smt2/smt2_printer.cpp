@@ -267,7 +267,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
-      out << '@' << uc;
+      std::stringstream ss;
+      ss << '@' << uc;
+      out << maybeQuoteSymbol(ss.str());
       break;
     }
 
@@ -605,6 +607,7 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::MEMBER: typeChildren = true;
+  case kind::INSERT:
   case kind::SET_TYPE:
   case kind::SINGLETON:
   case kind::COMPLEMENT: out << smtKindString(k, d_variant) << " "; break;
@@ -1068,6 +1071,8 @@ static string smtKindString(Kind k, Variant v)
     return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
     return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
+  case kind::REGEXP_EMPTY: return "re.nostr";
+  case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";
