@@ -24,8 +24,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "options/base_options.h"
-#include "printer/printer.h"
 
 using namespace CVC4::kind;
 
