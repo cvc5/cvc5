@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2226,35 +2226,53 @@ bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& 
 
 void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
   // Compute terms appearing in assertions and shared terms
-  computeRelevantTerms(termSet);
-  
+  std::set<Kind> irr_kinds;
+  // testers are not relevant for model construction
+  irr_kinds.insert(APPLY_TESTER);
+  computeRelevantTerms(termSet, irr_kinds);
+
+  Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
+                  << std::endl;
+
   //also include non-singleton equivalence classes  TODO : revisit this
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
     bool addedFirst = false;
     Node first;
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, &d_equalityEngine );
-    while( !eqc_i.isFinished() ){
-      TNode n = (*eqc_i);
-      if( first.isNull() ){
-        first = n;
-        //always include all datatypes
-        if( n.getType().isDatatype() ){
-          addedFirst = true;
-          termSet.insert( n );
+    TypeNode rtn = r.getType();
+    if (!rtn.isBoolean())
+    {
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, &d_equalityEngine);
+      while (!eqc_i.isFinished())
+      {
+        TNode n = (*eqc_i);
+        if (first.isNull())
+        {
+          first = n;
+          // always include all datatypes
+          if (rtn.isDatatype())
+          {
+            addedFirst = true;
+            termSet.insert(n);
+          }
         }
-      }else{
-        if( !addedFirst ){
-          addedFirst = true;
-          termSet.insert( first );
+        else
+        {
+          if (!addedFirst)
+          {
+            addedFirst = true;
+            termSet.insert(first);
+          }
+          termSet.insert(n);
         }
-        termSet.insert( n );
+        ++eqc_i;
       }
-      ++eqc_i;
     }
     ++eqcs_i;
   }
+  Trace("dt-cmi") << "After adding non-singletons, has " << termSet.size()
+                  << " relevant terms..." << std::endl;
 }
 
 std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* out) {

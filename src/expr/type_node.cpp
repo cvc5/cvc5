@@ -2,9 +2,9 @@
 /*! \file type_node.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Kshitij Bansal
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -342,6 +342,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   // t1.getKind() == kind::TYPE_CONSTANT
   switch(t0.getKind()) {
   case kind::BITVECTOR_TYPE:
+  case kind::FLOATINGPOINT_TYPE:
   case kind::SORT_TYPE:
   case kind::CONSTRUCTOR_TYPE:
   case kind::SELECTOR_TYPE:

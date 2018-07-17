@@ -2,9 +2,9 @@
 /*! \file theory_strings_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,10 +60,6 @@ class TheoryStringsRewriter {
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
-
-  static void mergeInto(std::vector<Node> &t, const std::vector<Node> &s);
-  static void shrinkConVec(std::vector<Node> &vec);
-  static Node applyAX( TNode node );
 
   static Node prerewriteConcatRegExp(TNode node);
   static Node prerewriteOrRegExp(TNode node);
@@ -377,6 +373,22 @@ class TheoryStringsRewriter {
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+
+  /**
+   * Given a symbolic length n, returns the canonical string for that length.
+   * For example if n is constant, this function returns a string consisting of
+   * "A" repeated n times. Returns the null node if no such string exists.
+   */
+  static Node canonicalStrForSymbolicLength(Node n);
+
+  /** length preserving rewrite
+   *
+   * Given input n, this returns a string n' whose length is equivalent to n.
+   * We apply certain normalizations to n', such as replacing all constants
+   * that are not relevant to length by "A".
+   */
+  static Node lengthPreserveRewrite(Node n);
+
   /** entail non-empty
    *
    * Checks whether string a is entailed to be non-empty. Is equivalent to
