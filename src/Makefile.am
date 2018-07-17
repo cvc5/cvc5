@@ -35,6 +35,9 @@ nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
 	svn_versioninfo.cpp \
+	api/cvc4cpp.h \
+	api/cvc4cppkind.h \
+	api/cvc4cpp.cpp \
 	context/backtrackable.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
@@ -51,7 +54,6 @@ libcvc4_la_SOURCES = \
 	context/cdtrail_hashmap.h \
 	context/cdtrail_hashmap_forward.h \
 	context/cdtrail_queue.h \
-	context/cdvector.h \
 	context/context.cpp \
 	context/context.h \
 	context/context_mm.cpp \
@@ -62,6 +64,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/passes/apply_substs.cpp \
+	preprocessing/passes/apply_substs.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
@@ -80,6 +84,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
+	preprocessing/passes/rewrite.cpp \
+	preprocessing/passes/rewrite.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
 	preprocessing/passes/symmetry_breaker.cpp \
@@ -365,6 +371,8 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/type_enumerator.h \
+	theory/ext_theory.cpp \
+	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \
 	theory/fp/theory_fp.h \
 	theory/fp/theory_fp_rewriter.cpp \
@@ -389,6 +397,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/bv_inverter.h \
 	theory/quantifiers/candidate_rewrite_database.cpp \
 	theory/quantifiers/candidate_rewrite_database.h \
+	theory/quantifiers/candidate_rewrite_filter.cpp \
+	theory/quantifiers/candidate_rewrite_filter.h \
 	theory/quantifiers/cegqi/ceg_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_instantiator.h \
 	theory/quantifiers/cegqi/ceg_arith_instantiator.cpp \

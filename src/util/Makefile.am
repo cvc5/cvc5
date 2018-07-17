@@ -19,8 +19,8 @@ libutil_la_SOURCES = \
 	abstract_value.cpp \
 	abstract_value.h \
 	bin_heap.h \
-	bitvector.h \
 	bitvector.cpp \
+	bitvector.h \
 	bool.h \
 	cardinality.cpp \
 	cardinality.h \
@@ -40,16 +40,18 @@ libutil_la_SOURCES = \
 	ostream_util.cpp \
 	ostream_util.h \
 	proof.h \
+	random.cpp \
+	random.h \
 	regexp.cpp \
 	regexp.h \
 	resource_manager.cpp \
 	resource_manager.h \
 	result.cpp \
-	random.h \
-	random.cpp \
 	result.h \
 	safe_print.cpp \
 	safe_print.h \
+	sampler.cpp \
+	sampler.h \
 	sexpr.cpp \
 	sexpr.h \
 	smt2_quote_string.cpp \

@@ -33,7 +33,7 @@ namespace quantifiers {
 
 CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
                                              CegConjecture* p)
-    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false), d_has_ite(true)
+    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false)
 {
 }
 
@@ -198,6 +198,7 @@ Node CegGrammarConstructor::process(Node q,
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
   std::map<Node, Node> synth_fun_vars;
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
   {
     Node sf = q[0][i];
@@ -245,16 +246,10 @@ Node CegGrammarConstructor::process(Node q,
         Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
       }
     }
-    d_qe->getTermDatabaseSygus()->registerSygusType( tn );
-    // check grammar restrictions
-    if( !d_qe->getTermDatabaseSygus()->sygusToBuiltinType( tn ).isBoolean() ){
-      if( !d_qe->getTermDatabaseSygus()->hasKind( tn, ITE ) ){
-        d_has_ite = false;
-      }
-    }
-    Assert( tn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Assert( dt.isSygus() );
+    tds->registerSygusType(tn);
+    Assert(tn.isDatatype());
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Assert(dt.isSygus());
     if( !dt.getSygusAllowAll() ){
       d_is_syntax_restricted = true;
     }
