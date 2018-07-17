@@ -410,6 +410,9 @@ class TermDbSygus {
    * - canConstructKind( B, ite, ... ) may return true, adding { B, B, B } to
    * arg_types, noting that the term
    *   (and (or (not b1) b2) (or b1 b3)) is equivalent to (ite b1 b2 b3)
+   * The argument aggr is whether we use aggressive techniques like the one
+   * above to infer a kind is constructable. If this flag is false, we only
+   * check if the kind is literally a constructor of the grammar.
    */
   bool canConstructKind(TypeNode tn,
                         Kind k,

@@ -1399,23 +1399,9 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
       }
     }
   }
-  // aggressive
-  /*
-  if( aggr )
-  {
-    if( k==OR || k==AND )
-    {
-      std::vector< TypeNode > ntypes;
-      if( canConstructKind( tn, NOT, ntypes ) )
-      {
-        // (and b1 b2) <---- (not (or (not b1) (not b2)))
-        // (or b1 b2)  <---- (not (and (not b1) (not b2)))
-        std::vector< Node > ctypes;
-
-      }
-    }
-  }
-  */
+  // could try aggressive inferences here, such as
+  // (and b1 b2) <---- (not (or (not b1) (not b2)))
+  // (or b1 b2)  <---- (not (and (not b1) (not b2)))
   return false;
 }
 
