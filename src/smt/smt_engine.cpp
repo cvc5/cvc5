@@ -4240,7 +4240,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   if(options::sepPreSkolemEmp()) {
     d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
-    Trace("smt") << "POST sepPreSkolemEmp" << endl;
   }
 
   if( d_smt.d_logic.isQuantified() ){

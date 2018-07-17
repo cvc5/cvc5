@@ -2,7 +2,7 @@
 /*! \file sep_skolem_emp.h
  ** \verbatim
  ** Top contributors (to current version):
- ** Andrew Reynolds, Mathias Preiner
+ ** Andrew Reynolds, Mathias Preiner, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.

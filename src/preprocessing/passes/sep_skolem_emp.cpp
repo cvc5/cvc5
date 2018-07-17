@@ -2,7 +2,7 @@
 /*! \file sep_skolem_emp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
@@ -31,7 +32,7 @@ using namespace CVC4::theory;
 
 namespace {
 
-static Node preSkolemEmp(Node n,
+Node preSkolemEmp(Node n,
                          bool pol,
                          std::map<bool, std::map<Node, Node>>& visited)
 {
@@ -100,11 +101,11 @@ SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  std::map<bool, std::map<Node, Node>> visited;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
     bool pol = true;
-    std::map<bool, std::map<Node, Node>> visited;
     Node next = preSkolemEmp(prev, pol, visited);
     if (next != prev)
     {
@@ -113,6 +114,7 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
       Trace("sep-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
                               << endl;
     }
+    visited.clear();
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
