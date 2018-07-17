@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -49,7 +50,6 @@ CegConjectureSingleInv::CegConjectureSingleInv(QuantifiersEngine* qe,
       d_cosi(new CegqiOutputSingleInv(this)),
       d_cinst(NULL),
       d_c_inst_match_trie(NULL),
-      d_has_ites(true),
       d_single_invocation(false) {
   //  third and fourth arguments set to (false,false) until we have solution
   //  reconstruction for delta and infinity
@@ -290,8 +290,9 @@ void CegConjectureSingleInv::initialize( Node q ) {
   }
 }
 
-void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
-  d_has_ites = hasItes;
+void CegConjectureSingleInv::finishInit(bool syntaxRestricted)
+{
+  Trace("cegqi-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and CEGQI_SI_MODE_ALL is not enabled
   if( options::cegqiSingleInvMode()==CEGQI_SI_MODE_USE && d_single_invocation && syntaxRestricted ){
     d_single_invocation = false;
@@ -458,13 +459,6 @@ struct sortSiInstanceIndices {
 
 
 Node CegConjectureSingleInv::postProcessSolution( Node n ){
-  ////remove boolean ITE (not allowed for sygus comp 2015)
-  //if( n.getKind()==ITE && n.getType().isBoolean() ){
-  //  Node n1 = postProcessSolution( n[1] );
-  //  Node n2 = postProcessSolution( n[2] );
-  //  return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n[0], n1 ),
-  //                                               NodeManager::currentNM()->mkNode( AND, n[0].negate(), n2 ) );
-  //}else{
   bool childChanged = false;
   Kind k = n.getKind();
   if( n.getKind()==INTS_DIVISION_TOTAL ){
@@ -488,7 +482,6 @@ Node CegConjectureSingleInv::postProcessSolution( Node n ){
   }else{
     return n;
   }
-  //}
 }
 
 
@@ -573,15 +566,34 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
-  if( options::cegqiSingleInvReconstruct() && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus ){
+  if (options::cegqiSingleInvReconstruct() != CEGQI_SI_RCONS_MODE_NONE
+      && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
+  {
     d_sol->preregisterConjecture( d_orig_conjecture );
-    d_sygus_solution = d_sol->reconstructSolution( s, stn, reconstructed );
+    int enumLimit = -1;
+    if (options::cegqiSingleInvReconstruct() == CEGQI_SI_RCONS_MODE_TRY)
+    {
+      enumLimit = 0;
+    }
+    else if (options::cegqiSingleInvReconstruct()
+             == CEGQI_SI_RCONS_MODE_ALL_LIMIT)
+    {
+      enumLimit = options::cegqiSingleInvReconstructLimit();
+    }
+    d_sygus_solution =
+        d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
     }
   }else{
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = d_solution;
+    if (options::minSynthSol())
+    {
+      d_solution =
+          d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
+              d_solution);
+    }
     d_solution = postProcessSolution( d_solution );
     if( prev!=d_solution ){
       Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
@@ -631,11 +643,6 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
 }
 
 bool CegConjectureSingleInv::needsCheck() {
-  if( options::cegqiSingleInvMode()==CEGQI_SI_MODE_ALL_ABORT ){
-    if( !d_has_ites ){
-      return d_inst.empty();
-    }
-  }
   return true;
 }
 
