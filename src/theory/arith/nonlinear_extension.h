@@ -544,8 +544,8 @@ class NonlinearExtension {
   std::vector<Node> d_order_points;
   
   //transcendental functions
-  std::map<Node, Node> d_trig_base;
-  std::map<Node, bool> d_trig_is_base;
+  std::map<Node, Node> d_tr_base;
+  std::map<Node, bool> d_tr_is_base;
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
   std::vector<Node> d_waiting_lemmas;

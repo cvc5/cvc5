@@ -639,7 +639,11 @@ void CegConjectureSingleInvSol::preregisterConjecture( Node q ) {
   registerEquivalentTerms( n );
 }
 
-Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int& reconstructed ) {
+Node CegConjectureSingleInvSol::reconstructSolution(Node sol,
+                                                    TypeNode stn,
+                                                    int& reconstructed,
+                                                    int enumLimit)
+{
   Trace("csi-rcons") << "Solution (pre-reconstruction) is : " << sol << std::endl;
   int status;
   d_root_id = collectReconstructNodes( sol, stn, status );
@@ -649,23 +653,34 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
     Assert( !ret.isNull() );
     reconstructed = 1;
     return ret;
-  }else{
-    //Trace("csi-debug-sol") << "Induced solution template is : " << d_templ_solution << std::endl;
-    if( Trace.isOn("csi-rcons") ){
-      for( std::map< TypeNode, std::map< Node, int > >::iterator it = d_rcons_to_id.begin(); it != d_rcons_to_id.end(); ++it ){
-        TypeNode tn = it->first;
-        Assert( tn.isDatatype() );
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        Trace("csi-rcons") << "Terms to reconstruct of type " << dt.getName() << " : " << std::endl;
-        for( std::map< Node, int >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-          if( d_reconstruct.find( it2->second )==d_reconstruct.end() ){
-            Trace("csi-rcons") << "  " << it2->first << std::endl;
-          }
+  }
+  if (Trace.isOn("csi-rcons"))
+  {
+    for (std::map<TypeNode, std::map<Node, int> >::iterator it =
+             d_rcons_to_id.begin();
+         it != d_rcons_to_id.end();
+         ++it)
+    {
+      TypeNode tn = it->first;
+      Assert(tn.isDatatype());
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      Trace("csi-rcons") << "Terms to reconstruct of type " << dt.getName()
+                         << " : " << std::endl;
+      for (std::map<Node, int>::iterator it2 = it->second.begin();
+           it2 != it->second.end();
+           ++it2)
+      {
+        if (d_reconstruct.find(it2->second) == d_reconstruct.end())
+        {
+          Trace("csi-rcons") << "  " << it2->first << std::endl;
         }
-        Assert( !it->second.empty() );
       }
+      Assert(!it->second.empty());
     }
-    unsigned index = 0;
+  }
+  if (enumLimit != 0)
+  {
+    int index = 0;
     std::map< TypeNode, bool > active;
     for( std::map< TypeNode, std::map< Node, int > >::iterator it = d_rcons_to_id.begin(); it != d_rcons_to_id.end(); ++it ){
       active[it->first] = true;
@@ -712,13 +727,16 @@ Node CegConjectureSingleInvSol::reconstructSolution( Node sol, TypeNode stn, int
       if( index%100==0 ){
         Trace("csi-rcons-stats") << "Tried " << index << " for each type."  << std::endl;
       }
-    }while( !active.empty() );
-
-    // we ran out of elements, return null
-    reconstructed = -1;
-    Warning() << CommandFailure("Cannot get synth function: reconstruction to syntax failed.");
-    return Node::null(); // return sol;
+    } while (!active.empty() && (enumLimit < 0 || index < enumLimit));
   }
+
+  // we ran out of elements, return null
+  reconstructed = -1;
+  Warning() << CommandFailure(
+      "Cannot get synth function: reconstruction to syntax failed.");
+  // could return sol here, however, we choose to fail by returning null, since
+  // it indicates a failure.
+  return Node::null();
 }
 
 int CegConjectureSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, int& status ) {

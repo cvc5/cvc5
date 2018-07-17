@@ -5743,6 +5743,9 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     }else{
       ret_n = NodeManager::currentNM()->mkConst(n_e.getKind() != kind::EXISTS);
     }
+    // do extended rewrite to minimize the size of the formula aggressively
+    theory::quantifiers::ExtendedRewriter extr(true);
+    ret_n = extr.extendedRewrite(ret_n);
     return ret_n.toExpr();
   }else {
     return NodeManager::currentNM()
