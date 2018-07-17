@@ -424,7 +424,8 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       }
     }
     // Assume two enumerators of types T1 and T2.
-    // We ensure that all values of type T1 and size n are enumerated before
+    // If options::sygusPbeMultiFair() is true,
+    // we ensure that all values of type T1 and size n are enumerated before
     // any term of type T2 of size n+d, and vice versa, where d is
     // set by options::sygusPbeMultiFairDiff(). If d is zero, then our
     // enumeration is such that all terms of T1 or T2 of size n are considered
@@ -432,7 +433,7 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      if (szs[i] - min_term_size <= options::sygusPbeMultiFairDiff())
+      if (!options::sygusPbeMultiFair() || szs[i] - min_term_size <= options::sygusPbeMultiFairDiff())
       {
         enum_consider.push_back( i );
       }
