@@ -565,6 +565,9 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
 
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
+      Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new "
+                          "input (UNIT CLAUSE): "
+                       << lit << std::endl;
       d_inputClauses.insert(newId);
     }
     if (kind == THEORY_LEMMA) {

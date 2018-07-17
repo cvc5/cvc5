@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Mathias Preiner, Andres Noetzli
+ **   Justin Xu, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -25,18 +25,24 @@
 #include "decision/decision_engine.h"
 #include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
-class PreprocessingPassContext {
+class PreprocessingPassContext
+{
  public:
-  PreprocessingPassContext(SmtEngine* smt);
+  PreprocessingPassContext(SmtEngine* smt, ResourceManager* resourceManager);
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
   context::Context* getUserContext() { return d_smt->d_userContext; }
+  void spendResource(unsigned amount)
+  {
+    d_resourceManager->spendResource(amount);
+  }
 
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
@@ -44,6 +50,7 @@ class PreprocessingPassContext {
  private:
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
+  ResourceManager* d_resourceManager;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing

@@ -40,16 +40,6 @@ struct ModelBasisArgSort
   }
 };
 
-
-struct ConstRationalSort
-{
-  std::vector< Node > d_terms;
-  bool operator() (int i, int j) {
-    return (d_terms[i].getConst<Rational>() < d_terms[j].getConst<Rational>() );
-  }
-};
-
-
 bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
   if (index==(int)c.getNumChildren()) {
     return d_data!=-1;
@@ -100,27 +90,18 @@ int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>
     return d_data;
   }else{
     int minIndex = -1;
-    if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && inst[index].getType().isInteger() ){
-      for( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
-        //check if it is in the range
-        if( m->isInRange(inst[index], it->first )  ){
-          int gindex = it->second.getGeneralizationIndex(m, inst, index+1);
-          if( minIndex==-1 || (gindex!=-1 && gindex<minIndex) ){
-            minIndex = gindex;
-          }
-        }
-      }
-    }else{
-      Node st = m->getStar(inst[index].getType());
-      if(d_child.find(st)!=d_child.end()) {
-        minIndex = d_child[st].getGeneralizationIndex(m, inst, index+1);
-      }
-      Node cc = inst[index];
-      if( cc!=st && d_child.find( cc )!=d_child.end() ){
-        int gindex = d_child[ cc ].getGeneralizationIndex(m, inst, index+1);
-        if (minIndex==-1 || (gindex!=-1 && gindex<minIndex) ){
-          minIndex = gindex;
-        }
+    Node st = m->getStar(inst[index].getType());
+    if (d_child.find(st) != d_child.end())
+    {
+      minIndex = d_child[st].getGeneralizationIndex(m, inst, index + 1);
+    }
+    Node cc = inst[index];
+    if (cc != st && d_child.find(cc) != d_child.end())
+    {
+      int gindex = d_child[cc].getGeneralizationIndex(m, inst, index + 1);
+      if (minIndex == -1 || (gindex != -1 && gindex < minIndex))
+      {
+        minIndex = gindex;
       }
     }
     return minIndex;
@@ -165,35 +146,6 @@ void EntryTrie::getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & c
     }
 
   }
-}
-
-void EntryTrie::collectIndices(Node c, int index, std::vector< int >& indices ) {
-  if (index==(int)c.getNumChildren()) {
-    if( d_data!=-1 ){
-      indices.push_back( d_data );
-    }
-  }else{
-    for ( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
-      it->second.collectIndices(c, index+1, indices );
-    }
-  }
-}
-
-bool EntryTrie::isComplete(FirstOrderModelFmc * m, Node c, int index) {
-  if( d_complete==-1 ){
-    d_complete = 1;
-    if (index<(int)c.getNumChildren()) {
-      Node st = m->getStar(c[index].getType());
-      if(d_child.find(st)!=d_child.end()) {
-        if (!d_child[st].isComplete(m, c, index+1)) {
-          d_complete = 0;
-        }
-      }else{
-        d_complete = 0;
-      }
-    }
-  }
-  return d_complete==1;
 }
 
 bool Def::addEntry( FirstOrderModelFmc * m, Node c, Node v) {
@@ -269,7 +221,8 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
     bool last_all_stars = true;
     Node cc = d_cond[d_cond.size()-1];
     for( unsigned i=0; i<cc.getNumChildren(); i++ ){
-      if( !m->isInterval(cc[i]) && !m->isStar(cc[i]) ){
+      if (!m->isStar(cc[i]))
+      {
         last_all_stars = false;
         break;
       }
@@ -291,7 +244,7 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
       std::vector< Node > nc;
       nc.push_back( cc.getOperator() );
       for( unsigned j=0; j< cc.getNumChildren(); j++){
-        nc.push_back(m->getStarElement(cc[j].getType()));
+        nc.push_back(m->getStar(cc[j].getType()));
       }
       cond[cond.size()-1] = NodeManager::currentNM()->mkNode( APPLY_UF, nc );
       //re-add the entries
@@ -476,13 +429,14 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node ri = fm->getRepresentative( c[i] );
         children.push_back(ri);
         bool isStar = false;
-        if( options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL || !ri.getType().isInteger() ){
-          if (fm->isModelBasisTerm(ri) ) {
-            ri = fm->getStar( ri.getType() );
-            isStar = true;
-          }else{
-            hasNonStar = true;
-          }
+        if (fm->isModelBasisTerm(ri))
+        {
+          ri = fm->getStar(ri.getType());
+          isStar = true;
+        }
+        else
+        {
+          hasNonStar = true;
         }
         if( !isStar && !ri.isConst() ){
           Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
@@ -523,11 +477,6 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 
     for (int i=0; i<(int)indices.size(); i++) {
       fm->d_models[op]->addEntry(fm, entry_conds[indices[i]], values[indices[i]]);
-    }
-
-
-    if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ){
-      convertIntervalModel( fm, op );
     }
 
     Trace("fmc-model-simplify") << "Before simplification : " << std::endl;
@@ -612,11 +561,8 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
   else if(fm->isStar(n) && dispStar) {
     Trace(tr) << "*";
   }
-  else if(fm->isInterval(n)) {
-    debugPrint(tr, n[0], dispStar );
-    Trace(tr) << "...";
-    debugPrint(tr, n[1], dispStar );
-  }else{
+  else
+  {
     TypeNode tn = n.getType();
     if( tn.isSort() && d_rep_ids.find(tn)!=d_rep_ids.end() ){
       if (d_rep_ids[tn].find(n)!=d_rep_ids[tn].end()) {
@@ -671,21 +617,6 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
               if (fmfmc->isStar(d_quant_models[f].d_cond[i][j])) {
                 hasStar = true;
                 inst.push_back(fmfmc->getModelBasisTerm(d_quant_models[f].d_cond[i][j].getType()));
-              }else if( fmfmc->isInterval(d_quant_models[f].d_cond[i][j])){
-                hasStar = true;
-                //if interval, find a sample point
-                if( fmfmc->isStar(d_quant_models[f].d_cond[i][j][0]) ){
-                  if( fmfmc->isStar(d_quant_models[f].d_cond[i][j][1]) ){
-                    inst.push_back(fmfmc->getModelBasisTerm(d_quant_models[f].d_cond[i][j][1].getType()));
-                  }else{
-                    Node nn = NodeManager::currentNM()->mkNode( MINUS, d_quant_models[f].d_cond[i][j][1],
-                                                                NodeManager::currentNM()->mkConst( Rational(1) ) );
-                    nn = Rewriter::rewrite( nn );
-                    inst.push_back( nn );
-                  }
-                }else{
-                  inst.push_back(d_quant_models[f].d_cond[i][j][0]);
-                }
               }else{
                 inst.push_back(d_quant_models[f].d_cond[i][j]);
               }
@@ -816,15 +747,7 @@ class RepBoundFmcEntry : public QRepBoundExt
   virtual RepSetIterator::RsiEnumType setBound(
       Node owner, unsigned i, std::vector<Node>& elements) override
   {
-    if (d_fm->isInterval(d_entry[i]))
-    {
-      // explicitly add the interval?
-    }
-    else if (d_fm->isStar(d_entry[i]))
-    {
-      // must add the full range
-    }
-    else
+    if (!d_fm->isStar(d_entry[i]))
     {
       // only need to consider the single point
       elements.push_back(d_entry[i]);
@@ -1144,7 +1067,8 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     if( !v.isNull() && v.getKind()==kind::BOUND_VARIABLE ){
       int j = fm->getVariableId(f, v);
       Trace("fmc-uf-process") << v << " is variable #" << j << std::endl;
-      if (!fm->isStar(cond[j+1]) && !fm->isInterval(cond[j+1])) {
+      if (!fm->isStar(cond[j + 1]))
+      {
         v = cond[j+1];
       }else{
         bind_var = true;
@@ -1153,41 +1077,30 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     if (bind_var) {
       Trace("fmc-uf-process") << "bind variable..." << std::endl;
       int j = fm->getVariableId(f, v);
-      if( fm->isStar(cond[j+1]) ){
-        for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin(); it != curr.d_child.end(); ++it) {
-          cond[j+1] = it->first;
-          doUninterpretedCompose2(fm, f, entries, index+1, cond, val, it->second);
-        }
-        cond[j+1] = fm->getStar(v.getType());
-      }else{
-        Node orig = cond[j+1];
-        for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin(); it != curr.d_child.end(); ++it) {
-          Node nw = doIntervalMeet( fm, it->first, orig );
-          if( !nw.isNull() ){
-            cond[j+1] = nw;
-            doUninterpretedCompose2(fm, f, entries, index+1, cond, val, it->second);
-          }
-        }
-        cond[j+1] = orig;
+      Assert(fm->isStar(cond[j + 1]));
+      for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin();
+           it != curr.d_child.end();
+           ++it)
+      {
+        cond[j + 1] = it->first;
+        doUninterpretedCompose2(
+            fm, f, entries, index + 1, cond, val, it->second);
       }
+      cond[j + 1] = fm->getStar(v.getType());
     }else{
       if( !v.isNull() ){
-        if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && v.getType().isInteger() ){
-          for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin(); it != curr.d_child.end(); ++it) {
-            if( fm->isInRange( v, it->first ) ){
-              doUninterpretedCompose2(fm, f, entries, index+1, cond, val, it->second);
-            }
-          }
-        }else{
-          if (curr.d_child.find(v)!=curr.d_child.end()) {
-            Trace("fmc-uf-process") << "follow value..." << std::endl;
-            doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[v]);
-          }
-          Node st = fm->getStarElement(v.getType());
-          if (curr.d_child.find(st)!=curr.d_child.end()) {
-            Trace("fmc-uf-process") << "follow star..." << std::endl;
-            doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[st]);
-          }
+        if (curr.d_child.find(v) != curr.d_child.end())
+        {
+          Trace("fmc-uf-process") << "follow value..." << std::endl;
+          doUninterpretedCompose2(
+              fm, f, entries, index + 1, cond, val, curr.d_child[v]);
+        }
+        Node st = fm->getStar(v.getType());
+        if (curr.d_child.find(st) != curr.d_child.end())
+        {
+          Trace("fmc-uf-process") << "follow star..." << std::endl;
+          doUninterpretedCompose2(
+              fm, f, entries, index + 1, cond, val, curr.d_child[st]);
         }
       }
     }
@@ -1240,15 +1153,9 @@ int FullModelChecker::isCompat( FirstOrderModelFmc * fm, std::vector< Node > & c
   Trace("fmc-debug3") << "isCompat " << c << std::endl;
   Assert(cond.size()==c.getNumChildren()+1);
   for (unsigned i=1; i<cond.size(); i++) {
-    if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && cond[i].getType().isInteger() ){
-      Node iv = doIntervalMeet( fm, cond[i], c[i-1], false );
-      if( iv.isNull() ){
-        return 0;
-      }
-    }else{
-      if( cond[i]!=c[i-1] && !fm->isStar(cond[i]) && !fm->isStar(c[i-1]) ) {
-        return 0;
-      }
+    if (cond[i] != c[i - 1] && !fm->isStar(cond[i]) && !fm->isStar(c[i - 1]))
+    {
+      return 0;
     }
   }
   return 1;
@@ -1259,63 +1166,17 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   Assert(cond.size()==c.getNumChildren()+1);
   for (unsigned i=1; i<cond.size(); i++) {
     if( cond[i]!=c[i-1] ) {
-      if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && cond[i].getType().isInteger() ){
-        Node iv = doIntervalMeet( fm, cond[i], c[i-1] );
-        if( !iv.isNull() ){
-          cond[i] = iv;
-        }else{
-          return false;
-        }
-      }else{
-        if( fm->isStar(cond[i]) ){
-          cond[i] = c[i-1];
-        }else if( !fm->isStar(c[i-1]) ){
-          return false;
-        }
+      if (fm->isStar(cond[i]))
+      {
+        cond[i] = c[i - 1];
+      }
+      else if (!fm->isStar(c[i - 1]))
+      {
+        return false;
       }
     }
   }
   return true;
-}
-
-Node FullModelChecker::doIntervalMeet( FirstOrderModelFmc * fm, Node i1, Node i2, bool mk ) {
-  Trace("fmc-debug2") << "Interval meet : " << i1 << " " << i2 << " " << mk << std::endl;
-  if( fm->isStar( i1 ) ){
-    return i2;
-  }else if( fm->isStar( i2 ) ){
-    return i1;
-  }else if( !fm->isInterval( i1 ) && fm->isInterval( i2 ) ){
-    return doIntervalMeet( fm, i2, i1, mk );
-  }else if( !fm->isInterval( i2 ) ){
-    if( fm->isInterval( i1 ) ){
-      if( fm->isInRange( i2, i1 ) ){
-        return i2;
-      }
-    }else if( i1==i2 ){
-      return i1;
-    }
-    return Node::null();
-  }else{
-    Node b[2];
-    for( unsigned j=0; j<2; j++ ){
-      Node b1 = i1[j];
-      Node b2 = i2[j];
-      if( fm->isStar( b1 ) ){
-        b[j] = b2;
-      }else if( fm->isStar( b2 ) ){
-        b[j] = b1;
-      }else if( b1.getConst<Rational>() < b2.getConst<Rational>() ){
-        b[j] = j==0 ? b2 : b1;
-      }else{
-        b[j] = j==0 ? b1 : b2;
-      }
-    }
-    if( fm->isStar( b[0] ) || fm->isStar( b[1] ) || b[0].getConst<Rational>() < b[1].getConst<Rational>() ){
-      return mk ? fm->getInterval( b[0], b[1] ) : i1;
-    }else{
-      return Node::null();
-    }
-  }
 }
 
 Node FullModelChecker::mkCond( std::vector< Node > & cond ) {
@@ -1329,11 +1190,11 @@ Node FullModelChecker::mkCondDefault( FirstOrderModelFmc * fm, Node f) {
 }
 
 void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond ) {
-  Trace("fmc-debug") << "Make default vec, intervals = " << (options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL) << std::endl;
+  Trace("fmc-debug") << "Make default vec" << std::endl;
   //get function symbol for f
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
-    Node ts = fm->getStarElement( f[0][i].getType() );
+    Node ts = fm->getStar(f[0][i].getType());
     Assert( ts.getType()==f[0][i].getType() );
     cond.push_back(ts);
   }
@@ -1344,21 +1205,6 @@ void FullModelChecker::mkCondVec( Node n, std::vector< Node > & cond ) {
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     cond.push_back( n[i] );
   }
-}
-
-Node FullModelChecker::mkArrayCond( Node a ) {
-  if( d_array_term_cond.find(a)==d_array_term_cond.end() ){
-    if( d_array_cond.find(a.getType())==d_array_cond.end() ){
-      TypeNode typ = NodeManager::currentNM()->mkFunctionType( a.getType(), NodeManager::currentNM()->booleanType() );
-      Node op = NodeManager::currentNM()->mkSkolem( "fmc", typ, "op created for full-model checking" );
-      d_array_cond[a.getType()] = op;
-    }
-    std::vector< Node > cond;
-    cond.push_back(d_array_cond[a.getType()]);
-    cond.push_back(a);
-    d_array_term_cond[a] = NodeManager::currentNM()->mkNode(APPLY_UF, cond );
-  }
-  return d_array_term_cond[a];
 }
 
 Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals ) {
@@ -1422,123 +1268,4 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 
 bool FullModelChecker::useSimpleModels() {
   return options::fmfFmcSimple();
-}
-
-void FullModelChecker::convertIntervalModel( FirstOrderModelFmc * fm, Node op ){
-  Trace("fmc-interval-model") << "Changing to interval model, Before : " << std::endl;
-  fm->d_models[op]->debugPrint("fmc-interval-model", op, this);
-  Trace("fmc-interval-model") << std::endl;
-  std::vector< int > indices;
-  for( int i=0; i<(int)fm->d_models[op]->d_cond.size(); i++ ){
-    indices.push_back( i );
-  }
-  std::map< int, std::map< int, Node > > changed_vals;
-  makeIntervalModel( fm, op, indices, 0, changed_vals );
-
-  std::vector< Node > conds;
-  std::vector< Node > values;
-  for( unsigned i=0; i<fm->d_models[op]->d_cond.size(); i++ ){
-    if( changed_vals.find(i)==changed_vals.end() ){
-      conds.push_back( fm->d_models[op]->d_cond[i] );
-    }else{
-      std::vector< Node > children;
-      children.push_back( op );
-      for( unsigned j=0; j<fm->d_models[op]->d_cond[i].getNumChildren(); j++ ){
-        if( changed_vals[i].find(j)==changed_vals[i].end() ){
-          children.push_back( fm->d_models[op]->d_cond[i][j] );
-        }else{
-          children.push_back( changed_vals[i][j] );
-        }
-      }
-      Node nc = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-      conds.push_back( nc );
-      Trace("fmc-interval-model") << "Interval : Entry #" << i << " changed to ";
-      debugPrintCond("fmc-interval-model", nc, true );
-      Trace("fmc-interval-model") << std::endl;
-    }
-    values.push_back( fm->d_models[op]->d_value[i] );
-  }
-  fm->d_models[op]->reset();
-  for( unsigned i=0; i<conds.size(); i++ ){
-    fm->d_models[op]->addEntry(fm, conds[i], values[i] );
-  }
-}
-
-void FullModelChecker::makeIntervalModel( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
-                                          std::map< int, std::map< int, Node > >& changed_vals ) {
-  if( index==(int)fm->d_models[op]->d_cond[0].getNumChildren() ){
-    makeIntervalModel2( fm, op, indices, 0, changed_vals );
-  }else{
-    TypeNode tn = fm->d_models[op]->d_cond[0][index].getType();
-    if( tn.isInteger() ){
-      makeIntervalModel(fm,op,indices,index+1, changed_vals );
-    }else{
-      std::map< Node, std::vector< int > > new_indices;
-      for( unsigned i=0; i<indices.size(); i++ ){
-        Node v = fm->d_models[op]->d_cond[indices[i]][index];
-        new_indices[v].push_back( indices[i] );
-      }
-
-      for( std::map< Node, std::vector< int > >::iterator it = new_indices.begin(); it != new_indices.end(); ++it ){
-        makeIntervalModel( fm, op, it->second, index+1, changed_vals );
-      }
-    }
-  }
-}
-
-void FullModelChecker::makeIntervalModel2( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
-                                          std::map< int, std::map< int, Node > >& changed_vals ) {
-  Debug("fmc-interval-model-debug") << "Process " << index << " with indicies : ";
-  for( unsigned i=0; i<indices.size(); i++ ){
-    Debug("fmc-interval-model-debug") << indices[i] << " ";
-  }
-  Debug("fmc-interval-model-debug") << std::endl;
-
-  if( index<(int)fm->d_models[op]->d_cond[0].getNumChildren() ){
-    TypeNode tn = fm->d_models[op]->d_cond[0][index].getType();
-    if( tn.isInteger() ){
-      std::map< Node, std::vector< int > > new_indices;
-      for( unsigned i=0; i<indices.size(); i++ ){
-        Node v = fm->d_models[op]->d_cond[indices[i]][index];
-        new_indices[v].push_back( indices[i] );
-        if( !v.isConst() ){
-          Trace("fmc-warn") << "WARNING: for interval, model has non-constant : " << v << std::endl;
-          Trace("fmc-warn") << "From condition : " << fm->d_models[op]->d_cond[indices[i]] << std::endl;
-        }
-      }
-
-      std::vector< Node > values;
-      for( std::map< Node, std::vector< int > >::iterator it = new_indices.begin(); it != new_indices.end(); ++it ){
-        makeIntervalModel2( fm, op, it->second, index+1, changed_vals );
-        values.push_back( it->first );
-      }
-
-      if( tn.isInteger() ){
-        //sort values by size
-        ConstRationalSort crs;
-        std::vector< int > sindices;
-        for( unsigned i=0; i<values.size(); i++ ){
-          sindices.push_back( (int)i );
-          crs.d_terms.push_back( values[i] );
-        }
-        std::sort( sindices.begin(), sindices.end(), crs );
-
-        Node ub = fm->getStar( tn );
-        for( int i=(int)(sindices.size()-1); i>=0; i-- ){
-          Node lb = fm->getStar( tn );
-          if( i>0 ){
-            lb = values[sindices[i]];
-          }
-          Node interval = fm->getInterval( lb, ub );
-          for( unsigned j=0; j<new_indices[values[sindices[i]]].size(); j++ ){
-            Debug("fmc-interval-model-debug") << "Change " << new_indices[values[sindices[i]]][j] << ", " << index << " to " << interval << std::endl;
-            changed_vals[new_indices[values[sindices[i]]][j]][index] = interval;
-          }
-          ub = lb;
-        }
-      }
-    }else{
-      makeIntervalModel2( fm, op, indices, index+1, changed_vals );
-    }
-  }
 }

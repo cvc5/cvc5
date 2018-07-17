@@ -32,25 +32,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-// the number of d_drewrite objects we have allocated (to avoid name conflicts)
-static unsigned drewrite_counter = 0;
-
 CandidateRewriteDatabase::CandidateRewriteDatabase()
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_using_sygus(false)
 {
-  if (options::sygusRewSynthFilterCong())
-  {
-    // initialize the dynamic rewriter
-    std::stringstream ss;
-    ss << "_dyn_rewriter_" << drewrite_counter;
-    drewrite_counter++;
-    d_drewrite = std::unique_ptr<DynamicRewriter>(
-        new DynamicRewriter(ss.str(), &d_fake_context));
-    d_sampler.setDynamicRewriter(d_drewrite.get());
-  }
 }
 void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
                                           TypeNode tn,
@@ -65,6 +52,7 @@ void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
   d_tds = nullptr;
   d_ext_rewrite = er;
   d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
+  d_crewrite_filter.initialize(&d_sampler, nullptr, false);
 }
 
 void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
@@ -81,6 +69,7 @@ void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = d_tds->getExtRewriter();
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
+  d_crewrite_filter.initialize(&d_sampler, d_tds, true);
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
@@ -93,9 +82,8 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
   if (eq_sol != sol)
   {
     is_unique_term = false;
-    // if eq_sol is null, then we have an uninteresting candidate rewrite,
-    // e.g. one that is alpha-equivalent to another.
-    if (!eq_sol.isNull())
+    // should we filter the pair?
+    if (!d_crewrite_filter.filterPair(sol, eq_sol))
     {
       // get the actual term
       Node solb = sol;
@@ -124,12 +112,8 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       // verify it if applicable
       if (options::sygusRewSynthCheck())
       {
-        // Notice we don't set produce-models. rrChecker takes the same
-        // options as the SmtEngine we belong to, where we ensure that
-        // produce-models is set.
         NodeManager* nm = NodeManager::currentNM();
-        SmtEngine rrChecker(nm->toExprManager());
-        rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
+
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
         // quantify over the free variables in crr
@@ -158,8 +142,48 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           }
           crr = crr.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
         }
-        rrChecker.assertFormula(crr.toExpr());
-        Result r = rrChecker.checkSat();
+
+        // Notice we don't set produce-models. rrChecker takes the same
+        // options as the SmtEngine we belong to, where we ensure that
+        // produce-models is set.
+        bool needExport = true;
+        ExprManagerMapCollection varMap;
+        ExprManager em(nm->getOptions());
+        std::unique_ptr<SmtEngine> rrChecker;
+        Result r;
+        if (options::sygusRewSynthCheckTimeout.wasSetByUser())
+        {
+          // To support a separate timeout for the subsolver, we need to create
+          // a separate ExprManager with its own options. This requires that
+          // the expressions sent to the subsolver can be exported from on
+          // ExprManager to another. If the export fails, we throw an
+          // OptionException.
+          try
+          {
+            rrChecker.reset(new SmtEngine(&em));
+            rrChecker->setTimeLimit(options::sygusRewSynthCheckTimeout(), true);
+            rrChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
+            Expr eccr = crr.toExpr().exportTo(&em, varMap);
+            rrChecker->assertFormula(eccr);
+            r = rrChecker->checkSat();
+          }
+          catch (const CVC4::ExportUnsupportedException& e)
+          {
+            std::stringstream msg;
+            msg << "Unable to export " << crr
+                << " but exporting expressions is required for "
+                   "--sygus-rr-synth-check-timeout.";
+            throw OptionException(msg.str());
+          }
+        }
+        else
+        {
+          needExport = false;
+          rrChecker.reset(new SmtEngine(nm->toExprManager()));
+          rrChecker->assertFormula(crr.toExpr());
+          r = rrChecker->checkSat();
+        }
+
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {
@@ -191,7 +215,16 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             if (val.isNull())
             {
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
-              val = Node::fromExpr(rrChecker.getValue(refv.toExpr()));
+              if (needExport)
+              {
+                Expr erefv = refv.toExpr().exportTo(&em, varMap);
+                val = Node::fromExpr(rrChecker->getValue(erefv).exportTo(
+                    nm->toExprManager(), varMap));
+              }
+              else
+              {
+                val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
+              }
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
@@ -215,7 +248,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       if (!is_unique_term)
       {
         // register this as a relevant pair (helps filtering)
-        d_sampler.registerRelevantPair(sol, eq_sol);
+        d_crewrite_filter.registerRelevantPair(sol, eq_sol);
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.

@@ -42,9 +42,6 @@ public:
   bool hasGeneralization( FirstOrderModelFmc * m, Node c, int index = 0 );
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index = 0 );
   void getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
-
-  void collectIndices(Node c, int index, std::vector< int >& indices );
-  bool isComplete(FirstOrderModelFmc * m, Node c, int index);
 };/* class EntryTrie */
 
 
@@ -114,12 +111,6 @@ protected:
   //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
   bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
-protected:
-  void makeIntervalModel2( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
-                          std::map< int, std::map< int, Node > >& changed_vals );
-  void makeIntervalModel( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
-                          std::map< int, std::map< int, Node > >& changed_vals );
-  void convertIntervalModel( FirstOrderModelFmc * fm, Node op );
 private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 
@@ -140,13 +131,11 @@ private:
                              std::vector< Def > & dc, int index,
                              std::vector< Node > & cond, std::vector<Node> & val );
   int isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
-  Node doIntervalMeet( FirstOrderModelFmc * fm, Node i1, Node i2, bool mk = true );
   bool doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
   Node mkCond( std::vector< Node > & cond );
   Node mkCondDefault( FirstOrderModelFmc * fm, Node f );
   void mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond );
   void mkCondVec( Node n, std::vector< Node > & cond );
-  Node mkArrayCond( Node a );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 public:
