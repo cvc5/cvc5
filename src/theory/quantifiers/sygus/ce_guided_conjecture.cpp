@@ -102,7 +102,7 @@ void CegConjecture::assign( Node q ) {
   // we now finalize the single invocation module, based on the syntax restrictions
   if (d_qe->getQuantAttributes()->isSygus(q))
   {
-    d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
+    d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
 
   Assert( d_candidates.empty() );

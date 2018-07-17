@@ -119,9 +119,20 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   std::map<Node, Node>::iterator it = d_proxy_vars[tn].find(c);
   if (it == d_proxy_vars[tn].end())
   {
-    Node k = NodeManager::currentNM()->mkSkolem("sy", tn, "sygus proxy");
-    SygusPrintProxyAttribute spa;
-    k.setAttribute(spa, c);
+    int anyC = getAnyConstantConsNum(tn);
+    Node k;
+    if (anyC == -1)
+    {
+      k = NodeManager::currentNM()->mkSkolem("sy", tn, "sygus proxy");
+      SygusPrintProxyAttribute spa;
+      k.setAttribute(spa, c);
+    }
+    else
+    {
+      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      k = NodeManager::currentNM()->mkNode(
+          APPLY_CONSTRUCTOR, Node::fromExpr(dt[anyC].getConstructor()), c);
+    }
     d_proxy_vars[tn][c] = k;
     return k;
   }
@@ -174,6 +185,66 @@ Node TermDbSygus::mkGeneric(const Datatype& dt, int c)
   return mkGeneric(dt, c, pre);
 }
 
+struct CanonizeBuiltinAttributeId
+{
+};
+using CanonizeBuiltinAttribute =
+    expr::Attribute<CanonizeBuiltinAttributeId, Node>;
+
+Node TermDbSygus::canonizeBuiltin(Node n)
+{
+  std::map<TypeNode, int> var_count;
+  return canonizeBuiltin(n, var_count);
+}
+
+Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
+{
+  // has it already been computed?
+  if (var_count.empty() && n.hasAttribute(CanonizeBuiltinAttribute()))
+  {
+    Node ret = n.getAttribute(CanonizeBuiltinAttribute());
+    Trace("sygus-db-canon") << "cached " << n << " : " << ret << "\n";
+    return ret;
+  }
+  Trace("sygus-db-canon") << "  CanonizeBuiltin : compute for " << n << "\n";
+  Node ret = n;
+  // it is symbolic if it represents "any constant"
+  if (n.getKind() == APPLY_SELECTOR_TOTAL)
+  {
+    ret = getFreeVarInc(n[0].getType(), var_count, true);
+  }
+  else if (n.getKind() != APPLY_CONSTRUCTOR)
+  {
+    ret = n;
+  }
+  else
+  {
+    Assert(n.getKind() == APPLY_CONSTRUCTOR);
+    bool childChanged = false;
+    std::vector<Node> children;
+    children.push_back(n.getOperator());
+    for (unsigned j = 0, size = n.getNumChildren(); j < size; ++j)
+    {
+      Node child = canonizeBuiltin(n[j], var_count);
+      children.push_back(child);
+      childChanged = childChanged || child != n[j];
+    }
+    if (childChanged)
+    {
+      ret = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
+    }
+  }
+  // cache if we had a fresh variable count
+  if (var_count.empty())
+  {
+    n.setAttribute(CanonizeBuiltinAttribute(), ret);
+  }
+  Trace("sygus-db-canon") << "  ...normalized " << n << " --> " << ret
+                          << std::endl;
+  Assert(ret.getType().isComparableTo(n.getType()));
+  return ret;
+}
+
 struct SygusToBuiltinAttributeId
 {
 };
@@ -182,7 +253,7 @@ typedef expr::Attribute<SygusToBuiltinAttributeId, Node>
 
 Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
 {
-  Assert( n.getType()==tn );
+  Assert(n.getType().isComparableTo(tn));
   if (!tn.isDatatype())
   {
     return n;
@@ -291,26 +362,24 @@ public:
     if( d_req_kind!=UNDEFINED_KIND ){
       Trace("sygus-sb-debug") << "- check if " << tn << " has " << d_req_kind
                               << std::endl;
-      int c = tdb->getKindConsNum( tn, d_req_kind );
-      if( c!=-1 ){
+      std::vector<TypeNode> argts;
+      if (tdb->canConstructKind(tn, d_req_kind, argts))
+      {
         bool ret = true;
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
         for( std::map< unsigned, ReqTrie >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
-          if( it->first<dt[c].getNumArgs() ){
-            TypeNode tnc = tdb->getArgType( dt[c], it->first );
+          if (it->first < argts.size())
+          {
+            TypeNode tnc = argts[it->first];
             if( !it->second.satisfiedBy( tdb, tnc ) ){
-              ret = false;
-              break;
+              return false;
             }
           }else{
-            ret = false;
-            break;
+            return false;
           }
         }
         if( !ret ){
           return false;
         }
-        // TODO : commutative operators try both?
       }else{
         return false;
       }
@@ -799,14 +868,13 @@ void TermDbSygus::registerEnumerator(Node e,
   d_enum_to_using_sym_cons[e] = useSymbolicCons;
   // depending on if we are using symbolic constructors, introduce symmetry
   // breaking lemma templates for each relevant subtype of the grammar
-  std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it =
-      d_min_type_depth.find(et);
-  Assert(it != d_min_type_depth.end());
-  // for each type of subterm of this enumerator
-  for (const std::pair<const TypeNode, unsigned>& st : it->second)
+  std::vector<TypeNode> sf_types;
+  getSubfieldTypes(et, sf_types);
+  // for each type of subfield type of this enumerator
+  for (unsigned i = 0, ntypes = sf_types.size(); i < ntypes; i++)
   {
     std::vector<unsigned> rm_indices;
-    TypeNode stn = st.first;
+    TypeNode stn = sf_types[i];
     Assert(stn.isDatatype());
     const Datatype& dt = static_cast<DatatypeType>(stn.toType()).getDatatype();
     std::map<TypeNode, unsigned>::iterator itsa =
@@ -971,6 +1039,16 @@ TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
   return d_register[tn];
 }
 
+void TermDbSygus::toStreamSygus(const char* c, Node n)
+{
+  if (Trace.isOn(c))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
+    Trace(c) << ss.str();
+  }
+}
+
 void TermDbSygus::computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth ) {
   std::map< TypeNode, unsigned >::iterator it = d_min_type_depth[root_tn].find( tn );
   if( it==d_min_type_depth[root_tn].end() || type_depth<it->second ){
@@ -1069,6 +1147,17 @@ unsigned TermDbSygus::getSelectorWeight(TypeNode tn, Node sel)
   }
   Assert(itsw->second.find(sel) != itsw->second.end());
   return itsw->second[sel];
+}
+
+void TermDbSygus::getSubfieldTypes(TypeNode tn, std::vector<TypeNode>& sf_types)
+{
+  std::map<TypeNode, std::map<TypeNode, unsigned> >::iterator it =
+      d_min_type_depth.find(tn);
+  Assert(it != d_min_type_depth.end());
+  for (const std::pair<const TypeNode, unsigned>& st : it->second)
+  {
+    sf_types.push_back(st.first);
+  }
 }
 
 int TermDbSygus::getKindConsNum( TypeNode tn, Kind k ) {
@@ -1226,6 +1315,92 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   // it is symbolic if it represents "any constant"
   return sygusOp.getAttribute(SygusAnyConstAttribute());
+}
+
+bool TermDbSygus::canConstructKind(TypeNode tn,
+                                   Kind k,
+                                   std::vector<TypeNode>& argts,
+                                   bool aggr)
+{
+  int c = getKindConsNum(tn, k);
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  if (c != -1)
+  {
+    for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
+    {
+      argts.push_back(TypeNode::fromType(dt[c].getArgType(i)));
+    }
+    return true;
+  }
+  if (!options::sygusSymBreakAgg())
+  {
+    return false;
+  }
+  if (sygusToBuiltinType(tn).isBoolean())
+  {
+    if (k == ITE)
+    {
+      // ite( b1, b2, b3 ) <---- and( or( ~b1, b2 ), or( b1, b3 ) )
+      std::vector<TypeNode> conj_types;
+      if (canConstructKind(tn, AND, conj_types, true) && conj_types.size() == 2)
+      {
+        bool success = true;
+        std::vector<TypeNode> disj_types[2];
+        for (unsigned c = 0; c < 2; c++)
+        {
+          if (!canConstructKind(conj_types[c], OR, disj_types[c], true)
+              || disj_types[c].size() != 2)
+          {
+            success = false;
+            break;
+          }
+        }
+        if (success)
+        {
+          for (unsigned r = 0; r < 2; r++)
+          {
+            for (unsigned d = 0, size = disj_types[r].size(); d < size; d++)
+            {
+              TypeNode dtn = disj_types[r][d];
+              // must have negation that occurs in the other conjunct
+              std::vector<TypeNode> ntypes;
+              if (canConstructKind(dtn, NOT, ntypes) && ntypes.size() == 1)
+              {
+                TypeNode ntn = ntypes[0];
+                for (unsigned dd = 0, size = disj_types[1 - r].size();
+                     dd < size;
+                     dd++)
+                {
+                  if (disj_types[1 - r][dd] == ntn)
+                  {
+                    argts.push_back(ntn);
+                    argts.push_back(disj_types[r][d]);
+                    argts.push_back(disj_types[1 - r][1 - dd]);
+                    if (Trace.isOn("sygus-cons-kind"))
+                    {
+                      Trace("sygus-cons-kind")
+                          << "Can construct kind " << k << " in " << tn
+                          << " via child types:" << std::endl;
+                      for (unsigned i = 0; i < 3; i++)
+                      {
+                        Trace("sygus-cons-kind")
+                            << "  " << argts[i] << std::endl;
+                      }
+                    }
+                    return true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  // could try aggressive inferences here, such as
+  // (and b1 b2) <---- (not (or (not b1) (not b2)))
+  // (or b1 b2)  <---- (not (and (not b1) (not b2)))
+  return false;
 }
 
 Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
