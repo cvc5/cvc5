@@ -79,9 +79,9 @@
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
+#include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
-#include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -2712,8 +2712,6 @@ void SmtEnginePrivate::finishInit()
       new BvIntroPow2(d_preprocessingPassContext.get()));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVGauss> bvGauss(
-      new BVGauss(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
@@ -2728,19 +2726,15 @@ void SmtEnginePrivate::finishInit()
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("apply-substs",
+ std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
+      new SepSkolemEmp(d_preprocessingPassContext.get()));
+   d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
   d_preprocessingPassRegistry.registerPass("bv-ackermann",
                                            std::move(bvAckermann));
-  std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
-      new SepSkolemEmp(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
@@ -2750,16 +2744,12 @@ void SmtEnginePrivate::finishInit()
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
   d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
+  d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
+                                           std::move(sepSkolemEmp));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
-                                           std::move(pbProc)); 
-  d_preprocessingPassRegistry.registerPass("sep-skolem-emp", std::move(sepSkolemEmp));
-  d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
-                                           std::move(sepSkolemEmp));
-  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
