@@ -433,7 +433,8 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      if (!options::sygusPbeMultiFair() || szs[i] - min_term_size <= options::sygusPbeMultiFairDiff())
+      if (!options::sygusPbeMultiFair()
+          || szs[i] - min_term_size <= options::sygusPbeMultiFairDiff())
       {
         enum_consider.push_back( i );
       }
