@@ -233,16 +233,16 @@ enum CegqiSingleInvRconsMode
    */
   CEGQI_SI_RCONS_MODE_TRY,
   /**
-   * Reconsturct solutions to single invocation conjectures. This method
-   * relies on an expensive enumeration technique which only terminate when
-   * we succesfully reconstruct the solution, although it may not terminate.
-   */
-  CEGQI_SI_RCONS_MODE_ALL,
-  /**
-   * Reconsturct solutions to single invocation conjectures, but fail if we
+   * Reconstruct solutions to single invocation conjectures, but fail if we
    * reach an upper limit on number of iterations in the enumeration
    */
   CEGQI_SI_RCONS_MODE_ALL_LIMIT,
+  /**
+   * Reconstruct solutions to single invocation conjectures. This method
+   * relies on an expensive enumeration technique which only terminates when
+   * we succesfully reconstruct the solution, although it may not terminate.
+   */
+  CEGQI_SI_RCONS_MODE_ALL,
 };
 
 enum CegisSampleMode

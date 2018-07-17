@@ -494,7 +494,8 @@ all \n\
 
 const std::string OptionsHandler::s_cegqiSingleInvRconsHelp =
     "\
-Modes for reconstruction solutions while using single invocation techniques, supported by --cegqi-si-rcons:\n\
+Modes for reconstruction solutions while using single invocation techniques,\
+supported by --cegqi-si-rcons:\n\
 \n\
 none \n\
 + Do not try to reconstruct solutions in the original (user-provided) grammar\
@@ -502,16 +503,16 @@ none \n\
   CVC4 may violate grammar restrictions.\n\
 \n\
 try \n\
-+ Try to reconstruction solutions in the original grammar when using single\
++ Try to reconstruct solutions in the original grammar when using single\
   invocation techniques in an incomplete (fail-fast) manner.\n\
-\n\
-all \n\
-+ Try to reconstruct solutions in the original grammar. In this mode,\
-  we do not terminate until a solution is successfully reconstructed. \n\
 \n\
 all-limit \n\
 + Try to reconstruct solutions in the original grammar, but termintate if a\
   maximum number of rounds for reconstruction is exceeded.\n\
+\n\
+all \n\
++ Try to reconstruct solutions in the original grammar. In this mode,\
+  we do not terminate until a solution is successfully reconstructed. \n\
 \n\
 ";
 
