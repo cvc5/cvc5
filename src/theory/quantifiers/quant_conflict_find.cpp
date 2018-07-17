@@ -253,28 +253,6 @@ bool QuantInfo::reset_round( QuantConflictFind * p ) {
   d_curr_var_deq.clear();
   d_tconstraints.clear();
   
-  //add built-in variable constraints
-  for( unsigned r=0; r<2; r++ ){
-    for( std::map< int, std::vector< Node > >::iterator it = d_var_constraint[r].begin();
-         it != d_var_constraint[r].end(); ++it ){
-      for( unsigned j=0; j<it->second.size(); j++ ){
-        Node rr = it->second[j];
-        if( !isVar( rr ) ){
-          rr = p->getRepresentative( rr );
-        }
-        if( addConstraint( p, it->first, rr, r==0 )==-1 ){
-          d_var_constraint[0].clear();
-          d_var_constraint[1].clear();
-          //quantified formula is actually equivalent to true
-          Trace("qcf-qregister") << "Quantifier is equivalent to true!!!" << std::endl;
-          d_mg->d_children.clear();
-          d_mg->d_n = NodeManager::currentNM()->mkConst( true );
-          d_mg->d_type = MatchGen::typ_ground;
-          return false;
-        }
-      }
-    }
-  }
   d_mg->reset_round( p );
   for( std::map< int, MatchGen * >::iterator it = d_var_mg.begin(); it != d_var_mg.end(); ++it ){
     it->second->reset_round( p );
@@ -664,24 +642,6 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
     }else{
       return chEnt;
     }
-/*
-    if( chEnt ){
-      //check if it is entailed
-      Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
-      std::pair<bool, Node> et = p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, rew );
-      ++(p->d_statistics.d_entailment_checks);
-      Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
-      if( !et.first ){
-        Trace("qcf-tconstraint-debug") << "...cannot show entailment of " << rew << "." << std::endl;
-        return false;
-      }else{
-        return true;
-      }
-    }else{
-      Trace("qcf-tconstraint-debug") << "...does not need to be entailed." << std::endl;
-      return true;
-    }
-*/
   }else{
     Trace("qcf-tconstraint-debug") << "...rewrites to true." << std::endl;
     return true;
@@ -1287,11 +1247,14 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     TNode f = getMatchOperator( p, d_n );
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
     TermArgTrie * qni = p->getTermDatabase()->getTermArgTrie( Node::null(), f );
-    if( qni!=NULL ){
-      d_qn.push_back( qni );
-    }else{
+    if (qni == nullptr || qni->empty())
+    {
       //inform irrelevant quantifiers
       p->setIrrelevantFunction( f );
+    }
+    else
+    {
+      d_qn.push_back(qni);
     }
     d_matched_basis = false;
   }else if( d_type==typ_tsym || d_type==typ_tconstraint ){
@@ -1526,7 +1489,9 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
     Debug("qcf-match") << "    ...finished matching for " << d_n << ", success = " << success << std::endl;
     d_wasSet = success;
     return success;
-  }else if( d_type==typ_formula || d_type==typ_ite_var ){
+  }
+  else if (d_type == typ_formula)
+  {
     bool success = false;
     if( d_child_counter<0 ){
       if( d_child_counter<-1 ){
@@ -1597,7 +1562,8 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
               d_child_counter++;
               getChild( d_child_counter==5 ? 2 : (d_tgt==(d_child_counter==1) ? 1 : 2) )->reset( p, d_tgt, qi );
             }else{
-              if( d_child_counter==4 || ( d_type==typ_ite_var && d_child_counter==2 ) ){
+              if (d_child_counter == 4)
+              {
                 d_child_counter = -1;
               }else{
                 d_child_counter +=2;
@@ -1628,84 +1594,6 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
   }
   Debug("qcf-match") << "    ...already finished for " << d_n << std::endl;
   return false;
-}
-
-bool MatchGen::getExplanation( QuantConflictFind * p, QuantInfo * qi, std::vector< Node >& exp ) {
-  if( d_type==typ_eq ){
-    Node n[2];
-    for( unsigned i=0; i<2; i++ ){
-      Trace("qcf-explain") << "Explain term " << d_n[i] << "..." << std::endl;
-      n[i] = getExplanationTerm( p, qi, d_n[i], exp );
-    }
-    Node eq = n[0].eqNode( n[1] );
-    if( !d_tgt_orig ){
-      eq = eq.negate();
-    }
-    exp.push_back( eq );
-    Trace("qcf-explain") << "Explanation for " << d_n << " (tgt=" << d_tgt_orig << ") is " << eq << ", set = " << d_wasSet << std::endl;
-    return true;
-  }else if( d_type==typ_pred ){
-    Trace("qcf-explain") << "Explain term " << d_n << "..." << std::endl;
-    Node n = getExplanationTerm( p, qi, d_n, exp );
-    if( !d_tgt_orig ){
-      n = n.negate();
-    }
-    exp.push_back( n );
-    Trace("qcf-explain") << "Explanation for " << d_n << " (tgt=" << d_tgt_orig << ") is " << n << ", set = " << d_wasSet << std::endl;
-    return true;
-  }else if( d_type==typ_formula ){
-    Trace("qcf-explain") << "Explanation get for " << d_n << ", counter = " << d_child_counter << ", tgt = " << d_tgt_orig << ", set = " << d_wasSet << std::endl;
-    if( d_n.getKind()==OR || d_n.getKind()==AND ){
-      if( (d_n.getKind()==AND)==d_tgt ){
-        for( unsigned i=0; i<getNumChildren(); i++ ){
-          if( !getChild( i )->getExplanation( p, qi, exp ) ){
-            return false;
-          }
-        }
-      }else{
-        return getChild( d_child_counter )->getExplanation( p, qi, exp );
-      }
-    }else if( d_n.getKind()==EQUAL ){
-      for( unsigned i=0; i<2; i++ ){
-        if( !getChild( i )->getExplanation( p, qi, exp ) ){
-          return false;
-        }
-      }
-    }else if( d_n.getKind()==ITE ){
-      for( unsigned i=0; i<3; i++ ){
-        bool isActive = ( ( i==0 && d_child_counter!=5 ) ||
-                          ( i==1 && d_child_counter!=( d_tgt ? 3 : 1 ) ) ||
-                          ( i==2 && d_child_counter!=( d_tgt ? 1 : 3 ) ) );
-        if( isActive ){
-          if( !getChild( i )->getExplanation( p, qi, exp ) ){
-            return false;
-          }
-        }
-      }
-    }else{
-      return false;
-    }
-    return true;
-  }else{
-    return false;
-  }
-}
-
-Node MatchGen::getExplanationTerm( QuantConflictFind * p, QuantInfo * qi, Node t, std::vector< Node >& exp ) {
-  Node v = qi->getCurrentExpValue( t );
-  if( isHandledUfTerm( t ) ){
-    for( unsigned i=0; i<t.getNumChildren(); i++ ){
-      Node vi = getExplanationTerm( p, qi, t[i], exp );
-      if( vi!=v[i] ){
-        Node eq = vi.eqNode( v[i] );
-        if( std::find( exp.begin(), exp.end(), eq )==exp.end() ){
-          Trace("qcf-explain") << "  add : " << eq << "." << std::endl;
-          exp.push_back( eq );
-        }
-      }
-    }
-  }
-  return v;
 }
 
 bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
@@ -1843,7 +1731,6 @@ void MatchGen::debugPrintType( const char * c, short typ, bool isTrace ) {
     case typ_pred: Trace(c) << "pred";break;
     case typ_formula: Trace(c) << "formula";break;
     case typ_var: Trace(c) << "var";break;
-    case typ_ite_var: Trace(c) << "ite_var";break;
     case typ_bool_var: Trace(c) << "bool_var";break;
     }
   }else{
@@ -1854,7 +1741,6 @@ void MatchGen::debugPrintType( const char * c, short typ, bool isTrace ) {
     case typ_pred: Debug(c) << "pred";break;
     case typ_formula: Debug(c) << "formula";break;
     case typ_var: Debug(c) << "var";break;
-    case typ_ite_var: Debug(c) << "ite_var";break;
     case typ_bool_var: Debug(c) << "bool_var";break;
     }
   }
@@ -1906,10 +1792,6 @@ QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe, context::Context* c)
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
       d_effort(EFFORT_INVALID),
       d_needs_computeRelEqr() {}
-
-Node QuantConflictFind::mkEqNode( Node a, Node b ) {
-  return a.eqNode( b );
-}
 
 //-------------------------------------------------- registration
 
@@ -2031,14 +1913,8 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
 inline QuantConflictFind::Effort QcfEffortEnd() {
-  switch (options::qcfMode()) {
-    case QCF_PROP_EQ:
-    case QCF_PARTIAL:
-      return QuantConflictFind::EFFORT_PROP_EQ;
-    case QCF_CONFLICT_ONLY:
-    default:
-      return QuantConflictFind::EFFORT_PROP_EQ;
-  }
+  return options::qcfMode() == QCF_PROP_EQ ? QuantConflictFind::EFFORT_PROP_EQ
+                                           : QuantConflictFind::EFFORT_CONFLICT;
 }
 
 }  // namespace
