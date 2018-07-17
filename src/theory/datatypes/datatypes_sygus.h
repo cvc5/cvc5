@@ -429,12 +429,6 @@ private:
    *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
    */
   Node getTermOrderPredicate( Node n1, Node n2 );
-  /** the is-constant predicate, per sygus datatype type
-   *
-   * For each sygus datatype tn, this predicate states that x is a sygus
-   * datatype value corresponding to a constant, where x is getFreeVar( tn ).
-   */
-  std::map<TypeNode, Node> d_isconst_pred;
 
  private:
   /**
