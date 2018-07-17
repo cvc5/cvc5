@@ -205,19 +205,6 @@ private:
     /** the size of terms in the range of d_search val. */
     std::map<TypeNode, std::unordered_map<Node, unsigned, NodeHashFunction>>
         d_search_val_sz;
-    /**
-     * For each type tn, this stores all builtin constants in the domain of
-     * d_search_val[tn].
-     */
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
-        d_search_val_consts;
-    /**
-     * The (finite) cardinality of each type if it exists, or -1 if the
-     * cardinality of the type is large or infinite).
-     */
-    std::map<TypeNode, int> d_search_val_const_cardinality;
-    /** explanation for why any search value is a constant */
-    std::map<TypeNode, Node> d_isconst_rec_pred;
     /** For each term, whether this cache has processed that term */
     std::unordered_set<Node, NodeHashFunction> d_search_val_proc;
   };
