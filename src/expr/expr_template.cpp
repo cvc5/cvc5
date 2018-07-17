@@ -248,8 +248,11 @@ public:
         children.push_back(exportInternal(*i));
       }
       if(Debug.isOn("export")) {
-        ExprManagerScope ems(*to);
         Debug("export") << "children for export from " << n << std::endl;
+
+        // `n` belongs to the `from` ExprManager, so begin ExprManagerScope
+        // after printing `n`
+        ExprManagerScope ems(*to);
         for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
           Debug("export") << "  child: " << *i << std::endl;
         }
