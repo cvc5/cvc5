@@ -840,83 +840,6 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
   return false;
 }
 
-Node SygusUnifIo::getExclusionInvariancePredicate(
-    Node e, Node v, std::map<Node, std::vector<Node>>& srmap, bool prereg)
-{
-  if (prereg)
-  {
-    return Node::null();
-  }
-  Node c = d_candidate;
-  std::vector<Node> conj;
-  NodeManager* nm = NodeManager::currentNM();
-  // if (useStrContainsEnumeratorExclude(e))
-  //{
-  //}
-  bool invariant_eval_role = true;
-  EnumInfo& ei = d_strategy[c].getEnumInfo(e);
-  for (const Node& sn : ei.d_enum_slave)
-  {
-    EnumInfo& eis = d_strategy[c].getEnumInfo(sn);
-    EnumRole er = eis.getRole();
-    if (er != enum_io && er != enum_ite_condition)
-    {
-      invariant_eval_role = false;
-      break;
-    }
-  }
-  if (invariant_eval_role)
-  {
-    for (const Node& sn : ei.d_enum_slave)
-    {
-      EnumInfo& eis = d_strategy[c].getEnumInfo(sn);
-      EnumRole er = eis.getRole();
-      Node templ = eis.d_template;
-      TNode templ_var = eis.d_template_arg;
-      // get the results
-      std::vector<Node>& sresults = srmap[sn];
-      Assert(d_examples_out.size() == sresults.size());
-
-      for (unsigned j = 0, size = sresults.size(); j < size; j++)
-      {
-        std::vector<Node> echildren;
-        echildren.push_back(e);
-        echildren.insert(
-            echildren.end(), d_examples[j].begin(), d_examples[j].end());
-        Node dte = nm->mkNode(DT_SYGUS_EVAL, echildren);
-        if (!templ.isNull())
-        {
-          dte = templ.substitute(templ_var, dte);
-        }
-        Assert(sresults[j].isConst());
-        if (er == enum_io)
-        {
-          // it is being used as i/o, we must maintain the false examples
-          if (sresults[j] != d_examples_out[j])
-          {
-            conj.push_back(dte.eqNode(d_examples_out[j]).negate());
-          }
-        }
-        else if (er == enum_ite_condition)
-        {
-          // must remain the same evaluation
-          Assert(dte.getType().isBoolean());
-          conj.push_back(sresults[j].getConst<bool>() ? dte : dte.negate());
-        }
-      }
-    }
-  }
-  if (!conj.empty())
-  {
-    Node eip = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
-    Trace("sygus-io-eip") << "Exclusion invariance predicate for " << v
-                          << " is : " << eip << std::endl;
-    return eip;
-  }
-
-  return Node::null();
-}
-
 bool SygusUnifIo::getExplanationForEnumeratorExclude(
     Node e,
     Node v,
@@ -970,23 +893,6 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
       Trace("sygus-sui-cterm")
           << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin(v)
           << " due to negative containment." << std::endl;
-      return true;
-    }
-  }
-  if (options::sygusExcInvPred())
-  {
-    Node pred = getExclusionInvariancePredicate(e, v, srmap, prereg);
-    if (!pred.isNull())
-    {
-      EvalSygusInvarianceTest esit;
-      esit.init(pred, e, nm->mkConst(true));
-      // construct the generalized explanation
-      d_tds->getExplain()->getExplanationFor(e, v, exp, esit);
-      std::vector<Node> triv_exp;
-      d_tds->getExplain()->getExplanationForEquality(e, v, triv_exp);
-      Trace("sygus-io-eip2")
-          << "Generalized explanation of " << d_tds->sygusToBuiltin(v) << ": "
-          << exp.size() << "/" << triv_exp.size() << std::endl;
       return true;
     }
   }

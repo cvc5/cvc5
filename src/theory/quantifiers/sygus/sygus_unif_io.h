@@ -422,10 +422,6 @@ class SygusUnifIo : public SygusUnif
       std::map<Node, std::vector<Node>>& srmap,
       bool prereg,
       std::vector<Node>& exp);
-  Node getExclusionInvariancePredicate(Node e,
-                                       Node v,
-                                       std::map<Node, std::vector<Node>>& srmap,
-                                       bool prereg);
   /** returns true if we can exlude values of e based on negative str.contains
    *
    * Values v for e may be excluded if we realize that the value of v under the
