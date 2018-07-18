@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,8 +62,6 @@ public:
               const std::vector<Node>& ebvl);
  /** is the syntax restricted? */
  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
- /** does the syntax allow ITE expressions? */
- bool hasSyntaxITE() { return d_has_ite; }
  /** make the default sygus datatype type corresponding to builtin type range
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,8 +59,6 @@ enum MbqiMode {
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** mbqi with integer intervals */
-  MBQI_FMC_INTERVAL,
   /** abstract mbqi algorithm */
   MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
@@ -210,10 +208,39 @@ enum CegqiSingleInvMode {
   CEGQI_SI_MODE_NONE,
   /** use single invocation techniques */
   CEGQI_SI_MODE_USE,
-  /** always use single invocation techniques, abort if solution reconstruction will fail */
-  CEGQI_SI_MODE_ALL_ABORT,
   /** always use single invocation techniques */
   CEGQI_SI_MODE_ALL,
+};
+
+/** Solution reconstruction modes for single invocation conjectures
+ *
+ * These modes indicate the policy when CVC4 solves a synthesis conjecture using
+ * single invocation techniques for a sygus problem with a user-specified
+ * grammar.
+ */
+enum CegqiSingleInvRconsMode
+{
+  /**
+   * Do not try to reconstruct solutions to single invocation conjectures. With
+   * this mode, solutions produced by CVC4 may violate grammar restrictions.
+   */
+  CEGQI_SI_RCONS_MODE_NONE,
+  /**
+   * Try to reconstruct solution to single invocation conjectures in an
+   * incomplete (fail fast) way.
+   */
+  CEGQI_SI_RCONS_MODE_TRY,
+  /**
+   * Reconstruct solutions to single invocation conjectures, but fail if we
+   * reach an upper limit on number of iterations in the enumeration
+   */
+  CEGQI_SI_RCONS_MODE_ALL_LIMIT,
+  /**
+   * Reconstruct solutions to single invocation conjectures. This method
+   * relies on an expensive enumeration technique which only terminates when
+   * we succesfully reconstruct the solution, although it may not terminate.
+   */
+  CEGQI_SI_RCONS_MODE_ALL,
 };
 
 enum CegisSampleMode

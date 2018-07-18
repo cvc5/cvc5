@@ -2,9 +2,9 @@
 /*! \file ce_guided_conjecture.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -102,7 +102,7 @@ void CegConjecture::assign( Node q ) {
   // we now finalize the single invocation module, based on the syntax restrictions
   if (d_qe->getQuantAttributes()->isSygus(q))
   {
-    d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
+    d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
 
   Assert( d_candidates.empty() );
@@ -668,11 +668,20 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
             d_crrdb.find(prog);
         if (its == d_crrdb.end())
         {
-          d_crrdb[prog].initialize(
+          d_crrdb[prog].initializeSygus(
               d_qe, d_candidates[i], options::sygusSamples(), true);
           its = d_crrdb.find(prog);
         }
-        is_unique_term = d_crrdb[prog].addTerm(sol, out);
+        bool rew_print = false;
+        is_unique_term = d_crrdb[prog].addTerm(sol, out, rew_print);
+        if (rew_print)
+        {
+          ++(cei->d_statistics.d_candidate_rewrites_print);
+        }
+        if (!is_unique_term)
+        {
+          ++(cei->d_statistics.d_candidate_rewrites);
+        }
       }
       if (is_unique_term)
       {

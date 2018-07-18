@@ -2,9 +2,9 @@
 /*! \file nonlinear_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -544,8 +544,8 @@ class NonlinearExtension {
   std::vector<Node> d_order_points;
   
   //transcendental functions
-  std::map<Node, Node> d_trig_base;
-  std::map<Node, bool> d_trig_is_base;
+  std::map<Node, Node> d_tr_base;
+  std::map<Node, bool> d_tr_is_base;
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
   std::vector<Node> d_waiting_lemmas;
