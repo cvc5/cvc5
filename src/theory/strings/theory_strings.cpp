@@ -769,6 +769,10 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 
 Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
+  if( node.getKind()==kind::STRING_IN_REGEXP )
+  {
+    // aggressive elimination of regular expression membership
+  }
   return node;
 }
 
