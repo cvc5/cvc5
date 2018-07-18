@@ -82,10 +82,14 @@ bool TypeNode::isInterpretedFinite()
   // check it is already cached
   if (!getAttribute(IsInterpretedFiniteComputedAttr()))
   {
-    Trace("ajr-temp") << "compute for " << *this << std::endl;
     bool isInterpretedFinite = false;
     if( isSort() ){
+      // If the finite model finding flag is set, we treat uninterpreted sorts
+      // as finite. If it is not set, we treat them implicitly as infinite
+      // sorts (that is, their cardinality is not constrained to be finite).
       isInterpretedFinite = options::finiteModelFind();
+    }else if( isBitVector() || isFloatingPoint() ){
+      isInterpretedFinite = true;
     }else if( isDatatype() ){
       TypeNode tn = *this;
       const Datatype& dt = getDatatype();
@@ -94,13 +98,19 @@ bool TypeNode::isInterpretedFinite()
       TypeNode tnc = getArrayConstituentType();
       if( !tnc.isInterpretedFinite() )
       {
+        // arrays with consistuent type that is infinite are infinite
         isInterpretedFinite = false;
+      }
+      else if( getArrayIndexType().isInterpretedFinite() )
+      {
+        // arrays with both finite consistuent and index types are finite
+        isInterpretedFinite = true;
       }
       else
       {
-        isInterpretedFinite =
-            getArrayIndexType().isInterpretedFinite()
-            || tnc.getCardinality().isOne();
+        // If the consistuent type of the array has cardinality one, then the
+        // array type has cardinality one, independent of the index type.
+        isInterpretedFinite = tnc.getCardinality().isOne();
       }
     }else if( isSet() ) {
       isInterpretedFinite = getSetElementType().isInterpretedFinite();
@@ -108,7 +118,8 @@ bool TypeNode::isInterpretedFinite()
     else if (isFunction())
     {
       isInterpretedFinite = true;
-      if (!getRangeType().isInterpretedFinite())
+      TypeNode tnr = getRangeType();
+      if (!tnr.isInterpretedFinite())
       {
         isInterpretedFinite = false;
       }
@@ -123,10 +134,19 @@ bool TypeNode::isInterpretedFinite()
             break;
           }
         }
+        if( !isInterpretedFinite )
+        {
+          // similar to arrays, functions are finite if their range type
+          // has cardinality one, regardless of the arguments.
+          isInterpretedFinite = tnr.getCardinality().isOne();
+        }
       }
     }
     else
     {
+      // by default, compute the exact cardinality for the type and check
+      // whether it is finite. This should be avoided in general, since
+      // computing cardinalities for types can be highly expensive.
       isInterpretedFinite = getCardinality().isFinite();
     }
     setAttribute(IsInterpretedFiniteAttr(), isInterpretedFinite);
