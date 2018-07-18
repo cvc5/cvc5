@@ -772,6 +772,19 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   if( node.getKind()==kind::STRING_IN_REGEXP )
   {
     // aggressive elimination of regular expression membership
+    Node re = node[1];
+    if( re.getKind()==kind::REGEXP_CONCAT )
+    {
+      Trace("strings-exp-def") << "Try re.++:" << std::endl;
+      std::vector< Node > children;
+      TheoryStringsRewriter::getConcat(node[1], children);
+      bool success = true;
+      for( const Node& c : children )
+      {
+        Trace("strings-exp-def") << "  " << c << std::endl;
+        
+      }
+    }
   }
   return node;
 }
