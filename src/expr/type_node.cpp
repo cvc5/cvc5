@@ -82,46 +82,52 @@ bool TypeNode::isInterpretedFinite()
   // check it is already cached
   if (!getAttribute(IsInterpretedFiniteComputedAttr()))
   {
+    Trace("ajr-temp") << "compute for " << *this << std::endl;
     bool isInterpretedFinite = false;
-    if (getCardinality().isFinite())
-    {
-      isInterpretedFinite = true;
-    }
-    else if (options::finiteModelFind())
-    {
-      if( isSort() ){
-        isInterpretedFinite = true;
-      }else if( isDatatype() ){
-        TypeNode tn = *this;
-        const Datatype& dt = getDatatype();
-        isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
-      }else if( isArray() ){
+    if( isSort() ){
+      isInterpretedFinite = options::finiteModelFind();
+    }else if( isDatatype() ){
+      TypeNode tn = *this;
+      const Datatype& dt = getDatatype();
+      isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
+    }else if( isArray() ){
+      TypeNode tnc = getArrayConstituentType();
+      if( !tnc.isInterpretedFinite() )
+      {
+        isInterpretedFinite = false;
+      }
+      else
+      {
         isInterpretedFinite =
             getArrayIndexType().isInterpretedFinite()
-            && getArrayConstituentType().isInterpretedFinite();
-      }else if( isSet() ) {
-        isInterpretedFinite = getSetElementType().isInterpretedFinite();
+            || tnc.getCardinality().isOne();
       }
-      else if (isFunction())
+    }else if( isSet() ) {
+      isInterpretedFinite = getSetElementType().isInterpretedFinite();
+    }
+    else if (isFunction())
+    {
+      isInterpretedFinite = true;
+      if (!getRangeType().isInterpretedFinite())
       {
-        isInterpretedFinite = true;
-        if (!getRangeType().isInterpretedFinite())
+        isInterpretedFinite = false;
+      }
+      else
+      {
+        std::vector<TypeNode> argTypes = getArgTypes();
+        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
-          isInterpretedFinite = false;
-        }
-        else
-        {
-          std::vector<TypeNode> argTypes = getArgTypes();
-          for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+          if (!argTypes[i].isInterpretedFinite())
           {
-            if (!argTypes[i].isInterpretedFinite())
-            {
-              isInterpretedFinite = false;
-              break;
-            }
+            isInterpretedFinite = false;
+            break;
           }
         }
       }
+    }
+    else
+    {
+      isInterpretedFinite = getCardinality().isFinite();
     }
     setAttribute(IsInterpretedFiniteAttr(), isInterpretedFinite);
     setAttribute(IsInterpretedFiniteComputedAttr(), true);
