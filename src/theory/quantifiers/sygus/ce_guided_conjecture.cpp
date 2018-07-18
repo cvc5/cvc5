@@ -128,7 +128,7 @@ void CegConjecture::assign( Node q ) {
       {
         // no constant repair is possible: abort
         std::stringstream ss;
-        ss << "Grammar does not require repair constants." << std::endl;
+        ss << "Grammar does not allow repair constants." << std::endl;
         throw LogicException(ss.str());
       }
     }
