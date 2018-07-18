@@ -263,10 +263,13 @@ void TheoryDatatypes::check(Effort e) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  Trace("datatypes-debug") << j << " compute finite..." << std::endl;
-                  bool ifin = dt[ j ].isInterpretedFinite( tt );
-                  Trace("datatypes-debug") << "...returned " << ifin << std::endl;
-                  if( !ifin ) {
+                  Trace("datatypes-debug") << j << " compute finite..."
+                                           << std::endl;
+                  bool ifin = dt[j].isInterpretedFinite(tt);
+                  Trace("datatypes-debug") << "...returned " << ifin
+                                           << std::endl;
+                  if (!ifin)
+                  {
                     if( !eqc || !eqc->d_selectors ){
                       needSplit = false;
                     }

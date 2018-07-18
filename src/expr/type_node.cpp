@@ -83,25 +83,32 @@ bool TypeNode::isInterpretedFinite()
   if (!getAttribute(IsInterpretedFiniteComputedAttr()))
   {
     bool isInterpretedFinite = false;
-    if( isSort() ){
+    if (isSort())
+    {
       // If the finite model finding flag is set, we treat uninterpreted sorts
       // as finite. If it is not set, we treat them implicitly as infinite
       // sorts (that is, their cardinality is not constrained to be finite).
       isInterpretedFinite = options::finiteModelFind();
-    }else if( isBitVector() || isFloatingPoint() ){
+    }
+    else if (isBitVector() || isFloatingPoint())
+    {
       isInterpretedFinite = true;
-    }else if( isDatatype() ){
+    }
+    else if (isDatatype())
+    {
       TypeNode tn = *this;
       const Datatype& dt = getDatatype();
       isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
-    }else if( isArray() ){
+    }
+    else if (isArray())
+    {
       TypeNode tnc = getArrayConstituentType();
-      if( !tnc.isInterpretedFinite() )
+      if (!tnc.isInterpretedFinite())
       {
         // arrays with consistuent type that is infinite are infinite
         isInterpretedFinite = false;
       }
-      else if( getArrayIndexType().isInterpretedFinite() )
+      else if (getArrayIndexType().isInterpretedFinite())
       {
         // arrays with both finite consistuent and index types are finite
         isInterpretedFinite = true;
@@ -112,7 +119,9 @@ bool TypeNode::isInterpretedFinite()
         // array type has cardinality one, independent of the index type.
         isInterpretedFinite = tnc.getCardinality().isOne();
       }
-    }else if( isSet() ) {
+    }
+    else if (isSet())
+    {
       isInterpretedFinite = getSetElementType().isInterpretedFinite();
     }
     else if (isFunction())
@@ -134,7 +143,7 @@ bool TypeNode::isInterpretedFinite()
             break;
           }
         }
-        if( !isInterpretedFinite )
+        if (!isInterpretedFinite)
         {
           // similar to arrays, functions are finite if their range type
           // has cardinality one, regardless of the arguments.
