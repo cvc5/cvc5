@@ -728,6 +728,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
 }
 
 Node TheoryStringsRewriter::rewriteMembership(TNode node) {
+  NodeManager * nm = NodeManager::currentNM();
   Node retNode = node;
   Node x = node[0];
   Node r = node[1];
@@ -739,7 +740,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     CVC4::String s = x.getConst<String>();
     retNode = NodeManager::currentNM()->mkConst( testConstStringInRegExp( s, 0, r ) );
   } else if(r.getKind() == kind::REGEXP_SIGMA) {
-    Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+    Node one = NodeManager::currentNM()->mkConst(Rational(1));
     retNode = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
     if( r[0].getKind() == kind::REGEXP_SIGMA ){
@@ -774,6 +775,9 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     retNode = NodeManager::currentNM()->mkNode( r.getKind()==kind::REGEXP_INTER ? kind::AND : kind::OR, mvec );
   }else if(r.getKind() == kind::STRING_TO_REGEXP) {
     retNode = x.eqNode(r[0]);
+  }else if(r.getKind() == REGEXP_RANGE ){
+    Node xcode = nm->mkNode(STRING_CODE,x);
+    retNode = nm->mkNode(AND, nm->mkNode(LEQ,nm->mkNode(STRING_CODE,r[0]),xcode),nm->mkNode(LEQ,xcode,nm->mkNode(STRING_CODE,r[1])));
   }else if(x != node[0] || r != node[1]) {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
   }

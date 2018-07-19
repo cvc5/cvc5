@@ -4448,27 +4448,35 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       std::vector< Node > char_constraints;
       Node index = nm->mkBoundVar(nm->integerType());
       Node substr_ch = nm->mkNode(STRING_SUBSTR,x,index,d_one);
+      substr_ch = Rewriter::rewrite(substr_ch);
       // handle the case where it is purely characters
       for( const Node& r : disj )
       {
+        Assert( r.getKind()!=REGEXP_SIGMA );
         success = false;
+        // success is true if the constraint 
         if( r.getKind()==STRING_TO_REGEXP )
         {
           Node s = r[0];
           if( s.isConst() && s.getConst<String>().size()==1 )
           {
-            char_constraints.push_back(substr_ch.eqNode(s));
+            success = true;
           }
         }
         else if( r.getKind()==REGEXP_RANGE )
         {
-          Node sc_code = nm->mkNode(STRING_CODE,substr_ch);
-          Node code_cons = nm->mkNode(AND, nm->mkNode(LEQ,nm->mkNode(STRING_CODE,r[0]),sc_code),nm->mkNode(LEQ,sc_code,nm->mkNode(STRING_CODE,r[1])));
-          char_constraints.push_back(code_cons);
+          success = true;
         }
         if( !success )
         {
           break;
+        }
+        else
+        {
+          Node regexp_ch = nm->mkNode(STRING_IN_REGEXP,substr_ch,r);
+          regexp_ch = Rewriter::rewrite( regexp_ch );
+          Assert( regexp_ch.getKind()!=STRING_IN_REGEXP );
+          char_constraints.push_back(regexp_ch);
         }
       }
       if( success )
