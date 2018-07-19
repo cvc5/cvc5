@@ -403,10 +403,13 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
         vec.push_back( cc );
       }
     }
-    else if( c.getKind()==STRING_TO_REGEXP && c[0].isConst() && c[0].getConst<String>().isEmptyString() ) {
+    else if( c.getKind()==STRING_TO_REGEXP && c[0].isConst() && c[0].getConst<String>().isEmptyString() ) 
+    {
       changed = true;
       emptyRe = c;
-    } else if( c.getKind() == REGEXP_EMPTY ) {
+    } 
+    else if( c.getKind() == REGEXP_EMPTY ) 
+    {
       std::vector< Node > nvec;
       return nm->mkNode( REGEXP_EMPTY, nvec );
     }
@@ -431,14 +434,14 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
   }
   Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp start " << node << std::endl;
   std::vector< Node > node_vec;
-  std::vector< Node > preReString;
+  std::vector< Node > preReStr;
   for( unsigned i=0,size=vec.size(); i<=size; i++ ){
     Node curr;
     if( i<size )
     {
       curr = vec[i];
       Assert(curr.getKind() != REGEXP_CONCAT);
-      if( !node_vec.empty() && preReString.empty() )
+      if( !node_vec.empty() && preReStr.empty() )
       {
         Node node_vec_last = node_vec.back();
         if( node_vec_last.getKind()==REGEXP_STAR && node_vec_last[0]==curr )
@@ -450,15 +453,15 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
         }
       }
     }
-    // update preReString
+    // update preReStr
     if( !curr.isNull() && curr.getKind() == STRING_TO_REGEXP ) {
-      preReString.push_back(curr[0]);
+      preReStr.push_back(curr[0]);
       curr = Node::null();
-    } else if(!preReString.empty()) {
+    } else if(!preReStr.empty()) {
       // this groups consecutive strings a++b ---> ab
-      Node acc = nm->mkNode( STRING_TO_REGEXP, mkConcat(STRING_CONCAT,preReString));
+      Node acc = nm->mkNode( STRING_TO_REGEXP, mkConcat(STRING_CONCAT,preReStr));
       node_vec.push_back(acc);
-      preReString.clear();
+      preReStr.clear();
     }
     if( !curr.isNull() && curr.getKind() == REGEXP_STAR )
     {
