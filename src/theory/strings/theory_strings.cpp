@@ -4374,7 +4374,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
           else
           {
             // otherwise, we can use indexof to represent some next occurrence
-            if( gap_exact[i+1] )
+            if( gap_exact[i+1] && i+1!=size)
             {
               // if the gap after this one is strict, we need a non-greedy find
               // thus, we add a symbolic constant
