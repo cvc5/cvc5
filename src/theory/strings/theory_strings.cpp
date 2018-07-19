@@ -4301,7 +4301,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
     {
       // memberships of the form x in re.++ * s1 * ... * sn *, where * are 
       // any number of repetitions (exact or indefinite) of REGEXP_SIGMA.
-      Trace("re-elim") << "Try re concat with gaps " << atom << std::endl;
+      Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
       std::vector< Node > children;
       TheoryStringsRewriter::getConcat(re, children);
       bool success = true;
@@ -4314,7 +4314,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       for(unsigned i=0,size=children.size(); i<size; i++ )
       {
         Node c = children[i];
-        Trace("re-elim") << "  " << c << std::endl;
+        Trace("re-elim-debug") << "  " << c << std::endl;
         success = false;
         if(c.getKind()==STRING_TO_REGEXP)
         {
@@ -4338,13 +4338,13 @@ Node TheoryStrings::ppRewrite(TNode atom) {
         }
         if( !success )
         {
-          Trace("re-elim") << "...cannot handle " << c << std::endl;
+          Trace("re-elim-debug") << "...cannot handle " << c << std::endl;
           break;
         }
       }
       if( success )
       {
-        Trace("re-elim") << "...do re concat with gaps" << std::endl;
+        Trace("re-elim") << "re-elim: concat with gaps " << atom << std::endl;
         std::vector< Node > conj;
         // The following constructs a set of constraints that encodes that a
         // set of string terms are found, in order, in string x.
@@ -4481,7 +4481,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       }
       if( success )
       {
-        Trace("re-elim") << "Do re star character constraints" << std::endl;
+        Trace("re-elim") << "re-elim: star characters " << atom << std::endl;
         Assert( !char_constraints.empty() );
         Node bound = nm->mkNode(AND,nm->mkNode(LEQ,d_zero,index),nm->mkNode(LT,index,lenx));
         Node conc = char_constraints.size()==1 ? char_constraints[0] : nm->mkNode(AND,char_constraints);
@@ -4490,6 +4490,29 @@ Node TheoryStrings::ppRewrite(TNode atom) {
         Node res = nm->mkNode(FORALL,bvl,body);
         Trace("re-elim") << "Returned : " << res << std::endl;
         return res;
+      }
+      if( disj.size()==1 )
+      {
+        Node r = disj[0];
+        if( r.getKind()==STRING_TO_REGEXP )
+        {
+          Node s = r[0];
+          if( s.isConst() )
+          {
+            Trace("re-elim") << "re-elim: star constant " << atom << std::endl;
+            Node lens = mkLength(s);
+            Assert( lens.isConst() );
+            std::vector< Node > conj;
+            Node bound = nm->mkNode(AND,nm->mkNode(LEQ,d_zero,index),nm->mkNode(LT,index,nm->mkNode(INTS_DIVISION,lenx,lens)));
+            Node conc = nm->mkNode(STRING_SUBSTR,x,nm->mkNode(MULT,index,lens),lens).eqNode(s);
+            Node body = nm->mkNode(OR, bound.negate(), conc );
+            Node bvl = nm->mkNode(BOUND_VAR_LIST,index);
+            Node res = nm->mkNode(FORALL,bvl,body);
+            Trace("re-elim") << "Returned : " << res << std::endl;
+            res = nm->mkNode(AND,nm->mkNode(INTS_MODULUS,lenx,lens).eqNode(d_zero),res);
+            return res;
+          }
+        }
       }
     }
   }
