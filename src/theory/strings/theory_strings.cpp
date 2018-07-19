@@ -769,102 +769,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 
 Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
-  if( node.getKind()==STRING_IN_REGEXP )
-  {
-    // aggressive elimination of regular expression membership
-    Node x = node[0];
-    Node re = node[1];
-    if( re.getKind()==REGEXP_CONCAT )
-    {
-      Trace("strings-exp-def") << "Try re.++:" << std::endl;
-      std::vector< Node > children;
-      TheoryStringsRewriter::getConcat(re, children);
-      bool success = true;
-      Node endpoints[2];
-      std::vector< Node > sep_children;
-      for(unsigned i=0,size=children.size(); i<size; i++ )
-      {
-        Node c = children[i];
-        Trace("strings-exp-def") << "  " << c << std::endl;
-        success = false;
-        if(c.getKind()==STRING_TO_REGEXP)
-        {
-          if( c[0].isConst() )
-          {
-            success = true;
-            if( i==0 )
-            {
-              endpoints[0] = c[0];
-            }
-            else if( i==(size-1) )
-            {
-              endpoints[1] = c[0];
-            }
-            else
-            {
-              sep_children.push_back(c[0]);
-            }
-          }
-        }
-        else if(c.getKind()==REGEXP_STAR && c[0].getKind()==REGEXP_SIGMA)
-        {
-          success = true;
-        }
-        if( !success )
-        {
-          Trace("strings-exp-def") << "...cannot handle " << c << std::endl;
-          break;
-        }
-      }
-      if( success )
-      {
-        Trace("strings-exp-def") << "...do concat with gaps" << std::endl;
-        std::vector< Node > conj;
-        // substring constraints for the endpoints
-        Node lenx = nm->mkNode( STRING_LENGTH, x );
-        for( unsigned r=0; r<2; r++ )
-        {
-          Node e = endpoints[r];
-          if( !e.isNull() )
-          {
-            Node len = nm->mkConst(Rational(e.getConst<String>().size()));
-            Node s = nm->mkNode(STRING_SUBSTR, x, r==0 ? d_zero : nm->mkNode( MINUS, lenx, len ), len);
-            conj.push_back(s.eqNode(e));
-          }
-        }
-        // ordering constraints
-        Node prev_end;
-        for( unsigned i=0, size=sep_children.size(); i<size; i++ )
-        {
-          Node sc = sep_children[i];
-          Node curr = nm->mkNode( STRING_STRIDOF, x, sc, prev_end.isNull() ? d_zero : prev_end );
-          Node idofFind = curr.eqNode(d_neg_one).negate();
-          conj.push_back(idofFind);
-          prev_end = nm->mkNode( PLUS, curr, nm->mkConst(Rational(sc.getConst<String>().size())));
-        }
-        Node lem = conj.size()==1 ? conj[0] : nm->mkNode( AND, conj );
-        Trace("strings-exp-def") << "Lem : " << lem << std::endl;
-        return lem;
-      }
-    }
-    else if( re.getKind()==REGEXP_STAR )
-    {
-      Assert( re[0].getKind()!=REGEXP_SIGMA );
-      if( re[0].getKind()==STRING_TO_REGEXP )
-      {
-        Node s = re[0][0];
-        
-      }
-      else if( re[0].getKind()==REGEXP_RANGE )
-      {
-        
-      }
-    }
-  }
   return node;
 }
-
 
 void TheoryStrings::check(Effort e) {
   if (done() && e<EFFORT_FULL) {
@@ -4382,6 +4288,131 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       return ret;
     }else{
       Assert( new_nodes.empty() );
+    }
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  if( atom.getKind()==STRING_IN_REGEXP )
+  {
+    // aggressive elimination of regular expression membership
+    Node x = atom[0];
+    Node re = atom[1];
+    if( re.getKind()==REGEXP_CONCAT )
+    {
+      Trace("strings-exp-def") << "Try re concat with gaps" << std::endl;
+      std::vector< Node > children;
+      TheoryStringsRewriter::getConcat(re, children);
+      bool success = true;
+      Node endpoints[2];
+      std::vector< Node > sep_children;
+      std::vector< int > gap_size_min;
+      std::vector< bool > gap_exact;
+      gap_size.push_back(0);
+      gap_exact.push_back(true);
+      for(unsigned i=0,size=children.size(); i<size; i++ )
+      {
+        Node c = children[i];
+        Trace("strings-exp-def") << "  " << c << std::endl;
+        success = false;
+        if(c.getKind()==STRING_TO_REGEXP)
+        {
+          success = true;
+          if( i==0 )
+          {
+            endpoints[0] = c[0];
+          }
+          else if( i==(size-1) )
+          {
+            endpoints[1] = c[0];
+          }
+          else
+          {
+            sep_children.push_back(c[0]);
+            // the next gap is zero
+            gap_size.push_back(0);
+            gap_exact.push_back(true);
+          }
+        }
+        else if(c.getKind()==REGEXP_STAR && c[0].getKind()==REGEXP_SIGMA)
+        {
+          // found a gap of any size
+          success = true;
+          gap_exact[gap_size.size()-1] = false;
+        }
+        else if( c.getKind()==REGEXP_SIGMA )
+        {
+          // found a gap of size one
+          success = true;
+          gap_size[gap_size.size()-1]++;
+        }
+        if( !success )
+        {
+          Trace("strings-exp-def") << "...cannot handle " << c << std::endl;
+          break;
+        }
+      }
+      if( success )
+      {
+        Trace("strings-exp-def") << "...do re concat with gaps" << std::endl;
+        std::vector< Node > conj;
+        // substring constraints for the endpoints
+        Node end_index;
+        Node lenx = nm->mkNode( STRING_LENGTH, x );
+        for( unsigned r=0; r<2; r++ )
+        {
+          Node e = endpoints[r];
+          if( !e.isNull() )
+          {
+            Node len = nm->mkNode( STRING_LENGTH, e );
+            Node startIndex = r==0 ? d_zero : nm->mkNode( MINUS, lenx, len );
+            if( r==1 )
+            {
+              end_index = startIndex;
+            }
+            Node s = nm->mkNode(STRING_SUBSTR, x, startIndex, len);
+            conj.push_back(s.eqNode(e));
+          }
+        }
+        // ordered contains constraints
+        Node prev_end;
+        if( !endpoints[0].isNull() )
+        {
+          prev_end = nm->mkNode( STRING_LENGTH, endpoints[0] );
+        }
+        for( unsigned i=0, size=sep_children.size(); i<size; i++ )
+        {
+          Node sc = sep_children[i];
+          Node curr = nm->mkNode( STRING_STRIDOF, x, sc, prev_end.isNull() ? d_zero : prev_end );
+          Node idofFind = curr.eqNode(d_neg_one).negate();
+          conj.push_back(idofFind);
+          prev_end = nm->mkNode( PLUS, curr, nm->mkNode(STRING_LENGTH,sc));
+          if( i==size-1 )
+          {
+            if( !end_index.isNull() )
+            {
+              // The last string in the order must occur before the boundary of
+              // the endpoint, if there is one.
+              Node boundary = nm->mkNode(LT,prev_end,end_index);
+              conj.push_back(boundary);
+            }
+          }
+        }
+        Node lem = conj.size()==1 ? conj[0] : nm->mkNode( AND, conj );
+        Trace("strings-exp-def") << "Lem : " << lem << std::endl;
+        return lem;
+      }
+    }
+    else if( re.getKind()==REGEXP_STAR )
+    {
+      Assert( re[0].getKind()!=REGEXP_SIGMA );
+      if( re[0].getKind()==STRING_TO_REGEXP )
+      {
+        Node s = re[0][0];
+        
+      }
+      else if( re[0].getKind()==REGEXP_RANGE )
+      {
+        
+      }
     }
   }
   return atom;
