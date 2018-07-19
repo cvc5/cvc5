@@ -4295,6 +4295,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
   {
     // aggressive elimination of regular expression membership
     Node x = atom[0];
+    Node lenx = mkLength(x);
     Node re = atom[1];
     if( re.getKind()==REGEXP_CONCAT )
     {
@@ -4302,11 +4303,10 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       std::vector< Node > children;
       TheoryStringsRewriter::getConcat(re, children);
       bool success = true;
-      Node endpoints[2];
       std::vector< Node > sep_children;
-      std::vector< int > gap_size_min;
+      std::vector< int > gap_minsize;
       std::vector< bool > gap_exact;
-      gap_size.push_back(0);
+      gap_minsize.push_back(0);
       gap_exact.push_back(true);
       for(unsigned i=0,size=children.size(); i<size; i++ )
       {
@@ -4316,33 +4316,22 @@ Node TheoryStrings::ppRewrite(TNode atom) {
         if(c.getKind()==STRING_TO_REGEXP)
         {
           success = true;
-          if( i==0 )
-          {
-            endpoints[0] = c[0];
-          }
-          else if( i==(size-1) )
-          {
-            endpoints[1] = c[0];
-          }
-          else
-          {
-            sep_children.push_back(c[0]);
-            // the next gap is zero
-            gap_size.push_back(0);
-            gap_exact.push_back(true);
-          }
+          sep_children.push_back(c[0]);
+          // the next gap is zero
+          gap_minsize.push_back(0);
+          gap_exact.push_back(true);
         }
         else if(c.getKind()==REGEXP_STAR && c[0].getKind()==REGEXP_SIGMA)
         {
           // found a gap of any size
           success = true;
-          gap_exact[gap_size.size()-1] = false;
+          gap_exact[gap_exact.size()-1] = false;
         }
         else if( c.getKind()==REGEXP_SIGMA )
         {
           // found a gap of size one
           success = true;
-          gap_size[gap_size.size()-1]++;
+          gap_minsize[gap_minsize.size()-1]++;
         }
         if( !success )
         {
@@ -4354,50 +4343,55 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       {
         Trace("strings-exp-def") << "...do re concat with gaps" << std::endl;
         std::vector< Node > conj;
-        // substring constraints for the endpoints
-        Node end_index;
-        Node lenx = nm->mkNode( STRING_LENGTH, x );
-        for( unsigned r=0; r<2; r++ )
-        {
-          Node e = endpoints[r];
-          if( !e.isNull() )
-          {
-            Node len = nm->mkNode( STRING_LENGTH, e );
-            Node startIndex = r==0 ? d_zero : nm->mkNode( MINUS, lenx, len );
-            if( r==1 )
-            {
-              end_index = startIndex;
-            }
-            Node s = nm->mkNode(STRING_SUBSTR, x, startIndex, len);
-            conj.push_back(s.eqNode(e));
-          }
-        }
-        // ordered contains constraints
-        Node prev_end;
-        if( !endpoints[0].isNull() )
-        {
-          prev_end = nm->mkNode( STRING_LENGTH, endpoints[0] );
-        }
+        // construct an equivalent set of ordered contains constraints
+        Node prev_end = d_zero;
+        unsigned gap_minsize_end = gap_minsize.back();
+        bool gap_exact_end = gap_exact.back();
         for( unsigned i=0, size=sep_children.size(); i<size; i++ )
         {
           Node sc = sep_children[i];
-          Node curr = nm->mkNode( STRING_STRIDOF, x, sc, prev_end.isNull() ? d_zero : prev_end );
-          Node idofFind = curr.eqNode(d_neg_one).negate();
-          conj.push_back(idofFind);
-          prev_end = nm->mkNode( PLUS, curr, nm->mkNode(STRING_LENGTH,sc));
-          if( i==size-1 )
+          if( gap_minsize[i]>0 )
           {
-            if( !end_index.isNull() )
+            // must add at least gap_minsize to prev
+            prev_end = nm->mkNode( PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
+          }
+          Node lensc = nm->mkNode( STRING_LENGTH, sc );          
+          // process the last gap
+          if( i==(size-1) && gap_exact_end )
+          {
+            // substring relative to the end
+            Node curr = nm->mkNode( MINUS, lenx, lensc );
+            if( gap_minsize_end>0 )
             {
-              // The last string in the order must occur before the boundary of
-              // the endpoint, if there is one.
-              Node boundary = nm->mkNode(LT,prev_end,end_index);
-              conj.push_back(boundary);
+              curr = nm->mkNode( MINUS, curr, nm->mkConst( Rational(gap_minsize_end) ) );
             }
+            Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
+            conj.push_back(ss.eqNode(sc));
+          }
+          if( gap_exact[i] )
+          {
+            // if exact, it is a substring constraint
+            Node curr = prev_end;
+            Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
+            conj.push_back(ss.eqNode(sc));
+            prev_end = nm->mkNode(PLUS, curr, lensc);
+          }
+          else
+          {
+            // otherwise, it is an indexof constraint           
+            Node curr = nm->mkNode( STRING_STRIDOF, x, sc, prev_end );
+            Node idofFind = curr.eqNode(d_neg_one).negate();
+            conj.push_back(idofFind);
+            prev_end = nm->mkNode( PLUS, curr, lensc);
+          }
+          if( i==(size-1) && gap_minsize_end>0 )
+          {
+            Node fit = nm->mkNode( LEQ, nm->mkNode( PLUS, prev_end, nm->mkConst( Rational(gap_minsize_end) ) ), lenx );
+            conj.push_back(fit);
           }
         }
         Node lem = conj.size()==1 ? conj[0] : nm->mkNode( AND, conj );
-        Trace("strings-exp-def") << "Lem : " << lem << std::endl;
+        Trace("strings-exp-def") << "Returned : " << lem << std::endl;
         return lem;
       }
     }
