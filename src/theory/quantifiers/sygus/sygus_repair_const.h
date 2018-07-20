@@ -77,6 +77,12 @@ class SygusRepairConst
                       const std::vector<Node>& candidate_values,
                       std::vector<Node>& repair_cv,
                       bool useConstantsAsHoles = false);
+  /**
+   * Return whether this module has the possibility to repair solutions. This is
+   * true if this module has been initialized, and at least one candidate has
+   * an "any constant" constructor.
+   */
+  bool isActive() const;
   /** must repair?
    *
    * This returns true if n must be repaired for it to be a valid solution.
