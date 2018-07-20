@@ -141,7 +141,7 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
    * mpat is an equality that we are matching to equalities in the equivalence
    * class of false
    */
-  CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
+  CandidateGeneratorQELitDeq(QuantifiersEngine* qe, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
