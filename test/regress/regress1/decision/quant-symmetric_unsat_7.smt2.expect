@@ -1,2 +1,2 @@
-% COMMAND-LINE: --no-check-proofs --no-check-unsat-cores --decision=justification
+% COMMAND-LINE: --decision=justification
 % EXPECT: unsat
