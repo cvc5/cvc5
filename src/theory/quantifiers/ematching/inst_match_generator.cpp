@@ -176,7 +176,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     if( Trigger::isAtomicTrigger( d_match_pattern ) ){
       if (d_match_pattern.getKind() == APPLY_CONSTRUCTOR)
       {
-        // 1-constructors have a trivially way of generating candidates in a
+        // 1-constructors have a trivial way of generating candidates in a
         // given equivalence class
         const Datatype& dt =
             static_cast<DatatypeType>(d_match_pattern.getType().toType())
