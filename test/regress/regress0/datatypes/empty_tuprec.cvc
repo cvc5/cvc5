@@ -1,3 +1,4 @@
+% COMMAND-LINE: --no-check-proofs --no-check-unsat-cores
 %
 OPTION "incremental";
 
