@@ -102,7 +102,7 @@ void CegConjecture::assign( Node q ) {
   // we now finalize the single invocation module, based on the syntax restrictions
   if (d_qe->getQuantAttributes()->isSygus(q))
   {
-    d_ceg_si->finishInit( d_ceg_gc->isSyntaxRestricted(), d_ceg_gc->hasSyntaxITE() );
+    d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
 
   Assert( d_candidates.empty() );
@@ -121,7 +121,17 @@ void CegConjecture::assign( Node q ) {
   // initialize the sygus constant repair utility
   if (options::sygusRepairConst())
   {
-    d_sygus_rconst->initialize(d_base_inst, d_candidates);
+    d_sygus_rconst->initialize(d_base_inst.negate(), d_candidates);
+    if (options::sygusConstRepairAbort())
+    {
+      if (!d_sygus_rconst->isActive())
+      {
+        // no constant repair is possible: abort
+        std::stringstream ss;
+        ss << "Grammar does not allow repair constants." << std::endl;
+        throw LogicException(ss.str());
+      }
+    }
   }
 
   // register this term with sygus database and other utilities that impact
