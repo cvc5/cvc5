@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/term_enumeration.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
@@ -109,15 +110,19 @@ bool TermEnumeration::mayComplete(TypeNode tn)
   if (it == d_may_complete.end())
   {
     bool mc = false;
-    if (isClosedEnumerableType(tn) && tn.getCardinality().isFinite()
-        && !tn.getCardinality().isLargeFinite())
+    if (isClosedEnumerableType(tn) && tn.isInterpretedFinite())
     {
-      Node card = NodeManager::currentNM()->mkConst(
-          Rational(tn.getCardinality().getFiniteCardinality()));
-      Node oth = NodeManager::currentNM()->mkConst(Rational(1000));
-      Node eq = NodeManager::currentNM()->mkNode(LEQ, card, oth);
-      eq = Rewriter::rewrite(eq);
-      mc = eq.isConst() && eq.getConst<bool>();
+      Cardinality c = tn.getCardinality();
+      if (!c.isLargeFinite())
+      {
+        NodeManager* nm = NodeManager::currentNM();
+        Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
+        // check if less than fixed upper bound, default 1000
+        Node oth = nm->mkConst(Rational(options::fmfTypeCompletionThresh()));
+        Node eq = nm->mkNode(LEQ, card, oth);
+        eq = Rewriter::rewrite(eq);
+        mc = eq.isConst() && eq.getConst<bool>();
+      }
     }
     d_may_complete[tn] = mc;
     return mc;

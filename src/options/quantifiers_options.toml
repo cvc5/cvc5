@@ -638,6 +638,15 @@ header = "options/quantifiers_options.h"
   help       = "mode for which types of bounds to minimize via first decision heuristics"
 
 [[option]]
+  name       = "fmfTypeCompletionThresh"
+  category   = "regular"
+  long       = "fmf-type-completion-thresh=N"
+  type       = "int"
+  default    = "1000"
+  read_only  = true
+  help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
+
+[[option]]
   name       = "quantConflictFind"
   category   = "regular"
   long       = "quant-cf"
