@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/term_enumeration.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
