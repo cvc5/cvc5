@@ -202,7 +202,9 @@ void TheoryDatatypes::check(Effort e) {
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             Type tt = tn.toType();
             const Datatype& dt = ((DatatypeType)tt).getDatatype();
-            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isInterpretedFinite( tt ) << " " << dt.isRecursiveSingleton( tt ) << std::endl;
+            Trace("datatypes-debug")
+                << "Datatype " << dt << " is " << dt.isInterpretedFinite(tt)
+                << " " << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;

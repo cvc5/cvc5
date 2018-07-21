@@ -112,9 +112,9 @@ bool TermEnumeration::mayComplete(TypeNode tn)
     if (isClosedEnumerableType(tn) && tn.isInterpretedFinite())
     {
       Cardinality c = tn.getCardinality();
-      if( !c.isLargeFinite() )
+      if (!c.isLargeFinite())
       {
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
         // check if less than fixed upper bound, default 1000
         Node oth = nm->mkConst(Rational(options::fmfTypeCompletionThresh()));
