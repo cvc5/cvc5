@@ -96,6 +96,8 @@ public:
  void debugPrint(const char* c, Node n, unsigned depth = 0);
  /** clear all data from this trie */
  void clear() { d_data.clear(); }
+ /** is empty */
+ bool empty() { return d_data.empty(); }
 };/* class TermArgTrie */
 
 namespace fmcheck {
