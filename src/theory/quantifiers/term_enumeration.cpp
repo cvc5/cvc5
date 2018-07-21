@@ -114,10 +114,11 @@ bool TermEnumeration::mayComplete(TypeNode tn)
       Cardinality c = tn.getCardinality();
       if( !c.isLargeFinite() )
       {
-        Node card = NodeManager::currentNM()->mkConst(
-            Rational(c.getFiniteCardinality()));
-        Node oth = NodeManager::currentNM()->mkConst(Rational(1000));
-        Node eq = NodeManager::currentNM()->mkNode(LEQ, card, oth);
+        NodeManager * nm = NodeManager::currentNM();
+        Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
+        // check if less than fixed upper bound, default 1000
+        Node oth = nm->mkConst(Rational(options::fmfTypeCompletionThresh()));
+        Node eq = nm->mkNode(LEQ, card, oth);
         eq = Rewriter::rewrite(eq);
         mc = eq.isConst() && eq.getConst<bool>();
       }
