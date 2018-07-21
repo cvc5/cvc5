@@ -92,6 +92,11 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
   }
 }
 
+bool SygusRepairConst::isActive() const
+{
+  return !d_base_inst.isNull() && d_allow_constant_grammar;
+}
+
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
                                       std::vector<Node>& repair_cv,
@@ -100,7 +105,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   Assert(candidates.size() == candidate_values.size());
 
   // if no grammar type allows constants, no repair is possible
-  if (d_base_inst.isNull() || !d_allow_constant_grammar)
+  if (!isActive())
   {
     return false;
   }
@@ -415,7 +420,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
                                   const std::vector<Node>& sk_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node body = d_base_inst.negate();
+  Node body = d_base_inst;
   Trace("sygus-repair-const") << "  Substitute skeletons..." << std::endl;
   body = body.substitute(candidates.begin(),
                          candidates.end(),
