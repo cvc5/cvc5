@@ -1974,7 +1974,6 @@ DISABLED_TESTS = \
 	regress1/sets/setofsets-disequal.smt2 \
 	regress1/simple-rdl-definefun.smt2 \
 	regress1/sygus/Base16_1.sy \
-	regress1/sygus/crcy-no-si.sy \
 	regress1/sygus/enum-test.sy \
 	regress1/sygus/inv_gen_fig8.sy \
 	regress2/arith/arith-int-098.cvc \
