@@ -430,11 +430,13 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     // set by options::sygusPbeMultiFairDiff(). If d is zero, then our
     // enumeration is such that all terms of T1 or T2 of size n are considered
     // before any term of size n+1.
+    int diffAllow = options::sygusPbeMultiFairDiff();
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      if (!options::sygusPbeMultiFair()
-          || szs[i] - min_term_size <= options::sygusPbeMultiFairDiff())
+      Assert( szs[i]>=min_term_size );
+      int diff = szs[i] - min_term_size;
+      if (!options::sygusPbeMultiFair() || diff <= diffAllow)
       {
         enum_consider.push_back( i );
       }
