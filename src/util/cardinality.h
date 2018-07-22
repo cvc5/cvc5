@@ -135,8 +135,7 @@ class CVC4_PUBLIC Cardinality {
   /** Returns true iff this cardinality is finite. */
   bool isFinite() const { return d_card > 0; }
   /** Returns true iff this cardinality is one */
-  bool isOne() const { return d_card == 1; }
-
+  bool isOne() const { return d_card == 2; }
   /**
    * Returns true iff this cardinality is finite and large (i.e.,
    * at the ceiling of representable finite cardinalities).
