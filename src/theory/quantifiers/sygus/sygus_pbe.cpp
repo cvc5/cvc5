@@ -434,7 +434,7 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      Assert( szs[i]>=min_term_size );
+      Assert(szs[i] >= min_term_size);
       int diff = szs[i] - min_term_size;
       if (!options::sygusPbeMultiFair() || diff <= diffAllow)
       {
