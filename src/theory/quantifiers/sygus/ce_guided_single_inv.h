@@ -146,9 +146,6 @@ class CegConjectureSingleInv {
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
-  // whether the grammar for our solution allows ITEs, this tells us when reconstruction is infeasible
-  bool d_has_ites;
-
  public:
   // lemmas produced
   std::vector<Node> d_lemmas_produced;
@@ -191,10 +188,13 @@ class CegConjectureSingleInv {
   void getInitialSingleInvLemma( std::vector< Node >& lems );
   // initialize this class for synthesis conjecture q
   void initialize( Node q );
-  // finish initialize, sets up final decisions about whether to use single invocation techniques
-  //  syntaxRestricted is whether the syntax for solutions for the initialized conjecture is restricted
-  //  hasItes is whether the syntax for solutions for the initialized conjecture allows ITEs
-  void finishInit( bool syntaxRestricted, bool hasItes );
+  /** finish initialize
+   *
+   * This method sets up final decisions about whether to use single invocation
+   * techniques. The argument syntaxRestricted is whether the syntax for
+   * solutions for the initialized conjecture is restricted.
+   */
+  void finishInit(bool syntaxRestricted);
   //check
   bool check( std::vector< Node >& lems );
   //get solution
@@ -202,8 +202,6 @@ class CegConjectureSingleInv {
   //reconstruct to syntax
   Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
                             bool rconsSygus = true );
-  // has ites
-  bool hasITEs() { return d_has_ites; }
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   //needs check

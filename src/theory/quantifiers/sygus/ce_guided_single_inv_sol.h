@@ -68,8 +68,16 @@ private:
    * matches the grammar corresponding to sygus datatype stn.
    * The value reconstructed is set to 1 if we successfully return a node,
    * otherwise it is set to -1.
+   *
+   * This method quickly tries to match sol to the grammar induced by stn. If
+   * this fails, we use enumerative techniques to try to repair the solution.
+   * The number of iterations for this enumeration is bounded by the argument
+   * enumLimit if it is positive, and unbounded otherwise.
    */
-  Node reconstructSolution(Node sol, TypeNode stn, int& reconstructed);
+  Node reconstructSolution(Node sol,
+                           TypeNode stn,
+                           int& reconstructed,
+                           int enumLimit);
   /** preregister conjecture
    *
    * q : the synthesis conjecture this class is for.

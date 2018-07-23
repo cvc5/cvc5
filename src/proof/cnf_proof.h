@@ -127,6 +127,11 @@ public:
   void popCurrentDefinition();
   Node getCurrentDefinition();
 
+  /**
+   * Checks whether the assertion stack is empty.
+   */
+  bool isAssertionStackEmpty() const { return d_currentAssertionStack.empty(); }
+
   void setProofRecipe(LemmaProofRecipe* proofRecipe);
   LemmaProofRecipe getProofRecipe(const std::set<Node> &lemma);
   bool haveProofRecipe(const std::set<Node> &lemma);

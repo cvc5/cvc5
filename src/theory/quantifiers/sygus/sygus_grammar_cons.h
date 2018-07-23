@@ -62,8 +62,6 @@ public:
               const std::vector<Node>& ebvl);
  /** is the syntax restricted? */
  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
- /** does the syntax allow ITE expressions? */
- bool hasSyntaxITE() { return d_has_ite; }
  /** make the default sygus datatype type corresponding to builtin type range
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming
