@@ -281,21 +281,66 @@ class ExtendedRewriter
    * return false otherwise.
    */
   bool isConstBv(Node n, bool isNot);
-  /** get const child */
+  /** get const child 
+   * 
+   * Returns the constant child of n if it has one, and adds all the
+   * non-constant children of n to nconst.
+   */
   Node getConstBvChild(Node n, std::vector<Node>& nconst);
-  /** has const child */
+  /** has const child 
+   * 
+   * Returns true iff n has a constant child.
+   */
   bool hasConstBvChild(Node n);
-  /** */
+  /** rewrite bit-vector arithmetic 
+   * 
+   * This is the entry point for rewriting nodes ret of the form (bvadd ...) or
+   * (bvmul ...). It returns the rewritten form of ret, or null to indicate
+   * ret is not rewritten.
+   */
   Node rewriteBvArith(Node ret);
-  /** */
+  /** rewrite bit-vector shift 
+   * 
+   * This is the entry point for rewriting nodes ret of the form (bvlshr n1 n2)
+   * or (bvshl n1 n2). It returns the rewritten form of ret, or null to indicate
+   * ret is not rewritten.
+   */
   Node rewriteBvShift(Node ret);
-  /** */
+  /** rewrite bit-vector shift 
+   * 
+   * This is the entry point for rewriting nodes ret of the form (bvand n1 n2)
+   * or (bvor n1 n2). It returns the rewritten form of ret, or null to indicate
+   * ret is not rewritten.
+   */
   Node rewriteBvBool(Node ret);
-  /** */
+  /** normalize bit-vector monomial
+   * 
+   * 
+   */
   Node normalizeBvMonomial(Node n);
-  /** get monomial sum */
+  /** get bit-vector monomial sum 
+   * 
+   * This constructs the monomial sum map msum that is equivalent to n. A
+   * monomial sum map is a way of representing bit-vector arithmetic terms.
+   * For example, the term bvadd( bvmul(#x0002,x), y, #x0004 ) is represented
+   * as map:
+   *   x -> #x0002
+   *   y -> #x0001
+   *   #x0001 -> #x0004
+   * 
+   * This method aggressively tries to infer when a node can be expressed as
+   * a monomial, for example bvneg, bvnot, concat, and bvshl can often be
+   * treated as special cases of addition and multiplication. For example,
+   * given input bvshl(x,#x0003), this method will return the monomial sum:
+   *   x -> #x0008
+   * since bvshl(x,#x0003) is equivalent to bvmul(#x0008,x).
+   */
   void getBvMonomialSum(Node n, std::map<Node, Node>& msum);
-  /** mkNode */
+  /** make node from bit-vector monomial
+   * 
+   * This returns the bit-vector node of the same bit-width as n corresponding
+   * to the monomial sum msum.
+   */
   Node mkNodeFromBvMonomial(Node n, std::map<Node, Node>& msum);
   /** splice
    *
@@ -317,11 +362,16 @@ class ExtendedRewriter
    *   nv[i] is a constant of bit-width one.
    */
   int spliceBvConstBit(Node n1, Node n2, std::vector<Node>& nv);
-  /** extend
+  /** extend bit-vector
    *
    * This returns the concatentation node of the form
+   * TODO
    */
   Node extendBv(Node n, std::map<unsigned, Node>& ex_map);
+  /** extend bit-vector
+   * 
+   * TODO
+   */
   Node extendBv(Node n, std::vector<Node>& exs);
   //--------------------------------------end bit-vectors
 };

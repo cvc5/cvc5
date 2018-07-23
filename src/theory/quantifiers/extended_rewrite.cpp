@@ -2483,7 +2483,13 @@ int ExtendedRewriter::bitVectorSubsume(Node a, Node b, bool strict, bool tryNot)
   }
   else if (a.isConst() && b.isConst())
   {
-    // TODO
+    unsigned csize = bv::utils::getSize(a);
+    for (unsigned i = 0; i < csize; i++)
+    {
+      if (bv::utils::getBit(a, i) != bv::utils::getBit(b, i))
+      {
+      }
+    }
   }
 
   if (curr_ret == max_ret)
@@ -2848,6 +2854,8 @@ Node ExtendedRewriter::getConstBvChild(Node n, std::vector<Node>& nconst)
   {
     if (cn.isConst())
     {
+      // we call this on bit-vector operators whose rewritten form has only one
+      // constant child
       Assert(ret.isNull());
       ret = cn;
     }
