@@ -208,3 +208,11 @@ header = "options/strings_options.h"
   default    = "false"
   read_only  = true
   help       = "do length propagation based on constant splits"
+
+[[option]]
+  name       = "regExpElim"
+  category   = "regular"
+  long       = "re-elim"
+  type       = "bool"
+  default    = "true"
+  help       = "elimination techniques for regular expressions"

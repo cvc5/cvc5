@@ -4276,7 +4276,7 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
-  if (atom.getKind() == STRING_IN_REGEXP)
+  if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
     atomElim = d_regexp_elim.eliminate(atom);
