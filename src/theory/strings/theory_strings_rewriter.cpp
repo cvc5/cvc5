@@ -388,8 +388,8 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
 Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
   Assert( node.getKind() == kind::REGEXP_CONCAT );
   NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp flatten "
-                              << node << std::endl;
+  Trace("strings-prerewrite")
+      << "Strings::prerewriteConcatRegExp flatten " << node << std::endl;
   Node retNode = node;
   std::vector<Node> vec;
   bool changed = false;
@@ -434,8 +434,8 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
     }
     return returnRewrite(node, retNode, "re.concat-flatten");
   }
-  Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp start "
-                              << node << std::endl;
+  Trace("strings-prerewrite")
+      << "Strings::prerewriteConcatRegExp start " << node << std::endl;
   std::vector<Node> node_vec;
   std::vector<Node> preReStr;
   for (unsigned i = 0, size = vec.size(); i <= size; i++)
@@ -1077,8 +1077,9 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
         //}
         Node n = vec_nodes.size() == 0
                      ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
-                     : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT,
-                                                              vec_nodes);
+                     : vec_nodes.size() == 1
+                           ? r
+                           : nm->mkNode(REGEXP_CONCAT, vec_nodes);
         //Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
         unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
         if(u <= l) {

@@ -55,8 +55,8 @@ class RegExpElimination
   Node returnElim(Node atom, Node atomElim, const char* id);
 }; /* class RegExpElimination */
 
-} /* CVC4::theory::strings namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__STRINGS__REGEXP_ELIM_H */
