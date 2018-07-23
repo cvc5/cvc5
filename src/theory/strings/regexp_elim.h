@@ -38,7 +38,7 @@ class RegExpElimination
    *
    * This method takes as input a regular expression membership atom of the
    * form (str.in.re x R). If this method returns a non-null node ret, then ret
-   * is equivalent to node.
+   * is equivalent to atom.
    */
   Node eliminate(Node atom);
 
