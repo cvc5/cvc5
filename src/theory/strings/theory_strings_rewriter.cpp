@@ -439,7 +439,7 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
   }
   Trace("strings-prerewrite")
       << "Strings::prerewriteConcatRegExp start " << node << std::endl;
-  std::vector<Node> node_vec;
+  std::vector<Node> cvec;
   std::vector<Node> preReStr;
   for (unsigned i = 0, size = vec.size(); i <= size; i++)
   {
@@ -448,14 +448,14 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
     {
       curr = vec[i];
       Assert(curr.getKind() != REGEXP_CONCAT);
-      if (!node_vec.empty() && preReStr.empty())
+      if (!cvec.empty() && preReStr.empty())
       {
-        Node node_vec_last = node_vec.back();
-        if (node_vec_last.getKind() == REGEXP_STAR && node_vec_last[0] == curr)
+        Node cvecLast = cvec.back();
+        if (cvecLast.getKind() == REGEXP_STAR && cvecLast[0] == curr)
         {
           // by convention, flip the order (a*)++a ---> a++(a*)
-          node_vec[node_vec.size() - 1] = curr;
-          node_vec.push_back(node_vec_last);
+          cvec[cvec.size() - 1] = curr;
+          cvec.push_back(cvecLast);
           curr = Node::null();
         }
       }
@@ -471,25 +471,24 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
       // this groups consecutive strings a++b ---> ab
       Node acc =
           nm->mkNode(STRING_TO_REGEXP, mkConcat(STRING_CONCAT, preReStr));
-      node_vec.push_back(acc);
+      cvec.push_back(acc);
       preReStr.clear();
     }
     if (!curr.isNull() && curr.getKind() == REGEXP_STAR)
     {
       // we can group stars (a*)++(a*) ---> a*
-      if (!node_vec.empty() && node_vec.back() == curr)
+      if (!cvec.empty() && cvec.back() == curr)
       {
         curr = Node::null();
       }
     }
     if (!curr.isNull())
     {
-      node_vec.push_back(curr);
+      cvec.push_back(curr);
     }
   }
-  Assert(!node_vec.empty());
-  retNode =
-      node_vec.size() == 1 ? node_vec[0] : nm->mkNode(REGEXP_CONCAT, node_vec);
+  Assert(!cvec.empty());
+  retNode = mkConcat(REGEXP_CONCAT, cvec);
   if (retNode != node)
   {
     // handles all cases where consecutive re constants are combined, and cases
@@ -779,8 +778,8 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     CVC4::String s = x.getConst<String>();
     retNode = NodeManager::currentNM()->mkConst( testConstStringInRegExp( s, 0, r ) );
   } else if(r.getKind() == kind::REGEXP_SIGMA) {
-    Node one = NodeManager::currentNM()->mkConst(Rational(1));
-    retNode = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
+    Node one = nm->mkConst(Rational(1));
+    retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
@@ -1094,8 +1093,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
           vec2.push_back(n);
           for(unsigned j=l; j<u; j++) {
             vec_nodes.push_back(r);
-            n = vec_nodes.size() == 1 ? r
-                                      : nm->mkNode(REGEXP_CONCAT, vec_nodes);
+            n = mkConcat(REGEXP_CONCAT, vec_nodes);
             vec2.push_back(n);
           }
           retNode = prerewriteOrRegExp(nm->mkNode(REGEXP_UNION, vec2));
