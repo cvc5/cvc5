@@ -1076,11 +1076,9 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
         //  throw LogicException("re.loop contains non-constant integer (2).");
         //}
         Node n = vec_nodes.size() == 0
-                     ? nm->mkNode(STRING_TO_REGEXP,
-                                  nm->mkConst(String("")))
-                     : vec_nodes.size() == 1
-                           ? r
-                           : nm->mkNode(REGEXP_CONCAT, vec_nodes);
+                     ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
+                     : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT,
+                                                              vec_nodes);
         //Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
         unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
         if(u <= l) {
@@ -1090,22 +1088,21 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
           vec2.push_back(n);
           for(unsigned j=l; j<u; j++) {
             vec_nodes.push_back(r);
-            n = vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT,
-                                                       vec_nodes);
+            n = vec_nodes.size() == 1 ? r
+                                      : nm->mkNode(REGEXP_CONCAT, vec_nodes);
             vec2.push_back(n);
           }
           retNode = prerewriteOrRegExp(nm->mkNode(REGEXP_UNION, vec2));
         }
       } else {
         Node rest = nm->mkNode(REGEXP_STAR, r);
-        retNode =
-            vec_nodes.size() == 0
-                ? rest
-                : vec_nodes.size() == 1
-                      ? nm->mkNode(REGEXP_CONCAT, r, rest)
-                      : nm->mkNode(REGEXP_CONCAT,
-                                   nm->mkNode(REGEXP_CONCAT, vec_nodes),
-                                   rest);
+        retNode = vec_nodes.size() == 0
+                      ? rest
+                      : vec_nodes.size() == 1
+                            ? nm->mkNode(REGEXP_CONCAT, r, rest)
+                            : nm->mkNode(REGEXP_CONCAT,
+                                         nm->mkNode(REGEXP_CONCAT, vec_nodes),
+                                         rest);
       }
     }
     Trace("strings-lp") << "Strings::lp " << node << " => " << retNode << std::endl;
