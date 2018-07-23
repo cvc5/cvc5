@@ -813,6 +813,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   }
   else if (r.getKind() == REGEXP_RANGE)
   {
+    // x in re.range( char_i, char_j ) ---> i <= str.code(x) <= j
     Node xcode = nm->mkNode(STRING_CODE, x);
     retNode = nm->mkNode(AND,
                          nm->mkNode(LEQ, nm->mkNode(STRING_CODE, r[0]), xcode),
@@ -1075,11 +1076,11 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
         //  throw LogicException("re.loop contains non-constant integer (2).");
         //}
         Node n = vec_nodes.size() == 0
-                     ? nm->mkNode(kind::STRING_TO_REGEXP,
-                                  nm->mkConst(CVC4::String("")))
+                     ? nm->mkNode(STRING_TO_REGEXP,
+                                  nm->mkConst(String("")))
                      : vec_nodes.size() == 1
                            ? r
-                           : nm->mkNode(kind::REGEXP_CONCAT, vec_nodes);
+                           : nm->mkNode(REGEXP_CONCAT, vec_nodes);
         //Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
         unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
         if(u <= l) {
@@ -1089,21 +1090,21 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
           vec2.push_back(n);
           for(unsigned j=l; j<u; j++) {
             vec_nodes.push_back(r);
-            n = vec_nodes.size() == 1 ? r : nm->mkNode(kind::REGEXP_CONCAT,
+            n = vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT,
                                                        vec_nodes);
             vec2.push_back(n);
           }
-          retNode = prerewriteOrRegExp(nm->mkNode(kind::REGEXP_UNION, vec2));
+          retNode = prerewriteOrRegExp(nm->mkNode(REGEXP_UNION, vec2));
         }
       } else {
-        Node rest = nm->mkNode(kind::REGEXP_STAR, r);
+        Node rest = nm->mkNode(REGEXP_STAR, r);
         retNode =
             vec_nodes.size() == 0
                 ? rest
                 : vec_nodes.size() == 1
-                      ? nm->mkNode(kind::REGEXP_CONCAT, r, rest)
-                      : nm->mkNode(kind::REGEXP_CONCAT,
-                                   nm->mkNode(kind::REGEXP_CONCAT, vec_nodes),
+                      ? nm->mkNode(REGEXP_CONCAT, r, rest)
+                      : nm->mkNode(REGEXP_CONCAT,
+                                   nm->mkNode(REGEXP_CONCAT, vec_nodes),
                                    rest);
       }
     }
