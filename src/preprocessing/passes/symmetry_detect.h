@@ -28,42 +28,42 @@ namespace passes {
 namespace symbreak {
 
 /**
-  * This class stores a "partition", which is a way of representing a
-  * class of symmetries.
-  *
-  * For example, when finding symmetries for a term like x+y = 0, we
-  * construct a partition { w -> { x, y } } that indicates that automorphisms
-  * over { x, y } do not affect the satisfiability of this term. In this
-  * example, we have the following assignments to the members of this class:
-  *   d_term : x+y=0
-  *   d_sterm : w+w=0
-  *   d_var_to_subvar : { x -> w, y -> w }
-  *   d_subvar_to_vars : { w -> { x, y } }
-  * We often identify a partition with its d_subvar_to_vars field.
-  *
-  * We call w a "symmetry breaking variable".
-  */
+ * This class stores a "partition", which is a way of representing a
+ * class of symmetries.
+ *
+ * For example, when finding symmetries for a term like x+y = 0, we
+ * construct a partition { w -> { x, y } } that indicates that automorphisms
+ * over { x, y } do not affect the satisfiability of this term. In this
+ * example, we have the following assignments to the members of this class:
+ *   d_term : x+y=0
+ *   d_sterm : w+w=0
+ *   d_var_to_subvar : { x -> w, y -> w }
+ *   d_subvar_to_vars : { w -> { x, y } }
+ * We often identify a partition with its d_subvar_to_vars field.
+ *
+ * We call w a "symmetry breaking variable".
+ */
 class Partition
 {
  public:
   /** The term for which the partition was computed for. */
   Node d_term;
   /** Substituted term corresponding to the partition
-    *
-    * This is equal to d_term * d_var_to_subvar, where * is application of
-    * substitution.
-    */
+   *
+   * This is equal to d_term * d_var_to_subvar, where * is application of
+   * substitution.
+   */
   Node d_sterm;
   /**
-    * Mapping between the variable and the symmetry breaking variable e.g.
-    * { x -> w, y -> w }.
-    */
+   * Mapping between the variable and the symmetry breaking variable e.g.
+   * { x -> w, y -> w }.
+   */
   std::map<Node, Node> d_var_to_subvar;
 
   /**
-    * Mapping between the symmetry breaking variables and variables, e.g.
-    * { w-> { x, y } }
-    */
+   * Mapping between the symmetry breaking variables and variables, e.g.
+   * { w-> { x, y } }
+   */
   std::map<Node, std::vector<Node> > d_subvar_to_vars;
   /** sorts the ranges of d_subvar_to_vars. */
   void normalize();
@@ -175,10 +175,10 @@ class PartitionMerger
                    std::unordered_set<unsigned>& active_indices);
 };
 /**
-  * We build the partition trie indexed by
-  * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. The leaves of a
-  * partition trie is the new regions of a partition
-  */
+ * We build the partition trie indexed by
+ * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. The leaves of a
+ * partition trie is the new regions of a partition
+ */
 class PartitionTrie
 {
  public:
@@ -189,7 +189,7 @@ class PartitionTrie
   std::map<Node, PartitionTrie> d_children;
 
   /** Add variable v to the trie, indexed by
-    * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. */
+   * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. */
   Node addNode(Node v, std::vector<Partition>& parts);
 
   /** Get all the new regions of a partition and store in part

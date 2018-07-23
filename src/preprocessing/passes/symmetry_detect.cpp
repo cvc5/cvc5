@@ -40,11 +40,11 @@ unsigned nChoosek(unsigned n, unsigned k)
 }
 
 /** mk associative node
-  *
-  * This returns (a normal form for) the term <k>( children ), where
-  * k is an associative operator. We return a right-associative
-  * chain, since some operators (e.g. set union) require this.
-  */
+ *
+ * This returns (a normal form for) the term <k>( children ), where
+ * k is an associative operator. We return a right-associative
+ * chain, since some operators (e.g. set union) require this.
+ */
 Node mkAssociativeNode(Kind k, std::vector<Node>& children)
 {
   Assert(!children.empty());
@@ -128,8 +128,8 @@ void PartitionMerger::initialize(Kind k,
     Trace("sym-dt-debug") << "    variable occurrences: " << std::endl;
     for (const std::pair<const Node, unsigned>& o : d_occurs_count)
     {
-      Trace("sym-dt-debug") << "     " << o.first << " -> " << o.second
-                            << std::endl;
+      Trace("sym-dt-debug")
+          << "     " << o.first << " -> " << o.second << std::endl;
     }
   }
 }
@@ -271,8 +271,8 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         }
         else
         {
-          Trace("sym-dt-debug2") << "set merge var : " << curr_merge_var
-                                 << std::endl;
+          Trace("sym-dt-debug2")
+              << "set merge var : " << curr_merge_var << std::endl;
           d_merge_var_tried.insert(curr_merge_var);
           num_merge_var_max = num_v_max;
           merge_var = curr_merge_var;
@@ -660,8 +660,8 @@ Partition SymmetryDetect::findPartitions(Node node)
     for (const pair<const Node, vector<Node> >& pas : pa.d_subvar_to_vars)
     {
       Node v = pas.first;
-      Trace("sym-dt-debug") << "...process " << v << " -> " << pas.second
-                            << std::endl;
+      Trace("sym-dt-debug")
+          << "...process " << v << " -> " << pas.second << std::endl;
       Assert(!v.isNull());
       TypeNode tnv = v.getType();
       // ensure we use a new index for this variable
@@ -680,8 +680,8 @@ Partition SymmetryDetect::findPartitions(Node node)
       {
         Assert(x.getType() == new_v.getType());
         pa.d_var_to_subvar[x] = new_v;
-        Trace("sym-dt-debug") << "...set var to svar: " << x << " -> " << new_v
-                              << std::endl;
+        Trace("sym-dt-debug")
+            << "...set var to svar: " << x << " -> " << new_v << std::endl;
       }
     }
     // reconstruct the partition
@@ -895,8 +895,8 @@ void SymmetryDetect::processPartitions(
       }
       else if (theory::quantifiers::TermUtil::isNonAdditive(k))
       {
-        Trace("sym-dt-debug") << "Drop duplicate child : " << index
-                              << std::endl;
+        Trace("sym-dt-debug")
+            << "Drop duplicate child : " << index << std::endl;
         Assert(active_indices.find(index) != active_indices.end());
         active_indices.erase(index);
       }
