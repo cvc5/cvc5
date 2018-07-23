@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
+ **   Liana Hadarean, Dejan Jovanovic, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,8 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-enum RewriteRuleId {
+enum RewriteRuleId
+{
 
   /// core normalization rules
   EmptyRule,
@@ -175,6 +176,7 @@ enum RewriteRuleId {
   OrSimplify,
   XorSimplify,
   BitwiseSlicing,
+  NormalizeEqPlusNeg,
   // rules to simplify bitblasting
   BBPlusNeg,
   UltPlusOne,
@@ -321,6 +323,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatToMult: out << "ConcatToMult"; return out;
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
+  case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
   default:
     Unreachable();
   }
@@ -548,6 +551,7 @@ struct AllRewriteRules {
   RewriteRule<SignExtendUltConst> rule126;
   RewriteRule<ZeroExtendUltConst> rule127;
   RewriteRule<MultSltMult> rule128;
+  RewriteRule<NormalizeEqPlusNeg> rule129;
 };
 
 template<> inline

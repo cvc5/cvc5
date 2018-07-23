@@ -2,7 +2,7 @@
 /*! \file theory_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
+ **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -17,6 +17,8 @@
 
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_eager_solver.h"
@@ -29,9 +31,8 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ext_theory.h"
 #include "theory/theory_model.h"
-#include "proof/theory_proof.h"
-#include "proof/proof_manager.h"
 #include "theory/valuation.h"
 
 using namespace CVC4::context;
@@ -185,6 +186,16 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   }
 
   Unreachable();
+}
+
+void TheoryBV::finishInit()
+{
+  // these kinds are semi-evaluated in getModelValue (applications of this
+  // kind are treated as variables)
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
 Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
@@ -756,6 +767,10 @@ Node TheoryBV::ppRewrite(TNode t)
     res = RewriteRule<SignExtendEqConst>::run<false>(t);
   } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
+  }
+  else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))
+  {
+    res = RewriteRule<NormalizeEqPlusNeg>::run<false>(t);
   }
 
   // if(t.getKind() == kind::EQUAL &&

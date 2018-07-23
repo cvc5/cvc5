@@ -28,13 +28,6 @@ operator STRING_ITOS 1 "integer to string"
 operator STRING_STOI 1 "string to integer (total function)"
 operator STRING_CODE 1 "string to code, returns the code of the first character of the string if it has length one, -1 otherwise"
 
-#sort CHAR_TYPE \
-#    Cardinality::INTEGERS \
-#    well-founded \
-#        "NodeManager::currentNM()->mkConst(::CVC4::String())" \
-#        "util/regexp.h" \
-#    "String type"
-
 sort STRING_TYPE \
     Cardinality::INTEGERS \
     well-founded \
@@ -52,10 +45,6 @@ sort REGEXP_TYPE \
 enumerator STRING_TYPE \
     "::CVC4::theory::strings::StringEnumerator" \
     "theory/strings/type_enumerator.h"
-
-#enumerator REGEXP_TYPE \
-#    "::CVC4::theory::strings::RegExpEnumerator" \
-#    "theory/strings/type_enumerator.h"
 
 constant CONST_STRING \
     ::CVC4::String \

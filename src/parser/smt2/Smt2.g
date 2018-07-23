@@ -353,8 +353,17 @@ command [std::unique_ptr<CVC4::Command>* cmd]
                                       "be declared in logic ");
       }
       // we allow overloading for function declarations
-      Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-      cmd->reset(new DeclareFunctionCommand(name, func, t));
+      if (PARSER_STATE->sygus())
+      {
+        // it is a higher-order universal variable
+        PARSER_STATE->mkSygusVar(name, t);
+        cmd->reset(new EmptyCommand());
+      }
+      else
+      {
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        cmd->reset(new DeclareFunctionCommand(name, func, t));
+      }
     }
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1128,21 +1137,6 @@ metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
     { name = AntlrInput::tokenText($KEYWORD);
       if(name == ":cvc4-logic" || name == ":cvc4_logic") {
         PARSER_STATE->setLogic(sexpr.getValue());
-      } else if(name == ":smt-lib-version") {
-        // if we don't recognize the revision name, just keep the current mode
-        if( (sexpr.isRational() && sexpr.getRationalValue() == Rational(2)) ||
-            sexpr.getValue() == "2" ||
-            sexpr.getValue() == "2.0" ) {
-          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_0);
-        } else if( (sexpr.isRational() &&
-                    sexpr.getRationalValue() == Rational(5, 2)) ||
-                  sexpr.getValue() == "2.5" ) {
-          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_5);
-        } else if( (sexpr.isRational() &&
-                    sexpr.getRationalValue() == Rational(13, 5)) ||
-                  sexpr.getValue() == "2.6" ) {
-          PARSER_STATE->setLanguage(language::input::LANG_SMTLIB_V2_6);
-        }
       }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd->reset(new SetInfoCommand(name.c_str() + 1, sexpr));

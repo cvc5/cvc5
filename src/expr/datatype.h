@@ -2,9 +2,9 @@
 /*! \file datatype.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Paul Meng
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -450,6 +450,11 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
 
+  /**
+   * Get the list of arguments to this constructor.
+   */
+  const std::vector<DatatypeConstructorArg>* getArgs() const;
+
  private:
   /** the name of the constructor */
   std::string d_name;
@@ -614,6 +619,13 @@ public:
    * always the first index.)
    */
   static size_t cindexOf(Expr item) CVC4_PUBLIC;
+
+  /**
+   * Same as above, but without checks. These methods should be used by
+   * internal (Node-level) code.
+   */
+  static size_t indexOfInternal(Expr item);
+  static size_t cindexOfInternal(Expr item);
 
   /** The type for iterators over constructors. */
   typedef DatatypeConstructorIterator iterator;
@@ -930,6 +942,11 @@ public:
    * in any constructor that is an uninterpreted type.
    */
   bool involvesUninterpretedType() const;
+
+  /**
+   * Get the list of constructors.
+   */
+  const std::vector<DatatypeConstructor>* getConstructors() const;
 
  private:
   /** name of this datatype */

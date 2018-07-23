@@ -2,9 +2,9 @@
 /*! \file sygus_grammar_norm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
@@ -105,33 +106,6 @@ void SygusGrammarNorm::TypeObject::buildDatatype(SygusGrammarNorm* sygus_norm,
                 sygus_norm->d_sygus_vars.toExpr(),
                 dt.getSygusAllowConst(),
                 dt.getSygusAllowAll());
-  if (dt.getSygusAllowConst())
-  {
-    TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
-    // must be handled by counterexample-guided instantiation
-    // don't do it for Boolean (not worth the trouble, since it has only
-    // minimal gain (1 any constant vs 2 constructors for true/false), and
-    // we need to do a lot of special symmetry breaking, e.g. for ensuring
-    // any constant constructors are not the 1st children of ITEs.
-    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED
-        && !sygus_type.isBoolean())
-    {
-      Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
-      // add an "any constant" proxy variable
-      Node av = NodeManager::currentNM()->mkSkolem("_any_constant", sygus_type);
-      // mark that it represents any constant
-      SygusAnyConstAttribute saca;
-      av.setAttribute(saca, true);
-      std::stringstream ss;
-      ss << d_unres_tn << "_any_constant";
-      std::string cname(ss.str());
-      std::vector<Type> empty_arg_types;
-      // we add this constructor first since we use left associative chains
-      // and our symmetry breaking should group any constants together
-      // beneath the same application
-      d_dt.addSygusConstructor(av.toExpr(), cname, empty_arg_types);
-    }
-  }
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
   {
     d_dt.addSygusConstructor(d_ops[i].toExpr(),
@@ -457,6 +431,41 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   {
     Assert(op_pos[i] < dt.getNumConstructors());
     to.addConsInfo(this, dt[op_pos[i]]);
+  }
+  if (dt.getSygusAllowConst())
+  {
+    TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
+    // must be handled by counterexample-guided instantiation
+    // don't do it for Boolean (not worth the trouble, since it has only
+    // minimal gain (1 any constant vs 2 constructors for true/false), and
+    // we need to do a lot of special symmetry breaking, e.g. for ensuring
+    // any constant constructors are not the 1st children of ITEs.
+    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED
+        && !sygus_type.isBoolean())
+    {
+      Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
+      // add an "any constant" proxy variable
+      Node av = NodeManager::currentNM()->mkSkolem("_any_constant", sygus_type);
+      // mark that it represents any constant
+      SygusAnyConstAttribute saca;
+      av.setAttribute(saca, true);
+      std::stringstream ss;
+      ss << to.d_unres_tn << "_any_constant";
+      std::string cname(ss.str());
+      std::vector<Type> builtin_arg;
+      builtin_arg.push_back(dt.getSygusType());
+      // we add this constructor first since we use left associative chains
+      // and our symmetry breaking should group any constants together
+      // beneath the same application
+      // we set its weight to zero since it should be considered at the
+      // same level as constants.
+      to.d_ops.insert(to.d_ops.begin(), av.toExpr());
+      to.d_cons_names.insert(to.d_cons_names.begin(), cname);
+      to.d_cons_args_t.insert(to.d_cons_args_t.begin(), builtin_arg);
+      to.d_pc.insert(to.d_pc.begin(),
+                     printer::SygusEmptyPrintCallback::getEmptyPC());
+      to.d_weight.insert(to.d_weight.begin(), 0);
+    }
   }
   /* Build normalize datatype */
   if (Trace.isOn("sygus-grammar-normalize"))

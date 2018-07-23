@@ -2,9 +2,9 @@
 /*! \file sygus_grammar_cons.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,9 +18,10 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
-#include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
+#include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -32,7 +33,7 @@ namespace quantifiers {
 
 CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
                                              CegConjecture* p)
-    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false), d_has_ite(true)
+    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false)
 {
 }
 
@@ -197,6 +198,7 @@ Node CegGrammarConstructor::process(Node q,
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
   std::map<Node, Node> synth_fun_vars;
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
   {
     Node sf = q[0][i];
@@ -244,16 +246,10 @@ Node CegGrammarConstructor::process(Node q,
         Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
       }
     }
-    d_qe->getTermDatabaseSygus()->registerSygusType( tn );
-    // check grammar restrictions
-    if( !d_qe->getTermDatabaseSygus()->sygusToBuiltinType( tn ).isBoolean() ){
-      if( !d_qe->getTermDatabaseSygus()->hasKind( tn, ITE ) ){
-        d_has_ite = false;
-      }
-    }
-    Assert( tn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-    Assert( dt.isSygus() );
+    tds->registerSygusType(tn);
+    Assert(tn.isDatatype());
+    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Assert(dt.isSygus());
     if( !dt.getSygusAllowAll() ){
       d_is_syntax_restricted = true;
     }
@@ -302,20 +298,16 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         op = cur;
       }
       // is the operator a synth function?
+      bool makeEvalFun = false;
       if( !op.isNull() ){
         std::map< Node, Node >::iterator its = synth_fun_vars.find( op );
         if( its!=synth_fun_vars.end() ){
-          Assert( its->second.getType().isDatatype() );
-          // will make into an application of an evaluation function
-          const Datatype& dt = ((DatatypeType)its->second.getType().toType()).getDatatype();
-          Assert( dt.isSygus() );
-          children.push_back( Node::fromExpr( dt.getSygusEvaluationFunc() ) );
           children.push_back( its->second );
-          childChanged = true;
-          ret_k = kind::APPLY_UF;
+          makeEvalFun = true;
         }
       }
-      if( !childChanged ){
+      if (!makeEvalFun)
+      {
         // otherwise, we apply the previous operator
         if( cur.getMetaKind() == kind::metakind::PARAMETERIZED ){
           children.push_back( cur.getOperator() );
@@ -328,7 +320,13 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) {
+      if (makeEvalFun)
+      {
+        // will make into an application of an evaluation function
+        ret = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
+      }
+      else if (childChanged)
+      {
         ret = NodeManager::currentNM()->mkNode(ret_k, children);
       }
       visited[cur] = ret;

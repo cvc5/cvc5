@@ -2,9 +2,9 @@
 /*! \file datatypes_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Tim King
+ **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -145,6 +145,8 @@ class SygusSymBreakNew
   IntMap d_currTermSize;
   /** zero */
   Node d_zero;
+  /** true */
+  Node d_true;
   /**
    * Map from terms (selector chains) to their anchors. The anchor of a
    * selector chain S1( ... Sn( x ) ... ) is x.
@@ -283,8 +285,21 @@ private:
    * z -> t for all terms t of appropriate depth, including d.
    * This function strengthens blocking clauses using generalization techniques
    * described in Reynolds et al SYNT 2017.
+   *
+   * The return value of this function is an abstraction of model assignment
+   * of nv to n, or null if we wish to exclude the model assignment nv to n.
+   * The return value of this method is different from nv itself, e.g. if it
+   * contains occurrences of the "any constant" constructor. For example, if
+   * nv is C_+( C_x(), C_{any_constant}( 5 ) ), then the return value of this
+   * function will either be null, or C_+( C_x(), C_{any_constant}( n.1.0 ) ),
+   * where n.1.0 is the appropriate selector chain applied to n. We build this
+   * abstraction since the semantics of C_{any_constant} is "any constant" and
+   * not "some constant". Thus, we should consider the subterm
+   * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
+   * by a selector chain), instead of the concrete value 5.
    */
-  bool registerSearchValue( Node a, Node n, Node nv, unsigned d, std::vector< Node >& lemmas );
+  Node registerSearchValue(
+      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
@@ -324,6 +339,7 @@ private:
                                      Node val,
                                      quantifiers::SygusInvarianceTest& et,
                                      Node valr,
+                                     std::map<TypeNode, int>& var_count,
                                      std::vector<Node>& lemmas);
   /** Add symmetry breaking lemmas for term
    *
@@ -345,20 +361,14 @@ private:
       TypeNode tn, Node t, unsigned d, Node a, std::vector<Node>& lemmas);
   /** calls the above function where a is the anchor t */
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
-  /** add symmetry breaking lemma
-   *
-   * This adds the lemma R => lem{ x -> n } to lemmas, where R is a "relevancy
-   * condition" that states which contexts n is relevant in (see
-   * getRelevancyCondition).
-   */
-  void addSymBreakLemma(Node lem, TNode x, TNode n, std::vector<Node>& lemmas);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
    *
-   * This returns a predicate that holds in the contexts in which the selector
-   * chain n is specified. For example, the relevancy condition for
-   * sel_{C2,1}( sel_{C1,1}( d ) ) is is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ).
+   * This returns (the negation of) a predicate that holds in the contexts in
+   * which the selector chain n is specified. For example, the negation of the
+   * relevancy condition for sel_{C2,1}( sel_{C1,1}( d ) ) is
+   *    ~( is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ) )
    * If shared selectors are enabled, this is a conjunction of disjunctions,
    * since shared selectors may apply to multiple constructors.
    */
@@ -388,10 +398,17 @@ private:
    *   is-C( t ) => F[t]
    * where t is a search term, see registerSearchTerm for definition of search
    * term.
+   *
+   * usingSymCons is whether we are using symbolic constructors for subterms in
+   * the type tn. This may affect the form of the predicate we construct.
    */
-  Node getSimpleSymBreakPred( TypeNode tn, int tindex, unsigned depth );
+  Node getSimpleSymBreakPred(TypeNode tn,
+                             int tindex,
+                             unsigned depth,
+                             bool usingSymCons);
   /** Cache of the above function */
-  std::map<TypeNode, std::map<int, std::map<unsigned, Node>>> d_simple_sb_pred;
+  std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>
+      d_simple_sb_pred;
   /**
    * For each search term, this stores the maximum depth for which we have added
    * a static symmetry breaking lemma.

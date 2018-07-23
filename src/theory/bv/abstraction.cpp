@@ -2,7 +2,7 @@
 /*! \file abstraction.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Guy Katz
+ **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -36,13 +36,14 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
 
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
 
+  TNodeSet seen;
   for (unsigned i = 0; i < assertions.size(); ++i)
   {
     if (assertions[i].getKind() == kind::OR)
     {
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j)
       {
-        if (!isConjunctionOfAtoms(assertions[i][j]))
+        if (!isConjunctionOfAtoms(assertions[i][j], seen))
         {
           continue;
         }
@@ -107,25 +108,24 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
   return d_funcToSignature.size() != 0;
 }
 
-bool AbstractionModule::isConjunctionOfAtoms(TNode node) {
-  TNodeSet seen;
-  return isConjunctionOfAtomsRec(node, seen);
-}
-
-bool AbstractionModule::isConjunctionOfAtomsRec(TNode node, TNodeSet& seen) {
+bool AbstractionModule::isConjunctionOfAtoms(TNode node, TNodeSet& seen)
+{
   if (seen.find(node)!= seen.end())
     return true;
 
-  if (!node.getType().isBitVector()) {
-    return (node.getKind() == kind::AND || utils::isBVPredicate(node));
+  if (!node.getType().isBitVector() && node.getKind() != kind::AND)
+  {
+    return utils::isBVPredicate(node);
   }
 
   if (node.getNumChildren() == 0)
     return true;
 
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    if (!isConjunctionOfAtomsRec(node[i], seen))
+    if (!isConjunctionOfAtoms(node[i], seen))
+    {
       return false;
+    }
   }
   seen.insert(node);
   return true;
@@ -276,7 +276,7 @@ Node AbstractionModule::computeSignature(TNode node) {
 
 Node AbstractionModule::getSignatureSkolem(TNode node)
 {
-  Assert(node.getKind() == kind::VARIABLE);
+  Assert(node.getMetaKind() == kind::metakind::VARIABLE);
   NodeManager* nm = NodeManager::currentNM();
   unsigned bitwidth = utils::getSize(node);
   if (d_signatureSkolems.find(bitwidth) == d_signatureSkolems.end())
@@ -550,8 +550,9 @@ void AbstractionModule::collectArguments(TNode node, TNode signature, std::vecto
   if (seen.find(node)!= seen.end())
     return;
 
-  if (node.getKind() == kind::VARIABLE ||
-      node.getKind() == kind::CONST_BITVECTOR) {
+  if (node.getMetaKind() == kind::metakind::VARIABLE
+      || node.getKind() == kind::CONST_BITVECTOR)
+  {
     // a constant in the node can either map to an argument of the abstraction
     // or can be hard-coded and part of the abstraction
     if (signature.getKind() == kind::SKOLEM) {
@@ -666,8 +667,7 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
   }
 
   if (signature.getNumChildren() == 0) {
-    Assert (signature.getKind() != kind::VARIABLE &&
-            signature.getKind() != kind::SKOLEM);
+    Assert(signature.getMetaKind() != kind::metakind::VARIABLE);
     seen[signature] = signature;
     return signature;
   }

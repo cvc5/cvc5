@@ -2,7 +2,7 @@
 /*! \file aig_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -66,6 +66,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   NodeAigMap d_nodeToAigInput;
   // the thing we are checking for sat
   Abc_Obj_t* d_aigOutputNode;
+
+  std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   void addAtom(TNode atom);
   void simplifyAig();

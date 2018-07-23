@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 
 #include <unordered_set>
 
+#include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
@@ -53,6 +54,8 @@ class TermDbSygus {
   SygusExplain* getExplain() { return d_syexp.get(); }
   /** get the extended rewrite utility */
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
+  /** get the evaluator */
+  Evaluator* getEvaluator() { return d_eval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
@@ -79,11 +82,13 @@ class TermDbSygus {
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e);
+  CegConjecture* getConjectureForEnumerator(Node e) const;
   /** return the function-to-synthesize e is associated with */
-  Node getSynthFunForEnumerator(Node e);
+  Node getSynthFunForEnumerator(Node e) const;
   /** get active guard for e */
-  Node getActiveGuardForEnumerator(Node e);
+  Node getActiveGuardForEnumerator(Node e) const;
+  /** are we using symbolic constructors for enumerator e? */
+  bool usingSymbolicConsForEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
@@ -166,17 +171,21 @@ class TermDbSygus {
   Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
   /** same as above, but with empty pre */
   Node mkGeneric(const Datatype& dt, int c);
+  /** makes a symbolic term concrete
+   *
+   * Given a sygus datatype term n of type tn with holes (symbolic constructor
+   * applications), this function returns a term in which holes are replaced by
+   * unique variables. To track counters for introducing unique variables, we
+   * use the var_count map.
+   */
+  Node canonizeBuiltin(Node n);
+  Node canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count);
   /** sygus to builtin
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
    * that is, the term that n encodes.
-   *
-   * Notice that each occurrence of a symbolic constructor application is
-   * replaced by a unique variable. To track counters for introducing unique
-   * variables, we use the var_count map.
    */
   Node sygusToBuiltin(Node n, TypeNode tn);
-  Node sygusToBuiltin(Node n, TypeNode tn, std::map<TypeNode, int>& var_count);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
   /** evaluate builtin
@@ -184,8 +193,14 @@ class TermDbSygus {
    * bn is a term of some sygus datatype tn. This function returns the rewritten
    * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
    * list for type tn (see Datatype::getSygusVarList).
+   *
+   * If the argument tryEval is true, we consult the evaluator before the
+   * rewriter, for performance reasons.
    */
-  Node evaluateBuiltin(TypeNode tn, Node bn, std::vector<Node>& args);
+  Node evaluateBuiltin(TypeNode tn,
+                       Node bn,
+                       std::vector<Node>& args,
+                       bool tryEval = true);
   /** evaluate with unfolding
    *
    * n is any term that may involve sygus evaluation functions. This function
@@ -216,6 +231,9 @@ class TermDbSygus {
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
 
+  /** print to sygus stream n on trace c */
+  static void toStreamSygus(const char* c, Node n);
+
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -225,6 +243,8 @@ class TermDbSygus {
   std::unique_ptr<SygusExplain> d_syexp;
   /** extended rewriter */
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
+  /** evaluator */
+  std::unique_ptr<Evaluator> d_eval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
@@ -242,6 +262,11 @@ class TermDbSygus {
    *   if G is true, then there are more values of e to enumerate".
    */
   std::map<Node, Node> d_enum_to_active_guard;
+  /**
+   * Mapping from enumerators to whether we allow symbolic constructors to
+   * appear as subterms of them.
+   */
+  std::map<Node, bool> d_enum_to_using_sym_cons;
   /** mapping from enumerators to symmetry breaking clauses for them */
   std::map<Node, std::vector<Node> > d_enum_to_sb_lemmas;
   /** mapping from symmetry breaking lemmas to type */
@@ -330,6 +355,14 @@ class TermDbSygus {
   unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
   /** get the weight of the selector, where tn is the domain of sel */
   unsigned getSelectorWeight(TypeNode tn, Node sel);
+  /** get subfield types
+   *
+   * This adds all "subfield types" of tn to sf_types. A type tnc is a subfield
+   * type of tn if there exists a selector chain S1( ... Sn( x )...) that has
+   * type tnc, where x has type tn. In other words, tnc is the type of some
+   * subfield of terms of type tn, at any depth.
+   */
+  void getSubfieldTypes(TypeNode tn, std::vector<TypeNode>& sf_types);
 
  public:
   int getKindConsNum( TypeNode tn, Kind k );
@@ -361,6 +394,30 @@ class TermDbSygus {
   bool hasSubtermSymbolicCons(TypeNode tn) const;
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
+  /** can construct kind
+   *
+   * Given a sygus datatype type tn, if this method returns true, then there
+   * exists values of tn whose builtin analog is equivalent to
+   * <k>( t1, ..., tn ). The sygus types of t1...tn are added to arg_types.
+   *
+   * For example, if:
+   *   A -> A+A | ite( B, A, A ) | x | 1 | 0
+   *   B -> and( B, B ) | not( B ) | or( B, B ) | A = A
+   * - canConstructKind( A, +, ... ) returns true and adds {A,A} to arg_types,
+   * - canConstructKind( B, not, ... ) returns true and adds { B } to arg types.
+   *
+   * We also may infer that operator is constructable. For example,
+   * - canConstructKind( B, ite, ... ) may return true, adding { B, B, B } to
+   * arg_types, noting that the term
+   *   (and (or (not b1) b2) (or b1 b3)) is equivalent to (ite b1 b2 b3)
+   * The argument aggr is whether we use aggressive techniques like the one
+   * above to infer a kind is constructable. If this flag is false, we only
+   * check if the kind is literally a constructor of the grammar.
+   */
+  bool canConstructKind(TypeNode tn,
+                        Kind k,
+                        std::vector<TypeNode>& argts,
+                        bool aggr = false);
 
   TypeNode getSygusTypeForVar( Node v );
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
@@ -378,10 +435,6 @@ class TermDbSygus {
   Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
-  
-  /** get operator kind */
-  static Kind getOperatorKind( Node op );
-
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
@@ -391,13 +444,32 @@ public: // for symmetry breaking
   bool considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg );
   bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
   int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
-public:
-  Node unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp = true );
-  Node unfold( Node en ){
-    std::map< Node, Node > vtm;
-    std::vector< Node > exp;
-    return unfold( en, vtm, exp, false );
-  }
+
+ public:
+  /** unfold
+   *
+   * This method returns the one-step unfolding of an evaluation function
+   * application. An example of a one step unfolding is:
+   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
+   *
+   * This function does this unfolding for a (possibly symbolic) evaluation
+   * head, where the argument "variable to model" vtm stores the model value of
+   * variables from this head. This allows us to track an explanation of the
+   * unfolding in the vector exp when track_exp is true.
+   *
+   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
+   * this method applied to eval( d, t ) will return
+   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
+   */
+  Node unfold(Node en,
+              std::map<Node, Node>& vtm,
+              std::vector<Node>& exp,
+              bool track_exp = true);
+  /**
+   * Same as above, but without explanation tracking. This is used for concrete
+   * evaluation heads
+   */
+  Node unfold(Node en);
   Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 };
 

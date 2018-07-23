@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -135,8 +135,7 @@ class CVC4_PUBLIC Cardinality {
   /** Returns true iff this cardinality is finite. */
   bool isFinite() const { return d_card > 0; }
   /** Returns true iff this cardinality is one */
-  bool isOne() const { return d_card == 1; }
-
+  bool isOne() const { return d_card == 2; }
   /**
    * Returns true iff this cardinality is finite and large (i.e.,
    * at the ceiling of representable finite cardinalities).
