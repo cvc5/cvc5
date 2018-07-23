@@ -580,6 +580,7 @@ REG0_TESTS = \
 	regress0/push-pop/inc-double-u.smt2 \
 	regress0/push-pop/incremental-subst-bug.cvc \
 	regress0/push-pop/issue1986.smt2 \
+	regress0/push-pop/issue2137.min.smt2 \
 	regress0/push-pop/quant-fun-proc-unfd.smt2 \
 	regress0/push-pop/simple_unsat_cores.smt2 \
 	regress0/push-pop/test.00.cvc \
@@ -719,6 +720,7 @@ REG0_TESTS = \
 	regress0/sep/sep-01.smt2 \
 	regress0/sep/sep-plus1.smt2 \
 	regress0/sep/sep-simp-unsat-emp.smt2 \
+	regress0/sep/skolem_emp.smt2 \
 	regress0/sep/trees-1.smt2 \
 	regress0/sep/wand-crash.smt2 \
 	regress0/sets/abt-min.smt2 \
@@ -812,6 +814,7 @@ REG0_TESTS = \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
 	regress0/sygus/General_plus10.sy \
+	regress0/sygus/aig-si.sy \
 	regress0/sygus/c100.sy \
 	regress0/sygus/ccp16.lus.sy \
 	regress0/sygus/check-generic-red.sy \
@@ -1489,6 +1492,7 @@ REG1_TESTS = \
 	regress1/strings/username_checker_min.smt2 \
 	regress1/sygus/VC22_a.sy \
 	regress1/sygus/array_search_2.sy \
+	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegisunif-depth1.sy \
@@ -1499,6 +1503,8 @@ REG1_TESTS = \
 	regress1/sygus/constant.sy \
 	regress1/sygus/constant-ite-bv.sy \
 	regress1/sygus/crci-ssb-unk.sy \
+	regress1/sygus/crcy-si-rcons.sy \
+	regress1/sygus/crcy-si.sy \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
@@ -1523,6 +1529,7 @@ REG1_TESTS = \
 	regress1/sygus/nia-max-square-ns.sy \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
+	regress1/sygus/parity-si-rcons.sy \
 	regress1/sygus/pbe_multi.sy \
 	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
@@ -1538,6 +1545,8 @@ REG1_TESTS = \
 	regress1/sygus/strings-trivial-two-type.sy \
 	regress1/sygus/strings-trivial.sy \
 	regress1/sygus/sygus-dt.sy \
+	regress1/sygus/sygus-uf-ex.sy \
+	regress1/sygus/t8.sy \
 	regress1/sygus/tl-type-0.sy \
 	regress1/sygus/tl-type-4x.sy \
 	regress1/sygus/tl-type.sy \
@@ -1546,6 +1555,7 @@ REG1_TESTS = \
 	regress1/sygus/twolets2-orig.sy \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
+	regress1/sygus/univ_2-long-repeat.sy \
 	regress1/sym/sym1.smt2 \
 	regress1/sym/sym2.smt2 \
 	regress1/sym/sym3.smt2 \

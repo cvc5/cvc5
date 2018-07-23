@@ -332,6 +332,9 @@ void ProofManager::traceUnsatCore() {
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
 
+  // At this point, there should be no assertions without a clause id
+  Assert(d_cnfProof->isAssertionStackEmpty());
+
   IdToSatClause::const_iterator it = used_inputs.begin();
   for(; it != used_inputs.end(); ++it) {
     Node node = d_cnfProof->getAssertionForClause(it->first);

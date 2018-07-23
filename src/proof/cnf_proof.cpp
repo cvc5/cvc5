@@ -161,10 +161,14 @@ void CnfProof::setCnfDependence(Node from, Node to) {
 }
 
 void CnfProof::pushCurrentAssertion(Node assertion) {
-  Debug("proof:cnf") << "CnfProof::pushCurrentAssertion "
-                     << assertion  << std::endl;
+  Debug("proof:cnf") << "CnfProof::pushCurrentAssertion " << assertion
+                     << std::endl;
 
   d_currentAssertionStack.push_back(assertion);
+
+  Debug("proof:cnf") << "CnfProof::pushCurrentAssertion "
+                     << "new stack size = " << d_currentAssertionStack.size()
+                     << std::endl;
 }
 
 void CnfProof::popCurrentAssertion() {
@@ -174,6 +178,10 @@ void CnfProof::popCurrentAssertion() {
                      << d_currentAssertionStack.back() << std::endl;
 
   d_currentAssertionStack.pop_back();
+
+  Debug("proof:cnf") << "CnfProof::popCurrentAssertion "
+                     << "new stack size = " << d_currentAssertionStack.size()
+                     << std::endl;
 }
 
 Node CnfProof::getCurrentAssertion() {
