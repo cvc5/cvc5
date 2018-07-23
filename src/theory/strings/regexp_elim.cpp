@@ -230,7 +230,7 @@ Node RegExpElimination::eliminate(Node atom)
           AND, nm->mkNode(LEQ, d_zero, index), nm->mkNode(LT, index, lenx));
       Node conc = char_constraints.size() == 1
                       ? char_constraints[0]
-                      : nm->mkNode(AND, char_constraints);
+                      : nm->mkNode(OR, char_constraints);
       Node body = nm->mkNode(OR, bound.negate(), conc);
       Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
       Node res = nm->mkNode(FORALL, bvl, body);
