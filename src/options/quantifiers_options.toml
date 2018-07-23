@@ -638,6 +638,15 @@ header = "options/quantifiers_options.h"
   help       = "mode for which types of bounds to minimize via first decision heuristics"
 
 [[option]]
+  name       = "fmfTypeCompletionThresh"
+  category   = "regular"
+  long       = "fmf-type-completion-thresh=N"
+  type       = "int"
+  default    = "1000"
+  read_only  = true
+  help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
+
+[[option]]
   name       = "quantConflictFind"
   category   = "regular"
   long       = "quant-cf"
@@ -970,6 +979,15 @@ header = "options/quantifiers_options.h"
   help       = "abort if synthesis conjecture is not single invocation"
 
 [[option]]
+  name       = "sygusConstRepairAbort"
+  category   = "regular"
+  long       = "sygus-crepair-abort"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "abort if constant repair techniques are not applicable"
+
+[[option]]
   name       = "sygusUnif"
   category   = "regular"
   long       = "sygus-unif"
@@ -1125,6 +1143,14 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
+
+[[option]]
+  name       = "sygusVerifySubcall"
+  category   = "regular"
+  long       = "sygus-verify-subcall"
+  type       = "bool"
+  default    = "true"
+  help       = "use separate copy of the SMT solver for verification lemmas in sygus"
 
 [[option]]
   name       = "sygusExtRew"

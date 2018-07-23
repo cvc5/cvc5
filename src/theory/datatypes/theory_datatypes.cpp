@@ -202,7 +202,9 @@ void TheoryDatatypes::check(Effort e) {
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             Type tt = tn.toType();
             const Datatype& dt = ((DatatypeType)tt).getDatatype();
-            Trace("datatypes-debug") << "Datatype " << dt << " is " << dt.isFinite( tt ) << " " << dt.isInterpretedFinite( tt ) << " " << dt.isRecursiveSingleton( tt ) << std::endl;
+            Trace("datatypes-debug")
+                << "Datatype " << dt << " is " << dt.isInterpretedFinite(tt)
+                << " " << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
@@ -263,7 +265,13 @@ void TheoryDatatypes::check(Effort e) {
                   if( consIndex==-1 ){
                     consIndex = j;
                   }
-                  if( !dt[ j ].isInterpretedFinite( tt ) ) {
+                  Trace("datatypes-debug") << j << " compute finite..."
+                                           << std::endl;
+                  bool ifin = dt[j].isInterpretedFinite(tt);
+                  Trace("datatypes-debug") << "...returned " << ifin
+                                           << std::endl;
+                  if (!ifin)
+                  {
                     if( !eqc || !eqc->d_selectors ){
                       needSplit = false;
                     }
@@ -1752,8 +1760,6 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
         tt = exp[0];
       }
       const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
-      //must be finite or have a selector
-      //if( eqc->d_selectors || dt[ index ].isFinite() ){
       //instantiate this equivalence class
       eqc->d_inst = true;
       Node tt_cons = getInstantiateCons( tt, dt, index );

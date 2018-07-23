@@ -568,7 +568,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
           unsigned c1 = deq_child[0][i];
           unsigned c2 = deq_child[1][i];
           TypeNode tnc = children[c1].getType();
-          if (tnc == children[c2].getType() && !tnc.getCardinality().isOne())
+          // we may only apply this symmetry breaking scheme (which introduces
+          // disequalities) if the types are infinite.
+          if (tnc == children[c2].getType() && !tnc.isInterpretedFinite())
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
             // notice that this symmetry breaking still allows for

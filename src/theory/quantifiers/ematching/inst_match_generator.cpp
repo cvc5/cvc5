@@ -174,8 +174,24 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
 
     //create candidate generator
     if( Trigger::isAtomicTrigger( d_match_pattern ) ){
-      //we will be scanning lists trying to find d_match_pattern.getOperator()
-      d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern );
+      if (d_match_pattern.getKind() == APPLY_CONSTRUCTOR)
+      {
+        // 1-constructors have a trivial way of generating candidates in a
+        // given equivalence class
+        const Datatype& dt =
+            static_cast<DatatypeType>(d_match_pattern.getType().toType())
+                .getDatatype();
+        if (dt.getNumConstructors() == 1)
+        {
+          d_cg = new inst::CandidateGeneratorConsExpand(qe, d_match_pattern);
+        }
+      }
+      if (d_cg == nullptr)
+      {
+        // we will be scanning lists trying to find
+        // d_match_pattern.getOperator()
+        d_cg = new inst::CandidateGeneratorQE(qe, d_match_pattern);
+      }
       //if matching on disequality, inform the candidate generator not to match on eqc
       if( d_pattern.getKind()==NOT && d_pattern[0].getKind()==EQUAL ){
         ((inst::CandidateGeneratorQE*)d_cg)->excludeEqc( d_eq_class_rel );
@@ -196,13 +212,9 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }else if( d_match_pattern.getKind()==EQUAL &&
               d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
-      if( d_pattern.getKind()!=NOT ){
-        //candidates will be all equalities
-        d_cg = new inst::CandidateGeneratorQELitEq( qe, d_match_pattern );
-      }else{
-        //candidates will be all disequalities
-        d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
-      }
+      Assert(d_pattern.getKind() == NOT);
+      // candidates will be all disequalities
+      d_cg = new inst::CandidateGeneratorQELitDeq(qe, d_match_pattern);
     }else{
       Trace("inst-match-gen-warn") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
     }
