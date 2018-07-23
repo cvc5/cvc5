@@ -2119,7 +2119,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create datatype sort.
-   * SMT-LIB: ( declare-datatype <symbol> <datatype_decl>)
+   * SMT-LIB: ( declare-datatype <symbol> <datatype_decl> )
    * @param symbol the name of the datatype sort
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort

@@ -2214,7 +2214,7 @@ std::vector<Expr> Solver::termVectorToExprs(
 }
 
 /**
- *  ( declare-datatype <symbol> <datatype_decl>)
+ *  ( declare-datatype <symbol> <datatype_decl> )
  */
 Sort Solver::declareDatatype(
     const std::string& symbol,
