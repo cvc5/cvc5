@@ -171,6 +171,15 @@ class TermDbSygus {
   Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
   /** same as above, but with empty pre */
   Node mkGeneric(const Datatype& dt, int c);
+  /** makes a symbolic term concrete
+   *
+   * Given a sygus datatype term n of type tn with holes (symbolic constructor
+   * applications), this function returns a term in which holes are replaced by
+   * unique variables. To track counters for introducing unique variables, we
+   * use the var_count map.
+   */
+  Node canonizeBuiltin(Node n);
+  Node canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count);
   /** sygus to builtin
    *
    * Given a sygus datatype term n of type tn, this function returns its analog,
@@ -184,6 +193,9 @@ class TermDbSygus {
    * bn is a term of some sygus datatype tn. This function returns the rewritten
    * form of bn [ args / vars(tn) ], where vars(tn) is the sygus variable
    * list for type tn (see Datatype::getSygusVarList).
+   *
+   * If the argument tryEval is true, we consult the evaluator before the
+   * rewriter, for performance reasons.
    */
   Node evaluateBuiltin(TypeNode tn,
                        Node bn,
@@ -218,6 +230,9 @@ class TermDbSygus {
    */
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
+
+  /** print to sygus stream n on trace c */
+  static void toStreamSygus(const char* c, Node n);
 
  private:
   /** reference to the quantifiers engine */
@@ -340,6 +355,14 @@ class TermDbSygus {
   unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
   /** get the weight of the selector, where tn is the domain of sel */
   unsigned getSelectorWeight(TypeNode tn, Node sel);
+  /** get subfield types
+   *
+   * This adds all "subfield types" of tn to sf_types. A type tnc is a subfield
+   * type of tn if there exists a selector chain S1( ... Sn( x )...) that has
+   * type tnc, where x has type tn. In other words, tnc is the type of some
+   * subfield of terms of type tn, at any depth.
+   */
+  void getSubfieldTypes(TypeNode tn, std::vector<TypeNode>& sf_types);
 
  public:
   int getKindConsNum( TypeNode tn, Kind k );
@@ -371,6 +394,30 @@ class TermDbSygus {
   bool hasSubtermSymbolicCons(TypeNode tn) const;
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
+  /** can construct kind
+   *
+   * Given a sygus datatype type tn, if this method returns true, then there
+   * exists values of tn whose builtin analog is equivalent to
+   * <k>( t1, ..., tn ). The sygus types of t1...tn are added to arg_types.
+   *
+   * For example, if:
+   *   A -> A+A | ite( B, A, A ) | x | 1 | 0
+   *   B -> and( B, B ) | not( B ) | or( B, B ) | A = A
+   * - canConstructKind( A, +, ... ) returns true and adds {A,A} to arg_types,
+   * - canConstructKind( B, not, ... ) returns true and adds { B } to arg types.
+   *
+   * We also may infer that operator is constructable. For example,
+   * - canConstructKind( B, ite, ... ) may return true, adding { B, B, B } to
+   * arg_types, noting that the term
+   *   (and (or (not b1) b2) (or b1 b3)) is equivalent to (ite b1 b2 b3)
+   * The argument aggr is whether we use aggressive techniques like the one
+   * above to infer a kind is constructable. If this flag is false, we only
+   * check if the kind is literally a constructor of the grammar.
+   */
+  bool canConstructKind(TypeNode tn,
+                        Kind k,
+                        std::vector<TypeNode>& argts,
+                        bool aggr = false);
 
   TypeNode getSygusTypeForVar( Node v );
   Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );

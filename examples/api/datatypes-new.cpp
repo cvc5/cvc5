@@ -20,38 +20,8 @@
 #include "api/cvc4cpp.h"
 using namespace CVC4::api;
 
-int main()
+void test(Solver& slv, Sort& consListSort)
 {
-  Solver slv;
-  // This example builds a simple "cons list" of integers, with
-  // two constructors, "cons" and "nil."
-
-  // Building a datatype consists of two steps.
-  // First, the datatype is specified.
-  // Second, it is "resolved" to an actual sort, at which point function
-  // symbols are assigned to its constructors, selectors, and testers.
-
-  DatatypeDecl consListSpec("list"); // give the datatype a name
-  DatatypeConstructorDecl cons("cons");
-  DatatypeSelectorDecl head("head", slv.getIntegerSort());
-  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head);
-  cons.addSelector(tail);
-  consListSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
-  consListSpec.addConstructor(nil);
-
-  std::cout << "spec is:" << std::endl
-            << consListSpec << std::endl;
-
-  // Keep in mind that "DatatypeDecl" is the specification class for
-  // datatypes---"DatatypeDecl" is not itself a CVC4 Sort.
-  // Now that our Datatype is fully specified, we can get a Sort for it.
-  // This step resolves the "SelfSort" reference and creates
-  // symbols for all the constructors, etc.
-
-  Sort consListSort = slv.mkDatatypeSort(consListSpec);
-
   // Now our old "consListSpec" is useless--the relevant information
   // has been copied out, so we can throw that spec away.  We can get
   // the complete spec for the datatype from the DatatypeSort, and
@@ -160,6 +130,49 @@ int main()
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;
   std::cout << "CVC4: " << slv.checkSat() << std::endl;
+}
+
+int main()
+{
+  Solver slv;
+  // This example builds a simple "cons list" of integers, with
+  // two constructors, "cons" and "nil."
+
+  // Building a datatype consists of two steps.
+  // First, the datatype is specified.
+  // Second, it is "resolved" to an actual sort, at which point function
+  // symbols are assigned to its constructors, selectors, and testers.
+
+  DatatypeDecl consListSpec("list"); // give the datatype a name
+  DatatypeConstructorDecl cons("cons");
+  DatatypeSelectorDecl head("head", slv.getIntegerSort());
+  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
+  cons.addSelector(head);
+  cons.addSelector(tail);
+  consListSpec.addConstructor(cons);
+  DatatypeConstructorDecl nil("nil");
+  consListSpec.addConstructor(nil);
+
+  std::cout << "spec is:" << std::endl
+            << consListSpec << std::endl;
+
+  // Keep in mind that "DatatypeDecl" is the specification class for
+  // datatypes---"DatatypeDecl" is not itself a CVC4 Sort.
+  // Now that our Datatype is fully specified, we can get a Sort for it.
+  // This step resolves the "SelfSort" reference and creates
+  // symbols for all the constructors, etc.
+
+  Sort consListSort = slv.mkDatatypeSort(consListSpec);
+
+  test(slv, consListSort);
+
+  std::cout << std::endl << ">>> Alternatively, use declareDatatype" << std::endl;
+  std::cout << std::endl;
+
+  std::vector<DatatypeConstructorDecl> ctors = { cons, nil };
+  Sort consListSort2 = slv.declareDatatype("list2", ctors);
+  test(slv, consListSort2);
+
 
   return 0;
 }

@@ -143,6 +143,10 @@ class UnifContextIo : public UnifContext
     * pairs.
     */
     std::map<Node, std::map<unsigned, Node>> d_look_ahead_sols;
+    /** clear */
+    void clear() { d_look_ahead_sols.clear(); }
+    /** is empty */
+    bool empty() { return d_look_ahead_sols.empty(); }
   };
   /** map from enumerators to the above info class */
   std::map<Node, UEnumInfo> d_uinfo;
@@ -306,10 +310,33 @@ class SygusUnifIo : public SygusUnif
    * register a new value for an enumerator.
    */
   bool d_check_sol;
+  /** whether we have solved the overall conjecture */
+  bool d_solved;
   /** The number of values we have enumerated for all enumerators. */
   unsigned d_cond_count;
   /** The solution for the function of this class, if one has been found */
   Node d_solution;
+  /**
+   * This flag is set to true if the solution construction was
+   * non-deterministic with respect to failure/success.
+   *
+   * The solution construction for the string concatenation strategy is
+   * non-deterministic with respect to success/failure. That is, choosing
+   * a particular string may lead to being unsolvable in the recursive calls,
+   * whereas others may not. For example, if our pool of enumerated strings is:
+   *   { "A", x, "B" }
+   * and our I/O example is:
+   *   f( "AC" ) = "ACB"
+   * then choosing to consider a solution of the form ( "A" ++ _ ) leads
+   * to a recursive call where we are solving for f' in:
+   *   "A" ++ f'("AC") = "ACB"
+   * which is unsolvable since we cannot generate a term starting with "C"
+   * from the pool above. Whereas if we would have chosen ( x ++ _ ), this
+   * leads to a recursive call where we are solving for f' in:
+   *   "AC" ++ f'("AC") = "ACB"
+   * which can be closed with "B", giving us (x ++ "B") as a solution.
+   */
+  bool d_sol_cons_nondet;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -388,10 +415,11 @@ class SygusUnifIo : public SygusUnif
    * exp : if this function returns true, then exp contains a (possibly
    * generalize) explanation for why v can be excluded.
    */
-  bool getExplanationForEnumeratorExclude(Node e,
-                                          Node v,
-                                          std::vector<Node>& results,
-                                          std::vector<Node>& exp);
+  bool getExplanationForEnumeratorExclude(
+      Node e,
+      Node v,
+      std::vector<Node>& results,
+      std::vector<Node>& exp);
   /** returns true if we can exlude values of e based on negative str.contains
    *
    * Values v for e may be excluded if we realize that the value of v under the

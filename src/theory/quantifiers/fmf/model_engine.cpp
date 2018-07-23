@@ -136,7 +136,8 @@ void ModelEngine::registerQuantifier( Node f ){
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
       if( !tn.isSort() ){
-        if( !tn.getCardinality().isFinite() ){
+        if (!tn.isInterpretedFinite())
+        {
           if( tn.isInteger() ){
             if( !options::fmfBound() ){
               canHandle = false;
