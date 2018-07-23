@@ -412,6 +412,7 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
     }
     else if (c.getKind() == REGEXP_EMPTY)
     {
+      // re.++( ..., empty, ... ) ---> empty
       std::vector<Node> nvec;
       return nm->mkNode(REGEXP_EMPTY, nvec);
     }
@@ -423,6 +424,8 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
   if (changed)
   {
     // flatten
+    // this handles nested re.++ and elimination or str.to.re(""), e.g.:
+    // re.++( re.++( R1, R2 ), str.to.re(""), R3 ) ---> re.++( R1, R2, R3 )
     if (vec.empty())
     {
       Assert(!emptyRe.isNull());
@@ -489,6 +492,8 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
       node_vec.size() == 1 ? node_vec[0] : nm->mkNode(REGEXP_CONCAT, node_vec);
   if (retNode != node)
   {
+    // handles all cases where consecutive re constants are combined, and cases
+    // where arguments are swapped, as described in the loop above.
     return returnRewrite(node, retNode, "re.concat");
   }
   return node;
