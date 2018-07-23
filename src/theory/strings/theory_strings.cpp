@@ -4276,13 +4276,15 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
-  if( atom.getKind()==STRING_IN_REGEXP )
+  if (atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
     atomElim = d_regexp_elim.eliminate(atom);
-    if( !atomElim.isNull() )
+    if (!atomElim.isNull())
     {
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim << " via regular expression elimination." << std::endl;
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
+                           << " via regular expression elimination."
+                           << std::endl;
       atom = atomElim;
     }
   }

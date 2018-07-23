@@ -24,37 +24,39 @@ namespace theory {
 namespace strings {
 
 /** Regular expression membership elimination
- * 
+ *
  * This class implements techniques for reducing regular expression memberships
  * to bounded integer quantifiers + extended function constraints.
- * 
+ *
  * It is used by TheoryStrings during ppRewrite.
  */
-class RegExpElimination {
+class RegExpElimination
+{
  public:
   RegExpElimination();
   /** eliminate membership
-   * 
-   * This method takes as input a regular expression membership atom of the 
+   *
+   * This method takes as input a regular expression membership atom of the
    * form (str.in.re x R). If this method returns a non-null node ret, then ret
    * is equivalent to node.
    */
   Node eliminate(Node atom);
+
  private:
   /** common terms */
   Node d_zero;
   Node d_one;
   Node d_neg_one;
   /** return elimination
-   * 
+   *
    * This method is called when atom is rewritten to atomElim, and returns
    * atomElim. id is an identifier indicating the reason for the elimination.
    */
-  Node returnElim( Node atom, Node atomElim, const char * id );
-};/* class RegExpElimination */
+  Node returnElim(Node atom, Node atomElim, const char* id);
+}; /* class RegExpElimination */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+} /* CVC4::theory::strings namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__STRINGS__REGEXP_ELIM_H */

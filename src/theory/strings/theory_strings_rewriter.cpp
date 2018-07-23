@@ -387,99 +387,109 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
 
 Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
   Assert( node.getKind() == kind::REGEXP_CONCAT );
-  NodeManager * nm = NodeManager::currentNM();
-  Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp flatten " << node << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp flatten "
+                              << node << std::endl;
   Node retNode = node;
-  std::vector< Node > vec;
+  std::vector<Node> vec;
   bool changed = false;
   Node emptyRe;
-  for( const Node& c : node )
+  for (const Node& c : node)
   {
-    if( c.getKind()==REGEXP_CONCAT )
+    if (c.getKind() == REGEXP_CONCAT)
     {
       changed = true;
-      for( const Node& cc : c )
+      for (const Node& cc : c)
       {
-        vec.push_back( cc );
+        vec.push_back(cc);
       }
     }
-    else if( c.getKind()==STRING_TO_REGEXP && c[0].isConst() && c[0].getConst<String>().isEmptyString() ) 
+    else if (c.getKind() == STRING_TO_REGEXP && c[0].isConst()
+             && c[0].getConst<String>().isEmptyString())
     {
       changed = true;
       emptyRe = c;
-    } 
-    else if( c.getKind() == REGEXP_EMPTY ) 
+    }
+    else if (c.getKind() == REGEXP_EMPTY)
     {
-      std::vector< Node > nvec;
-      return nm->mkNode( REGEXP_EMPTY, nvec );
+      std::vector<Node> nvec;
+      return nm->mkNode(REGEXP_EMPTY, nvec);
     }
     else
     {
       vec.push_back(c);
     }
   }
-  if( changed )
+  if (changed)
   {
     // flatten
-    if( vec.empty() )
+    if (vec.empty())
     {
-      Assert( !emptyRe.isNull() );
+      Assert(!emptyRe.isNull());
       retNode = emptyRe;
     }
     else
     {
-      retNode = vec.size()==1 ? vec[0] : nm->mkNode(REGEXP_CONCAT, vec);
+      retNode = vec.size() == 1 ? vec[0] : nm->mkNode(REGEXP_CONCAT, vec);
     }
-    return returnRewrite(node,retNode,"re.concat-flatten");
+    return returnRewrite(node, retNode, "re.concat-flatten");
   }
-  Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp start " << node << std::endl;
-  std::vector< Node > node_vec;
-  std::vector< Node > preReStr;
-  for( unsigned i=0,size=vec.size(); i<=size; i++ ){
+  Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp start "
+                              << node << std::endl;
+  std::vector<Node> node_vec;
+  std::vector<Node> preReStr;
+  for (unsigned i = 0, size = vec.size(); i <= size; i++)
+  {
     Node curr;
-    if( i<size )
+    if (i < size)
     {
       curr = vec[i];
       Assert(curr.getKind() != REGEXP_CONCAT);
-      if( !node_vec.empty() && preReStr.empty() )
+      if (!node_vec.empty() && preReStr.empty())
       {
         Node node_vec_last = node_vec.back();
-        if( node_vec_last.getKind()==REGEXP_STAR && node_vec_last[0]==curr )
+        if (node_vec_last.getKind() == REGEXP_STAR && node_vec_last[0] == curr)
         {
           // by convention, flip the order (a*)++a ---> a++(a*)
-          node_vec[node_vec.size()-1] = curr;
+          node_vec[node_vec.size() - 1] = curr;
           node_vec.push_back(node_vec_last);
           curr = Node::null();
         }
       }
     }
     // update preReStr
-    if( !curr.isNull() && curr.getKind() == STRING_TO_REGEXP ) {
+    if (!curr.isNull() && curr.getKind() == STRING_TO_REGEXP)
+    {
       preReStr.push_back(curr[0]);
       curr = Node::null();
-    } else if(!preReStr.empty()) {
+    }
+    else if (!preReStr.empty())
+    {
       // this groups consecutive strings a++b ---> ab
-      Node acc = nm->mkNode( STRING_TO_REGEXP, mkConcat(STRING_CONCAT,preReStr));
+      Node acc =
+          nm->mkNode(STRING_TO_REGEXP, mkConcat(STRING_CONCAT, preReStr));
       node_vec.push_back(acc);
       preReStr.clear();
     }
-    if( !curr.isNull() && curr.getKind() == REGEXP_STAR )
+    if (!curr.isNull() && curr.getKind() == REGEXP_STAR)
     {
       // we can group stars (a*)++(a*) ---> a*
-      if( !node_vec.empty() && node_vec.back()==curr )
+      if (!node_vec.empty() && node_vec.back() == curr)
       {
         curr = Node::null();
       }
     }
-    if( !curr.isNull() ){
-      node_vec.push_back( curr );
+    if (!curr.isNull())
+    {
+      node_vec.push_back(curr);
     }
   }
-  Assert( !node_vec.empty() );
-  retNode = node_vec.size()==1 ? node_vec[0] : nm->mkNode(REGEXP_CONCAT, node_vec);
-  if( retNode!=node )
+  Assert(!node_vec.empty());
+  retNode =
+      node_vec.size() == 1 ? node_vec[0] : nm->mkNode(REGEXP_CONCAT, node_vec);
+  if (retNode != node)
   {
-    return returnRewrite( node, retNode, "re.concat" );
+    return returnRewrite(node, retNode, "re.concat");
   }
   return node;
 }
@@ -752,7 +762,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
 }
 
 Node TheoryStringsRewriter::rewriteMembership(TNode node) {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
   Node x = node[0];
   Node r = node[1];
@@ -767,7 +777,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     Node one = NodeManager::currentNM()->mkConst(Rational(1));
     retNode = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
-    if( r[0].getKind() == kind::REGEXP_SIGMA )
+    if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );
     }
@@ -800,9 +810,13 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     retNode = NodeManager::currentNM()->mkNode( r.getKind()==kind::REGEXP_INTER ? kind::AND : kind::OR, mvec );
   }else if(r.getKind() == kind::STRING_TO_REGEXP) {
     retNode = x.eqNode(r[0]);
-  }else if(r.getKind() == REGEXP_RANGE ){
-    Node xcode = nm->mkNode(STRING_CODE,x);
-    retNode = nm->mkNode(AND, nm->mkNode(LEQ,nm->mkNode(STRING_CODE,r[0]),xcode),nm->mkNode(LEQ,xcode,nm->mkNode(STRING_CODE,r[1])));
+  }
+  else if (r.getKind() == REGEXP_RANGE)
+  {
+    Node xcode = nm->mkNode(STRING_CODE, x);
+    retNode = nm->mkNode(AND,
+                         nm->mkNode(LEQ, nm->mkNode(STRING_CODE, r[0]), xcode),
+                         nm->mkNode(LEQ, xcode, nm->mkNode(STRING_CODE, r[1])));
   }else if(x != node[0] || r != node[1]) {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
   }
@@ -986,8 +1000,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
   Node retNode = node;
   Node orig = retNode;
   Trace("strings-prerewrite") << "Strings::preRewrite start " << node << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
-  
+  NodeManager* nm = NodeManager::currentNM();
+
   if (node.getKind() == kind::REGEXP_CONCAT)
   {
     retNode = prerewriteConcatRegExp(node);
@@ -1060,8 +1074,12 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
         //if(!n2.isConst()) {
         //  throw LogicException("re.loop contains non-constant integer (2).");
         //}
-        Node n = vec_nodes.size()==0 ? nm->mkNode(kind::STRING_TO_REGEXP, nm->mkConst(CVC4::String("")))
-          : vec_nodes.size()==1 ? r : nm->mkNode(kind::REGEXP_CONCAT, vec_nodes);
+        Node n = vec_nodes.size() == 0
+                     ? nm->mkNode(kind::STRING_TO_REGEXP,
+                                  nm->mkConst(CVC4::String("")))
+                     : vec_nodes.size() == 1
+                           ? r
+                           : nm->mkNode(kind::REGEXP_CONCAT, vec_nodes);
         //Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
         unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
         if(u <= l) {
@@ -1071,17 +1089,22 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
           vec2.push_back(n);
           for(unsigned j=l; j<u; j++) {
             vec_nodes.push_back(r);
-            n = vec_nodes.size()==1? r : nm->mkNode(kind::REGEXP_CONCAT, vec_nodes);
+            n = vec_nodes.size() == 1 ? r : nm->mkNode(kind::REGEXP_CONCAT,
+                                                       vec_nodes);
             vec2.push_back(n);
           }
           retNode = prerewriteOrRegExp(nm->mkNode(kind::REGEXP_UNION, vec2));
         }
       } else {
         Node rest = nm->mkNode(kind::REGEXP_STAR, r);
-        retNode = vec_nodes.size()==0? rest : vec_nodes.size()==1?
-                 nm->mkNode(kind::REGEXP_CONCAT, r, rest)
-                :nm->mkNode(kind::REGEXP_CONCAT,
-                  nm->mkNode(kind::REGEXP_CONCAT, vec_nodes), rest);
+        retNode =
+            vec_nodes.size() == 0
+                ? rest
+                : vec_nodes.size() == 1
+                      ? nm->mkNode(kind::REGEXP_CONCAT, r, rest)
+                      : nm->mkNode(kind::REGEXP_CONCAT,
+                                   nm->mkNode(kind::REGEXP_CONCAT, vec_nodes),
+                                   rest);
       }
     }
     Trace("strings-lp") << "Strings::lp " << node << " => " << retNode << std::endl;
