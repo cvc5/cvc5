@@ -161,8 +161,7 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions,
   {
     Trace("sym-dt-debug") << "   base variables must occur " << base_occurs_req
                           << " times." << std::endl;
-    // check if all the base_vars occur at least the required number of
-    // times
+    // check if all the base_vars occur at least the required number of times
     bool var_ok = true;
     for (const Node& v : d_base_vars)
     {
@@ -195,7 +194,7 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions,
       {
         d_num_new_indices_needed +=
             nChoosek(d_base_vars.size(), base_choose - 1);
-        // base_occurs_req =   TODO
+        // TODO (#2198): update base_occurs_req
       }
     }
     else
@@ -357,7 +356,9 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
       }
     }
   }
-  // if we haven't chosen a merge variable, we may be out of time TODO
+  // TODO (#2198):
+  // if we haven't yet chosen a merge variable, we may not have enough elements
+  // left in d_indices.
 
   // try with it not included
   return mergeNewVar(curr_index + 1,
@@ -937,6 +938,7 @@ void SymmetryDetect::mergePartitions(
   PartitionMerger pm;
   pm.initialize(k, partitions, indices);
 
+  // TODO (#2198): process indices for distinct types separately
   for (unsigned index : indices)
   {
     if (pm.merge(partitions, index, active_indices))

@@ -28,7 +28,7 @@ namespace passes {
 namespace symbreak {
 
 /**
-  * This is the class stores a "partition", which is a way of representing a
+  * This class stores a "partition", which is a way of representing a
   * class of symmetries.
   *
   * For example, when finding symmetries for a term like x+y = 0, we
@@ -65,7 +65,7 @@ class Partition
     * { w-> { x, y } }
     */
   std::map<Node, std::vector<Node> > d_subvar_to_vars;
-  /** normalize, sorts the ranges of d_subvar_to_vars. */
+  /** sorts the ranges of d_subvar_to_vars. */
   void normalize();
   /** Print a partition */
   static void printPartition(const char* c, Partition p);
@@ -89,7 +89,7 @@ class Partition
  *   partition[j1] = { w -> X_1 },
  *   ...,
  *   partition[jp] = { w -> X_p }
- * are mergebale if s=|X_1|=...=|X_p|, and all subsets of
+ * are mergeable if s=|X_1|=...=|X_p|, and all subsets of
  * X* = ( union_{k=1...p} X_k ) of size s are equal to exactly one of
  * X_1 ... X_p.
  */
@@ -123,7 +123,8 @@ class PartitionMerger
    * detecting this symmetry. In particular, we start by assuming that
    * p=1, and j_m1 is base_index. We proceed by trying to find sets of indices
    * that add exactly one variable to X* at a time. We return
-   * true if p>1, that is, at least partition was merged with the base_index.
+   * true if p>1, that is, at least one partition was merged with the
+   * base_index.
    */
   bool merge(std::vector<Partition>& partitions,
              unsigned base_index,
@@ -157,6 +158,7 @@ class PartitionMerger
    * variables X*. We require that p = d_num_new_indices_needed, where
    * d_num_new_indices_needed is
    *   |d_base_vars| choose (|X_ji|-1)
+   * that is, n!/((n-k)!*k!) where n=|d_base_vars| and k=|X_ji|-1.
    *
    * curr_index : the index of d_indices we are currently considering whether
    * to add to new_indices,
@@ -190,7 +192,12 @@ class PartitionTrie
     * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. */
   Node addNode(Node v, std::vector<Partition>& parts);
 
-  /** Get all the new regions of a partition and store in part */
+  /** Get all the new regions of a partition and store in part
+   *
+   * This constructs a new partition, part, where each set in this partition
+   * corresponds to one leaf in the PartitionTrie pt.
+   * var_to_svar: map from variables to symmetry variables to use in part.
+   */
   void getNewPartition(Partition& part,
                        PartitionTrie& pt,
                        std::map<Node, Node>& var_to_svar);
