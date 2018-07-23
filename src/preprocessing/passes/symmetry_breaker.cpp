@@ -129,7 +129,7 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   Trace("sym-break-pass") << "Apply symmetry breaker pass..." << std::endl;
   // detect symmetries
   std::vector<std::vector<Node>> part;
-  SymmetryDetect symd;
+  symbreak::SymmetryDetect symd;
   symd.getPartition(part, assertionsToPreprocess->ref());
   if (Trace.isOn("sym-break-pass"))
   {
