@@ -165,7 +165,9 @@ class PartitionMerger
    * new_indices : the currently considered indices {j1...jp},
    * merge_var : the variable we are currently trying to add to X*,
    * new_merge_var_max : the maximum number of times that merge_var might
-   * appear in remainding indices, i.e. d_indices[curr_index]...d_indices.end().
+   * appear in remainding indices, i.e. d_indices[curr_index]...d_indices.end(),
+   * which is used as an optimization for recognizing quickly when this method
+   * will fail.
    */
   bool mergeNewVar(unsigned curr_index,
                    std::vector<unsigned>& new_indices,
@@ -238,6 +240,7 @@ class SymmetryDetect
    * vector. These are fresh variables of type tn which are used for
    * constructing a canonical form for terms considered by this class, and
    * are used in the domains of partitions (Partition::d_subvar_to_vars).
+   * This variable is created by this method if it does not already exist.
    */
   Node getSymBreakVariable(TypeNode tn, unsigned index);
   /**
