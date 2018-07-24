@@ -525,8 +525,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
       std::vector<Node> node_vec;
       for (const Node& nc : node[0])
       {
-        if (nc.getKind() == STRING_TO_REGEXP
-            && nc[0].getKind() == CONST_STRING
+        if (nc.getKind() == STRING_TO_REGEXP && nc[0].getKind() == CONST_STRING
             && nc[0].getConst<String>().isEmptyString())
         {
           // can be removed
