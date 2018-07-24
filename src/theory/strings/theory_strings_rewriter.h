@@ -60,39 +60,39 @@ class TheoryStringsRewriter {
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
-  
+
   /** rewrite regular expression concatenation
-   * 
+   *
    * This is the entry point for post-rewriting applications of re.++.
    * Returns the rewritten form of node.
    */
   static Node rewriteConcatRegExp(TNode node);
   /** rewrite regular expression star
-   * 
+   *
    * This is the entry point for post-rewriting applications of re.*.
    * Returns the rewritten form of node.
    */
   static Node rewriteStarRegExp(TNode node);
   /** rewrite regular expression union
-   * 
+   *
    * This is the entry point for post-rewriting applications of re.union.
    * Returns the rewritten form of node.
    */
   static Node rewriteOrRegExp(TNode node);
   /** rewrite regular expression intersection
-   * 
+   *
    * This is the entry point for post-rewriting applications of re.inter.
    * Returns the rewritten form of node.
    */
   static Node rewriteAndRegExp(TNode node);
   /** rewrite regular expression loop
-   * 
+   *
    * This is the entry point for post-rewriting applications of re.loop.
    * Returns the rewritten form of node.
    */
   static Node rewriteLoopRegExp(TNode node);
   /** rewrite regular expression membership
-   * 
+   *
    * This is the entry point for post-rewriting applications of str.in.re
    * Returns the rewritten form of node.
    */

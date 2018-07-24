@@ -15,8 +15,8 @@
 
 #include "theory/strings/regexp_elim.h"
 
-#include "theory/strings/theory_strings_rewriter.h"
 #include "options/strings_options.h"
+#include "theory/strings/theory_strings_rewriter.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -127,7 +127,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // otherwise, we can use indexof to represent some next occurrence
         if (gap_exact[i + 1] && i + 1 != size)
         {
-          if( !options::regExpElimAgg() )
+          if (!options::regExpElimAgg())
           {
             success = false;
             break;
@@ -152,8 +152,8 @@ Node RegExpElimination::eliminateConcat(Node atom)
           Node curr = nm->mkNode(MINUS, lenx, lensc);
           if (gap_minsize_end > 0)
           {
-            curr = nm->mkNode(
-                MINUS, curr, nm->mkConst(Rational(gap_minsize_end)));
+            curr =
+                nm->mkNode(MINUS, curr, nm->mkConst(Rational(gap_minsize_end)));
           }
           Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
           conj.push_back(ss.eqNode(sc));
@@ -169,7 +169,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         }
       }
     }
-    if( success )
+    if (success)
     {
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       // process the non-greedy find variables
@@ -190,62 +190,68 @@ Node RegExpElimination::eliminateConcat(Node atom)
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
-  if( !options::regExpElimAgg() )
+  if (!options::regExpElimAgg())
   {
     return Node::null();
   }
   // only aggressive rewrites below here
-  Assert( children.size()>1 );
+  Assert(children.size() > 1);
   for (unsigned i = 0, size = children.size(); i < size; i++)
   {
     if (children[i].getKind() == STRING_TO_REGEXP)
     {
       Node s = children[i][0];
-      Node lens = nm->mkNode(STRING_LENGTH,s);
+      Node lens = nm->mkNode(STRING_LENGTH, s);
       // there exists an index in this string such that the substring is this
       Node k;
-      std::vector< Node > echildren;
-      if( i==0 )
+      std::vector<Node> echildren;
+      if (i == 0)
       {
         k = d_zero;
       }
-      else if( i+1==size )
+      else if (i + 1 == size)
       {
-        k = nm->mkNode(MINUS,lenx,lens);
+        k = nm->mkNode(MINUS, lenx, lens);
       }
       else
       {
         k = nm->mkBoundVar(nm->integerType());
-        Node bound = nm->mkNode(
-          AND, nm->mkNode(LEQ, d_zero, k), nm->mkNode(LT, k, nm->mkNode(MINUS,lenx,lens)));
+        Node bound =
+            nm->mkNode(AND,
+                       nm->mkNode(LEQ, d_zero, k),
+                       nm->mkNode(LT, k, nm->mkNode(MINUS, lenx, lens)));
         echildren.push_back(bound);
       }
       Node substrEq = nm->mkNode(STRING_SUBSTR, x, k, lens).eqNode(s);
       echildren.push_back(substrEq);
-      if( i>0 )
+      if (i > 0)
       {
-        std::vector< Node > rprefix;
-        rprefix.insert(rprefix.end(),children.begin(),children.begin()+i);
-        Node rpn = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT,rprefix);
-        Node substrPrefix = nm->mkNode(STRING_IN_REGEXP,nm->mkNode(STRING_SUBSTR, x, d_zero, k),rpn);
+        std::vector<Node> rprefix;
+        rprefix.insert(rprefix.end(), children.begin(), children.begin() + i);
+        Node rpn = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT, rprefix);
+        Node substrPrefix = nm->mkNode(
+            STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, d_zero, k), rpn);
         echildren.push_back(substrPrefix);
       }
-      if( i+1<size )
+      if (i + 1 < size)
       {
-        std::vector< Node > rsuffix;
-        rsuffix.insert(rsuffix.end(),children.begin()+i+1,children.end());
-        Node rps = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT,rsuffix);
-        Node ks = nm->mkNode(PLUS,k,lens);
-        Node substrSuffix = nm->mkNode(STRING_IN_REGEXP,nm->mkNode(STRING_SUBSTR, x, ks, nm->mkNode(MINUS,lenx,ks)),rps);
+        std::vector<Node> rsuffix;
+        rsuffix.insert(rsuffix.end(), children.begin() + i + 1, children.end());
+        Node rps = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT, rsuffix);
+        Node ks = nm->mkNode(PLUS, k, lens);
+        Node substrSuffix = nm->mkNode(
+            STRING_IN_REGEXP,
+            nm->mkNode(STRING_SUBSTR, x, ks, nm->mkNode(MINUS, lenx, ks)),
+            rps);
         echildren.push_back(substrSuffix);
       }
-      Node body = nm->mkNode(AND,echildren);
-      if( !k.isNull() )
+      Node body = nm->mkNode(AND, echildren);
+      if (!k.isNull())
       {
-        Node bvl = nm->mkNode(BOUND_VAR_LIST,k);
-        body = nm->mkNode(EXISTS,bvl,body);
+        Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+        body = nm->mkNode(EXISTS, bvl, body);
       }
-      return returnElim(atom,body,"concat-find");
+      return returnElim(atom, body, "concat-find");
     }
   }
   return Node::null();
@@ -253,7 +259,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
 
 Node RegExpElimination::eliminateStar(Node atom)
 {
-  if( !options::regExpElimAgg() )
+  if (!options::regExpElimAgg())
   {
     return Node::null();
   }
@@ -316,9 +322,8 @@ Node RegExpElimination::eliminateStar(Node atom)
     Assert(!char_constraints.empty());
     Node bound = nm->mkNode(
         AND, nm->mkNode(LEQ, d_zero, index), nm->mkNode(LT, index, lenx));
-    Node conc = char_constraints.size() == 1
-                    ? char_constraints[0]
-                    : nm->mkNode(OR, char_constraints);
+    Node conc = char_constraints.size() == 1 ? char_constraints[0]
+                                             : nm->mkNode(OR, char_constraints);
     Node body = nm->mkNode(OR, bound.negate(), conc);
     Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
     Node res = nm->mkNode(FORALL, bvl, body);
@@ -354,7 +359,7 @@ Node RegExpElimination::eliminateStar(Node atom)
   }
   return Node::null();
 }
-  
+
 Node RegExpElimination::returnElim(Node atom, Node atomElim, const char* id)
 {
   Trace("re-elim") << "re-elim: " << atom << " to " << atomElim << " by " << id
