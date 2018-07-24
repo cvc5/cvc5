@@ -190,6 +190,11 @@ Node RegExpElimination::eliminateConcat(Node atom)
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
+  if( !options::regExpElimAgg() )
+  {
+    return Node::null();
+  }
+  // only aggressive rewrites below here
   Assert( children.size()>1 );
   for (unsigned i = 0, size = children.size(); i < size; i++)
   {
