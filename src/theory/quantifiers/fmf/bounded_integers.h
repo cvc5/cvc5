@@ -64,8 +64,8 @@ private:
   std::map< Node, std::map< Node, Node > > d_setm_range_lit;
   /** set membership element choice functions
    *
-   * For each set S and integer n, d_setm_choice[S][n] is the canonical choice
-   * for the (i+1)^th member of set S. It is of the form:
+   * For each set S and integer n, d_setm_choice[S][n] is the canonical
+   * representation for the (n+1)^th member of set S. It is of the form:
    * choice x. (|S| <= n OR ( x in S AND
    *   distinct( x, d_setm_choice[S][0], ..., d_setm_choice[S][n-1] ) ) )
    */

@@ -632,9 +632,12 @@ void TheorySetsPrivate::fullEffortCheck(){
             throw LogicException(ss.str());
             //TODO: extend approach for this case
           }
-          if (n[0].getKind() == kind::UNIVERSE_SET)
+          // if we do not handle the kind, set incomplete
+          Kind nk = n[0].getKind();
+          if (nk == kind::UNIVERSE_SET || d_rels->isRelationKind(nk))
           {
             d_full_check_incomplete = true;
+            Trace("sets-incomplete") << "Sets : incomplete because of " << n << "." << std::endl;
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
@@ -1739,16 +1742,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
         if( !d_conflict && !d_sentLemma ){
           //invoke relations solver
           d_rels->check(level);
-          if (d_card_enabled && d_rels_enabled)
-          {
-            //if cardinality constraints are enabled,
-            //  then model construction may fail in there are relational operators, or universe set.
-            // TODO: should internally check model, return unknown if fail
-            d_full_check_incomplete = true;
-            Trace("sets-incomplete") << "Sets : incomplete because of extended operators." << std::endl;
-          }
         }
-        if( d_full_check_incomplete ){
+        if( !d_conflict && !d_sentLemma && d_full_check_incomplete ){
           d_external.d_out->setIncomplete();
         }
       }
