@@ -276,8 +276,8 @@ class ExtendedRewriter
   Node mkConstBv(Node n, bool isNot);
   /** is const bv zero
    *
-   * Returns true if n is 0 and isNot = false,
-   * Returns true if n is max and isNot = true,
+   * Returns true if n is constant 0..0 and isNot = false,
+   * Returns true if n is constant 1..1 and isNot = true,
    * return false otherwise.
    */
   bool isConstBv(Node n, bool isNot);
@@ -315,7 +315,9 @@ class ExtendedRewriter
   Node rewriteBvBool(Node ret);
   /** normalize bit-vector monomial
    * 
-   * 
+   * This converts n to a bitvector monomial representation, subsequently
+   * performs aggressive factoring techniques, and returns the resulting
+   * node from the (simplified) monomial, using the below two methods.
    */
   Node normalizeBvMonomial(Node n);
   /** get bit-vector monomial sum 
@@ -365,12 +367,22 @@ class ExtendedRewriter
   /** extend bit-vector
    *
    * This returns the concatentation node of the form
-   * TODO
+   *   concat( ((_ extract s1 e1) n) ... ((_ extract sn en) n))
+   * where s1 = bitwidth(n)-1, s_{i+1} = e_i - 1 for each i=2,...n,
+   * and for each i in the domain of ex_map, ex_map[i] is
+   * ((_ extract sj ej) n) for some 1<=j<=n, and i=sj. 
+   * 
+   * For example, if
+   *   ex_map = { 4 -> ((_ extract 4 2) n) } and bitwidth( n ) = 32
+   * then this method returns
+   *   (concat ((_ extract 31 5) n) ((_ extract 4 2) n) ((_ extract 1 0) n))
    */
   Node extendBv(Node n, std::map<unsigned, Node>& ex_map);
   /** extend bit-vector
    * 
-   * TODO
+   * The vector exs is a vector of non-overlapping extracts of n. This
+   * calls the above function, mapping the high bits of each extract term t
+   * in exts to t.
    */
   Node extendBv(Node n, std::vector<Node>& exs);
   //--------------------------------------end bit-vectors

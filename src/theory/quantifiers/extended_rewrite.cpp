@@ -3385,6 +3385,8 @@ Node ExtendedRewriter::extendBv(Node n, std::vector<Node>& exs)
   std::map<unsigned, Node> ex_map;
   for (const Node& e : exs)
   {
+    Assert( e.getKind()==BITVECTOR_EXTRACT );
+    Assert( e[0]==n );
     ex_map[bv::utils::getExtractHigh(e)] = e;
   }
   return extendBv(n, ex_map);
