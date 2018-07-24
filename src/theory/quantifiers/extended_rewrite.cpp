@@ -1703,8 +1703,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
         {
           slv_ret = nm->mkNode(BITVECTOR_PLUS, ret[i], slv_ret);
         }
-        // FIXME : avoid this call?
-        slv_ret = extendedRewrite(slv_ret);
+        slv_ret = Rewriter::rewrite(slv_ret);
         slv_ret = slv_ret.eqNode(bv_zero);
         slv_ret = Rewriter::rewrite(slv_ret);
         if (slv_ret.isConst())
@@ -2087,7 +2086,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
             children[l] = l == i ? ret[i][j] : nm->mkNode(eop, ret[l]);
           }
           Node cc = nm->mkNode(k, children);
-          cc = extendedRewrite(cc);
+          cc = Rewriter::rewrite(cc);
           // check if cc copies children of ret
           if (!cc.isConst() && cc != ret[i][j])
           {
@@ -3004,8 +3003,7 @@ Node ExtendedRewriter::normalizeBvMonomial(Node n)
           }
           Assert(group_children.size() > 1);
           Node sgc = nm->mkNode(BITVECTOR_PLUS, group_children);
-          // FIXME : avoid this call?
-          sgc = extendedRewrite(sgc);
+          sgc = Rewriter::rewrite(sgc);
           sgc = nm->mkNode(fk, sgc, sl);
           msum_new[sgc] = bvone;
           Node new_ret = mkNodeFromBvMonomial(n, msum_new);
