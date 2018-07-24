@@ -2256,7 +2256,7 @@ Term Solver::simplify(const Term& t)
   return d_smtEngine->simplify(*t.d_expr);
 }
 
-Result Solver::checkValid (void) const
+Result Solver::checkValid(void) const
 {
   // CHECK:
   // if d_queryMade -> incremental enabled
@@ -2264,7 +2264,7 @@ Result Solver::checkValid (void) const
   return Result(r);
 }
 
-Result Solver::checkValidAssuming (Term assumption) const
+Result Solver::checkValidAssuming(Term assumption) const
 {
   // CHECK:
   // if assumptions.size() > 0:  incremental enabled?
@@ -2272,7 +2272,7 @@ Result Solver::checkValidAssuming (Term assumption) const
   return Result(r);
 }
 
-Result Solver::checkValidAssuming (const std::vector<Term>& assumptions) const
+Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const
 {
   // CHECK:
   // if assumptions.size() > 0:  incremental enabled?
@@ -2281,14 +2281,13 @@ Result Solver::checkValidAssuming (const std::vector<Term>& assumptions) const
   return Result(r);
 }
 
-
 /* SMT-LIB commands                                                           */
 /* -------------------------------------------------------------------------- */
 
 /**
  *  ( assert <term> )
  */
-void Solver::assertFormula (Term term) const
+void Solver::assertFormula(Term term) const
 {
   // CHECK:
   // NodeManager::fromExprManager(d_exprMgr)
@@ -2299,7 +2298,7 @@ void Solver::assertFormula (Term term) const
 /**
  *  ( check-sat )
  */
-Result Solver::checkSat (void) const
+Result Solver::checkSat(void) const
 {
   // CHECK:
   // if d_queryMade -> incremental enabled
@@ -2310,7 +2309,7 @@ Result Solver::checkSat (void) const
 /**
  *  ( check-sat-assuming ( <prop_literal> ) )
  */
-Result Solver::checkSatAssuming (Term assumption) const
+Result Solver::checkSatAssuming(Term assumption) const
 {
   // CHECK:
   // if assumptions.size() > 0:  incremental enabled?
@@ -2321,7 +2320,7 @@ Result Solver::checkSatAssuming (Term assumption) const
 /**
  *  ( check-sat-assuming ( <prop_literal>* ) )
  */
-Result Solver::checkSatAssuming (const std::vector<Term>& assumptions) const
+Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
 {
   // CHECK:
   // if assumptions.size() > 0:  incremental enabled?
@@ -2333,7 +2332,7 @@ Result Solver::checkSatAssuming (const std::vector<Term>& assumptions) const
 /**
  *  ( declare-const <symbol> <sort> )
  */
-Term Solver::declareConst (const std::string& symbol, Sort sort) const
+Term Solver::declareConst(const std::string& symbol, Sort sort) const
 {
   // CHECK: sort exists
   return d_exprMgr->mkVar(symbol, *sort.d_type);
