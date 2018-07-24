@@ -1104,6 +1104,7 @@ REG1_TESTS = \
 	regress1/fmf/nlp042+1.smt2 \
 	regress1/fmf/nun-0208-to.smt2 \
 	regress1/fmf/pow2-bool.smt2 \
+	regress1/fmf/radu-quant-set.smt2 \
 	regress1/fmf/refcount24.cvc.smt2 \
 	regress1/fmf/sc-crash-052316.smt2 \
 	regress1/fmf/with-ind-104-core.smt2 \
