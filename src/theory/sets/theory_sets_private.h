@@ -142,7 +142,7 @@ private:
 private:
   bool d_card_enabled;
   /** element types of sets for which cardinality is enabled */
-  std::map<TypeNode, bool > d_t_card_enabled;
+  std::map<TypeNode, bool> d_t_card_enabled;
   bool d_rels_enabled;
   std::map< Node, Node > d_eqc_to_card_term;
   NodeSet d_card_processed;

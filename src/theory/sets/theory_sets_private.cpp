@@ -626,11 +626,13 @@ void TheorySetsPrivate::fullEffortCheck(){
           d_t_card_enabled[tnc] = true;
           if( tnc.isInterpretedFinite() ){
             std::stringstream ss;
-            ss << "ERROR: cannot use cardinality on sets with finite element type (term is " << n << ")." << std::endl;
+            ss << "ERROR: cannot use cardinality on sets with finite element "
+                  "type (term is "
+               << n << ")." << std::endl;
             throw LogicException(ss.str());
             //TODO: extend approach for this case
           }
-          if( n[0].getKind()==kind::UNIVERSE_SET )
+          if (n[0].getKind() == kind::UNIVERSE_SET)
           {
             d_full_check_incomplete = true;
           }
@@ -1044,7 +1046,7 @@ void TheorySetsPrivate::checkCardBuildGraph( std::vector< Node >& lemmas ) {
 
 void TheorySetsPrivate::registerCardinalityTerm( Node n, std::vector< Node >& lemmas ){
   TypeNode tnc = n.getType().getSetElementType();
-  if( d_t_card_enabled.find(tnc)==d_t_card_enabled.end() )
+  if (d_t_card_enabled.find(tnc) == d_t_card_enabled.end())
   {
     // if no cardinality constraints for sets of this type, we can ignore
     return;
@@ -1736,8 +1738,9 @@ void TheorySetsPrivate::check(Theory::Effort level) {
         fullEffortCheck();
         if( !d_conflict && !d_sentLemma ){
           //invoke relations solver
-          d_rels->check(level);  
-          if( d_card_enabled && d_rels_enabled ){
+          d_rels->check(level);
+          if (d_card_enabled && d_rels_enabled)
+          {
             //if cardinality constraints are enabled,
             //  then model construction may fail in there are relational operators, or universe set.
             // TODO: should internally check model, return unknown if fail
