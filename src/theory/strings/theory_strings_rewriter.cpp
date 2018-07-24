@@ -521,23 +521,29 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
   {
     if (hasEpsilonNode(node[0]))
     {
+      bool changed = false;
       std::vector<Node> node_vec;
       for (unsigned int i = 0; i < node[0].getNumChildren(); i++)
+      for( const Node& nc : node[0] )
       {
-        if (node[0][i].getKind() == STRING_TO_REGEXP
-            && node[0][i][0].getKind() == CONST_STRING
-            && node[0][i][0].getConst<String>().isEmptyString())
+        if (nc.getKind() == STRING_TO_REGEXP
+            && nc[0].getKind() == CONST_STRING
+            && nc[0].getConst<String>().isEmptyString())
         {
           // can be removed
+          changed = true;
         }
         else
         {
-          node_vec.push_back(node[0][i]);
+          node_vec.push_back(nc);
         }
       }
-      retNode = node_vec.size() == 1 ? node_vec[0]
-                                     : nm->mkNode(REGEXP_UNION, node_vec);
-      retNode = nm->mkNode(REGEXP_STAR, retNode);
+      if( changed )
+      {
+        retNode = node_vec.size() == 1 ? node_vec[0]
+                                      : nm->mkNode(REGEXP_UNION, node_vec);
+        retNode = nm->mkNode(REGEXP_STAR, retNode);
+      }
     }
   }
   return retNode;
@@ -565,7 +571,7 @@ Node TheoryStringsRewriter::rewriteOrRegExp(TNode node)
         }
       }
     } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
-      //nothing
+      // can be removed
     } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
       allflag = true;
       retNode = node[i];
@@ -596,20 +602,18 @@ Node TheoryStringsRewriter::rewriteAndRegExp(TNode node)
   //Node allNode = Node::null();
   for(unsigned i=0; i<node.getNumChildren(); ++i) {
     if(node[i].getKind() == kind::REGEXP_INTER) {
-      Node tmpNode = node[i];
-      for (unsigned int j = 0; j < tmpNode.getNumChildren(); ++j)
+      for (const Node& nc : node[i] )
       {
-        if (std::find(node_vec.begin(), node_vec.end(), tmpNode[j])
-            == node_vec.end())
+        if (std::find(node_vec.begin(), node_vec.end(), nc) == node_vec.end())
         {
-          node_vec.push_back(tmpNode[j]);
+          node_vec.push_back(nc);
         }
       }
     } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
       retNode = node[i];
       break;
     } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
-      //allNode = node[i];
+      // can be removed
     } else {
       if(std::find(node_vec.begin(), node_vec.end(), node[i]) == node_vec.end()) {
         node_vec.push_back( node[i] );
@@ -647,7 +651,6 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
                "Negative integer in string REGEXP_LOOP (1)");
   Assert(n1.getConst<Rational>() <= RMAXINT,
          "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
-  //
   unsigned l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
