@@ -16,6 +16,7 @@
 #include "theory/strings/regexp_elim.h"
 
 #include "theory/strings/theory_strings_rewriter.h"
+#include "options/strings_options.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -32,126 +33,144 @@ RegExpElimination::RegExpElimination()
 Node RegExpElimination::eliminate(Node atom)
 {
   Assert(atom.getKind() == STRING_IN_REGEXP);
+  if (atom[1].getKind() == REGEXP_CONCAT)
+  {
+    return eliminateConcat(atom);
+  }
+  else if (atom[1].getKind() == REGEXP_STAR)
+  {
+    return eliminateStar(atom);
+  }
+  return Node::null();
+}
+
+Node RegExpElimination::eliminateConcat(Node atom)
+{
   NodeManager* nm = NodeManager::currentNM();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
-  if (re.getKind() == REGEXP_CONCAT)
+  // memberships of the form x in re.++ * s1 * ... * sn *, where * are
+  // any number of repetitions (exact or indefinite) of REGEXP_SIGMA.
+  Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
+  std::vector<Node> children;
+  TheoryStringsRewriter::getConcat(re, children);
+  bool success = true;
+  std::vector<Node> sep_children;
+  std::vector<int> gap_minsize;
+  std::vector<bool> gap_exact;
+  // the first gap is initially strict zero
+  gap_minsize.push_back(0);
+  gap_exact.push_back(true);
+  for (unsigned i = 0, size = children.size(); i < size; i++)
   {
-    // memberships of the form x in re.++ * s1 * ... * sn *, where * are
-    // any number of repetitions (exact or indefinite) of REGEXP_SIGMA.
-    Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
-    std::vector<Node> children;
-    TheoryStringsRewriter::getConcat(re, children);
-    bool success = true;
-    std::vector<Node> sep_children;
-    std::vector<int> gap_minsize;
-    std::vector<bool> gap_exact;
-    // the first gap is initially strict zero
-    gap_minsize.push_back(0);
-    gap_exact.push_back(true);
-    for (unsigned i = 0, size = children.size(); i < size; i++)
+    Node c = children[i];
+    Trace("re-elim-debug") << "  " << c << std::endl;
+    success = false;
+    if (c.getKind() == STRING_TO_REGEXP)
     {
-      Node c = children[i];
-      Trace("re-elim-debug") << "  " << c << std::endl;
-      success = false;
-      if (c.getKind() == STRING_TO_REGEXP)
-      {
-        success = true;
-        sep_children.push_back(c[0]);
-        // the next gap is initially strict zero
-        gap_minsize.push_back(0);
-        gap_exact.push_back(true);
-      }
-      else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_SIGMA)
-      {
-        // found a gap of any size
-        success = true;
-        gap_exact[gap_exact.size() - 1] = false;
-      }
-      else if (c.getKind() == REGEXP_SIGMA)
-      {
-        // add one to the minimum size of the gap
-        success = true;
-        gap_minsize[gap_minsize.size() - 1]++;
-      }
-      if (!success)
-      {
-        Trace("re-elim-debug") << "...cannot handle " << c << std::endl;
-        break;
-      }
+      success = true;
+      sep_children.push_back(c[0]);
+      // the next gap is initially strict zero
+      gap_minsize.push_back(0);
+      gap_exact.push_back(true);
     }
-    if (success)
+    else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_SIGMA)
     {
-      std::vector<Node> conj;
-      // The following constructs a set of constraints that encodes that a
-      // set of string terms are found, in order, in string x.
-      // prev_end stores the current (symbolic) index in x that we are
-      // searching.
-      Node prev_end = d_zero;
-      unsigned gap_minsize_end = gap_minsize.back();
-      bool gap_exact_end = gap_exact.back();
-      std::vector<Node> non_greedy_find_vars;
-      for (unsigned i = 0, size = sep_children.size(); i < size; i++)
+      // found a gap of any size
+      success = true;
+      gap_exact[gap_exact.size() - 1] = false;
+    }
+    else if (c.getKind() == REGEXP_SIGMA)
+    {
+      // add one to the minimum size of the gap
+      success = true;
+      gap_minsize[gap_minsize.size() - 1]++;
+    }
+    if (!success)
+    {
+      Trace("re-elim-debug") << "...cannot handle " << c << std::endl;
+      break;
+    }
+  }
+  if (success)
+  {
+    std::vector<Node> conj;
+    // The following constructs a set of constraints that encodes that a
+    // set of string terms are found, in order, in string x.
+    // prev_end stores the current (symbolic) index in x that we are
+    // searching.
+    Node prev_end = d_zero;
+    unsigned gap_minsize_end = gap_minsize.back();
+    bool gap_exact_end = gap_exact.back();
+    std::vector<Node> non_greedy_find_vars;
+    for (unsigned i = 0, size = sep_children.size(); i < size; i++)
+    {
+      Node sc = sep_children[i];
+      if (gap_minsize[i] > 0)
       {
-        Node sc = sep_children[i];
-        if (gap_minsize[i] > 0)
+        // the gap to this child is at least gap_minsize[i]
+        prev_end =
+            nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
+      }
+      Node lensc = nm->mkNode(STRING_LENGTH, sc);
+      if (gap_exact[i])
+      {
+        // if the gap is exact, it is a substring constraint
+        Node curr = prev_end;
+        Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
+        conj.push_back(ss.eqNode(sc));
+        prev_end = nm->mkNode(PLUS, curr, lensc);
+      }
+      else
+      {
+        // otherwise, we can use indexof to represent some next occurrence
+        if (gap_exact[i + 1] && i + 1 != size)
         {
-          // the gap to this child is at least gap_minsize[i]
-          prev_end =
-              nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
+          if( !options::regExpElimAgg() )
+          {
+            success = false;
+            break;
+          }
+          // if the gap after this one is strict, we need a non-greedy find
+          // thus, we add a symbolic constant
+          Node k = nm->mkBoundVar(nm->integerType());
+          non_greedy_find_vars.push_back(k);
+          prev_end = nm->mkNode(PLUS, prev_end, k);
         }
-        Node lensc = nm->mkNode(STRING_LENGTH, sc);
-        if (gap_exact[i])
+        Node curr = nm->mkNode(STRING_STRIDOF, x, sc, prev_end);
+        Node idofFind = curr.eqNode(d_neg_one).negate();
+        conj.push_back(idofFind);
+        prev_end = nm->mkNode(PLUS, curr, lensc);
+      }
+      // if applicable, process the last gap
+      if (i == (size - 1))
+      {
+        if (gap_exact_end)
         {
-          // if the gap is exact, it is a substring constraint
-          Node curr = prev_end;
+          // substring relative to the end
+          Node curr = nm->mkNode(MINUS, lenx, lensc);
+          if (gap_minsize_end > 0)
+          {
+            curr = nm->mkNode(
+                MINUS, curr, nm->mkConst(Rational(gap_minsize_end)));
+          }
           Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
           conj.push_back(ss.eqNode(sc));
-          prev_end = nm->mkNode(PLUS, curr, lensc);
         }
-        else
+        else if (gap_minsize_end > 0)
         {
-          // otherwise, we can use indexof to represent some next occurrence
-          if (gap_exact[i + 1] && i + 1 != size)
-          {
-            // if the gap after this one is strict, we need a non-greedy find
-            // thus, we add a symbolic constant
-            Node k = nm->mkBoundVar(nm->integerType());
-            non_greedy_find_vars.push_back(k);
-            prev_end = nm->mkNode(PLUS, prev_end, k);
-          }
-          Node curr = nm->mkNode(STRING_STRIDOF, x, sc, prev_end);
-          Node idofFind = curr.eqNode(d_neg_one).negate();
-          conj.push_back(idofFind);
-          prev_end = nm->mkNode(PLUS, curr, lensc);
-        }
-        // if applicable, process the last gap
-        if (i == (size - 1))
-        {
-          if (gap_exact_end)
-          {
-            // substring relative to the end
-            Node curr = nm->mkNode(MINUS, lenx, lensc);
-            if (gap_minsize_end > 0)
-            {
-              curr = nm->mkNode(
-                  MINUS, curr, nm->mkConst(Rational(gap_minsize_end)));
-            }
-            Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
-            conj.push_back(ss.eqNode(sc));
-          }
-          else if (gap_minsize_end > 0)
-          {
-            Node fit = nm->mkNode(
-                LEQ,
-                nm->mkNode(
-                    PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
-                lenx);
-            conj.push_back(fit);
-          }
+          Node fit = nm->mkNode(
+              LEQ,
+              nm->mkNode(
+                  PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
+              lenx);
+          conj.push_back(fit);
         }
       }
+    }
+    if( success )
+    {
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       // process the non-greedy find variables
       if (!non_greedy_find_vars.empty())
@@ -171,102 +190,166 @@ Node RegExpElimination::eliminate(Node atom)
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
-  else if (re.getKind() == REGEXP_STAR)
+  Assert( children.size()>1 );
+  for (unsigned i = 0, size = children.size(); i < size; i++)
   {
-    // for regular expression star,
-    // if the period is a fixed constant, we can turn it into a bounded
-    // quantifier
-    std::vector<Node> disj;
-    if (re[0].getKind() == REGEXP_UNION)
+    if (children[i].getKind() == STRING_TO_REGEXP)
     {
-      for (const Node& r : re[0])
+      Node s = children[i][0];
+      Node lens = nm->mkNode(STRING_LENGTH,s);
+      // there exists an index in this string such that the substring is this
+      Node k;
+      std::vector< Node > echildren;
+      if( i==0 )
       {
-        disj.push_back(r);
+        k = d_zero;
       }
-    }
-    else
-    {
-      disj.push_back(re[0]);
-    }
-    bool success = true;
-    std::vector<Node> char_constraints;
-    Node index = nm->mkBoundVar(nm->integerType());
-    Node substr_ch = nm->mkNode(STRING_SUBSTR, x, index, d_one);
-    substr_ch = Rewriter::rewrite(substr_ch);
-    // handle the case where it is purely characters
-    for (const Node& r : disj)
-    {
-      Assert(r.getKind() != REGEXP_SIGMA);
-      success = false;
-      // success is true if the constraint
-      if (r.getKind() == STRING_TO_REGEXP)
+      else if( i+1==size )
       {
-        Node s = r[0];
-        if (s.isConst() && s.getConst<String>().size() == 1)
-        {
-          success = true;
-        }
-      }
-      else if (r.getKind() == REGEXP_RANGE)
-      {
-        success = true;
-      }
-      if (!success)
-      {
-        break;
+        k = nm->mkNode(MINUS,lenx,lens);
       }
       else
       {
-        Node regexp_ch = nm->mkNode(STRING_IN_REGEXP, substr_ch, r);
-        regexp_ch = Rewriter::rewrite(regexp_ch);
-        Assert(regexp_ch.getKind() != STRING_IN_REGEXP);
-        char_constraints.push_back(regexp_ch);
+        k = nm->mkBoundVar(nm->integerType());
+        Node bound = nm->mkNode(
+          AND, nm->mkNode(LEQ, d_zero, k), nm->mkNode(LT, k, nm->mkNode(MINUS,lenx,lens)));
+        echildren.push_back(bound);
       }
-    }
-    if (success)
-    {
-      Assert(!char_constraints.empty());
-      Node bound = nm->mkNode(
-          AND, nm->mkNode(LEQ, d_zero, index), nm->mkNode(LT, index, lenx));
-      Node conc = char_constraints.size() == 1
-                      ? char_constraints[0]
-                      : nm->mkNode(OR, char_constraints);
-      Node body = nm->mkNode(OR, bound.negate(), conc);
-      Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
-      Node res = nm->mkNode(FORALL, bvl, body);
-      return returnElim(atom, res, "star-char");
-    }
-    if (disj.size() == 1)
-    {
-      Node r = disj[0];
-      if (r.getKind() == STRING_TO_REGEXP)
+      Node substrEq = nm->mkNode(STRING_SUBSTR, x, k, lens).eqNode(s);
+      echildren.push_back(substrEq);
+      if( i>0 )
       {
-        Node s = r[0];
-        if (s.isConst())
-        {
-          Node lens = nm->mkNode(STRING_LENGTH, s);
-          Assert(lens.isConst());
-          std::vector<Node> conj;
-          Node bound = nm->mkNode(
-              AND,
-              nm->mkNode(LEQ, d_zero, index),
-              nm->mkNode(LT, index, nm->mkNode(INTS_DIVISION, lenx, lens)));
-          Node conc =
-              nm->mkNode(STRING_SUBSTR, x, nm->mkNode(MULT, index, lens), lens)
-                  .eqNode(s);
-          Node body = nm->mkNode(OR, bound.negate(), conc);
-          Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
-          Node res = nm->mkNode(FORALL, bvl, body);
-          res = nm->mkNode(
-              AND, nm->mkNode(INTS_MODULUS, lenx, lens).eqNode(d_zero), res);
-          return returnElim(atom, res, "star-constant");
-        }
+        std::vector< Node > rprefix;
+        rprefix.insert(rprefix.end(),children.begin(),children.begin()+i);
+        Node rpn = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT,rprefix);
+        Node substrPrefix = nm->mkNode(STRING_IN_REGEXP,nm->mkNode(STRING_SUBSTR, x, d_zero, k),rpn);
+        echildren.push_back(substrPrefix);
       }
+      if( i+1<size )
+      {
+        std::vector< Node > rsuffix;
+        rsuffix.insert(rsuffix.end(),children.begin()+i+1,children.end());
+        Node rps = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT,rsuffix);
+        Node ks = nm->mkNode(PLUS,k,lens);
+        Node substrSuffix = nm->mkNode(STRING_IN_REGEXP,nm->mkNode(STRING_SUBSTR, x, ks, nm->mkNode(MINUS,lenx,ks)),rps);
+        echildren.push_back(substrSuffix);
+      }
+      Node body = nm->mkNode(AND,echildren);
+      if( !k.isNull() )
+      {
+        Node bvl = nm->mkNode(BOUND_VAR_LIST,k);
+        body = nm->mkNode(EXISTS,bvl,body);
+      }
+      return returnElim(atom,body,"concat-find");
     }
   }
   return Node::null();
 }
 
+Node RegExpElimination::eliminateStar(Node atom)
+{
+  if( !options::regExpElimAgg() )
+  {
+    return Node::null();
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node x = atom[0];
+  Node lenx = nm->mkNode(STRING_LENGTH, x);
+  Node re = atom[1];
+  // for regular expression star,
+  // if the period is a fixed constant, we can turn it into a bounded
+  // quantifier
+  std::vector<Node> disj;
+  if (re[0].getKind() == REGEXP_UNION)
+  {
+    for (const Node& r : re[0])
+    {
+      disj.push_back(r);
+    }
+  }
+  else
+  {
+    disj.push_back(re[0]);
+  }
+  bool success = true;
+  std::vector<Node> char_constraints;
+  Node index = nm->mkBoundVar(nm->integerType());
+  Node substr_ch = nm->mkNode(STRING_SUBSTR, x, index, d_one);
+  substr_ch = Rewriter::rewrite(substr_ch);
+  // handle the case where it is purely characters
+  for (const Node& r : disj)
+  {
+    Assert(r.getKind() != REGEXP_SIGMA);
+    success = false;
+    // success is true if the constraint
+    if (r.getKind() == STRING_TO_REGEXP)
+    {
+      Node s = r[0];
+      if (s.isConst() && s.getConst<String>().size() == 1)
+      {
+        success = true;
+      }
+    }
+    else if (r.getKind() == REGEXP_RANGE)
+    {
+      success = true;
+    }
+    if (!success)
+    {
+      break;
+    }
+    else
+    {
+      Node regexp_ch = nm->mkNode(STRING_IN_REGEXP, substr_ch, r);
+      regexp_ch = Rewriter::rewrite(regexp_ch);
+      Assert(regexp_ch.getKind() != STRING_IN_REGEXP);
+      char_constraints.push_back(regexp_ch);
+    }
+  }
+  if (success)
+  {
+    Assert(!char_constraints.empty());
+    Node bound = nm->mkNode(
+        AND, nm->mkNode(LEQ, d_zero, index), nm->mkNode(LT, index, lenx));
+    Node conc = char_constraints.size() == 1
+                    ? char_constraints[0]
+                    : nm->mkNode(OR, char_constraints);
+    Node body = nm->mkNode(OR, bound.negate(), conc);
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
+    Node res = nm->mkNode(FORALL, bvl, body);
+    return returnElim(atom, res, "star-char");
+  }
+  // otherwise, for stars of constant length these are periodic
+  if (disj.size() == 1)
+  {
+    Node r = disj[0];
+    if (r.getKind() == STRING_TO_REGEXP)
+    {
+      Node s = r[0];
+      if (s.isConst())
+      {
+        Node lens = nm->mkNode(STRING_LENGTH, s);
+        Assert(lens.isConst());
+        std::vector<Node> conj;
+        Node bound = nm->mkNode(
+            AND,
+            nm->mkNode(LEQ, d_zero, index),
+            nm->mkNode(LT, index, nm->mkNode(INTS_DIVISION, lenx, lens)));
+        Node conc =
+            nm->mkNode(STRING_SUBSTR, x, nm->mkNode(MULT, index, lens), lens)
+                .eqNode(s);
+        Node body = nm->mkNode(OR, bound.negate(), conc);
+        Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
+        Node res = nm->mkNode(FORALL, bvl, body);
+        res = nm->mkNode(
+            AND, nm->mkNode(INTS_MODULUS, lenx, lens).eqNode(d_zero), res);
+        return returnElim(atom, res, "star-constant");
+      }
+    }
+  }
+  return Node::null();
+}
+  
 Node RegExpElimination::returnElim(Node atom, Node atomElim, const char* id)
 {
   Trace("re-elim") << "re-elim: " << atom << " to " << atomElim << " by " << id

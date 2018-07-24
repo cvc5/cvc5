@@ -53,6 +53,10 @@ class RegExpElimination
    * atomElim. id is an identifier indicating the reason for the elimination.
    */
   Node returnElim(Node atom, Node atomElim, const char* id);
+  /** elimination for regular expression concatenation */
+  Node eliminateConcat(Node atom);
+  /** elimination for regular expression star */
+  Node eliminateStar(Node atom);
 }; /* class RegExpElimination */
 
 }  // namespace strings

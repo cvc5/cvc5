@@ -216,3 +216,11 @@ header = "options/strings_options.h"
   type       = "bool"
   default    = "true"
   help       = "elimination techniques for regular expressions"
+
+[[option]]
+  name       = "regExpElimAgg"
+  category   = "regular"
+  long       = "re-elim-agg"
+  type       = "bool"
+  default    = "false"
+  help       = "aggressive elimination techniques for regular expressions"
