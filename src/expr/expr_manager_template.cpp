@@ -1023,6 +1023,16 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
   } else if(n.getKind() == kind::BITVECTOR_TYPE) {
     return to->mkBitVectorType(n.getConst<BitVectorSize>());
   }
+  else if (n.getKind() == kind::FLOATINGPOINT_TYPE)
+  {
+    return to->mkFloatingPointType(n.getConst<FloatingPointSize>());
+  }
+  else if (n.getNumChildren() == 0)
+  {
+    std::stringstream msg;
+    msg << "export of type " << n << " not supported";
+    throw ExportUnsupportedException(msg.str().c_str());
+  }
   Type from_t = from->toType(n);
   Type& to_t = vmap.d_typeMap[from_t];
   if(! to_t.isNull()) {

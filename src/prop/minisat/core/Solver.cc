@@ -236,33 +236,34 @@ void Solver::resizeVars(int newSize) {
 }
 
 CRef Solver::reason(Var x) {
+  Debug("pf::sat") << "Solver::reason(" << x << ")" << std::endl;
 
-    // If we already have a reason, just return it
-    if (vardata[x].reason != CRef_Lazy) return vardata[x].reason;
+  // If we already have a reason, just return it
+  if (vardata[x].reason != CRef_Lazy) return vardata[x].reason;
 
-    // What's the literal we are trying to explain
-    Lit l = mkLit(x, value(x) != l_True);
+  // What's the literal we are trying to explain
+  Lit l = mkLit(x, value(x) != l_True);
 
-    // Get the explanation from the theory
-    SatClause explanation_cl;
-    // FIXME: at some point return a tag with the theory that spawned you
-    proxy->explainPropagation(MinisatSatSolver::toSatLiteral(l),
-                              explanation_cl);
-    vec<Lit> explanation;
-    MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
+  // Get the explanation from the theory
+  SatClause explanation_cl;
+  // FIXME: at some point return a tag with the theory that spawned you
+  proxy->explainPropagation(MinisatSatSolver::toSatLiteral(l), explanation_cl);
+  vec<Lit> explanation;
+  MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
 
-    Debug("pf::sat") << "Solver::reason: explanation_cl = " << explanation_cl << std::endl;
+  Debug("pf::sat") << "Solver::reason: explanation_cl = " << explanation_cl
+                   << std::endl;
 
-    // Sort the literals by trail index level
-    lemma_lt lt(*this);
-    sort(explanation, lt);
-    Assert(explanation[0] == l);
+  // Sort the literals by trail index level
+  lemma_lt lt(*this);
+  sort(explanation, lt);
+  Assert(explanation[0] == l);
 
-    // Compute the assertion level for this clause
-    int explLevel = 0;
-    if (assertionLevelOnly())
-    {
-      explLevel = assertionLevel;
+  // Compute the assertion level for this clause
+  int explLevel = 0;
+  if (assertionLevelOnly())
+  {
+    explLevel = assertionLevel;
     }
     else
     {
@@ -321,10 +322,15 @@ CRef Solver::reason(Var x) {
     // FIXME: at some point will need more information about where this explanation
     // came from (ie. the theory/sharing)
     Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (1)" << std::endl;
-    PROOF (ClauseId id = ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA);
-           ProofManager::getCnfProof()->registerConvertedClause(id, true);
-           // no need to pop current assertion as this is not converted to cnf
-           );
+    PROOF(ClauseId id = ProofManager::getSatProof()->registerClause(
+              real_reason, THEORY_LEMMA);
+          ProofManager::getCnfProof()->registerConvertedClause(id, true);
+          // explainPropagation() pushes the explanation on the assertion stack
+          // in CnfProof, so we need to pop it here. This is important because
+          // reason() may be called indirectly while adding a clause, which can
+          // lead to a wrong assertion being associated with the clause being
+          // added (see issue #2137).
+          ProofManager::getCnfProof()->popCurrentAssertion(););
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
     attachClause(real_reason);
@@ -1021,6 +1027,9 @@ void Solver::propagateTheory() {
         MinisatSatSolver::toMinisatClause(explanation_cl, explanation);
         ClauseId id; // FIXME: mark it as explanation here somehow?
         addClause(explanation, true, id);
+        // explainPropagation() pushes the explanation on the assertion
+        // stack in CnfProof, so we need to pop it here.
+        PROOF(ProofManager::getCnfProof()->popCurrentAssertion();)
       }
     }
   }

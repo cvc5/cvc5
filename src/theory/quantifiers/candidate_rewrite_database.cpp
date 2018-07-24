@@ -112,16 +112,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       // verify it if applicable
       if (options::sygusRewSynthCheck())
       {
-        // Notice we don't set produce-models. rrChecker takes the same
-        // options as the SmtEngine we belong to, where we ensure that
-        // produce-models is set.
         NodeManager* nm = NodeManager::currentNM();
-        Options opts;
-        ExprManager em(nm->getOptions());
-        ExprManagerMapCollection varMap;
-        SmtEngine rrChecker(&em);
-        rrChecker.setTimeLimit(options::sygusRewSynthCheckTimeout(), true);
-        rrChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
 
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
@@ -151,9 +142,48 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           }
           crr = crr.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
         }
-        Expr eccr = crr.toExpr().exportTo(&em, varMap);
-        rrChecker.assertFormula(eccr);
-        Result r = rrChecker.checkSat();
+
+        // Notice we don't set produce-models. rrChecker takes the same
+        // options as the SmtEngine we belong to, where we ensure that
+        // produce-models is set.
+        bool needExport = true;
+        ExprManagerMapCollection varMap;
+        ExprManager em(nm->getOptions());
+        std::unique_ptr<SmtEngine> rrChecker;
+        Result r;
+        if (options::sygusRewSynthCheckTimeout.wasSetByUser())
+        {
+          // To support a separate timeout for the subsolver, we need to create
+          // a separate ExprManager with its own options. This requires that
+          // the expressions sent to the subsolver can be exported from on
+          // ExprManager to another. If the export fails, we throw an
+          // OptionException.
+          try
+          {
+            rrChecker.reset(new SmtEngine(&em));
+            rrChecker->setTimeLimit(options::sygusRewSynthCheckTimeout(), true);
+            rrChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
+            Expr eccr = crr.toExpr().exportTo(&em, varMap);
+            rrChecker->assertFormula(eccr);
+            r = rrChecker->checkSat();
+          }
+          catch (const CVC4::ExportUnsupportedException& e)
+          {
+            std::stringstream msg;
+            msg << "Unable to export " << crr
+                << " but exporting expressions is required for "
+                   "--sygus-rr-synth-check-timeout.";
+            throw OptionException(msg.str());
+          }
+        }
+        else
+        {
+          needExport = false;
+          rrChecker.reset(new SmtEngine(nm->toExprManager()));
+          rrChecker->assertFormula(crr.toExpr());
+          r = rrChecker->checkSat();
+        }
+
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {
@@ -185,9 +215,16 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             if (val.isNull())
             {
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
-              Expr erefv = refv.toExpr().exportTo(&em, varMap);
-              val = Node::fromExpr(rrChecker.getValue(erefv).exportTo(
-                  nm->toExprManager(), varMap));
+              if (needExport)
+              {
+                Expr erefv = refv.toExpr().exportTo(&em, varMap);
+                val = Node::fromExpr(rrChecker->getValue(erefv).exportTo(
+                    nm->toExprManager(), varMap));
+              }
+              else
+              {
+                val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
+              }
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
