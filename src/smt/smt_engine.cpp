@@ -4330,9 +4330,9 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryBreakerExp())
+  if (options::symmetryBreakerExp() && !options::incrementalSolving())
   {
-    // apply symmetry breaking
+    // apply symmetry breaking if not in incremental mode
     d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 

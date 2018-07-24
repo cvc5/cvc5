@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-si=none --sygus-out=status
+; COMMAND-LINE: --cegqi-si=none --sygus-out=status --no-sygus-repair-const
 ; EXPECT: unsat
 (set-logic LIA)
 
