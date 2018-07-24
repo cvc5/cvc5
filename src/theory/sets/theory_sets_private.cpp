@@ -637,7 +637,8 @@ void TheorySetsPrivate::fullEffortCheck(){
           if (nk == kind::UNIVERSE_SET || d_rels->isRelationKind(nk))
           {
             d_full_check_incomplete = true;
-            Trace("sets-incomplete") << "Sets : incomplete because of " << n << "." << std::endl;
+            Trace("sets-incomplete")
+                << "Sets : incomplete because of " << n << "." << std::endl;
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
@@ -1743,7 +1744,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
           //invoke relations solver
           d_rels->check(level);
         }
-        if( !d_conflict && !d_sentLemma && d_full_check_incomplete ){
+        if (!d_conflict && !d_sentLemma && d_full_check_incomplete)
+        {
           d_external.d_out->setIncomplete();
         }
       }
