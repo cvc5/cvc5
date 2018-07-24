@@ -2482,11 +2482,22 @@ int ExtendedRewriter::bitVectorSubsume(Node a, Node b, bool strict, bool tryNot)
   }
   else if (a.isConst() && b.isConst())
   {
+    curr_ret = 1;
+    BitVector av = a.getConst<BitVector>();
+    BitVector bv = b.getConst<BitVector>();
     unsigned csize = bv::utils::getSize(a);
     for (unsigned i = 0; i < csize; i++)
     {
       if (bv::utils::getBit(a, i) != bv::utils::getBit(b, i))
       {
+        if( bv::utils::getBit(b, i) )
+        {
+          return 0;
+        }
+        else
+        {
+          curr_ret = max_ret;
+        }
       }
     }
   }
@@ -2693,7 +2704,12 @@ int ExtendedRewriter::bitVectorArithComp(Node a, Node b, bool strict)
   }
   if (a.isConst() && b.isConst())
   {
-    // TODO
+    BitVector av = a.getConst<BitVector>();
+    BitVector bv = b.getConst<BitVector>();
+    if (bv.unsignedLessThan(av)) 
+    {
+      return max_ret;
+    }
   }
 
   // flip
@@ -2717,13 +2733,6 @@ int ExtendedRewriter::bitVectorArithComp(Node a, Node b, bool strict)
           return max_ret;
         }
       }
-    }
-  }
-  else if (b.getKind() == BITVECTOR_NOT)
-  {
-    if (a.getKind() == BITVECTOR_NOT)
-    {
-      // flipped?
     }
   }
 
