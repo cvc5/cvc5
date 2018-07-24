@@ -388,7 +388,8 @@ void BoundedIntegers::checkOwnership(Node f)
 {
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
-
+  NodeManager * nm = NodeManager::currentNM();
+  
   bool success;
   do{
     std::map< Node, unsigned > bound_lit_type_map;
@@ -413,23 +414,22 @@ void BoundedIntegers::checkOwnership(Node f)
               Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
-            Node r = NodeManager::currentNM()->mkNode(
-                MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
+            Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
             d_range[f][v] = Rewriter::rewrite(r);
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
           // only handles infinite element types currently (cardinality is not
-          // supported for finite element types). Regardless, this is not a
-          // limitation since this variable can be bound in a standard way below
-          // since its type is finite.
+          // supported for finite element types #1123). Regardless, this is 
+          // typically not a limitation since this variable can be bound in a
+          // standard way below since its type is finite.
           if (!v.getType().isInterpretedFinite())
           {
             setBoundedVar(f, v, BOUND_SET_MEMBER);
             setBoundVar = true;
             d_setm_range[f][v] = bound_lit_map[2][v][1];
             d_setm_range_lit[f][v] = bound_lit_map[2][v];
-            d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
+            d_range[f][v] = nm->mkNode( CARD, d_setm_range[f][v] );
             Trace("bound-int") << "Variable " << v
                                << " is bound because of set membership literal "
                                << bound_lit_map[2][v] << std::endl;
@@ -699,19 +699,14 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   }
   Assert(sr.getKind() == SINGLETON);
   srCard++;
-  // choices stores the canonical symbolic representation of the (i+1)^th
+  // choices[i] stores the canonical symbolic representation of the (i+1)^th
   // element of sro
   std::vector<Node> choices;
   Node srCardN = nm->mkNode(CARD, sro);
+  Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
-    Node choice_i;
-    std::map<unsigned, Node>::iterator itc = d_setm_choice[sro].find(i);
-    if (itc != d_setm_choice[sro].end())
-    {
-      choice_i = itc->second;
-    }
-    else
+    if( i == d_setm_choice[sro].size() )
     {
       choice_i = nm->mkBoundVar(tne);
       choices.push_back(choice_i);
@@ -724,8 +719,10 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
       Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConst(Rational(i)));
       choice_i = nm->mkNode(CHOICE, bvl, nm->mkNode(OR, cMinCard, cBody));
-      d_setm_choice[sro][i] = choice_i;
+      d_setm_choice[sro].push_back( choice_i );
     }
+    Assert( i<d_setm_choice[sro].size() );
+    choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(SINGLETON, choice_i);
     if (nsr.isNull())

@@ -69,7 +69,7 @@ private:
    * choice x. (|S| <= n OR ( x in S AND
    *   distinct( x, d_setm_choice[S][0], ..., d_setm_choice[S][n-1] ) ) )
    */
-  std::map<Node, std::map<unsigned, Node> > d_setm_choice;
+  std::map<Node, std::vector<Node> > d_setm_choice;
   //fixed finite set range
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_gr_range;
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_ngr_range;
