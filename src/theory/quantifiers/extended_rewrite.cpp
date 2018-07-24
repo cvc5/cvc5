@@ -1622,6 +1622,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
         {
           if (!eeq.getConst<bool>())
           {
+            // e.g. concat(1,x) == concat(0,y) ---> false
             new_ret = eeq;
             debugExtendedRewrite(ret, new_ret, "CONCAT eq false");
             return new_ret;
@@ -1650,12 +1651,14 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
       }
       if (nconst_count == 1)
       {
+        // e.g. concat(1,x) == concat(1,y) ---> x == y
         new_ret = v1[nconst_index].eqNode(v2[nconst_index]);
         debugExtendedRewrite(ret, new_ret, "CONCAT eq true");
         return new_ret;
       }
       if (vs_changed)
       {
+        // e.g. concat(1,y) == concat(not(x),z) ---> concat(0,y)=concat(x,z)
         Node v1n = nm->mkNode(BITVECTOR_CONCAT, v1);
         Node v2n = nm->mkNode(BITVECTOR_CONCAT, v2);
         new_ret = v1n.eqNode(v2n);
@@ -1687,6 +1690,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
       Kind nck = ret[1 - cindex].getKind();
       if (nck == BITVECTOR_NOT || nck == BITVECTOR_NEG)
       {
+        // e.g. not(x)==c ----> x == not(c) where c is a constant
         new_ret = ret[1 - cindex][0].eqNode(nm->mkNode(nck, ret[cindex]));
         debugExtendedRewrite(ret, new_ret, "EQUAL const");
         return new_ret;
@@ -1724,6 +1728,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
     {
       new_ret = Node::null();
     }
+    // e.g. x == y ---> x-y == 0
     debugExtendedRewrite(ret, new_ret, "BV-eq-solve");
   }
   else if (k == ITE)
@@ -1822,6 +1827,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
     {
       if (bitVectorArithComp(ret[0], ret[1]))
       {
+        // t <_u s ---> false if our utility infers it
         new_ret = nm->mkConst(false);
         debugExtendedRewrite(ret, new_ret, "ULT-arith");
         return new_ret;
@@ -1830,6 +1836,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
       {
         if (ret[0] == zero || isConstBv(ret[1], true))
         {
+          // 0 <_u s ----> 0 != s
           new_ret = ret[0].eqNode(ret[1]);
           new_ret = new_ret.negate();
           debugExtendedRewrite(ret, new_ret, "ULT-neq");
@@ -1841,6 +1848,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
     {
       if (ret[0] == ret[1])
       {
+        // t <_s t ---> false
         new_ret = nm->mkConst(false);
         debugExtendedRewrite(ret, new_ret, "SLT-id");
         return new_ret;
@@ -1858,7 +1866,7 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
   else if (k == BITVECTOR_NEG)
   {
     Kind ck = ret[0].getKind();
-    // miniscope
+    // miniscope neg over shl
     if (ck == BITVECTOR_SHL)
     {
       new_ret = nm->mkNode(BITVECTOR_SHL,
@@ -2017,6 +2025,8 @@ Node ExtendedRewriter::extendedRewriteBv(Node ret)
         nnfc.push_back(c);
       }
       new_ret = nm->mkNode(nnfk, nnfc);
+      // negation normal form for BV, can push NOT down beneath the kinds listed
+      // above
       debugExtendedRewrite(ret, new_ret, "NNF bv");
       return new_ret;
     }
@@ -2230,7 +2240,7 @@ Node ExtendedRewriter::rewriteBvArith(Node ret)
     // ( s & t ) - s  ---->  -( s & ~t )
     // ( s | t ) - s  ---->  ~s & t
 
-    // TODO :
+    // TODO (#1706) :
     // s + ( ~s | t ) = ~( -( s & t ) )
     // s + ( t | -s ) = ( s & ~-t )
 
