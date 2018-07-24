@@ -523,20 +523,19 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
     {
       bool changed = false;
       std::vector<Node> node_vec;
-      for (unsigned int i = 0; i < node[0].getNumChildren(); i++)
-        for (const Node& nc : node[0])
+      for (const Node& nc : node[0])
+      {
+        if (nc.getKind() == STRING_TO_REGEXP
+            && nc[0].getKind() == CONST_STRING
+            && nc[0].getConst<String>().isEmptyString())
         {
-          if (nc.getKind() == STRING_TO_REGEXP
-              && nc[0].getKind() == CONST_STRING
-              && nc[0].getConst<String>().isEmptyString())
-          {
-            // can be removed
-            changed = true;
-          }
-          else
-          {
-            node_vec.push_back(nc);
-          }
+          // can be removed
+          changed = true;
+        }
+        else
+        {
+          node_vec.push_back(nc);
+        }
       }
       if (changed)
       {
