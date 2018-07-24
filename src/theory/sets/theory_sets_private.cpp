@@ -533,6 +533,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_bop_index.clear();
     d_op_list.clear();
     d_card_enabled = false;
+    d_t_card_enabled.clear();
     d_rels_enabled = false;
     d_eqc_to_card_term.clear();
 
@@ -628,6 +629,10 @@ void TheorySetsPrivate::fullEffortCheck(){
             ss << "ERROR: cannot use cardinality on sets with finite element type (term is " << n << ")." << std::endl;
             throw LogicException(ss.str());
             //TODO: extend approach for this case
+          }
+          if( n[0].getKind()==kind::UNIVERSE_SET )
+          {
+            d_full_check_incomplete = true;
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
@@ -1732,7 +1737,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
         if( !d_conflict && !d_sentLemma ){
           //invoke relations solver
           d_rels->check(level);  
-          if( d_card_enabled && ( d_rels_enabled || options::setsExt() ) ){
+          if( d_card_enabled && d_rels_enabled ){
             //if cardinality constraints are enabled,
             //  then model construction may fail in there are relational operators, or universe set.
             // TODO: should internally check model, return unknown if fail
