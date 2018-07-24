@@ -2744,7 +2744,17 @@ bool ExtendedRewriter::bitVectorDisjoint(Node a, Node b)
   Assert(a.getType() == b.getType());
   if (a.isConst() && b.isConst())
   {
-    // TODO
+    BitVector av = a.getConst<BitVector>();
+    BitVector bv = b.getConst<BitVector>();
+    unsigned csize = bv::utils::getSize(a);
+    for (unsigned i = 0; i < csize; i++)
+    {
+      if (bv::utils::getBit(a, i) && bv::utils::getBit(b, i))
+      {
+        return false;
+      }
+    }
+    return true;
   }
   // must be dually subsuming
   bool dualSubsumeSuccess = true;
