@@ -524,24 +524,24 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
       bool changed = false;
       std::vector<Node> node_vec;
       for (unsigned int i = 0; i < node[0].getNumChildren(); i++)
-      for( const Node& nc : node[0] )
-      {
-        if (nc.getKind() == STRING_TO_REGEXP
-            && nc[0].getKind() == CONST_STRING
-            && nc[0].getConst<String>().isEmptyString())
+        for (const Node& nc : node[0])
         {
-          // can be removed
-          changed = true;
-        }
-        else
-        {
-          node_vec.push_back(nc);
-        }
+          if (nc.getKind() == STRING_TO_REGEXP
+              && nc[0].getKind() == CONST_STRING
+              && nc[0].getConst<String>().isEmptyString())
+          {
+            // can be removed
+            changed = true;
+          }
+          else
+          {
+            node_vec.push_back(nc);
+          }
       }
-      if( changed )
+      if (changed)
       {
         retNode = node_vec.size() == 1 ? node_vec[0]
-                                      : nm->mkNode(REGEXP_UNION, node_vec);
+                                       : nm->mkNode(REGEXP_UNION, node_vec);
         retNode = nm->mkNode(REGEXP_STAR, retNode);
       }
     }
@@ -602,7 +602,7 @@ Node TheoryStringsRewriter::rewriteAndRegExp(TNode node)
   //Node allNode = Node::null();
   for(unsigned i=0; i<node.getNumChildren(); ++i) {
     if(node[i].getKind() == kind::REGEXP_INTER) {
-      for (const Node& nc : node[i] )
+      for (const Node& nc : node[i])
       {
         if (std::find(node_vec.begin(), node_vec.end(), nc) == node_vec.end())
         {
