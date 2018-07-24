@@ -622,9 +622,10 @@ void TheorySetsPrivate::fullEffortCheck(){
         }else if( n.getKind()==kind::CARD ){
           d_card_enabled = true;
           TypeNode tnc = n[0].getType().getSetElementType();
+          d_t_card_enabled[tnc] = true;
           if( tnc.isInterpretedFinite() ){
             std::stringstream ss;
-            ss << "ERROR: cannot use cardinality on sets with finite element type." << std::endl;
+            ss << "ERROR: cannot use cardinality on sets with finite element type (term is " << n << ")." << std::endl;
             throw LogicException(ss.str());
             //TODO: extend approach for this case
           }
@@ -1037,6 +1038,12 @@ void TheorySetsPrivate::checkCardBuildGraph( std::vector< Node >& lemmas ) {
 }
 
 void TheorySetsPrivate::registerCardinalityTerm( Node n, std::vector< Node >& lemmas ){
+  TypeNode tnc = n.getType().getSetElementType();
+  if( d_t_card_enabled.find(tnc)==d_t_card_enabled.end() )
+  {
+    // if no cardinality constraints for sets of this type, we can ignore
+    return;
+  }
   if( d_card_processed.find( n )==d_card_processed.end() ){
     d_card_processed.insert( n );
     Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
