@@ -664,8 +664,7 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
         vec_nodes.size() == 0
             ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
             : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
-    // Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string
-    // REGEXP_LOOP (2)");
+    Assert(n2.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
     unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
     if (u <= l)
     {
