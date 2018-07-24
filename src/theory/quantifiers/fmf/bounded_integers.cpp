@@ -388,8 +388,8 @@ void BoundedIntegers::checkOwnership(Node f)
 {
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
-  
+  NodeManager* nm = NodeManager::currentNM();
+
   bool success;
   do{
     std::map< Node, unsigned > bound_lit_type_map;
@@ -420,7 +420,7 @@ void BoundedIntegers::checkOwnership(Node f)
           }
         }else if( it->second==BOUND_SET_MEMBER ){
           // only handles infinite element types currently (cardinality is not
-          // supported for finite element types #1123). Regardless, this is 
+          // supported for finite element types #1123). Regardless, this is
           // typically not a limitation since this variable can be bound in a
           // standard way below since its type is finite.
           if (!v.getType().isInterpretedFinite())
@@ -429,7 +429,7 @@ void BoundedIntegers::checkOwnership(Node f)
             setBoundVar = true;
             d_setm_range[f][v] = bound_lit_map[2][v][1];
             d_setm_range_lit[f][v] = bound_lit_map[2][v];
-            d_range[f][v] = nm->mkNode( CARD, d_setm_range[f][v] );
+            d_range[f][v] = nm->mkNode(CARD, d_setm_range[f][v]);
             Trace("bound-int") << "Variable " << v
                                << " is bound because of set membership literal "
                                << bound_lit_map[2][v] << std::endl;
@@ -706,7 +706,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
-    if( i == d_setm_choice[sro].size() )
+    if (i == d_setm_choice[sro].size())
     {
       choice_i = nm->mkBoundVar(tne);
       choices.push_back(choice_i);
@@ -719,9 +719,9 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
       Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConst(Rational(i)));
       choice_i = nm->mkNode(CHOICE, bvl, nm->mkNode(OR, cMinCard, cBody));
-      d_setm_choice[sro].push_back( choice_i );
+      d_setm_choice[sro].push_back(choice_i);
     }
-    Assert( i<d_setm_choice[sro].size() );
+    Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(SINGLETON, choice_i);
