@@ -269,8 +269,6 @@ class ExtendedRewriter
    *   bitvectorSubsume( ~a, b ) && bitvectorSubsume( ~b, a ).
    */
   bool bitVectorDisjoint(Node a, Node b);
-  /** get the minimum/maximum */
-  void bitVectorIntervalSetIndices(Node a, unsigned& mini, unsigned& maxi);
 
   /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
   Node mkConstBv(Node n, bool isNot);

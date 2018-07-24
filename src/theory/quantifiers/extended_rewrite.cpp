@@ -2789,49 +2789,8 @@ bool ExtendedRewriter::bitVectorDisjoint(Node a, Node b)
   {
     return true;
   }
-  // infer the minimal and maximal indices
-  /*
-  unsigned min_a;
-  unsigned max_a;
-  bitVectorIntervalSetIndices(a, min_a, max_a );
-  unsigned min_b;
-  unsigned max_b;
-  bitVectorIntervalSetIndices(a, min_b, max_b );
-  if( min_b>max_a || min_a>max_b )
-  {
-    return true;
-  }
-  */
-  return false;
-}
 
-void bitVectorIntervalSetIndices(Node a, unsigned& min_i, unsigned& max_i)
-{
-  unsigned size = bv::utils::getSize(a);
-  Assert(size > 0);
-  min_i = 0;
-  max_i = size - 1;
-  if (a.isConst())
-  {
-    for (unsigned i = 0; i < size; i++)
-    {
-    }
-  }
-  Kind ak = a.getKind();
-  if (ak == BITVECTOR_SHL || ak == BITVECTOR_LSHR)
-  {
-    // constant shift
-    if (a[1].isConst())
-    {
-    }
-  }
-  else if (ak == BITVECTOR_AND || ak == BITVECTOR_OR)
-  {
-  }
-  else if (ak == MULT)
-  {
-    // powers of two combine
-  }
+  return false;
 }
 
 Node ExtendedRewriter::decomposeRightAssocChain(Kind k,
