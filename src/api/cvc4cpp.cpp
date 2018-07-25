@@ -2356,8 +2356,7 @@ Sort Solver::declareDatatype(
 /**
  *  ( declare-fun <symbol> () <sort> )
  */
-Term Solver::declareFun (const std::string& symbol,
-                         Sort sort) const
+Term Solver::declareFun(const std::string& symbol, Sort sort) const
 {
   // CHECK: sort exists
   // CHECK:
@@ -2376,9 +2375,9 @@ Term Solver::declareFun (const std::string& symbol,
 /**
  *  ( declare-fun <symbol> ( <sort>* ) <sort> )
  */
-Term Solver::declareFun (const std::string& symbol,
-                         const std::vector<Sort>& sorts,
-                         Sort sort) const
+Term Solver::declareFun(const std::string& symbol,
+                        const std::vector<Sort>& sorts,
+                        Sort sort) const
 {
   // CHECK: for all s in sorts, s exists
   // CHECK: sort exists
@@ -2408,7 +2407,7 @@ Term Solver::declareFun (const std::string& symbol,
 /**
  *  ( declare-sort <symbol> <numeral> )
  */
-Sort Solver::declareSort (const std::string& symbol, uint32_t arity) const
+Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
 {
   // CHECK:
   // - logic set?
@@ -2421,11 +2420,10 @@ Sort Solver::declareSort (const std::string& symbol, uint32_t arity) const
 /**
  *  ( define-fun <function_def> )
  */
-Term Solver::defineFun (
-    const std::string& symbol,
-    const std::vector<Term>& bound_vars,
-    Sort sort,
-    Term term) const
+Term Solver::defineFun(const std::string& symbol,
+                       const std::vector<Term>& bound_vars,
+                       Sort sort,
+                       Term term) const
 {
   // CHECK:
   // for bv in bound_vars:
@@ -2463,10 +2461,9 @@ Term Solver::defineFun (
   return fun;
 }
 
-Term Solver::defineFun (
-    Term fun,
-    const std::vector<Term>& bound_vars,
-    Term term) const
+Term Solver::defineFun(Term fun,
+                       const std::vector<Term>& bound_vars,
+                       Term term) const
 {
   // CHECK:
   // NodeManager::fromExprManager(d_exprMgr)
@@ -2487,11 +2484,10 @@ Term Solver::defineFun (
 /**
  *  ( define-fun-rec <function_def> )
  */
-Term Solver::defineFunRec (
-    const std::string& symbol,
-    const std::vector<Term>& bound_vars,
-    Sort sort,
-    Term term) const
+Term Solver::defineFunRec(const std::string& symbol,
+                          const std::vector<Term>& bound_vars,
+                          Sort sort,
+                          Term term) const
 {
   // CHECK:
   // for bv in bound_vars:
@@ -2528,10 +2524,9 @@ Term Solver::defineFunRec (
   return fun;
 }
 
-Term Solver::defineFunRec (
-    Term fun,
-    const std::vector<Term>& bound_vars,
-    Term term) const
+Term Solver::defineFunRec(Term fun,
+                          const std::vector<Term>& bound_vars,
+                          Term term) const
 {
   // CHECK:
   // for bv in bound_vars:
@@ -2552,10 +2547,9 @@ Term Solver::defineFunRec (
 /**
  *  ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
  */
-void Solver::defineFunsRec (
-    const std::vector<Term>& funs,
-    const std::vector<std::vector<Term>>& bound_vars,
-    const std::vector<Term>& terms) const
+void Solver::defineFunsRec(const std::vector<Term>& funs,
+                           const std::vector<std::vector<Term>>& bound_vars,
+                           const std::vector<Term>& terms) const
 {
   // CHECK:
   // for f in funs:
@@ -2576,7 +2570,7 @@ void Solver::defineFunsRec (
   std::vector<std::vector<Expr>> ebound_vars;
   for (const auto& v : bound_vars)
   {
-    ebound_vars.push_back (termVectorToExprs(v));
+    ebound_vars.push_back(termVectorToExprs(v));
   }
   std::vector<Expr> exprs = termVectorToExprs(terms);
   d_smtEngine->defineFunctionsRec(efuns, ebound_vars, exprs);
