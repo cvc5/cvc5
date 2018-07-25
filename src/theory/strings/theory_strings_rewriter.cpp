@@ -547,86 +547,63 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
   return retNode;
 }
 
-Node TheoryStringsRewriter::rewriteOrRegExp(TNode node)
+Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)
 {
-  Assert( node.getKind() == kind::REGEXP_UNION );
+  Kind nk = node.getKind();
+  Assert( nk==REGEXP_UNION || nk== REGEXP_INTER );
   Trace("strings-prerewrite")
-      << "Strings::rewriteOrRegExp start " << node << std::endl;
-  Node retNode = node;
+      << "Strings::rewriteAndOrRegExp start " << node << std::endl;
   std::vector<Node> node_vec;
-  bool allflag = false;
-  for(unsigned i=0; i<node.getNumChildren(); ++i) {
-    if(node[i].getKind() == kind::REGEXP_UNION) {
-      Node tmpNode = node[i];
-      for (unsigned int j = 0; j < tmpNode.getNumChildren(); ++j)
+  for(const Node& ni : node )
+  {
+    if(ni.getKind() == nk) {
+      for (const Node& nic : ni)
       {
-        if (std::find(node_vec.begin(), node_vec.end(), tmpNode[j])
-            == node_vec.end())
+        if (std::find(node_vec.begin(), node_vec.end(), nic) == node_vec.end())
         {
-          if(std::find(node_vec.begin(), node_vec.end(), tmpNode[j]) == node_vec.end()) {
-            node_vec.push_back(tmpNode[j]);
-          }
+          node_vec.push_back(nic);
         }
       }
-    } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
-      // can be removed
-    } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
-      allflag = true;
-      retNode = node[i];
-      break;
-    } else {
-      if(std::find(node_vec.begin(), node_vec.end(), node[i]) == node_vec.end()) {
-        node_vec.push_back( node[i] );
-      }
-    }
-  }
-  if(!allflag) {
-    std::vector< Node > nvec;
-    retNode = node_vec.size() == 0 ? NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec ) :
-          node_vec.size() == 1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, node_vec);
-  }
-  Trace("strings-prerewrite")
-      << "Strings::rewriteOrRegExp end " << retNode << std::endl;
-  return retNode;
-}
-
-Node TheoryStringsRewriter::rewriteAndRegExp(TNode node)
-{
-  Assert( node.getKind() == kind::REGEXP_INTER );
-  Trace("strings-prerewrite")
-      << "Strings::rewriteAndRegExp start " << node << std::endl;
-  Node retNode = node;
-  std::vector<Node> node_vec;
-  //Node allNode = Node::null();
-  for(unsigned i=0; i<node.getNumChildren(); ++i) {
-    if(node[i].getKind() == kind::REGEXP_INTER) {
-      for (const Node& nc : node[i])
+    } else if(ni.getKind() == REGEXP_EMPTY) {
+      if( nk==REGEXP_INTER )
       {
-        if (std::find(node_vec.begin(), node_vec.end(), nc) == node_vec.end())
-        {
-          node_vec.push_back(nc);
-        }
+        return returnRewrite(node, ni, "re.and-empty");
       }
-    } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
-      retNode = node[i];
-      break;
-    } else if(node[i].getKind() == kind::REGEXP_STAR && node[i][0].getKind() == kind::REGEXP_SIGMA) {
-      // can be removed
-    } else {
-      if(std::find(node_vec.begin(), node_vec.end(), node[i]) == node_vec.end()) {
-        node_vec.push_back( node[i] );
+      // otherwise, can ignore
+    } else if(ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_SIGMA) {
+      if( nk==REGEXP_UNION )
+      {
+        return returnRewrite(node, ni, "re.or-all");
       }
+      // otherwise, can ignore
+    } else if(std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end()) {
+      node_vec.push_back( ni );
     }
   }
-  if( retNode==node ){
-    std::vector< Node > nvec;
-    retNode = node_vec.size() == 0 ?
-          NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA, nvec)) :
-          node_vec.size() == 1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_INTER, node_vec);
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector< Node > nvec;
+  Node retNode;
+  if( node_vec.empty() )
+  {
+    if( nk==REGEXP_INTER )
+    {
+      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, nvec));
+    }
+    else
+    {
+      retNode = nm->mkNode( kind::REGEXP_EMPTY, nvec );
+    }
   }
-  Trace("strings-prerewrite")
-      << "Strings::rewriteAndRegExp end " << retNode << std::endl;
-  return retNode;
+  else
+  {
+    retNode = node_vec.size() == 1 ? node_vec[0] : nm->mkNode(nk, node_vec);
+  }
+  if( retNode!=node )
+  {
+    // flattening and removing children, based on loop above
+    return returnRewrite(node,retNode,"re.andor-flatten");
+  }
+  return node;
 }
 
 Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
@@ -1093,13 +1070,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewriteConcatRegExp(node);
   }
-  else if (node.getKind() == REGEXP_UNION)
+  else if (node.getKind() == REGEXP_UNION || node.getKind() == REGEXP_INTER)
   {
-    retNode = rewriteOrRegExp(node);
-  }
-  else if (node.getKind() == REGEXP_INTER)
-  {
-    retNode = rewriteAndRegExp(node);
+    retNode = rewriteAndOrRegExp(node);
   }
   else if (node.getKind() == REGEXP_STAR)
   {
