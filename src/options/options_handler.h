@@ -120,8 +120,6 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option,
                                                          std::string optarg);
-  theory::quantifiers::FmfBoundMinMode stringToFmfBoundMinMode(
-      std::string option, std::string optarg);
   theory::SygusFairMode stringToSygusFairMode(std::string option,
                                               std::string optarg);
 
