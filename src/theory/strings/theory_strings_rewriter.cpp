@@ -506,20 +506,20 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
   if (node[0].getKind() == REGEXP_STAR)
   {
     // ((R)*)* ---> R*
-    return returnRewrite(node,node[0],"re-star-nested-star");
+    return returnRewrite(node, node[0], "re-star-nested-star");
   }
   else if (node[0].getKind() == STRING_TO_REGEXP
            && node[0][0].getKind() == CONST_STRING
            && node[0][0].getConst<String>().isEmptyString())
   {
     // ("")* ---> ""
-    return returnRewrite(node,node[0],"re-star-empty-string");
+    return returnRewrite(node, node[0], "re-star-empty-string");
   }
   else if (node[0].getKind() == REGEXP_EMPTY)
   {
     // (empty)* ---> ""
     retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
-    return returnRewrite(node,retNode,"re-star-empty");
+    return returnRewrite(node, retNode, "re-star-empty");
   }
   else if (node[0].getKind() == REGEXP_UNION)
   {
@@ -546,7 +546,7 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
                                        : nm->mkNode(REGEXP_UNION, node_vec);
         retNode = nm->mkNode(REGEXP_STAR, retNode);
         // simplification of union beneath star based on loop above
-        return returnRewrite(node,retNode,"re-star-union");
+        return returnRewrite(node, retNode, "re-star-union");
       }
     }
   }
