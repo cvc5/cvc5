@@ -487,6 +487,16 @@ class CVC4_PUBLIC SmtEngine {
   Model* getModel();
 
   /**
+   * When using separation logic, obtain the expression for the heap.
+   */
+  Expr getHeapExpr();
+
+  /**
+   * When using separation logic, obtain the expression for nil.
+   */
+  Expr getNilExpr();
+
+  /**
    * Get an aspect of the current SMT execution environment.
    */
   CVC4::SExpr getOption(const std::string& key) const
