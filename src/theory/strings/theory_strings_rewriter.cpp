@@ -550,13 +550,14 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
 Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)
 {
   Kind nk = node.getKind();
-  Assert( nk==REGEXP_UNION || nk== REGEXP_INTER );
+  Assert(nk == REGEXP_UNION || nk == REGEXP_INTER);
   Trace("strings-prerewrite")
       << "Strings::rewriteAndOrRegExp start " << node << std::endl;
   std::vector<Node> node_vec;
-  for(const Node& ni : node )
+  for (const Node& ni : node)
   {
-    if(ni.getKind() == nk) {
+    if (ni.getKind() == nk)
+    {
       for (const Node& nic : ni)
       {
         if (std::find(node_vec.begin(), node_vec.end(), nic) == node_vec.end())
@@ -564,44 +565,50 @@ Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)
           node_vec.push_back(nic);
         }
       }
-    } else if(ni.getKind() == REGEXP_EMPTY) {
-      if( nk==REGEXP_INTER )
+    }
+    else if (ni.getKind() == REGEXP_EMPTY)
+    {
+      if (nk == REGEXP_INTER)
       {
         return returnRewrite(node, ni, "re.and-empty");
       }
       // otherwise, can ignore
-    } else if(ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_SIGMA) {
-      if( nk==REGEXP_UNION )
+    }
+    else if (ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_SIGMA)
+    {
+      if (nk == REGEXP_UNION)
       {
         return returnRewrite(node, ni, "re.or-all");
       }
       // otherwise, can ignore
-    } else if(std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end()) {
-      node_vec.push_back( ni );
+    }
+    else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
+    {
+      node_vec.push_back(ni);
     }
   }
-  NodeManager * nm = NodeManager::currentNM();
-  std::vector< Node > nvec;
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> nvec;
   Node retNode;
-  if( node_vec.empty() )
+  if (node_vec.empty())
   {
-    if( nk==REGEXP_INTER )
+    if (nk == REGEXP_INTER)
     {
       retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, nvec));
     }
     else
     {
-      retNode = nm->mkNode( kind::REGEXP_EMPTY, nvec );
+      retNode = nm->mkNode(kind::REGEXP_EMPTY, nvec);
     }
   }
   else
   {
     retNode = node_vec.size() == 1 ? node_vec[0] : nm->mkNode(nk, node_vec);
   }
-  if( retNode!=node )
+  if (retNode != node)
   {
     // flattening and removing children, based on loop above
-    return returnRewrite(node,retNode,"re.andor-flatten");
+    return returnRewrite(node, retNode, "re.andor-flatten");
   }
   return node;
 }
