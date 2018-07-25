@@ -505,17 +505,21 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
   Node retNode = node;
   if (node[0].getKind() == REGEXP_STAR)
   {
-    retNode = node[0];
+    // ((R)*)* ---> R*
+    return returnRewrite(node,node[0],"re-star-nested-star");
   }
   else if (node[0].getKind() == STRING_TO_REGEXP
            && node[0][0].getKind() == CONST_STRING
            && node[0][0].getConst<String>().isEmptyString())
   {
-    retNode = node[0];
+    // ("")* ---> ""
+    return returnRewrite(node,node[0],"re-star-empty-string");
   }
   else if (node[0].getKind() == REGEXP_EMPTY)
   {
+    // (empty)* ---> ""
     retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+    return returnRewrite(node,retNode,"re-star-empty");
   }
   else if (node[0].getKind() == REGEXP_UNION)
   {
@@ -541,10 +545,12 @@ Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
         retNode = node_vec.size() == 1 ? node_vec[0]
                                        : nm->mkNode(REGEXP_UNION, node_vec);
         retNode = nm->mkNode(REGEXP_STAR, retNode);
+        // simplification of union beneath star based on loop above
+        return returnRewrite(node,retNode,"re-star-union");
       }
     }
   }
-  return retNode;
+  return node;
 }
 
 Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)

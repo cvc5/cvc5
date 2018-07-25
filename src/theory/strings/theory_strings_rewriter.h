@@ -73,7 +73,7 @@ class TheoryStringsRewriter {
    * Returns the rewritten form of node.
    */
   static Node rewriteStarRegExp(TNode node);
-  /** rewrite regular expression intersection
+  /** rewrite regular expression intersection/union
    *
    * This is the entry point for post-rewriting applications of re.inter and
    * re.union. Returns the rewritten form of node.
