@@ -383,9 +383,8 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
         }
         Assert( !disj.empty() );
         if( excl ){
-          cond = disj.size() == 1
-                     ? disj[0]
-                     : NodeManager::currentNM()->mkNode(kind::AND, disj);
+          cond = disj.size() == 1 ? disj[0] : NodeManager::currentNM()->mkNode(
+                                                  kind::AND, disj);
         }
       }else{
         int sindex = Datatype::cindexOf( selExpr );
@@ -569,7 +568,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
           unsigned c1 = deq_child[0][i];
           unsigned c2 = deq_child[1][i];
           TypeNode tnc = children[c1].getType();
-          if (tnc == children[c2].getType() && !tnc.getCardinality().isOne())
+          // we may only apply this symmetry breaking scheme (which introduces
+          // disequalities) if the types are infinite.
+          if (tnc == children[c2].getType() && !tnc.isInterpretedFinite())
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
             // notice that this symmetry breaking still allows for
@@ -802,8 +803,8 @@ Node SygusSymBreakNew::registerSearchValue(
     Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
     quantifiers::CegConjecture* aconj = d_anchor_to_conj[a];
     Assert(aconj != NULL);
-    Trace("sygus-sb-debug")
-        << "  ...register search value " << cnv << ", type=" << tn << std::endl;
+    Trace("sygus-sb-debug") << "  ...register search value " << cnv
+                            << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
     Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
@@ -812,8 +813,8 @@ Node SygusSymBreakNew::registerSearchValue(
     unsigned sz = d_tds->getSygusTermSize( nv );      
     if( d_tds->involvesDivByZero( bvr ) ){
       quantifiers::DivByZeroSygusInvarianceTest dbzet;
-      Trace("sygus-sb-mexp-debug")
-          << "Minimize explanation for div-by-zero in " << bv << std::endl;
+      Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
+                                   << bv << std::endl;
       registerSymBreakLemmaForValue(
           a, nv, dbzet, Node::null(), var_count, lemmas);
       return Node::null();
@@ -1054,7 +1055,6 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
   }
   Trace("sygus-sb-debug2") << "...finished." << std::endl;
 }
-
 
 void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) {
   if( n.isVar() ){

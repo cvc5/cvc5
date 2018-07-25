@@ -62,6 +62,14 @@ private:
   //set membership range
   std::map< Node, std::map< Node, Node > > d_setm_range;
   std::map< Node, std::map< Node, Node > > d_setm_range_lit;
+  /** set membership element choice functions
+   *
+   * For each set S and integer n, d_setm_choice[S][n] is the canonical
+   * representation for the (n+1)^th member of set S. It is of the form:
+   * choice x. (|S| <= n OR ( x in S AND
+   *   distinct( x, d_setm_choice[S][0], ..., d_setm_choice[S][n-1] ) ) )
+   */
+  std::map<Node, std::vector<Node> > d_setm_choice;
   //fixed finite set range
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_gr_range;
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_ngr_range;

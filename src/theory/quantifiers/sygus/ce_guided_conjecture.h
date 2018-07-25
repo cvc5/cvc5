@@ -179,6 +179,12 @@ private:
    */
   std::vector<Node> d_ce_sk_vars;
   /**
+   * If we have already tested the satisfiability of the current verification
+   * lemma, this stores the model values of d_ce_sk_vars in the current
+   * (satisfiable, failed) verification lemma.
+   */
+  std::vector<Node> d_ce_sk_var_mvs;
+  /**
    * Whether the above vector has been set. We have this flag since the above
    * vector may be set to empty (e.g. for ground synthesis conjectures).
    */
@@ -232,7 +238,7 @@ private:
    * may set ( sols, status ) to ( { x+1, d_x() }, { 1, 0 } ), where d_x() is
    * the sygus datatype constructor corresponding to variable x.
    */
-  void getSynthSolutionsInternal(std::vector<Node>& sols,
+  bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int>& status,
                                  bool singleInvocation);
   //-------------------------------- sygus stream

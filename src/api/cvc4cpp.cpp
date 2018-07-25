@@ -100,7 +100,6 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
   return out;
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -605,20 +604,26 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     };
 
 namespace {
-  Kind intToExtKind(CVC4::Kind k)
+Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = s_kinds_internal.find(k);
+  if (it == s_kinds_internal.end())
   {
-    auto it = s_kinds_internal.find(k);
-    if (it == s_kinds_internal.end()) { return INTERNAL_KIND; }
-    return it->second;
+    return INTERNAL_KIND;
   }
-
-  CVC4::Kind extToIntKind(Kind k)
-  {
-    auto it = s_kinds.find(k);
-    if (it == s_kinds.end()) { return CVC4::Kind::UNDEFINED_KIND; }
-    return it->second;
-  }
+  return it->second;
 }
+
+CVC4::Kind extToIntKind(Kind k)
+{
+  auto it = s_kinds.find(k);
+  if (it == s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+}  // namespace
 
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
@@ -632,18 +637,13 @@ std::ostream& operator<<(std::ostream& out, Kind k)
 
 size_t KindHashFunction::operator()(Kind k) const { return k; }
 
-
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Sort::Sort(const CVC4::Type& t) : d_type(new CVC4::Type(t))
-{
-}
+Sort::Sort(const CVC4::Type& t) : d_type(new CVC4::Type(t)) {}
 
-Sort::~Sort()
-{
-}
+Sort::~Sort() {}
 
 Sort& Sort::operator=(const Sort& s)
 {
@@ -780,14 +780,17 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   // CHECK: Is this a datatype/sort constructor sort?
   std::vector<Type> tparams;
-  for (const Sort& s : params) { tparams.push_back(*s.d_type.get()); }
+  for (const Sort& s : params)
+  {
+    tparams.push_back(*s.d_type.get());
+  }
   if (d_type->isDatatype())
   {
     // CHECK: is parametric?
     DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
     return type->instantiate(tparams);
   }
-  Assert (d_type->isSortConstructor());
+  Assert(d_type->isSortConstructor());
   return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
 }
 
@@ -797,32 +800,26 @@ std::string Sort::toString() const
   return d_type->toString();
 }
 
-std::ostream& operator<< (std::ostream& out, const Sort& s)
+std::ostream& operator<<(std::ostream& out, const Sort& s)
 {
   out << s.toString();
   return out;
 }
 
-size_t SortHashFunction::operator()(const Sort& s) const {
+size_t SortHashFunction::operator()(const Sort& s) const
+{
   return TypeHashFunction()(*s.d_type);
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term::Term() : d_expr(new CVC4::Expr())
-{
-}
+Term::Term() : d_expr(new CVC4::Expr()) {}
 
-Term::Term(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e))
-{
-}
+Term::Term(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e)) {}
 
-Term::~Term()
-{
-}
+Term::~Term() {}
 
 Term& Term::operator=(const Term& t)
 {
@@ -846,68 +843,34 @@ bool Term::operator!=(const Term& t) const
   return *d_expr != *t.d_expr;
 }
 
-Kind Term::getKind() const
-{
-  return intToExtKind(d_expr->getKind());
-}
+Kind Term::getKind() const { return intToExtKind(d_expr->getKind()); }
 
-Sort Term::getSort() const
-{
-  return Sort(d_expr->getType());
-}
+Sort Term::getSort() const { return Sort(d_expr->getType()); }
 
-bool Term::isNull() const
-{
-  return d_expr->isNull();
-}
+bool Term::isNull() const { return d_expr->isNull(); }
 
-Term Term::notTerm() const
-{
-  return d_expr->notExpr();
-}
+Term Term::notTerm() const { return d_expr->notExpr(); }
 
-Term Term::andTerm(const Term& t) const
-{
-  return d_expr->andExpr(*t.d_expr);
-}
+Term Term::andTerm(const Term& t) const { return d_expr->andExpr(*t.d_expr); }
 
-Term Term::orTerm(const Term& t) const
-{
-  return d_expr->orExpr(*t.d_expr);
-}
+Term Term::orTerm(const Term& t) const { return d_expr->orExpr(*t.d_expr); }
 
-Term Term::xorTerm(const Term& t) const
-{
-  return d_expr->xorExpr(*t.d_expr);
-}
+Term Term::xorTerm(const Term& t) const { return d_expr->xorExpr(*t.d_expr); }
 
-Term Term::iffTerm(const Term& t) const
-{
-  return d_expr->iffExpr(*t.d_expr);
-}
+Term Term::iffTerm(const Term& t) const { return d_expr->iffExpr(*t.d_expr); }
 
-Term Term::impTerm(const Term& t) const
-{
-  return d_expr->impExpr(*t.d_expr);
-}
+Term Term::impTerm(const Term& t) const { return d_expr->impExpr(*t.d_expr); }
 
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
   return d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
 }
 
-std::string Term::toString() const
-{
-  return d_expr->toString();
-}
+std::string Term::toString() const { return d_expr->toString(); }
 
-Term::const_iterator::const_iterator() : d_iterator(nullptr)
-{
-}
+Term::const_iterator::const_iterator() : d_iterator(nullptr) {}
 
-Term::const_iterator::const_iterator(void* it) : d_iterator(it)
-{
-}
+Term::const_iterator::const_iterator(void* it) : d_iterator(it) {}
 
 Term::const_iterator::const_iterator(const const_iterator& it)
     : d_iterator(nullptr)
@@ -978,7 +941,7 @@ Term::const_iterator Term::end() const
   return Term::const_iterator(new CVC4::Expr::const_iterator(d_expr->end()));
 }
 
-std::ostream& operator<< (std::ostream& out, const Term& t)
+std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   out << t.toString();
   return out;
@@ -1029,17 +992,11 @@ size_t TermHashFunction::operator()(const Term& t) const
 /* OpTerm                                                                     */
 /* -------------------------------------------------------------------------- */
 
-OpTerm::OpTerm() : d_expr(new CVC4::Expr())
-{
-}
+OpTerm::OpTerm() : d_expr(new CVC4::Expr()) {}
 
-OpTerm::OpTerm(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e))
-{
-}
+OpTerm::OpTerm(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e)) {}
 
-OpTerm::~OpTerm()
-{
-}
+OpTerm::~OpTerm() {}
 
 OpTerm& OpTerm::operator=(const OpTerm& t)
 {
@@ -1063,27 +1020,15 @@ bool OpTerm::operator!=(const OpTerm& t) const
   return *d_expr != *t.d_expr;
 }
 
-Kind OpTerm::getKind() const
-{
-  return intToExtKind(d_expr->getKind());
-}
+Kind OpTerm::getKind() const { return intToExtKind(d_expr->getKind()); }
 
-Sort OpTerm::getSort() const
-{
-  return Sort(d_expr->getType());
-}
+Sort OpTerm::getSort() const { return Sort(d_expr->getType()); }
 
-bool OpTerm::isNull() const
-{
-  return d_expr->isNull();
-}
+bool OpTerm::isNull() const { return d_expr->isNull(); }
 
-std::string OpTerm::toString() const
-{
-  return d_expr->toString();
-}
+std::string OpTerm::toString() const { return d_expr->toString(); }
 
-std::ostream& operator<< (std::ostream& out, const OpTerm& t)
+std::ostream& operator<<(std::ostream& out, const OpTerm& t)
 {
   out << t.toString();
   return out;
@@ -1209,19 +1154,14 @@ std::ostream& operator<<(std::ostream& out,
 
 /* DatatypeSelector --------------------------------------------------------- */
 
-DatatypeSelector::DatatypeSelector()
-{
-  d_stor = nullptr;
-}
+DatatypeSelector::DatatypeSelector() { d_stor = nullptr; }
 
 DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
     : d_stor(new CVC4::DatatypeConstructorArg(stor))
 {
 }
 
-DatatypeSelector::~DatatypeSelector()
-{
-}
+DatatypeSelector::~DatatypeSelector() {}
 
 std::string DatatypeSelector::toString() const
 {
@@ -1238,19 +1178,14 @@ std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
 
 /* DatatypeConstructor ------------------------------------------------------ */
 
-DatatypeConstructor::DatatypeConstructor()
-{
-  d_ctor = nullptr;
-}
+DatatypeConstructor::DatatypeConstructor() { d_ctor = nullptr; }
 
 DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
-: d_ctor(new CVC4::DatatypeConstructor(ctor))
+    : d_ctor(new CVC4::DatatypeConstructor(ctor))
 {
 }
 
-DatatypeConstructor::~DatatypeConstructor()
-{
-}
+DatatypeConstructor::~DatatypeConstructor() {}
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
@@ -1360,13 +1295,11 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 /* Datatype ----------------------------------------------------------------- */
 
 Datatype::Datatype(const CVC4::Datatype& dtype)
-: d_dtype(new CVC4::Datatype(dtype))
+    : d_dtype(new CVC4::Datatype(dtype))
 {
 }
 
-Datatype::~Datatype()
-{
-}
+Datatype::~Datatype() {}
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
@@ -1399,11 +1332,12 @@ Datatype::const_iterator Datatype::end() const
   return Datatype::const_iterator(*d_dtype, false);
 }
 
-Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype, bool begin)
+Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
+                                         bool begin)
 {
   d_int_ctors = dtype.getConstructors();
   const std::vector<CVC4::DatatypeConstructor>* cons =
-    static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
+      static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
   for (const auto& c : *cons)
   {
     /* Can not use emplace_back here since constructor is private. */
@@ -1460,27 +1394,30 @@ bool Datatype::const_iterator::operator!=(
 /* Rounding Mode for Floating Points                                          */
 /* -------------------------------------------------------------------------- */
 
-const static std::unordered_map<RoundingMode,
-                          CVC4::RoundingMode,
-                          RoundingModeHashFunction> s_rmodes
-{
-  { ROUND_NEAREST_TIES_TO_EVEN,  CVC4::RoundingMode::roundNearestTiesToEven },
-  { ROUND_TOWARD_POSITIVE,       CVC4::RoundingMode::roundTowardPositive },
-  { ROUND_TOWARD_NEGATIVE,       CVC4::RoundingMode::roundTowardNegative },
-  { ROUND_TOWARD_ZERO,           CVC4::RoundingMode::roundTowardZero },
-  { ROUND_NEAREST_TIES_TO_AWAY,  CVC4::RoundingMode::roundNearestTiesToAway },
-};
+const static std::
+    unordered_map<RoundingMode, CVC4::RoundingMode, RoundingModeHashFunction>
+        s_rmodes{
+            {ROUND_NEAREST_TIES_TO_EVEN,
+             CVC4::RoundingMode::roundNearestTiesToEven},
+            {ROUND_TOWARD_POSITIVE, CVC4::RoundingMode::roundTowardPositive},
+            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::roundTowardNegative},
+            {ROUND_TOWARD_ZERO, CVC4::RoundingMode::roundTowardZero},
+            {ROUND_NEAREST_TIES_TO_AWAY,
+             CVC4::RoundingMode::roundNearestTiesToAway},
+        };
 
 const static std::unordered_map<CVC4::RoundingMode,
-                          RoundingMode,
-                          CVC4::RoundingModeHashFunction> s_rmodes_internal
-{
-  { CVC4::RoundingMode::roundNearestTiesToEven,  ROUND_NEAREST_TIES_TO_EVEN },
-  { CVC4::RoundingMode::roundTowardPositive,     ROUND_TOWARD_POSITIVE },
-  { CVC4::RoundingMode::roundTowardNegative,     ROUND_TOWARD_NEGATIVE },
-  { CVC4::RoundingMode::roundTowardZero,         ROUND_TOWARD_ZERO },
-  { CVC4::RoundingMode::roundNearestTiesToAway,  ROUND_NEAREST_TIES_TO_AWAY },
-};
+                                RoundingMode,
+                                CVC4::RoundingModeHashFunction>
+    s_rmodes_internal{
+        {CVC4::RoundingMode::roundNearestTiesToEven,
+         ROUND_NEAREST_TIES_TO_EVEN},
+        {CVC4::RoundingMode::roundTowardPositive, ROUND_TOWARD_POSITIVE},
+        {CVC4::RoundingMode::roundTowardNegative, ROUND_TOWARD_NEGATIVE},
+        {CVC4::RoundingMode::roundTowardZero, ROUND_TOWARD_ZERO},
+        {CVC4::RoundingMode::roundNearestTiesToAway,
+         ROUND_NEAREST_TIES_TO_AWAY},
+    };
 
 size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 {
@@ -1491,8 +1428,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(Options* opts)
-  : d_opts(new Options())
+Solver::Solver(Options* opts) : d_opts(new Options())
 {
   if (opts) d_opts->copyValues(*opts);
   d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
@@ -2211,6 +2147,210 @@ std::vector<Expr> Solver::termVectorToExprs(
     res.push_back(*t.d_expr);
   }
   return res;
+}
+
+/* Create operator terms                                                      */
+/* -------------------------------------------------------------------------- */
+
+OpTerm Solver::mkOpTerm(Kind kind, Kind k)
+{
+  // CHECK: kind == CHAIN_OP
+  return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
+}
+
+OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
+{
+  // CHECK:
+  // kind == RECORD_UPDATE_OP
+  return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
+}
+
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
+{
+  OpTerm res;
+  switch (kind)
+  {
+    case DIVISIBLE_OP: res = d_exprMgr->mkConst(CVC4::Divisible(arg)); break;
+    case BITVECTOR_REPEAT_OP:
+      res = d_exprMgr->mkConst(CVC4::BitVectorRepeat(arg));
+      break;
+    case BITVECTOR_ZERO_EXTEND_OP:
+      res = d_exprMgr->mkConst(CVC4::BitVectorZeroExtend(arg));
+      break;
+    case BITVECTOR_SIGN_EXTEND_OP:
+      res = d_exprMgr->mkConst(CVC4::BitVectorSignExtend(arg));
+      break;
+    case BITVECTOR_ROTATE_LEFT_OP:
+      res = d_exprMgr->mkConst(CVC4::BitVectorRotateLeft(arg));
+      break;
+    case BITVECTOR_ROTATE_RIGHT_OP:
+      res = d_exprMgr->mkConst(CVC4::BitVectorRotateRight(arg));
+      break;
+    case INT_TO_BITVECTOR_OP:
+      res = d_exprMgr->mkConst(CVC4::IntToBitVector(arg));
+      break;
+    case FLOATINGPOINT_TO_UBV_OP:
+      res = d_exprMgr->mkConst(CVC4::FloatingPointToUBV(arg));
+      break;
+    case FLOATINGPOINT_TO_UBV_TOTAL_OP:
+      res = d_exprMgr->mkConst(CVC4::FloatingPointToUBVTotal(arg));
+      break;
+    case FLOATINGPOINT_TO_SBV_OP:
+      res = d_exprMgr->mkConst(CVC4::FloatingPointToSBV(arg));
+      break;
+    case FLOATINGPOINT_TO_SBV_TOTAL_OP:
+      res = d_exprMgr->mkConst(CVC4::FloatingPointToSBVTotal(arg));
+      break;
+    case TUPLE_UPDATE_OP:
+      res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
+      break;
+    default:
+      // CHECK: kind valid?
+      Assert(!res.isNull());
+  }
+  return res;
+}
+
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
+{
+  OpTerm res;
+  switch (kind)
+  {
+    case BITVECTOR_EXTRACT_OP:
+      res = d_exprMgr->mkConst(CVC4::BitVectorExtract(arg1, arg2));
+      break;
+    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
+      res =
+          d_exprMgr->mkConst(CVC4::FloatingPointToFPIEEEBitVector(arg1, arg2));
+      break;
+    case FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
+      res =
+          d_exprMgr->mkConst(CVC4::FloatingPointToFPFloatingPoint(arg1, arg2));
+      break;
+    case FLOATINGPOINT_TO_FP_REAL_OP:
+      res = d_exprMgr->mkConst(CVC4::FloatingPointToFPReal(arg1, arg2));
+      break;
+    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
+      res = d_exprMgr->mkConst(
+          CVC4::FloatingPointToFPSignedBitVector(arg1, arg2));
+      break;
+    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
+      res = d_exprMgr->mkConst(
+          CVC4::FloatingPointToFPUnsignedBitVector(arg1, arg2));
+      break;
+    case FLOATINGPOINT_TO_FP_GENERIC_OP:
+      res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
+      break;
+    default:
+      // CHECK: kind valid?
+      Assert(!res.isNull());
+  }
+  return res;
+}
+
+/* Non-SMT-LIB commands                                                       */
+/* -------------------------------------------------------------------------- */
+
+Term Solver::simplify(const Term& t)
+{
+  return d_smtEngine->simplify(*t.d_expr);
+}
+
+Result Solver::checkValid(void) const
+{
+  // CHECK:
+  // if d_queryMade -> incremental enabled
+  CVC4::Result r = d_smtEngine->query();
+  return Result(r);
+}
+
+Result Solver::checkValidAssuming(Term assumption) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  CVC4::Result r = d_smtEngine->query(*assumption.d_expr);
+  return Result(r);
+}
+
+Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
+  CVC4::Result r = d_smtEngine->query(eassumptions);
+  return Result(r);
+}
+
+/* SMT-LIB commands                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ *  ( assert <term> )
+ */
+void Solver::assertFormula(Term term) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  d_smtEngine->assertFormula(*term.d_expr);
+}
+
+/**
+ *  ( check-sat )
+ */
+Result Solver::checkSat(void) const
+{
+  // CHECK:
+  // if d_queryMade -> incremental enabled
+  CVC4::Result r = d_smtEngine->checkSat();
+  return Result(r);
+}
+
+/**
+ *  ( check-sat-assuming ( <prop_literal> ) )
+ */
+Result Solver::checkSatAssuming(Term assumption) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  CVC4::Result r = d_smtEngine->checkSat(*assumption.d_expr);
+  return Result(r);
+}
+
+/**
+ *  ( check-sat-assuming ( <prop_literal>* ) )
+ */
+Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
+{
+  // CHECK:
+  // if assumptions.size() > 0:  incremental enabled?
+  std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
+  CVC4::Result r = d_smtEngine->checkSat(eassumptions);
+  return Result(r);
+}
+
+/**
+ *  ( declare-const <symbol> <sort> )
+ */
+Term Solver::declareConst(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists
+  return d_exprMgr->mkVar(symbol, *sort.d_type);
+}
+
+/**
+ *  ( declare-datatype <symbol> <datatype_decl> )
+ */
+Sort Solver::declareDatatype(
+    const std::string& symbol,
+    const std::vector<DatatypeConstructorDecl>& ctors) const
+{
+  DatatypeDecl dtdecl(symbol);
+  for (const DatatypeConstructorDecl& ctor : ctors)
+  {
+    dtdecl.addConstructor(ctor);
+  }
+  return mkDatatypeSort(dtdecl);
 }
 
 }  // namespace api
