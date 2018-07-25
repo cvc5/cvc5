@@ -307,8 +307,8 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 Node TheoryStringsRewriter::rewriteConcat(Node node)
 {
   Assert(node.getKind() == kind::STRING_CONCAT);
-  Trace("strings-rewrite-debug") << "Strings::rewriteConcat start " << node
-                              << std::endl;
+  Trace("strings-rewrite-debug")
+      << "Strings::rewriteConcat start " << node << std::endl;
   Node retNode = node;
   std::vector<Node> node_vec;
   Node preNode = Node::null();
@@ -380,8 +380,8 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   std::sort(node_vec.begin() + lastIdx, node_vec.end());
 
   retNode = mkConcat( kind::STRING_CONCAT, node_vec );
-  Trace("strings-rewrite-debug") << "Strings::rewriteConcat end " << retNode
-                              << std::endl;
+  Trace("strings-rewrite-debug")
+      << "Strings::rewriteConcat end " << retNode << std::endl;
   return retNode;
 }
 
@@ -501,7 +501,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
 
 Node TheoryStringsRewriter::rewriteStarRegExp(TNode node)
 {
-  Assert( node.getKind() == REGEXP_STAR );
+  Assert(node.getKind() == REGEXP_STAR);
   NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
   if (node[0].getKind() == REGEXP_STAR)
@@ -624,18 +624,18 @@ Node TheoryStringsRewriter::rewriteAndOrRegExp(TNode node)
 
 Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
 {
-  Assert( node.getKind()==REGEXP_LOOP );
+  Assert(node.getKind() == REGEXP_LOOP);
   Node retNode = node;
   Node r = node[0];
   if (r.getKind() == REGEXP_STAR)
   {
-    return returnRewrite(node,r,"re.loop-star");
+    return returnRewrite(node, r, "re.loop-star");
   }
   TNode n1 = node[1];
   NodeManager* nm = NodeManager::currentNM();
   CVC4::Rational RMAXINT(LONG_MAX);
-  AlwaysAssert(n1.isConst(),"re.loop contains non-constant integer (1).");
-  AlwaysAssert(n1.getConst<Rational>().sgn()>=0,
+  AlwaysAssert(n1.isConst(), "re.loop contains non-constant integer (1).");
+  AlwaysAssert(n1.getConst<Rational>().sgn() >= 0,
                "Negative integer in string REGEXP_LOOP (1)");
   Assert(n1.getConst<Rational>() <= RMAXINT,
          "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
@@ -652,9 +652,9 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
         vec_nodes.size() == 0
             ? nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")))
             : vec_nodes.size() == 1 ? r : nm->mkNode(REGEXP_CONCAT, vec_nodes);
-    AlwaysAssert(n2.isConst(),"re.loop contains non-constant integer (2).");
-    AlwaysAssert(n2.getConst<Rational>().sgn()>=0,
-                "Negative integer in string REGEXP_LOOP (2)");
+    AlwaysAssert(n2.isConst(), "re.loop contains non-constant integer (2).");
+    AlwaysAssert(n2.getConst<Rational>().sgn() >= 0,
+                 "Negative integer in string REGEXP_LOOP (2)");
     Assert(n2.getConst<Rational>() <= RMAXINT,
            "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
     unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
@@ -688,9 +688,9 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
   }
   Trace("strings-lp") << "Strings::lp " << node << " => " << retNode
                       << std::endl;
-  if( retNode!=node )
+  if (retNode != node)
   {
-    return returnRewrite(node,retNode,"re.loop");
+    return returnRewrite(node, retNode, "re.loop");
   }
   return node;
 }
@@ -990,11 +990,16 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   Node retNode = node;
   Node orig = retNode;
   Kind nk = node.getKind();
-  if(nk == kind::STRING_CONCAT) {
+  if (nk == kind::STRING_CONCAT)
+  {
     retNode = rewriteConcat(node);
-  } else if(nk == kind::EQUAL) {
+  }
+  else if (nk == kind::EQUAL)
+  {
     retNode = rewriteEquality(node);
-  } else if(nk == kind::STRING_LENGTH) {
+  }
+  else if (nk == kind::STRING_LENGTH)
+  {
     if( node[0].isConst() ){
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
     }else if( node[0].getKind() == kind::STRING_CONCAT ){
@@ -1023,12 +1028,18 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
       }
     }
-  }else if( nk == kind::STRING_CHARAT ){
+  }
+  else if (nk == kind::STRING_CHARAT)
+  {
     Node one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
     retNode = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[0], node[1], one);
-  }else if( nk == kind::STRING_SUBSTR ){
+  }
+  else if (nk == kind::STRING_SUBSTR)
+  {
     retNode = rewriteSubstr(node);
-  }else if( nk == kind::STRING_STRCTN ){
+  }
+  else if (nk == kind::STRING_STRCTN)
+  {
     retNode = rewriteContains( node );
   }
   else if (nk == kind::STRING_LT)
@@ -1041,16 +1052,21 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == kind::STRING_LEQ)
   {
     retNode = rewriteStringLeq(node);
-  }else if( nk==kind::STRING_STRIDOF ){
+  }
+  else if (nk == kind::STRING_STRIDOF)
+  {
     retNode = rewriteIndexof( node );
-  }else if( nk == kind::STRING_STRREPL ){
+  }
+  else if (nk == kind::STRING_STRREPL)
+  {
     retNode = rewriteReplace( node );
   }
-  else if (nk == kind::STRING_PREFIX
-           || nk == kind::STRING_SUFFIX)
+  else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
     retNode = rewritePrefixSuffix(node);
-  }else if(nk == kind::STRING_ITOS) {
+  }
+  else if (nk == kind::STRING_ITOS)
+  {
     if(node[0].isConst()) {
       if( node[0].getConst<Rational>().sgn()==-1 ){
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
@@ -1060,7 +1076,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
       }
     }
-  }else if(nk == kind::STRING_STOI) {
+  }
+  else if (nk == kind::STRING_STOI)
+  {
     if(node[0].isConst()) {
       CVC4::String s = node[0].getConst<String>();
       if(s.isNumber()) {
@@ -1079,7 +1097,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         }
       }
     }
-  } else if(nk == kind::STRING_IN_REGEXP) {
+  }
+  else if (nk == kind::STRING_IN_REGEXP)
+  {
     retNode = rewriteMembership(node);
   }
   else if (nk == STRING_CODE)
