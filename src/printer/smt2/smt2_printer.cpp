@@ -1940,7 +1940,52 @@ static void toStream(std::ostream& out,
   }
   else
   {
-    out << " () (";
+    out << " (";
+    // can only print if all datatypes in this block have the same parameters
+    // in theory, given input language 2.6 and output language 2.5, it could
+    // be impossible to print a datatype block where datatypes were given
+    // different parameter lists.
+    bool success = true;
+    const Datatype& d = datatypes[0].getDatatype();
+    unsigned nparam = d.getNumParameters();
+    for( unsigned j=1, ndt = datatypes.size(); j<ndt; j++ )
+    {
+      const Datatype& dj = datatypes[j].getDatatype();
+      if( dj.getNumParameters()!=nparam )
+      {
+        success = false;
+      }
+      else
+      {
+        // must also have identical parameter lists
+        for( unsigned k=0; k<nparam; k++ )
+        {
+          if( dj.getParameter(k)!=d.getParameter(k) )
+          {
+            success = false;
+            break;
+          }
+        }
+      }
+      if( !success )
+      {
+        break;
+      }
+    }
+    if( success )
+    {
+      for( unsigned j=0; j<nparam; j++ )
+      {
+        out << (j>0 ? " " : "") << d.getParameter(j);
+      }
+    }
+    else
+    {
+      out << std::endl;
+      out << "ERROR: datatypes in each block must have identical parameter lists.";
+      out << std::endl;
+    }
+    out << ") (";
     for (vector<DatatypeType>::const_iterator i = datatypes.begin(),
                                               i_end = datatypes.end();
          i != i_end;

@@ -759,12 +759,14 @@ public:
     }
   }
 
-  void nmNotifyNewSortConstructor(TypeNode tn) override
+  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override
   {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
-    d_smt.addToModelCommandAndDump(c);
+    if((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0) {
+      d_smt.addToModelCommandAndDump(c);
+    }
   }
 
   void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
