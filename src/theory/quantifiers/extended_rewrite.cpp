@@ -36,6 +36,7 @@ typedef expr::Attribute<ExtRewriteAttributeId, Node> ExtRewriteAttribute;
 ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
 {
 }
+
 void ExtendedRewriter::setCache(Node n, Node ret)
 {
   ExtRewriteAttribute era;
@@ -194,8 +195,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       tid = Theory::theoryOf(ret);
     }
-    Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
-                                 << std::endl;
+    Trace("q-ext-rewrite-debug")
+        << "theoryOf( " << ret << " )= " << tid << std::endl;
     if (tid == THEORY_ARITH)
     {
       new_ret = extendedRewriteArith(ret);
@@ -1467,8 +1468,29 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 
 Node ExtendedRewriter::solveEquality(Node n)
 {
-  // TODO (#1706) : implement
   Assert(n.getKind() == EQUAL);
+
+  if (n[0].getType().isBitVector())
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (isConstBv(n[1 - i], false))
+      {
+        // (bvadd x (bvneg y)) = 0 ---> x = y
+        if (n[i].getKind() == BITVECTOR_PLUS && n[i].getNumChildren() == 2)
+        {
+          for (unsigned j = 0; j < 2; j++)
+          {
+            if (n[i][j].isVar() && n[i][1 - j].getKind() == BITVECTOR_NEG
+                && n[i][1 - j][0].isVar())
+            {
+              return n[i][j].eqNode(n[i][1 - j][0]);
+            }
+          }
+        }
+      }
+    }
+  }
 
   return Node::null();
 }
@@ -1561,6 +1583,571 @@ Node ExtendedRewriter::extendedRewriteArith(Node ret)
     }
   }
   return new_ret;
+}
+
+int ExtendedRewriter::bitVectorSubsume(Node a, Node b, bool strict, bool tryNot)
+{
+  Assert(a.getType() == b.getType());
+  int max_ret = strict ? 2 : 1;
+  int curr_ret = 0;
+  Trace("q-ext-rewrite-debug2")
+      << "Subsume " << a << " " << b << "?" << std::endl;
+  // simple cases : a=b, a=max, b=0
+  if (a == b || isConstBv(a, true) || isConstBv(b, false))
+  {
+    curr_ret = 1;
+  }
+  else if (a.isConst() && b.isConst())
+  {
+    curr_ret = 1;
+    BitVector av = a.getConst<BitVector>();
+    BitVector bv = b.getConst<BitVector>();
+    unsigned csize = bv::utils::getSize(a);
+    for (unsigned i = 0; i < csize; i++)
+    {
+      if (bv::utils::getBit(a, i) != bv::utils::getBit(b, i))
+      {
+        if( bv::utils::getBit(b, i) )
+        {
+          return 0;
+        }
+        else
+        {
+          curr_ret = max_ret;
+        }
+      }
+    }
+  }
+
+  if (curr_ret == max_ret)
+  {
+    return max_ret;
+  }
+
+  Kind ak = a.getKind();
+  Kind bk = b.getKind();
+
+  //------------------recurse on CONCAT
+  if (ak == BITVECTOR_CONCAT || bk == BITVECTOR_CONCAT)
+  {
+    unsigned counter = bv::utils::getSize(a) - 1;
+    bool reca = ak == BITVECTOR_CONCAT;
+    Node cterm = reca ? a : b;
+    Node oterm = reca ? b : a;
+    int ccurr = 1;
+    // each piece must subsume
+    for (const Node& ctermc : cterm)
+    {
+      unsigned csize = bv::utils::getSize(ctermc);
+      Assert((counter + 1) >= csize);
+      Node extract =
+          bv::utils::mkExtract(oterm, counter, (counter + 1) - csize);
+      extract = Rewriter::rewrite(extract);
+
+      // check subsume
+      int cret = bitVectorSubsume(
+          reca ? ctermc : extract, reca ? extract : ctermc, strict);
+      if (cret == 0)
+      {
+        ccurr = 0;
+        break;
+      }
+      else if (cret > ccurr)
+      {
+        ccurr = cret;
+      }
+      if (counter >= csize)
+      {
+        counter = counter - csize;
+      }
+    }
+    // if all pieces subsume, then we take the max and update the return value
+    if (ccurr == max_ret)
+    {
+      return max_ret;
+    }
+    else if (ccurr > curr_ret)
+    {
+      curr_ret = ccurr;
+    }
+  }
+
+  //---------------recurse BITVECTOR_NOT
+  if (ak == BITVECTOR_NOT && bk == BITVECTOR_NOT)
+  {
+    return bitVectorSubsume(b[0], a[0], strict);
+  }
+
+  //--------------recurse extract
+  if (ak == BITVECTOR_EXTRACT && bk == BITVECTOR_EXTRACT
+      && a.getOperator() == b.getOperator())
+  {
+    return bitVectorSubsume(a[0], b[0], strict);
+  }
+
+  //---------------recurse BITVECTOR_AND/OR
+  bool reca = false;
+  Node rec;
+  if (ak == BITVECTOR_OR)
+  {
+    rec = a;
+    reca = true;
+  }
+  else if (bk == BITVECTOR_AND)
+  {
+    rec = b;
+  }
+  if (!rec.isNull())
+  {
+    for (const Node& rc : rec)
+    {
+      int cret = bitVectorSubsume(reca ? rc : a, reca ? b : rc, strict);
+      if (cret == max_ret)
+      {
+        return max_ret;
+      }
+      else if (cret > curr_ret)
+      {
+        curr_ret = cret;
+      }
+    }
+    rec = Node::null();
+  }
+
+  //---------------recurse ITE
+  if (ak == ITE)
+  {
+    rec = a;
+    reca = true;
+  }
+  else if (bk == ITE)
+  {
+    rec = b;
+    reca = false;
+  }
+  if (!rec.isNull())
+  {
+    int r1 = bitVectorSubsume(reca ? a[1] : a, reca ? b : b[1], strict);
+    if (r1 > curr_ret)
+    {
+      int r2 = bitVectorSubsume(reca ? a[2] : a, reca ? b : b[2], strict);
+      if (r2 > curr_ret)
+      {
+        curr_ret = r2 > r1 ? r1 : r2;
+        if (curr_ret = max_ret)
+        {
+          return max_ret;
+        }
+      }
+    }
+    rec = Node::null();
+  }
+
+  //-----------------cases for b
+  if (bk == BITVECTOR_SHL)
+  {
+    if (b[0].getKind() == BITVECTOR_LSHR)
+    {
+      if (b[0][0] == a && b[0][1] == b[1])
+      {
+        // x subsumes bvshl( bvlshr( x, y ), y )
+        curr_ret = 1;
+      }
+    }
+    Node anot = TermUtil::mkNegate(BITVECTOR_NOT, a);
+    // x subsumes bvshl( y, z ) if z>=(~x).
+    if (bitVectorArithComp(b[1], anot))
+    {
+      curr_ret = 1;
+    }
+  }
+  else if (bk == BITVECTOR_LSHR)
+  {
+    if (b[0].getKind() == BITVECTOR_SHL)
+    {
+      if (b[0][0] == a && b[0][1] == b[1])
+      {
+        // x subsumes bvlshr( bvshl( x, y ), y )
+        curr_ret = 1;
+      }
+    }
+  }
+  else if (bk == BITVECTOR_NEG)
+  {
+    if (b[0].getKind() == BITVECTOR_SHL)
+    {
+      Node anot = TermUtil::mkNegate(BITVECTOR_NOT, a);
+      // x subsumes -bvshl( y, z ) if z>=(~x).
+      if (bitVectorArithComp(b[0][1], anot))
+      {
+        curr_ret = 1;
+      }
+    }
+  }
+
+  if (curr_ret == max_ret)
+  {
+    return max_ret;
+  }
+
+  if (tryNot)
+  {
+    if (ak == BITVECTOR_NOT || bk == BITVECTOR_NOT)
+    {
+      int ret = bitVectorSubsume(TermUtil::mkNegate(BITVECTOR_NOT, b),
+                                 TermUtil::mkNegate(BITVECTOR_NOT, a),
+                                 strict,
+                                 false);
+      if (ret > curr_ret)
+      {
+        curr_ret = ret;
+      }
+    }
+  }
+
+  return curr_ret;
+}
+
+int ExtendedRewriter::bitVectorArithComp(Node a, Node b, bool strict)
+{
+  Assert(a.getType() == b.getType());
+  int max_ret = strict ? 2 : 1;
+  Trace("q-ext-rewrite-debug2")
+      << "Arith comp " << a << " " << b << "?" << std::endl;
+  int curr_ret = bitVectorSubsume(a, b, strict);
+  if (curr_ret == max_ret)
+  {
+    return max_ret;
+  }
+  if (a.isConst() && b.isConst())
+  {
+    BitVector av = a.getConst<BitVector>();
+    BitVector bv = b.getConst<BitVector>();
+    if (bv.unsignedLessThan(av)) 
+    {
+      return max_ret;
+    }
+  }
+
+  // flip
+  if (a.getKind() == BITVECTOR_NEG && b.getKind() == BITVECTOR_NEG)
+  {
+    return bitVectorArithComp(b[0], a[0], strict);
+  }
+
+  // shifting right always shrinks
+  if (b.getKind() == BITVECTOR_LSHR)
+  {
+    if (bitVectorArithComp(a, b[0], strict) == max_ret)
+    {
+      curr_ret = 1;
+      // if strict, also must be greater than zero shift
+      if (strict)
+      {
+        Node zero = mkConstBv(b[1], false);
+        if (bitVectorArithComp(b[1], zero, strict))
+        {
+          return max_ret;
+        }
+      }
+    }
+  }
+
+  return curr_ret;
+}
+
+bool ExtendedRewriter::bitVectorDisjoint(Node a, Node b)
+{
+  Assert(a.getType() == b.getType());
+  if (a.isConst() && b.isConst())
+  {
+    BitVector av = a.getConst<BitVector>();
+    BitVector bv = b.getConst<BitVector>();
+    unsigned csize = bv::utils::getSize(a);
+    for (unsigned i = 0; i < csize; i++)
+    {
+      if (bv::utils::getBit(a, i) && bv::utils::getBit(b, i))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  // must be dually subsuming
+  bool dualSubsumeSuccess = true;
+  for (unsigned r = 0; r < 2; r++)
+  {
+    Node x = r == 0 ? a : b;
+    Node y = r == 0 ? b : a;
+    x = TermUtil::mkNegate(BITVECTOR_NOT, x);
+    if (bitVectorSubsume(x, y) == 0)
+    {
+      dualSubsumeSuccess = false;
+      break;
+    }
+  }
+  if (dualSubsumeSuccess)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+Node ExtendedRewriter::decomposeRightAssocChain(Kind k,
+                                                Node n,
+                                                std::vector<Node>& children)
+{
+  Node curr = n;
+  while (curr.getKind() == k)
+  {
+    children.push_back(curr[1]);
+    curr = curr[0];
+  }
+  return curr;
+}
+
+Node ExtendedRewriter::mkRightAssocChain(Kind k,
+                                         Node base,
+                                         std::vector<Node>& children)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node curr = base;
+  if (!children.empty())
+  {
+    // always sort
+    std::sort(children.begin(), children.end());
+    for (const Node& c : children)
+    {
+      curr = nm->mkNode(k, curr, c);
+    }
+  }
+  return curr;
+}
+
+Node ExtendedRewriter::mkConstBv(Node n, bool isNot)
+{
+  unsigned size = bv::utils::getSize(n);
+  return isNot ? bv::utils::mkOnes(size) : bv::utils::mkZero(size);
+}
+
+bool ExtendedRewriter::isConstBv(Node n, bool isNot)
+{
+  if (n.isConst())
+  {
+    Node const_n = mkConstBv(n, isNot);
+    return n == const_n;
+  }
+  return false;
+}
+
+Node ExtendedRewriter::getConstBvChild(Node n, std::vector<Node>& nconst)
+{
+  Node ret;
+  for (const Node& cn : n)
+  {
+    if (cn.isConst())
+    {
+      // we call this on bit-vector operators whose rewritten form has only one
+      // constant child
+      Assert(ret.isNull());
+      ret = cn;
+    }
+    else
+    {
+      nconst.push_back(cn);
+    }
+  }
+  return ret;
+}
+
+bool ExtendedRewriter::hasConstBvChild(Node n)
+{
+  for (const Node& cn : n)
+  {
+    if (cn.isConst())
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+void ExtendedRewriter::spliceBv(Node a,
+                                Node b,
+                                std::vector<Node>& av,
+                                std::vector<Node>& bv)
+{
+  Assert(a.getType() == b.getType());
+  if (a.getKind() == BITVECTOR_CONCAT || b.getKind() == BITVECTOR_CONCAT)
+  {
+    unsigned counter = bv::utils::getSize(a) - 1;
+    bool reca = a.getKind() == BITVECTOR_CONCAT;
+    Node cterm = reca ? a : b;
+    Node oterm = reca ? b : a;
+    for (const Node& ctermc : cterm)
+    {
+      // extract relevant portion of other child
+      unsigned csize = bv::utils::getSize(ctermc);
+      Assert((counter + 1) >= csize);
+      Node extract =
+          bv::utils::mkExtract(oterm, counter, (counter + 1) - csize);
+      extract = Rewriter::rewrite(extract);
+      // recurse
+      Node c1 = reca ? ctermc : extract;
+      Node c2 = reca ? extract : ctermc, strict;
+      spliceBv(c1, c2, av, bv);
+      // decrement counter
+      if (counter >= csize)
+      {
+        counter = counter - csize;
+      }
+    }
+  }
+  else
+  {
+    av.push_back(a);
+    bv.push_back(b);
+  }
+}
+
+int ExtendedRewriter::spliceBvConstBit(Node n1, Node n2, std::vector<Node>& nv)
+{
+  if (n1 == n2)
+  {
+    return -1;
+  }
+  Trace("q-ext-rewrite-debug")
+      << "Splice constant bv bit " << n1 << " " << n2 << std::endl;
+  // splice the children
+  std::vector<Node> rc1;
+  std::vector<Node> rc2;
+  spliceBv(n1, n2, rc1, rc2);
+  Assert(rc1.size() == rc2.size());
+  int diff_index = -1;
+  for (unsigned r = 0; r < rc1.size(); r++)
+  {
+    if (rc1[r] != rc2[r])
+    {
+      if (diff_index >= 0)
+      {
+        // differ at more than one index
+        Trace("q-ext-rewrite-debug")
+            << "...more than one diff component." << std::endl;
+        return -1;
+      }
+      diff_index = r;
+    }
+  }
+  Assert(diff_index >= 0);
+  if (!rc1[diff_index].isConst() || !rc2[diff_index].isConst())
+  {
+    Trace("q-ext-rewrite-debug")
+        << "...non-constant diff components." << std::endl;
+    return -1;
+  }
+  // insert prefix
+  if (diff_index > 0)
+  {
+    nv.insert(nv.end(), rc1.begin(), rc1.begin() + diff_index);
+  }
+  Assert(rc1[diff_index] != rc2[diff_index]);
+  Node c1 = rc1[diff_index];
+  Node c2 = rc2[diff_index];
+  // do they differ by exactly one bit?
+  int bit_diff_index = -1;
+  unsigned csize = bv::utils::getSize(c1);
+  for (unsigned i = 0; i < csize; i++)
+  {
+    if (bv::utils::getBit(c1, i) != bv::utils::getBit(c2, i))
+    {
+      if (bit_diff_index >= 0)
+      {
+        // differ by more than one bit
+        nv.clear();
+        Trace("q-ext-rewrite-debug")
+            << "...more than one bit diff." << std::endl;
+        return -1;
+      }
+      bit_diff_index = i;
+    }
+  }
+  if (bit_diff_index >= 0)
+  {
+    std::vector<Node> split;
+    if (bit_diff_index + 1 < static_cast<int>(csize))
+    {
+      Node extract = bv::utils::mkExtract(c1, csize - 1, bit_diff_index + 1);
+      nv.push_back(Rewriter::rewrite(extract));
+    }
+    Node bit = bv::utils::getBit(c1, bit_diff_index) ? bv::utils::mkOnes(1)
+                                                     : bv::utils::mkZero(1);
+    diff_index = nv.size();
+    nv.push_back(bit);
+    // remainder
+    if (bit_diff_index > 0)
+    {
+      Node extract = bv::utils::mkExtract(c1, bit_diff_index - 1, 0);
+      nv.push_back(Rewriter::rewrite(extract));
+    }
+    // insert suffix
+    if (diff_index < static_cast<int>(rc1.size()))
+    {
+      nv.insert(nv.end(), rc1.begin() + diff_index + 1, rc1.end());
+    }
+    return diff_index;
+  }
+  return -1;
+}
+
+Node ExtendedRewriter::extendBv(Node n, std::vector<Node>& exs)
+{
+  std::map<unsigned, Node> ex_map;
+  for (const Node& e : exs)
+  {
+    Assert( e.getKind()==BITVECTOR_EXTRACT );
+    Assert( e[0]==n );
+    ex_map[bv::utils::getExtractHigh(e)] = e;
+  }
+  return extendBv(n, ex_map);
+}
+
+Node ExtendedRewriter::extendBv(Node n, std::map<unsigned, Node>& ex_map)
+{
+  Trace("q-ext-rewrite-debug") << "extendBv " << n << std::endl;
+  std::vector<Node> children;
+  int counter = bv::utils::getSize(n) - 1;
+  for (const std::pair<const unsigned, Node>& ep : ex_map)
+  {
+    Trace("q-ext-rewrite-debug")
+        << "  process " << ep.first << " : " << ep.second
+        << ", counter=" << counter << std::endl;
+    unsigned start = ep.first;
+    Assert(static_cast<int>(start) <= counter);
+    if (static_cast<int>(start) < counter)
+    {
+      children.push_back(bv::utils::mkExtract(n, counter, start + 1));
+    }
+    Node ex = ep.second;
+    children.push_back(ex);
+    // update the counter
+    unsigned esize = bv::utils::getSize(ex);
+    counter = start - esize;
+    Assert(counter + 1 >= 0);
+  }
+  if (counter >= 0)
+  {
+    children.push_back(bv::utils::mkExtract(n, counter, 0));
+  }
+  Trace("q-ext-rewrite-debug")
+      << "extendBv finish, children = " << children << std::endl;
+  if (children.empty())
+  {
+    return n;
+  }
+  return children.size() == 1
+             ? children[0]
+             : NodeManager::currentNM()->mkNode(BITVECTOR_CONCAT, children);
 }
 
 void ExtendedRewriter::debugExtendedRewrite(Node n,
