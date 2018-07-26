@@ -2314,8 +2314,19 @@ void SmtEngine::setDefaults() {
                << std::endl;
       options::bitvectorInequalitySolver.set(false);
     }
+    if (options::bvLazyRewriteExtf())
+    {
+      if (options::bvLazyRewriteExtf.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-lazy-rewrite-extf is not supported with proofs");
+      }
+      Notice() << "SmtEngine: turning off bv lazy rewrite extf to support proofs"
+               << std::endl;
+      options::bvLazyRewriteExtf.set(false);
+    }
   }
-  
+
   if( !options::bitvectorEqualitySolver() ){
     Trace("smt") << "disabling bvLazyRewriteExtf since equality solver is disabled" << endl;
     options::bvLazyRewriteExtf.set(false);
