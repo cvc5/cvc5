@@ -181,6 +181,10 @@ bool NodeTemplate<ref_count>::hasFreeVar()
       }
       // must visit quantifiers again to clean up below
       visited[cur] = !isQuant;
+      if( cur.hasOperator() )
+      {
+        visit.push_back(cur.getOperator());
+      }
       for (const TNode& cn : cur)
       {
         visit.push_back(cn);
