@@ -14,8 +14,8 @@ noinst_PROGRAMS = \
 	combination-new \
 	datatypes \
 	datatypes-new \
-  extract \
-  extract-new \
+	extract \
+	extract-new \
 	helloworld \
 	helloworld-new \
 	linear_arith \
