@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
@@ -40,16 +40,6 @@
         - <tpl-doc>/options.3
         - <tpl-doc>/SmtEngine.3
 """
-
-from __future__ import (division, print_function, absolute_import,
-        unicode_literals)
-try:
-    from future_builtins import ascii, filter, hex, map, oct, zip
-except:
-    pass
-import sys
-if sys.version_info.major > 2:
-    xrange = range
 
 import ast
 import os
