@@ -170,7 +170,7 @@ class LambdaTypeRule {
   {
     Assert(n.getKind() == kind::LAMBDA);
     //get array representation of this function, if possible
-    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda( n, true );
+    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
     if( !na.isNull() ){
       Assert( na.getType().isArray() );
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
