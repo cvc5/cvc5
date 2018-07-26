@@ -2316,7 +2316,8 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if( !options::bitvectorEqualitySolver() ){
+  if (!options::bitvectorEqualitySolver())
+  {
     if (options::bvLazyRewriteExtf())
     {
       if (options::bvLazyRewriteExtf.wasSetByUser())
@@ -2325,11 +2326,11 @@ void SmtEngine::setDefaults() {
             "--bv-lazy-rewrite-extf requires --bv-eq-solver to be set");
       }
     }
-    Trace("smt") << "disabling bvLazyRewriteExtf since equality solver is disabled" << endl;
+    Trace("smt")
+        << "disabling bvLazyRewriteExtf since equality solver is disabled"
+        << endl;
     options::bvLazyRewriteExtf.set(false);
   }
-
-
 }
 
 void SmtEngine::setProblemExtended(bool value)
