@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
