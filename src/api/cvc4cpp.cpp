@@ -2353,5 +2353,228 @@ Sort Solver::declareDatatype(
   return mkDatatypeSort(dtdecl);
 }
 
+/**
+ *  ( declare-fun <symbol> () <sort> )
+ */
+Term Solver::declareFun(const std::string& symbol, Sort sort) const
+{
+  // CHECK: sort exists
+  // CHECK:
+  // sort.isFirstClass()
+  // else "can not create function type for range type that is not first class"
+  // CHECK:
+  // !sort.isFunction()
+  // else "must flatten function types"
+  Type type = *sort.d_type;
+  // CHECK:
+  // !t.isFunction() || THEORY_UF not enabled
+  // else "Functions (of non-zero arity) cannot be declared in logic"
+  return d_exprMgr->mkVar(symbol, type);
+}
+
+/**
+ *  ( declare-fun <symbol> ( <sort>* ) <sort> )
+ */
+Term Solver::declareFun(const std::string& symbol,
+                        const std::vector<Sort>& sorts,
+                        Sort sort) const
+{
+  // CHECK: for all s in sorts, s exists
+  // CHECK: sort exists
+  // CHECK:
+  // for (unsigned i = 0; i < sorts.size(); ++ i)
+  //   sorts[i].isFirstClass()
+  // else "can not create function type for argument type that is not
+  //       first class"
+  // CHECK:
+  // sort.isFirstClass()
+  // else "can not create function type for range type that is not first class"
+  // CHECK:
+  // !sort.isFunction()
+  // else "must flatten function types"
+  Type type = *sort.d_type;
+  if (!sorts.empty())
+  {
+    std::vector<Type> types = sortVectorToTypes(sorts);
+    type = d_exprMgr->mkFunctionType(types, type);
+  }
+  // CHECK:
+  // !t.isFunction() || THEORY_UF not enabled
+  // else "Functions (of non-zero arity) cannot be declared in logic"
+  return d_exprMgr->mkVar(symbol, type);
+}
+
+/**
+ *  ( declare-sort <symbol> <numeral> )
+ */
+Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
+{
+  // CHECK:
+  // - logic set?
+  // - !THEORY_UF && !THEORY_ARRAYS && !THEORY_DATATYPES && !THEORY_SETS
+  // else "Free sort symbols not allowed in logic"
+  if (arity == 0) return d_exprMgr->mkSort(symbol);
+  return d_exprMgr->mkSortConstructor(symbol, arity);
+}
+
+/**
+ *  ( define-fun <function_def> )
+ */
+Term Solver::defineFun(const std::string& symbol,
+                       const std::vector<Term>& bound_vars,
+                       Sort sort,
+                       Term term) const
+{
+  // CHECK:
+  // for bv in bound_vars:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(bv.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  // CHECK: sort exists
+  // CHECK: not recursive
+  // CHECK:
+  // sort.isFirstClass()
+  // else "can not create function type for range type that is not first class"
+  // !sort.isFunction()
+  // else "must flatten function types"
+  // CHECK:
+  // for v in bound_vars: is bound var
+  std::vector<Type> types;
+  for (const Term& v : bound_vars)
+  {
+    types.push_back(v.d_expr->getType());
+  }
+  // CHECK:
+  // for (unsigned i = 0; i < types.size(); ++ i)
+  //   sorts[i].isFirstClass()
+  // else "can not create function type for argument type that is not
+  //       first class"
+  Type type = *sort.d_type;
+  if (!types.empty())
+  {
+    type = d_exprMgr->mkFunctionType(types, type);
+  }
+  Expr fun = d_exprMgr->mkVar(symbol, type);
+  std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
+  d_smtEngine->defineFunction(fun, ebound_vars, *term.d_expr);
+  return fun;
+}
+
+Term Solver::defineFun(Term fun,
+                       const std::vector<Term>& bound_vars,
+                       Term term) const
+{
+  // CHECK:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(bv.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  // CHECK:
+  // - bound_vars matches sort of fun
+  // - expr matches sort of fun
+  // CHECK: not recursive
+  // CHECK:
+  // for v in bound_vars: is bound var
+  std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
+  d_smtEngine->defineFunction(*fun.d_expr, ebound_vars, *term.d_expr);
+  return fun;
+}
+
+/**
+ *  ( define-fun-rec <function_def> )
+ */
+Term Solver::defineFunRec(const std::string& symbol,
+                          const std::vector<Term>& bound_vars,
+                          Sort sort,
+                          Term term) const
+{
+  // CHECK:
+  // for bv in bound_vars:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(bv.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  // CHECK: sort exists
+  // CHECK:
+  // sort.isFirstClass()
+  // else "can not create function type for range type that is not first class"
+  // !sort.isFunction()
+  // else "must flatten function types"
+  // CHECK:
+  // for v in bound_vars: is bound var
+  std::vector<Type> types;
+  for (const Term& v : bound_vars)
+  {
+    types.push_back(v.d_expr->getType());
+  }
+  // CHECK:
+  // for (unsigned i = 0; i < types.size(); ++ i)
+  //   sorts[i].isFirstClass()
+  // else "can not create function type for argument type that is not
+  //       first class"
+  Type type = *sort.d_type;
+  if (!types.empty())
+  {
+    type = d_exprMgr->mkFunctionType(types, type);
+  }
+  Expr fun = d_exprMgr->mkVar(symbol, type);
+  std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
+  d_smtEngine->defineFunctionRec(fun, ebound_vars, *term.d_expr);
+  return fun;
+}
+
+Term Solver::defineFunRec(Term fun,
+                          const std::vector<Term>& bound_vars,
+                          Term term) const
+{
+  // CHECK:
+  // for bv in bound_vars:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(bv.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  // CHECK:
+  // - bound_vars matches sort of fun
+  // - expr matches sort of fun
+  // CHECK:
+  // for v in bound_vars: is bound var
+  std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
+  d_smtEngine->defineFunctionRec(*fun.d_expr, ebound_vars, *term.d_expr);
+  return fun;
+}
+
+/**
+ *  ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+ */
+void Solver::defineFunsRec(const std::vector<Term>& funs,
+                           const std::vector<std::vector<Term>>& bound_vars,
+                           const std::vector<Term>& terms) const
+{
+  // CHECK:
+  // for f in funs:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(f.getExprManager())
+  // for bv in bound_vars:
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(bv.getExprManager())
+  // NodeManager::fromExprManager(d_exprMgr)
+  // == NodeManager::fromExprManager(expr.getExprManager())
+  // CHECK:
+  // - bound_vars matches sort of funs
+  // - exprs matches sort of funs
+  // CHECK:
+  // CHECK:
+  // for bv in bound_vars (for v in bv): is bound var
+  std::vector<Expr> efuns = termVectorToExprs(funs);
+  std::vector<std::vector<Expr>> ebound_vars;
+  for (const auto& v : bound_vars)
+  {
+    ebound_vars.push_back(termVectorToExprs(v));
+  }
+  std::vector<Expr> exprs = termVectorToExprs(terms);
+  d_smtEngine->defineFunctionsRec(efuns, ebound_vars, exprs);
+}
+
 }  // namespace api
 }  // namespace CVC4
