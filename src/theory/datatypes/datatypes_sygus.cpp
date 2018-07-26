@@ -35,7 +35,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
 SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
-                                   QuantifiersEngine * qe,
+                                   QuantifiersEngine* qe,
                                    context::Context* c)
     : d_td(td),
       d_tds(qe->getTermDatabaseSygus()),
@@ -43,7 +43,8 @@ SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
       d_testers(c),
       d_testers_exp(c),
       d_active_terms(c),
-      d_currTermSize(c) {
+      d_currTermSize(c)
+{
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
 }

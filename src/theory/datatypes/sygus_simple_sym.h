@@ -18,41 +18,43 @@
 #define __CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 
 #include <map>
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
 /** SygusSimpleSymBreak
- * 
+ *
  * This class implements queries that can be queried statically about sygus
  * grammars, for example, concerning which constructors need not appear at
  * argument positions of others. This is used by the sygus extension of the
  * quantifier-free datatypes procedure for adding symmetry breaking lemmas.
  * We call this class of techniques "simple static symmetry breaking".
  */
-class SygusSimpleSymBreak 
+class SygusSimpleSymBreak
 {
  public:
-  SygusSimpleSymBreak(QuantifiersEngine * qe);
-  ~SygusSimpleSymBreak(){}
-  bool considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, int arg );
-  bool considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg );
-  bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
-  int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
+  SygusSimpleSymBreak(QuantifiersEngine* qe);
+  ~SygusSimpleSymBreak() {}
+  bool considerArgKind(TypeNode tn, TypeNode tnp, Kind k, Kind pk, int arg);
+  bool considerConst(TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg);
+  bool considerConst(
+      const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg);
+  int solveForArgument(TypeNode tnp, unsigned cindex, unsigned arg);
+
  private:
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
   /** Pointer to the quantifiers term utility */
   quantifiers::TermUtil* d_tutil;
   /** return the index of the first argument position of c that has type tn */
-  int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
+  int getFirstArgOccurrence(const DatatypeConstructor& c, TypeNode tn);
 };
 
-} /* CVC4::theory::datatypes namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H */

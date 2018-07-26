@@ -29,11 +29,11 @@
 #include "context/context.h"
 #include "expr/datatype.h"
 #include "expr/node.h"
+#include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/datatypes/sygus_simple_sym.h"
 
 namespace CVC4 {
 namespace theory {
@@ -61,7 +61,7 @@ class SygusSymBreakNew
 
  public:
   SygusSymBreakNew(TheoryDatatypes* td,
-                   QuantifiersEngine * qe,
+                   QuantifiersEngine* qe,
                    context::Context* c);
   ~SygusSymBreakNew();
   /**

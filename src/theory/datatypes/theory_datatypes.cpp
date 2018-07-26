@@ -540,7 +540,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 
 void TheoryDatatypes::finishInit() {
   if( getQuantifiersEngine() && options::ceGuidedInst() ){
-    d_sygus_sym_break = new SygusSymBreakNew( this, getQuantifiersEngine(), getSatContext() );
+    d_sygus_sym_break =
+        new SygusSymBreakNew(this, getQuantifiersEngine(), getSatContext());
     // do congruence on evaluation functions
     d_equalityEngine.addFunctionKind(kind::DT_SYGUS_EVAL);
   }

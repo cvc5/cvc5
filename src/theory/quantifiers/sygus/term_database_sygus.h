@@ -435,7 +435,6 @@ class TermDbSygus {
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
 
-
  public:
   /** unfold
    *
