@@ -62,7 +62,8 @@ Node RegExpElimination::eliminateConcat(Node atom)
   // the first gap is initially strict zero
   gap_minsize.push_back(0);
   gap_exact.push_back(true);
-  for (unsigned i = 0, size = children.size(); i < size; i++)
+  unsigned nchildren = children.size();
+  for (unsigned i = 0; i < nchildren; i++)
   {
     Node c = children[i];
     Trace("re-elim-debug") << "  " << c << std::endl;
@@ -190,13 +191,59 @@ Node RegExpElimination::eliminateConcat(Node atom)
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
+  
   if (!options::regExpElimAgg())
   {
     return Node::null();
   }
   // only aggressive rewrites below here
-  Assert(children.size() > 1);
-  for (unsigned i = 0, size = children.size(); i < size; i++)
+  
+  // if the first or last child is constant string, split
+  Node sStartIndex = d_zero;
+  Node sLength = lenx;
+  std::vector< Node > sConstraints;
+  std::vector< Node > rexpElimChildren;
+  for (unsigned r=0; r<2; r++)
+  {
+    unsigned index = r==0 ? 0 : nchildren-1;
+    Node c = children[index];
+    if( c.getKind()==STRING_TO_REGEXP )
+    {
+      Node s = c[0];
+      Node lens = nm->mkNode(STRING_LENGTH,s);
+      Node sss = r==0 ? d_zero : nm->mkNode(MINUS,lenx,lens);
+      Node ss = nm->mkNode(STRING_SUBSTR,x,sss,lens);
+      sConstraints.push_back(ss.eqNode(s));
+      if( r==0 )
+      {
+        sStartIndex = lens;
+      }
+      sLength = nm->mkNode( MINUS, sLength, lens );
+    }
+    if(r==1 && !sConstraints.empty() )
+    {
+      // add the middle children
+      for(unsigned i=1; i<(nchildren-1); i++ )
+      {
+        rexpElimChildren.push_back(children[i]);
+      }
+    }
+    if( c.getKind()!=STRING_TO_REGEXP )
+    {
+      rexpElimChildren.push_back(c);
+    }
+  }
+  if (!sConstraints.empty()) 
+  {
+    Node ss = nm->mkNode(STRING_SUBSTR,x,sStartIndex,sLength);
+    Assert( !rexpElimChildren.empty() );
+    Node regElim = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT,rexpElimChildren);
+    sConstraints.push_back( nm->mkNode(STRING_IN_REGEXP,ss,regElim) );
+    Node ret = nm->mkNode(AND,sConstraints);
+    return returnElim(atom, ret, "concat-splice");
+  }
+  Assert(nchildren > 1);
+  for (unsigned i = 0; i < nchildren; i++)
   {
     if (children[i].getKind() == STRING_TO_REGEXP)
     {
@@ -209,7 +256,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       {
         k = d_zero;
       }
-      else if (i + 1 == size)
+      else if (i + 1 == nchildren)
       {
         k = nm->mkNode(MINUS, lenx, lens);
       }
@@ -233,7 +280,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
             STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, d_zero, k), rpn);
         echildren.push_back(substrPrefix);
       }
-      if (i + 1 < size)
+      if (i + 1 < nchildren)
       {
         std::vector<Node> rsuffix;
         rsuffix.insert(rsuffix.end(), children.begin() + i + 1, children.end());
