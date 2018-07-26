@@ -831,10 +831,13 @@ SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
 }
 
 SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
-                                                   size_t arity, uint32_t flags) const {
+                                                   size_t arity,
+                                                   uint32_t flags) const
+{
   NodeManagerScope nms(d_nodeManager);
-  return SortConstructorType(Type(d_nodeManager,
-              new TypeNode(d_nodeManager->mkSortConstructor(name, arity, flags))));
+  return SortConstructorType(
+      Type(d_nodeManager,
+           new TypeNode(d_nodeManager->mkSortConstructor(name, arity, flags))));
 }
 
 /**

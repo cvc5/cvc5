@@ -764,7 +764,8 @@ public:
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
-    if((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0) {
+    if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+    {
       d_smt.addToModelCommandAndDump(c);
     }
   }

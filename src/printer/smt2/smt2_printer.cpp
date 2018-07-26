@@ -836,13 +836,13 @@ void Smt2Printer::toStream(std::ostream& out,
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
       Assert( n.hasOperator() );
       TypeNode opt = n.getOperator().getType();
-      if( n.getKind()==kind::APPLY_CONSTRUCTOR )
+      if (n.getKind() == kind::APPLY_CONSTRUCTOR)
       {
         Type tn = n.getType().toType();
         // may be parametric, in which case the constructor type must be
         // specialized
         const Datatype& dt = static_cast<DatatypeType>(tn).getDatatype();
-        if( dt.isParametric() )
+        if (dt.isParametric())
         {
           unsigned ci = Datatype::indexOf(n.getOperator().toExpr());
           opt = TypeNode::fromType(dt[ci].getSpecializedConstructorType(tn));
@@ -1919,19 +1919,19 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
-      if( d.isParametric() )
+      if (d.isParametric())
       {
         out << "(par (";
-        for( unsigned p=0, nparam = d.getNumParameters(); p<nparam; p++ )
+        for (unsigned p = 0, nparam = d.getNumParameters(); p < nparam; p++)
         {
-          out << (p>0 ? " " : "") << d.getParameter(p);
+          out << (p > 0 ? " " : "") << d.getParameter(p);
         }
         out << ")";
       }
       out << "(";
       toStream(out, d);
       out << ")";
-      if( d.isParametric() )
+      if (d.isParametric())
       {
         out << ")";
       }
@@ -1948,41 +1948,42 @@ static void toStream(std::ostream& out,
     bool success = true;
     const Datatype& d = datatypes[0].getDatatype();
     unsigned nparam = d.getNumParameters();
-    for( unsigned j=1, ndt = datatypes.size(); j<ndt; j++ )
+    for (unsigned j = 1, ndt = datatypes.size(); j < ndt; j++)
     {
       const Datatype& dj = datatypes[j].getDatatype();
-      if( dj.getNumParameters()!=nparam )
+      if (dj.getNumParameters() != nparam)
       {
         success = false;
       }
       else
       {
         // must also have identical parameter lists
-        for( unsigned k=0; k<nparam; k++ )
+        for (unsigned k = 0; k < nparam; k++)
         {
-          if( dj.getParameter(k)!=d.getParameter(k) )
+          if (dj.getParameter(k) != d.getParameter(k))
           {
             success = false;
             break;
           }
         }
       }
-      if( !success )
+      if (!success)
       {
         break;
       }
     }
-    if( success )
+    if (success)
     {
-      for( unsigned j=0; j<nparam; j++ )
+      for (unsigned j = 0; j < nparam; j++)
       {
-        out << (j>0 ? " " : "") << d.getParameter(j);
+        out << (j > 0 ? " " : "") << d.getParameter(j);
       }
     }
     else
     {
       out << std::endl;
-      out << "ERROR: datatypes in each block must have identical parameter lists.";
+      out << "ERROR: datatypes in each block must have identical parameter "
+             "lists.";
       out << std::endl;
     }
     out << ") (";

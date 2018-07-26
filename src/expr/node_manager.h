@@ -875,8 +875,9 @@ public:
                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name, size_t arity,
-                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSortConstructor(const std::string& name,
+                             size_t arity,
+                             uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Get the type for the given node and optionally do type checking.

@@ -434,7 +434,8 @@ public:
 
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
-                                        size_t arity, uint32_t flags = SORT_FLAG_NONE) const;
+                                        size_t arity,
+                                        uint32_t flags = SORT_FLAG_NONE) const;
 
   /**
    * Get the type of an expression.

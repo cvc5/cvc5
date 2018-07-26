@@ -646,7 +646,8 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
 
 TypeNode NodeManager::mkSortConstructor(const std::string& name,
                                         size_t arity,
-                                        uint32_t flags) {
+                                        uint32_t flags)
+{
   Assert(arity > 0);
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
@@ -655,7 +656,7 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type,flags);
+    (*i)->nmNotifyNewSortConstructor(type, flags);
   }
   return type;
 }
