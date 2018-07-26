@@ -113,9 +113,13 @@ private:
    * Given a lambda expression n, returns an array term that corresponds to n.
    * This does the opposite direction of the examples described above.
    *
-   * We limit the return values of this method to be a constant. If it is not
-   * possible to construct an array constant that corresponds to n, this method
-   * returns null.
+   * We limit the return values of this method to be almost constant functions,
+   * that is, arrays of the form:
+   *   (store ... (store (storeall _ b) i1 e1) ... in en)
+   * where b, i1, e1, ..., in, en are constants.
+   *
+   * If it is not possible to construct an array of this form that corresponds
+   * to n, this method returns null.
    */
   static Node getArrayRepresentationForLambda(TNode n);
 };/* class TheoryBuiltinRewriter */
