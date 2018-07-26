@@ -193,6 +193,11 @@ EvalResult Evaluator::evalInternal(TNode n,
         // Lambdas are evaluated in a recursive fashion because each evaluation
         // requires different substitutions
         results[currNode] = evalInternal(op[1], lambdaArgs, lambdaVals);
+        if( results[currNode].d_tag==EvalResult::INVALID )
+        {
+          // evaluation was invalid, we fail
+          return results[currNode];
+        }
         continue;
       }
 
