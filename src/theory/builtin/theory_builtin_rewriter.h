@@ -60,7 +60,7 @@ private:
   static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
                                                   std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
   /** recursive helper for getArrayRepresentationForLambda */
-  static Node getArrayRepresentationForLambdaRec( TNode n, bool reqConst, TypeNode retType );
+  static Node getArrayRepresentationForLambdaRec( TNode n, TypeNode retType );
 public:
  /** Get function type for array type
   *
@@ -109,11 +109,15 @@ public:
   * (lambda x. (ite (= x 1) true (= x 2)))
   */
  static Node getLambdaForArrayRepresentation(TNode a, TNode bvl);
- /** given a lambda expression n, returns an array term. reqConst is true if we
-  * require the return value to be a constant.
-   * This does the opposite direction of the examples described above.
-   */
- static Node getArrayRepresentationForLambda(TNode n, bool reqConst = false);
+ /** 
+  * Given a lambda expression n, returns an array term that corresponds to n.
+  * This does the opposite direction of the examples described above.
+  *
+  * We limit the return values of this method to be a constant. If it is not
+  * possible to construct an array constant that corresponds to n, this method
+  * returns null.
+  */
+ static Node getArrayRepresentationForLambda(TNode n);
 };/* class TheoryBuiltinRewriter */
 
 }/* CVC4::theory::builtin namespace */
