@@ -814,6 +814,7 @@ REG0_TESTS = \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
 	regress0/sygus/General_plus10.sy \
+	regress0/sygus/aig-si.sy \
 	regress0/sygus/c100.sy \
 	regress0/sygus/ccp16.lus.sy \
 	regress0/sygus/check-generic-red.sy \
@@ -1103,6 +1104,7 @@ REG1_TESTS = \
 	regress1/fmf/nlp042+1.smt2 \
 	regress1/fmf/nun-0208-to.smt2 \
 	regress1/fmf/pow2-bool.smt2 \
+	regress1/fmf/radu-quant-set.smt2 \
 	regress1/fmf/refcount24.cvc.smt2 \
 	regress1/fmf/sc-crash-052316.smt2 \
 	regress1/fmf/with-ind-104-core.smt2 \
@@ -1308,6 +1310,7 @@ REG1_TESTS = \
 	regress1/quantifiers/rew-to-0211-dd.smt2 \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
 	regress1/quantifiers/set8.smt2 \
+	regress1/quantifiers/set-choice-koikonomou.cvc \
 	regress1/quantifiers/small-pipeline-fixpoint-3.smt2 \
 	regress1/quantifiers/smtcomp-qbv-053118.smt2 \
 	regress1/quantifiers/smtlib384a03.smt2 \
@@ -1502,6 +1505,8 @@ REG1_TESTS = \
 	regress1/sygus/constant.sy \
 	regress1/sygus/constant-ite-bv.sy \
 	regress1/sygus/crci-ssb-unk.sy \
+	regress1/sygus/crcy-si-rcons.sy \
+	regress1/sygus/crcy-si.sy \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
@@ -1526,6 +1531,7 @@ REG1_TESTS = \
 	regress1/sygus/nia-max-square-ns.sy \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
+	regress1/sygus/parity-si-rcons.sy \
 	regress1/sygus/pbe_multi.sy \
 	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
@@ -1541,6 +1547,8 @@ REG1_TESTS = \
 	regress1/sygus/strings-trivial-two-type.sy \
 	regress1/sygus/strings-trivial.sy \
 	regress1/sygus/sygus-dt.sy \
+	regress1/sygus/sygus-uf-ex.sy \
+	regress1/sygus/t8.sy \
 	regress1/sygus/tl-type-0.sy \
 	regress1/sygus/tl-type-4x.sy \
 	regress1/sygus/tl-type.sy \
@@ -1549,6 +1557,7 @@ REG1_TESTS = \
 	regress1/sygus/twolets2-orig.sy \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
+	regress1/sygus/univ_2-long-repeat.sy \
 	regress1/sym/sym1.smt2 \
 	regress1/sym/sym2.smt2 \
 	regress1/sym/sym3.smt2 \

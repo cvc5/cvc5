@@ -627,17 +627,6 @@ header = "options/quantifiers_options.h"
   help       = "enforce bounds for bounded quantification lazily via use of proxy variables"
 
 [[option]]
-  name       = "fmfBoundMinMode"
-  category   = "regular"
-  long       = "fmf-bound-min-mode=MODE"
-  type       = "CVC4::theory::quantifiers::FmfBoundMinMode"
-  default    = "CVC4::theory::quantifiers::FMF_BOUND_MIN_INT_RANGE"
-  handler    = "stringToFmfBoundMinMode"
-  includes   = ["options/quantifiers_modes.h"]
-  read_only  = true
-  help       = "mode for which types of bounds to minimize via first decision heuristics"
-
-[[option]]
   name       = "fmfTypeCompletionThresh"
   category   = "regular"
   long       = "fmf-type-completion-thresh=N"

@@ -4330,9 +4330,9 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryBreakerExp())
+  if (options::symmetryBreakerExp() && !options::incrementalSolving())
   {
-    // apply symmetry breaking
+    // apply symmetry breaking if not in incremental mode
     d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
@@ -5249,6 +5249,36 @@ Model* SmtEngine::getModel() {
   TheoryModel* m = d_theoryEngine->getModel();
   m->d_inputName = d_filename;
   return m;
+}
+
+Expr SmtEngine::getHeapExpr()
+{
+  NodeManagerScope nms(d_nodeManager);
+  Expr heap;
+  Expr nil;  // we don't actually use this
+  Model* m = getModel();
+  if (m->getHeapModel(heap, nil))
+  {
+    return heap;
+  }
+  InternalError(
+      "SmtEngine::getHeapExpr(): failed to obtain heap expression from theory "
+      "model.");
+}
+
+Expr SmtEngine::getNilExpr()
+{
+  NodeManagerScope nms(d_nodeManager);
+  Expr heap;  // we don't actually use this
+  Expr nil;
+  Model* m = getModel();
+  if (m->getHeapModel(heap, nil))
+  {
+    return nil;
+  }
+  InternalError(
+      "SmtEngine::getNilExpr(): failed to obtain nil expression from theory "
+      "model.");
 }
 
 void SmtEngine::checkUnsatCore() {
