@@ -88,7 +88,7 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Trace("builtin-rewrite") << "  array rep : " << anode << ", constant = " << anode.isConst() << std::endl;
         Assert( anode.isConst()==retNode.isConst() );
         Assert( retNode.getType()==node.getType() );
-        Assert( node.hasFreeVar()==retNode.hasFreeVar() );
+        Assert(node.hasFreeVar() == retNode.hasFreeVar());
         return RewriteResponse(REWRITE_DONE, retNode);
       } 
     }else{
@@ -193,10 +193,12 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl 
   }
 }
 
-Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, TypeNode retType ){
+Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
+                                                               TypeNode retType)
+{
   Assert( n.getKind()==kind::LAMBDA );
   Trace("builtin-rewrite-debug") << "Get array representation for : " << n << std::endl;
-  
+
   Node first_arg = n[0][0];
   Node rec_bvl;
   if( n[0].getNumChildren()>1 ){
@@ -231,7 +233,9 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, TypeNod
       // non-equality condition
       Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
       return Node::null();
-    }else if( Rewriter::rewrite( index_eq )!=index_eq ){
+    }
+    else if (Rewriter::rewrite(index_eq) != index_eq)
+    {
       // equality must be oriented correctly based on rewriter
       Trace("builtin-rewrite-debug2") << "  ...equality not oriented properly." << std::endl;
       return Node::null();
@@ -242,7 +246,8 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, TypeNod
       Node arg = index_eq[r];
       Node val = index_eq[1-r];
       if( arg==first_arg ){
-        if( !val.isConst() ){
+        if (!val.isConst())
+        {
           // non-constant value
           Trace("builtin-rewrite-debug2") << "  ...non-constant value." << std::endl;
           return Node::null();
@@ -256,7 +261,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, TypeNod
     if( !curr_index.isNull() ){
       if( !rec_bvl.isNull() ){
         curr_val = NodeManager::currentNM()->mkNode( kind::LAMBDA, rec_bvl, curr_val );
-        curr_val = getArrayRepresentationForLambdaRec( curr_val, retType );
+        curr_val = getArrayRepresentationForLambdaRec(curr_val, retType);
         if( curr_val.isNull() ){
           Trace("builtin-rewrite-debug2") << "  ...non-constant value." << std::endl;
           return Node::null();
@@ -275,7 +280,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, TypeNod
   }
   if( !rec_bvl.isNull() ){
     curr = NodeManager::currentNM()->mkNode( kind::LAMBDA, rec_bvl, curr );
-    curr = getArrayRepresentationForLambdaRec( curr, retType );
+    curr = getArrayRepresentationForLambdaRec(curr, retType);
   }
   if( !curr.isNull() && curr.isConst() ){
     // compute the return type
@@ -303,11 +308,12 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, TypeNod
   }
 }
 
-Node TheoryBuiltinRewriter::getArrayRepresentationForLambda( TNode n ){
+Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
+{
   Assert( n.getKind()==kind::LAMBDA );
   // must carry the overall return type to deal with cases like (lambda ((x Int)(y Int)) (ite (= x _) 0.5 0.0)),
   //  where the inner construction for the else case about should be (arraystoreall (Array Int Real) 0.0)
-  return getArrayRepresentationForLambdaRec( n, n[1].getType() );
+  return getArrayRepresentationForLambdaRec(n, n[1].getType());
 }
 
 }/* CVC4::theory::builtin namespace */
