@@ -117,6 +117,8 @@ private:
    * that is, arrays of the form:
    *   (store ... (store (storeall _ b) i1 e1) ... in en)
    * where b, i1, e1, ..., in, en are constants.
+   * Notice however that the return value of this form need not be a (canonical)
+   * array constant.
    *
    * If it is not possible to construct an array of this form that corresponds
    * to n, this method returns null.
