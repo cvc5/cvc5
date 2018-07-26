@@ -1547,6 +1547,7 @@ REG1_TESTS = \
 	regress1/sygus/strings-trivial-two-type.sy \
 	regress1/sygus/strings-trivial.sy \
 	regress1/sygus/sygus-dt.sy \
+	regress1/sygus/sygus-lambda-fv.sy \
 	regress1/sygus/sygus-uf-ex.sy \
 	regress1/sygus/t8.sy \
 	regress1/sygus/tl-type-0.sy \
