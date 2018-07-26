@@ -1919,9 +1919,22 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
+      if( d.isParametric() )
+      {
+        out << "(par (";
+        for( unsigned p=0, nparam = d.getNumParameters(); p<nparam; p++ )
+        {
+          out << (p>0 ? " " : "") << d.getParameter(p);
+        }
+        out << ")";
+      }
       out << "(";
       toStream(out, d);
       out << ")";
+      if( d.isParametric() )
+      {
+        out << ")";
+      }
     }
     out << ")";
   }
