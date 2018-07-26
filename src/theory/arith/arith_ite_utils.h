@@ -26,7 +26,7 @@
 
 #include "expr/node.h"
 #include "context/cdo.h"
-#include "context/cdtrail_hashmap.h"
+#include "context/cdinsert_hashmap.h"
 
 namespace CVC4 {
 namespace theory {
@@ -57,7 +57,7 @@ class ArithIteUtils {
   Integer d_one;
 
   context::CDO<unsigned> d_subcount;
-  typedef context::CDTrailHashMap<Node, Node, NodeHashFunction> CDNodeMap;
+  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;
