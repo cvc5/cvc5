@@ -836,6 +836,18 @@ void Smt2Printer::toStream(std::ostream& out,
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
       Assert( n.hasOperator() );
       TypeNode opt = n.getOperator().getType();
+      if( n.getKind()==kind::APPLY_CONSTRUCTOR )
+      {
+        Type tn = n.getType().toType();
+        // may be parametric, in which case the constructor type must be
+        // specialized
+        const Datatype& dt = static_cast<DatatypeType>(tn).getDatatype();
+        if( dt.isParametric() )
+        {
+          unsigned ci = Datatype::indexOf(n.getOperator().toExpr());
+          opt = TypeNode::fromType(dt[ci].getSpecializedConstructorType(tn));
+        }
+      }
       Assert( opt.getNumChildren() == n.getNumChildren() + 1 );
       for(size_t i = 0; i < n.getNumChildren(); ++i ) {
         force_child_type[i] = opt[i];
