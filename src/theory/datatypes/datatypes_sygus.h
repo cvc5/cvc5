@@ -33,6 +33,7 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/datatypes/sygus_simple_sym.h"
 
 namespace CVC4 {
 namespace theory {
@@ -60,7 +61,7 @@ class SygusSymBreakNew
 
  public:
   SygusSymBreakNew(TheoryDatatypes* td,
-                   quantifiers::TermDbSygus* tds,
+                   QuantifiersEngine * qe,
                    context::Context* c);
   ~SygusSymBreakNew();
   /**
@@ -117,6 +118,8 @@ class SygusSymBreakNew
   TheoryDatatypes* d_td;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
+  /** the simple symmetry breaking utility */
+  SygusSimpleSymBreak d_ssb;
   /**
    * Map from terms to the index of the tester that is asserted for them in
    * the current SAT context. In other words, if d_testers[n] = 2, then the

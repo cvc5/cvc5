@@ -373,6 +373,8 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/type_enumerator.h \
+	theory/datatypes/sygus_simple_sym.cpp \
+	theory/datatypes/sygus_simple_sym.h \
 	theory/ext_theory.cpp \
 	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \

@@ -35,10 +35,11 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
 SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
-                                   quantifiers::TermDbSygus* tds,
+                                   QuantifiersEngine * qe,
                                    context::Context* c)
     : d_td(td),
-      d_tds(tds),
+      d_tds(qe->getTermDatabaseSygus()),
+      d_ssb(qe),
       d_testers(c),
       d_testers_exp(c),
       d_active_terms(c),
@@ -481,7 +482,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
     std::map<unsigned, unsigned> children_solved;
     for (unsigned j = 0; j < dt_index_nargs; j++)
     {
-      int i = d_tds->solveForArgument(tn, tindex, j);
+      int i = d_ssb.solveForArgument(tn, tindex, j);
       if (i >= 0)
       {
         children_solved[j] = i;
@@ -622,7 +623,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
             {
               Trace("sygus-sb-simple-debug") << "  argument " << j << " " << k
                                              << " is : " << nck << std::endl;
-              red = !d_tds->considerArgKind(tnc, tn, nck, nk, j);
+              red = !d_ssb.considerArgKind(tnc, tn, nck, nk, j);
             }
             else
             {
@@ -632,7 +633,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
                 Trace("sygus-sb-simple-debug")
                     << "  argument " << j << " " << k << " is constant : " << cc
                     << std::endl;
-                red = !d_tds->considerConst(tnc, tn, cc, nk, j);
+                red = !d_ssb.considerConst(tnc, tn, cc, nk, j);
                 if (usingAnyConstCons)
                 {
                   // we only consider concrete constant constructors

@@ -540,9 +540,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 
 void TheoryDatatypes::finishInit() {
   if( getQuantifiersEngine() && options::ceGuidedInst() ){
-    quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
-    Assert( tds!=NULL );
-    d_sygus_sym_break = new SygusSymBreakNew( this, tds, getSatContext() );
+    d_sygus_sym_break = new SygusSymBreakNew( this, getQuantifiersEngine(), getSatContext() );
     // do congruence on evaluation functions
     d_equalityEngine.addFunctionKind(kind::DT_SYGUS_EVAL);
   }
