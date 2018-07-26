@@ -49,6 +49,7 @@ class ExtendedRewriter
  public:
   ExtendedRewriter(bool aggr = true);
   ~ExtendedRewriter() {}
+
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n);
 
@@ -227,7 +228,162 @@ class ExtendedRewriter
   //--------------------------------------theory-specific top-level calls
   /** extended rewrite arith */
   Node extendedRewriteArith(Node ret);
+  /** extended rewrite bv */
+  Node extendedRewriteBv(Node ret);
   //--------------------------------------end theory-specific top-level calls
+
+  //--------------------------------------bit-vectors
+  /** bitvector subsume
+   *
+   * If this function returns 1, then a's 1 bits are a superset of b's 1 bits,
+   * in other words, (bvand (bvnot a) b) = 0 holds.
+   *
+   * If this function returns 2, then additionally at least one bit of a
+   * is 1 that is 0 in bit, that is (bvand a (bvnot b)) != 0 holds.
+   *
+   * Otherwise, this function returns 0.
+   *
+   * If strict is false, then this function will only return 0 or 1.
+   *
+   * If tryNot is true, we will try to show the subsumption by calling
+   * bitVectorSubsume( ~b, ~a ).
+   */
+  int bitVectorSubsume(Node a, Node b, bool strict = false, bool tryNot = true);
+  /** bitvector arithmetic compare
+   *
+   * If this function returns 1, then bvuge( a, b ) holds.
+   *
+   * If this function returns 2, then bvugt( a, b ) holds.
+   *
+   * Otherwise this function returns 0.
+   *
+   * If strict is false, then this function will only return 0 or 1.
+   */
+  int bitVectorArithComp(Node a, Node b, bool strict = false);
+  /** bitvector disjoint
+   *
+   * Returns true if there are no bits where a and b are both 1.
+   * That is, if this function returns true, then
+   *   (bvand a b) = 0.
+   * Note that this function is equivalent to
+   *   bitvectorSubsume( ~a, b ) && bitvectorSubsume( ~b, a ).
+   */
+  bool bitVectorDisjoint(Node a, Node b);
+
+  /** mk const as the same type as n, 0 if !isNot, 1s if isNot */
+  Node mkConstBv(Node n, bool isNot);
+  /** is const bv zero
+   *
+   * Returns true if n is constant 0..0 and isNot = false,
+   * Returns true if n is constant 1..1 and isNot = true,
+   * return false otherwise.
+   */
+  bool isConstBv(Node n, bool isNot);
+  /** get const child 
+   * 
+   * Returns the constant child of n if it has one, and adds all the
+   * non-constant children of n to nconst.
+   */
+  Node getConstBvChild(Node n, std::vector<Node>& nconst);
+  /** has const child 
+   * 
+   * Returns true iff n has a constant child.
+   */
+  bool hasConstBvChild(Node n);
+  /** rewrite bit-vector arithmetic 
+   * 
+   * This is the entry point for rewriting nodes ret of the form (bvadd ...) or
+   * (bvmul ...). It returns the rewritten form of ret, or null to indicate
+   * ret is not rewritten.
+   */
+  Node rewriteBvArith(Node ret);
+  /** rewrite bit-vector shift 
+   * 
+   * This is the entry point for rewriting nodes ret of the form (bvlshr n1 n2)
+   * or (bvshl n1 n2). It returns the rewritten form of ret, or null to indicate
+   * ret is not rewritten.
+   */
+  Node rewriteBvShift(Node ret);
+  /** rewrite bit-vector shift 
+   * 
+   * This is the entry point for rewriting nodes ret of the form (bvand n1 n2)
+   * or (bvor n1 n2). It returns the rewritten form of ret, or null to indicate
+   * ret is not rewritten.
+   */
+  Node rewriteBvBool(Node ret);
+  /** normalize bit-vector monomial
+   * 
+   * This converts n to a bitvector monomial representation, subsequently
+   * performs aggressive factoring techniques, and returns the resulting
+   * node from the (simplified) monomial, using the below two methods.
+   */
+  Node normalizeBvMonomial(Node n);
+  /** get bit-vector monomial sum 
+   * 
+   * This constructs the monomial sum map msum that is equivalent to n. A
+   * monomial sum map is a way of representing bit-vector arithmetic terms.
+   * For example, the term bvadd( bvmul(#x0002,x), y, #x0004 ) is represented
+   * as map:
+   *   x -> #x0002
+   *   y -> #x0001
+   *   #x0001 -> #x0004
+   * 
+   * This method aggressively tries to infer when a node can be expressed as
+   * a monomial, for example bvneg, bvnot, concat, and bvshl can often be
+   * treated as special cases of addition and multiplication. For example,
+   * given input bvshl(x,#x0003), this method will return the monomial sum:
+   *   x -> #x0008
+   * since bvshl(x,#x0003) is equivalent to bvmul(#x0008,x).
+   */
+  void getBvMonomialSum(Node n, std::map<Node, Node>& msum);
+  /** make node from bit-vector monomial
+   * 
+   * This returns the bit-vector node of the same bit-width as n corresponding
+   * to the monomial sum msum.
+   */
+  Node mkNodeFromBvMonomial(Node n, std::map<Node, Node>& msum);
+  /** splice
+   *
+   * Adds k (non-concat) terms to n1v and n2v such that:
+   *   n1 is equivalent to n1v[0] ++ ... ++ n1v[k-1] and
+   *   n2 is equivalent to n2v[0] ++ ... ++ n2v[k-1],
+   * and n1v[i] and n2v[i] have equal width for i=0...k-1.
+   */
+  void spliceBv(Node n1,
+                Node n2,
+                std::vector<Node>& n1v,
+                std::vector<Node>& n2v);
+  /** splice bv to constant bit
+   *
+   * If the return value of this method is a non-negative value i, it adds k
+   * terms to nv such that:
+   *   n1 is equivalent to nv[0] ++ ... ++ nv[i] ++ ... ++ nv[k-1],
+   *   n2 is equivalent to nv[0] ++ ... ++ (~)nv[i] ++ ... ++ nv[k-1], and
+   *   nv[i] is a constant of bit-width one.
+   */
+  int spliceBvConstBit(Node n1, Node n2, std::vector<Node>& nv);
+  /** extend bit-vector
+   *
+   * This returns the concatentation node of the form
+   *   concat( ((_ extract s1 e1) n) ... ((_ extract sn en) n))
+   * where s1 = bitwidth(n)-1, s_{i+1} = e_i - 1 for each i=2,...n,
+   * and for each i in the domain of ex_map, ex_map[i] is
+   * ((_ extract sj ej) n) for some 1<=j<=n, and i=sj. 
+   * 
+   * For example, if
+   *   ex_map = { 4 -> ((_ extract 4 2) n) } and bitwidth( n ) = 32
+   * then this method returns
+   *   (concat ((_ extract 31 5) n) ((_ extract 4 2) n) ((_ extract 1 0) n))
+   */
+  Node extendBv(Node n, std::map<unsigned, Node>& ex_map);
+  /** extend bit-vector
+   * 
+   * The vector exs is a vector of non-overlapping extracts of n. This
+   * calls the above function, mapping the high bits of each extract term t
+   * in exts to t.
+   */
+  Node extendBv(Node n, std::vector<Node>& exs);
+  //--------------------------------------end bit-vectors
 };
 
 } /* CVC4::theory::quantifiers namespace */
