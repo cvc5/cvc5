@@ -277,14 +277,14 @@ class ExtendedRewriter
    * return false otherwise.
    */
   bool isConstBv(Node n, bool isNot);
-  /** get const child 
-   * 
+  /** get const child
+   *
    * Returns the constant child of n if it has one, and adds all the
    * non-constant children of n to nconst.
    */
   Node getConstBvChild(Node n, std::vector<Node>& nconst);
-  /** has const child 
-   * 
+  /** has const child
+   *
    * Returns true iff n has a constant child.
    */
   bool hasConstBvChild(Node n);
@@ -314,8 +314,8 @@ class ExtendedRewriter
    *   concat( ((_ extract s1 e1) n) ... ((_ extract sn en) n))
    * where s1 = bitwidth(n)-1, s_{i+1} = e_i - 1 for each i=2,...n,
    * and for each i in the domain of ex_map, ex_map[i] is
-   * ((_ extract sj ej) n) for some 1<=j<=n, and i=sj. 
-   * 
+   * ((_ extract sj ej) n) for some 1<=j<=n, and i=sj.
+   *
    * For example, if
    *   ex_map = { 4 -> ((_ extract 4 2) n) } and bitwidth( n ) = 32
    * then this method returns
@@ -323,7 +323,7 @@ class ExtendedRewriter
    */
   Node extendBv(Node n, std::map<unsigned, Node>& ex_map);
   /** extend bit-vector
-   * 
+   *
    * The vector exs is a vector of non-overlapping extracts of n. This
    * calls the above function, mapping the high bits of each extract term t
    * in exts to t.

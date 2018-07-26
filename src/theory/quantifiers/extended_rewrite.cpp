@@ -1607,7 +1607,7 @@ int ExtendedRewriter::bitVectorSubsume(Node a, Node b, bool strict, bool tryNot)
     {
       if (bv::utils::getBit(a, i) != bv::utils::getBit(b, i))
       {
-        if( bv::utils::getBit(b, i) )
+        if (bv::utils::getBit(b, i))
         {
           return 0;
         }
@@ -1823,7 +1823,7 @@ int ExtendedRewriter::bitVectorArithComp(Node a, Node b, bool strict)
   {
     BitVector av = a.getConst<BitVector>();
     BitVector bv = b.getConst<BitVector>();
-    if (bv.unsignedLessThan(av)) 
+    if (bv.unsignedLessThan(av))
     {
       return max_ret;
     }
@@ -2105,8 +2105,8 @@ Node ExtendedRewriter::extendBv(Node n, std::vector<Node>& exs)
   std::map<unsigned, Node> ex_map;
   for (const Node& e : exs)
   {
-    Assert( e.getKind()==BITVECTOR_EXTRACT );
-    Assert( e[0]==n );
+    Assert(e.getKind() == BITVECTOR_EXTRACT);
+    Assert(e[0] == n);
     ex_map[bv::utils::getExtractHigh(e)] = e;
   }
   return extendBv(n, ex_map);
