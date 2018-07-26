@@ -5251,6 +5251,36 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
+Expr SmtEngine::getHeapExpr()
+{
+  NodeManagerScope nms(d_nodeManager);
+  Expr heap;
+  Expr nil;  // we don't actually use this
+  Model* m = getModel();
+  if (m->getHeapModel(heap, nil))
+  {
+    return heap;
+  }
+  InternalError(
+      "SmtEngine::getHeapExpr(): failed to obtain heap expression from theory "
+      "model.");
+}
+
+Expr SmtEngine::getNilExpr()
+{
+  NodeManagerScope nms(d_nodeManager);
+  Expr heap;  // we don't actually use this
+  Expr nil;
+  Model* m = getModel();
+  if (m->getHeapModel(heap, nil))
+  {
+    return nil;
+  }
+  InternalError(
+      "SmtEngine::getNilExpr(): failed to obtain nil expression from theory "
+      "model.");
+}
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
