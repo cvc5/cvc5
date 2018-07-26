@@ -428,29 +428,7 @@ public:
       return *this;
     }
 
-    // Postfix increment: requires a Proxy object to hold the
-    // intermediate value for dereferencing
-    class Proxy {
-      const std::pair<const Key, Data>* d_pair;
-
-    public:
-
-      Proxy(const std::pair<const Key, Data>& p) : d_pair(&p) {}
-
-      const std::pair<const Key, Data>& operator*() const {
-        return *d_pair;
-      }
-    };/* class CDHashMap<>::iterator::Proxy */
-
-    // Actual postfix increment: returns Proxy with the old value.
-    // Now, an expression like *i++ will return the current *i, and
-    // then advance the iterator.  However, don't try to use
-    // Proxy for anything else.
-    const Proxy operator++(int) {
-      Proxy e(*(*this));
-      ++(*this);
-      return e;
-    }
+    // Postfix increment is not yet supported.
   };/* class CDHashMap<>::iterator */
 
   typedef iterator const_iterator;
