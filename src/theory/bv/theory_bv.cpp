@@ -475,7 +475,7 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
         d_extf_collapse_infer.insert(cterm);
 
         Node t = n[0];
-        if( t.getType()==parent.getType() )
+        if (t.getType() == parent.getType())
         {
           if (n.getKind() == kind::INT_TO_BITVECTOR)
           {
