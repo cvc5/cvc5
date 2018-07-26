@@ -181,7 +181,7 @@ bool NodeTemplate<ref_count>::hasFreeVar()
       }
       // must visit quantifiers again to clean up below
       visited[cur] = !isQuant;
-      if( cur.hasOperator() )
+      if (cur.hasOperator())
       {
         visit.push_back(cur.getOperator());
       }
