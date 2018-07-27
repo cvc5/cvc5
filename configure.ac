@@ -1142,19 +1142,10 @@ AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
 AC_ARG_VAR(PERL, [PERL interpreter (used when testing)])
 
-AC_ARG_VAR(PYTHON, [PYTHON interpreter (used for building legacy Java library interface)])
-
-if test -z "$PYTHON"; then
-  AC_CHECK_PROGS(PYTHON, python, python, [])
-else
-  AC_CHECK_PROG(PYTHON, "$PYTHON", "$PYTHON", [])
-fi
-
-if test -z "$PYTHON"; then
-  AC_MSG_WARN([python not found, cannot build libcvc4compat_java (the legacy Java interface).])
-  CXXTESTGEN=
-  CXXTEST=
-fi
+# Python is now a required dependency for generating options code
+AM_PATH_PYTHON([2.7],, [
+  AC_MSG_ERROR([Python not found.])
+])
 
 # Checks for libraries.
 
