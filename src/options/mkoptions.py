@@ -490,6 +490,11 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             die("module '{}': option '{}' with type '{}' needs an argument " \
                 "description ('{}=...')".format(
                     module.id, option.long, option.type, option.long))
+        elif option.long and option.type in ['bool', 'void'] and \
+             '=' in option.long:
+            die("module '{}': option '{}' with type '{}' must not have an " \
+                "argument description".format(
+                    module.id, option.long, option.type))
 
         # Generate module inlines
         inls.append(TPL_IMPL_OP_PAR.format(name=option.name))

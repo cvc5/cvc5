@@ -634,7 +634,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "solveRealAsInt"
   category   = "undocumented"
-  long       = "solve-real-as-int=N"
+  long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
   read_only  = true
