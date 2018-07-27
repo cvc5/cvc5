@@ -89,7 +89,7 @@ header = "options/bv_options.h"
 [[option]]
   name       = "bitvectorAlgebraicBudget"
   category   = "expert"
-  long       = "bv-algebraic-budget"
+  long       = "bv-algebraic-budget=N"
   type       = "unsigned"
   default    = "1500"
   links      = ["--bv-algebraic-solver"]
@@ -146,7 +146,7 @@ header = "options/bv_options.h"
 [[option]]
   name       = "bvNumFunc"
   category   = "expert"
-  long       = "bv-num-func=NUM"
+  long       = "bv-num-func=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true

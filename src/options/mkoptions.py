@@ -485,6 +485,12 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         else:
             specs.append(TPL_DECL_ASSIGN.format(name=option.name))
 
+        if option.long and option.type not in ['bool', 'void'] and \
+           '=' not in option.long:
+            die("module '{}': option '{}' with type '{}' needs an argument " \
+                "description ('{}=...')".format(
+                    module.id, option.long, option.type, option.long))
+
         # Generate module inlines
         inls.append(TPL_IMPL_OP_PAR.format(name=option.name))
         inls.append(TPL_IMPL_OPTION_WAS_SET_BY_USER.format(name=option.name))
