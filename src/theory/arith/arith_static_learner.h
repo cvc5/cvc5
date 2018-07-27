@@ -22,7 +22,7 @@
 
 #include <set>
 
-#include "context/cdtrail_hashmap.h"
+#include "context/cdhashmap.h"
 #include "context/context.h"
 #include "theory/arith/arith_utilities.h"
 #include "util/statistics_registry.h"
@@ -37,7 +37,7 @@ private:
   /**
    * Map from a node to it's minimum and maximum.
    */
-  typedef context::CDTrailHashMap<Node, DeltaRational, NodeHashFunction> CDNodeToMinMaxMap;
+  typedef context::CDHashMap<Node, DeltaRational, NodeHashFunction> CDNodeToMinMaxMap;
   CDNodeToMinMaxMap d_minMap;
   CDNodeToMinMaxMap d_maxMap;
 
