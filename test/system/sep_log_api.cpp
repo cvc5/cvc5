@@ -10,8 +10,14 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A simple example for using the separation logic API with
- ** Importantly, it checks that we can obtain the heap from the solver.
+ ** \brief Two tests to validate the use of the separation logic API.
+ **
+ ** First test validates that we cannot use the API if not using separation
+ ** logic.
+ **
+ ** Second test validates that the expressions returned from the API are
+ ** correct and can be interrogated.
+ **
  *****************************************************************************/
 
 #include <iostream>
@@ -24,7 +30,99 @@ using namespace CVC4;
 using namespace std;
 
 /**
- * Function to demonstrate the use of, and validate the capability, of
+ * Test function to validate that we *cannot* obtain the heap/nil expressions
+ * when *not* using the separation logic theory
+ */
+int validate_exception(void)
+{
+  ExprManager em;
+  Options opts;
+  SmtEngine smt(&em);
+
+  /*
+   * Setup some options for CVC4 -- we explictly want to use a simplistic
+   * theory (e.g., QF_IDL)
+   */
+  smt.setLogic("QF_IDL");
+  smt.setOption("produce-models", SExpr("true"));
+  smt.setOption("incremental", SExpr("false"));
+
+  /* Our integer type */
+  Type integer = em.integerType();
+
+  /* Our SMT constants */
+  Expr x = em.mkVar("x", integer);
+  Expr y = em.mkVar("y", integer);
+
+  /* y > x */
+  Expr y_gt_x = em.mkExpr(kind::GT, y, x);
+
+  /* assert it */
+  smt.assertFormula(y_gt_x);
+
+  /* check */
+  Result r = smt.checkSat();
+
+  /* If this is UNSAT, we have an issue; so bail-out */
+  if (!r.isSat())
+  {
+    return -1;
+  }
+
+  /*
+   * We now try to obtain our separation logic expressions from the solver --
+   * we want to validate that we get our expected exceptions.
+   */
+  int caught_on_heap = false;
+  int caught_on_nil = false;
+
+  /* The exception message we expect to obtain */
+  std::string expected(
+      "Cannot obtain separation logic expressions if not using the separation "
+      "logic theory.");
+
+  /* test the heap expression */
+  try
+  {
+    Expr heap_expr = smt.getHeapExpr();
+  }
+  catch (CVC4::RecoverableModalException &e)
+  {
+    caught_on_heap = true;
+
+    /* Check we get the correct exception string */
+    if (e.what() != expected)
+    {
+      return -1;
+    }
+  }
+
+  /* test the nil expression */
+  try
+  {
+    Expr nil_expr = smt.getNilExpr();
+  }
+  catch (CVC4::RecoverableModalException &e)
+  {
+    caught_on_nil = true;
+
+    /* Check we get the correct exception string */
+    if (e.what() != expected)
+    {
+      return -1;
+    }
+  }
+
+  if (!caught_on_heap || !caught_on_nil)
+  {
+    return -1;
+  }
+
+  return 0;
+}
+
+/**
+ * Test function to demonstrate the use of, and validate the capability, of
  * obtaining the heap/nil expressions when using separation logic.
  */
 int validate_getters(void)
@@ -194,7 +292,21 @@ int validate_getters(void)
 
 int main(void)
 {
+  /* check that we get an exception when we should */
+  int check_exception = validate_exception();
+
+  if (check_exception)
+  {
+    return check_exception;
+  }
+
   /* check the getters */
   int check_getters = validate_getters();
-  return check_getters;
+
+  if (check_getters)
+  {
+    return check_getters;
+  }
+
+  return 0;
 }
