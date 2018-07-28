@@ -5273,8 +5273,8 @@ std::pair<Expr, Expr> SmtEngine::getSepLogExprs(void)
     return std::make_pair(heap, nil);
   }
   InternalError(
-      "SmtEngine::getHeapExpr(): failed to obtain heap expression from theory "
-      "model.");
+      "SmtEngine::getHeapExpr(): failed to obtain heap/nil expressions from "
+      "theory model.");
 }
 
 Expr SmtEngine::getHeapExpr() { return getSepLogExprs().first; }
