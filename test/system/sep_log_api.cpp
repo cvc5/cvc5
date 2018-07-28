@@ -23,6 +23,10 @@
 using namespace CVC4;
 using namespace std;
 
+/**
+ * Function to demonstrate the use of, and validate the capability, of
+ * obtaining the heap/nil expressions when using separation logic.
+ */
 int validate_getters(void)
 {
   ExprManager em;
@@ -188,8 +192,9 @@ int validate_getters(void)
   return 0;
 }
 
-int main()
+int main(void)
 {
-  int check1 = validate_getters();
-  return check1;
+  /* check the getters */
+  int check_getters = validate_getters();
+  return check_getters;
 }
