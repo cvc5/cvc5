@@ -86,7 +86,7 @@ int validate_exception(void)
   {
     Expr heap_expr(smt.getHeapExpr());
   }
-  catch (CVC4::RecoverableModalException &e)
+  catch (const CVC4::RecoverableModalException& e)
   {
     caught_on_heap = true;
 
@@ -102,7 +102,7 @@ int validate_exception(void)
   {
     Expr nil_expr(smt.getNilExpr());
   }
-  catch (CVC4::RecoverableModalException &e)
+  catch (const CVC4::RecoverableModalException& e)
   {
     caught_on_nil = true;
 
