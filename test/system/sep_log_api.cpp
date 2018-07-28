@@ -62,7 +62,6 @@ int validate_exception(void)
 
   /* check */
   Result r(smt.checkSat());
-  ;
 
   /* If this is UNSAT, we have an issue; so bail-out */
   if (!r.isSat())
@@ -102,7 +101,6 @@ int validate_exception(void)
   try
   {
     Expr nil_expr(smt.getNilExpr());
-    ;
   }
   catch (CVC4::RecoverableModalException &e)
   {
@@ -120,6 +118,7 @@ int validate_exception(void)
     return -1;
   }
 
+  /* All tests pass! */
   return 0;
 }
 
