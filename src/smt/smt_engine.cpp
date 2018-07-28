@@ -5264,6 +5264,13 @@ Model* SmtEngine::getModel() {
 
 std::pair<Expr, Expr> SmtEngine::getSepLogExprs(void)
 {
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot obtain separation logic expressions if not using the "
+        "separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
