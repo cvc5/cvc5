@@ -429,6 +429,11 @@ class CVC4_PUBLIC SmtEngine {
                               const std::vector<Expr>& formals,
                               Expr func);
 
+  /**
+   * Helper method to obtain both the heap and nil from the solver
+   */
+  std::pair<Expr, Expr> getSepLogExprs(void);
+
  public:
 
   /**
@@ -489,12 +494,12 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * When using separation logic, obtain the expression for the heap.
    */
-  Expr getHeapExpr();
+  Expr getHeapExpr(void);
 
   /**
    * When using separation logic, obtain the expression for nil.
    */
-  Expr getNilExpr();
+  Expr getNilExpr(void);
 
   /**
    * Get an aspect of the current SMT execution environment.
