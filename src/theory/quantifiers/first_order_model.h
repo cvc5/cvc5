@@ -173,7 +173,7 @@ class FirstOrderModel : public TheoryModel
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
   virtual void processInitializeModelForTerm(Node n) = 0;
-  /** process intialize quantifier */
+  /** process initialize quantifier */
   virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
   virtual void processInitialize(bool ispre) = 0;

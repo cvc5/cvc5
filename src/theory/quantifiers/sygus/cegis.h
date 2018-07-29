@@ -77,7 +77,7 @@ class Cegis : public SygusModule
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
-  /** do cegis-implementation-specific intialization for this class */
+  /** do cegis-implementation-specific initialization for this class */
   virtual bool processInitialize(Node n,
                                  const std::vector<Node>& candidates,
                                  std::vector<Node>& lemmas);

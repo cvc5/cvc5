@@ -50,7 +50,7 @@ namespace quantifiers {
  * For example, say the grammar for f is:
  *   A = 0 | 1 | x | y | A+A | ite( B, A, A )
  *   B = A <= A
- * If we call intialize( tds, f, 5 ), this class will generate 5 random sample
+ * If we call initialize( tds, f, 5 ), this class will generate 5 random sample
  * points for (x,y), say (0,0), (1,1), (0,1), (1,0), (2,2). The return values
  * of successive calls to registerTerm are listed below.
  *   registerTerm( 0 ) -> 0
@@ -281,7 +281,7 @@ class SygusSampler : public LazyTrieEvaluator
   std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** map from constants to sygus types that include them */
   std::map<Node, std::vector<TypeNode> > d_const_sygus_types;
-  /** register sygus type, intializes the above two data structures */
+  /** register sygus type, initializes the above two data structures */
   void registerSygusType(TypeNode tn);
 };
 
