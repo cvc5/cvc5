@@ -47,7 +47,7 @@ header = "options/main_options.h"
   name       = "seed"
   category   = "common"
   short      = "s"
-  long       = "seed"
+  long       = "seed=N"
   type       = "uint64_t"
   default    = "0"
   read_only  = true

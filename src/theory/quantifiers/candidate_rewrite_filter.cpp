@@ -214,7 +214,7 @@ void CandidateRewriteFilter::initialize(SygusSampler* ss,
                                         bool useSygusType)
 {
   d_ss = ss;
-  d_use_sygus_type = false;
+  d_use_sygus_type = useSygusType;
   d_tds = tds;
   // initialize members of this class
   d_match_trie.clear();
