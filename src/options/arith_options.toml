@@ -141,7 +141,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "maxCutsInContext"
   category   = "regular"
-  long       = "maxCutsInContext"
+  long       = "maxCutsInContext=N"
   type       = "unsigned"
   default    = "65535"
   read_only  = true
@@ -207,7 +207,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "maxApproxDepth"
   category   = "regular"
-  long       = "approx-branch-depth"
+  long       = "approx-branch-depth=N"
   type       = "int16_t"
   default    = "200"
   help       = "maximum branch depth the approximate solver is allowed to take"
@@ -231,7 +231,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "arithPropAsLemmaLength"
   category   = "regular"
-  long       = "arith-prop-clauses"
+  long       = "arith-prop-clauses=N"
   type       = "uint16_t"
   default    = "8"
   help       = "rows shorter than this are propagated as clauses"
@@ -273,7 +273,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "dioSolverTurns"
   category   = "regular"
-  long       = "dio-turns"
+  long       = "dio-turns=N"
   type       = "int"
   default    = "10"
   read_only  = true
@@ -282,7 +282,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "rrTurns"
   category   = "regular"
-  long       = "rr-turns"
+  long       = "rr-turns=N"
   type       = "int"
   default    = "3"
   read_only  = true
@@ -300,7 +300,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayEarlyCloseDepths"
   category   = "regular"
-  long       = "replay-early-close-depth"
+  long       = "replay-early-close-depth=N"
   type       = "int"
   default    = "1"
   read_only  = true
@@ -309,7 +309,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayFailurePenalty"
   category   = "regular"
-  long       = "replay-failure-penalty"
+  long       = "replay-failure-penalty=N"
   type       = "int"
   default    = "100"
   read_only  = true
@@ -318,7 +318,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayNumericFailurePenalty"
   category   = "regular"
-  long       = "replay-num-err-penalty"
+  long       = "replay-num-err-penalty=N"
   type       = "int"
   default    = "4194304"
   read_only  = true
@@ -327,7 +327,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "replayRejectCutSize"
   category   = "regular"
-  long       = "replay-reject-cut"
+  long       = "replay-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
   read_only  = true
@@ -336,7 +336,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "lemmaRejectCutSize"
   category   = "regular"
-  long       = "replay-lemma-reject-cut"
+  long       = "replay-lemma-reject-cut=N"
   type       = "unsigned"
   default    = "25500"
   read_only  = true
@@ -345,7 +345,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMajorFailure"
   category   = "regular"
-  long       = "replay-soi-major-threshold"
+  long       = "replay-soi-major-threshold=T"
   type       = "double"
   default    = ".01"
   read_only  = true
@@ -354,7 +354,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMajorFailurePen"
   category   = "regular"
-  long       = "replay-soi-major-threshold-pen"
+  long       = "replay-soi-major-threshold-pen=N"
   type       = "int"
   default    = "50"
   read_only  = true
@@ -363,7 +363,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMinorFailure"
   category   = "regular"
-  long       = "replay-soi-minor-threshold"
+  long       = "replay-soi-minor-threshold=T"
   type       = "double"
   default    = ".0001"
   read_only  = true
@@ -372,7 +372,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "soiApproxMinorFailurePen"
   category   = "regular"
-  long       = "replay-soi-minor-threshold-pen"
+  long       = "replay-soi-minor-threshold-pen=N"
   type       = "int"
   default    = "10"
   read_only  = true
@@ -381,7 +381,7 @@ header = "options/arith_options.h"
 [[option]]
   name       = "ppAssertMaxSubSize"
   category   = "regular"
-  long       = "pp-assert-max-sub-size"
+  long       = "pp-assert-max-sub-size=N"
   type       = "unsigned"
   default    = "2"
   read_only  = true
@@ -501,7 +501,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "intial splits on zero for all variables"
+  help       = "initial splits on zero for all variables"
 
 [[option]]
   name       = "nlExtTfTaylorDegree"
