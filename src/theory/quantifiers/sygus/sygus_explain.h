@@ -65,7 +65,7 @@ class TermRecBuild
   /** get the i^th child of the active term */
   Node getChild(unsigned i);
   /** build the (modified) version of the term
-   * we intialized via the call to init().
+   * we initialized via the call to init().
    */
   Node build(unsigned p = 0);
 

@@ -236,7 +236,7 @@ class CegisUnif : public Cegis
   Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
-  /** do cegis-implementation-specific intialization for this class */
+  /** do cegis-implementation-specific initialization for this class */
   bool processInitialize(Node n,
                          const std::vector<Node>& candidates,
                          std::vector<Node>& lemmas) override;
