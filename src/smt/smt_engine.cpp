@@ -5280,8 +5280,8 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
     return std::make_pair(heap, nil);
   }
   InternalError(
-      "SmtEngine::getSepHeapExpr(): failed to obtain heap/nil expressions from "
-      "theory model.");
+      "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+      "expressions from theory model.");
 }
 
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
