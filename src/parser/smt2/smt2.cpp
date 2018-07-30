@@ -642,6 +642,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
     addOperator(api::SELECT, "select");
     addOperator(api::STORE, "store");
+    addOperator(api::EQ_RANGE, "eqrange");
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
