@@ -2,7 +2,7 @@
 /*! \file eager_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andres Noetzli
+ **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
