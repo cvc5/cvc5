@@ -51,8 +51,6 @@ libcvc4_la_SOURCES = \
 	context/cdmaybe.h \
 	context/cdo.h \
 	context/cdqueue.h \
-	context/cdtrail_hashmap.h \
-	context/cdtrail_hashmap_forward.h \
 	context/cdtrail_queue.h \
 	context/context.cpp \
 	context/context.h \

@@ -1767,11 +1767,6 @@ void SmtEngine::setDefaults() {
     options::bvEagerExplanations.set(true);
   }
 
-  if( !options::bitvectorEqualitySolver() ){
-    Trace("smt") << "disabling bvLazyRewriteExtf since equality solver is disabled" << endl;
-    options::bvLazyRewriteExtf.set(false);
-  }
-
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
     bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isQuantified();
@@ -2319,6 +2314,22 @@ void SmtEngine::setDefaults() {
                << std::endl;
       options::bitvectorInequalitySolver.set(false);
     }
+  }
+
+  if (!options::bitvectorEqualitySolver())
+  {
+    if (options::bvLazyRewriteExtf())
+    {
+      if (options::bvLazyRewriteExtf.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-lazy-rewrite-extf requires --bv-eq-solver to be set");
+      }
+    }
+    Trace("smt")
+        << "disabling bvLazyRewriteExtf since equality solver is disabled"
+        << endl;
+    options::bvLazyRewriteExtf.set(false);
   }
 }
 
@@ -5570,6 +5581,11 @@ void SmtEngine::checkSynthSolution()
     }
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
     Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
+    if (conj.getKind() != kind::FORALL)
+    {
+      Trace("check-synth-sol") << "Not a checkable assertion.\n";
+      continue;
+    }
 
     // Apply solution map to conjecture body
     Node conjBody;
