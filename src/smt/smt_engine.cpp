@@ -767,9 +767,11 @@ public:
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts, uint32_t flags) override
+  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts,
+                            uint32_t flags) override
   {
-    if((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0) {
+    if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
+    {
       DatatypeDeclarationCommand c(dtts);
       d_smt.addToModelCommandAndDump(c);
     }

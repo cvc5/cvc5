@@ -640,7 +640,8 @@ SetType ExprManager::mkSetType(Type elementType) const {
   return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
 }
 
-DatatypeType ExprManager::mkDatatypeType(Datatype& datatype, uint32_t flags) {
+DatatypeType ExprManager::mkDatatypeType(Datatype& datatype, uint32_t flags)
+{
   // Not worth a special implementation; this doesn't need to be fast
   // code anyway.
   vector<Datatype> datatypes;
@@ -650,12 +651,18 @@ DatatypeType ExprManager::mkDatatypeType(Datatype& datatype, uint32_t flags) {
   return result.front();
 }
 
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, uint32_t flags) {
+std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+    std::vector<Datatype>& datatypes, uint32_t flags)
+{
   std::set<Type> unresolvedTypes;
   return mkMutualDatatypeTypes(datatypes, unresolvedTypes, flags);
 }
 
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes, uint32_t flags) {
+std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+    std::vector<Datatype>& datatypes,
+    std::set<Type>& unresolvedTypes,
+    uint32_t flags)
+{
   NodeManagerScope nms(d_nodeManager);
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
