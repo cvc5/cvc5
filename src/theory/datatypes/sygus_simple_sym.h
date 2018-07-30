@@ -80,6 +80,7 @@ class SygusSimpleSymBreak
    * x1-x2 need only be such that x1 is 0.
    */
   int solveForArgument(TypeNode tnp, unsigned cindex, unsigned arg);
+
  private:
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;

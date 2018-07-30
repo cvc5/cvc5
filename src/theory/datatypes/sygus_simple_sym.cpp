@@ -28,18 +28,18 @@ SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
 {
 }
 
-/** Requirement trie 
- * 
+/** Requirement trie
+ *
  * This class is used to make queries about sygus grammars, including what
- * constructors they contain, and their types. 
- * 
+ * constructors they contain, and their types.
+ *
  * As a simple example, consider the trie:
  * root:
  *   d_req_kind = PLUS
  *   d_children[0]:
  *     d_req_type = A
  *   d_children[1]:
- *     d_req_type = A 
+ *     d_req_type = A
  * This trie is satisfied by sygus types that have a constructor whose builtin
  * kind is PLUS and whose argument types are both A.
  */
@@ -87,8 +87,8 @@ class ReqTrie
       it->second.print(c, indent + 1);
     }
   }
-  /** 
-   * Are the requirements of this trie satisfied by sygus type tn? 
+  /**
+   * Are the requirements of this trie satisfied by sygus type tn?
    * tdb is a reference to the sygus term database.
    */
   bool satisfiedBy(quantifiers::TermDbSygus* tdb, TypeNode tn)
