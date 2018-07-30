@@ -434,7 +434,7 @@ class CVC4_PUBLIC SmtEngine {
    * std::pair where the first element is the heap expression and the second
    * element is the nil expression.
    */
-  std::pair<Expr, Expr> getSeparationLogicHeapAndNilExprs();
+  std::pair<Expr, Expr> getSepHeapAndNilExpr();
 
  public:
 

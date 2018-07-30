@@ -5262,7 +5262,7 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
-std::pair<Expr, Expr> SmtEngine::getSeparationLogicHeapAndNilExprs(void)
+std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
 {
   if (!d_logic.isTheoryEnabled(THEORY_SEP))
   {
@@ -5284,15 +5284,9 @@ std::pair<Expr, Expr> SmtEngine::getSeparationLogicHeapAndNilExprs(void)
       "theory model.");
 }
 
-Expr SmtEngine::getHeapExpr()
-{
-  return getSeparationLogicHeapAndNilExprs().first;
-}
+Expr SmtEngine::getHeapExpr() { return getSepHeapAndNilExpr().first; }
 
-Expr SmtEngine::getNilExpr()
-{
-  return getSeparationLogicHeapAndNilExprs().second;
-}
+Expr SmtEngine::getNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
