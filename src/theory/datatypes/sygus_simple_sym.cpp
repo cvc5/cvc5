@@ -28,14 +28,34 @@ SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
 {
 }
 
+/** Requirement trie 
+ * 
+ * This class is used to make queries about sygus grammars, including what
+ * constructors they contain, and their types. 
+ * 
+ * As a simple example, consider the trie:
+ * root:
+ *   d_req_kind = PLUS
+ *   d_children[0]:
+ *     d_req_type = A
+ *   d_children[1]:
+ *     d_req_type = A 
+ * This trie is satisfied by sygus types that have a constructor whose builtin
+ * kind is PLUS and whose argument types are both A.
+ */
 class ReqTrie
 {
  public:
   ReqTrie() : d_req_kind(UNDEFINED_KIND) {}
+  /** the children of this node */
   std::map<unsigned, ReqTrie> d_children;
+  /** the (builtin) kind required by this node */
   Kind d_req_kind;
+  /** the type that this node is required to be */
   TypeNode d_req_type;
+  /** the constant required by this node */
   Node d_req_const;
+  /** print this trie */
   void print(const char* c, int indent = 0)
   {
     if (d_req_kind != UNDEFINED_KIND)
@@ -67,6 +87,10 @@ class ReqTrie
       it->second.print(c, indent + 1);
     }
   }
+  /** 
+   * Are the requirements of this trie satisfied by sygus type tn? 
+   * tdb is a reference to the sygus term database.
+   */
   bool satisfiedBy(quantifiers::TermDbSygus* tdb, TypeNode tn)
   {
     if (!d_req_const.isNull())
@@ -122,6 +146,7 @@ class ReqTrie
     }
     return true;
   }
+  /** is this the empty (trivially satisfied) trie? */
   bool empty()
   {
     return d_req_kind == UNDEFINED_KIND && d_req_const.isNull()
