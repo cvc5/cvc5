@@ -56,6 +56,7 @@ typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
 typerule ARRAY_LAMBDA ::CVC4::theory::arrays::ArrayLambdaTypeRule
+typerule EQ_RANGE ::CVC4::theory::arrays::ArrayEqRangeTypeRule
 
 operator PARTIAL_SELECT_0 0:2 "partial array select, for internal use only"
 operator PARTIAL_SELECT_1 0:2 "partial array select, for internal use only"

@@ -224,6 +224,49 @@ struct ArrayPartialSelectTypeRule {
   }
 };/* struct ArrayPartialSelectTypeRule */
 
+struct ArrayEqRangeTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::EQ_RANGE);
+    if (check)
+    {
+      TypeNode n0_type = n[0].getType(check);
+      TypeNode n1_type = n[1].getType(check);
+      if (!n0_type.isArray())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first operand of eqrange is not an array");
+      }
+      if (!n1_type.isArray())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "second operand of eqrange is not an array");
+      }
+      if (n0_type != n1_type)
+      {
+        throw TypeCheckingExceptionPrivate(n, "array types do not match");
+      }
+      TypeNode indexType = n0_type.getArrayIndexType();
+      TypeNode indexRangeType1 = n[2].getType(check);
+      TypeNode indexRangeType2 = n[3].getType(check);
+      if (!indexRangeType1.isSubtypeOf(indexType))
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "array eqrange lower index type not correct for arrays");
+      }
+      if (!indexRangeType2.isSubtypeOf(indexType))
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "array eqrange lower index type not correct for arrays");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* struct ArrayEqRangeTypeRule */
+
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
