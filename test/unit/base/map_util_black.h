@@ -25,6 +25,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/context.h"
 
 using CVC4::ContainsKey;
 using CVC4::FindOrDie;
@@ -32,6 +33,7 @@ using CVC4::FindOrNull;
 using CVC4::context::CDHashMap;
 using CVC4::context::CDInsertHashMap;
 using CVC4::context::Context;
+using std::string;
 
 class MapUtilBlack : public CxxTest::TestSuite
 {
@@ -39,32 +41,38 @@ class MapUtilBlack : public CxxTest::TestSuite
   void setUp() {}
   void tearDown() {}
 
+  // Returns a map containing {"key"->"value", "other"->"entry"}.
+  static const std::map<string, string>& DefaultMap()
+  {
+    static const std::map<string, string> static_stored_map{{"key", "value"},
+                                                            {"other", "entry"}};
+    return static_stored_map;
+  }
+
   void testMap()
   {
-    std::map<std::string, std::string> map{{"key", "value"},
-                                           {"other", "entry"}};
+    std::map<string, string> map = DefaultMap();
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
 
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
-    if (std::string* value = FindOrNull(map, "other"))
+    if (string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "entry");
-      *value = "new value";
+      TS_ASSERT_EQUALS(*found_value, "entry");
+      *found_value = "new value";
     }
     TS_ASSERT_EQUALS(FindOrDie(map, "other"), "new value");
   }
 
   void testConstantMap()
   {
-    const std::map<std::string, std::string> map{{"key", "value"},
-                                                 {"other", "entry"}};
+    const std::map<string, string> map = DefaultMap();
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
 
-    if (const std::string* value = FindOrNull(map, "other"))
+    if (const string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "entry");
+      TS_ASSERT_EQUALS(*found_value, "entry");
     }
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
     TS_ASSERT_EQUALS(FindOrDie(map, "other"), "entry");
@@ -73,100 +81,136 @@ class MapUtilBlack : public CxxTest::TestSuite
 
   void testUnorderedMap()
   {
-    std::unordered_map<std::string, std::string> map{{"key", "value"},
-                                                     {"other", "entry"}};
+    std::unordered_map<string, string> map(DefaultMap().begin(),
+                                           DefaultMap().end());
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
 
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
-    if (std::string* value = FindOrNull(map, "other"))
+    if (string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "entry");
-      *value = "new value";
+      TS_ASSERT_EQUALS(*found_value, "entry");
+      *found_value = "new value";
     }
     TS_ASSERT_EQUALS(FindOrDie(map, "other"), "new value");
   }
 
+  void testConstUnorderedMap()
+  {
+    const std::unordered_map<string, string> map(DefaultMap().begin(),
+                                                 DefaultMap().end());
+    TS_ASSERT(ContainsKey(map, "key"));
+    TS_ASSERT(!ContainsKey(map, "non key"));
+
+    if (const string* found_value = FindOrNull(map, "other"))
+    {
+      TS_ASSERT_EQUALS(*found_value, "entry");
+    }
+    TS_ASSERT(FindOrNull(map, "non key") == nullptr);
+    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "entry");
+    // Cannot do death tests for FindOrDie.
+  }
+
   void testSet()
   {
-    const std::set<std::string> set{"entry", "other"};
+    std::set<string> set{"entry", "other"};
     TS_ASSERT(ContainsKey(set, "entry"));
     TS_ASSERT(!ContainsKey(set, "non member"));
+
+    const std::set<string> const_set{"entry", "other"};
+    TS_ASSERT(ContainsKey(const_set, "entry"));
+    TS_ASSERT(!ContainsKey(const_set, "non member"));
+  }
+
+  void testUnorderedSet()
+  {
+    std::unordered_set<string> set{"entry", "other"};
+    TS_ASSERT(ContainsKey(set, "entry"));
+    TS_ASSERT(!ContainsKey(set, "non member"));
+
+    const std::unordered_set<string> const_set{"entry", "other"};
+    TS_ASSERT(ContainsKey(const_set, "entry"));
+    TS_ASSERT(!ContainsKey(const_set, "non member"));
+  }
+
+  // For each <key, value> pair in source, inserts mapping from key to value
+  // using insert into dest.
+  template <class M>
+  void InsertAll(const std::map<string, string>& source, M* dest)
+  {
+    for (const auto& key_value : source)
+    {
+      dest->insert(key_value.first, key_value.second);
+    }
   }
 
   void testCDHashMap()
   {
     Context context;
-    CDHashMap<std::string, std::string> map(&context);
-    map["key"] = "value";
-    map["other"] = "other value";
+    CDHashMap<string, string> map(&context);
+    InsertAll(DefaultMap(), &map);
 
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
 
-    if (const std::string* value = FindOrNull(map, "other"))
+    if (const string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "other value");
+      TS_ASSERT_EQUALS(*found_value, "entry");
     }
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
-    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "other value");
+    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "entry");
   }
 
   void testConstCDHashMap()
   {
     Context context;
-    CDHashMap<std::string, std::string> store(&context);
-    store["key"] = "value";
-    store["other"] = "other value";
-
+    CDHashMap<string, string> store(&context);
+    InsertAll(DefaultMap(), &store);
     const auto& map = store;
 
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
 
-    if (const std::string* value = FindOrNull(map, "other"))
+    if (const string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "other value");
+      TS_ASSERT_EQUALS(*found_value, "entry");
     }
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
-    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "other value");
+    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "entry");
   }
 
   void testCDInsertHashMap()
   {
     Context context;
-    CDInsertHashMap<std::string, std::string> map(&context);
-    map.insert("key", "entry");
-    map.insert("other", "other value");
+    CDInsertHashMap<string, string> map(&context);
+    InsertAll(DefaultMap(), &map);
 
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
 
-    if (const std::string* value = FindOrNull(map, "other"))
+    if (const string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "other value");
+      TS_ASSERT_EQUALS(*found_value, "entry");
     }
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
-    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "other value");
+    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "entry");
   }
 
   void testConstCDInsertHashMap()
   {
     Context context;
-    CDInsertHashMap<std::string, std::string> store(&context);
-    store.insert("key", "value");
-    store.insert("other", "other value");
-
+    CDInsertHashMap<string, string> store(&context);
+    InsertAll(DefaultMap(), &store);
     const auto& map = store;
 
     TS_ASSERT(ContainsKey(map, "key"));
     TS_ASSERT(!ContainsKey(map, "non key"));
-    if (const std::string* value = FindOrNull(map, "other"))
+    if (const string* found_value = FindOrNull(map, "other"))
     {
-      TS_ASSERT_EQUALS(*value, "other value");
+      TS_ASSERT_EQUALS(*found_value, "entry");
     }
     TS_ASSERT(FindOrNull(map, "non key") == nullptr);
-    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "other value");
+    TS_ASSERT_EQUALS(FindOrDie(map, "other"), "entry");
   }
 
-}; /* class DatatypeBlack */
+}; /* class MapUtilBlack */
