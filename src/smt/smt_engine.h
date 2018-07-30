@@ -496,12 +496,12 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * When using separation logic, obtain the expression for the heap.
    */
-  Expr getHeapExpr();
+  Expr getSepHeapExpr();
 
   /**
    * When using separation logic, obtain the expression for nil.
    */
-  Expr getNilExpr();
+  Expr getSepNilExpr();
 
   /**
    * Get an aspect of the current SMT execution environment.

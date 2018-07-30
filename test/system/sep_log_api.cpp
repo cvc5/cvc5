@@ -84,7 +84,7 @@ int validate_exception(void)
   /* test the heap expression */
   try
   {
-    Expr heap_expr(smt.getHeapExpr());
+    Expr heap_expr(smt.getSepHeapExpr());
   }
   catch (const CVC4::RecoverableModalException& e)
   {
@@ -100,7 +100,7 @@ int validate_exception(void)
   /* test the nil expression */
   try
   {
-    Expr nil_expr(smt.getNilExpr());
+    Expr nil_expr(smt.getSepNilExpr());
   }
   catch (const CVC4::RecoverableModalException& e)
   {
@@ -190,8 +190,8 @@ int validate_getters(void)
   }
 
   /* Obtain our separation logic terms from the solver */
-  Expr heap_expr(smt.getHeapExpr());
-  Expr nil_expr(smt.getNilExpr());
+  Expr heap_expr(smt.getSepHeapExpr());
+  Expr nil_expr(smt.getSepNilExpr());
 
   /* If the heap is not a separating conjunction, bail-out */
   if (heap_expr.getKind() != kind::SEP_STAR)

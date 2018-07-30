@@ -5280,13 +5280,13 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
     return std::make_pair(heap, nil);
   }
   InternalError(
-      "SmtEngine::getHeapExpr(): failed to obtain heap/nil expressions from "
+      "SmtEngine::getSepHeapExpr(): failed to obtain heap/nil expressions from "
       "theory model.");
 }
 
-Expr SmtEngine::getHeapExpr() { return getSepHeapAndNilExpr().first; }
+Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
-Expr SmtEngine::getNilExpr() { return getSepHeapAndNilExpr().second; }
+Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
