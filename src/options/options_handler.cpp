@@ -331,12 +331,6 @@ prop-eq \n\
 conflict \n\
 + Apply QCF algorithm to find conflicts only.\n\
 \n\
-partial \n\
-+ Apply QCF algorithm to instantiate heuristically as well. \n\
-\n\
-mc \n\
-+ Apply QCF algorithm in a complete way, so that a model is ensured when it fails. \n\
-\n\
 ";
 
 const std::string OptionsHandler::s_userPatModeHelp = "\
@@ -489,6 +483,30 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cegqiSingleInvRconsHelp =
+    "\
+Modes for reconstruction solutions while using single invocation techniques,\
+supported by --cegqi-si-rcons:\n\
+\n\
+none \n\
++ Do not try to reconstruct solutions in the original (user-provided) grammar\
+  when using single invocation techniques. In this mode, solutions produced by\
+  CVC4 may violate grammar restrictions.\n\
+\n\
+try \n\
++ Try to reconstruct solutions in the original grammar when using single\
+  invocation techniques in an incomplete (fail-fast) manner.\n\
+\n\
+all-limit \n\
++ Try to reconstruct solutions in the original grammar, but termintate if a\
+  maximum number of rounds for reconstruction is exceeded.\n\
+\n\
+all \n\
++ Try to reconstruct solutions in the original grammar. In this mode,\
+  we do not terminate until a solution is successfully reconstructed. \n\
+\n\
+";
+
 const std::string OptionsHandler::s_cegisSampleHelp =
     "\
 Modes for sampling with counterexample-guided inductive synthesis (CEGIS),\
@@ -561,23 +579,6 @@ first (default) \n\
 \n\
 depth \n\
 + Choose terms that are of minimal depth.\n\
-\n\
-";
-
-const std::string OptionsHandler::s_fmfBoundMinModeModeHelp = "\
-Modes for finite model finding bound minimization, supported by --fmf-bound-min-mode:\n\
-\n\
-none \n\
-+ Do not minimize inferred bounds.\n\
-\n\
-int (default) \n\
-+ Minimize integer ranges only.\n\
-\n\
-setc \n\
-+ Minimize cardinality of set membership ranges only.\n\
-\n\
-all \n\
-+ Minimize all inferred bounds.\n\
 \n\
 ";
 
@@ -692,8 +693,6 @@ theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
     return theory::quantifiers::QCF_CONFLICT_ONLY;
   } else if(optarg ==  "default" || optarg == "prop-eq") {
     return theory::quantifiers::QCF_PROP_EQ;
-  } else if(optarg == "partial") {
-    return theory::quantifiers::QCF_PARTIAL;
   } else if(optarg ==  "help") {
     puts(s_qcfModeHelp.c_str());
     exit(1);
@@ -878,8 +877,6 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
     return theory::quantifiers::CEGQI_SI_MODE_NONE;
   } else if(optarg == "use" || optarg == "default") {
     return theory::quantifiers::CEGQI_SI_MODE_USE;
-  } else if(optarg == "all-abort") {
-    return theory::quantifiers::CEGQI_SI_MODE_ALL_ABORT;
   } else if(optarg == "all") {
     return theory::quantifiers::CEGQI_SI_MODE_ALL;
   } else if(optarg ==  "help") {
@@ -888,6 +885,38 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
   } else {
     throw OptionException(std::string("unknown option for --cegqi-si: `") +
                           optarg + "'.  Try --cegqi-si help.");
+  }
+}
+
+theory::quantifiers::CegqiSingleInvRconsMode
+OptionsHandler::stringToCegqiSingleInvRconsMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_NONE;
+  }
+  else if (optarg == "try")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_TRY;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL;
+  }
+  else if (optarg == "all-limit")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL_LIMIT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cegqiSingleInvRconsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cegqi-si-rcons: `")
+                          + optarg + "'.  Try --cegqi-si-rcons help.");
   }
 }
 
@@ -989,26 +1018,6 @@ theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(
   } else {
     throw OptionException(std::string("unknown option for --quant-rep-mode: `") +
                           optarg + "'.  Try --quant-rep-mode help.");
-  }
-}
-
-theory::quantifiers::FmfBoundMinMode OptionsHandler::stringToFmfBoundMinMode(
-    std::string option, std::string optarg)
-{
-  if(optarg == "none" ) {
-    return theory::quantifiers::FMF_BOUND_MIN_NONE;
-  } else if(optarg == "int" || optarg == "default") {
-    return theory::quantifiers::FMF_BOUND_MIN_INT_RANGE;
-  } else if(optarg == "setc" || optarg == "default") {
-    return theory::quantifiers::FMF_BOUND_MIN_SET_CARD;
-  } else if(optarg == "all") {
-    return theory::quantifiers::FMF_BOUND_MIN_ALL;
-  } else if(optarg ==  "help") {
-    puts(s_fmfBoundMinModeModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --fmf-bound-min-mode: `") +
-                          optarg + "'.  Try --fmf-bound-min-mode help.");
   }
 }
 
