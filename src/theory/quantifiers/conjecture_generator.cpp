@@ -1123,6 +1123,9 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       }
       else
       {
+        // This should never happen due to invariants of this loop.
+        // However, if it does, we simply abort while not fully enumerating the
+        // full set of terms.
         Assert(false);
         return;
       }
