@@ -200,7 +200,7 @@ private:
    * this theory and have not already been reduced by context-dependent
    * simplification (see theory/ext_theory.h). Examples of lemmas added by
    * this method include:
-   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^w 0) + ... +
+   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
    *                (ite ((_ extract 1 0) x) 1 0)
    */
   bool doExtfReductions( std::vector< Node >& terms );
