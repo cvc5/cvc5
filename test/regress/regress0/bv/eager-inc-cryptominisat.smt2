@@ -1,4 +1,4 @@
-; REQUIRE: cryptominisat
+; REQUIRES: cryptominisat
 ; COMMAND-LINE: --incremental --bv-sat-solver=cryptominisat --bitblast=eager
 (set-logic QF_BV)
 (set-option :incremental true)
