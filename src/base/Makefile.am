@@ -26,6 +26,7 @@ libbase_la_SOURCES = \
 	exception.h \
 	listener.cpp \
 	listener.h \
+	map_util.h \
 	modal_exception.h \
 	output.cpp \
 	output.h \

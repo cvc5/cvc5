@@ -15,6 +15,8 @@
  **/
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
+
+#include "base/map_util.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -451,11 +453,14 @@ void BoundedIntegers::checkOwnership(Node f)
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if( bound_lit_map[b].find( v )!=bound_lit_map[b].end() ){
-              Assert( bound_lit_pol_map[b].find( v )!=bound_lit_pol_map[b].end() );
+            if (Node* bound_lit_b_v = FindOrNull(bound_lit_map[b], v))
+            {
+              const bool bound_lit_pol_b_v = FindOrDie(bound_lit_pol_map[b], v);
               BoundIntLitAttribute bila;
-              bound_lit_map[b][v].setAttribute( bila, bound_lit_pol_map[b][v] ? 1 : 0 );
-            }else{
+              bound_lit_b_v->setAttribute(bila, bound_lit_pol_b_v ? 1 : 0);
+            }
+            else
+            {
               Assert( it->second!=BOUND_INT_RANGE );
             }
           }
