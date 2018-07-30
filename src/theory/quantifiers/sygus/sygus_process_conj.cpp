@@ -532,40 +532,43 @@ Node CegConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
-
-  // initialize the information about each function to synthesize
-  for (unsigned i = 0; i < q[0].getNumChildren(); i++)
+  
+  if( options::sygusArgRelevant() )
   {
-    Node f = q[0][i];
-    if (f.getType().isFunction())
+    // initialize the information about each function to synthesize
+    for (unsigned i = 0; i < q[0].getNumChildren(); i++)
     {
-      d_sf_info[f].init(f);
+      Node f = q[0][i];
+      if (f.getType().isFunction())
+      {
+        d_sf_info[f].init(f);
+      }
     }
-  }
 
-  // get the base on the conjecture
-  Node base = q[1];
-  std::unordered_set<Node, NodeHashFunction> synth_fv;
-  if (base.getKind() == NOT && base[0].getKind() == FORALL)
-  {
-    for (unsigned j = 0; j < base[0][0].getNumChildren(); j++)
+    // get the base on the conjecture
+    Node base = q[1];
+    std::unordered_set<Node, NodeHashFunction> synth_fv;
+    if (base.getKind() == NOT && base[0].getKind() == FORALL)
     {
-      synth_fv.insert(base[0][0][j]);
+      for (unsigned j = 0; j < base[0][0].getNumChildren(); j++)
+      {
+        synth_fv.insert(base[0][0][j]);
+      }
+      base = base[0][1];
     }
-    base = base[0][1];
-  }
-  std::vector<Node> conjuncts;
-  getComponentVector(AND, base, conjuncts);
+    std::vector<Node> conjuncts;
+    getComponentVector(AND, base, conjuncts);
 
-  // process the conjunctions
-  for (std::map<Node, CegConjectureProcessFun>::iterator it = d_sf_info.begin();
-       it != d_sf_info.end();
-       ++it)
-  {
-    Node f = it->first;
-    for (unsigned i = 0; i < conjuncts.size(); i++)
+    // process the conjunctions
+    for (std::map<Node, CegConjectureProcessFun>::iterator it = d_sf_info.begin();
+        it != d_sf_info.end();
+        ++it)
     {
-      processConjunct(conjuncts[i], f, synth_fv);
+      Node f = it->first;
+      for (unsigned i = 0; i < conjuncts.size(); i++)
+      {
+        processConjunct(conjuncts[i], f, synth_fv);
+      }
     }
   }
 
@@ -587,6 +590,10 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 
 bool CegConjectureProcess::isArgRelevant(Node f, unsigned i)
 {
+  if( !options::sygusArgRelevant() )
+  {
+    return true;
+  }
   std::map<Node, CegConjectureProcessFun>::iterator its = d_sf_info.find(f);
   if (its != d_sf_info.end())
   {
