@@ -495,8 +495,8 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
             lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
           }
           // this handles inferences of the form, e.g.:
-          //   ((_ int2bv 32) (bv2nat x)) == x (if their types are equivalent)
-          //   (bv2nat ((_ int2bv 32) x)) == x + k*2^32 for some k
+          //   ((_ int2bv w) (bv2nat x)) == x (if x is bit-width w)
+          //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
           Trace("bv-extf-lemma")
               << "BV extf lemma (collapse) : " << lem << std::endl;
           d_out->lemma(lem);
