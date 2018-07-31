@@ -1088,12 +1088,6 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     return theory::bv::SAT_SOLVER_MINISAT;
   } else if(optarg == "cryptominisat") {
     
-    if (options::incrementalSolving() &&
-        options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("CryptoMinSat does not support incremental mode. \n\
-                                         Try --bv-sat-solver=minisat"));
-    }
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
         options::bitblastMode.wasSetByUser()) {
       throw OptionException(
@@ -1103,12 +1097,6 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }
-
-    // if (!options::bvAbstraction.wasSetByUser() &&
-    //     !options::skolemizeArguments.wasSetByUser()) {
-    //   options::bvAbstraction.set(true);
-    //   options::skolemizeArguments.set(true); 
-    // }
     return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
   }
   else if (optarg == "cadical")
@@ -1118,7 +1106,8 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     {
       throw OptionException(
           std::string("CaDiCaL does not support incremental mode. \n\
-                                         Try --bv-sat-solver=minisat"));
+                         Try --bv-sat-solver=cryptominisat or "
+                      "--bv-sat-solver=minisat"));
     }
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
@@ -1126,7 +1115,7 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     {
       throw OptionException(
           std::string("CaDiCaL does not support lazy bit-blasting. \n\
-                                         Try --bv-sat-solver=minisat"));
+                         Try --bv-sat-solver=minisat"));
     }
     if (!options::bitvectorToBool.wasSetByUser())
     {
@@ -1180,12 +1169,6 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     }
     return theory::bv::BITBLAST_MODE_LAZY;
   } else if(optarg == "eager") {
-
-    if (options::incrementalSolving() &&
-        options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
-                                         Try --bitblast=lazy"));
-    }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }
