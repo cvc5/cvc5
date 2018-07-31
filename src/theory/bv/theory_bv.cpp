@@ -74,7 +74,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
   getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
   getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver = new EagerBitblastSolver(this);
+    d_eagerSolver = new EagerBitblastSolver(c, this);
     return;
   }
 
@@ -243,18 +243,20 @@ void TheoryBV::preRegisterTerm(TNode node) {
   d_calledPreregister = true;
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == BITBLAST_MODE_EAGER)
+  {
     // the aig bit-blaster option is set heuristically
-    // if bv abstraction is not used
-    if (!d_eagerSolver->isInitialized()) {
+    // if bv abstraction is used
+    if (!d_eagerSolver->isInitialized())
+    {
       d_eagerSolver->initialize();
     }
 
-    if (node.getKind() == kind::BITVECTOR_EAGER_ATOM) {
+    if (node.getKind() == kind::BITVECTOR_EAGER_ATOM)
+    {
       Node formula = node[0];
       d_eagerSolver->assertFormula(formula);
     }
-    // nothing to do for the other terms
     return;
   }
 
@@ -342,6 +344,7 @@ void TheoryBV::check(Effort e)
       TNode fact = get().assertion;
       Assert (fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
+      d_eagerSolver->assertFormula(fact[0]);
     }
     Assert (d_eagerSolver->hasAssertions(assertions));
 
