@@ -1400,6 +1400,8 @@ void SmtEngine::setDefaults() {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(THEORY_DATATYPES);
     d_logic.lock();
+    // since we are trying to recast as sygus, we assume the input is sygus
+    is_sygus = true;
   }
 
   if ((options::checkModels() || options::checkSynthSol())
@@ -2049,6 +2051,10 @@ void SmtEngine::setDefaults() {
     }
     if( !options::miniscopeQuantFreeVar.wasSetByUser() ){
       options::miniscopeQuantFreeVar.set( false );
+    }
+    if (!options::quantSplit.wasSetByUser())
+    {
+      options::quantSplit.set(false);
     }
     //rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {

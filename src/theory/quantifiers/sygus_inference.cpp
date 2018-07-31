@@ -43,6 +43,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   std::vector<Node> qvars;
   std::map<TypeNode, std::vector<Node> > qtvars;
   std::vector<Node> free_functions;
+  std::vector<Node> free_functions_uf;
 
   std::vector<TNode> visit;
   std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -142,7 +143,15 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
               == free_functions.end())
           {
             free_functions.push_back(op);
+            free_functions_uf.push_back(op);
           }
+        }
+        else if (cur.getKind() == VARIABLE)
+        {
+          // a free variable is a 0-argument function to synthesize
+          Assert(std::find(free_functions.begin(), free_functions.end(), cur)
+                 == free_functions.end());
+          free_functions.push_back(cur);
         }
         else if (cur.getKind() == FORALL)
         {
@@ -160,7 +169,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   }
 
   // if no free function symbols, there is no use changing into SyGuS
-  if (free_functions.empty())
+  if (free_functions_uf.empty())
   {
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
     return false;
@@ -252,16 +261,21 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
+      Expr body = it->second;
       std::vector<Expr> args;
-      for (const Node& v : lambda[0])
+      if (lambda.getKind() == LAMBDA)
       {
-        args.push_back(v.toExpr());
+        for (const Node& v : lambda[0])
+        {
+          args.push_back(v.toExpr());
+        }
+        body = it->second[1];
       }
       Trace("sygus-infer") << "Define " << ff << " as " << it->second
                            << std::endl;
       final_ff.push_back(ff);
       final_ff_sol.push_back(it->second);
-      master_smte->defineFunction(ff.toExpr(), args, it->second[1]);
+      master_smte->defineFunction(ff.toExpr(), args, body);
     }
   }
 
