@@ -801,14 +801,30 @@ void TransitionInference::process( Node n ) {
           norm_args = terms[true];
           comp_num = 1;
         }
+        Trace("cegqi-inv-debug2")
+            << "  normalize based on " << norm_args << std::endl;
         std::vector< Node > subs;
+        std::vector<Node> svars;
         for( unsigned j=0; j<norm_args.getNumChildren(); j++ ){
-          subs.push_back( norm_args[j] );
-        }        
-        Trace("cegqi-inv-debug2") << "  normalize based on " << norm_args << std::endl;
-        Assert( d_vars.size()==subs.size() );
+          if (norm_args[j].getKind() == BOUND_VARIABLE)
+          {
+            // if the argument is a bound variable, add to the renaming
+            subs.push_back(norm_args[j]);
+            svars.push_back(d_vars[j]);
+          }
+          else
+          {
+            // otherwise, treat as a constraint on the variable
+            // For example, this transforms e.g. a precondition clause
+            // I( 0, 1 ) to x1 != 0 OR x2 != 1 OR I( x1, x2 ).
+            Node eq = norm_args[j].eqNode(d_vars[j]);
+            disjuncts.push_back(eq.negate());
+          }
+        }
         for( unsigned j=0; j<disjuncts.size(); j++ ){
-          disjuncts[j] = Rewriter::rewrite( disjuncts[j].substitute( subs.begin(), subs.end(), d_vars.begin(), d_vars.end() ) );
+          Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
+          disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+              subs.begin(), subs.end(), svars.begin(), svars.end()));
           Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
         }
         std::vector< Node > const_var;
