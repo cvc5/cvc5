@@ -71,8 +71,13 @@ private:
    * a variable, it adds ti to vars, and pvars[i] to subs. For each ti that is
    * not a variable, it adds the disequality ti != pvars[i] to disjuncts.
    */
-  void getNormalizedSubstitution(Node curr,const std::vector< Node >& pvars, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& disjuncts );
-public:
+  void getNormalizedSubstitution(Node curr,
+                                 const std::vector<Node>& pvars,
+                                 std::vector<Node>& vars,
+                                 std::vector<Node>& subs,
+                                 std::vector<Node>& disjuncts);
+
+ public:
   TransitionInference() : d_complete( false ) {}
   std::vector< Node > d_vars;
   std::vector< Node > d_prime_vars;

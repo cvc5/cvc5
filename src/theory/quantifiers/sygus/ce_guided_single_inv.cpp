@@ -770,7 +770,7 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
 }
 
 void TransitionInference::process( Node n ) {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_complete = true;
   std::vector< Node > n_check;
   if( n.getKind()==AND ){
@@ -802,10 +802,11 @@ void TransitionInference::process( Node n ) {
           curr = terms[true];
           comp_num = 1;
         }
-        Trace("cegqi-inv-debug2") << "  normalize based on " << curr << std::endl;
-        std::vector< Node > vars;
+        Trace("cegqi-inv-debug2")
+            << "  normalize based on " << curr << std::endl;
+        std::vector<Node> vars;
         std::vector<Node> svars;
-        getNormalizedSubstitution(curr,d_vars,vars,svars,disjuncts);
+        getNormalizedSubstitution(curr, d_vars, vars, svars, disjuncts);
         for( unsigned j=0; j<disjuncts.size(); j++ ){
           Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
           disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
@@ -818,26 +819,32 @@ void TransitionInference::process( Node n ) {
           //transition
           Assert( terms.find( true )!=terms.end() );
           Node next = terms[true];
-          next = Rewriter::rewrite( next.substitute( vars.begin(), vars.end(), svars.begin(), svars.end() ) );
+          next = Rewriter::rewrite(next.substitute(
+              vars.begin(), vars.end(), svars.begin(), svars.end()));
           Trace("cegqi-inv-debug") << "transition next predicate : " << next << std::endl;
           // make the primed variables if we have not already
-          if( d_prime_vars.empty() )
+          if (d_prime_vars.empty())
           {
-            for( unsigned j=0, nchild = next.getNumChildren(); j<nchild; j++ )
+            for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild;
+                 j++)
             {
-              Node v = nm->mkSkolem( "ir", next[j].getType(), "template inference rev argument" );
+              Node v = nm->mkSkolem(
+                  "ir", next[j].getType(), "template inference rev argument");
               d_prime_vars.push_back( v );
             }
           }
           // normalize the other direction
           Trace("cegqi-inv-debug2") << "  normalize based on " << next << std::endl;
-          std::vector< Node > rvars;
-          std::vector< Node > rsvars;
-          getNormalizedSubstitution(next,d_prime_vars,rvars,rsvars,disjuncts);
-          Assert( rvars.size()==rsvars.size() );
+          std::vector<Node> rvars;
+          std::vector<Node> rsvars;
+          getNormalizedSubstitution(
+              next, d_prime_vars, rvars, rsvars, disjuncts);
+          Assert(rvars.size() == rsvars.size());
           for( unsigned j=0; j<disjuncts.size(); j++ ){
-            Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
-            disjuncts[j] = Rewriter::rewrite( disjuncts[j].substitute( rvars.begin(), rvars.end(), rsvars.begin(), rsvars.end() ) );
+            Trace("cegqi-inv-debug2")
+                << "  apply " << disjuncts[j] << std::endl;
+            disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+                rvars.begin(), rvars.end(), rsvars.begin(), rsvars.end()));
             Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
           }
           getConstantSubstitution( d_prime_vars, disjuncts, const_var, const_subs, false );
@@ -893,9 +900,15 @@ void TransitionInference::process( Node n ) {
     d_com[i].d_this = ret;
   }
 }
-void TransitionInference::getNormalizedSubstitution(Node curr,const std::vector< Node >& pvars, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& disjuncts )
+void TransitionInference::getNormalizedSubstitution(
+    Node curr,
+    const std::vector<Node>& pvars,
+    std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::vector<Node>& disjuncts)
 {
-  for( unsigned j=0, nchild = curr.getNumChildren(); j<nchild; j++ ){
+  for (unsigned j = 0, nchild = curr.getNumChildren(); j < nchild; j++)
+  {
     if (curr[j].getKind() == BOUND_VARIABLE)
     {
       // if the argument is a bound variable, add to the renaming
