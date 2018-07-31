@@ -609,74 +609,77 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv
-  Trace("cbqi-inst-debug") << "[1] try based on equivalence class."
-                           << std::endl;
-  d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
-  std::map<Node, std::vector<Node> >::iterator it_eqc = d_curr_eqc.find(pvr);
-  if (it_eqc != d_curr_eqc.end())
+  if(vinst->hasProcessEqualTerm(this, sf, pv, d_effort))
   {
-    // std::vector< Node > eq_candidates;
-    Trace("cbqi-inst-debug2")
-        << "...eqc has size " << it_eqc->second.size() << std::endl;
-    for (unsigned k = 0; k < it_eqc->second.size(); k++)
+    Trace("cbqi-inst-debug") << "[1] try based on equivalence class."
+                            << std::endl;
+    d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
+    std::map<Node, std::vector<Node> >::iterator it_eqc = d_curr_eqc.find(pvr);
+    if (it_eqc != d_curr_eqc.end())
     {
-      Node n = it_eqc->second[k];
-      if (n != pv)
+      // std::vector< Node > eq_candidates;
+      Trace("cbqi-inst-debug2")
+          << "...eqc has size " << it_eqc->second.size() << std::endl;
+      for (unsigned k = 0; k < it_eqc->second.size(); k++)
       {
-        Trace("cbqi-inst-debug")
-            << "...try based on equal term " << n << std::endl;
-        // must be an eligible term
-        if (isEligible(n))
+        Node n = it_eqc->second[k];
+        if (n != pv)
         {
-          Node ns;
-          // coefficient of pv in the equality we solve (null is 1)
-          TermProperties pv_prop;
-          bool proc = false;
-          if (!d_prog_var[n].empty())
+          Trace("cbqi-inst-debug")
+              << "...try based on equal term " << n << std::endl;
+          // must be an eligible term
+          if (isEligible(n))
           {
-            ns = applySubstitution(pvtn, n, sf, pv_prop, false);
-            if (!ns.isNull())
+            Node ns;
+            // coefficient of pv in the equality we solve (null is 1)
+            TermProperties pv_prop;
+            bool proc = false;
+            if (!d_prog_var[n].empty())
             {
-              computeProgVars(ns);
-              // substituted version must be new and cannot contain pv
-              proc = d_prog_var[ns].find(pv) == d_prog_var[ns].end();
+              ns = applySubstitution(pvtn, n, sf, pv_prop, false);
+              if (!ns.isNull())
+              {
+                computeProgVars(ns);
+                // substituted version must be new and cannot contain pv
+                proc = d_prog_var[ns].find(pv) == d_prog_var[ns].end();
+              }
             }
-          }
-          else
-          {
-            ns = n;
-            proc = true;
-          }
-          if (proc)
-          {
-            if (vinst->processEqualTerm(this, sf, pv, pv_prop, ns, d_effort))
+            else
             {
-              return true;
+              ns = n;
+              proc = true;
             }
-            else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+            if (proc)
             {
-              return false;
+              if (vinst->processEqualTerm(this, sf, pv, pv_prop, ns, d_effort))
+              {
+                return true;
+              }
+              else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+              {
+                return false;
+              }
+              // Do not consider more than one equal term,
+              // this helps non-monotonic strategies that may encounter
+              // duplicate instantiations.
+              break;
             }
-            // Do not consider more than one equal term,
-            // this helps non-monotonic strategies that may encounter
-            // duplicate instantiations.
-            break;
           }
         }
       }
+      if (vinst->processEqualTerms(this, sf, pv, it_eqc->second, d_effort))
+      {
+        return true;
+      }
+      else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
+      {
+        return false;
+      }
     }
-    if (vinst->processEqualTerms(this, sf, pv, it_eqc->second, d_effort))
+    else
     {
-      return true;
+      Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
     }
-    else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
-    {
-      return false;
-    }
-  }
-  else
-  {
-    Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
   }
 
   //[2] : we can solve an equality for pv
@@ -766,7 +769,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       }
     }
   }
-  
   //[3] directly look at assertions
   if (!vinst->hasProcessAssertion(this, sf, pv, d_effort))
   {

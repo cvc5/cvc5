@@ -20,6 +20,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
+#include "util/random.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -118,7 +119,7 @@ bool ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                             Node pv,
                                             CegInstEffort effort)
 {
-  return true;
+  return effort!=CEG_INST_EFFORT_FULL;
 }
 
 Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
@@ -319,7 +320,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
   bool use_inf = ci->useVtsInfinity()
                  && (d_type.isInteger() ? options::cbqiUseInfInt()
                                         : options::cbqiUseInfReal());
-  bool upper_first = false;
+  bool upper_first = Random::getRandom().pickWithProb(0.5);
   if (options::cbqiMinBounds())
   {
     upper_first = d_mbp_bounds[1].size() < d_mbp_bounds[0].size();
