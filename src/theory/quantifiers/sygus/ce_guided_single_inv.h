@@ -64,7 +64,20 @@ private:
   bool processDisjunct( Node n, std::map< bool, Node >& terms, std::vector< Node >& disjuncts, std::map< Node, bool >& visited, bool topLevel );
   void getConstantSubstitution( std::vector< Node >& vars, std::vector< Node >& disjuncts, std::vector< Node >& const_var, std::vector< Node >& const_subs, bool reqPol );
   bool d_complete;
-public:
+  /** get normalized substitution
+   *
+   * This method takes as input a node curr of the form I( t1, ..., tn ) and
+   * a vector of variables pvars, where pvars.size()=n. For each ti that is
+   * a variable, it adds ti to vars, and pvars[i] to subs. For each ti that is
+   * not a variable, it adds the disequality ti != pvars[i] to disjuncts.
+   */
+  void getNormalizedSubstitution(Node curr,
+                                 const std::vector<Node>& pvars,
+                                 std::vector<Node>& vars,
+                                 std::vector<Node>& subs,
+                                 std::vector<Node>& disjuncts);
+
+ public:
   TransitionInference() : d_complete( false ) {}
   std::vector< Node > d_vars;
   std::vector< Node > d_prime_vars;
