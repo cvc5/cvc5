@@ -131,7 +131,7 @@ Node DynamicRewriter::toInternal(Node a)
 Node DynamicRewriter::toExternal(Node ai)
 {
   std::map<Node, Node>::iterator it = d_internal_to_term.find(ai);
-  if( it !=d_internal_to_term.end() )
+  if (it != d_internal_to_term.end())
   {
     return it->second;
   }

@@ -372,9 +372,9 @@ bool CandidateRewriteFilter::notify(Node s,
   Assert(!d_curr_pair_rhs.isNull());
   // convert back to original forms
   s = d_drewrite->toExternal(s);
-  Assert( !s.isNull() );
+  Assert(!s.isNull());
   n = d_drewrite->toExternal(n);
-  Assert( !n.isNull() );
+  Assert(!n.isNull());
   std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
       d_pairs.find(n);
   if (Trace.isOn("crf-match"))
@@ -395,8 +395,8 @@ bool CandidateRewriteFilter::notify(Node s,
   }
 #endif
   // must convert the inferred substitution to original form
-  std::vector< Node > esubs;
-  for( const Node& s : subs )
+  std::vector<Node> esubs;
+  for (const Node& s : subs)
   {
     esubs.push_back(d_drewrite->toExternal(s));
   }

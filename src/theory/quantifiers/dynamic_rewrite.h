@@ -73,6 +73,7 @@ class DynamicRewriter
    * toInternal, this method returns null.
    */
   Node toExternal(Node ai);
+
  private:
   /** index over argument types to function skolems
    *
