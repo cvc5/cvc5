@@ -293,7 +293,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     }
   }
 
-  if (options::sygusRewSynthFilterMatch())
+  if (keep && options::sygusRewSynthFilterMatch())
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
