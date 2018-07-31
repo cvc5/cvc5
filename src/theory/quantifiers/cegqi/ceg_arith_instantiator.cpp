@@ -353,7 +353,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         {
           return true;
         }
-        else if( !options::cbqiMultiInst() )
+        else if (!options::cbqiMultiInst())
         {
           return false;
         }
@@ -508,7 +508,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             {
               return true;
             }
-            else if( !options::cbqiMultiInst() )
+            else if (!options::cbqiMultiInst())
             {
               return false;
             }
@@ -539,7 +539,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       {
         return true;
       }
-      else if( !options::cbqiMultiInst() )
+      else if (!options::cbqiMultiInst())
       {
         return false;
       }
@@ -610,7 +610,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       {
         return true;
       }
-      else if( !options::cbqiMultiInst() )
+      else if (!options::cbqiMultiInst())
       {
         return false;
       }
@@ -653,7 +653,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           {
             return true;
           }
-          else if( !options::cbqiMultiInst() )
+          else if (!options::cbqiMultiInst())
           {
             return false;
           }

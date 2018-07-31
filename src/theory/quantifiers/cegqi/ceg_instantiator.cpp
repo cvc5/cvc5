@@ -396,8 +396,8 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
 
 void CegInstantiator::deactivateInstantiationVariable(Node v)
 {
-  d_curr_subs_proc.erase( v );
-  d_curr_index.erase( v );
+  d_curr_subs_proc.erase(v);
+  d_curr_index.erase(v);
   d_curr_iphase.erase(v);
 }
 
@@ -514,7 +514,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       d_stack_vars.pop_back();
     }
     activateInstantiationVariable(pv, i);
-    
+
     //get the instantiator object
     Instantiator * vinst = NULL;
     std::map< Node, Instantiator * >::iterator itin = d_instantiator.find( pv );
@@ -529,7 +529,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     {
       // First, try to construct an instantiation term for pv based on
       // equality and theory-specific instantiation techniques.
-      if( constructInstantiation(sf,vinst,pv) )
+      if (constructInstantiation(sf, vinst, pv))
       {
         return true;
       }
@@ -540,11 +540,11 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator uses model values at this effort or
     //   if we are solving for a subfield of a datatype (is_sv), and
     // - the instantiator allows model values.
-    if (( options::cbqiMultiInst() || !hasTriedInstantiation(pv)) &&
-      (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
+    if ((options::cbqiMultiInst() || !hasTriedInstantiation(pv))
+        && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
-  #ifdef CVC4_ASSERTIONS
+#ifdef CVC4_ASSERTIONS
       // the instantiation strategy for quantified linear integer/real
       // arithmetic with arbitrary quantifier nesting is "monotonic" as a
       // consequence of Lemmas 5, 9 and Theorem 4 of Reynolds et al, "Solving
@@ -557,7 +557,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
         Assert( false );
       }
-  #endif
+#endif
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
       Trace("cbqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
@@ -574,9 +574,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
       }
       d_effort = prev;
     }
-    
+
     Trace("cbqi-inst-debug") << "[No instantiation found for " << pv << "]" << std::endl;
-    if( is_sv ){
+    if (is_sv)
+    {
       d_stack_vars.push_back( pv );
     }
     d_active_instantiators.erase( pv );
@@ -585,54 +586,74 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
   }
 }
 
-bool CegInstantiator::constructInstantiation(SolvedForm& sf, Instantiator* vinst, Node pv)
+bool CegInstantiator::constructInstantiation(SolvedForm& sf,
+                                             Instantiator* vinst,
+                                             Node pv)
 {
   TypeNode pvtn = pv.getType();
   TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
-  if( d_qe->getMasterEqualityEngine()->hasTerm( pv ) ){
-    pvr = d_qe->getMasterEqualityEngine()->getRepresentative( pv );
+  if (d_qe->getMasterEqualityEngine()->hasTerm(pv))
+  {
+    pvr = d_qe->getMasterEqualityEngine()->getRepresentative(pv);
   }
-  Trace("cbqi-inst-debug") << "[Find instantiation for " << pv << "], rep=" << pvr << ", instantiator is " << vinst->identify() << std::endl;
+  Trace("cbqi-inst-debug") << "[Find instantiation for " << pv
+                           << "], rep=" << pvr << ", instantiator is "
+                           << vinst->identify() << std::endl;
   Node pv_value;
-  if( options::cbqiModel() ){
-    pv_value = getModelValue( pv );
+  if (options::cbqiModel())
+  {
+    pv_value = getModelValue(pv);
     Trace("cbqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
   }
-  
-  //[1] easy case : pv is in the equivalence class as another term not containing pv
-  Trace("cbqi-inst-debug") << "[1] try based on equivalence class." << std::endl;
+
+  //[1] easy case : pv is in the equivalence class as another term not
+  //containing pv
+  Trace("cbqi-inst-debug") << "[1] try based on equivalence class."
+                           << std::endl;
   d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
-  std::map< Node, std::vector< Node > >::iterator it_eqc = d_curr_eqc.find( pvr );
-  if( it_eqc!=d_curr_eqc.end() ){
-    //std::vector< Node > eq_candidates;
-    Trace("cbqi-inst-debug2") << "...eqc has size " << it_eqc->second.size() << std::endl;
-    for( unsigned k=0; k<it_eqc->second.size(); k++ ){
+  std::map<Node, std::vector<Node> >::iterator it_eqc = d_curr_eqc.find(pvr);
+  if (it_eqc != d_curr_eqc.end())
+  {
+    // std::vector< Node > eq_candidates;
+    Trace("cbqi-inst-debug2")
+        << "...eqc has size " << it_eqc->second.size() << std::endl;
+    for (unsigned k = 0; k < it_eqc->second.size(); k++)
+    {
       Node n = it_eqc->second[k];
-      if( n!=pv ){
-        Trace("cbqi-inst-debug") << "...try based on equal term " << n << std::endl;
-        //must be an eligible term
-        if( isEligible( n ) ){
+      if (n != pv)
+      {
+        Trace("cbqi-inst-debug")
+            << "...try based on equal term " << n << std::endl;
+        // must be an eligible term
+        if (isEligible(n))
+        {
           Node ns;
-          TermProperties pv_prop;  //coefficient of pv in the equality we solve (null is 1)
+          // coefficient of pv in the equality we solve (null is 1)
+          TermProperties pv_prop;
           bool proc = false;
-          if( !d_prog_var[n].empty() ){
-            ns = applySubstitution( pvtn, n, sf, pv_prop, false );
-            if( !ns.isNull() ){
-              computeProgVars( ns );
-              //substituted version must be new and cannot contain pv
-              proc = d_prog_var[ns].find( pv )==d_prog_var[ns].end();
+          if (!d_prog_var[n].empty())
+          {
+            ns = applySubstitution(pvtn, n, sf, pv_prop, false);
+            if (!ns.isNull())
+            {
+              computeProgVars(ns);
+              // substituted version must be new and cannot contain pv
+              proc = d_prog_var[ns].find(pv) == d_prog_var[ns].end();
             }
-          }else{
+          }
+          else
+          {
             ns = n;
             proc = true;
           }
-          if( proc ){
+          if (proc)
+          {
             if (vinst->processEqualTerm(this, sf, pv, pv_prop, ns, d_effort))
             {
               return true;
             }
-            if( !options::cbqiMultiInst() && hasTriedInstantiation(pv) )
+            else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
             {
               return false;
             }
@@ -648,11 +669,13 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, Instantiator* vinst
     {
       return true;
     }
-    else if( !options::cbqiMultiInst() && hasTriedInstantiation(pv) )
+    else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
     {
       return false;
     }
-  }else{
+  }
+  else
+  {
     Trace("cbqi-inst-debug2") << "...eqc not found." << std::endl;
   }
 
@@ -661,48 +684,62 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, Instantiator* vinst
   /// the variable
   if (vinst->hasProcessEquality(this, sf, pv, d_effort))
   {
-    Trace("cbqi-inst-debug") << "[2] try based on solving equalities." << std::endl;
+    Trace("cbqi-inst-debug")
+        << "[2] try based on solving equalities." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
-    for( unsigned k=0; k<d_curr_type_eqc[pvtnb].size(); k++ ){
+    for (unsigned k = 0; k < d_curr_type_eqc[pvtnb].size(); k++)
+    {
       Node r = d_curr_type_eqc[pvtnb][k];
-      std::map< Node, std::vector< Node > >::iterator it_reqc = d_curr_eqc.find( r );
-      std::vector< Node > lhs;
-      std::vector< bool > lhs_v;
-      std::vector< TermProperties > lhs_prop;
-      Assert( it_reqc!=d_curr_eqc.end() );
-      for( unsigned kk=0; kk<it_reqc->second.size(); kk++ ){
+      std::map<Node, std::vector<Node> >::iterator it_reqc = d_curr_eqc.find(r);
+      std::vector<Node> lhs;
+      std::vector<bool> lhs_v;
+      std::vector<TermProperties> lhs_prop;
+      Assert(it_reqc != d_curr_eqc.end());
+      for (unsigned kk = 0; kk < it_reqc->second.size(); kk++)
+      {
         Node n = it_reqc->second[kk];
         Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
-        //must be an eligible term
-        if( isEligible( n ) ){
+        // must be an eligible term
+        if (isEligible(n))
+        {
           Node ns;
           TermProperties pv_prop;
-          if( !d_prog_var[n].empty() ){
-            ns = applySubstitution( pvtn, n, sf, pv_prop );
-            if( !ns.isNull() ){
-              computeProgVars( ns );
+          if (!d_prog_var[n].empty())
+          {
+            ns = applySubstitution(pvtn, n, sf, pv_prop);
+            if (!ns.isNull())
+            {
+              computeProgVars(ns);
             }
-          }else{
+          }
+          else
+          {
             ns = n;
           }
-          if( !ns.isNull() ){
-            bool hasVar = d_prog_var[ns].find( pv )!=d_prog_var[ns].end();
-            Trace("cbqi-inst-debug2") << "... " << ns << " has var " << pv << " : " << hasVar << std::endl;
-            std::vector< TermProperties > term_props;
-            std::vector< Node > terms;
-            term_props.push_back( pv_prop );
-            terms.push_back( ns );
-            for( unsigned j=0; j<lhs.size(); j++ ){
-              //if this term or the another has pv in it, try to solve for it
-              if( hasVar || lhs_v[j] ){
-                Trace("cbqi-inst-debug") << "......try based on equality " << lhs[j] << " = " << ns << std::endl;
-                term_props.push_back( lhs_prop[j] );
-                terms.push_back( lhs[j] );
-                if (vinst->processEquality(this, sf, pv, term_props, terms, d_effort))
+          if (!ns.isNull())
+          {
+            bool hasVar = d_prog_var[ns].find(pv) != d_prog_var[ns].end();
+            Trace("cbqi-inst-debug2") << "... " << ns << " has var " << pv
+                                      << " : " << hasVar << std::endl;
+            std::vector<TermProperties> term_props;
+            std::vector<Node> terms;
+            term_props.push_back(pv_prop);
+            terms.push_back(ns);
+            for (unsigned j = 0; j < lhs.size(); j++)
+            {
+              // if this term or the another has pv in it, try to solve for it
+              if (hasVar || lhs_v[j])
+              {
+                Trace("cbqi-inst-debug") << "......try based on equality "
+                                         << lhs[j] << " = " << ns << std::endl;
+                term_props.push_back(lhs_prop[j]);
+                terms.push_back(lhs[j]);
+                if (vinst->processEquality(
+                        this, sf, pv, term_props, terms, d_effort))
                 {
                   return true;
                 }
-                else if( !options::cbqiMultiInst() && hasTriedInstantiation(pv) )
+                else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -710,63 +747,83 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, Instantiator* vinst
                 terms.pop_back();
               }
             }
-            lhs.push_back( ns );
-            lhs_v.push_back( hasVar );
-            lhs_prop.push_back( pv_prop );
-          }else{
-            Trace("cbqi-inst-debug2") << "... term " << n << " is ineligible after substitution." << std::endl;
+            lhs.push_back(ns);
+            lhs_v.push_back(hasVar);
+            lhs_prop.push_back(pv_prop);
           }
-        }else{
-          Trace("cbqi-inst-debug2") << "... term " << n << " is ineligible." << std::endl;
+          else
+          {
+            Trace("cbqi-inst-debug2")
+                << "... term " << n << " is ineligible after substitution."
+                << std::endl;
+          }
+        }
+        else
+        {
+          Trace("cbqi-inst-debug2")
+              << "... term " << n << " is ineligible." << std::endl;
         }
       }
     }
   }
+  if (!vinst->hasProcessAssertion(this, sf, pv, d_effort))
+  {
+    return false;
+  }
 
   //[3] directly look at assertions
-  if (vinst->hasProcessAssertion(this, sf, pv, d_effort))
+  Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
+  d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
+  std::unordered_set<Node, NodeHashFunction> lits;
+  // unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() )
+  // ? 1 : 2;
+  for (unsigned r = 0; r < 2; r++)
   {
-    Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
-    d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
-    std::unordered_set< Node, NodeHashFunction > lits;
-    //unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() ) ? 1 : 2;
-    for( unsigned r=0; r<2; r++ ){
-      TheoryId tid = r==0 ? Theory::theoryOf( pvtn ) : THEORY_UF;
-      Trace("cbqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
-      std::map< TheoryId, std::vector< Node > >::iterator ita = d_curr_asserts.find( tid );
-      if( ita!=d_curr_asserts.end() ){
-        for (unsigned j = 0; j<ita->second.size(); j++) {
-          Node lit = ita->second[j];
-          if( lits.find(lit)==lits.end() ){
-            lits.insert(lit);
-            Node plit;
-            if (options::cbqiRepeatLit() || !isSolvedAssertion(lit))
+    TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
+    Trace("cbqi-inst-debug2")
+        << "  look at assertions of " << tid << std::endl;
+    std::map<TheoryId, std::vector<Node> >::iterator ita =
+        d_curr_asserts.find(tid);
+    if (ita != d_curr_asserts.end())
+    {
+      for (unsigned j = 0; j < ita->second.size(); j++)
+      {
+        Node lit = ita->second[j];
+        if (lits.find(lit) == lits.end())
+        {
+          lits.insert(lit);
+          Node plit;
+          if (options::cbqiRepeatLit() || !isSolvedAssertion(lit))
+          {
+            plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+          }
+          if (!plit.isNull())
+          {
+            Trace("cbqi-inst-debug2") << "  look at " << lit;
+            if (plit != lit)
             {
-              plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
+              Trace("cbqi-inst-debug2") << "...processed to : " << plit;
             }
-            if (!plit.isNull()) {
-              Trace("cbqi-inst-debug2") << "  look at " << lit;
-              if (plit != lit) {
-                Trace("cbqi-inst-debug2") << "...processed to : " << plit;
-              }
-              Trace("cbqi-inst-debug2") << std::endl;
-              // apply substitutions
-              Node slit = applySubstitutionToLiteral(plit, sf);
-              if( !slit.isNull() ){
-                // check if contains pv
-                if( hasVariable( slit, pv ) ){
-                  Trace("cbqi-inst-debug") << "...try based on literal "
-                                            << slit << "," << std::endl;
-                  Trace("cbqi-inst-debug") << "...from " << lit
-                                            << std::endl;
-                  if (vinst->processAssertion(this, sf, pv, slit, lit, d_effort))
-                  {
-                    return true;
-                  }
-                  else if( !options::cbqiMultiInst() && hasTriedInstantiation(pv) )
-                  {
-                    return false;
-                  }
+            Trace("cbqi-inst-debug2") << std::endl;
+            // apply substitutions
+            Node slit = applySubstitutionToLiteral(plit, sf);
+            if (!slit.isNull())
+            {
+              // check if contains pv
+              if (hasVariable(slit, pv))
+              {
+                Trace("cbqi-inst-debug")
+                    << "...try based on literal " << slit << "," << std::endl;
+                Trace("cbqi-inst-debug") << "...from " << lit << std::endl;
+                if (vinst->processAssertion(
+                        this, sf, pv, slit, lit, d_effort))
+                {
+                  return true;
+                }
+                else if (!options::cbqiMultiInst()
+                          && hasTriedInstantiation(pv))
+                {
+                  return false;
                 }
               }
             }
@@ -774,12 +831,11 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, Instantiator* vinst
         }
       }
     }
-    if (vinst->processAssertions(this, sf, pv, d_effort))
-    {
-      return true;
-    }
   }
-
+  if (vinst->processAssertions(this, sf, pv, d_effort))
+  {
+    return true;
+  }
   return false;
 }
 
