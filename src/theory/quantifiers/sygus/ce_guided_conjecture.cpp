@@ -433,6 +433,14 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
           d_ce_sk_var_mvs.push_back(mv);
         }
         Trace("cegqi-engine") << std::endl;
+#ifdef CVC4_ASSERTIONS
+        // the values for the query should be a complete model
+        Node squery = query.substitute(d_ce_sk_vars.begin(),d_ce_sk_vars.end(),d_ce_sk_var_mvs.begin(),d_ce_sk_var_mvs.end());
+        Trace("cegqi-debug") << "...squery : " << squery << std::endl;
+        squery = Rewriter::rewrite(squery);
+        Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
+        Assert( squery.isConst() && squery.getConst<bool>() );
+#endif
         return;
       }
       else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
