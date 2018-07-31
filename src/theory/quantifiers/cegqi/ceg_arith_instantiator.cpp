@@ -353,6 +353,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         {
           return true;
         }
+        else if( !options::cbqiMultiInst() )
+        {
+          return false;
+        }
       }
     }
     else
@@ -504,6 +508,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             {
               return true;
             }
+            else if( !options::cbqiMultiInst() )
+            {
+              return false;
+            }
           }
         }
       }
@@ -530,6 +538,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       if (ci->constructInstantiationInc(pv, val, pv_prop_zero, sf))
       {
         return true;
+      }
+      else if( !options::cbqiMultiInst() )
+      {
+        return false;
       }
     }
   }
@@ -598,6 +610,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       {
         return true;
       }
+      else if( !options::cbqiMultiInst() )
+      {
+        return false;
+      }
     }
   }
   // generally should not make it to this point, unless we are using a
@@ -636,6 +652,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           if (ci->constructInstantiationInc(pv, val, pv_prop_nopt_bound, sf))
           {
             return true;
+          }
+          else if( !options::cbqiMultiInst() )
+          {
+            return false;
           }
         }
       }
