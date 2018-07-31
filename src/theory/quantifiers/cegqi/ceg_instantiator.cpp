@@ -609,10 +609,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
 
   //[1] easy case : pv is in the equivalence class as another term not
   // containing pv
-  if(vinst->hasProcessEqualTerm(this, sf, pv, d_effort))
+  if (vinst->hasProcessEqualTerm(this, sf, pv, d_effort))
   {
-    Trace("cbqi-inst-debug") << "[1] try based on equivalence class."
-                            << std::endl;
+    Trace("cbqi-inst-debug")
+        << "[1] try based on equivalence class." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
     std::map<Node, std::vector<Node> >::iterator it_eqc = d_curr_eqc.find(pvr);
     if (it_eqc != d_curr_eqc.end())

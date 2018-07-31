@@ -655,15 +655,15 @@ public:
   {
   }
 
-  /** has process equal term 
-   * 
+  /** has process equal term
+   *
    * Whether this instantiator implements processEqualTerm and
    * processEqualTerms.
    */
   virtual bool hasProcessEqualTerm(CegInstantiator* ci,
-                                  SolvedForm& sf,
-                                  Node pv,
-                                  CegInstEffort effort)
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort)
   {
     return false;
   }

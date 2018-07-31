@@ -119,7 +119,7 @@ bool ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                             Node pv,
                                             CegInstEffort effort)
 {
-  return effort!=CEG_INST_EFFORT_FULL;
+  return effort != CEG_INST_EFFORT_FULL;
 }
 
 Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,

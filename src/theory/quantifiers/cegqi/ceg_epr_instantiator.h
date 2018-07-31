@@ -43,9 +43,9 @@ class EprInstantiator : public Instantiator
              CegInstEffort effort) override;
   /** this instantiator implements hasProcessEqualTerm */
   bool hasProcessEqualTerm(CegInstantiator* ci,
-                                    SolvedForm& sf,
-                                    Node pv,
-                                    CegInstEffort effort) override;
+                           SolvedForm& sf,
+                           Node pv,
+                           CegInstEffort effort) override;
   /** process equal terms
    *
    * This adds n to the set of equal terms d_equal_terms if matching heuristics

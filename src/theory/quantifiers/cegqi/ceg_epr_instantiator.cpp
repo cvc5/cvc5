@@ -35,9 +35,9 @@ void EprInstantiator::reset(CegInstantiator* ci,
 }
 
 bool EprInstantiator::hasProcessEqualTerm(CegInstantiator* ci,
-                          SolvedForm& sf,
-                          Node pv,
-                          CegInstEffort effort)
+                                          SolvedForm& sf,
+                                          Node pv,
+                                          CegInstEffort effort)
 {
   return true;
 }

@@ -41,9 +41,9 @@ class DtInstantiator : public Instantiator
              CegInstEffort effort) override;
   /** this instantiator implements hasProcessEqualTerm */
   bool hasProcessEqualTerm(CegInstantiator* ci,
-                                    SolvedForm& sf,
-                                    Node pv,
-                                    CegInstEffort effort) override;
+                           SolvedForm& sf,
+                           Node pv,
+                           CegInstEffort effort) override;
   /** process equal terms
    *
    * This tries to find an equality eqc[i] = eqc[j] such that pv can be solved
