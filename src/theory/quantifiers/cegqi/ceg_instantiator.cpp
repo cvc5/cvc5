@@ -689,8 +689,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
     Trace("cbqi-inst-debug")
         << "[2] try based on solving equalities." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
-    std::vector< Node >& cteqc = d_curr_type_eqc[pvtnb];
-    
+    std::vector<Node>& cteqc = d_curr_type_eqc[pvtnb];
+
     for (const Node& r : cteqc)
     {
       std::map<Node, std::vector<Node> >::iterator it_reqc = d_curr_eqc.find(r);
@@ -698,7 +698,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       std::vector<bool> lhs_v;
       std::vector<TermProperties> lhs_prop;
       Assert(it_reqc != d_curr_eqc.end());
-      for (const Node& n : it_reqc->second )
+      for (const Node& n : it_reqc->second)
       {
         Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
         // must be an eligible term
