@@ -124,7 +124,18 @@ Node DynamicRewriter::toInternal(Node a)
     }
   }
   d_term_to_internal[a] = ret;
+  d_internal_to_term[ret] = a;
   return ret;
+}
+
+Node DynamicRewriter::toExternal(Node ai)
+{
+  std::map<Node, Node>::iterator it = d_internal_to_term.find(ai);
+  if( it !=d_internal_to_term.end() )
+  {
+    return it->second;
+  }
+  return Node::null();
 }
 
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)

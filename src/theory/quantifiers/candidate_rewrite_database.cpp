@@ -252,6 +252,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
+        /*
         out << "(" << (verified ? "" : "candidate-") << "rewrite ";
         if (d_using_sygus)
         {
@@ -265,6 +266,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           out << sol << " " << eq_sol;
         }
         out << ")" << std::endl;
+        */
         rew_print = true;
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
