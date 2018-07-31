@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <set>
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "parser/parser.h"
 
@@ -30,11 +31,9 @@
 namespace CVC4 {
 namespace parser {
 
-Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode,
-           bool parseOnly)
-    : Parser(exprManager, input, strictMode, parseOnly),
-      d_cnf(false),
-      d_fof(false) {
+Tptp::Tptp(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_cnf(false), d_fof(false)
+{
   addTheory(Tptp::THEORY_CORE);
 
   /* Try to find TPTP dir */

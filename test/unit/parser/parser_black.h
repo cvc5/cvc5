@@ -19,6 +19,7 @@
 #include <cxxtest/TestSuite.h>
 #include <sstream>
 
+#include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
@@ -38,7 +39,7 @@ using namespace std;
 
 class ParserBlack {
   InputLanguage d_lang;
-  ExprManager *d_exprManager;
+  std::unique_ptr<api::Solver> d_solver;
 
 protected:
   Options d_options;
@@ -46,17 +47,17 @@ protected:
   /* Set up declaration context for expr inputs */
   virtual void setupContext(Parser& parser) {
     /* a, b, c: BOOLEAN */
-    parser.mkVar("a",d_exprManager->booleanType());
-    parser.mkVar("b",d_exprManager->booleanType());
-    parser.mkVar("c",d_exprManager->booleanType());
+    parser.mkVar("a", d_solver->getExprManager()->booleanType());
+    parser.mkVar("b", d_solver->getExprManager()->booleanType());
+    parser.mkVar("c", d_solver->getExprManager()->booleanType());
     /* t, u, v: TYPE */
     Type t = parser.mkSort("t");
     Type u = parser.mkSort("u");
     Type v = parser.mkSort("v");
     /* f : t->u; g: u->v; h: v->t; */
-    parser.mkVar("f", d_exprManager->mkFunctionType(t,u));
-    parser.mkVar("g", d_exprManager->mkFunctionType(u,v));
-    parser.mkVar("h", d_exprManager->mkFunctionType(v,t));
+    parser.mkVar("f", d_solver->getExprManager()->mkFunctionType(t,u));
+    parser.mkVar("g", d_solver->getExprManager()->mkFunctionType(u,v));
+    parser.mkVar("h", d_solver->getExprManager()->mkFunctionType(v,t));
     /* x:t; y:u; z:v; */
     parser.mkVar("x",t);
     parser.mkVar("y",u);
@@ -70,7 +71,7 @@ protected:
 //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
 //        istringstream stream(goodInputs[i]);
         Parser *parser =
-          ParserBuilder(d_exprManager,"test")
+          ParserBuilder(d_solver.get(),"test")
             .withStringInput(goodInput)
             .withOptions(d_options)
             .withInputLanguage(d_lang)
@@ -98,7 +99,7 @@ protected:
 //      cerr << "Testing bad input: '" << badInput << "'\n";
 //      Debug.on("parser");
 
-    Parser* parser = ParserBuilder(d_exprManager, "test")
+    Parser* parser = ParserBuilder(d_solver.get(), "test")
                          .withStringInput(badInput)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -127,7 +128,7 @@ protected:
 //        istringstream stream(context + goodBooleanExprs[i]);
 
         Parser *parser =
-          ParserBuilder(d_exprManager,"test")
+          ParserBuilder(d_solver.get(),"test")
             .withStringInput(goodExpr)
             .withOptions(d_options)
             .withInputLanguage(d_lang)
@@ -165,7 +166,7 @@ protected:
 //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
       Parser *parser =
-        ParserBuilder(d_exprManager,"test")
+        ParserBuilder(d_solver.get(),"test")
           .withStringInput(badExpr)
           .withOptions(d_options)
           .withInputLanguage(d_lang)
@@ -189,12 +190,11 @@ protected:
   }
 
   void setUp() {
-    d_exprManager = new ExprManager;
+    d_solver = std::unique_ptr<api::Solver>(new api::Solver());
     d_options.set(options::parseOnly, true);
   }
 
   void tearDown() {
-    delete d_exprManager;
   }
 };/* class ParserBlack */
 

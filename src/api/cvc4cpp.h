@@ -2349,6 +2349,18 @@ class CVC4_PUBLIC Solver
    */
   void setOption(const std::string& option, const std::string& value) const;
 
+  /**
+   * !!! This is only temporarily available until the parser is fully migrated
+   * to the new API. !!!
+   */
+  ExprManager* getExprManager(void) const;
+
+  /**
+   * !!! This is only temporarily available until the parser is fully migrated
+   * to the new API. !!!
+   */
+  SmtEngine* getSmtEngine(void) const;
+
  private:
   /* Helper to convert a vector of internal types to sorts. */
   std::vector<Type> sortVectorToTypes(const std::vector<Sort>& vector) const;

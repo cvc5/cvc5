@@ -26,6 +26,10 @@ namespace CVC4 {
 
 class SExpr;
 
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Smt1 : public Parser {
@@ -93,7 +97,10 @@ private:
   Logic d_logic;
 
 protected:
-  Smt1(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ Smt1(api::Solver* solver,
+      Input* input,
+      bool strictMode = false,
+      bool parseOnly = false);
 
 public:
   /**

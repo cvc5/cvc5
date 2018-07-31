@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "api/cvc4cpp.h"
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -36,7 +37,7 @@ using namespace std;
 
 class ParserBuilderBlack : public CxxTest::TestSuite {
 
-  ExprManager *d_exprManager;
+  std::unique_ptr<api::Solver> d_solver;
 
   void checkEmptyInput(ParserBuilder& builder) {
     Parser *parser = builder.build();
@@ -53,7 +54,7 @@ class ParserBuilderBlack : public CxxTest::TestSuite {
     TS_ASSERT( parser != NULL );
 
     Expr e = parser->nextExpression();
-    TS_ASSERT_EQUALS( e, d_exprManager->mkConst(true) );
+    TS_ASSERT_EQUALS( e, d_solver->getExprManager()->mkConst(true) );
 
     e = parser->nextExpression();
     TS_ASSERT( e.isNull() );
@@ -71,18 +72,17 @@ class ParserBuilderBlack : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_exprManager = new ExprManager;
+    d_solver = std::unique_ptr<api::Solver>(new api::Solver());
   }
 
   void tearDown() {
-    delete d_exprManager;
   }
 
   void testEmptyFileInput() {
     char *filename = mkTemp();
 
     checkEmptyInput(
-      ParserBuilder(d_exprManager,filename)
+      ParserBuilder(d_solver.get(),filename)
         .withInputLanguage(LANG_CVC4)
                     );
 
@@ -98,7 +98,7 @@ public:
     fs.close();
 
     checkTrueInput(
-      ParserBuilder(d_exprManager,filename)
+      ParserBuilder(d_solver.get(),filename)
         .withInputLanguage(LANG_CVC4)
                    );
 
@@ -108,7 +108,7 @@ public:
 
   void testEmptyStringInput() {
     checkEmptyInput(
-      ParserBuilder(d_exprManager,"foo")
+      ParserBuilder(d_solver.get(),"foo")
         .withInputLanguage(LANG_CVC4)
         .withStringInput("")
                     );
@@ -116,7 +116,7 @@ public:
 
   void testTrueStringInput() {
     checkTrueInput(
-      ParserBuilder(d_exprManager,"foo")
+      ParserBuilder(d_solver.get(),"foo")
         .withInputLanguage(LANG_CVC4)
         .withStringInput("TRUE")
                    );
@@ -125,7 +125,7 @@ public:
   void testEmptyStreamInput() {
     stringstream ss( "", ios_base::in );
     checkEmptyInput(
-      ParserBuilder(d_exprManager,"foo")
+      ParserBuilder(d_solver.get(),"foo")
         .withInputLanguage(LANG_CVC4)
         .withStreamInput(ss)
                     );
@@ -134,7 +134,7 @@ public:
   void testTrueStreamInput() {
     stringstream ss( "TRUE", ios_base::in );
     checkTrueInput(
-      ParserBuilder(d_exprManager,"foo")
+      ParserBuilder(d_solver.get(),"foo")
         .withInputLanguage(LANG_CVC4)
         .withStreamInput(ss)
                    );

@@ -20,6 +20,7 @@
 #include <vector>
 #include <sstream>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
@@ -33,7 +34,7 @@ using namespace std;
 
 class InteractiveShellBlack : public CxxTest::TestSuite {
 private:
-  ExprManager* d_exprManager;
+  std::unique_ptr<api::Solver> d_solver;
   Options d_options;
   stringstream* d_sin;
   stringstream* d_sout;
@@ -60,7 +61,7 @@ private:
 
  public:
   void setUp() {
-    d_exprManager = new ExprManager;
+    d_solver = std::unique_ptr<api::Solver>(new api::Solver());
     d_sin = new stringstream;
     d_sout = new stringstream;
     d_options.set(options::in, d_sin);
@@ -69,25 +70,24 @@ private:
   }
 
   void tearDown() {
-    delete d_exprManager;
     delete d_sin;
     delete d_sout;
   }
 
   void testAssertTrue() {
     *d_sin << "ASSERT TRUE;\n" << flush;
-    InteractiveShell shell(*d_exprManager, d_options);
+    InteractiveShell shell(d_solver.get(), d_options);
     countCommands( shell, 1, 1 );
   }
 
   void testQueryFalse() {
     *d_sin << "QUERY FALSE;\n" << flush;
-    InteractiveShell shell(*d_exprManager, d_options);
+    InteractiveShell shell(d_solver.get(), d_options);
     countCommands( shell, 1, 1 );
   }
 
   void testDefUse() {
-    InteractiveShell shell(*d_exprManager, d_options);
+    InteractiveShell shell(d_solver.get(), d_options);
     *d_sin << "x : REAL; ASSERT x > 0;\n" << flush;
     /* readCommand may return a sequence, so we can't say for sure
        whether it will return 1 or 2... */
@@ -95,7 +95,7 @@ private:
   }
 
   void testDefUse2() {
-    InteractiveShell shell(*d_exprManager, d_options);
+    InteractiveShell shell(d_solver.get(), d_options);
     /* readCommand may return a sequence, see above. */
     *d_sin << "x : REAL;\n" << flush;
     Command* tmp = shell.readCommand();
@@ -105,14 +105,14 @@ private:
   }
 
   void testEmptyLine() {
-    InteractiveShell shell(*d_exprManager, d_options);
+    InteractiveShell shell(d_solver.get(), d_options);
     *d_sin << flush;
     countCommands(shell,0,0);
   }
 
   void testRepeatedEmptyLines() {
     *d_sin << "\n\n\n";
-    InteractiveShell shell(*d_exprManager, d_options);
+    InteractiveShell shell(d_solver.get(), d_options);
     /* Might return up to four empties, might return nothing */
     countCommands( shell, 0, 3 );
   }

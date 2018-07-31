@@ -25,6 +25,11 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
+
 namespace main {
 
 class CommandExecutor {
@@ -32,7 +37,7 @@ private:
   std::string d_lastStatistics;
 
 protected:
-  ExprManager& d_exprMgr;
+  api::Solver* d_solver;
   SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
@@ -40,10 +45,9 @@ protected:
   ExprStream* d_replayStream;
 
 public:
-  CommandExecutor(ExprManager &exprMgr, Options &options);
+  CommandExecutor(api::Solver* solver, Options &options);
 
   virtual ~CommandExecutor() {
-    delete d_smtEngine;
     if(d_replayStream != NULL){
       delete d_replayStream;
     }
@@ -63,20 +67,16 @@ public:
     return d_stats;
   }
 
-  virtual void flushStatistics(std::ostream& out) const {
-    d_exprMgr.getStatistics().flushInformation(out);
-    d_smtEngine->getStatistics().flushInformation(out);
-    d_stats.flushInformation(out);
-  }
+  /**
+   * Flushes statistics to a file descriptor.
+   */
+  virtual void flushStatistics(std::ostream& out) const;
 
   /**
-   * Flushes statistics to a file descriptor. Safe to use in a signal handler.
+   * Flushes statistics to a file descriptor.
+   * Safe to use in a signal handler.
    */
-  void safeFlushStatistics(int fd) const {
-    d_exprMgr.safeFlushStatistics(fd);
-    d_smtEngine->safeFlushStatistics(fd);
-    d_stats.safeFlushInformation(fd);
-  }
+  void safeFlushStatistics(int fd) const;
 
   static void printStatsFilterZeros(std::ostream& out,
                                     const std::string& statsString);

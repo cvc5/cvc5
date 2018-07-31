@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -32,29 +33,28 @@
 namespace CVC4 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(ExprManager* exprManager,
-                             const std::string& filename) :
-  d_filename(filename),
-  d_exprManager(exprManager) {
-  init(exprManager, filename);
+ParserBuilder::ParserBuilder(api::Solver* solver, const std::string& filename)
+    : d_filename(filename), d_solver(solver)
+{
+  init(solver, filename);
 }
 
-ParserBuilder::ParserBuilder(ExprManager* exprManager,
+ParserBuilder::ParserBuilder(api::Solver* solver,
                              const std::string& filename,
-                             const Options& options) :
-  d_filename(filename),
-  d_exprManager(exprManager) {
-  init(exprManager, filename);
+                             const Options& options)
+    : d_filename(filename), d_solver(solver)
+{
+  init(solver, filename);
   withOptions(options);
 }
 
-void ParserBuilder::init(ExprManager* exprManager,
-                         const std::string& filename) {
+void ParserBuilder::init(api::Solver* solver, const std::string& filename)
+{
   d_inputType = FILE_INPUT;
   d_lang = language::input::LANG_AUTO;
   d_filename = filename;
   d_streamInput = NULL;
-  d_exprManager = exprManager;
+  d_solver = solver;
   d_checksEnabled = true;
   d_strictMode = false;
   d_canIncludeFile = true;
@@ -87,26 +87,27 @@ Parser* ParserBuilder::build()
   assert(input != NULL);
 
   Parser* parser = NULL;
-  switch(d_lang) {
-  case language::input::LANG_SMTLIB_V1:
-    parser = new Smt1(d_exprManager, input, d_strictMode, d_parseOnly);
-    break;
-  case language::input::LANG_SYGUS:
-    parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
-    break;
-  case language::input::LANG_TPTP:
-    parser = new Tptp(d_exprManager, input, d_strictMode, d_parseOnly);
-    break;
-  default:
-    if (language::isInputLang_smt2(d_lang))
-    {
-      parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
-    }
-    else
-    {
-      parser = new Parser(d_exprManager, input, d_strictMode, d_parseOnly);
-    }
-    break;
+  switch (d_lang)
+  {
+    case language::input::LANG_SMTLIB_V1:
+      parser = new Smt1(d_solver, input, d_strictMode, d_parseOnly);
+      break;
+    case language::input::LANG_SYGUS:
+      parser = new Smt2(d_solver, input, d_strictMode, d_parseOnly);
+      break;
+    case language::input::LANG_TPTP:
+      parser = new Tptp(d_solver, input, d_strictMode, d_parseOnly);
+      break;
+    default:
+      if (language::isInputLang_smt2(d_lang))
+      {
+        parser = new Smt2(d_solver, input, d_strictMode, d_parseOnly);
+      }
+      else
+      {
+        parser = new Parser(d_solver, input, d_strictMode, d_parseOnly);
+      }
+      break;
   }
 
   if( d_checksEnabled ) {
@@ -133,8 +134,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withExprManager(ExprManager* exprManager) {
-  d_exprManager = exprManager;
+ParserBuilder& ParserBuilder::withSolver(api::Solver* solver) {
+  d_solver = solver;
   return *this;
 }
 

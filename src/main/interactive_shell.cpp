@@ -37,6 +37,7 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif /* HAVE_LIBREADLINE */
 
+#include "api/cvc4cpp.h"
 #include "base/tls.h"
 #include "base/output.h"
 #include "options/language.h"
@@ -88,14 +89,14 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBREADLINE */
 
-InteractiveShell::InteractiveShell(ExprManager& exprManager,
+InteractiveShell::InteractiveShell(api::Solver* solver,
                                    const Options& options)
     : d_in(*options.getIn()),
       d_out(*options.getOutConst()),
       d_options(options),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
+  ParserBuilder parserBuilder(solver, INPUT_FILENAME, options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUserForceLogicString()) {

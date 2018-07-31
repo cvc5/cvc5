@@ -29,7 +29,6 @@ namespace CVC4 {
 
 class Command;
 class Expr;
-class ExprManager;
 
 namespace parser {
 

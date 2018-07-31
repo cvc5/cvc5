@@ -24,6 +24,7 @@
 #include <list>
 #include <cassert>
 
+#include "api/cvc4cpp.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "expr/expr.h"
@@ -36,11 +37,13 @@ namespace CVC4 {
 
 // Forward declarations
 class BooleanType;
-class ExprManager;
 class Command;
 class FunctionType;
 class Type;
 class ResourceManager;
+namespace api {
+class Solver;
+}
 
 //for sygus gterm two-pass parsing
 class CVC4_PUBLIC SygusGTerm {
@@ -135,8 +138,9 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
-  /** The expression manager */
-  ExprManager *d_exprManager;
+  /** The API Solver object. */
+  api::Solver* d_solver;
+
   /** The resource manager associated with this expr manager */
   ResourceManager *d_resourceManager;
 
@@ -247,23 +251,24 @@ protected:
    * @attention The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
-   * @param exprManager the expression manager to use when creating expressions
+   * @param the solver API object
    * @param input the parser input
    * @param strictMode whether to incorporate strict(er) compliance checks
    * @param parseOnly whether we are parsing only (and therefore certain checks
    * need not be performed, like those about unimplemented features, @see
    * unimplementedFeature())
    */
-  Parser(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ Parser(api::Solver* solver,
+        Input* input,
+        bool strictMode = false,
+        bool parseOnly = false);
 
 public:
 
   virtual ~Parser();
 
   /** Get the associated <code>ExprManager</code>. */
-  inline ExprManager* getExprManager() const {
-    return d_exprManager;
-  }
+  ExprManager* getExprManager() const;
 
   /** Get the associated input. */
   inline Input* getInput() const {
