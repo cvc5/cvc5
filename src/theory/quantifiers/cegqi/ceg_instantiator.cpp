@@ -608,7 +608,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   }
 
   //[1] easy case : pv is in the equivalence class as another term not
-  //containing pv
+  // containing pv
   Trace("cbqi-inst-debug") << "[1] try based on equivalence class."
                            << std::endl;
   d_curr_iphase[pv] = CEG_INST_PHASE_EQC;
@@ -780,8 +780,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   for (unsigned r = 0; r < 2; r++)
   {
     TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
-    Trace("cbqi-inst-debug2")
-        << "  look at assertions of " << tid << std::endl;
+    Trace("cbqi-inst-debug2") << "  look at assertions of " << tid << std::endl;
     std::map<TheoryId, std::vector<Node> >::iterator ita =
         d_curr_asserts.find(tid);
     if (ita != d_curr_asserts.end())
@@ -815,13 +814,11 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                 Trace("cbqi-inst-debug")
                     << "...try based on literal " << slit << "," << std::endl;
                 Trace("cbqi-inst-debug") << "...from " << lit << std::endl;
-                if (vinst->processAssertion(
-                        this, sf, pv, slit, lit, d_effort))
+                if (vinst->processAssertion(this, sf, pv, slit, lit, d_effort))
                 {
                   return true;
                 }
-                else if (!options::cbqiMultiInst()
-                          && hasTriedInstantiation(pv))
+                else if (!options::cbqiMultiInst() && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
