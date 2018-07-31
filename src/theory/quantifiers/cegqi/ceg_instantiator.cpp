@@ -766,17 +766,15 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       }
     }
   }
+  
+  //[3] directly look at assertions
   if (!vinst->hasProcessAssertion(this, sf, pv, d_effort))
   {
     return false;
   }
-
-  //[3] directly look at assertions
   Trace("cbqi-inst-debug") << "[3] try based on assertions." << std::endl;
   d_curr_iphase[pv] = CEG_INST_PHASE_ASSERTION;
   std::unordered_set<Node, NodeHashFunction> lits;
-  // unsigned rmax = Theory::theoryOf( pv )==Theory::theoryOf( pv.getType() )
-  // ? 1 : 2;
   for (unsigned r = 0; r < 2; r++)
   {
     TheoryId tid = r == 0 ? Theory::theoryOf(pvtn) : THEORY_UF;
