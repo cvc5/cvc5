@@ -620,9 +620,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       // std::vector< Node > eq_candidates;
       Trace("cbqi-inst-debug2")
           << "...eqc has size " << it_eqc->second.size() << std::endl;
-      for (unsigned k = 0; k < it_eqc->second.size(); k++)
+      for (const Node& n : it_eqc->second)
       {
-        Node n = it_eqc->second[k];
         if (n != pv)
         {
           Trace("cbqi-inst-debug")
@@ -690,17 +689,17 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
     Trace("cbqi-inst-debug")
         << "[2] try based on solving equalities." << std::endl;
     d_curr_iphase[pv] = CEG_INST_PHASE_EQUAL;
-    for (unsigned k = 0; k < d_curr_type_eqc[pvtnb].size(); k++)
+    std::vector< Node >& cteqc = d_curr_type_eqc[pvtnb];
+    
+    for (const Node& r : cteqc)
     {
-      Node r = d_curr_type_eqc[pvtnb][k];
       std::map<Node, std::vector<Node> >::iterator it_reqc = d_curr_eqc.find(r);
       std::vector<Node> lhs;
       std::vector<bool> lhs_v;
       std::vector<TermProperties> lhs_prop;
       Assert(it_reqc != d_curr_eqc.end());
-      for (unsigned kk = 0; kk < it_reqc->second.size(); kk++)
+      for (const Node& n : it_reqc->second )
       {
-        Node n = it_reqc->second[kk];
         Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
         // must be an eligible term
         if (isEligible(n))
@@ -728,7 +727,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
             std::vector<Node> terms;
             term_props.push_back(pv_prop);
             terms.push_back(ns);
-            for (unsigned j = 0; j < lhs.size(); j++)
+            for (unsigned j = 0, size = lhs.size(); j < size; j++)
             {
               // if this term or the another has pv in it, try to solve for it
               if (hasVar || lhs_v[j])
@@ -785,9 +784,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         d_curr_asserts.find(tid);
     if (ita != d_curr_asserts.end())
     {
-      for (unsigned j = 0; j < ita->second.size(); j++)
+      for (const Node& lit : ita->second)
       {
-        Node lit = ita->second[j];
         if (lits.find(lit) == lits.end())
         {
           lits.insert(lit);
