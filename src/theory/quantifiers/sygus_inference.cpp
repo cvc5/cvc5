@@ -146,11 +146,11 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
             free_functions_uf.push_back(op);
           }
         }
-        else if( cur.getKind()==VARIABLE )
+        else if (cur.getKind() == VARIABLE)
         {
           // a free variable is a 0-argument function to synthesize
           Assert(std::find(free_functions.begin(), free_functions.end(), cur)
-              == free_functions.end());
+                 == free_functions.end());
           free_functions.push_back(cur);
         }
         else if (cur.getKind() == FORALL)
@@ -263,7 +263,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
       Node ff = itffv->second;
       Expr body = it->second;
       std::vector<Expr> args;
-      if( lambda.getKind()==LAMBDA )
+      if (lambda.getKind() == LAMBDA)
       {
         for (const Node& v : lambda[0])
         {

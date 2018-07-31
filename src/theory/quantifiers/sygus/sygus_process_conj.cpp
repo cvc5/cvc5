@@ -17,10 +17,10 @@
 #include <stack>
 
 #include "expr/datatype.h"
+#include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "options/quantifiers_options.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -533,8 +533,8 @@ Node CegConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
-  
-  if( options::sygusArgRelevant() )
+
+  if (options::sygusArgRelevant())
   {
     // initialize the information about each function to synthesize
     for (unsigned i = 0; i < q[0].getNumChildren(); i++)
@@ -561,9 +561,10 @@ Node CegConjectureProcess::postSimplify(Node q)
     getComponentVector(AND, base, conjuncts);
 
     // process the conjunctions
-    for (std::map<Node, CegConjectureProcessFun>::iterator it = d_sf_info.begin();
-        it != d_sf_info.end();
-        ++it)
+    for (std::map<Node, CegConjectureProcessFun>::iterator it =
+             d_sf_info.begin();
+         it != d_sf_info.end();
+         ++it)
     {
       Node f = it->first;
       for (unsigned i = 0; i < conjuncts.size(); i++)
@@ -591,7 +592,7 @@ void CegConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 
 bool CegConjectureProcess::isArgRelevant(Node f, unsigned i)
 {
-  if( !options::sygusArgRelevant() )
+  if (!options::sygusArgRelevant())
   {
     return true;
   }
