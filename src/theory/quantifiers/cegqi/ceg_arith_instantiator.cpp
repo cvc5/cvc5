@@ -129,10 +129,9 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                             CegInstEffort effort)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
   if (atom.getKind() == GEQ
-      || (atom.getKind() == EQUAL && !pol && atom[0].getType().isReal()))
+      || (atom.getKind() == EQUAL && atom[0].getType().isReal()))
   {
     return lit;
   }
@@ -151,7 +150,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
   Assert(atom.getKind() == GEQ
-         || (atom.getKind() == EQUAL && !pol && atom[0].getType().isReal()));
+         || (atom.getKind() == EQUAL && atom[0].getType().isReal()));
   // get model value for pv
   Node pv_value = ci->getModelValue(pv);
   // cannot contain infinity?
@@ -167,7 +166,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
     return false;
   }
   // disequalities are either strict upper or lower bounds
-  unsigned rmax = (atom.getKind() == GEQ || options::cbqiModel()) ? 1 : 2;
+  unsigned rmax = 1;
+  if( atom.getKind()==EQUAL && ( pol || !options::cbqiModel() ) )
+  {
+    rmax = 2;
+  }
   for (unsigned r = 0; r < rmax; r++)
   {
     int uires = ires;
@@ -190,6 +193,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           uires = uires * 2;
         }
       }
+    }
+    else if( pol )
+    {
+      // equalities are both non-strict upper and lower bounds
+      uires = r==0 ? 1 : -1;
     }
     else
     {
@@ -227,11 +235,12 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           Node cmp = nm->mkNode(GEQ, lhs_value, rhs_value);
           cmp = Rewriter::rewrite(cmp);
           Assert(cmp.isConst());
-          is_upper = (cmp != ci->getQuantifiersEngine()->getTermUtil()->d_true);
+          is_upper = !cmp.isConst() || !cmp.getConst<bool>();
         }
       }
       else
       {
+        // since we are not using the model, we try both.
         is_upper = (r == 0);
       }
       Assert(atom.getKind() == EQUAL && !pol);
@@ -394,6 +403,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         t_values[rr].push_back(Node::null());
         // check if it is better than the current best bound : lexicographic
         // order infinite/finite/infinitesimal parts
+        bool new_best_set = false;
         bool new_best = true;
         for (unsigned t = 0; t < 3; t++)
         {
@@ -440,8 +450,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                 value[t]);
             value[t] = Rewriter::rewrite(value[t]);
           }
-          // check if new best
-          if (best != -1)
+          // check if new best, if we have not already set it.
+          if (best != -1 && !new_best_set)
           {
             Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
@@ -449,12 +459,13 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               Kind k = rr == 0 ? GEQ : LEQ;
               Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
               cmp_bound = Rewriter::rewrite(cmp_bound);
-              if (cmp_bound
-                  != ci->getQuantifiersEngine()->getTermUtil()->d_true)
+              Assert( cmp_bound.isConst() );
+              if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
                 new_best = false;
                 break;
               }
+              new_best_set = true;
             }
           }
         }
