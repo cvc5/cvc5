@@ -432,7 +432,7 @@ EvalResult Evaluator::evalInternal(TNode n,
         case kind::STRING_STOI:
         {
           const String& s = results[currNode[0]].d_str;
-          if (!s.isNumber())
+          if (s.isNumber())
           {
             results[currNode] = EvalResult(Rational(-1));
           }
