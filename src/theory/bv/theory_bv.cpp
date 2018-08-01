@@ -346,7 +346,6 @@ void TheoryBV::check(Effort e)
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
     }
-    Assert (d_eagerSolver->hasAssertions(assertions));
 
     bool ok = d_eagerSolver->checkSat();
     if (!ok) {
