@@ -38,7 +38,6 @@ namespace api {
 class Solver;
 }
 
-
 namespace parser {
 
 class Smt2 : public Parser {

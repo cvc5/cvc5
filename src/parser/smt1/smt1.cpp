@@ -16,8 +16,8 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/type.h"
-#include "smt/command.h"
 #include "parser/parser.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 namespace parser {

@@ -1622,7 +1622,10 @@ Expr ValidityChecker::exprFromString(const std::string& s, InputLanguage lang) {
     throw Exception("Unsupported language in exprFromString: " + ss.str());
   }
 
-  CVC4::parser::Parser* p = CVC4::parser::ParserBuilder(d_solver, "<internal>").withStringInput(s).withInputLanguage(lang).build();
+  CVC4::parser::Parser* p = CVC4::parser::ParserBuilder(d_solver, "<internal>")
+                                .withStringInput(s)
+                                .withInputLanguage(lang)
+                                .build();
   p->useDeclarationsFrom(d_parserContext);
   Expr e = p->nextExpression();
   if( e.isNull() ) {
@@ -2583,7 +2586,10 @@ void ValidityChecker::reset() {
   // reset everything, forget everything
   d_smt->reset();
   delete d_parserContext;
-  d_parserContext = CVC4::parser::ParserBuilder(d_solver, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
+  d_parserContext = CVC4::parser::ParserBuilder(d_solver, "<internal>")
+                        .withInputLanguage(CVC4::language::input::LANG_CVC4)
+                        .withStringInput("")
+                        .build();
   s_typeToExpr.clear();
   s_exprToType.clear();
 }

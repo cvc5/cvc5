@@ -23,9 +23,9 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
+#include "options/options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
-#include "options/options.h"
 #include "smt1/smt1.h"
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
@@ -134,7 +134,8 @@ ParserBuilder& ParserBuilder::withChecks(bool flag) {
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withSolver(api::Solver* solver) {
+ParserBuilder& ParserBuilder::withSolver(api::Solver* solver)
+{
   d_solver = solver;
   return *this;
 }

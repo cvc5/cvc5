@@ -49,13 +49,13 @@ void setNoLimitCPU() {
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
-CommandExecutor::CommandExecutor(api::Solver* solver, Options &options) :
-  d_solver(solver),
-  d_smtEngine(d_solver->getSmtEngine()),
-  d_options(options),
-  d_stats("driver"),
-  d_result(),
-  d_replayStream(NULL)
+CommandExecutor::CommandExecutor(api::Solver* solver, Options& options)
+    : d_solver(solver),
+      d_smtEngine(d_solver->getSmtEngine()),
+      d_options(options),
+      d_stats("driver"),
+      d_result(),
+      d_replayStream(NULL)
 {}
 
 void CommandExecutor::flushStatistics(std::ostream& out) const

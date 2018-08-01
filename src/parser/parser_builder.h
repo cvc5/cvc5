@@ -91,8 +91,7 @@ class CVC4_PUBLIC ParserBuilder {
   /** Initialize this parser builder */
   void init(api::Solver* solver, const std::string& filename);
 
-public:
-
+ public:
   /** Create a parser builder using the given Solver and filename. */
   ParserBuilder(api::Solver* solver, const std::string& filename);
 

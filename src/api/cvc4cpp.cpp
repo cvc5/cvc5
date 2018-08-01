@@ -2781,19 +2781,13 @@ void Solver::setOption(const std::string& option,
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!
  */
-ExprManager* Solver::getExprManager(void) const
-{
-  return d_exprMgr.get();
-}
+ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
 
 /**
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!
  */
-SmtEngine* Solver::getSmtEngine(void) const
-{
-  return d_smtEngine.get();
-}
+SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
 }  // namespace api
 }  // namespace CVC4

@@ -38,8 +38,8 @@
 #endif /* HAVE_LIBREADLINE */
 
 #include "api/cvc4cpp.h"
-#include "base/tls.h"
 #include "base/output.h"
+#include "base/tls.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/input.h"
@@ -89,8 +89,7 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBREADLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver,
-                                   const Options& options)
+InteractiveShell::InteractiveShell(api::Solver* solver, const Options& options)
     : d_in(*options.getIn()),
       d_out(*options.getOutConst()),
       d_options(options),

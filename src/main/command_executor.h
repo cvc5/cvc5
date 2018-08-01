@@ -37,20 +37,22 @@ private:
   std::string d_lastStatistics;
 
 protected:
-  api::Solver* d_solver;
-  SmtEngine* d_smtEngine;
-  Options& d_options;
-  StatisticsRegistry d_stats;
-  Result d_result;
-  ExprStream* d_replayStream;
+ api::Solver* d_solver;
+ SmtEngine* d_smtEngine;
+ Options& d_options;
+ StatisticsRegistry d_stats;
+ Result d_result;
+ ExprStream* d_replayStream;
 
 public:
-  CommandExecutor(api::Solver* solver, Options &options);
+ CommandExecutor(api::Solver* solver, Options& options);
 
-  virtual ~CommandExecutor() {
-    if(d_replayStream != NULL){
-      delete d_replayStream;
-    }
+ virtual ~CommandExecutor()
+ {
+   if (d_replayStream != NULL)
+   {
+     delete d_replayStream;
+   }
   }
 
   /**

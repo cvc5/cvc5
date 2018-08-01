@@ -49,25 +49,23 @@ class CVC4_PUBLIC InteractiveShell {
   static const unsigned s_historyLimit = 500;
 
 public:
-  InteractiveShell(api::Solver* solver, const Options& options);
+ InteractiveShell(api::Solver* solver, const Options& options);
 
-  /**
-   * Close out the interactive session.
-   */
-  ~InteractiveShell();
+ /**
+  * Close out the interactive session.
+  */
+ ~InteractiveShell();
 
-  /**
-   * Read a command from the interactive shell. This will read as
-   * many lines as necessary to parse a well-formed command.
-   */
-  Command* readCommand();
+ /**
+  * Read a command from the interactive shell. This will read as
+  * many lines as necessary to parse a well-formed command.
+  */
+ Command* readCommand();
 
-  /**
-   * Return the internal parser being used.
-   */
-  parser::Parser* getParser() {
-    return d_parser;
-  }
+ /**
+  * Return the internal parser being used.
+  */
+ parser::Parser* getParser() { return d_parser; }
 
 };/* class InteractiveShell */
 
