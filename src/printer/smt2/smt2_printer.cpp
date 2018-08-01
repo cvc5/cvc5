@@ -983,6 +983,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_SLE: return "bvsle";
   case kind::BITVECTOR_SGT: return "bvsgt";
   case kind::BITVECTOR_SGE: return "bvsge";
+  case kind::BITVECTOR_TO_NAT: return "bv2nat";
   case kind::BITVECTOR_REDOR: return "bvredor";
   case kind::BITVECTOR_REDAND: return "bvredand";
 

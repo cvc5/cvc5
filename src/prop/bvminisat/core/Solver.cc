@@ -138,7 +138,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , ca                 ()
 
   // even though these are temporaries and technically should be set
-  // before calling, lets intialize them. this will reduces chances of
+  // before calling, lets initialize them. this will reduces chances of
   // non-determinism in portfolio (parallel) solver if variables are
   // being (incorrectly) used without initialization.
   , seen(),  analyze_stack(), analyze_toclear(), add_tmp()
