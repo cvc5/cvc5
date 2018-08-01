@@ -477,28 +477,36 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
         d_extf_collapse_infer.insert(cterm);
 
         Node t = n[0];
-        if (n.getKind() == kind::INT_TO_BITVECTOR)
+        if (t.getType() == parent.getType())
         {
-          Assert(t.getType().isInteger());
-          // congruent modulo 2^( bv width )
-          unsigned bvs = n.getType().getBitVectorSize();
-          Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-          Node k = nm->mkSkolem(
-              "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
-          t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
-        }
-        Node lem = parent.eqNode(t);
+          if (n.getKind() == kind::INT_TO_BITVECTOR)
+          {
+            Assert(t.getType().isInteger());
+            // congruent modulo 2^( bv width )
+            unsigned bvs = n.getType().getBitVectorSize();
+            Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
+            Node k = nm->mkSkolem(
+                "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
+            t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
+          }
+          Node lem = parent.eqNode(t);
 
-        if (parent[0] != n)
-        {
-          Assert(ee->areEqual(parent[0], n));
-          lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
+          if (parent[0] != n)
+          {
+            Assert(ee->areEqual(parent[0], n));
+            lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
+          }
+          // this handles inferences of the form, e.g.:
+          //   ((_ int2bv w) (bv2nat x)) == x (if x is bit-width w)
+          //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
+          Trace("bv-extf-lemma")
+              << "BV extf lemma (collapse) : " << lem << std::endl;
+          d_out->lemma(lem);
+          sentLemma = true;
         }
-        Trace("bv-extf-lemma")
-            << "BV extf lemma (collapse) : " << lem << std::endl;
-        d_out->lemma(lem);
-        sentLemma = true;
       }
+      Trace("bv-extf-lemma-debug")
+          << "BV extf f collapse based on : " << cterm << std::endl;
     }
   }
   return sentLemma;
