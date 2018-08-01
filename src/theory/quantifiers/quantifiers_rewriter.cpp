@@ -31,25 +31,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool QuantifiersRewriter::isClause( Node n ){
-  if( isLiteral( n ) ){
-    return true;
-  }else if( n.getKind()==NOT ){
-    return isCube( n[0] );
-  }else if( n.getKind()==OR ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( !isClause( n[i] ) ){
-        return false;
-      }
-    }
-    return true;
-  }else if( n.getKind()==IMPLIES ){
-    return isCube( n[0] ) && isClause( n[1] );
-  }else{
-    return false;
-  }
-}
-
 bool QuantifiersRewriter::isLiteral( Node n ){
   switch( n.getKind() ){
   case NOT:
@@ -70,23 +51,6 @@ bool QuantifiersRewriter::isLiteral( Node n ){
     break;
   }
   return true;
-}
-
-bool QuantifiersRewriter::isCube( Node n ){
-  if( isLiteral( n ) ){
-    return true;
-  }else if( n.getKind()==NOT ){
-    return isClause( n[0] );
-  }else if( n.getKind()==AND ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( !isCube( n[i] ) ){
-        return false;
-      }
-    }
-    return true;
-  }else{
-    return false;
-  }
 }
 
 void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
