@@ -33,10 +33,10 @@ namespace parser {
 }/* CVC4::parser namespace */
 
 class CVC4_PUBLIC InteractiveShell {
+  const Options& d_options;
   std::istream& d_in;
   std::ostream& d_out;
   parser::Parser* d_parser;
-  const Options& d_options;
   bool d_quit;
   bool d_usingReadline;
 
@@ -46,7 +46,7 @@ class CVC4_PUBLIC InteractiveShell {
   static const unsigned s_historyLimit = 500;
 
 public:
-  InteractiveShell(ExprManager& exprManager, const Options& options);
+  InteractiveShell(ExprManager& exprManager);
 
   /**
    * Close out the interactive session.
