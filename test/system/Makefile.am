@@ -6,7 +6,8 @@ CPLUSPLUS_TESTS = \
 	reset_assertions \
 	two_smt_engines \
 	smt2_compliance \
-	statistics
+	statistics \
+	sep_log_api
 
 if CVC4_BUILD_LIBCOMPAT
 #CPLUSPLUS_TESTS += \
