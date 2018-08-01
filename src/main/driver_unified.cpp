@@ -282,7 +282,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 #endif /* PORTFOLIO_BUILD */
-      InteractiveShell shell(*exprMgr, opts);
+      InteractiveShell shell(*exprMgr);
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
