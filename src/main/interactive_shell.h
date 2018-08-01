@@ -2,7 +2,7 @@
 /*! \file interactive_shell.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Tim King
+ **   Morgan Deters, Christopher L. Conway, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.

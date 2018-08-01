@@ -2,7 +2,7 @@
 /*! \file command_executor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Tim King
+ **   Kshitij Bansal, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
