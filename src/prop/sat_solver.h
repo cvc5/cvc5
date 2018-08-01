@@ -76,6 +76,12 @@ public:
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve(long unsigned int&) = 0;
 
+  /** Check satisfiability under assumptions */
+  virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
+  {
+    Unimplemented("Solving under assumptions not implemented");
+  };
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
