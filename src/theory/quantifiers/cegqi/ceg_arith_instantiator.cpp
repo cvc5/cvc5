@@ -460,6 +460,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               Kind k = rr == 0 ? GEQ : LEQ;
               Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
               cmp_bound = Rewriter::rewrite(cmp_bound);
+              // Should be comparing two constant values which should rewrite
+              // to a constant. If a step failed, we assume that this is not
+              // the new best bound.
               Assert(cmp_bound.isConst());
               if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
