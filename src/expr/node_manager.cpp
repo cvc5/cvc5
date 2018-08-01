@@ -659,9 +659,7 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   return type;
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {  
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create variables for types that are not first-class");
+Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
@@ -675,8 +673,6 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t 
 
 Node* NodeManager::mkVarPtr(const std::string& name,
                             const TypeNode& type, uint32_t flags) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create variables for types that are not first-class");
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
@@ -717,8 +713,6 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
 }
 
 Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create variables for types that are not first-class");
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
@@ -730,8 +724,6 @@ Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
 }
 
 Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create variables for types that are not first-class");
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
@@ -743,8 +735,6 @@ Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
 }
 
 Node NodeManager::mkBoundVar(const TypeNode& type) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create variables for types that are not first-class");
   Node n = NodeBuilder<0>(this, kind::BOUND_VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
@@ -752,8 +742,6 @@ Node NodeManager::mkBoundVar(const TypeNode& type) {
 }
 
 Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create variables for types that are not first-class");
   Node* n = NodeBuilder<0>(this, kind::BOUND_VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
@@ -775,8 +763,6 @@ Node NodeManager::mkBooleanTermVariable() {
 }
 
 Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create nullary operators for types that are not first-class");
   std::map< TypeNode, Node >::iterator it = d_unique_vars[k].find( type );
   if( it==d_unique_vars[k].end() ){
     Node n = NodeBuilder<0>(this, k).constructNode();
@@ -791,8 +777,6 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {
-  CheckArgument(type.isFirstClass(), type,
-                "cannot create abstract values for types that are not first-class");
   Node n = mkConst(AbstractValue(++d_abstractValueCount));
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
