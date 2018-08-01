@@ -1941,8 +1941,8 @@ static void toStream(std::ostream& out,
   else
   {
     out << " (";
-    // can only print if all datatypes in this block have the same parameters
-    // in theory, given input language 2.6 and output language 2.5, it could
+    // Can only print if all datatypes in this block have the same parameters.
+    // In theory, given input language 2.6 and output language 2.5, it could
     // be impossible to print a datatype block where datatypes were given
     // different parameter lists.
     bool success = true;
