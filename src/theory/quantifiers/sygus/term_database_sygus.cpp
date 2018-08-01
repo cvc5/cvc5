@@ -47,7 +47,7 @@ bool TermDbSygus::reset( Theory::Effort e ) {
 }
 
 TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
-  AlwaysAssert( tn.isFirstClass() );
+  AlwaysAssert(tn.isFirstClass());
   unsigned sindex = 0;
   TypeNode vtn = tn;
   if( useSygusType ){

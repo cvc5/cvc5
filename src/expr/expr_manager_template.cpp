@@ -146,7 +146,8 @@ StringType ExprManager::stringType() const {
 
 RegExpType ExprManager::regExpType() const {
   NodeManagerScope nms(d_nodeManager);
-  return RegExpType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
+  return RegExpType(
+      Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
 }
 
 RealType ExprManager::realType() const {

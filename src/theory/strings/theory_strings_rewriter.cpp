@@ -73,13 +73,15 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
         }else if( xc.isConst() ){
           //check for constants
           CVC4::String s = xc.getConst<String>();
-          if( s.size()==0 )
+          if (s.size() == 0)
           {
             // ignore and continue
             mchildren.pop_back();
             do_next = true;
           }
-          else if( rc.getKind() == kind::REGEXP_RANGE || rc.getKind()==kind::REGEXP_SIGMA ){
+          else if (rc.getKind() == kind::REGEXP_RANGE
+                   || rc.getKind() == kind::REGEXP_SIGMA)
+          {
             CVC4::String ss( t==0 ? s.getLastChar() : s.getFirstChar() );
             if( testConstStringInRegExp( ss, 0, rc ) ){
               //strip off one character

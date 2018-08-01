@@ -161,7 +161,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
 
 void MatchTrie::addTerm(Node n)
 {
-  Assert( !n.isNull() );
+  Assert(!n.isNull());
   std::vector<Node> visit;
   visit.push_back(n);
   MatchTrie* curr = this;
@@ -302,7 +302,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     Trace("crf-match") << "CRF check matches : " << bn << " [rhs = " << beq_n
                        << "]..." << std::endl;
     Node bni = d_drewrite->toInternal(bn);
-    if( !bni.isNull() )
+    if (!bni.isNull())
     {
       if (!d_match_trie.getMatches(bni, &d_ssenm))
       {
@@ -362,7 +362,7 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
       {
         Trace("crf-match") << "CRF add term : " << t << std::endl;
         Node ti = d_drewrite->toInternal(t);
-        if( !ti.isNull() )
+        if (!ti.isNull())
         {
           d_match_trie.addTerm(ti);
         }

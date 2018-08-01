@@ -202,7 +202,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   for (unsigned i = 0; i < vn.getNumChildren(); i++)
   {
     TypeNode xtn = vn[i].getType();
-    if( d_tdb->sygusToBuiltinType(xtn).isFirstClass() )
+    if (d_tdb->sygusToBuiltinType(xtn).isFirstClass())
     {
       Node x = d_tdb->getFreeVarInc(xtn, var_count);
       trb.replaceChild(i, x);
@@ -338,7 +338,7 @@ void SygusExplain::getExplanationFor(Node n,
   {
     // check if it is invariant over the entire node
     TypeNode vtn = vn.getType();
-    if( d_tdb->sygusToBuiltinType(vtn).isFirstClass() )
+    if (d_tdb->sygusToBuiltinType(vtn).isFirstClass())
     {
       Node x = d_tdb->getFreeVarInc(vtn, var_count);
       if (et.is_invariant(d_tdb, x, x))

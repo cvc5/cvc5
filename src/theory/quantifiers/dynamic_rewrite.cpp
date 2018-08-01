@@ -109,7 +109,7 @@ Node DynamicRewriter::toInternal(Node a)
     for (const Node& ca : a)
     {
       Node cai = toInternal(ca);
-      if( cai.isNull() )
+      if (cai.isNull())
       {
         return Node::null();
       }
