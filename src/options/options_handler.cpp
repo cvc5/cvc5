@@ -1620,15 +1620,6 @@ void OptionsHandler::showConfiguration(std::string option) {
        << (Configuration::hasGitModifications() ? " (with modifications)" : "")
        << "]";
     print_config("scm", ss.str());
-  } else if(Configuration::isSubversionBuild()) {
-    std::stringstream ss;
-    ss << "svn ["
-       << Configuration::getSubversionBranchName() << " r"
-       << Configuration::getSubversionRevision()
-       << (Configuration::hasSubversionModifications()
-           ? " (with modifications)" : "")
-       << "]";
-    print_config("scm", ss.str());
   } else {
     print_config_cond("scm", false);
   }

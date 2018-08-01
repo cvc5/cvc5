@@ -288,8 +288,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                   << " " << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
           Message() << " [" << Configuration::getGitId() << "]";
-        } else if(Configuration::isSubversionBuild()) {
-          Message() << " [" << Configuration::getSubversionId() << "]";
         }
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
