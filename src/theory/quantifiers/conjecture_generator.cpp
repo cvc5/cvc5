@@ -1160,7 +1160,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           vec_sum = -1;
         }else{
           // No terms were generated at the previous size.
-          // Thus, we've saturated, no more terms can be enumerated.s
+          // Thus, we've saturated, no more terms can be enumerated.
           return;
         }
       }
