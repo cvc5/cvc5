@@ -165,7 +165,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   {
     return false;
   }
-  // disequalities are either strict upper or lower bounds
+  // compute how many bounds we will consider
   unsigned rmax = 1;
   if (atom.getKind() == EQUAL && (pol || !options::cbqiModel()))
   {
@@ -201,6 +201,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
     }
     else
     {
+      // disequalities are either strict upper or lower bounds
       bool is_upper;
       if (options::cbqiModel())
       {
@@ -465,6 +466,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                 new_best = false;
                 break;
               }
+              // indicate that the value of new_best is now established.
               new_best_set = true;
             }
           }
