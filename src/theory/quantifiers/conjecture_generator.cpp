@@ -1065,6 +1065,8 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
+    Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
+                              << ")" << std::endl;
     TermEnumeration* te = d_quantEngine->getTermEnumeration();
     // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
@@ -1090,7 +1092,6 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
     unsigned index = 0;
     unsigned last_size = terms.size();
     while( terms.size()<num ){
-      bool success = true;
       if( vec_sum==-1 ){
         vec_sum = 0;
         // we will construct a new child below
@@ -1114,22 +1115,10 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           vec_sum -= vec[index];
           vec[index] = 0;
           index++;
-          if (index == vec.size())
-          {
-            // no more indices to iterate, we increment limit and reset below
-            success = false;
-          }
         }
       }
-      else
+      if (index < vec.size())
       {
-        // This should never happen due to invariants of this loop.
-        // However, if it does, we simply abort while not fully enumerating the
-        // full set of terms.
-        Assert(false);
-        return;
-      }
-      if( success ){
         // if we are ready to construct the term
         if( vec.size()==n.getNumChildren() ){
           Node lc =
@@ -1161,6 +1150,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           index = 0;
         }
       }else{
+        // no more indices to increment, we reset and increment size_limit
         if( terms.size()>last_size ){
           last_size = terms.size();
           size_limit++;
@@ -1169,7 +1159,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           }
           vec_sum = -1;
         }else{
-          // we've saturated, no more terms can be enumerated
+          // No terms were generated at the previous size.
+          // Thus, we've saturated, no more terms can be enumerated.
           return;
         }
       }
