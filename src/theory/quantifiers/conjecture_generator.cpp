@@ -1065,7 +1065,8 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
-    Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num << ")" << std::endl;
+    Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
+                              << ")" << std::endl;
     TermEnumeration* te = d_quantEngine->getTermEnumeration();
     // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
