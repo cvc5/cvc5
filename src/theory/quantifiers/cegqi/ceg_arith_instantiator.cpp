@@ -167,7 +167,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   }
   // disequalities are either strict upper or lower bounds
   unsigned rmax = 1;
-  if( atom.getKind()==EQUAL && ( pol || !options::cbqiModel() ) )
+  if (atom.getKind() == EQUAL && (pol || !options::cbqiModel()))
   {
     rmax = 2;
   }
@@ -194,10 +194,10 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         }
       }
     }
-    else if( pol )
+    else if (pol)
     {
       // equalities are both non-strict upper and lower bounds
-      uires = r==0 ? 1 : -1;
+      uires = r == 0 ? 1 : -1;
     }
     else
     {
@@ -459,7 +459,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               Kind k = rr == 0 ? GEQ : LEQ;
               Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
               cmp_bound = Rewriter::rewrite(cmp_bound);
-              Assert( cmp_bound.isConst() );
+              Assert(cmp_bound.isConst());
               if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
                 new_best = false;
