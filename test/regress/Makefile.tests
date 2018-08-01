@@ -1045,6 +1045,7 @@ REG1_TESTS = \
 	regress1/bv/bv-proof00.smt \
 	regress1/bv/bv2nat-ground.smt2 \
 	regress1/bv/bv2nat-simp-range-sat.smt2 \
+	regress1/bv/bv2nat-types.smt2 \
 	regress1/bv/cmu-rdk-3.smt2 \
 	regress1/bv/decision-weight00.smt2 \
 	regress1/bv/divtest.smt2 \
