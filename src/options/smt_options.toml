@@ -419,7 +419,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "tlimit=MS"
   type       = "unsigned long"
-  handler    = "tlimitHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyTlimit"]
   read_only  = true
   help       = "enable time limiting (give milliseconds)"
@@ -430,7 +430,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "tlimit-per=MS"
   type       = "unsigned long"
-  handler    = "tlimitPerHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyTlimitPer"]
   read_only  = true
   help       = "enable time limiting per query (give milliseconds)"
@@ -441,7 +441,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "rlimit=N"
   type       = "unsigned long"
-  handler    = "rlimitHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyRlimit"]
   read_only  = true
   help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
@@ -452,7 +452,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "rlimit-per=N"
   type       = "unsigned long"
-  handler    = "rlimitPerHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyRlimitPer"]
   read_only  = true
   help       = "enable resource limiting per query"

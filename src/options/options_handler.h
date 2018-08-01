@@ -182,10 +182,7 @@ public:
 
   void statsEnabledBuild(std::string option, bool value);
 
-  unsigned long tlimitHandler(std::string option, std::string optarg);
-  unsigned long tlimitPerHandler(std::string option, std::string optarg);
-  unsigned long rlimitHandler(std::string option, std::string optarg);
-  unsigned long rlimitPerHandler(std::string option, std::string optarg);
+  unsigned long limitHandler(std::string option, std::string optarg);
 
   void notifyTlimit(const std::string& option);
   void notifyTlimitPer(const std::string& option);
