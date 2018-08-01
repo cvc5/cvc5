@@ -5258,35 +5258,31 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
-Expr SmtEngine::getHeapExpr()
+std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
 {
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot obtain separation logic expressions if not using the "
+        "separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
-  Expr nil;  // we don't actually use this
-  Model* m = getModel();
-  if (m->getHeapModel(heap, nil))
-  {
-    return heap;
-  }
-  InternalError(
-      "SmtEngine::getHeapExpr(): failed to obtain heap expression from theory "
-      "model.");
-}
-
-Expr SmtEngine::getNilExpr()
-{
-  NodeManagerScope nms(d_nodeManager);
-  Expr heap;  // we don't actually use this
   Expr nil;
   Model* m = getModel();
   if (m->getHeapModel(heap, nil))
   {
-    return nil;
+    return std::make_pair(heap, nil);
   }
   InternalError(
-      "SmtEngine::getNilExpr(): failed to obtain nil expression from theory "
-      "model.");
+      "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+      "expressions from theory model.");
 }
+
+Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
+
+Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
