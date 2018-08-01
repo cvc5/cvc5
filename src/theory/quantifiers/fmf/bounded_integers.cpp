@@ -16,7 +16,6 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
-#include "base/map_util.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -453,11 +452,16 @@ void BoundedIntegers::checkOwnership(Node f)
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if (Node* bound_lit_b_v = FindOrNull(bound_lit_map[b], v))
+            if (bound_lit_map[b].find(v) != bound_lit_map[b].end())
             {
-              const bool bound_lit_pol_b_v = FindOrDie(bound_lit_pol_map[b], v);
+              // This assertion may fail. We intentionally do not enable this in
+              // production as it is considered safe for this to fail. We fail
+              // in debug mode to have this instances raised to our attention.
+              Assert(bound_lit_pol_map[b].find(v)
+                     != bound_lit_pol_map[b].end());
               BoundIntLitAttribute bila;
-              bound_lit_b_v->setAttribute(bila, bound_lit_pol_b_v ? 1 : 0);
+              bound_lit_map[b][v].setAttribute(bila,
+                                               bound_lit_pol_map[b][v] ? 1 : 0);
             }
             else
             {
