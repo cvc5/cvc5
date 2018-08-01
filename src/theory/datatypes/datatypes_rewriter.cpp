@@ -258,45 +258,12 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
 }
 Node DatatypesRewriter::mkSygusEvalApp(const std::vector<Node>& children)
 {
-  if (options::sygusEvalBuiltin())
-  {
-    return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL, children);
-  }
-  // otherwise, using APPLY_UF
-  Assert(!children.empty());
-  Assert(children[0].getType().isDatatype());
-  const Datatype& dt =
-      static_cast<DatatypeType>(children[0].getType().toType()).getDatatype();
-  Assert(dt.isSygus());
-  std::vector<Node> schildren;
-  schildren.push_back(Node::fromExpr(dt.getSygusEvaluationFunc()));
-  schildren.insert(schildren.end(), children.begin(), children.end());
-  return NodeManager::currentNM()->mkNode(APPLY_UF, schildren);
+  return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL, children);
 }
 
 bool DatatypesRewriter::isSygusEvalApp(Node n)
 {
-  if (options::sygusEvalBuiltin())
-  {
-    return n.getKind() == DT_SYGUS_EVAL;
-  }
-  // otherwise, using APPLY_UF
-  if (n.getKind() != APPLY_UF || n.getNumChildren() == 0)
-  {
-    return false;
-  }
-  TypeNode tn = n[0].getType();
-  if (!tn.isDatatype())
-  {
-    return false;
-  }
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  if (!dt.isSygus())
-  {
-    return false;
-  }
-  Node eval_op = Node::fromExpr(dt.getSygusEvaluationFunc());
-  return eval_op == n.getOperator();
+  return n.getKind() == DT_SYGUS_EVAL;
 }
 
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)
