@@ -122,17 +122,6 @@ bool EagerBitblastSolver::checkSat() {
   return d_bitblaster->solve();
 }
 
-bool EagerBitblastSolver::hasAssertions(const std::vector<TNode>& formulas) {
-  Assert(isInitialized());
-  if (formulas.size() != d_assertionSet.size()) return false;
-  for (unsigned i = 0; i < formulas.size(); ++i) {
-    Assert(formulas[i].getKind() == kind::BITVECTOR_EAGER_ATOM);
-    TNode formula = formulas[i][0];
-    if (d_assertionSet.find(formula) == d_assertionSet.end()) return false;
-  }
-  return true;
-}
-
 bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 {
   AlwaysAssert(!d_useAig && d_bitblaster);
