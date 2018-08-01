@@ -53,6 +53,28 @@
 namespace CVC4 {
 namespace options {
 
+// helper functions
+namespace {
+
+void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
+{
+  std::string sat_solver;
+  if (m == theory::bv::SAT_SOLVER_CADICAL)
+  {
+    sat_solver = "CaDiCaL";
+  }
+  else
+  {
+    Assert(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
+    sat_solver = "CryptoMiniSat";
+  }
+  std::string indent(25, ' ');
+  throw OptionException(sat_solver + " does not support lazy bit-blasting.\n"
+                        + indent + "Try --bv-sat-solver=minisat");
+}
+
+}  // namespace
+
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
 void OptionsHandler::notifyForceLogic(const std::string& option){
@@ -88,54 +110,18 @@ void OptionsHandler::notifyRlimitPer(const std::string& option) {
   d_options->d_rlimitPerListeners.notify();
 }
 
-unsigned long OptionsHandler::tlimitHandler(std::string option,
-                                            std::string optarg)
+unsigned long OptionsHandler::limitHandler(std::string option,
+                                           std::string optarg)
 {
   unsigned long ms;
   std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
+  if (!(convert >> ms))
+  {
+    throw OptionException("option `" + option
+                          + "` requires a number as an argument");
   }
   return ms;
 }
-
-unsigned long OptionsHandler::tlimitPerHandler(std::string option,
-                                               std::string optarg)
-{
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-  return ms;
-}
-
-unsigned long OptionsHandler::rlimitHandler(std::string option,
-                                            std::string optarg)
-{
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-  return ms;
-}
-
-unsigned long OptionsHandler::rlimitPerHandler(std::string option,
-                                               std::string optarg)
-{
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-
-  return ms;
-}
-
 
 /* options/base_options_handlers.h */
 void OptionsHandler::notifyPrintSuccess(std::string option) {
@@ -1087,28 +1073,13 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   if(optarg == "minisat") {
     return theory::bv::SAT_SOLVER_MINISAT;
   } else if(optarg == "cryptominisat") {
-    
-    if (options::incrementalSolving() &&
-        options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("CryptoMinSat does not support incremental mode. \n\
-                                         Try --bv-sat-solver=minisat"));
-    }
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
         options::bitblastMode.wasSetByUser()) {
-      throw OptionException(
-          std::string("CryptoMiniSat does not support lazy bit-blasting. \n\
-                                         Try --bv-sat-solver=minisat"));
+      throwLazyBBUnsupported(theory::bv::SAT_SOLVER_CRYPTOMINISAT);
     }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }
-
-    // if (!options::bvAbstraction.wasSetByUser() &&
-    //     !options::skolemizeArguments.wasSetByUser()) {
-    //   options::bvAbstraction.set(true);
-    //   options::skolemizeArguments.set(true); 
-    // }
     return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
   }
   else if (optarg == "cadical")
@@ -1118,15 +1089,14 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     {
       throw OptionException(
           std::string("CaDiCaL does not support incremental mode. \n\
-                                         Try --bv-sat-solver=minisat"));
+                         Try --bv-sat-solver=cryptominisat or "
+                      "--bv-sat-solver=minisat"));
     }
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
     {
-      throw OptionException(
-          std::string("CaDiCaL does not support lazy bit-blasting. \n\
-                                         Try --bv-sat-solver=minisat"));
+      throwLazyBBUnsupported(theory::bv::SAT_SOLVER_CADICAL);
     }
     if (!options::bitvectorToBool.wasSetByUser())
     {
@@ -1178,14 +1148,12 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     if (!options::bitvectorAlgebraicSolver.wasSetByUser()) {
       options::bitvectorAlgebraicSolver.set(true);
     }
+    if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+    {
+      throwLazyBBUnsupported(options::bvSatSolver());
+    }
     return theory::bv::BITBLAST_MODE_LAZY;
   } else if(optarg == "eager") {
-
-    if (options::incrementalSolving() &&
-        options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
-                                         Try --bitblast=lazy"));
-    }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }

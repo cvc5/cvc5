@@ -501,7 +501,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "intial splits on zero for all variables"
+  help       = "initial splits on zero for all variables"
 
 [[option]]
   name       = "nlExtTfTaylorDegree"

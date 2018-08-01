@@ -1318,18 +1318,6 @@ void SmtEngine::setDefaults() {
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
   {
-    if (options::incrementalSolving())
-    {
-      if (options::incrementalSolving.wasSetByUser())
-      {
-        throw OptionException(std::string(
-            "Eager bit-blasting does not currently support incremental mode. "
-            "Try --bitblast=lazy"));
-      }
-      Notice() << "SmtEngine: turning off incremental to support eager "
-               << "bit-blasting" << endl;
-      setOption("incremental", SExpr("false"));
-    }
     if (options::produceModels()
         && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
             || d_logic.isTheoryEnabled(THEORY_UF)))
@@ -1345,6 +1333,13 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
                << "generation" << endl;
       setOption("bitblastMode", SExpr("lazy"));
+    }
+
+    if (options::incrementalSolving() && !d_logic.isPure(THEORY_BV))
+    {
+      throw OptionException(
+          "Incremental eager bit-blasting is currently "
+          "only supported for QF_BV. Try --bitblast=lazy.");
     }
   }
 
@@ -4160,7 +4155,8 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && !options::incrementalSolving())
   {
     d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
   }
@@ -5262,35 +5258,31 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
-Expr SmtEngine::getHeapExpr()
+std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
 {
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot obtain separation logic expressions if not using the "
+        "separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
-  Expr nil;  // we don't actually use this
-  Model* m = getModel();
-  if (m->getHeapModel(heap, nil))
-  {
-    return heap;
-  }
-  InternalError(
-      "SmtEngine::getHeapExpr(): failed to obtain heap expression from theory "
-      "model.");
-}
-
-Expr SmtEngine::getNilExpr()
-{
-  NodeManagerScope nms(d_nodeManager);
-  Expr heap;  // we don't actually use this
   Expr nil;
   Model* m = getModel();
   if (m->getHeapModel(heap, nil))
   {
-    return nil;
+    return std::make_pair(heap, nil);
   }
   InternalError(
-      "SmtEngine::getNilExpr(): failed to obtain nil expression from theory "
-      "model.");
+      "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+      "expressions from theory model.");
 }
+
+Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
+
+Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
