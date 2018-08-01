@@ -60,7 +60,7 @@ void storeFunction(
         "BVSKOLEM$$",
         tn,
         "is a variable created by the ackermannization "
-        "preprocessing pass for theory BV");
+        "preprocessing pass for theory BV, in place of: " + term.toString());
     fun_to_skolem.addSubstitution(term, skolem);
   }
 }
@@ -84,12 +84,12 @@ void collectFunctionSymbols(
   {
     AlwaysAssert(term.getKind() != kind::STORE,
                  "Cannot use eager bitblasting on QF_ABV formula with stores");
-    for (const TNode& n : term)
-    {
-        collectFunctionSymbols(n, fun_to_args, fun_to_skolem, seen);
-    }
- }
- seen.insert(term);
+  }
+  for (const TNode& n : term)
+  {
+    collectFunctionSymbols(n, fun_to_args, fun_to_skolem, seen);
+  }
+  seen.insert(term);
 }
 
 }  // namespace
