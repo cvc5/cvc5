@@ -164,6 +164,18 @@ SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
   return solve();
 }
 
+SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
+{
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  std::vector<CMSat::Lit> assumpts;
+  for (const SatLiteral& lit : assumptions)
+  {
+    assumpts.push_back(toInternalLit(lit));
+  }
+  ++d_statistics.d_statCallsToSolve;
+  return toSatLiteralValue(d_solver->solve(&assumpts));
+}
+
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
   CMSatVar var = l.getSatVariable();
