@@ -109,7 +109,7 @@ class CDOhash_map : public ContextObj {
   // CDHashMap<Key, Data>::iterator.second should be value_type::second_type
   // should be a `const Data&`. (Otherwise, access operations would need to
   // makeCurrent() to get a Data&, which is an unacceptable performance hit.)
-  // To allow for the desired updating in other context, we store a
+  // To allow for the desired updating in other scenarios, we store a
   // std::pair<const Key, const Data> and break the const encapsulation when
   // needed.
   using value_type = std::pair<const Key, const Data>;

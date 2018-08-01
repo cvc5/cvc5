@@ -28,6 +28,8 @@
  **   and FindOrDie.
  **
  ** Potential future classes of functions:
+ ** - InsertOrUpdate
+ ** - InsertIfNotPresent
  **/
 
 #include "cvc4_private.h"
