@@ -927,6 +927,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   std::vector< Expr > let_vars;
   bool readingLet = false;
   std::string s;
+  CVC4::Expr atomExpr;
 }
   : LPAREN_TOK
     //read operator
@@ -1021,38 +1022,12 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         PARSER_STATE->popScope();
       }
     }
-  | INTEGER_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : integer literal "
-                            << AntlrInput::tokenText($INTEGER_LITERAL)
-                            << std::endl;
-      sgt.d_expr = MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL)));
-      sgt.d_name = AntlrInput::tokenText($INTEGER_LITERAL);
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
-  | HEX_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : hex literal "
-                            << AntlrInput::tokenText($HEX_LITERAL) << std::endl;
-      assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
-      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      sgt.d_expr = MK_CONST( BitVector(hexString, 16) );
-      sgt.d_name = AntlrInput::tokenText($HEX_LITERAL);
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
-  | BINARY_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : binary literal "
-                            << AntlrInput::tokenText($BINARY_LITERAL)
-                            << std::endl;
-      assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
-      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      sgt.d_expr = MK_CONST( BitVector(binString, 2) );
-      sgt.d_name = AntlrInput::tokenText($BINARY_LITERAL);
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
-  | str[s,false]
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \""
-                            << s << "\"" << std::endl;
-      sgt.d_expr = MK_CONST( ::CVC4::String(s, true) );
-      sgt.d_name = s;
+  | termAtomic[atomExpr] {
+      Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic expression " << atomExpr << std::endl;
+      std::stringstream ss;
+      ss << atomExpr;
+      sgt.d_expr = atomExpr;
+      sgt.d_name = ss.str();
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE]
@@ -1786,12 +1761,13 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patconds;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  std::string s;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
   bool readVariable = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
+  Type type;
+  Type type2;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -2287,19 +2263,23 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
 
-  | termAtomic[expr]
+    
+
+  | 
+    termAtomic[expr]
   ;
 
 
 termAtomic[CVC4::Expr& expr]
 @init {
   std::vector<Expr> args;
-  Type type1;
+  Type type;
   Type type2;
+  std::string s;
 }
 :
-   /* constants */
-  | INTEGER_LITERAL
+    /* constants */
+    INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
 
   | DECIMAL_LITERAL
@@ -2355,7 +2335,7 @@ termAtomic[CVC4::Expr& expr]
 
     )
     RPAREN_TOK
-
+    
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
@@ -2412,6 +2392,7 @@ termAtomic[CVC4::Expr& expr]
       args.insert(args.begin(), dt[0].getConstructor());
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
+    
   ;
   
 /**
