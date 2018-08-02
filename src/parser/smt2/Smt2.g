@@ -1999,15 +1999,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN INDEX_TOK EMP_TOK 
-    sortSymbol[type,CHECK_DECLARED]
-    sortSymbol[type2,CHECK_DECLARED]
-    RPAREN
-    {
-      Expr v1 = PARSER_STATE->mkVar("_emp1", type);
-      Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
-      op = MK_EXPR(kind::SEP_EMP,v1,v2);
-    }
   | LPAREN_TOK
     ( /* An indexed function application */
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
@@ -2352,6 +2343,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
                                                                 AntlrInput::tokenToUnsigned($sb)),
                                               true)); }
+    | EMP_TOK
+      sortSymbol[type,CHECK_DECLARED]
+      sortSymbol[type2,CHECK_DECLARED]
+      {
+        Expr v1 = PARSER_STATE->mkVar("_emp1", type);
+        Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
+        op = MK_EXPR(kind::SEP_EMP,v1,v2);
+      }
     // NOTE: Theory parametric constants go here
 
     )
