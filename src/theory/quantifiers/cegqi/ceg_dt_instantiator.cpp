@@ -29,6 +29,14 @@ void DtInstantiator::reset(CegInstantiator* ci,
 {
 }
 
+bool DtInstantiator::hasProcessEqualTerm(CegInstantiator* ci,
+                                         SolvedForm& sf,
+                                         Node pv,
+                                         CegInstEffort effort)
+{
+  return true;
+}
+
 bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
                                        SolvedForm& sf,
                                        Node pv,
