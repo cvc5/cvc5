@@ -202,24 +202,27 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   for (unsigned i = 0; i < vn.getNumChildren(); i++)
   {
     TypeNode xtn = vn[i].getType();
-    Node x = d_tdb->getFreeVarInc(xtn, var_count);
-    trb.replaceChild(i, x);
-    Node nvn = trb.build();
-    Assert(nvn.getKind() == kind::APPLY_CONSTRUCTOR);
-    if (et.is_invariant(d_tdb, nvn, x))
+    if (d_tdb->sygusToBuiltinType(xtn).isFirstClass())
     {
-      cexc[i] = true;
-      // we are tracking term size if positive
-      if (sz >= 0)
+      Node x = d_tdb->getFreeVarInc(xtn, var_count);
+      trb.replaceChild(i, x);
+      Node nvn = trb.build();
+      Assert(nvn.getKind() == kind::APPLY_CONSTRUCTOR);
+      if (et.is_invariant(d_tdb, nvn, x))
       {
-        int s = d_tdb->getSygusTermSize(vn[i]);
-        sz = sz - s;
+        cexc[i] = true;
+        // we are tracking term size if positive
+        if (sz >= 0)
+        {
+          int s = d_tdb->getSygusTermSize(vn[i]);
+          sz = sz - s;
+        }
       }
-    }
-    else
-    {
-      // revert
-      trb.replaceChild(i, vn[i]);
+      else
+      {
+        // revert
+        trb.replaceChild(i, vn[i]);
+      }
     }
   }
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
@@ -335,12 +338,15 @@ void SygusExplain::getExplanationFor(Node n,
   {
     // check if it is invariant over the entire node
     TypeNode vtn = vn.getType();
-    Node x = d_tdb->getFreeVarInc(vtn, var_count);
-    if (et.is_invariant(d_tdb, x, x))
+    if (d_tdb->sygusToBuiltinType(vtn).isFirstClass())
     {
-      return;
+      Node x = d_tdb->getFreeVarInc(vtn, var_count);
+      if (et.is_invariant(d_tdb, x, x))
+      {
+        return;
+      }
+      var_count[vtn]--;
     }
-    var_count[vtn]--;
   }
   int sz = -1;
   TermRecBuild trb;
