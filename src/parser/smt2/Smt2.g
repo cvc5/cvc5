@@ -2349,7 +2349,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       {
         Expr v1 = PARSER_STATE->mkVar("_emp1", type);
         Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
-        op = MK_EXPR(kind::SEP_EMP,v1,v2);
+        expr = MK_EXPR(kind::SEP_EMP,v1,v2);
       }
     // NOTE: Theory parametric constants go here
 
