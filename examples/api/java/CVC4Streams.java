@@ -20,7 +20,6 @@ import edu.nyu.acsys.CVC4.*;
 public class CVC4Streams {
   public static void main(String[] args) throws IOException {
     System.loadLibrary("cvc4jni");
-    SWIGTYPE_p_CVC4__api__Solver solver = new SWIGTYPE_p_CVC4__api__Solver();
     ExprManager exprMgr = new ExprManager();
     SmtEngine smt = new SmtEngine(exprMgr);
     smt.setOption("output-language", new SExpr("smt2"));
