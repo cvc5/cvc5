@@ -933,19 +933,6 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
     ( builtinOp[k]{ 
         Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : "
                               << name << std::endl;
-        // Since we enforce satisfaction completeness, immediately convert to
-        // total version.
-        if( k==CVC4::kind::BITVECTOR_UDIV ){
-          k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
-        }else if( k==CVC4::kind::BITVECTOR_UREM ){
-          k = CVC4::kind::BITVECTOR_UREM_TOTAL;
-        }else if( k==CVC4::kind::DIVISION ){
-          k = CVC4::kind::DIVISION_TOTAL;
-        }else if( k==CVC4::kind::INTS_DIVISION ){
-          k = CVC4::kind::INTS_DIVISION_TOTAL;
-        }else if( k==CVC4::kind::INTS_MODULUS ){
-          k = CVC4::kind::INTS_MODULUS_TOTAL;
-        }
         sgt.d_name = kind::kindToString(k);
         sgt.d_gterm_type = SygusGTerm::gterm_op;
         sgt.d_expr = EXPR_MANAGER->operatorOf(k);
@@ -993,17 +980,6 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : "
                                 << name << std::endl;
           k = PARSER_STATE->getOperatorKind(name);
-          if( k==CVC4::kind::BITVECTOR_UDIV ){
-            k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
-          }else if( k==CVC4::kind::BITVECTOR_UREM ){
-            k = CVC4::kind::BITVECTOR_UREM_TOTAL;
-          }else if( k==CVC4::kind::DIVISION ){
-            k = CVC4::kind::DIVISION_TOTAL;
-          }else if( k==CVC4::kind::INTS_DIVISION ){
-            k = CVC4::kind::INTS_DIVISION_TOTAL;
-          }else if( k==CVC4::kind::INTS_MODULUS ){
-            k = CVC4::kind::INTS_MODULUS_TOTAL;
-          }
           sgt.d_name = kind::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
           sgt.d_expr = EXPR_MANAGER->operatorOf(k);
