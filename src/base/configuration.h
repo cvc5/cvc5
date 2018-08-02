@@ -97,8 +97,6 @@ public:
 
   static bool isBuiltWithReadline();
 
-  static bool isBuiltWithTlsSupport();
-
   static bool isBuiltWithLfsc();
 
   static bool isBuiltWithSymFPU();

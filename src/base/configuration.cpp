@@ -252,10 +252,6 @@ bool Configuration::isBuiltWithReadline() {
   return IS_READLINE_BUILD;
 }
 
-bool Configuration::isBuiltWithTlsSupport() {
-  return USING_TLS;
-}
-
 bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
 }
