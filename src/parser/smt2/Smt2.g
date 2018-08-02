@@ -1743,8 +1743,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   ;
 
 /**
- * Matches a term.
- * @return the expression representing the formula
+ * Matches a non-variable term.
+ * @return the expression expr representing the term or formula, and expr2, an
+ * optional annotation for expr (for instance, for attributed expressions).
  */
 termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
@@ -2262,14 +2263,15 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.insert(args.begin(), dt[0].getConstructor());
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
-
-    
-
-  | 
+  | /** an atomic term (a term with no subterms) */
     termAtomic[expr]
   ;
 
 
+/**
+ * Matches an atomic term (a term with no subterms).
+ * @return the expression expr representing the term or formula.
+ */
 termAtomic[CVC4::Expr& expr]
 @init {
   std::vector<Expr> args;
