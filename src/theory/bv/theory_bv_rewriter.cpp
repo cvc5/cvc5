@@ -166,12 +166,13 @@ RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite){
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite){
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule < EvalITEBv >
-       >::apply(node);
+RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalITEBv>, RewriteRule<BvIte> >::apply(
+          node);
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
@@ -329,12 +330,13 @@ RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite) {
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule < EvalComp >
-       >::apply(node);
+RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalComp>, RewriteRule<BvComp> >::apply(
+          node);
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
