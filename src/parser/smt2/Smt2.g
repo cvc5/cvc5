@@ -1466,6 +1466,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DECLARE_HEAP LPAREN_TOK 
     sortSymbol[t,CHECK_DECLARED] 
     sortSymbol[t, CHECK_DECLARED]
+    // We currently do nothing with the type information declared for the heap.
+    { cmd->reset(new EmptyCommand()); }
     RPAREN_TOK
   ;
 
