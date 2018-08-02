@@ -45,14 +45,6 @@ RegExpOpr::RegExpOpr()
 
 RegExpOpr::~RegExpOpr() {}
 
-int RegExpOpr::gcd ( int a, int b ) {
-  int c;
-  while ( a != 0 ) {
-     c = a; a = b%a;  b = c;
-  }
-  return b;
-}
-
 bool RegExpOpr::checkConstRegExp( Node r ) {
   Trace("strings-regexp-cstre") << "RegExp-CheckConstRegExp starts with /" << mkString( r ) << "/" << std::endl;
   bool ret = true;

@@ -353,8 +353,17 @@ command [std::unique_ptr<CVC4::Command>* cmd]
                                       "be declared in logic ");
       }
       // we allow overloading for function declarations
-      Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-      cmd->reset(new DeclareFunctionCommand(name, func, t));
+      if (PARSER_STATE->sygus())
+      {
+        // it is a higher-order universal variable
+        PARSER_STATE->mkSygusVar(name, t);
+        cmd->reset(new EmptyCommand());
+      }
+      else
+      {
+        Expr func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+        cmd->reset(new DeclareFunctionCommand(name, func, t));
+      }
     }
   | /* function definition */
     DEFINE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1474,7 +1483,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
     PARSER_STATE->pushScope(true); }
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-    { sorts.push_back( PARSER_STATE->mkSort(name) ); }
+    { sorts.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER) ); }
   )*
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
@@ -1545,7 +1554,7 @@ datatypesDef[bool isCo,
     }
     ( PAR_TOK { PARSER_STATE->pushScope(true); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-        { params.push_back( PARSER_STATE->mkSort(name) ); }
+        { params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER) ); }
       )*
       RPAREN_TOK {
         // if the arity was fixed by prelude and is not equal to the number of parameters

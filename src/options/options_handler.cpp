@@ -53,6 +53,28 @@
 namespace CVC4 {
 namespace options {
 
+// helper functions
+namespace {
+
+void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
+{
+  std::string sat_solver;
+  if (m == theory::bv::SAT_SOLVER_CADICAL)
+  {
+    sat_solver = "CaDiCaL";
+  }
+  else
+  {
+    Assert(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
+    sat_solver = "CryptoMiniSat";
+  }
+  std::string indent(25, ' ');
+  throw OptionException(sat_solver + " does not support lazy bit-blasting.\n"
+                        + indent + "Try --bv-sat-solver=minisat");
+}
+
+}  // namespace
+
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
 void OptionsHandler::notifyForceLogic(const std::string& option){
@@ -88,54 +110,18 @@ void OptionsHandler::notifyRlimitPer(const std::string& option) {
   d_options->d_rlimitPerListeners.notify();
 }
 
-unsigned long OptionsHandler::tlimitHandler(std::string option,
-                                            std::string optarg)
+unsigned long OptionsHandler::limitHandler(std::string option,
+                                           std::string optarg)
 {
   unsigned long ms;
   std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
+  if (!(convert >> ms))
+  {
+    throw OptionException("option `" + option
+                          + "` requires a number as an argument");
   }
   return ms;
 }
-
-unsigned long OptionsHandler::tlimitPerHandler(std::string option,
-                                               std::string optarg)
-{
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-  return ms;
-}
-
-unsigned long OptionsHandler::rlimitHandler(std::string option,
-                                            std::string optarg)
-{
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-  return ms;
-}
-
-unsigned long OptionsHandler::rlimitPerHandler(std::string option,
-                                               std::string optarg)
-{
-  unsigned long ms;
-
-  std::istringstream convert(optarg);
-  if (!(convert >> ms)) {
-    throw OptionException("option `"+option+"` requires a number as an argument");
-  }
-
-  return ms;
-}
-
 
 /* options/base_options_handlers.h */
 void OptionsHandler::notifyPrintSuccess(std::string option) {
@@ -331,12 +317,6 @@ prop-eq \n\
 conflict \n\
 + Apply QCF algorithm to find conflicts only.\n\
 \n\
-partial \n\
-+ Apply QCF algorithm to instantiate heuristically as well. \n\
-\n\
-mc \n\
-+ Apply QCF algorithm in a complete way, so that a model is ensured when it fails. \n\
-\n\
 ";
 
 const std::string OptionsHandler::s_userPatModeHelp = "\
@@ -489,6 +469,30 @@ all \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_cegqiSingleInvRconsHelp =
+    "\
+Modes for reconstruction solutions while using single invocation techniques,\
+supported by --cegqi-si-rcons:\n\
+\n\
+none \n\
++ Do not try to reconstruct solutions in the original (user-provided) grammar\
+  when using single invocation techniques. In this mode, solutions produced by\
+  CVC4 may violate grammar restrictions.\n\
+\n\
+try \n\
++ Try to reconstruct solutions in the original grammar when using single\
+  invocation techniques in an incomplete (fail-fast) manner.\n\
+\n\
+all-limit \n\
++ Try to reconstruct solutions in the original grammar, but termintate if a\
+  maximum number of rounds for reconstruction is exceeded.\n\
+\n\
+all \n\
++ Try to reconstruct solutions in the original grammar. In this mode,\
+  we do not terminate until a solution is successfully reconstructed. \n\
+\n\
+";
+
 const std::string OptionsHandler::s_cegisSampleHelp =
     "\
 Modes for sampling with counterexample-guided inductive synthesis (CEGIS),\
@@ -561,23 +565,6 @@ first (default) \n\
 \n\
 depth \n\
 + Choose terms that are of minimal depth.\n\
-\n\
-";
-
-const std::string OptionsHandler::s_fmfBoundMinModeModeHelp = "\
-Modes for finite model finding bound minimization, supported by --fmf-bound-min-mode:\n\
-\n\
-none \n\
-+ Do not minimize inferred bounds.\n\
-\n\
-int (default) \n\
-+ Minimize integer ranges only.\n\
-\n\
-setc \n\
-+ Minimize cardinality of set membership ranges only.\n\
-\n\
-all \n\
-+ Minimize all inferred bounds.\n\
 \n\
 ";
 
@@ -692,8 +679,6 @@ theory::quantifiers::QcfMode OptionsHandler::stringToQcfMode(std::string option,
     return theory::quantifiers::QCF_CONFLICT_ONLY;
   } else if(optarg ==  "default" || optarg == "prop-eq") {
     return theory::quantifiers::QCF_PROP_EQ;
-  } else if(optarg == "partial") {
-    return theory::quantifiers::QCF_PARTIAL;
   } else if(optarg ==  "help") {
     puts(s_qcfModeHelp.c_str());
     exit(1);
@@ -878,8 +863,6 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
     return theory::quantifiers::CEGQI_SI_MODE_NONE;
   } else if(optarg == "use" || optarg == "default") {
     return theory::quantifiers::CEGQI_SI_MODE_USE;
-  } else if(optarg == "all-abort") {
-    return theory::quantifiers::CEGQI_SI_MODE_ALL_ABORT;
   } else if(optarg == "all") {
     return theory::quantifiers::CEGQI_SI_MODE_ALL;
   } else if(optarg ==  "help") {
@@ -888,6 +871,38 @@ OptionsHandler::stringToCegqiSingleInvMode(std::string option,
   } else {
     throw OptionException(std::string("unknown option for --cegqi-si: `") +
                           optarg + "'.  Try --cegqi-si help.");
+  }
+}
+
+theory::quantifiers::CegqiSingleInvRconsMode
+OptionsHandler::stringToCegqiSingleInvRconsMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_NONE;
+  }
+  else if (optarg == "try")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_TRY;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL;
+  }
+  else if (optarg == "all-limit")
+  {
+    return theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL_LIMIT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cegqiSingleInvRconsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --cegqi-si-rcons: `")
+                          + optarg + "'.  Try --cegqi-si-rcons help.");
   }
 }
 
@@ -992,26 +1007,6 @@ theory::quantifiers::QuantRepMode OptionsHandler::stringToQuantRepMode(
   }
 }
 
-theory::quantifiers::FmfBoundMinMode OptionsHandler::stringToFmfBoundMinMode(
-    std::string option, std::string optarg)
-{
-  if(optarg == "none" ) {
-    return theory::quantifiers::FMF_BOUND_MIN_NONE;
-  } else if(optarg == "int" || optarg == "default") {
-    return theory::quantifiers::FMF_BOUND_MIN_INT_RANGE;
-  } else if(optarg == "setc" || optarg == "default") {
-    return theory::quantifiers::FMF_BOUND_MIN_SET_CARD;
-  } else if(optarg == "all") {
-    return theory::quantifiers::FMF_BOUND_MIN_ALL;
-  } else if(optarg ==  "help") {
-    puts(s_fmfBoundMinModeModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --fmf-bound-min-mode: `") +
-                          optarg + "'.  Try --fmf-bound-min-mode help.");
-  }
-}
-
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(std::string option, bool value)
 {
@@ -1078,28 +1073,13 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   if(optarg == "minisat") {
     return theory::bv::SAT_SOLVER_MINISAT;
   } else if(optarg == "cryptominisat") {
-    
-    if (options::incrementalSolving() &&
-        options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("CryptoMinSat does not support incremental mode. \n\
-                                         Try --bv-sat-solver=minisat"));
-    }
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
         options::bitblastMode.wasSetByUser()) {
-      throw OptionException(
-          std::string("CryptoMiniSat does not support lazy bit-blasting. \n\
-                                         Try --bv-sat-solver=minisat"));
+      throwLazyBBUnsupported(theory::bv::SAT_SOLVER_CRYPTOMINISAT);
     }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }
-
-    // if (!options::bvAbstraction.wasSetByUser() &&
-    //     !options::skolemizeArguments.wasSetByUser()) {
-    //   options::bvAbstraction.set(true);
-    //   options::skolemizeArguments.set(true); 
-    // }
     return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
   }
   else if (optarg == "cadical")
@@ -1109,15 +1089,14 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
     {
       throw OptionException(
           std::string("CaDiCaL does not support incremental mode. \n\
-                                         Try --bv-sat-solver=minisat"));
+                         Try --bv-sat-solver=cryptominisat or "
+                      "--bv-sat-solver=minisat"));
     }
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
     {
-      throw OptionException(
-          std::string("CaDiCaL does not support lazy bit-blasting. \n\
-                                         Try --bv-sat-solver=minisat"));
+      throwLazyBBUnsupported(theory::bv::SAT_SOLVER_CADICAL);
     }
     if (!options::bitvectorToBool.wasSetByUser())
     {
@@ -1169,14 +1148,12 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     if (!options::bitvectorAlgebraicSolver.wasSetByUser()) {
       options::bitvectorAlgebraicSolver.set(true);
     }
+    if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+    {
+      throwLazyBBUnsupported(options::bvSatSolver());
+    }
     return theory::bv::BITBLAST_MODE_LAZY;
   } else if(optarg == "eager") {
-
-    if (options::incrementalSolving() &&
-        options::incrementalSolving.wasSetByUser()) {
-      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
-                                         Try --bitblast=lazy"));
-    }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }
@@ -1643,15 +1620,6 @@ void OptionsHandler::showConfiguration(std::string option) {
        << (Configuration::hasGitModifications() ? " (with modifications)" : "")
        << "]";
     print_config("scm", ss.str());
-  } else if(Configuration::isSubversionBuild()) {
-    std::stringstream ss;
-    ss << "svn ["
-       << Configuration::getSubversionBranchName() << " r"
-       << Configuration::getSubversionRevision()
-       << (Configuration::hasSubversionModifications()
-           ? " (with modifications)" : "")
-       << "]";
-    print_config("scm", ss.str());
   } else {
     print_config_cond("scm", false);
   }
@@ -1689,7 +1657,6 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
-  print_config_cond("tls", Configuration::isBuiltWithTlsSupport());
   
   exit(0);
 }

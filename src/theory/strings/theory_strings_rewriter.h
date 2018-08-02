@@ -61,13 +61,35 @@ class TheoryStringsRewriter {
   static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
 
-  static void mergeInto(std::vector<Node> &t, const std::vector<Node> &s);
-  static void shrinkConVec(std::vector<Node> &vec);
-  static Node applyAX( TNode node );
-
-  static Node prerewriteConcatRegExp(TNode node);
-  static Node prerewriteOrRegExp(TNode node);
-  static Node prerewriteAndRegExp(TNode node);
+  /** rewrite regular expression concatenation
+   *
+   * This is the entry point for post-rewriting applications of re.++.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteConcatRegExp(TNode node);
+  /** rewrite regular expression star
+   *
+   * This is the entry point for post-rewriting applications of re.*.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStarRegExp(TNode node);
+  /** rewrite regular expression intersection/union
+   *
+   * This is the entry point for post-rewriting applications of re.inter and
+   * re.union. Returns the rewritten form of node.
+   */
+  static Node rewriteAndOrRegExp(TNode node);
+  /** rewrite regular expression loop
+   *
+   * This is the entry point for post-rewriting applications of re.loop.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteLoopRegExp(TNode node);
+  /** rewrite regular expression membership
+   *
+   * This is the entry point for post-rewriting applications of str.in.re
+   * Returns the rewritten form of node.
+   */
   static Node rewriteMembership(TNode node);
 
   static bool hasEpsilonNode(TNode node);
@@ -377,6 +399,22 @@ class TheoryStringsRewriter {
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+
+  /**
+   * Given a symbolic length n, returns the canonical string for that length.
+   * For example if n is constant, this function returns a string consisting of
+   * "A" repeated n times. Returns the null node if no such string exists.
+   */
+  static Node canonicalStrForSymbolicLength(Node n);
+
+  /** length preserving rewrite
+   *
+   * Given input n, this returns a string n' whose length is equivalent to n.
+   * We apply certain normalizations to n', such as replacing all constants
+   * that are not relevant to length by "A".
+   */
+  static Node lengthPreserveRewrite(Node n);
+
   /** entail non-empty
    *
    * Checks whether string a is entailed to be non-empty. Is equivalent to

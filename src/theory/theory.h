@@ -161,14 +161,27 @@ private:
   /**
    * Helper function for computeRelevantTerms
    */
-  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  void collectTerms(TNode n,
+                    std::set<Kind>& irrKinds,
+                    std::set<Node>& termSet) const;
 
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
    * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model
+   * terms that should be used when constructing a model.
+   *
+   * irrKinds: The kinds of terms that appear in assertions that should *not*
+   * be included in termSet. Note that the kinds EQUAL and NOT are always
+   * treated as irrelevant kinds.
+   *
+   * includeShared: Whether to include shared terms in termSet. Notice that
+   * shared terms are not influenced by irrKinds.
    */
+  void computeRelevantTerms(std::set<Node>& termSet,
+                            std::set<Kind>& irrKinds,
+                            bool includeShared = true) const;
+  /** same as above, but with empty irrKinds */
   void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
 
   /**
@@ -899,110 +912,6 @@ public:
   TheoryId getTheoryId() const;
   virtual ~EntailmentCheckSideEffects();
 };/* class EntailmentCheckSideEffects */
-
-
-class ExtTheory {
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-private:
-  // collect variables
-  static std::vector<Node> collectVars(Node n);
-  // is context dependent inactive
-  bool isContextIndependentInactive( Node n ) const;
-  //do inferences internal
-  bool doInferencesInternal(int effort, const std::vector<Node>& terms,
-                            std::vector<Node>& nred, bool batch, bool isRed);
-  // send lemma
-  bool sendLemma( Node lem, bool preprocess = false );
-  // register term (recursive)
-  void registerTermRec(Node n, std::set<Node>* visited);
-
-  Theory * d_parent;
-  Node d_true;
-  //extended string terms, map to whether they are active
-  NodeBoolMap d_ext_func_terms;
-  //set of terms from d_ext_func_terms that are SAT-context-independently inactive 
-  //  (e.g. term t when a reduction lemma of the form t = t' was added)
-  NodeSet d_ci_inactive;
-  //watched term for checking if any non-reduced extended functions exist 
-  context::CDO< Node > d_has_extf;
-  //extf kind
-  std::map< Kind, bool > d_extf_kind;
-  //information for each term in d_ext_func_terms
-  class ExtfInfo {
-  public:
-    //all variables in this term
-    std::vector< Node > d_vars;
-  };
-  std::map< Node, ExtfInfo > d_extf_info;
-
-  //cache of all lemmas sent
-  NodeSet d_lemmas;
-  NodeSet d_pp_lemmas;
-  bool d_cacheEnabled;
-  // if d_cacheEnabled=true :
-  //cache for getSubstitutedTerms 
-  class SubsTermInfo {
-  public:
-    Node d_sterm;
-    std::vector< Node > d_exp;
-  };
-  std::map< int, std::map< Node, SubsTermInfo > > d_gst_cache;
-
- public:
-  ExtTheory(Theory* p, bool cacheEnabled = false );
-  virtual ~ExtTheory() {}
-  // add extf kind
-  void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
-  bool hasFunctionKind(Kind k) const {
-    return d_extf_kind.find(k) != d_extf_kind.end();
-  }
-  // register term
-  //  adds n to d_ext_func_terms if addFunctionKind( n.getKind() ) was called
-  void registerTerm( Node n );
-  void registerTermRec( Node n );
-  // set n as reduced/inactive
-  //   if contextDepend = false, then n remains inactive in the duration of this user-context level
-  void markReduced( Node n, bool contextDepend = true );
-  // mark that a and b are congruent terms: set b inactive, set a to inactive if b was inactive
-  void markCongruent( Node a, Node b );
-  //getSubstitutedTerms
-  //  input : effort, terms
-  //  output : sterms, exp, where ( exp[i] => terms[i] = sterms[i] ) for all i
-  Node getSubstitutedTerm( int effort, Node term, std::vector< Node >& exp, bool useCache = false );
-  void getSubstitutedTerms(int effort, const std::vector<Node>& terms,
-                           std::vector<Node>& sterms,
-                           std::vector<std::vector<Node> >& exp, bool useCache = false);
-  // doInferences
-  //  * input : effort, terms, batch (whether to send one lemma or lemmas for
-  //    all terms)
-  //  * sends rewriting lemmas of the form ( exp => t = c ) where t is in terms
-  //    and c is a constant, c = rewrite( t*sigma ) where exp |= sigma
-  //  * output : nred (the terms that are still active)
-  //  * return : true iff lemma is sent
-  bool doInferences(int effort, const std::vector<Node>& terms,
-                    std::vector<Node>& nred, bool batch = true);
-  bool doInferences(int effort, std::vector<Node>& nred, bool batch = true);
-  //doReductions 
-  // same as doInferences, but will send reduction lemmas of the form ( t = t' )
-  // where t is in terms, t' is equivalent, reduced term.
-  bool doReductions(int effort, const std::vector<Node>& terms,
-                    std::vector<Node>& nred, bool batch = true);
-  bool doReductions(int effort, std::vector<Node>& nred, bool batch = true);
-
-  //get the set of terms from d_ext_func_terms
-  void getTerms( std::vector< Node >& terms );
-  // has active term
-  bool hasActiveTerm();
-  // is n active
-  bool isActive(Node n);
-  // get the set of active terms from d_ext_func_terms
-  std::vector<Node> getActive() const;
-  // get the set of active terms from d_ext_func_terms of kind k
-  std::vector<Node> getActive(Kind k) const;
-  //clear cache 
-  void clearCache();
-};
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

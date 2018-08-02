@@ -78,6 +78,8 @@
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
+#include "preprocessing/passes/rewrite.h"
+#include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
@@ -757,12 +759,15 @@ public:
     }
   }
 
-  void nmNotifyNewSortConstructor(TypeNode tn) override
+  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override
   {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
-    d_smt.addToModelCommandAndDump(c);
+    if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+    {
+      d_smt.addToModelCommandAndDump(c);
+    }
   }
 
   void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
@@ -1292,8 +1297,10 @@ void SmtEngine::setDefaults() {
     options::bitvectorDivByZeroConst.set(
         language::isInputLang_smt2_6(options::inputLanguage()));
   }
+  bool is_sygus = false;
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
+    is_sygus = true;
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
@@ -1303,32 +1310,17 @@ void SmtEngine::setDefaults() {
     {
       options::cbqiMidpoint.set(true);
     }
-    // do not assign function values (optimization)
-    if (!options::assignFunctionValues.wasSetByUser())
+    if (options::sygusRepairConst())
     {
-      options::assignFunctionValues.set(false);
+      if (!options::cbqi.wasSetByUser())
+      {
+        options::cbqi.set(true);
+      }
     }
-  }
-  else
-  {
-    // cannot use sygus repair constants
-    options::sygusRepairConst.set(false);
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
   {
-    if (options::incrementalSolving())
-    {
-      if (options::incrementalSolving.wasSetByUser())
-      {
-        throw OptionException(std::string(
-            "Eager bit-blasting does not currently support incremental mode. "
-            "Try --bitblast=lazy"));
-      }
-      Notice() << "SmtEngine: turning off incremental to support eager "
-               << "bit-blasting" << endl;
-      setOption("incremental", SExpr("false"));
-    }
     if (options::produceModels()
         && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
             || d_logic.isTheoryEnabled(THEORY_UF)))
@@ -1344,6 +1336,13 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
                << "generation" << endl;
       setOption("bitblastMode", SExpr("lazy"));
+    }
+
+    if (options::incrementalSolving() && !d_logic.isPure(THEORY_BV))
+    {
+      throw OptionException(
+          "Incremental eager bit-blasting is currently "
+          "only supported for QF_BV. Try --bitblast=lazy.");
     }
   }
 
@@ -1603,7 +1602,7 @@ void SmtEngine::setDefaults() {
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || options::sygusRepairConst()))
+          || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -1764,11 +1763,6 @@ void SmtEngine::setDefaults() {
       d_logic.isTheoryEnabled(THEORY_BV)) {
     Trace("smt") << "enabling eager bit-vector explanations " << endl;
     options::bvEagerExplanations.set(true);
-  }
-
-  if( !options::bitvectorEqualitySolver() ){
-    Trace("smt") << "disabling bvLazyRewriteExtf since equality solver is disabled" << endl;
-    options::bvLazyRewriteExtf.set(false);
   }
 
   // Turn on arith rewrite equalities only for pure arithmetic
@@ -2319,6 +2313,22 @@ void SmtEngine::setDefaults() {
       options::bitvectorInequalitySolver.set(false);
     }
   }
+
+  if (!options::bitvectorEqualitySolver())
+  {
+    if (options::bvLazyRewriteExtf())
+    {
+      if (options::bvLazyRewriteExtf.wasSetByUser())
+      {
+        throw OptionException(
+            "--bv-lazy-rewrite-extf requires --bv-eq-solver to be set");
+      }
+    }
+    Trace("smt")
+        << "disabling bvLazyRewriteExtf since equality solver is disabled"
+        << endl;
+    options::bvLazyRewriteExtf.set(false);
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)
@@ -2717,13 +2727,17 @@ void SmtEnginePrivate::finishInit()
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
+  std::unique_ptr<Rewrite> rewrite(
+      new Rewrite(d_preprocessingPassContext.get()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("apply-substs",
+ std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
+      new SepSkolemEmp(d_preprocessingPassContext.get()));
+   d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
@@ -2738,6 +2752,9 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
+  d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
+  d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
+                                           std::move(sepSkolemEmp));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
@@ -4141,7 +4158,8 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && !options::incrementalSolving())
   {
     d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
   }
@@ -4169,10 +4187,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
     dumpAssertions("pre-unconstrained-simp", d_assertions);
-    Chat() << "...doing unconstrained simplification..." << endl;
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-    }
+	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
     unconstrainedSimp();
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
     dumpAssertions("post-unconstrained-simp", d_assertions);
@@ -4190,10 +4205,7 @@ void SmtEnginePrivate::processAssertions() {
   {
     // special rewriting pass for unsat cores, since many of the passes below
     // are skipped
-    for (unsigned i = 0; i < d_assertions.size(); ++i)
-    {
-      d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-    }
+	  d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
   }
   else
   {
@@ -4227,15 +4239,7 @@ void SmtEnginePrivate::processAssertions() {
     Trace("smt") << "POST boolToBv" << endl;
   }
   if(options::sepPreSkolemEmp()) {
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node prev = d_assertions[i];
-      Node next = sep::TheorySepRewriter::preprocess( prev );
-      if( next!=prev ){
-        d_assertions.replace( i, Rewriter::rewrite( next ) );
-        Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
-        Trace("sep-preprocess") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
+    d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
   }
 
   if( d_smt.d_logic.isQuantified() ){
@@ -4336,9 +4340,9 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-simplify" << endl;
   dumpAssertions("post-simplify", d_assertions);
 
-  if (options::symmetryBreakerExp())
+  if (options::symmetryBreakerExp() && !options::incrementalSolving())
   {
-    // apply symmetry breaking
+    // apply symmetry breaking if not in incremental mode
     d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
   }
 
@@ -5257,6 +5261,32 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
+std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
+{
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot obtain separation logic expressions if not using the "
+        "separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
+  NodeManagerScope nms(d_nodeManager);
+  Expr heap;
+  Expr nil;
+  Model* m = getModel();
+  if (m->getHeapModel(heap, nil))
+  {
+    return std::make_pair(heap, nil);
+  }
+  InternalError(
+      "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+      "expressions from theory model.");
+}
+
+Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
+
+Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5546,6 +5576,11 @@ void SmtEngine::checkSynthSolution()
     }
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
     Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
+    if (conj.getKind() != kind::FORALL)
+    {
+      Trace("check-synth-sol") << "Not a checkable assertion.\n";
+      continue;
+    }
 
     // Apply solution map to conjecture body
     Node conjBody;
@@ -5746,6 +5781,9 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     }else{
       ret_n = NodeManager::currentNM()->mkConst(n_e.getKind() != kind::EXISTS);
     }
+    // do extended rewrite to minimize the size of the formula aggressively
+    theory::quantifiers::ExtendedRewriter extr(true);
+    ret_n = extr.extendedRewrite(ret_n);
     return ret_n.toExpr();
   }else {
     return NodeManager::currentNM()

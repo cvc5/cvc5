@@ -2118,6 +2118,17 @@ class CVC4_PUBLIC Solver
   Term declareConst(const std::string& symbol, Sort sort) const;
 
   /**
+   * Create datatype sort.
+   * SMT-LIB: ( declare-datatype <symbol> <datatype_decl> )
+   * @param symbol the name of the datatype sort
+   * @param ctors the constructor declarations of the datatype sort
+   * @return the datatype sort
+   */
+  Sort declareDatatype(
+      const std::string& symbol,
+      const std::vector<DatatypeConstructorDecl>& ctors) const;
+
+  /**
    * Declare 0-arity function symbol.
    * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
    * @param symbol the name of the function
@@ -2348,8 +2359,6 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<ExprManager> d_exprMgr;
   /* The SMT engine of this solver. */
   std::unique_ptr<SmtEngine> d_smtEngine;
-  /* The options of this solver. */
-  std::unique_ptr<Options> d_opts;
   /* The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };

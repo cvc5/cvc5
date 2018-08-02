@@ -215,8 +215,6 @@ std::string Configuration::about() {
   ss << "This is CVC4 version " << CVC4_RELEASE_STRING;
   if (Configuration::isGitBuild()) {
     ss << " [" << Configuration::getGitId() << "]";
-  } else if (CVC4::Configuration::isSubversionBuild()) {
-    ss << " [" << Configuration::getSubversionId() << "]";
   }
   ss << "\ncompiled with " << Configuration::getCompiler()
      << "\non " << Configuration::getCompiledDateTime() << "\n\n";
@@ -252,10 +250,6 @@ bool Configuration::isBuiltWithCryptominisat() {
 
 bool Configuration::isBuiltWithReadline() {
   return IS_READLINE_BUILD;
-}
-
-bool Configuration::isBuiltWithTlsSupport() {
-  return USING_TLS;
 }
 
 bool Configuration::isBuiltWithLfsc() {
@@ -359,33 +353,6 @@ std::string Configuration::getGitId() {
   stringstream ss;
   ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
      << ( ::CVC4::Configuration::hasGitModifications() ? " (with modifications)" : "" );
-  return ss.str();
-}
-
-bool Configuration::isSubversionBuild() {
-  return IS_SUBVERSION_BUILD;
-}
-
-const char* Configuration::getSubversionBranchName() {
-  return SUBVERSION_BRANCH_NAME;
-}
-
-unsigned Configuration::getSubversionRevision() {
-  return SUBVERSION_REVISION;
-}
-
-bool Configuration::hasSubversionModifications() {
-  return SUBVERSION_HAS_MODIFICATIONS;
-}
-
-std::string Configuration::getSubversionId() {
-  if(! isSubversionBuild()) {
-    return "";
-  }
-
-  stringstream ss;
-  ss << "subversion " << getSubversionBranchName() << " r" << getSubversionRevision()
-     << ( ::CVC4::Configuration::hasSubversionModifications() ? " (with modifications)" : "" );
   return ss.str();
 }
 
