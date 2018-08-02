@@ -128,13 +128,13 @@ bool SingleInvocationPartition::inferArgTypes(Node n,
 
 bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
 {
-  Trace("si-prt") << "Initialize with " << funcs.size() << " input functions (" << funcs << ")..."
-                  << std::endl;
+  Trace("si-prt") << "Initialize with " << funcs.size() << " input functions ("
+                  << funcs << ")..." << std::endl;
   std::vector<TypeNode> typs;
   if (!funcs.empty())
   {
     TypeNode tn0 = funcs[0].getType();
-    if( tn0.getNumChildren()>0 )
+    if (tn0.getNumChildren() > 0)
     {
       for (unsigned i = 0, nargs = tn0.getNumChildren() - 1; i < nargs; i++)
       {
@@ -144,17 +144,17 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
     for (unsigned i = 1, size = funcs.size(); i < size; i++)
     {
       TypeNode tni = funcs[i].getType();
-      if (tni.getNumChildren()!=tn0.getNumChildren())
+      if (tni.getNumChildren() != tn0.getNumChildren())
       {
         // can't anti-skolemize functions of different sort
         Trace("si-prt") << "...type mismatch" << std::endl;
         return false;
       }
-      else if( tni.getNumChildren()>0 )
+      else if (tni.getNumChildren() > 0)
       {
         for (unsigned j = 0, nargs = tni.getNumChildren() - 1; j < nargs; j++)
         {
-          if (tni[j]!=typs[j])
+          if (tni[j] != typs[j])
           {
             Trace("si-prt") << "...argument type mismatch" << std::endl;
             return false;
@@ -162,7 +162,6 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
         }
       }
     }
-
   }
   Trace("si-prt") << "#types = " << typs.size() << std::endl;
   return init(funcs, typs, n, true);
@@ -176,7 +175,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_arg_types.empty());
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
   d_input_funcs.insert(d_input_funcs.end(), funcs.begin(), funcs.end());
@@ -189,9 +188,9 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
     d_si_vars.push_back(si_v);
   }
   Assert(d_si_vars.size() == d_arg_types.size());
-  for( const Node& inf : d_input_funcs )
+  for (const Node& inf : d_input_funcs)
   {
-    Node sk = nm->mkSkolem("_sik",inf.getType());
+    Node sk = nm->mkSkolem("_sik", inf.getType());
     d_input_func_sks.push_back(sk);
   }
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;
@@ -208,9 +207,15 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       // do DER on conjunct
       // Must avoid eliminating the first-order input functions. We use a
       // substitution to avoid this.
-      Node cr = conj[i].substitute(d_input_funcs.begin(),d_input_funcs.end(),d_input_func_sks.begin(),d_input_func_sks.end());
+      Node cr = conj[i].substitute(d_input_funcs.begin(),
+                                   d_input_funcs.end(),
+                                   d_input_func_sks.begin(),
+                                   d_input_func_sks.end());
       cr = TermUtil::getQuantSimplify(cr);
-      cr = cr.substitute(d_input_func_sks.begin(),d_input_func_sks.end(),d_input_funcs.begin(),d_input_funcs.end());
+      cr = cr.substitute(d_input_func_sks.begin(),
+                         d_input_func_sks.end(),
+                         d_input_funcs.begin(),
+                         d_input_funcs.end());
       if (cr != conj[i])
       {
         Trace("si-prt-debug") << "...rewritten to " << cr << std::endl;
