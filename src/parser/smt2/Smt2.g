@@ -2575,8 +2575,6 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
 @init {
   Expr expr;
   Expr expr2;
-  Type t1;
-  Type t2;
 }
   : LPAREN_TOK INDEX_TOK
     ( 'extract' n1=INTEGER_LITERAL n2=INTEGER_LITERAL
