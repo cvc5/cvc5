@@ -57,7 +57,7 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
       neval_is_evalapp = true;
     }else if( n.getKind()==EQUAL && hasPol && !pol ){
       for( unsigned r=0; r<2; r++ ){
-        if (n[r].getKind()==DT_SYGUS_EVAL)
+        if (n[r].getKind() == DT_SYGUS_EVAL)
         {
           neval = n[r];
           if( n[1-r].isConst() ){

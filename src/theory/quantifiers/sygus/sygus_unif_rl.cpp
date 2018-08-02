@@ -194,7 +194,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       children[0] = new_f;
       Trace("sygus-unif-rl-purify-debug") << "Make sygus eval app " << children
                                           << std::endl;
-      np = nm->mkNode(DT_SYGUS_EVAL,children);
+      np = nm->mkNode(DT_SYGUS_EVAL, children);
       d_app_to_purified[nb] = np;
     }
     else

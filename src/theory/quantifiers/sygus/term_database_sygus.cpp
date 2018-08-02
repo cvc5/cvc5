@@ -1557,7 +1557,7 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 }
 
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
-  if (en.getKind()!=DT_SYGUS_EVAL)
+  if (en.getKind() != DT_SYGUS_EVAL)
   {
     Assert(en.isConst());
     return en;
@@ -1771,7 +1771,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
-    while (ret.getKind()==DT_SYGUS_EVAL
+    while (ret.getKind() == DT_SYGUS_EVAL
            && ret[0].getKind() == APPLY_CONSTRUCTOR)
     {
       ret = unfold( ret );

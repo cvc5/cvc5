@@ -463,7 +463,7 @@ Node SygusRepairConst::getFoQuery(const std::vector<Node>& candidates,
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      if (cur.getKind()==DT_SYGUS_EVAL)
+      if (cur.getKind() == DT_SYGUS_EVAL)
       {
         Node v = cur[0];
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
