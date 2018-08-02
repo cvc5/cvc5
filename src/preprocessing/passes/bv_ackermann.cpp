@@ -28,6 +28,7 @@
 #include "theory/bv/theory_bv_utils.h"
 
 #include <unordered_set>
+#include <stack>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -41,92 +42,7 @@ namespace passes {
 namespace
 {
 
-void storeFunction(
-    TNode func,
-    TNode term,
-    FunctionToArgsMap& fun_to_args,
-    SubstitutionMap& fun_to_skolem)
-{
-  if (fun_to_args.find(func) == fun_to_args.end())
-  {
-    fun_to_args.insert(make_pair(func, NodeSet()));
-  }
-  NodeSet& set = fun_to_args[func];
-  if (set.find(term) == set.end())
-  {
-    set.insert(term);
-    TypeNode tn = term.getType();
-    Node skolem = NodeManager::currentNM()->mkSkolem(
-        "BVSKOLEM$$",
-        tn,
-        "is a variable created by the ackermannization "
-        "preprocessing pass for theory BV, in place of: " + term.toString());
-    fun_to_skolem.addSubstitution(term, skolem);
-  }
-}
-
-void collectFunctionSymbols(
-    TNode term,
-    FunctionToArgsMap& fun_to_args,
-    SubstitutionMap& fun_to_skolem,
-    std::unordered_set<TNode, TNodeHashFunction>& seen)
-{
-  if (seen.find(term) != seen.end()) return;
-  if (term.getKind() == kind::APPLY_UF)
-  {
-    storeFunction(term.getOperator(), term, fun_to_args, fun_to_skolem);
-  }
-  else if (term.getKind() == kind::SELECT)
-  {
-    storeFunction(term[0], term, fun_to_args, fun_to_skolem);
-  }
-  else
-  {
-    AlwaysAssert(term.getKind() != kind::STORE,
-                 "Cannot use eager bitblasting on QF_ABV formula with stores");
-  }
-  for (const TNode& n : term)
-  {
-    collectFunctionSymbols(n, fun_to_args, fun_to_skolem, seen);
-  }
-  seen.insert(term);
-}
-
-}  // namespace
-
-/* -------------------------------------------------------------------------- */
-
-BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-ackermann"),
-      d_funcToSkolem(preprocContext->getUserContext())
-{
-}
-
-PreprocessingPassResult BVAckermann::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
-{
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
-  AlwaysAssert(!options::incrementalSolving());
-
-  std::unordered_set<TNode, TNodeHashFunction> seen;
-
-  for (const Node& a : assertionsToPreprocess->ref())
-  {
-    collectFunctionSymbols(a, d_funcToArgs, d_funcToSkolem, seen);
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  for (const auto& p : d_funcToArgs)
-  {
-    TNode func = p.first;
-    const NodeSet& args = p.second;
-    NodeSet::const_iterator it1 = args.begin();
-    for (; it1 != args.end(); ++it1)
-    {
-      for (NodeSet::const_iterator it2 = it1; it2 != args.end(); ++it2)
-      {
-        TNode args1 = *it1;
-        TNode args2 = *it2;
+void addLemmaForPair(TNode args1, TNode args2, const TNode func, AssertionPipeline* assertionsToPreprocess, NodeManager* nm, std::stack<TNode>* stack) {
         Node args_eq;
 
         if (args1.getKind() == kind::APPLY_UF)
@@ -156,10 +72,95 @@ PreprocessingPassResult BVAckermann::applyInternal(
         Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
         Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
         assertionsToPreprocess->push_back(lemma);
+        stack->push(lemma);
+      }
+
+
+void storeFunctionAndAddLemmas(
+    TNode func,
+    TNode term,
+    FunctionToArgsMap& fun_to_args,
+    SubstitutionMap& fun_to_skolem, 
+    AssertionPipeline* assertions,
+    NodeManager* nm,
+    std::stack<TNode>* stack
+    )
+{
+  
+  if (fun_to_args.find(func) == fun_to_args.end())
+  {
+    fun_to_args.insert(make_pair(func, NodeSet()));
+  }
+  NodeSet& set = fun_to_args[func];
+  if (set.find(term) == set.end())
+  {
+    TypeNode tn = term.getType();
+    Node skolem = NodeManager::currentNM()->mkSkolem(
+        "BVSKOLEM$$",
+        tn,
+        "is a variable created by the ackermannization "
+        "preprocessing pass for theory BV, in place of: " + term.toString());
+    for (t: set) {
+      addLemmaForPair(t, term, func, assertions, nm, stack);
+    }
+    set.insert(term);
+    fun_to_skolem.addSubstitution(term, skolem);
+  }
+}
+
+void collectFunctionsAndLemmas(
+    FunctionToArgsMap& fun_to_args,
+    SubstitutionMap& fun_to_skolem,
+    std::stack<TNode>* stack,
+    AssertionPipeline* assertions)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  while (!stack->empty()) {
+    TNode term = stack->top();
+    stack->pop();
+    TNode func;
+    if (term.getKind() == kind::APPLY_UF) {
+      storeFunctionAndAddLemmas(term.getOperator(), term, fun_to_args, fun_to_skolem, assertions, nm, stack);
+    } else if (term.getKind() == kind::SELECT) {
+      storeFunctionAndAddLemmas(term[0], term, fun_to_args, fun_to_skolem, assertions, nm, stack);
+    } else {
+      AlwaysAssert(term.getKind() != kind::STORE,
+               "Cannot use eager bitblasting on QF_ABV formula with stores");
+      for (const TNode& n : term)
+      {
+        stack->push(n);
       }
     }
   }
+}
 
+
+}  // namespace
+
+/* -------------------------------------------------------------------------- */
+
+BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "bv-ackermann"),
+      d_funcToSkolem(preprocContext->getUserContext())
+{
+}
+
+PreprocessingPassResult BVAckermann::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
+  AlwaysAssert(!options::incrementalSolving());
+
+  std::unordered_set<TNode, TNodeHashFunction> seen;
+
+  std::stack<TNode> to_process;
+  for (const Node& a : assertionsToPreprocess->ref())
+  {
+    to_process.push(a);
+  }
+  collectFunctionsAndLemmas(d_funcToArgs, d_funcToSkolem, &to_process, assertionsToPreprocess);
+  
+  cout << "panda: " << d_funcToSkolem << endl;
   /* replace applications of UF by skolems */
   // FIXME for model building, github issue #1901
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)

@@ -9,6 +9,7 @@
 (declare-fun h ((_ BitVec 4)) (_ BitVec 4))
 
 (assert (not (= (f (g (h v0))) (f (g (h v1))))))
+;(assert (= v0 v1))
 (assert (not (= v0 v1)))
 
 
