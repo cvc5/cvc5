@@ -4820,7 +4820,7 @@ Result SmtEngine::checkSynth(const Expr& e)
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
-  return checkSatisfiability( e, true, false );
+  return checkSatisfiability(e, true, false);
 }
 
 Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
