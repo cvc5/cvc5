@@ -1023,7 +1023,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       }
     }
   | termAtomic[atomExpr] {
-      Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic expression " << atomExpr << std::endl;
+      Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
+                            << "expression " << atomExpr << std::endl;
       std::stringstream ss;
       ss << atomExpr;
       sgt.d_expr = atomExpr;
@@ -2263,7 +2264,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.insert(args.begin(), dt[0].getConstructor());
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
-  | /** an atomic term (a term with no subterms) */
+  | /* an atomic term (a term with no subterms) */
     termAtomic[expr]
   ;
 
