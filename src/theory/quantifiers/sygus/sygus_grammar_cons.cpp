@@ -707,8 +707,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
   }
-  // add Boolean connectives, if not in a degenerate case of have only
-  // constant (atomic) constructors
+  // add Boolean connectives, if not in a degenerate case of (recursively)
+  // having only constant constructors
   if (ops.back().size() > consts.size())
   {
     for (unsigned i = 0; i < 4; i++)
