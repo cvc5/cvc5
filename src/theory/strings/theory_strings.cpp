@@ -701,6 +701,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
 void TheoryStrings::preRegisterTerm(TNode n) {
   if( d_pregistered_terms_cache.find(n) == d_pregistered_terms_cache.end() ) {
     d_pregistered_terms_cache.insert(n);
+    Trace("strings-preregister") << "TheoryString::preregister : " << n << std::endl;
     //check for logic exceptions
     Kind k = n.getKind();
     if( !options::stringExp() ){
@@ -747,6 +748,13 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         } else if (tn.isBoolean()) {
           // Get triggered for both equal and dis-equal
           d_equalityEngine.addTriggerPredicate(n);
+        } else if (tn.isRegExp()) {
+          if( n.isVar() )
+          {
+            std::stringstream ss;
+            ss << "Regular expression variables are not supported.";
+            throw LogicException(ss.str());
+          }
         } else {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);

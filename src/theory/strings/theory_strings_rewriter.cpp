@@ -705,6 +705,10 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
 bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
   if( t.getKind()==kind::STRING_TO_REGEXP ) {
     return t[0].isConst();
+  }
+  else if( t.isVar() )
+  {
+    return false;
   }else{
     for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
       if( !isConstRegExp(t[i]) ){
