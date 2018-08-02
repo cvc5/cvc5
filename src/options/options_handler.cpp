@@ -1620,15 +1620,6 @@ void OptionsHandler::showConfiguration(std::string option) {
        << (Configuration::hasGitModifications() ? " (with modifications)" : "")
        << "]";
     print_config("scm", ss.str());
-  } else if(Configuration::isSubversionBuild()) {
-    std::stringstream ss;
-    ss << "svn ["
-       << Configuration::getSubversionBranchName() << " r"
-       << Configuration::getSubversionRevision()
-       << (Configuration::hasSubversionModifications()
-           ? " (with modifications)" : "")
-       << "]";
-    print_config("scm", ss.str());
   } else {
     print_config_cond("scm", false);
   }
@@ -1666,7 +1657,6 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
-  print_config_cond("tls", Configuration::isBuiltWithTlsSupport());
   
   exit(0);
 }

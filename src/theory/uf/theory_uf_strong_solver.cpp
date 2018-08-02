@@ -1172,9 +1172,6 @@ void SortModel::allocateCardinality( OutputChannel* out ){
     }
     //require phase
     out->requirePhase( d_cardinality_literal[ d_aloc_cardinality ], true );
-    //add the appropriate lemma, propagate as decision
-    //Trace("uf-ss-prop-as-dec") << "Propagate as decision " << lem[0] << " " << d_type << std::endl;
-    //out->propagateAsDecision( lem[0] );
     d_thss->d_statistics.d_max_model_size.maxAssign( d_aloc_cardinality );
 
     if( applyTotality( d_aloc_cardinality ) ){

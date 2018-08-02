@@ -434,11 +434,11 @@ EvalResult Evaluator::evalInternal(TNode n,
           const String& s = results[currNode[0]].d_str;
           if (s.isNumber())
           {
-            results[currNode] = EvalResult(Rational(-1));
+            results[currNode] = EvalResult(Rational(s.toNumber()));
           }
           else
           {
-            results[currNode] = EvalResult(Rational(s.toNumber()));
+            results[currNode] = EvalResult(Rational(-1));
           }
           break;
         }
