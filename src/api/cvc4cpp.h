@@ -2367,8 +2367,6 @@ class CVC4_PUBLIC Solver
   /* Helper to convert a vector of sorts to internal types. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
 
-  /* The options of this solver. */
-  std::unique_ptr<Options> d_opts;
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
   /* The SMT engine of this solver. */

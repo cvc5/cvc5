@@ -150,12 +150,6 @@ namespace CVC4 {
 #  define IS_GPL_BUILD false
 #endif /* CVC4_GPL_DEPS */
 
-#ifdef TLS
-#  define USING_TLS true
-#else /* TLS */
-#  define USING_TLS false
-#endif /* TLS */
-
 }/* CVC4 namespace */
 
 #endif /* __CVC4__CONFIGURATION_PRIVATE_H */

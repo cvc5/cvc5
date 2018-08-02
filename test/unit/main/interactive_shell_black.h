@@ -61,13 +61,14 @@ private:
   }
 
  public:
-  void setUp() {
-    d_solver = std::unique_ptr<api::Solver>(new api::Solver());
+  void setUp()
+  {
     d_sin = new stringstream;
     d_sout = new stringstream;
     d_options.set(options::in, d_sin);
     d_options.set(options::out, d_sout);
     d_options.set(options::inputLanguage, language::input::LANG_CVC4);
+    d_solver = std::unique_ptr<api::Solver>(new api::Solver(&d_options));
   }
 
   void tearDown() {
@@ -77,18 +78,18 @@ private:
 
   void testAssertTrue() {
     *d_sin << "ASSERT TRUE;\n" << flush;
-    InteractiveShell shell(d_solver.get(), d_options);
+    InteractiveShell shell(d_solver.get());
     countCommands( shell, 1, 1 );
   }
 
   void testQueryFalse() {
     *d_sin << "QUERY FALSE;\n" << flush;
-    InteractiveShell shell(d_solver.get(), d_options);
+    InteractiveShell shell(d_solver.get());
     countCommands( shell, 1, 1 );
   }
 
   void testDefUse() {
-    InteractiveShell shell(d_solver.get(), d_options);
+    InteractiveShell shell(d_solver.get());
     *d_sin << "x : REAL; ASSERT x > 0;\n" << flush;
     /* readCommand may return a sequence, so we can't say for sure
        whether it will return 1 or 2... */
@@ -96,7 +97,7 @@ private:
   }
 
   void testDefUse2() {
-    InteractiveShell shell(d_solver.get(), d_options);
+    InteractiveShell shell(d_solver.get());
     /* readCommand may return a sequence, see above. */
     *d_sin << "x : REAL;\n" << flush;
     Command* tmp = shell.readCommand();
@@ -106,14 +107,14 @@ private:
   }
 
   void testEmptyLine() {
-    InteractiveShell shell(d_solver.get(), d_options);
+    InteractiveShell shell(d_solver.get());
     *d_sin << flush;
     countCommands(shell,0,0);
   }
 
   void testRepeatedEmptyLines() {
     *d_sin << "\n\n\n";
-    InteractiveShell shell(d_solver.get(), d_options);
+    InteractiveShell shell(d_solver.get());
     /* Might return up to four empties, might return nothing */
     countCommands( shell, 0, 3 );
   }

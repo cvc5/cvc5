@@ -333,10 +333,13 @@ SortType Parser::mkSort(const std::string& name, uint32_t flags) {
 }
 
 SortConstructorType Parser::mkSortConstructor(const std::string& name,
-                                              size_t arity) {
+                                              size_t arity,
+                                              uint32_t flags)
+{
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  SortConstructorType type = getExprManager()->mkSortConstructor(name, arity);
+  SortConstructorType type =
+      getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(name, vector<Type>(arity), type);
   return type;
 }
@@ -349,7 +352,8 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
 
 SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                         size_t arity) {
-  SortConstructorType unresolved = mkSortConstructor(name, arity);
+  SortConstructorType unresolved =
+      mkSortConstructor(name, arity, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -358,8 +362,8 @@ SortConstructorType Parser::mkUnresolvedTypeConstructor(
     const std::string& name, const std::vector<Type>& params) {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  SortConstructorType unresolved =
-      getExprManager()->mkSortConstructor(name, params.size());
+  SortConstructorType unresolved = getExprManager()->mkSortConstructor(
+      name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER);
   defineType(name, params, unresolved);
   Type t = getSort(name, params);
   d_unresolved.insert(unresolved);

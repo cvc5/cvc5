@@ -62,6 +62,17 @@ class DynamicRewriter
    * Check whether this class knows that the equality a = b holds.
    */
   bool areEqual(Node a, Node b);
+  /**
+   * Convert node a to its internal representation, which replaces all
+   * interpreted operators in a by a unique uninterpreted symbol.
+   */
+  Node toInternal(Node a);
+  /**
+   * Convert internal node ai to its original representation. It is the case
+   * that toExternal(toInternal(a))=a. If ai is not a term returned by
+   * toInternal, this method returns null.
+   */
+  Node toExternal(Node ai);
 
  private:
   /** index over argument types to function skolems
@@ -96,13 +107,10 @@ class DynamicRewriter
   };
   /** the internal operator symbol trie for this class */
   std::map<Node, OpInternalSymTrie> d_ois_trie;
-  /**
-   * Convert node a to its internal representation, which replaces all
-   * interpreted operators in a by a unique uninterpreted symbol.
-   */
-  Node toInternal(Node a);
   /** cache of the above function */
   std::map<Node, Node> d_term_to_internal;
+  /** inverse of the above map */
+  std::map<Node, Node> d_internal_to_term;
   /** stores congruence closure over terms given to this class. */
   eq::EqualityEngine d_equalityEngine;
   /** list of all equalities asserted to equality engine */

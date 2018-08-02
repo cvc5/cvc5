@@ -89,13 +89,13 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBREADLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver, const Options& options)
-    : d_in(*options.getIn()),
-      d_out(*options.getOutConst()),
-      d_options(options),
+InteractiveShell::InteractiveShell(api::Solver* solver)
+    : d_options(solver->getExprManager()->getOptions()),
+      d_in(*d_options.getIn()),
+      d_out(*d_options.getOutConst()),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, INPUT_FILENAME, options);
+  ParserBuilder parserBuilder(solver, INPUT_FILENAME, d_options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUserForceLogicString()) {
