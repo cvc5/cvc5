@@ -1479,7 +1479,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
     PARSER_STATE->pushScope(true); }
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-    { sorts.push_back( PARSER_STATE->mkSort(name) ); }
+    { sorts.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER) ); }
   )*
   RPAREN_TOK
   LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
@@ -1550,7 +1550,7 @@ datatypesDef[bool isCo,
     }
     ( PAR_TOK { PARSER_STATE->pushScope(true); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-        { params.push_back( PARSER_STATE->mkSort(name) ); }
+        { params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER) ); }
       )*
       RPAREN_TOK {
         // if the arity was fixed by prelude and is not equal to the number of parameters
