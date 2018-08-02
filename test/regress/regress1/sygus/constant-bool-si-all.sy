@@ -1,0 +1,10 @@
+(set-logic SAT)
+(synth-fun f () Bool)
+(synth-fun g () Bool)
+(synth-fun h () Bool)
+
+(constraint f)
+(constraint (not g))
+(constraint h)
+
+(check-synth)
