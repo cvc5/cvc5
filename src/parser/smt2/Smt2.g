@@ -1786,7 +1786,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patconds;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  Type type, type2;
   std::string s;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
@@ -2276,7 +2275,30 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       PARSER_STATE->popScope();
       expr = MK_EXPR( CVC4::kind::LAMBDA, args );
     }
-    /* constants */
+
+  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
+    { std::vector<Type> types;
+      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        types.push_back((*i).getType());
+      }
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+
+  | termAtomic[expr]
+  ;
+
+
+termAtomic[CVC4::Expr& expr]
+@init {
+  std::vector<Expr> args;
+  Type type1;
+  Type type2;
+}
+:
+   /* constants */
   | INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
 
@@ -2382,50 +2404,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     { //booleanType is placeholder here since we don't have type info without type annotation
       expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::SEP_NIL); }
     // NOTE: Theory constants go here
-
-  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-    { std::vector<Type> types;
-      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
-        types.push_back((*i).getType());
-      }
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert(args.begin(), dt[0].getConstructor());
-      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }
-  
-
-  | termAtomic[expr]
-  ;
-
-
-termAtomic[CVC4::Expr& expr]
-@init {
-  std::vector<Expr> args;
-
-
-  Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  Kind kind = kind::NULL_EXPR;
-  Expr op;
-  std::string name, name2;
-  std::vector<Expr> args;
-  std::vector< std::pair<std::string, Type> > sortedVarNames;
-  Expr f, f2, f3, f4;
-  std::string attr;
-  Expr attexpr;
-  std::vector<Expr> patexprs;
-  std::vector<Expr> patconds;
-  std::unordered_set<std::string> names;
-  std::vector< std::pair<std::string, Expr> > binders;
-  Type type;
-  std::string s;
-  bool isBuiltinOperator = false;
-  bool isOverloadedFunction = false;
-  bool readVariable = false;
-  int match_vindex = -1;
-  std::vector<Type> match_ptypes;
-}
-
+    
   | TUPLE_CONST_TOK
     { std::vector<Type> types;
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
@@ -2433,6 +2412,7 @@ termAtomic[CVC4::Expr& expr]
       args.insert(args.begin(), dt[0].getConstructor());
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
+  ;
   
 /**
  * Read attribute
