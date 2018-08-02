@@ -102,7 +102,7 @@ void storeFunctionAndAddLemmas(
         tn,
         "is a variable created by the ackermannization "
         "preprocessing pass for theory BV");
-    for (t: set) {
+    for (const auto& t: set) {
       addLemmaForPair(t, term, func, assertions, nm, stack);
     }
     set.insert(term);
