@@ -540,7 +540,10 @@ public:
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  SortConstructorType mkSortConstructor(const std::string& name, size_t arity);
+  SortConstructorType mkSortConstructor(
+      const std::string& name,
+      size_t arity,
+      uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
