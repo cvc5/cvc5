@@ -27,8 +27,8 @@
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_utils.h"
 
-#include <unordered_set>
 #include <stack>
+#include <unordered_set>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -42,53 +42,55 @@ namespace passes {
 namespace
 {
 
-void addLemmaForPair(TNode args1, TNode args2, const TNode func, AssertionPipeline* assertionsToPreprocess, NodeManager* nm, std::stack<TNode>* stack) {
-        Node args_eq;
-
-        if (args1.getKind() == kind::APPLY_UF)
-        {
-          AlwaysAssert(args1.getKind() == kind::APPLY_UF
-                       && args1.getOperator() == func);
-          AlwaysAssert(args2.getKind() == kind::APPLY_UF
-                       && args2.getOperator() == func);
-          AlwaysAssert(args1.getNumChildren() == args2.getNumChildren());
-
-          std::vector<Node> eqs(args1.getNumChildren());
-
-          for (unsigned i = 0, n = args1.getNumChildren(); i < n; ++i)
-          {
-            eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
-          }
-          args_eq = bv::utils::mkAnd(eqs);
-        }
-        else
-        {
-          AlwaysAssert(args1.getKind() == kind::SELECT && args1[0] == func);
-          AlwaysAssert(args2.getKind() == kind::SELECT && args2[0] == func);
-          AlwaysAssert(args1.getNumChildren() == 2);
-          AlwaysAssert(args2.getNumChildren() == 2);
-          args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
-        }
-        Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
-        Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
-        assertionsToPreprocess->push_back(lemma);
-        /* add the constraint to the stack so that 
-        * collectFunctionsAndLemmas will process it as well. */
-        stack->push(lemma);
-      }
-
-
-void storeFunctionAndAddLemmas(
-    TNode func,
-    TNode term,
-    FunctionToArgsMap& fun_to_args,
-    SubstitutionMap& fun_to_skolem, 
-    AssertionPipeline* assertions,
-    NodeManager* nm,
-    std::stack<TNode>* stack
-    )
+void addLemmaForPair(TNode args1,
+                     TNode args2,
+                     const TNode func,
+                     AssertionPipeline* assertionsToPreprocess,
+                     NodeManager* nm,
+                     std::stack<TNode>* stack)
 {
-  
+  Node args_eq;
+
+  if (args1.getKind() == kind::APPLY_UF)
+  {
+    AlwaysAssert(args1.getKind() == kind::APPLY_UF
+                 && args1.getOperator() == func);
+    AlwaysAssert(args2.getKind() == kind::APPLY_UF
+                 && args2.getOperator() == func);
+    AlwaysAssert(args1.getNumChildren() == args2.getNumChildren());
+
+    std::vector<Node> eqs(args1.getNumChildren());
+
+    for (unsigned i = 0, n = args1.getNumChildren(); i < n; ++i)
+    {
+      eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
+    }
+    args_eq = bv::utils::mkAnd(eqs);
+  }
+  else
+  {
+    AlwaysAssert(args1.getKind() == kind::SELECT && args1[0] == func);
+    AlwaysAssert(args2.getKind() == kind::SELECT && args2[0] == func);
+    AlwaysAssert(args1.getNumChildren() == 2);
+    AlwaysAssert(args2.getNumChildren() == 2);
+    args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
+  }
+  Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
+  Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
+  assertionsToPreprocess->push_back(lemma);
+  /* add the constraint to the stack so that
+  * collectFunctionsAndLemmas will process it as well. */
+  stack->push(lemma);
+}
+
+void storeFunctionAndAddLemmas(TNode func,
+                               TNode term,
+                               FunctionToArgsMap& fun_to_args,
+                               SubstitutionMap& fun_to_skolem,
+                               AssertionPipeline* assertions,
+                               NodeManager* nm,
+                               std::stack<TNode>* stack)
+{
   if (fun_to_args.find(func) == fun_to_args.end())
   {
     fun_to_args.insert(make_pair(func, NodeSet()));
@@ -102,7 +104,8 @@ void storeFunctionAndAddLemmas(
         tn,
         "is a variable created by the ackermannization "
         "preprocessing pass for theory BV");
-    for (const auto& t: set) {
+    for (const auto& t : set)
+    {
       addLemmaForPair(t, term, func, assertions, nm, stack);
     }
     set.insert(term);
@@ -111,31 +114,47 @@ void storeFunctionAndAddLemmas(
 }
 
 /* We only add top-level applications of functions.
- * For example: when we see "f(g(x))", we do not add g is a function and x as a parameter.
+ * For example: when we see "f(g(x))", we do not add g is a function and x as a
+ * parameter.
  * Instead, we only include f as a function and g(x) as a parameter.
- * However, if we see g(x) later on as a top-level application, we will add it as well.
- * Another example: for the formula f(g(x))=f(g(y)), 
+ * However, if we see g(x) later on as a top-level application, we will add it
+ * as well.
+ * Another example: for the formula f(g(x))=f(g(y)),
  * we first only add f as a function and g(x),g(y) as arguments.
- * storeFunctionAndAddLemmas will then add the constraint g(x)=g(y) -> f(g(x))=f(g(y)).
+ * storeFunctionAndAddLemmas will then add the constraint g(x)=g(y) ->
+ * f(g(x))=f(g(y)).
  * Now that we see g(x) and g(y), we explicitly add them as well. */
-void collectFunctionsAndLemmas(
-    FunctionToArgsMap& fun_to_args,
-    SubstitutionMap& fun_to_skolem,
-    std::stack<TNode>* stack,
-    AssertionPipeline* assertions)
+void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
+                               SubstitutionMap& fun_to_skolem,
+                               std::stack<TNode>* stack,
+                               AssertionPipeline* assertions)
 {
   NodeManager* nm = NodeManager::currentNM();
-  while (!stack->empty()) {
+  while (!stack->empty())
+  {
     TNode term = stack->top();
     stack->pop();
     TNode func;
-    if (term.getKind() == kind::APPLY_UF) {
-      storeFunctionAndAddLemmas(term.getOperator(), term, fun_to_args, fun_to_skolem, assertions, nm, stack);
-    } else if (term.getKind() == kind::SELECT) {
-      storeFunctionAndAddLemmas(term[0], term, fun_to_args, fun_to_skolem, assertions, nm, stack);
-    } else {
-      AlwaysAssert(term.getKind() != kind::STORE,
-               "Cannot use eager bitblasting on QF_ABV formula with stores");
+    if (term.getKind() == kind::APPLY_UF)
+    {
+      storeFunctionAndAddLemmas(term.getOperator(),
+                                term,
+                                fun_to_args,
+                                fun_to_skolem,
+                                assertions,
+                                nm,
+                                stack);
+    }
+    else if (term.getKind() == kind::SELECT)
+    {
+      storeFunctionAndAddLemmas(
+          term[0], term, fun_to_args, fun_to_skolem, assertions, nm, stack);
+    }
+    else
+    {
+      AlwaysAssert(
+          term.getKind() != kind::STORE,
+          "Cannot use eager bitblasting on QF_ABV formula with stores");
       for (const TNode& n : term)
       {
         stack->push(n);
@@ -143,7 +162,6 @@ void collectFunctionsAndLemmas(
     }
   }
 }
-
 
 }  // namespace
 
@@ -161,15 +179,16 @@ PreprocessingPassResult BVAckermann::applyInternal(
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
 
-  
-  /* collect all function applications and generate consistency lemmas accordingly */
+  /* collect all function applications and generate consistency lemmas
+   * accordingly */
   std::stack<TNode> to_process;
   for (const Node& a : assertionsToPreprocess->ref())
   {
     to_process.push(a);
   }
-  collectFunctionsAndLemmas(d_funcToArgs, d_funcToSkolem, &to_process, assertionsToPreprocess);
-  
+  collectFunctionsAndLemmas(
+      d_funcToArgs, d_funcToSkolem, &to_process, assertionsToPreprocess);
+
   /* replace applications of UF by skolems */
   // FIXME for model building, github issue #1901
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
