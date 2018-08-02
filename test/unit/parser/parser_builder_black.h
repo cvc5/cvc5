@@ -35,53 +35,22 @@ using namespace CVC4::parser;
 using namespace CVC4::language::input;
 using namespace std;
 
-class ParserBuilderBlack : public CxxTest::TestSuite {
-  std::unique_ptr<api::Solver> d_solver;
+class ParserBuilderBlack : public CxxTest::TestSuite
+{
+ public:
+  void setUp() { d_solver = std::unique_ptr<api::Solver>(new api::Solver()); }
 
-  void checkEmptyInput(ParserBuilder& builder) {
-    Parser *parser = builder.build();
-    TS_ASSERT( parser != NULL );
+  void tearDown() {}
 
-    Expr e = parser->nextExpression();
-    TS_ASSERT( e.isNull() );
+  void testEmptyFileInput()
+  {
+    char *filename = mkTemp();
 
-    delete parser;
-  }
+    checkEmptyInput(
+        ParserBuilder(d_solver.get(), filename).withInputLanguage(LANG_CVC4));
 
-  void checkTrueInput(ParserBuilder& builder) {
-    Parser *parser = builder.build();
-    TS_ASSERT( parser != NULL );
-
-    Expr e = parser->nextExpression();
-    TS_ASSERT_EQUALS(e, d_solver->getExprManager()->mkConst(true));
-
-    e = parser->nextExpression();
-    TS_ASSERT( e.isNull() );
-    delete parser;
-  }
-
-  char* mkTemp() {
-    char *filename = strdup("/tmp/testinput.XXXXXX");
-    int fd = mkstemp(filename);
-    TS_ASSERT( fd != -1 );
-    close(fd);
-    return filename;
-  }
-
-public:
- void setUp() { d_solver = std::unique_ptr<api::Solver>(new api::Solver()); }
-
- void tearDown() {}
-
- void testEmptyFileInput()
- {
-   char *filename = mkTemp();
-
-   checkEmptyInput(
-       ParserBuilder(d_solver.get(), filename).withInputLanguage(LANG_CVC4));
-
-   remove(filename);
-   free(filename);
+    remove(filename);
+    free(filename);
   }
 
   void testSimpleFileInput() {
@@ -124,6 +93,40 @@ public:
                        .withStreamInput(ss));
   }
 
+ private:
+  void checkEmptyInput(ParserBuilder &builder)
+  {
+    Parser *parser = builder.build();
+    TS_ASSERT(parser != NULL);
 
+    Expr e = parser->nextExpression();
+    TS_ASSERT(e.isNull());
+
+    delete parser;
+  }
+
+  void checkTrueInput(ParserBuilder &builder)
+  {
+    Parser *parser = builder.build();
+    TS_ASSERT(parser != NULL);
+
+    Expr e = parser->nextExpression();
+    TS_ASSERT_EQUALS(e, d_solver->getExprManager()->mkConst(true));
+
+    e = parser->nextExpression();
+    TS_ASSERT(e.isNull());
+    delete parser;
+  }
+
+  char *mkTemp()
+  {
+    char *filename = strdup("/tmp/testinput.XXXXXX");
+    int fd = mkstemp(filename);
+    TS_ASSERT(fd != -1);
+    close(fd);
+    return filename;
+  }
+
+  std::unique_ptr<api::Solver> d_solver;
 
 }; // class ParserBuilderBlack

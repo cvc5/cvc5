@@ -32,34 +32,8 @@
 using namespace CVC4;
 using namespace std;
 
-class InteractiveShellBlack : public CxxTest::TestSuite {
-private:
- std::unique_ptr<api::Solver> d_solver;
- Options d_options;
- stringstream* d_sin;
- stringstream* d_sout;
-
- /**
-  * Read up to maxCommands+1 from the shell and throw an assertion error if
-  * it's fewer than minCommands and more than maxCommands.  Note that an empty
-  * string followed by EOF may be returned as an empty command, and not NULL
-  * (subsequent calls to readCommand() should return NULL). E.g., "CHECKSAT;\n"
-  * may return two commands: the CHECKSAT, followed by an empty command,
-  * followed by NULL.
-  */
- void countCommands(InteractiveShell& shell, int minCommands, int maxCommands)
- {
-   Command* cmd;
-   int n = 0;
-   while (n <= maxCommands && (cmd = shell.readCommand()) != NULL)
-   {
-     ++n;
-     delete cmd;
-   }
-   TS_ASSERT(n <= maxCommands);
-   TS_ASSERT(n >= minCommands);
-  }
-
+class InteractiveShellBlack : public CxxTest::TestSuite
+{
  public:
   void setUp()
   {
@@ -119,4 +93,30 @@ private:
     countCommands( shell, 0, 3 );
   }
 
+ private:
+  std::unique_ptr<api::Solver> d_solver;
+  Options d_options;
+  stringstream* d_sin;
+  stringstream* d_sout;
+
+  /**
+   * Read up to maxCommands+1 from the shell and throw an assertion error if
+   * it's fewer than minCommands and more than maxCommands.  Note that an empty
+   * string followed by EOF may be returned as an empty command, and not NULL
+   * (subsequent calls to readCommand() should return NULL). E.g., "CHECKSAT;\n"
+   * may return two commands: the CHECKSAT, followed by an empty command,
+   * followed by NULL.
+   */
+  void countCommands(InteractiveShell& shell, int minCommands, int maxCommands)
+  {
+    Command* cmd;
+    int n = 0;
+    while (n <= maxCommands && (cmd = shell.readCommand()) != NULL)
+    {
+      ++n;
+      delete cmd;
+    }
+    TS_ASSERT(n <= maxCommands);
+    TS_ASSERT(n >= minCommands);
+  }
 };

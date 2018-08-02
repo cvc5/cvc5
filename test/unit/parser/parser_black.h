@@ -37,10 +37,8 @@ using namespace CVC4::parser;
 using namespace CVC4::language::input;
 using namespace std;
 
-class ParserBlack {
-  InputLanguage d_lang;
-  std::unique_ptr<api::Solver> d_solver;
-
+class ParserBlack
+{
  protected:
   Options d_options;
 
@@ -196,14 +194,20 @@ class ParserBlack {
     d_lang(lang) {
   }
 
-  void setUp() {
+  void setUp()
+  {
     d_options.set(options::parseOnly, true);
     d_solver = std::unique_ptr<api::Solver>(new api::Solver(&d_options));
   }
 
   void tearDown() {
   }
-};/* class ParserBlack */
+
+ private:
+  InputLanguage d_lang;
+  std::unique_ptr<api::Solver> d_solver;
+
+}; /* class ParserBlack */
 
 class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
