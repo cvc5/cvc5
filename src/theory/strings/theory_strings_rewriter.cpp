@@ -722,7 +722,7 @@ bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
 bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r ) {
   Assert( index_start <= s.size() );
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at " << index_start << std::endl;
-  Assert( !r.isVar() );
+  Assert(!r.isVar());
   int k = r.getKind();
   switch( k ) {
     case kind::STRING_TO_REGEXP: {
