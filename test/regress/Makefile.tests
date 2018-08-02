@@ -1251,6 +1251,7 @@ REG1_TESTS = \
 	regress1/quantifiers/NUM878.smt2 \
 	regress1/quantifiers/RND-small.smt2 \
 	regress1/quantifiers/RNDPRE_4_1-dd-nqe.smt2 \
+	regress1/quantifiers/RND_4_1-existing-inst.smt2 \
 	regress1/quantifiers/RND_4_16.smt2 \
 	regress1/quantifiers/anti-sk-simp.smt2 \
 	regress1/quantifiers/ari118-bv-2occ-x.smt2 \
@@ -1308,6 +1309,7 @@ REG1_TESTS = \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
+	regress1/quantifiers/repair-const-nterm.smt2 \
 	regress1/quantifiers/recfact.cvc \
 	regress1/quantifiers/rew-to-0211-dd.smt2 \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
