@@ -706,7 +706,7 @@ bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
   if( t.getKind()==kind::STRING_TO_REGEXP ) {
     return t[0].isConst();
   }
-  else if( t.isVar() )
+  else if (t.isVar())
   {
     return false;
   }else{
