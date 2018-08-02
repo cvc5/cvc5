@@ -99,7 +99,7 @@ void storeFunctionAndAddLemmas(
         "BVSKOLEM$$",
         tn,
         "is a variable created by the ackermannization "
-        "preprocessing pass for theory BV, in place of: " + term.toString());
+        "preprocessing pass for theory BV");
     for (t: set) {
       addLemmaForPair(t, term, func, assertions, nm, stack);
     }
@@ -160,7 +160,6 @@ PreprocessingPassResult BVAckermann::applyInternal(
   }
   collectFunctionsAndLemmas(d_funcToArgs, d_funcToSkolem, &to_process, assertionsToPreprocess);
   
-  cout << "panda: " << d_funcToSkolem << endl;
   /* replace applications of UF by skolems */
   // FIXME for model building, github issue #1901
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
