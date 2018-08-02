@@ -53,8 +53,7 @@ void addLemmaForPair(TNode args1,
 
   if (args1.getKind() == kind::APPLY_UF)
   {
-    AlwaysAssert(args1.getKind() == kind::APPLY_UF
-                 && args1.getOperator() == func);
+    AlwaysAssert(args1.getOperator() == func);
     AlwaysAssert(args2.getKind() == kind::APPLY_UF
                  && args2.getOperator() == func);
     AlwaysAssert(args1.getNumChildren() == args2.getNumChildren());
@@ -99,7 +98,7 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    Node skolem = NodeManager::currentNM()->mkSkolem(
+    Node skolem = nm->mkSkolem(
         "BVSKOLEM$$",
         tn,
         "is a variable created by the ackermannization "
@@ -114,7 +113,7 @@ void storeFunctionAndAddLemmas(TNode func,
 }
 
 /* We only add top-level applications of functions.
- * For example: when we see "f(g(x))", we do not add g is a function and x as a
+ * For example: when we see "f(g(x))", we do not add g as a function and x as a
  * parameter.
  * Instead, we only include f as a function and g(x) as a parameter.
  * However, if we see g(x) later on as a top-level application, we will add it
