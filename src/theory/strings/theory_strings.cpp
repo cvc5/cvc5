@@ -734,6 +734,12 @@ void TheoryStrings::preRegisterTerm(TNode n) {
       default: {
         registerTerm(n, 0);
         TypeNode tn = n.getType();
+        if (tn.isRegExp() && n.isVar())
+        {
+          std::stringstream ss;
+          ss << "Regular expression variables are not supported.";
+          throw LogicException(ss.str());
+        }
         if( tn.isString() ) {
           // if finite model finding is enabled,
           // then we minimize the length of this term if it is a variable
@@ -749,15 +755,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         } else if (tn.isBoolean()) {
           // Get triggered for both equal and dis-equal
           d_equalityEngine.addTriggerPredicate(n);
-        }
-        else if (tn.isRegExp())
-        {
-          if (n.isVar())
-          {
-            std::stringstream ss;
-            ss << "Regular expression variables are not supported.";
-            throw LogicException(ss.str());
-          }
         } else {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
