@@ -256,15 +256,6 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Trace("dt-sygus-util") << "...return " << ret << std::endl;
   return ret;
 }
-Node DatatypesRewriter::mkSygusEvalApp(const std::vector<Node>& children)
-{
-  return NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL, children);
-}
-
-bool DatatypesRewriter::isSygusEvalApp(Node n)
-{
-  return n.getKind() == DT_SYGUS_EVAL;
-}
 
 RewriteResponse DatatypesRewriter::preRewrite(TNode in)
 {

@@ -1557,7 +1557,7 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 }
 
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
-  if (!datatypes::DatatypesRewriter::isSygusEvalApp(en))
+  if (en.getKind()!=DT_SYGUS_EVAL)
   {
     Assert(en.isConst());
     return en;
@@ -1640,7 +1640,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
       vtm[s] = ev[j];
     }
     cc.insert(cc.end(), args.begin(), args.end());
-    pre[j] = datatypes::DatatypesRewriter::mkSygusEvalApp(cc);
+    pre[j] = nm->mkNode(DT_SYGUS_EVAL, cc);
   }
   Node ret = mkGeneric(dt, i, pre);
   // if it is a variable, apply the substitution
@@ -1667,7 +1667,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
   if( itv==visited.end() ){
     Trace("cegqi-eager-debug") << "getEagerUnfold " << n << std::endl;
     Node ret;
-    if (datatypes::DatatypesRewriter::isSygusEvalApp(n))
+    if (n.getKind() == DT_SYGUS_EVAL)
     {
       TypeNode tn = n[0].getType();
       Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
@@ -1771,7 +1771,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       visited.find(n);
   if( it==visited.end() ){
     Node ret = n;
-    while (datatypes::DatatypesRewriter::isSygusEvalApp(ret)
+    while (ret.getKind()==DT_SYGUS_EVAL
            && ret[0].getKind() == APPLY_CONSTRUCTOR)
     {
       ret = unfold( ret );
@@ -1806,7 +1806,7 @@ Node TermDbSygus::evaluateWithUnfolding( Node n ) {
 
 bool TermDbSygus::isEvaluationPoint(Node n) const
 {
-  if (!datatypes::DatatypesRewriter::isSygusEvalApp(n))
+  if (n.getKind() != DT_SYGUS_EVAL)
   {
     return false;
   }
