@@ -89,7 +89,9 @@ unsigned isPow2Const(TNode node, bool& isNeg)
 
 bool isBvConstTerm(TNode node)
 {
-  if (node.getNumChildren() == 0) { return node.isConst();
+  if (node.getNumChildren() == 0)
+  {
+    return node.isConst();
   }
 
   for (const TNode& n : node)
