@@ -922,7 +922,6 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   bool readEnum = false;
   Kind k;
   Type t;
-  CVC4::DatatypeConstructor* ctor = NULL;
   std::string sname;
   std::vector< Expr > let_vars;
   bool readingLet = false;
@@ -2280,9 +2279,8 @@ termAtomic[CVC4::Expr& expr]
   Type type2;
   std::string s;
 }
-:
     /* constants */
-    INTEGER_LITERAL
+  : INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
 
   | DECIMAL_LITERAL
@@ -2338,7 +2336,7 @@ termAtomic[CVC4::Expr& expr]
 
     )
     RPAREN_TOK
-    
+
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
