@@ -1463,6 +1463,12 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
+  | DECLARE_HEAP LPAREN_TOK 
+    sortSymbol[t,CHECK_DECLARED] 
+    sortSymbol[t, CHECK_DECLARED]
+    // We currently do nothing with the type information declared for the heap.
+    { cmd->reset(new EmptyCommand()); }
+    RPAREN_TOK
   ;
 
 
@@ -1804,7 +1810,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patconds;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  Type type;
+  Type type, type2;
   std::string s;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
@@ -1995,7 +2001,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-
   | LPAREN_TOK
     ( /* An indexed function application */
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
@@ -2340,6 +2345,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
                                                                 AntlrInput::tokenToUnsigned($sb)),
                                               true)); }
+    | EMP_TOK
+      sortSymbol[type,CHECK_DECLARED]
+      sortSymbol[type2,CHECK_DECLARED]
+      {
+        Expr v1 = PARSER_STATE->mkVar("_emp1", type);
+        Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
+        expr = MK_EXPR(kind::SEP_EMP,v1,v2);
+      }
     // NOTE: Theory parametric constants go here
 
     )
@@ -3144,6 +3157,8 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
+DECLARE_HEAP : 'declare-heap';
+EMP_TOK : 'emp';
 
 // SyGuS commands
 SYNTH_FUN_TOK : 'synth-fun';
