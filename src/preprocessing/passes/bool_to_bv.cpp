@@ -95,7 +95,13 @@ Node BoolToBV::lowerNode(TNode current, bool topLevel)
       Kind new_kind = kind;
       switch (kind)
       {
-        case kind::EQUAL: new_kind = kind::BITVECTOR_COMP; break;
+        case kind::EQUAL:
+          if (current[0].getType().isBitVector()
+              || current[0].getType().isBoolean())
+          {
+            new_kind = kind::BITVECTOR_COMP;
+          }
+          break;
         case kind::AND: new_kind = kind::BITVECTOR_AND; break;
         case kind::OR: new_kind = kind::BITVECTOR_OR; break;
         case kind::NOT: new_kind = kind::BITVECTOR_NOT; break;
