@@ -252,21 +252,16 @@ AlgebraicSolver::~AlgebraicSolver() {
 
 
 
-bool AlgebraicSolver::check(Theory::Effort e) {
+bool AlgebraicSolver::check(Theory::Effort e)
+{
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
 
-  if (!Theory::fullEffort(e)) {
-    return true;
-  }
-
-  if (!useHeuristic()) {
-    return true;
-  }
-
-  ++(d_numCalls);
+  if (!Theory::fullEffort(e)) { return true; }
+  if (!useHeuristic()) { return true; }
 
   TimerStat::CodeTimer algebraicTimer(d_statistics.d_solveTime);
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check (" << e << ")\n";
+  ++(d_numCalls);
   ++(d_statistics.d_numCallstoCheck);
 
   d_explanations.clear();
