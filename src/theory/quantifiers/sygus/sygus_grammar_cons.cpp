@@ -391,7 +391,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::vector<CVC4::Datatype>& datatypes,
     std::set<Type>& unres)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
                              << range << std::endl;
   // collect the variables
@@ -709,13 +709,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   // add Boolean connectives, if not in a degenerate case of have only
   // constant (atomic) constructors
-  if( ops.back().size()>consts.size() )
+  if (ops.back().size() > consts.size())
   {
     for (unsigned i = 0; i < 4; i++)
     {
-      Kind k = i == 0
-                        ? NOT
-                        : (i == 1 ? AND : (i == 2 ? OR : ITE));
+      Kind k = i == 0 ? NOT : (i == 1 ? AND : (i == 2 ? OR : ITE));
       // TODO #1935 ITEs are added to Boolean grammars so that we can infer
       // unification strategies. We can do away with this if we can infer
       // unification strategies from and/or/not
@@ -726,7 +724,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       ops.back().push_back(nm->operatorOf(k).toExpr());
       cnames.push_back(kindToString(k));
-      cargs.push_back( std::vector< CVC4::Type >() );
+      cargs.push_back(std::vector<CVC4::Type>());
       cargs.back().push_back(unres_bt);
       if (k != NOT)
       {
