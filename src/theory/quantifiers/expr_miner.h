@@ -35,8 +35,6 @@ class ExprMiner
   /** convert */
   Node convertToSkolem(Node n);
 };
-  
-
 
 }  // namespace quantifiers
 }  // namespace theory

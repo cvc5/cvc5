@@ -19,9 +19,9 @@
 
 #include <map>
 #include "expr/node.h"
+#include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "theory/quantifiers/expr_miner.h"
 
 namespace CVC4 {
 namespace theory {
@@ -38,33 +38,30 @@ class QueryGenerator : public ExprMiner
   /** initialize */
   void initialize(SygusSampler* ss, unsigned deqThresh);
   /** add term */
-  void addTerm(Node n, 
-                                       std::ostream& out);
+  void addTerm(Node n, std::ostream& out);
 
  private:
   /** pointer to the sygus sampler object we are using */
   SygusSampler* d_sampler;
   /** the disequality threshold (number of points)
-   * 
+   *
    */
   unsigned d_deq_thresh;
   /** the trie, for each type */
-  std::map< TypeNode, LazyTrie > d_qgt_trie;
+  std::map<TypeNode, LazyTrie> d_qgt_trie;
   /** find queries
-   * 
+   *
    */
-  void findQueries(
-               LazyTrie * t,
-               Node n,
-               LazyTrieEvaluator* ev,
-               unsigned index,
-               unsigned ntotal,
-               int deqAllow,
-               int eqAllow,
-               bool exact,
-               std::vector<Node>& queries,
-               std::vector<unsigned>& queriesPtTrue
-                  );
+  void findQueries(LazyTrie* t,
+                   Node n,
+                   LazyTrieEvaluator* ev,
+                   unsigned index,
+                   unsigned ntotal,
+                   int deqAllow,
+                   int eqAllow,
+                   bool exact,
+                   std::vector<Node>& queries,
+                   std::vector<unsigned>& queriesPtTrue);
 };
 
 }  // namespace quantifiers

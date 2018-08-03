@@ -717,7 +717,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()))
       {
-        std::map<Node, ExpressionMinerManager>::iterator its = d_crrdb.find(prog);
+        std::map<Node, ExpressionMinerManager>::iterator its =
+            d_crrdb.find(prog);
         if (its == d_crrdb.end())
         {
           d_crrdb[prog].initializeSygus(options::sygusRewSynth(),
@@ -726,8 +727,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                                         d_candidates[i],
                                         options::sygusSamples(),
                                         true,
-                                        options::sygusQueryGenThresh()
-                                       );
+                                        options::sygusQueryGenThresh());
           its = d_crrdb.find(prog);
         }
         bool rew_print = false;

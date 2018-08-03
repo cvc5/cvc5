@@ -25,15 +25,15 @@ namespace quantifiers {
 
 Node ExprMiner::convertToSkolem(Node n)
 {
-  std::vector< Node > fvs;
+  std::vector<Node> fvs;
   TermUtil::computeVarContains(n, fvs);
   if (fvs.empty())
   {
     return n;
   }
-  std::vector< Node > sks;
+  std::vector<Node> sks;
   // map to skolems
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = fvs.size(); i < size; i++)
   {
     Node v = fvs[i];

@@ -76,8 +76,8 @@ class ExpressionMinerManager
   SygusSampler d_sampler;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */

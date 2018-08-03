@@ -22,8 +22,8 @@
 #include <unordered_set>
 #include <vector>
 #include "theory/quantifiers/candidate_rewrite_filter.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/expr_miner.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
 namespace theory {
