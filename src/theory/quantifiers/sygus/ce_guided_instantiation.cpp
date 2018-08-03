@@ -186,7 +186,6 @@ void CegInstantiation::registerQuantifier( Node q ) {
           Node qe_res_n = Node::fromExpr(qe_res);
           qe_res_n = qe_res_n.substitute(
               subs.begin(), subs.end(), orig.begin(), orig.end());
-          qe_res_n = qe_res_n.negate();
           if (!nqe_vars.empty())
           {
             qe_res_n = nm->mkNode(
