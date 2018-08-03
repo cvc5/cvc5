@@ -85,6 +85,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   Trace("sygus-qgen-check") << "...finished." << std::endl;
 }
 
+// FIXME: make robust up to irrelevant variables
 void QueryGenerator::findQueries(LazyTrie* lt,
                                  Node n,
                                  LazyTrieEvaluator* ev,
