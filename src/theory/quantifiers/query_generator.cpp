@@ -16,14 +16,18 @@
 
 using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
-QueryGenerator::QueryGenerator( QuantifiersEngine * qe ) {
+QueryGenerator::QueryGenerator() {
 
+}
+
+void QueryGenerator::addTerm(Node n)
+{
+  
 }
 
 } /* CVC4::theory::quantifiers namespace */

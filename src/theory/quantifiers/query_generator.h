@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS___H
 
 #include <map>
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,9 +30,11 @@ namespace quantifiers {
 class QueryGenerator 
 {
 public:
-  QueryGenerator( QuantifiersEngine * qe );
+  QueryGenerator();
   ~QueryGenerator(){}
-private:
+
+  /** add term */
+  void addTerm(Node n);
 };
 
 } /* CVC4::theory::quantifiers namespace */

@@ -430,6 +430,9 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/expr_miner.cpp \
+	theory/quantifiers/expr_miner.h \
+	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/extended_rewrite.cpp \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
@@ -478,6 +481,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quantifiers_attributes.h \
 	theory/quantifiers/quantifiers_rewriter.cpp \
 	theory/quantifiers/quantifiers_rewriter.h \
+	theory/quantifiers/query_generator.cpp \
+	theory/quantifiers/query_generator.h \
 	theory/quantifiers/relevant_domain.cpp \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \

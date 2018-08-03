@@ -60,7 +60,8 @@ class CandidateRewriteDatabase
    * rewrite database is initialized with sygus below, the type ids of the
    * (sygus formal argument list) variables are always computed and used.
    */
-  void initialize(ExtendedRewriter* er,
+  void initialize(SygusSampler* ss,
+                  ExtendedRewriter* er,
                   TypeNode tn,
                   std::vector<Node>& vars,
                   unsigned nsamples,
@@ -84,7 +85,8 @@ class CandidateRewriteDatabase
    *
    * These arguments are used to initialize the sygus sampler class.
    */
-  void initializeSygus(QuantifiersEngine* qe,
+  void initializeSygus(SygusSampler* ss,
+                       QuantifiersEngine* qe,
                        Node f,
                        unsigned nsamples,
                        bool useSygusType);
@@ -102,8 +104,10 @@ class CandidateRewriteDatabase
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** pointer to the sygus term database of d_qe */
+  /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
+  /** (required) pointer to the sygus sampler objects we are using */
+  SygusSampler* d_sampler;
   /** pointer to the extended rewriter object we are using */
   ExtendedRewriter* d_ext_rewrite;
   /** the (sygus or builtin) type of terms we are testing */
@@ -112,12 +116,6 @@ class CandidateRewriteDatabase
   Node d_candidate;
   /** whether we are using sygus */
   bool d_using_sygus;
-  /** sygus sampler objects for each program variable
-   *
-   * This is used for the sygusRewSynth() option to synthesize new candidate
-   * rewrite rules.
-   */
-  SygusSampler d_sampler;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
   /**
@@ -154,6 +152,8 @@ class CandidateRewriteDatabaseGen
   QuantifiersEngine* d_qe;
   /** the variables */
   std::vector<Node> d_vars;
+  /** sygus sampler object for each type FIXME: when rec, can use only one */
+  std::map< TypeNode, SygusSampler > d_sampler;
   /** the number of samples */
   unsigned d_nsamples;
   /** candidate rewrite databases for each type */

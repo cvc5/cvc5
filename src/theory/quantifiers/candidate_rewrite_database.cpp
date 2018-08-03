@@ -35,31 +35,36 @@ namespace quantifiers {
 CandidateRewriteDatabase::CandidateRewriteDatabase()
     : d_qe(nullptr),
       d_tds(nullptr),
+      d_sampler(nullptr),
       d_ext_rewrite(nullptr),
       d_using_sygus(false)
 {
 }
-void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
+void CandidateRewriteDatabase::initialize(SygusSampler* ss,
+                                          ExtendedRewriter* er,
                                           TypeNode tn,
                                           std::vector<Node>& vars,
                                           unsigned nsamples,
                                           bool unique_type_ids)
 {
+  d_sampler = ss;
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
   d_qe = nullptr;
   d_tds = nullptr;
   d_ext_rewrite = er;
-  d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
-  d_crewrite_filter.initialize(&d_sampler, nullptr, false);
+  //d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
+  d_crewrite_filter.initialize(d_sampler, nullptr, false);
 }
 
-void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
+void CandidateRewriteDatabase::initializeSygus(SygusSampler* ss,
+                                               QuantifiersEngine* qe,
                                                Node f,
                                                unsigned nsamples,
                                                bool useSygusType)
 {
+  d_sampler = ss;
   d_candidate = f;
   d_type = f.getType();
   Assert(d_type.isDatatype());
@@ -68,8 +73,8 @@ void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = d_tds->getExtRewriter();
-  d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
-  d_crewrite_filter.initialize(&d_sampler, d_tds, true);
+  //d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
+  d_crewrite_filter.initialize(d_sampler, d_tds, true);
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
@@ -77,7 +82,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
                                        bool& rew_print)
 {
   bool is_unique_term = true;
-  Node eq_sol = d_sampler.registerTerm(sol);
+  Node eq_sol = d_sampler->registerTerm(sol);
   // eq_sol is a candidate solution that is equivalent to sol
   if (eq_sol != sol)
   {
@@ -190,7 +195,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
           is_unique_term = true;
           std::vector<Node> vars;
-          d_sampler.getVariables(vars);
+          d_sampler->getVariables(vars);
           std::vector<Node> pt;
           for (const Node& v : vars)
           {
@@ -229,10 +234,10 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
           }
-          d_sampler.addSamplePoint(pt);
+          d_sampler->addSamplePoint(pt);
           // add the solution again
           // by construction of the above point, we should be unique now
-          Node eq_sol_new = d_sampler.registerTerm(sol);
+          Node eq_sol_new = d_sampler->registerTerm(sol);
           Assert(eq_sol_new == sol);
         }
         else
@@ -347,7 +352,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   {
     Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
     // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(er, tn, d_vars, d_nsamples, true);
+    d_cdbs[tn].initialize(&d_sampler[tn], er, tn, d_vars, d_nsamples, true);
     itc = d_cdbs.find(tn);
     Trace("synth-rr-dbg") << "...finish." << std::endl;
   }
