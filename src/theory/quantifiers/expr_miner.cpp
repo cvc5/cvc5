@@ -63,11 +63,11 @@ void ExpressionMiner::initializeSygus(bool doRewSynth,
   d_do_query_gen = doQueryGen;
   d_use_sygus_type = useSygusType;
   d_crd.initializeSygus(&d_sampler, qe, f, nsamples, useSygusType);    
-  if( !doRewSynth )
+  if( !d_do_rew_synth )
   {
     d_crd.setSilent(true);
   }
-  if( doQueryGen )
+  if( d_do_query_gen )
   {
     d_qg.initialize(&d_sampler);
   }
