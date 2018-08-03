@@ -30,21 +30,41 @@ namespace bv {
 // FIXME: this rules subsume the constant evaluation ones
 
 /**
- * BvIte
+ * BvIteConstCond
  *
  * BITVECTOR_ITE with constant condition
  */
 template <>
-inline bool RewriteRule<BvIte>::applies(TNode node)
+inline bool RewriteRule<BvIteConstCond>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_ITE && node[0].isConst());
 }
 
 template <>
-inline Node RewriteRule<BvIte>::apply(TNode node)
+inline Node RewriteRule<BvIteConstCond>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIte>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<BvIteConstCond>(" << node << ")"
+                      << std::endl;
   return utils::isZero(node[0]) ? node[2] : node[1];
+}
+
+/**
+ * BvIteChildren
+ *
+ * BITVECTOR_ITE with term_then = term_else
+ */
+template <>
+inline bool RewriteRule<BvIteChildren>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE && node[1] == node[2]);
+}
+
+template <>
+inline Node RewriteRule<BvIteChildren>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteChildren>(" << node << ")"
+                      << std::endl;
+  return node[1];
 }
 
 /**

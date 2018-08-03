@@ -169,8 +169,9 @@ RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite){
 RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
 {
   Node resultNode =
-      LinearRewriteStrategy<RewriteRule<EvalITEBv>, RewriteRule<BvIte> >::apply(
-          node);
+      LinearRewriteStrategy<RewriteRule<EvalITEBv>,
+                            RewriteRule<BvIteConstCond>,
+                            RewriteRule<BvIteChildren> >::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
