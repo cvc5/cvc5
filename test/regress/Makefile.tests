@@ -155,6 +155,8 @@ REG0_TESTS = \
 	regress0/bug605.cvc \
 	regress0/bug639.smt2 \
 	regress0/buggy-ite.smt2 \
+	regress0/bv/ackermann1.smt2 \
+	regress0/bv/ackermann2.smt2 \
 	regress0/bv/bool-to-bv.smt2 \
 	regress0/bv/bug260a.smt \
 	regress0/bv/bug260b.smt \

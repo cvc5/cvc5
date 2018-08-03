@@ -1,3 +1,5 @@
+; COMMAND-LINE: --bitblast=eager --no-check-model
+; EXPECT: unsat
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
@@ -9,8 +11,7 @@
 (declare-fun h ((_ BitVec 4)) (_ BitVec 4))
 
 (assert (not (= (f (g (h v0))) (f (g (h v1))))))
-;(assert (= v0 v1))
-(assert (not (= v0 v1)))
+(assert (= v0 v1))
 
 
 (check-sat)

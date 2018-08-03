@@ -1,3 +1,5 @@
+; COMMAND-LINE: --bitblast=eager --no-check-models
+; EXPECT: sat
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
