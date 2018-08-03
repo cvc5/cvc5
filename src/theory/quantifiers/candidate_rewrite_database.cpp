@@ -120,32 +120,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
 
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
-        // quantify over the free variables in crr
-        std::vector<Node> fvs;
-        TermUtil::computeVarContains(crr, fvs);
-        std::map<Node, unsigned> fv_index;
-        std::vector<Node> sks;
-        if (!fvs.empty())
-        {
-          // map to skolems
-          for (unsigned i = 0, size = fvs.size(); i < size; i++)
-          {
-            Node v = fvs[i];
-            fv_index[v] = i;
-            std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
-            if (itf == d_fv_to_skolem.end())
-            {
-              Node sk = nm->mkSkolem("rrck", v.getType());
-              d_fv_to_skolem[v] = sk;
-              sks.push_back(sk);
-            }
-            else
-            {
-              sks.push_back(itf->second);
-            }
-          }
-          crr = crr.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
-        }
+        // Convert bound variables to skolems. This ensures the satisfiability
+        // check is ground.
+        crr = convertToSkolem(crr);
 
         // Notice we don't set produce-models. rrChecker takes the same
         // options as the SmtEngine we belong to, where we ensure that
@@ -204,8 +181,8 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             // looking up the model value
             if (v.getKind() == BOUND_VARIABLE)
             {
-              std::map<Node, unsigned>::iterator itf = fv_index.find(v);
-              if (itf == fv_index.end())
+              std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
+              if (itf == d_fv_to_skolem.end())
               {
                 // not in conjecture, can use arbitrary value
                 val = v.getType().mkGroundTerm();
@@ -213,7 +190,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
               else
               {
                 // get the model value of its skolem
-                refv = sks[itf->second];
+                refv = itf->second;
               }
             }
             if (val.isNull())

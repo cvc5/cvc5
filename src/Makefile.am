@@ -432,6 +432,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_infer.h \
 	theory/quantifiers/expr_miner.cpp \
 	theory/quantifiers/expr_miner.h \
+	theory/quantifiers/expr_miner_manager.cpp \
+	theory/quantifiers/expr_miner_manager.h \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/extended_rewrite.cpp \
 	theory/quantifiers/extended_rewrite.h \

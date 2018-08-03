@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "theory/quantifiers/expr_miner.h"
+#include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
@@ -266,12 +266,12 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
-  /** expression miners for each program variable
+  /** expression miner managers for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, ExpressionMiner> d_crrdb;
+  std::map<Node, ExpressionMinerManager> d_crrdb;
 };
 
 } /* namespace CVC4::theory::quantifiers */

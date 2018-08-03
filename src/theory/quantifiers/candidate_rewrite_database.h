@@ -23,6 +23,7 @@
 #include <vector>
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/quantifiers/expr_miner.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,7 +41,7 @@ namespace quantifiers {
  * rule filtering (based on congruence, matching, variable ordering) is also
  * managed by the sygus sampler object.
  */
-class CandidateRewriteDatabase
+class CandidateRewriteDatabase : public ExprMiner
 {
  public:
   CandidateRewriteDatabase();
@@ -120,11 +121,6 @@ class CandidateRewriteDatabase
   bool d_using_sygus;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
-  /**
-   * Cache of skolems for each free variable that appears in a synthesis check
-   * (for --sygus-rr-synth-check).
-   */
-  std::map<Node, Node> d_fv_to_skolem;
   /** if true, we silence the output of candidate rewrites */
   bool d_silent;
 };

@@ -14,13 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS___H
-#define __CVC4__THEORY__QUANTIFIERS___H
+#ifndef __CVC4__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
+#define __CVC4__THEORY__QUANTIFIERS__QUERY_GENERATOR_H
 
 #include <map>
 #include "expr/node.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/quantifiers/expr_miner.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,7 +30,7 @@ namespace quantifiers {
 /** QueryGenerator
  *
  */
-class QueryGenerator
+class QueryGenerator : public ExprMiner
 {
  public:
   QueryGenerator();
@@ -59,8 +60,8 @@ class QueryGenerator
                unsigned ntotal,
                int deqAllow,
                int eqAllow,
-               bool exact
-                  );
+               bool exact,
+               std::vector<Node>& queries);
 };
 
 }  // namespace quantifiers

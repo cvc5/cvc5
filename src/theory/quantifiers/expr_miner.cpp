@@ -14,7 +14,7 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -23,86 +23,33 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExpressionMiner::ExpressionMiner()
-    : d_do_rew_synth(false), d_do_query_gen(false), d_use_sygus_type(false), d_tds(nullptr)
+Node ExprMiner::convertToSkolem(Node n)
 {
-}
-
-void ExpressionMiner::initialize(bool doRewSynth,
-                                 bool doQueryGen,
-                                 ExtendedRewriter* er,
-                                 TypeNode tn,
-                                 std::vector<Node>& vars,
-                                 unsigned nsamples,
-                                 bool unique_type_ids,
-                                      unsigned deqThresh)
-{
-  Assert(doRewSynth || doQueryGen);
-  d_do_rew_synth = doRewSynth;
-  d_do_query_gen = doQueryGen;
-  d_use_sygus_type = false;
-  d_tds = nullptr;
-  // initialize the sampler
-  d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
-  d_crd.initialize(&d_sampler, er, tn, vars, nsamples, unique_type_ids);
-  if (!doRewSynth)
+  std::vector< Node > fvs;
+  TermUtil::computeVarContains(n, fvs);
+  if (fvs.empty())
   {
-    d_crd.setSilent(true);
+    return n;
   }
-  if (doQueryGen)
+  std::vector< Node > sks;
+  // map to skolems
+  NodeManager * nm = NodeManager::currentNM();
+  for (unsigned i = 0, size = fvs.size(); i < size; i++)
   {
-    d_qg.initialize(&d_sampler,deqThresh);
-  }
-}
-
-void ExpressionMiner::initializeSygus(bool doRewSynth,
-                                      bool doQueryGen,
-                                      QuantifiersEngine* qe,
-                                      Node f,
-                                      unsigned nsamples,
-                                      bool useSygusType,
-                                      unsigned deqThresh
-                                     )
-{
-  Assert(doRewSynth || doQueryGen);
-  d_do_rew_synth = doRewSynth;
-  d_do_query_gen = doQueryGen;
-  d_use_sygus_type = useSygusType;
-  d_tds = qe->getTermDatabaseSygus();
-  // initialize the sampler
-  d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
-  d_crd.initializeSygus(&d_sampler, qe, f, nsamples, useSygusType);
-  if (!d_do_rew_synth)
-  {
-    d_crd.setSilent(true);
-  }
-  if (d_do_query_gen)
-  {
-    d_qg.initialize(&d_sampler,deqThresh);
-  }
-}
-
-bool ExpressionMiner::addTerm(Node sol, std::ostream& out, bool& rew_print)
-{
-  bool ret = d_crd.addTerm(sol, out, rew_print);
-  if (ret && d_do_query_gen)
-  {
-    // always use the builtin version
-    Node solb = sol;
-    if( d_use_sygus_type )
+    Node v = fvs[i];
+    std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
+    if (itf == d_fv_to_skolem.end())
     {
-      solb = d_tds->sygusToBuiltin(sol);
+      Node sk = nm->mkSkolem("rrck", v.getType());
+      d_fv_to_skolem[v] = sk;
+      sks.push_back(sk);
     }
-    // a unique term, let's try the query generator
-    d_qg.addTerm(solb);
+    else
+    {
+      sks.push_back(itf->second);
+    }
   }
-  return ret;
-}
-
-bool ExpressionMiner::addTerm(Node sol, std::ostream& out)
-{
-  bool rew_print = false;
-  return addTerm(sol, out, rew_print);
+  return n.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
 }
 
 }  // namespace quantifiers

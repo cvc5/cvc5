@@ -14,6 +14,9 @@
 
 #include "theory/quantifiers/query_generator.h"
 
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+
 using namespace std;
 using namespace CVC4::kind;
 
@@ -31,7 +34,37 @@ void QueryGenerator::addTerm(Node n)
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
   // TODO : as an optimization, use a shared lazy trie?
-  findQueries( &d_qgt_trie[tn], n, d_sampler, 0, npts, d_deq_thresh, d_deq_thresh, true );
+  std::vector< Node > queries;
+  findQueries( &d_qgt_trie[tn], n, d_sampler, 0, npts, d_deq_thresh, d_deq_thresh, true, queries );
+  
+  if( queries.empty() )
+  {
+    return;
+  }
+  Trace("sygus-qg-debug") << "query: Check " << queries.size() << " queries..." << std::endl;
+  ExprManager * em = NodeManager::currentNM()->toExprManager();
+  LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
+  for( const Node& q : queries )
+  {
+    Trace("sygus-qg-check") << "query: check " << q << "..." << std::endl;
+    Node qs = convertToSkolem(q);
+    
+    // make the satisfiability query
+    SmtEngine queryChecker(em);
+    queryChecker.setLogic(linfo);
+    queryChecker.assertFormula(qs.toExpr());
+    Result r = queryChecker.checkSat();
+    Trace("sygus-qg-check") << "query: ...got : " << r << std::endl;
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT )
+    {
+      std::stringstream ss;
+      ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << q << "!";
+      AlwaysAssert(
+          false,
+          ss.str().c_str());
+    }
+  }
+  Trace("sygus-qg-check") << "...finished." << std::endl;
 }
 
 void QueryGenerator::findQueries(
@@ -42,7 +75,9 @@ void QueryGenerator::findQueries(
             unsigned ntotal,
             int deqAllow,
             int eqAllow,
-            bool exact)
+            bool exact,
+            std::vector< Node >& queries
+                                )
 {
   Trace("sygus-qg-debug") << "Find queries " << n << " " << index << "/" << ntotal << ", deq/eq allow = " << deqAllow << "/" << eqAllow << ", exact = " << exact << std::endl;
   Assert( lt!=nullptr );
@@ -74,6 +109,7 @@ void QueryGenerator::findQueries(
       {
         // we have an interesting query
         Trace("sygus-qg") << "(query " << query << ")  ; " << numPtsQueryTrue << "/" << ntotal << std::endl;
+        queries.push_back(query);
       }
     }
     return;
@@ -102,7 +138,7 @@ void QueryGenerator::findQueries(
       {
         if( ltc.first!=e_this )
         {
-          findQueries(&ltc.second,n,ev,index+1,ntotal,deqAllow,eqAllow,false);
+          findQueries(&ltc.second,n,ev,index+1,ntotal,deqAllow,eqAllow,false, queries);
         }
       }
     }
@@ -125,7 +161,7 @@ void QueryGenerator::findQueries(
     else
     {
       // otherwise, we recurse on the equal point
-      findQueries(&(lt->d_children[e_this]),n,ev,index+1,ntotal,deqAllow,eqAllow,true);
+      findQueries(&(lt->d_children[e_this]),n,ev,index+1,ntotal,deqAllow,eqAllow,true, queries);
     }
     return;
   }
@@ -137,7 +173,7 @@ void QueryGenerator::findQueries(
     std::map<Node, LazyTrie>::iterator iteq = lt->d_children.find(e_this);
     if( iteq!=lt->d_children.end() )
     {
-      findQueries(&(iteq->second),n,ev,index+1,ntotal,deqAllow,eqAllow,false);
+      findQueries(&(iteq->second),n,ev,index+1,ntotal,deqAllow,eqAllow,false, queries);
     }
   }
 }
