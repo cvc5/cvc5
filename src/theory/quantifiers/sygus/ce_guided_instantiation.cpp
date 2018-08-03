@@ -186,6 +186,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
           Node qe_res_n = Node::fromExpr(qe_res);
           qe_res_n = qe_res_n.substitute(
               subs.begin(), subs.end(), orig.begin(), orig.end());
+          qe_res_n = qe_res_n.negate();
           if (!nqe_vars.empty())
           {
             qe_res_n = nm->mkNode(
@@ -202,6 +203,8 @@ void CegInstantiation::registerQuantifier( Node q ) {
           Trace("cegqi-lemma")
               << "Cegqi::Lemma : qe-preprocess : " << lem << std::endl;
           d_quantEngine->getOutputChannel().lemma(lem);
+          // we've reduced the original to a preprocessed version, return
+          return;
         }
       }
       d_conj->assign(conj);
