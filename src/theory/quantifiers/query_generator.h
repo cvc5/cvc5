@@ -65,6 +65,19 @@ class QueryGenerator
   unsigned d_deq_thresh;
   /** the trie, for each type */
   std::map< TypeNode, LazyTrie > d_qgt_trie;
+  /** find queries
+   * 
+   */
+  void findQueries(
+               LazyTrie * t,
+               Node n,
+               LazyTrieEvaluator* ev,
+               unsigned index,
+               unsigned ntotal,
+               int deqAllow,
+               int eqAllow,
+               bool exact
+                  );
 };
 
 }  // namespace quantifiers
