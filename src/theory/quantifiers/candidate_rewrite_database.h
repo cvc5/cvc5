@@ -94,10 +94,13 @@ class CandidateRewriteDatabase
    * cause a candidate-rewrite to be printed on the output stream out.
    * We return true if the term sol is distinct (up to equivalence) with
    * all previous terms added to this class. The argument rew_print is set to
-   * true if this class printed a rewrite.
+   * true if this class printed a rewrite involving sol.
+   *
+   * If the flag rec is true, then we also recursively add all subterms of sol
+   * to this class as well.
    */
-  bool addTerm(Node sol, std::ostream& out, bool& rew_print);
-  bool addTerm(Node sol, std::ostream& out);
+  bool addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
+  bool addTerm(Node sol, bool rec, std::ostream& out);
 
  private:
   /** reference to quantifier engine */
@@ -125,6 +128,8 @@ class CandidateRewriteDatabase
    * (for --sygus-rr-synth-check).
    */
   std::map<Node, Node> d_fv_to_skolem;
+  /** the cache for results of addTerm */
+  std::unordered_map< Node, bool, NodeHashFunction > d_add_term_cache;
 };
 
 /**
@@ -145,7 +150,8 @@ class CandidateRewriteDatabaseGen
    * This registers term n with this class. We generate the candidate rewrite
    * database of the appropriate type (if not allocated already), and register
    * n with this database. This may result in "candidate-rewrite" being
-   * printed on the output stream out.
+   * printed on the output stream out. We return true if the term sol is
+   * distinct (up to equivalence) with all previous terms added to this class. 
    */
   bool addTerm(Node n, std::ostream& out);
 

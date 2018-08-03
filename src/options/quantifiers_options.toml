@@ -1184,7 +1184,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use sygus to enumerate and verify correctness of rewrite rules via sampling"
+  help       = "use sygus to enumerate and verify correctness of rewrite rules"
 
 [[option]]
   name       = "sygusRewSynth"
@@ -1192,7 +1192,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr-synth"
   type       = "bool"
   default    = "false"
-  help       = "use sygus to enumerate candidate rewrite rules via sampling"
+  help       = "use sygus to enumerate candidate rewrite rules"
 
 [[option]]
   name       = "sygusRewSynthFilterOrder"
@@ -1281,6 +1281,14 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr-synth-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
+  
+[[option]]
+  name       = "sygusRewSynthRec"
+  category   = "regular"
+  long       = "sygus-rr-synth-rec"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize rewrite rules over all sygus grammar types recursively"
 
 # CEGQI applied to general quantified formulas
 
