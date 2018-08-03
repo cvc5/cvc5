@@ -100,13 +100,14 @@ class CandidateRewriteDatabase
    */
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
   bool addTerm(Node sol, std::ostream& out);
-
+  /** sets whether this class should output candidate rewrites it finds */
+  void setSilent(bool flag);
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
-  /** (required) pointer to the sygus sampler objects we are using */
+  /** (required) pointer to the sygus sampler object we are using */
   SygusSampler* d_sampler;
   /** pointer to the extended rewriter object we are using */
   ExtendedRewriter* d_ext_rewrite;
@@ -123,6 +124,8 @@ class CandidateRewriteDatabase
    * (for --sygus-rr-synth-check).
    */
   std::map<Node, Node> d_fv_to_skolem;
+  /** if true, we silence the output of candidate rewrites */
+  bool d_silent;
 };
 
 /**

@@ -37,7 +37,8 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
       d_tds(nullptr),
       d_sampler(nullptr),
       d_ext_rewrite(nullptr),
-      d_using_sygus(false)
+      d_using_sygus(false),
+      d_silent(false)
 {
 }
 void CandidateRewriteDatabase::initialize(SygusSampler* ss,
@@ -257,19 +258,23 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-        if (d_using_sygus)
+        if( !d_silent )
         {
-          Printer* p = Printer::getPrinter(options::outputLanguage());
-          p->toStreamSygus(out, sol);
-          out << " ";
-          p->toStreamSygus(out, eq_sol);
+          out << "(" << (verified ? "" : "candidate-") << "rewrite ";
+          if (d_using_sygus)
+          {
+            Printer* p = Printer::getPrinter(options::outputLanguage());
+            p->toStreamSygus(out, sol);
+            out << " ";
+            p->toStreamSygus(out, eq_sol);
+          }
+          else
+          {
+            out << sol << " " << eq_sol;
+          }
+          out << ")" << std::endl;
         }
-        else
-        {
-          out << sol << " " << eq_sol;
-        }
-        out << ")" << std::endl;
+        // we count this as printed, despite not literally printing it
         rew_print = true;
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
@@ -322,6 +327,12 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   bool rew_print = false;
   return addTerm(sol, out, rew_print);
+}
+
+
+void CandidateRewriteDatabase::setSilent(bool flag)
+{
+  d_silent = flag;
 }
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(

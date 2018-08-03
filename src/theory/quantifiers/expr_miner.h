@@ -36,7 +36,9 @@ class ExpressionMiner
   /**  Initialize this class
    *
    */
-  void initialize(ExtendedRewriter* er,
+  void initialize(bool doRewSynth,
+                  bool doQueryGen,
+                  ExtendedRewriter* er,
                   TypeNode tn,
                   std::vector<Node>& vars,
                   unsigned nsamples,
@@ -44,7 +46,9 @@ class ExpressionMiner
   /**  Initialize this class
    *
    */
-  void initializeSygus(QuantifiersEngine* qe,
+  void initializeSygus(bool doRewSynth,
+                       bool doQueryGen,
+                       QuantifiersEngine* qe,
                        Node f,
                        unsigned nsamples,
                        bool useSygusType);
@@ -52,7 +56,13 @@ class ExpressionMiner
    */
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
   bool addTerm(Node sol, std::ostream& out);
- private: 
+ private:
+  /** whether we are doing rewrite synthesis */
+  bool d_do_rew_synth;
+  /** whether we are doing query generation */
+  bool d_do_query_gen;
+  /** whether we are using sygus types */
+  bool d_use_sygus_type;
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** query generator */

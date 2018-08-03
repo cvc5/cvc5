@@ -19,11 +19,32 @@
 
 #include <map>
 #include "expr/node.h"
+#include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus_sampler.h"
+
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** Query generation threshold trie 
+ * 
+ * 
+ */
+class QGTTrie
+{
+ public:
+  std::vector< Node > d_nodes;
+  std::map< Node, QGTTrie > d_children;
+  void addTerm(Node n, 
+              LazyTrieEvaluator* eval, 
+              unsigned deqAllow,
+              unsigned index,
+              unsigned ntotal,
+                             bool exact = true);
+};
+  
+  
 /** QueryGenerator
  * 
  */
@@ -32,9 +53,13 @@ class QueryGenerator
 public:
   QueryGenerator();
   ~QueryGenerator(){}
-
+  /** initialize */
+  void initialize(SygusSampler* ss);
   /** add term */
   void addTerm(Node n);
+private:
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
 };
 
 } /* CVC4::theory::quantifiers namespace */

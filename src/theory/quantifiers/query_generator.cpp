@@ -21,12 +21,34 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
   
-QueryGenerator::QueryGenerator() {
+void QGTTrie::addTerm(Node n, 
+                             LazyTrieEvaluator* eval, 
+                             unsigned deqAllow,
+                             unsigned index,
+                             unsigned ntotal,
+                             bool exact
+                     )
+{
+  
+}
+  
+QueryGenerator::QueryGenerator() :
+d_sampler(nullptr){
 
+}
+
+void QueryGenerator::initialize(SygusSampler* ss)
+{
+  d_sampler = ss;
 }
 
 void QueryGenerator::addTerm(Node n)
 {
+  Trace("sygus-qg") << "QueryGenerator::addTerm : " << n << std::endl;
+  
+  
+  
+  
   
 }
 
