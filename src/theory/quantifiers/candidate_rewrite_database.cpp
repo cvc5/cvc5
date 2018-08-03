@@ -78,20 +78,21 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
                                        bool& rew_print)
 {
   // have we added this term before?
-  std::unordered_map< Node, bool, NodeHashFunction >::iterator itac = d_add_term_cache.find(sol);
-  if( itac!=d_add_term_cache.end() )
+  std::unordered_map<Node, bool, NodeHashFunction>::iterator itac =
+      d_add_term_cache.find(sol);
+  if (itac != d_add_term_cache.end())
   {
     return itac->second;
   }
-  
-  if( rec )
+
+  if (rec)
   {
     // if recursive, we first add all subterms
-    for( const Node& solc : sol )
+    for (const Node& solc : sol)
     {
       // whether a candidate rewrite is printed for any subterm is irrelevant
       bool rew_printc = false;
-      addTerm(solc,rec,out,rew_printc);
+      addTerm(solc, rec, out, rew_printc);
     }
   }
   // register the term
@@ -372,7 +373,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
     Trace("synth-rr-dbg") << "...finish." << std::endl;
   }
   Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
-  return itc->second.addTerm(nr, false,out);
+  return itc->second.addTerm(nr, false, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */

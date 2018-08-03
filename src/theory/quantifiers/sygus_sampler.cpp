@@ -282,7 +282,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
   // Notice that d_builtin_to_sygus is not necessarily bijective.
   if (d_use_sygus_type)
   {
-    std::map< Node, Node >& bts = d_builtin_to_sygus[tn];
+    std::map<Node, Node>& bts = d_builtin_to_sygus[tn];
     Assert(bts.find(res) != bts.end());
     res = res != bn ? bts[res] : n;
   }

@@ -129,7 +129,7 @@ class CandidateRewriteDatabase
    */
   std::map<Node, Node> d_fv_to_skolem;
   /** the cache for results of addTerm */
-  std::unordered_map< Node, bool, NodeHashFunction > d_add_term_cache;
+  std::unordered_map<Node, bool, NodeHashFunction> d_add_term_cache;
 };
 
 /**
@@ -151,7 +151,7 @@ class CandidateRewriteDatabaseGen
    * database of the appropriate type (if not allocated already), and register
    * n with this database. This may result in "candidate-rewrite" being
    * printed on the output stream out. We return true if the term sol is
-   * distinct (up to equivalence) with all previous terms added to this class. 
+   * distinct (up to equivalence) with all previous terms added to this class.
    */
   bool addTerm(Node n, std::ostream& out);
 

@@ -726,7 +726,8 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
           its = d_crrdb.find(prog);
         }
         bool rew_print = false;
-        is_unique_term = d_crrdb[prog].addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
+        is_unique_term = d_crrdb[prog].addTerm(
+            sol, options::sygusRewSynthRec(), out, rew_print);
         if (rew_print)
         {
           ++(cei->d_statistics.d_candidate_rewrites_print);
