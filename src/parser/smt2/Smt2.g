@@ -922,30 +922,17 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   bool readEnum = false;
   Kind k;
   Type t;
-  CVC4::DatatypeConstructor* ctor = NULL;
   std::string sname;
   std::vector< Expr > let_vars;
   bool readingLet = false;
   std::string s;
+  CVC4::Expr atomExpr;
 }
   : LPAREN_TOK
     //read operator
     ( builtinOp[k]{ 
         Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : "
                               << name << std::endl;
-        // Since we enforce satisfaction completeness, immediately convert to
-        // total version.
-        if( k==CVC4::kind::BITVECTOR_UDIV ){
-          k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
-        }else if( k==CVC4::kind::BITVECTOR_UREM ){
-          k = CVC4::kind::BITVECTOR_UREM_TOTAL;
-        }else if( k==CVC4::kind::DIVISION ){
-          k = CVC4::kind::DIVISION_TOTAL;
-        }else if( k==CVC4::kind::INTS_DIVISION ){
-          k = CVC4::kind::INTS_DIVISION_TOTAL;
-        }else if( k==CVC4::kind::INTS_MODULUS ){
-          k = CVC4::kind::INTS_MODULUS_TOTAL;
-        }
         sgt.d_name = kind::kindToString(k);
         sgt.d_gterm_type = SygusGTerm::gterm_op;
         sgt.d_expr = EXPR_MANAGER->operatorOf(k);
@@ -993,17 +980,6 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : "
                                 << name << std::endl;
           k = PARSER_STATE->getOperatorKind(name);
-          if( k==CVC4::kind::BITVECTOR_UDIV ){
-            k = CVC4::kind::BITVECTOR_UDIV_TOTAL;
-          }else if( k==CVC4::kind::BITVECTOR_UREM ){
-            k = CVC4::kind::BITVECTOR_UREM_TOTAL;
-          }else if( k==CVC4::kind::DIVISION ){
-            k = CVC4::kind::DIVISION_TOTAL;
-          }else if( k==CVC4::kind::INTS_DIVISION ){
-            k = CVC4::kind::INTS_DIVISION_TOTAL;
-          }else if( k==CVC4::kind::INTS_MODULUS ){
-            k = CVC4::kind::INTS_MODULUS_TOTAL;
-          }
           sgt.d_name = kind::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
           sgt.d_expr = EXPR_MANAGER->operatorOf(k);
@@ -1045,38 +1021,13 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         PARSER_STATE->popScope();
       }
     }
-  | INTEGER_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : integer literal "
-                            << AntlrInput::tokenText($INTEGER_LITERAL)
-                            << std::endl;
-      sgt.d_expr = MK_CONST(Rational(AntlrInput::tokenText($INTEGER_LITERAL)));
-      sgt.d_name = AntlrInput::tokenText($INTEGER_LITERAL);
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
-  | HEX_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : hex literal "
-                            << AntlrInput::tokenText($HEX_LITERAL) << std::endl;
-      assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
-      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      sgt.d_expr = MK_CONST( BitVector(hexString, 16) );
-      sgt.d_name = AntlrInput::tokenText($HEX_LITERAL);
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
-  | BINARY_LITERAL
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : binary literal "
-                            << AntlrInput::tokenText($BINARY_LITERAL)
-                            << std::endl;
-      assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
-      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      sgt.d_expr = MK_CONST( BitVector(binString, 2) );
-      sgt.d_name = AntlrInput::tokenText($BINARY_LITERAL);
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
-  | str[s,false]
-    { Debug("parser-sygus") << "Sygus grammar " << fun << " : string literal \""
-                            << s << "\"" << std::endl;
-      sgt.d_expr = MK_CONST( ::CVC4::String(s, true) );
-      sgt.d_name = s;
+  | termAtomic[atomExpr] {
+      Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
+                            << "expression " << atomExpr << std::endl;
+      std::stringstream ss;
+      ss << atomExpr;
+      sgt.d_expr = atomExpr;
+      sgt.d_name = ss.str();
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE]
@@ -1792,8 +1743,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   ;
 
 /**
- * Matches a term.
- * @return the expression representing the formula
+ * Matches a non-variable term.
+ * @return the expression expr representing the term or formula, and expr2, an
+ * optional annotation for expr (for instance, for attributed expressions).
  */
 termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
@@ -1810,13 +1762,13 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patconds;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  Type type, type2;
-  std::string s;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
   bool readVariable = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
+  Type type;
+  Type type2;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -2300,8 +2252,35 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       PARSER_STATE->popScope();
       expr = MK_EXPR( CVC4::kind::LAMBDA, args );
     }
+
+  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
+    { std::vector<Type> types;
+      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
+        types.push_back((*i).getType());
+      }
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert(args.begin(), dt[0].getConstructor());
+      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+  | /* an atomic term (a term with no subterms) */
+    termAtomic[expr]
+  ;
+
+
+/**
+ * Matches an atomic term (a term with no subterms).
+ * @return the expression expr representing the term or formula.
+ */
+termAtomic[CVC4::Expr& expr]
+@init {
+  std::vector<Expr> args;
+  Type type;
+  Type type2;
+  std::string s;
+}
     /* constants */
-  | INTEGER_LITERAL
+  : INTEGER_LITERAL
     { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
 
   | DECIMAL_LITERAL
@@ -2406,18 +2385,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     { //booleanType is placeholder here since we don't have type info without type annotation
       expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::SEP_NIL); }
     // NOTE: Theory constants go here
-
-  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-    { std::vector<Type> types;
-      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
-        types.push_back((*i).getType());
-      }
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert(args.begin(), dt[0].getConstructor());
-      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }
-  
+    
   | TUPLE_CONST_TOK
     { std::vector<Type> types;
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
@@ -2425,8 +2393,9 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.insert(args.begin(), dt[0].getConstructor());
       expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
+    
   ;
-
+  
 /**
  * Read attribute
  */
