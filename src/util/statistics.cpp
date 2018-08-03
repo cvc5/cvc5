@@ -113,7 +113,6 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
     }
     s->flushStat(out);
   }
-  out << std::endl;
 #endif /* CVC4_STATISTICS_ON */
 }
 
@@ -128,7 +127,6 @@ void StatisticsBase::safeFlushInformation(int fd) const {
     s->safeFlushStat(fd);
     safe_print(fd, "\n");
   }
-  safe_print(fd, "\n");
 #endif /* CVC4_STATISTICS_ON */
 }
 
