@@ -126,6 +126,7 @@ void StatisticsBase::safeFlushInformation(int fd) const {
       safe_print(fd, s_regDelim);
     }
     s->safeFlushStat(fd);
+    safe_print(fd, "\n");
   }
   safe_print(fd, "\n");
 #endif /* CVC4_STATISTICS_ON */
