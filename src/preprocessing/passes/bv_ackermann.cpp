@@ -79,7 +79,6 @@ void addLemmaForPair(TNode args1,
   assertionsToPreprocess->push_back(lemma);
   /* add the constraint to the stack so that
   * collectFunctionsAndLemmas will process it as well. */
-  stack->push(lemma);
 }
 
 void storeFunctionAndAddLemmas(TNode func,
@@ -109,6 +108,10 @@ void storeFunctionAndAddLemmas(TNode func,
     }
     set.insert(term);
     fun_to_skolem.addSubstitution(term, skolem);
+    for (TNode arg : term)
+    {
+      stack->push(arg);
+    }
   }
 }
 
@@ -128,36 +131,44 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                std::stack<TNode>* stack,
                                AssertionPipeline* assertions)
 {
+  std::unordered_set<TNode, TNodeHashFunction> seen;       
   NodeManager* nm = NodeManager::currentNM();
+  TNode term;
   while (!stack->empty())
   {
-    TNode term = stack->top();
+    term = stack->top();
     stack->pop();
-    TNode func;
-    if (term.getKind() == kind::APPLY_UF)
+    if (seen.find(term) == seen.end())
     {
-      storeFunctionAndAddLemmas(term.getOperator(),
-                                term,
-                                fun_to_args,
-                                fun_to_skolem,
-                                assertions,
-                                nm,
-                                stack);
-    }
-    else if (term.getKind() == kind::SELECT)
-    {
-      storeFunctionAndAddLemmas(
-          term[0], term, fun_to_args, fun_to_skolem, assertions, nm, stack);
-    }
-    else
-    {
-      AlwaysAssert(
-          term.getKind() != kind::STORE,
-          "Cannot use eager bitblasting on QF_ABV formula with stores");
-      for (const TNode& n : term)
-      {
-        stack->push(n);
-      }
+        TNode func;
+        if (term.getKind() == kind::APPLY_UF)
+        {
+          storeFunctionAndAddLemmas(term.getOperator(),
+                                    term,
+                                    fun_to_args,
+                                    fun_to_skolem,
+                                    assertions,
+                                    nm,
+                                    stack);
+        }
+        else if (term.getKind() == kind::SELECT)
+        {
+          storeFunctionAndAddLemmas(
+              term[0], term, fun_to_args, fun_to_skolem, assertions, nm, stack);
+        }
+        else
+        {
+          AlwaysAssert(
+              term.getKind() != kind::STORE,
+              "Cannot use eager bitblasting on QF_ABV formula with stores");
+          /* add childrens to the stack, so that they are processed later 
+           * do this only for childred that weren't already processed. */
+          for (const TNode& n : term)
+          {
+            stack->push(n);
+          }
+        }
+    seen.insert(term);
     }
   }
 }
