@@ -920,17 +920,6 @@ public:
    * to setSygus).
    */
   bool getSygusAllowAll() const;
-  /** get sygus evaluation function
-   *
-   * This gets the evaluation function for this datatype
-   * for the deep embedding. This is a function of type:
-   *   D x T1 x ... x Tn -> T
-   * where:
-   *   D is the datatype type for this datatype,
-   *   T1...Tn are the types of the variables in getSygusVarList(),
-   *   T is getSygusType().
-   */
-  Expr getSygusEvaluationFunc() const;
 
   /** involves external type
    * Get whether this datatype has a subfield
@@ -979,8 +968,6 @@ public:
   bool d_sygus_allow_const;
   /** whether all terms are allowed as solutions */
   bool d_sygus_allow_all;
-  /** the evaluation function for this sygus datatype */
-  Expr d_sygus_eval;
 
   /** the cardinality of this datatype
   * "mutable" because computing the cardinality can be expensive,
