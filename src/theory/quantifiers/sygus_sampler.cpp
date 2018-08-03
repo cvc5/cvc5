@@ -263,28 +263,30 @@ bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
 
 Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
-  if (d_is_valid)
+  if (!d_is_valid)
   {
-    Node bn = n;
-    // if this is a sygus type, get its builtin analog
-    if (d_use_sygus_type)
-    {
-      Assert(!d_ftn.isNull());
-      bn = d_tds->sygusToBuiltin(n);
-      Assert(d_builtin_to_sygus.find(bn) == d_builtin_to_sygus.end()
-             || d_builtin_to_sygus[bn] == n);
-      d_builtin_to_sygus[bn] = n;
-    }
-    Assert(bn.getType() == d_tn);
-    Node res = d_trie.add(bn, this, 0, d_samples.size(), forceKeep);
-    if (d_use_sygus_type)
-    {
-      Assert(d_builtin_to_sygus.find(res) != d_builtin_to_sygus.end());
-      res = res != bn ? d_builtin_to_sygus[res] : n;
-    }
-    return res;
+    // do nothing
+    return n;
   }
-  return n;
+  Node bn = n;
+  TypeNode tn = n.getType();
+  // If we are using sygus types, get the builtin analog of n.
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    d_builtin_to_sygus[tn][bn] = n;
+  }
+  // cache based on the (original) type of n
+  Node res = d_trie[tn].add(bn, this, 0, d_samples.size(), forceKeep);
+  // If we are using sygus types, map back to an original.
+  // Notice that d_builtin_to_sygus is not necessarily bijective.
+  if (d_use_sygus_type)
+  {
+    std::map< Node, Node >& bts = d_builtin_to_sygus[tn];
+    Assert(bts.find(res) != bts.end());
+    res = res != bn ? bts[res] : n;
+  }
+  return res;
 }
 
 bool SygusSampler::isContiguous(Node n)
