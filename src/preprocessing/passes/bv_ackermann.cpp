@@ -77,8 +77,6 @@ void addLemmaForPair(TNode args1,
   Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
   Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
   assertionsToPreprocess->push_back(lemma);
-  /* add the constraint to the stack so that
-  * collectFunctionsAndLemmas will process it as well. */
 }
 
 void storeFunctionAndAddLemmas(TNode func,
@@ -108,6 +106,8 @@ void storeFunctionAndAddLemmas(TNode func,
     }
     set.insert(term);
     fun_to_skolem.addSubstitution(term, skolem);
+    /* add the arguments to the stack so that
+     * collectFunctionsAndLemmas will process them as well. */
     for (TNode arg : term)
     {
       stack->push(arg);
@@ -161,8 +161,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
           AlwaysAssert(
               term.getKind() != kind::STORE,
               "Cannot use eager bitblasting on QF_ABV formula with stores");
-          /* add childrens to the stack, so that they are processed later 
-           * do this only for childred that weren't already processed. */
+          /* add childrens to the stack, so that they are processed later */
           for (const TNode& n : term)
           {
             stack->push(n);
