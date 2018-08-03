@@ -120,51 +120,16 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
 
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
-        // Convert bound variables to skolems. This ensures the satisfiability
-        // check is ground.
-        crr = convertToSkolem(crr);
 
         // Notice we don't set produce-models. rrChecker takes the same
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
-        bool needExport = true;
+        bool needExport = false;
         ExprManagerMapCollection varMap;
         ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
-        Result r;
-        if (options::sygusRewSynthCheckTimeout.wasSetByUser())
-        {
-          // To support a separate timeout for the subsolver, we need to create
-          // a separate ExprManager with its own options. This requires that
-          // the expressions sent to the subsolver can be exported from on
-          // ExprManager to another. If the export fails, we throw an
-          // OptionException.
-          try
-          {
-            rrChecker.reset(new SmtEngine(&em));
-            rrChecker->setTimeLimit(options::sygusRewSynthCheckTimeout(), true);
-            rrChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-            Expr eccr = crr.toExpr().exportTo(&em, varMap);
-            rrChecker->assertFormula(eccr);
-            r = rrChecker->checkSat();
-          }
-          catch (const CVC4::ExportUnsupportedException& e)
-          {
-            std::stringstream msg;
-            msg << "Unable to export " << crr
-                << " but exporting expressions is required for "
-                   "--sygus-rr-synth-check-timeout.";
-            throw OptionException(msg.str());
-          }
-        }
-        else
-        {
-          needExport = false;
-          rrChecker.reset(new SmtEngine(nm->toExprManager()));
-          rrChecker->assertFormula(crr.toExpr());
-          r = rrChecker->checkSat();
-        }
-
+        initializeChecker(rrChecker,em,varMap,crr,needExport);
+        Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {

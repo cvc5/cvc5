@@ -15,6 +15,9 @@
 #include "theory/quantifiers/expr_miner.h"
 
 #include "theory/quantifiers/term_util.h"
+#include "options/quantifiers_options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -50,6 +53,45 @@ Node ExprMiner::convertToSkolem(Node n)
     }
   }
   return n.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
+}
+
+void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker, ExprManager& em, ExprManagerMapCollection& varMap, Node query, bool& needExport)
+{        
+  // Convert bound variables to skolems. This ensures the satisfiability
+  // check is ground.
+  Node squery = convertToSkolem(query);
+  NodeManager* nm = NodeManager::currentNM();
+  if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+  {
+    // To support a separate timeout for the subsolver, we need to create
+    // a separate ExprManager with its own options. This requires that
+    // the expressions sent to the subsolver can be exported from on
+    // ExprManager to another. If the export fails, we throw an
+    // OptionException.
+    try
+    {
+      checker.reset(new SmtEngine(&em));
+      checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
+      checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
+      Expr equery = squery.toExpr().exportTo(&em, varMap);
+      checker->assertFormula(equery);
+    }
+    catch (const CVC4::ExportUnsupportedException& e)
+    {
+      std::stringstream msg;
+      msg << "Unable to export " << squery
+          << " but exporting expressions is required for "
+              "--sygus-rr-synth-check-timeout.";
+      throw OptionException(msg.str());
+    }
+    needExport = true;
+  }
+  else
+  {
+    needExport = false;
+    checker.reset(new SmtEngine(nm->toExprManager()));
+    checker->assertFormula(squery.toExpr());
+  }
 }
 
 }  // namespace quantifiers

@@ -19,6 +19,8 @@
 
 #include <map>
 #include "expr/node.h"
+#include "smt/smt_engine.h"
+#include "expr/expr_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,6 +36,8 @@ class ExprMiner
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);
+  /** initialize checker */
+  void initializeChecker(std::unique_ptr<SmtEngine>& smte,ExprManager& em, ExprManagerMapCollection& varMap, Node query, bool& needExport);
 };
 
 }  // namespace quantifiers

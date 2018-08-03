@@ -1276,11 +1276,11 @@ header = "options/quantifiers_options.h"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
-  name       = "sygusRewSynthCheckTimeout"
+  name       = "sygusExprMinerCheckTimeout"
   category   = "regular"
-  long       = "sygus-rr-synth-check-timeout=N"
+  long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
-  help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
+  help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 [[option]]
   name       = "sygusQueryGen"

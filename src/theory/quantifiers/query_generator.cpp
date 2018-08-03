@@ -57,7 +57,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   }
   Trace("sygus-qgen-debug") << "query: Check " << queries.size() << " queries..."
                           << std::endl;
-  ExprManager* em = NodeManager::currentNM()->toExprManager();
+  NodeManager* nm = NodeManager::currentNM();
   LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
   {
@@ -66,13 +66,14 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     out << "(query " << qy << ")  ; " << queriesPtTrue[i] << "/" << npts
         << std::endl;
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
-    Node qs = convertToSkolem(qy);
 
     // make the satisfiability query
-    SmtEngine queryChecker(em);
-    queryChecker.setLogic(linfo);
-    queryChecker.assertFormula(qs.toExpr());
-    Result r = queryChecker.checkSat();
+    bool needExport = false;
+    ExprManagerMapCollection varMap;
+    ExprManager em(nm->getOptions());
+    std::unique_ptr<SmtEngine> queryChecker;
+    initializeChecker(queryChecker,em,varMap,qy,needExport);
+    Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
