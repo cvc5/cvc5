@@ -30,6 +30,39 @@ namespace bv {
 // FIXME: this rules subsume the constant evaluation ones
 
 /**
+ * BvIteEqualCond
+ *
+ * Nested BITVECTOR_ITE with cond_outer == cond_inner
+ *
+ * c0 ? (c0 ? t0 : e0) : e1              ->  c0 ? t0 : e1
+ * c0 ? t0             : (c0 ? t1 : e1)  ->  c0 ? t0 : e1
+ * c0 ? (c0 ? t0 : e0) : (c0 ? t1 : e1)  ->  c0 ? t0 : e1
+ */
+template <>
+inline bool RewriteRule<BvIteEqualCond>::applies(TNode node)
+{
+  return (
+      node.getKind() == kind::BITVECTOR_ITE
+      && ((node[1].getKind() == kind::BITVECTOR_ITE && node[0] == node[1][0])
+          || (node[2].getKind() == kind::BITVECTOR_ITE
+              && node[0] == node[2][0])));
+}
+
+template <>
+inline Node RewriteRule<BvIteEqualCond>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteEqualCond>(" << node << ")"
+                      << std::endl;
+  Node t0 = node[1].getKind() == kind::BITVECTOR_ITE && node[0] == node[1][0]
+                ? node[1][1]
+                : node[1];
+  Node e1 = node[2].getKind() == kind::BITVECTOR_ITE && node[0] == node[2][0]
+                ? node[2][2]
+                : node[2];
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ITE, node[0], t0, e1);
+}
+
+/**
  * BvIte
  *
  * BITVECTOR_ITE with constant condition

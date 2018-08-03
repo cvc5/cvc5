@@ -104,6 +104,7 @@ enum RewriteRuleId
 
   /// simplification rules
   /// all of these rules decrease formula size
+  BvIteEqualCond,
   BvIte,
   BvComp,
   ShlByConst,
@@ -242,6 +243,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
   case EvalRotateRight :    out << "EvalRotateRight";     return out;
   case EvalNeg :            out << "EvalNeg";             return out;
+  case BvIteEqualCond :     out << "BvIteEqualCond";      return out;
   case BvIte :              out << "BvIte";               return out;
   case BvComp :             out << "BvComp";              return out;
   case ShlByConst :         out << "ShlByConst";          return out;
@@ -558,6 +560,7 @@ struct AllRewriteRules {
   RewriteRule<MultSltMult> rule128;
   RewriteRule<NormalizeEqPlusNeg> rule129;
   RewriteRule<BvComp> rule130;
+  RewriteRule<BvIteEqualCond> rule133;
 };
 
 template<> inline
