@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bitblast=eager --no-check-model
+; COMMAND-LINE: --bitblast=eager --no-check-models --no-check-proofs --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_UFBV)
 (set-info :smt-lib-version 2.0)
