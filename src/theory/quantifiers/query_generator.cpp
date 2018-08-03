@@ -65,7 +65,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     // we have an interesting query
     out << "(query " << qy << ")  ; " << queriesPtTrue[i] << "/" << npts
         << std::endl;
-    Trace("sygus-qgen-check") << "query: check " << qy << "..." << std::endl;
+    Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
     Node qs = convertToSkolem(qy);
 
     // make the satisfiability query
