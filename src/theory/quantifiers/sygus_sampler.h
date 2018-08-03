@@ -171,14 +171,12 @@ class SygusSampler : public LazyTrieEvaluator
   };
   /** a trie for samples */
   PtTrie d_samples_trie;
-  /** type of nodes we will be registering with this class */
-  TypeNode d_tn;
   /** the sygus type for this sampler (if applicable). */
   TypeNode d_ftn;
-  /** whether we are registering terms of type d_ftn */
+  /** whether we are registering terms of sygus types with this sampler */
   bool d_use_sygus_type;
   /**
-   * For each sygus type, a map from builtin terms to the sygus term they
+   * For each (sygus) type, a map from builtin terms to the sygus term they
    * correspond to.
    */
   std::map<TypeNode, std::map<Node, Node> > d_builtin_to_sygus;

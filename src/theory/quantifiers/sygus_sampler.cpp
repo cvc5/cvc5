@@ -39,7 +39,6 @@ void SygusSampler::initialize(TypeNode tn,
   d_tds = nullptr;
   d_use_sygus_type = false;
   d_is_valid = true;
-  d_tn = tn;
   d_ftn = TypeNode::null();
   d_type_vars.clear();
   d_vars.clear();
@@ -94,7 +93,6 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   Assert(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
   Assert(dt.isSygus());
-  d_tn = TypeNode::fromType(dt.getSygusType());
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
