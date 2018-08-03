@@ -18,9 +18,9 @@
 #define __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 
 #include <map>
+#include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "smt/smt_engine.h"
-#include "expr/expr_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,7 +37,11 @@ class ExprMiner
   /** convert */
   Node convertToSkolem(Node n);
   /** initialize checker */
-  void initializeChecker(std::unique_ptr<SmtEngine>& smte,ExprManager& em, ExprManagerMapCollection& varMap, Node query, bool& needExport);
+  void initializeChecker(std::unique_ptr<SmtEngine>& smte,
+                         ExprManager& em,
+                         ExprManagerMapCollection& varMap,
+                         Node query,
+                         bool& needExport);
 };
 
 }  // namespace quantifiers

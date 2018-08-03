@@ -128,7 +128,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         ExprManagerMapCollection varMap;
         ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
-        initializeChecker(rrChecker,em,varMap,crr,needExport);
+        initializeChecker(rrChecker, em, varMap, crr, needExport);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)

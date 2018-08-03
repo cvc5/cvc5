@@ -55,8 +55,8 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   {
     return;
   }
-  Trace("sygus-qgen-debug") << "query: Check " << queries.size() << " queries..."
-                          << std::endl;
+  Trace("sygus-qgen-debug")
+      << "query: Check " << queries.size() << " queries..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
@@ -72,7 +72,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     ExprManagerMapCollection varMap;
     ExprManager em(nm->getOptions());
     std::unique_ptr<SmtEngine> queryChecker;
-    initializeChecker(queryChecker,em,varMap,qy,needExport);
+    initializeChecker(queryChecker, em, varMap, qy, needExport);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -99,8 +99,8 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                                  std::vector<unsigned>& queriesPtTrue)
 {
   Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
-                          << ntotal << ", deq/eq allow = " << deqAllow << "/"
-                          << eqAllow << ", exact = " << exact << std::endl;
+                            << ntotal << ", deq/eq allow = " << deqAllow << "/"
+                            << eqAllow << ", exact = " << exact << std::endl;
   Assert(lt != nullptr);
   Assert(ev != nullptr);
   if (index == ntotal)

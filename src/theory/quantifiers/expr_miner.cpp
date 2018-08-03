@@ -14,10 +14,10 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
-#include "theory/quantifiers/term_util.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -55,8 +55,12 @@ Node ExprMiner::convertToSkolem(Node n)
   return n.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
 }
 
-void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker, ExprManager& em, ExprManagerMapCollection& varMap, Node query, bool& needExport)
-{        
+void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
+                                  ExprManager& em,
+                                  ExprManagerMapCollection& varMap,
+                                  Node query,
+                                  bool& needExport)
+{
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
@@ -81,7 +85,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker, ExprManag
       std::stringstream msg;
       msg << "Unable to export " << squery
           << " but exporting expressions is required for "
-              "--sygus-rr-synth-check-timeout.";
+             "--sygus-rr-synth-check-timeout.";
       throw OptionException(msg.str());
     }
     needExport = true;
