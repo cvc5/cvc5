@@ -1282,6 +1282,14 @@ header = "options/quantifiers_options.h"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
 
+[[option]]
+  name       = "sygusQueryGen"
+  category   = "regular"
+  long       = "sygus-query-gen"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
+
 # CEGQI applied to general quantified formulas
 
 [[option]]
