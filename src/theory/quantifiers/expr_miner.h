@@ -66,6 +66,8 @@ class ExpressionMiner
   bool d_do_query_gen;
   /** whether we are using sygus types */
   bool d_use_sygus_type;
+  /** pointer to the sygus term database, used if d_use_sygus_type is true */
+  TermDbSygus* d_tds;
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** query generator */

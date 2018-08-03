@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "theory/quantifiers_engine.h"
+
 using namespace std;
 using namespace CVC4::kind;
 
@@ -22,7 +24,7 @@ namespace theory {
 namespace quantifiers {
 
 ExpressionMiner::ExpressionMiner()
-    : d_do_rew_synth(false), d_do_query_gen(false), d_use_sygus_type(false)
+    : d_do_rew_synth(false), d_do_query_gen(false), d_use_sygus_type(false), d_tds(nullptr)
 {
 }
 
@@ -39,6 +41,7 @@ void ExpressionMiner::initialize(bool doRewSynth,
   d_do_rew_synth = doRewSynth;
   d_do_query_gen = doQueryGen;
   d_use_sygus_type = false;
+  d_tds = nullptr;
   d_crd.initialize(&d_sampler, er, tn, vars, nsamples, unique_type_ids);
   if (!doRewSynth)
   {
@@ -63,6 +66,7 @@ void ExpressionMiner::initializeSygus(bool doRewSynth,
   d_do_rew_synth = doRewSynth;
   d_do_query_gen = doQueryGen;
   d_use_sygus_type = useSygusType;
+  d_tds = qe->getTermDatabaseSygus();
   d_crd.initializeSygus(&d_sampler, qe, f, nsamples, useSygusType);
   if (!d_do_rew_synth)
   {
@@ -79,8 +83,14 @@ bool ExpressionMiner::addTerm(Node sol, std::ostream& out, bool& rew_print)
   bool ret = d_crd.addTerm(sol, out, rew_print);
   if (ret && d_do_query_gen)
   {
+    // always use the builtin version
+    Node solb = sol;
+    if( d_use_sygus_type )
+    {
+      solb = d_tds->sygusToBuiltin(sol);
+    }
     // a unique term, let's try the query generator
-    d_qg.addTerm(sol);
+    d_qg.addTerm(solb);
   }
   return ret;
 }

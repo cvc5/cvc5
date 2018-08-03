@@ -41,7 +41,11 @@ void QGTTrie::addTerm(Node n,
     }
     return;
   }
-  
+  // if there are waiting nodes, expand
+  if( !d_waiting.empty() )
+  {
+    Assert( d_children.empty() );
+  }
   
 }
 
@@ -54,7 +58,14 @@ void QueryGenerator::addTerm(Node n)
   Trace("sygus-qg") << "QueryGenerator::addTerm : " << n << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
-  d_qgt_trie[tn].addTerm(n,d_sampler,d_deq_thresh,0,npts);
+  //d_qgt_trie[tn].addTerm(n,d_sampler,d_deq_thresh,0,npts);
+  d_qgt_trie[tn].add(n, d_sampler, 0, npts, false);
+  
+  // get the appropriate lazy trie for the sampler
+  
+  
+  
+  
 }
 
 }  // namespace quantifiers
