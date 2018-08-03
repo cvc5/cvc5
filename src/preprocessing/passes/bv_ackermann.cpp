@@ -78,6 +78,14 @@ void addLemmaForPair(TNode args1,
   assertionsToPreprocess->push_back(lemma);
 }
 
+void addChildrenToStack(TNode node, std::stack<TNode>* stack)
+{
+  for (TNode arg: node)
+  {
+    stack->push(arg);
+  }
+}
+
 void storeFunctionAndAddLemmas(TNode func,
                                TNode term,
                                FunctionToArgsMap& fun_to_args,
@@ -103,14 +111,23 @@ void storeFunctionAndAddLemmas(TNode func,
     {
       addLemmaForPair(t, term, func, assertions, nm);
     }
-    set.insert(term);
     fun_to_skolem.addSubstitution(term, skolem);
-    /* add the arguments to the stack so that
-     * collectFunctionsAndLemmas will process them as well. */
-    for (TNode arg : term)
+    set.insert(term);
+    /* Add the arguments of term (newest element in set) to the stack, so that
+     * collectFunctionsAndLemmas will process them as well. 
+     * This is only needed if the set has at least two elements 
+     * (otherwise, no lemma is generated).
+     * Therefore, we defer this for term in case it is the first element in the set*/
+    if (set.size() == 2) 
     {
-      stack->push(arg);
-    }
+      for (Node elem : set)
+      {
+        addChildrenToStack(elem, stack);
+      }
+    } else if (set.size() > 2)
+    {
+      addChildrenToStack(term, stack);
+    } 
   }
 }
 
@@ -166,7 +183,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
             stack->push(n);
           }
         }
-    seen.insert(term);
+      seen.insert(term);
     }
   }
 }
