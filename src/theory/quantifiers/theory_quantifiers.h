@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,15 +39,13 @@ class TheoryQuantifiers : public Theory {
                     const LogicInfo& logicInfo);
   ~TheoryQuantifiers();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-  void addSharedTerm(TNode t) override;
-  void notifyEq(TNode lhs, TNode rhs);
+  /** finish initialization */
+  void finishInit() override;
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   void check(Effort e) override;
   Node getNextDecisionRequest(unsigned& priority) override;
-  Node getValue(TNode n);
   bool collectModelInfo(TheoryModel* m) override;
   void shutdown() override {}
   std::string identify() const override
@@ -62,10 +60,6 @@ class TheoryQuantifiers : public Theory {
  private:
   void assertUniversal( Node n );
   void assertExistential( Node n );
-  void computeCareGraph() override;
-
-  using BoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
-
   /** number of instantiations */
   int d_numInstantiations;
   int d_baseDecLevel;

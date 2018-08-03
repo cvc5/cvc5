@@ -2,7 +2,7 @@
 /*! \file eager_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -30,8 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
+EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
+      d_context(c),
       d_nullContext(new context::Context()),
       d_satSolver(),
       d_bitblastingRegistrar(new BitblastingRegistrar(this)),
@@ -75,9 +76,18 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
 
 EagerBitblaster::~EagerBitblaster() {}
 
-void EagerBitblaster::bbFormula(TNode node) {
-  d_cnfStream->convertAndAssert(node, false, false, RULE_INVALID,
-                                TNode::null());
+void EagerBitblaster::bbFormula(TNode node)
+{
+  /* For incremental eager solving we assume formulas at context levels > 1. */
+  if (options::incrementalSolving() && d_context->getLevel() > 1)
+  {
+    d_cnfStream->ensureLiteral(node);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(
+        node, false, false, RULE_INVALID, TNode::null());
+  }
 }
 
 /**
@@ -183,6 +193,17 @@ bool EagerBitblaster::solve() {
   //   nm->reclaimZombiesUntil(options::zombieHuntThreshold());
   // }
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
+}
+
+bool EagerBitblaster::solve(const std::vector<Node>& assumptions)
+{
+  std::vector<prop::SatLiteral> assumpts;
+  for (const Node& assumption : assumptions)
+  {
+    Assert(d_cnfStream->hasLiteral(assumption));
+    assumpts.push_back(d_cnfStream->getLiteral(assumption));
+  }
+  return prop::SAT_VALUE_TRUE == d_satSolver->solve(assumpts);
 }
 
 /**

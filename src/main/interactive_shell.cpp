@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -88,14 +88,13 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBREADLINE */
 
-InteractiveShell::InteractiveShell(ExprManager& exprManager,
-                                   const Options& options)
-    : d_in(*options.getIn()),
-      d_out(*options.getOutConst()),
-      d_options(options),
+InteractiveShell::InteractiveShell(ExprManager& exprManager)
+    : d_options(exprManager.getOptions()),
+      d_in(*d_options.getIn()),
+      d_out(*d_options.getOutConst()),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
+  ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, d_options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUserForceLogicString()) {
@@ -125,22 +124,25 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
       commandsBegin = smt1_commands;
       commandsEnd = smt1_commands + sizeof(smt1_commands) / sizeof(*smt1_commands);
       break;
-    case output::LANG_SMTLIB_V2_0:
-    case output::LANG_SMTLIB_V2_5:
-    case output::LANG_SMTLIB_V2_6:
-      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
-      commandsBegin = smt2_commands;
-      commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-      break;
     case output::LANG_TPTP:
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
       commandsBegin = tptp_commands;
       commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
       break;
     default:
-      std::stringstream ss;
-      ss << "internal error: unhandled language " << lang;
-      throw Exception(ss.str());
+      if (language::isOutputLang_smt2(lang))
+      {
+        d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
+        commandsBegin = smt2_commands;
+        commandsEnd =
+            smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+      }
+      else
+      {
+        std::stringstream ss;
+        ss << "internal error: unhandled language " << lang;
+        throw Exception(ss.str());
+      }
     }
     d_usingReadline = true;
     int err = ::read_history(d_historyFilename.c_str());
@@ -333,9 +335,8 @@ restart:
     line += "\n";
     goto restart;
   } catch(ParserException& pe) {
-    if(d_options.getOutputLanguage() == output::LANG_SMTLIB_V2_0 ||
-       d_options.getOutputLanguage() == output::LANG_SMTLIB_V2_5 ||
-       d_options.getOutputLanguage() == output::LANG_SMTLIB_V2_6) {
+    if (language::isOutputLang_smt2(d_options.getOutputLanguage()))
+    {
       d_out << "(error \"" << pe << "\")" << endl;
     } else {
       d_out << pe << endl;

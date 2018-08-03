@@ -87,6 +87,9 @@ executing CVC4, for example:
 % COMMAND-LINE: --incremental
 ```
 
+If multiple `COMMAND-LINE` directives are used, the regression is run with each
+set of options separately.
+
 Sometimes, the expected output or error output may need some processing. This
 is done with the `SCRUBBER` and `ERROR-SCRUBBER` directives. The command
 specified by the `SCRUBBER`/`ERROR-SCRUBBER` directive is applied to the output
@@ -104,6 +107,20 @@ The `SCRUBBER` directive in this example replaces the actual term by a fixed
 string `TERM` to make the regression test robust to the actual term printed
 (e.g. there could be multiple non-linear facts and it is ok if any of them is
 printed).
+
+Sometimes, certain benchmarks only apply to certain CVC4
+configurations. The `REQUIRES` directive can be used to only run
+a given benchmark when a feature is supported. For example:
+
+```
+; REQUIRES: symfpu
+```
+
+This benchmark is only run when symfpu has been configured.  Multiple
+`REQUIRES` directives are supported. For a list of features that can be listed
+as a requirement, refer to CVC4's `--show-config` output. Features can also be
+excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
+not valid for builds that include symfpu support.
 
 Sometimes it is useful to keep the directives separate. You can separate the
 benchmark from the output expectations by putting the benchmark in `<benchmark

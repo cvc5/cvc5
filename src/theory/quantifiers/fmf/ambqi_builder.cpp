@@ -2,9 +2,9 @@
 /*! \file ambqi_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -744,6 +744,11 @@ QModelBuilder( c, qe ){
 //------------------------model construction----------------------------
 
 bool AbsMbqiBuilder::processBuildModel(TheoryModel* m) {
+  if (!m->areFunctionValuesEnabled())
+  {
+    // nothing to do if no functions
+    return true;
+  }
   Trace("ambqi-debug") << "process build model " << std::endl;
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelAbs* fm = f->asFirstOrderModelAbs();

@@ -2,9 +2,9 @@
 /*! \file interactive_shell.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Paul Meng
+ **   Morgan Deters, Christopher L. Conway, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,11 +32,12 @@ namespace parser {
   class Parser;
 }/* CVC4::parser namespace */
 
-class CVC4_PUBLIC InteractiveShell {
+class CVC4_PUBLIC InteractiveShell
+{
+  const Options& d_options;
   std::istream& d_in;
   std::ostream& d_out;
   parser::Parser* d_parser;
-  const Options& d_options;
   bool d_quit;
   bool d_usingReadline;
 
@@ -46,25 +47,23 @@ class CVC4_PUBLIC InteractiveShell {
   static const unsigned s_historyLimit = 500;
 
 public:
-  InteractiveShell(ExprManager& exprManager, const Options& options);
+ InteractiveShell(ExprManager& exprManager);
 
-  /**
-   * Close out the interactive session.
-   */
-  ~InteractiveShell();
+ /**
+  * Close out the interactive session.
+  */
+ ~InteractiveShell();
 
-  /**
-   * Read a command from the interactive shell. This will read as
-   * many lines as necessary to parse a well-formed command.
-   */
-  Command* readCommand();
+ /**
+  * Read a command from the interactive shell. This will read as
+  * many lines as necessary to parse a well-formed command.
+  */
+ Command* readCommand();
 
-  /**
-   * Return the internal parser being used.
-   */
-  parser::Parser* getParser() {
-    return d_parser;
-  }
+ /**
+  * Return the internal parser being used.
+  */
+ parser::Parser* getParser() { return d_parser; }
 
 };/* class InteractiveShell */
 

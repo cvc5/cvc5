@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -533,6 +533,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_bop_index.clear();
     d_op_list.clear();
     d_card_enabled = false;
+    d_t_card_enabled.clear();
     d_rels_enabled = false;
     d_eqc_to_card_term.clear();
 
@@ -622,11 +623,22 @@ void TheorySetsPrivate::fullEffortCheck(){
         }else if( n.getKind()==kind::CARD ){
           d_card_enabled = true;
           TypeNode tnc = n[0].getType().getSetElementType();
+          d_t_card_enabled[tnc] = true;
           if( tnc.isInterpretedFinite() ){
             std::stringstream ss;
-            ss << "ERROR: cannot use cardinality on sets with finite element type." << std::endl;
+            ss << "ERROR: cannot use cardinality on sets with finite element "
+                  "type (term is "
+               << n << ")." << std::endl;
             throw LogicException(ss.str());
             //TODO: extend approach for this case
+          }
+          // if we do not handle the kind, set incomplete
+          Kind nk = n[0].getKind();
+          if (nk == kind::UNIVERSE_SET || d_rels->isRelationKind(nk))
+          {
+            d_full_check_incomplete = true;
+            Trace("sets-incomplete")
+                << "Sets : incomplete because of " << n << "." << std::endl;
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
@@ -738,22 +750,21 @@ void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
     std::map< Node, std::map< Node, Node > >::iterator it = d_pol_mems[0].find( s );
     if( it!=d_pol_mems[0].end() ){
       for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        if( !it2->first.getType().isSubtypeOf( mct ) ){          
+        if (!it2->first.getType().isSubtypeOf(mct))
+        {
           Node mctt = d_most_common_type_term[s];
           std::vector< Node > exp;
           exp.push_back( it2->second );
           Assert( ee_areEqual( mctt, it2->second[1] ) );
           exp.push_back( mctt.eqNode( it2->second[1] ) );
-          Node etc = TypeNode::getEnsureTypeCondition( it2->first, mct );
-          if( !etc.isNull() ){
+          Node tc_k = getTypeConstraintSkolem(it2->first, mct);
+          if (!tc_k.isNull())
+          {
+            Node etc = tc_k.eqNode(it2->first);
             assertInference( etc, exp, lemmas, "subtype-clash" );
             if( d_conflict ){
               return;
-            } 
-          }else{
-            // very strange situation : we have a member in a set that is not a subtype, and we do not have a type condition for it
-            d_full_check_incomplete = true;
-            Trace("sets-incomplete") << "Sets : incomplete because of unknown type constraint." << std::endl;
+            }
           }
         }
       }
@@ -1038,6 +1049,12 @@ void TheorySetsPrivate::checkCardBuildGraph( std::vector< Node >& lemmas ) {
 }
 
 void TheorySetsPrivate::registerCardinalityTerm( Node n, std::vector< Node >& lemmas ){
+  TypeNode tnc = n.getType().getSetElementType();
+  if (d_t_card_enabled.find(tnc) == d_t_card_enabled.end())
+  {
+    // if no cardinality constraints for sets of this type, we can ignore
+    return;
+  }
   if( d_card_processed.find( n )==d_card_processed.end() ){
     d_card_processed.insert( n );
     Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
@@ -1686,6 +1703,18 @@ void TheorySetsPrivate::lastCallEffortCheck() {
 
 }
 
+Node TheorySetsPrivate::getTypeConstraintSkolem(Node n, TypeNode tn)
+{
+  std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
+  if (it == d_tc_skolem[n].end())
+  {
+    Node k = NodeManager::currentNM()->mkSkolem("tc_k", tn);
+    d_tc_skolem[n][tn] = k;
+    return k;
+  }
+  return it->second;
+}
+
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
@@ -1713,16 +1742,10 @@ void TheorySetsPrivate::check(Theory::Effort level) {
         fullEffortCheck();
         if( !d_conflict && !d_sentLemma ){
           //invoke relations solver
-          d_rels->check(level);  
-          if( d_card_enabled && ( d_rels_enabled || options::setsExt() ) ){
-            //if cardinality constraints are enabled,
-            //  then model construction may fail in there are relational operators, or universe set.
-            // TODO: should internally check model, return unknown if fail
-            d_full_check_incomplete = true;
-            Trace("sets-incomplete") << "Sets : incomplete because of extended operators." << std::endl;
-          }
+          d_rels->check(level);
         }
-        if( d_full_check_incomplete ){
+        if (!d_conflict && !d_sentLemma && d_full_check_incomplete)
+        {
           d_external.d_out->setIncomplete();
         }
       }

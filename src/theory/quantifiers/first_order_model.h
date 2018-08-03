@@ -2,9 +2,9 @@
 /*! \file first_order_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -137,8 +137,6 @@ class FirstOrderModel : public TheoryModel
   Node getModelBasisOpTerm(Node op);
   /** get model basis */
   Node getModelBasis(Node q, Node n);
-  /** get model basis body */
-  Node getModelBasisBody(Node q);
   /** get model basis arg */
   unsigned getModelBasisArg(Node n);
   /** get some domain element */
@@ -175,7 +173,7 @@ class FirstOrderModel : public TheoryModel
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
   virtual void processInitializeModelForTerm(Node n) = 0;
-  /** process intialize quantifier */
+  /** process initialize quantifier */
   virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
   virtual void processInitialize(bool ispre) = 0;
@@ -234,10 +232,6 @@ public:
 private:
   //default evaluate term function
   Node evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri  );
-  //temporary storing which literals have failed
-  void clearEvalFailed( int index );
-  std::map< Node, bool > d_eval_failed;
-  std::map< int, std::vector< Node > > d_eval_failed_lits;
 };/* class FirstOrderModelIG */
 
 
@@ -253,7 +247,6 @@ class FirstOrderModelFmc : public FirstOrderModel
   /** models for UF */
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
-  Node intervalOp;
   /** get current model value */
   void processInitializeModelForTerm(Node n) override;
 
@@ -267,10 +260,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 
   bool isStar(Node n);
   Node getStar(TypeNode tn);
-  Node getStarElement(TypeNode tn);
-  bool isInterval(Node n);
-  Node getInterval( Node lb, Node ub );
-  bool isInRange( Node v, Node i );
 };/* class FirstOrderModelFmc */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */

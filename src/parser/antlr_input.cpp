@@ -2,9 +2,9 @@
 /*! \file antlr_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Morgan Deters
+ **   Christopher L. Conway, Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -254,12 +254,6 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     input = new Smt1Input(inputStream);
     break;
 
-  case LANG_SMTLIB_V2_0:
-  case LANG_SMTLIB_V2_5:
-  case LANG_SMTLIB_V2_6:
-    input = new Smt2Input(inputStream, lang);
-    break;
-
   case LANG_SYGUS:
     input = new SygusInput(inputStream);
     break;
@@ -269,9 +263,17 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     break;
 
   default:
-    std::stringstream ss;
-    ss << "internal error: unhandled language " << lang << " in AntlrInput::newInput";
-    throw InputStreamException(ss.str());
+    if (language::isInputLang_smt2(lang))
+    {
+      input = new Smt2Input(inputStream);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "internal error: unhandled language " << lang
+         << " in AntlrInput::newInput";
+      throw InputStreamException(ss.str());
+    }
   }
 
   return input;

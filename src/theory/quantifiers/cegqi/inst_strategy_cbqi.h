@@ -2,9 +2,9 @@
 /*! \file inst_strategy_cbqi.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,19 +47,13 @@ class InstStrategyCbqi : public QuantifiersModule {
   std::map< Node, std::vector< Node > > d_parent_quant;
   std::map< Node, std::vector< Node > > d_children_quant;
   std::map< Node, bool > d_active_quant;
-  /** whether we have instantiated quantified formulas */
-  //NodeSet d_added_inst;
-  /** whether to do cbqi for this quantified formula 0 : no, 2 : yes, 1 : yes but not exclusively, -1 : heuristically */
-  std::map< Node, int > d_do_cbqi;
+  /** Whether cegqi handles each quantified formula. */
+  std::map<Node, CegHandledStatus> d_do_cbqi;
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
   virtual void registerCounterexampleLemma( Node q, Node lem );
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** helper functions */
-  int hasNonCbqiVariable( Node q );
-  bool hasNonCbqiOperator( Node n, std::map< Node, bool >& visited );
-  int isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited );
   /** get next decision request with dependency checking */
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
@@ -109,8 +103,8 @@ class InstStrategyCbqi : public QuantifiersModule {
   void check(Theory::Effort e, QEffort quant_e) override;
   bool checkComplete() override;
   bool checkCompleteFor(Node q) override;
+  void checkOwnership(Node q) override;
   void preRegisterQuantifier(Node q) override;
-  void registerQuantifier(Node q) override;
   /** get next decision request */
   Node getNextDecisionRequest(unsigned& priority) override;
 };
@@ -153,8 +147,8 @@ class InstStrategyCegqi : public InstStrategyCbqi {
 
   //get instantiator for quantifier
   CegInstantiator * getInstantiator( Node q );
-  //register quantifier
-  void registerQuantifier(Node q) override;
+  /** pre-register quantifier */
+  void preRegisterQuantifier(Node q) override;
   //presolve
   void presolve() override;
 };

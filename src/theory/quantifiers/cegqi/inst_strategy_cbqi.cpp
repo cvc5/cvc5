@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -289,9 +289,9 @@ bool InstStrategyCbqi::checkComplete() {
 }
 
 bool InstStrategyCbqi::checkCompleteFor( Node q ) {
-  std::map< Node, int >::iterator it = d_do_cbqi.find( q );
+  std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it!=d_do_cbqi.end() ){
-    return it->second>0;
+    return it->second != CEG_UNHANDLED;
   }else{
     return false;
   }
@@ -344,37 +344,46 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
   }
 }
 
-void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
+void InstStrategyCbqi::checkOwnership(Node q)
+{
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
-    if( d_do_cbqi[q]==2 ){
+    if (d_do_cbqi[q] == CEG_HANDLED)
+    {
       //take full ownership of the quantified formula
       d_quantEngine->setOwner( q, this );
-      
-      //mark all nested quantifiers with id
-      if( options::cbqiNestedQE() ){
-        std::map< Node, Node > visited;
-        Node mq = getIdMarkedQuantNode( q[1], visited );
-        if( mq!=q[1] ){
-          //do not do cbqi
-          d_do_cbqi[q] = false;
-          //instead do reduction
-          std::vector< Node > qqc;
-          qqc.push_back( q[0] );
-          qqc.push_back( mq );
-          if( q.getNumChildren()==3 ){
-            qqc.push_back( q[2] );
-          }
-          Node qq = NodeManager::currentNM()->mkNode( FORALL, qqc );
-          Node mlem = NodeManager::currentNM()->mkNode( IMPLIES, q, qq );
-          Trace("cbqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
-          d_quantEngine->getOutputChannel().lemma( mlem );
-        }
-      }
     }
   }
 }
 
-void InstStrategyCbqi::registerQuantifier( Node q ) {
+void InstStrategyCbqi::preRegisterQuantifier(Node q)
+{
+  // mark all nested quantifiers with id
+  if (options::cbqiNestedQE())
+  {
+    if( d_quantEngine->getOwner(q)==this )
+    {
+      std::map<Node, Node> visited;
+      Node mq = getIdMarkedQuantNode(q[1], visited);
+      if (mq != q[1])
+      {
+        // do not do cbqi, we are reducing this quantified formula to a marked
+        // one
+        d_do_cbqi[q] = CEG_UNHANDLED;
+        // instead do reduction
+        std::vector<Node> qqc;
+        qqc.push_back(q[0]);
+        qqc.push_back(mq);
+        if (q.getNumChildren() == 3)
+        {
+          qqc.push_back(q[2]);
+        }
+        Node qq = NodeManager::currentNM()->mkNode(FORALL, qqc);
+        Node mlem = NodeManager::currentNM()->mkNode(IMPLIES, q, qq);
+        Trace("cbqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
+        d_quantEngine->addLemma(mlem);
+      }
+    }
+  }
   if( doCbqi( q ) ){
     if( registerCbqiLemma( q ) ){
       Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
@@ -479,130 +488,15 @@ void InstStrategyCbqi::registerCounterexampleLemma( Node q, Node lem ){
   d_quantEngine->addLemma( lem, false );
 }
 
-bool InstStrategyCbqi::hasNonCbqiOperator( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()!=BOUND_VARIABLE && TermUtil::hasBoundVarAttr( n ) ){
-      if (!CegInstantiator::isCbqiKind(n.getKind()))
-      {
-        Trace("cbqi-debug2") << "Non-cbqi kind : " << n.getKind() << " in " << n  << std::endl;
-        return true;
-      }
-      else if (n.getKind() == FORALL || n.getKind() == CHOICE)
-      {
-        return hasNonCbqiOperator( n[1], visited );
-      }else{
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          if( hasNonCbqiOperator( n[i], visited ) ){
-            return true;
-          }
-        }
-      }
-    }
-  }
-  return false;
-}
-
-// -1 : not cbqi sort, 0 : cbqi sort, 1 : cbqi sort regardless of quantifier body
-int InstStrategyCbqi::isCbqiSort( TypeNode tn, std::map< TypeNode, int >& visited ) {
-  std::map< TypeNode, int >::iterator itv = visited.find( tn );
-  if( itv==visited.end() ){
-    visited[tn] = 0;
-    int ret = -1;
-    if( tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector() ){
-      ret = 0;
-    }else if( tn.isDatatype() ){
-      ret = 1;
-      const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){
-          TypeNode crange = TypeNode::fromType( ((SelectorType)dt[i][j].getType()).getRangeType() );
-          int cret = isCbqiSort( crange, visited );
-          if( cret==-1 ){
-            visited[tn] = -1;
-            return -1;
-          }else if( cret<ret ){
-            ret = cret;
-          }
-        }
-      }
-    }else if( tn.isSort() ){
-      QuantEPR * qepr = d_quantEngine->getQuantEPR();
-      if( qepr!=NULL ){
-        ret = qepr->isEPR( tn ) ? 1 : -1;
-      }
-    }
-    visited[tn] = ret;
-    return ret;
-  }else{
-    return itv->second;
-  }
-}
-
-int InstStrategyCbqi::hasNonCbqiVariable( Node q ){
-  int hmin = 1;
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    TypeNode tn = q[0][i].getType();
-    std::map< TypeNode, int > visited;
-    int handled = isCbqiSort( tn, visited );
-    if( handled==-1 ){
-      return -1;
-    }else if( handled<hmin ){
-      hmin = handled;
-    }
-  }
-  return hmin;
-}
-
 bool InstStrategyCbqi::doCbqi( Node q ){
-  std::map< Node, int >::iterator it = d_do_cbqi.find( q );
+  std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
-    int ret = 2;
-    if( !d_quantEngine->getQuantAttributes()->isQuantElim( q ) ){
-      Assert( !d_quantEngine->getQuantAttributes()->isQuantElimPartial( q ) );
-      //if has an instantiation pattern, don't do it
-      if( q.getNumChildren()==3 && options::eMatching() && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
-        for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
-          if( q[2][i].getKind()==INST_PATTERN ){
-            ret = 0;
-          }
-        }
-      }
-      if( d_quantEngine->getQuantAttributes()->isSygus( q ) ){
-        ret = 0;
-      }
-      if( ret!=0 ){
-        //if quantifier has a non-handled variable, then do not use cbqi
-        //if quantifier has an APPLY_UF term, then do not use cbqi unless EPR
-        int ncbqiv = hasNonCbqiVariable( q );
-        if( ncbqiv==0 || ncbqiv==1 ){
-          std::map< Node, bool > visited;
-          if( hasNonCbqiOperator( q[1], visited ) ){
-            if( ncbqiv==1 ){
-              //all variables are fully handled, this implies this will be handlable regardless of body (e.g. for EPR)
-              //  so, try but not exclusively
-              ret = 1;
-            }else{
-              //cannot be handled
-              ret = 0;
-            }
-          }
-        }else{
-          // unhandled variable type
-          ret = 0;
-        }
-        if( ret==0 && options::cbqiAll() ){
-          //try but not exclusively
-          ret = 1;
-        }
-      }
-    }
+    CegHandledStatus ret = CegInstantiator::isCbqiQuant(q, d_quantEngine);
     Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
-    return ret!=0;
-  }else{
-    return it->second!=0;
+    return ret != CEG_UNHANDLED;
   }
+  return it->second != CEG_UNHANDLED;
 }
 
 Node InstStrategyCbqi::getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc ) {
@@ -786,7 +680,8 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   }
 }
 
-void InstStrategyCegqi::registerQuantifier( Node q ) {
+void InstStrategyCegqi::preRegisterQuantifier(Node q)
+{
   if( doCbqi( q ) ){
     // get the instantiator  
     if( options::cbqiPreRegInst() ){

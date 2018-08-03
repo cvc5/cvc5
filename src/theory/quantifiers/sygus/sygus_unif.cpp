@@ -2,9 +2,9 @@
 /*! \file sygus_unif.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,72 +26,41 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif()
-    : d_qe(nullptr), d_tds(nullptr), d_check_sol(false), d_cond_count(0)
-{
-}
-
+SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr) {}
 SygusUnif::~SygusUnif() {}
 
-void SygusUnif::initialize(QuantifiersEngine* qe,
-                           Node f,
-                           std::vector<Node>& enums,
-                           std::vector<Node>& lemmas)
+void SygusUnif::initializeCandidate(
+    QuantifiersEngine* qe,
+    Node f,
+    std::vector<Node>& enums,
+    std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
-  Assert(d_candidate.isNull());
-  d_candidate = f;
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
+  d_candidates.push_back(f);
   // initialize the strategy
-  d_strategy.initialize(qe, f, enums, lemmas);
+  d_strategy[f].initialize(qe, f, enums);
 }
 
-Node SygusUnif::constructSolution()
+bool SygusUnif::constructSolution(std::vector<Node>& sols,
+                                  std::vector<Node>& lemmas)
 {
-  Node c = d_candidate;
-  if (!d_solution.isNull())
+  // initialize a call to construct solution
+  initializeConstructSol();
+  for (const Node& f : d_candidates)
   {
-    // already has a solution
-    return d_solution;
-  }
-  // only check if an enumerator updated
-  if (d_check_sol)
-  {
-    Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
-                       << std::endl;
-    d_check_sol = false;
-    // try multiple times if we have done multiple conditions, due to
-    // non-determinism
-    Node vc;
-    for (unsigned i = 0; i <= d_cond_count; i++)
+    // initialize a call to construct solution for function f
+    initializeConstructSolFor(f);
+    // call the virtual construct solution method
+    Node e = d_strategy[f].getRootEnumerator();
+    Node sol = constructSol(f, e, role_equal, 1, lemmas);
+    if (sol.isNull())
     {
-      Trace("sygus-pbe-dt") << "ConstructPBE for candidate: " << c << std::endl;
-      Node e = d_strategy.getRootEnumerator();
-      // initialize a call to construct solution
-      initializeConstructSol();
-      // call the virtual construct solution method
-      Node vcc = constructSol(e, role_equal, 1);
-      // if we constructed the solution, and we either did not previously have
-      // a solution, or the new solution is better (smaller).
-      if (!vcc.isNull()
-          && (vc.isNull() || (!vc.isNull()
-                              && d_tds->getSygusTermSize(vcc)
-                                     < d_tds->getSygusTermSize(vc))))
-      {
-        Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = " << vcc
-                           << std::endl;
-        Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
-        vc = vcc;
-      }
+      return false;
     }
-    if (!vc.isNull())
-    {
-      d_solution = vc;
-      return vc;
-    }
-    Trace("sygus-pbe") << "...failed to solve." << std::endl;
+    sols.push_back(sol);
   }
-  return Node::null();
+  return true;
 }
 
 Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
@@ -127,7 +96,7 @@ Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
     const std::map<Node, unsigned>& total_inc,
-    const std::map<Node, std::vector<unsigned> >& incr)
+    const std::map<Node, std::vector<unsigned>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;

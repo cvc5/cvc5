@@ -2,9 +2,9 @@
 /*! \file quant_split.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,7 @@ private:
 public:
   QuantDSplit( QuantifiersEngine * qe, context::Context* c );
   /** determine whether this quantified formula will be reduced */
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
 
   /* whether this module needs to check this round */
   bool needsCheck(Theory::Effort e) override;

@@ -2,9 +2,9 @@
 /*! \file arith_ite_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
+ **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 
 #include "expr/node.h"
 #include "context/cdo.h"
-#include "context/cdtrail_hashmap.h"
+#include "context/cdinsert_hashmap.h"
 
 namespace CVC4 {
 namespace theory {
@@ -57,7 +57,7 @@ class ArithIteUtils {
   Integer d_one;
 
   context::CDO<unsigned> d_subcount;
-  typedef context::CDTrailHashMap<Node, Node, NodeHashFunction> CDNodeMap;
+  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;

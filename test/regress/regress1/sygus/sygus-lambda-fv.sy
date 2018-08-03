@@ -1,0 +1,21 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic ALL)
+
+(synth-fun SC ((y (BitVec 32)) (w (BitVec 32)) ) (BitVec 32)
+  (
+   (Start (BitVec 32) (
+     y
+     w
+     #x00000000
+     (bvadd Start Start)
+     (ite StartBool Start Start)
+   ))
+   (StartBool Bool ((= Start #x10000000) (= Start #x00000000)))
+))
+
+(constraint (= (SC #x00000000 #x00001000) #x00001000))
+(constraint (= (SC #x00001000 #x00001000) #x00001000))
+(constraint (= (SC #x01001000 #x00001000) #x01001000))
+
+(check-synth)

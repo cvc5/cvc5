@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
+ **   Liana Hadarean, Dejan Jovanovic, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,8 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-enum RewriteRuleId {
+enum RewriteRuleId
+{
 
   /// core normalization rules
   EmptyRule,
@@ -103,6 +104,8 @@ enum RewriteRuleId {
 
   /// simplification rules
   /// all of these rules decrease formula size
+  BvIte,
+  BvComp,
   ShlByConst,
   LshrByConst,
   AshrByConst,
@@ -175,6 +178,7 @@ enum RewriteRuleId {
   OrSimplify,
   XorSimplify,
   BitwiseSlicing,
+  NormalizeEqPlusNeg,
   // rules to simplify bitblasting
   BBPlusNeg,
   UltPlusOne,
@@ -238,6 +242,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
   case EvalRotateRight :    out << "EvalRotateRight";     return out;
   case EvalNeg :            out << "EvalNeg";             return out;
+  case BvIte :              out << "BvIte";               return out;
+  case BvComp :             out << "BvComp";              return out;
   case ShlByConst :         out << "ShlByConst";          return out;
   case LshrByConst :        out << "LshrByConst";         return out;
   case AshrByConst :        out << "AshrByConst";         return out;
@@ -321,6 +327,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatToMult: out << "ConcatToMult"; return out;
   case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
+  case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
   default:
     Unreachable();
   }
@@ -471,6 +478,7 @@ struct AllRewriteRules {
   RewriteRule<EvalRotateRight>      rule46;
   RewriteRule<EvalEquals>           rule47;
   RewriteRule<EvalNeg>              rule48;
+  RewriteRule<BvIte>                rule49;
   RewriteRule<ShlByConst>             rule50;
   RewriteRule<LshrByConst>             rule51;
   RewriteRule<AshrByConst>             rule52;
@@ -548,6 +556,8 @@ struct AllRewriteRules {
   RewriteRule<SignExtendUltConst> rule126;
   RewriteRule<ZeroExtendUltConst> rule127;
   RewriteRule<MultSltMult> rule128;
+  RewriteRule<NormalizeEqPlusNeg> rule129;
+  RewriteRule<BvComp> rule130;
 };
 
 template<> inline

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -331,6 +331,9 @@ void ProofManager::traceUnsatCore() {
   IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs,
                                  used_lemmas);
+
+  // At this point, there should be no assertions without a clause id
+  Assert(d_cnfProof->isAssertionStackEmpty());
 
   IdToSatClause::const_iterator it = used_inputs.begin();
   for(; it != used_inputs.end(); ++it) {

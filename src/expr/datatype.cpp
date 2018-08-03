@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,6 +77,11 @@ size_t Datatype::indexOf(Expr item) {
                 item.getType().isSelector(),
                 item,
                 "arg must be a datatype constructor, selector, or tester");
+  return indexOfInternal(item);
+}
+
+size_t Datatype::indexOfInternal(Expr item)
+{
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return indexOf( item[0] );
@@ -91,6 +96,10 @@ size_t Datatype::cindexOf(Expr item) {
   PrettyCheckArgument(item.getType().isSelector(),
                 item,
                 "arg must be a datatype selector");
+  return cindexOfInternal(item);
+}
+size_t Datatype::cindexOfInternal(Expr item)
+{
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return cindexOf( item[0] );
@@ -686,6 +695,11 @@ bool Datatype::involvesUninterpretedType() const{
   return d_involvesUt;
 }
 
+const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
+{
+  return &d_constructors;
+}
+
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
                                   const std::map<std::string, DatatypeType>& resolutions,
                                   const std::vector<Type>& placeholders,
@@ -823,6 +837,12 @@ void DatatypeConstructor::setSygus(Expr op,
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_sygus_op = op;
   d_sygus_pc = spc;
+}
+
+const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
+    const
+{
+  return &d_args;
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
@@ -1139,6 +1159,12 @@ const DatatypeConstructorArg& DatatypeConstructor::operator[](std::string name) 
 
 Expr DatatypeConstructor::getSelector(std::string name) const {
   return (*this)[name].getSelector();
+}
+
+Type DatatypeConstructor::getArgType(unsigned index) const
+{
+  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  return static_cast<SelectorType>((*this)[index].getType()).getRangeType();
 }
 
 bool DatatypeConstructor::involvesExternalType() const{

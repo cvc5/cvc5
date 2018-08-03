@@ -29,6 +29,50 @@ namespace bv {
 
 // FIXME: this rules subsume the constant evaluation ones
 
+/**
+ * BvIte
+ *
+ * BITVECTOR_ITE with constant condition
+ */
+template <>
+inline bool RewriteRule<BvIte>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE && node[0].isConst());
+}
+
+template <>
+inline Node RewriteRule<BvIte>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIte>(" << node << ")" << std::endl;
+  return utils::isZero(node[0]) ? node[2] : node[1];
+}
+
+/**
+ * BvComp
+ *
+ * BITVECTOR_COMP of children of size 1 with one constant child
+ */
+template <>
+inline bool RewriteRule<BvComp>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_COMP
+          && utils::getSize(node[0]) == 1
+          && (node[0].isConst() || node[1].isConst()));
+}
+
+template <>
+inline Node RewriteRule<BvComp>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvComp>(" << node << ")" << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  if (node[0].isConst())
+  {
+    return utils::isZero(node[0]) ? nm->mkNode(kind::BITVECTOR_NOT, node[1])
+                                  : Node(node[1]);
+  }
+  return utils::isZero(node[1]) ? nm->mkNode(kind::BITVECTOR_NOT, node[0])
+                                : Node(node[0]);
+}
 
 /**
  * ShlByConst
