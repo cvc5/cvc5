@@ -34,7 +34,6 @@ libcvc4_la_LDFLAGS = \
 nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
-	svn_versioninfo.cpp \
 	api/cvc4cpp.h \
 	api/cvc4cppkind.h \
 	api/cvc4cpp.cpp \
@@ -638,9 +637,6 @@ BUILT_SOURCES = \
 	$(top_builddir)/src/.subdirs
 
 CLEANFILES = \
-	svn_versioninfo.cpp \
-	svninfo.tmp \
-	svninfo \
 	git_versioninfo.cpp \
 	gitinfo.tmp \
 	gitinfo \
@@ -686,34 +682,6 @@ EXTRA_DIST = \
 	theory/theory_traits_template.h \
 	theory/type_enumerator_template.cpp \
 	theory/uf/kinds
-
-svn_versioninfo.cpp: svninfo
-	$(AM_V_GEN)( \
-	  if test -s svninfo; then \
-	    issvn=true; \
-	    branch=`grep '^URL: ' svninfo | sed 's,.*/cvc4/,,'`; \
-	    rev=`grep '^Revision: ' svninfo | awk '{print$$2}'`; \
-	    mods=`grep '^Modifications: ' svninfo | awk '{print$$2} END { if(!NR) print "false" }'`; \
-	  else \
-	    issvn=false; \
-	    branch=unknown; \
-	    rev=0; \
-	    mods=false; \
-	  fi; \
-	  echo "#include \"base/configuration.h\""; \
-	  echo "const bool ::CVC4::Configuration::IS_SUBVERSION_BUILD = $$issvn;"; \
-	  echo "const char* const ::CVC4::Configuration::SUBVERSION_BRANCH_NAME = \"$$branch\";"; \
-	  echo "const unsigned ::CVC4::Configuration::SUBVERSION_REVISION = $$rev;"; \
-	  echo "const bool ::CVC4::Configuration::SUBVERSION_HAS_MODIFICATIONS = $$mods;"; \
-	) >"$@"
-# This .tmp business is to keep from having to re-compile options.cpp
-# (and then re-link the libraries) if nothing has changed.
-svninfo: svninfo.tmp
-	$(AM_V_GEN)if diff -q svninfo.tmp svninfo &>/dev/null; then rm -f svninfo.tmp; else mv svninfo.tmp svninfo; fi
-# .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
-.PHONY: svninfo.tmp
-svninfo.tmp:
-	$(AM_V_GEN)(cd "$(top_srcdir)" && svn info && echo "Modifications: `test -z \"\`svn status -q\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
 
 git_versioninfo.cpp: gitinfo
 	$(AM_V_GEN)( \
