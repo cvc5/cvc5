@@ -23,12 +23,10 @@
 
 #include "preprocessing/passes/bv_ackermann.h"
 
-#include "expr/node.h"
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_utils.h"
 
 #include <stack>
-#include <unordered_set>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -52,10 +50,10 @@ void addLemmaForPair(TNode args1,
 
   if (args1.getKind() == kind::APPLY_UF)
   {
-    AlwaysAssert(args1.getOperator() == func);
-    AlwaysAssert(args2.getKind() == kind::APPLY_UF
+    Assert(args1.getOperator() == func);
+    Assert(args2.getKind() == kind::APPLY_UF
                  && args2.getOperator() == func);
-    AlwaysAssert(args1.getNumChildren() == args2.getNumChildren());
+    Assert(args1.getNumChildren() == args2.getNumChildren());
 
     std::vector<Node> eqs(args1.getNumChildren());
 
@@ -67,10 +65,10 @@ void addLemmaForPair(TNode args1,
   }
   else
   {
-    AlwaysAssert(args1.getKind() == kind::SELECT && args1[0] == func);
-    AlwaysAssert(args2.getKind() == kind::SELECT && args2[0] == func);
-    AlwaysAssert(args1.getNumChildren() == 2);
-    AlwaysAssert(args2.getNumChildren() == 2);
+    Assert(args1.getKind() == kind::SELECT && args1[0] == func);
+    Assert(args2.getKind() == kind::SELECT && args2[0] == func);
+    Assert(args1.getNumChildren() == 2);
+    Assert(args2.getNumChildren() == 2);
     args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
   }
   Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
@@ -80,7 +78,7 @@ void addLemmaForPair(TNode args1,
 
 void addChildrenToStack(TNode node, std::stack<TNode>* stack)
 {
-  for (TNode arg: node)
+  for (const TNode& arg: node)
   {
     stack->push(arg);
   }
@@ -96,9 +94,9 @@ void storeFunctionAndAddLemmas(TNode func,
 {
   if (fun_to_args.find(func) == fun_to_args.end())
   {
-    fun_to_args.insert(make_pair(func, NodeSet()));
+    fun_to_args.insert(make_pair(func, TNodeSet()));
   }
-  NodeSet& set = fun_to_args[func];
+  TNodeSet& set = fun_to_args[func];
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
@@ -120,7 +118,7 @@ void storeFunctionAndAddLemmas(TNode func,
      * Therefore, we defer this for term in case it is the first element in the set*/
     if (set.size() == 2) 
     {
-      for (Node elem : set)
+      for (const TNode& elem : set)
       {
         addChildrenToStack(elem, stack);
       }
@@ -147,7 +145,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                std::stack<TNode>* stack,
                                AssertionPipeline* assertions)
 {
-  std::unordered_set<TNode, TNodeHashFunction> seen;       
+  TNodeSet seen;       
   NodeManager* nm = NodeManager::currentNM();
   TNode term;
   while (!stack->empty())
