@@ -46,8 +46,7 @@ void addLemmaForPair(TNode args1,
                      TNode args2,
                      const TNode func,
                      AssertionPipeline* assertionsToPreprocess,
-                     NodeManager* nm,
-                     std::stack<TNode>* stack)
+                     NodeManager* nm)
 {
   Node args_eq;
 
@@ -102,7 +101,7 @@ void storeFunctionAndAddLemmas(TNode func,
         "preprocessing pass for theory BV");
     for (const auto& t : set)
     {
-      addLemmaForPair(t, term, func, assertions, nm, stack);
+      addLemmaForPair(t, term, func, assertions, nm);
     }
     set.insert(term);
     fun_to_skolem.addSubstitution(term, skolem);
