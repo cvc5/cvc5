@@ -38,7 +38,8 @@ class QueryGenerator : public ExprMiner
   /** initialize */
   void initialize(SygusSampler* ss, unsigned deqThresh);
   /** add term */
-  void addTerm(Node n);
+  void addTerm(Node n, 
+                                       std::ostream& out);
 
  private:
   /** pointer to the sygus sampler object we are using */
@@ -61,7 +62,9 @@ class QueryGenerator : public ExprMiner
                int deqAllow,
                int eqAllow,
                bool exact,
-               std::vector<Node>& queries);
+               std::vector<Node>& queries,
+               std::vector<unsigned>& queriesPtTrue
+                  );
 };
 
 }  // namespace quantifiers

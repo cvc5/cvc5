@@ -95,7 +95,7 @@ bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out, bool& rew_prin
       solb = d_tds->sygusToBuiltin(sol);
     }
     // a unique term, let's try the query generator
-    d_qg.addTerm(solb);
+    d_qg.addTerm(solb, out);
   }
   return ret;
 }
