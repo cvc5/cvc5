@@ -42,7 +42,8 @@ class ExpressionMiner
                   TypeNode tn,
                   std::vector<Node>& vars,
                   unsigned nsamples,
-                  bool unique_type_ids = false);
+                  bool unique_type_ids = false,
+                  unsigned deqThresh = 0);
   /**  Initialize this class
    *
    */
@@ -51,7 +52,8 @@ class ExpressionMiner
                        QuantifiersEngine* qe,
                        Node f,
                        unsigned nsamples,
-                       bool useSygusType);
+                       bool useSygusType,
+                       unsigned deqThresh = 0);
   /** add term
    */
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);

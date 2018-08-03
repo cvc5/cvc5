@@ -28,15 +28,33 @@ void QGTTrie::addTerm(Node n,
                       unsigned ntotal,
                       bool exact)
 {
+  if( index==ntotal )
+  {
+    if( exact )
+    {
+      d_waiting.push_back(n);
+    }
+    else
+    {
+      // we have a query
+      Assert( !d_waiting.empty() );
+    }
+    return;
+  }
+  
+  
 }
 
 QueryGenerator::QueryGenerator() : d_sampler(nullptr) {}
 
-void QueryGenerator::initialize(SygusSampler* ss) { d_sampler = ss; }
+void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh) { d_sampler = ss; d_deq_thresh = deqThresh; }
 
 void QueryGenerator::addTerm(Node n)
 {
   Trace("sygus-qg") << "QueryGenerator::addTerm : " << n << std::endl;
+  unsigned npts = d_sampler->getNumSamplePoints();
+  TypeNode tn = n.getType();
+  d_qgt_trie[tn].addTerm(n,d_sampler,d_deq_thresh,0,npts);
 }
 
 }  // namespace quantifiers

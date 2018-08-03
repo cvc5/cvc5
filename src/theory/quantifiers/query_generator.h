@@ -33,7 +33,7 @@ namespace quantifiers {
 class QGTTrie
 {
  public:
-  std::vector<Node> d_nodes;
+  std::vector<Node> d_waiting;
   std::map<Node, QGTTrie> d_children;
   void addTerm(Node n,
                LazyTrieEvaluator* eval,
@@ -52,13 +52,19 @@ class QueryGenerator
   QueryGenerator();
   ~QueryGenerator() {}
   /** initialize */
-  void initialize(SygusSampler* ss);
+  void initialize(SygusSampler* ss, unsigned deqThresh);
   /** add term */
   void addTerm(Node n);
 
  private:
   /** pointer to the sygus sampler object we are using */
   SygusSampler* d_sampler;
+  /** the disequality threshold (number of points)
+   * 
+   */
+  unsigned d_deq_thresh;
+  /** the trie, for each type */
+  std::map< TypeNode, QGTTrie > d_qgt_trie;
 };
 
 }  // namespace quantifiers

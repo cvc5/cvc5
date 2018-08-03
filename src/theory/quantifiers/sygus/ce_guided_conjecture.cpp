@@ -725,7 +725,9 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
                                         d_qe,
                                         d_candidates[i],
                                         options::sygusSamples(),
-                                        true);
+                                        true,
+                                        options::sygusQueryGenThresh()
+                                       );
           its = d_crrdb.find(prog);
         }
         bool rew_print = false;

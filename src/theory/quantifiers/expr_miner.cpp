@@ -32,7 +32,8 @@ void ExpressionMiner::initialize(bool doRewSynth,
                                  TypeNode tn,
                                  std::vector<Node>& vars,
                                  unsigned nsamples,
-                                 bool unique_type_ids)
+                                 bool unique_type_ids,
+                                      unsigned deqThresh)
 {
   Assert(doRewSynth || doQueryGen);
   d_do_rew_synth = doRewSynth;
@@ -45,7 +46,7 @@ void ExpressionMiner::initialize(bool doRewSynth,
   }
   if (doQueryGen)
   {
-    d_qg.initialize(&d_sampler);
+    d_qg.initialize(&d_sampler,deqThresh);
   }
 }
 
@@ -54,7 +55,9 @@ void ExpressionMiner::initializeSygus(bool doRewSynth,
                                       QuantifiersEngine* qe,
                                       Node f,
                                       unsigned nsamples,
-                                      bool useSygusType)
+                                      bool useSygusType,
+                                      unsigned deqThresh
+                                     )
 {
   Assert(doRewSynth || doQueryGen);
   d_do_rew_synth = doRewSynth;
@@ -67,7 +70,7 @@ void ExpressionMiner::initializeSygus(bool doRewSynth,
   }
   if (d_do_query_gen)
   {
-    d_qg.initialize(&d_sampler);
+    d_qg.initialize(&d_sampler,deqThresh);
   }
 }
 
