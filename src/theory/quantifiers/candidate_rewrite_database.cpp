@@ -55,7 +55,7 @@ void CandidateRewriteDatabase::initialize(SygusSampler* ss,
   d_qe = nullptr;
   d_tds = nullptr;
   d_ext_rewrite = er;
-  //d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
+  // d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
   d_crewrite_filter.initialize(d_sampler, nullptr, false);
 }
 
@@ -74,7 +74,7 @@ void CandidateRewriteDatabase::initializeSygus(SygusSampler* ss,
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = d_tds->getExtRewriter();
-  //d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
+  // d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
   d_crewrite_filter.initialize(d_sampler, d_tds, true);
 }
 
@@ -258,7 +258,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        if( !d_silent )
+        if (!d_silent)
         {
           out << "(" << (verified ? "" : "candidate-") << "rewrite ";
           if (d_using_sygus)
@@ -329,11 +329,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
   return addTerm(sol, out, rew_print);
 }
 
-
-void CandidateRewriteDatabase::setSilent(bool flag)
-{
-  d_silent = flag;
-}
+void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)

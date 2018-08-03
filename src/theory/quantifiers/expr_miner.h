@@ -17,22 +17,22 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 #define __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 /** ExpressionMiner
- * 
+ *
  */
 class ExpressionMiner
 {
  public:
   ExpressionMiner();
-  ~ExpressionMiner(){}
+  ~ExpressionMiner() {}
   /**  Initialize this class
    *
    */
@@ -56,6 +56,7 @@ class ExpressionMiner
    */
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
   bool addTerm(Node sol, std::ostream& out);
+
  private:
   /** whether we are doing rewrite synthesis */
   bool d_do_rew_synth;
@@ -71,8 +72,8 @@ class ExpressionMiner
   SygusSampler d_sampler;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

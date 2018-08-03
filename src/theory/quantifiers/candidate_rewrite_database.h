@@ -102,6 +102,7 @@ class CandidateRewriteDatabase
   bool addTerm(Node sol, std::ostream& out);
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -156,7 +157,7 @@ class CandidateRewriteDatabaseGen
   /** the variables */
   std::vector<Node> d_vars;
   /** sygus sampler object for each type FIXME: when rec, can use only one */
-  std::map< TypeNode, SygusSampler > d_sampler;
+  std::map<TypeNode, SygusSampler> d_sampler;
   /** the number of samples */
   unsigned d_nsamples;
   /** candidate rewrite databases for each type */

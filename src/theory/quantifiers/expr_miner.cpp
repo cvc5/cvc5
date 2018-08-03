@@ -20,54 +20,52 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-ExpressionMiner::ExpressionMiner() :
-d_do_rew_synth(false),
-d_do_query_gen(false),
-d_use_sygus_type(false)
+
+ExpressionMiner::ExpressionMiner()
+    : d_do_rew_synth(false), d_do_query_gen(false), d_use_sygus_type(false)
 {
-  
 }
 
 void ExpressionMiner::initialize(bool doRewSynth,
-                  bool doQueryGen,
-                  ExtendedRewriter* er,
-                TypeNode tn,
-                std::vector<Node>& vars,
-                unsigned nsamples,
-                bool unique_type_ids)
+                                 bool doQueryGen,
+                                 ExtendedRewriter* er,
+                                 TypeNode tn,
+                                 std::vector<Node>& vars,
+                                 unsigned nsamples,
+                                 bool unique_type_ids)
 {
-  Assert( doRewSynth || doQueryGen );
+  Assert(doRewSynth || doQueryGen);
   d_do_rew_synth = doRewSynth;
   d_do_query_gen = doQueryGen;
   d_use_sygus_type = false;
   d_crd.initialize(&d_sampler, er, tn, vars, nsamples, unique_type_ids);
-  if( !doRewSynth )
+  if (!doRewSynth)
   {
     d_crd.setSilent(true);
   }
-  if( doQueryGen )
+  if (doQueryGen)
   {
     d_qg.initialize(&d_sampler);
   }
 }
 
 void ExpressionMiner::initializeSygus(bool doRewSynth,
-                  bool doQueryGen,QuantifiersEngine* qe,
-                      Node f,
-                      unsigned nsamples,
-                      bool useSygusType)
+                                      bool doQueryGen,
+                                      QuantifiersEngine* qe,
+                                      Node f,
+                                      unsigned nsamples,
+                                      bool useSygusType)
 {
-  Assert( doRewSynth || doQueryGen );
+  Assert(doRewSynth || doQueryGen);
   d_do_rew_synth = doRewSynth;
   d_do_query_gen = doQueryGen;
   d_use_sygus_type = useSygusType;
-  d_crd.initializeSygus(&d_sampler, qe, f, nsamples, useSygusType);    
-  if( !d_do_rew_synth )
+  d_crd.initializeSygus(&d_sampler, qe, f, nsamples, useSygusType);
+  if (!d_do_rew_synth)
   {
     d_crd.setSilent(true);
   }
-  if( d_do_query_gen )
+  if (d_do_query_gen)
   {
     d_qg.initialize(&d_sampler);
   }
@@ -75,8 +73,8 @@ void ExpressionMiner::initializeSygus(bool doRewSynth,
 
 bool ExpressionMiner::addTerm(Node sol, std::ostream& out, bool& rew_print)
 {
-  bool ret = d_crd.addTerm(sol,out,rew_print);
-  if( ret && d_do_query_gen )
+  bool ret = d_crd.addTerm(sol, out, rew_print);
+  if (ret && d_do_query_gen)
   {
     // a unique term, let's try the query generator
     d_qg.addTerm(sol);
@@ -87,9 +85,9 @@ bool ExpressionMiner::addTerm(Node sol, std::ostream& out, bool& rew_print)
 bool ExpressionMiner::addTerm(Node sol, std::ostream& out)
 {
   bool rew_print = false;
-  return addTerm(sol,out,rew_print);
+  return addTerm(sol, out, rew_print);
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

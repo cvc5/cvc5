@@ -20,38 +20,25 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-void QGTTrie::addTerm(Node n, 
-                             LazyTrieEvaluator* eval, 
-                             unsigned deqAllow,
-                             unsigned index,
-                             unsigned ntotal,
-                             bool exact
-                     )
-{
-  
-}
-  
-QueryGenerator::QueryGenerator() :
-d_sampler(nullptr){
 
+void QGTTrie::addTerm(Node n,
+                      LazyTrieEvaluator* eval,
+                      unsigned deqAllow,
+                      unsigned index,
+                      unsigned ntotal,
+                      bool exact)
+{
 }
 
-void QueryGenerator::initialize(SygusSampler* ss)
-{
-  d_sampler = ss;
-}
+QueryGenerator::QueryGenerator() : d_sampler(nullptr) {}
+
+void QueryGenerator::initialize(SygusSampler* ss) { d_sampler = ss; }
 
 void QueryGenerator::addTerm(Node n)
 {
   Trace("sygus-qg") << "QueryGenerator::addTerm : " << n << std::endl;
-  
-  
-  
-  
-  
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
