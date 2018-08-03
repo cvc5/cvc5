@@ -34,7 +34,7 @@ void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
 
 void QueryGenerator::addTerm(Node n, std::ostream& out)
 {
-  Trace("sygus-qg") << "QueryGenerator::addTerm : " << n << std::endl;
+  Trace("sygus-qgen") << "QueryGenerator::addTerm : " << n << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
   // TODO : as an optimization, use a shared lazy trie?
@@ -55,7 +55,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   {
     return;
   }
-  Trace("sygus-qg-debug") << "query: Check " << queries.size() << " queries..."
+  Trace("sygus-qgen-debug") << "query: Check " << queries.size() << " queries..."
                           << std::endl;
   ExprManager* em = NodeManager::currentNM()->toExprManager();
   LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
@@ -65,7 +65,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     // we have an interesting query
     out << "(query " << qy << ")  ; " << queriesPtTrue[i] << "/" << npts
         << std::endl;
-    Trace("sygus-qg-check") << "query: check " << qy << "..." << std::endl;
+    Trace("sygus-qgen-check") << "query: check " << qy << "..." << std::endl;
     Node qs = convertToSkolem(qy);
 
     // make the satisfiability query
@@ -73,7 +73,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     queryChecker.setLogic(linfo);
     queryChecker.assertFormula(qs.toExpr());
     Result r = queryChecker.checkSat();
-    Trace("sygus-qg-check") << "query: ...got : " << r << std::endl;
+    Trace("sygus-qgen-check") << "query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       std::stringstream ss;
@@ -82,7 +82,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
       AlwaysAssert(false, ss.str().c_str());
     }
   }
-  Trace("sygus-qg-check") << "...finished." << std::endl;
+  Trace("sygus-qgen-check") << "...finished." << std::endl;
 }
 
 void QueryGenerator::findQueries(LazyTrie* lt,
@@ -96,7 +96,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                                  std::vector<Node>& queries,
                                  std::vector<unsigned>& queriesPtTrue)
 {
-  Trace("sygus-qg-debug") << "Find queries " << n << " " << index << "/"
+  Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
                           << ntotal << ", deq/eq allow = " << deqAllow << "/"
                           << eqAllow << ", exact = " << exact << std::endl;
   Assert(lt != nullptr);
