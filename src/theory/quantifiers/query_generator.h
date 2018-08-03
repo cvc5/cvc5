@@ -26,23 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Query generation threshold trie
- *
- *
- */
-class QGTTrie
-{
- public:
-  std::vector<Node> d_waiting;
-  std::map<Node, QGTTrie> d_children;
-  void addTerm(Node n,
-               LazyTrieEvaluator* eval,
-               unsigned deqAllow,
-               unsigned index,
-               unsigned ntotal,
-               bool exact = true);
-};
-
 /** QueryGenerator
  *
  */

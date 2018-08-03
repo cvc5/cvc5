@@ -21,34 +21,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void QGTTrie::addTerm(Node n,
-                      LazyTrieEvaluator* eval,
-                      unsigned deqAllow,
-                      unsigned index,
-                      unsigned ntotal,
-                      bool exact)
-{
-  if( index==ntotal )
-  {
-    if( exact )
-    {
-      d_waiting.push_back(n);
-    }
-    else
-    {
-      // we have a query
-      Assert( !d_waiting.empty() );
-    }
-    return;
-  }
-  // if there are waiting nodes, expand
-  if( !d_waiting.empty() )
-  {
-    Assert( d_children.empty() );
-  }
-  
-}
-
 QueryGenerator::QueryGenerator() : d_sampler(nullptr) {}
 
 void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh) { d_sampler = ss; d_deq_thresh = deqThresh; }
