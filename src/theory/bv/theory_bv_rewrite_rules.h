@@ -106,6 +106,7 @@ enum RewriteRuleId
   /// all of these rules decrease formula size
   BvIteConstCond,
   BvIteChildren,
+  BvIteConstChildren,
   BvIteEqualCond,
   BvComp,
   ShlByConst,
@@ -246,6 +247,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalNeg :            out << "EvalNeg";             return out;
   case BvIteConstCond :     out << "BvIteConstCond";      return out;
   case BvIteChildren :      out << "BvIteChildren";       return out;
+  case BvIteConstChildren : out << "BvIteConstChildren";  return out;
   case BvIteEqualCond :     out << "BvIteEqualCond";      return out;
   case BvComp :             out << "BvComp";              return out;
   case ShlByConst :         out << "ShlByConst";          return out;
@@ -563,7 +565,8 @@ struct AllRewriteRules {
   RewriteRule<BvComp>                         rule130;
   RewriteRule<BvIteConstCond>                 rule131;
   RewriteRule<BvIteChildren>                  rule132;
-  RewriteRule<BvIteEqualCond>                 rule133;
+  RewriteRule<BvIteConstChildren>             rule133;
+  RewriteRule<BvIteEqualCond>                 rule134;
 };
 
 template<> inline
