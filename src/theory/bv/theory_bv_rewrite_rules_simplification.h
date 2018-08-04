@@ -68,6 +68,32 @@ inline Node RewriteRule<BvIteChildren>::apply(TNode node)
 }
 
 /**
+ * BvIteConstChildren
+ *
+ * BITVECTOR_ITE with constant children of size one
+ */
+template <>
+inline bool RewriteRule<BvIteConstChildren>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE
+          && utils::getSize(node[1]) == 1
+          && node[1].isConst() && node[2].isConst());
+}
+
+template <>
+inline Node RewriteRule<BvIteConstChildren>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteConstChildren>(" << node << ")"
+                      << std::endl;
+  if (utils::isOne(node[1]) && utils::isZero(node[2]))
+  {
+    return node[0];
+  }
+  Assert(utils::isZero(node[1]) && utils::isOne(node[2]));
+  return NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, node[0]);
+}
+
+/**
  * BvComp
  *
  * BITVECTOR_COMP of children of size 1 with one constant child

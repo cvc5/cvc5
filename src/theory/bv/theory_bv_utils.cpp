@@ -63,6 +63,12 @@ bool isZero(TNode node)
   return node == mkZero(getSize(node));
 }
 
+bool isOne(TNode node)
+{
+  if (!node.isConst()) return false;
+  return node == mkOne(getSize(node));
+}
+
 unsigned isPow2Const(TNode node, bool& isNeg)
 {
   if (node.getKind() != kind::CONST_BITVECTOR)
