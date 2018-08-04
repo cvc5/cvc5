@@ -40,18 +40,55 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   TypeNode tn = n.getType();
   // TODO : as an optimization, use a shared lazy trie?
   
+  // the queries we generate on this round
+  std::vector<Node> queries;
+  // the number of points each query in the above vector is true
+  std::vector<unsigned> queriesPtTrue;
+  // the sample point indices for which the above queries are true
+  std::unordered_set<unsigned> indices;
+  
   // predicate queries (if n is Boolean)
   if( tn.isBoolean() )
   {
-    // TODO
+    std::map< Node, std::vector< unsigned > > ev_to_pt;
+    unsigned index = 0;
+    unsigned threshCount = 0;
+    while( index<npts && threshCount<2 )
+    {
+      Node v = d_sampler->evaluate(n,index);
+      ev_to_pt[v].push_back(index);
+      if( ev_to_pt[v].size()==d_deq_thresh+1 )
+      {
+        threshCount++;
+      }
+      index++;
+    }
+    if( threshCount<2 )
+    {
+      for( const std::pair<Node, std::vector< unsigned > >& etp : ev_to_pt )
+      {
+        if( etp.second.size()<d_deq_thresh)
+        {
+          for( const unsigned& i : etp.second )
+          {
+            indices.insert(i);
+          }
+          Node qy = n;
+          Assert( etp.first.isConst() );
+          if( !etp.first.getConst<bool>() )
+          {
+            qy = qy.negate(); 
+          }
+          queries.push_back(qy);
+          queriesPtTrue.push_back(etp.second.size());
+        }
+      }
+    }
   }
   
   // equality queries
-  std::vector<Node> queries;
   std::vector< unsigned > deqIndex;
   std::vector< unsigned > eqIndex;
-  std::vector<unsigned> queriesPtTrue;
-  std::unordered_set<unsigned> indices;
   findQueries(&d_qgt_trie[tn],
               n,
               d_sampler,
@@ -89,6 +126,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
       std::vector< Node > qsi_subset;
       for( const Node& qy : qsi )
       {
+        // TODO: chance based on size of qsi?
         if( Random::getRandom().pickWithProb(0.5) )
         {
           qsi_subset.push_back(qy);
