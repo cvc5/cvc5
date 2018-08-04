@@ -16,6 +16,7 @@
 
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "util/random.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -38,18 +39,29 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
   // TODO : as an optimization, use a shared lazy trie?
+  
+  // predicate queries (if n is Boolean)
+  if( tn.isBoolean() )
+  {
+    // TODO
+  }
+  
+  // equality queries
   std::vector<Node> queries;
+  std::vector< unsigned > deqIndex;
+  std::vector< unsigned > eqIndex;
   std::vector<unsigned> queriesPtTrue;
+  std::unordered_set<unsigned> indices;
   findQueries(&d_qgt_trie[tn],
               n,
               d_sampler,
               0,
               npts,
-              d_deq_thresh,
-              d_deq_thresh,
+              deqIndex,
+              eqIndex,
               true,
               queries,
-              queriesPtTrue);
+              queriesPtTrue, indices);
   Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
@@ -57,7 +69,6 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   }
   Trace("sygus-qgen-debug")
       << "query: Check " << queries.size() << " queries..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
   {
@@ -65,25 +76,54 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     // we have an interesting query
     out << "(query " << qy << ")  ; " << queriesPtTrue[i] << "/" << npts
         << std::endl;
-    Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+    checkQuery(qy);
 
-    // make the satisfiability query
-    bool needExport = false;
-    ExprManagerMapCollection varMap;
-    ExprManager em(nm->getOptions());
-    std::unique_ptr<SmtEngine> queryChecker;
-    initializeChecker(queryChecker, em, varMap, qy, needExport);
-    Result r = queryChecker->checkSat();
-    Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  }
+  // for each new index, we may have a new conjunctive query
+  NodeManager* nm = NodeManager::currentNM();
+  for( const unsigned& i : indices )
+  {
+    std::vector< Node >& qsi = d_pt_to_queries[i];
+    if( qsi.size()>1 )
     {
-      std::stringstream ss;
-      ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
-         << "!";
-      AlwaysAssert(false, ss.str().c_str());
+      std::vector< Node > qsi_subset;
+      for( const Node& qy : qsi )
+      {
+        if( Random::getRandom().pickWithProb(0.5) )
+        {
+          qsi_subset.push_back(qy);
+        }
+      }
+      if( qsi_subset.size()>1 )
+      {
+        Node qy = nm->mkNode(AND,qsi_subset);
+        checkQuery(qy);
+      }
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
+}
+
+void QueryGenerator::checkQuery(Node qy)
+{
+  Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  // make the satisfiability query
+  bool needExport = false;
+  ExprManagerMapCollection varMap;
+  ExprManager em(nm->getOptions());
+  std::unique_ptr<SmtEngine> queryChecker;
+  initializeChecker(queryChecker, em, varMap, qy, needExport);
+  Result r = queryChecker->checkSat();
+  Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    std::stringstream ss;
+    ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
+        << "!";
+    AlwaysAssert(false, ss.str().c_str());
+  }
 }
 
 // FIXME: make robust up to irrelevant variables
@@ -92,17 +132,18 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                                  LazyTrieEvaluator* ev,
                                  unsigned index,
                                  unsigned ntotal,
-                                 int deqAllow,
-                                 int eqAllow,
+                                 std::vector< unsigned >& deqIndex,
+                                 std::vector< unsigned >& eqIndex,
                                  bool exact,
                                  std::vector<Node>& queries,
-                                 std::vector<unsigned>& queriesPtTrue)
+                                 std::vector<unsigned>& queriesPtTrue,
+                                 std::unordered_set<unsigned>& indices)
 {
+  int deqAllow = d_deq_thresh-deqIndex.size();
+  int eqAllow = d_deq_thresh-eqIndex.size();
   Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
                             << ntotal << ", deq/eq allow = " << deqAllow << "/"
                             << eqAllow << ", exact = " << exact << std::endl;
-  Assert(lt != nullptr);
-  Assert(ev != nullptr);
   if (index == ntotal)
   {
     if (exact)
@@ -116,20 +157,26 @@ void QueryGenerator::findQueries(LazyTrie* lt,
       // if made it here,
       Assert(deqAllow >= 0 || eqAllow >= 0);
       Node query = n.eqNode(n_almost_eq);
-      unsigned numPtsQueryTrue = 0;
+      std::vector< unsigned > trueIndices;
       if (eqAllow >= 0)
       {
-        numPtsQueryTrue = d_deq_thresh - eqAllow;
+        trueIndices.insert(trueIndices.end(),eqIndex.begin(),eqIndex.end());
       }
       else if (deqAllow >= 0)
       {
         query = query.negate();
-        numPtsQueryTrue = d_deq_thresh - deqAllow;
+        trueIndices.insert(trueIndices.end(),deqIndex.begin(),deqIndex.end());
       }
-      if (numPtsQueryTrue > 0)
+      AlwaysAssert( trueIndices.size()<=d_deq_thresh );
+      if (!trueIndices.empty())
       {
         queries.push_back(query);
-        queriesPtTrue.push_back(numPtsQueryTrue);
+        queriesPtTrue.push_back(trueIndices.size());
+        for( unsigned& i : trueIndices )
+        {
+          d_pt_to_queries[i].push_back(query);
+          indices.insert(i);
+        }
       }
     }
     return;
@@ -151,6 +198,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
   {
     // recursing on disequal points
     deqAllow--;
+    deqIndex.push_back(index);
     // if there is use continuing
     if (deqAllow >= 0 || eqAllow >= 0)
     {
@@ -163,20 +211,24 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                       ev,
                       index + 1,
                       ntotal,
-                      deqAllow,
-                      eqAllow,
+                      deqIndex,
+                      eqIndex,
                       false,
                       queries,
-                      queriesPtTrue);
+                      queriesPtTrue, indices);
         }
       }
     }
     deqAllow++;
+    deqIndex.pop_back();
   }
+  bool pushedEqIndex =false;
   if (eqAllow >= 0)
   {
     // below, we try recursing (if at all) on equal nodes.
     eqAllow--;
+    eqIndex.push_back(index);
+    pushedEqIndex = true;
   }
 
   // if we are on the exact path of n
@@ -195,17 +247,14 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                   ev,
                   index + 1,
                   ntotal,
-                  deqAllow,
-                  eqAllow,
+                      deqIndex,
+                      eqIndex,
                   true,
                   queries,
-                  queriesPtTrue);
+                  queriesPtTrue, indices);
     }
-    return;
   }
-
-  // if it is worthwhile continuing
-  if (deqAllow >= 0 || eqAllow >= 0)
+  else if (deqAllow >= 0 || eqAllow >= 0)
   {
     // recurse on the equal point if it exists
     std::map<Node, LazyTrie>::iterator iteq = lt->d_children.find(e_this);
@@ -216,12 +265,16 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                   ev,
                   index + 1,
                   ntotal,
-                  deqAllow,
-                  eqAllow,
+                      deqIndex,
+                      eqIndex,
                   false,
                   queries,
-                  queriesPtTrue);
+                  queriesPtTrue, indices);
     }
+  }
+  if( pushedEqIndex )
+  {
+    eqIndex.pop_back();
   }
 }
 
