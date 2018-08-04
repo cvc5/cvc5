@@ -49,20 +49,20 @@ inline Node RewriteRule<BvIteConstCond>::apply(TNode node)
 }
 
 /**
- * BvIteChildren
+ * BvIteEqualChildren
  *
  * BITVECTOR_ITE with term_then = term_else
  */
 template <>
-inline bool RewriteRule<BvIteChildren>::applies(TNode node)
+inline bool RewriteRule<BvIteEqualChildren>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_ITE && node[1] == node[2]);
 }
 
 template <>
-inline Node RewriteRule<BvIteChildren>::apply(TNode node)
+inline Node RewriteRule<BvIteEqualChildren>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<BvIteChildren>(" << node << ")"
+  Debug("bv-rewrite") << "RewriteRule<BvIteEqualChildren>(" << node << ")"
                       << std::endl;
   return node[1];
 }
