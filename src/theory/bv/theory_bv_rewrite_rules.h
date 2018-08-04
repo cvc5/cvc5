@@ -105,8 +105,9 @@ enum RewriteRuleId
   /// simplification rules
   /// all of these rules decrease formula size
   BvIteConstCond,
-  BvIteChildren,
+  BvIteEqualChildren,
   BvIteConstChildren,
+  BvIteEqualCond,
   BvIteMergeThenIf,
   BvIteMergeElseIf,
   BvIteMergeThenElse,
@@ -249,8 +250,9 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalRotateRight :    out << "EvalRotateRight";     return out;
   case EvalNeg :            out << "EvalNeg";             return out;
   case BvIteConstCond :     out << "BvIteConstCond";      return out;
-  case BvIteChildren :      out << "BvIteChildren";       return out;
+  case BvIteEqualChildren : out << "BvIteEqualChildren";  return out;
   case BvIteConstChildren : out << "BvIteConstChildren";  return out;
+  case BvIteEqualCond :     out << "BvIteEqualCond";      return out;
   case BvIteMergeThenIf :   out << "BvIteMergeThenIf";    return out;
   case BvIteMergeElseIf :   out << "BvIteMergeElseIf";    return out;
   case BvIteMergeThenElse : out << "BvIteMergeThenElse";  return out;
@@ -570,8 +572,9 @@ struct AllRewriteRules {
   RewriteRule<NormalizeEqPlusNeg>             rule129;
   RewriteRule<BvComp>                         rule130;
   RewriteRule<BvIteConstCond>                 rule131;
-  RewriteRule<BvIteChildren>                  rule132;
+  RewriteRule<BvIteEqualChildren>             rule132;
   RewriteRule<BvIteConstChildren>             rule133;
+  RewriteRule<BvIteEqualCond>                 rule134;
   RewriteRule<BvIteMergeThenIf>               rule135;
   RewriteRule<BvIteMergeElseIf>               rule136;
   RewriteRule<BvIteMergeThenElse>             rule137;
