@@ -123,20 +123,10 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     std::vector<Node>& qsi = d_pt_to_queries[i];
     if (qsi.size() > 1)
     {
-      std::vector<Node> qsi_subset;
-      for (const Node& qy : qsi)
-      {
-        // TODO: chance based on size of qsi?
-        if (Random::getRandom().pickWithProb(0.5))
-        {
-          qsi_subset.push_back(qy);
-        }
-      }
-      if (qsi_subset.size() > 1)
-      {
-        Node qy = nm->mkNode(AND, qsi_subset);
-        checkQuery(qy);
-      }
+      // take two random queries
+      std::random_shuffle(qsi.begin(),qsi.end());
+      Node qy = nm->mkNode(AND, qsi[0],qsi[1]);
+      checkQuery(qy);
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
