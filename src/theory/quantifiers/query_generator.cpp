@@ -74,7 +74,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     std::unique_ptr<SmtEngine> queryChecker;
     initializeChecker(queryChecker, em, varMap, qy, needExport);
     Result r = queryChecker->checkSat();
-    Trace("sygus-qgen-check") << "query: ...got : " << r << std::endl;
+    Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       std::stringstream ss;
