@@ -57,14 +57,14 @@ class QueryGenerator : public ExprMiner
                    LazyTrieEvaluator* ev,
                    unsigned index,
                    unsigned ntotal,
-                   std::vector< unsigned >& deqIndex,
-                   std::vector< unsigned >& eqIndex,
+                   std::vector<unsigned>& deqIndex,
+                   std::vector<unsigned>& eqIndex,
                    bool exact,
                    std::vector<Node>& queries,
                    std::vector<unsigned>& nQueriesPtTrue,
                    std::unordered_set<unsigned>& indices);
   /** queries for points */
-  std::map< unsigned, std::vector< Node > > d_pt_to_queries;
+  std::map<unsigned, std::vector<Node> > d_pt_to_queries;
   /** check query */
   void checkQuery(Node qy);
 };
