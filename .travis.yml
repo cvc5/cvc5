@@ -32,7 +32,7 @@ addons:
   - libgmp-dev
   - libboost-dev
   - libboost-thread-dev
-  - swig
+  - swig3.0
   - libcln-dev
   - openjdk-7-jdk
   - antlr3
