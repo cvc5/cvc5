@@ -210,13 +210,15 @@ std::vector<unsigned> String::toInternal(const std::string &s,
   return str;
 }
 
-unsigned String::getFirstChar() const {
-  Assert( !d_str.empty() );
+unsigned String::getFirstChar() const
+{
+  Assert(!d_str.empty());
   return d_str.front();
 }
 
-unsigned String::getLastChar() const { 
-  Assert( !d_str.empty() );
+unsigned String::getLastChar() const
+{
+  Assert(!d_str.empty());
   return d_str.back();
 }
 

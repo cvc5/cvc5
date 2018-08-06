@@ -124,8 +124,8 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     if (qsi.size() > 1)
     {
       // take two random queries
-      std::random_shuffle(qsi.begin(),qsi.end());
-      Node qy = nm->mkNode(AND, qsi[0],qsi[1]);
+      std::random_shuffle(qsi.begin(), qsi.end());
+      Node qy = nm->mkNode(AND, qsi[0], qsi[1]);
       checkQuery(qy);
     }
   }

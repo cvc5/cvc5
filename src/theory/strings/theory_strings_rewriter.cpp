@@ -82,8 +82,8 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
           else if (rc.getKind() == kind::REGEXP_RANGE
                    || rc.getKind() == kind::REGEXP_SIGMA)
           {
-            std::vector< unsigned > ssVec;
-            ssVec.push_back(t==0 ? s.getLastChar() : s.getFirstChar());
+            std::vector<unsigned> ssVec;
+            ssVec.push_back(t == 0 ? s.getLastChar() : s.getFirstChar());
             CVC4::String ss(ssVec);
             if( testConstStringInRegExp( ss, 0, rc ) ){
               //strip off one character
