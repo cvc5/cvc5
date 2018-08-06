@@ -33,6 +33,7 @@ void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
   d_deq_thresh = deqThresh;
   d_svars.clear();
   d_sampler->getVariables(d_svars);
+  std::sort(d_svars.begin(),d_svars.end());
 }
 
 void QueryGenerator::addTerm(Node n, std::ostream& out)
@@ -152,6 +153,37 @@ void QueryGenerator::checkQuery(Node qy)
   }
 }
 
+
+class PtTrieSet
+{
+ public:
+  PtTrieSet() : d_data(false) {}
+  std::map< Node, PtTrieSet > d_children;
+  bool d_data;
+  bool add( std::vector< Node >& pt )
+  {
+    PtTrieSet* pts = this;
+    for( const Node& n : pt )
+    {
+      pts = &(pts->d_children[n]);
+    }
+    bool ret = pts->d_data;
+    pts->d_data = true;
+    return !ret;
+  }
+  void rm( std::vector< Node >& pt )
+  {
+    PtTrieSet* pts = this;
+    for( const Node& n : pt )
+    {
+      pts = &(pts->d_children[n]);
+    }
+    pts->d_data = false;
+  }
+};
+
+
+
 // FIXME: make robust up to irrelevant variables
 void QueryGenerator::findQueries(LazyTrie* lt,
                                  Node n,
@@ -160,66 +192,98 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                                  std::unordered_set<unsigned>& indices)
 {
   TypeNode tn = n.getType();
-  std::vector<unsigned> deqIndex;
-  std::vector<unsigned> eqIndex;
+  std::vector<unsigned> eqIndex[2];
+  PtTrieSet eqPtTrie[2];
+  Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
+  
+  // the variables indices we will cache points on
+  bool useRlvIndices = false;
+  std::vector< unsigned > rlvIndices;
+  // get the free variables of n
+  std::vector< Node > nvars;
+  d_sampler->computeFreeVariables(n,nvars);
+  std::sort(nvars.begin(),nvars.end());
+  if( nvars.size()<d_svars.size() )
+  {
+    useRlvIndices = true;
+    Trace("sygus-qgen-debug") << "  use indices { ";
+    if( !nvars.empty() )
+    {
+      unsigned j=0;
+      // if less than all free variables
+      for( unsigned i=0,size=d_svars.size(); i<size; i++ )
+      {
+        if( nvars[j]==d_svars[i] )
+        {
+          rlvIndices.push_back(i);
+          Trace("sygus-qgen-debug") << i << " ";
+          j++;
+          if( j==nvars.size() )
+          {
+            break;
+          }
+        }
+      }
+    }
+    Trace("sygus-qgen-debug") << "} for free variables (" << nvars << ")\n";
+    Assert( rlvIndices.size()==nvars.size() );
+  }
 
   LazyTrieEvaluator* ev = d_sampler;
   unsigned ntotal = d_sampler->getNumSamplePoints();
   unsigned index = 0;
   bool exact = true;
-  bool pushEq = false;
-  bool pushDeq = false;
+  bool pushEq[2] = { false, false };
   bool pre = true;
   std::vector<LazyTrie*> visitTr;
   std::vector<unsigned> currIndex;
   std::vector<bool> currExact;
-  std::vector<bool> pushEqIndex;
-  std::vector<bool> pushDeqIndex;
+  std::vector<bool> pushIndex[2];
   std::vector<bool> preVisit;
   visitTr.push_back(lt);
   currIndex.push_back(0);
   currExact.push_back(true);
-  pushEqIndex.push_back(false);
-  pushDeqIndex.push_back(false);
+  pushIndex[0].push_back(false);
+  pushIndex[1].push_back(false);
   preVisit.push_back(true);
   do
   {
     lt = visitTr.back();
     index = currIndex.back();
     exact = currExact.back();
-    pushEq = pushEqIndex.back();
-    pushDeq = pushDeqIndex.back();
+    for( unsigned r=0; r<2; r++ )
+    {
+      pushEq[r] = pushIndex[r].back();
+    }
     pre = preVisit.back();
     if (!pre)
     {
-      if (pushEq)
-      {
-        eqIndex.pop_back();
-      }
-      if (pushDeq)
-      {
-        deqIndex.pop_back();
-      }
+
       visitTr.pop_back();
       currIndex.pop_back();
       currExact.pop_back();
-      pushEqIndex.pop_back();
-      pushDeqIndex.pop_back();
-      preVisit.pop_back();
+      preVisit.pop_back();      
+      for( unsigned r=0; r<2; r++ )
+      {
+        if (pushEq[r])
+        {
+          eqIndex[r].pop_back();
+        }
+        pushIndex[r].pop_back();
+      }
     }
     else
     {
       preVisit[preVisit.size() - 1] = false;
-      if (pushEq)
+      for( unsigned r=0; r<2; r++ )
       {
-        eqIndex.push_back(index - 1);
+        if( pushEq[r] )
+        {
+          eqIndex[r].push_back(index-1);
+        }
       }
-      if (pushDeq)
-      {
-        deqIndex.push_back(index - 1);
-      }
-      int deqAllow = d_deq_thresh - deqIndex.size();
-      int eqAllow = d_deq_thresh - eqIndex.size();
+      int eqAllow = d_deq_thresh - eqIndex[0].size();
+      int deqAllow = d_deq_thresh - eqIndex[1].size();
       Trace("sygus-qgen-debug")
           << "Find queries " << n << " " << index << "/" << ntotal
           << ", deq/eq allow = " << deqAllow << "/" << eqAllow
@@ -240,12 +304,12 @@ void QueryGenerator::findQueries(LazyTrie* lt,
           std::vector<unsigned> tIndices;
           if (eqAllow >= 0)
           {
-            tIndices.insert(tIndices.end(), eqIndex.begin(), eqIndex.end());
+            tIndices.insert(tIndices.end(), eqIndex[0].begin(), eqIndex[0].end());
           }
           else if (deqAllow >= 0)
           {
             query = query.negate();
-            tIndices.insert(tIndices.end(), deqIndex.begin(), deqIndex.end());
+            tIndices.insert(tIndices.end(), eqIndex[1].begin(), eqIndex[1].end());
           }
           AlwaysAssert(tIndices.size() <= d_deq_thresh);
           if (!tIndices.empty())
@@ -288,8 +352,8 @@ void QueryGenerator::findQueries(LazyTrie* lt,
                 visitTr.push_back(&ltc.second);
                 currIndex.push_back(index + 1);
                 currExact.push_back(false);
-                pushEqIndex.push_back(false);
-                pushDeqIndex.push_back(true);
+                pushIndex[0].push_back(false);
+                pushIndex[1].push_back(true);
                 preVisit.push_back(true);
               }
             }
@@ -317,8 +381,8 @@ void QueryGenerator::findQueries(LazyTrie* lt,
             visitTr.push_back(&(lt->d_children[e_this]));
             currIndex.push_back(index + 1);
             currExact.push_back(true);
-            pushEqIndex.push_back(pushEqNext);
-            pushDeqIndex.push_back(false);
+            pushIndex[0].push_back(pushEqNext);
+            pushIndex[1].push_back(false);
             preVisit.push_back(true);
           }
         }
@@ -331,8 +395,8 @@ void QueryGenerator::findQueries(LazyTrie* lt,
             visitTr.push_back(&(iteq->second));
             currIndex.push_back(index + 1);
             currExact.push_back(false);
-            pushEqIndex.push_back(pushEqNext);
-            pushDeqIndex.push_back(false);
+            pushIndex[0].push_back(pushEqNext);
+            pushIndex[1].push_back(false);
             preVisit.push_back(true);
           }
         }
