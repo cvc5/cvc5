@@ -258,7 +258,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp == d_emptyString) {
             ret = 2;
           } else {
-            if(tmp.getConst< CVC4::String >().front() == c.front()) {
+            if (tmp.getConst<CVC4::String>().front() == c.front())
+            {
               retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
                 tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
             } else {
@@ -271,7 +272,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp.getKind() == kind::STRING_CONCAT) {
             Node t2 = tmp[0];
             if(t2.isConst()) {
-              if(t2.getConst< CVC4::String >().front() == c.front()) {
+              if (t2.getConst<CVC4::String>().front() == c.front())
+              {
                 Node n =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
                   tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
                 std::vector< Node > vec_nodes;
@@ -493,7 +495,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
           if(r[0] == d_emptyString) {
             retNode = d_emptyRegexp;
           } else {
-            if(r[0].getConst< CVC4::String >().front() == c.front()) {
+            if (r[0].getConst<CVC4::String>().front() == c.front())
+            {
               retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
                 r[0].getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( r[0].getConst< CVC4::String >().substr(1) ) );
             } else {
