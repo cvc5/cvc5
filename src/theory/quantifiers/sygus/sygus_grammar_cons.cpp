@@ -268,6 +268,7 @@ Node CegGrammarConstructor::process(Node q,
 }
 
 Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::stack<TNode> visit;
@@ -323,7 +324,7 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
       if (makeEvalFun)
       {
         // will make into an application of an evaluation function
-        ret = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
+        ret = nm->mkNode(DT_SYGUS_EVAL, children);
       }
       else if (childChanged)
       {
