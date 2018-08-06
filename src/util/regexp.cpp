@@ -64,7 +64,9 @@ int String::cmp(const String &y) const {
   }
   for (unsigned int i = 0; i < size(); ++i) {
     if (d_str[i] != y.d_str[i]) {
-      return d_str[i] < y.d_str[i] ? -1 : 1;
+      unsigned cp = convertUnsignedIntToCode(d_str[i]);
+      unsigned cpy = convertUnsignedIntToCode(y.d_str[i]);
+      return cp < cpy ? -1 : 1;
     }
   }
   return 0;
