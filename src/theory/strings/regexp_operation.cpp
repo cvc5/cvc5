@@ -942,6 +942,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 }
 void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
   std::pair < Node, Node > p(s, r);
+  NodeManager * nm = NodeManager::currentNM();
   std::map < std::pair< Node, Node >, Node >::const_iterator itr = d_simpl_cache.find(p);
   if(itr != d_simpl_cache.end()) {
     new_nodes.push_back( itr->second );
@@ -963,9 +964,12 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
           unsigned a = r[0].getConst<String>().getFirstChar();
           unsigned b = r[1].getConst<String>().getFirstChar();
           a += 1;
-          Node tmp = a!=b? NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s,
-            NodeManager::currentNM()->mkNode(kind::REGEXP_RANGE,
-              NodeManager::currentNM()->mkConst( CVC4::String(a) ),
+          std::vector< unsigned > anvec;
+          anvec.push_back(a);
+          Node an = nm->mkConst( String(anvec) );
+          Node tmp = a!=b? nm->mkNode(kind::STRING_IN_REGEXP, s,
+            nm->mkNode(kind::REGEXP_RANGE,
+              an,
               r[1])) :
             s.eqNode(r[1]);
           conc = NodeManager::currentNM()->mkNode(kind::OR, conc, tmp);
@@ -1328,7 +1332,9 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
              itr != cset.end();
              itr++)
         {
-          CVC4::String c( *itr );
+          std::vector< unsigned > cvec;
+          cvec.push_back( String::convertCodeToUnsignedInt( *itr ) );
+          String c( cvec );
           Trace("regexp-int-debug") << "Try character " << c << " ... " << std::endl;
           Node r1l = derivativeSingle(r1, c);
           Node r2l = derivativeSingle(r2, c);
