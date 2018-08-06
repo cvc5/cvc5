@@ -136,9 +136,10 @@ class CVC4_PUBLIC String {
   bool isLeq(const String& y) const;
   /** Return the length of the string */
   std::size_t size() const { return d_str.size(); }
-
-  unsigned char getFirstChar() const { return getUnsignedCharAt(0); }
-  unsigned char getLastChar() const { return getUnsignedCharAt(size() - 1); }
+  /** get the code point of the first character in this string */
+  unsigned getFirstChar() const;
+  /** get the code point of the last character in this string */
+  unsigned getLastChar() const;
 
   bool isRepeated() const;
   bool tailcmp(const String& y, int& c) const;
@@ -205,7 +206,6 @@ class CVC4_PUBLIC String {
 
   static std::vector<unsigned> toInternal(const std::string& s,
                                           bool useEscSequences = true);
-  unsigned char getUnsignedCharAt(size_t pos) const;
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

@@ -64,7 +64,7 @@ int String::cmp(const String &y) const {
   }
   for (unsigned int i = 0; i < size(); ++i) {
     if (d_str[i] != y.d_str[i]) {
-      return getUnsignedCharAt(i) < y.getUnsignedCharAt(i) ? -1 : 1;
+      return d_str[i] < y.d_str[i] ? -1 : 1;
     }
   }
   return 0;
@@ -210,9 +210,16 @@ std::vector<unsigned> String::toInternal(const std::string &s,
   return str;
 }
 
-unsigned char String::getUnsignedCharAt(size_t pos) const {
-  Assert(pos < size());
-  return convertUnsignedIntToChar(d_str[pos]);
+unsigned String::getFirstChar() const
+{
+  Assert(!d_str.empty());
+  return d_str.front();
+}
+
+unsigned String::getLastChar() const
+{
+  Assert(!d_str.empty());
+  return d_str.back();
 }
 
 std::size_t String::overlap(const String &y) const {
