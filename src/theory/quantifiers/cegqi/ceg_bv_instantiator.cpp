@@ -57,7 +57,7 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
 };
 
 BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
-    : Instantiator(qe, tn), d_tried_assertion_inst(false)
+    : Instantiator(qe, tn)
 {
   // get the global inverter utility
   // this must be global since we need to:
@@ -79,7 +79,6 @@ void BvInstantiator::reset(CegInstantiator* ci,
   d_inst_id_to_alit.clear();
   d_var_to_curr_inst_id.clear();
   d_alit_to_model_slack.clear();
-  d_tried_assertion_inst = false;
 }
 
 void BvInstantiator::processLiteral(CegInstantiator* ci,
@@ -266,8 +265,7 @@ bool BvInstantiator::useModelValue(CegInstantiator* ci,
                                    Node pv,
                                    CegInstEffort effort)
 {
-  return !d_tried_assertion_inst
-         && (effort < CEG_INST_EFFORT_FULL || options::cbqiFullEffort());
+  return effort < CEG_INST_EFFORT_FULL || options::cbqiFullEffort();
 }
 
 bool BvInstantiator::processAssertions(CegInstantiator* ci,
@@ -359,7 +357,6 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
     TermProperties pv_prop_bv;
     Trace("cegqi-bv") << "*** try " << pv << " -> " << inst_term << std::endl;
     d_var_to_curr_inst_id[pv] = inst_id;
-    d_tried_assertion_inst = true;
     ci->markSolved(alit);
     if (ci->constructInstantiationInc(
             pv, inst_term, pv_prop_bv, sf, revertOnSuccess))
