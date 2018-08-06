@@ -282,14 +282,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 #endif /* PORTFOLIO_BUILD */
-      InteractiveShell shell(*exprMgr, opts);
+      InteractiveShell shell(*exprMgr);
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
           Message() << " [" << Configuration::getGitId() << "]";
-        } else if(Configuration::isSubversionBuild()) {
-          Message() << " [" << Configuration::getSubversionId() << "]";
         }
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
