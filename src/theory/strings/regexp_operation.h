@@ -66,7 +66,6 @@ class RegExpOpr {
   std::map<Node, Node> d_rm_inter_cache;
   std::map<Node, bool> d_norv_cache;
   std::map<Node, std::vector<PairNodes> > d_split_cache;
-  // bool checkStarPlus( Node t );
   void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   std::string niceChar(Node r);

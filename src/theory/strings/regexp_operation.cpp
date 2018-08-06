@@ -957,17 +957,6 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
             s.eqNode(r[1]);
           conc = NodeManager::currentNM()->mkNode(kind::OR, conc, tmp);
         }
-        /*
-        unsigned a = r[0].getConst<String>().getFirstChar();
-        unsigned b = r[1].getConst<String>().getFirstChar();
-        std::vector< Node > vec;
-        for(unsigned c=a; c<=b; c++) {
-          Node t2 = s.eqNode( NodeManager::currentNM()->mkConst( CVC4::String(c)
-        )); vec.push_back( t2 );
-        }
-        conc = vec.empty()? d_emptySingleton : vec.size()==1? vec[0] :
-        NodeManager::currentNM()->mkNode(kind::OR, vec);
-        */
         break;
       }
       case kind::STRING_TO_REGEXP: {
