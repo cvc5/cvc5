@@ -140,7 +140,7 @@ void CegInstantiation::registerQuantifier( Node q ) {
           std::vector<Node> orig;
           std::vector<Node> subs;
           // skolemize non-qe variables
-          for (unsigned i = 0; i < nqe_vars.size(); i++)
+          for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
           {
             Node k = nm->mkSkolem("k",
                                   nqe_vars[i].getType(),
