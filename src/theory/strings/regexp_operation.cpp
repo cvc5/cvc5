@@ -258,7 +258,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp == d_emptyString) {
             ret = 2;
           } else {
-            if(tmp.getConst< CVC4::String >().getFirstChar() == c.getFirstChar()) {
+            if(tmp.getConst< CVC4::String >().front() == c.front()) {
               retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
                 tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
             } else {
@@ -271,7 +271,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
           if(tmp.getKind() == kind::STRING_CONCAT) {
             Node t2 = tmp[0];
             if(t2.isConst()) {
-              if(t2.getConst< CVC4::String >().getFirstChar() == c.getFirstChar()) {
+              if(t2.getConst< CVC4::String >().front() == c.front()) {
                 Node n =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
                   tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
                 std::vector< Node > vec_nodes;
@@ -493,7 +493,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
           if(r[0] == d_emptyString) {
             retNode = d_emptyRegexp;
           } else {
-            if(r[0].getConst< CVC4::String >().getFirstChar() == c.getFirstChar()) {
+            if(r[0].getConst< CVC4::String >().front() == c.front()) {
               retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP,
                 r[0].getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( r[0].getConst< CVC4::String >().substr(1) ) );
             } else {
@@ -649,9 +649,9 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         break;
       }
       case kind::REGEXP_RANGE: {
-        unsigned a = r[0].getConst<String>().getFirstChar();
+        unsigned a = r[0].getConst<String>().front();
         a = String::convertUnsignedIntToCode(a);
-        unsigned b = r[1].getConst<String>().getFirstChar();
+        unsigned b = r[1].getConst<String>().front();
         b = String::convertUnsignedIntToCode(b);
         Assert(a < b);
         for (unsigned c = a; c <= b; c++)
@@ -665,7 +665,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         if(st.isConst()) {
           CVC4::String s = st.getConst< CVC4::String >();
           if(s.size() != 0) {
-            unsigned sc = s.getFirstChar();
+            unsigned sc = s.front();
             sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           }
@@ -674,7 +674,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         } else {
           if(st[0].isConst()) {
             CVC4::String s = st[0].getConst<CVC4::String>();
-            unsigned sc = s.getFirstChar();
+            unsigned sc = s.front();
             sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           } else {
@@ -780,9 +780,9 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       }
       case kind::REGEXP_RANGE: {
         std::vector< Node > vec;
-        unsigned a = r[0].getConst<String>().getFirstChar();
+        unsigned a = r[0].getConst<String>().front();
         a = String::convertUnsignedIntToCode(a);
-        unsigned b = r[1].getConst<String>().getFirstChar();
+        unsigned b = r[1].getConst<String>().front();
         b = String::convertUnsignedIntToCode(b);
         for (unsigned c = a; c <= b; c++)
         {
@@ -961,8 +961,8 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       case kind::REGEXP_RANGE: {
         conc = s.eqNode( r[0] );
         if(r[0] != r[1]) {
-          unsigned a = r[0].getConst<String>().getFirstChar();
-          unsigned b = r[1].getConst<String>().getFirstChar();
+          unsigned a = r[0].getConst<String>().front();
+          unsigned b = r[1].getConst<String>().front();
           a += 1;
           std::vector<unsigned> anvec;
           anvec.push_back(a);

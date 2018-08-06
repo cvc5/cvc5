@@ -134,10 +134,6 @@ class CVC4_PUBLIC String {
   bool isLeq(const String& y) const;
   /** Return the length of the string */
   std::size_t size() const { return d_str.size(); }
-  /** get the code point of the first character in this string */
-  unsigned getFirstChar() const;
-  /** get the code point of the last character in this string */
-  unsigned getLastChar() const;
 
   bool isRepeated() const;
   bool tailcmp(const String& y, int& c) const;
@@ -186,8 +182,12 @@ class CVC4_PUBLIC String {
   bool isNumber() const;
   /** Returns the corresponding rational for the text of this string. */
   Rational toNumber() const;
-
+  /** get the internal unsigned representation of this string */
   const std::vector<unsigned>& getVec() const { return d_str; }
+  /** get the internal unsigned value of the first character in this string */
+  unsigned front() const;
+  /** get the internal unsigned value of the last character in this string */
+  unsigned back() const;
   /** is the unsigned a digit?
   * The input should be the same type as the element type of d_str
   */
