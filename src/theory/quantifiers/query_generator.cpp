@@ -89,11 +89,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   }
 
   // equality queries
-  findQueries(&d_qgt_trie[tn],
-              n,
-              queries,
-              queriesPtTrue,
-              indices);
+  findQueries(&d_qgt_trie[tn], n, queries, queriesPtTrue, indices);
   Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
@@ -158,8 +154,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
   TypeNode tn = n.getType();
   std::vector<unsigned> deqIndex;
   std::vector<unsigned> eqIndex;
-  
-  
+
   LazyTrieEvaluator* ev = d_sampler;
   unsigned ntotal = d_sampler->getNumSamplePoints();
   unsigned index = 0;
@@ -167,12 +162,12 @@ void QueryGenerator::findQueries(LazyTrie* lt,
   bool pushEq = false;
   bool pushDeq = false;
   bool pre = true;
-  std::vector< LazyTrie * > visitTr;
-  std::vector< unsigned > currIndex;
-  std::vector< bool > currExact;
-  std::vector< bool > pushEqIndex;
-  std::vector< bool > pushDeqIndex;
-  std::vector< bool > preVisit;
+  std::vector<LazyTrie*> visitTr;
+  std::vector<unsigned> currIndex;
+  std::vector<bool> currExact;
+  std::vector<bool> pushEqIndex;
+  std::vector<bool> pushDeqIndex;
+  std::vector<bool> preVisit;
   visitTr.push_back(lt);
   currIndex.push_back(0);
   currExact.push_back(true);
@@ -187,16 +182,16 @@ void QueryGenerator::findQueries(LazyTrie* lt,
     pushEq = pushEqIndex.back();
     pushDeq = pushDeqIndex.back();
     pre = preVisit.back();
-    if( !pre )
+    if (!pre)
     {
-      if( pushEq )
+      if (pushEq)
       {
         eqIndex.pop_back();
       }
-      if( pushDeq )
+      if (pushDeq)
       {
         deqIndex.pop_back();
-      }    
+      }
       visitTr.pop_back();
       currIndex.pop_back();
       currExact.pop_back();
@@ -206,20 +201,21 @@ void QueryGenerator::findQueries(LazyTrie* lt,
     }
     else
     {
-      preVisit[preVisit.size()-1] = false;
-      if( pushEq )
+      preVisit[preVisit.size() - 1] = false;
+      if (pushEq)
       {
-        eqIndex.push_back(index-1);
+        eqIndex.push_back(index - 1);
       }
-      if( pushDeq )
+      if (pushDeq)
       {
-        deqIndex.push_back(index-1);
+        deqIndex.push_back(index - 1);
       }
       int deqAllow = d_deq_thresh - deqIndex.size();
       int eqAllow = d_deq_thresh - eqIndex.size();
-      Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
-                                << ntotal << ", deq/eq allow = " << deqAllow << "/"
-                                << eqAllow << ", exact = " << exact << std::endl;
+      Trace("sygus-qgen-debug")
+          << "Find queries " << n << " " << index << "/" << ntotal
+          << ", deq/eq allow = " << deqAllow << "/" << eqAllow
+          << ", exact = " << exact << std::endl;
       if (index == ntotal)
       {
         if (exact)
@@ -269,7 +265,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
         }
         // compute
         Node e_this = ev->evaluate(n, index);
-        
+
         if (deqAllow >= 0)
         {
           // recursing on disequal points
@@ -282,7 +278,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
               if (ltc.first != e_this)
               {
                 visitTr.push_back(&ltc.second);
-                currIndex.push_back(index+1);
+                currIndex.push_back(index + 1);
                 currExact.push_back(false);
                 pushEqIndex.push_back(false);
                 pushDeqIndex.push_back(true);
@@ -311,7 +307,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
           {
             // otherwise, we recurse on the equal point
             visitTr.push_back(&(lt->d_children[e_this]));
-            currIndex.push_back(index+1);
+            currIndex.push_back(index + 1);
             currExact.push_back(true);
             pushEqIndex.push_back(pushEqNext);
             pushDeqIndex.push_back(false);
@@ -325,7 +321,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
           if (iteq != lt->d_children.end())
           {
             visitTr.push_back(&(iteq->second));
-            currIndex.push_back(index+1);
+            currIndex.push_back(index + 1);
             currExact.push_back(false);
             pushEqIndex.push_back(pushEqNext);
             pushDeqIndex.push_back(false);
@@ -334,7 +330,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
         }
       }
     }
-  }while( !visitTr.empty() );
+  } while (!visitTr.empty());
 }
 
 }  // namespace quantifiers
