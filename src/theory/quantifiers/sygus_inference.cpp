@@ -168,8 +168,8 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     processed_assertions.push_back(pas);
   }
 
-  // if no free function symbols, there is no use changing into SyGuS
-  if (free_functions_uf.empty())
+  // no functions to synthesize
+  if (free_functions.empty())
   {
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
     return false;
@@ -263,6 +263,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
       Node ff = itffv->second;
       Expr body = it->second;
       std::vector<Expr> args;
+      // if it is a non-constant function
       if (lambda.getKind() == LAMBDA)
       {
         for (const Node& v : lambda[0])
