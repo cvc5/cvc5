@@ -1704,7 +1704,9 @@ Term Solver::mkString(const std::string& s) const
 
 Term Solver::mkString(const unsigned char c) const
 {
-  return d_exprMgr->mkConst(String(c));
+  std::stringstream ss;
+  ss << c;
+  return d_exprMgr->mkConst(String(ss.str()));
 }
 
 Term Solver::mkString(const std::vector<unsigned>& s) const
