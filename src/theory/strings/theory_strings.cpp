@@ -4915,7 +4915,10 @@ void TheoryStrings::initializeStrategy()
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
     addStrategyStep(CHECK_CYCLES);
-    addStrategyStep(CHECK_FLAT_FORMS);
+    if( options::stringFlatForms() )
+    {
+      addStrategyStep(CHECK_FLAT_FORMS);
+    }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
     if (options::stringEager())
     {
