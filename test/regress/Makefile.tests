@@ -1542,6 +1542,7 @@ REG1_TESTS = \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
+	regress1/sygus/simple-regexp.sy \
 	regress1/sygus/stopwatch-bt.sy \
 	regress1/sygus/strings-concat-3-args.sy \
 	regress1/sygus/strings-double-rec.sy \
