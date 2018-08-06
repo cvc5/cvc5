@@ -347,7 +347,7 @@ public:
   {
     if( check ) {
       TNode::iterator it = n.begin();
-      unsigned char ch[2];
+      unsigned ch[2];
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);
@@ -366,12 +366,12 @@ public:
       if(ch[0] > ch[1]) {
         throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
       }
-      if (options::stdPrintASCII() && ch[1] > '\x7f')
+      unsigned maxCh = options::stdPrintASCII() ? 127 : 255;
+      if (ch[1] > maxCh)
       {
-        throw TypeCheckingExceptionPrivate(n,
-                                           "expecting standard ASCII "
-                                           "characters in regexp range when "
-                                           "strings-print-ascii is true");
+        std::stringstream ss;
+        ss << "expecting characters whose code point is less than or equal to " << maxCh;
+        throw TypeCheckingExceptionPrivate(n,ss.str());
       }
     }
     return nodeManager->regExpType();
