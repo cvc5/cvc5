@@ -370,8 +370,9 @@ public:
       if (ch[1] > maxCh)
       {
         std::stringstream ss;
-        ss << "expecting characters whose code point is less than or equal to " << maxCh;
-        throw TypeCheckingExceptionPrivate(n,ss.str());
+        ss << "expecting characters whose code point is less than or equal to "
+           << maxCh;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->regExpType();
