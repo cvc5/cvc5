@@ -45,6 +45,8 @@ class QueryGenerator : public ExprMiner
   SygusSampler* d_sampler;
   /** the variables of d_sampler */
   std::vector<Node> d_svars;
+  /** cache of all terms registered to this generator */
+  std::unordered_set< Node, NodeHashFunction > d_terms;
   /** the disequality threshold (number of points)
    *
    */

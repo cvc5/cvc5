@@ -37,6 +37,14 @@ void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
 
 void QueryGenerator::addTerm(Node n, std::ostream& out)
 {
+  Node nn = n.getKind()==NOT ? n[0] : n;
+  if(d_terms.find(nn)!=d_terms.end())
+  {
+    return;
+  }
+  d_terms.insert(nn);
+  
+  
   Trace("sygus-qgen") << "QueryGenerator::addTerm : " << n << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
@@ -57,7 +65,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     unsigned threshCount = 0;
     while (index < npts && threshCount < 2)
     {
-      Node v = d_sampler->evaluate(n, index);
+      Node v = d_sampler->evaluate(nn, index);
       ev_to_pt[v].push_back(index);
       if (ev_to_pt[v].size() == d_deq_thresh + 1)
       {
@@ -75,7 +83,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
           {
             indices.insert(i);
           }
-          Node qy = n;
+          Node qy = nn;
           Assert(etp.first.isConst());
           if (!etp.first.getConst<bool>())
           {
@@ -89,7 +97,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   }
 
   // equality queries
-  findQueries(&d_qgt_trie[tn], n, queries, queriesPtTrue, indices);
+  findQueries(&d_qgt_trie[tn], nn, queries, queriesPtTrue, indices);
   Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
