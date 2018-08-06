@@ -392,6 +392,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::vector<CVC4::Datatype>& datatypes,
     std::set<Type>& unres)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
                              << range << std::endl;
   // collect the variables
@@ -584,9 +585,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }else{
       std::stringstream sserr;
       sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
-      //AlwaysAssert( false, sserr.str() );
-      // FIXME
-      AlwaysAssert( false );
+      throw LogicException(sserr.str());
     }
     //add for all selectors to this type
     if( !sels[types[i]].empty() ){
@@ -628,7 +627,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
 
-  //make Boolean type
+  //------ make Boolean type
   TypeNode btype = NodeManager::currentNM()->booleanType();
   datatypes.push_back(Datatype(dbname));
   ops.push_back(std::vector<Expr>());
@@ -664,35 +663,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     ops.back().push_back(consts[j].toExpr());
     cnames.push_back(ss.str());
     cargs.push_back(std::vector<CVC4::Type>());
-    pcs.push_back(nullptr);
-    weights.push_back(-1);
-  }
-  //add operators
-  for (unsigned i = 0; i < 4; i++)
-  {
-    CVC4::Kind k = i == 0
-                       ? kind::NOT
-                       : (i == 1 ? kind::AND : (i == 2 ? kind::OR : kind::ITE));
-    // TODO #1935 ITEs are added to Boolean grammars so that we can infer
-    // unification strategies. We can do away with this if we can infer
-    // unification strategies from and/or/not
-    if (k == ITE && !options::sygusUnif())
-    {
-      continue;
-    }
-    Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
-    cnames.push_back(kind::kindToString(k));
-    cargs.push_back( std::vector< CVC4::Type >() );
-    cargs.back().push_back(unres_bt);
-    if (k != kind::NOT)
-    {
-      cargs.back().push_back(unres_bt);
-      if (k == kind::ITE)
-      {
-        cargs.back().push_back(unres_bt);
-      }
-    }
     pcs.push_back(nullptr);
     weights.push_back(-1);
   }
@@ -736,6 +706,37 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs.push_back(nullptr);
         weights.push_back(-1);
       }
+    }
+  }
+  // add Boolean connectives, if not in a degenerate case of (recursively)
+  // having only constant constructors
+  if (ops.back().size() > consts.size())
+  {
+    for (unsigned i = 0; i < 4; i++)
+    {
+      Kind k = i == 0 ? NOT : (i == 1 ? AND : (i == 2 ? OR : ITE));
+      // TODO #1935 ITEs are added to Boolean grammars so that we can infer
+      // unification strategies. We can do away with this if we can infer
+      // unification strategies from and/or/not
+      if (k == ITE && !options::sygusUnif())
+      {
+        continue;
+      }
+      Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+      ops.back().push_back(nm->operatorOf(k).toExpr());
+      cnames.push_back(kindToString(k));
+      cargs.push_back(std::vector<CVC4::Type>());
+      cargs.back().push_back(unres_bt);
+      if (k != NOT)
+      {
+        cargs.back().push_back(unres_bt);
+        if (k == ITE)
+        {
+          cargs.back().push_back(unres_bt);
+        }
+      }
+      pcs.push_back(nullptr);
+      weights.push_back(-1);
     }
   }
   if( range==btype ){
