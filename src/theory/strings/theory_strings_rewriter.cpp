@@ -816,8 +816,11 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
     case kind::REGEXP_RANGE: {
       if(s.size() == index_start + 1) {
         unsigned a = r[0].getConst<String>().getFirstChar();
+        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().getFirstChar();
+        b = String::convertUnsignedIntToCode(b);
         unsigned c = s.getLastChar();
+        c = String::convertUnsignedIntToCode(c);
         return (a <= c && c <= b);
       } else {
         return false;

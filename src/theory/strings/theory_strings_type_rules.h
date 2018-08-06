@@ -360,7 +360,8 @@ public:
         if( (*it).getConst<String>().size() != 1 ) {
           throw TypeCheckingExceptionPrivate(n, "expecting a single constant string term in regexp range");
         }
-        ch[i] = (*it).getConst<String>().getFirstChar();
+        unsigned ci = (*it).getConst<String>().getFirstChar();
+        ch[i] = String::convertUnsignedIntToCode(ci);
         ++it;
       }
       if(ch[0] > ch[1]) {

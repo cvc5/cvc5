@@ -633,6 +633,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     pcset.insert((itr->second).first.begin(), (itr->second).first.end());
     pvset.insert((itr->second).second.begin(), (itr->second).second.end());
   } else {
+    // cset is code points
     std::set<unsigned> cset;
     SetNodes vset;
     int k = r.getKind();
@@ -649,7 +650,10 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
       }
       case kind::REGEXP_RANGE: {
         unsigned a = r[0].getConst<String>().getFirstChar();
+        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().getFirstChar();
+        b = String::convertUnsignedIntToCode(b);
+        Assert( a<b);
         for (unsigned c = a; c <= b; c++)
         {
           cset.insert(c);
@@ -661,14 +665,18 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         if(st.isConst()) {
           CVC4::String s = st.getConst< CVC4::String >();
           if(s.size() != 0) {
-            cset.insert(s.getFirstChar());
+            unsigned sc = s.getFirstChar();
+            sc = String::convertUnsignedIntToCode(sc);
+            cset.insert(sc);
           }
         } else if(st.getKind() == kind::VARIABLE) {
           vset.insert( st );
         } else {
           if(st[0].isConst()) {
-            CVC4::String s = st[0].getConst< CVC4::String >();
-            cset.insert(s.getFirstChar());
+            CVC4::String s = st[0].getConst< CVC4::String >();            
+            unsigned sc = s.getFirstChar();
+            sc = String::convertUnsignedIntToCode(sc);
+            cset.insert(sc);
           } else {
             vset.insert( st[0] );
           }
@@ -754,6 +762,7 @@ void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) 
 }
 void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
   std::pair < Node, Node > p(s, r);
+  NodeManager * nm = NodeManager::currentNM();
   std::map < std::pair< Node, Node >, Node >::const_iterator itr = d_simpl_neg_cache.find(p);
   if(itr != d_simpl_neg_cache.end()) {
     new_nodes.push_back( itr->second );
@@ -772,10 +781,14 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       case kind::REGEXP_RANGE: {
         std::vector< Node > vec;
         unsigned a = r[0].getConst<String>().getFirstChar();
+        a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().getFirstChar();
+        b = String::convertUnsignedIntToCode(b);
         for (unsigned c = a; c <= b; c++)
         {
-          Node tmp = s.eqNode( NodeManager::currentNM()->mkConst( CVC4::String(c) ) ).negate();
+          std::vector< unsigned > tmpVec;
+          tmpVec.push_back(String::convertCodeToUnsignedInt(c));
+          Node tmp = s.eqNode( nm->mkConst( String(tmpVec) ) ).negate();
           vec.push_back( tmp );
         }
         conc = vec.size()==1? vec[0] : NodeManager::currentNM()->mkNode(kind::AND, vec);
