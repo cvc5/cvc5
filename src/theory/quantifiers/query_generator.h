@@ -54,17 +54,11 @@ class QueryGenerator : public ExprMiner
   /** find queries
    *
    */
-  void findQueries(LazyTrie* t,
-                   Node n,
-                   LazyTrieEvaluator* ev,
-                   unsigned index,
-                   unsigned ntotal,
-                   std::vector<unsigned>& deqIndex,
-                   std::vector<unsigned>& eqIndex,
-                   bool exact,
-                   std::vector<Node>& queries,
-                   std::vector<unsigned>& nQueriesPtTrue,
-                   std::unordered_set<unsigned>& indices);
+void findQueries(LazyTrie* lt,
+                                 Node n,
+                                 std::vector<Node>& queries,
+                                 std::vector<unsigned>& queriesPtTrue,
+                                 std::unordered_set<unsigned>& indices);
   /** queries for points */
   std::map<unsigned, std::vector<Node> > d_pt_to_queries;
   /** check query */

@@ -89,16 +89,8 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   }
 
   // equality queries
-  std::vector<unsigned> deqIndex;
-  std::vector<unsigned> eqIndex;
   findQueries(&d_qgt_trie[tn],
               n,
-              d_sampler,
-              0,
-              npts,
-              deqIndex,
-              eqIndex,
-              true,
               queries,
               queriesPtTrue,
               indices);
@@ -159,156 +151,190 @@ void QueryGenerator::checkQuery(Node qy)
 // FIXME: make robust up to irrelevant variables
 void QueryGenerator::findQueries(LazyTrie* lt,
                                  Node n,
-                                 LazyTrieEvaluator* ev,
-                                 unsigned index,
-                                 unsigned ntotal,
-                                 std::vector<unsigned>& deqIndex,
-                                 std::vector<unsigned>& eqIndex,
-                                 bool exact,
                                  std::vector<Node>& queries,
                                  std::vector<unsigned>& queriesPtTrue,
                                  std::unordered_set<unsigned>& indices)
 {
-  int deqAllow = d_deq_thresh - deqIndex.size();
-  int eqAllow = d_deq_thresh - eqIndex.size();
-  Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
-                            << ntotal << ", deq/eq allow = " << deqAllow << "/"
-                            << eqAllow << ", exact = " << exact << std::endl;
-  if (index == ntotal)
+  TypeNode tn = n.getType();
+  std::vector<unsigned> deqIndex;
+  std::vector<unsigned> eqIndex;
+  
+  
+  LazyTrieEvaluator* ev = d_sampler;
+  unsigned ntotal = d_sampler->getNumSamplePoints();
+  unsigned index = 0;
+  bool exact = true;
+  bool pushEq = false;
+  bool pushDeq = false;
+  bool pre = true;
+  std::vector< LazyTrie * > visitTr;
+  std::vector< unsigned > currIndex;
+  std::vector< bool > currExact;
+  std::vector< bool > pushEqIndex;
+  std::vector< bool > pushDeqIndex;
+  std::vector< bool > preVisit;
+  visitTr.push_back(lt);
+  currIndex.push_back(0);
+  currExact.push_back(true);
+  pushEqIndex.push_back(false);
+  pushDeqIndex.push_back(false);
+  preVisit.push_back(true);
+  do
   {
-    if (exact)
+    lt = visitTr.back();
+    index = currIndex.back();
+    exact = currExact.back();
+    pushEq = pushEqIndex.back();
+    pushDeq = pushDeqIndex.back();
+    pre = preVisit.back();
+    if( !pre )
     {
-      // add to the trie
-      lt->d_lazy_child = n;
+      if( pushEq )
+      {
+        eqIndex.pop_back();
+      }
+      if( pushDeq )
+      {
+        deqIndex.pop_back();
+      }    
+      visitTr.pop_back();
+      currIndex.pop_back();
+      currExact.pop_back();
+      pushEqIndex.pop_back();
+      pushDeqIndex.pop_back();
+      preVisit.pop_back();
     }
     else
     {
-      Node n_almost_eq = lt->d_lazy_child;
-      // if made it here,
-      Assert(deqAllow >= 0 || eqAllow >= 0);
-      Node query = n.eqNode(n_almost_eq);
-      std::vector<unsigned> trueIndices;
-      if (eqAllow >= 0)
+      preVisit[preVisit.size()-1] = false;
+      if( pushEq )
       {
-        trueIndices.insert(trueIndices.end(), eqIndex.begin(), eqIndex.end());
+        eqIndex.push_back(index-1);
       }
-      else if (deqAllow >= 0)
+      if( pushDeq )
       {
-        query = query.negate();
-        trueIndices.insert(trueIndices.end(), deqIndex.begin(), deqIndex.end());
+        deqIndex.push_back(index-1);
       }
-      AlwaysAssert(trueIndices.size() <= d_deq_thresh);
-      if (!trueIndices.empty())
+      int deqAllow = d_deq_thresh - deqIndex.size();
+      int eqAllow = d_deq_thresh - eqIndex.size();
+      Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
+                                << ntotal << ", deq/eq allow = " << deqAllow << "/"
+                                << eqAllow << ", exact = " << exact << std::endl;
+      if (index == ntotal)
       {
-        queries.push_back(query);
-        queriesPtTrue.push_back(trueIndices.size());
-        for (unsigned& i : trueIndices)
+        if (exact)
         {
-          d_pt_to_queries[i].push_back(query);
-          indices.insert(i);
+          // add to the trie
+          lt->d_lazy_child = n;
+        }
+        else
+        {
+          Node nAlmostEq = lt->d_lazy_child;
+          // if made it here,
+          Assert(deqAllow >= 0 || eqAllow >= 0);
+          Node query = n.eqNode(nAlmostEq);
+          std::vector<unsigned> tIndices;
+          if (eqAllow >= 0)
+          {
+            tIndices.insert(tIndices.end(), eqIndex.begin(), eqIndex.end());
+          }
+          else if (deqAllow >= 0)
+          {
+            query = query.negate();
+            tIndices.insert(tIndices.end(), deqIndex.begin(), deqIndex.end());
+          }
+          AlwaysAssert(tIndices.size() <= d_deq_thresh);
+          if (!tIndices.empty())
+          {
+            queries.push_back(query);
+            queriesPtTrue.push_back(tIndices.size());
+            for (unsigned& i : tIndices)
+            {
+              d_pt_to_queries[i].push_back(query);
+              indices.insert(i);
+            }
+          }
+        }
+      }
+      else
+      {
+        if (!lt->d_lazy_child.isNull())
+        {
+          // if there is a lazy child here, push
+          Node e_lc = ev->evaluate(lt->d_lazy_child, index);
+          // store at next level
+          lt->d_children[e_lc].d_lazy_child = lt->d_lazy_child;
+          // replace
+          lt->d_lazy_child = Node::null();
+        }
+        // compute
+        Node e_this = ev->evaluate(n, index);
+        
+        if (deqAllow >= 0)
+        {
+          // recursing on disequal points
+          deqAllow--;
+          // if there is use continuing
+          if (deqAllow >= 0 || eqAllow >= 0)
+          {
+            for (std::pair<const Node, LazyTrie>& ltc : lt->d_children)
+            {
+              if (ltc.first != e_this)
+              {
+                visitTr.push_back(&ltc.second);
+                currIndex.push_back(index+1);
+                currExact.push_back(false);
+                pushEqIndex.push_back(false);
+                pushDeqIndex.push_back(true);
+                preVisit.push_back(true);
+              }
+            }
+          }
+          deqAllow++;
+        }
+        bool pushEqNext = false;
+        if (eqAllow >= 0)
+        {
+          // below, we try recursing (if at all) on equal nodes.
+          eqAllow--;
+          pushEqNext = true;
+        }
+        // if we are on the exact path of n
+        if (exact)
+        {
+          if (lt->d_children.empty())
+          {
+            // if no one has been here before, we are done
+            lt->d_lazy_child = n;
+          }
+          else
+          {
+            // otherwise, we recurse on the equal point
+            visitTr.push_back(&(lt->d_children[e_this]));
+            currIndex.push_back(index+1);
+            currExact.push_back(true);
+            pushEqIndex.push_back(pushEqNext);
+            pushDeqIndex.push_back(false);
+            preVisit.push_back(true);
+          }
+        }
+        else if (deqAllow >= 0 || eqAllow >= 0)
+        {
+          // recurse on the equal point if it exists
+          std::map<Node, LazyTrie>::iterator iteq = lt->d_children.find(e_this);
+          if (iteq != lt->d_children.end())
+          {
+            visitTr.push_back(&(iteq->second));
+            currIndex.push_back(index+1);
+            currExact.push_back(false);
+            pushEqIndex.push_back(pushEqNext);
+            pushDeqIndex.push_back(false);
+            preVisit.push_back(true);
+          }
         }
       }
     }
-    return;
-  }
-
-  if (!lt->d_lazy_child.isNull())
-  {
-    // if there is a lazy child here, push
-    Node e_lc = ev->evaluate(lt->d_lazy_child, index);
-    // store at next level
-    lt->d_children[e_lc].d_lazy_child = lt->d_lazy_child;
-    // replace
-    lt->d_lazy_child = Node::null();
-  }
-  // compute
-  Node e_this = ev->evaluate(n, index);
-
-  if (deqAllow >= 0)
-  {
-    // recursing on disequal points
-    deqAllow--;
-    deqIndex.push_back(index);
-    // if there is use continuing
-    if (deqAllow >= 0 || eqAllow >= 0)
-    {
-      for (std::pair<const Node, LazyTrie>& ltc : lt->d_children)
-      {
-        if (ltc.first != e_this)
-        {
-          findQueries(&ltc.second,
-                      n,
-                      ev,
-                      index + 1,
-                      ntotal,
-                      deqIndex,
-                      eqIndex,
-                      false,
-                      queries,
-                      queriesPtTrue,
-                      indices);
-        }
-      }
-    }
-    deqAllow++;
-    deqIndex.pop_back();
-  }
-  bool pushedEqIndex = false;
-  if (eqAllow >= 0)
-  {
-    // below, we try recursing (if at all) on equal nodes.
-    eqAllow--;
-    eqIndex.push_back(index);
-    pushedEqIndex = true;
-  }
-
-  // if we are on the exact path of n
-  if (exact)
-  {
-    if (lt->d_children.empty())
-    {
-      // if no one has been here before, we are done
-      lt->d_lazy_child = n;
-    }
-    else
-    {
-      // otherwise, we recurse on the equal point
-      findQueries(&(lt->d_children[e_this]),
-                  n,
-                  ev,
-                  index + 1,
-                  ntotal,
-                  deqIndex,
-                  eqIndex,
-                  true,
-                  queries,
-                  queriesPtTrue,
-                  indices);
-    }
-  }
-  else if (deqAllow >= 0 || eqAllow >= 0)
-  {
-    // recurse on the equal point if it exists
-    std::map<Node, LazyTrie>::iterator iteq = lt->d_children.find(e_this);
-    if (iteq != lt->d_children.end())
-    {
-      findQueries(&(iteq->second),
-                  n,
-                  ev,
-                  index + 1,
-                  ntotal,
-                  deqIndex,
-                  eqIndex,
-                  false,
-                  queries,
-                  queriesPtTrue,
-                  indices);
-    }
-  }
-  if (pushedEqIndex)
-  {
-    eqIndex.pop_back();
-  }
+  }while( !visitTr.empty() );
 }
 
 }  // namespace quantifiers
