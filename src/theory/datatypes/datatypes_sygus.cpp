@@ -893,8 +893,9 @@ Node SygusSymBreakNew::registerSearchValue(
               Trace("sygus-rr-debug")
                   << "; unsound: are not equivalent for : " << std::endl;
               std::vector<Node> vars;
+              its->second.getVariables(vars);
               std::vector<Node> pt;
-              its->second.getSamplePoint(pt_index, vars, pt);
+              its->second.getSamplePoint(pt_index, pt);
               Assert(vars.size() == pt.size());
               for (unsigned i = 0, size = pt.size(); i < size; i++)
               {

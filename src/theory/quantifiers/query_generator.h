@@ -43,6 +43,8 @@ class QueryGenerator : public ExprMiner
  private:
   /** pointer to the sygus sampler object we are using */
   SygusSampler* d_sampler;
+  /** the variables of d_sampler */
+  std::vector<Node> d_svars;
   /** the disequality threshold (number of points)
    *
    */

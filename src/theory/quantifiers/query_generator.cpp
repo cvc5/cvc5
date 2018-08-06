@@ -31,6 +31,8 @@ void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
 {
   d_sampler = ss;
   d_deq_thresh = deqThresh;
+  d_svars.clear();
+  d_sampler->getVariables(d_svars);
 }
 
 void QueryGenerator::addTerm(Node n, std::ostream& out)

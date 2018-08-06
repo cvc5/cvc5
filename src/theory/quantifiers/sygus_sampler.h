@@ -110,7 +110,6 @@ class SygusSampler : public LazyTrieEvaluator
    * Appends sample point #index to the vector pt, d_vars to vars.
    */
   void getSamplePoint(unsigned index,
-                      std::vector<Node>& vars,
                       std::vector<Node>& pt);
   /** Add pt to the set of sample points considered by this sampler */
   void addSamplePoint(std::vector<Node>& pt);
