@@ -81,7 +81,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // We retrive model value now because purified node may not have a value
   Node nv = n;
   // Whether application of a function-to-synthesize
-  bool fapp = datatypes::DatatypesRewriter::isSygusEvalApp(n);
+  bool fapp = (n.getKind() == DT_SYGUS_EVAL);
   bool u_fapp = false;
   bool nu_fapp = false;
   if (fapp)
@@ -194,7 +194,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       children[0] = new_f;
       Trace("sygus-unif-rl-purify-debug") << "Make sygus eval app " << children
                                           << std::endl;
-      np = datatypes::DatatypesRewriter::mkSygusEvalApp(children);
+      np = nm->mkNode(DT_SYGUS_EVAL, children);
       d_app_to_purified[nb] = np;
     }
     else

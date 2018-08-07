@@ -130,10 +130,6 @@ public:
  static Node mkSygusTerm(const Datatype& dt,
                          unsigned i,
                          const std::vector<Node>& children);
- /** make sygus evaluation function application */
- static Node mkSygusEvalApp(const std::vector<Node>& children);
- /** is sygus evaluation function */
- static bool isSygusEvalApp(Node n);
  /**
   * Get the builtin sygus operator for constructor term n of sygus datatype
   * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
