@@ -108,6 +108,10 @@ enum RewriteRuleId
   BvIteEqualChildren,
   BvIteConstChildren,
   BvIteEqualCond,
+  BvIteMergeThenIf,
+  BvIteMergeElseIf,
+  BvIteMergeThenElse,
+  BvIteMergeElseElse,
   BvComp,
   ShlByConst,
   LshrByConst,
@@ -249,6 +253,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BvIteEqualChildren : out << "BvIteEqualChildren";  return out;
   case BvIteConstChildren : out << "BvIteConstChildren";  return out;
   case BvIteEqualCond :     out << "BvIteEqualCond";      return out;
+  case BvIteMergeThenIf :   out << "BvIteMergeThenIf";    return out;
+  case BvIteMergeElseIf :   out << "BvIteMergeElseIf";    return out;
+  case BvIteMergeThenElse : out << "BvIteMergeThenElse";  return out;
+  case BvIteMergeElseElse : out << "BvIteMergeElseElse";  return out;
   case BvComp :             out << "BvComp";              return out;
   case ShlByConst :         out << "ShlByConst";          return out;
   case LshrByConst :        out << "LshrByConst";         return out;
@@ -567,6 +575,10 @@ struct AllRewriteRules {
   RewriteRule<BvIteEqualChildren>             rule132;
   RewriteRule<BvIteConstChildren>             rule133;
   RewriteRule<BvIteEqualCond>                 rule134;
+  RewriteRule<BvIteMergeThenIf>               rule135;
+  RewriteRule<BvIteMergeElseIf>               rule136;
+  RewriteRule<BvIteMergeThenElse>             rule137;
+  RewriteRule<BvIteMergeElseElse>             rule138;
 };
 
 template<> inline
