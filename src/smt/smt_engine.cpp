@@ -759,12 +759,15 @@ public:
     }
   }
 
-  void nmNotifyNewSortConstructor(TypeNode tn) override
+  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override
   {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
-    d_smt.addToModelCommandAndDump(c);
+    if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+    {
+      d_smt.addToModelCommandAndDump(c);
+    }
   }
 
   void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
@@ -1400,6 +1403,8 @@ void SmtEngine::setDefaults() {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(THEORY_DATATYPES);
     d_logic.lock();
+    // since we are trying to recast as sygus, we assume the input is sygus
+    is_sygus = true;
   }
 
   if ((options::checkModels() || options::checkSynthSol())
@@ -2049,6 +2054,10 @@ void SmtEngine::setDefaults() {
     }
     if( !options::miniscopeQuantFreeVar.wasSetByUser() ){
       options::miniscopeQuantFreeVar.set( false );
+    }
+    if (!options::quantSplit.wasSetByUser())
+    {
+      options::quantSplit.set(false);
     }
     //rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {
@@ -4817,125 +4826,7 @@ Result SmtEngine::checkSynth(const Expr& e)
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
-  Expr e_check = e;
-  if (options::sygusQePreproc())
-  {
-    // the following does quantifier elimination as a preprocess step
-    // for "non-ground single invocation synthesis conjectures":
-    //   exists f. forall xy. P[ f(x), x, y ]
-    // We run quantifier elimination:
-    //   exists y. P[ z, x, y ] ----> Q[ z, x ]
-    // Where we replace the original conjecture with:
-    //   exists f. forall x. Q[ f(x), x ]
-    // For more details, see Example 6 of Reynolds et al. SYNT 2017.
-    Node conj = Node::fromExpr(e);
-    if (conj.getKind() == kind::FORALL && conj[1].getKind() == kind::EXISTS)
-    {
-      Node conj_se = Node::fromExpr(expandDefinitions(conj[1][1].toExpr()));
-
-      Trace("smt-synth") << "Compute single invocation for " << conj_se << "..."
-                         << std::endl;
-      quantifiers::SingleInvocationPartition sip;
-      std::vector<Node> funcs;
-      funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
-      sip.init(funcs, conj_se.negate());
-      Trace("smt-synth") << "...finished, got:" << std::endl;
-      sip.debugPrint("smt-synth");
-
-      if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
-      {
-        // create new smt engine to do quantifier elimination
-        SmtEngine smt_qe(d_exprManager);
-        smt_qe.setLogic(getLogicInfo());
-        Trace("smt-synth") << "Property is non-ground single invocation, run "
-                              "QE to obtain single invocation."
-                           << std::endl;
-        NodeManager* nm = NodeManager::currentNM();
-        // partition variables
-        std::vector<Node> all_vars;
-        sip.getAllVariables(all_vars);
-        std::vector<Node> si_vars;
-        sip.getSingleInvocationVariables(si_vars);
-        std::vector<Node> qe_vars;
-        std::vector<Node> nqe_vars;
-        for (unsigned i = 0, size = all_vars.size(); i < size; i++)
-        {
-          Node v = all_vars[i];
-          if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
-          {
-            qe_vars.push_back(v);
-          }
-          else
-          {
-            nqe_vars.push_back(v);
-          }
-        }
-        std::vector<Node> orig;
-        std::vector<Node> subs;
-        // skolemize non-qe variables
-        for (unsigned i = 0; i < nqe_vars.size(); i++)
-        {
-          Node k = nm->mkSkolem("k",
-                                nqe_vars[i].getType(),
-                                "qe for non-ground single invocation");
-          orig.push_back(nqe_vars[i]);
-          subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
-                             << std::endl;
-        }
-        std::vector<Node> funcs;
-        sip.getFunctions(funcs);
-        for (unsigned i = 0, size = funcs.size(); i < size; i++)
-        {
-          Node f = funcs[i];
-          Node fi = sip.getFunctionInvocationFor(f);
-          Node fv = sip.getFirstOrderVariableForFunction(f);
-          Assert(!fi.isNull());
-          orig.push_back(fi);
-          Node k =
-              nm->mkSkolem("k",
-                           fv.getType(),
-                           "qe for function in non-ground single invocation");
-          subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << fi << " -> " << k << std::endl;
-        }
-        Node conj_se_ngsi = sip.getFullSpecification();
-        Trace("smt-synth") << "Full specification is " << conj_se_ngsi
-                           << std::endl;
-        Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
-            orig.begin(), orig.end(), subs.begin(), subs.end());
-        Assert(!qe_vars.empty());
-        conj_se_ngsi_subs =
-            nm->mkNode(kind::EXISTS,
-                       nm->mkNode(kind::BOUND_VAR_LIST, qe_vars),
-                       conj_se_ngsi_subs.negate());
-
-        Trace("smt-synth") << "Run quantifier elimination on "
-                           << conj_se_ngsi_subs << std::endl;
-        Expr qe_res = smt_qe.doQuantifierElimination(
-            conj_se_ngsi_subs.toExpr(), true, false);
-        Trace("smt-synth") << "Result : " << qe_res << std::endl;
-
-        // create single invocation conjecture
-        Node qe_res_n = Node::fromExpr(qe_res);
-        qe_res_n = qe_res_n.substitute(
-            subs.begin(), subs.end(), orig.begin(), orig.end());
-        if (!nqe_vars.empty())
-        {
-          qe_res_n = nm->mkNode(kind::EXISTS,
-                                nm->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
-                                qe_res_n);
-        }
-        Assert(conj.getNumChildren() == 3);
-        qe_res_n = nm->mkNode(kind::FORALL, conj[0], qe_res_n, conj[2]);
-        Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n
-                           << std::endl;
-        e_check = qe_res_n.toExpr();
-      }
-    }
-  }
-
-  return checkSatisfiability( e_check, true, false );
+  return checkSatisfiability(e, true, false);
 }
 
 Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
@@ -5258,35 +5149,31 @@ Model* SmtEngine::getModel() {
   return m;
 }
 
-Expr SmtEngine::getHeapExpr()
+std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
 {
+  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  {
+    const char* msg =
+        "Cannot obtain separation logic expressions if not using the "
+        "separation logic theory.";
+    throw RecoverableModalException(msg);
+  }
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
-  Expr nil;  // we don't actually use this
-  Model* m = getModel();
-  if (m->getHeapModel(heap, nil))
-  {
-    return heap;
-  }
-  InternalError(
-      "SmtEngine::getHeapExpr(): failed to obtain heap expression from theory "
-      "model.");
-}
-
-Expr SmtEngine::getNilExpr()
-{
-  NodeManagerScope nms(d_nodeManager);
-  Expr heap;  // we don't actually use this
   Expr nil;
   Model* m = getModel();
   if (m->getHeapModel(heap, nil))
   {
-    return nil;
+    return std::make_pair(heap, nil);
   }
   InternalError(
-      "SmtEngine::getNilExpr(): failed to obtain nil expression from theory "
-      "model.");
+      "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+      "expressions from theory model.");
 }
+
+Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
+
+Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");

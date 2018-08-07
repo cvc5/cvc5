@@ -161,6 +161,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
 
 void MatchTrie::addTerm(Node n)
 {
+  Assert(!n.isNull());
   std::vector<Node> visit;
   visit.push_back(n);
   MatchTrie* curr = this;
@@ -219,15 +220,12 @@ void CandidateRewriteFilter::initialize(SygusSampler* ss,
   // initialize members of this class
   d_match_trie.clear();
   d_pairs.clear();
-  if (options::sygusRewSynthFilterCong())
-  {
-    // initialize the dynamic rewriter
-    std::stringstream ss;
-    ss << "_dyn_rewriter_" << drewrite_counter;
-    drewrite_counter++;
-    d_drewrite = std::unique_ptr<DynamicRewriter>(
-        new DynamicRewriter(ss.str(), &d_fake_context));
-  }
+  // (re)initialize the dynamic rewriter
+  std::stringstream ssn;
+  ssn << "_dyn_rewriter_" << drewrite_counter;
+  drewrite_counter++;
+  d_drewrite = std::unique_ptr<DynamicRewriter>(
+      new DynamicRewriter(ssn.str(), &d_fake_context));
 }
 
 bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
@@ -285,7 +283,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   }
 
   // ----- check rewriting redundancy
-  if (keep && d_drewrite != nullptr)
+  if (keep && options::sygusRewSynthFilterCong())
   {
     Trace("cr-filter-debug") << "Check equal rewrite pair..." << std::endl;
     if (d_drewrite->areEqual(bn, beq_n))
@@ -296,20 +294,26 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     }
   }
 
-  if (options::sygusRewSynthFilterMatch())
+  if (keep && options::sygusRewSynthFilterMatch())
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
     d_curr_pair_rhs = beq_n;
     Trace("crf-match") << "CRF check matches : " << bn << " [rhs = " << beq_n
                        << "]..." << std::endl;
-    if (!d_match_trie.getMatches(bn, &d_ssenm))
+    Node bni = d_drewrite->toInternal(bn);
+    if (!bni.isNull())
     {
-      keep = false;
-      Trace("cr-filter") << "...redundant (matchable)" << std::endl;
-      // regardless, would help to remember it
-      registerRelevantPair(n, eq_n);
+      if (!d_match_trie.getMatches(bni, &d_ssenm))
+      {
+        keep = false;
+        Trace("cr-filter") << "...redundant (matchable)" << std::endl;
+        // regardless, would help to remember it
+        registerRelevantPair(n, eq_n);
+      }
     }
+    // if bni is null, it may involve non-first-class types that we cannot
+    // reason about
   }
 
   if (keep)
@@ -340,7 +344,7 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
   // ----- check rewriting redundancy
-  if (d_drewrite != nullptr)
+  if (options::sygusRewSynthFilterCong())
   {
     Trace("cr-filter-debug") << "Add rewrite pair..." << std::endl;
     Assert(!d_drewrite->areEqual(bn, beq_n));
@@ -357,7 +361,11 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
       if (d_pairs.find(t) == d_pairs.end())
       {
         Trace("crf-match") << "CRF add term : " << t << std::endl;
-        d_match_trie.addTerm(t);
+        Node ti = d_drewrite->toInternal(t);
+        if (!ti.isNull())
+        {
+          d_match_trie.addTerm(ti);
+        }
       }
       d_pairs[t].insert(to);
     }
@@ -369,7 +377,13 @@ bool CandidateRewriteFilter::notify(Node s,
                                     std::vector<Node>& vars,
                                     std::vector<Node>& subs)
 {
+  Trace("crf-match-debug") << "Got : " << s << " matches " << n << std::endl;
   Assert(!d_curr_pair_rhs.isNull());
+  // convert back to original forms
+  s = d_drewrite->toExternal(s);
+  Assert(!s.isNull());
+  n = d_drewrite->toExternal(n);
+  Assert(!n.isNull());
   std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
       d_pairs.find(n);
   if (Trace.isOn("crf-match"))
@@ -379,18 +393,29 @@ bool CandidateRewriteFilter::notify(Node s,
     for (unsigned i = 0, size = vars.size(); i < size; i++)
     {
       Trace("crf-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
-      // TODO (#1923) ensure that we use an internal representation to
-      // ensure polymorphism is handled correctly
-      Assert(vars[i].getType().isComparableTo(subs[i].getType()));
     }
+  }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned i = 0, size = vars.size(); i < size; i++)
+  {
+    // By using internal representation of terms, we ensure polymorphism is
+    // handled correctly.
+    Assert(vars[i].getType().isComparableTo(subs[i].getType()));
+  }
+#endif
+  // must convert the inferred substitution to original form
+  std::vector<Node> esubs;
+  for (const Node& s : subs)
+  {
+    esubs.push_back(d_drewrite->toExternal(s));
   }
   Assert(it != d_pairs.end());
   for (const Node& nr : it->second)
   {
     Node nrs =
-        nr.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+        nr.substitute(vars.begin(), vars.end(), esubs.begin(), esubs.end());
     bool areEqual = (nrs == d_curr_pair_rhs);
-    if (!areEqual && d_drewrite != nullptr)
+    if (!areEqual && options::sygusRewSynthFilterCong())
     {
       // if dynamic rewriter is available, consult it
       areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);

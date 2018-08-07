@@ -55,6 +55,9 @@ unsigned getSignExtendAmount(TNode node);
 /* Returns true if given node represents a zero bit-vector.  */
 bool isZero(TNode node);
 
+/* Returns true if given node represents a one bit-vector.  */
+bool isOne(TNode node);
+
 /* If node is a constant of the form 2^c or -2^c, then this function returns
  * c+1. Otherwise, this function returns 0. The flag isNeg is updated to
  * indicate whether node is negative.  */

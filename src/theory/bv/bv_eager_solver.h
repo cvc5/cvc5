@@ -42,8 +42,6 @@ class EagerBitblastSolver {
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
-  // purely for debugging purposes
-  bool hasAssertions(const std::vector<TNode>& formulas);
 
   void turnOffAig();
   bool isInitialized();
