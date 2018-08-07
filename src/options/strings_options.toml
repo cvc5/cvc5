@@ -208,3 +208,12 @@ header = "options/strings_options.h"
   default    = "false"
   read_only  = true
   help       = "do length propagation based on constant splits"
+
+[[option]]
+  name       = "stringFlatForms"
+  category   = "regular"
+  long       = "strings-ff"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "do flat form inferences"
