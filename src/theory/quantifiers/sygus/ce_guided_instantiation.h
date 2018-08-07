@@ -43,7 +43,7 @@ private:
    * conjecture considered by this class. This method may return false, for
    * instance, if this class determines that it would rather rewrite q to
    * an equivalent form r (in which case this method returns the lemma
-   * q <=> r. An example of this is the quantifier elimination step
+   * q <=> r). An example of this is the quantifier elimination step
    * option::sygusQePreproc().
    */
   bool assignConjecture(Node q);
