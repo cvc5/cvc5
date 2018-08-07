@@ -562,7 +562,7 @@ public:
 
   void flushInformation(std::ostream& out) const override
   {
-    out << d_data << std::endl;
+    out << d_data;
   }
 
   void safeFlushInformation(int fd) const override
