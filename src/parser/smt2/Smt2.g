@@ -1020,7 +1020,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         PARSER_STATE->popScope();
       }
     }
-    {
+    | termAtomic[atomExpr] {
       Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
                             << "expression " << atomExpr << std::endl;
       std::stringstream ss;
