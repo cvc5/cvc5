@@ -31,7 +31,11 @@ namespace datatypes {
  * grammars, for example, concerning which constructors need not appear at
  * argument positions of others. This is used by the sygus extension of the
  * quantifier-free datatypes procedure for adding symmetry breaking lemmas.
- * We call this class of techniques "simple static symmetry breaking".
+ * We call this class of techniques "simple static symmetry breaking". These
+ * techniques have the advantage over "dynamic symmetry breaking" (blocking
+ * redundant solutions on demand in datatypes_sygus.h) in that we can design
+ * efficient encodings of symmetry breaking constraints, whereas dynamic
+ * symmetry breaking may in the worst case block solutions one by one.
  */
 class SygusSimpleSymBreak
 {

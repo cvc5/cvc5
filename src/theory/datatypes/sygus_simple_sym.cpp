@@ -154,7 +154,6 @@ class ReqTrie
   }
 };
 
-// this function gets all easy redundant cases, before consulting rewriters
 bool SygusSimpleSymBreak::considerArgKind(
     TypeNode tn, TypeNode tnp, Kind k, Kind pk, int arg)
 {
@@ -303,11 +302,11 @@ bool SygusSimpleSymBreak::considerArgKind(
         int pcr = d_tds->getKindConsNum(tnp, rt.d_req_kind);
         if (pcr != -1)
         {
-          Assert(pcr < (int)pdt.getNumConstructors());
+          Assert(pcr < static_cast<int>(pdt.getNumConstructors()));
           // must have same number of arguments
           if (pdt[pcr].getNumArgs() == dt[c].getNumArgs())
           {
-            for (unsigned i = 0; i < pdt[pcr].getNumArgs(); i++)
+            for (unsigned i = 0, nargs = pdt[pcr].getNumArgs(); i < nargs; i++)
             {
               Kind rk = reqk;
               if (reqk == UNDEFINED_KIND)
@@ -428,7 +427,7 @@ bool SygusSimpleSymBreak::considerArgKind(
 bool SygusSimpleSymBreak::considerConst(
     TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg)
 {
-  const Datatype& pdt = ((DatatypeType)(tnp).toType()).getDatatype();
+  const Datatype& pdt = static_cast<DatatypeType>(tnp.toType()).getDatatype();
   // child grammar-independent
   if (!considerConst(pdt, tnp, c, pk, arg))
   {
@@ -559,7 +558,7 @@ bool SygusSimpleSymBreak::considerConst(
         Trace("sygus-sb-simple") << "  sb-simple : do not consider const " << c
                                  << " as arg " << arg << " of " << pk;
         Trace("sygus-sb-simple")
-            << " in " << ((DatatypeType)tnp.toType()).getDatatype().getName()
+            << " in " << pdt.getName()
             << std::endl;
         // do not need to consider the constant in the search since there are
         // ways to construct equivalent terms
@@ -581,7 +580,7 @@ int SygusSimpleSymBreak::solveForArgument(TypeNode tn,
 int SygusSimpleSymBreak::getFirstArgOccurrence(const DatatypeConstructor& c,
                                                TypeNode tn)
 {
-  for (unsigned i = 0; i < c.getNumArgs(); i++)
+  for (unsigned i = 0, nargs = c.getNumArgs(); i < nargs; i++)
   {
     TypeNode tni = TypeNode::fromType(c.getArgType(i));
     if (tni == tn)
