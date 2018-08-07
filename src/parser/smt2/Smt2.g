@@ -919,7 +919,6 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
 sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
 @declarations {
   std::string name, name2;
-  bool readEnum = false;
   Kind k;
   Type t;
   std::string sname;
@@ -1021,7 +1020,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         PARSER_STATE->popScope();
       }
     }
-  | termAtomic[atomExpr] {
+    {
       Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
                             << "expression " << atomExpr << std::endl;
       std::stringstream ss;
@@ -1031,48 +1030,36 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE]
-    ( SYGUS_ENUM_CONS_TOK symbol[name2,CHECK_NONE,SYM_VARIABLE]
-      { readEnum = true; }
-    )?
-    { if( readEnum ){
-        name = name + "__Enum__" + name2;
-        Debug("parser-sygus") << "Sygus grammar " << fun << " : Enum constant "
+    { 
+      if( name[0] == '-' ){  //hack for unary minus
+        Debug("parser-sygus") << "Sygus grammar " << fun
+                              << " : unary minus integer literal " << name
+                              << std::endl;
+        sgt.d_expr = MK_CONST(Rational(name));
+        sgt.d_name = name;
+        sgt.d_gterm_type = SygusGTerm::gterm_op;
+      }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
                               << name << std::endl;
-        Expr c = PARSER_STATE->getVariable(name);
-        sgt.d_expr = MK_EXPR(kind::APPLY_CONSTRUCTOR,c);
+        sgt.d_expr = PARSER_STATE->getVariable(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else{
-        if( name[0] == '-' ){  //hack for unary minus
+        //prepend function name to base sorts when reading an operator
+        std::stringstream ss;
+        ss << fun << "_" << name;
+        name = ss.str();
+        if( PARSER_STATE->isDeclared(name, SYM_SORT) ){
           Debug("parser-sygus") << "Sygus grammar " << fun
-                                << " : unary minus integer literal " << name
-                                << std::endl;
-          sgt.d_expr = MK_CONST(Rational(name));
-          sgt.d_name = name;
-          sgt.d_gterm_type = SygusGTerm::gterm_op;
-        }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
-          Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
-                                << name << std::endl;
-          sgt.d_expr = PARSER_STATE->getVariable(name);
-          sgt.d_name = name;
-          sgt.d_gterm_type = SygusGTerm::gterm_op;
+                                << " : nested sort " << name << std::endl;
+          sgt.d_type = PARSER_STATE->getSort(name);
+          sgt.d_gterm_type = SygusGTerm::gterm_nested_sort;
         }else{
-          //prepend function name to base sorts when reading an operator
-          std::stringstream ss;
-          ss << fun << "_" << name;
-          name = ss.str();
-          if( PARSER_STATE->isDeclared(name, SYM_SORT) ){
-            Debug("parser-sygus") << "Sygus grammar " << fun
-                                  << " : nested sort " << name << std::endl;
-            sgt.d_type = PARSER_STATE->getSort(name);
-            sgt.d_gterm_type = SygusGTerm::gterm_nested_sort;
-          }else{
-            Debug("parser-sygus") << "Sygus grammar " << fun
-                                  << " : unresolved symbol " << name
-                                  << std::endl;
-            sgt.d_gterm_type = SygusGTerm::gterm_unresolved;
-            sgt.d_name = name;
-          }
+          Debug("parser-sygus") << "Sygus grammar " << fun
+                                << " : unresolved symbol " << name
+                                << std::endl;
+          sgt.d_gterm_type = SygusGTerm::gterm_unresolved;
+          sgt.d_name = name;
         }
       }
     }
@@ -2171,15 +2158,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
     }
-  | symbol[name,CHECK_NONE,SYM_VARIABLE] SYGUS_ENUM_CONS_TOK
-    symbol[name2,CHECK_NONE,SYM_VARIABLE]
-    { std::string cname = name + "__Enum__" + name2;
-      Debug("parser-sygus") << "Check for enum const " << cname << std::endl;
-      expr = PARSER_STATE->getVariable(cname);
-      // expr.getType().isConstructor() &&
-      // ConstructorType(expr.getType()).getArity()==0;
-      expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-    }
 
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
@@ -2254,15 +2232,18 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
 
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-    { std::vector<Type> types;
-      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
-        types.push_back((*i).getType());
-      }
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert(args.begin(), dt[0].getConstructor());
-      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+  {
+    std::vector<Type> types;
+    for (std::vector<Expr>::const_iterator i = args.begin(); i != args.end();
+         ++i)
+    {
+      types.push_back((*i).getType());
     }
+    DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+    const Datatype& dt = t.getDatatype();
+    args.insert(args.begin(), dt[0].getConstructor());
+    expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[expr]
   ;
@@ -3138,8 +3119,6 @@ DECLARE_PRIMED_VAR_TOK : 'declare-primed-var';
 CONSTRAINT_TOK : 'constraint';
 INV_CONSTRAINT_TOK : 'inv-constraint';
 SET_OPTIONS_TOK : 'set-options';
-SYGUS_ENUM_TOK : { PARSER_STATE->sygus() }? 'Enum';
-SYGUS_ENUM_CONS_TOK : { PARSER_STATE->sygus() }? '::';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
 SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 SYGUS_INPUT_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'InputVariable';
