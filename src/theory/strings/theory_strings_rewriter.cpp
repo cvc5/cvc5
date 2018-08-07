@@ -212,6 +212,15 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
   return Node::null();
 }
 
+unsigned TheoryStringsRewriter::getAlphabetCardinality()
+{
+  if (options::stdPrintASCII())
+  {
+    return 128;
+  }
+  return 256;
+}
+
 Node TheoryStringsRewriter::rewriteEquality(Node node)
 {
   Assert(node.getKind() == kind::EQUAL);

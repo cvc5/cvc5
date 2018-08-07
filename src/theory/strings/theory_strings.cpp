@@ -175,11 +175,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
-  d_card_size = 256;
-  if (options::stdPrintASCII())
-  {
-    d_card_size = 128;
-  }
+  d_card_size = TheoryStringsRewriter::getAlphabetCardinality();
 }
 
 TheoryStrings::~TheoryStrings() {
