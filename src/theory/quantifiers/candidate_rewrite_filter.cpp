@@ -161,6 +161,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
 
 void MatchTrie::addTerm(Node n)
 {
+  Assert(!n.isNull());
   std::vector<Node> visit;
   visit.push_back(n);
   MatchTrie* curr = this;
@@ -301,13 +302,18 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     Trace("crf-match") << "CRF check matches : " << bn << " [rhs = " << beq_n
                        << "]..." << std::endl;
     Node bni = d_drewrite->toInternal(bn);
-    if (!d_match_trie.getMatches(bni, &d_ssenm))
+    if (!bni.isNull())
     {
-      keep = false;
-      Trace("cr-filter") << "...redundant (matchable)" << std::endl;
-      // regardless, would help to remember it
-      registerRelevantPair(n, eq_n);
+      if (!d_match_trie.getMatches(bni, &d_ssenm))
+      {
+        keep = false;
+        Trace("cr-filter") << "...redundant (matchable)" << std::endl;
+        // regardless, would help to remember it
+        registerRelevantPair(n, eq_n);
+      }
     }
+    // if bni is null, it may involve non-first-class types that we cannot
+    // reason about
   }
 
   if (keep)
@@ -356,7 +362,10 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
       {
         Trace("crf-match") << "CRF add term : " << t << std::endl;
         Node ti = d_drewrite->toInternal(t);
-        d_match_trie.addTerm(ti);
+        if (!ti.isNull())
+        {
+          d_match_trie.addTerm(ti);
+        }
       }
       d_pairs[t].insert(to);
     }

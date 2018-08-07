@@ -118,8 +118,6 @@ class BvInstantiator : public Instantiator
   /** the amount of slack we added for asserted literals */
   std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
   //--------------------------------end solved forms
-  /** whether we have tried an instantiation based on assertion in this round */
-  bool d_tried_assertion_inst;
   /** rewrite assertion for solve pv
    *
    * Returns a literal that is equivalent to lit that leads to best solved form

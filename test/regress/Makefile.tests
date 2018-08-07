@@ -1251,6 +1251,7 @@ REG1_TESTS = \
 	regress1/quantifiers/NUM878.smt2 \
 	regress1/quantifiers/RND-small.smt2 \
 	regress1/quantifiers/RNDPRE_4_1-dd-nqe.smt2 \
+	regress1/quantifiers/RND_4_1-existing-inst.smt2 \
 	regress1/quantifiers/RND_4_16.smt2 \
 	regress1/quantifiers/anti-sk-simp.smt2 \
 	regress1/quantifiers/ari118-bv-2occ-x.smt2 \
@@ -1308,6 +1309,7 @@ REG1_TESTS = \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
+	regress1/quantifiers/repair-const-nterm.smt2 \
 	regress1/quantifiers/recfact.cvc \
 	regress1/quantifiers/rew-to-0211-dd.smt2 \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
@@ -1390,6 +1392,7 @@ REG1_TESTS = \
 	regress1/sep/sep-nterm-val-model.smt2 \
 	regress1/sep/sep-simp-unc.smt2 \
 	regress1/sep/simple-neg-sat.smt2 \
+	regress1/sep/sl-standard.smt2 \
 	regress1/sep/split-find-unsat-w-emp.smt2 \
 	regress1/sep/split-find-unsat.smt2 \
 	regress1/sep/wand-0526-sat.smt2 \
@@ -1505,6 +1508,8 @@ REG1_TESTS = \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
 	regress1/sygus/constant.sy \
+	regress1/sygus/constant-bool-si-all.sy \
+	regress1/sygus/constant-dec-tree-bug.sy \
 	regress1/sygus/constant-ite-bv.sy \
 	regress1/sygus/crci-ssb-unk.sy \
 	regress1/sygus/crcy-si-rcons.sy \
@@ -1539,6 +1544,7 @@ REG1_TESTS = \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
+	regress1/sygus/simple-regexp.sy \
 	regress1/sygus/stopwatch-bt.sy \
 	regress1/sygus/strings-concat-3-args.sy \
 	regress1/sygus/strings-double-rec.sy \
