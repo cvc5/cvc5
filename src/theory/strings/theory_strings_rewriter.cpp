@@ -983,12 +983,15 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         return scn;
       }else{
         if( (children.size() + mchildren.size())!=prevSize ){
+          Node xn = mkConcat( kind::STRING_CONCAT, mchildren );
+          Node emptyStr = nm->mkConst( String("") );
           if( children.empty() ){
-            retNode = NodeManager::currentNM()->mkConst( mchildren.empty() );
+            retNode = xn.eqNode(emptyStr);
           }else{
-            retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, mkConcat( kind::STRING_CONCAT, mchildren ), mkConcat( kind::REGEXP_CONCAT, children ) );
+            retNode = nm->mkNode( STRING_IN_REGEXP, xn, mkConcat( REGEXP_CONCAT, children ) );
           }
           Trace("regexp-ext-rewrite") << "Regexp : rewrite : " << node << " -> " << retNode << std::endl;
+          return returnRewrite(node,retNode,"re-simple-consume");
         }
       }
     }
