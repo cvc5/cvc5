@@ -17,6 +17,8 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/random.h"
+#include <fstream>
+#include "options/quantifiers_options.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -25,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QueryGenerator::QueryGenerator() : d_sampler(nullptr) {}
+QueryGenerator::QueryGenerator() : d_sampler(nullptr), d_query_count(0) {}
 
 void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
 {
@@ -34,6 +36,7 @@ void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
   d_svars.clear();
   d_sampler->getVariables(d_svars);
   std::sort(d_svars.begin(),d_svars.end());
+  d_query_count = 0;
 }
 
 void QueryGenerator::addTerm(Node n, std::ostream& out)
@@ -143,33 +146,55 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
 
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
-  Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
-  // make the satisfiability query
-  bool needExport = false;
-  ExprManagerMapCollection varMap;
-  ExprManager em(nm->getOptions());
-  std::unique_ptr<SmtEngine> queryChecker;
-  initializeChecker(queryChecker, em, varMap, qy, needExport);
-  Result r = queryChecker->checkSat();
-  Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  if( options::sygusQueryGenCheck() )
   {
-    std::stringstream ss;
-    ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
-       << "!" << std::endl;
-    ss << "This query has a model : " << std::endl;
-    std::vector< Node > pt;
-    d_sampler->getSamplePoint(spIndex,pt);
-    Assert(pt.size()==d_svars.size());
-    for( unsigned i=0, size = pt.size(); i<size; i++ )
+    Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
+    // make the satisfiability query
+    bool needExport = false;
+    ExprManagerMapCollection varMap;
+    ExprManager em(nm->getOptions());
+    std::unique_ptr<SmtEngine> queryChecker;
+    initializeChecker(queryChecker, em, varMap, qy, needExport);
+    Result r = queryChecker->checkSat();
+    Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
-      ss << "  " << d_svars[i] << " -> " << pt[i] << std::endl;
+      std::stringstream ss;
+      ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
+        << "!" << std::endl;
+      ss << "This query has a model : " << std::endl;
+      std::vector< Node > pt;
+      d_sampler->getSamplePoint(spIndex,pt);
+      Assert(pt.size()==d_svars.size());
+      for( unsigned i=0, size = pt.size(); i<size; i++ )
+      {
+        ss << "  " << d_svars[i] << " -> " << pt[i] << std::endl;
+      }
+      ss << "but CVC4 answered unsat!" << std::endl;
+      AlwaysAssert(false, ss.str().c_str());
     }
-    ss << "but CVC4 answered unsat!" << std::endl;
-    AlwaysAssert(false, ss.str().c_str());
   }
+  
+  // external query
+  if( options::sygusQueryGenDumpFiles() )
+  {
+    std::stringstream fname;
+    fname << "query" << d_query_count << ".smt2";
+    std::ofstream fs(fname.str(),std::ofstream::out);
+    fs << "(set-logic ALL)" << std::endl;
+    for( const Node& x : d_svars )
+    {
+      fs << "(declare-fun " << x << " () " << x.getType() << ")" << std::endl;
+    }
+    fs << "(assert " << qy << ")" << std::endl;
+    fs << "(check-sat)" << std::endl;
+    fs.close();
+  }
+  
+  
+  d_query_count++;
 }
 
 

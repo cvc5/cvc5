@@ -1298,6 +1298,22 @@ header = "options/quantifiers_options.h"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
 
+[[option]]
+  name       = "sygusQueryGenCheck"
+  category   = "regular"
+  long       = "sygus-query-gen-check"
+  type       = "bool"
+  default    = "true"
+  help       = "use interesting satisfiability queries to check soundness of CVC4"
+
+[[option]]
+  name       = "sygusQueryGenDumpFiles"
+  category   = "regular"
+  long       = "sygus-query-gen-dump-files"
+  type       = "bool"
+  default    = "false"
+  help       = "dump external files with --sygus-query-gen"
+
 # CEGQI applied to general quantified formulas
 
 [[option]]
