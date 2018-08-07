@@ -175,7 +175,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
           AlwaysAssert(
               term.getKind() != kind::STORE,
               "Cannot use eager bitblasting on QF_ABV formula with stores");
-          /* add childrens to the stack, so that they are processed later */
+          /* add children to the stack, so that they are processed later */
           for (const TNode& n : term)
           {
             stack->push(n);
