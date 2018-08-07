@@ -59,12 +59,13 @@ class QueryGenerator : public ExprMiner
   void findQueries(LazyTrie* lt,
                    Node n,
                    std::vector<Node>& queries,
-                   std::vector<unsigned>& queriesPtTrue,
-                   std::unordered_set<unsigned>& indices);
+                   std::vector<std::vector<unsigned>>& queriesPtTrue);
   /** queries for points */
   std::map<unsigned, std::vector<Node> > d_pt_to_queries;
-  /** check query */
-  void checkQuery(Node qy);
+  /** queries to points */
+  std::map< Node, std::vector< unsigned > > d_qys_to_points;
+  /** check query qy, which is satisfied by sample point spIndex */
+  void checkQuery(Node qy, unsigned spIndex);
 };
 
 }  // namespace quantifiers

@@ -53,12 +53,12 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
 
   // the queries we generate on this round
   std::vector<Node> queries;
-  // the number of points each query in the above vector is true
-  std::vector<unsigned> queriesPtTrue;
+  // the points each query in the above vector is true
+  std::vector<std::vector<unsigned>> queriesPtTrue;
   // the sample point indices for which the above queries are true
   std::unordered_set<unsigned> indices;
 
-  // predicate queries (if n is Boolean)
+  // collect predicate queries (if n is Boolean)
   if (tn.isBoolean())
   {
     std::map<Node, std::vector<unsigned> > ev_to_pt;
@@ -91,14 +91,14 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
             qy = qy.negate();
           }
           queries.push_back(qy);
-          queriesPtTrue.push_back(etp.second.size());
+          queriesPtTrue.push_back(etp.second);
         }
       }
     }
   }
 
-  // equality queries
-  findQueries(&d_qgt_trie[tn], nn, queries, queriesPtTrue, indices);
+  // collect equality queries
+  findQueries(&d_qgt_trie[tn], nn, queries, queriesPtTrue);
   Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
@@ -107,13 +107,23 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   Trace("sygus-qgen-debug")
       << "query: Check " << queries.size() << " queries..." << std::endl;
   LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
+  // literal queries
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
   {
-    Node qy = queries[i];
+    Node qy = queries[i];    
+    std::vector<unsigned>& tIndices = queriesPtTrue[i];
     // we have an interesting query
-    out << "(query " << qy << ")  ; " << queriesPtTrue[i] << "/" << npts
+    out << "(query " << qy << ")  ; " << tIndices.size() << "/" << npts
         << std::endl;
-    checkQuery(qy);
+    AlwaysAssert(!tIndices.empty());
+    checkQuery(qy, tIndices[0]);
+    // add information
+    for( unsigned& ti : tIndices )
+    {
+      d_pt_to_queries[ti].push_back(qy);
+      d_qys_to_points[qy].push_back(ti);
+      indices.insert(ti);
+    }
   }
   // for each new index, we may have a new conjunctive query
   NodeManager* nm = NodeManager::currentNM();
@@ -125,13 +135,13 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
       // take two random queries
       std::random_shuffle(qsi.begin(), qsi.end());
       Node qy = nm->mkNode(AND, qsi[0], qsi[1]);
-      checkQuery(qy);
+      checkQuery(qy, i);
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
 }
 
-void QueryGenerator::checkQuery(Node qy)
+void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
   Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
 
@@ -148,7 +158,16 @@ void QueryGenerator::checkQuery(Node qy)
   {
     std::stringstream ss;
     ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
-       << "!";
+       << "!" << std::endl;
+    ss << "This query has a model : " << std::endl;
+    std::vector< Node > pt;
+    d_sampler->getSamplePoint(spIndex,pt);
+    Assert(pt.size()==d_svars.size());
+    for( unsigned i=0, size = pt.size(); i<size; i++ )
+    {
+      ss << "  " << d_svars[i] << " -> " << pt[i] << std::endl;
+    }
+    ss << "but CVC4 answered unsat!" << std::endl;
     AlwaysAssert(false, ss.str().c_str());
   }
 }
@@ -188,13 +207,13 @@ class PtTrieSet
 void QueryGenerator::findQueries(LazyTrie* lt,
                                  Node n,
                                  std::vector<Node>& queries,
-                                 std::vector<unsigned>& queriesPtTrue,
-                                 std::unordered_set<unsigned>& indices)
+                                 std::vector<std::vector<unsigned>>& queriesPtTrue)
 {
   TypeNode tn = n.getType();
   std::vector<unsigned> eqIndex[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
   
+  /*
   PtTrieSet eqPtTrie[2];
   // the variables indices we will cache points on
   bool useRlvIndices = false;
@@ -228,6 +247,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
     Trace("sygus-qgen-debug") << "} for free variables (" << nvars << ")\n";
     Assert( rlvIndices.size()==nvars.size() );
   }
+  */
 
   LazyTrieEvaluator* ev = d_sampler;
   unsigned ntotal = d_sampler->getNumSamplePoints();
@@ -315,12 +335,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
           if (!tIndices.empty())
           {
             queries.push_back(query);
-            queriesPtTrue.push_back(tIndices.size());
-            for (unsigned& i : tIndices)
-            {
-              d_pt_to_queries[i].push_back(query);
-              indices.insert(i);
-            }
+            queriesPtTrue.push_back(tIndices);
           }
         }
       }
