@@ -557,9 +557,7 @@ bool SygusSimpleSymBreak::considerConst(
       {
         Trace("sygus-sb-simple") << "  sb-simple : do not consider const " << c
                                  << " as arg " << arg << " of " << pk;
-        Trace("sygus-sb-simple")
-            << " in " << pdt.getName()
-            << std::endl;
+        Trace("sygus-sb-simple") << " in " << pdt.getName() << std::endl;
         // do not need to consider the constant in the search since there are
         // ways to construct equivalent terms
         ret = false;
