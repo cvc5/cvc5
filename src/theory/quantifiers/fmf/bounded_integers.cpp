@@ -454,6 +454,7 @@ void BoundedIntegers::checkOwnership(Node f)
           for( unsigned b=0; b<2; b++ ){
             if (bound_lit_map[b].find(v) != bound_lit_map[b].end())
             {
+              // WARNING_CANDIDATE:
               // This assertion may fail. We intentionally do not enable this in
               // production as it is considered safe for this to fail. We fail
               // in debug mode to have this instances raised to our attention.

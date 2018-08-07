@@ -106,12 +106,12 @@ class CDOhash_map : public ContextObj {
   // Implementation:
   // The data and key visible to users of CDHashMap are only visible through
   // const references. Thus the type of dereferencing a
-  // CDHashMap<Key, Data>::iterator.second should be value_type::second_type
-  // should be a `const Data&`. (Otherwise, access operations would need to
-  // makeCurrent() to get a Data&, which is an unacceptable performance hit.)
-  // To allow for the desired updating in other scenarios, we store a
-  // std::pair<const Key, const Data> and break the const encapsulation when
-  // needed.
+  // CDHashMap<Key, Data>::iterator.second is intended to always be a
+  // `const Data&`. (Otherwise, to get a Data& safely, access operations
+  // would need to makeCurrent() to get the Data&, which is an unacceptable
+  // performance hit.) To allow for the desired updating in other scenarios, we
+  // store a std::pair<const Key, const Data> and break the const encapsulation
+  // when necessary.
   using value_type = std::pair<const Key, const Data>;
 
  private:
