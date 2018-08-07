@@ -193,9 +193,9 @@ void QueryGenerator::findQueries(LazyTrie* lt,
 {
   TypeNode tn = n.getType();
   std::vector<unsigned> eqIndex[2];
-  PtTrieSet eqPtTrie[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
   
+  PtTrieSet eqPtTrie[2];
   // the variables indices we will cache points on
   bool useRlvIndices = false;
   std::vector< unsigned > rlvIndices;
