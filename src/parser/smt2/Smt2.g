@@ -1020,7 +1020,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         PARSER_STATE->popScope();
       }
     }
-  | termAtomic[atomExpr] {
+    {
       Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
                             << "expression " << atomExpr << std::endl;
       std::stringstream ss;
@@ -2232,15 +2232,18 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
 
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-    { std::vector<Type> types;
-      for(std::vector<Expr>::const_iterator i = args.begin(); i != args.end(); ++i) {
-        types.push_back((*i).getType());
-      }
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert(args.begin(), dt[0].getConstructor());
-      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+  {
+    std::vector<Type> types;
+    for (std::vector<Expr>::const_iterator i = args.begin(); i != args.end();
+         ++i)
+    {
+      types.push_back((*i).getType());
     }
+    DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+    const Datatype& dt = t.getDatatype();
+    args.insert(args.begin(), dt[0].getConstructor());
+    expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[expr]
   ;
