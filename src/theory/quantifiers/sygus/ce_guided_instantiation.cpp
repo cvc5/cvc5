@@ -53,13 +53,13 @@ QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
 void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
 {
   // if we are waiting to assign the conjecture, do it now
-  if( !d_waiting_conj.isNull() )
+  if (!d_waiting_conj.isNull())
   {
     Node q = d_waiting_conj;
     d_waiting_conj = Node::null();
-    if( !d_conj->isAssigned() )
+    if (!d_conj->isAssigned())
     {
-      if( !assignConjecture( q ) )
+      if (!assignConjecture(q))
       {
         return;
       }
@@ -94,7 +94,7 @@ void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
 
 bool CegInstantiation::assignConjecture(Node q)
 {
-  if( d_conj->isAssigned() )
+  if (d_conj->isAssigned())
   {
     return false;
   }
@@ -115,7 +115,7 @@ bool CegInstantiation::assignConjecture(Node q)
     }
     NodeManager* nm = NodeManager::currentNM();
     Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
-                        << std::endl;
+                       << std::endl;
     quantifiers::SingleInvocationPartition sip;
     std::vector<Node> funcs;
     funcs.insert(funcs.end(), q[0].begin(), q[0].end());
@@ -123,15 +123,14 @@ bool CegInstantiation::assignConjecture(Node q)
     Trace("cegqi-qep") << "...finished, got:" << std::endl;
     sip.debugPrint("cegqi-qep");
 
-    if (!sip.isPurelySingleInvocation()
-        && sip.isNonGroundSingleInvocation())
+    if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
     {
       // create new smt engine to do quantifier elimination
       SmtEngine smt_qe(nm->toExprManager());
       smt_qe.setLogic(smt::currentSmtEngine()->getLogicInfo());
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."
-                          << std::endl;
+                         << std::endl;
       // partition variables
       std::vector<Node> all_vars;
       sip.getAllVariables(all_vars);
@@ -156,13 +155,12 @@ bool CegInstantiation::assignConjecture(Node q)
       // skolemize non-qe variables
       for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
       {
-        Node k = nm->mkSkolem("k",
-                              nqe_vars[i].getType(),
-                              "qe for non-ground single invocation");
+        Node k = nm->mkSkolem(
+            "k", nqe_vars[i].getType(), "qe for non-ground single invocation");
         orig.push_back(nqe_vars[i]);
         subs.push_back(k);
-        Trace("cegqi-qep")
-            << "  subs : " << nqe_vars[i] << " -> " << k << std::endl;
+        Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
+                           << std::endl;
       }
       std::vector<Node> funcs;
       sip.getFunctions(funcs);
@@ -175,23 +173,23 @@ bool CegInstantiation::assignConjecture(Node q)
         orig.push_back(fi);
         Node k =
             nm->mkSkolem("k",
-                          fv.getType(),
-                          "qe for function in non-ground single invocation");
+                         fv.getType(),
+                         "qe for function in non-ground single invocation");
         subs.push_back(k);
         Trace("cegqi-qep") << "  subs : " << fi << " -> " << k << std::endl;
       }
       Node conj_se_ngsi = sip.getFullSpecification();
-      Trace("cegqi-qep")
-          << "Full specification is " << conj_se_ngsi << std::endl;
+      Trace("cegqi-qep") << "Full specification is " << conj_se_ngsi
+                         << std::endl;
       Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
           orig.begin(), orig.end(), subs.begin(), subs.end());
       Assert(!qe_vars.empty());
       conj_se_ngsi_subs = nm->mkNode(EXISTS,
-                                      nm->mkNode(BOUND_VAR_LIST, qe_vars),
-                                      conj_se_ngsi_subs.negate());
+                                     nm->mkNode(BOUND_VAR_LIST, qe_vars),
+                                     conj_se_ngsi_subs.negate());
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
-                          << conj_se_ngsi_subs << std::endl;
+                         << conj_se_ngsi_subs << std::endl;
       Expr qe_res = smt_qe.doQuantifierElimination(
           conj_se_ngsi_subs.toExpr(), true, false);
       Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
@@ -202,19 +200,19 @@ bool CegInstantiation::assignConjecture(Node q)
           subs.begin(), subs.end(), orig.begin(), orig.end());
       if (!nqe_vars.empty())
       {
-        qe_res_n = nm->mkNode(
-            EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
+        qe_res_n =
+            nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
       }
       Assert(q.getNumChildren() == 3);
       qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
-      Trace("cegqi-qep")
-          << "Converted conjecture after QE : " << qe_res_n << std::endl;
+      Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
+                         << std::endl;
       qe_res_n = Rewriter::rewrite(qe_res_n);
       Node nq = qe_res_n;
       // must assert it is equivalent to the original
       Node lem = q.eqNode(nq);
-      Trace("cegqi-lemma")
-          << "Cegqi::Lemma : qe-preprocess : " << lem << std::endl;
+      Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
+                           << std::endl;
       d_quantEngine->getOutputChannel().lemma(lem);
       // we've reduced the original to a preprocessed version, return
       return false;
@@ -224,9 +222,12 @@ bool CegInstantiation::assignConjecture(Node q)
   return true;
 }
 
-void CegInstantiation::registerQuantifier( Node q ) {
-  if( d_quantEngine->getOwner( q )==this ){ // && d_eval_axioms.find( q )==d_eval_axioms.end() ){
-    if( !d_conj->isAssigned() ){
+void CegInstantiation::registerQuantifier(Node q)
+{
+  if (d_quantEngine->getOwner(q) == this)
+  {  // && d_eval_axioms.find( q )==d_eval_axioms.end() ){
+    if (!d_conj->isAssigned())
+    {
       Trace("cegqi") << "Register conjecture : " << q << std::endl;
       if (options::sygusQePreproc())
       {

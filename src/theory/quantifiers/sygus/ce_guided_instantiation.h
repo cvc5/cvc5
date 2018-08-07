@@ -35,7 +35,8 @@ private:
   bool d_last_inst_si;
   /** the conjecture we are waiting to assign */
   Node d_waiting_conj;
-private:
+
+ private:
   /** assign quantified formula q as the conjecture
    *
    * This method returns true if q was successfully assigned as the synthesis
@@ -45,7 +46,7 @@ private:
    * q <=> r. An example of this is the quantifier elimination step
    * option::sygusQePreproc().
    */
-  bool assignConjecture( Node q );
+  bool assignConjecture(Node q);
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
 public:
