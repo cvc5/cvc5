@@ -205,8 +205,12 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       std::vector<Node> si_subs;
       Trace("si-prt") << "Process conjunct : " << conj[i] << std::endl;
       // do DER on conjunct
-      // Must avoid eliminating the first-order input functions. We use a
-      // substitution to avoid this.
+      // Must avoid eliminating the first-order input functions in the
+      // getQuantSimplify step below. We use a substitution to avoid this.
+      // This makes it so that e.g. the synthesis conjecture:
+      //   exists f. f!=0 ^ P
+      // is not rewritten to exists f. (f=0 => false) ^ P and subsquently
+      // rewritten to exists f. false ^ P by the elimination f -> 0.
       Node cr = conj[i].substitute(d_input_funcs.begin(),
                                    d_input_funcs.end(),
                                    d_input_func_sks.begin(),

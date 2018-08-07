@@ -919,7 +919,6 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
 sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
 @declarations {
   std::string name, name2;
-  bool readEnum = false;
   Kind k;
   Type t;
   CVC4::DatatypeConstructor* ctor = NULL;
@@ -1080,48 +1079,36 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       sgt.d_gterm_type = SygusGTerm::gterm_op;
     }
   | symbol[name,CHECK_NONE,SYM_VARIABLE]
-    ( SYGUS_ENUM_CONS_TOK symbol[name2,CHECK_NONE,SYM_VARIABLE]
-      { readEnum = true; }
-    )?
-    { if( readEnum ){
-        name = name + "__Enum__" + name2;
-        Debug("parser-sygus") << "Sygus grammar " << fun << " : Enum constant "
+    { 
+      if( name[0] == '-' ){  //hack for unary minus
+        Debug("parser-sygus") << "Sygus grammar " << fun
+                              << " : unary minus integer literal " << name
+                              << std::endl;
+        sgt.d_expr = MK_CONST(Rational(name));
+        sgt.d_name = name;
+        sgt.d_gterm_type = SygusGTerm::gterm_op;
+      }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
                               << name << std::endl;
-        Expr c = PARSER_STATE->getVariable(name);
-        sgt.d_expr = MK_EXPR(kind::APPLY_CONSTRUCTOR,c);
+        sgt.d_expr = PARSER_STATE->getVariable(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else{
-        if( name[0] == '-' ){  //hack for unary minus
+        //prepend function name to base sorts when reading an operator
+        std::stringstream ss;
+        ss << fun << "_" << name;
+        name = ss.str();
+        if( PARSER_STATE->isDeclared(name, SYM_SORT) ){
           Debug("parser-sygus") << "Sygus grammar " << fun
-                                << " : unary minus integer literal " << name
-                                << std::endl;
-          sgt.d_expr = MK_CONST(Rational(name));
-          sgt.d_name = name;
-          sgt.d_gterm_type = SygusGTerm::gterm_op;
-        }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
-          Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
-                                << name << std::endl;
-          sgt.d_expr = PARSER_STATE->getVariable(name);
-          sgt.d_name = name;
-          sgt.d_gterm_type = SygusGTerm::gterm_op;
+                                << " : nested sort " << name << std::endl;
+          sgt.d_type = PARSER_STATE->getSort(name);
+          sgt.d_gterm_type = SygusGTerm::gterm_nested_sort;
         }else{
-          //prepend function name to base sorts when reading an operator
-          std::stringstream ss;
-          ss << fun << "_" << name;
-          name = ss.str();
-          if( PARSER_STATE->isDeclared(name, SYM_SORT) ){
-            Debug("parser-sygus") << "Sygus grammar " << fun
-                                  << " : nested sort " << name << std::endl;
-            sgt.d_type = PARSER_STATE->getSort(name);
-            sgt.d_gterm_type = SygusGTerm::gterm_nested_sort;
-          }else{
-            Debug("parser-sygus") << "Sygus grammar " << fun
-                                  << " : unresolved symbol " << name
-                                  << std::endl;
-            sgt.d_gterm_type = SygusGTerm::gterm_unresolved;
-            sgt.d_name = name;
-          }
+          Debug("parser-sygus") << "Sygus grammar " << fun
+                                << " : unresolved symbol " << name
+                                << std::endl;
+          sgt.d_gterm_type = SygusGTerm::gterm_unresolved;
+          sgt.d_name = name;
         }
       }
     }
@@ -1463,6 +1450,12 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
+  | DECLARE_HEAP LPAREN_TOK 
+    sortSymbol[t,CHECK_DECLARED] 
+    sortSymbol[t, CHECK_DECLARED]
+    // We currently do nothing with the type information declared for the heap.
+    { cmd->reset(new EmptyCommand()); }
+    RPAREN_TOK
   ;
 
 
@@ -1804,7 +1797,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patconds;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  Type type;
+  Type type, type2;
   std::string s;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
@@ -1995,7 +1988,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-
   | LPAREN_TOK
     ( /* An indexed function application */
       indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK { 
@@ -2214,15 +2206,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
     }
-  | symbol[name,CHECK_NONE,SYM_VARIABLE] SYGUS_ENUM_CONS_TOK
-    symbol[name2,CHECK_NONE,SYM_VARIABLE]
-    { std::string cname = name + "__Enum__" + name2;
-      Debug("parser-sygus") << "Check for enum const " << cname << std::endl;
-      expr = PARSER_STATE->getVariable(cname);
-      // expr.getType().isConstructor() &&
-      // ConstructorType(expr.getType()).getArity()==0;
-      expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-    }
 
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
@@ -2340,6 +2323,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
                                                                 AntlrInput::tokenToUnsigned($sb)),
                                               true)); }
+    | EMP_TOK
+      sortSymbol[type,CHECK_DECLARED]
+      sortSymbol[type2,CHECK_DECLARED]
+      {
+        Expr v1 = PARSER_STATE->mkVar("_emp1", type);
+        Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
+        expr = MK_EXPR(kind::SEP_EMP,v1,v2);
+      }
     // NOTE: Theory parametric constants go here
 
     )
@@ -3144,6 +3135,8 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
+DECLARE_HEAP : 'declare-heap';
+EMP_TOK : 'emp';
 
 // SyGuS commands
 SYNTH_FUN_TOK : 'synth-fun';
@@ -3154,8 +3147,6 @@ DECLARE_PRIMED_VAR_TOK : 'declare-primed-var';
 CONSTRAINT_TOK : 'constraint';
 INV_CONSTRAINT_TOK : 'inv-constraint';
 SET_OPTIONS_TOK : 'set-options';
-SYGUS_ENUM_TOK : { PARSER_STATE->sygus() }? 'Enum';
-SYGUS_ENUM_CONS_TOK : { PARSER_STATE->sygus() }? '::';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
 SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 SYGUS_INPUT_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'InputVariable';
