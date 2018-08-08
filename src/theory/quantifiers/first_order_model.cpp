@@ -472,8 +472,7 @@ void FirstOrderModelIG::UfModelTreeGenerator::setValue(
   d_set_values[isReq ? 1 : 0][ground ? 1 : 0][n] = v;
   if (!ground)
   {
-    unsigned defSize = d_defaults.size();
-    for (unsigned i = 0; i < defSize; i++)
+    for (unsigned i = 0, defSize = d_defaults.size(); i < defSize; i++)
     {
       // for correctness, to allow variable order-independent function
       // interpretations, we must ensure that the intersection of all default
