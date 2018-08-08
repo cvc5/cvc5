@@ -1,11 +1,3 @@
-// We safely ignore some C++11 keywords that older versions of SWIG cannot
-// handle.
-#if SWIG_VERSION < 0x030000
-%define final %enddef
-%define override %enddef
-%define noexcept %enddef
-#endif
-
 %import "bindings/swig.h"
 
 %include "stdint.i"
