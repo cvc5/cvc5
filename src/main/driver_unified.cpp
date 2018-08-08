@@ -29,7 +29,6 @@
 #include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
-#include "base/tls.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
@@ -57,7 +56,7 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREAD_LOCAL Options* pOptions;
+    thread_local Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;

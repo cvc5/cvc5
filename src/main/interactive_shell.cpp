@@ -39,7 +39,6 @@
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "base/tls.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "parser/input.h"
@@ -385,8 +384,8 @@ struct StringPrefix2Less {
 };/* struct StringPrefix2Less */
 
 char* commandGenerator(const char* text, int state) {
-  static CVC4_THREAD_LOCAL const std::string* rlCommand;
-  static CVC4_THREAD_LOCAL set<string>::const_iterator* rlDeclaration;
+  static thread_local const std::string* rlCommand;
+  static thread_local set<string>::const_iterator* rlDeclaration;
 
   const std::string* i = lower_bound(commandsBegin, commandsEnd, text, StringPrefix2Less());
   const std::string* j = upper_bound(commandsBegin, commandsEnd, text, StringPrefix1Less());

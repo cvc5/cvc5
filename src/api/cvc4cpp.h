@@ -1353,8 +1353,8 @@ class CVC4_PUBLIC Solver
   /**
    * Disallow copy/assignment.
    */
-  Solver(const Solver&) CVC4_UNDEFINED;
-  Solver& operator=(const Solver&) CVC4_UNDEFINED;
+  Solver(const Solver&) = delete;
+  Solver& operator=(const Solver&) = delete;
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
