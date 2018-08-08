@@ -43,7 +43,6 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   std::vector<Node> qvars;
   std::map<TypeNode, std::vector<Node> > qtvars;
   std::vector<Node> free_functions;
-  std::vector<Node> free_functions_uf;
 
   std::vector<TNode> visit;
   std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -143,7 +142,6 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
               == free_functions.end())
           {
             free_functions.push_back(op);
-            free_functions_uf.push_back(op);
           }
         }
         else if (cur.getKind() == VARIABLE)
