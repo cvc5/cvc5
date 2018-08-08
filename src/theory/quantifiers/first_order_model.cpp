@@ -2,9 +2,9 @@
 /*! \file first_order_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -387,16 +387,6 @@ Node FirstOrderModel::getModelBasis(Node q, Node n)
   return gn;
 }
 
-Node FirstOrderModel::getModelBasisBody(Node q)
-{
-  if (d_model_basis_body.find(q) == d_model_basis_body.end())
-  {
-    Node n = d_qe->getTermUtil()->getInstConstantBody(q);
-    d_model_basis_body[q] = getModelBasis(q, n);
-  }
-  return d_model_basis_body[q];
-}
-
 void FirstOrderModel::computeModelBasisArgAttribute(Node n)
 {
   if (!n.hasAttribute(ModelBasisArgAttribute()))
@@ -584,8 +574,6 @@ void FirstOrderModelIG::resetEvaluate(){
   d_eval_uf_use_default.clear();
   d_eval_uf_model.clear();
   d_eval_term_index_order.clear();
-  d_eval_failed.clear();
-  d_eval_failed_lits.clear();
   d_eval_formulas = 0;
   d_eval_uf_terms = 0;
   d_eval_lits = 0;
@@ -676,12 +664,6 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
     return 0;
   }else{
     ++d_eval_lits;
-    ////if we know we will fail again, immediately return
-    //if( d_eval_failed.find( n )!=d_eval_failed.end() ){
-    //  if( d_eval_failed[n] ){
-    //    return -1;
-    //  }
-    //}
     //Debug("fmf-eval-debug") << "Evaluate literal " << n << std::endl;
     int retVal = 0;
     depIndex = ri->getNumTerms()-1;
@@ -707,11 +689,6 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
       ++d_eval_lits_unknown;
       Trace("fmf-eval-amb") << "Neither true nor false : " << n << std::endl;
       Trace("fmf-eval-amb") << "   value : " << val << std::endl;
-      //std::cout << "Neither true nor false : " << n << std::endl;
-      //std::cout << "  Value : " << val << std::endl;
-      //for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      //  std::cout << "   " << i << " : " << n[i].getType() << std::endl;
-      //}
     }
     return retVal;
   }
@@ -834,13 +811,6 @@ Node FirstOrderModelIG::evaluateTermDefault( Node n, int& depIndex, std::vector<
     Node val = NodeManager::currentNM()->mkNode( n.getKind(), children );
     return val;
   }
-}
-
-void FirstOrderModelIG::clearEvalFailed( int index ){
-  for( int i=0; i<(int)d_eval_failed_lits[index].size(); i++ ){
-    d_eval_failed[ d_eval_failed_lits[index][i] ] = false;
-  }
-  d_eval_failed_lits[index].clear();
 }
 
 void FirstOrderModelIG::makeEvalUfModel( Node n ){
@@ -969,14 +939,6 @@ Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & a
 
 void FirstOrderModelFmc::processInitialize( bool ispre ) {
   if( ispre ){
-    if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && intervalOp.isNull() ){
-      std::vector< TypeNode > types;
-      for(unsigned i=0; i<2; i++){
-        types.push_back(NodeManager::currentNM()->integerType());
-      }
-      TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->integerType() );
-      intervalOp = NodeManager::currentNM()->mkSkolem( "interval", typ, "op representing interval" );
-    }
     for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
       it->second->reset();
     }
@@ -1006,14 +968,6 @@ Node FirstOrderModelFmc::getStar(TypeNode tn) {
     return st;
   }
   return it->second;
-}
-
-Node FirstOrderModelFmc::getStarElement(TypeNode tn) {
-  Node st = getStar(tn);
-  if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && tn.isInteger() ){
-    st = getInterval( st, st );
-  }
-  return st;
 }
 
 Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
@@ -1060,14 +1014,8 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       std::vector< Node > children;
       for( unsigned j=0; j<cond.getNumChildren(); j++) {
         TypeNode tn = vars[j].getType();
-        if (isInterval(cond[j])){
-          if( !isStar(cond[j][0]) ){
-            children.push_back( NodeManager::currentNM()->mkNode( GEQ, vars[j], cond[j][0] ) );
-          }
-          if( !isStar(cond[j][1]) ){
-            children.push_back( NodeManager::currentNM()->mkNode( LT, vars[j], cond[j][1] ) );
-          }
-        }else if( !isStar(cond[j]) ){
+        if (!isStar(cond[j]))
+        {
           Node c = getRepresentative( cond[j] );
           c = getRepresentative( c );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
@@ -1084,34 +1032,6 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   curr = Rewriter::rewrite( curr );
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
 }
-
-bool FirstOrderModelFmc::isInterval(Node n) {
-  return n.getKind()==APPLY_UF && n.getOperator()==intervalOp;
-}
-
-Node FirstOrderModelFmc::getInterval( Node lb, Node ub ){
-  return NodeManager::currentNM()->mkNode( APPLY_UF, intervalOp, lb, ub );
-}
-
-bool FirstOrderModelFmc::isInRange( Node v, Node i ) {
-  if( isStar( i ) ){
-    return true;
-  }else if( isInterval( i ) ){
-    for( unsigned b=0; b<2; b++ ){
-      if( !isStar( i[b] ) ){
-        if( ( b==0 && i[b].getConst<Rational>() > v.getConst<Rational>() ) ||
-            ( b==1 && i[b].getConst<Rational>() <= v.getConst<Rational>() ) ){
-          return false;
-        }
-      }
-    }
-    return true;
-  }else{
-    return v==i;
-  }
-}
-
-
 
 FirstOrderModelAbs::FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name) :
 FirstOrderModel(qe, c, name) {

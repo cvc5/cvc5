@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file ce_guided_pbe.cpp
+/*! \file sygus_pbe.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,7 +48,7 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
     Node neval;
     Node n_output;
     bool neval_is_evalapp = false;
-    if (datatypes::DatatypesRewriter::isSygusEvalApp(n))
+    if (n.getKind() == DT_SYGUS_EVAL)
     {
       neval = n;
       if( hasPol ){
@@ -57,7 +57,7 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
       neval_is_evalapp = true;
     }else if( n.getKind()==EQUAL && hasPol && !pol ){
       for( unsigned r=0; r<2; r++ ){
-        if (datatypes::DatatypesRewriter::isSygusEvalApp(n[r]))
+        if (n[r].getKind() == DT_SYGUS_EVAL)
         {
           neval = n[r];
           if( n[1-r].isConst() ){
@@ -410,19 +410,38 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){
     unsigned min_term_size = 0;
-    std::vector< unsigned > enum_consider;
     Trace("sygus-pbe-enum") << "Register new enumerated values : " << std::endl;
-    for( unsigned i=0; i<enums.size(); i++ ){
-      Trace("sygus-pbe-enum") << "  " << enums[i] << " -> " << enum_values[i] << std::endl;
+    std::vector<unsigned> szs;
+    for (unsigned i = 0, esize = enums.size(); i < esize; i++)
+    {
+      Trace("sygus-pbe-enum") << "  " << enums[i] << " -> ";
+      TermDbSygus::toStreamSygus("sygus-pbe-enum", enum_values[i]);
+      Trace("sygus-pbe-enum") << std::endl;
       unsigned sz = d_tds->getSygusTermSize( enum_values[i] );
+      szs.push_back(sz);
       if( i==0 || sz<min_term_size ){
-        enum_consider.clear();
         min_term_size = sz;
-        enum_consider.push_back( i );
-      }else if( sz==min_term_size ){
+      }
+    }
+    // Assume two enumerators of types T1 and T2.
+    // If options::sygusPbeMultiFair() is true,
+    // we ensure that all values of type T1 and size n are enumerated before
+    // any term of type T2 of size n+d, and vice versa, where d is
+    // set by options::sygusPbeMultiFairDiff(). If d is zero, then our
+    // enumeration is such that all terms of T1 or T2 of size n are considered
+    // before any term of size n+1.
+    int diffAllow = options::sygusPbeMultiFairDiff();
+    std::vector<unsigned> enum_consider;
+    for (unsigned i = 0, esize = enums.size(); i < esize; i++)
+    {
+      Assert(szs[i] >= min_term_size);
+      int diff = szs[i] - min_term_size;
+      if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+      {
         enum_consider.push_back( i );
       }
     }
+
     // only consider the enumerators that are at minimum size (for fairness)
     Trace("sygus-pbe-enum") << "...register " << enum_consider.size() << " / " << enums.size() << std::endl;
     NodeManager* nm = NodeManager::currentNM();

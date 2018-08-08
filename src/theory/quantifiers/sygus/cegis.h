@@ -2,9 +2,9 @@
 /*! \file cegis.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,7 +77,7 @@ class Cegis : public SygusModule
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
-  /** do cegis-implementation-specific intialization for this class */
+  /** do cegis-implementation-specific initialization for this class */
   virtual bool processInitialize(Node n,
                                  const std::vector<Node>& candidates,
                                  std::vector<Node>& lemmas);

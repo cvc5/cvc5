@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,6 @@
 // This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
-#include "base/tls.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -56,7 +55,7 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREAD_LOCAL Options* pOptions;
+    thread_local Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;
@@ -282,14 +281,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 #endif /* PORTFOLIO_BUILD */
-      InteractiveShell shell(*exprMgr, opts);
+      InteractiveShell shell(*exprMgr);
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
           Message() << " [" << Configuration::getGitId() << "]";
-        } else if(Configuration::isSubversionBuild()) {
-          Message() << " [" << Configuration::getSubversionId() << "]";
         }
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"

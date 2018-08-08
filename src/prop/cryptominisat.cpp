@@ -2,9 +2,9 @@
 /*! \file cryptominisat.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King
+ **   Liana Hadarean, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -162,6 +162,18 @@ SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
   // CMSat::SalverConf conf = d_solver->getConf();
   Unreachable("Not sure how to set different limits for calls to solve in Cryptominisat"); 
   return solve();
+}
+
+SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
+{
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  std::vector<CMSat::Lit> assumpts;
+  for (const SatLiteral& lit : assumptions)
+  {
+    assumpts.push_back(toInternalLit(lit));
+  }
+  ++d_statistics.d_statCallsToSolve;
+  return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
 SatValue CryptoMinisatSolver::value(SatLiteral l){

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -287,6 +287,7 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
+    defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
     addStringOperators();
     break;
@@ -625,10 +626,12 @@ Expr Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed) 
   d_sygusVars.push_back(e);
   d_sygusVarPrimed[e] = false;
   if( isPrimed ){
+    d_sygusInvVars.push_back(e);
     std::stringstream ss;
     ss << name << "'";
     Expr ep = mkBoundVar(ss.str(), type);
     d_sygusVars.push_back(ep);
+    d_sygusInvVars.push_back(ep);
     d_sygusVarPrimed[ep] = true;
   }
   return e;
@@ -1228,15 +1231,14 @@ Expr Smt2::makeSygusBoundVarList(Datatype& dt,
 }
 
 const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
-  for( unsigned i=0; i<d_sygusVars.size(); i++ ){
-    Expr v = d_sygusVars[i];
+  for (unsigned i = 0, size = d_sygusInvVars.size(); i < size; i++)
+  {
+    Expr v = d_sygusInvVars[i];
     std::map< Expr, bool >::iterator it = d_sygusVarPrimed.find( v );
     if( it!=d_sygusVarPrimed.end() ){
       if( it->second==isPrimed ){
         vars.push_back( v );
       }
-    }else{
-      //should never happen
     }
   }
 }

@@ -2,7 +2,7 @@
 /*! \file bool_to_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Clark Barrett
+ **   Yoni Zohar, Makai Mann
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -95,7 +95,13 @@ Node BoolToBV::lowerNode(TNode current, bool topLevel)
       Kind new_kind = kind;
       switch (kind)
       {
-        case kind::EQUAL: new_kind = kind::BITVECTOR_COMP; break;
+        case kind::EQUAL:
+          if (current[0].getType().isBitVector()
+              || current[0].getType().isBoolean())
+          {
+            new_kind = kind::BITVECTOR_COMP;
+          }
+          break;
         case kind::AND: new_kind = kind::BITVECTOR_AND; break;
         case kind::OR: new_kind = kind::BITVECTOR_OR; break;
         case kind::NOT: new_kind = kind::BITVECTOR_NOT; break;

@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file options.cpp
+/*! \file options_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Kshitij Bansal
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,7 +48,6 @@ extern int optreset;
 #include <sstream>
 #include <limits>
 
-#include "base/tls.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/output.h"
@@ -73,7 +72,7 @@ using namespace CVC4::options;
 
 namespace CVC4 {
 
-CVC4_THREAD_LOCAL Options* Options::s_current = NULL;
+thread_local Options* Options::s_current = NULL;
 
 
 

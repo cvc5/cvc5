@@ -2,9 +2,9 @@
 /*! \file regexp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include "util/rational.h"
 
 namespace CVC4 {
 
@@ -178,8 +179,14 @@ class CVC4_PUBLIC String {
   */
   std::size_t roverlap(const String& y) const;
 
+  /**
+   * Returns true if this string corresponds in text to a number, for example
+   * this returns true for strings "7", "12", "004", "0" and false for strings
+   * "abc", "4a", "-4", "".
+   */
   bool isNumber() const;
-  int toNumber() const;
+  /** Returns the corresponding rational for the text of this string. */
+  Rational toNumber() const;
 
   const std::vector<unsigned>& getVec() const { return d_str; }
   /** is the unsigned a digit?

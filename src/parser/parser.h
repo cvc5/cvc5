@@ -2,9 +2,9 @@
 /*! \file parser.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -540,7 +540,10 @@ public:
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  SortConstructorType mkSortConstructor(const std::string& name, size_t arity);
+  SortConstructorType mkSortConstructor(
+      const std::string& name,
+      size_t arity,
+      uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new "unresolved type," used only during parsing.

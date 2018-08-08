@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 m4_define(_CVC4_MAJOR,          1)       dnl version (major)
-m4_define(_CVC4_MINOR,          6)       dnl version (minor)
+m4_define(_CVC4_MINOR,          7)       dnl version (minor)
 m4_define(_CVC4_RELEASE,        0)       dnl version (alpha)
 m4_define(_CVC4_EXTRAVERSION,   [-prerelease])      dnl version (extra)
 m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[0],,[.]_CVC4_RELEASE)_CVC4_EXTRAVERSION) dnl version string
@@ -913,7 +913,7 @@ AC_ARG_WITH([cryptominisat],
 CVC4_CHECK_FOR_CRYPTOMINISAT
 if test $have_libcryptominisat -eq 1; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_CRYPTOMINISAT"
-  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$CRYPTOMINISAT_HOME/install/include"
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$CRYPTOMINISAT_HOME/include"
 fi
 AM_CONDITIONAL([CVC4_USE_CRYPTOMINISAT], [test $have_libcryptominisat -eq 1])
 AC_SUBST([CRYPTOMINISAT_LDFLAGS])
@@ -1078,26 +1078,26 @@ else
   # cxxtest under <cxxtest-root>/bin/cxxtest
   AC_PATH_PROGS(CXXTESTGEN,
                 cxxtestgen.pl cxxtestgen.py cxxtestgen,
-                [
-                  AC_MSG_NOTICE([unit tests disabled, \
-                                 could not find cxxtestgen.pl or \
-                                 cxxtestgen.py or cxxtestgen])
-                  CXXTEST=
-                ],
+                [],
                 [$CXXTEST:$CXXTEST/bin:$PATH])
 
-  if test -n "$CXXTESTGEN" -a "`basename $CXXTESTGEN`" = "cxxtestgen.pl"; then
-    if test -z "$PERL"; then
-      AC_CHECK_PROGS(PERL, perl, perl, [])
-    else
-      AC_CHECK_PROG(PERL, "$PERL", "$PERL", [])
-    fi
+  if test -n "$CXXTESTGEN"; then
+    if "`basename $CXXTESTGEN`" = "cxxtestgen.pl"; then
+      if test -z "$PERL"; then
+        AC_CHECK_PROGS(PERL, perl, perl, [])
+      else
+        AC_CHECK_PROG(PERL, "$PERL", "$PERL", [])
+      fi
 
-    if test -z "$PERL"; then
-      AC_MSG_WARN([unit tests disabled, perl not found.])
-      CXXTESTGEN=
-      CXXTEST=
+      if test -z "$PERL"; then
+        AC_MSG_WARN([unit tests disabled, perl not found.])
+        CXXTESTGEN=
+        CXXTEST=
+      fi
     fi
+  else
+    AC_MSG_NOTICE([unit tests disabled, could not find cxxtestgen.pl or cxxtestgen.py or cxxtestgen])
+    CXXTEST=
   fi
 
   # check if CxxTest headers exist and set include paths accordingly
@@ -1142,19 +1142,10 @@ AM_CONDITIONAL([HAVE_CXXTESTGEN], [test -n "$CXXTESTGEN"])
 
 AC_ARG_VAR(PERL, [PERL interpreter (used when testing)])
 
-AC_ARG_VAR(PYTHON, [PYTHON interpreter (used for building legacy Java library interface)])
-
-if test -z "$PYTHON"; then
-  AC_CHECK_PROGS(PYTHON, python, python, [])
-else
-  AC_CHECK_PROG(PYTHON, "$PYTHON", "$PYTHON", [])
-fi
-
-if test -z "$PYTHON"; then
-  AC_MSG_WARN([python not found, cannot build libcvc4compat_java (the legacy Java interface).])
-  CXXTESTGEN=
-  CXXTEST=
-fi
+# Python is now a required dependency for generating options code
+AM_PATH_PYTHON([2.7],, [
+  AC_MSG_ERROR([Python not found.])
+])
 
 # Checks for libraries.
 

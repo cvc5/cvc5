@@ -199,7 +199,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "termDbMode"
   category   = "regular"
-  long       = "term-db-mode"
+  long       = "term-db-mode=MODE"
   type       = "CVC4::theory::quantifiers::TermDbMode"
   default    = "CVC4::theory::quantifiers::TERM_DB_ALL"
   handler    = "stringToTermDbMode"
@@ -331,7 +331,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "triggerSelMode"
   category   = "regular"
-  long       = "trigger-sel"
+  long       = "trigger-sel=MODE"
   type       = "CVC4::theory::quantifiers::TriggerSelMode"
   default    = "CVC4::theory::quantifiers::TRIGGER_SEL_MIN"
   handler    = "stringToTriggerSelMode"
@@ -341,7 +341,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "triggerActiveSelMode"
   category   = "regular"
-  long       = "trigger-active-sel"
+  long       = "trigger-active-sel=MODE"
   type       = "CVC4::theory::quantifiers::TriggerActiveSelMode"
   default    = "CVC4::theory::quantifiers::TRIGGER_ACTIVE_SEL_ALL"
   handler    = "stringToTriggerActiveSelMode"
@@ -627,15 +627,13 @@ header = "options/quantifiers_options.h"
   help       = "enforce bounds for bounded quantification lazily via use of proxy variables"
 
 [[option]]
-  name       = "fmfBoundMinMode"
+  name       = "fmfTypeCompletionThresh"
   category   = "regular"
-  long       = "fmf-bound-min-mode=MODE"
-  type       = "CVC4::theory::quantifiers::FmfBoundMinMode"
-  default    = "CVC4::theory::quantifiers::FMF_BOUND_MIN_INT_RANGE"
-  handler    = "stringToFmfBoundMinMode"
-  includes   = ["options/quantifiers_modes.h"]
+  long       = "fmf-type-completion-thresh=N"
+  type       = "int"
+  default    = "1000"
   read_only  = true
-  help       = "mode for which types of bounds to minimize via first decision heuristics"
+  help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
 
 [[option]]
   name       = "quantConflictFind"
@@ -917,11 +915,30 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "cegqiSingleInvReconstruct"
   category   = "regular"
-  long       = "cegqi-si-reconstruct"
+  long       = "cegqi-si-rcons=MODE"
+  type       = "CVC4::theory::quantifiers::CegqiSingleInvRconsMode"
+  default    = "CVC4::theory::quantifiers::CEGQI_SI_RCONS_MODE_ALL_LIMIT"
+  handler    = "stringToCegqiSingleInvRconsMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "policy for reconstructing solutions for single invocation conjectures"
+
+[[option]]
+  name       = "cegqiSingleInvReconstructLimit"
+  category   = "regular"
+  long       = "cegqi-si-rcons-limit=N"
+  type       = "int"
+  default    = "10000"
+  read_only  = true
+  help       = "number of rounds of enumeration to use during solution reconstruction (negative means unlimited)"
+
+[[option]]
+  name       = "cegqiSingleInvReconstructConst"
+  category   = "regular"
+  long       = "cegqi-si-reconstruct-const"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "reconstruct solutions for single invocation conjectures in original grammar"
+  help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
 
 [[option]]
   name       = "cegqiSolMinCore"
@@ -942,15 +959,6 @@ header = "options/quantifiers_options.h"
   help       = "minimize individual instantiations for single invocation conjectures based on unsat core"
 
 [[option]]
-  name       = "cegqiSingleInvReconstructConst"
-  category   = "regular"
-  long       = "cegqi-si-reconstruct-const"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
-
-[[option]]
   name       = "cegqiSingleInvAbort"
   category   = "regular"
   long       = "cegqi-si-abort"
@@ -958,6 +966,15 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "abort if synthesis conjecture is not single invocation"
+
+[[option]]
+  name       = "sygusConstRepairAbort"
+  category   = "regular"
+  long       = "sygus-crepair-abort"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "abort if constant repair techniques are not applicable"
 
 [[option]]
   name       = "sygusUnif"
@@ -1066,6 +1083,22 @@ header = "options/quantifiers_options.h"
   help       = "enable approach which unifies conditional solutions, specialized for programming-by-examples (pbe) conjectures"
 
 [[option]]
+  name       = "sygusPbeMultiFair"
+  category   = "regular"
+  long       = "sygus-pbe-multi-fair"
+  type       = "bool"
+  default    = "true"
+  help       = "when using multiple enumerators, ensure that we only register value of minimial term size"
+
+[[option]]
+  name       = "sygusPbeMultiFairDiff"
+  category   = "regular"
+  long       = "sygus-pbe-multi-fair-diff=N"
+  type       = "int"
+  default    = "0"
+  help       = "when using multiple enumerators, ensure that we only register values of minimial term size plus this value (default 0)"
+
+[[option]]
   name       = "sygusEvalUnfold"
   category   = "regular"
   long       = "sygus-eval-unfold"
@@ -1101,6 +1134,14 @@ header = "options/quantifiers_options.h"
   help       = "enumerate a stream of solutions instead of terminating after the first one"
 
 [[option]]
+  name       = "sygusVerifySubcall"
+  category   = "regular"
+  long       = "sygus-verify-subcall"
+  type       = "bool"
+  default    = "true"
+  help       = "use separate copy of the SMT solver for verification lemmas in sygus"
+
+[[option]]
   name       = "sygusExtRew"
   category   = "regular"
   long       = "sygus-ext-rew"
@@ -1117,6 +1158,22 @@ header = "options/quantifiers_options.h"
   handler    = "stringToCegisSampleMode"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for using samples in the counterexample-guided inductive synthesis loop"
+
+[[option]]
+  name       = "minSynthSol"
+  category   = "regular"
+  long       = "min-synth-sol"
+  type       = "bool"
+  default    = "true"
+  help       = "Minimize synthesis solutions"
+  
+[[option]]
+  name       = "sygusEvalOpt"
+  category   = "regular"
+  long       = "sygus-eval-opt"
+  type       = "bool"
+  default    = "true"
+  help       = "use optimized approach for evaluation in sygus"
 
 # Internal uses of sygus
 
@@ -1195,6 +1252,14 @@ header = "options/quantifiers_options.h"
   help       = "when applicable, use grammar for choosing sample points"
 
 [[option]]
+  name       = "sygusSampleFpUniform"
+  category   = "regular"
+  long       = "sygus-sample-fp-uniform"
+  type       = "bool"
+  default    = "false"
+  help       = "sample floating-point values uniformly instead of in a biased fashion"
+
+[[option]]
   name       = "sygusRewSynthAccel"
   category   = "regular"
   long       = "sygus-rr-synth-accel"
@@ -1209,6 +1274,13 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthCheckTimeout"
+  category   = "regular"
+  long       = "sygus-rr-synth-check-timeout=N"
+  type       = "unsigned long"
+  help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
 
 # CEGQI applied to general quantified formulas
 

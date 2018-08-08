@@ -149,7 +149,7 @@ $(CPP_TEMPLATE_FILES):;
 $(OPTIONS_GEN_CPP) $(OPTIONS_GEN_H) options_holder.h $(DOCUMENTATION_FILES): options.cpp
 
 options.cpp: mkoptions.py $(CPP_TEMPLATE_FILES) $(OPTIONS_CONFIG_FILES) $(DOCUMENTATION_TEMPLATE_FILES)
-	@srcdir@/mkoptions.py @abs_srcdir@ ../../doc . $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))
+	$(PYTHON) @srcdir@/mkoptions.py @abs_srcdir@ ../../doc . $(addprefix @abs_srcdir@/, $(OPTIONS_CONFIG_FILES))
 
 # This rule is ugly.  It's needed to ensure that automake's dependence
 # includes are available during distclean, even though they come from

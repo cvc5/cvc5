@@ -267,7 +267,9 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
-      out << '@' << uc;
+      std::stringstream ss;
+      ss << '@' << uc;
+      out << maybeQuoteSymbol(ss.str());
       break;
     }
 
@@ -605,6 +607,7 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::MEMBER: typeChildren = true;
+  case kind::INSERT:
   case kind::SET_TYPE:
   case kind::SINGLETON:
   case kind::COMPLEMENT: out << smtKindString(k, d_variant) << " "; break;
@@ -833,6 +836,18 @@ void Smt2Printer::toStream(std::ostream& out,
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
       Assert( n.hasOperator() );
       TypeNode opt = n.getOperator().getType();
+      if (n.getKind() == kind::APPLY_CONSTRUCTOR)
+      {
+        Type tn = n.getType().toType();
+        // may be parametric, in which case the constructor type must be
+        // specialized
+        const Datatype& dt = static_cast<DatatypeType>(tn).getDatatype();
+        if (dt.isParametric())
+        {
+          unsigned ci = Datatype::indexOf(n.getOperator().toExpr());
+          opt = TypeNode::fromType(dt[ci].getSpecializedConstructorType(tn));
+        }
+      }
       Assert( opt.getNumChildren() == n.getNumChildren() + 1 );
       for(size_t i = 0; i < n.getNumChildren(); ++i ) {
         force_child_type[i] = opt[i];
@@ -968,6 +983,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_SLE: return "bvsle";
   case kind::BITVECTOR_SGT: return "bvsgt";
   case kind::BITVECTOR_SGE: return "bvsge";
+  case kind::BITVECTOR_TO_NAT: return "bv2nat";
   case kind::BITVECTOR_REDOR: return "bvredor";
   case kind::BITVECTOR_REDAND: return "bvredand";
 
@@ -1068,6 +1084,8 @@ static string smtKindString(Kind k, Variant v)
     return v == smt2_6_1_variant ? "str.in-re" : "str.in.re";
   case kind::STRING_TO_REGEXP:
     return v == smt2_6_1_variant ? "str.to-re" : "str.to.re";
+  case kind::REGEXP_EMPTY: return "re.nostr";
+  case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";
@@ -1902,15 +1920,74 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
+      if (d.isParametric())
+      {
+        out << "(par (";
+        for (unsigned p = 0, nparam = d.getNumParameters(); p < nparam; p++)
+        {
+          out << (p > 0 ? " " : "") << d.getParameter(p);
+        }
+        out << ")";
+      }
       out << "(";
       toStream(out, d);
       out << ")";
+      if (d.isParametric())
+      {
+        out << ")";
+      }
     }
     out << ")";
   }
   else
   {
-    out << " () (";
+    out << " (";
+    // Can only print if all datatypes in this block have the same parameters.
+    // In theory, given input language 2.6 and output language 2.5, it could
+    // be impossible to print a datatype block where datatypes were given
+    // different parameter lists.
+    bool success = true;
+    const Datatype& d = datatypes[0].getDatatype();
+    unsigned nparam = d.getNumParameters();
+    for (unsigned j = 1, ndt = datatypes.size(); j < ndt; j++)
+    {
+      const Datatype& dj = datatypes[j].getDatatype();
+      if (dj.getNumParameters() != nparam)
+      {
+        success = false;
+      }
+      else
+      {
+        // must also have identical parameter lists
+        for (unsigned k = 0; k < nparam; k++)
+        {
+          if (dj.getParameter(k) != d.getParameter(k))
+          {
+            success = false;
+            break;
+          }
+        }
+      }
+      if (!success)
+      {
+        break;
+      }
+    }
+    if (success)
+    {
+      for (unsigned j = 0; j < nparam; j++)
+      {
+        out << (j > 0 ? " " : "") << d.getParameter(j);
+      }
+    }
+    else
+    {
+      out << std::endl;
+      out << "ERROR: datatypes in each block must have identical parameter "
+             "lists.";
+      out << std::endl;
+    }
+    out << ") (";
     for (vector<DatatypeType>::const_iterator i = datatypes.begin(),
                                               i_end = datatypes.end();
          i != i_end;

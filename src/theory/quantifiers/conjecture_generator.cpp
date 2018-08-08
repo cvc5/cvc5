@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1065,7 +1065,11 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
+    Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
+                              << ")" << std::endl;
     TermEnumeration* te = d_quantEngine->getTermEnumeration();
+    // below, we do a fair enumeration of vectors vec of indices whose sum is
+    // 1,2,3, ...
     std::vector< int > vec;
     std::vector< TypeNode > types;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -1078,34 +1082,44 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         return;
       }
     }
+    // the index of the last child is determined by the limit of the sum
+    // of indices of children (size_limit) and the sum of the indices of the
+    // other children (vec_sum). Hence, we pop here and add this value at each
+    // iteration of the loop.
     vec.pop_back();
     int size_limit = 0;
     int vec_sum = -1;
     unsigned index = 0;
     unsigned last_size = terms.size();
     while( terms.size()<num ){
-      bool success = true;
       if( vec_sum==-1 ){
         vec_sum = 0;
+        // we will construct a new child below
+        // since sum is 0, the index of last child is limit
         vec.push_back( size_limit );
-      }else{
+      }
+      else if (index < vec.size())
+      {
+        Assert(index < types.size());
         //see if we can iterate current
         if (vec_sum < size_limit
             && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
         {
           vec[index]++;
           vec_sum++;
+          // we will construct a new child below
+          // add the index of the last child, its index is (limit-sum)
           vec.push_back( size_limit - vec_sum );
         }else{
+          // reset the index
           vec_sum -= vec[index];
           vec[index] = 0;
           index++;
-          if( index==n.getNumChildren() ){
-            success = false;
-          }
         }
       }
-      if( success ){
+      if (index < vec.size())
+      {
+        // if we are ready to construct the term
         if( vec.size()==n.getNumChildren() ){
           Node lc =
               te->getEnumerateTerm(types[vec.size() - 1], vec[vec.size() - 1]);
@@ -1131,10 +1145,12 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             Trace("sg-gt-enum") << "Ground term enumerate : " << n << std::endl;
             terms.push_back( n );
           }
+          // pop the index for the last child
           vec.pop_back();
           index = 0;
         }
       }else{
+        // no more indices to increment, we reset and increment size_limit
         if( terms.size()>last_size ){
           last_size = terms.size();
           size_limit++;
@@ -1143,6 +1159,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           }
           vec_sum = -1;
         }else{
+          // No terms were generated at the previous size.
+          // Thus, we've saturated, no more terms can be enumerated.
           return;
         }
       }

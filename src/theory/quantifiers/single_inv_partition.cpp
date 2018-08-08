@@ -2,9 +2,9 @@
 /*! \file single_inv_partition.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -128,26 +128,38 @@ bool SingleInvocationPartition::inferArgTypes(Node n,
 
 bool SingleInvocationPartition::init(std::vector<Node>& funcs, Node n)
 {
-  Trace("si-prt") << "Initialize with " << funcs.size() << " input functions..."
-                  << std::endl;
+  Trace("si-prt") << "Initialize with " << funcs.size() << " input functions ("
+                  << funcs << ")..." << std::endl;
   std::vector<TypeNode> typs;
   if (!funcs.empty())
   {
     TypeNode tn0 = funcs[0].getType();
-    for (unsigned i = 1; i < funcs.size(); i++)
+    if (tn0.getNumChildren() > 0)
     {
-      if (funcs[i].getType() != tn0)
+      for (unsigned i = 0, nargs = tn0.getNumChildren() - 1; i < nargs; i++)
+      {
+        typs.push_back(tn0[i]);
+      }
+    }
+    for (unsigned i = 1, size = funcs.size(); i < size; i++)
+    {
+      TypeNode tni = funcs[i].getType();
+      if (tni.getNumChildren() != tn0.getNumChildren())
       {
         // can't anti-skolemize functions of different sort
         Trace("si-prt") << "...type mismatch" << std::endl;
         return false;
       }
-    }
-    if (tn0.getNumChildren() > 1)
-    {
-      for (unsigned j = 0; j < tn0.getNumChildren() - 1; j++)
+      else if (tni.getNumChildren() > 0)
       {
-        typs.push_back(tn0[j]);
+        for (unsigned j = 0, nargs = tni.getNumChildren() - 1; j < nargs; j++)
+        {
+          if (tni[j] != typs[j])
+          {
+            Trace("si-prt") << "...argument type mismatch" << std::endl;
+            return false;
+          }
+        }
       }
     }
   }
@@ -163,6 +175,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   Assert(d_arg_types.empty());
   Assert(d_input_funcs.empty());
   Assert(d_si_vars.empty());
+  NodeManager* nm = NodeManager::currentNM();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
   d_input_funcs.insert(d_input_funcs.end(), funcs.begin(), funcs.end());
@@ -171,10 +184,15 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   {
     std::stringstream ss;
     ss << "s_" << j;
-    Node si_v = NodeManager::currentNM()->mkBoundVar(ss.str(), d_arg_types[j]);
+    Node si_v = nm->mkBoundVar(ss.str(), d_arg_types[j]);
     d_si_vars.push_back(si_v);
   }
   Assert(d_si_vars.size() == d_arg_types.size());
+  for (const Node& inf : d_input_funcs)
+  {
+    Node sk = nm->mkSkolem("_sik", inf.getType());
+    d_input_func_sks.push_back(sk);
+  }
   Trace("si-prt") << "SingleInvocationPartition::process " << n << std::endl;
   Trace("si-prt") << "Get conjuncts..." << std::endl;
   std::vector<Node> conj;
@@ -187,7 +205,21 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       std::vector<Node> si_subs;
       Trace("si-prt") << "Process conjunct : " << conj[i] << std::endl;
       // do DER on conjunct
-      Node cr = TermUtil::getQuantSimplify(conj[i]);
+      // Must avoid eliminating the first-order input functions in the
+      // getQuantSimplify step below. We use a substitution to avoid this.
+      // This makes it so that e.g. the synthesis conjecture:
+      //   exists f. f!=0 ^ P
+      // is not rewritten to exists f. (f=0 => false) ^ P and subsquently
+      // rewritten to exists f. false ^ P by the elimination f -> 0.
+      Node cr = conj[i].substitute(d_input_funcs.begin(),
+                                   d_input_funcs.end(),
+                                   d_input_func_sks.begin(),
+                                   d_input_func_sks.end());
+      cr = TermUtil::getQuantSimplify(cr);
+      cr = cr.substitute(d_input_func_sks.begin(),
+                         d_input_func_sks.end(),
+                         d_input_funcs.begin(),
+                         d_input_funcs.end());
       if (cr != conj[i])
       {
         Trace("si-prt-debug") << "...rewritten to " << cr << std::endl;

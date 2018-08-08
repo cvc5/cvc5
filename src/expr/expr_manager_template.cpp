@@ -2,9 +2,9 @@
 /*! \file expr_manager_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
+ **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -146,7 +146,7 @@ StringType ExprManager::stringType() const {
 
 RegExpType ExprManager::regExpType() const {
   NodeManagerScope nms(d_nodeManager);
-  return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
+  return RegExpType(Type(d_nodeManager, new TypeNode(d_nodeManager->regExpType())));
 }
 
 RealType ExprManager::realType() const {
@@ -831,10 +831,13 @@ SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
 }
 
 SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
-                                                   size_t arity) const {
+                                                   size_t arity,
+                                                   uint32_t flags) const
+{
   NodeManagerScope nms(d_nodeManager);
-  return SortConstructorType(Type(d_nodeManager,
-              new TypeNode(d_nodeManager->mkSortConstructor(name, arity))));
+  return SortConstructorType(
+      Type(d_nodeManager,
+           new TypeNode(d_nodeManager->mkSortConstructor(name, arity, flags))));
 }
 
 /**
@@ -1022,6 +1025,16 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
     return to->mkTypeConst(n.getConst<TypeConstant>());
   } else if(n.getKind() == kind::BITVECTOR_TYPE) {
     return to->mkBitVectorType(n.getConst<BitVectorSize>());
+  }
+  else if (n.getKind() == kind::FLOATINGPOINT_TYPE)
+  {
+    return to->mkFloatingPointType(n.getConst<FloatingPointSize>());
+  }
+  else if (n.getNumChildren() == 0)
+  {
+    std::stringstream msg;
+    msg << "export of type " << n << " not supported";
+    throw ExportUnsupportedException(msg.str().c_str());
   }
   Type from_t = from->toType(n);
   Type& to_t = vmap.d_typeMap[from_t];
