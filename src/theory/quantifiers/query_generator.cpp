@@ -146,7 +146,39 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
 
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
-
+  // external query
+  if( options::sygusQueryGenDumpFiles() )
+  {
+    // Print the query and the query + its model (commented) to queryN.smt2
+    std::vector< Node > pt;
+    d_sampler->getSamplePoint(spIndex,pt);
+    unsigned nvars = d_svars.size();
+    AlwaysAssert( pt.size()==d_svars.size() );
+    std::stringstream fname;
+    fname << "query" << d_query_count << ".smt2";
+    std::ofstream fs(fname.str(),std::ofstream::out);
+    fs << "(set-logic ALL)" << std::endl;
+    for( unsigned i=0; i<2; i++ )
+    {
+      for( unsigned j=0; j<nvars; j++ )
+      {
+        Node x = d_svars[j];
+        if( i==0 )
+        {
+          fs << "(declare-fun " << x << " () " << x.getType() << ")";
+        }
+        else
+        {
+          fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j] << ")";
+        }
+        fs << std::endl;
+      }
+    }
+    fs << "(assert " << qy << ")" << std::endl;
+    fs << "(check-sat)" << std::endl;
+    fs.close();
+  }
+  
   if( options::sygusQueryGenCheck() )
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
@@ -175,22 +207,6 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "but CVC4 answered unsat!" << std::endl;
       AlwaysAssert(false, ss.str().c_str());
     }
-  }
-  
-  // external query
-  if( options::sygusQueryGenDumpFiles() )
-  {
-    std::stringstream fname;
-    fname << "query" << d_query_count << ".smt2";
-    std::ofstream fs(fname.str(),std::ofstream::out);
-    fs << "(set-logic ALL)" << std::endl;
-    for( const Node& x : d_svars )
-    {
-      fs << "(declare-fun " << x << " () " << x.getType() << ")" << std::endl;
-    }
-    fs << "(assert " << qy << ")" << std::endl;
-    fs << "(check-sat)" << std::endl;
-    fs.close();
   }
   
   
