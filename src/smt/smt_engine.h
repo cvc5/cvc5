@@ -402,8 +402,8 @@ class CVC4_PUBLIC SmtEngine {
   void addToModelCommandAndDump(const Command& c, uint32_t flags = 0, bool userVisible = true, const char* dumpTag = "declarations");
 
   // disallow copy/assignment
-  SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
-  SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
+  SmtEngine(const SmtEngine&) = delete;
+  SmtEngine& operator=(const SmtEngine&) = delete;
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& assumption,

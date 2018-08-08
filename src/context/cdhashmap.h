@@ -190,7 +190,7 @@ class CDOhash_map : public ContextObj {
         d_next(NULL)
   {
   }
-  CDOhash_map& operator=(const CDOhash_map&) CVC4_UNDEFINED;
+  CDOhash_map& operator=(const CDOhash_map&) = delete;
 
  public:
   CDOhash_map(Context* context,
@@ -303,8 +303,8 @@ class CDHashMap : public ContextObj {
   void restore(ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
-  CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
-  CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
+  CDHashMap(const CDHashMap&) = delete;
+  CDHashMap& operator=(const CDHashMap&) = delete;
 
 public:
   CDHashMap(Context* context)

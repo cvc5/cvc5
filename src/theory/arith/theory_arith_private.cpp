@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "base/output.h"
-#include "base/tls.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
@@ -4400,7 +4399,7 @@ void TheoryArithPrivate::presolve(){
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
-  static CVC4_THREAD_LOCAL unsigned callCount = 0;
+  static thread_local unsigned callCount = 0;
   if(Debug.isOn("arith::presolve")) {
     Debug("arith::presolve") << "TheoryArithPrivate::presolve #" << callCount << endl;
     callCount = callCount + 1;
