@@ -2823,17 +2823,19 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
-        // otherwise be introduced by beta-reduction via the rewriter. Hence,
-        // we expand here to ensure they are expanded during this call.
+        // otherwise be introduced by beta-reduction via the rewriter, but are
+        // not expanded here since the traversal in this function does not
+        // traverse the operators of nodes. Hence, we beta-reducte here to
+        // ensure operators in the body of the lambda are expanded during this
+        // call.
         if (n.getOperator().getKind() == kind::LAMBDA)
         {
           doExpand = true;
         }
         else if (options::macrosQuant() || options::sygusInference())
         {
-          // The above options that assign substitutions to APPLY_UF, thus we
-          // expand if we have inferred an operator corresponds to a defined
-          // function.
+          // The above options assign substitutions to APPLY_UF, thus we check
+          // here and expand if this operator corresponds to a defined function.
           doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
