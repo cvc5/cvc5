@@ -674,7 +674,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
             cset.insert(sc);
           }
         }
-        else if (st.getKind() == STRING_CONCAT)
+        else if (st.getKind() == kind::STRING_CONCAT)
         {
           if(st[0].isConst()) {
             CVC4::String s = st[0].getConst<CVC4::String>();
