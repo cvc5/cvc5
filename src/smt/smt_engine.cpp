@@ -2814,13 +2814,27 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       }
 
       // otherwise expand it
-      bool doExpand = k == kind::APPLY;
-      if( !doExpand ){
-        // options that assign substitutions to APPLY_UF
-        if (options::macrosQuant() || options::sygusInference())
+      bool doExpand = false;
+      if( k==kind::APPLY )
+      {
+        doExpand = true;
+      }
+      else if( k==kind::APPLY_UF )
+      {
+        // Always do beta-reduction here. The reason is that there may be
+        // operators such as INTS_MODULUS in the body of the lambda that would
+        // otherwise be introduced by beta-reduction via the rewriter. Hence,
+        // we expand here to ensure they are expanded during this call.
+        if( n.getOperator().getKind()==kind::LAMBDA )
         {
-          //expand if we have inferred an operator corresponds to a defined function
-          doExpand = k==kind::APPLY_UF && d_smt.isDefinedFunction( n.getOperator().toExpr() );
+          doExpand = true;
+        }
+        else if (options::macrosQuant() || options::sygusInference())
+        {
+          // The above options that assign substitutions to APPLY_UF, thus we
+          // expand if we have inferred an operator corresponds to a defined
+          // function.
+          doExpand = d_smt.isDefinedFunction( n.getOperator().toExpr() );
         }
       }
       if (doExpand) {
