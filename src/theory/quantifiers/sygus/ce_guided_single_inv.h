@@ -70,6 +70,15 @@ private:
    * a vector of variables pvars, where pvars.size()=n. For each ti that is
    * a variable, it adds ti to vars, and pvars[i] to subs. For each ti that is
    * not a variable, it adds the disequality ti != pvars[i] to disjuncts.
+   *
+   * This function is used for instance to normalize an arbitrary application of
+   * I so that is over arguments pvars. For instance if curr is I(3,5,y) and
+   * pvars = { x1,x2,x3 }, then the formula:
+   *   I(3,5,y) ^ P(y)
+   * is equivalent to:
+   *   x1 != 3 V x2 != 5 V I(x1,x2,x3) V P( y ) { y -> x3 }
+   * Here, we add y and x3 to vars and subs respectively, and x1!=3 and x2!=5
+   * to disjuncts.
    */
   void getNormalizedSubstitution(Node curr,
                                  const std::vector<Node>& pvars,
