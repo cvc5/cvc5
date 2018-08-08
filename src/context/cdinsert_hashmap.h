@@ -214,7 +214,7 @@ private:
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
-  CDInsertHashMap& operator=(const CDInsertHashMap&) CVC4_UNDEFINED;
+  CDInsertHashMap& operator=(const CDInsertHashMap&) = delete;
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies
