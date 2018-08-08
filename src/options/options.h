@@ -26,7 +26,6 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
-#include "base/tls.h"
 #include "options/argument_extender.h"
 #include "options/language.h"
 #include "options/option_exception.h"
@@ -47,7 +46,7 @@ class CVC4_PUBLIC Options {
   options::OptionsHandler* d_handler;
 
   /** The current Options in effect */
-  static CVC4_THREAD_LOCAL Options* s_current;
+  static thread_local Options* s_current;
 
   /** Listeners for options::forceLogicString being set. */
   ListenerCollection d_forceLogicListeners;
