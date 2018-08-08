@@ -69,11 +69,10 @@ private:
                    LineBuffer* line_buffer);
 
   /* This is private and unimplemented, because you should never use it. */
-  AntlrInputStream(const AntlrInputStream& inputStream) CVC4_UNDEFINED;
+  AntlrInputStream(const AntlrInputStream& inputStream) = delete;
 
   /* This is private and unimplemented, because you should never use it. */
-  AntlrInputStream& operator=(const AntlrInputStream& inputStream)
-    CVC4_UNDEFINED;
+  AntlrInputStream& operator=(const AntlrInputStream& inputStream) = delete;
 
 public:
 

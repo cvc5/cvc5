@@ -606,6 +606,7 @@ REG0_TESTS = \
 	regress0/quantifiers/ex3.smt2 \
 	regress0/quantifiers/ex6.smt2 \
 	regress0/quantifiers/floor.smt2 \
+	regress0/quantifiers/horn-ground-pre-post.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
 	regress0/quantifiers/issue1805.smt2 \
@@ -1473,6 +1474,7 @@ REG1_TESTS = \
 	regress1/strings/norn-simp-rew-sat.smt2 \
 	regress1/strings/nterm-re-inter-sigma.smt2 \
 	regress1/strings/pierre150331.smt2 \
+	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \
 	regress1/strings/regexp003.smt2 \
@@ -1509,6 +1511,8 @@ REG1_TESTS = \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
 	regress1/sygus/constant.sy \
+	regress1/sygus/constant-bool-si-all.sy \
+	regress1/sygus/constant-dec-tree-bug.sy \
 	regress1/sygus/constant-ite-bv.sy \
 	regress1/sygus/crci-ssb-unk.sy \
 	regress1/sygus/crcy-si-rcons.sy \
@@ -1543,6 +1547,7 @@ REG1_TESTS = \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
+	regress1/sygus/simple-regexp.sy \
 	regress1/sygus/stopwatch-bt.sy \
 	regress1/sygus/strings-concat-3-args.sy \
 	regress1/sygus/strings-double-rec.sy \

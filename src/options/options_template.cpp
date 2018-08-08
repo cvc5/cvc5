@@ -48,7 +48,6 @@ extern int optreset;
 #include <sstream>
 #include <limits>
 
-#include "base/tls.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/output.h"
@@ -73,7 +72,7 @@ using namespace CVC4::options;
 
 namespace CVC4 {
 
-CVC4_THREAD_LOCAL Options* Options::s_current = NULL;
+thread_local Options* Options::s_current = NULL;
 
 
 
