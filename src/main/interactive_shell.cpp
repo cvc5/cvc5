@@ -37,7 +37,6 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif /* HAVE_LIBREADLINE */
 
-#include "base/tls.h"
 #include "base/output.h"
 #include "options/language.h"
 #include "options/options.h"
