@@ -191,8 +191,8 @@ Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
   for (size_t i = 0, size = d_values.size(); i < size; i++)
   {
     Node v = d_values[i];
-    double score = (1.0 + (double)d_value_pro_con[0][v].size())
-                   / (1.0 + (double)d_value_pro_con[1][v].size());
+    double score = (1.0 + static_cast<double>(d_value_pro_con[0][v].size()))
+                   / (1.0 + static_cast<double>(d_value_pro_con[1][v].size()));
     Debug("fmf-model-cons-debug") << "  - score( ";
     m->printRepresentativeDebug("fmf-model-cons-debug", v);
     Debug("fmf-model-cons-debug") << " ) = " << score << std::endl;
@@ -220,7 +220,7 @@ Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
     {
       Debug("fmf-model-cons-debug")
           << "-> Could not find arbitrary element of type "
-          << tn[(int)tn.getNumChildren() - 1] << std::endl;
+          << tn[tn.getNumChildren() - 1] << std::endl;
       Debug("fmf-model-cons-debug") << "      Excluding: " << d_values;
       Debug("fmf-model-cons-debug") << std::endl;
     }

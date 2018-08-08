@@ -431,7 +431,6 @@ Node FirstOrderModelIG::UfModelTreeGenerator::getIntersection(TheoryModel* m,
                                                               Node n2,
                                                               bool& isGround)
 {
-  // Notice() << "Get intersection " << n1 << " " << n2 << std::endl;
   isGround = true;
   std::vector<Node> children;
   children.push_back(n1.getOperator());

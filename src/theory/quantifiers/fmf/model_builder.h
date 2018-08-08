@@ -91,7 +91,10 @@ class QModelBuilderIG : public QModelBuilder
     std::vector<Node> d_values;
     /**
      * Map from values to the set of quantified formulas that are (pro, con)
-     * that value.
+     * that value. A quantified formula may be "pro" a particular default
+     * value of an uninterpreted function if that value is likely to satisfy
+     * many points in its domain. For example, forall x. P( f( x ) ) may be
+     * "pro" the default value true for P.
      */
     std::map<Node, std::vector<Node> > d_value_pro_con[2];
     /** set that quantified formula q is pro/con the default value of r */
