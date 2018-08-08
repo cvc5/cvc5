@@ -60,7 +60,7 @@ class NodeManagerListener {
  public:
   virtual ~NodeManagerListener() {}
   virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) {}
-  virtual void nmNotifyNewSortConstructor(TypeNode tn) {}
+  virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
   virtual void nmNotifyNewDatatypes(
@@ -349,9 +349,9 @@ class NodeManager {
   // bool properlyContainsDecision(TNode); // all children are atomic
 
   // undefined private copy constructor (disallow copy)
-  NodeManager(const NodeManager&) CVC4_UNDEFINED;
+  NodeManager(const NodeManager&) = delete;
 
-  NodeManager& operator=(const NodeManager&) CVC4_UNDEFINED;
+  NodeManager& operator=(const NodeManager&) = delete;
 
   void init();
 
@@ -875,7 +875,9 @@ public:
                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name, size_t arity);
+  TypeNode mkSortConstructor(const std::string& name,
+                             size_t arity,
+                             uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Get the type for the given node and optionally do type checking.

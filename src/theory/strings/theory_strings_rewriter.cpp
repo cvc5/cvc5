@@ -73,8 +73,15 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
         }else if( xc.isConst() ){
           //check for constants
           CVC4::String s = xc.getConst<String>();
-          Assert( s.size()>0 );
-          if( rc.getKind() == kind::REGEXP_RANGE || rc.getKind()==kind::REGEXP_SIGMA ){
+          if (s.size() == 0)
+          {
+            // ignore and continue
+            mchildren.pop_back();
+            do_next = true;
+          }
+          else if (rc.getKind() == kind::REGEXP_RANGE
+                   || rc.getKind() == kind::REGEXP_SIGMA)
+          {
             CVC4::String ss( t==0 ? s.getLastChar() : s.getFirstChar() );
             if( testConstStringInRegExp( ss, 0, rc ) ){
               //strip off one character
@@ -698,6 +705,10 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
 bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
   if( t.getKind()==kind::STRING_TO_REGEXP ) {
     return t[0].isConst();
+  }
+  else if (t.isVar())
+  {
+    return false;
   }else{
     for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
       if( !isConstRegExp(t[i]) ){
@@ -711,6 +722,7 @@ bool TheoryStringsRewriter::isConstRegExp( TNode t ) {
 bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r ) {
   Assert( index_start <= s.size() );
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at " << index_start << std::endl;
+  Assert(!r.isVar());
   int k = r.getKind();
   switch( k ) {
     case kind::STRING_TO_REGEXP: {
@@ -971,12 +983,23 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         return scn;
       }else{
         if( (children.size() + mchildren.size())!=prevSize ){
+          // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
+          // above, we strip components to construct an equivalent membership:
+          // (str.++ xi .. xj) in (re.++ rk ... rl).
+          Node xn = mkConcat(kind::STRING_CONCAT, mchildren);
+          Node emptyStr = nm->mkConst(String(""));
           if( children.empty() ){
-            retNode = NodeManager::currentNM()->mkConst( mchildren.empty() );
+            // If we stripped all components on the right, then the left is
+            // equal to the empty string.
+            // e.g. (str.++ "a" x) in (re.++ (str.to.re "a")) ---> (= x "")
+            retNode = xn.eqNode(emptyStr);
           }else{
-            retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, mkConcat( kind::STRING_CONCAT, mchildren ), mkConcat( kind::REGEXP_CONCAT, children ) );
+            // otherwise, construct the updated regular expression
+            retNode = nm->mkNode(
+                STRING_IN_REGEXP, xn, mkConcat(REGEXP_CONCAT, children));
           }
           Trace("regexp-ext-rewrite") << "Regexp : rewrite : " << node << " -> " << retNode << std::endl;
+          return returnRewrite(node, retNode, "re-simple-consume");
         }
       }
     }

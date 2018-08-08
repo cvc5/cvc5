@@ -603,15 +603,21 @@ Lit Solver::pickBranchLit()
     nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextTheoryDecisionRequest());
     while (nextLit != lit_Undef) {
       if(value(var(nextLit)) == l_Undef) {
-        Debug("propagateAsDecision") << "propagateAsDecision(): now deciding on " << nextLit << std::endl;
+        Debug("theoryDecision")
+            << "getNextTheoryDecisionRequest(): now deciding on " << nextLit
+            << std::endl;
         decisions++;
         return nextLit;
       } else {
-        Debug("propagateAsDecision") << "propagateAsDecision(): would decide on " << nextLit << " but it already has an assignment" << std::endl;
+        Debug("theoryDecision")
+            << "getNextTheoryDecisionRequest(): would decide on " << nextLit
+            << " but it already has an assignment" << std::endl;
       }
       nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextTheoryDecisionRequest());
     }
-    Debug("propagateAsDecision") << "propagateAsDecision(): decide on another literal" << std::endl;
+    Debug("theoryDecision")
+        << "getNextTheoryDecisionRequest(): decide on another literal"
+        << std::endl;
 
     // DE requests
     bool stopSearch = false;

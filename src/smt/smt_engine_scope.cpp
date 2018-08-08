@@ -21,7 +21,6 @@
 #include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "base/tls.h"
 #include "proof/proof.h"
 #include "smt/smt_engine.h"
 
