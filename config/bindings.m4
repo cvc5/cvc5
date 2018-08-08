@@ -47,7 +47,7 @@ if test "$noswig" = yes; then
   SWIG=
 else
   if test -z "$SWIG"; then
-    AC_CHECK_PROGS(SWIG, [swig swig2.0 swig-2], [], [])
+    AC_CHECK_PROGS(SWIG, [swig swig3.0 swig-3], [], [])
   else
     AC_CHECK_PROG(SWIG, "$SWIG", "$SWIG", [])
   fi
@@ -58,7 +58,7 @@ else
     AC_MSG_CHECKING([compatibility with version of swig])
     cat > conftest.c << _CVC4EOF
 %module conftest
-#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x020000
+#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x030000
 #error bad version
 #endif
 _CVC4EOF
@@ -66,7 +66,7 @@ _CVC4EOF
       AC_MSG_RESULT([compatible version])
     else
       AC_MSG_RESULT([incompatible version])
-      AC_MSG_WARN([swig version 2.0.0 or later is required to build native API bindings])
+      AC_MSG_WARN([swig version 3.0.0 or later is required to build native API bindings])
       SWIG=
       echo '===Failed swig input was:' >&AS_MESSAGE_LOG_FD
       cat conftest.c >&AS_MESSAGE_LOG_FD

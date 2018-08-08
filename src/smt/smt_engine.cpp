@@ -1403,6 +1403,8 @@ void SmtEngine::setDefaults() {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(THEORY_DATATYPES);
     d_logic.lock();
+    // since we are trying to recast as sygus, we assume the input is sygus
+    is_sygus = true;
   }
 
   if ((options::checkModels() || options::checkSynthSol())
@@ -2053,6 +2055,10 @@ void SmtEngine::setDefaults() {
     }
     if( !options::miniscopeQuantFreeVar.wasSetByUser() ){
       options::miniscopeQuantFreeVar.set( false );
+    }
+    if (!options::quantSplit.wasSetByUser())
+    {
+      options::quantSplit.set(false);
     }
     //rewrite divk
     if( !options::rewriteDivk.wasSetByUser()) {
@@ -2809,13 +2815,29 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       }
 
       // otherwise expand it
-      bool doExpand = k == kind::APPLY;
-      if( !doExpand ){
-        // options that assign substitutions to APPLY_UF
-        if (options::macrosQuant() || options::sygusInference())
+      bool doExpand = false;
+      if (k == kind::APPLY)
+      {
+        doExpand = true;
+      }
+      else if (k == kind::APPLY_UF)
+      {
+        // Always do beta-reduction here. The reason is that there may be
+        // operators such as INTS_MODULUS in the body of the lambda that would
+        // otherwise be introduced by beta-reduction via the rewriter, but are
+        // not expanded here since the traversal in this function does not
+        // traverse the operators of nodes. Hence, we beta-reduce here to
+        // ensure terms in the body of the lambda are expanded during this
+        // call.
+        if (n.getOperator().getKind() == kind::LAMBDA)
         {
-          //expand if we have inferred an operator corresponds to a defined function
-          doExpand = k==kind::APPLY_UF && d_smt.isDefinedFunction( n.getOperator().toExpr() );
+          doExpand = true;
+        }
+        else if (options::macrosQuant() || options::sygusInference())
+        {
+          // The above options assign substitutions to APPLY_UF, thus we check
+          // here and expand if this operator corresponds to a defined function.
+          doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
       if (doExpand) {
@@ -4821,125 +4843,7 @@ Result SmtEngine::checkSynth(const Expr& e)
   SmtScope smts(this);
   Trace("smt") << "Check synth: " << e << std::endl;
   Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
-  Expr e_check = e;
-  if (options::sygusQePreproc())
-  {
-    // the following does quantifier elimination as a preprocess step
-    // for "non-ground single invocation synthesis conjectures":
-    //   exists f. forall xy. P[ f(x), x, y ]
-    // We run quantifier elimination:
-    //   exists y. P[ z, x, y ] ----> Q[ z, x ]
-    // Where we replace the original conjecture with:
-    //   exists f. forall x. Q[ f(x), x ]
-    // For more details, see Example 6 of Reynolds et al. SYNT 2017.
-    Node conj = Node::fromExpr(e);
-    if (conj.getKind() == kind::FORALL && conj[1].getKind() == kind::EXISTS)
-    {
-      Node conj_se = Node::fromExpr(expandDefinitions(conj[1][1].toExpr()));
-
-      Trace("smt-synth") << "Compute single invocation for " << conj_se << "..."
-                         << std::endl;
-      quantifiers::SingleInvocationPartition sip;
-      std::vector<Node> funcs;
-      funcs.insert(funcs.end(), conj[0].begin(), conj[0].end());
-      sip.init(funcs, conj_se.negate());
-      Trace("smt-synth") << "...finished, got:" << std::endl;
-      sip.debugPrint("smt-synth");
-
-      if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
-      {
-        // create new smt engine to do quantifier elimination
-        SmtEngine smt_qe(d_exprManager);
-        smt_qe.setLogic(getLogicInfo());
-        Trace("smt-synth") << "Property is non-ground single invocation, run "
-                              "QE to obtain single invocation."
-                           << std::endl;
-        NodeManager* nm = NodeManager::currentNM();
-        // partition variables
-        std::vector<Node> all_vars;
-        sip.getAllVariables(all_vars);
-        std::vector<Node> si_vars;
-        sip.getSingleInvocationVariables(si_vars);
-        std::vector<Node> qe_vars;
-        std::vector<Node> nqe_vars;
-        for (unsigned i = 0, size = all_vars.size(); i < size; i++)
-        {
-          Node v = all_vars[i];
-          if (std::find(si_vars.begin(), si_vars.end(), v) == si_vars.end())
-          {
-            qe_vars.push_back(v);
-          }
-          else
-          {
-            nqe_vars.push_back(v);
-          }
-        }
-        std::vector<Node> orig;
-        std::vector<Node> subs;
-        // skolemize non-qe variables
-        for (unsigned i = 0; i < nqe_vars.size(); i++)
-        {
-          Node k = nm->mkSkolem("k",
-                                nqe_vars[i].getType(),
-                                "qe for non-ground single invocation");
-          orig.push_back(nqe_vars[i]);
-          subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << nqe_vars[i] << " -> " << k
-                             << std::endl;
-        }
-        std::vector<Node> funcs;
-        sip.getFunctions(funcs);
-        for (unsigned i = 0, size = funcs.size(); i < size; i++)
-        {
-          Node f = funcs[i];
-          Node fi = sip.getFunctionInvocationFor(f);
-          Node fv = sip.getFirstOrderVariableForFunction(f);
-          Assert(!fi.isNull());
-          orig.push_back(fi);
-          Node k =
-              nm->mkSkolem("k",
-                           fv.getType(),
-                           "qe for function in non-ground single invocation");
-          subs.push_back(k);
-          Trace("smt-synth") << "  subs : " << fi << " -> " << k << std::endl;
-        }
-        Node conj_se_ngsi = sip.getFullSpecification();
-        Trace("smt-synth") << "Full specification is " << conj_se_ngsi
-                           << std::endl;
-        Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
-            orig.begin(), orig.end(), subs.begin(), subs.end());
-        Assert(!qe_vars.empty());
-        conj_se_ngsi_subs =
-            nm->mkNode(kind::EXISTS,
-                       nm->mkNode(kind::BOUND_VAR_LIST, qe_vars),
-                       conj_se_ngsi_subs.negate());
-
-        Trace("smt-synth") << "Run quantifier elimination on "
-                           << conj_se_ngsi_subs << std::endl;
-        Expr qe_res = smt_qe.doQuantifierElimination(
-            conj_se_ngsi_subs.toExpr(), true, false);
-        Trace("smt-synth") << "Result : " << qe_res << std::endl;
-
-        // create single invocation conjecture
-        Node qe_res_n = Node::fromExpr(qe_res);
-        qe_res_n = qe_res_n.substitute(
-            subs.begin(), subs.end(), orig.begin(), orig.end());
-        if (!nqe_vars.empty())
-        {
-          qe_res_n = nm->mkNode(kind::EXISTS,
-                                nm->mkNode(kind::BOUND_VAR_LIST, nqe_vars),
-                                qe_res_n);
-        }
-        Assert(conj.getNumChildren() == 3);
-        qe_res_n = nm->mkNode(kind::FORALL, conj[0], qe_res_n, conj[2]);
-        Trace("smt-synth") << "Converted conjecture after QE : " << qe_res_n
-                           << std::endl;
-        e_check = qe_res_n.toExpr();
-      }
-    }
-  }
-
-  return checkSatisfiability( e_check, true, false );
+  return checkSatisfiability(e, true, false);
 }
 
 Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)

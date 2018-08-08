@@ -21,8 +21,6 @@
 #ifndef __CVC4__UTIL__RANDOM_H
 #define __CVC4__UTIL__RANDOM_H
 
-#include "base/tls.h"
-
 namespace CVC4 {
 
 class Random
@@ -33,7 +31,7 @@ class Random
   /* Get current RNG (singleton).  */
   static Random& getRandom()
   {
-    static CVC4_THREAD_LOCAL Random s_current(0);
+    static thread_local Random s_current(0);
     return s_current;
   }
 
