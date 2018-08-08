@@ -42,7 +42,7 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_options.set(options::in, d_sin);
     d_options.set(options::out, d_sout);
     d_options.set(options::inputLanguage, language::input::LANG_CVC4);
-    d_solver = std::unique_ptr<api::Solver>(new api::Solver(&d_options));
+    d_solver.reset(new api::Solver(&d_options));
   }
 
   void tearDown() {

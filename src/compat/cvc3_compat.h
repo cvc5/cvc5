@@ -516,7 +516,7 @@ class CVC4_PUBLIC ValidityChecker {
 
   CLFlags* d_clflags;
   CVC4::Options d_options;
-  CVC4::api::Solver* d_solver;
+  std::unique_ptr<CVC4::api::Solver> d_solver;
   CVC3::ExprManager* d_em;
   std::map<CVC4::ExprManager*, CVC4::ExprManagerMapCollection> d_emmc;
   std::set<ValidityChecker*> d_reverseEmmc;

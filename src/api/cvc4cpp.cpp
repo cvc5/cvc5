@@ -1432,9 +1432,9 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 Solver::Solver(Options* opts)
 {
   Options* o = opts == nullptr ?  new Options() : opts;
-  d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*o));
-  d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
-  d_rng = std::unique_ptr<Random>(new Random((*o)[options::seed]));
+  d_exprMgr.reset(new ExprManager(*o));
+  d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
+  d_rng.reset(new Random((*o)[options::seed]));
   if (opts == nullptr) delete o;
 }
 

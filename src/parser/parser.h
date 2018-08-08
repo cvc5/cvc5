@@ -24,7 +24,6 @@
 #include <list>
 #include <cassert>
 
-#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_stream.h"
 #include "expr/kind.h"

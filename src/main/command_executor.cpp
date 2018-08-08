@@ -18,15 +18,15 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
-#include "api/cvc4cpp.h"
-#include "main/main.h"
-#include "smt/command.h"
-
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "api/cvc4cpp.h"
+#include "main/main.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 namespace main {

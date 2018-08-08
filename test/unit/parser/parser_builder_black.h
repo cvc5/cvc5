@@ -38,7 +38,7 @@ using namespace std;
 class ParserBuilderBlack : public CxxTest::TestSuite
 {
  public:
-  void setUp() { d_solver = std::unique_ptr<api::Solver>(new api::Solver()); }
+  void setUp() { d_solver.reset(new api::Solver()); }
 
   void tearDown() {}
 

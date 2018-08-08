@@ -197,7 +197,7 @@ class ParserBlack
   void setUp()
   {
     d_options.set(options::parseOnly, true);
-    d_solver = std::unique_ptr<api::Solver>(new api::Solver(&d_options));
+    d_solver.reset(new api::Solver(&d_options));
   }
 
   void tearDown() {

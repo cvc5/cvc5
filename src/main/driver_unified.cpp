@@ -204,7 +204,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // Create the expression manager using appropriate options
   std::unique_ptr<api::Solver> solver;
 # ifndef PORTFOLIO_BUILD
-  solver = std::unique_ptr<api::Solver>(new api::Solver(&opts));
+  solver.reset(new api::Solver(&opts));
   pExecutor = new CommandExecutor(solver.get(), opts);
 # else
   OptionsList threadOpts;
@@ -234,12 +234,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // pick appropriate one
   if (useParallelExecutor)
   {
-    solver = std::unique_ptr<api::Solver>(&threadOpts[0]);
+    solver.reset(&threadOpts[0]);
     pExecutor = new CommandExecutorPortfolio(solver.get(), opts, threadOpts);
   }
   else
   {
-    solver = std::unique_ptr<api::Solver>(&opts);
+    solver.reset(&opts);
     pExecutor = new CommandExecutor(solver.get(), opts);
   }
 # endif
