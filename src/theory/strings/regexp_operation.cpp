@@ -673,7 +673,9 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
             sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           }
-        } else if(st.getKind() == STRING_CONCAT ){
+        }
+        else if (st.getKind() == STRING_CONCAT)
+        {
           if(st[0].isConst()) {
             CVC4::String s = st[0].getConst<CVC4::String>();
             unsigned sc = s.front();
@@ -682,9 +684,10 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           } else {
             vset.insert( st[0] );
           }
-        }else
+        }
+        else
         {
-          vset.insert( st );
+          vset.insert(st);
         }
         break;
       }
