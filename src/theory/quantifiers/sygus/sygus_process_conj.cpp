@@ -537,7 +537,7 @@ Node CegConjectureProcess::postSimplify(Node q)
   if (options::sygusArgRelevant())
   {
     // initialize the information about each function to synthesize
-    for (unsigned i = 0; i < q[0].getNumChildren(); i++)
+    for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
     {
       Node f = q[0][i];
       if (f.getType().isFunction())
@@ -551,7 +551,7 @@ Node CegConjectureProcess::postSimplify(Node q)
     std::unordered_set<Node, NodeHashFunction> synth_fv;
     if (base.getKind() == NOT && base[0].getKind() == FORALL)
     {
-      for (unsigned j = 0; j < base[0][0].getNumChildren(); j++)
+      for (unsigned j = 0, size = base[0][0].getNumChildren(); j < size; j++)
       {
         synth_fv.insert(base[0][0][j]);
       }
@@ -567,9 +567,9 @@ Node CegConjectureProcess::postSimplify(Node q)
          ++it)
     {
       Node f = it->first;
-      for (unsigned i = 0; i < conjuncts.size(); i++)
+      for (const Node& conj : conjuncts)
       {
-        processConjunct(conjuncts[i], f, synth_fv);
+        processConjunct(conj, f, synth_fv);
       }
     }
   }
