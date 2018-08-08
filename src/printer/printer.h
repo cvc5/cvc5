@@ -100,8 +100,8 @@ class Printer
 
  private:
   /** Disallow copy, assignment  */
-  Printer(const Printer&) CVC4_UNDEFINED;
-  Printer& operator=(const Printer&) CVC4_UNDEFINED;
+  Printer(const Printer&) = delete;
+  Printer& operator=(const Printer&) = delete;
 
   /** Make a Printer for a given OutputLanguage */
   static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);

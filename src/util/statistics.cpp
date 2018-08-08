@@ -112,6 +112,7 @@ void StatisticsBase::flushInformation(std::ostream &out) const {
       out << d_prefix << s_regDelim;
     }
     s->flushStat(out);
+    out << std::endl;
   }
 #endif /* CVC4_STATISTICS_ON */
 }

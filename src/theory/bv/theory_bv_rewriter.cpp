@@ -173,7 +173,11 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
                             RewriteRule<BvIteConstCond>,
                             RewriteRule<BvIteEqualChildren>,
                             RewriteRule<BvIteConstChildren>,
-                            RewriteRule<BvIteEqualCond>>::apply(node);
+                            RewriteRule<BvIteEqualCond>,
+                            RewriteRule<BvIteMergeThenIf>,
+                            RewriteRule<BvIteMergeElseIf>,
+                            RewriteRule<BvIteMergeThenElse>,
+                            RewriteRule<BvIteMergeElseElse>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
