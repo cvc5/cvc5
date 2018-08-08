@@ -2825,8 +2825,8 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         // operators such as INTS_MODULUS in the body of the lambda that would
         // otherwise be introduced by beta-reduction via the rewriter, but are
         // not expanded here since the traversal in this function does not
-        // traverse the operators of nodes. Hence, we beta-reducte here to
-        // ensure operators in the body of the lambda are expanded during this
+        // traverse the operators of nodes. Hence, we beta-reduce here to
+        // ensure terms in the body of the lambda are expanded during this
         // call.
         if (n.getOperator().getKind() == kind::LAMBDA)
         {
