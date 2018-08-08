@@ -1473,6 +1473,7 @@ REG1_TESTS = \
 	regress1/strings/norn-nel-bug-052116.smt2 \
 	regress1/strings/norn-simp-rew-sat.smt2 \
 	regress1/strings/pierre150331.smt2 \
+	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \
 	regress1/strings/regexp003.smt2 \

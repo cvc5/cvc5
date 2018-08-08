@@ -113,13 +113,13 @@ class CVC4_PUBLIC Options {
    * Options cannot be copied as they are given an explicit list of
    * Listeners to respond to.
    */
-  Options(const Options& options) CVC4_UNDEFINED;
+  Options(const Options& options) = delete;
 
   /**
    * Options cannot be assigned as they are given an explicit list of
    * Listeners to respond to.
    */
-  Options& operator=(const Options& options) CVC4_UNDEFINED;
+  Options& operator=(const Options& options) = delete;
 
   static std::string formatThreadOptionException(const std::string& option);
 

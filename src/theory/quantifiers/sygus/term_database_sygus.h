@@ -378,8 +378,6 @@ class TermDbSygus {
   bool isConstArg( TypeNode tn, int i );
   /** get arg type */
   TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
-  /** get first occurrence */
-  int getFirstArgOccurrence( const DatatypeConstructor& c, TypeNode tn );
   /** is type match */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
   /**
@@ -431,19 +429,11 @@ class TermDbSygus {
   /** get comparison kind */
   Kind getComparisonKind( TypeNode tn );
   Kind getPlusKind( TypeNode tn, bool is_neg = false );
-  // get semantic skolem for n (a sygus term whose builtin version is n)
-  Node getSemanticSkolem( TypeNode tn, Node n, bool doMk = true );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
   /** get anchor */
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
-  
-public: // for symmetry breaking
-  bool considerArgKind( TypeNode tn, TypeNode tnp, Kind k, Kind pk, int arg );
-  bool considerConst( TypeNode tn, TypeNode tnp, Node c, Kind pk, int arg );
-  bool considerConst( const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg );
-  int solveForArgument( TypeNode tnp, unsigned cindex, unsigned arg );
 
  public:
   /** unfold

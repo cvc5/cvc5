@@ -121,7 +121,7 @@ public:
 
  private:
   /* Disable the default constructor. */
-  BVMinisatSatSolver() CVC4_UNDEFINED;
+  BVMinisatSatSolver() = delete;
 
   class Statistics {
   public:
