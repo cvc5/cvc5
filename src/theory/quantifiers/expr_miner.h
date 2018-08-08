@@ -21,6 +21,7 @@
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "smt/smt_engine.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
 namespace theory {
@@ -28,7 +29,19 @@ namespace quantifiers {
 
 class ExprMiner
 {
+ public:
+  ExprMiner() : d_sampler(nullptr){}
+  virtual ~ExprMiner(){}
+  /** add term */
+  virtual bool addTerm(Node n, std::ostream& out) = 0;
  protected:
+  /** set sampler 
+   */
+  void setSampler( SygusSampler * ss );
+  /** (required) pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /** the set of free variables */
+  std::vector< Node > d_svars;
   /**
    * Cache of skolems for each free variable that appears in a synthesis check
    * (for --sygus-rr-synth-check).

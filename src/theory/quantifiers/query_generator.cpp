@@ -27,27 +27,23 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QueryGenerator::QueryGenerator() : d_sampler(nullptr), d_query_count(0) {}
+QueryGenerator::QueryGenerator() : d_query_count(0) {}
 
 void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
 {
-  d_sampler = ss;
   d_deq_thresh = deqThresh;
-  d_svars.clear();
-  d_sampler->getVariables(d_svars);
-  std::sort(d_svars.begin(),d_svars.end());
   d_query_count = 0;
+  setSampler(ss);
 }
 
-void QueryGenerator::addTerm(Node n, std::ostream& out)
+bool QueryGenerator::addTerm(Node n, std::ostream& out)
 {
   Node nn = n.getKind()==NOT ? n[0] : n;
   if(d_terms.find(nn)!=d_terms.end())
   {
-    return;
+    return false;
   }
   d_terms.insert(nn);
-  
   
   Trace("sygus-qgen") << "QueryGenerator::addTerm : " << n << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
@@ -105,7 +101,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
   Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
-    return;
+    return true;
   }
   Trace("sygus-qgen-debug")
       << "query: Check " << queries.size() << " queries..." << std::endl;
@@ -142,6 +138,7 @@ void QueryGenerator::addTerm(Node n, std::ostream& out)
     }
   }
   Trace("sygus-qgen-check") << "...finished." << std::endl;
+  return true;
 }
 
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)

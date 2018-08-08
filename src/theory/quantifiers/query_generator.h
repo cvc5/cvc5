@@ -38,13 +38,9 @@ class QueryGenerator : public ExprMiner
   /** initialize */
   void initialize(SygusSampler* ss, unsigned deqThresh);
   /** add term */
-  void addTerm(Node n, std::ostream& out);
+  bool addTerm(Node n, std::ostream& out) override;
 
  private:
-  /** pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
-  /** the variables of d_sampler */
-  std::vector<Node> d_svars;
   /** cache of all terms registered to this generator */
   std::unordered_set< Node, NodeHashFunction > d_terms;
   /** the disequality threshold (number of points)

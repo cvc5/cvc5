@@ -100,7 +100,7 @@ class CandidateRewriteDatabase : public ExprMiner
    * true if this class printed a rewrite.
    */
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
-  bool addTerm(Node sol, std::ostream& out);
+  bool addTerm(Node sol, std::ostream& out) override;
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
 
@@ -109,8 +109,6 @@ class CandidateRewriteDatabase : public ExprMiner
   QuantifiersEngine* d_qe;
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
-  /** (required) pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
   /** pointer to the extended rewriter object we are using */
   ExtendedRewriter* d_ext_rewrite;
   /** the (sygus or builtin) type of terms we are testing */

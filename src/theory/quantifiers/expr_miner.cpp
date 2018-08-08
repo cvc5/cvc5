@@ -26,6 +26,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+void ExprMiner::setSampler( SygusSampler * ss )
+{
+  d_sampler = ss;
+  d_svars.clear();
+  d_sampler->getVariables(d_svars);
+}
+
 Node ExprMiner::convertToSkolem(Node n)
 {
   std::vector<Node> fvs;
@@ -34,25 +41,31 @@ Node ExprMiner::convertToSkolem(Node n)
   {
     return n;
   }
+  std::vector< Node > sfvs;
   std::vector<Node> sks;
   // map to skolems
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = fvs.size(); i < size; i++)
   {
     Node v = fvs[i];
-    std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
-    if (itf == d_fv_to_skolem.end())
+    // only look at the sampler variables
+    if( std::find(d_svars.begin(),d_svars.end(),v)!=d_svars.end() )
     {
-      Node sk = nm->mkSkolem("rrck", v.getType());
-      d_fv_to_skolem[v] = sk;
-      sks.push_back(sk);
-    }
-    else
-    {
-      sks.push_back(itf->second);
+      sfvs.push_back(v);
+      std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
+      if (itf == d_fv_to_skolem.end())
+      {
+        Node sk = nm->mkSkolem("rrck", v.getType());
+        d_fv_to_skolem[v] = sk;
+        sks.push_back(sk);
+      }
+      else
+      {
+        sks.push_back(itf->second);
+      }
     }
   }
-  return n.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
+  return n.substitute(sfvs.begin(), sfvs.end(), sks.begin(), sks.end());
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,

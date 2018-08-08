@@ -35,7 +35,6 @@ namespace quantifiers {
 CandidateRewriteDatabase::CandidateRewriteDatabase()
     : d_qe(nullptr),
       d_tds(nullptr),
-      d_sampler(nullptr),
       d_ext_rewrite(nullptr),
       d_using_sygus(false),
       d_silent(false)
@@ -48,7 +47,7 @@ void CandidateRewriteDatabase::initialize(SygusSampler* ss,
                                           unsigned nsamples,
                                           bool unique_type_ids)
 {
-  d_sampler = ss;
+  setSampler(ss);
   d_candidate = Node::null();
   d_type = tn;
   d_using_sygus = false;
@@ -64,7 +63,7 @@ void CandidateRewriteDatabase::initializeSygus(SygusSampler* ss,
                                                unsigned nsamples,
                                                bool useSygusType)
 {
-  d_sampler = ss;
+  setSampler(ss);
   d_candidate = f;
   d_type = f.getType();
   Assert(d_type.isDatatype());
