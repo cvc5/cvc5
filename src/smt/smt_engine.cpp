@@ -2815,17 +2815,17 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // otherwise expand it
       bool doExpand = false;
-      if( k==kind::APPLY )
+      if (k == kind::APPLY)
       {
         doExpand = true;
       }
-      else if( k==kind::APPLY_UF )
+      else if (k == kind::APPLY_UF)
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
         // otherwise be introduced by beta-reduction via the rewriter. Hence,
         // we expand here to ensure they are expanded during this call.
-        if( n.getOperator().getKind()==kind::LAMBDA )
+        if (n.getOperator().getKind() == kind::LAMBDA)
         {
           doExpand = true;
         }
@@ -2834,7 +2834,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
           // The above options that assign substitutions to APPLY_UF, thus we
           // expand if we have inferred an operator corresponds to a defined
           // function.
-          doExpand = d_smt.isDefinedFunction( n.getOperator().toExpr() );
+          doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
       if (doExpand) {
