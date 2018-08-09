@@ -738,15 +738,16 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         }
         if( tn.isString() ) {
           // all characters of constants should fall in the alphabet
-          if( n.isConst() )
+          if (n.isConst())
           {
-            std::vector< unsigned > vec = n.getConst<String>().getVec();
-            for( unsigned u : vec )
+            std::vector<unsigned> vec = n.getConst<String>().getVec();
+            for (unsigned u : vec)
             {
-              if( u>=d_card_size )
+              if (u >= d_card_size)
               {
                 std::stringstream ss;
-                ss << "Characters in string \"" << n << "\" are outside of the given alphabet.";
+                ss << "Characters in string \"" << n
+                   << "\" are outside of the given alphabet.";
                 throw LogicException(ss.str());
               }
             }

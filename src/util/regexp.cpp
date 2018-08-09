@@ -58,11 +58,12 @@ unsigned String::convertUnsignedIntToCode(unsigned i)
   return (i + start_code()) % num_codes();
 }
 
-String::String(const std::vector<unsigned>& s) : d_str(s) {
+String::String(const std::vector<unsigned> &s) : d_str(s)
+{
 #ifdef CVC4_ASSERTIONS
-  for( unsigned u : d_str )
+  for (unsigned u : d_str)
   {
-    Assert( u<num_codes() );
+    Assert(u < num_codes());
   }
 #endif
 }
@@ -219,9 +220,9 @@ std::vector<unsigned> String::toInternal(const std::string &s,
     }
   }
 #ifdef CVC4_ASSERTIONS
-  for( unsigned u : str )
+  for (unsigned u : str)
   {
-    Assert( u<num_codes() );
+    Assert(u < num_codes());
   }
 #endif
   return str;

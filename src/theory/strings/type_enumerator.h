@@ -21,11 +21,11 @@
 
 #include <sstream>
 
-#include "util/regexp.h"
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
 #include "expr/kind.h"
+#include "expr/type_node.h"
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/type_enumerator.h"
+#include "util/regexp.h"
 
 namespace CVC4 {
 namespace theory {
