@@ -25,6 +25,7 @@
 #include "theory/type_enumerator.h"
 #include "expr/type_node.h"
 #include "expr/kind.h"
+#include "theory/strings/theory_strings_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,7 +46,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = 256;
+    d_cardinality = TheoryStringsRewriter::getAlphabetCardinality();
     mkCurr();
   }
   Node operator*() override { return d_curr; }

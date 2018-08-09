@@ -216,8 +216,10 @@ unsigned TheoryStringsRewriter::getAlphabetCardinality()
 {
   if (options::stdPrintASCII())
   {
+    Assert( 128<=String::num_codes() );
     return 128;
   }
+  Assert( 256<=String::num_codes() );
   return 256;
 }
 
