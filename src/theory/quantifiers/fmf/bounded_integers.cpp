@@ -457,7 +457,8 @@ void BoundedIntegers::checkOwnership(Node f)
               // WARNING_CANDIDATE:
               // This assertion may fail. We intentionally do not enable this in
               // production as it is considered safe for this to fail. We fail
-              // in debug mode to have this instances raised to our attention.
+              // the assertion in debug mode to have this instance raised to
+              // our attention.
               Assert(bound_lit_pol_map[b].find(v)
                      != bound_lit_pol_map[b].end());
               BoundIntLitAttribute bila;
