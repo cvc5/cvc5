@@ -26,6 +26,7 @@
 // This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
+#include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -200,10 +201,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the expression manager using appropriate options
-  ExprManager* exprMgr;
+  std::unique_ptr<api::Solver> solver;
 # ifndef PORTFOLIO_BUILD
-  exprMgr = new ExprManager(opts);
-  pExecutor = new CommandExecutor(*exprMgr, opts);
+  solver.reset(new api::Solver(&opts));
+  pExecutor = new CommandExecutor(solver.get(), opts);
 # else
   OptionsList threadOpts;
   parseThreadSpecificOptions(threadOpts, opts);
@@ -230,19 +231,23 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     }
   }
   // pick appropriate one
-  if(useParallelExecutor) {
-    exprMgr = new ExprManager(threadOpts[0]);
-    pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
-  } else {
-    exprMgr = new ExprManager(opts);
-    pExecutor = new CommandExecutor(*exprMgr, opts);
+  if (useParallelExecutor)
+  {
+    solver.reset(&threadOpts[0]);
+    pExecutor = new CommandExecutorPortfolio(solver.get(), opts, threadOpts);
+  }
+  else
+  {
+    solver.reset(&opts);
+    pExecutor = new CommandExecutor(solver.get(), opts);
   }
 # endif
 
   std::unique_ptr<Parser> replayParser;
-  if( opts.getReplayInputFilename() != "" ) {
+  if (opts.getReplayInputFilename() != "")
+  {
     std::string replayFilename = opts.getReplayInputFilename();
-    ParserBuilder replayParserBuilder(exprMgr, replayFilename, opts);
+    ParserBuilder replayParserBuilder(solver.get(), replayFilename, opts);
 
     if( replayFilename == "-") {
       if( inputFromStdin ) {
@@ -281,7 +286,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 #endif /* PORTFOLIO_BUILD */
-      InteractiveShell shell(*exprMgr);
+      InteractiveShell shell(solver.get());
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
@@ -334,7 +339,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // delete cmd;
       }
 
-      ParserBuilder parserBuilder(exprMgr, filename, opts);
+      ParserBuilder parserBuilder(solver.get(), filename, opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -491,7 +496,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 
-      ParserBuilder parserBuilder(exprMgr, filename, opts);
+      ParserBuilder parserBuilder(solver.get(), filename, opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -578,7 +583,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // need to be around in that case for main() to print statistics.
   delete pTotalTime;
   delete pExecutor;
-  delete exprMgr;
 
   pTotalTime = NULL;
   pExecutor = NULL;
