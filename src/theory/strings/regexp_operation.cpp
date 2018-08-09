@@ -646,7 +646,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         break;
       }
       case kind::REGEXP_SIGMA: {
-        Assert(d_lastchar<std::numeric_limits<unsigned>::max());
+        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
         {
           cset.insert(i);
@@ -659,7 +659,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         unsigned b = r[1].getConst<String>().front();
         b = String::convertUnsignedIntToCode(b);
         Assert(a < b);
-        Assert(b<std::numeric_limits<unsigned>::max());
+        Assert(b < std::numeric_limits<unsigned>::max());
         for (unsigned c = a; c <= b; c++)
         {
           cset.insert(c);
