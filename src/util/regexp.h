@@ -51,6 +51,8 @@ class CVC4_PUBLIC String {
    * This is the cardinality of the alphabet that is representable by this
    * class. Notice that this must be greater than or equal to the cardinality
    * of the alphabet that the string theory reasons about.
+   *
+   * This must be strictly less than std::numeric_limits<unsigned>::max().
    */
   static inline unsigned num_codes() { return 256; }
   /**
