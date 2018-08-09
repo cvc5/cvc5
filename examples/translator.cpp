@@ -2,7 +2,7 @@
 /*! \file translator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -22,6 +22,7 @@
 #include <getopt.h>
 #include <iostream>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
@@ -105,7 +106,9 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
   Options opts;
   opts.setInputLanguage(fromLang);
   ExprManager exprMgr(opts);
-  ParserBuilder parserBuilder(&exprMgr, filename, opts);
+  std::unique_ptr<api::Solver> solver =
+      std::unique_ptr<api::Solver>(new api::Solver(&opts));
+  ParserBuilder parserBuilder(solver.get(), filename, opts);
   if(!strcmp(filename, "-")) {
     parserBuilder.withFilename("<stdin>");
     parserBuilder.withLineBufferedStreamInput(cin);

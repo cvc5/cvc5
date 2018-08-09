@@ -2,7 +2,7 @@ noinst_DATA =
 
 if CVC4_LANGUAGE_BINDING_JAVA
 noinst_DATA += \
-	CVC4Streams.class \
+	#CVC4Streams.class \  ## disabled until bindings for the new API are in place (issue #2284)
 	BitVectors.class \
 	BitVectorsAndArrays.class \
 	Combination.class \

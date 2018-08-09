@@ -22,6 +22,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "options/options.h"
 #include "parser/parser.h"
@@ -48,10 +49,11 @@ int main(int argc, char* argv[])
   // Create the expression manager
   Options options;
   options.setInputLanguage(language::input::LANG_SMTLIB_V2);
-  ExprManager exprManager(options);
+  std::unique_ptr<api::Solver> solver =
+      std::unique_ptr<api::Solver>(new api::Solver(&options));
 
   // Create the parser
-  ParserBuilder parserBuilder(&exprManager, input, options);
+  ParserBuilder parserBuilder(solver.get(), input, options);
   Parser* parser = parserBuilder.build();
 
   // Variables and assertions
