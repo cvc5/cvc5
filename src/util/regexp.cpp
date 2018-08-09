@@ -63,7 +63,7 @@ String::String(const std::vector<unsigned> &s) : d_str(s)
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : d_str)
   {
-    Assert(u < num_codes());
+    Assert(convertUnsignedIntToCode(u) < num_codes());
   }
 #endif
 }
@@ -222,7 +222,7 @@ std::vector<unsigned> String::toInternal(const std::string &s,
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : str)
   {
-    Assert(u < num_codes());
+    Assert(convertUnsignedIntToCode(u) < num_codes());
   }
 #endif
   return str;
