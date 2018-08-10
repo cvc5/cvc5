@@ -35,8 +35,9 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-typedef std::unordered_map<TNode, TNodeSet, TNodeHashFunction> FunctionToArgsMap;
+using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
+using FunctionToArgsMap =
+    std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
 
 class BVAckermann : public PreprocessingPass
 {

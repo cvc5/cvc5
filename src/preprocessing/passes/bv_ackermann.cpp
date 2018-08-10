@@ -26,8 +26,6 @@
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_utils.h"
 
-#include <stack>
-
 using namespace CVC4;
 using namespace CVC4::theory;
 
@@ -76,21 +74,13 @@ void addLemmaForPair(TNode args1,
   assertionsToPreprocess->push_back(lemma);
 }
 
-void addChildrenToStack(TNode node, std::stack<TNode>* stack)
-{
-  for (const TNode& arg: node)
-  {
-    stack->push(arg);
-  }
-}
-
 void storeFunctionAndAddLemmas(TNode func,
                                TNode term,
                                FunctionToArgsMap& fun_to_args,
                                SubstitutionMap& fun_to_skolem,
                                AssertionPipeline* assertions,
                                NodeManager* nm,
-                               std::stack<TNode>* stack)
+                               std::vector<TNode>* vec)
 {
   if (fun_to_args.find(func) == fun_to_args.end())
   {
@@ -111,20 +101,21 @@ void storeFunctionAndAddLemmas(TNode func,
     }
     fun_to_skolem.addSubstitution(term, skolem);
     set.insert(term);
-    /* Add the arguments of term (newest element in set) to the stack, so that
-     * collectFunctionsAndLemmas will process them as well. 
-     * This is only needed if the set has at least two elements 
+    /* Add the arguments of term (newest element in set) to the vector, so that
+     * collectFunctionsAndLemmas will process them as well.
+     * This is only needed if the set has at least two elements
      * (otherwise, no lemma is generated).
-     * Therefore, we defer this for term in case it is the first element in the set*/
+     * Therefore, we defer this for term in case it is the first element in the
+     * set*/
     if (set.size() == 2) 
     {
       for (const TNode& elem : set)
       {
-        addChildrenToStack(elem, stack);
+        vec->insert(vec.end(), elem.begin(), elem.end())
       }
     } else if (set.size() > 2)
     {
-      addChildrenToStack(term, stack);
+      vec->insert(vec.end(), term.begin(), term.end())
     } 
   }
 }
@@ -142,16 +133,16 @@ void storeFunctionAndAddLemmas(TNode func,
  * Now that we see g(x) and g(y), we explicitly add them as well. */
 void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                SubstitutionMap& fun_to_skolem,
-                               std::stack<TNode>* stack,
+                               std::vector<TNode>* vec,
                                AssertionPipeline* assertions)
 {
   TNodeSet seen;       
   NodeManager* nm = NodeManager::currentNM();
   TNode term;
-  while (!stack->empty())
+  while (!vec->empty())
   {
-    term = stack->top();
-    stack->pop();
+    term = vec->back();
+    vec->pop_back();
     if (seen.find(term) == seen.end())
     {
         TNode func;
@@ -163,22 +154,22 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                     fun_to_skolem,
                                     assertions,
                                     nm,
-                                    stack);
+                                    vec);
         }
         else if (term.getKind() == kind::SELECT)
         {
           storeFunctionAndAddLemmas(
-              term[0], term, fun_to_args, fun_to_skolem, assertions, nm, stack);
+              term[0], term, fun_to_args, fun_to_skolem, assertions, nm, vec);
         }
         else
         {
           AlwaysAssert(
               term.getKind() != kind::STORE,
               "Cannot use eager bitblasting on QF_ABV formula with stores");
-          /* add children to the stack, so that they are processed later */
+          /* add children to the vector, so that they are processed later */
           for (const TNode& n : term)
           {
-            stack->push(n);
+            vec->push_back(n);
           }
         }
       seen.insert(term);
@@ -204,7 +195,7 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
   /* collect all function applications and generate consistency lemmas
    * accordingly */
-  std::stack<TNode> to_process;
+  std::vector<TNode> to_process;
   for (const Node& a : assertionsToPreprocess->ref())
   {
     to_process.push(a);
