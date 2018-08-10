@@ -27,8 +27,8 @@
 #include <boost/thread/condition.hpp>
 #include <string>
 
-#include "cvc4autoconfig.h"
 #include "api/cvc4cpp.h"
+#include "cvc4autoconfig.h"
 #include "expr/pickler.h"
 #include "main/main.h"
 #include "main/portfolio.h"
@@ -36,14 +36,14 @@
 #include "options/set_language.h"
 #include "smt/command.h"
 
-
 using namespace std;
 
 namespace CVC4 {
 namespace main {
 
-CommandExecutorPortfolio::CommandExecutorPortfolio(
-    api::Solver* solver, Options &options, OptionsList& tOpts)
+CommandExecutorPortfolio::CommandExecutorPortfolio(api::Solver* solver,
+                                                   Options& options,
+                                                   OptionsList& tOpts)
     : CommandExecutor(solver, options),
       d_numThreads(options.getThreads()),
       d_smts(),

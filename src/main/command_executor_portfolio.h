@@ -37,7 +37,6 @@ class Solver;
 namespace main {
 
 class CommandExecutorPortfolio : public CommandExecutor {
-
   // Solvers are created/deleted during initialization
   std::vector<api::Solver*> d_solvers;
 
@@ -61,18 +60,19 @@ class CommandExecutorPortfolio : public CommandExecutor {
   TimerStat d_statWaitTime;
 
 public:
-  CommandExecutorPortfolio(api::Solver* solver,
-                           Options &options,
-                           OptionsList& tOpts);
+ CommandExecutorPortfolio(api::Solver* solver,
+                          Options& options,
+                          OptionsList& tOpts);
 
-  ~CommandExecutorPortfolio();
+ ~CommandExecutorPortfolio();
 
-  std::string getSmtEngineStatus();
+ std::string getSmtEngineStatus();
 
-  void flushStatistics(std::ostream& out) const;
+ void flushStatistics(std::ostream& out) const override;
 
 protected:
-  bool doCommandSingleton(Command* cmd);
+ bool doCommandSingleton(Command* cmd) override;
+
 private:
   CommandExecutorPortfolio();
   void lemmaSharingInit();

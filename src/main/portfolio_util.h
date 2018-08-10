@@ -49,7 +49,7 @@ public:
 
   ~PortfolioLemmaOutputChannel() {}
 
-  void notifyNewLemma(Expr lemma);
+  void notifyNewLemma(Expr lemma) override;
 };/* class PortfolioLemmaOutputChannel */
 
 class PortfolioLemmaInputChannel : public LemmaInputChannel {
@@ -67,8 +67,8 @@ public:
 
   ~PortfolioLemmaInputChannel() {}
 
-  bool hasNewLemma();
-  Expr getNewLemma();
+  bool hasNewLemma() override;
+  Expr getNewLemma() override;
 
 };/* class PortfolioLemmaInputChannel */
 
