@@ -111,11 +111,11 @@ void storeFunctionAndAddLemmas(TNode func,
     {
       for (const TNode& elem : set)
       {
-        vec->insert(vec.end(), elem.begin(), elem.end())
+        vec->insert(vec->end(), elem.begin(), elem.end());
       }
     } else if (set.size() > 2)
     {
-      vec->insert(vec.end(), term.begin(), term.end())
+      vec->insert(vec->end(), term.begin(), term.end());
     } 
   }
 }
@@ -198,7 +198,7 @@ PreprocessingPassResult BVAckermann::applyInternal(
   std::vector<TNode> to_process;
   for (const Node& a : assertionsToPreprocess->ref())
   {
-    to_process.push(a);
+    to_process.push_back(a);
   }
   collectFunctionsAndLemmas(
       d_funcToArgs, d_funcToSkolem, &to_process, assertionsToPreprocess);
