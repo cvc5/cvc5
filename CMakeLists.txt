@@ -111,44 +111,17 @@ execute_process(
 
 #-----------------------------------------------------------------------------#
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/git_versioninfo.cpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/src/git_versioninfo.cpp)
+# CONFIGURATION (for now manual)
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/SmtEngine.3cvc_template.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/SmtEngine.3cvc_template)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/cvc4.1_template.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/cvc4.1_template)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/cvc4.5.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/cvc4.5)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/libcvc4.3.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/libcvc4.3)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/libcvc4compat.3.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/libcvc4compat.3)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/libcvc4parser.3.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/libcvc4parser.3)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/doc/options.3cvc_template.in
-  ${CMAKE_CURRENT_BINARY_DIR}/doc/options.3cvc_template)
+# src/util/rational.h.in
+# src/util/integer.h.in
+set(CVC4_NEED_INT64_T_OVERLOADS 0)
+set(CVC4_USE_CLN_IMP 0)
+set(CVC4_USE_GMP_IMP 1)
+set(CVC4_USE_SYMFPU 0)
 
 #-----------------------------------------------------------------------------#
 
-add_subdirectory(src/base)
-add_subdirectory(src/expr)
-add_subdirectory(src/options)
-add_subdirectory(src/parser)
-add_subdirectory(src/theory)
+add_subdirectory(doc)
 add_subdirectory(proofs/signatures)
-include_directories(src ${CMAKE_CURRENT_BINARY_DIR}/src)
+add_subdirectory(src)
