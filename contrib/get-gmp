@@ -1,4 +1,13 @@
 #!/bin/bash
+#
+# This script should only be used if your distribution does not ship with the
+# GMP configuration you need. For example, contrib/get-win-dependencies
+# cross-compiles GMP for Windows. You can also use the script if your
+# distribution does not ship with static GMP libraries (e.g., Arch Linux) and
+# you want to build CVC4 statically.
+# In most of the cases the GMP version installed on your system is the one you
+# want and should use.
+#
 
 source "$(dirname "$0")/get-script-header.sh"
 
