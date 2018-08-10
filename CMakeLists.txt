@@ -148,6 +148,7 @@ configure_file(
 add_subdirectory(src/base)
 add_subdirectory(src/expr)
 add_subdirectory(src/options)
+add_subdirectory(src/parser)
 add_subdirectory(src/theory)
 add_subdirectory(proofs/signatures)
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR}/src)
