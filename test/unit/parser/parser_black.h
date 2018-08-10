@@ -194,6 +194,8 @@ class ParserBlack
     d_lang(lang) {
   }
 
+  virtual ~ParserBlack() {}
+
   void setUp()
   {
     d_options.set(options::parseOnly, true);
