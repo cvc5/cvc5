@@ -233,12 +233,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // pick appropriate one
   if (useParallelExecutor)
   {
-    solver.reset(&threadOpts[0]);
+    solver.reset(new api::Solver(&threadOpts[0]));
     pExecutor = new CommandExecutorPortfolio(solver.get(), opts, threadOpts);
   }
   else
   {
-    solver.reset(&opts);
+    solver.reset(new api::Solver(&opts));
     pExecutor = new CommandExecutor(solver.get(), opts);
   }
 # endif
