@@ -150,7 +150,7 @@ $(UNIT_TESTS:%=@am__quote@./@DEPDIR@/%.Plo@am__quote@): %.Plo:
 
 $(UNIT_TESTS:%=@abs_builddir@/%.cpp): @abs_builddir@/%.cpp: %.h
 	$(AM_V_at)$(MKDIR_P) `dirname "$@"`
-	$(AM_V_GEN)$(CXXTESTGEN) --have-eh --have-std --error-printer -o "$@" "$<"
+	$(AM_V_GEN)$(CXXTESTGEN) --no-static-init --have-eh --have-std --error-printer -o "$@" "$<"
 
 $(WHITE_TESTS:%=%.lo): %_white.lo: @abs_builddir@/%_white.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS_WHITE) -MT $@ -MD -MP -MF $(DEPDIR)/$(@:%.lo=%).Tpo -c -o $@ $<
