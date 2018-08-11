@@ -145,6 +145,7 @@ configure_file(
 
 #-----------------------------------------------------------------------------#
 
+add_subdirectory(src/base)
 add_subdirectory(src/expr)
 add_subdirectory(src/options)
 add_subdirectory(src/theory)
