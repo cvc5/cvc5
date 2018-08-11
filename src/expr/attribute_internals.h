@@ -505,8 +505,19 @@ template <class T, bool context_dep>
 struct AttributeTraits {
   typedef void (*cleanup_t)(T);
   static std::vector<cleanup_t>& getCleanup() {
-    static std::vector<cleanup_t> cleanup;
-    return cleanup;
+    // Note: we do not destroy this vector on purpose. Instead, we rely on the
+    // OS to clean up our mess. The reason for that is that we need this vector
+    // to remain initialized at least as long as the ExprManager because
+    // ExprManager's destructor calls this method. The only way to guarantee
+    // this is to never destroy it. This is a common idiom [0]. In the past, we
+    // had an issue when `cleanup` wasn't a pointer and just an `std::vector`
+    // instead. CxxTest stores the test class in a static variable, which could
+    // lead to the ExprManager being destroyed after the destructor of the
+    // vector was called.
+    //
+    // [0] https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
+    static std::vector<cleanup_t>* cleanup = new std::vector<cleanup_t>();
+    return *cleanup;
   }
 };
 
