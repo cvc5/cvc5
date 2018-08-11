@@ -505,8 +505,8 @@ template <class T, bool context_dep>
 struct AttributeTraits {
   typedef void (*cleanup_t)(T);
   static std::vector<cleanup_t>& getCleanup() {
-    static std::vector<cleanup_t> cleanup;
-    return cleanup;
+    static std::vector<cleanup_t>* cleanup = new std::vector<cleanup_t>();
+    return *cleanup;
   }
 };
 
