@@ -35,7 +35,6 @@ enum AttrTableId {
   AttrTableNode,
   AttrTableTypeNode,
   AttrTableString,
-  AttrTablePointer,
   AttrTableCDBool,
   AttrTableCDUInt64,
   AttrTableCDTNode,

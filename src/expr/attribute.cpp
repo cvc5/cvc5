@@ -50,7 +50,6 @@ void AttributeManager::deleteAllAttributes(NodeValue* nv) {
   deleteFromTable(d_nodes, nv);
   deleteFromTable(d_types, nv);
   deleteFromTable(d_strings, nv);
-  deleteFromTable(d_ptrs, nv);
 }
 
 void AttributeManager::deleteAllAttributes() {
@@ -60,7 +59,6 @@ void AttributeManager::deleteAllAttributes() {
   deleteAllFromTable(d_nodes);
   deleteAllFromTable(d_types);
   deleteAllFromTable(d_strings);
-  deleteAllFromTable(d_ptrs);
 }
 
 void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
@@ -97,9 +95,6 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
       break;
     case AttrTableString:
       deleteAttributesFromTable(d_strings, ids);
-      break;
-    case AttrTablePointer:
-      deleteAttributesFromTable(d_ptrs, ids);
       break;
 
     case AttrTableCDBool:
