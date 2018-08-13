@@ -432,19 +432,20 @@ AttributeManager::setAttribute(NodeValue* nv,
 template <class T>
 inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
                                               NodeValue* nv) {
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
-    typedef AttributeTraits<T, false> traits_t;
-    typedef AttrHash<T> hash_t;
-    std::pair<uint64_t, NodeValue*> pr = std::make_pair(id, nv);
-    if(traits_t::getCleanup()[id] != NULL) {
-      typename hash_t::iterator i = table.find(pr);
-      if(i != table.end()) {
-        traits_t::getCleanup()[id]((*i).second);
-        table.erase(pr);
-      }
-    } else {
-      table.erase(pr);
-    }
+  for(uint64_t id = 0, last = attr::LastAttributeId<T, false>::getId(); id < last; ++id) {
+    table.erase(std::make_pair(id, nv));
+    // typedef AttributeTraits<T, false> traits_t;
+    // typedef AttrHash<T> hash_t;
+    // std::pair<uint64_t, NodeValue*> pr = std::make_pair(id, nv);
+    // if(traits_t::getCleanup()[id] != NULL) {
+    //   typename hash_t::iterator i = table.find(pr);
+    //   if(i != table.end()) {
+    //     traits_t::getCleanup()[id]((*i).second);
+    //     table.erase(pr);
+    //   }
+    // } else {
+    //   table.erase(pr);
+    // }
   }
 }
 
@@ -457,32 +458,32 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
   Assert(!d_inGarbageCollection);
   d_inGarbageCollection = true;
 
-  bool anyRequireClearing = false;
-  typedef AttributeTraits<T, false> traits_t;
-  typedef AttrHash<T> hash_t;
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
-    if(traits_t::getCleanup()[id] != NULL) {
-      anyRequireClearing = true;
-    }
-  }
+  // bool anyRequireClearing = false;
+  // typedef AttributeTraits<T, false> traits_t;
+  // typedef AttrHash<T> hash_t;
+  // for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
+  //   if(traits_t::getCleanup()[id] != NULL) {
+  //     anyRequireClearing = true;
+  //   }
+  // }
 
-  if(anyRequireClearing) {
-    typename hash_t::iterator it = table.begin();
-    typename hash_t::iterator it_end = table.end();
+  // if(anyRequireClearing) {
+  //   typename hash_t::iterator it = table.begin();
+  //   typename hash_t::iterator it_end = table.end();
 
-    while (it != it_end){
-      uint64_t id = (*it).first.first;
-      /*
-      Debug("attrgc") << "id " << id
-                      << " node_value: " << ((*it).first.second)
-                      << std::endl;
-      */
-      if(traits_t::getCleanup()[id] != NULL) {
-        traits_t::getCleanup()[id]((*it).second);
-      }
-      ++it;
-    }
-  }
+  //   while (it != it_end){
+  //     uint64_t id = (*it).first.first;
+  //     /*
+  //     Debug("attrgc") << "id " << id
+  //                     << " node_value: " << ((*it).first.second)
+  //                     << std::endl;
+  //     */
+  //     if(traits_t::getCleanup()[id] != NULL) {
+  //       traits_t::getCleanup()[id]((*it).second);
+  //     }
+  //     ++it;
+  //   }
+  // }
   table.clear();
   d_inGarbageCollection = false;
   Assert(!d_inGarbageCollection);
@@ -499,7 +500,7 @@ AttributeUniqueId AttributeManager::getAttributeId(const AttrKind& attr){
 template <class T>
 void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::vector<uint64_t>& ids){
   d_inGarbageCollection = true;
-  typedef AttributeTraits<T, false> traits_t;
+  //typedef AttributeTraits<T, false> traits_t;
   typedef AttrHash<T> hash_t;
 
   typename hash_t::iterator it = table.begin();
@@ -516,9 +517,9 @@ void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::
     if(std::binary_search(begin_ids, end_ids, id)){
       tmp = it;
       ++it;
-      if(traits_t::getCleanup()[id] != NULL) {
-        traits_t::getCleanup()[id]((*tmp).second);
-      }
+      // if(traits_t::getCleanup()[id] != NULL) {
+      //   traits_t::getCleanup()[id]((*tmp).second);
+      // }
       table.erase(tmp);
     }else{
       ++it;
