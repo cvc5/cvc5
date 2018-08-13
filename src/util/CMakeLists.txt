@@ -60,18 +60,13 @@ set(util_src_files
   utility.h
 )
 
-#TODO: if CVC4_CLN_IMP
-#list(APPEND util_src_files
-#  rational_cln_imp.cpp
-#  integer_cln_imp.cpp
-#)
+if(CVC4_USE_CLN_IMP)
+  list(APPEND util_src_files rational_cln_imp.cpp integer_cln_imp.cpp)
+endif()
 
-
-#TODO: if CVC4_GMP_IMP
-list(APPEND util_src_files
-  rational_gmp_imp.cpp
-  integer_gmp_imp.cpp
-)
+if(CVC4_USE_GMP_IMP)
+  list(APPEND util_src_files rational_gmp_imp.cpp integer_gmp_imp.cpp)
+endif()
 
 add_library(util SHARED ${util_src_files})
 set_target_properties(util PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
