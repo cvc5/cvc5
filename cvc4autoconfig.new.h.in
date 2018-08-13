@@ -1,0 +1,130 @@
+#ifndef __CVC4__CVC4AUTOCONFIG_H
+#define __CVC4__CVC4AUTOCONFIG_H
+
+/* Major component of the version of CVC4. */
+#define CVC4_MAJOR @CVC4_MAJOR@
+
+/* Minor component of the version of CVC4. */
+#define CVC4_MINOR @CVC4_MINOR@
+
+/* Release component of the version of CVC4. */
+#define CVC4_RELEASE @CVC4_RELEASE@
+
+/* Extraversion component of the version of CVC4. */
+#define CVC4_EXTRAVERSION "@CVC4_EXTRAVERSION@"
+
+/* Full release string for CVC4. */
+#define CVC4_RELEASE_STRING "@CVC4_RELEASE_STRING@"
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "@PACKAGE_NAME@"
+
+/* Whether CVC4 is built with the (optional) GPLed library dependences. */
+#define CVC4_GPL_DEPS @CVC4_GPL_DEPS@
+
+/* Defined if using the CLN multi-precision arithmetic library. */
+#cmakedefine CVC4_CLN_IMP
+
+/* Defined if using the GMP multi-precision arithmetic library. */
+#cmakedefine CVC4_GMP_IMP
+
+/* Defined if the requested minimum BOOST version is satisfied */
+#define HAVE_BOOST @HAVE_BOOST@
+
+/* Define to 1 if you have <boost/system/error_code.hpp> */
+#define HAVE_BOOST_SYSTEM_ERROR_CODE_HPP
+
+/* Define to 1 if you have <boost/thread.hpp> */
+#define HAVE_BOOST_THREAD_HPP @HAVE_BOOST_THREAD_HPP@
+
+/* Define to 1 if Boost threading library has support for thread attributes */
+#define BOOST_HAS_THREAD_ATTR @BOOST_HAS_THREAD_ATTR@
+
+/* Defined to 1 if clock_gettime() is supported by the platform. */
+#define HAVE_CLOCK_GETTIME @HAVE_CLOCK_GETTIME@
+
+/* define if the compiler supports basic C++11 syntax */
+#define HAVE_CXX11 @HAVE_CXX11@
+
+/* Define to 1 if you have the declaration of `optreset', and to 0 if you
+   don't. */
+#define HAVE_DECL_OPTRESET @HAVE_DECL_OPTRESET@
+
+/* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRERROR_R @HAVE_DECL_STRERROR_R@
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#define HAVE_DLFCN_H @HAVE_DLFCN_H@
+
+/* Define to 1 if you have the <ext/stdio_filebuf.h> header file. */
+#define HAVE_EXT_STDIO_FILEBUF_H @HAVE_EXT_STDIO_FILEBUF_H@
+
+/* Defined to 1 if ffs() is supported by the platform. */
+#define HAVE_FFS @HAVE_FFS@
+
+/* Define to 1 if you have the <getopt.h> header file. */
+#define HAVE_GETOPT_H @HAVE_GETOPT_H@
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#define HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+
+/* Define to 1 if you have the `gmp' library (-lgmp). */
+#define HAVE_LIBGMP @HAVE_LIBGMP@
+
+///* Define to 1 if you have the `profiler' library (-lprofiler). */
+//#cmakedefine HAVE_LIBPROFILER
+
+/* Define to 1 to use libreadline */
+#define HAVE_LIBREADLINE @HAVE_LIBREADLINE@
+
+///* Define to 1 if you have the `tcmalloc' library (-ltcmalloc). */
+//#cmakedefine HAVE_LIBTCMALLOC
+
+/* Define to 1 if you have the <memory.h> header file. */
+#define HAVE_MEMORY_H @HAVE_MEMORY_H@
+
+/* Defined to 1 if sigaltstack() is supported by the platform. */
+#define HAVE_SIGALTSTACK @HAVE_SIGALTSTACK@
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#define HAVE_STDINT_H @HAVE_STDINT_H@
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#define HAVE_STDLIB_H @HAVE_STDLIB_H@
+
+/* Define to 1 if you have the `strerror_r' function. */
+#define HAVE_STRERROR_R @HAVE_STRERROR_R@
+
+/* Define to 1 if you have the <strings.h> header file. */
+#define HAVE_STRINGS_H @HAVE_STRINGS_H@
+
+/* Define to 1 if you have the <string.h> header file. */
+#define HAVE_STRING_H @HAVE_STRING_H@
+
+/* Defined to 1 if strtok_r() is supported by the platform. */
+#define HAVE_STRTOK_R @HAVE_STRTOK_R@
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#define HAVE_SYS_STAT_H @HAVE_STRTOK_R@
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#define HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#define HAVE_UNISTD_H @HAVE_UNISTD_H@
+
+///* Define to the sub-directory where libtool stores uninstalled libraries. */
+//#cmakedefine LT_OBJDIR "@LT_OBJDIR@"
+
+/* Define to 1 if rl_completion_entry_function is declared to return pointer
+   to char */
+#define READLINE_COMPENTRY_FUNC_RETURNS_CHARP @READLINE_COMPENTRY_FUNC_RETURNS_CHARP@
+
+///* Define to 1 if you have the ANSI C header files. */
+//#cmakedefine STDC_HEADERS
+
+/* Define to 1 if strerror_r returns char *. */
+#define STRERROR_R_CHAR_P @STRERROR_R_CHAR_P@
+
+#endif /* __CVC4__CVC4AUTOCONFIG_H */
