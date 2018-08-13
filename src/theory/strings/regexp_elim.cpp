@@ -170,7 +170,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         }
       }
     }
-    if (success)
+    if (success && !conj.empty())
     {
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       // process the non-greedy find variables
