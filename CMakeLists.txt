@@ -102,12 +102,23 @@ message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
 #-----------------------------------------------------------------------------#
 
+option(USE_CLN "Use CLN instead of GMP" OFF)
+
+#-----------------------------------------------------------------------------#
+
 find_package(PythonInterp REQUIRED)
 
 find_package(GMP REQUIRED)
-message(STATUS "Found GMP headers: ${GMP_INCLUDE_DIR}")
 set(LIBRARIES ${LIBRARIES} ${GMP_LIBRARIES})
 include_directories(${GMP_INCLUDE_DIR})
+
+if(USE_CLN)
+  find_package(CLN 1.2.2 REQUIRED)
+  if(CLN_FOUND)
+    set(LIBRARIES ${LIBRARIES} ${GMP_LIBRARIES})
+    include_directories(${GMP_INCLUDE_DIR})
+  endif()
+endif()
 
 find_package(ANTLR REQUIRED)
 message(STATUS "Found ANTLR headers: ${ANTLR_INCLUDE_DIR}")
@@ -143,7 +154,7 @@ execute_process(
 
 #-----------------------------------------------------------------------------#
 
-# CONFIGURATION (for now manual)
+include(ConfigureCVC4)
 
 # Define to 1 if Boost threading library has support for thread attributes
 set(BOOST_HAS_THREAD_ATTR 0)
@@ -221,11 +232,13 @@ set(STRERROR_R_CHAR_P 1)
 configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# src/util/rational.h.in
-# src/util/integer.h.in
-set(CVC4_NEED_INT64_T_OVERLOADS 0)
-set(CVC4_USE_CLN_IMP 0)
-set(CVC4_USE_GMP_IMP 1)
+if(USE_CLN)
+  set(CVC4_USE_CLN_IMP 1)
+  set(CVC4_USE_GMP_IMP 0)
+else()
+  set(CVC4_USE_CLN_IMP 0)
+  set(CVC4_USE_GMP_IMP 1)
+endif()
 
 set(CVC4_USE_SYMFPU 0)
 
