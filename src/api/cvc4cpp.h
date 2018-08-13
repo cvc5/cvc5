@@ -56,6 +56,15 @@ class CVC4_PUBLIC Result
   friend class Solver;
 
  public:
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param r the internal result that is to be wrapped by this result
+   * @return the Result
+   */
+  Result(const CVC4::Result& r);
+
   /**
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
@@ -116,14 +125,11 @@ class CVC4_PUBLIC Result
    */
   std::string toString() const;
 
- private:
-  /**
-   * Constructor.
-   * @param r the internal result that is to be wrapped by this result
-   * @return the Result
-   */
-  Result(const CVC4::Result& r);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Result getResult(void) const;
 
+ private:
   /**
    * The interal result wrapped by this result.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Result is
@@ -160,6 +166,15 @@ class CVC4_PUBLIC Sort
   friend class Term;
 
  public:
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param t the internal type that is to be wrapped by this sort
+   * @return the Sort
+   */
+  Sort(const CVC4::Type& t);
+
   /**
    * Destructor.
    */
@@ -313,14 +328,11 @@ class CVC4_PUBLIC Sort
    */
   std::string toString() const;
 
- private:
-  /**
-   * Constructor.
-   * @param t the internal type that is to be wrapped by this sort
-   * @return the Sort
-   */
-  Sort(const CVC4::Type& t);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Type getType(void) const;
 
+ private:
   /**
    * The interal type wrapped by this sort.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -361,6 +373,15 @@ class CVC4_PUBLIC Term
   friend struct TermHashFunction;
 
  public:
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const CVC4::Expr& e);
+
   /**
    * Constructor.
    */
@@ -545,14 +566,11 @@ class CVC4_PUBLIC Term
    */
   const_iterator end() const;
 
- private:
-  /**
-   * Constructor.
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  Term(const CVC4::Expr& e);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Expr getExpr(void) const;
 
+ private:
   /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -650,6 +668,15 @@ class CVC4_PUBLIC OpTerm
    */
   OpTerm();
 
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  OpTerm(const CVC4::Expr& e);
+
   /**
    * Destructor.
    */
@@ -701,14 +728,11 @@ class CVC4_PUBLIC OpTerm
    */
   std::string toString() const;
 
- private:
-  /**
-   * Constructor.
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  OpTerm(const CVC4::Expr& e);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Expr getExpr(void) const;
 
+ private:
   /**
    * The internal expression wrapped by this operator term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -812,6 +836,10 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    */
   std::string toString() const;
 
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::DatatypeConstructor getDatatypeConstructor(void) const;
+
  private:
   /**
    * The internal (intermediate) datatype constructor wrapped by this
@@ -875,6 +903,10 @@ class CVC4_PUBLIC DatatypeDecl
    */
   std::string toString() const;
 
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Datatype getDatatype(void) const;
+
  private:
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
@@ -898,6 +930,15 @@ class CVC4_PUBLIC DatatypeSelector
    */
   DatatypeSelector();
 
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param stor the internal datatype selector to be wrapped
+   * @return the DatatypeSelector
+   */
+  DatatypeSelector(const CVC4::DatatypeConstructorArg& stor);
+
   /**
    * Destructor.
    */
@@ -908,14 +949,11 @@ class CVC4_PUBLIC DatatypeSelector
    */
   std::string toString() const;
 
- private:
-  /**
-   * Constructor.
-   * @param stor the internal datatype selector to be wrapped
-   * @return the DatatypeSelector
-   */
-  DatatypeSelector(const CVC4::DatatypeConstructorArg& stor);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::DatatypeConstructorArg getDatatypeConstructorArg(void) const;
 
+ private:
   /**
    * The internal datatype selector wrapped by this datatype selector.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -937,6 +975,15 @@ class CVC4_PUBLIC DatatypeConstructor
    * Constructor.
    */
   DatatypeConstructor();
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param ctor the internal datatype constructor to be wrapped
+   * @return thte DatatypeConstructor
+   */
+  DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1048,14 +1095,11 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   const_iterator end() const;
 
- private:
-  /**
-   * Constructor.
-   * @param ctor the internal datatype constructor to be wrapped
-   * @return thte DatatypeConstructor
-   */
-  DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::DatatypeConstructor getDatatypeConstructor(void) const;
 
+ private:
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -1073,6 +1117,15 @@ class CVC4_PUBLIC Datatype
   friend class Sort;
 
  public:
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param dtype the internal datatype to be wrapped
+   * @return the Datatype
+   */
+  Datatype(const CVC4::Datatype& dtype);
+
   /**
    * Destructor.
    */
@@ -1181,14 +1234,11 @@ class CVC4_PUBLIC Datatype
    */
   const_iterator end() const;
 
- private:
-  /**
-   * Constructor.
-   * @param dtype the internal datatype to be wrapped
-   * @return the Datatype
-   */
-  Datatype(const CVC4::Datatype& dtype);
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Datatype getDatatype(void) const;
 
+ private:
   /**
    * The internal datatype wrapped by this datatype.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -2348,6 +2398,14 @@ class CVC4_PUBLIC Solver
    * @param value the option value
    */
   void setOption(const std::string& option, const std::string& value) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  ExprManager* getExprManager(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  SmtEngine* getSmtEngine(void) const;
 
  private:
   /* Helper to convert a vector of internal types to sorts. */

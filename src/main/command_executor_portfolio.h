@@ -30,11 +30,16 @@ namespace CVC4 {
 
 class CommandSequence;
 
+namespace api {
+class Solver;
+}
+
 namespace main {
 
 class CommandExecutorPortfolio : public CommandExecutor {
+  // Solvers are created/deleted during initialization
+  std::vector<api::Solver*> d_solvers;
 
-  // These shall be created/deleted during initialization
   std::vector<ExprManager*> d_exprMgrs;
   const unsigned d_numThreads;   // Currently const, but designed so it is
                                  // not too hard to support this changing
@@ -55,18 +60,19 @@ class CommandExecutorPortfolio : public CommandExecutor {
   TimerStat d_statWaitTime;
 
 public:
-  CommandExecutorPortfolio(ExprManager &exprMgr,
-                           Options &options,
-                           OptionsList& tOpts);
+ CommandExecutorPortfolio(api::Solver* solver,
+                          Options& options,
+                          OptionsList& tOpts);
 
-  ~CommandExecutorPortfolio();
+ ~CommandExecutorPortfolio();
 
-  std::string getSmtEngineStatus();
+ std::string getSmtEngineStatus();
 
-  void flushStatistics(std::ostream& out) const;
+ void flushStatistics(std::ostream& out) const override;
 
 protected:
-  bool doCommandSingleton(Command* cmd);
+ bool doCommandSingleton(Command* cmd) override;
+
 private:
   CommandExecutorPortfolio();
   void lemmaSharingInit();
