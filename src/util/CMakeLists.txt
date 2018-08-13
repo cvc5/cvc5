@@ -75,3 +75,4 @@ list(APPEND util_src_files
 
 add_library(util SHARED ${util_src_files})
 set_target_properties(util PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
+add_dependencies(util options)
