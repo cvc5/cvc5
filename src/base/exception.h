@@ -27,8 +27,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "base/tls.h"
-
 namespace CVC4 {
 
 class CVC4_PUBLIC Exception : public std::exception {
@@ -158,12 +156,12 @@ public:
 
 private:
   /* Disallow copies */
-  LastExceptionBuffer(const LastExceptionBuffer&) CVC4_UNDEFINED;
-  LastExceptionBuffer& operator=(const LastExceptionBuffer&) CVC4_UNDEFINED;
+  LastExceptionBuffer(const LastExceptionBuffer&) = delete;
+  LastExceptionBuffer& operator=(const LastExceptionBuffer&) = delete;
 
   char* d_contents;
 
-  static CVC4_THREAD_LOCAL LastExceptionBuffer* s_currentBuffer;
+  static thread_local LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
 }/* CVC4 namespace */

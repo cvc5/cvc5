@@ -25,8 +25,11 @@
 namespace CVC4 {
 
 class Command;
-class ExprManager;
 class Options;
+
+namespace api {
+class Solver;
+}
 
 namespace parser {
   class Parser;
@@ -47,7 +50,7 @@ class CVC4_PUBLIC InteractiveShell
   static const unsigned s_historyLimit = 500;
 
 public:
- InteractiveShell(ExprManager& exprManager);
+ InteractiveShell(api::Solver* solver);
 
  /**
   * Close out the interactive session.

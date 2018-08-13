@@ -33,7 +33,20 @@ private:
   CegConjecture * d_conj;
   /** last instantiation by single invocation module? */
   bool d_last_inst_si;
-private:
+  /** the conjecture we are waiting to assign */
+  Node d_waiting_conj;
+
+ private:
+  /** assign quantified formula q as the conjecture
+   *
+   * This method returns true if q was successfully assigned as the synthesis
+   * conjecture considered by this class. This method may return false, for
+   * instance, if this class determines that it would rather rewrite q to
+   * an equivalent form r (in which case this method returns the lemma
+   * q <=> r). An example of this is the quantifier elimination step
+   * option::sygusQePreproc().
+   */
+  bool assignConjecture(Node q);
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
 public:

@@ -193,15 +193,58 @@ class FirstOrderModel : public TheoryModel
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
-
 class FirstOrderModelIG : public FirstOrderModel
 {
-public: //for Theory UF:
-  //models for each UF operator
-  std::map< Node, uf::UfModelTree > d_uf_model_tree;
-  //model generators
-  std::map< Node, uf::UfModelTreeGenerator > d_uf_model_gen;
-private:
+ public:  // for Theory UF:
+  /** class for generating models for uninterpreted functions
+   *
+   * This implements the model construction from page 6 of Reynolds et al,
+   * "Quantifier Instantiation Techniques for Finite Model Finding in SMT",
+   * CADE 2013.
+   */
+  class UfModelTreeGenerator
+  {
+   public:
+    UfModelTreeGenerator() {}
+    ~UfModelTreeGenerator() {}
+    /** set default value */
+    void setDefaultValue(Node v) { d_default_value = v; }
+    /** set value */
+    void setValue(
+        TheoryModel* m, Node n, Node v, bool ground = true, bool isReq = true);
+    /** make model */
+    void makeModel(TheoryModel* m, uf::UfModelTree& tree);
+    /** reset */
+    void clear();
+
+   public:
+    /** the overall default value */
+    Node d_default_value;
+    /**
+     * Stores (required, ground) values in key, value pairs of the form
+     * ( P( a, b ), c ), which indicates P( a, b ) has value c in the model.
+     * The "non-ground" values indicate that the key has a "model-basis"
+     * variable, for example, ( P( _, b ), c ) indicates that P( x, b ) has the
+     * value b for any value of x.
+     */
+    std::map<Node, Node> d_set_values[2][2];
+    /** stores the set of non-ground keys in the above maps */
+    std::vector<Node> d_defaults;
+    /**
+     * Returns the term corresponding to the intersection of n1 and n2, if it
+     * exists, for example, for P( _, a ) and P( b, _ ), this method returns
+     * P( b, a ), where _ is the "model basis" variable. We take into account
+     * equality between arguments, so if a=b, then the intersection of P( a, a )
+     * and P( b, _ ) is P( a, a ).
+     */
+    Node getIntersection(TheoryModel* m, Node n1, Node n2, bool& isGround);
+  };
+  /** models for each UF operator */
+  std::map<Node, uf::UfModelTree> d_uf_model_tree;
+  /** model generators for each UF operator */
+  std::map<Node, UfModelTreeGenerator> d_uf_model_gen;
+
+ private:
   //map from terms to the models used to calculate their value
   std::map< Node, bool > d_eval_uf_use_default;
   std::map< Node, uf::UfModelTree > d_eval_uf_model;

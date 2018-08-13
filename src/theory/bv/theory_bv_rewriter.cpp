@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
 
-// CVC4_THREAD_LOCAL AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
-// CVC4_THREAD_LOCAL TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
+// thread_local AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
+// thread_local TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
 RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;
@@ -173,7 +173,11 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
                             RewriteRule<BvIteConstCond>,
                             RewriteRule<BvIteEqualChildren>,
                             RewriteRule<BvIteConstChildren>,
-                            RewriteRule<BvIteEqualCond>>::apply(node);
+                            RewriteRule<BvIteEqualCond>,
+                            RewriteRule<BvIteMergeThenIf>,
+                            RewriteRule<BvIteMergeElseIf>,
+                            RewriteRule<BvIteMergeThenElse>,
+                            RewriteRule<BvIteMergeElseElse>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 

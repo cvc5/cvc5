@@ -125,6 +125,113 @@ inline Node RewriteRule<BvIteEqualCond>::apply(TNode node)
                 : node[2];
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_ITE, node[0], t0, e1);
 }
+
+/**
+ * BvIteMergeThenIf
+ *
+ * Nested BITVECTOR_ITE of the form
+ *   c0 ? (c1 ? t1 : e1) : t1  ->  c0 AND NOT(c1) ? e1 : t1
+ */
+template <>
+inline bool RewriteRule<BvIteMergeThenIf>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE
+          && node[1].getKind() == kind::BITVECTOR_ITE
+          && node[1][1] == node[2]);
+}
+
+template <>
+inline Node RewriteRule<BvIteMergeThenIf>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteMergeThenIf>(" << node << ")"
+                      << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(node[1].getKind() == kind::BITVECTOR_ITE);
+  Node cond = nm->mkNode(kind::BITVECTOR_AND,
+                         node[0],
+                         nm->mkNode(kind::BITVECTOR_NOT, node[1][0]));
+  return nm->mkNode(kind::BITVECTOR_ITE, cond, node[1][2], node[2]);
+}
+
+/**
+ * BvIteMergeElseIf
+ *
+ * Nested BITVECTOR_ITE of the form
+ *   c0 ? (c1 ? t1 : e1) : e1  ->  c0 AND c1 ? t1 : e1
+ */
+template <>
+inline bool RewriteRule<BvIteMergeElseIf>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE
+          && node[1].getKind() == kind::BITVECTOR_ITE
+          && node[1][2] == node[2]);
+}
+
+template <>
+inline Node RewriteRule<BvIteMergeElseIf>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteMergeElseIf>(" << node << ")"
+                      << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(node[1].getKind() == kind::BITVECTOR_ITE);
+  Node cond = nm->mkNode(kind::BITVECTOR_AND, node[0], node[1][0]);
+  return nm->mkNode(kind::BITVECTOR_ITE, cond, node[1][1], node[2]);
+}
+
+/**
+ * BvIteMergeThenElse
+ *
+ * Nested BITVECTOR_ITE of the form
+ *   c0 ? t0 : (c1 ? t0 : e1)  ->  NOT(c0) AND NOT(c1) ? e1 : t0
+ */
+template <>
+inline bool RewriteRule<BvIteMergeThenElse>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE
+          && node[2].getKind() == kind::BITVECTOR_ITE
+          && node[1] == node[2][1]);
+}
+
+template <>
+inline Node RewriteRule<BvIteMergeThenElse>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteMergeThenElse>(" << node << ")"
+                      << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(node[2].getKind() == kind::BITVECTOR_ITE);
+  Node cond = nm->mkNode(kind::BITVECTOR_AND,
+                         nm->mkNode(kind::BITVECTOR_NOT, node[0]),
+                         nm->mkNode(kind::BITVECTOR_NOT, node[2][0]));
+  return nm->mkNode(kind::BITVECTOR_ITE, cond, node[2][2], node[1]);
+}
+
+/**
+ * BvIteMergeElseElse
+ *
+ * Nested BITVECTOR_ITE of the form
+ *   c0 ? t0 : (c1 ? t1 : t0)  ->  NOT(c0) AND c1 ? t1 : t0
+ */
+template <>
+inline bool RewriteRule<BvIteMergeElseElse>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ITE
+          && node[2].getKind() == kind::BITVECTOR_ITE
+          && node[1] == node[2][2]);
+}
+
+template <>
+inline Node RewriteRule<BvIteMergeElseElse>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<BvIteMergeElseElse>(" << node << ")"
+                      << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(node[2].getKind() == kind::BITVECTOR_ITE);
+  Node cond = nm->mkNode(kind::BITVECTOR_AND,
+                         nm->mkNode(kind::BITVECTOR_NOT, node[0]),
+                         node[2][0]);
+  return nm->mkNode(kind::BITVECTOR_ITE, cond, node[2][1], node[1]);
+}
+
 /**
  * BvComp
  *

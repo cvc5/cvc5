@@ -17,7 +17,6 @@
 
 #include "smt/smt_engine_scope.h"
 
-#include "base/tls.h"
 #include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 #include "base/output.h"
@@ -27,7 +26,7 @@
 namespace CVC4 {
 namespace smt {
 
-CVC4_THREAD_LOCAL SmtEngine* s_smtEngine_current = NULL;
+thread_local SmtEngine* s_smtEngine_current = NULL;
 
 SmtEngine* currentSmtEngine() {
   Assert(s_smtEngine_current != NULL);
