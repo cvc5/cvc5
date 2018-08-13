@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "theory/quantifiers/exnteded_rewrite.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 namespace CVC4 {
 namespace preprocessing {
