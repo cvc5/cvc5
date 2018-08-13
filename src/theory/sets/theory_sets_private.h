@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -141,6 +141,8 @@ private:
   //cardinality
 private:
   bool d_card_enabled;
+  /** element types of sets for which cardinality is enabled */
+  std::map<TypeNode, bool> d_t_card_enabled;
   bool d_rels_enabled;
   std::map< Node, Node > d_eqc_to_card_term;
   NodeSet d_card_processed;

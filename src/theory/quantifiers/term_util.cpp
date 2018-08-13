@@ -2,9 +2,9 @@
 /*! \file term_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Paul Meng, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -817,18 +817,18 @@ bool TermUtil::isNegate(Kind k)
 }
 
 bool TermUtil::isAssoc( Kind k ) {
-  return k == PLUS || k == MULT || k == AND || k == OR || k == BITVECTOR_PLUS
-         || k == BITVECTOR_MULT || k == BITVECTOR_AND || k == BITVECTOR_OR
-         || k == BITVECTOR_XOR || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT
-         || k == STRING_CONCAT || k == UNION || k == INTERSECTION || k == JOIN
-         || k == PRODUCT;
+  return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
+         || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
+         || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT;
 }
 
 bool TermUtil::isComm( Kind k ) {
-  return k == EQUAL || k == PLUS || k == MULT || k == AND || k == OR || k == XOR
-         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT || k == BITVECTOR_AND
-         || k == BITVECTOR_OR || k == BITVECTOR_XOR || k == BITVECTOR_XNOR
-         || k == UNION || k == INTERSECTION;
+  return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
+         || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION;
 }
 
 bool TermUtil::isNonAdditive( Kind k ) {

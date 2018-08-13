@@ -2,9 +2,9 @@
 /*! \file smt2toredlog.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Andrew Reynolds
+ **   Dejan Jovanovic, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "options/options.h"
 #include "parser/parser.h"
@@ -53,14 +54,12 @@ int main(int argc, char* argv[])
   // Create the expression manager
   Options options;
   options.setInputLanguage(language::input::LANG_SMTLIB_V2);
-  ExprManager exprManager(options);
+  std::unique_ptr<api::Solver> solver =
+      std::unique_ptr<api::Solver>(new api::Solver(&options));
 
   // Create the parser
-  ParserBuilder parserBuilder(&exprManager, input, options);
+  ParserBuilder parserBuilder(solver.get(), input, options);
   Parser* parser = parserBuilder.build();
-
-  // Smt manager for simplifications
-  SmtEngine engine(&exprManager);
 
   // Variables and assertions
   std::map<Expr, unsigned> variables;
@@ -91,7 +90,7 @@ int main(int argc, char* argv[])
     
     AssertCommand* assert = dynamic_cast<AssertCommand*>(cmd);
     if (assert) {
-      assertions.push_back(engine.simplify(assert->getExpr()));
+      assertions.push_back(solver->getSmtEngine()->simplify(assert->getExpr()));
       delete cmd;
       continue;
     }

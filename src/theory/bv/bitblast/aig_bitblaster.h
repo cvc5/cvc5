@@ -2,7 +2,7 @@
 /*! \file aig_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -20,8 +20,6 @@
 #define __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
-
-#include "base/tls.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -57,7 +55,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction> TNodeAigMap;
   typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction> NodeAigMap;
 
-  static CVC4_THREAD_LOCAL Abc_Ntk_t* s_abcAigNetwork;
+  static thread_local Abc_Ntk_t* s_abcAigNetwork;
   std::unique_ptr<context::Context> d_nullContext;
   std::unique_ptr<prop::SatSolver> d_satSolver;
   TNodeAigMap d_aigCache;
@@ -66,6 +64,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   NodeAigMap d_nodeToAigInput;
   // the thing we are checking for sat
   Abc_Obj_t* d_aigOutputNode;
+
+  std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   void addAtom(TNode atom);
   void simplifyAig();

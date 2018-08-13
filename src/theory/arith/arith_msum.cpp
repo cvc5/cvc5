@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -148,6 +148,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k)
 {
+  Assert(veq_c.isNull());
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {

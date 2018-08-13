@@ -2,9 +2,9 @@
 /*! \file node_visitor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Liana Hadarean
+ **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
 
 #include <vector>
 
-#include "base/tls.h"
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -33,7 +32,7 @@ template<typename Visitor>
 class NodeVisitor {
 
   /** For re-entry checking */
-  static CVC4_THREAD_LOCAL bool s_inRun;
+  static thread_local bool s_inRun;
 
   /**
    * Guard against NodeVisitor<> being re-entrant.
@@ -116,6 +115,6 @@ public:
 };/* class NodeVisitor<> */
 
 template <typename Visitor>
-CVC4_THREAD_LOCAL bool NodeVisitor<Visitor>::s_inRun = false;
+thread_local bool NodeVisitor<Visitor>::s_inRun = false;
 
 }/* CVC4 namespace */

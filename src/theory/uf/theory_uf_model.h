@@ -2,9 +2,9 @@
 /*! \file theory_uf_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Paul Meng
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,8 +23,6 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-// TODO (#1302) : some of these classes should be moved to
-// src/theory/quantifiers/
 class UfModelTreeNode
 {
 public:
@@ -147,50 +145,6 @@ public:
     d_tree.debugPrint( out, m, d_index_order, ind );
   }
 };
-
-
-class UfModelTreeGenerator
-{
-public:
-  //store for set values
-  Node d_default_value;
-  std::map< Node, Node > d_set_values[2][2];
-  // defaults
-  std::vector< Node > d_defaults;
-  Node getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround );
-public:
-  UfModelTreeGenerator(){}
-  ~UfModelTreeGenerator(){}
-  /** set default value */
-  void setDefaultValue( Node v ) { d_default_value = v; }
-  /** set value */
-  void setValue( TheoryModel* m, Node n, Node v, bool ground = true, bool isReq = true );
-  /** make model */
-  void makeModel( TheoryModel* m, UfModelTree& tree );
-  /** uses partial default values */
-  bool optUsePartialDefaults();
-  /** reset */
-  void clear();
-};
-
-//this class stores temporary information useful to model engine for constructing model
-class UfModelPreferenceData
-{
-public:
-  UfModelPreferenceData() : d_reconsiderModel( false ){}
-  virtual ~UfModelPreferenceData(){}
-  Node d_const_val;
-  // preferences for default values
-  std::vector< Node > d_values;
-  std::map< Node, std::vector< Node > > d_value_pro_con[2];
-  std::map< Node, std::vector< Node > > d_term_pro_con[2];
-  bool d_reconsiderModel;
-  /** set value preference */
-  void setValuePreference( Node f, Node n, Node r, bool isPro );
-  /** get best default value */
-  Node getBestDefaultValue( Node defaultTerm, TheoryModel* m );
-};
-
 
 }
 }

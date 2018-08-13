@@ -2,9 +2,9 @@
 /*! \file logic_info.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -51,6 +51,8 @@ class CVC4_PUBLIC LogicInfo {
   bool d_integers;
   /** are reals used in this logic? */
   bool d_reals;
+  /** transcendentals in this logic? */
+  bool d_transcendentals;
   /** linear-only arithmetic in this logic? */
   bool d_linear;
   /** difference-only arithmetic in this logic? */
@@ -138,6 +140,9 @@ public:
   /** Are reals in this logic? */
   bool areRealsUsed() const;
 
+  /** Are transcendentals in this logic? */
+  bool areTranscendentalsUsed() const;
+
   /** Does this logic only linear arithmetic? */
   bool isLinear() const;
 
@@ -206,6 +211,8 @@ public:
   void enableReals();
   /** Disable the use of reals in this logic. */
   void disableReals();
+  /** Enable the use of transcendentals in this logic. */
+  void arithTranscendentals();
   /** Only permit difference arithmetic in this logic. */
   void arithOnlyDifference();
   /** Only permit linear arithmetic in this logic. */

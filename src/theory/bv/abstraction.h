@@ -2,9 +2,9 @@
 /*! \file abstraction.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Tim King
+ **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -155,8 +155,7 @@ class AbstractionModule {
   Node abstractSignatures(TNode assertion);
   Node computeSignature(TNode node);
 
-  bool isConjunctionOfAtoms(TNode node);
-  bool isConjunctionOfAtomsRec(TNode node, TNodeSet& seen);
+  bool isConjunctionOfAtoms(TNode node, TNodeSet& seen);
 
   TNode getGeneralization(TNode term);
   void storeGeneralization(TNode s, TNode t);

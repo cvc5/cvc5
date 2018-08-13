@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,14 +18,14 @@
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
-#include "theory/quantifiers/dynamic_rewrite.h"
+#include "theory/evaluator.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_enumeration.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
 
 /** SygusSampler
  *
@@ -50,7 +50,7 @@ namespace quantifiers {
  * For example, say the grammar for f is:
  *   A = 0 | 1 | x | y | A+A | ite( B, A, A )
  *   B = A <= A
- * If we call intialize( tds, f, 5 ), this class will generate 5 random sample
+ * If we call initialize( tds, f, 5 ), this class will generate 5 random sample
  * points for (x,y), say (0,0), (1,1), (0,1), (1,0), (2,2). The return values
  * of successive calls to registerTerm are listed below.
  *   registerTerm( 0 ) -> 0
@@ -69,14 +69,20 @@ class SygusSampler : public LazyTrieEvaluator
 
   /** initialize
    *
-   * tn : the return type of terms we will be testing with this class
-   * vars : the variables we are testing substitutions for
-   * nsamples : number of sample points this class will test.
+   * tn : the return type of terms we will be testing with this class,
+   * vars : the variables we are testing substitutions for,
+   * nsamples : number of sample points this class will test,
+   * unique_type_ids : if this is set to true, then we consider each variable
+   * in vars to have a unique "type id". A type id is a finer-grained notion of
+   * type that is used to determine when a rewrite rule is redundant.
    */
-  void initialize(TypeNode tn, std::vector<Node>& vars, unsigned nsamples);
+  virtual void initialize(TypeNode tn,
+                          std::vector<Node>& vars,
+                          unsigned nsamples,
+                          bool unique_type_ids = false);
   /** initialize sygus
    *
-   * tds : pointer to sygus database,
+   * qe : pointer to quantifiers engine,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f,
    * nsamples : number of sample points this class will test,
@@ -85,10 +91,10 @@ class SygusSampler : public LazyTrieEvaluator
    * terms of the analog of the type of f, that is, the builtin type that
    * f's type encodes in the deep embedding.
    */
-  void initializeSygus(TermDbSygus* tds,
-                       Node f,
-                       unsigned nsamples,
-                       bool useSygusType);
+  virtual void initializeSygus(TermDbSygus* tds,
+                               Node f,
+                               unsigned nsamples,
+                               bool useSygusType);
   /** register term n with this sampler database
    *
    * forceKeep is whether we wish to force that n is chosen as a representative
@@ -116,7 +122,7 @@ class SygusSampler : public LazyTrieEvaluator
    */
   int getDiffSamplePointIndex(Node a, Node b);
 
- protected:
+  //--------------------------queries about terms
   /** is contiguous
    *
    * This returns whether n's free variables (terms occurring in the range of
@@ -141,12 +147,17 @@ class SygusSampler : public LazyTrieEvaluator
    * occur in the range d_type_vars.
    */
   bool containsFreeVariables(Node a, Node b, bool strict = false);
+  //--------------------------end queries about terms
 
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
+  /** term enumerator object (used for random sampling) */
+  TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
+  /** evaluator class */
+  Evaluator d_eval;
   /** data structure to check duplication of sample points */
   class PtTrie
   {
@@ -270,160 +281,8 @@ class SygusSampler : public LazyTrieEvaluator
   std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** map from constants to sygus types that include them */
   std::map<Node, std::vector<TypeNode> > d_const_sygus_types;
-  /** register sygus type, intializes the above two data structures */
+  /** register sygus type, initializes the above two data structures */
   void registerSygusType(TypeNode tn);
-};
-
-/** A virtual class for notifications regarding matches. */
-class NotifyMatch
-{
- public:
-  /**
-   * A notification that s is equal to n * { vars -> subs }. This function
-   * should return false if we do not wish to be notified of further matches.
-   */
-  virtual bool notify(Node s,
-                      Node n,
-                      std::vector<Node>& vars,
-                      std::vector<Node>& subs) = 0;
-};
-
-/**
- * A trie (discrimination tree) storing a set of terms S, that can be used to
- * query, for a given term t, all terms from S that are matchable with t.
- */
-class MatchTrie
-{
- public:
-  /** Get matches
-   *
-   * This calls ntm->notify( n, s, vars, subs ) for each term s stored in this
-   * trie that is matchable with n where s = n * { vars -> subs } for some
-   * vars, subs. This function returns false if one of these calls to notify
-   * returns false.
-   */
-  bool getMatches(Node n, NotifyMatch* ntm);
-  /** Adds node n to this trie */
-  void addTerm(Node n);
-  /** Clear this trie */
-  void clear();
-
- private:
-  /**
-   * The children of this node in the trie. Terms t are indexed by a
-   * depth-first (right to left) traversal on its subterms, where the
-   * top-symbol of t is indexed by:
-   * - (operator, #children) if t has an operator, or
-   * - (t, 0) if t does not have an operator.
-   */
-  std::map<Node, std::map<unsigned, MatchTrie> > d_children;
-  /** The set of variables in the domain of d_children */
-  std::vector<Node> d_vars;
-  /** The data of this node in the trie */
-  Node d_data;
-};
-
-/** Version of the above class with some additional features */
-class SygusSamplerExt : public SygusSampler
-{
- public:
-  SygusSamplerExt();
-  /** initialize extended */
-  void initializeSygusExt(QuantifiersEngine* qe,
-                          Node f,
-                          unsigned nsamples,
-                          bool useSygusType);
-  /** register term n with this sampler database
-   *
-   *  For each call to registerTerm( t, ... ) that returns s, we say that
-   * (t,s) and (s,t) are "relevant pairs".
-   *
-   * This returns either null, or a term ret with the same guarantees as
-   * SygusSampler::registerTerm with the additional guarantee
-   * that for all previous relevant pairs ( n', nret' ),
-   * we have that n = ret is not an instance of n' = ret'
-   * modulo symmetry of equality, nor is n = ret derivable from the set of
-   * all previous relevant pairs. The latter is determined by the d_drewrite
-   * utility. For example:
-   * [1]  ( t+0, t ) and ( x+0, x )
-   * will not both be relevant pairs of this function since t+0=t is
-   * an instance of x+0=x.
-   * [2]  ( s, t ) and ( s+0, t+0 )
-   * will not both be relevant pairs of this function since s+0=t+0 is
-   * derivable from s=t.
-   * These two criteria may be combined, for example:
-   * [3] ( t+0, s ) is not a relevant pair if both ( x+0, x+s ) and ( t+s, s )
-   * are relevant pairs, since t+0 is an instance of x+0 where
-   * { x |-> t }, and x+s { x |-> t } = s is derivable, via the third pair
-   * above (t+s = s).
-   *
-   * If this function returns null, then n is equivalent to a previously
-   * registered term ret, and the equality ( n, ret ) is either an instance
-   * of a previous relevant pair ( n', ret' ), or n = ret is derivable
-   * from the set of all previous relevant pairs based on the
-   * d_drewrite utility, or is an instance of a previous pair
-   */
-  Node registerTerm(Node n, bool forceKeep = false) override;
-
-  /** register relevant pair
-   *
-   * This should be called after registerTerm( n ) returns eq_n.
-   * This registers ( n, eq_n ) as a relevant pair with this class.
-   */
-  void registerRelevantPair(Node n, Node eq_n);
-
- private:
-  /** dynamic rewriter class */
-  std::unique_ptr<DynamicRewriter> d_drewrite;
-
-  //----------------------------match filtering
-  /**
-   * Stores all relevant pairs returned by this sampler (see registerTerm). In
-   * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
-   */
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
-  /** Match trie storing all terms in the domain of d_pairs. */
-  MatchTrie d_match_trie;
-  /** Notify class */
-  class SygusSamplerExtNotifyMatch : public NotifyMatch
-  {
-    SygusSamplerExt& d_sse;
-
-   public:
-    SygusSamplerExtNotifyMatch(SygusSamplerExt& sse) : d_sse(sse) {}
-    /** notify match */
-    bool notify(Node n,
-                Node s,
-                std::vector<Node>& vars,
-                std::vector<Node>& subs) override
-    {
-      return d_sse.notify(n, s, vars, subs);
-    }
-  };
-  /** Notify object used for reporting matches from d_match_trie */
-  SygusSamplerExtNotifyMatch d_ssenm;
-  /**
-   * Stores the current right hand side of a pair we are considering.
-   *
-   * In more detail, in registerTerm, we are interested in whether a pair (s,t)
-   * is a relevant pair. We do this by:
-   * (1) Setting the node d_curr_pair_rhs to t,
-   * (2) Using d_match_trie, compute all terms s1...sn that match s.
-   * For each si, where s = si * sigma for some substitution sigma, we check
-   * whether t = ti * sigma for some previously relevant pair (si,ti), in
-   * which case (s,t) is an instance of (si,ti).
-   */
-  Node d_curr_pair_rhs;
-  /**
-   * Called by the above class during d_match_trie.getMatches( s ), when we
-   * find that si = s * sigma, where si is a term that is stored in
-   * d_match_trie.
-   *
-   * This function returns false if ( s, d_curr_pair_rhs ) is an instance of
-   * previously relevant pair.
-   */
-  bool notify(Node s, Node n, std::vector<Node>& vars, std::vector<Node>& subs);
-  //----------------------------end match filtering
 };
 
 } /* CVC4::theory::quantifiers namespace */

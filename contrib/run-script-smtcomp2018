@@ -6,14 +6,15 @@ bench="$1"
 logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 
 # use: trywith [params..]
-# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
-# which case this run script terminates immediately.  Otherwise, this
-# function returns normally.
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in which
+# case this run script terminates immediately.  Otherwise, this function
+# returns normally and prints the output of the solver to stderr.
 function trywith {
   limit=$1; shift;
   result="$(ulimit -S -t "$limit";$cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
+    *)         echo "$result" >&2;;
   esac
 }
 
@@ -37,11 +38,11 @@ QF_NIA)
   trywith 300 --nl-ext-tplanes --decision=internal
   trywith 30 --no-nl-ext-tplanes --decision=internal
   # this totals up to more than 20 minutes, although notice that smaller bit-widths may quickly fail
-  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cryptominisat
-  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cryptominisat
-  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cryptominisat
-  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cryptominisat
-  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
+  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
   ;;
 QF_NRA)
   trywith 300 --nl-ext-tplanes --decision=internal
@@ -50,7 +51,7 @@ QF_NRA)
   finishwith --nl-ext-tplanes --decision=justification
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA)
   # the following is designed for a run time of 20 min.
   # initial runs 1min
   trywith 30 --simplification=none --full-saturate-quant
@@ -81,25 +82,28 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   trywith 240 --finite-model-find --decision=internal
   finishwith --full-saturate-quant
   ;;
+ABVFP|BVFP|FP)
+  finishwith --full-saturate-quant
+  ;;
 UFBV)
   # most problems in UFBV are essentially BV
   trywith 300 --full-saturate-quant --decision=internal
   trywith 300 --full-saturate-quant --cbqi-nested-qe --decision=internal
-  trywith 30 --full-saturate-quant --cbqi-no-innermost --global-negate
+  trywith 30 --full-saturate-quant --no-cbqi-innermost --global-negate
   finishwith --finite-model-find
   ;;
 BV)
   trywith 120 --full-saturate-quant
-  trywith 120 --full-saturate-quant --cbqi-no-innermost
+  trywith 120 --full-saturate-quant --no-cbqi-innermost
   trywith 300 --full-saturate-quant --cbqi-nested-qe --decision=internal
   trywith 30 --full-saturate-quant --no-cbqi-bv
   trywith 30 --full-saturate-quant --cbqi-bv-ineq=eq-slack
   # finish 10min
-  finishwith --full-saturate-quant --cbqi-no-innermost --global-negate
+  finishwith --full-saturate-quant --no-cbqi-innermost --global-negate
   ;;
 LIA|LRA|NIA|NRA)
   trywith 30 --full-saturate-quant --nl-ext-tplanes
-  trywith 300 --full-saturate-quant --cbqi-no-innermost
+  trywith 300 --full-saturate-quant --no-cbqi-innermost
   trywith 300 --full-saturate-quant --cbqi-nested-qe
   finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
   ;;
@@ -113,19 +117,10 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
 QF_UFBV)
-  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
+  finishwith --bitblast=eager --bv-sat-solver=cadical
   ;;
 QF_BV)
-  exec ./pcvc4 -L smt2.6 --no-incremental --no-checking --no-interactive --thread-stack=1024 \
-         --threads 2 \
-         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager  --bv-sat-solver=cryptominisat --bitblast-aig --no-bv-abstraction' \
-         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto --no-bv-abstraction' \
-         --no-wait-to-join \
-         "$bench"
-  #trywith 10 --bv-eq-slicer=auto --decision=justification
-  #trywith 60 --decision=justification
-  #trywith 600 --decision=internal --bitblast-eager
-  #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  finishwith --unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --bv-eq-slicer=auto --no-bv-abstraction
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
@@ -139,6 +134,19 @@ QF_AUFNIA)
 QF_ALIA)
   trywith 70 --decision=justification --arrays-weak-equiv
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_SLIA)
+  trywith 500 --strings-exp --rewrite-divk --lang=smt2.6.1
+  finishwith --strings-exp --rewrite-divk --lang=smt2.6.1 --strings-fmf
+  ;;
+QF_ABVFP)
+  finishwith
+  ;;
+QF_BVFP)
+  finishwith
+  ;;
+QF_FP)
+  finishwith
   ;;
 *)
   # just run the default

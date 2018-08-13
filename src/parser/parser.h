@@ -2,9 +2,9 @@
 /*! \file parser.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,23 +24,25 @@
 #include <list>
 #include <cassert>
 
+#include "expr/expr.h"
+#include "expr/expr_stream.h"
+#include "expr/kind.h"
+#include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "expr/expr.h"
-#include "expr/symbol_table.h"
-#include "expr/kind.h"
-#include "expr/expr_stream.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 // Forward declarations
 class BooleanType;
-class ExprManager;
 class Command;
 class FunctionType;
 class Type;
 class ResourceManager;
+namespace api {
+class Solver;
+}
 
 //for sygus gterm two-pass parsing
 class CVC4_PUBLIC SygusGTerm {
@@ -135,135 +137,137 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
-  /** The expression manager */
-  ExprManager *d_exprManager;
-  /** The resource manager associated with this expr manager */
-  ResourceManager *d_resourceManager;
+ /** The API Solver object. */
+ api::Solver* d_solver;
 
-  /** The input that we're parsing. */
-  Input *d_input;
+ /** The resource manager associated with this expr manager */
+ ResourceManager* d_resourceManager;
 
-  /**
-   * The declaration scope that is "owned" by this parser.  May or
-   * may not be the current declaration scope in use.
-   */
-  SymbolTable d_symtabAllocated;
+ /** The input that we're parsing. */
+ Input* d_input;
 
-  /**
-   * This current symbol table used by this parser.  Initially points
-   * to d_symtabAllocated, but can be changed (making this parser
-   * delegate its definitions and lookups to another parser).
-   * See useDeclarationsFrom().
-   */
-  SymbolTable* d_symtab;
+ /**
+  * The declaration scope that is "owned" by this parser.  May or
+  * may not be the current declaration scope in use.
+  */
+ SymbolTable d_symtabAllocated;
 
-  /**
-   * The level of the assertions in the declaration scope.  Things declared
-   * after this level are bindings from e.g. a let, a quantifier, or a
-   * lambda.
-   */
-  size_t d_assertionLevel;
+ /**
+  * This current symbol table used by this parser.  Initially points
+  * to d_symtabAllocated, but can be changed (making this parser
+  * delegate its definitions and lookups to another parser).
+  * See useDeclarationsFrom().
+  */
+ SymbolTable* d_symtab;
 
-  /**
-   * Whether we're in global declarations mode (all definitions and
-   * declarations are global).
-   */
-  bool d_globalDeclarations;
+ /**
+  * The level of the assertions in the declaration scope.  Things declared
+  * after this level are bindings from e.g. a let, a quantifier, or a
+  * lambda.
+  */
+ size_t d_assertionLevel;
 
-  /**
-   * Maintains a list of reserved symbols at the assertion level that might
-   * not occur in our symbol table.  This is necessary to e.g. support the
-   * proper behavior of the :named annotation in SMT-LIBv2 when used under
-   * a let or a quantifier, since inside a let/quant body the declaration
-   * scope is that of the let/quant body, but the defined name should be
-   * reserved at the assertion level.
-   */
-  std::set<std::string> d_reservedSymbols;
+ /**
+  * Whether we're in global declarations mode (all definitions and
+  * declarations are global).
+  */
+ bool d_globalDeclarations;
 
-  /** How many anonymous functions we've created. */
-  size_t d_anonymousFunctionCount;
+ /**
+  * Maintains a list of reserved symbols at the assertion level that might
+  * not occur in our symbol table.  This is necessary to e.g. support the
+  * proper behavior of the :named annotation in SMT-LIBv2 when used under
+  * a let or a quantifier, since inside a let/quant body the declaration
+  * scope is that of the let/quant body, but the defined name should be
+  * reserved at the assertion level.
+  */
+ std::set<std::string> d_reservedSymbols;
 
-  /** Are we done */
-  bool d_done;
+ /** How many anonymous functions we've created. */
+ size_t d_anonymousFunctionCount;
 
-  /** Are semantic checks enabled during parsing? */
-  bool d_checksEnabled;
+ /** Are we done */
+ bool d_done;
 
-  /** Are we parsing in strict mode? */
-  bool d_strictMode;
+ /** Are semantic checks enabled during parsing? */
+ bool d_checksEnabled;
 
-  /** Are we only parsing? */
-  bool d_parseOnly;
+ /** Are we parsing in strict mode? */
+ bool d_strictMode;
 
-  /**
-   * Can we include files?  (Set to false for security purposes in
-   * e.g. the online version.)
-   */
-  bool d_canIncludeFile;
+ /** Are we only parsing? */
+ bool d_parseOnly;
 
-  /**
-   * Whether the logic has been forced with --force-logic.
-   */
-  bool d_logicIsForced;
+ /**
+  * Can we include files?  (Set to false for security purposes in
+  * e.g. the online version.)
+  */
+ bool d_canIncludeFile;
 
-  /**
-   * The logic, if d_logicIsForced == true.
-   */
-  std::string d_forcedLogic;
+ /**
+  * Whether the logic has been forced with --force-logic.
+  */
+ bool d_logicIsForced;
 
-  /** The set of operators available in the current logic. */
-  std::set<Kind> d_logicOperators;
+ /**
+  * The logic, if d_logicIsForced == true.
+  */
+ std::string d_forcedLogic;
 
-  /** The set of attributes already warned about. */
-  std::set<std::string> d_attributesWarnedAbout;
+ /** The set of operators available in the current logic. */
+ std::set<Kind> d_logicOperators;
 
-  /**
-   * The current set of unresolved types.  We can get by with this NOT
-   * being on the scope, because we can only have one DATATYPE
-   * definition going on at one time.  This is a bit hackish; we
-   * depend on mkMutualDatatypeTypes() to check everything and clear
-   * this out.
-   */
-  std::set<Type> d_unresolved;
+ /** The set of attributes already warned about. */
+ std::set<std::string> d_attributesWarnedAbout;
 
-  /**
-   * "Preemption commands": extra commands implied by subterms that
-   * should be issued before the currently-being-parsed command is
-   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-   *
-   * Owns the memory of the Commands in the queue.
-   */
-  std::list<Command*> d_commandQueue;
+ /**
+  * The current set of unresolved types.  We can get by with this NOT
+  * being on the scope, because we can only have one DATATYPE
+  * definition going on at one time.  This is a bit hackish; we
+  * depend on mkMutualDatatypeTypes() to check everything and clear
+  * this out.
+  */
+ std::set<Type> d_unresolved;
 
-  /** Lookup a symbol in the given namespace (as specified by the type). 
-   * Only returns a symbol if it is not overloaded, returns null otherwise.
-   */
-  Expr getSymbol(const std::string& var_name, SymbolType type);
+ /**
+  * "Preemption commands": extra commands implied by subterms that
+  * should be issued before the currently-being-parsed command is
+  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+  *
+  * Owns the memory of the Commands in the queue.
+  */
+ std::list<Command*> d_commandQueue;
+
+ /** Lookup a symbol in the given namespace (as specified by the type).
+  * Only returns a symbol if it is not overloaded, returns null otherwise.
+  */
+ Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
-  /**
-   * Create a parser state.
-   *
-   * @attention The parser takes "ownership" of the given
-   * input and will delete it on destruction.
-   *
-   * @param exprManager the expression manager to use when creating expressions
-   * @param input the parser input
-   * @param strictMode whether to incorporate strict(er) compliance checks
-   * @param parseOnly whether we are parsing only (and therefore certain checks
-   * need not be performed, like those about unimplemented features, @see
-   * unimplementedFeature())
-   */
-  Parser(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ /**
+  * Create a parser state.
+  *
+  * @attention The parser takes "ownership" of the given
+  * input and will delete it on destruction.
+  *
+  * @param the solver API object
+  * @param input the parser input
+  * @param strictMode whether to incorporate strict(er) compliance checks
+  * @param parseOnly whether we are parsing only (and therefore certain checks
+  * need not be performed, like those about unimplemented features, @see
+  * unimplementedFeature())
+  */
+ Parser(api::Solver* solver,
+        Input* input,
+        bool strictMode = false,
+        bool parseOnly = false);
 
 public:
 
   virtual ~Parser();
 
   /** Get the associated <code>ExprManager</code>. */
-  inline ExprManager* getExprManager() const {
-    return d_exprManager;
-  }
+  ExprManager* getExprManager() const;
 
   /** Get the associated input. */
   inline Input* getInput() const {
@@ -540,7 +544,10 @@ public:
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  SortConstructorType mkSortConstructor(const std::string& name, size_t arity);
+  SortConstructorType mkSortConstructor(
+      const std::string& name,
+      size_t arity,
+      uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new "unresolved type," used only during parsing.

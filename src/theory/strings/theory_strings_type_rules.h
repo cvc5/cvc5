@@ -2,9 +2,9 @@
 /*! \file theory_strings_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Paul Meng, Morgan Deters
+ **   Tianyi Liang, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -347,7 +347,7 @@ public:
   {
     if( check ) {
       TNode::iterator it = n.begin();
-      unsigned char ch[2];
+      unsigned ch[2];
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);
@@ -360,18 +360,20 @@ public:
         if( (*it).getConst<String>().size() != 1 ) {
           throw TypeCheckingExceptionPrivate(n, "expecting a single constant string term in regexp range");
         }
-        ch[i] = (*it).getConst<String>().getFirstChar();
+        unsigned ci = (*it).getConst<String>().front();
+        ch[i] = String::convertUnsignedIntToCode(ci);
         ++it;
       }
       if(ch[0] > ch[1]) {
         throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
       }
-      if (options::stdPrintASCII() && ch[1] > '\x7f')
+      unsigned maxCh = options::stdPrintASCII() ? 127 : 255;
+      if (ch[1] > maxCh)
       {
-        throw TypeCheckingExceptionPrivate(n,
-                                           "expecting standard ASCII "
-                                           "characters in regexp range when "
-                                           "strings-print-ascii is true");
+        std::stringstream ss;
+        ss << "expecting characters whose code point is less than or equal to "
+           << maxCh;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
     return nodeManager->regExpType();

@@ -2,9 +2,9 @@
 /*! \file sygus_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,12 +60,6 @@ class SygusInput : public AntlrInput {
 
   /** Destructor. Frees the lexer and the parser. */
   virtual ~SygusInput();
-
-  /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const override
-  {
-    return language::input::LANG_SYGUS;
-  }
 
  protected:
   /**

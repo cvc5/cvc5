@@ -2,9 +2,9 @@
 /*! \file configuration.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Francois Bobot
+ **   Morgan Deters, Francois Bobot, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,10 +34,6 @@ private:
   Configuration();
 
   // these constants are filled in by the build system
-  static const bool IS_SUBVERSION_BUILD;
-  static const char* const SUBVERSION_BRANCH_NAME;
-  static const unsigned SUBVERSION_REVISION;
-  static const bool SUBVERSION_HAS_MODIFICATIONS;
   static const bool IS_GIT_BUILD;
   static const char* const GIT_BRANCH_NAME;
   static const char* const GIT_COMMIT;
@@ -101,8 +97,6 @@ public:
 
   static bool isBuiltWithReadline();
 
-  static bool isBuiltWithTlsSupport();
-
   static bool isBuiltWithLfsc();
 
   static bool isBuiltWithSymFPU();
@@ -126,12 +120,6 @@ public:
   static const char* getGitCommit();
   static bool hasGitModifications();
   static std::string getGitId();
-
-  static bool isSubversionBuild();
-  static const char* getSubversionBranchName();
-  static unsigned getSubversionRevision();
-  static bool hasSubversionModifications();
-  static std::string getSubversionId();
 
   static std::string getCompiler();
   static std::string getCompiledDateTime();

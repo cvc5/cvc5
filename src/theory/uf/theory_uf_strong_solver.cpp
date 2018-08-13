@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1172,9 +1172,6 @@ void SortModel::allocateCardinality( OutputChannel* out ){
     }
     //require phase
     out->requirePhase( d_cardinality_literal[ d_aloc_cardinality ], true );
-    //add the appropriate lemma, propagate as decision
-    //Trace("uf-ss-prop-as-dec") << "Propagate as decision " << lem[0] << " " << d_type << std::endl;
-    //out->propagateAsDecision( lem[0] );
     d_thss->d_statistics.d_max_model_size.maxAssign( d_aloc_cardinality );
 
     if( applyTotality( d_aloc_cardinality ) ){

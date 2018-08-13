@@ -2,9 +2,9 @@
 /*! \file cvc4_assert.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,14 +20,13 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "base/tls.h"
 
 using namespace std;
 
 namespace CVC4 {
 
 #ifdef CVC4_DEBUG
-//CVC4_THREAD_LOCAL const char* s_debugLastException = NULL;
+//thread_local const char* s_debugLastException = NULL;
 #endif /* CVC4_DEBUG */
 
 
@@ -141,7 +140,7 @@ void AssertionException::construct(const char* header, const char* extra,
  */
 void debugAssertionFailed(const AssertionException& thisException,
                           const char* propagatingException) {
-  static CVC4_THREAD_LOCAL bool alreadyFired = false;
+  static thread_local bool alreadyFired = false;
 
   if(__builtin_expect( ( !std::uncaught_exception() ), true ) || alreadyFired) {
     throw thisException;
