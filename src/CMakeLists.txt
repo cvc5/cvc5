@@ -580,8 +580,6 @@ target_link_libraries(cvc4
   ${LIBRARIES}
 )
 
-# TODO: if proofs: libsignatures
-
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 include_directories(expr ${CMAKE_CURRENT_BINARY_DIR}/expr)
 include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include)

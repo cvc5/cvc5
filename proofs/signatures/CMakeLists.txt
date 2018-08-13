@@ -25,6 +25,9 @@ endforeach(f)
 string(REPLACE "\\" "\\\\" CORE_SIGNATURES "${CORE_SIGNATURES}")
 string(REPLACE "\"" "\\\"" CORE_SIGNATURES "${CORE_SIGNATURES}")
 string(REPLACE "\n" "\\n\\\n" CORE_SIGNATURES "${CORE_SIGNATURES}")
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/signatures.cpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/signatures.cpp)
+
+add_library(signatures SHARED ${CMAKE_CURRENT_BINARY_DIR}/signatures.cpp)

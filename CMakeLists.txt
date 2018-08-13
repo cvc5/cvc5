@@ -226,10 +226,17 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 set(CVC4_NEED_INT64_T_OVERLOADS 0)
 set(CVC4_USE_CLN_IMP 0)
 set(CVC4_USE_GMP_IMP 1)
+
 set(CVC4_USE_SYMFPU 0)
+
+set(CVC4_PROOF 0)
 
 #-----------------------------------------------------------------------------#
 
 add_subdirectory(doc)
-add_subdirectory(proofs/signatures)
 add_subdirectory(src)
+
+if(CVC4_PROOF)
+  add_subdirectory(proofs/signatures)
+  set(LIBRARIES ${LIBRARIES} signatures)
+endif()
