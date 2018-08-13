@@ -577,7 +577,7 @@ set_target_properties(cvc4
 add_dependencies(cvc4 gen-theory-files)
 target_link_libraries(cvc4
   base bvminisat expr minisat options smtutil util replacements
-  ${LIBRARIES}
+  ${CVC4_LIBRARIES}
 )
 
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})

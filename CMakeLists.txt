@@ -81,6 +81,10 @@ macro(add_check_c_cxx_flag flag)
   message(STATUS "Configure with flag '${flag}'")
 endmacro()
 
+macro(cvc4_link_library library)
+  set(CVC4_LIBRARIES ${CVC4_LIBRARIES} ${library})
+endmacro()
+
 #-----------------------------------------------------------------------------#
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -102,27 +106,31 @@ message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
 #-----------------------------------------------------------------------------#
 
-option(USE_CLN "Use CLN instead of GMP" OFF)
+option(USE_CLN         "Use CLN instead of GMP" OFF)
+option(ENABLE_PROOFS   "Enable proof support" OFF)
+option(USE_SYMFPU      "Use SymFPU for floating point support" OFF)
 
 #-----------------------------------------------------------------------------#
 
 find_package(PythonInterp REQUIRED)
 
 find_package(GMP REQUIRED)
-set(LIBRARIES ${LIBRARIES} ${GMP_LIBRARIES})
+cvc4_link_library(${GMP_LIBRARIES})
 include_directories(${GMP_INCLUDE_DIR})
 
 if(USE_CLN)
   find_package(CLN 1.2.2 REQUIRED)
-  if(CLN_FOUND)
-    set(LIBRARIES ${LIBRARIES} ${GMP_LIBRARIES})
-    include_directories(${GMP_INCLUDE_DIR})
-  endif()
+  cvc4_link_library(${CLN_LIBRARIES})
+  include_directories(${CLN_INCLUDE_DIR})
+endif()
+
+if(USE_SYMFPU)
+  find_package(SymFPU REQUIRED)
+  include_directories(${SymFPU_INCLUDE_DIR})
 endif()
 
 find_package(ANTLR REQUIRED)
-message(STATUS "Found ANTLR headers: ${ANTLR_INCLUDE_DIR}")
-set(LIBRARIES ${LIBRARIES} ${ANTLR_LIBRARIES})
+cvc4_link_library(${ANTLR_LIBRARIES})
 include_directories(${ANTLR_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -240,16 +248,23 @@ else()
   set(CVC4_USE_GMP_IMP 1)
 endif()
 
-set(CVC4_USE_SYMFPU 0)
+if(USE_SYMFPU)
+  add_definitions(-DCVC4_USE_SYMFPU)
+  set(CVC4_USE_SYMFPU 1)
+else()
+  set(CVC4_USE_SYMFPU 0)
+endif()
 
-set(CVC4_PROOF 0)
+if(ENABLE_PROOFS)
+  add_definitions(-DCVC4_PROOF)
+endif()
 
 #-----------------------------------------------------------------------------#
 
 add_subdirectory(doc)
 add_subdirectory(src)
 
-if(CVC4_PROOF)
+if(ENABLE_PROOFS)
   add_subdirectory(proofs/signatures)
-  set(LIBRARIES ${LIBRARIES} signatures)
+  cvc4_link_library(signatures)
 endif()
