@@ -110,6 +110,7 @@ option(ENABLE_PROOFS     "Enable proof support" OFF)
 option(USE_CADICAL       "Use CaDiCaL SAT solver" OFF)
 option(USE_CLN           "Use CLN instead of GMP" OFF)
 option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver" OFF)
+option(USE_LFSC          "Use LFSC proof checker" OFF)
 option(USE_SYMFPU        "Use SymFPU for floating point support" OFF)
 
 #-----------------------------------------------------------------------------#
@@ -157,6 +158,15 @@ if(USE_CRYPTOMINISAT)
   cvc4_link_library(${CryptoMiniSat_LIBRARIES})
   include_directories(${CryptoMiniSat_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_CRYPTOMINISAT)
+endif()
+
+if(USE_LFSC)
+  find_package(LFSC REQUIRED)
+  include_directories(${LFSC_INCLUDE_DIR})
+  add_definitions(-DCVC4_USE_LFSC)
+  set(CVC4_USE_LFSC 1)
+else()
+  set(CVC4_USE_LFSC 0)
 endif()
 
 if(USE_SYMFPU)
