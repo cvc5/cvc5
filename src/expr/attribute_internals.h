@@ -101,42 +101,6 @@ struct KindValueToTableValueMapping {
   inline static T convertBack(const T& t) { return t; }
 };
 
-/**
- * Specialization of KindValueToTableValueMapping<> for pointer-valued
- * attributes.
- */
-template <class T>
-struct KindValueToTableValueMapping<T*> {
-  /** Table's value type is void* */
-  typedef void* table_value_type;
-  /** A simple reinterpret_cast<>() conversion from T* to void* */
-  inline static void* convert(const T* const& t) {
-    return reinterpret_cast<void*>(const_cast<T*>(t));
-  }
-  /** A simple reinterpret_cast<>() conversion from void* to T* */
-  inline static T* convertBack(void* const& t) {
-    return reinterpret_cast<T*>(t);
-  }
-};
-
-/**
- * Specialization of KindValueToTableValueMapping<> for const
- * pointer-valued attributes.
- */
-template <class T>
-struct KindValueToTableValueMapping<const T*> {
-  /** Table's value type is void* */
-  typedef void* table_value_type;
-  /** A simple reinterpret_cast<>() conversion from const T* const to void* */
-  inline static void* convert(const T* const& t) {
-    return reinterpret_cast<void*>(const_cast<T*>(t));
-  }
-  /** A simple reinterpret_cast<>() conversion from const void* const to T* */
-  inline static const T* convertBack(const void* const& t) {
-    return reinterpret_cast<const T*>(t);
-  }
-};
-
 }/* CVC4::expr::attr namespace */
 
 // ATTRIBUTE HASH TABLES =======================================================
@@ -376,23 +340,6 @@ namespace attr {
 struct NullCleanupStrategy {
 };/* struct NullCleanupStrategy */
 
-/** Default cleanup for ManagedAttribute<> */
-template <class T>
-struct ManagedAttributeCleanupStrategy {
-};/* struct ManagedAttributeCleanupStrategy<> */
-
-/** Specialization for T* */
-template <class T>
-struct ManagedAttributeCleanupStrategy<T*> {
-  static inline void cleanup(T* p) { delete p; }
-};/* struct ManagedAttributeCleanupStrategy<T*> */
-
-/** Specialization for const T* */
-template <class T>
-struct ManagedAttributeCleanupStrategy<const T*> {
-  static inline void cleanup(const T* p) { delete p; }
-};/* struct ManagedAttributeCleanupStrategy<const T*> */
-
 /**
  * Helper for Attribute<> class below to determine whether a cleanup
  * is defined or not.
@@ -421,57 +368,6 @@ template <class T>
 void (*const getCleanupStrategy<T, NullCleanupStrategy>::fn)
      (typename getCleanupStrategy<T, NullCleanupStrategy>::
                mapping::table_value_type) = NULL;
-
-/**
- * Specialization for ManagedAttributeCleanupStrategy<T>.
- */
-template <class T>
-struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> > {
-  typedef T value_type;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void (*const fn)(typename mapping::table_value_type);
-};/* struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> > */
-
-// out-of-class initialization required (because it's a non-integral type)
-template <class T>
-void (*const getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> >::fn)
-     (typename getCleanupStrategy<T, ManagedAttributeCleanupStrategy<T> >::
-               mapping::table_value_type) = NULL;
-
-/**
- * Specialization for ManagedAttributeCleanupStrategy<T*>.
- */
-template <class T>
-struct getCleanupStrategy<T*, ManagedAttributeCleanupStrategy<T*> > {
-  typedef T* value_type;
-  typedef ManagedAttributeCleanupStrategy<value_type> C;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void fn(typename mapping::table_value_type t) {
-    C::cleanup(mapping::convertBack(t));
-  }
-};/* struct getCleanupStrategy<T*, ManagedAttributeCleanupStrategy<T*> > */
-
-/**
- * Specialization for ManagedAttributeCleanupStrategy<const T*>.
- */
-template <class T>
-struct getCleanupStrategy<const T*,
-                          ManagedAttributeCleanupStrategy<const T*> > {
-  typedef const T* value_type;
-  typedef ManagedAttributeCleanupStrategy<value_type> C;
-  typedef KindValueToTableValueMapping<value_type> mapping;
-  static void fn(typename mapping::table_value_type t) {
-    C::cleanup(mapping::convertBack(t));
-  }
-};/* struct getCleanupStrategy<const T*,
-                               ManagedAttributeCleanupStrategy<const T*> > */
-
-/**
- * Cause compile-time error for improperly-instantiated
- * getCleanupStrategy<>.
- */
-template <class T, class U>
-struct getCleanupStrategy<T, ManagedAttributeCleanupStrategy<U> >;
 
 }/* CVC4::expr::attr namespace */
 
@@ -505,8 +401,19 @@ template <class T, bool context_dep>
 struct AttributeTraits {
   typedef void (*cleanup_t)(T);
   static std::vector<cleanup_t>& getCleanup() {
-    static std::vector<cleanup_t> cleanup;
-    return cleanup;
+    // Note: we do not destroy this vector on purpose. Instead, we rely on the
+    // OS to clean up our mess. The reason for that is that we need this vector
+    // to remain initialized at least as long as the ExprManager because
+    // ExprManager's destructor calls this method. The only way to guarantee
+    // this is to never destroy it. This is a common idiom [0]. In the past, we
+    // had an issue when `cleanup` wasn't a pointer and just an `std::vector`
+    // instead. CxxTest stores the test class in a static variable, which could
+    // lead to the ExprManager being destroyed after the destructor of the
+    // vector was called.
+    //
+    // [0] https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
+    static std::vector<cleanup_t>* cleanup = new std::vector<cleanup_t>();
+    return *cleanup;
   }
 };
 
@@ -638,24 +545,6 @@ public:
     return id;
   }
 };/* class Attribute<..., bool, ...> */
-
-/**
- * This is a managed attribute kind (the only difference between
- * ManagedAttribute<> and Attribute<> is the default cleanup function
- * and the fact that ManagedAttributes cannot be context-dependent).
- * In the default ManagedAttribute cleanup function, the value is
- * destroyed with the delete operator.  If the value is allocated with
- * the array version of new[], an alternate cleanup function should be
- * provided that uses array delete[].  It is an error to create a
- * ManagedAttribute<> kind with a non-pointer value_type if you don't
- * also supply a custom cleanup function.
- */
-template <class T,
-          class value_type,
-          class CleanupStrategy =
-                    attr::ManagedAttributeCleanupStrategy<value_type> >
-struct ManagedAttribute :
-    public Attribute<T, value_type, CleanupStrategy, false> {};
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
