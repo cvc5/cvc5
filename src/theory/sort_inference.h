@@ -93,7 +93,7 @@ private:
   TypeNode getTypeForId( int t );
   Node getNewSymbol( Node old, TypeNode tn );
   //simplify
-  Node simplifyNode( Node n, std::map< Node, Node >& var_bound, TypeNode tnn, std::map< Node, std::map< TypeNode, Node > >& visited );
+  Node simplifyNode( Node n, std::map< Node, Node >& var_bound, TypeNode tnn, std::map< Node, Node >& model_replace_f, std::map< Node, std::map< TypeNode, Node > >& visited );
   //make injection
   Node mkInjection( TypeNode tn1, TypeNode tn2 );
   //reset
@@ -111,12 +111,15 @@ private:
   /** simplify
    *
    * This returns the simplified form of formula n, based on the information
-   * computed during initialization. The argument visited is a cache of the
-   * internal results of simplifying previous nodes with this class.
+   * computed during initialization. The argument model_replace_f stores the
+   * mapping between functions and their analog in the sort-inferred signature.
+   * The argument visited is a cache of the internal results of simplifying
+   * previous nodes with this class.
    *
    * Must call initialize() before this function.
    */
-  Node simplify(Node n, std::map<Node, std::map<TypeNode, Node> >& visited);
+  Node simplify(Node n, 
+  std::map< Node, Node >& model_replace_f, std::map< Node, std::map<TypeNode, Node> >& visited);
   /** get new constraints
    *
    * This adds constraints to new_asserts that ensure the following.
@@ -147,10 +150,6 @@ public:
   bool isWellSorted( Node n );
   //get constraints for being well-typed according to computed sub-types
   void getSortConstraints( Node n, SortInference::UnionFind& uf );
-public:
-  //list of all functions and the uninterpreted symbols they were replaced with
-  std::map< Node, Node > d_model_replace_f;
-
 private:
   // store monotonicity for original sorts as well
  std::map<TypeNode, bool> d_non_monotonic_sorts_orig;

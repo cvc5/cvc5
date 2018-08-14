@@ -35,11 +35,12 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   if (options::sortInference())
   {
     d_si->initialize(assertionsToPreprocess->ref());
+    std::map< Node, Node > model_replace_f;
     std::map<Node, std::map<TypeNode, Node> > visited;
     for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; i++)
     {
       Node prev = (*assertionsToPreprocess)[i];
-      Node next = d_si->simplify(prev, visited);
+      Node next = d_si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
         assertionsToPreprocess->replace(i, next);
@@ -56,6 +57,14 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Trace("sort-infer-preprocess")
           << "*** Preprocess SortInferencePass : new constraint " << na << endl;
       assertionsToPreprocess->push_back(na);
+    }
+    // indicate correspondence between the functions
+    // TODO (#2308): move this to a better place
+    SmtEngine * smt = smt::currentSmtEngine();
+    for( std::map< Node, Node >::iterator it = model_replace_f.begin();
+     it != model_replace_f.end(); ++it ){
+      smt->setPrintFuncInModel( it->first.toExpr(), false );
+      smt->setPrintFuncInModel( it->second.toExpr(), true );
     }
   }
   // only need to compute monotonicity on the resulting formula if we are

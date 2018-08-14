@@ -198,12 +198,12 @@ void SortInference::initialize(const std::vector<Node>& assertions)
 }
 
 Node SortInference::simplify(Node n,
-                             std::map<Node, std::map<TypeNode, Node> >& visited)
+                             std::map< Node, Node >& model_replace_f, std::map<Node, std::map<TypeNode, Node> >& visited)
 {
   Trace("sort-inference-debug") << "Simplify " << n << std::endl;
   std::map<Node, Node> var_bound;
   TypeNode tnn;
-  Node ret = simplifyNode(n, var_bound, tnn, visited);
+  Node ret = simplifyNode(n, var_bound, tnn, model_replace_f, visited);
   ret = theory::Rewriter::rewrite(ret);
   return ret;
 }
@@ -603,7 +603,7 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   }
 }
 
-Node SortInference::simplifyNode( Node n, std::map< Node, Node >& var_bound, TypeNode tnn, std::map< Node, std::map< TypeNode, Node > >& visited ){
+Node SortInference::simplifyNode( Node n, std::map< Node, Node >& var_bound, TypeNode tnn, std::map< Node, Node >& model_replace_f, std::map< Node, std::map< TypeNode, Node > >& visited ){
   std::map< TypeNode, Node >::iterator itv = visited[n].find( tnn );
   if( itv!=visited[n].end() ){
     return itv->second;
@@ -651,7 +651,7 @@ Node SortInference::simplifyNode( Node n, std::map< Node, Node >& var_bound, Typ
           tnnc = getOrCreateTypeForId( d_equality_types[n], n[0].getType() );
           Assert( !tnnc.isNull() );
         }
-        Node nc = simplifyNode( n[i], var_bound, tnnc, use_new_visited ? new_visited : visited );
+        Node nc = simplifyNode( n[i], var_bound, tnnc, model_replace_f, use_new_visited ? new_visited : visited );
         Trace("sort-inference-debug2") << "Simplify " << i << " " << n[i] << " returned " << nc << std::endl;
         children.push_back( nc );
         childChanged = childChanged || nc!=n[i];
@@ -698,7 +698,7 @@ Node SortInference::simplifyNode( Node n, std::map< Node, Node >& var_bound, Typ
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
           d_symbol_map[op] = NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during sort inference" );
           Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
-          d_model_replace_f[op] = d_symbol_map[op];
+          model_replace_f[op] = d_symbol_map[op];
         }else{
           d_symbol_map[op] = op;
         }

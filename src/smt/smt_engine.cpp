@@ -4339,12 +4339,6 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
     d_preprocessingPassRegistry.getPass("sort-inference")->apply(&d_assertions);
-    // FIXME
-    // for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin();
-    // it != si->d_model_replace_f.end(); ++it ){
-    //  d_smt.setPrintFuncInModel( it->first.toExpr(), false );
-    //  d_smt.setPrintFuncInModel( it->second.toExpr(), true );
-    //}
   }
 
   if( options::pbRewrites() ){
