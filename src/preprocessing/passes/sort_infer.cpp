@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Symmetry breaker module
+ ** \brief Sort inference preprocessing pass
  **/
 
 #include "preprocessing/passes/sort_infer.h"

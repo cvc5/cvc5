@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file pass.h
+/*! \file sort_infer.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief SortInferencePass
+ ** \brief Sort inference preprocessing pass
  **/
 
 #ifndef __CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
@@ -30,7 +30,8 @@ namespace passes {
 
 /** SortInferencePass
  *
- * This preprocessing pass runs sort inference techniques on the input formula
+ * This preprocessing pass runs sort inference techniques on the input formula.
+ * For details on these techniques, see theory/sort_inference.h.
  */
 class SortInferencePass : public PreprocessingPass
 {
@@ -43,7 +44,10 @@ class SortInferencePass : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
-  /** pointer to the sort inference module */
+  /** 
+   * Pointer to the sort inference module. This should be the sort inference
+   * belonging to the theory engine of the current SMT engine.
+   */
   SortInference* d_si;
 };
 
