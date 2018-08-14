@@ -799,6 +799,15 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
   | command[cmd]
   ;
 
+/** Reads a sygus grammar
+ *
+ * The resulting sygus datatype encoding the grammar is stored in ret.
+ * The argument sygus_vars indicates the sygus bound variable list, which is
+ * the argument list of the function-to-synthesize (or null if the grammar
+ * has bound variables).
+ * The argument fun is a unique identifier to avoid naming clashes for the
+ * datatypes constructed by this call.
+ */
 sygusGrammar[CVC4::Type & ret,
              std::vector<CVC4::Expr>& sygus_vars,
              std::string& fun] @declarations
