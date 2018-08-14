@@ -332,45 +332,6 @@ public:
 
 }/* CVC4::expr::attr namespace */
 
-// ATTRIBUTE CLEANUP FUNCTIONS =================================================
-
-namespace attr {
-
-// /** Default cleanup for unmanaged Attribute<> */
-// struct NullCleanupStrategy {
-// };/* struct NullCleanupStrategy */
-
-// /**
-//  * Helper for Attribute<> class below to determine whether a cleanup
-//  * is defined or not.
-//  */
-// template <class T, class C>
-// struct getCleanupStrategy {
-//   typedef T value_type;
-//   typedef KindValueToTableValueMapping<value_type> mapping;
-//   static void fn(typename mapping::table_value_type t) {
-//     C::cleanup(mapping::convertBack(t));
-//   }
-// };/* struct getCleanupStrategy<> */
-
-// /**
-//  * Specialization for NullCleanupStrategy.
-//  */
-// template <class T>
-// struct getCleanupStrategy<T, NullCleanupStrategy> {
-//   typedef T value_type;
-//   typedef KindValueToTableValueMapping<value_type> mapping;
-//   static void (*const fn)(typename mapping::table_value_type);
-// };/* struct getCleanupStrategy<T, NullCleanupStrategy> */
-
-// // out-of-class initialization required (because it's a non-integral type)
-// template <class T>
-// void (*const getCleanupStrategy<T, NullCleanupStrategy>::fn)
-//      (typename getCleanupStrategy<T, NullCleanupStrategy>::
-//                mapping::table_value_type) = NULL;
-
-}/* CVC4::expr::attr namespace */
-
 // ATTRIBUTE IDENTIFIER ASSIGNMENT TEMPLATE ====================================
 
 namespace attr {
@@ -392,41 +353,12 @@ struct LastAttributeId {
     return *raw_id();
   }
  private:
-  static uint64_t* raw_id() {
+  static uint64_t* raw_id()
+  {
     static uint64_t s_id = 0;
     return &s_id;
   }
 };
-
-}/* CVC4::expr::attr namespace */
-
-// ATTRIBUTE TRAITS ============================================================
-
-namespace attr {
-
-// /**
-//  * This is the last-attribute-assigner.  IDs are not globally
-//  * unique; rather, they are unique for each table_value_type.
-//  */
-// template <class T, bool context_dep>
-// struct AttributeTraits {
-//   typedef void (*cleanup_t)(T);
-//   static std::vector<cleanup_t>& getCleanup() {
-//     // Note: we do not destroy this vector on purpose. Instead, we rely on the
-//     // OS to clean up our mess. The reason for that is that we need this vector
-//     // to remain initialized at least as long as the ExprManager because
-//     // ExprManager's destructor calls this method. The only way to guarantee
-//     // this is to never destroy it. This is a common idiom [0]. In the past, we
-//     // had an issue when `cleanup` wasn't a pointer and just an `std::vector`
-//     // instead. CxxTest stores the test class in a static variable, which could
-//     // lead to the ExprManager being destroyed after the destructor of the
-//     // vector was called.
-//     //
-//     // [0] https://isocpp.org/wiki/faq/ctors#static-init-order-on-first-use
-//     static std::vector<cleanup_t>* cleanup = new std::vector<cleanup_t>();
-//     return *cleanup;
-//   }
-// };
 
 }/* CVC4::expr::attr namespace */
 
@@ -439,18 +371,12 @@ namespace attr {
  *
  * @param value_t the underlying value_type for the attribute kind
  *
- // * @param CleanupStrategy Clean-up routine for associated values when the
- // * Node goes away.  Useful, e.g., for pointer-valued attributes when
- // * the values are "owned" by the table.
- // *
  * @param context_dep whether this attribute kind is
  * context-dependent
  */
-template <class T,
-          class value_t,
-          //          class CleanupStrategy = attr::NullCleanupStrategy,
-          bool context_dep = false>
-class Attribute {
+template <class T, class value_t, bool context_dep = false>
+class Attribute
+{
   /**
    * The unique ID associated to this attribute.  Assigned statically,
    * at load time.
@@ -486,35 +412,16 @@ public:
   static inline uint64_t registerAttribute() {
     typedef typename attr::KindValueToTableValueMapping<value_t>::
                      table_value_type table_value_type;
-    //typedef attr::AttributeTraits<table_value_type, context_dep> traits;
     return attr::LastAttributeId<table_value_type, context_dep>::getNextId();
-    // Assert(traits::getCleanup().size() == id);// sanity check
-    // traits::getCleanup().push_back(attr::getCleanupStrategy<value_t,
-    //                                                    CleanupStrategy>::fn);
-    // return id;
   }
 };/* class Attribute<> */
-
-// /**
-//  * An "attribute type" structure for boolean flags (special).  The
-//  * full one is below; the existence of this one disallows for boolean
-//  * flag attributes with a specialized cleanup function.
-//  */
-// /* -- doesn't work; other specialization is "more specific" ??
-// template <class T, class CleanupStrategy, bool context_dep>
-// class Attribute<T, bool, CleanupStrategy, context_dep> {
-//   template <bool> struct ERROR_bool_attributes_cannot_have_cleanup_functions;
-//   ERROR_bool_attributes_cannot_have_cleanup_functions<true> blah;
-// };
-// */
 
 /**
  * An "attribute type" structure for boolean flags (special).
  */
 template <class T, bool context_dep>
-class Attribute<T, bool,
-                //                attr::NullCleanupStrategy,
-                context_dep> {
+class Attribute<T, bool, context_dep>
+{
   /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
 
@@ -562,18 +469,6 @@ public:
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
 /** Assign unique IDs to attributes at load time. */
-// Use of the comma-operator here forces instantiation (and
-// initialization) of the AttributeTraits<> structure and its
-// "cleanup" vector before registerAttribute() is called.  This is
-// important because otherwise the vector is initialized later,
-// clearing the first-pushed cleanup function.
-// template <class T, class value_t, class CleanupStrategy, bool context_dep>
-// const uint64_t Attribute<T, value_t, CleanupStrategy, context_dep>::s_id =
-//   ( attr::AttributeTraits<typename attr::KindValueToTableValueMapping<value_t>::
-//                                    table_value_type,
-//                           context_dep>::getCleanup().size(),
-//     Attribute<T, value_t, CleanupStrategy, context_dep>::registerAttribute() );
-
 template <class T, class value_t, bool context_dep>
 const uint64_t Attribute<T, value_t, context_dep>::s_id =
     Attribute<T, value_t,  context_dep>::registerAttribute();
@@ -581,14 +476,8 @@ const uint64_t Attribute<T, value_t, context_dep>::s_id =
 
 /** Assign unique IDs to attributes at load time. */
 template <class T, bool context_dep>
-const uint64_t Attribute<T,
-                         bool,
-                         //attr::NullCleanupStrategy,
-                         context_dep>::s_id =
-  Attribute<T, bool,
-            // attr::NullCleanupStrategy,
-            context_dep>::
-    registerAttribute();
+const uint64_t Attribute<T, bool, context_dep>::s_id =
+    Attribute<T, bool, context_dep>::registerAttribute();
 
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
