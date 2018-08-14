@@ -12,19 +12,22 @@
  ** \brief Implementation of global_negate
  **/
 
-#include "theory/quantifiers/global_negate.h"
+#include "preprocessing/passes/global_negate.h"
+#include <vector>
+#include "expr/node.h"
 #include "theory/rewriter.h"
+
+namespace CVC4 {
+namespace preprocessing {
+namespace passes {
 
 using namespace std;
 using namespace CVC4::kind;
+using namespace CVC4::theory;
+namespace {
 
-namespace CVC4 {
-namespace theory {
-namespace quantifiers {
-
-void GlobalNegate::simplify(std::vector<Node>& assertions)
+Node simplify(std::vector<Node>& assertions, NodeManager* nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Assert(!assertions.empty());
 
   Trace("cbqi-gn") << "Global negate : " << std::endl;
@@ -90,21 +93,26 @@ void GlobalNegate::simplify(std::vector<Node>& assertions)
   Trace("cbqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
   body = Rewriter::rewrite(body);
   Trace("cbqi-gn") << "...got (post-rewrite) : " << body << std::endl;
+  return body;
+}
+}  // namespace
 
-  Node truen = nm->mkConst(true);
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
+GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "global-negate"){};
+
+PreprocessingPassResult GlobalNegate::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  assertionsToPreprocess->replace(0,
+                                  simplify(assertionsToPreprocess->ref(), nm));
+  Node trueNode = nm->mkConst(true);
+  for (unsigned i = 1; i < assertionsToPreprocess->size(); ++i)
   {
-    if (i == 0)
-    {
-      assertions[i] = body;
-    }
-    else
-    {
-      assertions[i] = truen;
-    }
+    assertionsToPreprocess->replace(i, trueNode);
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
