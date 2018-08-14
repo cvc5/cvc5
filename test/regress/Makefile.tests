@@ -239,9 +239,9 @@ REG0_TESTS = \
 	regress0/bv/core/slice-18.smt \
 	regress0/bv/core/slice-19.smt \
 	regress0/bv/core/slice-20.smt \
-	regress0/bv/eager-inc-cryptominisat.smt2 \
 	regress0/bv/divtest_2_5.smt2 \
 	regress0/bv/divtest_2_6.smt2 \
+	regress0/bv/eager-inc-cryptominisat.smt2 \
 	regress0/bv/fuzz01.smt \
 	regress0/bv/fuzz02.delta01.smt \
 	regress0/bv/fuzz02.smt \
@@ -786,6 +786,7 @@ REG0_TESTS = \
 	regress0/simplification_bug2.smt \
 	regress0/smallcnf.cvc \
 	regress0/smt2output.smt2 \
+	regress0/smtlib/get-unsat-assumptions.smt2 \
 	regress0/strings/bug001.smt2 \
 	regress0/strings/bug002.smt2 \
 	regress0/strings/bug612.smt2 \
