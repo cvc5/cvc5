@@ -24,7 +24,7 @@ namespace passes {
 
 using namespace CVC4::theory;
 
-Node rewriteApplyToConst(TNode n, NodeMap& cache)
+Node ApplyToConst::rewriteApplyToConst(TNode n, NodeMap& cache)
 {
   Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
 
