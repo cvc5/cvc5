@@ -44,7 +44,7 @@ class SortInferencePass : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
-  /** 
+  /**
    * Pointer to the sort inference module. This should be the sort inference
    * belonging to the theory engine of the current SMT engine.
    */
