@@ -4082,7 +4082,6 @@ void SmtEnginePrivate::processAssertions() {
   if (options::globalNegate())
   {
     // global negation of the formula
-
     d_preprocessingPassRegistry.getPass("global-negate")->apply(&d_assertions);
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
   }
