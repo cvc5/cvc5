@@ -131,12 +131,28 @@ message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
 #-----------------------------------------------------------------------------#
 
-option(ENABLE_PROOFS     "Enable proof support" OFF)
-option(USE_CADICAL       "Use CaDiCaL SAT solver" OFF)
-option(USE_CLN           "Use CLN instead of GMP" OFF)
-option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver" OFF)
-option(USE_LFSC          "Use LFSC proof checker" OFF)
-option(USE_SYMFPU        "Use SymFPU for floating point support" OFF)
+option(ENABLE_DEBUG_SYMBOLS, "Enable debug symbols" OFF)
+option(ENABLE_DUMPING        "Enable dumpin" OFF)
+option(ENABLE_PROOFS         "Enable proof support" OFF)
+option(ENABLE_REPLAY         "Enable the replay feature" OFF)
+option(ENABLE_TRACING        "Enable tracing" OFF)
+option(ENABLE_STATISTICS     "Enable statistics" OFF)
+option(ENABLE_VALGRIND       "Enable valgrind instrumentation" OFF)
+
+option(USE_CADICAL           "Use CaDiCaL SAT solver" OFF)
+option(USE_CLN               "Use CLN instead of GMP" OFF)
+option(USE_CRYPTOMINISAT     "Use CryptoMiniSat SAT solver" OFF)
+option(USE_LFSC              "Use LFSC proof checker" OFF)
+option(USE_SYMFPU            "Use SymFPU for floating point support" OFF)
+
+set(OPTIMIZATION_LEVEL 0)
+
+set(CVC4_DEBUG 0)
+set(CVC4_BUILD_PROFILE_PRODUCTION 0)
+set(CVC4_BUILD_PROFILE_DEBUG 0)
+set(CVC4_BUILD_PROFILE_TESTING 0)
+set(CVC4_BUILD_PROFILE_COMPETITION 0)
+
 
 #-----------------------------------------------------------------------------#
 
@@ -150,8 +166,72 @@ find_package(GMP REQUIRED)
 cvc4_link_library(${GMP_LIBRARIES})
 include_directories(${GMP_INCLUDE_DIR})
 
+#-----------------------------------------------------------------------------#
+
+add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
+add_check_c_flag("-fexceptions")
+add_check_c_cxx_flag("-Wno-deprecated")
+add_check_c_cxx_flag("-Wsuggest-override")
+add_check_cxx_flag("-Wnon-virtual-dtor")
+
+set(build_types production debug testing competition)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE production CACHE STRING "Options are: ${build_types}" FORCE)
+    # Provide drop down menu options in cmake-gui
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${build_types})
+endif()
+message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
+
+if(CMAKE_BUILD_TYPE STREQUAL "debug")
+  include(ConfigDebug)
+elseif(CMAKE_BUILD_TYPE STREQUAL "production")
+  include(ConfigProduction)
+elseif(CMAKE_BUILD_TYPE STREQUAL "testing")
+  include(ConfigTesting)
+elseif(CMAKE_BUILD_TYPE STREQUAL "competition")
+  include(ConfigCompetition)
+  # enable_static=yes
+  #TODO
+  # enable_static_binary=yes
+  #TODO
+endif()
+
+#-----------------------------------------------------------------------------#
+
+if(ENABLE_ASSERTIONS)
+  add_definitions(-DCVC4_ASSERTIONS)
+endif()
+
+if(ENABLE_DUMPING)
+  add_definitions(-DCVC4_DUMPING)
+endif()
+
+if(ENABLE_DEBUG_SYMBOLS)
+  add_check_c_cxx_flag("-ggdb3")
+endif()
+
 if(ENABLE_PROOFS)
+  #TODO RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--enable-proof"
   add_definitions(-DCVC4_PROOF)
+  set(CVC4_PROOF 1)
+endif()
+
+if(ENABLE_REPLAY)
+  add_definitions(-DCVC4_REPLAY)
+endif()
+
+if(ENABLE_TRACING)
+  add_definitions(-DCVC4_TRACING)
+  set(CVC4_TRACING 1)
+endif()
+
+if(ENABLE_STATISTICS)
+  add_definitions(-DCVC4_STATISTICS_ON)
+endif()
+
+if(ENABLE_VALGRIND)
+  #TODO check if valgrind available
+  add_definitions(-DCVC4_VALGRIND)
 endif()
 
 if(USE_CADICAL)
@@ -202,11 +282,6 @@ if(USE_SYMFPU)
 else()
   set(CVC4_USE_SYMFPU 0)
 endif()
-
-#-----------------------------------------------------------------------------#
-
-add_check_c_flag("-fexceptions")
-add_check_c_cxx_flag("-Wno-deprecated")
 
 #-----------------------------------------------------------------------------#
 
@@ -319,3 +394,67 @@ if(ENABLE_PROOFS)
   add_subdirectory(proofs/signatures)
   cvc4_link_library(signatures)
 endif()
+
+#-----------------------------------------------------------------------------#
+
+if(CVC4_BUILD_PROFILE_PRODUCTION)
+  set(CVC4_BUILD_PROFILE_STRING "production")
+elseif(CVC4_BUILD_PROFILE_DEBUG)
+  set(CVC4_BUILD_PROFILE_STRING "debug")
+elseif(CVC4_BUILD_PROFILE_TESTING)
+  set(CVC4_BUILD_PROFILE_STRING "testing")
+elseif(CVC4_BUILD_PROFILE_COMPETITION)
+  set(CVC4_BUILD_PROFILE_STRING "competition")
+endif()
+
+message("CVC4 ${CVC4_RELEASE_STRING}")
+message("")
+message("Build profile     : ${CVC4_BUILD_PROFILE_STRING}")
+message("Optimization level: ${OPTIMIZATION_LEVEL}")
+message("Debug symbols     : ${ENABLE_DEBUG_SYMBOLS}")
+message("Proofs            : ${ENABLE_PROOFS}")
+message("Statistics        : ${ENABLE_STATISTICS}")
+message("Replay            : ${ENABLE_REPLAY}")
+message("Assertions        : ${ENABLE_ASSERTIONS}")
+message("Tracing           : ${ENABLE_TRACING}")
+message("Dumping           : ${ENABLE_DUMPING}")
+#message("Muzzle            : ${ENABLE_MUZZLE}")
+#message("")
+#message("Unit tests   : ${support_unit_tests}")
+#message("gcov support : ${enable_coverage}")
+#message("gprof support: ${enable_profiling}")
+#message("")
+#message("Static libs  : ${enable_static}")
+#message("Shared libs  : ${enable_shared}")
+#message("Static binary: ${enable_static_binary}")
+#message("Compat lib   : ${CVC4_BUILD_LIBCOMPAT}")
+#message("Bindings     : ${bindings_to_be_built}")
+#message("")
+#message("Multithreaded: ${support_multithreaded}")
+#message("Portfolio    : ${with_portfolio}")
+message("")
+#message("ABC          : ${{with_abc}")
+message("CaDiCaL           : ${USE_CADICAL}")
+message("Cryptominisat     : ${USE_CRYPTOMINISAT}")
+#message("GLPK              : ${USE_GLPK}")
+message("LFSC              : ${USE_LFSC}")
+#message("MP library   : ${mplibrary}")
+#message("Readline     : ${with_readline}")
+message("SymFPU            : ${USE_SYMFPU}")
+message("")
+#message("CPPFLAGS     : ${CPPFLAGS}")
+message("CXXFLAGS     : ${CMAKE_CXX_FLAGS}")
+message("CFLAGS       : ${CMAKE_C_FLAGS}")
+#message("LIBS         : ${LIBS}")
+#message("LDFLAGS      : ${LDFLAGS}")
+#message("")
+#message("libcvc4 version        : ${{CVC4_LIBRARY_VERSION}")
+#message("libcvc4parser version  : ${CVC4_PARSER_LIBRARY_VERSION}")
+#message("libcvc4compat version  : ${CVC4_COMPAT_LIBRARY_VERSION_or_nobuild}")
+#message("libcvc4bindings version: ${CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild}")
+#message("")
+#message("Install into : ${prefix}")
+#message("")
+#message("CVC4 license : ${license}")
+#message("")
+#message("${licensewarn}Now just type make, followed by make check or make install, as you like.")

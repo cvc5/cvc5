@@ -1,0 +1,20 @@
+set(CVC4_BUILD_PROFILE_TESTING 1)
+# OPTLEVEL=2
+# enable_optimized=yes
+set(OPTIMIZATION_LEVEL, 2)
+# enable_debug_symbols=yes
+add_check_c_cxx_flag("-ggdb3")
+# enable_statistics=yes
+set(ENABLE_STATISTICS ON)
+# enable_replay=yes
+set(ENABLE_REPLAY ON)
+# enable_assertions=yes
+set(ENABLE_ASSERTIONS ON)
+# enable_proof=yes
+set(ENABLE_PROOFS, ON)
+# enable_tracing=yes
+set(ENABLE_TRACING ON)
+# enable_dumping=yes
+set(ENABLE_DUMPING ON)
+# enable_muzzle=no
+# enable_valgrind=no
