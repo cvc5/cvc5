@@ -60,6 +60,7 @@ public:
     bool areEqual( int t1, int t2 ) { return getRepresentative( t1 )==getRepresentative( t2 ); }
     bool isValid();
   };
+
  private:
   /** the id count for all subsorts we have allocated */
   int d_sortCount;
@@ -78,8 +79,8 @@ public:
   void printSort( const char* c, int t );
   //process
   int process( Node n, std::map< Node, Node >& var_bound, std::map< Node, int >& visited );
- // for monotonicity inference
-private:
+  // for monotonicity inference
+ private:
   void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound, std::map< Node, std::map< int, bool > >& visited, bool typeMode = false );
 
 //for rewriting
@@ -93,7 +94,11 @@ private:
   TypeNode getTypeForId( int t );
   Node getNewSymbol( Node old, TypeNode tn );
   //simplify
-  Node simplifyNode( Node n, std::map< Node, Node >& var_bound, TypeNode tnn, std::map< Node, Node >& model_replace_f, std::map< Node, std::map< TypeNode, Node > >& visited );
+  Node simplifyNode(Node n,
+                    std::map<Node, Node>& var_bound,
+                    TypeNode tnn,
+                    std::map<Node, Node>& model_replace_f,
+                    std::map<Node, std::map<TypeNode, Node> >& visited);
   //make injection
   Node mkInjection( TypeNode tn1, TypeNode tn2 );
   //reset
@@ -118,8 +123,9 @@ private:
    *
    * Must call initialize() before this function.
    */
-  Node simplify(Node n, 
-  std::map< Node, Node >& model_replace_f, std::map< Node, std::map<TypeNode, Node> >& visited);
+  Node simplify(Node n,
+                std::map<Node, Node>& model_replace_f,
+                std::map<Node, std::map<TypeNode, Node> >& visited);
   /** get new constraints
    *
    * This adds constraints to new_asserts that ensure the following.
