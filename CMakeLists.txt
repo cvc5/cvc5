@@ -107,6 +107,7 @@ message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 #-----------------------------------------------------------------------------#
 
 option(ENABLE_PROOFS     "Enable proof support" OFF)
+option(USE_CADICAL       "Use CaDiCaL SAT solver" OFF)
 option(USE_CLN           "Use CLN instead of GMP" OFF)
 option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver" OFF)
 option(USE_SYMFPU        "Use SymFPU for floating point support" OFF)
@@ -123,10 +124,26 @@ find_package(GMP REQUIRED)
 cvc4_link_library(${GMP_LIBRARIES})
 include_directories(${GMP_INCLUDE_DIR})
 
+if(ENABLE_PROOFS)
+  add_definitions(-DCVC4_PROOF)
+endif()
+
+if(USE_CADICAL)
+  find_package(CaDiCaL REQUIRED)
+  cvc4_link_library(${CaDiCaL_LIBRARIES})
+  include_directories(${CaDiCaL_INCLUDE_DIR})
+  add_definitions(-DCVC4_USE_CADICAL)
+endif()
+
 if(USE_CLN)
   find_package(CLN 1.2.2 REQUIRED)
   cvc4_link_library(${CLN_LIBRARIES})
   include_directories(${CLN_INCLUDE_DIR})
+  set(CVC4_USE_CLN_IMP 1)
+  set(CVC4_USE_GMP_IMP 0)
+else()
+  set(CVC4_USE_CLN_IMP 0)
+  set(CVC4_USE_GMP_IMP 1)
 endif()
 
 if(USE_CRYPTOMINISAT)
@@ -139,11 +156,16 @@ if(USE_CRYPTOMINISAT)
   find_package(CryptoMiniSat REQUIRED)
   cvc4_link_library(${CryptoMiniSat_LIBRARIES})
   include_directories(${CryptoMiniSat_INCLUDE_DIR})
+  add_definitions(-DCVC4_USE_CRYPTOMINISAT)
 endif()
 
 if(USE_SYMFPU)
   find_package(SymFPU REQUIRED)
   include_directories(${SymFPU_INCLUDE_DIR})
+  add_definitions(-DCVC4_USE_SYMFPU)
+  set(CVC4_USE_SYMFPU 1)
+else()
+  set(CVC4_USE_SYMFPU 0)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -252,29 +274,6 @@ set(STRERROR_R_CHAR_P 1)
 
 configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-if(USE_CLN)
-  set(CVC4_USE_CLN_IMP 1)
-  set(CVC4_USE_GMP_IMP 0)
-else()
-  set(CVC4_USE_CLN_IMP 0)
-  set(CVC4_USE_GMP_IMP 1)
-endif()
-
-if(USE_CRYPTOMINISAT)
-  add_definitions(-DCVC4_USE_CRYPTOMINISAT)
-endif()
-
-if(USE_SYMFPU)
-  add_definitions(-DCVC4_USE_SYMFPU)
-  set(CVC4_USE_SYMFPU 1)
-else()
-  set(CVC4_USE_SYMFPU 0)
-endif()
-
-if(ENABLE_PROOFS)
-  add_definitions(-DCVC4_PROOF)
-endif()
 
 #-----------------------------------------------------------------------------#
 
