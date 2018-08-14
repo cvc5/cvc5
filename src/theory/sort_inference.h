@@ -26,6 +26,14 @@
 
 namespace CVC4 {
 
+/** sort inference
+ *
+ * This class implements sort inference techniques, which rewrites a
+ * formula F into an equisatisfiable formula F', where the symbols g in F are
+ * replaced by others g', possibly of different types. For details, see e.g.:
+ *   "Sort it out with Monotonicity" Claessen 2011
+ *   "Non-Cyclic Sorts for First-Order Satisfiability" Korovin 2013.
+ */ 
 class SortInference {
 private:
   //all subsorts
@@ -53,8 +61,8 @@ public:
     bool isValid();
   };
 private:
-  int sortCount;
-  int initialSortCount;
+  /** the id count for all subsorts we have allocated */
+  int d_sortCount;
   UnionFind d_type_union_find;
   std::map< int, TypeNode > d_type_types;
   std::map< TypeNode, int > d_id_for_types;
@@ -92,10 +100,41 @@ private:
   void reset();
 
  public:
-  SortInference() : sortCount(1), initialSortCount() {}
+  SortInference() : d_sortCount(1) {}
   ~SortInference(){}
 
-  void simplify( std::vector< Node >& assertions, bool doSortInference, bool doMonotonicyInference );
+  /** initialize 
+   *
+   * This initializes this class. The input formula is indicated by assertions.
+   */
+  void initialize( const std::vector< Node >& assertions );
+  /** simplify 
+   *
+   * This returns the simplified form of formula n, based on the information
+   * computed during initialization. The argument visited is a cache of the
+   * internal results of simplifying previous nodes with this class.
+   *
+   * Must call initialize() before this function.
+   */
+  Node simplify( Node n, std::map< Node, std::map< TypeNode, Node > >& visited );
+  /** get new constraints 
+   *
+   * This adds constraints to new_asserts that ensure the following.
+   * Let F be the conjunction of assertions from the input. Let F' be the
+   * conjunction of the simplified form of each conjunct in F. Let C be the
+   * conjunction of formulas adding to new_asserts. Then, F and F' ^ C are
+   * equisatisfiable.
+   */
+  void getNewAssertions( std::vector< Node >& new_asserts );
+  /** compute monotonicity 
+   *
+   * This computes whether sorts are monotonic (see e.g. Claessen 2011). If
+   * this function is called, then calls to isMonotonic() can subsequently be
+   * used to query whether sorts are monotonic.
+   */
+  void computeMonotonicity( const std::vector< Node >& assertions );
+  /** return true if tn was inferred to be monotonic */
+  bool isMonotonic( TypeNode tn );  
   //get sort id for term n
   int getSortId( Node n );
   //get sort id for variable of quantified formula f
@@ -114,10 +153,7 @@ public:
 
 private:
   // store monotonicity for original sorts as well
-  std::map< TypeNode, bool > d_non_monotonic_sorts_orig;  
-public:
-  //is monotonic
-  bool isMonotonic( TypeNode tn );  
+  std::map< TypeNode, bool > d_non_monotonic_sorts_orig;
 };
 
 }
