@@ -41,8 +41,8 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       if (next != prev)
       {
         assertionsToPreprocess->replace(i, next);
-        Trace("sort_infer-preprocess") << "*** Preprocess SortInferencePass " << prev << endl;
-        Trace("sort_infer-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
+        Trace("sort-infer-preprocess") << "*** Preprocess SortInferencePass " << prev << endl;
+        Trace("sort-infer-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
                                 << endl;
       }
     }
@@ -50,7 +50,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     d_si->getNewAssertions(newAsserts);
     for( const Node& na : newAsserts )
     {
-      Trace("sort_infer-preprocess") << "*** Preprocess SortInferencePass : new constraint " << na << endl;
+      Trace("sort-infer-preprocess") << "*** Preprocess SortInferencePass : new constraint " << na << endl;
       assertionsToPreprocess->push_back(na);
     }
   }
