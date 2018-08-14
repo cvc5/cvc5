@@ -106,13 +106,18 @@ message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
 #-----------------------------------------------------------------------------#
 
-option(USE_CLN         "Use CLN instead of GMP" OFF)
-option(ENABLE_PROOFS   "Enable proof support" OFF)
-option(USE_SYMFPU      "Use SymFPU for floating point support" OFF)
+option(ENABLE_PROOFS     "Enable proof support" OFF)
+option(USE_CLN           "Use CLN instead of GMP" OFF)
+option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver" OFF)
+option(USE_SYMFPU        "Use SymFPU for floating point support" OFF)
 
 #-----------------------------------------------------------------------------#
 
 find_package(PythonInterp REQUIRED)
+
+find_package(ANTLR REQUIRED)
+cvc4_link_library(${ANTLR_LIBRARIES})
+include_directories(${ANTLR_INCLUDE_DIR})
 
 find_package(GMP REQUIRED)
 cvc4_link_library(${GMP_LIBRARIES})
@@ -124,14 +129,22 @@ if(USE_CLN)
   include_directories(${CLN_INCLUDE_DIR})
 endif()
 
+if(USE_CRYPTOMINISAT)
+  # CryptoMiniSat requires pthreads support
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads REQUIRED)
+  if(THREADS_HAVE_PTHREAD_ARG)
+    add_c_cxx_flag(-pthread)
+  endif()
+  find_package(CryptoMiniSat REQUIRED)
+  cvc4_link_library(${CryptoMiniSat_LIBRARIES})
+  include_directories(${CryptoMiniSat_INCLUDE_DIR})
+endif()
+
 if(USE_SYMFPU)
   find_package(SymFPU REQUIRED)
   include_directories(${SymFPU_INCLUDE_DIR})
 endif()
-
-find_package(ANTLR REQUIRED)
-cvc4_link_library(${ANTLR_LIBRARIES})
-include_directories(${ANTLR_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------#
 
@@ -246,6 +259,10 @@ if(USE_CLN)
 else()
   set(CVC4_USE_CLN_IMP 0)
   set(CVC4_USE_GMP_IMP 1)
+endif()
+
+if(USE_CRYPTOMINISAT)
+  add_definitions(-DCVC4_USE_CRYPTOMINISAT)
 endif()
 
 if(USE_SYMFPU)
