@@ -28,22 +28,23 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-
 /** SortInferencePass
- * 
+ *
  * This preprocessing pass runs sort inference techniques on the input formula
  */
 class SortInferencePass : public PreprocessingPass
 {
  public:
-  SortInferencePass(PreprocessingPassContext* preprocContext, SortInference * si);
+  SortInferencePass(PreprocessingPassContext* preprocContext,
+                    SortInference* si);
 
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
  private:
   /** pointer to the sort inference module */
-  SortInference * d_si;
+  SortInference* d_si;
 };
 
 }  // namespace passes

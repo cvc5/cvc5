@@ -14,8 +14,8 @@
 
 #include "preprocessing/passes/sort_infer.h"
 
-#include "options/uf_options.h"
 #include "options/smt_options.h"
+#include "options/uf_options.h"
 
 using namespace std;
 
@@ -23,42 +23,46 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-
-SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext, SortInference * si)
-    : PreprocessingPass(preprocContext, "sort-inference"), d_si(si){}
+SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext,
+                                     SortInference* si)
+    : PreprocessingPass(preprocContext, "sort-inference"), d_si(si)
+{
+}
 
 PreprocessingPassResult SortInferencePass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  if( options::sortInference() )
+  if (options::sortInference())
   {
-    d_si->initialize( assertionsToPreprocess->ref() );
-    std::map< Node, std::map< TypeNode, Node > > visited;
-    for (unsigned i = 0, size = assertionsToPreprocess->size(); i<size; i++)
+    d_si->initialize(assertionsToPreprocess->ref());
+    std::map<Node, std::map<TypeNode, Node> > visited;
+    for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; i++)
     {
       Node prev = (*assertionsToPreprocess)[i];
       Node next = d_si->simplify(prev, visited);
       if (next != prev)
       {
         assertionsToPreprocess->replace(i, next);
-        Trace("sort-infer-preprocess") << "*** Preprocess SortInferencePass " << prev << endl;
-        Trace("sort-infer-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
-                                << endl;
+        Trace("sort-infer-preprocess")
+            << "*** Preprocess SortInferencePass " << prev << endl;
+        Trace("sort-infer-preprocess")
+            << "   ...got " << (*assertionsToPreprocess)[i] << endl;
       }
     }
-    std::vector< Node > newAsserts;
+    std::vector<Node> newAsserts;
     d_si->getNewAssertions(newAsserts);
-    for( const Node& na : newAsserts )
+    for (const Node& na : newAsserts)
     {
-      Trace("sort-infer-preprocess") << "*** Preprocess SortInferencePass : new constraint " << na << endl;
+      Trace("sort-infer-preprocess")
+          << "*** Preprocess SortInferencePass : new constraint " << na << endl;
       assertionsToPreprocess->push_back(na);
     }
   }
   // only need to compute monotonicity on the resulting formula if we are
   // using this option
-  if( options::ufssFairnessMonotone() )
+  if (options::ufssFairnessMonotone())
   {
-    d_si->computeMonotonicity(assertionsToPreprocess->ref() );
+    d_si->computeMonotonicity(assertionsToPreprocess->ref());
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

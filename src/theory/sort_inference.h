@@ -33,7 +33,7 @@ namespace CVC4 {
  * replaced by others g', possibly of different types. For details, see e.g.:
  *   "Sort it out with Monotonicity" Claessen 2011
  *   "Non-Cyclic Sorts for First-Order Satisfiability" Korovin 2013.
- */ 
+ */
 class SortInference {
 private:
   //all subsorts
@@ -60,7 +60,7 @@ public:
     bool areEqual( int t1, int t2 ) { return getRepresentative( t1 )==getRepresentative( t2 ); }
     bool isValid();
   };
-private:
+ private:
   /** the id count for all subsorts we have allocated */
   int d_sortCount;
   UnionFind d_type_union_find;
@@ -78,7 +78,7 @@ private:
   void printSort( const char* c, int t );
   //process
   int process( Node n, std::map< Node, Node >& var_bound, std::map< Node, int >& visited );
-//for monotonicity inference
+ // for monotonicity inference
 private:
   void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound, std::map< Node, std::map< int, bool > >& visited, bool typeMode = false );
 
@@ -103,12 +103,12 @@ private:
   SortInference() : d_sortCount(1) {}
   ~SortInference(){}
 
-  /** initialize 
+  /** initialize
    *
    * This initializes this class. The input formula is indicated by assertions.
    */
-  void initialize( const std::vector< Node >& assertions );
-  /** simplify 
+  void initialize(const std::vector<Node>& assertions);
+  /** simplify
    *
    * This returns the simplified form of formula n, based on the information
    * computed during initialization. The argument visited is a cache of the
@@ -116,8 +116,8 @@ private:
    *
    * Must call initialize() before this function.
    */
-  Node simplify( Node n, std::map< Node, std::map< TypeNode, Node > >& visited );
-  /** get new constraints 
+  Node simplify(Node n, std::map<Node, std::map<TypeNode, Node> >& visited);
+  /** get new constraints
    *
    * This adds constraints to new_asserts that ensure the following.
    * Let F be the conjunction of assertions from the input. Let F' be the
@@ -125,16 +125,16 @@ private:
    * conjunction of formulas adding to new_asserts. Then, F and F' ^ C are
    * equisatisfiable.
    */
-  void getNewAssertions( std::vector< Node >& new_asserts );
-  /** compute monotonicity 
+  void getNewAssertions(std::vector<Node>& new_asserts);
+  /** compute monotonicity
    *
    * This computes whether sorts are monotonic (see e.g. Claessen 2011). If
    * this function is called, then calls to isMonotonic() can subsequently be
    * used to query whether sorts are monotonic.
    */
-  void computeMonotonicity( const std::vector< Node >& assertions );
+  void computeMonotonicity(const std::vector<Node>& assertions);
   /** return true if tn was inferred to be monotonic */
-  bool isMonotonic( TypeNode tn );  
+  bool isMonotonic(TypeNode tn);
   //get sort id for term n
   int getSortId( Node n );
   //get sort id for variable of quantified formula f
@@ -153,7 +153,7 @@ public:
 
 private:
   // store monotonicity for original sorts as well
-  std::map< TypeNode, bool > d_non_monotonic_sorts_orig;
+ std::map<TypeNode, bool> d_non_monotonic_sorts_orig;
 };
 
 }

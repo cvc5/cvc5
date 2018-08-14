@@ -2737,7 +2737,8 @@ void SmtEnginePrivate::finishInit()
   std::unique_ptr<Rewrite> rewrite(
       new Rewrite(d_preprocessingPassContext.get()));
   std::unique_ptr<SortInferencePass> sortInfer(
-      new SortInferencePass(d_preprocessingPassContext.get(),d_smt.d_theoryEngine->getSortInference()));
+      new SortInferencePass(d_preprocessingPassContext.get(),
+                            d_smt.d_theoryEngine->getSortInference()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
@@ -2746,7 +2747,7 @@ void SmtEnginePrivate::finishInit()
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
-   d_preprocessingPassRegistry.registerPass("apply-substs",
+  d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
@@ -4337,10 +4338,10 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
-    d_preprocessingPassRegistry.getPass("sort-inference")
-        ->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("sort-inference")->apply(&d_assertions);
     // FIXME
-    //for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
+    // for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin();
+    // it != si->d_model_replace_f.end(); ++it ){
     //  d_smt.setPrintFuncInModel( it->first.toExpr(), false );
     //  d_smt.setPrintFuncInModel( it->second.toExpr(), true );
     //}

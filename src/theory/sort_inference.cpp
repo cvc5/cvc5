@@ -114,53 +114,63 @@ void SortInference::reset() {
   d_const_map.clear();
 }
 
-
-void SortInference::initialize( const std::vector< Node >& assertions )
+void SortInference::initialize(const std::vector<Node>& assertions)
 {
   Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
-  //process all assertions
-  std::map< Node, int > visited;
-  for( unsigned i=0; i<assertions.size(); i++ ){
+  // process all assertions
+  std::map<Node, int> visited;
+  for (unsigned i = 0; i < assertions.size(); i++)
+  {
     Trace("sort-inference-debug") << "Process " << assertions[i] << std::endl;
-    std::map< Node, Node > var_bound;
-    process( assertions[i], var_bound, visited );
+    std::map<Node, Node> var_bound;
+    process(assertions[i], var_bound, visited);
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
-  for( std::map< Node, int >::iterator it = d_op_return_types.begin(); it != d_op_return_types.end(); ++it ){
+  for (std::map<Node, int>::iterator it = d_op_return_types.begin();
+       it != d_op_return_types.end();
+       ++it)
+  {
     Trace("sort-inference") << it->first << " : ";
     TypeNode retTn = it->first.getType();
-    if( !d_op_arg_types[ it->first ].empty() ){
+    if (!d_op_arg_types[it->first].empty())
+    {
       Trace("sort-inference") << "( ";
-      for( size_t i=0; i<d_op_arg_types[ it->first ].size(); i++ ){
-        recordSubsort( retTn[i], d_op_arg_types[ it->first ][i] );
-        printSort( "sort-inference", d_op_arg_types[ it->first ][i] );
+      for (size_t i = 0; i < d_op_arg_types[it->first].size(); i++)
+      {
+        recordSubsort(retTn[i], d_op_arg_types[it->first][i]);
+        printSort("sort-inference", d_op_arg_types[it->first][i]);
         Trace("sort-inference") << " ";
       }
       Trace("sort-inference") << ") -> ";
-      retTn = retTn[(int)retTn.getNumChildren()-1];
+      retTn = retTn[(int)retTn.getNumChildren() - 1];
     }
-    recordSubsort( retTn, it->second );
-    printSort( "sort-inference", it->second );
+    recordSubsort(retTn, it->second);
+    printSort("sort-inference", it->second);
     Trace("sort-inference") << std::endl;
   }
-  for( std::map< Node, std::map< Node, int > >::iterator it = d_var_types.begin(); it != d_var_types.end(); ++it ){
-    Trace("sort-inference") << "Quantified formula : " << it->first << " : " << std::endl;
-    for( unsigned i=0; i<it->first[0].getNumChildren(); i++ ){
-      recordSubsort( it->first[0][i].getType(), it->second[it->first[0][i]] );
-      printSort( "sort-inference", it->second[it->first[0][i]] );
+  for (std::map<Node, std::map<Node, int> >::iterator it = d_var_types.begin();
+       it != d_var_types.end();
+       ++it)
+  {
+    Trace("sort-inference")
+        << "Quantified formula : " << it->first << " : " << std::endl;
+    for (unsigned i = 0; i < it->first[0].getNumChildren(); i++)
+    {
+      recordSubsort(it->first[0][i].getType(), it->second[it->first[0][i]]);
+      printSort("sort-inference", it->second[it->first[0][i]]);
       Trace("sort-inference") << std::endl;
     }
     Trace("sort-inference") << std::endl;
   }
 
   // determine monotonicity of sorts
-  Trace("sort-inference-proc") << "Calculating monotonicty for subsorts..."
-                                << std::endl;
+  Trace("sort-inference-proc")
+      << "Calculating monotonicty for subsorts..." << std::endl;
   std::map<Node, std::map<int, bool> > visitedm;
   for (const Node& a : assertions)
   {
-    Trace("sort-inference-debug") << "Process monotonicity for " << a
-                                  << std::endl;
+    Trace("sort-inference-debug")
+        << "Process monotonicity for " << a << std::endl;
     std::map<Node, Node> var_bound;
     processMonotonic(a, true, true, var_bound, visitedm);
   }
@@ -176,7 +186,7 @@ void SortInference::initialize( const std::vector< Node >& assertions )
       Trace("sort-inference") << " is interpreted." << std::endl;
     }
     else if (d_non_monotonic_sorts.find(d_sub_sorts[i])
-              == d_non_monotonic_sorts.end())
+             == d_non_monotonic_sorts.end())
     {
       Trace("sort-inference") << " is monotonic." << std::endl;
     }
@@ -187,7 +197,8 @@ void SortInference::initialize( const std::vector< Node >& assertions )
   }
 }
 
-Node SortInference::simplify( Node n, std::map< Node, std::map< TypeNode, Node > >& visited )
+Node SortInference::simplify(Node n,
+                             std::map<Node, std::map<TypeNode, Node> >& visited)
 {
   Trace("sort-inference-debug") << "Simplify " << n << std::endl;
   std::map<Node, Node> var_bound;
@@ -197,19 +208,19 @@ Node SortInference::simplify( Node n, std::map< Node, std::map< TypeNode, Node >
   return ret;
 }
 
-void SortInference::getNewAssertions( std::vector< Node >& new_asserts )
+void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // now, ensure constants are distinct
   for (std::map<TypeNode, std::map<Node, Node> >::iterator it =
-            d_const_map.begin();
-        it != d_const_map.end();
-        ++it)
+           d_const_map.begin();
+       it != d_const_map.end();
+       ++it)
   {
     std::vector<Node> consts;
     for (std::map<Node, Node>::iterator it2 = it->second.begin();
-          it2 != it->second.end();
-          ++it2)
+         it2 != it->second.end();
+         ++it2)
     {
       Assert(it2->first.isConst());
       consts.push_back(it2->second);
@@ -228,9 +239,9 @@ void SortInference::getNewAssertions( std::vector< Node >& new_asserts )
   // enforce constraints based on monotonicity
   Trace("sort-inference-proc") << "Enforce monotonicity..." << std::endl;
   for (std::map<TypeNode, std::vector<int> >::iterator it =
-            d_type_sub_sorts.begin();
-        it != d_type_sub_sorts.end();
-        ++it)
+           d_type_sub_sorts.begin();
+       it != d_type_sub_sorts.end();
+       ++it)
   {
     int nmonSort = -1;
     unsigned nsorts = it->second.size();
@@ -266,7 +277,9 @@ void SortInference::getNewAssertions( std::vector< Node >& new_asserts )
       }
       if (Trace.isOn("sort-inference-rewrite"))
       {
-        Trace("sort-inference-rewrite") << "Add the following injections for " << it->first << " to ensure consistency wrt non-monotonic sorts : " << std::endl;
+        Trace("sort-inference-rewrite")
+            << "Add the following injections for " << it->first
+            << " to ensure consistency wrt non-monotonic sorts : " << std::endl;
         for (const Node& i : injections)
         {
           Trace("sort-inference-rewrite") << "   " << i << std::endl;
@@ -274,25 +287,24 @@ void SortInference::getNewAssertions( std::vector< Node >& new_asserts )
       }
       new_asserts.insert(
           new_asserts.end(), injections.begin(), injections.end());
-
     }
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
   // no sub-sort information is stored
   reset();
-  Trace("sort-inference-debug")
-      << "Finished sort inference" << std::endl;
+  Trace("sort-inference-debug") << "Finished sort inference" << std::endl;
 }
 
-void SortInference::computeMonotonicity( const std::vector< Node >& assertions )
+void SortInference::computeMonotonicity(const std::vector<Node>& assertions)
 {
   std::map<Node, std::map<int, bool> > visitedmt;
-  Trace("sort-inference-proc") << "Calculating monotonicty for types..." << std::endl;
+  Trace("sort-inference-proc")
+      << "Calculating monotonicty for types..." << std::endl;
   for (const Node& a : assertions)
   {
-    Trace("sort-inference-debug") << "Process type monotonicity for " << a
-                                  << std::endl;
-    std::map< Node, Node > var_bound;
+    Trace("sort-inference-debug")
+        << "Process type monotonicity for " << a << std::endl;
+    std::map<Node, Node> var_bound;
     processMonotonic(a, true, true, var_bound, visitedmt, true);
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
@@ -343,8 +355,8 @@ int SortInference::getIdForType( TypeNode tn ){
   std::map< TypeNode, int >::iterator it = d_id_for_types.find( tn );
   if( it==d_id_for_types.end() ){
     int sc = d_sortCount;
-    d_type_types[ d_sortCount ] = tn;
-    d_id_for_types[ tn ] = d_sortCount;
+    d_type_types[d_sortCount] = tn;
+    d_id_for_types[tn] = d_sortCount;
     d_sortCount++;
     return sc;
   }else{
@@ -366,7 +378,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
       }else{
         for( size_t i=0; i<n[0].getNumChildren(); i++ ){
           //apply sort inference to quantified variables
-          d_var_types[n][ n[0][i] ] = d_sortCount;
+          d_var_types[n][n[0][i]] = d_sortCount;
           d_sortCount++;
 
           //type of the quantified variable must be the same
@@ -427,10 +439,10 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
           d_op_return_types[op] = d_sortCount;
           d_sortCount++;
         }
-        //d_type_eq_class[d_sortCount].push_back( op );
-        //assign arbitrary sort for argument types
+        // d_type_eq_class[d_sortCount].push_back( op );
+        // assign arbitrary sort for argument types
         for( size_t i=0; i<n.getNumChildren(); i++ ){
-          d_op_arg_types[op].push_back( d_sortCount );
+          d_op_arg_types[op].push_back(d_sortCount);
           d_sortCount++;
         }
       }
@@ -462,7 +474,7 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
           //assign arbitrary sort
           d_op_return_types[n] = d_sortCount;
           d_sortCount++;
-          //d_type_eq_class[d_sortCount].push_back( n );
+          // d_type_eq_class[d_sortCount].push_back( n );
         }
         retType = d_op_return_types[n];
       }else if( n.isConst() ){
