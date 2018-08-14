@@ -63,6 +63,8 @@ libcvc4_la_SOURCES = \
 	decision/justification_heuristic.h \
 	preprocessing/passes/apply_substs.cpp \
 	preprocessing/passes/apply_substs.h \
+	preprocessing/passes/apply_to_const.cpp \
+	preprocessing/passes/apply_to_const.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
