@@ -9,14 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The RealToInt preprocessing pass
+ ** \brief The ExtRewPre preprocessing pass
  **
- ** Converts real operations into integer operations
+ ** Applies the extended rewriter to assertions
  **/
 
 #include "preprocessing/passes/extended_rewriter_pass.h"
-
-#include <string>
 
 #include "theory/quantifiers/extended_rewrite.h"
 

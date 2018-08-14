@@ -19,8 +19,6 @@
 #ifndef __CVC4__PREPROCESSING__PASSES__EXTENDED_REWRITER_PASS_H
 #define __CVC4__PREPROCESSING__PASSES__EXTENDED_REWRITER_PASS_H
 
-#include <unordered_map>
-#include <vector>
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
