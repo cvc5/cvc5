@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_eager_atoms.h
+/*! \file bv_eager_atoms.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Mathias Preiner
