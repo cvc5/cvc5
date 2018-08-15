@@ -72,6 +72,7 @@
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_ackermann.h"
+#include "preprocessing/passes/bv_eager_atoms.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
@@ -2719,6 +2720,8 @@ void SmtEnginePrivate::finishInit()
       new BoolToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<BvAbstraction> bvAbstract(
       new BvAbstraction(d_preprocessingPassContext.get()));
+  std::unique_ptr<BvEagerAtoms> bvEagerAtoms(
+      new BvEagerAtoms(d_preprocessingPassContext.get()));
   std::unique_ptr<BVAckermann> bvAckermann(
       new BVAckermann(d_preprocessingPassContext.get()));
   std::unique_ptr<BVGauss> bvGauss(
@@ -2750,6 +2753,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvAbstract));
   d_preprocessingPassRegistry.registerPass("bv-ackermann",
                                            std::move(bvAckermann));
+  d_preprocessingPassRegistry.registerPass("bv-eager-atoms",
+                                           std::move(bvEagerAtoms));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
@@ -4499,16 +4504,9 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-theory-preprocessing" << endl;
   dumpAssertions("post-theory-preprocessing", d_assertions);
 
-  // If we are using eager bit-blasting wrap assertions in fake atom so that
-  // everything gets bit-blasted to internal SAT solver
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    for (unsigned i = 0; i < d_assertions.size(); ++i) {
-      TNode atom = d_assertions[i];
-      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
-      d_assertions.replace(i, eager_atom);
-      TheoryModel* m = d_smt.d_theoryEngine->getModel();
-      m->addSubstitution(eager_atom, atom);
-    }
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    d_preprocessingPassRegistry.getPass("bv-eager-atoms")->apply(&d_assertions);
   }
 
   //notify theory engine new preprocessed assertions

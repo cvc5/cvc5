@@ -67,6 +67,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
 	preprocessing/passes/bv_ackermann.h \
+	preprocessing/passes/bv_eager_atoms.cpp \
+	preprocessing/passes/bv_eager_atoms.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
