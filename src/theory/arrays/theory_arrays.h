@@ -370,7 +370,7 @@ class TheoryArrays : public Theory {
 
   bool d_mergeInProgress;
 
-  typedef std::tuple<TNode, TNode, TNode, TNode> RowLemmaType;
+  using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
   context::CDQueue<RowLemmaType> d_RowQueue;
   context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;

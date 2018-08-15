@@ -34,7 +34,7 @@ namespace theory {
 namespace arrays {
 
 typedef context::CDList<TNode> CTNodeList;
-typedef std::tuple<TNode, TNode, TNode, TNode> RowLemmaType;
+using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
 struct RowLemmaTypeHashFunction {
   size_t operator()(const RowLemmaType& q) const {
