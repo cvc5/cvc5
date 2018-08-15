@@ -43,6 +43,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Node next = d_si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
+        next = Rewriter::rewrite(next);
         assertionsToPreprocess->replace(i, next);
         Trace("sort-infer-preprocess")
             << "*** Preprocess SortInferencePass " << prev << endl;
