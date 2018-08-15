@@ -56,9 +56,10 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     d_si->getNewAssertions(newAsserts);
     for (const Node& na : newAsserts)
     {
+      Node nar = theory::Rewriter::rewrite(na);
       Trace("sort-infer-preprocess")
-          << "*** Preprocess SortInferencePass : new constraint " << na << endl;
-      assertionsToPreprocess->push_back(na);
+          << "*** Preprocess SortInferencePass : new constraint " << nar << endl;
+      assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
     // TODO (#2308): move this to a better place
