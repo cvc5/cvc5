@@ -36,7 +36,6 @@ libutil_la_SOURCES = \
 	index.cpp \
 	index.h \
 	maybe.h \
-	ntuple.h \
 	ostream_util.cpp \
 	ostream_util.h \
 	proof.h \
