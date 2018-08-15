@@ -247,12 +247,11 @@ class TheoryEngine {
       return ss.str();
     }
 
-  public:
+   public:
+   IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
 
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
-
-    Statistics(theory::TheoryId theory);
-    ~Statistics();
+   Statistics(theory::TheoryId theory);
+   ~Statistics();
   };/* class TheoryEngine::Statistics */
 
   /**
