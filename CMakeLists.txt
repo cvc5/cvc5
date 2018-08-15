@@ -140,10 +140,10 @@ option(ENABLE_GPL                "Enable GPL dependencies" OFF)
 # General build options
 # >> 3-valued: AUTO ON OFF, allows to detect if set by user
 #              this is only necessary for options set for build types!
-cvc4_option(ENABLE_ASSERTIONS    " Enable assertions")
+cvc4_option(ENABLE_ASSERTIONS    "Enable assertions")
 cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
 cvc4_option(ENABLE_DUMPING       "Enable dumpin")
-cvc4_option(ENABLE_MUZZLE        "completely silence CVC4; remove ALL non-result output from build")
+cvc4_option(ENABLE_MUZZLE        "Enable silencing CVC4; supress ALL non-result output")
 cvc4_option(ENABLE_OPTIMIZED     "Enable optimization")
 cvc4_option(ENABLE_PROOFS        "Enable proof support")
 cvc4_option(ENABLE_REPLAY        "Enable the replay feature")
@@ -151,6 +151,9 @@ cvc4_option(ENABLE_TRACING       "Enable tracing")
 cvc4_option(ENABLE_STATISTICS    "Enable statistics")
 cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
 # >> 2-valued: ON OFF, for options where we don't need to detect if set by user
+option(ENABLE_COVERAGE           "Enable support for gcov coverage testing" OFF)
+option(ENABLE_PROFILING          "Enable support for gprof profiling" OFF)
+option(ENABLE_SHARED             "Build as shared library" OFF)
 
 # Optional dependencies
 option(USE_CADICAL               "Use CaDiCaL SAT solver")
@@ -167,7 +170,7 @@ option(USE_SYMFPU                "Use SymFPU for floating point support")
 set(OPT_LEVEL 3)
 set(GPL_LIBS "")
 
-set(BUILD_TYPES production debug testing competition)
+set(BUILD_TYPES Production Debug Testing Competition)
 
 #-----------------------------------------------------------------------------#
 # CVC4 build variables
@@ -208,13 +211,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
-if(CMAKE_BUILD_TYPE STREQUAL "debug")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   include(ConfigDebug)
-elseif(CMAKE_BUILD_TYPE STREQUAL "production")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Production")
   include(ConfigProduction)
-elseif(CMAKE_BUILD_TYPE STREQUAL "testing")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Testing")
   include(ConfigTesting)
-elseif(CMAKE_BUILD_TYPE STREQUAL "competition")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Competition")
   include(ConfigCompetition)
   # enable_static=yes
   #TODO
@@ -226,6 +229,13 @@ endif()
 
 if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
+endif()
+
+if(ENABLE_COVERAGE)
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+  add_definitions(-DCVC4_COVERAGE)
+  # TODO set_up_target_for_coverage + regression tests
 endif()
 
 if(ENABLE_DUMPING)
@@ -242,6 +252,11 @@ if(ENABLE_MUZZLE)
   add_definitions(-DCVC4_MUZZLE)
 endif()
 
+if(ENABLE_PROFILING)
+  add_definitions(-DCVC4_PROFILING)
+  add_check_c_cxx_flag("-pg")
+endif()
+
 if(ENABLE_PROOFS)
   #TODO RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--enable-proof"
   add_definitions(-DCVC4_PROOF)
@@ -255,6 +270,10 @@ endif()
 if(ENABLE_TRACING)
   add_definitions(-DCVC4_TRACING)
   set(CVC4_TRACING 1)
+endif()
+
+if(ENABLE_SHARED)
+  set(BUILD_SHARED_LIBS ON)
 endif()
 
 if(ENABLE_STATISTICS)
@@ -474,10 +493,10 @@ message("Assertions        : ${ENABLE_ASSERTIONS}")
 message("Tracing           : ${ENABLE_TRACING}")
 message("Dumping           : ${ENABLE_DUMPING}")
 message("Muzzle            : ${ENABLE_MUZZLE}")
-#message("")
+message("")
 #message("Unit tests   : ${support_unit_tests}")
-#message("gcov support : ${enable_coverage}")
-#message("gprof support: ${enable_profiling}")
+message("gcov support      : ${ENABLE_COVERAGE}")
+message("gprof support     : ${ENABLE_PROFILING}")
 #message("")
 #message("Static libs  : ${enable_static}")
 #message("Shared libs  : ${enable_shared}")
