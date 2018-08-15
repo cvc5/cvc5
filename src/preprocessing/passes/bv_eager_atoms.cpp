@@ -23,7 +23,6 @@
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
-using namespace CVC4::theory;
 
 BvEagerAtoms::BvEagerAtoms(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-eager-atoms"){};
@@ -31,7 +30,7 @@ BvEagerAtoms::BvEagerAtoms(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BvEagerAtoms::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  TheoryModel* tm = d_preprocContext->getTheoryEngine()->getModel();
+  theory::TheoryModel* tm = d_preprocContext->getTheoryEngine()->getModel();
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
