@@ -85,6 +85,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/rewrite.h \
 	preprocessing/passes/sep_skolem_emp.cpp \
 	preprocessing/passes/sep_skolem_emp.h \
+	preprocessing/passes/sort_infer.cpp \
+	preprocessing/passes/sort_infer.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
 	preprocessing/passes/symmetry_breaker.cpp \

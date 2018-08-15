@@ -284,6 +284,14 @@ class CVC4_PUBLIC SmtEngine {
   void checkProof();
 
   /**
+   * Internal method to get an unsatisfiable core (only if immediately preceded
+   * by an UNSAT or VALID query). Only permitted if CVC4 was built with
+   * unsat-core support and produce-unsat-cores is on. Does not dump the
+   * command.
+   */
+  UnsatCore getUnsatCoreInternal();
+
+  /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
    */
   void checkUnsatCore();
