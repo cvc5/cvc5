@@ -702,7 +702,7 @@ Node CegConjectureSingleInvSol::reconstructSolution(Node sol,
             // if it is not already reconstructed
             if( d_reconstruct.find( itt->second )==d_reconstruct.end() ){
               Trace("csi-rcons") << "...reconstructed " << ns << " for term " << nr << std::endl;
-              bool do_check = true;//getPathToRoot( itt->second );
+              constexpr bool do_check = true;//getPathToRoot( itt->second );
               setReconstructed( itt->second, ns );
               if( do_check ){
                 Trace("csi-rcons-debug") << "...path to root, try reconstruction." << std::endl;
