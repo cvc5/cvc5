@@ -14,5 +14,6 @@ set(OPTIMIZATION_LEVEL, 9)
 # enable_tracing=no
 # enable_dumping=no
 # enable_muzzle=yes
+set(ENABLE_MUZZLE ON)
 # enable_valgrind=no
 # enable_shared=no
