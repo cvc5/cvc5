@@ -154,23 +154,6 @@ void Datatype::resolve(ExprManager* em,
     }
     d_record = new Record(fields);
   }
-  
-  //make the sygus evaluation function
-  if( isSygus() ){
-    PrettyCheckArgument(d_params.empty(), this, "sygus types cannot be parametric");
-    NodeManager* nm = NodeManager::fromExprManager(em);
-    std::string name = "eval_" + getName();
-    std::vector<TypeNode> evalType;
-    evalType.push_back(TypeNode::fromType(d_self));
-    if( !d_sygus_bvl.isNull() ){
-      for(size_t j = 0; j < d_sygus_bvl.getNumChildren(); ++j) {
-        evalType.push_back(TypeNode::fromType(d_sygus_bvl[j].getType()));
-      }
-    }
-    evalType.push_back(TypeNode::fromType(d_sygus_type));
-    TypeNode eval_func_type = nm->mkFunctionType(evalType);
-    d_sygus_eval = nm->mkSkolem(name, eval_func_type, "sygus evaluation function").toExpr();    
-  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -683,16 +666,17 @@ bool Datatype::getSygusAllowAll() const {
   return d_sygus_allow_all;
 }
 
-Expr Datatype::getSygusEvaluationFunc() const {
-  return d_sygus_eval;
-}
-
 bool Datatype::involvesExternalType() const{
   return d_involvesExt;
 }
 
 bool Datatype::involvesUninterpretedType() const{
   return d_involvesUt;
+}
+
+const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
+{
+  return &d_constructors;
 }
 
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
@@ -832,6 +816,12 @@ void DatatypeConstructor::setSygus(Expr op,
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_sygus_op = op;
   d_sygus_pc = spc;
+}
+
+const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
+    const
+{
+  return &d_args;
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {

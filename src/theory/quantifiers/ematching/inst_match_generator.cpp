@@ -176,7 +176,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     if( Trigger::isAtomicTrigger( d_match_pattern ) ){
       if (d_match_pattern.getKind() == APPLY_CONSTRUCTOR)
       {
-        // 1-constructors have a trivially way of generating candidates in a
+        // 1-constructors have a trivial way of generating candidates in a
         // given equivalence class
         const Datatype& dt =
             static_cast<DatatypeType>(d_match_pattern.getType().toType())
@@ -212,9 +212,9 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }else if( d_match_pattern.getKind()==EQUAL &&
               d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
-      Assert( d_pattern.getKind()==NOT );
-      //candidates will be all disequalities
-      d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
+      Assert(d_pattern.getKind() == NOT);
+      // candidates will be all disequalities
+      d_cg = new inst::CandidateGeneratorQELitDeq(qe, d_match_pattern);
     }else{
       Trace("inst-match-gen-warn") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
     }

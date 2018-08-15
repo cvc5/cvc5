@@ -21,6 +21,7 @@
 #include <memory>
 #include <unordered_set>
 #include <vector>
+#include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace CVC4 {
@@ -116,11 +117,9 @@ class CandidateRewriteDatabase
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  SygusSamplerExt d_sampler;
-  /** a (dummy) user context, used for d_drewrite */
-  context::UserContext d_fake_context;
-  /** dynamic rewriter class */
-  std::unique_ptr<DynamicRewriter> d_drewrite;
+  SygusSampler d_sampler;
+  /** candidate rewrite filter */
+  CandidateRewriteFilter d_crewrite_filter;
   /**
    * Cache of skolems for each free variable that appears in a synthesis check
    * (for --sygus-rr-synth-check).

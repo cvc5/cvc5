@@ -228,6 +228,8 @@ class SingleInvocationPartition
   std::vector<Node> d_input_funcs;
   /** all input functions */
   std::vector<Node> d_all_funcs;
+  /** skolem of the same type as input functions */
+  std::vector<Node> d_input_func_sks;
 
   /** infer the argument types of uninterpreted function applications
    *

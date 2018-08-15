@@ -75,7 +75,6 @@ public:
     typ_eq,
     typ_formula,
     typ_var,
-    typ_ite_var,
     typ_bool_var,
     typ_tconstraint,
     typ_tsym,
@@ -94,8 +93,6 @@ public:
   void reset_round( QuantConflictFind * p );
   void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
   bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
-  bool getExplanation( QuantConflictFind * p, QuantInfo * qi, std::vector< Node >& exp );
-  Node getExplanationTerm( QuantConflictFind * p, QuantInfo * qi, Node t, std::vector< Node >& exp );
   bool isValid() { return d_type!=typ_invalid; }
   void setInvalid();
 
@@ -138,7 +135,6 @@ public:
   std::map< TNode, int > d_var_num;
   std::vector< int > d_tsym_vars;
   std::map< TNode, bool > d_inMatchConstraint;
-  std::map< int, std::vector< Node > > d_var_constraint[2];
   int getVarNum( TNode v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
   bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
   int getNumVars() { return (int)d_vars.size(); }
@@ -205,7 +201,6 @@ private:
 private:
   std::map< Node, Node > d_op_node;
   std::map< Node, int > d_fid;
-  Node mkEqNode( Node a, Node b );
 public:  //for ground terms
   Node d_true;
   Node d_false;

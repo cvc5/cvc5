@@ -59,8 +59,6 @@ enum MbqiMode {
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** mbqi with integer intervals */
-  MBQI_FMC_INTERVAL,
   /** abstract mbqi algorithm */
   MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
@@ -210,10 +208,39 @@ enum CegqiSingleInvMode {
   CEGQI_SI_MODE_NONE,
   /** use single invocation techniques */
   CEGQI_SI_MODE_USE,
-  /** always use single invocation techniques, abort if solution reconstruction will fail */
-  CEGQI_SI_MODE_ALL_ABORT,
   /** always use single invocation techniques */
   CEGQI_SI_MODE_ALL,
+};
+
+/** Solution reconstruction modes for single invocation conjectures
+ *
+ * These modes indicate the policy when CVC4 solves a synthesis conjecture using
+ * single invocation techniques for a sygus problem with a user-specified
+ * grammar.
+ */
+enum CegqiSingleInvRconsMode
+{
+  /**
+   * Do not try to reconstruct solutions to single invocation conjectures. With
+   * this mode, solutions produced by CVC4 may violate grammar restrictions.
+   */
+  CEGQI_SI_RCONS_MODE_NONE,
+  /**
+   * Try to reconstruct solution to single invocation conjectures in an
+   * incomplete (fail fast) way.
+   */
+  CEGQI_SI_RCONS_MODE_TRY,
+  /**
+   * Reconstruct solutions to single invocation conjectures, but fail if we
+   * reach an upper limit on number of iterations in the enumeration
+   */
+  CEGQI_SI_RCONS_MODE_ALL_LIMIT,
+  /**
+   * Reconstruct solutions to single invocation conjectures. This method
+   * relies on an expensive enumeration technique which only terminates when
+   * we succesfully reconstruct the solution, although it may not terminate.
+   */
+  CEGQI_SI_RCONS_MODE_ALL,
 };
 
 enum CegisSampleMode
@@ -260,17 +287,6 @@ enum QuantRepMode {
   QUANT_REP_MODE_FIRST,
   /** choose representatives that have minimal depth */
   QUANT_REP_MODE_DEPTH,
-};
-
-enum FmfBoundMinMode {
-  /** do not minimize bounds */
-  FMF_BOUND_MIN_NONE,
-  /** default, minimize integer ranges */
-  FMF_BOUND_MIN_INT_RANGE,
-  /** minimize set cardinality ranges */
-  FMF_BOUND_MIN_SET_CARD,
-  /** minimize all bounds */
-  FMF_BOUND_MIN_ALL,
 };
 
 }/* CVC4::theory::quantifiers namespace */

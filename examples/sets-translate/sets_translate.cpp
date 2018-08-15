@@ -2,7 +2,7 @@
 /*! \file sets_translate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Mathias Preiner
+ **   Kshitij Bansal, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "options/language.h"
 #include "options/options.h"
@@ -268,12 +269,13 @@ int main(int argc, char* argv[])
     options.setInputLanguage(language::input::LANG_SMTLIB_V2);
     cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
     // cout << Expr::dag(0);
-    ExprManager exprManager(options);
+    std::unique_ptr<api::Solver> solver =
+        std::unique_ptr<api::Solver>(new api::Solver(&options));
 
-    Mapper m(&exprManager);
+    Mapper m(solver->getExprManager());
 
     // Create the parser
-    ParserBuilder parserBuilder(&exprManager, input, options);
+    ParserBuilder parserBuilder(solver.get(), input, options);
     if(input == "<stdin>") parserBuilder.withStreamInput(cin);
     Parser* parser = parserBuilder.build();
 

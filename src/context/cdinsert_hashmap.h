@@ -54,11 +54,11 @@ namespace context {
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
 private:
-  typedef std::deque<Key> KeyVec;
+  using KeyVec = std::deque<Key>;
   /** A list of the keys in the map maintained as a stack. */
   KeyVec d_keys;
 
-  typedef std::unordered_map<Key, Data, HashFcn> HashMap;
+  using HashMap = std::unordered_map<const Key, const Data, HashFcn>;
   /** The hash_map used for element lookup. */
   HashMap d_hashMap;
 
@@ -73,6 +73,8 @@ public:
   /**An iterator over the elements in the hash_map. */
   typedef typename HashMap::const_iterator const_iterator;
 
+  // The type of the <Key, Data> values in the hashmap.
+  using value_type = typename HashMap::value_type;
 
   /**
    * Returns an iterator to the begining of the HashMap.
@@ -212,7 +214,7 @@ private:
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
-  CDInsertHashMap& operator=(const CDInsertHashMap&) CVC4_UNDEFINED;
+  CDInsertHashMap& operator=(const CDInsertHashMap&) = delete;
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies
@@ -288,6 +290,9 @@ public:
    * (See std::deque<>::iterator).
    */
   typedef typename IHM::key_iterator key_iterator;
+
+  // The type of the <key, data> values in the hashmap.
+  using value_type = typename IHM::value_type;
 
   /** Returns true if the map is empty in the current context. */
   bool empty() const{

@@ -34,6 +34,10 @@ namespace CVC4 {
 
 class SExpr;
 
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Smt2 : public Parser {
@@ -64,11 +68,15 @@ private:
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
+  std::vector<Expr> d_sygusVars, d_sygusInvVars, d_sygusConstraints,
+      d_sygusFunSymbols;
   std::map< Expr, bool > d_sygusVarPrimed;
 
 protected:
-  Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ Smt2(api::Solver* solver,
+      Input* input,
+      bool strictMode = false,
+      bool parseOnly = false);
 
 public:
   /**

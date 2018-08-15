@@ -30,6 +30,11 @@
 #include "util/hash.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Tptp : public Parser {
@@ -81,7 +86,9 @@ class Tptp : public Parser {
   bool hasConjecture() const { return d_hasConjecture; }
 
  protected:
-  Tptp(ExprManager* exprManager, Input* input, bool strictMode = false,
+  Tptp(api::Solver* solver,
+       Input* input,
+       bool strictMode = false,
        bool parseOnly = false);
 
  public:

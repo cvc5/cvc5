@@ -284,11 +284,22 @@ void SygusExplain::getExplanationFor(Node n,
                                      Node vnr,
                                      unsigned& sz)
 {
+  std::map<TypeNode, int> var_count;
+  return getExplanationFor(n, vn, exp, et, vnr, var_count, sz);
+}
+
+void SygusExplain::getExplanationFor(Node n,
+                                     Node vn,
+                                     std::vector<Node>& exp,
+                                     SygusInvarianceTest& et,
+                                     Node vnr,
+                                     std::map<TypeNode, int>& var_count,
+                                     unsigned& sz)
+{
   // naive :
   // return getExplanationForEquality( n, vn, exp );
 
   // set up the recursion object;
-  std::map<TypeNode, int> var_count;
   TermRecBuild trb;
   trb.init(vn);
   Node vnr_exp;

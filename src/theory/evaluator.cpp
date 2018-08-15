@@ -193,6 +193,11 @@ EvalResult Evaluator::evalInternal(TNode n,
         // Lambdas are evaluated in a recursive fashion because each evaluation
         // requires different substitutions
         results[currNode] = evalInternal(op[1], lambdaArgs, lambdaVals);
+        if (results[currNode].d_tag == EvalResult::INVALID)
+        {
+          // evaluation was invalid, we fail
+          return results[currNode];
+        }
         continue;
       }
 
@@ -429,11 +434,11 @@ EvalResult Evaluator::evalInternal(TNode n,
           const String& s = results[currNode[0]].d_str;
           if (s.isNumber())
           {
-            results[currNode] = EvalResult(Rational(-1));
+            results[currNode] = EvalResult(Rational(s.toNumber()));
           }
           else
           {
-            results[currNode] = EvalResult(Rational(s.toNumber()));
+            results[currNode] = EvalResult(Rational(-1));
           }
           break;
         }

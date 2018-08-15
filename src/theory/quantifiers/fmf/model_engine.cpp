@@ -136,7 +136,8 @@ void ModelEngine::registerQuantifier( Node f ){
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
       if( !tn.isSort() ){
-        if( !tn.getCardinality().isFinite() ){
+        if (!tn.isInterpretedFinite())
+        {
           if( tn.isInteger() ){
             if( !options::fmfBound() ){
               canHandle = false;
@@ -218,7 +219,9 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
+  int e_max = options::mbqiMode() == MBQI_FMC
+                  ? 2
+                  : (options::mbqiMode() == MBQI_TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incomplete_quants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){

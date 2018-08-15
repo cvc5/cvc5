@@ -60,10 +60,10 @@ class CVC4_PUBLIC LemmaChannels {
 
  private:
   // Disable copy constructor.
-  LemmaChannels(const LemmaChannels&) CVC4_UNDEFINED;
+  LemmaChannels(const LemmaChannels&) = delete;
 
   // Disable assignment operator.
-  LemmaChannels& operator=(const LemmaChannels&) CVC4_UNDEFINED;
+  LemmaChannels& operator=(const LemmaChannels&) = delete;
 
   /** This captures the old options::lemmaInputChannel .*/
   LemmaInputChannel* d_lemmaInputChannel;

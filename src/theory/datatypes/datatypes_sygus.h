@@ -29,6 +29,7 @@
 #include "context/context.h"
 #include "expr/datatype.h"
 #include "expr/node.h"
+#include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -60,7 +61,7 @@ class SygusSymBreakNew
 
  public:
   SygusSymBreakNew(TheoryDatatypes* td,
-                   quantifiers::TermDbSygus* tds,
+                   QuantifiersEngine* qe,
                    context::Context* c);
   ~SygusSymBreakNew();
   /**
@@ -117,6 +118,8 @@ class SygusSymBreakNew
   TheoryDatatypes* d_td;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
+  /** the simple symmetry breaking utility */
+  SygusSimpleSymBreak d_ssb;
   /**
    * Map from terms to the index of the tester that is asserted for them in
    * the current SAT context. In other words, if d_testers[n] = 2, then the
@@ -145,6 +148,8 @@ class SygusSymBreakNew
   IntMap d_currTermSize;
   /** zero */
   Node d_zero;
+  /** true */
+  Node d_true;
   /**
    * Map from terms (selector chains) to their anchors. The anchor of a
    * selector chain S1( ... Sn( x ) ... ) is x.
@@ -337,6 +342,7 @@ private:
                                      Node val,
                                      quantifiers::SygusInvarianceTest& et,
                                      Node valr,
+                                     std::map<TypeNode, int>& var_count,
                                      std::vector<Node>& lemmas);
   /** Add symmetry breaking lemmas for term
    *
@@ -358,20 +364,14 @@ private:
       TypeNode tn, Node t, unsigned d, Node a, std::vector<Node>& lemmas);
   /** calls the above function where a is the anchor t */
   void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
-  /** add symmetry breaking lemma
-   *
-   * This adds the lemma R => lem{ x -> n } to lemmas, where R is a "relevancy
-   * condition" that states which contexts n is relevant in (see
-   * getRelevancyCondition).
-   */
-  void addSymBreakLemma(Node lem, TNode x, TNode n, std::vector<Node>& lemmas);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
    *
-   * This returns a predicate that holds in the contexts in which the selector
-   * chain n is specified. For example, the relevancy condition for
-   * sel_{C2,1}( sel_{C1,1}( d ) ) is is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ).
+   * This returns (the negation of) a predicate that holds in the contexts in
+   * which the selector chain n is specified. For example, the negation of the
+   * relevancy condition for sel_{C2,1}( sel_{C1,1}( d ) ) is
+   *    ~( is-C1( d ) ^ is-C2( sel_{C1,1}( d ) ) )
    * If shared selectors are enabled, this is a conjunction of disjunctions,
    * since shared selectors may apply to multiple constructors.
    */

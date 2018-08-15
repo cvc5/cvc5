@@ -65,7 +65,7 @@ class TermRecBuild
   /** get the i^th child of the active term */
   Node getChild(unsigned i);
   /** build the (modified) version of the term
-   * we intialized via the call to init().
+   * we initialized via the call to init().
    */
   Node build(unsigned p = 0);
 
@@ -197,6 +197,13 @@ class SygusExplain
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
                          Node vnr,
+                         unsigned& sz);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
+                         Node vnr,
+                         std::map<TypeNode, int>& var_count,
                          unsigned& sz);
   void getExplanationFor(Node n,
                          Node vn,

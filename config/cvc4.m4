@@ -49,7 +49,7 @@ handle_option() {
       ;;
     -*|*=*)
       ;;
-    production|production-*|debug|debug-*|competition|competition-*)
+    production|production-*|debug|debug-*|competition|competition-*|testing|testing-*)
       # regexp `\?' not supported on Mac OS X
       ac_option_build=`expr "$ac_option" : '\([[^-]]*\)-\{0,1\}'`
       ac_cvc4_build_profile_set=yes
@@ -103,18 +103,7 @@ handle_option() {
 unset ac_cvc4_rewritten_args
 for ac_option
 do
-  if test "$ac_option" = personal; then
-    if test -e personal.conf; then
-      handle_option --enable-personal-make-rules
-      while read arg; do
-        handle_option "$arg"
-      done < personal.conf
-    else
-      AC_MSG_ERROR([personal build profile selected, but cannot find personal.conf])
-    fi
-  else
-    handle_option "$ac_option"
-  fi
+  handle_option "$ac_option"
 done
 eval set x $ac_cvc4_rewritten_args
 shift

@@ -15,6 +15,7 @@
  **/
 #include "parser/smt2/smt2.h"
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
@@ -34,10 +35,11 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
-  Parser(exprManager,input,strictMode,parseOnly),
-  d_logicSet(false) {
-  if( !strictModeEnabled() ) {
+Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_logicSet(false)
+{
+  if (!strictModeEnabled())
+  {
     addTheory(Smt2::THEORY_CORE);
   }
 }
@@ -287,6 +289,7 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
+    defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
     addStringOperators();
     break;
@@ -625,10 +628,12 @@ Expr Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed) 
   d_sygusVars.push_back(e);
   d_sygusVarPrimed[e] = false;
   if( isPrimed ){
+    d_sygusInvVars.push_back(e);
     std::stringstream ss;
     ss << name << "'";
     Expr ep = mkBoundVar(ss.str(), type);
     d_sygusVars.push_back(ep);
+    d_sygusInvVars.push_back(ep);
     d_sygusVarPrimed[ep] = true;
   }
   return e;
@@ -1228,15 +1233,14 @@ Expr Smt2::makeSygusBoundVarList(Datatype& dt,
 }
 
 const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
-  for( unsigned i=0; i<d_sygusVars.size(); i++ ){
-    Expr v = d_sygusVars[i];
+  for (unsigned i = 0, size = d_sygusInvVars.size(); i < size; i++)
+  {
+    Expr v = d_sygusInvVars[i];
     std::map< Expr, bool >::iterator it = d_sygusVarPrimed.find( v );
     if( it!=d_sygusVarPrimed.end() ){
       if( it->second==isPrimed ){
         vars.push_back( v );
       }
-    }else{
-      //should never happen
     }
   }
 }

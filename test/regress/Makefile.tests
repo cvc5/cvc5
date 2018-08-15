@@ -241,6 +241,7 @@ REG0_TESTS = \
 	regress0/bv/core/slice-20.smt \
 	regress0/bv/divtest_2_5.smt2 \
 	regress0/bv/divtest_2_6.smt2 \
+	regress0/bv/eager-inc-cryptominisat.smt2 \
 	regress0/bv/fuzz01.smt \
 	regress0/bv/fuzz02.delta01.smt \
 	regress0/bv/fuzz02.smt \
@@ -579,6 +580,8 @@ REG0_TESTS = \
 	regress0/push-pop/inc-define.smt2 \
 	regress0/push-pop/inc-double-u.smt2 \
 	regress0/push-pop/incremental-subst-bug.cvc \
+	regress0/push-pop/issue1986.smt2 \
+	regress0/push-pop/issue2137.min.smt2 \
 	regress0/push-pop/quant-fun-proc-unfd.smt2 \
 	regress0/push-pop/simple_unsat_cores.smt2 \
 	regress0/push-pop/test.00.cvc \
@@ -603,6 +606,7 @@ REG0_TESTS = \
 	regress0/quantifiers/ex3.smt2 \
 	regress0/quantifiers/ex6.smt2 \
 	regress0/quantifiers/floor.smt2 \
+	regress0/quantifiers/horn-ground-pre-post.smt2 \
 	regress0/quantifiers/is-even-pred.smt2 \
 	regress0/quantifiers/is-int.smt2 \
 	regress0/quantifiers/issue1805.smt2 \
@@ -718,6 +722,7 @@ REG0_TESTS = \
 	regress0/sep/sep-01.smt2 \
 	regress0/sep/sep-plus1.smt2 \
 	regress0/sep/sep-simp-unsat-emp.smt2 \
+	regress0/sep/skolem_emp.smt2 \
 	regress0/sep/trees-1.smt2 \
 	regress0/sep/wand-crash.smt2 \
 	regress0/sets/abt-min.smt2 \
@@ -781,6 +786,7 @@ REG0_TESTS = \
 	regress0/simplification_bug2.smt \
 	regress0/smallcnf.cvc \
 	regress0/smt2output.smt2 \
+	regress0/smtlib/get-unsat-assumptions.smt2 \
 	regress0/strings/bug001.smt2 \
 	regress0/strings/bug002.smt2 \
 	regress0/strings/bug612.smt2 \
@@ -811,6 +817,7 @@ REG0_TESTS = \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
 	regress0/sygus/General_plus10.sy \
+	regress0/sygus/aig-si.sy \
 	regress0/sygus/c100.sy \
 	regress0/sygus/ccp16.lus.sy \
 	regress0/sygus/check-generic-red.sy \
@@ -1040,6 +1047,7 @@ REG1_TESTS = \
 	regress1/bv/bv-proof00.smt \
 	regress1/bv/bv2nat-ground.smt2 \
 	regress1/bv/bv2nat-simp-range-sat.smt2 \
+	regress1/bv/bv2nat-types.smt2 \
 	regress1/bv/cmu-rdk-3.smt2 \
 	regress1/bv/decision-weight00.smt2 \
 	regress1/bv/divtest.smt2 \
@@ -1100,6 +1108,7 @@ REG1_TESTS = \
 	regress1/fmf/nlp042+1.smt2 \
 	regress1/fmf/nun-0208-to.smt2 \
 	regress1/fmf/pow2-bool.smt2 \
+	regress1/fmf/radu-quant-set.smt2 \
 	regress1/fmf/refcount24.cvc.smt2 \
 	regress1/fmf/sc-crash-052316.smt2 \
 	regress1/fmf/with-ind-104-core.smt2 \
@@ -1244,6 +1253,7 @@ REG1_TESTS = \
 	regress1/quantifiers/NUM878.smt2 \
 	regress1/quantifiers/RND-small.smt2 \
 	regress1/quantifiers/RNDPRE_4_1-dd-nqe.smt2 \
+	regress1/quantifiers/RND_4_1-existing-inst.smt2 \
 	regress1/quantifiers/RND_4_16.smt2 \
 	regress1/quantifiers/anti-sk-simp.smt2 \
 	regress1/quantifiers/ari118-bv-2occ-x.smt2 \
@@ -1303,10 +1313,12 @@ REG1_TESTS = \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
+	regress1/quantifiers/repair-const-nterm.smt2 \
 	regress1/quantifiers/recfact.cvc \
 	regress1/quantifiers/rew-to-0211-dd.smt2 \
 	regress1/quantifiers/ricart-agrawala6.smt2 \
 	regress1/quantifiers/set8.smt2 \
+	regress1/quantifiers/set-choice-koikonomou.cvc \
 	regress1/quantifiers/small-pipeline-fixpoint-3.smt2 \
 	regress1/quantifiers/smtcomp-qbv-053118.smt2 \
 	regress1/quantifiers/smtlib384a03.smt2 \
@@ -1384,6 +1396,7 @@ REG1_TESTS = \
 	regress1/sep/sep-nterm-val-model.smt2 \
 	regress1/sep/sep-simp-unc.smt2 \
 	regress1/sep/simple-neg-sat.smt2 \
+	regress1/sep/sl-standard.smt2 \
 	regress1/sep/split-find-unsat-w-emp.smt2 \
 	regress1/sep/split-find-unsat.smt2 \
 	regress1/sep/wand-0526-sat.smt2 \
@@ -1462,7 +1475,9 @@ REG1_TESTS = \
 	regress1/strings/norn-ab.smt2 \
 	regress1/strings/norn-nel-bug-052116.smt2 \
 	regress1/strings/norn-simp-rew-sat.smt2 \
+	regress1/strings/nterm-re-inter-sigma.smt2 \
 	regress1/strings/pierre150331.smt2 \
+	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \
 	regress1/strings/regexp003.smt2 \
@@ -1490,6 +1505,7 @@ REG1_TESTS = \
 	regress1/strings/username_checker_min.smt2 \
 	regress1/sygus/VC22_a.sy \
 	regress1/sygus/array_search_2.sy \
+	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegisunif-depth1.sy \
@@ -1498,8 +1514,12 @@ REG1_TESTS = \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
 	regress1/sygus/constant.sy \
+	regress1/sygus/constant-bool-si-all.sy \
+	regress1/sygus/constant-dec-tree-bug.sy \
 	regress1/sygus/constant-ite-bv.sy \
 	regress1/sygus/crci-ssb-unk.sy \
+	regress1/sygus/crcy-si-rcons.sy \
+	regress1/sygus/crcy-si.sy \
 	regress1/sygus/dt-test-ns.sy \
 	regress1/sygus/dup-op.sy \
 	regress1/sygus/fg_polynomial3.sy \
@@ -1524,11 +1544,13 @@ REG1_TESTS = \
 	regress1/sygus/nia-max-square-ns.sy \
 	regress1/sygus/no-flat-simp.sy \
 	regress1/sygus/no-mention.sy \
+	regress1/sygus/parity-si-rcons.sy \
 	regress1/sygus/pbe_multi.sy \
 	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
 	regress1/sygus/real-grammar.sy \
+	regress1/sygus/simple-regexp.sy \
 	regress1/sygus/stopwatch-bt.sy \
 	regress1/sygus/strings-concat-3-args.sy \
 	regress1/sygus/strings-double-rec.sy \
@@ -1539,6 +1561,9 @@ REG1_TESTS = \
 	regress1/sygus/strings-trivial-two-type.sy \
 	regress1/sygus/strings-trivial.sy \
 	regress1/sygus/sygus-dt.sy \
+	regress1/sygus/sygus-lambda-fv.sy \
+	regress1/sygus/sygus-uf-ex.sy \
+	regress1/sygus/t8.sy \
 	regress1/sygus/tl-type-0.sy \
 	regress1/sygus/tl-type-4x.sy \
 	regress1/sygus/tl-type.sy \
@@ -1547,6 +1572,7 @@ REG1_TESTS = \
 	regress1/sygus/twolets2-orig.sy \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
+	regress1/sygus/univ_2-long-repeat.sy \
 	regress1/sym/sym1.smt2 \
 	regress1/sym/sym2.smt2 \
 	regress1/sym/sym3.smt2 \
@@ -1602,6 +1628,7 @@ REG2_TESTS = \
 	regress2/ooo.rf6.smt2 \
 	regress2/ooo.tag10.smt2 \
 	regress2/piVC_5581bd.smt2 \
+	regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \
@@ -1609,6 +1636,7 @@ REG2_TESTS = \
 	regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2 \
 	regress2/quantifiers/javafe.tc.FlowInsensitiveChecks.682.smt2 \
 	regress2/quantifiers/mutualrec2.cvc \
+	regress2/quantifiers/net-policy-no-time.smt2 \
 	regress2/quantifiers/nunchaku2309663.nun.min.smt2 \
 	regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2 \
 	regress2/strings/cmu-dis-0707-3.smt2 \

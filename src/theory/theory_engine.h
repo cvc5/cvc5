@@ -414,12 +414,6 @@ class TheoryEngine {
   void propagate(theory::Theory::Effort effort);
 
   /**
-   * Called by the output channel to request decisions "as soon as
-   * possible."
-   */
-  void propagateAsDecision(TNode literal, theory::TheoryId theory);
-
-  /**
    * A variable to mark if we added any lemmas.
    */
   bool d_lemmasAdded;
