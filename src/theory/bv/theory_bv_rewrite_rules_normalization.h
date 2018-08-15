@@ -602,8 +602,9 @@ inline Node RewriteRule<ConcatToMult>::apply(TNode node)
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_MULT, factor, coef);
 }
 
-template<> inline
-bool RewriteRule<SolveEq>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SolveEq>::applies(TNode node)
+{
   if (node.getKind() != kind::EQUAL
       || (node[0].isVar() && !expr::hasSubterm(node[1], node[0]))
       || (node[1].isVar() && !expr::hasSubterm(node[0], node[1])))

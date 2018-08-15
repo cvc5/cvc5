@@ -727,12 +727,14 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       // check if it is a variable equality
       TNode v;
       Node s;
-      for( unsigned r=0; r<2; r++ ){
-        if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
+      for (unsigned r = 0; r < 2; r++)
+      {
+        if (std::find(vars.begin(), vars.end(), slit[r]) != vars.end())
+        {
           if (!expr::hasSubterm(slit[1 - r], slit[r]))
           {
             v = slit[r];
-            s = slit[1-r];
+            s = slit[1 - r];
             break;
           }
         }
@@ -742,8 +744,12 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
         std::map< Node, Node > msum;
         if (ArithMSum::getMonomialSumLit(slit, msum))
         {
-          for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-            if( std::find( vars.begin(), vars.end(), itm->first )!=vars.end() ){  
+          for (std::map<Node, Node>::iterator itm = msum.begin();
+               itm != msum.end();
+               ++itm)
+          {
+            if (std::find(vars.begin(), vars.end(), itm->first) != vars.end())
+            {
               Node veq_c;
               Node val;
               int ires =
@@ -1079,4 +1085,3 @@ Node TransitionInference::constructFormulaTrace( DetTrace& dt ) {
 }
   
 } //namespace CVC4
-

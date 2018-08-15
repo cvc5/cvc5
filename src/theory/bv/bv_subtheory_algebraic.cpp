@@ -493,7 +493,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
 
   if (left.isVar() && !expr::hasSubterm(right, left))
   {
-    bool changed  = subst.addSubstitution(left, right, reason);
+    bool changed = subst.addSubstitution(left, right, reason);
     return changed;
   }
   if (right.isVar() && !expr::hasSubterm(left, right))
@@ -590,7 +590,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   return false;
 }
 
-bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in) {
+bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in)
+{
   if (node.getMetaKind() == kind::metakind::VARIABLE
       && !expr::hasSubterm(in, node))
     return true;

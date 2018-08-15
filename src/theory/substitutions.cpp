@@ -210,13 +210,15 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
+static bool check(TNode node,
+                  const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
+static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions)
+{
   SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
   SubstitutionMap::NodeMap::const_iterator it_end = substitutions.end();
   Debug("substitution") << "checking " << node << endl;
-  for (; it != it_end; ++ it) {
+  for (; it != it_end; ++it)
+  {
     Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << endl;
     if (expr::hasSubterm(node, (*it).first))
     {

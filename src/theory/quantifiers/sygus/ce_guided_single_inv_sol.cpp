@@ -297,9 +297,10 @@ bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >&
         Node eqro = eq[r==0 ? 1 : 0 ];
         if (!expr::hasSubterm(eqro, eq[r]))
         {
-          Trace("csi-simp-debug") << "---equality " << eq[r] << " = " << eqro << std::endl;
-          new_vars.push_back( eq[r] );
-          new_subs.push_back( eqro );
+          Trace("csi-simp-debug")
+              << "---equality " << eq[r] << " = " << eqro << std::endl;
+          new_vars.push_back(eq[r]);
+          new_subs.push_back(eqro);
           return true;
         }
       }

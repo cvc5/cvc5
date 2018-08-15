@@ -2201,11 +2201,13 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
   
   //this is based off of Theory::ppAssert
   Node var;
-  if (in.getKind() == kind::EQUAL) {
+  if (in.getKind() == kind::EQUAL)
+  {
     if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
         && (in[1].getType()).isSubtypeOf(in[0].getType()))
     {
-      if( !in[0].getType().isSet() || !options::setsExt() ){
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
         outSubstitutions.addSubstitution(in[0], in[1]);
         var = in[0];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
@@ -2214,18 +2216,22 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
     else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
              && (in[0].getType()).isSubtypeOf(in[1].getType()))
     {
-      if( !in[1].getType().isSet() || !options::setsExt() ){
+      if (!in[1].getType().isSet() || !options::setsExt())
+      {
         outSubstitutions.addSubstitution(in[1], in[0]);
         var = in[1];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
-    }else if (in[0].isConst() && in[1].isConst()) {
-      if (in[0] != in[1]) {
+    }
+    else if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
         status = Theory::PP_ASSERT_STATUS_CONFLICT;
       }
     }
   }
-  
+
   if( status==Theory::PP_ASSERT_STATUS_SOLVED ){
     Trace("sets-var-elim") << "Sets : ppAssert variable eliminated : " << in << ", var = " << var << std::endl;
     /*

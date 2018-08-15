@@ -111,7 +111,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
     if (expr::hasBoundVar(n))
     {
       // Unsafe with non-ground ITEs; do nothing
-      Debug("arith::static") << "(potentially) non-ground ITE, ignoring..." << endl;
+      Debug("arith::static")
+          << "(potentially) non-ground ITE, ignoring..." << endl;
       break;
     }
 

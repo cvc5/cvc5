@@ -284,11 +284,11 @@ void Theory::computeRelevantTerms(set<Node>& termSet,
   }
 }
 
-
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
                                         SubstitutionMap& outSubstitutions)
 {
-  if (in.getKind() == kind::EQUAL) {
+  if (in.getKind() == kind::EQUAL)
+  {
     // (and (= x t) phi) can be replaced by phi[x/t] if
     // 1) x is a variable
     // 2) x is not in the term t
@@ -305,8 +305,10 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[0].isConst() && in[1].isConst()) {
-      if (in[0] != in[1]) {
+    if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
         return PP_ASSERT_STATUS_CONFLICT;
       }
     }

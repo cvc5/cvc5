@@ -596,7 +596,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
           subs_lhs.push_back( rew_vts_inf );
           n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
           n = Rewriter::rewrite( n );
-          //may have cancelled
+          // may have cancelled
           if (!expr::hasSubterm(n, rew_vts_inf))
           {
             rew_vts_inf = Node::null();
@@ -604,7 +604,8 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
         }
       }
     }
-    if( rew_vts_inf.isNull() ){
+    if (rew_vts_inf.isNull())
+    {
       if (!d_vts_delta.isNull() && expr::hasSubterm(n, d_vts_delta))
       {
         rew_delta = true;

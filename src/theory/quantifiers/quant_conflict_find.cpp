@@ -182,22 +182,32 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
     if( !MatchGen::isHandledBoolConnective( n ) ){
       if (expr::hasBoundVar(n))
       {
-        //literals
-        if( n.getKind()==EQUAL ){
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            flatten( n[i], beneathQuant );
+        // literals
+        if (n.getKind() == EQUAL)
+        {
+          for (unsigned i = 0; i < n.getNumChildren(); i++)
+          {
+            flatten(n[i], beneathQuant);
           }
-        }else if( MatchGen::isHandledUfTerm( n ) ){
-          flatten( n, beneathQuant );
-        }else if( n.getKind()==ITE ){
-          for( unsigned i=1; i<=2; i++ ){
-            flatten( n[i], beneathQuant );
+        }
+        else if (MatchGen::isHandledUfTerm(n))
+        {
+          flatten(n, beneathQuant);
+        }
+        else if (n.getKind() == ITE)
+        {
+          for (unsigned i = 1; i <= 2; i++)
+          {
+            flatten(n[i], beneathQuant);
           }
-          registerNode( n[0], false, pol, beneathQuant );
-        }else if( options::qcfTConstraint() ){
-          //a theory-specific predicate
-          for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            flatten( n[i], beneathQuant );
+          registerNode(n[0], false, pol, beneathQuant);
+        }
+        else if (options::qcfTConstraint())
+        {
+          // a theory-specific predicate
+          for (unsigned i = 0; i < n.getNumChildren(); i++)
+          {
+            flatten(n[i], beneathQuant);
           }
         }
       }
@@ -1016,22 +1026,28 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
           Assert( d_n.getType().isBoolean() );
           d_type = typ_bool_var;
         }else if( d_n.getKind()==EQUAL || options::qcfTConstraint() ){
-          for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
+          for (unsigned i = 0; i < d_n.getNumChildren(); i++)
+          {
             if (expr::hasBoundVar(d_n[i]))
             {
-              if( !qi->isVar( d_n[i] ) ){
-                Trace("qcf-qregister-debug")  << "ERROR : not var " << d_n[i] << std::endl;
+              if (!qi->isVar(d_n[i]))
+              {
+                Trace("qcf-qregister-debug")
+                    << "ERROR : not var " << d_n[i] << std::endl;
               }
-              Assert( qi->isVar( d_n[i] ) );
-              if( d_n.getKind()!=EQUAL && qi->isVar( d_n[i] ) ){
-                d_qni_var_num[i+1] = qi->d_var_num[d_n[i]];
+              Assert(qi->isVar(d_n[i]));
+              if (d_n.getKind() != EQUAL && qi->isVar(d_n[i]))
+              {
+                d_qni_var_num[i + 1] = qi->d_var_num[d_n[i]];
               }
-            }else{
+            }
+            else
+            {
               d_qni_gterm[i] = d_n[i];
-              qi->setGroundSubterm( d_n[i] );
+              qi->setGroundSubterm(d_n[i]);
             }
           }
-          d_type = d_n.getKind()==EQUAL ? typ_eq : typ_tconstraint;
+          d_type = d_n.getKind() == EQUAL ? typ_eq : typ_tconstraint;
           Trace("qcf-tconstraint") << "T-Constraint : " << d_n << std::endl;
         }
       }
@@ -1185,13 +1201,17 @@ void MatchGen::reset_round( QuantConflictFind * p ) {
       }
     }
   }else if( d_type==typ_eq ){
-    for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
+    for (unsigned i = 0; i < d_n.getNumChildren(); i++)
+    {
       if (!expr::hasBoundVar(d_n[i]))
       {
-        TNode t = p->getTermDatabase()->getEntailedTerm( d_n[i] );
-        if( t.isNull() ){
+        TNode t = p->getTermDatabase()->getEntailedTerm(d_n[i]);
+        if (t.isNull())
+        {
           d_ground_eval[i] = d_n[i];
-        }else{
+        }
+        else
+        {
           d_ground_eval[i] = t;
         }
       }

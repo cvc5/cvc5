@@ -309,7 +309,9 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
         && !expr::hasSubterm(n1, n2))
     {
       return true;
-    }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
+    }
+    else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
+    {
       return true;
     }
   }

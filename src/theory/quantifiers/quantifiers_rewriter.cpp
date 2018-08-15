@@ -775,8 +775,10 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
       }
     }
   }else if( n.getKind()==EQUAL ){
-    for( unsigned i=0; i<2; i++ ){
-      if( n[i].getKind()==BOUND_VARIABLE ){
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (n[i].getKind() == BOUND_VARIABLE)
+      {
         if (!expr::hasSubterm(n[1 - i], n[i]))
         {
           return true;
@@ -875,7 +877,8 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
+bool QuantifiersRewriter::isVariableElim(Node v, Node s)
+{
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
