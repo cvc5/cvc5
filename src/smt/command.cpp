@@ -385,7 +385,7 @@ std::string PopCommand::getCommandName() const { return "pop"; }
 /* class CheckSatCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-CheckSatCommand::CheckSatCommand() : d_expr() {}
+CheckSatCommand::CheckSatCommand() : d_expr(), d_inUnsatCore() {}
 CheckSatCommand::CheckSatCommand(const Expr& expr, bool inUnsatCore)
     : d_expr(expr), d_inUnsatCore(inUnsatCore)
 {
@@ -440,7 +440,8 @@ std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 /* class CheckSatAssumingCommand                                              */
 /* -------------------------------------------------------------------------- */
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms()
+CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term)
+    : d_terms(), d_inUnsatCore()
 {
   d_terms.push_back(term);
 }
@@ -1778,7 +1779,10 @@ std::string GetSynthSolutionCommand::getCommandName() const
 /* class GetQuantifierEliminationCommand                                      */
 /* -------------------------------------------------------------------------- */
 
-GetQuantifierEliminationCommand::GetQuantifierEliminationCommand() : d_expr() {}
+GetQuantifierEliminationCommand::GetQuantifierEliminationCommand()
+    : d_expr(), d_doFull()
+{
+}
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(
     const Expr& expr, bool doFull)
     : d_expr(expr), d_doFull(doFull)
