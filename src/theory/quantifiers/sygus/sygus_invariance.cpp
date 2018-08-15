@@ -58,7 +58,7 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   std::unordered_map<TNode, TNode, TNodeHashFunction> cache{{d_var, tnvn}};
   for (const Node& c : d_terms)
   {
-    Node conj_subs = c.substitute_internal(cache);
+    Node conj_subs = c.substituteInternal(cache);
     Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
     Trace("sygus-cref-eval2-debug")
         << "  ...check unfolding : " << conj_subs_unfold << std::endl;

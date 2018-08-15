@@ -254,7 +254,7 @@ class NodeTemplate {
    * return values and the NodeBuilders on the stack [potentially
    * transitively].)
    */
-  Node substitute_internal(
+  Node substituteInternal(
       std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
  public:
@@ -1351,11 +1351,11 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
   }
   std::unordered_map<TNode, TNode, TNodeHashFunction> cache{
       {node, replacement}};
-  return substitute_internal(cache);
+  return substituteInternal(cache);
 }
 
 template <bool ref_count>
-Node NodeTemplate<ref_count>::substitute_internal(
+Node NodeTemplate<ref_count>::substituteInternal(
     std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const
 {
   if (TNode* in_cache = FindOrNull(cache, *this))
@@ -1375,7 +1375,7 @@ Node NodeTemplate<ref_count>::substitute_internal(
     }
     else
     {
-      nb << getOperator().substitute_internal(cache);
+      nb << getOperator().substituteInternal(cache);
     }
   }
   for (const_iterator i = begin(), iend = end(); i != iend; ++i)
@@ -1386,11 +1386,13 @@ Node NodeTemplate<ref_count>::substitute_internal(
     }
     else
     {
-      nb << (*i).substitute_internal(cache);
+      nb << (*i).substituteInternal(cache);
     }
   }
   Node n = nb;
-  AlwaysAssert(cache.insert(std::make_pair(*this, n)).second);
+  CVC4_UNUSED const bool inserted =
+      cache.insert(std::make_pair(*this, n)).second;
+  Assert(inserted);
   return n;
 }
 
@@ -1409,7 +1411,7 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
     cache.insert(std::make_pair(*nodesBegin, *replacementsBegin));
   }
   Assert(nodesBegin == nodesEnd && replacementsBegin == replacementsEnd);
-  return substitute_internal(cache);
+  return substituteInternal(cache);
 }
 
 template <bool ref_count>
@@ -1424,7 +1426,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     cache.insert(std::make_pair((*substitutionsBegin).first,
                                 (*substitutionsBegin).second));
   }
-  return substitute_internal(cache);
+  return substituteInternal(cache);
 }
 
 template <bool ref_count>

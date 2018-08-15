@@ -332,7 +332,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
     Node rlv = getRelevancyCondition(n);
     for (const Node& slem : sb_lemmas)
     {
-      Node sslem = slem.substitute_internal(cache);
+      Node sslem = slem.substituteInternal(cache);
       if (!rlv.isNull())
       {
         sslem = nm->mkNode(OR, rlv, sslem);
@@ -1044,7 +1044,7 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
       if( (int)it->first<=max_sz ){
         for (const Node& lem : it->second)
         {
-          Node slem = lem.substitute_internal(cache);
+          Node slem = lem.substituteInternal(cache);
           // add the relevancy condition for t
           if (!rlv.isNull())
           {
@@ -1214,7 +1214,7 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
                     {x, t}};
                 for (const Node& lem : it->second)
                 {
-                  Node slem = lem.substitute_internal(cache);
+                  Node slem = lem.substituteInternal(cache);
                   slem = nm->mkNode(OR, rlv, slem);
                   lemmas.push_back(slem);
                 }
