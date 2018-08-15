@@ -38,6 +38,11 @@ class ExprMiner
  public:
   ExprMiner() : d_sampler(nullptr){}
   virtual ~ExprMiner(){}
+  /** initialize 
+   * 
+   * 
+   */
+  virtual void initialize( const std::vector< Node >& vars, SygusSampler * ss = nullptr );
   /** add term
    *
    * This registers term n with this expression miner. The output stream out
@@ -48,9 +53,7 @@ class ExprMiner
   virtual bool addTerm(Node n, std::ostream& out) = 0;
  protected:
   /** the set of variables used by this class */
-  std::vector< Node > d_svars;
-  /** set the sampler used by this class */
-  void setSampler( SygusSampler * ss );
+  std::vector< Node > d_vars;
   /** pointer to the sygus sampler object we are using */
   SygusSampler* d_sampler;
   /**
@@ -64,7 +67,8 @@ class ExprMiner
   /** initialize checker 
    *
    * This function initializes the smt engine smte to check the satisfiability
-   * of the argument "query".
+   * of the argument "query", which is a formula whose free variables (of
+   * kind BOUND_VARIABLE) are a subset of d_vars.
    *
    * The arguments em and varMap are used for supporting cases where we
    * want smte to use a different expression manager instead of the current

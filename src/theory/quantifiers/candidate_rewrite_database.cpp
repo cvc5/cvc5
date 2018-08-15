@@ -40,39 +40,28 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
       d_silent(false)
 {
 }
-void CandidateRewriteDatabase::initialize(SygusSampler* ss,
-                                          ExtendedRewriter* er,
-                                          TypeNode tn,
-                                          std::vector<Node>& vars,
-                                          unsigned nsamples,
-                                          bool unique_type_ids)
+void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars, SygusSampler * ss)
 {
-  setSampler(ss);
   d_candidate = Node::null();
-  d_type = tn;
   d_using_sygus = false;
   d_qe = nullptr;
   d_tds = nullptr;
-  d_ext_rewrite = er;
-  d_crewrite_filter.initialize(d_sampler, nullptr, false);
+  d_ext_rewrite = nullptr;
+  d_crewrite_filter.initialize(ss, nullptr, false);
+  ExprMiner::initialize(vars,ss);
 }
 
-void CandidateRewriteDatabase::initializeSygus(SygusSampler* ss,
+void CandidateRewriteDatabase::initializeSygus(const std::vector< Node >& vars,
                                                QuantifiersEngine* qe,
-                                               Node f,
-                                               unsigned nsamples,
-                                               bool useSygusType)
+                                               Node f, SygusSampler * ss)
 {
-  setSampler(ss);
   d_candidate = f;
-  d_type = f.getType();
-  Assert(d_type.isDatatype());
-  Assert(static_cast<DatatypeType>(d_type.toType()).getDatatype().isSygus());
   d_using_sygus = true;
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = d_tds->getExtRewriter();
-  d_crewrite_filter.initialize(d_sampler, d_tds, true);
+  d_crewrite_filter.initialize(ss, d_tds, false);
+  ExprMiner::initialize(vars);
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
@@ -270,6 +259,12 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
+
+  void CandidateRewriteDatabase::setExtendedRewriter( ExtendedRewriter* er )
+  {
+    d_ext_rewrite = er;
+  }
+
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)
     : d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
@@ -298,7 +293,8 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   {
     Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
     // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(&d_sampler[tn], er, tn, d_vars, d_nsamples, true);
+    d_cdbs[tn].initialize(d_vars,&d_sampler[tn]);
+    d_cdbs[tn].setExtendedRewriter(er);
     itc = d_cdbs.find(tn);
     Trace("synth-rr-dbg") << "...finish." << std::endl;
   }

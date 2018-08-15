@@ -32,7 +32,7 @@ SygusSampler::SygusSampler()
 }
 
 void SygusSampler::initialize(TypeNode tn,
-                              std::vector<Node>& vars,
+                              const std::vector<Node>& vars,
                               unsigned nsamples,
                               bool unique_type_ids)
 {

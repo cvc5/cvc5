@@ -36,11 +36,11 @@ class ExpressionMinerManager
   /**  Initialize this class
    *
    */
-  void initialize(bool doRewSynth,
+  void initialize(const std::vector<Node>& vars,
+                  bool doRewSynth,
                   bool doQueryGen,
                   ExtendedRewriter* er,
                   TypeNode tn,
-                  std::vector<Node>& vars,
                   unsigned nsamples,
                   bool unique_type_ids = false,
                   unsigned deqThresh = 0);

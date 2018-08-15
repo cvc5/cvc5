@@ -77,7 +77,7 @@ class SygusSampler : public LazyTrieEvaluator
    * type that is used to determine when a rewrite rule is redundant.
    */
   virtual void initialize(TypeNode tn,
-                          std::vector<Node>& vars,
+                          const std::vector<Node>& vars,
                           unsigned nsamples,
                           bool unique_type_ids = false);
   /** initialize sygus

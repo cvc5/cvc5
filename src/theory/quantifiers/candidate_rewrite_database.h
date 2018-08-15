@@ -50,9 +50,7 @@ class CandidateRewriteDatabase : public ExprMiner
    *
    * er : pointer to the extended rewriter (if any) we are using to compute
    * candidate rewrites,
-   * tn : the return type of terms we will be testing with this class,
-   * vars : the variables we are testing substitutions for,
-   * nsamples : number of sample points this class will test,
+   * 
    * unique_type_ids : if this is set to true, then each variable is treated
    * as unique. This affects whether or not a rewrite rule is considered
    * redundant or not. For example the rewrite f(y)=y is redundant if
@@ -61,12 +59,7 @@ class CandidateRewriteDatabase : public ExprMiner
    * rewrite database is initialized with sygus below, the type ids of the
    * (sygus formal argument list) variables are always computed and used.
    */
-  void initialize(SygusSampler* ss,
-                  ExtendedRewriter* er,
-                  TypeNode tn,
-                  std::vector<Node>& vars,
-                  unsigned nsamples,
-                  bool unique_type_ids = false);
+  void initialize(const std::vector< Node >& var, SygusSampler * ss = nullptr) override;
   /**  Initialize this class
    *
    * Serves the same purpose as the above function, but we will be using
@@ -78,7 +71,6 @@ class CandidateRewriteDatabase : public ExprMiner
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f. This is the
    * "candidate variable" CegConjecture::d_candidates,
-   * nsamples : number of sample points this class will test,
    * useSygusType : whether we will register terms with this sampler that have
    * the same type as f. If this flag is false, then we will be registering
    * terms of the analog of the type of f, that is, the builtin type that
@@ -86,11 +78,9 @@ class CandidateRewriteDatabase : public ExprMiner
    *
    * These arguments are used to initialize the sygus sampler class.
    */
-  void initializeSygus(SygusSampler* ss,
+  void initializeSygus(const std::vector< Node >& vars,
                        QuantifiersEngine* qe,
-                       Node f,
-                       unsigned nsamples,
-                       bool useSygusType);
+                       Node f, SygusSampler * ss = nullptr);
   /** add term
    *
    * Notifies this class that the solution sol was enumerated. This may
@@ -103,16 +93,16 @@ class CandidateRewriteDatabase : public ExprMiner
   bool addTerm(Node sol, std::ostream& out) override;
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
+  /** set the (extended) rewriter used by this class */
+  void setExtendedRewriter( ExtendedRewriter* er );
 
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
-  /** pointer to the extended rewriter object we are using */
+  /** an extended rewriter object */
   ExtendedRewriter* d_ext_rewrite;
-  /** the (sygus or builtin) type of terms we are testing */
-  TypeNode d_type;
   /** the function-to-synthesize we are testing (if sygus) */
   Node d_candidate;
   /** whether we are using sygus */

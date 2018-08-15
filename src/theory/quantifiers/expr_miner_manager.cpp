@@ -31,11 +31,11 @@ ExpressionMinerManager::ExpressionMinerManager()
 {
 }
 
-void ExpressionMinerManager::initialize(bool doRewSynth,
+void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
+                                        bool doRewSynth,
                                         bool doQueryGen,
                                         ExtendedRewriter* er,
                                         TypeNode tn,
-                                        std::vector<Node>& vars,
                                         unsigned nsamples,
                                         bool unique_type_ids,
                                         unsigned deqThresh)
@@ -47,14 +47,18 @@ void ExpressionMinerManager::initialize(bool doRewSynth,
   d_tds = nullptr;
   // initialize the sampler
   d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
-  d_crd.initialize(&d_sampler, er, tn, vars, nsamples, unique_type_ids);
+  // initialize the candidate rewrite database
+  d_crd.initialize(vars, &d_sampler);
+  d_crd.setExtendedRewriter(er);
   if (!doRewSynth)
   {
     d_crd.setSilent(true);
   }
+  // initialize the query generator
   if (doQueryGen)
   {
-    d_qg.initialize(&d_sampler, deqThresh);
+    d_qg.initialize(vars, &d_sampler);
+    d_qg.setThreshold(deqThresh);
   }
 }
 
@@ -73,14 +77,20 @@ void ExpressionMinerManager::initializeSygus(bool doRewSynth,
   d_tds = qe->getTermDatabaseSygus();
   // initialize the sampler
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
-  d_crd.initializeSygus(&d_sampler, qe, f, nsamples, useSygusType);
+  // get the variables from the sampler
+  std::vector< Node > vars;
+  d_sampler.getVariables(vars);
+  // initialize the candidate rewrite database
+  d_crd.initializeSygus(vars, qe, f, &d_sampler);
   if (!d_do_rew_synth)
   {
     d_crd.setSilent(true);
   }
+  // initialize the query generator
   if (d_do_query_gen)
   {
-    d_qg.initialize(&d_sampler, deqThresh);
+    d_qg.initialize(vars, &d_sampler);
+    d_qg.setThreshold(deqThresh);
   }
 }
 

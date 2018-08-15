@@ -29,11 +29,15 @@ namespace quantifiers {
 
 QueryGenerator::QueryGenerator() : d_query_count(0) {}
 
-void QueryGenerator::initialize(SygusSampler* ss, unsigned deqThresh)
+void QueryGenerator::initialize( const std::vector< Node >& vars, SygusSampler * ss )
+{
+  d_query_count = 0;
+  ExprMiner::initialize(vars,ss);
+}
+
+void QueryGenerator::setThreshold(unsigned deqThresh)
 {
   d_deq_thresh = deqThresh;
-  d_query_count = 0;
-  setSampler(ss);
 }
 
 bool QueryGenerator::addTerm(Node n, std::ostream& out)
@@ -149,8 +153,8 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     // Print the query and the query + its model (commented) to queryN.smt2
     std::vector< Node > pt;
     d_sampler->getSamplePoint(spIndex,pt);
-    unsigned nvars = d_svars.size();
-    AlwaysAssert( pt.size()==d_svars.size() );
+    unsigned nvars = d_vars.size();
+    AlwaysAssert( pt.size()==d_vars.size() );
     std::stringstream fname;
     fname << "query" << d_query_count << ".smt2";
     std::ofstream fs(fname.str(),std::ofstream::out);
@@ -159,7 +163,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     {
       for( unsigned j=0; j<nvars; j++ )
       {
-        Node x = d_svars[j];
+        Node x = d_vars[j];
         if( i==0 )
         {
           fs << "(declare-fun " << x << " () " << x.getType() << ")";
@@ -196,10 +200,10 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "This query has a model : " << std::endl;
       std::vector< Node > pt;
       d_sampler->getSamplePoint(spIndex,pt);
-      Assert(pt.size()==d_svars.size());
+      Assert(pt.size()==d_vars.size());
       for( unsigned i=0, size = pt.size(); i<size; i++ )
       {
-        ss << "  " << d_svars[i] << " -> " << pt[i] << std::endl;
+        ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
       }
       ss << "but CVC4 answered unsat!" << std::endl;
       AlwaysAssert(false, ss.str().c_str());
@@ -260,7 +264,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
   std::vector< Node > nvars;
   d_sampler->computeFreeVariables(n,nvars);
   std::sort(nvars.begin(),nvars.end());
-  if( nvars.size()<d_svars.size() )
+  if( nvars.size()<d_vars.size() )
   {
     useRlvIndices = true;
     Trace("sygus-qgen-debug") << "  use indices { ";
@@ -268,9 +272,9 @@ void QueryGenerator::findQueries(LazyTrie* lt,
     {
       unsigned j=0;
       // if less than all free variables
-      for( unsigned i=0,size=d_svars.size(); i<size; i++ )
+      for( unsigned i=0,size=d_vars.size(); i<size; i++ )
       {
-        if( nvars[j]==d_svars[i] )
+        if( nvars[j]==d_vars[i] )
         {
           rlvIndices.push_back(i);
           Trace("sygus-qgen-debug") << i << " ";
