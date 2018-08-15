@@ -2,7 +2,7 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -74,6 +74,20 @@ void CvcPrinter::toStream(
   }
 }
 
+void toStreamRational(std::ostream& out, Node n, bool forceRational)
+{
+  Assert(n.getKind() == kind::CONST_RATIONAL);
+  const Rational& rat = n.getConst<Rational>();
+  if (rat.isIntegral() && !forceRational)
+  {
+    out << rat.getNumerator();
+  }
+  else
+  {
+    out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
+  }
+}
+
 void CvcPrinter::toStream(
     std::ostream& out, TNode n, int depth, bool types, bool bracket) const
 {
@@ -141,12 +155,7 @@ void CvcPrinter::toStream(
       out << (n.getConst<bool>() ? "TRUE" : "FALSE");
       break;
     case kind::CONST_RATIONAL: {
-      const Rational& rat = n.getConst<Rational>();
-      if(rat.isIntegral()) {
-        out << rat.getNumerator();
-      } else {
-        out << '(' << rat.getNumerator() << '/' << rat.getDenominator() << ')';
-      }
+      toStreamRational(out, n, false);
       break;
     }
     case kind::TYPE_CONSTANT:
@@ -385,6 +394,12 @@ void CvcPrinter::toStream(
           return;
         }else{
           toStream(op, n.getOperator(), depth, types, false);
+          if (n.getNumChildren() == 0)
+          {
+            // for datatype constants d, we print "d" and not "d()"
+            out << op.str();
+            return;
+          }
         }
       }
       break;
@@ -398,14 +413,6 @@ void CvcPrinter::toStream(
           int sindex = dt[0].getSelectorIndexInternal( opn.toExpr() );
           Assert( sindex>=0 );
           out << '.' << sindex;
-        }else if( t.isRecord() ){
-          toStream(out, n[0], depth, types, true);
-          const Record& rec = t.getRecord();
-          const Datatype& dt = ((DatatypeType)t.toType()).getDatatype();
-          int sindex = dt[0].getSelectorIndexInternal( opn.toExpr() );
-          Assert( sindex>=0 );
-          std::pair<std::string, Type> fld = rec[sindex];
-          out << '.' << fld.first;
         }else{
           toStream(op, opn, depth, types, false);
         }
@@ -568,8 +575,16 @@ void CvcPrinter::toStream(
       opType = PREFIX;
       break;
     case kind::TO_REAL:
-      // ignore, there is no to-real in CVC language
-      toStream(out, n[0], depth, types, false);
+      if (n[0].getKind() == kind::CONST_RATIONAL)
+      {
+        // print the constant as a rational
+        toStreamRational(out, n[0], true);
+      }
+      else
+      {
+        // ignore, there is no to-real in CVC language
+        toStream(out, n[0], depth, types, false);
+      }
       return;
     case kind::DIVISIBLE:
       out << "DIVISIBLE(";
@@ -892,6 +907,17 @@ void CvcPrinter::toStream(
       out << "INST_PATTERN_LIST";
       break;
 
+    // string operators
+    case kind::STRING_CONCAT:
+      out << "CONCAT";
+      break;
+    case kind::STRING_CHARAT:
+      out << "CHARAT";
+      break;
+    case kind::STRING_LENGTH:
+      out << "LENGTH";
+      break;
+
     default:
       Warning() << "Kind printing not implemented for the case of " << n.getKind() << endl;
       break;
@@ -899,7 +925,11 @@ void CvcPrinter::toStream(
 
   switch (opType) {
   case PREFIX:
-    out << op.str() << '(';
+    out << op.str();
+    if (n.getNumChildren() > 0)
+    {
+      out << '(';
+    }
     break;
   case INFIX:
     if (bracket) {
@@ -924,7 +954,10 @@ void CvcPrinter::toStream(
 
   switch (opType) {
     case PREFIX:
-      out << ')';
+      if (n.getNumChildren() > 0)
+      {
+        out << ')';
+      }
       break;
     case INFIX:
       if (bracket) {
@@ -1451,6 +1484,7 @@ static void toStream(std::ostream& out,
           out << ')';
         }
       }
+      firstDatatype = false;
     }
     out << endl << "END;";
   }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -88,8 +88,6 @@ public:
   AttrHash<TypeNode> d_types;
   /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
-  /** Underlying hash table for pointer-valued attributes */
-  AttrHash<void*> d_ptrs;
 
   /**
    * Get a particular attribute on a particular node.
@@ -271,32 +269,6 @@ struct getTable<std::string, false> {
   }
   static inline const table_type& get(const AttributeManager& am) {
     return am.d_strings;
-  }
-};
-
-/** Access the "d_ptrs" member of AttributeManager. */
-template <class T>
-struct getTable<T*, false> {
-  static const AttrTableId id = AttrTablePointer;
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
-  }
-};
-
-/** Access the "d_ptrs" member of AttributeManager. */
-template <class T>
-struct getTable<const T*, false> {
-  static const AttrTableId id = AttrTablePointer;
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
   }
 };
 

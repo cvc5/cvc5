@@ -2,9 +2,9 @@
 /*! \file term_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,10 +75,6 @@ typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
-
-/** sygus var num */
-struct SygusVarNumAttributeId {};
-typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
 /** Attribute to mark Skolems as virtual terms */
 struct VirtualTermSkolemAttributeId {};
@@ -291,6 +287,11 @@ public:
   static int getTermDepth( Node n );
   /** simple negate */
   static Node simpleNegate( Node n );
+  /** is the kind k a negation kind?
+   *
+   * A kind k is a negation kind if <k>( <k>( n ) ) = n.
+   */
+  static bool isNegate(Kind k);
   /**
    * Make negated term, returns the negation of n wrt Kind notk, eliminating
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.

@@ -2,9 +2,9 @@
 /*! \file single_inv_partition.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -228,6 +228,8 @@ class SingleInvocationPartition
   std::vector<Node> d_input_funcs;
   /** all input functions */
   std::vector<Node> d_all_funcs;
+  /** skolem of the same type as input functions */
+  std::vector<Node> d_input_func_sks;
 
   /** infer the argument types of uninterpreted function applications
    *

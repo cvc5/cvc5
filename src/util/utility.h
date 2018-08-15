@@ -2,9 +2,9 @@
 /*! \file utility.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
+ **   Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #ifndef __CVC4__UTILITY_H
 #define __CVC4__UTILITY_H
 
+#include <algorithm>
 #include <utility>
 #include <functional>
 
@@ -68,16 +69,20 @@ inline InputIterator find_if_unique(InputIterator first, InputIterator last, Pre
 }
 
 template <typename T>
-void container_to_stream(std::ostream& out, const T& container)
+void container_to_stream(std::ostream& out,
+                         const T& container,
+                         const char* prefix = "[",
+                         const char* postfix = "]",
+                         const char* sep = ", ")
 {
-  out << "[";
+  out << prefix;
   bool is_first = true;
   for (const auto& item : container)
   {
-    out << (!is_first ? ", " : "") << item;
+    out << (!is_first ? sep : "") << item;
     is_first = false;
   }
-  out << "]";
+  out << postfix;
 }
 
 }/* CVC4 namespace */

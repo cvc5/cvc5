@@ -52,6 +52,7 @@ explained below.
 Once the build dependences are satisfied, you should be able to
 configure, make, make check, and make install without incident:
 
+    ./autogen.sh
     ./configure   [use --prefix to specify a prefix; default /usr/local]
     make
     make check    [optional but a good idea!]

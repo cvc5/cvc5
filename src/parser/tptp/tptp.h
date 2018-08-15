@@ -2,9 +2,9 @@
 /*! \file tptp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Francois Bobot, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,6 +30,11 @@
 #include "util/hash.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Tptp : public Parser {
@@ -81,7 +86,9 @@ class Tptp : public Parser {
   bool hasConjecture() const { return d_hasConjecture; }
 
  protected:
-  Tptp(ExprManager* exprManager, Input* input, bool strictMode = false,
+  Tptp(api::Solver* solver,
+       Input* input,
+       bool strictMode = false,
        bool parseOnly = false);
 
  public:

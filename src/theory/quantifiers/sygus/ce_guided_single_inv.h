@@ -2,9 +2,9 @@
 /*! \file ce_guided_single_inv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,7 +64,29 @@ private:
   bool processDisjunct( Node n, std::map< bool, Node >& terms, std::vector< Node >& disjuncts, std::map< Node, bool >& visited, bool topLevel );
   void getConstantSubstitution( std::vector< Node >& vars, std::vector< Node >& disjuncts, std::vector< Node >& const_var, std::vector< Node >& const_subs, bool reqPol );
   bool d_complete;
-public:
+  /** get normalized substitution
+   *
+   * This method takes as input a node curr of the form I( t1, ..., tn ) and
+   * a vector of variables pvars, where pvars.size()=n. For each ti that is
+   * a variable, it adds ti to vars, and pvars[i] to subs. For each ti that is
+   * not a variable, it adds the disequality ti != pvars[i] to disjuncts.
+   *
+   * This function is used for instance to normalize an arbitrary application of
+   * I so that is over arguments pvars. For instance if curr is I(3,5,y) and
+   * pvars = { x1,x2,x3 }, then the formula:
+   *   I(3,5,y) ^ P(y)
+   * is equivalent to:
+   *   x1 != 3 V x2 != 5 V I(x1,x2,x3) V P( y ) { y -> x3 }
+   * Here, we add y and x3 to vars and subs respectively, and x1!=3 and x2!=5
+   * to disjuncts.
+   */
+  void getNormalizedSubstitution(Node curr,
+                                 const std::vector<Node>& pvars,
+                                 std::vector<Node>& vars,
+                                 std::vector<Node>& subs,
+                                 std::vector<Node>& disjuncts);
+
+ public:
   TransitionInference() : d_complete( false ) {}
   std::vector< Node > d_vars;
   std::vector< Node > d_prime_vars;
@@ -146,9 +168,6 @@ class CegConjectureSingleInv {
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
-  // whether the grammar for our solution allows ITEs, this tells us when reconstruction is infeasible
-  bool d_has_ites;
-
  public:
   // lemmas produced
   std::vector<Node> d_lemmas_produced;
@@ -191,10 +210,13 @@ class CegConjectureSingleInv {
   void getInitialSingleInvLemma( std::vector< Node >& lems );
   // initialize this class for synthesis conjecture q
   void initialize( Node q );
-  // finish initialize, sets up final decisions about whether to use single invocation techniques
-  //  syntaxRestricted is whether the syntax for solutions for the initialized conjecture is restricted
-  //  hasItes is whether the syntax for solutions for the initialized conjecture allows ITEs
-  void finishInit( bool syntaxRestricted, bool hasItes );
+  /** finish initialize
+   *
+   * This method sets up final decisions about whether to use single invocation
+   * techniques. The argument syntaxRestricted is whether the syntax for
+   * solutions for the initialized conjecture is restricted.
+   */
+  void finishInit(bool syntaxRestricted);
   //check
   bool check( std::vector< Node >& lems );
   //get solution
@@ -202,8 +224,6 @@ class CegConjectureSingleInv {
   //reconstruct to syntax
   Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
                             bool rconsSygus = true );
-  // has ites
-  bool hasITEs() { return d_has_ites; }
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   //needs check

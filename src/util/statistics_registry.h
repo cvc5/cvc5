@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -392,9 +392,9 @@ class WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
   const ReadOnlyDataStat<T>& d_stat;
 
   /** Private copy constructor undefined (no copy permitted). */
-  WrappedStat(const WrappedStat&) CVC4_UNDEFINED;
+  WrappedStat(const WrappedStat&) = delete;
   /** Private assignment operator undefined (no copy permitted). */
-  WrappedStat<T>& operator=(const WrappedStat&) CVC4_UNDEFINED;
+  WrappedStat<T>& operator=(const WrappedStat&) = delete;
 
 public:
 
@@ -562,7 +562,7 @@ public:
 
   void flushInformation(std::ostream& out) const override
   {
-    out << d_data << std::endl;
+    out << d_data;
   }
 
   void safeFlushInformation(int fd) const override
@@ -653,7 +653,7 @@ class CVC4_PUBLIC StatisticsRegistry : public StatisticsBase, public Stat {
 private:
 
   /** Private copy constructor undefined (no copy permitted). */
-  StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
+  StatisticsRegistry(const StatisticsRegistry&) = delete;
 
 public:
 
@@ -760,9 +760,9 @@ class CodeTimer {
   bool d_reentrant;
 
   /** Private copy constructor undefined (no copy permitted). */
-  CodeTimer(const CodeTimer& timer) CVC4_UNDEFINED;
+  CodeTimer(const CodeTimer& timer) = delete;
   /** Private assignment operator undefined (no copy permitted). */
-  CodeTimer& operator=(const CodeTimer& timer) CVC4_UNDEFINED;
+  CodeTimer& operator=(const CodeTimer& timer) = delete;
 
 public:
   CodeTimer(TimerStat& timer, bool allow_reentrant = false) : d_timer(timer), d_reentrant(false) {

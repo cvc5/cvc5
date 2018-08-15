@@ -2,9 +2,9 @@
 /*! \file theory_arrays.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Dejan Jovanovic
+ **   Morgan Deters, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
+#include <tuple>
 #include <unordered_map>
 
 #include "context/cdhashmap.h"
@@ -369,7 +370,7 @@ class TheoryArrays : public Theory {
 
   bool d_mergeInProgress;
 
-  typedef quad<TNode, TNode, TNode, TNode> RowLemmaType;
+  using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
   context::CDQueue<RowLemmaType> d_RowQueue;
   context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;

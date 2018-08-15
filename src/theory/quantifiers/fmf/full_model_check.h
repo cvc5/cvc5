@@ -2,9 +2,9 @@
 /*! \file full_model_check.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,9 +42,6 @@ public:
   bool hasGeneralization( FirstOrderModelFmc * m, Node c, int index = 0 );
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index = 0 );
   void getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
-
-  void collectIndices(Node c, int index, std::vector< int >& indices );
-  bool isComplete(FirstOrderModelFmc * m, Node c, int index);
 };/* class EntryTrie */
 
 
@@ -93,16 +90,27 @@ protected:
   std::map< TypeNode, Node > d_array_cond;
   std::map< Node, Node > d_array_term_cond;
   std::map< Node, std::vector< int > > d_star_insts;
-  std::map< TypeNode, bool > d_preinitialized_types;
+  //--------------------for preinitialization
+  /** preInitializeType
+   *
+   * This function ensures that the model fm is properly initialized with
+   * respect to type tn.
+   *
+   * In particular, this class relies on the use of "model basis" terms, which
+   * are distinguished terms that are used to specify default values for
+   * uninterpreted functions. This method enforces that the model basis term
+   * occurs in the model for each relevant type T, where a type T is relevant
+   * if a bound variable is of type T, or an uninterpreted function has an
+   * argument or a return value of type T.
+   */
   void preInitializeType( FirstOrderModelFmc * fm, TypeNode tn );
+  /** for each type, an equivalence class of that type from the model */
+  std::map<TypeNode, Node> d_preinitialized_eqc;
+  /** map from types to whether we have called the method above */
+  std::map<TypeNode, bool> d_preinitialized_types;
+  //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
   bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
-protected:
-  void makeIntervalModel2( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
-                          std::map< int, std::map< int, Node > >& changed_vals );
-  void makeIntervalModel( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
-                          std::map< int, std::map< int, Node > >& changed_vals );
-  void convertIntervalModel( FirstOrderModelFmc * fm, Node op );
 private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 
@@ -123,13 +131,11 @@ private:
                              std::vector< Def > & dc, int index,
                              std::vector< Node > & cond, std::vector<Node> & val );
   int isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
-  Node doIntervalMeet( FirstOrderModelFmc * fm, Node i1, Node i2, bool mk = true );
   bool doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
   Node mkCond( std::vector< Node > & cond );
   Node mkCondDefault( FirstOrderModelFmc * fm, Node f );
   void mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond );
   void mkCondVec( Node n, std::vector< Node > & cond );
-  Node mkArrayCond( Node a );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 public:

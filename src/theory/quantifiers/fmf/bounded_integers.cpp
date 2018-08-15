@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
  **/
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
+
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -384,10 +385,12 @@ void BoundedIntegers::setBoundedVar( Node q, Node v, unsigned bound_type ) {
   Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl; 
 }
 
-void BoundedIntegers::preRegisterQuantifier( Node f ) {
+void BoundedIntegers::checkOwnership(Node f)
+{
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
-  Trace("bound-int") << "preRegister quantifier " << f << std::endl;
-  
+  Trace("bound-int") << "check ownership quantifier " << f << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+
   bool success;
   do{
     std::map< Node, unsigned > bound_lit_type_map;
@@ -412,21 +415,26 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
               Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
-            if( options::fmfBoundMinMode()==FMF_BOUND_MIN_ALL || options::fmfBoundMinMode()==FMF_BOUND_MIN_INT_RANGE ){
-              Node r = NodeManager::currentNM()->mkNode( MINUS, d_bounds[1][f][v], d_bounds[0][f][v] );
-              d_range[f][v] = Rewriter::rewrite( r );
-            }
+            Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
+            d_range[f][v] = Rewriter::rewrite(r);
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
-          setBoundedVar( f, v, BOUND_SET_MEMBER );
-          setBoundVar = true;
-          d_setm_range[f][v] = bound_lit_map[2][v][1];
-          d_setm_range_lit[f][v] = bound_lit_map[2][v];
-          if( options::fmfBoundMinMode()==FMF_BOUND_MIN_ALL || options::fmfBoundMinMode()==FMF_BOUND_MIN_SET_CARD ){
-            d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
+          // only handles infinite element types currently (cardinality is not
+          // supported for finite element types #1123). Regardless, this is
+          // typically not a limitation since this variable can be bound in a
+          // standard way below since its type is finite.
+          if (!v.getType().isInterpretedFinite())
+          {
+            setBoundedVar(f, v, BOUND_SET_MEMBER);
+            setBoundVar = true;
+            d_setm_range[f][v] = bound_lit_map[2][v][1];
+            d_setm_range_lit[f][v] = bound_lit_map[2][v];
+            d_range[f][v] = nm->mkNode(CARD, d_setm_range[f][v]);
+            Trace("bound-int") << "Variable " << v
+                               << " is bound because of set membership literal "
+                               << bound_lit_map[2][v] << std::endl;
           }
-          Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
           setBoundedVar( f, v, BOUND_FIXED_SET );
           setBoundVar = true;
@@ -444,11 +452,21 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if( bound_lit_map[b].find( v )!=bound_lit_map[b].end() ){
-              Assert( bound_lit_pol_map[b].find( v )!=bound_lit_pol_map[b].end() );
+            if (bound_lit_map[b].find(v) != bound_lit_map[b].end())
+            {
+              // WARNING_CANDIDATE:
+              // This assertion may fail. We intentionally do not enable this in
+              // production as it is considered safe for this to fail. We fail
+              // the assertion in debug mode to have this instance raised to
+              // our attention.
+              Assert(bound_lit_pol_map[b].find(v)
+                     != bound_lit_pol_map[b].end());
               BoundIntLitAttribute bila;
-              bound_lit_map[b][v].setAttribute( bila, bound_lit_pol_map[b][v] ? 1 : 0 );
-            }else{
+              bound_lit_map[b][v].setAttribute(bila,
+                                               bound_lit_pol_map[b][v] ? 1 : 0);
+            }
+            else
+            {
               Assert( it->second!=BOUND_INT_RANGE );
             }
           }
@@ -544,10 +562,6 @@ void BoundedIntegers::preRegisterQuantifier( Node f ) {
       }
     }
   }
-}
-
-void BoundedIntegers::registerQuantifier( Node q ) {
-
 }
 
 void BoundedIntegers::assertNode( Node n ) {
@@ -647,10 +661,14 @@ bool BoundedIntegers::isGroundRange( Node q, Node v ) {
 Node BoundedIntegers::getSetRange( Node q, Node v, RepSetIterator * rsi ) {
   Node sr = d_setm_range[q][v];
   if( d_nground_range[q].find(v)!=d_nground_range[q].end() ){
+    Trace("bound-int-rsi-debug")
+        << sr << " is non-ground, apply substitution..." << std::endl;
     //get the substitution
     std::vector< Node > vars;
     std::vector< Node > subs;
     if( getRsiSubsitution( q, v, vars, subs, rsi ) ){
+      Trace("bound-int-rsi-debug")
+          << "  apply " << vars << " -> " << subs << std::endl;
       sr = sr.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     }else{
       sr = Node::null();
@@ -661,73 +679,80 @@ Node BoundedIntegers::getSetRange( Node q, Node v, RepSetIterator * rsi ) {
 
 Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Node sr = getSetRange( q, v, rsi );
-  if( !sr.isNull() ){
-    Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
-    sr = d_quantEngine->getModel()->getValue( sr );
-    //if non-constant, then sr does not occur in the model, we fail
-    if( !sr.isConst() ){
-      return Node::null();
-    }
-    Trace("bound-int-rsi") << "Value is " << sr << std::endl;
-    //as heuristic, map to term model
-    if( sr.getKind()!=EMPTYSET ){
-      std::map< Node, Node > val_to_term;
-      while( sr.getKind()==UNION ){
-        Assert( sr[1].getKind()==kind::SINGLETON );
-        val_to_term[ sr[1][0] ] = sr[1][0];
-        sr = sr[0];
-      }
-      Assert( sr.getKind()==kind::SINGLETON );
-      val_to_term[ sr[0] ] = sr[0];
-      //must look back at assertions, not term database (theory of sets introduces extraneous terms internally)
-      Theory* theory = d_quantEngine->getTheoryEngine()->theoryOf( THEORY_SETS );
-      if( theory ){
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for( unsigned i = 0; it != it_end; ++ it, ++i ){
-          Node lit = (*it).assertion;
-          if( lit.getKind()==kind::MEMBER ){
-            Node vr = d_quantEngine->getModel()->getValue( lit[0] );
-            Trace("bound-int-rsi-debug") << "....membership for " << lit << " ==> " << vr << std::endl;
-            Trace("bound-int-rsi-debug") << "  " << (val_to_term.find( vr )!=val_to_term.end()) << " " << d_quantEngine->getEqualityQuery()->areEqual( d_setm_range_lit[q][v][1], lit[1] ) << std::endl;
-            if( val_to_term.find( vr )!=val_to_term.end() ){
-              if( d_quantEngine->getEqualityQuery()->areEqual( d_setm_range_lit[q][v][1], lit[1] ) ){
-                Trace("bound-int-rsi") << "  Map value to term : " << vr << " -> " << lit[0] << std::endl;
-                val_to_term[ vr ] = lit[0];
-              }
-            }
-          }
-        }
-      }
-      //rebuild value
-      Node nsr;
-      for( std::map< Node, Node >::iterator it = val_to_term.begin(); it != val_to_term.end(); ++it ){
-        Node nv = NodeManager::currentNM()->mkNode( kind::SINGLETON, it->second );
-        if( nsr.isNull() ){
-          nsr = nv;
-        }else{
-          nsr = NodeManager::currentNM()->mkNode( kind::UNION, nsr, nv );
-        }
-      }
-      Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
-      return nsr;
-      
-      /*
-      Node lit = d_setm_range_lit[q][v];
-      Trace("bound-int-rsi-debug") << "Bounded from lit " << lit << std::endl;
-      Node f = d_quantEngine->getTermDatabase()->getMatchOperator( lit );
-      TermArgTrie * ta = d_quantEngine->getTermDatabase()->getTermArgTrie( f );
-      if( ta ){
-        Trace("bound-int-rsi-debug") << "Got term index for " << f << std::endl;
-        for( std::map< TNode, TermArgTrie >::iterator it = ta->d_data.begin(); it != ta->d_data.end(); ++it ){
-
-        }
-
-      }
-      */
-    }
-    
+  if (sr.isNull())
+  {
+    return sr;
   }
-  return sr;
+  Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
+  Assert(!sr.hasFreeVar());
+  Node sro = sr;
+  sr = d_quantEngine->getModel()->getValue(sr);
+  // if non-constant, then sr does not occur in the model, we fail
+  if (!sr.isConst())
+  {
+    return Node::null();
+  }
+  Trace("bound-int-rsi") << "Value is " << sr << std::endl;
+  if (sr.getKind() == EMPTYSET)
+  {
+    return sr;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node nsr;
+  TypeNode tne = sr.getType().getSetElementType();
+
+  // we can use choice functions for canonical symbolic instantiations
+  unsigned srCard = 0;
+  while (sr.getKind() == UNION)
+  {
+    srCard++;
+    sr = sr[0];
+  }
+  Assert(sr.getKind() == SINGLETON);
+  srCard++;
+  // choices[i] stores the canonical symbolic representation of the (i+1)^th
+  // element of sro
+  std::vector<Node> choices;
+  Node srCardN = nm->mkNode(CARD, sro);
+  Node choice_i;
+  for (unsigned i = 0; i < srCard; i++)
+  {
+    if (i == d_setm_choice[sro].size())
+    {
+      choice_i = nm->mkBoundVar(tne);
+      choices.push_back(choice_i);
+      Node cBody = nm->mkNode(MEMBER, choice_i, sro);
+      if (choices.size() > 1)
+      {
+        cBody = nm->mkNode(AND, cBody, nm->mkNode(DISTINCT, choices));
+      }
+      choices.pop_back();
+      Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
+      Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConst(Rational(i)));
+      choice_i = nm->mkNode(CHOICE, bvl, nm->mkNode(OR, cMinCard, cBody));
+      d_setm_choice[sro].push_back(choice_i);
+    }
+    Assert(i < d_setm_choice[sro].size());
+    choice_i = d_setm_choice[sro][i];
+    choices.push_back(choice_i);
+    Node sChoiceI = nm->mkNode(SINGLETON, choice_i);
+    if (nsr.isNull())
+    {
+      nsr = sChoiceI;
+    }
+    else
+    {
+      nsr = nm->mkNode(UNION, nsr, sChoiceI);
+    }
+  }
+  // turns the concrete model value of sro into a canonical representation
+  //   e.g.
+  // singleton(0) union singleton(1)
+  //   becomes
+  // C1 union ( choice y. card(S)<=1 OR ( y in S AND distinct( y, C1 ) ) )
+  // where C1 = ( choice x. card(S)<=0 OR x in S ).
+  Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
+  return nsr;
 }
 
 bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi ) {

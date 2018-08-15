@@ -2,9 +2,9 @@
 /*! \file nonlinear_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -255,32 +255,46 @@ class NonlinearExtension {
    * whose model value cannot be computed is included in the return value of
    * this function.
    */
-  std::vector<Node> checkModel(const std::vector<Node>& assertions);
+  std::vector<Node> checkModelEval(const std::vector<Node>& assertions);
 
-  /** check model for transcendental functions
+  //---------------------------check model
+  /** Check model
    *
-   * Checks the current model using error bounds on the Taylor approximation.
+   * Checks the current model based on solving for equalities, and using error
+   * bounds on the Taylor approximation.
    *
    * If this function returns true, then all assertions in the input argument
-   * "assertions" are satisfied for all interpretations of transcendental
-   * functions within their error bounds (as stored in d_tf_check_model_bounds).
+   * "assertions" are satisfied for all interpretations of variables within
+   * their computed bounds (as stored in d_check_model_bounds).
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
    * "Detecting Satisfiable Formulas".
    */
-  bool checkModelTf(const std::vector<Node>& assertions);
+  bool checkModel(const std::vector<Node>& assertions,
+                  const std::vector<Node>& false_asserts);
+
+  /** solve equality simple
+   *
+   * This method is used during checkModel(...). It takes as input an
+   * equality eq. If it returns true, then eq is correct-by-construction based
+   * on the information stored in our model representation (see
+   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
+   * is added to d_check_model_solved.
+   */
+  bool solveEqualitySimple(Node eq);
 
   /** simple check model for transcendental functions for literal
    *
    * This method returns true if literal is true for all interpretations of
    * transcendental functions within their error bounds (as stored
-   * in d_tf_check_model_bounds). This is determined by a simple under/over
+   * in d_check_model_bounds). This is determined by a simple under/over
    * approximation of the value of sum of (linear) monomials. For example,
    * if we determine that .8 < sin( 1 ) < .9, this function will return
    * true for literals like:
    *   2.0*sin( 1 ) > 1.5
    *   -1.0*sin( 1 ) < -0.79
    *   -1.0*sin( 1 ) > -0.91
+   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
    * It will return false for literals like:
    *   sin( 1 ) > 0.85
    * It will also return false for literals like:
@@ -288,7 +302,65 @@ class NonlinearExtension {
    *   sin( sin( 1 ) ) > .5
    * since the bounds on these terms cannot quickly be determined.
    */
-  bool simpleCheckModelTfLit(Node lit);
+  bool simpleCheckModelLit(Node lit);
+  bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
+  /**
+   * A substitution from variables that appear in assertions to a solved form
+   * term. These vectors are ordered in the form:
+   *   x_1 -> t_1 ... x_n -> t_n
+   * where x_i is not in the free variables of t_j for j>=i.
+   */
+  std::vector<Node> d_check_model_vars;
+  std::vector<Node> d_check_model_subs;
+  /** add check model substitution
+   *
+   * Adds the model substitution v -> s. This applies the substitution
+   * { v -> s } to each term in d_check_model_subs and adds v,s to
+   * d_check_model_vars and d_check_model_subs respectively.
+   */
+  void addCheckModelSubstitution(TNode v, TNode s);
+  /** lower and upper bounds for check model
+   *
+   * For each term t in the domain of this map, if this stores the pair
+   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
+   *
+   * We add terms whose value is approximated in the model to this map, which
+   * includes:
+   * (1) applications of transcendental functions, whose value is approximated
+   * by the Taylor series,
+   * (2) variables we have solved quadratic equations for, whose value
+   * involves approximations of square roots.
+   */
+  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
+  /** add check model bound
+   *
+   * Adds the bound x -> < l, u > to the map above, and records the
+   * approximation ( x, l <= x <= u ) in the model.
+   */
+  void addCheckModelBound(TNode v, TNode l, TNode u);
+  /**
+   * The map from literals that our model construction solved, to the variable
+   * that was solved for. Examples of such literals are:
+   * (1) Equalities x = t, which we turned into a model substitution x -> t,
+   * where x not in FV( t ), and
+   * (2) Equalities a*x*x + b*x + c = 0, which we turned into a model bound
+   * -b+s*sqrt(b*b-4*a*c)/2a - E <= x <= -b+s*sqrt(b*b-4*a*c)/2a + E.
+   *
+   * These literals are exempt from check-model, since they are satisfied by
+   * definition of our model construction.
+   */
+  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
+  /** has check model assignment
+   *
+   * Have we assigned v in the current checkModel(...) call?
+   *
+   * This method returns true if variable v is in the domain of
+   * d_check_model_bounds or if it occurs in d_check_model_vars.
+   */
+  bool hasCheckModelAssignment(Node v) const;
+  /** have we successfully built the model in this SAT context? */
+  context::CDO<bool> d_builtModel;
+  //---------------------------end check model
 
   /** In the following functions, status states a relationship
   * between two arithmetic terms, where:
@@ -425,6 +497,7 @@ class NonlinearExtension {
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  Node d_two;
   Node d_true;
   Node d_false;
   /** PI
@@ -456,6 +529,8 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, bool> > d_c_info_maxm;
   std::vector<Node> d_constraints;
 
+  // per last-call effort
+
   // model values/orderings
   /** cache of model values
    *
@@ -469,13 +544,22 @@ class NonlinearExtension {
   std::vector<Node> d_order_points;
   
   //transcendental functions
-  std::map<Node, Node> d_trig_base;
-  std::map<Node, bool> d_trig_is_base;
+  std::map<Node, Node> d_tr_base;
+  std::map<Node, bool> d_tr_is_base;
   std::map< Node, bool > d_tf_initial_refine;
-  
+  /** the list of lemmas we are waiting to flush until after check model */
+  std::vector<Node> d_waiting_lemmas;
+  /** did we use an approximation on this call to last-call effort? */
+  bool d_used_approx;
+
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
-private:
+  /** print rational approximation */
+  void printRationalApprox(const char* c, Node cr, unsigned prec = 5) const;
+  /** print model value */
+  void printModelValue(const char* c, Node n, unsigned prec = 5) const;
+
+ private:
   //per last-call effort check
   
   //information about monomials
@@ -487,9 +571,8 @@ private:
   //list of monomials with factors whose model value is non-constant in model 
   //  e.g. y*cos( x )
   std::map<Node, bool> d_m_nconst_factor;
-  // If ( m, p1, true ), then it would help satisfiability if m were ( >
-  // if p1=true, < if p1=false )
-  std::map<Node, std::map<bool, bool> > d_tplane_refine_dir;
+  /** the set of monomials we should apply tangent planes to */
+  std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
   // term -> coeff -> rhs -> ( status, exp, b ),
   //   where we have that : exp =>  ( coeff * term <status> rhs )
   //   b is true if degree( term ) >= degree( rhs )
@@ -506,13 +589,6 @@ private:
    */
   std::map<Kind, std::map<Node, Node> > d_tf_rep_map;
 
-  /** bounds for transcendental functions
-   *
-   * For each transcendental function application t, if this stores the pair
-   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
-   */
-  std::map<Node, std::pair<Node, Node> > d_tf_check_model_bounds;
-
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
@@ -527,9 +603,13 @@ private:
    * "get-previous-secant-points" in "Satisfiability
    * Modulo Transcendental Functions via Incremental
    * Linearization" by Cimatti et al., CADE 2017, for
-   * each transcendental function application.
+   * each transcendental function application. We store this set for each
+   * Taylor degree.
    */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_secant_points;
+  std::unordered_map<Node,
+                     std::map<unsigned, std::vector<Node> >,
+                     NodeHashFunction>
+      d_secant_points;
 
   /** get Taylor series of degree n for function fa centered around point fa[0].
    *
@@ -547,7 +627,7 @@ private:
    * In the latter case, note we compute the exponential x^{n+1}
    * instead of (x-a)^{n+1}, which can be done faster.
    */
-  std::pair<Node, Node> getTaylor(TNode fa, unsigned n);
+  std::pair<Node, Node> getTaylor(Node fa, unsigned n);
 
   /** internal variables used for constructing (cached) versions of the Taylor
    * series above.
@@ -561,7 +641,6 @@ private:
       d_taylor_sum;
   std::unordered_map<Node, std::unordered_map<unsigned, Node>, NodeHashFunction>
       d_taylor_rem;
-
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
@@ -570,6 +649,52 @@ private:
    * if the option options::nlExtTfIncPrecision() is enabled.
    */
   unsigned d_taylor_degree;
+  /** polynomial approximation bounds
+   *
+   * This adds P_l+, P_l-, P_u+, P_u- to pbounds, where these are polynomial
+   * approximations of the Taylor series of <k>( 0 ) for degree 2*d where
+   * k is SINE or EXPONENTIAL.
+   * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
+   * for positive/negative (+/-) values of the argument of <k>( 0 ).
+   */
+  void getPolynomialApproximationBounds(Kind k,
+                                        unsigned d,
+                                        std::vector<Node>& pbounds);
+  /** cache of the above function */
+  std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
+  /** get transcendental function model bounds
+   *
+   * This returns the current lower and upper bounds of transcendental
+   * function application tf based on Taylor of degree 2*d, which is dependent
+   * on the model value of its argument.
+   */
+  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
+  /** is refinable transcendental function
+   *
+   * A transcendental function application is not refineable if its current
+   * model value is zero, or if it is an application of SINE applied
+   * to a non-variable.
+   */
+  bool isRefineableTfFun(Node tf);
+  /**
+   * Get a lower/upper approximation of the constant r within the given
+   * level of precision. In other words, this returns a constant c' such that
+   *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
+   *   c' + 1/(10^prec) <= c <= c' if isLower is false.
+   * where c' is a rational of the form n/d for some n and d <= 10^prec.
+   */
+  Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
+  /** get approximate sqrt
+   *
+   * This approximates the square root of positive constant c. If this method
+   * returns true, then l and u are updated to constants such that
+   *   l <= sqrt( c ) <= u
+   * The argument iter is the number of iterations in the binary search to
+   * perform. By default, this is set to 15, which is usually enough to be
+   * precise in the majority of simple cases, whereas not prohibitively
+   * expensive to compute.
+   */
+  bool getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter = 15) const;
 
   /** concavity region for transcendental functions
   *
@@ -855,6 +980,17 @@ private:
   *     such that c1 ~= .277 and c2 ~= 2.032.
   */
   std::vector<Node> checkTranscendentalTangentPlanes();
+  /** check transcendental function refinement for tf
+   *
+   * This method is called by the above method for each refineable
+   * transcendental function (see isRefineableTfFun) that occurs in an
+   * assertion in the current context.
+   *
+   * This runs Figure 3 of Cimatti et al., CADE 2017 for transcendental
+   * function application tf for Taylor degree d. It may add a secant or
+   * tangent plane lemma to lems.
+   */
+  bool checkTfTangentPlanesFun(Node tf, unsigned d, std::vector<Node>& lems);
   //-------------------------------------------- end lemma schemas
 }; /* class NonlinearExtension */
 

@@ -2,7 +2,7 @@
 /*! \file expr_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -43,7 +43,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 44 "${template}"
+#line 47 "${template}"
 
 namespace CVC4 {
 
@@ -609,7 +609,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 549 "${template}"
+#line 613 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

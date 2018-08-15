@@ -2,7 +2,7 @@
 /*! \file command.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Aina Niemetz
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -35,6 +35,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
+#include "util/utility.h"
 
 using namespace std;
 
@@ -1408,12 +1409,10 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
       Node value = Node::fromExpr(smtEngine->getValue(e));
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
-        // Need to wrap in special marker so that output printers know this
+        // Need to wrap in division-by-one so that output printers know this
         // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance, but ugly.
-        value = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                           nm->mkConst(AscriptionType(em->realType())),
-                           value);
+        // a rational.  Necessary for SMT-LIB standards compliance.
+        value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
       }
       result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
     }
@@ -1875,7 +1874,7 @@ void GetUnsatAssumptionsCommand::printResult(std::ostream& out,
   }
   else
   {
-    out << d_result << endl;
+    container_to_stream(out, d_result, "(", ")\n", " ");
   }
 }
 

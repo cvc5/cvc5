@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,24 +20,24 @@
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/fmf/ambqi_builder.h"
 #include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "theory/quantifiers/cegqi/ceg_t_instantiator.h"
+#include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 #include "theory/quantifiers/conjecture_generator.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/ambqi_builder.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_propagator.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
-#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/local_theory_ext.h"
-#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_relevance.h"
@@ -47,11 +47,12 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -75,6 +76,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
       // d_quants(u),
+      d_quants_prereg(u),
       d_quants_red(u),
       d_lemmas_produced_c(u),
       d_ierCounter_c(c),
@@ -245,8 +247,10 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
-        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBound() ){
+    if (options::mbqiMode() == quantifiers::MBQI_FMC
+        || options::mbqiMode() == quantifiers::MBQI_TRUST
+        || options::fmfBound())
+    {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
       d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
@@ -314,6 +318,11 @@ OutputChannel& QuantifiersEngine::getOutputChannel()
 Valuation& QuantifiersEngine::getValuation()
 {
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getValuation();
+}
+
+const LogicInfo& QuantifiersEngine::getLogicInfo() const
+{
+  return d_te->getLogicInfo();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
@@ -424,6 +433,31 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
+  if (d_conflict_c.get())
+  {
+    if (e < Theory::EFFORT_LAST_CALL)
+    {
+      // this can happen in rare cases when quantifiers is the first to realize
+      // there is a quantifier-free conflict, for example, when it discovers
+      // disequal and congruent terms in the master equality engine during
+      // term indexing. In such cases, quantifiers reports a "conflicting lemma"
+      // that is, one that is entailed to be false by the current assignment.
+      // If this lemma is not a SAT conflict, we may get another call to full
+      // effort check and the quantifier-free solvers still haven't realized
+      // there is a conflict. In this case, we return, trusting that theory
+      // combination will do the right thing (split on equalities until there is
+      // a conflict at the quantifier-free level).
+      Trace("quant-engine-debug")
+          << "Conflicting lemma already reported by quantifiers, return."
+          << std::endl;
+      return;
+    }
+    // we reported what we thought was a conflicting lemma, but now we have
+    // gotten a check at LAST_CALL effort, indicating that the lemma we reported
+    // was not conflicting. This should never happen, but in production mode, we
+    // proceed with the check.
+    Assert(false);
+  }
   bool needsCheck = !d_lemmas_waiting.empty();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
@@ -450,8 +484,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    //this will fail if a set of instances is marked as a conflict, but is not
-    Assert( !d_conflict_c.get() );
     //flush previous lemmas (for instance, if was interupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
@@ -613,6 +645,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 setIncomplete = true;
               }
             }
+            if (d_conflict_c.get())
+            {
+              // we reported a conflicting lemma, should return
+              setIncomplete = true;
+            }
             //if we have a chance not to set incomplete
             if( !setIncomplete ){
               //check if we should set the incomplete flag
@@ -728,52 +765,75 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
   }
 }
 
-bool QuantifiersEngine::registerQuantifier( Node f ){
+void QuantifiersEngine::registerQuantifierInternal(Node f)
+{
   std::map< Node, bool >::iterator it = d_quants.find( f );
   if( it==d_quants.end() ){
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
     Trace("quant") << " : " << f << std::endl;
+    unsigned prev_lemma_waiting = d_lemmas_waiting.size();
     ++(d_statistics.d_num_quant);
     Assert( f.getKind()==FORALL );
-
-    //check whether we should apply a reduction
-    if( reduceQuantifier( f ) ){
-      Trace("quant") << "...reduced." << std::endl;
-      d_quants[f] = false;
-      return false;
-    }else{
-      // register with utilities
-      for (unsigned i = 0; i < d_util.size(); i++)
-      {
-        d_util[i]->registerQuantifier(f);
-      }
-      // compute attributes
-      d_quant_attr->computeAttributes(f);
-
-      for( unsigned i=0; i<d_modules.size(); i++ ){
-        Trace("quant-debug") << "pre-register with " << d_modules[i]->identify() << "..." << std::endl;
-        d_modules[i]->preRegisterQuantifier( f );
-      }
-      QuantifiersModule * qm = getOwner( f );
-      if( qm!=NULL ){
-        Trace("quant") << "   Owner : " << qm->identify() << std::endl;
-      }
-      //register with each module
-      for( unsigned i=0; i<d_modules.size(); i++ ){
-        Trace("quant-debug") << "register with " << d_modules[i]->identify() << "..." << std::endl;
-        d_modules[i]->registerQuantifier( f );
-      }
-      //TODO: remove this
-      Node ceBody = d_term_util->getInstConstantBody( f );
-      Trace("quant-debug")  << "...finish." << std::endl;
-      d_quants[f] = true;
-      // flush lemmas
-      flushLemmas();
-      return true;
+    // register with utilities
+    for (unsigned i = 0; i < d_util.size(); i++)
+    {
+      d_util[i]->registerQuantifier(f);
     }
-  }else{
-    return (*it).second;
+    // compute attributes
+    d_quant_attr->computeAttributes(f);
+
+    for (QuantifiersModule*& mdl : d_modules)
+    {
+      Trace("quant-debug") << "check ownership with " << mdl->identify()
+                           << "..." << std::endl;
+      mdl->checkOwnership(f);
+    }
+    QuantifiersModule* qm = getOwner(f);
+    Trace("quant") << " Owner : " << (qm == nullptr ? "[none]" : qm->identify())
+                   << std::endl;
+    // register with each module
+    for (QuantifiersModule*& mdl : d_modules)
+    {
+      Trace("quant-debug") << "register with " << mdl->identify() << "..."
+                           << std::endl;
+      mdl->registerQuantifier(f);
+      // since this is context-independent, we should not add any lemmas during
+      // this call
+      Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
+    }
+    Trace("quant-debug") << "...finish." << std::endl;
+    d_quants[f] = true;
+    AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);
   }
+}
+
+void QuantifiersEngine::preRegisterQuantifier(Node q)
+{
+  NodeSet::const_iterator it = d_quants_prereg.find(q);
+  if (it != d_quants_prereg.end())
+  {
+    return;
+  }
+  Trace("quant-debug") << "QuantifiersEngine : Pre-register " << q << std::endl;
+  d_quants_prereg.insert(q);
+  // try to reduce
+  if (reduceQuantifier(q))
+  {
+    // if we can reduce it, nothing left to do
+    return;
+  }
+  // ensure that it is registered
+  registerQuantifierInternal(q);
+  // register with each module
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    Trace("quant-debug") << "pre-register with " << mdl->identify() << "..."
+                         << std::endl;
+    mdl->preRegisterQuantifier(q);
+  }
+  // flush the lemmas
+  flushLemmas();
+  Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
 }
 
 void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
@@ -784,36 +844,35 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 }
 
 void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
-  if( !pol ){
-    //if not reduced
-    if( !reduceQuantifier( f ) ){
-      //do skolemization
-      Node lem = d_skolemize->process(f);
-      if (!lem.isNull())
-      {
-        if( Trace.isOn("quantifiers-sk-debug") ){
-          Node slem = Rewriter::rewrite( lem );
-          Trace("quantifiers-sk-debug") << "Skolemize lemma : " << slem << std::endl;
-        }
-        getOutputChannel().lemma( lem, false, true );
-      }
-    }
-  }else{
-    //assert to modules TODO : also for !pol?
-    //register the quantifier, assert it to each module
-    if( registerQuantifier( f ) ){
-      d_model->assertQuantifier( f );
-      for( unsigned i=0; i<d_modules.size(); i++ ){
-        d_modules[i]->assertNode( f );
-      }
-      addTermToDatabase( d_term_util->getInstConstantBody( f ), true );
-    }
+  if (reduceQuantifier(f))
+  {
+    // if we can reduce it, nothing left to do
+    return;
   }
-}
-
-void QuantifiersEngine::propagate( Theory::Effort level ){
-  CodeTimer codeTimer(d_statistics.d_time);
-
+  if( !pol ){
+    // do skolemization
+    Node lem = d_skolemize->process(f);
+    if (!lem.isNull())
+    {
+      if (Trace.isOn("quantifiers-sk-debug"))
+      {
+        Node slem = Rewriter::rewrite(lem);
+        Trace("quantifiers-sk-debug")
+            << "Skolemize lemma : " << slem << std::endl;
+      }
+      getOutputChannel().lemma(lem, false, true);
+    }
+    return;
+  }
+  // ensure the quantified formula is registered
+  registerQuantifierInternal(f);
+  // assert it to each module
+  d_model->assertQuantifier(f);
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    mdl->assertNode(f);
+  }
+  addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
 Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
@@ -847,7 +906,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
     {
       if (d_sygus_tdb)
       {
-        d_sygus_tdb->registerEvalTerm(n);
+        d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
       }
 
       // added contains also the Node that just have been asserted in this
@@ -925,23 +984,6 @@ bool QuantifiersEngine::removeLemma( Node lem ) {
 
 void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
-}
-
-bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
-  n = Rewriter::rewrite( n );
-  Node lem = NodeManager::currentNM()->mkNode( OR, n, n.notNode() );
-  if( addLemma( lem ) ){
-    Debug("inst") << "*** Add split " << n<< std::endl;
-    return true;
-  }
-  return false;
-}
-
-bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool reqPhasePol ){
-  //Assert( !areEqual( n1, n2 ) );
-  //Assert( !areDisequal( n1, n2 ) );
-  Node fm = NodeManager::currentNM()->mkNode( EQUAL, n1, n2 );
-  return addSplit( fm );
 }
 
 bool QuantifiersEngine::addEPRAxiom( TypeNode tn ) {

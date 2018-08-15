@@ -2,9 +2,9 @@
 /*! \file first_order_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -387,16 +387,6 @@ Node FirstOrderModel::getModelBasis(Node q, Node n)
   return gn;
 }
 
-Node FirstOrderModel::getModelBasisBody(Node q)
-{
-  if (d_model_basis_body.find(q) == d_model_basis_body.end())
-  {
-    Node n = d_qe->getTermUtil()->getInstConstantBody(q);
-    d_model_basis_body[q] = getModelBasis(q, n);
-  }
-  return d_model_basis_body[q];
-}
-
 void FirstOrderModel::computeModelBasisArgAttribute(Node n)
 {
   if (!n.hasAttribute(ModelBasisArgAttribute()))
@@ -408,7 +398,7 @@ void FirstOrderModel::computeModelBasisArgAttribute(Node n)
     }
     uint64_t val = 0;
     // determine if it has model basis attribute
-    for (unsigned j = 0; j < n.getNumChildren(); j++)
+    for (unsigned j = 0, nchild = n.getNumChildren(); j < nchild; j++)
     {
       if (n[j].getAttribute(ModelBasisAttribute()))
       {
@@ -424,6 +414,119 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
 {
   computeModelBasisArgAttribute(n);
   return n.getAttribute(ModelBasisArgAttribute());
+}
+
+Node FirstOrderModelIG::UfModelTreeGenerator::getIntersection(TheoryModel* m,
+                                                              Node n1,
+                                                              Node n2,
+                                                              bool& isGround)
+{
+  isGround = true;
+  std::vector<Node> children;
+  children.push_back(n1.getOperator());
+  for (unsigned i = 0, size = n1.getNumChildren(); i < size; i++)
+  {
+    if (n1[i] == n2[i])
+    {
+      if (n1[i].getAttribute(ModelBasisAttribute()))
+      {
+        isGround = false;
+      }
+      children.push_back(n1[i]);
+    }
+    else if (n1[i].getAttribute(ModelBasisAttribute()))
+    {
+      children.push_back(n2[i]);
+    }
+    else if (n2[i].getAttribute(ModelBasisAttribute()))
+    {
+      children.push_back(n1[i]);
+    }
+    else if (m->areEqual(n1[i], n2[i]))
+    {
+      children.push_back(n1[i]);
+    }
+    else
+    {
+      return Node::null();
+    }
+  }
+  return NodeManager::currentNM()->mkNode(APPLY_UF, children);
+}
+
+void FirstOrderModelIG::UfModelTreeGenerator::setValue(
+    TheoryModel* m, Node n, Node v, bool ground, bool isReq)
+{
+  Assert(!n.isNull());
+  Assert(!v.isNull());
+  d_set_values[isReq ? 1 : 0][ground ? 1 : 0][n] = v;
+  if (!ground)
+  {
+    for (unsigned i = 0, defSize = d_defaults.size(); i < defSize; i++)
+    {
+      // for correctness, to allow variable order-independent function
+      // interpretations, we must ensure that the intersection of all default
+      // terms is also defined.
+      // for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
+      // then we must define f( b, a ).
+      bool isGround;
+      Node ni = getIntersection(m, n, d_defaults[i], isGround);
+      if (!ni.isNull())
+      {
+        // if the intersection exists, and is not already defined
+        if (d_set_values[0][isGround ? 1 : 0].find(ni)
+                == d_set_values[0][isGround ? 1 : 0].end()
+            && d_set_values[1][isGround ? 1 : 0].find(ni)
+                   == d_set_values[1][isGround ? 1 : 0].end())
+        {
+          // use the current value
+          setValue(m, ni, v, isGround, false);
+        }
+      }
+    }
+    d_defaults.push_back(n);
+  }
+  if (isReq
+      && d_set_values[0][ground ? 1 : 0].find(n)
+             != d_set_values[0][ground ? 1 : 0].end())
+  {
+    d_set_values[0][ground ? 1 : 0].erase(n);
+  }
+}
+
+void FirstOrderModelIG::UfModelTreeGenerator::makeModel(TheoryModel* m,
+                                                        uf::UfModelTree& tree)
+{
+  for (int j = 0; j < 2; j++)
+  {
+    for (int k = 0; k < 2; k++)
+    {
+      for (std::map<Node, Node>::iterator it = d_set_values[j][k].begin();
+           it != d_set_values[j][k].end();
+           ++it)
+      {
+        tree.setValue(m, it->first, it->second, k == 1);
+      }
+    }
+  }
+  if (!d_default_value.isNull())
+  {
+    tree.setDefaultValue(m, d_default_value);
+  }
+  tree.simplify();
+}
+
+void FirstOrderModelIG::UfModelTreeGenerator::clear()
+{
+  d_default_value = Node::null();
+  for (int j = 0; j < 2; j++)
+  {
+    for (int k = 0; k < 2; k++)
+    {
+      d_set_values[j][k].clear();
+    }
+  }
+  d_defaults.clear();
 }
 
 FirstOrderModelIG::FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name) :
@@ -471,8 +574,6 @@ void FirstOrderModelIG::resetEvaluate(){
   d_eval_uf_use_default.clear();
   d_eval_uf_model.clear();
   d_eval_term_index_order.clear();
-  d_eval_failed.clear();
-  d_eval_failed_lits.clear();
   d_eval_formulas = 0;
   d_eval_uf_terms = 0;
   d_eval_lits = 0;
@@ -563,12 +664,6 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
     return 0;
   }else{
     ++d_eval_lits;
-    ////if we know we will fail again, immediately return
-    //if( d_eval_failed.find( n )!=d_eval_failed.end() ){
-    //  if( d_eval_failed[n] ){
-    //    return -1;
-    //  }
-    //}
     //Debug("fmf-eval-debug") << "Evaluate literal " << n << std::endl;
     int retVal = 0;
     depIndex = ri->getNumTerms()-1;
@@ -594,11 +689,6 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
       ++d_eval_lits_unknown;
       Trace("fmf-eval-amb") << "Neither true nor false : " << n << std::endl;
       Trace("fmf-eval-amb") << "   value : " << val << std::endl;
-      //std::cout << "Neither true nor false : " << n << std::endl;
-      //std::cout << "  Value : " << val << std::endl;
-      //for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      //  std::cout << "   " << i << " : " << n[i].getType() << std::endl;
-      //}
     }
     return retVal;
   }
@@ -721,13 +811,6 @@ Node FirstOrderModelIG::evaluateTermDefault( Node n, int& depIndex, std::vector<
     Node val = NodeManager::currentNM()->mkNode( n.getKind(), children );
     return val;
   }
-}
-
-void FirstOrderModelIG::clearEvalFailed( int index ){
-  for( int i=0; i<(int)d_eval_failed_lits[index].size(); i++ ){
-    d_eval_failed[ d_eval_failed_lits[index][i] ] = false;
-  }
-  d_eval_failed_lits[index].clear();
 }
 
 void FirstOrderModelIG::makeEvalUfModel( Node n ){
@@ -856,14 +939,6 @@ Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & a
 
 void FirstOrderModelFmc::processInitialize( bool ispre ) {
   if( ispre ){
-    if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && intervalOp.isNull() ){
-      std::vector< TypeNode > types;
-      for(unsigned i=0; i<2; i++){
-        types.push_back(NodeManager::currentNM()->integerType());
-      }
-      TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->integerType() );
-      intervalOp = NodeManager::currentNM()->mkSkolem( "interval", typ, "op representing interval" );
-    }
     for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
       it->second->reset();
     }
@@ -893,14 +968,6 @@ Node FirstOrderModelFmc::getStar(TypeNode tn) {
     return st;
   }
   return it->second;
-}
-
-Node FirstOrderModelFmc::getStarElement(TypeNode tn) {
-  Node st = getStar(tn);
-  if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && tn.isInteger() ){
-    st = getInterval( st, st );
-  }
-  return st;
 }
 
 Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
@@ -947,14 +1014,8 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       std::vector< Node > children;
       for( unsigned j=0; j<cond.getNumChildren(); j++) {
         TypeNode tn = vars[j].getType();
-        if (isInterval(cond[j])){
-          if( !isStar(cond[j][0]) ){
-            children.push_back( NodeManager::currentNM()->mkNode( GEQ, vars[j], cond[j][0] ) );
-          }
-          if( !isStar(cond[j][1]) ){
-            children.push_back( NodeManager::currentNM()->mkNode( LT, vars[j], cond[j][1] ) );
-          }
-        }else if( !isStar(cond[j]) ){
+        if (!isStar(cond[j]))
+        {
           Node c = getRepresentative( cond[j] );
           c = getRepresentative( c );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
@@ -971,34 +1032,6 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   curr = Rewriter::rewrite( curr );
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
 }
-
-bool FirstOrderModelFmc::isInterval(Node n) {
-  return n.getKind()==APPLY_UF && n.getOperator()==intervalOp;
-}
-
-Node FirstOrderModelFmc::getInterval( Node lb, Node ub ){
-  return NodeManager::currentNM()->mkNode( APPLY_UF, intervalOp, lb, ub );
-}
-
-bool FirstOrderModelFmc::isInRange( Node v, Node i ) {
-  if( isStar( i ) ){
-    return true;
-  }else if( isInterval( i ) ){
-    for( unsigned b=0; b<2; b++ ){
-      if( !isStar( i[b] ) ){
-        if( ( b==0 && i[b].getConst<Rational>() > v.getConst<Rational>() ) ||
-            ( b==1 && i[b].getConst<Rational>() <= v.getConst<Rational>() ) ){
-          return false;
-        }
-      }
-    }
-    return true;
-  }else{
-    return v==i;
-  }
-}
-
-
 
 FirstOrderModelAbs::FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name) :
 FirstOrderModel(qe, c, name) {

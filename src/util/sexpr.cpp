@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -273,18 +273,13 @@ void SExpr::toStreamRec(std::ostream& out, const SExpr& sexpr,
 bool SExpr::languageQuotesKeywords(OutputLanguage language) {
   switch (language) {
     case language::output::LANG_SMTLIB_V1:
-    case language::output::LANG_SMTLIB_V2_0:
-    case language::output::LANG_SMTLIB_V2_5:
-    case language::output::LANG_SMTLIB_V2_6:
     case language::output::LANG_SYGUS:
     case language::output::LANG_TPTP:
-    case language::output::LANG_Z3STR:
       return true;
     case language::output::LANG_AST:
     case language::output::LANG_CVC3:
     case language::output::LANG_CVC4:
-    default:
-      return false;
+    default: return language::isOutputLang_smt2(language);
   };
 }
 

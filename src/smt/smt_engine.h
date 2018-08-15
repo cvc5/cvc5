@@ -289,6 +289,14 @@ class CVC4_PUBLIC SmtEngine {
   void checkProof();
 
   /**
+   * Internal method to get an unsatisfiable core (only if immediately preceded
+   * by an UNSAT or VALID query). Only permitted if CVC4 was built with
+   * unsat-core support and produce-unsat-cores is on. Does not dump the
+   * command.
+   */
+  UnsatCore getUnsatCoreInternal();
+
+  /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
    */
   void checkUnsatCore();
@@ -407,8 +415,8 @@ class CVC4_PUBLIC SmtEngine {
   void addToModelCommandAndDump(const Command& c, uint32_t flags = 0, bool userVisible = true, const char* dumpTag = "declarations");
 
   // disallow copy/assignment
-  SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
-  SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
+  SmtEngine(const SmtEngine&) = delete;
+  SmtEngine& operator=(const SmtEngine&) = delete;
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& assumption,
@@ -433,6 +441,13 @@ class CVC4_PUBLIC SmtEngine {
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+
+  /**
+   * Helper method to obtain both the heap and nil from the solver. Returns a
+   * std::pair where the first element is the heap expression and the second
+   * element is the nil expression.
+   */
+  std::pair<Expr, Expr> getSepHeapAndNilExpr();
 
  public:
 
@@ -490,6 +505,16 @@ class CVC4_PUBLIC SmtEngine {
    * support and produce-models is on.
    */
   Model* getModel();
+
+  /**
+   * When using separation logic, obtain the expression for the heap.
+   */
+  Expr getSepHeapExpr();
+
+  /**
+   * When using separation logic, obtain the expression for nil.
+   */
+  Expr getSepNilExpr();
 
   /**
    * Get an aspect of the current SMT execution environment.
@@ -659,6 +684,22 @@ class CVC4_PUBLIC SmtEngine {
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
+
+  /**
+   * Get synth solution
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * Specifically, given a sygus conjecture of the form
+   *   exists x1...xn. forall y1...yn. P( x1...xn, y1...yn )
+   * where x1...xn are second order bound variables, we map each xi to
+   * lambda term in sol_map such that
+   *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
+   * is a valid formula.
+   */
+  void getSynthSolutions(std::map<Expr, Expr>& sol_map);
 
   /**
    * Do quantifier elimination.

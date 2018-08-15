@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,12 +62,11 @@ public:
               const std::vector<Node>& ebvl);
  /** is the syntax restricted? */
  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
- /** does the syntax allow ITE expressions? */
- bool hasSyntaxITE() { return d_has_ite; }
  /** make the default sygus datatype type corresponding to builtin type range
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming
- *   extra_cons is a set of extra constant symbols to include in the grammar
+ *   extra_cons is a set of extra constant symbols to include in the grammar,
+ *   exclude_cons is used to exclude operators from the grammar,
  *   term_irrelevant is a set of terms that should not be included in the
  *      grammar.
  */
@@ -76,6 +75,7 @@ public:
      Node bvl,
      const std::string& fun,
      std::map<TypeNode, std::vector<Node> >& extra_cons,
+     std::map<TypeNode, std::vector<Node> >& exclude_cons,
      std::unordered_set<Node, NodeHashFunction>& term_irrelevant);
  /** make the default sygus datatype type corresponding to builtin type range */
  static TypeNode mkSygusDefaultType(TypeNode range,
@@ -83,8 +83,10 @@ public:
                                     const std::string& fun)
  {
    std::map<TypeNode, std::vector<Node> > extra_cons;
+   std::map<TypeNode, std::vector<Node> > exclude_cons;
    std::unordered_set<Node, NodeHashFunction> term_irrelevant;
-   return mkSygusDefaultType(range, bvl, fun, extra_cons, term_irrelevant);
+   return mkSygusDefaultType(
+       range, bvl, fun, extra_cons, exclude_cons, term_irrelevant);
   }
   /** make the sygus datatype type that encodes the solution space (lambda
   * templ_arg. templ[templ_arg]) where templ_arg
@@ -138,6 +140,7 @@ public:
       Node bvl,
       const std::string& fun,
       std::map<TypeNode, std::vector<Node> >& extra_cons,
+      std::map<TypeNode, std::vector<Node> >& exclude_cons,
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
       std::vector<CVC4::Datatype>& datatypes,
       std::set<Type>& unres);

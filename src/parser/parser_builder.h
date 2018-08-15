@@ -2,9 +2,9 @@
 /*! \file parser_builder.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Paul Meng
+ **   Christopher L. Conway, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,8 +26,11 @@
 
 namespace CVC4 {
 
-class ExprManager;
 class Options;
+
+namespace api {
+class Solver;
+}
 
 namespace parser {
 
@@ -61,8 +64,8 @@ class CVC4_PUBLIC ParserBuilder {
   /** The stream input, if any. */
   std::istream* d_streamInput;
 
-  /** The expression manager */
-  ExprManager* d_exprManager;
+  /** The API Solver object. */
+  api::Solver* d_solver;
 
   /** Should semantic checks be enabled during parsing? */
   bool d_checksEnabled;
@@ -86,14 +89,14 @@ class CVC4_PUBLIC ParserBuilder {
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(ExprManager* exprManager, const std::string& filename);
+  void init(api::Solver* solver, const std::string& filename);
 
-public:
+ public:
+  /** Create a parser builder using the given Solver and filename. */
+  ParserBuilder(api::Solver* solver, const std::string& filename);
 
-  /** Create a parser builder using the given ExprManager and filename. */
-  ParserBuilder(ExprManager* exprManager, const std::string& filename);
-
-  ParserBuilder(ExprManager* exprManager, const std::string& filename,
+  ParserBuilder(api::Solver* solver,
+                const std::string& filename,
                 const Options& options);
 
   /** Build the parser, using the current settings. */
@@ -102,8 +105,8 @@ public:
   /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);
 
-  /** Set the ExprManager to use with the parser. */
-  ParserBuilder& withExprManager(ExprManager* exprManager);
+  /** Set the Solver to use with the parser. */
+  ParserBuilder& withSolver(api::Solver* solver);
 
   /** Set the parser to read a file for its input. (Default) */
   ParserBuilder& withFileInput();

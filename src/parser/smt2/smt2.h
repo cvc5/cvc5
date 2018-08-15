@@ -2,9 +2,9 @@
 /*! \file smt2.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
+ **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,27 +34,33 @@ namespace CVC4 {
 
 class SExpr;
 
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Smt2 : public Parser {
   friend class ParserBuilder;
 
 public:
-  enum Theory {
-    THEORY_ARRAYS,
-    THEORY_BITVECTORS,
-    THEORY_CORE,
-    THEORY_DATATYPES,
-    THEORY_INTS,
-    THEORY_REALS,
-    THEORY_REALS_INTS,
-    THEORY_QUANTIFIERS,
-    THEORY_SETS,
-    THEORY_STRINGS,
-    THEORY_UF,
-    THEORY_FP,
-    THEORY_SEP
-  };
+ enum Theory
+ {
+   THEORY_ARRAYS,
+   THEORY_BITVECTORS,
+   THEORY_CORE,
+   THEORY_DATATYPES,
+   THEORY_INTS,
+   THEORY_REALS,
+   THEORY_TRANSCENDENTALS,
+   THEORY_REALS_INTS,
+   THEORY_QUANTIFIERS,
+   THEORY_SETS,
+   THEORY_STRINGS,
+   THEORY_UF,
+   THEORY_FP,
+   THEORY_SEP
+ };
 
 private:
   bool d_logicSet;
@@ -62,11 +68,15 @@ private:
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
+  std::vector<Expr> d_sygusVars, d_sygusInvVars, d_sygusConstraints,
+      d_sygusFunSymbols;
   std::map< Expr, bool > d_sygusVarPrimed;
 
 protected:
-  Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ Smt2(api::Solver* solver,
+      Input* input,
+      bool strictMode = false,
+      bool parseOnly = false);
 
 public:
   /**
@@ -153,22 +163,26 @@ public:
   const LogicInfo& getLogic() const { return d_logic; }
 
   bool v2_0() const {
-    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_0;
+    return getLanguage() == language::input::LANG_SMTLIB_V2_0;
   }
-  // 2.6 is a superset of 2.5, use exact=false to query whether smt lib 2.5 or above
-  bool v2_5( bool exact = true ) const {
-    return exact ? getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_5 : 
-                   ( getInput()->getLanguage() >= language::input::LANG_SMTLIB_V2_5 && 
-                     getInput()->getLanguage() <= language::input::LANG_SMTLIB_V2 );
+  /**
+   * Are we using smtlib 2.5 or above? If exact=true, then this method returns
+   * false if the input language is not exactly SMT-LIB 2.5.
+   */
+  bool v2_5(bool exact = false) const
+  {
+    return language::isInputLang_smt2_5(getLanguage(), exact);
   }
-  bool v2_6() const {
-    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_6;
-  }
-  bool sygus() const {
-    return getInput()->getLanguage() == language::input::LANG_SYGUS;
+  /**
+   * Are we using smtlib 2.6 or above? If exact=true, then this method returns
+   * false if the input language is not exactly SMT-LIB 2.6.
+   */
+  bool v2_6(bool exact = false) const
+  {
+    return language::isInputLang_smt2_6(getLanguage(), exact);
   }
 
-  void setLanguage(InputLanguage lang);
+  bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 
@@ -180,6 +194,12 @@ public:
     if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
       std::stringstream ss;
       ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIB";
+      parseError(ss.str());
+    }
+    else if (isOperatorEnabled(name))
+    {
+      std::stringstream ss;
+      ss << "Symbol `" << name << "' is shadowing a theory function symbol";
       parseError(ss.str());
     }
   }
@@ -382,6 +402,8 @@ private:
 
   void addArithmeticOperators();
 
+  void addTranscendentalOperators();
+
   void addBitvectorOperators();
 
   void addStringOperators();
@@ -389,6 +411,8 @@ private:
   void addFloatingPointOperators();
 
   void addSepOperators();
+
+  InputLanguage getLanguage() const;
 };/* class Smt2 */
 
 }/* CVC4::parser namespace */

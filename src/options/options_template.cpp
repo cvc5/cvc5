@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file options.cpp
+/*! \file options_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Kshitij Bansal
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,7 +48,6 @@ extern int optreset;
 #include <sstream>
 #include <limits>
 
-#include "base/tls.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
 #include "base/output.h"
@@ -73,7 +72,7 @@ using namespace CVC4::options;
 
 namespace CVC4 {
 
-CVC4_THREAD_LOCAL Options* Options::s_current = NULL;
+thread_local Options* Options::s_current = NULL;
 
 
 
@@ -423,7 +422,8 @@ static const std::string optionsFootnote = "\n\
     sense of the option.\n\
 ";
 
-static const std::string languageDescription = "\
+static const std::string languageDescription =
+    "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
@@ -432,6 +432,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
+  smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf and fof)\n\
   sygus                          SyGuS format\n\
 \n\
@@ -439,11 +440,11 @@ Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
   cvc3                           CVC3 presentation language\n\
-  smt1 | smtlib1                 SMT-LIB format 1.2\n\
   smt | smtlib | smt2 |\n\
   smt2.0 | smtlib2.0 | smtlib2   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
+  smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
   z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   ast                            internal format (simple syntax trees)\n\

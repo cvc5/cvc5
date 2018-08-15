@@ -2,9 +2,9 @@
 /*! \file normalize.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Morgan Deters
+ **   Dejan Jovanovic, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "options/language.h"
@@ -29,8 +30,8 @@
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/smt_engine.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -46,17 +47,15 @@ int main(int argc, char* argv[])
   // Create the expression manager
   Options options;
   options.setInputLanguage(language::input::LANG_SMTLIB_V2);
-  ExprManager exprManager(options);
+  std::unique_ptr<api::Solver> solver =
+      std::unique_ptr<api::Solver>(new api::Solver(&options));
 
   cout << language::SetLanguage(language::output::LANG_SMTLIB_V2)
        << expr::ExprSetDepth(-1);
 
   // Create the parser
-  ParserBuilder parserBuilder(&exprManager, input, options);
+  ParserBuilder parserBuilder(solver.get(), input, options);
   Parser* parser = parserBuilder.build();
-
-  // Smt manager for simplifications
-  SmtEngine engine(&exprManager);
 
   // Variables and assertions
   vector<Expr> assertions;
@@ -66,7 +65,7 @@ int main(int argc, char* argv[])
 
     AssertCommand* assert = dynamic_cast<AssertCommand*>(cmd);
     if (assert) {
-      Expr normalized = engine.simplify(assert->getExpr());
+      Expr normalized = solver->getSmtEngine()->simplify(assert->getExpr());
       cout << "(assert " << normalized << ")" << endl;
       delete cmd;
       continue;

@@ -2,9 +2,9 @@
 /*! \file theory_uf_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,10 +23,6 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-
-
-#define RECONSIDER_FUNC_DEFAULT_VALUE
-#define USE_PARTIAL_DEFAULT_VALUES
 
 using namespace std;
 using namespace CVC4;
@@ -316,148 +312,4 @@ Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
     vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
   }
   return getFunctionValue( vars, simplify );
-}
-
-Node UfModelTreeGenerator::getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround ){
-  //Notice() << "Get intersection " << n1 << " " << n2 << std::endl;
-  isGround = true;
-  std::vector< Node > children;
-  children.push_back( n1.getOperator() );
-  for( int i=0; i<(int)n1.getNumChildren(); i++ ){
-    if( n1[i]==n2[i] ){
-      if( n1[i].getAttribute(ModelBasisAttribute()) ){
-        isGround = false;
-      }
-      children.push_back( n1[i] );
-    }else if( n1[i].getAttribute(ModelBasisAttribute()) ){
-      children.push_back( n2[i] );
-    }else if( n2[i].getAttribute(ModelBasisAttribute()) ){
-      children.push_back( n1[i] );
-    }else if( m->areEqual( n1[i], n2[i] ) ){
-      children.push_back( n1[i] );
-    }else{
-      return Node::null();
-    }
-  }
-  return NodeManager::currentNM()->mkNode( APPLY_UF, children );
-}
-
-void UfModelTreeGenerator::setValue( TheoryModel* m, Node n, Node v, bool ground, bool isReq ){
-  Assert( !n.isNull() );
-  Assert( !v.isNull() );
-  d_set_values[ isReq ? 1 : 0 ][ ground ? 1 : 0 ][n] = v;
-  if( optUsePartialDefaults() ){
-    if( !ground ){
-      int defSize = (int)d_defaults.size();
-      for( int i=0; i<defSize; i++ ){
-        //for soundness, to allow variable order-independent function interpretations,
-        //  we must ensure that the intersection of all default terms
-        //  is also defined.
-        //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
-        //  then we must define f( b, a ).
-        bool isGround;
-        Node ni = getIntersection( m, n, d_defaults[i], isGround );
-        if( !ni.isNull() ){
-          //if the intersection exists, and is not already defined
-          if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
-              d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
-            //use the current value
-            setValue( m, ni, v, isGround, false );
-          }
-        }
-      }
-      d_defaults.push_back( n );
-    }
-    if( isReq && d_set_values[0][ ground ? 1 : 0 ].find( n )!=d_set_values[0][ ground ? 1 : 0 ].end()){
-      d_set_values[0][ ground ? 1 : 0 ].erase( n );
-    }
-  }
-}
-
-void UfModelTreeGenerator::makeModel( TheoryModel* m, UfModelTree& tree ){
-  for( int j=0; j<2; j++ ){
-    for( int k=0; k<2; k++ ){
-      for( std::map< Node, Node >::iterator it = d_set_values[j][k].begin(); it != d_set_values[j][k].end(); ++it ){
-        tree.setValue( m, it->first, it->second, k==1 );
-      }
-    }
-  }
-  if( !d_default_value.isNull() ){
-    tree.setDefaultValue( m, d_default_value );
-  }
-  tree.simplify();
-}
-
-bool UfModelTreeGenerator::optUsePartialDefaults(){
-#ifdef USE_PARTIAL_DEFAULT_VALUES
-  return true;
-#else
-  return false;
-#endif
-}
-
-void UfModelTreeGenerator::clear(){
-  d_default_value = Node::null();
-  for( int j=0; j<2; j++ ){
-    for( int k=0; k<2; k++ ){
-      d_set_values[j][k].clear();
-    }
-  }
-  d_defaults.clear();
-}
-
-
-void UfModelPreferenceData::setValuePreference( Node f, Node n, Node r, bool isPro ){
-  if( std::find( d_values.begin(), d_values.end(), r )==d_values.end() ){
-    d_values.push_back( r );
-  }
-  int index = isPro ? 0 : 1;
-  if( std::find( d_value_pro_con[index][r].begin(), d_value_pro_con[index][r].end(), f )==d_value_pro_con[index][r].end() ){
-    d_value_pro_con[index][r].push_back( f );
-  }
-  d_term_pro_con[index][n].push_back( f );
-}
-
-Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* m ){
-  Node defaultVal;
-  double maxScore = -1;
-  for( size_t i=0; i<d_values.size(); i++ ){
-    Node v = d_values[i];
-    double score = ( 1.0 + (double)d_value_pro_con[0][v].size() )/( 1.0 + (double)d_value_pro_con[1][v].size() );
-    Debug("fmf-model-cons-debug") << "  - score( ";
-    m->printRepresentativeDebug( "fmf-model-cons-debug", v );
-    Debug("fmf-model-cons-debug") << " ) = " << score << std::endl;
-    if( score>maxScore ){
-      defaultVal = v;
-      maxScore = score;
-    }
-  }
-#ifdef RECONSIDER_FUNC_DEFAULT_VALUE
-  if( maxScore<1.0 ){
-    //consider finding another value, if possible
-    Debug("fmf-model-cons-debug") << "Poor choice for default value, score = " << maxScore << std::endl;
-    TypeNode tn = defaultTerm.getType();
-    Node newDefaultVal = m->getRepSet()->getDomainValue(tn, d_values);
-    if( !newDefaultVal.isNull() ){
-      defaultVal = newDefaultVal;
-      Debug("fmf-model-cons-debug") << "-> Change default value to ";
-      m->printRepresentativeDebug( "fmf-model-cons-debug", defaultVal );
-      Debug("fmf-model-cons-debug") << std::endl;
-    }else{
-      Debug("fmf-model-cons-debug") << "-> Could not find arbitrary element of type " << tn[(int)tn.getNumChildren()-1] << std::endl;
-      Debug("fmf-model-cons-debug") << "      Excluding: ";
-      for( int i=0; i<(int)d_values.size(); i++ ){
-        Debug("fmf-model-cons-debug") << d_values[i] << " ";
-      }
-      Debug("fmf-model-cons-debug") << std::endl;
-    }
-  }
-#endif
-  //get the default term (this term must be defined non-ground in model)
-  Debug("fmf-model-cons-debug") << "  Choose ";
-  m->printRepresentativeDebug("fmf-model-cons-debug", defaultVal );
-  Debug("fmf-model-cons-debug") << " as default value (" << defaultTerm << ")" << std::endl;
-  Debug("fmf-model-cons-debug") << "     # quantifiers pro = " << d_value_pro_con[0][defaultVal].size() << std::endl;
-  Debug("fmf-model-cons-debug") << "     # quantifiers con = " << d_value_pro_con[1][defaultVal].size() << std::endl;
-  return defaultVal;
 }

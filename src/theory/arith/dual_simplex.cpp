@@ -2,9 +2,9 @@
 /*! \file dual_simplex.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Morgan Deters
+ **   Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,6 @@
 #include "theory/arith/dual_simplex.h"
 
 #include "base/output.h"
-#include "base/tls.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
@@ -63,7 +62,7 @@ DualSimplexDecisionProcedure::Statistics::~Statistics(){
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Assert(d_conflictVariables.empty());
 
-  static CVC4_THREAD_LOCAL unsigned int instance = 0;
+  static thread_local unsigned int instance = 0;
   instance = instance + 1;
   d_pivots = 0;
 
