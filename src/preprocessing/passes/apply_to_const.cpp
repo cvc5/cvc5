@@ -24,6 +24,9 @@ namespace passes {
 
 using namespace CVC4::theory;
 
+ApplyToConst::ApplyToConst(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "apply-to-const"){};
+
 Node ApplyToConst::rewriteApplyToConst(TNode n, NodeMap& cache)
 {
   Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
@@ -86,9 +89,6 @@ Node ApplyToConst::rewriteApplyToConst(TNode n, NodeMap& cache)
   Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
   return rewr;
 }
-
-ApplyToConst::ApplyToConst(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "apply-to-const"){};
 
 PreprocessingPassResult ApplyToConst::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
