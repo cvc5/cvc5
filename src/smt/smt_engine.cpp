@@ -4826,9 +4826,9 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   finalOptionsAreSet();
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << GetUnsatCoreCommand();
+    Dump("benchmark") << GetUnsatAssumptionsCommand();
   }
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
   vector<Expr> res;
   for (const Expr& e : d_assumptions)
   {
@@ -5191,6 +5191,31 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+UnsatCore SmtEngine::getUnsatCoreInternal()
+{
+#if IS_PROOFS_BUILD
+  if (!options::unsatCores())
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores option is off.");
+  }
+  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
+      || d_problemExtended)
+  {
+    throw RecoverableModalException(
+        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
+        "response.");
+  }
+
+  d_proofManager->traceUnsatCore();  // just to trigger core creation
+  return UnsatCore(this, d_proofManager->extractUnsatCore());
+#else  /* IS_PROOFS_BUILD */
+  throw ModalException(
+      "This build of CVC4 doesn't have proof support (required for unsat "
+      "cores).");
+#endif /* IS_PROOFS_BUILD */
+}
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5549,23 +5574,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
-#if IS_PROOFS_BUILD
-  if(!options::unsatCores()) {
-    throw ModalException("Cannot get an unsat core when produce-unsat-cores option is off.");
-  }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
-    throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
-        "response.");
-  }
-
-  d_proofManager->traceUnsatCore();// just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
-#else /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");
-#endif /* IS_PROOFS_BUILD */
+  return getUnsatCoreInternal();
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
