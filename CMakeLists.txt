@@ -131,8 +131,12 @@ message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
 #-----------------------------------------------------------------------------#
 
+option(ENABLE_GPL            "Enable GPL dependencies" OFF)
+option(USE_BSD_ONLY          "Disable all GPL dependencies" OFF)
+
 option(ENABLE_DEBUG_SYMBOLS, "Enable debug symbols" OFF)
 option(ENABLE_DUMPING        "Enable dumpin" OFF)
+option(ENABLE_MUZZLE         "completely silence CVC4; remove ALL non-result output from build" OFF)
 option(ENABLE_PROOFS         "Enable proof support" OFF)
 option(ENABLE_REPLAY         "Enable the replay feature" OFF)
 option(ENABLE_TRACING        "Enable tracing" OFF)
@@ -146,6 +150,8 @@ option(USE_LFSC              "Use LFSC proof checker" OFF)
 option(USE_SYMFPU            "Use SymFPU for floating point support" OFF)
 
 set(OPTIMIZATION_LEVEL 0)
+set(GPL_LIBS "")
+set(USE_GPL_LIBS ON)
 
 set(CVC4_DEBUG 0)
 set(CVC4_BUILD_PROFILE_PRODUCTION 0)
@@ -195,6 +201,10 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
+if(USE_BSD_ONLY)
+  set(USE_GPL_LIBS OFF)
+endif()
+
 if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
 endif()
@@ -205,6 +215,10 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
+endif()
+
+if(ENABLE_MUZZLE)
+  add_definitions(-DCVC4_MUZZLE)
 endif()
 
 if(ENABLE_PROOFS)
@@ -239,6 +253,12 @@ if(USE_CADICAL)
 endif()
 
 if(USE_CLN)
+  set(GPL_LIBS "${GPL_LIBS} cln")
+  if(NOT ENABLE_GPL)
+    message(FATAL_ERROR
+      "Bad configuration detected: BSD-licensed code only, but also requested "
+      "GPLed libraries: ${GPL_LIBS}")
+  endif()
   find_package(CLN 1.2.2 REQUIRED)
   cvc4_link_library(${CLN_LIBRARIES})
   include_directories(${CLN_INCLUDE_DIR})
@@ -278,6 +298,12 @@ if(USE_SYMFPU)
   set(CVC4_USE_SYMFPU 1)
 else()
   set(CVC4_USE_SYMFPU 0)
+endif()
+
+if(NOT USE_GPL_LIBS AND GPL_LIBS)
+  message(FATAL_ERROR
+    "Bad configuration detected: BSD-licensed code only, but also requested "
+    "GPLed libraries: ${GPL_LIBS}")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -415,7 +441,7 @@ message("Replay            : ${ENABLE_REPLAY}")
 message("Assertions        : ${ENABLE_ASSERTIONS}")
 message("Tracing           : ${ENABLE_TRACING}")
 message("Dumping           : ${ENABLE_DUMPING}")
-#message("Muzzle            : ${ENABLE_MUZZLE}")
+message("Muzzle            : ${ENABLE_MUZZLE}")
 #message("")
 #message("Unit tests   : ${support_unit_tests}")
 #message("gcov support : ${enable_coverage}")
@@ -440,8 +466,8 @@ message("LFSC              : ${USE_LFSC}")
 message("SymFPU            : ${USE_SYMFPU}")
 message("")
 #message("CPPFLAGS     : ${CPPFLAGS}")
-message("CXXFLAGS     : ${CMAKE_CXX_FLAGS}")
-message("CFLAGS       : ${CMAKE_C_FLAGS}")
+message("CXXFLAGS          : ${CMAKE_CXX_FLAGS}")
+message("CFLAGS            : ${CMAKE_C_FLAGS}")
 #message("LIBS         : ${LIBS}")
 #message("LDFLAGS      : ${LDFLAGS}")
 #message("")
@@ -451,7 +477,43 @@ message("CFLAGS       : ${CMAKE_C_FLAGS}")
 #message("libcvc4bindings version: ${CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild}")
 #message("")
 #message("Install into : ${prefix}")
-#message("")
-#message("CVC4 license : ${license}")
-#message("")
-#message("${licensewarn}Now just type make, followed by make check or make install, as you like.")
+message("")
+
+if(GPL_LIBS)
+  message("CVC4 license      : GPLv3 (due to optional libraries; see below)")
+  message("")
+  message(
+  "Please note that CVC4 will be built against the following GPLed libraries:"
+  )
+  message(${GPL_LIBS})
+  message(
+  "As these libraries are covered under the GPLv3, so is this build of CVC4."
+  )
+  message(
+  "CVC4 is also available to you under the terms of the (modified) BSD license."
+  )
+  message(
+  "If you prefer to license CVC4 under those terms, please configure CVC4 to\n"
+  "disable all optional GPLed library dependences (-DUSE_BSD_ONLY=ON)."
+  )
+else()
+  message("CVC4 license      : modified BSD")
+  message("")
+  message(
+  "Please note that this configuration is NOT built against any GPL'ed"
+  )
+  message(
+  "libraries, so it is covered by the (modified) BSD license.  This is,"
+  )
+  message(
+  "however, not the best-performing configuration of CVC4.  To build against"
+  )
+  message(
+  "GPL'ed libraries which improve CVC4's performance, re-configure with "
+  )
+  message("'-DENABLE_BEST -DENABLE_GPL'.")
+endif()
+
+message("")
+message("Now just type make, followed by make check or make install.")
+message("")
