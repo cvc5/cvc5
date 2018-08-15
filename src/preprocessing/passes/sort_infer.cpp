@@ -16,6 +16,7 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 
@@ -43,7 +44,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Node next = d_si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
-        next = Rewriter::rewrite(next);
+        next = theory::Rewriter::rewrite(next);
         assertionsToPreprocess->replace(i, next);
         Trace("sort-infer-preprocess")
             << "*** Preprocess SortInferencePass " << prev << endl;
