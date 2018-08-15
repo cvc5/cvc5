@@ -58,7 +58,8 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     {
       Node nar = theory::Rewriter::rewrite(na);
       Trace("sort-infer-preprocess")
-          << "*** Preprocess SortInferencePass : new constraint " << nar << endl;
+          << "*** Preprocess SortInferencePass : new constraint " << nar
+          << endl;
       assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
