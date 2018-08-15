@@ -544,8 +544,11 @@ TypeNode SortInference::getOrCreateTypeForId( int t, TypeNode pref ){
     return d_type_types[rt];
   }else{
     TypeNode retType;
-    //see if we can assign pref
-    if( !pref.isNull() && d_id_for_types.find( pref )==d_id_for_types.end() ){
+    // See if we can assign pref. This is an optimization for reusing an
+    // uninterpreted sort as the first subsort, so that fewer symbols needed
+    // to be rewritten in the sort-inferred signature. Notice we only assign
+    // pref here if it is an uninterpreted sort.
+    if( !pref.isNull() && d_id_for_types.find( pref )==d_id_for_types.end() && pref.isSort() ){
       retType = pref;
     }else{
       //must create new type
