@@ -126,29 +126,26 @@ void SortInference::initialize(const std::vector<Node>& assertions)
     process(a, var_bound, visited);
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
-  for (std::map<Node, int>::iterator it = d_op_return_types.begin();
-       it != d_op_return_types.end();
-       ++it)
-    for (const std::pair<const Node, int>& rt : d_op_return_types)
+  for (const std::pair<const Node, int>& rt : d_op_return_types)
+  {
+    Trace("sort-inference") << rt.first << " : ";
+    TypeNode retTn = rt.first.getType();
+    if (!d_op_arg_types[rt.first].empty())
     {
-      Trace("sort-inference") << rt.first << " : ";
-      TypeNode retTn = rt.first.getType();
-      if (!d_op_arg_types[rt.first].empty())
+      Trace("sort-inference") << "( ";
+      for (size_t i = 0; i < d_op_arg_types[rt.first].size(); i++)
       {
-        Trace("sort-inference") << "( ";
-        for (size_t i = 0; i < d_op_arg_types[rt.first].size(); i++)
-        {
-          recordSubsort(retTn[i], d_op_arg_types[rt.first][i]);
-          printSort("sort-inference", d_op_arg_types[rt.first][i]);
-          Trace("sort-inference") << " ";
-        }
-        Trace("sort-inference") << ") -> ";
-        retTn = retTn[(int)retTn.getNumChildren() - 1];
+        recordSubsort(retTn[i], d_op_arg_types[rt.first][i]);
+        printSort("sort-inference", d_op_arg_types[rt.first][i]);
+        Trace("sort-inference") << " ";
       }
-      recordSubsort(retTn, rt.second);
-      printSort("sort-inference", rt.second);
-      Trace("sort-inference") << std::endl;
+      Trace("sort-inference") << ") -> ";
+      retTn = retTn[(int)retTn.getNumChildren() - 1];
     }
+    recordSubsort(retTn, rt.second);
+    printSort("sort-inference", rt.second);
+    Trace("sort-inference") << std::endl;
+  }
   for (std::pair<const Node, std::map<Node, int> >& vt : d_var_types)
   {
     Trace("sort-inference")
