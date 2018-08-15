@@ -249,7 +249,7 @@ class TheoryEngine {
 
   public:
 
-    IntStat conflicts, propagations, lemmas, requirePhase, flipDecision, restartDemands;
+    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
 
     Statistics(theory::TheoryId theory);
     ~Statistics();
@@ -314,12 +314,6 @@ class TheoryEngine {
                       << phase << ")" << std::endl;
       ++d_statistics.requirePhase;
       d_engine->d_propEngine->requirePhase(n, phase);
-    }
-
-    bool flipDecision() override {
-      Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
-      ++d_statistics.flipDecision;
-      return d_engine->d_propEngine->flipDecision();
     }
 
     void setIncomplete() override {
