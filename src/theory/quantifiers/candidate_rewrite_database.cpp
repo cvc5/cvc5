@@ -40,7 +40,8 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
       d_silent(false)
 {
 }
-void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars, SygusSampler * ss)
+void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
+                                          SygusSampler* ss)
 {
   d_candidate = Node::null();
   d_using_sygus = false;
@@ -48,12 +49,13 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars, SygusSa
   d_tds = nullptr;
   d_ext_rewrite = nullptr;
   d_crewrite_filter.initialize(ss, nullptr, false);
-  ExprMiner::initialize(vars,ss);
+  ExprMiner::initialize(vars, ss);
 }
 
-void CandidateRewriteDatabase::initializeSygus(const std::vector< Node >& vars,
+void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
                                                QuantifiersEngine* qe,
-                                               Node f, SygusSampler * ss)
+                                               Node f,
+                                               SygusSampler* ss)
 {
   d_candidate = f;
   d_using_sygus = true;
@@ -259,11 +261,10 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
-
-  void CandidateRewriteDatabase::setExtendedRewriter( ExtendedRewriter* er )
-  {
-    d_ext_rewrite = er;
-  }
+void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
+{
+  d_ext_rewrite = er;
+}
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)
@@ -293,7 +294,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   {
     Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
     // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(d_vars,&d_sampler[tn]);
+    d_cdbs[tn].initialize(d_vars, &d_sampler[tn]);
     d_cdbs[tn].setExtendedRewriter(er);
     itc = d_cdbs.find(tn);
     Trace("synth-rr-dbg") << "...finish." << std::endl;

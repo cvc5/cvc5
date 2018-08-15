@@ -36,12 +36,14 @@ class QueryGenerator : public ExprMiner
   QueryGenerator();
   ~QueryGenerator() {}
   /** initialize */
-  void initialize( const std::vector< Node >& vars, SygusSampler * ss = nullptr ) override;
+  void initialize(const std::vector<Node>& vars,
+                  SygusSampler* ss = nullptr) override;
   /** add term */
   bool addTerm(Node n, std::ostream& out) override;
 
   /** set threshold */
   void setThreshold(unsigned deqThresh);
+
  private:
   /** cache of all terms registered to this generator */
   std::unordered_set< Node, NodeHashFunction > d_terms;

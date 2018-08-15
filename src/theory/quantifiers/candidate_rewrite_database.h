@@ -50,7 +50,7 @@ class CandidateRewriteDatabase : public ExprMiner
    *
    * er : pointer to the extended rewriter (if any) we are using to compute
    * candidate rewrites,
-   * 
+   *
    * unique_type_ids : if this is set to true, then each variable is treated
    * as unique. This affects whether or not a rewrite rule is considered
    * redundant or not. For example the rewrite f(y)=y is redundant if
@@ -59,7 +59,8 @@ class CandidateRewriteDatabase : public ExprMiner
    * rewrite database is initialized with sygus below, the type ids of the
    * (sygus formal argument list) variables are always computed and used.
    */
-  void initialize(const std::vector< Node >& var, SygusSampler * ss = nullptr) override;
+  void initialize(const std::vector<Node>& var,
+                  SygusSampler* ss = nullptr) override;
   /**  Initialize this class
    *
    * Serves the same purpose as the above function, but we will be using
@@ -78,9 +79,10 @@ class CandidateRewriteDatabase : public ExprMiner
    *
    * These arguments are used to initialize the sygus sampler class.
    */
-  void initializeSygus(const std::vector< Node >& vars,
+  void initializeSygus(const std::vector<Node>& vars,
                        QuantifiersEngine* qe,
-                       Node f, SygusSampler * ss = nullptr);
+                       Node f,
+                       SygusSampler* ss = nullptr);
   /** add term
    *
    * Notifies this class that the solution sol was enumerated. This may
@@ -94,7 +96,7 @@ class CandidateRewriteDatabase : public ExprMiner
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
   /** set the (extended) rewriter used by this class */
-  void setExtendedRewriter( ExtendedRewriter* er );
+  void setExtendedRewriter(ExtendedRewriter* er);
 
  private:
   /** reference to quantifier engine */

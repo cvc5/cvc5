@@ -26,10 +26,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void ExprMiner::initialize( const std::vector< Node >& vars, SygusSampler * ss  )
+void ExprMiner::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   d_sampler = ss;
-  d_vars.insert(d_vars.end(),vars.begin(),vars.end() );
+  d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 }
 
 Node ExprMiner::convertToSkolem(Node n)
@@ -48,7 +48,7 @@ Node ExprMiner::convertToSkolem(Node n)
   {
     Node v = fvs[i];
     // only look at the sampler variables
-    if( std::find(d_vars.begin(),d_vars.end(),v)!=d_vars.end() )
+    if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
     {
       sfvs.push_back(v);
       std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);

@@ -78,7 +78,7 @@ void ExpressionMinerManager::initializeSygus(bool doRewSynth,
   // initialize the sampler
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
   // get the variables from the sampler
-  std::vector< Node > vars;
+  std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // initialize the candidate rewrite database
   d_crd.initializeSygus(vars, qe, f, &d_sampler);

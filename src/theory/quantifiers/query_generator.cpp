@@ -29,10 +29,10 @@ namespace quantifiers {
 
 QueryGenerator::QueryGenerator() : d_query_count(0) {}
 
-void QueryGenerator::initialize( const std::vector< Node >& vars, SygusSampler * ss )
+void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   d_query_count = 0;
-  ExprMiner::initialize(vars,ss);
+  ExprMiner::initialize(vars, ss);
 }
 
 void QueryGenerator::setThreshold(unsigned deqThresh)
@@ -154,7 +154,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     std::vector< Node > pt;
     d_sampler->getSamplePoint(spIndex,pt);
     unsigned nvars = d_vars.size();
-    AlwaysAssert( pt.size()==d_vars.size() );
+    AlwaysAssert(pt.size() == d_vars.size());
     std::stringstream fname;
     fname << "query" << d_query_count << ".smt2";
     std::ofstream fs(fname.str(),std::ofstream::out);
@@ -200,7 +200,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "This query has a model : " << std::endl;
       std::vector< Node > pt;
       d_sampler->getSamplePoint(spIndex,pt);
-      Assert(pt.size()==d_vars.size());
+      Assert(pt.size() == d_vars.size());
       for( unsigned i=0, size = pt.size(); i<size; i++ )
       {
         ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
@@ -254,7 +254,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
   TypeNode tn = n.getType();
   std::vector<unsigned> eqIndex[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
-  
+
   /*
   PtTrieSet eqPtTrie[2];
   // the variables indices we will cache points on

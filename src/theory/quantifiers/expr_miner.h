@@ -38,11 +38,12 @@ class ExprMiner
  public:
   ExprMiner() : d_sampler(nullptr){}
   virtual ~ExprMiner(){}
-  /** initialize 
-   * 
-   * 
+  /** initialize
+   *
+   *
    */
-  virtual void initialize( const std::vector< Node >& vars, SygusSampler * ss = nullptr );
+  virtual void initialize(const std::vector<Node>& vars,
+                          SygusSampler* ss = nullptr);
   /** add term
    *
    * This registers term n with this expression miner. The output stream out
@@ -53,7 +54,7 @@ class ExprMiner
   virtual bool addTerm(Node n, std::ostream& out) = 0;
  protected:
   /** the set of variables used by this class */
-  std::vector< Node > d_vars;
+  std::vector<Node> d_vars;
   /** pointer to the sygus sampler object we are using */
   SygusSampler* d_sampler;
   /**
@@ -64,7 +65,7 @@ class ExprMiner
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);
-  /** initialize checker 
+  /** initialize checker
    *
    * This function initializes the smt engine smte to check the satisfiability
    * of the argument "query", which is a formula whose free variables (of
@@ -74,7 +75,7 @@ class ExprMiner
    * want smte to use a different expression manager instead of the current
    * expression manager. The motivation for this so that different options can
    * be set for the subcall.
-   * 
+   *
    * We update the flag needExport to true if smte is using the expression
    * manager em. In this case, subsequent expressions extracted from smte
    * (for instance, model values) must be exported to the current expression
