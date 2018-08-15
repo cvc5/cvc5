@@ -8,6 +8,10 @@ set(libmain_src_files
 add_library(main ${libmain_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
 target_link_libraries(main cvc4 cvc4parser)
+if(USE_READLINE)
+  target_link_libraries(main ${Readline_LIBRARIES})
+  target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
+endif()
 
 set(cvc4main_src_files
   command_executor.cpp

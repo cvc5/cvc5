@@ -147,6 +147,7 @@ option(USE_CADICAL           "Use CaDiCaL SAT solver" OFF)
 option(USE_CLN               "Use CLN instead of GMP" OFF)
 option(USE_CRYPTOMINISAT     "Use CryptoMiniSat SAT solver" OFF)
 option(USE_LFSC              "Use LFSC proof checker" OFF)
+option(USE_READLINE          "Use readline for better interactive support" OFF)
 option(USE_SYMFPU            "Use SymFPU for floating point support" OFF)
 
 set(OPTIMIZATION_LEVEL 0)
@@ -291,6 +292,18 @@ else()
   set(CVC4_USE_LFSC 0)
 endif()
 
+if(USE_READLINE)
+  find_package(Readline REQUIRED)
+  set(HAVE_LIBREADLINE 1)
+  if(Readline_COMPENTRY_FUNC_RETURNS_CHARPTR)
+    set(READLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
+  else()
+    set(READLINE_COMPENTRY_FUNC_RETURNS_CHARP 0)
+  endif()
+else()
+  set(HAVE_LIBREADLINE 0)
+endif()
+
 if(USE_SYMFPU)
   find_package(SymFPU REQUIRED)
   include_directories(${SymFPU_INCLUDE_DIR})
@@ -335,9 +348,9 @@ include(ConfigureCVC4)
 # Define to 1 if Boost threading library has support for thread attributes
 set(BOOST_HAS_THREAD_ATTR 0)
 # Defined if using the CLN multi-precision arithmetic library.
-set(CVC4_CLN_IMP 0)
+set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
 # Defined if using the GMP multi-precision arithmetic library.
-set(CVC4_GMP_IMP 1)
+set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
 # Whether CVC4 is built with the (optional) GPLed library dependences.
 set(CVC4_GPL_DEPS 0)
 # Defined if the requested minimum BOOST version is satisfied
@@ -370,7 +383,7 @@ set(HAVE_LIBGMP 1)
 ## Define to 1 if you have the `profiler' library (-lprofiler).
 #set(HAVE_LIBPROFILER 0)
 # Define to 1 to use libreadline
-set(HAVE_LIBREADLINE 0)
+#set(HAVE_LIBREADLINE 0)
 ## Define to 1 if you have the `tcmalloc' library (-ltcmalloc).
 #set(HAVE_LIBTCMALLOC 0)
 # Define to 1 if you have the <memory.h> header file.
@@ -397,9 +410,6 @@ set(HAVE_SYS_TYPES_H 1)
 set(HAVE_UNISTD_H 1)
 ## Define to the sub-directory where libtool stores uninstalled libraries.
 #set(LT_OBJDIR ".libs/")
-# Define to 1 if rl_completion_entry_function is declared to return pointer
-# to char
-set(READLINE_COMPENTRY_FUNC_RETURNS_CHARP 0)
 ## Define to 1 if you have the ANSI C header files.
 #set(STDC_HEADERS 1)
 # Define to 1 if strerror_r returns char *.
@@ -462,7 +472,7 @@ message("Cryptominisat     : ${USE_CRYPTOMINISAT}")
 #message("GLPK              : ${USE_GLPK}")
 message("LFSC              : ${USE_LFSC}")
 #message("MP library   : ${mplibrary}")
-#message("Readline     : ${with_readline}")
+message("Readline          : ${USE_READLINE}")
 message("SymFPU            : ${USE_SYMFPU}")
 message("")
 #message("CPPFLAGS     : ${CPPFLAGS}")
