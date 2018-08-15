@@ -43,6 +43,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
 #-----------------------------------------------------------------------------#
+# Macros
 
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
@@ -110,6 +111,18 @@ macro(cvc4_link_library library)
   set(CVC4_LIBRARIES ${CVC4_LIBRARIES} ${library})
 endmacro()
 
+macro(cvc4_option var description)
+  set(${var} AUTO CACHE STRING "${description}")
+  # Provide drop down menu options in cmake-gui
+  set_property(CACHE ${var} PROPERTY STRINGS AUTO ON OFF)
+endmacro()
+
+macro(cvc4_set_option var value)
+  if(${var} STREQUAL "AUTO")
+    set(${var} ${value})
+  endif()
+endmacro()
+
 #-----------------------------------------------------------------------------#
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -119,47 +132,53 @@ message(STATUS "LIB directory is '${CMAKE_BINARY_DIR}/lib'")
 message(STATUS "BIN directory is '${CMAKE_BINARY_DIR}/bin'")
 
 #-----------------------------------------------------------------------------#
+# User options
 
-set(build_types Debug Production)
-if(NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No build type set, options are: ${build_types}")
-    set(CMAKE_BUILD_TYPE Production CACHE STRING "Options are: ${build_types}" FORCE)
-    # Provide drop down menu options in cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${build_types})
-endif()
-message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
+# License
+option(ENABLE_GPL                "Enable GPL dependencies" OFF)
+
+# General build options
+# >> 3-valued: AUTO ON OFF, allows to detect if set by user
+#              this is only necessary for options set for build types!
+cvc4_option(ENABLE_ASSERTIONS    " Enable assertions")
+cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
+cvc4_option(ENABLE_DUMPING       "Enable dumpin")
+cvc4_option(ENABLE_MUZZLE        "completely silence CVC4; remove ALL non-result output from build")
+cvc4_option(ENABLE_OPTIMIZED     "Enable optimization")
+cvc4_option(ENABLE_PROOFS        "Enable proof support")
+cvc4_option(ENABLE_REPLAY        "Enable the replay feature")
+cvc4_option(ENABLE_TRACING       "Enable tracing")
+cvc4_option(ENABLE_STATISTICS    "Enable statistics")
+cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
+# >> 2-valued: ON OFF, for options where we don't need to detect if set by user
+
+# Optional dependencies
+option(USE_CADICAL               "Use CaDiCaL SAT solver")
+option(USE_CLN                   "Use CLN instead of GMP")
+option(USE_CRYPTOMINISAT         "Use CryptoMiniSat SAT solver")
+option(USE_LFSC                  "Use LFSC proof checker")
+option(USE_READLINE              "Use readline for better interactive support" OFF)
+option(USE_SYMFPU                "Use SymFPU for floating point support")
+
 
 #-----------------------------------------------------------------------------#
+# Internal cmake variables
 
-option(ENABLE_GPL            "Enable GPL dependencies" OFF)
-option(USE_BSD_ONLY          "Disable all GPL dependencies" OFF)
-
-option(ENABLE_DEBUG_SYMBOLS, "Enable debug symbols" OFF)
-option(ENABLE_DUMPING        "Enable dumpin" OFF)
-option(ENABLE_MUZZLE         "completely silence CVC4; remove ALL non-result output from build" OFF)
-option(ENABLE_PROOFS         "Enable proof support" OFF)
-option(ENABLE_REPLAY         "Enable the replay feature" OFF)
-option(ENABLE_TRACING        "Enable tracing" OFF)
-option(ENABLE_STATISTICS     "Enable statistics" OFF)
-option(ENABLE_VALGRIND       "Enable valgrind instrumentation" OFF)
-
-option(USE_CADICAL           "Use CaDiCaL SAT solver" OFF)
-option(USE_CLN               "Use CLN instead of GMP" OFF)
-option(USE_CRYPTOMINISAT     "Use CryptoMiniSat SAT solver" OFF)
-option(USE_LFSC              "Use LFSC proof checker" OFF)
-option(USE_READLINE          "Use readline for better interactive support" OFF)
-option(USE_SYMFPU            "Use SymFPU for floating point support" OFF)
-
-set(OPTIMIZATION_LEVEL 0)
+set(OPT_LEVEL 3)
 set(GPL_LIBS "")
-set(USE_GPL_LIBS ON)
+
+set(BUILD_TYPES production debug testing competition)
+
+#-----------------------------------------------------------------------------#
+# CVC4 build variables
 
 set(CVC4_DEBUG 0)
 set(CVC4_BUILD_PROFILE_PRODUCTION 0)
 set(CVC4_BUILD_PROFILE_DEBUG 0)
 set(CVC4_BUILD_PROFILE_TESTING 0)
 set(CVC4_BUILD_PROFILE_COMPETITION 0)
-
+# Whether CVC4 is built with the (optional) GPLed library dependences.
+set(CVC4_GPL_DEPS 0)
 
 #-----------------------------------------------------------------------------#
 
@@ -171,18 +190,21 @@ cvc4_link_library(${GMP_LIBRARIES})
 include_directories(${GMP_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------#
+# Compiler flags
 
-add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
+add_check_c_cxx_flag("-O${OPT_LEVEL}")
 add_check_c_flag("-fexceptions")
 add_check_c_cxx_flag("-Wno-deprecated")
 add_check_c_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 
-set(build_types production debug testing competition)
+#-----------------------------------------------------------------------------#
+# Build types
+
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE production CACHE STRING "Options are: ${build_types}" FORCE)
-    # Provide drop down menu options in cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${build_types})
+  set(CMAKE_BUILD_TYPE production CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
+  # Provide drop down menu options in cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_TYPES})
 endif()
 message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
@@ -202,16 +224,14 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
-if(USE_BSD_ONLY)
-  set(USE_GPL_LIBS OFF)
-endif()
-
 if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
 endif()
 
 if(ENABLE_DUMPING)
   add_definitions(-DCVC4_DUMPING)
+else()
+  add_definitions(-DNDEBUG)
 endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
@@ -313,10 +333,13 @@ else()
   set(CVC4_USE_SYMFPU 0)
 endif()
 
-if(NOT USE_GPL_LIBS AND GPL_LIBS)
-  message(FATAL_ERROR
-    "Bad configuration detected: BSD-licensed code only, but also requested "
-    "GPLed libraries: ${GPL_LIBS}")
+if(GPL_LIBS)
+  if(NOT ENABLE_GPL)
+    message(FATAL_ERROR
+      "Bad configuration detected: BSD-licensed code only, but also requested "
+      "GPLed libraries: ${GPL_LIBS}")
+  endif()
+  set(CVC4_GPL_DEPS 1)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -351,8 +374,6 @@ set(BOOST_HAS_THREAD_ATTR 0)
 set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
 # Defined if using the GMP multi-precision arithmetic library.
 set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
-# Whether CVC4 is built with the (optional) GPLed library dependences.
-set(CVC4_GPL_DEPS 0)
 # Defined if the requested minimum BOOST version is satisfied
 set(HAVE_BOOST 1)
 # Define to 1 if you have <boost/system/error_code.hpp>
@@ -443,6 +464,7 @@ endif()
 message("CVC4 ${CVC4_RELEASE_STRING}")
 message("")
 message("Build profile     : ${CVC4_BUILD_PROFILE_STRING}")
+message("Optimized         : ${ENABLE_OPTIMIZED}")
 message("Optimization level: ${OPTIMIZATION_LEVEL}")
 message("Debug symbols     : ${ENABLE_DEBUG_SYMBOLS}")
 message("Proofs            : ${ENABLE_PROOFS}")
@@ -490,38 +512,35 @@ message("CFLAGS            : ${CMAKE_C_FLAGS}")
 message("")
 
 if(GPL_LIBS)
-  message("CVC4 license      : GPLv3 (due to optional libraries; see below)")
-  message("")
   message(
+  "CVC4 license      : GPLv3 (due to optional libraries; see below)"
+  "\n"
+  "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"
-  )
-  message(${GPL_LIBS})
-  message(
+  "\n"
+  "${GPL_LIBS}"
+  "\n"
   "As these libraries are covered under the GPLv3, so is this build of CVC4."
-  )
-  message(
+  "\n"
   "CVC4 is also available to you under the terms of the (modified) BSD license."
-  )
-  message(
-  "If you prefer to license CVC4 under those terms, please configure CVC4 to\n"
-  "disable all optional GPLed library dependences (-DUSE_BSD_ONLY=ON)."
+  "\n"
+  "If you prefer to license CVC4 under those terms, please configure CVC4 to"
+  "\n"
+  "disable all optional GPLed library dependences (-DENABLE_BSD_ONLY=ON)."
   )
 else()
-  message("CVC4 license      : modified BSD")
-  message("")
   message(
-  "Please note that this configuration is NOT built against any GPL'ed"
+  "CVC4 license      : modified BSD"
+  "\n"
+  "\n"
+  "Note that this configuration is NOT built against any GPL'ed libraries, so"
+  "\n"
+  "it is covered by the (modified) BSD license.  This is, however, not the best"
+  "\n"
+  "performing configuration of CVC4.  To build against GPL'ed libraries which"
+  "\n"
+  "improve CVC4's performance, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
   )
-  message(
-  "libraries, so it is covered by the (modified) BSD license.  This is,"
-  )
-  message(
-  "however, not the best-performing configuration of CVC4.  To build against"
-  )
-  message(
-  "GPL'ed libraries which improve CVC4's performance, re-configure with "
-  )
-  message("'-DENABLE_BEST -DENABLE_GPL'.")
 endif()
 
 message("")
