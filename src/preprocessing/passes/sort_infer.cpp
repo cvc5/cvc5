@@ -61,7 +61,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     // indicate correspondence between the functions
     // TODO (#2308): move this to a better place
     SmtEngine* smt = smt::currentSmtEngine();
-    for( const std::pair< const Node, Node >& mrf : model_replace_f )
+    for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
       smt->setPrintFuncInModel(mrf.first.toExpr(), false);
       smt->setPrintFuncInModel(mrf.second.toExpr(), true);
