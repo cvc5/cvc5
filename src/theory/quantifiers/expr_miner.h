@@ -27,29 +27,55 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** Expression miner
+ *
+ * This is a virtual base class for modules that "mines" certain information
+ * from (enumerated) expressions. This includes:
+ * - candidate rewrite rules (--sygus-rr-synth)
+ */
 class ExprMiner
 {
  public:
   ExprMiner() : d_sampler(nullptr){}
   virtual ~ExprMiner(){}
-  /** add term */
+  /** add term
+   *
+   * This registers term n with this expression miner. The output stream out
+   * is provided as an argument for the purposes of outputting the result of
+   * the expression mining done by this class. For example, candidate-rewrite
+   * output is printed on out by the candidate rewrite generator miner.
+   */
   virtual bool addTerm(Node n, std::ostream& out) = 0;
  protected:
-  /** set sampler 
-   */
-  void setSampler( SygusSampler * ss );
-  /** (required) pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
-  /** the set of free variables */
+  /** the set of variables used by this class */
   std::vector< Node > d_svars;
+  /** set the sampler used by this class */
+  void setSampler( SygusSampler * ss );
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
   /**
-   * Cache of skolems for each free variable that appears in a synthesis check
-   * (for --sygus-rr-synth-check).
+   * Maps to skolems for each free variable that appears in a check. This is
+   * used during initializeChecker so that query (which may contain free
+   * variables) is converted to a formula without free variables.
    */
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);
-  /** initialize checker */
+  /** initialize checker 
+   *
+   * This function initializes the smt engine smte to check the satisfiability
+   * of the argument "query".
+   *
+   * The arguments em and varMap are used for supporting cases where we
+   * want smte to use a different expression manager instead of the current
+   * expression manager. The motivation for this so that different options can
+   * be set for the subcall.
+   * 
+   * We update the flag needExport to true if smte is using the expression
+   * manager em. In this case, subsequent expressions extracted from smte
+   * (for instance, model values) must be exported to the current expression
+   * manager.
+   */
   void initializeChecker(std::unique_ptr<SmtEngine>& smte,
                          ExprManager& em,
                          ExprManagerMapCollection& varMap,
