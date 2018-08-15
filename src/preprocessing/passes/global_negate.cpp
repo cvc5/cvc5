@@ -102,9 +102,9 @@ GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult GlobalNegate::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
   if (assertionsToPreprocess->size() > 0) {
-      assertionsToPreprocess->replace(0,
+    NodeManager* nm = NodeManager::currentNM();
+    assertionsToPreprocess->replace(0,
                                   simplify(assertionsToPreprocess->ref(), nm));
     Node trueNode = nm->mkConst(true);
     for (unsigned i = 1; i < assertionsToPreprocess->size(); ++i)
