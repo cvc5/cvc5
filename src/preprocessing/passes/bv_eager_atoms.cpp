@@ -18,8 +18,6 @@
 
 #include "preprocessing/passes/bv_eager_atoms.h"
 
-#include <vector>
-
 #include "theory/theory_model.h"
 
 namespace CVC4 {
