@@ -80,6 +80,7 @@
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
+#include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
@@ -2735,15 +2736,18 @@ void SmtEnginePrivate::finishInit()
       new RealToInt(d_preprocessingPassContext.get()));
   std::unique_ptr<Rewrite> rewrite(
       new Rewrite(d_preprocessingPassContext.get()));
+  std::unique_ptr<SortInferencePass> sortInfer(
+      new SortInferencePass(d_preprocessingPassContext.get(),
+                            d_smt.d_theoryEngine->getSortInference()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
- std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
+  std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
-   d_preprocessingPassRegistry.registerPass("apply-substs",
+  d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
@@ -2761,6 +2765,8 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
                                            std::move(sepSkolemEmp));
+  d_preprocessingPassRegistry.registerPass("sort-inference",
+                                           std::move(sortInfer));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
@@ -4332,13 +4338,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
-    //sort inference technique
-    SortInference * si = d_smt.d_theoryEngine->getSortInference();
-    si->simplify( d_assertions.ref(), options::sortInference(), options::ufssFairnessMonotone() );
-    for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
-      d_smt.setPrintFuncInModel( it->first.toExpr(), false );
-      d_smt.setPrintFuncInModel( it->second.toExpr(), true );
-    }
+    d_preprocessingPassRegistry.getPass("sort-inference")->apply(&d_assertions);
   }
 
   if( options::pbRewrites() ){
@@ -4826,9 +4826,9 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   finalOptionsAreSet();
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << GetUnsatCoreCommand();
+    Dump("benchmark") << GetUnsatAssumptionsCommand();
   }
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
   vector<Expr> res;
   for (const Expr& e : d_assumptions)
   {
@@ -5191,6 +5191,31 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+UnsatCore SmtEngine::getUnsatCoreInternal()
+{
+#if IS_PROOFS_BUILD
+  if (!options::unsatCores())
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores option is off.");
+  }
+  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
+      || d_problemExtended)
+  {
+    throw RecoverableModalException(
+        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
+        "response.");
+  }
+
+  d_proofManager->traceUnsatCore();  // just to trigger core creation
+  return UnsatCore(this, d_proofManager->extractUnsatCore());
+#else  /* IS_PROOFS_BUILD */
+  throw ModalException(
+      "This build of CVC4 doesn't have proof support (required for unsat "
+      "cores).");
+#endif /* IS_PROOFS_BUILD */
+}
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5549,23 +5574,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
-#if IS_PROOFS_BUILD
-  if(!options::unsatCores()) {
-    throw ModalException("Cannot get an unsat core when produce-unsat-cores option is off.");
-  }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
-    throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
-        "response.");
-  }
-
-  d_proofManager->traceUnsatCore();// just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
-#else /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");
-#endif /* IS_PROOFS_BUILD */
+  return getUnsatCoreInternal();
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
