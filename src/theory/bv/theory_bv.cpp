@@ -15,6 +15,7 @@
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
@@ -670,13 +671,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   {
     case kind::EQUAL:
     {
-      if (in[0].isVar() && !in[1].hasSubterm(in[0]))
+      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1]))
+      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[1], in[0]);

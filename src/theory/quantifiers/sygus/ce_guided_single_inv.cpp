@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -728,7 +729,7 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       Node s;
       for( unsigned r=0; r<2; r++ ){
         if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
-          if (!slit[1 - r].hasSubterm(slit[r]))
+          if (!expr::hasSubterm(slit[1 - r], slit[r]))
           {
             v = slit[r];
             s = slit[1-r];
@@ -747,7 +748,8 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
               Node val;
               int ires =
                   ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-              if (ires != 0 && veq_c.isNull() && !val.hasSubterm(itm->first))
+              if (ires != 0 && veq_c.isNull()
+                  && !expr::hasSubterm(val, itm->first))
               {
                 v = itm->first;
                 s = val;
@@ -859,7 +861,8 @@ void TransitionInference::process( Node n ) {
         }else{
           res = NodeManager::currentNM()->mkNode( kind::OR, disjuncts );
         }
-        if( !res.hasBoundVar() ){
+        if (!expr::hasBoundVar(res))
+        {
           Trace("cegqi-inv") << "*** inferred " << ( comp_num==1 ? "pre" : ( comp_num==-1 ? "post" : "trans" ) ) << "-condition : " << res << std::endl;
           d_com[comp_num].d_conjuncts.push_back( res );
           if( !const_var.empty() ){

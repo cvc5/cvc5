@@ -19,6 +19,7 @@
 
 #include "base/output.h"
 #include "expr/expr.h"
+#include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_static_learner.h"
@@ -107,7 +108,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
 
   switch(n.getKind()){
   case ITE:
-    if(n.hasBoundVar()) {
+    if (expr::hasBoundVar(n))
+    {
       // Unsafe with non-ground ITEs; do nothing
       Debug("arith::static") << "(potentially) non-ground ITE, ignoring..." << endl;
       break;

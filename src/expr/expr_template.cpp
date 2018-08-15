@@ -21,10 +21,11 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
-#include "expr/node.h"
 #include "expr/expr_manager_scope.h"
-#include "expr/variable_type_map.h"
+#include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/variable_type_map.h"
 
 ${includes}
 
@@ -537,7 +538,7 @@ bool Expr::hasFreeVariable() const
 {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->hasFreeVar();
+  return expr::hasFreeVar(*d_node);
 }
 
 void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,

@@ -17,14 +17,15 @@
 
 #include <vector>
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -179,7 +180,8 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
     registerNode( n[1], hasPol, pol, true );
   }else{
     if( !MatchGen::isHandledBoolConnective( n ) ){
-      if( n.hasBoundVar() ){
+      if (expr::hasBoundVar(n))
+      {
         //literals
         if( n.getKind()==EQUAL ){
           for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -215,7 +217,8 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
 
 void QuantInfo::flatten( Node n, bool beneathQuant ) {
   Trace("qcf-qregister-debug2") << "Flatten : " << n << std::endl;
-  if( n.hasBoundVar() ){
+  if (expr::hasBoundVar(n))
+  {
     if( n.getKind()==BOUND_VARIABLE ){
       d_inMatchConstraint[n] = true;
     }
@@ -982,7 +985,8 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
       }
     }
   }else{
-    if( n.hasBoundVar() ){
+    if (expr::hasBoundVar(n))
+    {
       d_type_not = false;
       d_n = n;
       if( d_n.getKind()==NOT ){
@@ -1013,7 +1017,8 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
           d_type = typ_bool_var;
         }else if( d_n.getKind()==EQUAL || options::qcfTConstraint() ){
           for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
-            if( d_n[i].hasBoundVar() ){
+            if (expr::hasBoundVar(d_n[i]))
+            {
               if( !qi->isVar( d_n[i] ) ){
                 Trace("qcf-qregister-debug")  << "ERROR : not var " << d_n[i] << std::endl;
               }
@@ -1181,7 +1186,8 @@ void MatchGen::reset_round( QuantConflictFind * p ) {
     }
   }else if( d_type==typ_eq ){
     for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
-      if( !d_n[i].hasBoundVar() ){
+      if (!expr::hasBoundVar(d_n[i]))
+      {
         TNode t = p->getTermDatabase()->getEntailedTerm( d_n[i] );
         if( t.isNull() ){
           d_ground_eval[i] = d_n[i];
@@ -1772,7 +1778,8 @@ Node MatchGen::getMatchOperator( QuantConflictFind * p, Node n ) {
 }
 
 bool MatchGen::isHandled( TNode n ) {
-  if( n.getKind()!=BOUND_VARIABLE && n.hasBoundVar() ){
+  if (n.getKind() != BOUND_VARIABLE && expr::hasBoundVar(n))
+  {
     if( !isHandledBoolConnective( n ) && !isHandledUfTerm( n ) && n.getKind()!=EQUAL && n.getKind()!=ITE ){
       return false;
     }

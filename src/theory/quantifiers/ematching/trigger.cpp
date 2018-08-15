@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/trigger.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
@@ -305,7 +306,7 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
-        && !n1.hasSubterm(n2))
+        && !expr::hasSubterm(n1, n2))
     {
       return true;
     }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){

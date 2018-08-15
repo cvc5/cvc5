@@ -15,6 +15,7 @@
  **/
 
 #include "theory/substitutions.h"
+#include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -217,7 +218,8 @@ static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
   Debug("substitution") << "checking " << node << endl;
   for (; it != it_end; ++ it) {
     Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << endl;
-    if (node.hasSubterm((*it).first)) {
+    if (expr::hasSubterm(node, (*it).first))
+    {
       Debug("substitution") << "-- FAIL" << endl;
       return false;
     }
