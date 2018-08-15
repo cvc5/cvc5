@@ -10,6 +10,6 @@ set(smtutil_src_files
   node_visitor.h
 )
 
-add_library(smtutil SHARED ${smtutil_src_files})
-set_target_properties(smtutil PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
+add_library(smtutil ${smtutil_src_files})
+target_compile_definitions(smtutil PRIVATE -D__BUILDING_CVC4LIB)
 target_link_libraries(smtutil expr)

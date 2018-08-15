@@ -23,7 +23,7 @@ add_custom_command(
     Smt2.g
 )
 
-add_library(parsersmt2 SHARED ${parser_smt2_src_files} ${parser_smt2_gen_src_files})
-set_target_properties(parsersmt2 PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4PARSERLIB)
+add_library(parsersmt2 ${parser_smt2_src_files} ${parser_smt2_gen_src_files})
+target_compile_definitions(parsersmt2 PRIVATE -D__BUILDING_CVC4PARSERLIB)
 set_source_files_properties(${parser_smt2_gen_src_files} PROPERTIES LANGUAGE CXX)
-add_dependencies(parsersmt2 expr)
+target_link_libraries(parsersmt2 expr)

@@ -19,7 +19,7 @@ add_custom_command(
     Cvc.g
 )
 
-add_library(parsercvc SHARED ${parser_cvc_src_files} ${parser_cvc_gen_src_files})
-set_target_properties(parsercvc PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4PARSERLIB)
+add_library(parsercvc ${parser_cvc_src_files} ${parser_cvc_gen_src_files})
+target_compile_definitions(parsercvc PRIVATE -D__BUILDING_CVC4PARSERLIB)
 set_source_files_properties(${parser_cvc_gen_src_files} PROPERTIES LANGUAGE CXX)
-add_dependencies(parsercvc expr)
+target_link_libraries(parsercvc expr)

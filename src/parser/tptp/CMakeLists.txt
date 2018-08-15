@@ -21,7 +21,7 @@ add_custom_command(
     Tptp.g
 )
 
-add_library(parsertptp SHARED ${parser_tptp_src_files} ${parser_tptp_gen_src_files})
-set_target_properties(parsertptp PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4PARSERLIB)
+add_library(parsertptp ${parser_tptp_src_files} ${parser_tptp_gen_src_files})
+target_compile_definitions(parsertptp PRIVATE -D__BUILDING_CVC4PARSERLIB)
 set_source_files_properties(${parser_tptp_gen_src_files} PROPERTIES LANGUAGE CXX)
-add_dependencies(parsertptp expr)
+target_link_libraries(parsertptp expr)

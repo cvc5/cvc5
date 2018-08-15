@@ -101,5 +101,5 @@ set(options_src_files
   ufss_mode.h
 )
 
-add_library(options SHARED options.cpp ${options_gen_cpp_files} ${options_src_files})
-set_target_properties(options PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
+add_library(options options.cpp ${options_gen_cpp_files} ${options_src_files})
+target_compile_definitions(options PRIVATE -D__BUILDING_CVC4LIB)

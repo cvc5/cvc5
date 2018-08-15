@@ -19,13 +19,12 @@ set(bvminisat_src_files
   utils/Options.h
 )
 
-include_directories(.)
-add_library(bvminisat SHARED ${bvminisat_src_files})
-set_target_properties(bvminisat
-  PROPERTIES
-    COMPILE_DEFINITIONS
-      __BUILDING_CVC4LIB
-      __STDC_LIMIT_MACROS
-      __STDC_FORMAT_MACROS
+add_library(bvminisat ${bvminisat_src_files})
+target_include_directories(bvminisat PRIVATE .)
+target_compile_definitions(bvminisat
+  PRIVATE
+    -D__BUILDING_CVC4LIB
+    -D__STDC_LIMIT_MACROS
+    -D__STDC_FORMAT_MACROS
 )
-add_dependencies(bvminisat expr)
+target_link_libraries(bvminisat expr)

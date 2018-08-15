@@ -1,10 +1,4 @@
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/git_versioninfo.cpp.in
-  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-)
-
 set(cvc4_src_files
-  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
   api/cvc4cpp.cpp
   api/cvc4cpp.h
   api/cvc4cppkind.h
@@ -566,13 +560,12 @@ set(cvc4_gen_src_files
 # tell cmake that the files are generated.
 set_source_files_properties(${cvc4_gen_src_files} PROPERTIES GENERATED TRUE)
 
-add_library(cvc4 SHARED ${cvc4_src_files} ${cvc4_gen_src_files})
-set_target_properties(cvc4
-  PROPERTIES
-    COMPILE_DEFINITIONS
-      __BUILDING_CVC4LIB
-      __STDC_LIMIT_MACROS
-      __STDC_FORMAT_MACROS
+add_library(cvc4 ${cvc4_src_files} ${cvc4_gen_src_files})
+target_compile_definitions(cvc4
+  PRIVATE
+    -D__BUILDING_CVC4LIB
+    -D__STDC_LIMIT_MACROS
+    -D__STDC_FORMAT_MACROS
 )
 add_dependencies(cvc4 gen-theory-files)
 target_link_libraries(cvc4
