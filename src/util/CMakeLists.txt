@@ -1,14 +1,6 @@
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/floatingpoint.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/floatingpoint.h)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/rational.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/rational.h)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/integer.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/integer.h)
+configure_file(floatingpoint.h.in floatingpoint.h)
+configure_file(rational.h.in rational.h)
+configure_file(integer.h.in integer.h)
 
 set(util_src_files
   abstract_value.cpp
@@ -68,6 +60,6 @@ if(CVC4_USE_GMP_IMP)
   list(APPEND util_src_files rational_gmp_imp.cpp integer_gmp_imp.cpp)
 endif()
 
-add_library(util SHARED ${util_src_files})
-set_target_properties(util PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
-add_dependencies(util options)
+add_library(util ${util_src_files})
+target_compile_definitions(util PRIVATE -D__BUILDING_CVC4LIB)
+target_link_libraries(util options)

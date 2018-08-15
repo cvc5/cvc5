@@ -157,10 +157,7 @@ set(CVC4_BUILD_PROFILE_COMPETITION 0)
 #-----------------------------------------------------------------------------#
 
 find_package(PythonInterp REQUIRED)
-
 find_package(ANTLR REQUIRED)
-cvc4_link_library(${ANTLR_LIBRARIES})
-include_directories(${ANTLR_INCLUDE_DIR})
 
 find_package(GMP REQUIRED)
 cvc4_link_library(${GMP_LIBRARIES})

@@ -21,7 +21,7 @@ add_custom_command(
     Smt1.g
 )
 
-add_library(parsersmt1 SHARED ${parser_smt1_src_files} ${parser_smt1_gen_src_files})
-set_target_properties(parsersmt1 PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4PARSERLIB)
+add_library(parsersmt1 ${parser_smt1_src_files} ${parser_smt1_gen_src_files})
+target_compile_definitions(parsersmt1 PRIVATE -D__BUILDING_CVC4PARSERLIB)
 set_source_files_properties(${parser_smt1_gen_src_files} PROPERTIES LANGUAGE CXX)
-add_dependencies(parsersmt1 expr)
+target_link_libraries(parsersmt1 expr)

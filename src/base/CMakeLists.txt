@@ -1,3 +1,5 @@
+configure_file(git_versioninfo.cpp.in git_versioninfo.cpp)
+
 set(base_src_files
   configuration.cpp
   configuration.h
@@ -15,8 +17,9 @@ set(base_src_files
   output.h
 )
 
-add_library(base SHARED ${base_src_files})
-set_target_properties(base PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
+add_library(base
+  ${base_src_files} ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp)
+target_compile_definitions(base PRIVATE -D__BUILDING_CVC4LIB)
 add_dependencies(base tags_headers)
 
 #

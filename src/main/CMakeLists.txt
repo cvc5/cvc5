@@ -5,8 +5,8 @@ set(libmain_src_files
   util.cpp
 )
 
-add_library(main SHARED ${libmain_src_files})
-set_target_properties(main PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4DRIVER)
+add_library(main ${libmain_src_files})
+target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
 target_link_libraries(main cvc4 cvc4parser)
 
 set(cvc4main_src_files
@@ -16,11 +16,9 @@ set(cvc4main_src_files
 )
 
 add_executable(cvc4-main ${cvc4main_src_files})
-set_target_properties(cvc4-main
-  PROPERTIES
-    OUTPUT_NAME cvc4
-    COMPILE_DEFINITIONS __BUILDING_CVC4DRIVER)
-target_link_libraries(cvc4-main main) #cvc4 cvc4parser replacements)
+target_compile_definitions(cvc4-main PRIVATE -D__BUILDING_CVC4DRIVER)
+set_target_properties(cvc4-main PROPERTIES OUTPUT_NAME cvc4)
+target_link_libraries(cvc4-main main)
 
 #set(pcvc4_src_files
 #  main.cpp

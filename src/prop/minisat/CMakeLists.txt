@@ -19,13 +19,12 @@ set(minisat_src_files
   utils/Options.h
 )
 
-include_directories(.)
-add_library(minisat SHARED ${minisat_src_files})
-set_target_properties(minisat
-  PROPERTIES
-    COMPILE_DEFINITIONS
-      __BUILDING_CVC4LIB
-      __STDC_LIMIT_MACROS
-      __STDC_FORMAT_MACROS
+add_library(minisat ${minisat_src_files})
+target_include_directories(minisat PRIVATE .)
+target_compile_definitions(minisat
+  PRIVATE
+    -D__BUILDING_CVC4LIB
+    -D__STDC_LIMIT_MACROS
+    -D__STDC_FORMAT_MACROS
 )
-add_dependencies(minisat expr)
+target_link_libraries(minisat expr)

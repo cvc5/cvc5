@@ -23,10 +23,13 @@ set(cvc4parser_src_files
   parser_exception.h
 )
 
-add_library(cvc4parser SHARED ${cvc4parser_src_files})
-set_target_properties(cvc4parser PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4PARSERLIB)
+add_library(cvc4parser ${cvc4parser_src_files})
+target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
 target_link_libraries(cvc4parser parsercvc parsersmt1 parsersmt2 parsertptp cvc4)
+target_link_libraries(cvc4parser ${ANTLR_LIBRARIES})
 
+# ANTLR includes required for all subdirectories
+include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
 add_subdirectory(cvc)
 add_subdirectory(smt1)
 add_subdirectory(smt2)

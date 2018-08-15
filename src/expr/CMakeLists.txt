@@ -60,8 +60,8 @@ set(expr_gen_src_files
   type_properties.h
 )
 
-add_library(expr SHARED ${expr_src_files} ${expr_gen_src_files})
-set_target_properties(expr PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
+add_library(expr ${expr_src_files} ${expr_gen_src_files})
+target_compile_definitions(expr PRIVATE -D__BUILDING_CVC4LIB)
 
 #
 # Generate code for kinds.

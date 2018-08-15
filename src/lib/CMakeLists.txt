@@ -8,5 +8,5 @@ set(replacements_src_files
   strtok_r.h
 )
 
-add_library(replacements SHARED ${replacements_src_files})
-set_target_properties(replacements PROPERTIES COMPILE_DEFINITIONS __BUILDING_CVC4LIB)
+add_library(replacements ${replacements_src_files})
+target_compile_definitions(replacements PRIVATE -D__BUILDING_CVC4LIB)
