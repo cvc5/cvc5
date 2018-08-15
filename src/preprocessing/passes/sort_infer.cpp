@@ -61,12 +61,10 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     // indicate correspondence between the functions
     // TODO (#2308): move this to a better place
     SmtEngine* smt = smt::currentSmtEngine();
-    for (std::map<Node, Node>::iterator it = model_replace_f.begin();
-         it != model_replace_f.end();
-         ++it)
+    for( const std::pair< const Node, Node >& mrf : model_replace_f )
     {
-      smt->setPrintFuncInModel(it->first.toExpr(), false);
-      smt->setPrintFuncInModel(it->second.toExpr(), true);
+      smt->setPrintFuncInModel(mrf.first.toExpr(), false);
+      smt->setPrintFuncInModel(mrf.second.toExpr(), true);
     }
   }
   // only need to compute monotonicity on the resulting formula if we are

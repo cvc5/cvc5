@@ -120,44 +120,44 @@ void SortInference::initialize(const std::vector<Node>& assertions)
   // process all assertions
   std::map<Node, int> visited;
   for (unsigned i = 0; i < assertions.size(); i++)
+  for( const Node& a : assertions )
   {
-    Trace("sort-inference-debug") << "Process " << assertions[i] << std::endl;
+    Trace("sort-inference-debug") << "Process " << a << std::endl;
     std::map<Node, Node> var_bound;
-    process(assertions[i], var_bound, visited);
+    process(a, var_bound, visited);
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
   for (std::map<Node, int>::iterator it = d_op_return_types.begin();
        it != d_op_return_types.end();
        ++it)
+  for( const std::pair< const Node, int >& rt : d_op_return_types )
   {
-    Trace("sort-inference") << it->first << " : ";
-    TypeNode retTn = it->first.getType();
-    if (!d_op_arg_types[it->first].empty())
+    Trace("sort-inference") << rt.first << " : ";
+    TypeNode retTn = rt.first.getType();
+    if (!d_op_arg_types[rt.first].empty())
     {
       Trace("sort-inference") << "( ";
-      for (size_t i = 0; i < d_op_arg_types[it->first].size(); i++)
+      for (size_t i = 0; i < d_op_arg_types[rt.first].size(); i++)
       {
-        recordSubsort(retTn[i], d_op_arg_types[it->first][i]);
-        printSort("sort-inference", d_op_arg_types[it->first][i]);
+        recordSubsort(retTn[i], d_op_arg_types[rt.first][i]);
+        printSort("sort-inference", d_op_arg_types[rt.first][i]);
         Trace("sort-inference") << " ";
       }
       Trace("sort-inference") << ") -> ";
       retTn = retTn[(int)retTn.getNumChildren() - 1];
     }
-    recordSubsort(retTn, it->second);
-    printSort("sort-inference", it->second);
+    recordSubsort(retTn, rt.second);
+    printSort("sort-inference", rt.second);
     Trace("sort-inference") << std::endl;
   }
-  for (std::map<Node, std::map<Node, int> >::iterator it = d_var_types.begin();
-       it != d_var_types.end();
-       ++it)
+  for( std::pair< const Node, std::map< Node, int > >& vt : d_var_types )
   {
     Trace("sort-inference")
-        << "Quantified formula : " << it->first << " : " << std::endl;
-    for (unsigned i = 0; i < it->first[0].getNumChildren(); i++)
+        << "Quantified formula : " << vt.first << " : " << std::endl;
+    for( const Node& v : vt.first[0] )
     {
-      recordSubsort(it->first[0][i].getType(), it->second[it->first[0][i]]);
-      printSort("sort-inference", it->second[it->first[0][i]]);
+      recordSubsort(v.getType(), vt.second[v]);
+      printSort("sort-inference", vt.second[v]);
       Trace("sort-inference") << std::endl;
     }
     Trace("sort-inference") << std::endl;
@@ -213,18 +213,13 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
 {
   NodeManager* nm = NodeManager::currentNM();
   // now, ensure constants are distinct
-  for (std::map<TypeNode, std::map<Node, Node> >::iterator it =
-           d_const_map.begin();
-       it != d_const_map.end();
-       ++it)
+  for( const std::pair< const TypeNode, std::map< Node, Node > >& cm : d_const_map )
   {
     std::vector<Node> consts;
-    for (std::map<Node, Node>::iterator it2 = it->second.begin();
-         it2 != it->second.end();
-         ++it2)
+    for( const std::pair< const Node, Node >& c : cm.second )
     {
-      Assert(it2->first.isConst());
-      consts.push_back(it2->second);
+      Assert(c.first.isConst());
+      consts.push_back(c.second);
     }
     // add lemma enforcing introduced constants to be distinct
     if (consts.size() > 1)
@@ -239,35 +234,33 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
 
   // enforce constraints based on monotonicity
   Trace("sort-inference-proc") << "Enforce monotonicity..." << std::endl;
-  for (std::map<TypeNode, std::vector<int> >::iterator it =
-           d_type_sub_sorts.begin();
-       it != d_type_sub_sorts.end();
-       ++it)
+
+  for( const std::pair<const TypeNode, std::vector<int> >& tss : d_type_sub_sorts )
   {
     int nmonSort = -1;
-    unsigned nsorts = it->second.size();
+    unsigned nsorts = tss.second.size();
     for (unsigned i = 0; i < nsorts; i++)
     {
-      if (d_non_monotonic_sorts.find(it->second[i])
+      if (d_non_monotonic_sorts.find(tss.second[i])
           != d_non_monotonic_sorts.end())
       {
-        nmonSort = it->second[i];
+        nmonSort = tss.second[i];
         break;
       }
     }
     if (nmonSort != -1)
     {
       std::vector<Node> injections;
-      TypeNode base_tn = getOrCreateTypeForId(nmonSort, it->first);
+      TypeNode base_tn = getOrCreateTypeForId(nmonSort, tss.first);
       for (unsigned i = 0; i < nsorts; i++)
       {
-        if (it->second[i] != nmonSort)
+        if (tss.second[i] != nmonSort)
         {
-          TypeNode new_tn = getOrCreateTypeForId(it->second[i], it->first);
+          TypeNode new_tn = getOrCreateTypeForId(tss.second[i], tss.first);
           // make injection to nmonSort
           Node a1 = mkInjection(new_tn, base_tn);
           injections.push_back(a1);
-          if (d_non_monotonic_sorts.find(it->second[i])
+          if (d_non_monotonic_sorts.find(tss.second[i])
               != d_non_monotonic_sorts.end())
           {
             // also must make injection from nmonSort to this
@@ -279,7 +272,7 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
       if (Trace.isOn("sort-inference-rewrite"))
       {
         Trace("sort-inference-rewrite")
-            << "Add the following injections for " << it->first
+            << "Add the following injections for " << tss.first
             << " to ensure consistency wrt non-monotonic sorts : " << std::endl;
         for (const Node& i : injections)
         {
