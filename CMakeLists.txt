@@ -142,10 +142,10 @@ cvc4_option(ENABLE_REPLAY        "Enable the replay feature")
 cvc4_option(ENABLE_TRACING       "Enable tracing")
 cvc4_option(ENABLE_STATISTICS    "Enable statistics")
 cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
+cvc4_option(ENABLE_SHARED        "Build as shared library")
 # >> 2-valued: ON OFF, for options where we don't need to detect if set by user
 option(ENABLE_COVERAGE           "Enable support for gcov coverage testing" OFF)
 option(ENABLE_PROFILING          "Enable support for gprof profiling" OFF)
-option(ENABLE_SHARED             "Build as shared library" OFF)
 
 # Optional dependencies
 option(USE_CADICAL               "Use CaDiCaL SAT solver")
@@ -385,59 +385,59 @@ set(BOOST_HAS_THREAD_ATTR 0)
 set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
 # Defined if using the GMP multi-precision arithmetic library.
 set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
-# Defined if the requested minimum BOOST version is satisfied
-set(HAVE_BOOST 1)
-# Define to 1 if you have <boost/system/error_code.hpp>
-set(HAVE_BOOST_SYSTEM_ERROR_CODE_HPP 1)
-# Define to 1 if you have <boost/thread.hpp>
-set(HAVE_BOOST_THREAD_HPP 1)
+## Defined if the requested minimum BOOST version is satisfied
+#set(HAVE_BOOST 1)
+## Define to 1 if you have <boost/system/error_code.hpp>
+#set(HAVE_BOOST_SYSTEM_ERROR_CODE_HPP 1)
+## Define to 1 if you have <boost/thread.hpp>
+#set(HAVE_BOOST_THREAD_HPP 1)
 # Defined to 1 if clock_gettime() is supported by the platform.
 set(HAVE_CLOCK_GETTIME 1)
 # define if the compiler supports basic C++11 syntax
 set(HAVE_CXX11 1)
 # Define to 1 if you have the declaration of `optreset', and to 0 if you don't.
 set(HAVE_DECL_OPTRESET 0)
-# Define to 1 if you have the declaration of `strerror_r', and to 0 if you
-# don't.
-set(HAVE_DECL_STRERROR_R 1)
-# Define to 1 if you have the <dlfcn.h> header file.
-set(HAVE_DLFCN_H 1)
+## Define to 1 if you have the declaration of `strerror_r', and to 0 if you
+## don't.
+#set(HAVE_DECL_STRERROR_R 1)
+## Define to 1 if you have the <dlfcn.h> header file.
+#set(HAVE_DLFCN_H 1)
 # Define to 1 if you have the <ext/stdio_filebuf.h> header file.
 set(HAVE_EXT_STDIO_FILEBUF_H 1)
 # Defined to 1 if ffs() is supported by the platform.
 set(HAVE_FFS 1)
 # Define to 1 if you have the <getopt.h> header file.
 set(HAVE_GETOPT_H 1)
-# Define to 1 if you have the <inttypes.h> header file.
-set(HAVE_INTTYPES_H 1)
-# Define to 1 if you have the `gmp' library (-lgmp).
-set(HAVE_LIBGMP 1)
+## Define to 1 if you have the <inttypes.h> header file.
+#set(HAVE_INTTYPES_H 1)
+## Define to 1 if you have the `gmp' library (-lgmp).
+#set(HAVE_LIBGMP 1)
 ## Define to 1 if you have the `profiler' library (-lprofiler).
 #set(HAVE_LIBPROFILER 0)
 # Define to 1 to use libreadline
 #set(HAVE_LIBREADLINE 0)
 ## Define to 1 if you have the `tcmalloc' library (-ltcmalloc).
 #set(HAVE_LIBTCMALLOC 0)
-# Define to 1 if you have the <memory.h> header file.
-set(HAVE_MEMORY_H 1)
+## Define to 1 if you have the <memory.h> header file.
+#set(HAVE_MEMORY_H 1)
 # Defined to 1 if sigaltstack() is supported by the platform.
 set(HAVE_SIGALTSTACK 1)
-# Define to 1 if you have the <stdint.h> header file.
-set(HAVE_STDINT_H 1)
-# Define to 1 if you have the <stdlib.h> header file.
-set(HAVE_STDLIB_H 1)
+## Define to 1 if you have the <stdint.h> header file.
+#set(HAVE_STDINT_H 1)
+## Define to 1 if you have the <stdlib.h> header file.
+#set(HAVE_STDLIB_H 1)
 # Define to 1 if you have the `strerror_r' function.
 set(HAVE_STRERROR_R 1)
-# Define to 1 if you have the <strings.h> header file.
-set(HAVE_STRINGS_H 1)
-# Define to 1 if you have the <string.h> header file.
-set(HAVE_STRING_H 1)
+## Define to 1 if you have the <strings.h> header file.
+#set(HAVE_STRINGS_H 1)
+## Define to 1 if you have the <string.h> header file.
+#set(HAVE_STRING_H 1)
 # Defined to 1 if strtok_r() is supported by the platform.
 set(HAVE_STRTOK_R 1)
-# Define to 1 if you have the <sys/stat.h> header file.
-set(HAVE_SYS_STAT_H 1)
-# Define to 1 if you have the <sys/types.h> header file.
-set(HAVE_SYS_TYPES_H 1)
+## Define to 1 if you have the <sys/stat.h> header file.
+#set(HAVE_SYS_STAT_H 1)
+## Define to 1 if you have the <sys/types.h> header file.
+#set(HAVE_SYS_TYPES_H 1)
 # Define to 1 if you have the <unistd.h> header file.
 set(HAVE_UNISTD_H 1)
 ## Define to the sub-directory where libtool stores uninstalled libraries.
@@ -489,9 +489,9 @@ message("")
 #message("Unit tests   : ${support_unit_tests}")
 message("gcov support      : ${ENABLE_COVERAGE}")
 message("gprof support     : ${ENABLE_PROFILING}")
-#message("")
+message("")
 #message("Static libs  : ${enable_static}")
-#message("Shared libs  : ${enable_shared}")
+message("Shared libs       : ${ENABLE_SHARED}")
 #message("Static binary: ${enable_static_binary}")
 #message("Compat lib   : ${CVC4_BUILD_LIBCOMPAT}")
 #message("Bindings     : ${bindings_to_be_built}")
