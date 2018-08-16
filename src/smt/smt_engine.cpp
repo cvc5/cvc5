@@ -1295,8 +1295,8 @@ void SmtEngine::setDefaults() {
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
     // Bitvector-divide-by-zero changed semantics in SMT LIB 2.6, thus we
-    // set this option if the input format in SMT LIB 2.6. We also set this
-    // option if we are sygus, since we assume 2.6 semantics for sygus.
+    // set this option if the input format is SMT LIB 2.6. We also set this
+    // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
         language::isInputLang_smt2_6(options::inputLanguage())
         || options::inputLanguage() == language::input::LANG_SYGUS);
