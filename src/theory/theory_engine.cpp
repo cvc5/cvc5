@@ -2207,7 +2207,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         // If we're expanding the target node of the explanation (this is the
         // first expansion...), we don't want to add it as a separate proof
         // step. It is already part of the assertions.
-        if (ContainsKey(*inputAssertions, toExplain.node))
+        if (!ContainsKey(*inputAssertions, toExplain.node))
         {
           LemmaProofRecipe::ProofStep proofStep(toExplain.theory,
                                                 toExplain.node);
