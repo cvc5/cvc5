@@ -35,8 +35,8 @@ PreSkolemQuant::PreSkolemQuant(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult PreSkolemQuant::applyInternal(
   AssertionPipeline* assertionsToPreprocess)
 {
-  
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i) {
+  size_t size = assertionsToPreprocess->size();
+  for (size_t i = 0; i < size;  ++i) {
     Node prev = (*assertionsToPreprocess)[i];
     Node next = quantifiers::QuantifiersRewriter::preprocess(prev);
     if (next!=prev) {
