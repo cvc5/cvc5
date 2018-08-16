@@ -583,12 +583,8 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   void staticLearning();
 
-  Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector<Node>& var_eq);
-  Node purifyNlTerms(TNode n,
-                     NodeToNodeHashMap& cache,
-                     NodeToNodeHashMap& bcache,
-                     std::vector<Node>& var_eq,
-                     bool beneathMult = false);
+  Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
+  Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
 
   /**
    * Helper function to fix up assertion list to restore invariants needed after
