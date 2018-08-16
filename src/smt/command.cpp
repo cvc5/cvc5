@@ -1780,7 +1780,7 @@ std::string GetSynthSolutionCommand::getCommandName() const
 /* -------------------------------------------------------------------------- */
 
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand()
-    : d_expr(), d_doFull()
+    : d_expr(), d_doFull(true)
 {
 }
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(
