@@ -109,7 +109,7 @@ void storeFunctionAndAddLemmas(TNode func,
      * set*/
     if (set.size() == 2) 
     {
-      for (const TNode& elem : set)
+      for (TNode elem : set)
       {
         vec->insert(vec->end(), elem.begin(), elem.end());
       }
@@ -167,7 +167,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
               term.getKind() != kind::STORE,
               "Cannot use eager bitblasting on QF_ABV formula with stores");
           /* add children to the vector, so that they are processed later */
-          for (const TNode& n : term)
+          for (TNode n : term)
           {
             vec->push_back(n);
           }
