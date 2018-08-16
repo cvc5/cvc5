@@ -19,6 +19,7 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
+#include <tuple>
 #include <unordered_map>
 
 #include "context/cdhashmap.h"
@@ -369,7 +370,7 @@ class TheoryArrays : public Theory {
 
   bool d_mergeInProgress;
 
-  typedef quad<TNode, TNode, TNode, TNode> RowLemmaType;
+  using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
   context::CDQueue<RowLemmaType> d_RowQueue;
   context::CDHashSet<RowLemmaType, RowLemmaTypeHashFunction > d_RowAlreadyAdded;
