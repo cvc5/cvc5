@@ -81,6 +81,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   {
     Kind ok = NodeManager::operatorToKind(sygus_op);
     Kind nk = ok;
+    Trace("sygus-grammar-normalize-debug") << "...builtin operator is " << ok << std::endl;
     // We also must ensure that builtin operators which are eliminated
     // during expand definitions are replaced by the proper term.
     if (ok == kind::BITVECTOR_UDIV)
@@ -105,6 +106,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
     }
     if (nk != ok)
     {
+      Trace("sygus-grammar-normalize-debug") << "...replace by builtin operator " << nk << std::endl;
       exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
     }
   }
