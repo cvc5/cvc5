@@ -5,12 +5,12 @@
 (synth-fun f ((x (BitVec 32))) (BitVec 32) 
 ((Start (BitVec 32)
    (
-            x
              (bvudiv Start Start)
              (bvurem Start Start)
              (bvsdiv Start Start)
-             #x00000002
+             #x00000001
              #x00000000
+             #x00000002 x
              (ite StartBool Start Start)))
     (StartBool Bool (( bvult Start Start)
     			(bvugt Start Start)

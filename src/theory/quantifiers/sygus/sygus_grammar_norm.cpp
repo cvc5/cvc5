@@ -84,7 +84,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
     Trace("sygus-grammar-normalize-debug")
         << "...builtin operator is " << ok << std::endl;
     // We also must ensure that builtin operators which are eliminated
-    // during expand definitions are replaced by the proper term.
+    // during expand definitions are replaced by the proper operator.
     if (ok == kind::BITVECTOR_UDIV)
     {
       nk = kind::BITVECTOR_UDIV_TOTAL;
