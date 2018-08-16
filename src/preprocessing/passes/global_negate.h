@@ -40,6 +40,9 @@ class GlobalNegate : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
+ private:
+  Node simplify(std::vector<Node>& assertions, NodeManager* nm);
 };
 
 }  // namespace passes

@@ -17,16 +17,15 @@
 #include "expr/node.h"
 #include "theory/rewriter.h"
 
+using namespace std;
+using namespace CVC4::kind;
+using namespace CVC4::theory;
+
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-namespace {
-
-Node simplify(std::vector<Node>& assertions, NodeManager* nm)
+Node GlobalNegate::simplify(std::vector<Node>& assertions, NodeManager* nm)
 {
   Assert(!assertions.empty());
   Trace("cbqi-gn") << "Global negate : " << std::endl;
@@ -94,7 +93,6 @@ Node simplify(std::vector<Node>& assertions, NodeManager* nm)
   Trace("cbqi-gn") << "...got (post-rewrite) : " << body << std::endl;
   return body;
 }
-}  // namespace
 
 GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "global-negate"){};
