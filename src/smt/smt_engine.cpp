@@ -70,6 +70,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/passes/apply_substs.h"
+#include "preprocessing/passes/apply_to_const.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_ackermann.h"
@@ -895,66 +896,6 @@ public:
     Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
     Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
     return retval;
-  }
-
-  NodeToNodeHashMap d_rewriteApplyToConstCache;
-  Node rewriteApplyToConst(TNode n) {
-    Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
-
-    if(n.getMetaKind() == kind::metakind::CONSTANT ||
-       n.getMetaKind() == kind::metakind::VARIABLE ||
-       n.getMetaKind() == kind::metakind::NULLARY_OPERATOR)
-    {
-      return n;
-    }
-
-    if(d_rewriteApplyToConstCache.find(n) != d_rewriteApplyToConstCache.end()) {
-      Trace("rewriteApplyToConst") << "in cache :: "
-                                   << d_rewriteApplyToConstCache[n]
-                                   << std::endl;
-      return d_rewriteApplyToConstCache[n];
-    }
-
-    if(n.getKind() == kind::APPLY_UF) {
-      if(n.getNumChildren() == 1 && n[0].isConst() &&
-         n[0].getType().isInteger())
-      {
-        stringstream ss;
-        ss << n.getOperator() << "_";
-        if(n[0].getConst<Rational>() < 0) {
-          ss << "m" << -n[0].getConst<Rational>();
-        } else {
-          ss << n[0];
-        }
-        Node newvar = NodeManager::currentNM()->mkSkolem(
-            ss.str(), n.getType(), "rewriteApplyToConst skolem",
-            NodeManager::SKOLEM_EXACT_NAME);
-        d_rewriteApplyToConstCache[n] = newvar;
-        Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
-        return newvar;
-      } else {
-        stringstream ss;
-        ss << "The rewrite-apply-to-const preprocessor is currently limited;"
-           << std::endl
-           << "it only works if all function symbols are unary and with Integer"
-           << std::endl
-           << "domain, and all applications are to integer values." << std::endl
-           << "Found application: " << n;
-        Unhandled(ss.str());
-      }
-    }
-
-    NodeBuilder<> builder(n.getKind());
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      builder << n.getOperator();
-    }
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      builder << rewriteApplyToConst(n[i]);
-    }
-    Node rewr = builder;
-    d_rewriteApplyToConstCache[n] = rewr;
-    Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
-    return rewr;
   }
 
   void addUseTheoryListListener(TheoryEngine* theoryEngine){
@@ -2717,6 +2658,8 @@ void SmtEnginePrivate::finishInit()
   // actually assembling preprocessing pipelines).
   std::unique_ptr<ApplySubsts> applySubsts(
       new ApplySubsts(d_preprocessingPassContext.get()));
+  std::unique_ptr<ApplyToConst> applyToConst(
+      new ApplyToConst(d_preprocessingPassContext.get()));
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<BvAbstraction> bvAbstract(
@@ -2750,6 +2693,8 @@ void SmtEnginePrivate::finishInit()
       new SepSkolemEmp(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
+  d_preprocessingPassRegistry.registerPass("apply-to-const",
+                                           std::move(applyToConst));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -4476,9 +4421,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::rewriteApplyToConst()) {
     Chat() << "Rewriting applies to constants..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteApplyToConstTime);
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions[i] = Rewriter::rewrite(rewriteApplyToConst(d_assertions[i]));
-    }
+    d_preprocessingPassRegistry.getPass("apply-to-const")->apply(&d_assertions);
   }
   dumpAssertions("post-rewrite-apply-to-const", d_assertions);
 
