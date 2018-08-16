@@ -517,6 +517,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   bool d_propagatorNeedsFinish;
   std::vector<Node> d_boolVars;
 
+  /** Assertions in the preprocessing pipeline */
+  AssertionPipeline d_assertions;
+
   /** Whether any assertions have been processed */
   CDO<bool> d_assertionsProcessed;
 
@@ -555,8 +558,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
  public:
-  /** Assertions in the preprocessing pipeline */
-  AssertionPipeline d_assertions;
+  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
@@ -821,7 +823,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_assertions.clear();
     d_nonClausalLearnedLiterals.clear();
     d_realAssertionsEnd = 0;
-    d_assertions.getIteSkolemMap().clear();
+    getIteSkolemMap().clear();
   }
 
   /**
@@ -3963,7 +3965,7 @@ Result SmtEngine::check() {
        (not d_logic.isQuantified() &&
         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
         )){
-      if (d_private->d_assertions.getIteSkolemMap().empty())
+      if (d_private->getIteSkolemMap().empty())
       {
         options::decisionStopOnly.set(false);
         d_decisionEngine->clearStrategies();
@@ -4003,8 +4005,8 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_assertions.getIteSkolemMap().find(n);
-    if (it != d_assertions.getIteSkolemMap().end())
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
+    if (it != getIteSkolemMap().end())
     {
       skolemSet.insert(n);
     }
@@ -4030,9 +4032,9 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_assertions.getIteSkolemMap().find(n);
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
     bool bad = false;
-    if (it != d_assertions.getIteSkolemMap().end())
+    if (it != getIteSkolemMap().end())
     {
       if (!((*it).first < n)) {
         bad = true;
@@ -4399,8 +4401,8 @@ void SmtEnginePrivate::processAssertions() {
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
       // If either of these is violated, we must add iteExpr as a proper assertion
-      IteSkolemMap::iterator it = d_assertions.getIteSkolemMap().begin();
-      IteSkolemMap::iterator iend = d_assertions.getIteSkolemMap().end();
+      IteSkolemMap::iterator it = getIteSkolemMap().begin();
+      IteSkolemMap::iterator iend = getIteSkolemMap().end();
       NodeBuilder<> builder(kind::AND);
       builder << d_assertions[d_realAssertionsEnd - 1];
       vector<TNode> toErase;
@@ -4428,7 +4430,7 @@ void SmtEnginePrivate::processAssertions() {
       }
       if(builder.getNumChildren() > 1) {
         while (!toErase.empty()) {
-          d_assertions.getIteSkolemMap().erase(toErase.back());
+          getIteSkolemMap().erase(toErase.back());
           toErase.pop_back();
         }
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
@@ -4497,9 +4499,8 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions(d_assertions.ref(),
-                                          d_realAssertionsEnd,
-                                          d_assertions.getIteSkolemMap());
+    d_smt.d_decisionEngine->addAssertions(
+        d_assertions.ref(), d_realAssertionsEnd, getIteSkolemMap());
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -4521,7 +4522,7 @@ void SmtEnginePrivate::processAssertions() {
   d_assertionsProcessed = true;
 
   d_assertions.clear();
-  d_assertions.getIteSkolemMap().clear();
+  getIteSkolemMap().clear();
 }
 
 void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
