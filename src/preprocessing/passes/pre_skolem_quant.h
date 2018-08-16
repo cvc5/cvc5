@@ -9,10 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Remove rewrite rules, apply pre-skolemization to existential quantifiers
- **  
+ ** \brief Remove rewrite rules, apply pre-skolemization to existential
+ *quantifiers
  **
- ** Calls the quantifier rewriter, removing rewrite rules and applying 
+ **
+ ** Calls the quantifier rewriter, removing rewrite rules and applying
  ** pre-skolemization to existential quantifiers
  **/
 
@@ -43,5 +44,3 @@ class PreSkolemQuant : public PreprocessingPass
 }  // namespace CVC4
 
 #endif /* __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H */
-
-

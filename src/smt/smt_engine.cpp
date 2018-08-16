@@ -2763,7 +2763,7 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("pre-skolem-quant", 
+  d_preprocessingPassRegistry.registerPass("pre-skolem-quant",
                                            std::move(preSkolemQuant));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
@@ -4246,7 +4246,7 @@ void SmtEnginePrivate::processAssertions() {
   {
     // special rewriting pass for unsat cores, since many of the passes below
     // are skipped
-      d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
   }
   else
   {
@@ -4288,7 +4288,8 @@ void SmtEnginePrivate::processAssertions() {
 
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
-    d_preprocessingPassRegistry.getPass("pre-skolem-quant")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("pre-skolem-quant")
+        ->apply(&d_assertions);
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion

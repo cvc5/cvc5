@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Remove rewrite rules, apply pre-skolemization to existential quantifiers
- **  
+ ** \brief Remove rewrite rules, apply pre-skolemization to existential
+ *quantifiers
  **
- ** Calls the quantifier rewriter, removing rewrite rules and applying 
+ **
+ ** Calls the quantifier rewriter, removing rewrite rules and applying
  ** pre-skolemization to existential quantifiers
  **/
-
 
 #include "preprocessing/passes/pre_skolem_quant.h"
 
@@ -33,18 +33,20 @@ PreSkolemQuant::PreSkolemQuant(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "pre-skolem-quant"){};
 
 PreprocessingPassResult PreSkolemQuant::applyInternal(
-  AssertionPipeline* assertionsToPreprocess)
+    AssertionPipeline* assertionsToPreprocess)
 {
   size_t size = assertionsToPreprocess->size();
-  for (size_t i = 0; i < size;  ++i) {
+  for (size_t i = 0; i < size; ++i)
+  {
     Node prev = (*assertionsToPreprocess)[i];
     Node next = quantifiers::QuantifiersRewriter::preprocess(prev);
-    if (next!=prev) {
+    if (next != prev)
+    {
       assertionsToPreprocess->replace(i, Rewriter::rewrite(next));
       Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
-      Trace("quantifiers-preprocess") << "   ...got " << (*assertionsToPreprocess)[i] << endl;
+      Trace("quantifiers-preprocess")
+          << "   ...got " << (*assertionsToPreprocess)[i] << endl;
     }
-
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
@@ -53,4 +55,3 @@ PreprocessingPassResult PreSkolemQuant::applyInternal(
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4
-
