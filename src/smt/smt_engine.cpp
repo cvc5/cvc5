@@ -77,6 +77,7 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
+#include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
@@ -2672,6 +2673,8 @@ void SmtEnginePrivate::finishInit()
       new BvIntroPow2(d_preprocessingPassContext.get()));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<ExtRewPre> extRewPre(
+      new ExtRewPre(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
@@ -2704,6 +2707,7 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  d_preprocessingPassRegistry.registerPass("ext-rew-pre", std::move(extRewPre));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
@@ -4156,19 +4160,14 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::extRewPrep())
   {
-    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
-    for (unsigned i = 0; i < d_assertions.size(); ++i)
-    {
-      Node a = d_assertions[i];
-      d_assertions.replace(i, extr.extendedRewrite(a));
-    }
+    d_preprocessingPassRegistry.getPass("ext-rew-pre")->apply(&d_assertions);
   }
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
     dumpAssertions("pre-unconstrained-simp", d_assertions);
-	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
     unconstrainedSimp();
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
     dumpAssertions("post-unconstrained-simp", d_assertions);
