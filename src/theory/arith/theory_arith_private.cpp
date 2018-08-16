@@ -32,6 +32,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
@@ -1354,24 +1355,37 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       // Add the substitution if not recursive
       Assert(elim == Rewriter::rewrite(elim));
 
-
-      if(right.size() > options::ppAssertMaxSubSize()){
-        Debug("simplify") << "TheoryArithPrivate::solve(): did not substitute due to the right hand side containing too many terms: " << minVar << ":" << elim << endl;
+      if (right.size() > options::ppAssertMaxSubSize())
+      {
+        Debug("simplify")
+            << "TheoryArithPrivate::solve(): did not substitute due to the "
+               "right hand side containing too many terms: "
+            << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
-      }else if(elim.hasSubterm(minVar)){
-        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute due to recursive pattern with sharing: " << minVar << ":" << elim << endl;
-
-      }else if (!minVar.getType().isInteger() || right.isIntegral()) {
-        Assert(!elim.hasSubterm(minVar));
+      }
+      else if (expr::hasSubterm(elim, minVar))
+      {
+        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
+                             "due to recursive pattern with sharing: "
+                          << minVar << ":" << elim << endl;
+      }
+      else if (!minVar.getType().isInteger() || right.isIntegral())
+      {
+        Assert(!expr::hasSubterm(elim, minVar));
         // cannot eliminate integers here unless we know the resulting
         // substitution is integral
-        Debug("simplify") << "TheoryArithPrivate::solve(): substitution " << minVar << " |-> " << elim << endl;
+        Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
+                          << minVar << " |-> " << elim << endl;
 
         outSubstitutions.addSubstitution(minVar, elim);
         return Theory::PP_ASSERT_STATUS_SOLVED;
-      } else {
-        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute b/c it's integer: " << minVar << ":" << minVar.getType() << " |-> " << elim << ":" << elim.getType() << endl;
-
+      }
+      else
+      {
+        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
+                             "b/c it's integer: "
+                          << minVar << ":" << minVar.getType() << " |-> "
+                          << elim << ":" << elim.getType() << endl;
       }
     }
   }
