@@ -31,6 +31,7 @@ QueryGenerator::QueryGenerator() : d_query_count(0) {}
 
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
+  Assert( ss!=nullptr );
   d_query_count = 0;
   ExprMiner::initialize(vars, ss);
 }
