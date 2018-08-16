@@ -434,6 +434,7 @@ REG0_TESTS = \
 	regress0/fmf/quant_real_univ.cvc \
 	regress0/fmf/sat-logic.smt2 \
 	regress0/fmf/sc_bad_model_1221.smt2 \
+	regress0/fmf/sort-inf-int.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
