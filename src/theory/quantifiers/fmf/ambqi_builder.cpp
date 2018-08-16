@@ -13,6 +13,8 @@
  **/
 
 #include "theory/quantifiers/fmf/ambqi_builder.h"
+
+#include "base/cvc4_check.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
@@ -367,8 +369,8 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int cur
   }else{
     TypeNode tn = m->getVariable( q, depth ).getType();
     if( v==depth ){
-      unsigned numReps = m->getRepSet()->getNumRepresentatives(tn);
-      Assert( numReps>0 && numReps < 32 );
+      const unsigned numReps = m->getRepSet()->getNumRepresentatives(tn);
+      CVC4_CHECK(numReps > 0 && numReps < 32);
       for( unsigned i=0; i<numReps; i++ ){
         d_def[ 1 << i ].construct_var( m, q, v, i, depth+1 );
       }

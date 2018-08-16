@@ -63,6 +63,8 @@ libcvc4_la_SOURCES = \
 	decision/justification_heuristic.h \
 	preprocessing/passes/apply_substs.cpp \
 	preprocessing/passes/apply_substs.h \
+	preprocessing/passes/apply_to_const.cpp \
+	preprocessing/passes/apply_to_const.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
@@ -87,6 +89,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/rewrite.h \
 	preprocessing/passes/sep_skolem_emp.cpp \
 	preprocessing/passes/sep_skolem_emp.h \
+	preprocessing/passes/sort_infer.cpp \
+	preprocessing/passes/sort_infer.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
 	preprocessing/passes/symmetry_breaker.cpp \
