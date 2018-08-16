@@ -1,0 +1,47 @@
+/*********************                                                        */
+/*! \file pre_skolem_quant.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Caleb Donovick
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Remove rewrite rules, apply pre-skolemization to existential quantifiers
+ **  
+ **
+ ** Calls the quantifier rewriter, removing rewrite rules and applying 
+ ** pre-skolemization to existential quantifiers
+ **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H
+#define __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H
+
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+
+namespace CVC4 {
+namespace preprocessing {
+namespace passes {
+
+class PreSkolemQuant : public PreprocessingPass
+{
+ public:
+  PreSkolemQuant(PreprocessingPassContext* preprocContext);
+
+ protected:
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
+};
+
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
+
+#endif /* __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H */
+
+
