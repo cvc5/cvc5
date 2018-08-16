@@ -1,4 +1,3 @@
-; REQUIRES: symfpu
 ; COMMAND-LINE: --ext-rew-prep
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
