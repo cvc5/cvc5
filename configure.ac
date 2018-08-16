@@ -112,7 +112,7 @@ fi
 AC_MSG_CHECKING([for requested build profile])
 AC_ARG_WITH([build],
   [AS_HELP_STRING([--with-build=profile],
-     [for profile in {production,debug,competition,personal}])])
+     [for profile in {production,debug,competition,testing}])])
 
 if test -z "${with_build+set}"; then
   with_build=production
@@ -532,7 +532,7 @@ case "$with_build" in
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     if test -z "${enable_valgrind+set}"     ; then enable_valgrind=optional         ; fi
     ;;
-  default) # moderately optimized, assertions, tracing, dumping
+  testing) # moderately optimized, assertions, tracing, dumping
     CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }"
     CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }"
     CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }"
@@ -579,8 +579,8 @@ if test -z "${OPTLEVEL+set}"; then OPTLEVEL=3; fi
 
 AM_CONDITIONAL([CVC4_BUILD_PROFILE_PRODUCTION],  [test "$with_build" = production])
 AM_CONDITIONAL([CVC4_BUILD_PROFILE_DEBUG],       [test "$with_build" = debug])
-AM_CONDITIONAL([CVC4_BUILD_PROFILE_DEFAULT],     [test "$with_build" = default])
 AM_CONDITIONAL([CVC4_BUILD_PROFILE_COMPETITION], [test "$with_build" = competition])
+AM_CONDITIONAL([CVC4_BUILD_PROFILE_TESTING],     [test "$with_build" = testing])
 
 # permit a static binary
 AC_MSG_CHECKING([whether to build a static binary])
@@ -1010,22 +1010,6 @@ CVC4CXXFLAGS="${CVC4CXXFLAGS:+$CVC4CXXFLAGS }${W_NON_VIRTUAL_DTOR}"
 # --enable-libstdcxx-visibility (?)
 if test "$target_vendor" = apple; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-D_GLIBCXX_VISIBILITY_DEFAULT=\"__attribute__((__visibility__(\\\"default\\\")))\""
-fi
-
-# Tell top-level Makefile to include $(top_srcdir)/personal.mk
-AC_ARG_ENABLE([personal-make-rules],
-  [AS_HELP_STRING([--enable-personal-make-rules],
-     [include top-level personal.mk (if it exists)])])
-if test "$enable_personal_make_rules" = yes; then
-  # This allows us to include a personal.mk makefile from every
-  # generated makefile.  Named zz_* in order to make sure this
-  # comes last, so it gets other definitions (in particular top_srcdir).
-  zz_cvc4_use_personal_make_rules='yes
-
-all:;
-include $(top_srcdir)/personal.mk
-$(top_srcdir)/personal.mk:; @touch "$@"'
-  AC_SUBST([zz_cvc4_use_personal_make_rules])
 fi
 
 # Doxygen configuration
