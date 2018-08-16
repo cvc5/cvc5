@@ -77,24 +77,33 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Node sygus_op = Node::fromExpr(cons.getSygusOp());
   Node exp_sop_n = Node::fromExpr(
       smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
-  if( exp_sop_n.getKind()==kind::BUILTIN )
+  if (exp_sop_n.getKind() == kind::BUILTIN)
   {
-    Kind ok = NodeManager::operatorToKind( sygus_op );
+    Kind ok = NodeManager::operatorToKind(sygus_op);
     Kind nk = ok;
     // We also must ensure that builtin operators which are eliminated
-    // during expand definitions are replaced by the proper term. 
-    if( ok==kind::BITVECTOR_UDIV ){	
-      nk = kind::BITVECTOR_UDIV_TOTAL;	
-    }else if( ok==kind::BITVECTOR_UREM ){	
-      nk = kind::BITVECTOR_UREM_TOTAL;	
-    }else if( ok==kind::DIVISION ){	
-      nk = kind::DIVISION_TOTAL;	
-    }else if( ok==kind::INTS_DIVISION ){	
-      nk = kind::INTS_DIVISION_TOTAL;	
-    }else if( ok==kind::INTS_MODULUS ){	
-      nk = kind::INTS_MODULUS_TOTAL;	
+    // during expand definitions are replaced by the proper term.
+    if (ok == kind::BITVECTOR_UDIV)
+    {
+      nk = kind::BITVECTOR_UDIV_TOTAL;
     }
-    if( nk!=ok )
+    else if (ok == kind::BITVECTOR_UREM)
+    {
+      nk = kind::BITVECTOR_UREM_TOTAL;
+    }
+    else if (ok == kind::DIVISION)
+    {
+      nk = kind::DIVISION_TOTAL;
+    }
+    else if (ok == kind::INTS_DIVISION)
+    {
+      nk = kind::INTS_DIVISION_TOTAL;
+    }
+    else if (ok == kind::INTS_MODULUS)
+    {
+      nk = kind::INTS_MODULUS_TOTAL;
+    }
+    if (nk != ok)
     {
       exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
     }
