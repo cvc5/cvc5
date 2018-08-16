@@ -77,8 +77,8 @@
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/int_to_bv.h"
-#include "preprocessing/passes/pre_skolem_quant.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
+#include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
@@ -2732,8 +2732,8 @@ void SmtEnginePrivate::finishInit()
       new BVToBool(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
-  std::unique_ptr<PreSkolemQuant> preSkolemQuant(
-      new PreSkolemQuant(d_preprocessingPassContext.get()));
+  std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
+      new QuantifiersPreprocess(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
@@ -2763,8 +2763,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("pre-skolem-quant",
-                                           std::move(preSkolemQuant));
+  d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
+                                           std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
@@ -4288,7 +4288,7 @@ void SmtEnginePrivate::processAssertions() {
 
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
-    d_preprocessingPassRegistry.getPass("pre-skolem-quant")
+    d_preprocessingPassRegistry.getPass("quantifiers-preprocess")
         ->apply(&d_assertions);
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){

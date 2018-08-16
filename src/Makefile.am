@@ -79,8 +79,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_to_bool.cpp \
 	preprocessing/passes/bv_to_bool.h \
-	preprocessing/passes/pre_skolem_quant.cpp \
-	preprocessing/passes/pre_skolem_quant.h \
+	preprocessing/passes/quantifiers_preprocess.cpp \
+	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \

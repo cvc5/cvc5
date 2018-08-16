@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file pre_skolem_quant.cpp
+/*! \file quantifiers_preprocess.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Caleb Donovick
@@ -17,7 +17,7 @@
  ** pre-skolemization to existential quantifiers
  **/
 
-#include "preprocessing/passes/pre_skolem_quant.h"
+#include "preprocessing/passes/quantifiers_preprocess.h"
 
 #include "base/output.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -29,10 +29,10 @@ namespace passes {
 
 using namespace CVC4::theory;
 
-PreSkolemQuant::PreSkolemQuant(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "pre-skolem-quant"){};
+QuantifiersPreprocess::QuantifiersPreprocess(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "quantifiers-preprocess"){};
 
-PreprocessingPassResult PreSkolemQuant::applyInternal(
+PreprocessingPassResult QuantifiersPreprocess::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   size_t size = assertionsToPreprocess->size();

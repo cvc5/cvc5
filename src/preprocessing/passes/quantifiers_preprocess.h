@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file pre_skolem_quant.h
+/*! \file quantifiers_preprocess.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Caleb Donovick
@@ -19,8 +19,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H
-#define __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H
+#ifndef __CVC4__PREPROCESSING__PASSES__QUANTIFIERS_PREPROCESS_H
+#define __CVC4__PREPROCESSING__PASSES__QUANTIFIERS_PREPROCESS_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -29,10 +29,10 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-class PreSkolemQuant : public PreprocessingPass
+class QuantifiersPreprocess : public PreprocessingPass
 {
  public:
-  PreSkolemQuant(PreprocessingPassContext* preprocContext);
+  QuantifiersPreprocess(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
@@ -43,4 +43,4 @@ class PreSkolemQuant : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__PRE_SKOLEM_QUANT_H */
+#endif /* __CVC4__PREPROCESSING__PASSES__QUANTIFIERS_PREPROCESS_H */
