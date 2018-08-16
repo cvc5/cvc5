@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -69,17 +70,20 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/passes/apply_substs.h"
+#include "preprocessing/passes/apply_to_const.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_ackermann.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
+#include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
+#include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
@@ -893,66 +897,6 @@ public:
     Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
     Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
     return retval;
-  }
-
-  NodeToNodeHashMap d_rewriteApplyToConstCache;
-  Node rewriteApplyToConst(TNode n) {
-    Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
-
-    if(n.getMetaKind() == kind::metakind::CONSTANT ||
-       n.getMetaKind() == kind::metakind::VARIABLE ||
-       n.getMetaKind() == kind::metakind::NULLARY_OPERATOR)
-    {
-      return n;
-    }
-
-    if(d_rewriteApplyToConstCache.find(n) != d_rewriteApplyToConstCache.end()) {
-      Trace("rewriteApplyToConst") << "in cache :: "
-                                   << d_rewriteApplyToConstCache[n]
-                                   << std::endl;
-      return d_rewriteApplyToConstCache[n];
-    }
-
-    if(n.getKind() == kind::APPLY_UF) {
-      if(n.getNumChildren() == 1 && n[0].isConst() &&
-         n[0].getType().isInteger())
-      {
-        stringstream ss;
-        ss << n.getOperator() << "_";
-        if(n[0].getConst<Rational>() < 0) {
-          ss << "m" << -n[0].getConst<Rational>();
-        } else {
-          ss << n[0];
-        }
-        Node newvar = NodeManager::currentNM()->mkSkolem(
-            ss.str(), n.getType(), "rewriteApplyToConst skolem",
-            NodeManager::SKOLEM_EXACT_NAME);
-        d_rewriteApplyToConstCache[n] = newvar;
-        Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
-        return newvar;
-      } else {
-        stringstream ss;
-        ss << "The rewrite-apply-to-const preprocessor is currently limited;"
-           << std::endl
-           << "it only works if all function symbols are unary and with Integer"
-           << std::endl
-           << "domain, and all applications are to integer values." << std::endl
-           << "Found application: " << n;
-        Unhandled(ss.str());
-      }
-    }
-
-    NodeBuilder<> builder(n.getKind());
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      builder << n.getOperator();
-    }
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      builder << rewriteApplyToConst(n[i]);
-    }
-    Node rewr = builder;
-    d_rewriteApplyToConstCache[n] = rewr;
-    Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
-    return rewr;
   }
 
   void addUseTheoryListListener(TheoryEngine* theoryEngine){
@@ -2716,6 +2660,8 @@ void SmtEnginePrivate::finishInit()
   // actually assembling preprocessing pipelines).
   std::unique_ptr<ApplySubsts> applySubsts(
       new ApplySubsts(d_preprocessingPassContext.get()));
+  std::unique_ptr<ApplyToConst> applyToConst(
+      new ApplyToConst(d_preprocessingPassContext.get()));
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<BvAbstraction> bvAbstract(
@@ -2728,6 +2674,8 @@ void SmtEnginePrivate::finishInit()
       new BvIntroPow2(d_preprocessingPassContext.get()));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<ExtRewPre> extRewPre(
+      new ExtRewPre(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
@@ -2736,16 +2684,21 @@ void SmtEnginePrivate::finishInit()
       new RealToInt(d_preprocessingPassContext.get()));
   std::unique_ptr<Rewrite> rewrite(
       new Rewrite(d_preprocessingPassContext.get()));
+  std::unique_ptr<SortInferencePass> sortInfer(
+      new SortInferencePass(d_preprocessingPassContext.get(),
+                            d_smt.d_theoryEngine->getSortInference()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
- std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
+  std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
-   d_preprocessingPassRegistry.registerPass("apply-substs",
+  d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
+  d_preprocessingPassRegistry.registerPass("apply-to-const",
+                                           std::move(applyToConst));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -2755,6 +2708,7 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  d_preprocessingPassRegistry.registerPass("ext-rew-pre", std::move(extRewPre));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
@@ -2762,6 +2716,8 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
                                            std::move(sepSkolemEmp));
+  d_preprocessingPassRegistry.registerPass("sort-inference",
+                                           std::move(sortInfer));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
@@ -2770,18 +2726,21 @@ void SmtEnginePrivate::finishInit()
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
 {
-  stack< triple<Node, Node, bool> > worklist;
+  stack<std::tuple<Node, Node, bool>> worklist;
   stack<Node> result;
-  worklist.push(make_triple(Node(n), Node(n), false));
+  worklist.push(std::make_tuple(Node(n), Node(n), false));
   // The worklist is made of triples, each is input / original node then the output / rewritten node
   // and finally a flag tracking whether the children have been explored (i.e. if this is a downward
   // or upward pass).
 
   do {
     spendResource(options::preprocessStep());
-    n = worklist.top().first;                      // n is the input / original
-    Node node = worklist.top().second;             // node is the output / result
-    bool childrenPushed = worklist.top().third;
+
+    // n is the input / original
+    // node is the output / result
+    Node node;
+    bool childrenPushed;
+    std::tie(n, node, childrenPushed) = worklist.top();
     worklist.pop();
 
     // Working downwards
@@ -2905,10 +2864,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // the partial functions can fall through, in which case we still
       // consider their children
-      worklist.push(make_triple(Node(n), node, true));            // Original and rewritten result
+      worklist.push(std::make_tuple(
+          Node(n), node, true));  // Original and rewritten result
 
       for(size_t i = 0; i < node.getNumChildren(); ++i) {
-        worklist.push(make_triple(node[i], node[i], false));      // Rewrite the children of the result only
+        worklist.push(
+            std::make_tuple(node[i],
+                            node[i],
+                            false));  // Rewrite the children of the result only
       }
 
     } else {
@@ -4198,19 +4161,14 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::extRewPrep())
   {
-    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
-    for (unsigned i = 0; i < d_assertions.size(); ++i)
-    {
-      Node a = d_assertions[i];
-      d_assertions.replace(i, extr.extendedRewrite(a));
-    }
+    d_preprocessingPassRegistry.getPass("ext-rew-pre")->apply(&d_assertions);
   }
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
     dumpAssertions("pre-unconstrained-simp", d_assertions);
-	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
     unconstrainedSimp();
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
     dumpAssertions("post-unconstrained-simp", d_assertions);
@@ -4333,13 +4291,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
-    //sort inference technique
-    SortInference * si = d_smt.d_theoryEngine->getSortInference();
-    si->simplify( d_assertions.ref(), options::sortInference(), options::ufssFairnessMonotone() );
-    for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
-      d_smt.setPrintFuncInModel( it->first.toExpr(), false );
-      d_smt.setPrintFuncInModel( it->second.toExpr(), true );
-    }
+    d_preprocessingPassRegistry.getPass("sort-inference")->apply(&d_assertions);
   }
 
   if( options::pbRewrites() ){
@@ -4469,9 +4421,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::rewriteApplyToConst()) {
     Chat() << "Rewriting applies to constants..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteApplyToConstTime);
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions[i] = Rewriter::rewrite(rewriteApplyToConst(d_assertions[i]));
-    }
+    d_preprocessingPassRegistry.getPass("apply-to-const")->apply(&d_assertions);
   }
   dumpAssertions("post-rewrite-apply-to-const", d_assertions);
 
@@ -4827,9 +4777,9 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   finalOptionsAreSet();
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << GetUnsatCoreCommand();
+    Dump("benchmark") << GetUnsatAssumptionsCommand();
   }
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
   vector<Expr> res;
   for (const Expr& e : d_assumptions)
   {
@@ -5192,6 +5142,31 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+UnsatCore SmtEngine::getUnsatCoreInternal()
+{
+#if IS_PROOFS_BUILD
+  if (!options::unsatCores())
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores option is off.");
+  }
+  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
+      || d_problemExtended)
+  {
+    throw RecoverableModalException(
+        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
+        "response.");
+  }
+
+  d_proofManager->traceUnsatCore();  // just to trigger core creation
+  return UnsatCore(this, d_proofManager->extractUnsatCore());
+#else  /* IS_PROOFS_BUILD */
+  throw ModalException(
+      "This build of CVC4 doesn't have proof support (required for unsat "
+      "cores).");
+#endif /* IS_PROOFS_BUILD */
+}
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5550,23 +5525,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
-#if IS_PROOFS_BUILD
-  if(!options::unsatCores()) {
-    throw ModalException("Cannot get an unsat core when produce-unsat-cores option is off.");
-  }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
-    throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
-        "response.");
-  }
-
-  d_proofManager->traceUnsatCore();// just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
-#else /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");
-#endif /* IS_PROOFS_BUILD */
+  return getUnsatCoreInternal();
 }
 
 // TODO(#1108): Simplify the error reporting of this method.

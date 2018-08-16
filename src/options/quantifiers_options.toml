@@ -1175,6 +1175,14 @@ header = "options/quantifiers_options.h"
   default    = "true"
   help       = "use optimized approach for evaluation in sygus"
 
+[[option]]
+  name       = "sygusArgRelevant"
+  category   = "regular"
+  long       = "sygus-arg-relevant"
+  type       = "bool"
+  default    = "false"
+  help       = "static inference techniques for computing whether arguments of functions-to-synthesize are relevant"
+  
 # Internal uses of sygus
 
 [[option]]

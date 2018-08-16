@@ -88,8 +88,6 @@ public:
   AttrHash<TypeNode> d_types;
   /** Underlying hash table for string-valued attributes */
   AttrHash<std::string> d_strings;
-  /** Underlying hash table for pointer-valued attributes */
-  AttrHash<void*> d_ptrs;
 
   /**
    * Get a particular attribute on a particular node.
@@ -274,32 +272,6 @@ struct getTable<std::string, false> {
   }
 };
 
-/** Access the "d_ptrs" member of AttributeManager. */
-template <class T>
-struct getTable<T*, false> {
-  static const AttrTableId id = AttrTablePointer;
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
-  }
-};
-
-/** Access the "d_ptrs" member of AttributeManager. */
-template <class T>
-struct getTable<const T*, false> {
-  static const AttrTableId id = AttrTablePointer;
-  typedef AttrHash<void*> table_type;
-  static inline table_type& get(AttributeManager& am) {
-    return am.d_ptrs;
-  }
-  static inline const table_type& get(const AttributeManager& am) {
-    return am.d_ptrs;
-  }
-};
-
 }/* CVC4::expr::attr namespace */
 
 // ATTRIBUTE MANAGER IMPLEMENTATIONS ===========================================
@@ -451,66 +423,23 @@ AttributeManager::setAttribute(NodeValue* nv,
   ah[std::make_pair(AttrKind::getId(), nv)] = mapping::convert(value);
 }
 
-/**
- * Search for the NodeValue in all attribute tables and remove it,
- * calling the cleanup function if one is defined.
- *
- * This cannot use nv as anything other than a pointer!
- */
+/** Search for the NodeValue in all attribute tables and remove it. */
 template <class T>
 inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
                                               NodeValue* nv) {
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
-    typedef AttributeTraits<T, false> traits_t;
-    typedef AttrHash<T> hash_t;
-    std::pair<uint64_t, NodeValue*> pr = std::make_pair(id, nv);
-    if(traits_t::getCleanup()[id] != NULL) {
-      typename hash_t::iterator i = table.find(pr);
-      if(i != table.end()) {
-        traits_t::getCleanup()[id]((*i).second);
-        table.erase(pr);
-      }
-    } else {
-      table.erase(pr);
-    }
+  // This cannot use nv as anything other than a pointer!
+  const uint64_t last = attr::LastAttributeId<T, false>::getId();
+  for (uint64_t id = 0; id < last; ++id)
+  {
+    table.erase(std::make_pair(id, nv));
   }
 }
 
-/**
- * Remove all attributes from the table calling the cleanup function
- * if one is defined.
- */
+/** Remove all attributes from the table. */
 template <class T>
 inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
   Assert(!d_inGarbageCollection);
   d_inGarbageCollection = true;
-
-  bool anyRequireClearing = false;
-  typedef AttributeTraits<T, false> traits_t;
-  typedef AttrHash<T> hash_t;
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
-    if(traits_t::getCleanup()[id] != NULL) {
-      anyRequireClearing = true;
-    }
-  }
-
-  if(anyRequireClearing) {
-    typename hash_t::iterator it = table.begin();
-    typename hash_t::iterator it_end = table.end();
-
-    while (it != it_end){
-      uint64_t id = (*it).first.first;
-      /*
-      Debug("attrgc") << "id " << id
-                      << " node_value: " << ((*it).first.second)
-                      << std::endl;
-      */
-      if(traits_t::getCleanup()[id] != NULL) {
-        traits_t::getCleanup()[id]((*it).second);
-      }
-      ++it;
-    }
-  }
   table.clear();
   d_inGarbageCollection = false;
   Assert(!d_inGarbageCollection);
@@ -527,7 +456,6 @@ AttributeUniqueId AttributeManager::getAttributeId(const AttrKind& attr){
 template <class T>
 void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::vector<uint64_t>& ids){
   d_inGarbageCollection = true;
-  typedef AttributeTraits<T, false> traits_t;
   typedef AttrHash<T> hash_t;
 
   typename hash_t::iterator it = table.begin();
@@ -544,9 +472,6 @@ void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::
     if(std::binary_search(begin_ids, end_ids, id)){
       tmp = it;
       ++it;
-      if(traits_t::getCleanup()[id] != NULL) {
-        traits_t::getCleanup()[id]((*tmp).second);
-      }
       table.erase(tmp);
     }else{
       ++it;

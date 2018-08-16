@@ -18,14 +18,14 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "theory/strings/theory_strings_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr()
-    : d_lastchar(options::stdPrintASCII() ? 127 : 255),
-      d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
+    : d_emptyString(NodeManager::currentNM()->mkConst(::CVC4::String(""))),
       d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptySingleton(NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP,
@@ -39,6 +39,7 @@ RegExpOpr::RegExpOpr()
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
+  d_lastchar = TheoryStringsRewriter::getAlphabetCardinality()-1;
 }
 
 RegExpOpr::~RegExpOpr() {}
@@ -645,6 +646,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         break;
       }
       case kind::REGEXP_SIGMA: {
+        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
         {
           cset.insert(i);
@@ -657,6 +659,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         unsigned b = r[1].getConst<String>().front();
         b = String::convertUnsignedIntToCode(b);
         Assert(a < b);
+        Assert(b < std::numeric_limits<unsigned>::max());
         for (unsigned c = a; c <= b; c++)
         {
           cset.insert(c);
@@ -672,9 +675,9 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
             sc = String::convertUnsignedIntToCode(sc);
             cset.insert(sc);
           }
-        } else if(st.getKind() == kind::VARIABLE) {
-          vset.insert( st );
-        } else {
+        }
+        else if (st.getKind() == kind::STRING_CONCAT)
+        {
           if(st[0].isConst()) {
             CVC4::String s = st[0].getConst<CVC4::String>();
             unsigned sc = s.front();
@@ -683,6 +686,10 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
           } else {
             vset.insert( st[0] );
           }
+        }
+        else
+        {
+          vset.insert(st);
         }
         break;
       }

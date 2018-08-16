@@ -51,6 +51,8 @@ class CVC4_PUBLIC String {
    * This is the cardinality of the alphabet that is representable by this
    * class. Notice that this must be greater than or equal to the cardinality
    * of the alphabet that the string theory reasons about.
+   *
+   * This must be strictly less than std::numeric_limits<unsigned>::max().
    */
   static inline unsigned num_codes() { return 256; }
   /**
@@ -89,7 +91,7 @@ class CVC4_PUBLIC String {
       : d_str(toInternal(s, useEscSequences)) {}
   explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences)) {}
-  explicit String(const std::vector<unsigned>& s) : d_str(s) {}
+  explicit String(const std::vector<unsigned>& s);
 
   String& operator=(const String& y) {
     if (this != &y) {

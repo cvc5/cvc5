@@ -58,6 +58,16 @@ unsigned String::convertUnsignedIntToCode(unsigned i)
   return (i + start_code()) % num_codes();
 }
 
+String::String(const std::vector<unsigned> &s) : d_str(s)
+{
+#ifdef CVC4_ASSERTIONS
+  for (unsigned u : d_str)
+  {
+    Assert(convertUnsignedIntToCode(u) < num_codes());
+  }
+#endif
+}
+
 int String::cmp(const String &y) const {
   if (size() != y.size()) {
     return size() < y.size() ? -1 : 1;
@@ -209,6 +219,12 @@ std::vector<unsigned> String::toInternal(const std::string &s,
       i++;
     }
   }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned u : str)
+  {
+    Assert(convertUnsignedIntToCode(u) < num_codes());
+  }
+#endif
   return str;
 }
 

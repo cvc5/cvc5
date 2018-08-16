@@ -15,6 +15,7 @@
  **/
 #include "parser/smt2/smt2.h"
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
@@ -34,10 +35,11 @@
 namespace CVC4 {
 namespace parser {
 
-Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
-  Parser(exprManager,input,strictMode,parseOnly),
-  d_logicSet(false) {
-  if( !strictModeEnabled() ) {
+Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_logicSet(false)
+{
+  if (!strictModeEnabled())
+  {
     addTheory(Smt2::THEORY_CORE);
   }
 }
