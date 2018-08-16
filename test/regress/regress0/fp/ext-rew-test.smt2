@@ -1,3 +1,6 @@
+; REQUIRES: symfpu
+; COMMAND-LINE: --ext-rew-prep
+; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_FP)
 (set-info :category "crafted")
