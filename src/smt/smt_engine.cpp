@@ -673,8 +673,9 @@ class SmtEnginePrivate : public NodeManagerListener {
         new HardResourceOutListener(d_smt)));
 
     Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    d_listenerRegistrations->add(nodeManagerOptions.registerForceLogicListener(
-        new SetLogicListener(d_smt), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerForceLogicListener(
+            new SetLogicListener(d_smt), true));
 
     // Multiple options reuse BeforeSearchListener so registration requires an
     // extra bit of care.
@@ -696,8 +697,9 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_listenerRegistrations->add(
         nodeManagerOptions.registerSetPrintExprTypesListener(
             new SetPrintExprTypesListener(), true));
-    d_listenerRegistrations->add(nodeManagerOptions.registerSetDumpModeListener(
-        new DumpModeListener(), true));
+    d_listenerRegistrations->add(
+        nodeManagerOptions.registerSetDumpModeListener(
+            new DumpModeListener(), true));
     d_listenerRegistrations->add(
         nodeManagerOptions.registerSetPrintSuccessListener(
             new PrintSuccessListener(), true));
