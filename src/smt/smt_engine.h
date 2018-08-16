@@ -19,7 +19,6 @@
 #ifndef __CVC4__SMT_ENGINE_H
 #define __CVC4__SMT_ENGINE_H
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -65,7 +64,6 @@ class ProofManager;
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
-class RemoveTermFormulas;
 
 namespace context {
   class Context;
@@ -153,9 +151,6 @@ class CVC4_PUBLIC SmtEngine {
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;
   NodeList* d_fmfRecFunctionsDefined;
-
-  /** Instance of the ITE remover */
-  std::unique_ptr<RemoveTermFormulas> d_iteRemover;
 
   /**
    * The assertion list (before any conversion) for supporting

@@ -558,6 +558,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Assertions in the preprocessing pipeline */
   AssertionPipeline d_assertions;
 
+  /** Instance of the ITE remover */
+  RemoveTermFormulas d_iteRemover;
+
   /* Finishes the initialization of the private portion of SMTEngine. */
   void finishInit();
 
@@ -656,7 +659,8 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
-        d_exprNames(smt.d_userContext)
+        d_exprNames(smt.d_userContext),
+        d_iteRemover(smt.d_userContext)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
@@ -984,7 +988,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_proofManager(NULL),
       d_definedFunctions(NULL),
       d_fmfRecFunctionsDefined(NULL),
-      d_iteRemover(new RemoveTermFormulas(d_userContext)),
       d_assertionList(NULL),
       d_assignments(NULL),
       d_modelGlobalCommands(),
@@ -1031,7 +1034,7 @@ SmtEngine::SmtEngine(ExprManager* em)
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context,
                                     d_userContext,
-                                    *d_iteRemover,
+                                    d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
                                     d_channels);
 
@@ -1198,9 +1201,6 @@ SmtEngine::~SmtEngine()
     if(d_modelCommands != NULL) {
       d_modelCommands->deleteSelf();
     }
-
-    // Destroy before contexts
-    d_iteRemover.reset();
 
     d_definedFunctions->deleteSelf();
     d_fmfRecFunctionsDefined->deleteSelf();
@@ -2699,7 +2699,7 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 void SmtEnginePrivate::finishInit()
 {
   d_preprocessingPassContext.reset(
-      new PreprocessingPassContext(&d_smt, d_resourceManager));
+      new PreprocessingPassContext(&d_smt, d_resourceManager, &d_iteRemover));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
   std::unique_ptr<ApplySubsts> applySubsts(
@@ -5390,7 +5390,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): -- simplifies to  " << n << endl;
 
     // Replace the already-known ITEs (this is important for ground ITEs under quantifiers).
-    n = d_iteRemover->replace(n);
+    n = d_private->d_iteRemover.replace(n);
     Notice() << "SmtEngine::checkModel(): -- ite replacement gives " << n << endl;
 
     // Apply our model value substitutions (again), as things may have been simplified.
