@@ -328,11 +328,11 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
     }
 
     // add the above symmetry breaking predicates to lemmas
-    std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+    std::unordered_map<TNode, TNode, TNodeHashFunction> cache{{x, n}};
     Node rlv = getRelevancyCondition(n);
     for (const Node& slem : sb_lemmas)
     {
-      Node sslem = slem.substitute(x, n, cache);
+      Node sslem = slem.substituteInternal(cache);
       if (!rlv.isNull())
       {
         sslem = nm->mkNode(OR, rlv, sslem);
@@ -1039,12 +1039,12 @@ void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, No
     Trace("sygus-sb-debug2")
         << "add lemmas up to size " << max_sz << ", which is (search_size) "
         << csz << " - (depth) " << d << std::endl;
-    std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+    std::unordered_map<TNode, TNode, TNodeHashFunction> cache{{x, t}};
     for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
       if( (int)it->first<=max_sz ){
         for (const Node& lem : it->second)
         {
-          Node slem = lem.substitute(x, t, cache);
+          Node slem = lem.substituteInternal(cache);
           // add the relevancy condition for t
           if (!rlv.isNull())
           {
@@ -1210,10 +1210,11 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
                          && !it->second.empty())
               {
                 Node rlv = getRelevancyCondition(t);
-                std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+                std::unordered_map<TNode, TNode, TNodeHashFunction> cache{
+                    {x, t}};
                 for (const Node& lem : it->second)
                 {
-                  Node slem = lem.substitute(x, t, cache);
+                  Node slem = lem.substituteInternal(cache);
                   slem = nm->mkNode(OR, rlv, slem);
                   lemmas.push_back(slem);
                 }

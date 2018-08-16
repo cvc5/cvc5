@@ -36,12 +36,13 @@
 #include "base/configuration.h"
 #include "base/cvc4_assert.h"
 #include "base/exception.h"
+#include "base/map_util.h"
 #include "base/output.h"
-#include "expr/type.h"
-#include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
+#include "expr/kind.h"
+#include "expr/metakind.h"
+#include "expr/type.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
@@ -237,32 +238,26 @@ class NodeTemplate {
     }
   }
 
-public:
-
+  // TODO Deprecate making this public.
+ public:
   /**
    * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
+   * member functions that substitutes any descendent reachable from this
+   * to a result node using the [descendent -> value] values in cache.
+   *
+   * Populates cache with any additional substitutions.
+   *
+   * May not produce a consistent result for all descendents if subnodes.
+   *
+   * Using TNodes here is potentially unsafe.
+   * Internal usage in Node is safe as node ref counts are kept >0 via the
+   * return values and the NodeBuilders on the stack [potentially
+   * transitively].)
    */
-  Node substitute(TNode node, TNode replacement,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
+  Node substituteInternal(
+      std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
 
-  /**
-   * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
-   */
-  template <class Iterator1, class Iterator2>
-  Node substitute(Iterator1 nodesBegin, Iterator1 nodesEnd,
-                  Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
-
-  /**
-   * Cache-aware, recursive version of substitute() used by the public
-   * member function with a similar signature.
-   */
-  template <class Iterator>
-  Node substitute(Iterator substitutionsBegin, Iterator substitutionsEnd,
-                  std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const;
-
+ public:
   /** Default constructor, makes a null expression. */
   NodeTemplate() : d_nv(&expr::NodeValue::null()) { }
 
@@ -1354,51 +1349,50 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement) const {
   if (node == *this) {
     return replacement;
   }
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-  return substitute(node, replacement, cache);
+  std::unordered_map<TNode, TNode, TNodeHashFunction> cache{
+      {node, replacement}};
+  return substituteInternal(cache);
 }
 
 template <bool ref_count>
-Node
-NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
-  Assert(node != *this);
-
+Node NodeTemplate<ref_count>::substituteInternal(
+    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const
+{
+  if (TNode* in_cache = FindOrNull(cache, *this))
+  {
+    return *in_cache;
+  }
+  // TODO(taking): can getNumChildren() == 0 and getMetaKind() == PARAMETERIZED?
   if (getNumChildren() == 0) {
     return *this;
   }
-
-  // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
-  if(i != cache.end()) {
-    return (*i).second;
-  }
-
-  // otherwise compute
   NodeBuilder<> nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
-    if(getOperator() == node) {
-      nb << replacement;
-    } else {
-      nb << getOperator().substitute(node, replacement, cache);
+    if (TNode* replacement = FindOrNull(cache, getOperator()))
+    {
+      nb << *replacement;
+    }
+    else
+    {
+      nb << getOperator().substituteInternal(cache);
     }
   }
-  for(const_iterator i = begin(),
-        iend = end();
-      i != iend;
-      ++i) {
-    if(*i == node) {
-      nb << replacement;
-    } else {
-      nb << (*i).substitute(node, replacement, cache);
+  for (const_iterator i = begin(), iend = end(); i != iend; ++i)
+  {
+    if (TNode* replacement = FindOrNull(cache, *i))
+    {
+      nb << *replacement;
+    }
+    else
+    {
+      nb << (*i).substituteInternal(cache);
     }
   }
-
-  // put in cache
   Node n = nb;
-  Assert(node != n);
-  cache[*this] = n;
+  CVC4_UNUSED const bool inserted =
+      cache.insert(std::make_pair(*this, n)).second;
+  Assert(inserted);
   return n;
 }
 
@@ -1410,57 +1404,14 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                     Iterator2 replacementsBegin,
                                     Iterator2 replacementsEnd) const {
   std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-  return substitute(nodesBegin, nodesEnd,
-                    replacementsBegin, replacementsEnd, cache);
-}
-
-template <bool ref_count>
-template <class Iterator1, class Iterator2>
-Node
-NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
-                                    Iterator1 nodesEnd,
-                                    Iterator2 replacementsBegin,
-                                    Iterator2 replacementsEnd,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
-  // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
-  if(i != cache.end()) {
-    return (*i).second;
+  for (; nodesBegin != nodesEnd && replacementsBegin != replacementsEnd;
+       ++nodesBegin, ++replacementsBegin)
+  {
+    // Keep the first key on a collision.
+    cache.insert(std::make_pair(*nodesBegin, *replacementsBegin));
   }
-
-  // otherwise compute
-  Assert( std::distance(nodesBegin, nodesEnd) == std::distance(replacementsBegin, replacementsEnd),
-          "Substitution iterator ranges must be equal size" );
-  Iterator1 j = find(nodesBegin, nodesEnd, TNode(*this));
-  if(j != nodesEnd) {
-    Iterator2 b = replacementsBegin;
-    std::advance(b, std::distance(nodesBegin, j));
-    Node n = *b;
-    cache[*this] = n;
-    return n;
-  } else if(getNumChildren() == 0) {
-    cache[*this] = *this;
-    return *this;
-  } else {
-    NodeBuilder<> nb(getKind());
-    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
-      // push the operator
-      nb << getOperator().substitute(nodesBegin, nodesEnd,
-                                     replacementsBegin, replacementsEnd,
-                                     cache);
-    }
-    for(const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(nodesBegin, nodesEnd,
-                            replacementsBegin, replacementsEnd,
-                            cache);
-    }
-    Node n = nb;
-    cache[*this] = n;
-    return n;
-  }
+  Assert(nodesBegin == nodesEnd && replacementsBegin == replacementsEnd);
+  return substituteInternal(cache);
 }
 
 template <bool ref_count>
@@ -1469,47 +1420,13 @@ inline Node
 NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
                                     Iterator substitutionsEnd) const {
   std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-  return substitute(substitutionsBegin, substitutionsEnd, cache);
-}
-
-template <bool ref_count>
-template <class Iterator>
-Node
-NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
-                                    Iterator substitutionsEnd,
-                                    std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
-  // in cache?
-  typename std::unordered_map<TNode, TNode, TNodeHashFunction>::const_iterator i = cache.find(*this);
-  if(i != cache.end()) {
-    return (*i).second;
+  for (; substitutionsBegin != substitutionsEnd; ++substitutionsBegin)
+  {
+    // Keep the first key on a collision.
+    cache.insert(std::make_pair((*substitutionsBegin).first,
+                                (*substitutionsBegin).second));
   }
-
-  // otherwise compute
-  Iterator j = find_if(substitutionsBegin, substitutionsEnd,
-                       bind2nd(first_equal_to<typename Iterator::value_type::first_type, typename Iterator::value_type::second_type>(), *this));
-  if(j != substitutionsEnd) {
-    Node n = (*j).second;
-    cache[*this] = n;
-    return n;
-  } else if(getNumChildren() == 0) {
-    cache[*this] = *this;
-    return *this;
-  } else {
-    NodeBuilder<> nb(getKind());
-    if(getMetaKind() == kind::metakind::PARAMETERIZED) {
-      // push the operator
-      nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
-    }
-    for(const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(substitutionsBegin, substitutionsEnd, cache);
-    }
-    Node n = nb;
-    cache[*this] = n;
-    return n;
-  }
+  return substituteInternal(cache);
 }
 
 template <bool ref_count>
