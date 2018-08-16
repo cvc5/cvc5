@@ -436,6 +436,7 @@ REG0_TESTS = \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
+	regress0/fp/ext-rew-test.smt2 \
 	regress0/fuzz_1.smt \
 	regress0/fuzz_3.smt \
 	regress0/get-value-incremental.smt2 \
@@ -494,6 +495,7 @@ REG0_TESTS = \
 	regress0/logops.04.cvc \
 	regress0/logops.05.cvc \
 	regress0/nl/coeff-sat.smt2 \
+	regress0/nl/ext-rew-aggr-test.smt2 \
 	regress0/nl/magnitude-wrong-1020-m.smt2 \
 	regress0/nl/mult-po.smt2 \
 	regress0/nl/nia-wrong-tl.smt2 \
