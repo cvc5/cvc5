@@ -573,10 +573,8 @@ target_link_libraries(cvc4
   ${CVC4_LIBRARIES}
 )
 
+include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
-include_directories(expr ${CMAKE_CURRENT_BINARY_DIR}/expr)
-include_directories(include ${CMAKE_CURRENT_BINARY_DIR}/include)
-include_directories(options ${CMAKE_CURRENT_BINARY_DIR}/options)
 
 add_subdirectory(base)
 #add_subdirectory(bindings)
