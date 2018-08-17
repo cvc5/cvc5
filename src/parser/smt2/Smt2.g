@@ -876,11 +876,12 @@ sygusGrammar[CVC4::Type & ret,
    + RPAREN_TOK { sgts.back().pop_back(); } RPAREN_TOK)
       + RPAREN_TOK
   {
-    Debug("parser-sygus") << "--- Process " << sgts.size() << " sygus gterms..."
+    unsigned numSTerms = sgts.size();
+    Debug("parser-sygus") << "--- Process " << numSTerms << " sygus gterms..."
                           << std::endl;
-    for (unsigned i = 0; i < sgts.size(); i++)
+    for (unsigned i = 0; i < numSTerms; i++)
     {
-      for (unsigned j = 0; j < sgts[i].size(); j++)
+      for (unsigned j = 0, size = sgts[i].size(); j < size; j++)
       {
         Type sub_ret;
         PARSER_STATE->processSygusGTerm(sgts[i][j],
@@ -900,7 +901,8 @@ sygusGrammar[CVC4::Type & ret,
     }
     // swap index if necessary
     Debug("parser-sygus") << "--- Making sygus datatypes..." << std::endl;
-    for (unsigned i = 0; i < datatypes.size(); i++)
+    unsigned ndatatypes = datatypes.size();
+    for (unsigned i = 0; i < ndatatypes; i++)
     {
       Debug("parser-sygus") << "..." << datatypes[i].getName()
                             << " has builtin sort " << sorts[i] << std::endl;
@@ -910,7 +912,7 @@ sygusGrammar[CVC4::Type & ret,
     {
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, sygus_vars);
     }
-    for (unsigned i = 0; i < datatypes.size(); i++)
+    for (unsigned i = 0; i < ndatatypes; i++)
     {
       Debug("parser-sygus") << "...make " << datatypes[i].getName()
                             << " with builtin sort " << sorts[i] << std::endl;
@@ -930,9 +932,9 @@ sygusGrammar[CVC4::Type & ret,
     }
     PARSER_STATE->setSygusStartIndex(fun, startIndex, datatypes, sorts, ops);
     PARSER_STATE->popScope();
-    Debug("parser-sygus") << "--- Make " << datatypes.size()
+    Debug("parser-sygus") << "--- Make " << ndatatypes
                           << " mutual datatypes..." << std::endl;
-    for (unsigned i = 0; i < datatypes.size(); i++)
+    for (unsigned i = 0; i < ndatatypes; i++)
     {
       Debug("parser-sygus") << "  " << i << " : " << datatypes[i].getName()
                             << std::endl;
