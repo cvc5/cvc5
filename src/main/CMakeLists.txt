@@ -21,7 +21,10 @@ set(cvc4main_src_files
 
 add_executable(cvc4-main ${cvc4main_src_files})
 target_compile_definitions(cvc4-main PRIVATE -D__BUILDING_CVC4DRIVER)
-set_target_properties(cvc4-main PROPERTIES OUTPUT_NAME cvc4)
+set_target_properties(cvc4-main
+  PROPERTIES
+    OUTPUT_NAME cvc4
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-main main)
 add_dependencies(cvc4-main token-headers)
 

@@ -124,14 +124,6 @@ macro(cvc4_set_option var value)
 endmacro()
 
 #-----------------------------------------------------------------------------#
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-message(STATUS "LIB directory is '${CMAKE_BINARY_DIR}/lib'")
-message(STATUS "BIN directory is '${CMAKE_BINARY_DIR}/bin'")
-
-#-----------------------------------------------------------------------------#
 # User options
 
 # License
