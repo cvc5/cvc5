@@ -88,6 +88,7 @@
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
@@ -119,7 +120,6 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "preprocessing/passes/sygus_inference.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -2715,7 +2715,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(sortInfer));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
-  d_preprocessingPassRegistry.registerPass("sygus-infer", std::move(sygusInfer));
+  d_preprocessingPassRegistry.registerPass("sygus-infer",
+                                           std::move(sygusInfer));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
 }

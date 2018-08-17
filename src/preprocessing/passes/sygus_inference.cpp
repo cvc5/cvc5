@@ -27,7 +27,6 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-
 SygusInference::SygusInference(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "sygus-infer"){};
 
@@ -35,15 +34,15 @@ PreprocessingPassResult SygusInference::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   Trace("sygus-infer") << "Run sygus inference..." << std::endl;
-  std::vector< Node > funs; 
-  std::vector< Node > sols;
+  std::vector<Node> funs;
+  std::vector<Node> sols;
   // see if we can succesfully solve the input as a sygus problem
-  if( solveSygus(assertionsToPreprocess->ref(), funs, sols))
+  if (solveSygus(assertionsToPreprocess->ref(), funs, sols))
   {
-    Assert( funs.size()==sols.size() );
-    // if so, sygus gives us function definitions 
+    Assert(funs.size() == sols.size());
+    // if so, sygus gives us function definitions
     SmtEngine* master_smte = smt::currentSmtEngine();
-    for( unsigned i=0, size = funs.size(); i<size; i++ )
+    for (unsigned i = 0, size = funs.size(); i < size; i++)
     {
       std::vector<Expr> args;
       Node sol = sols[i];
@@ -58,28 +57,29 @@ PreprocessingPassResult SygusInference::applyInternal(
       }
       master_smte->defineFunction(funs[i].toExpr(), args, sol.toExpr());
     }
-    
+
     // apply substitution to everything, should result in SAT
-    for (unsigned i = 0, size = assertionsToPreprocess->ref().size(); i < size; i++)
+    for (unsigned i = 0, size = assertionsToPreprocess->ref().size(); i < size;
+         i++)
     {
       Node prev = (*assertionsToPreprocess)[i];
-      Node curr = prev.substitute(funs.begin(),
-                                           funs.end(),
-                                           sols.begin(),
-                                           sols.end());
+      Node curr =
+          prev.substitute(funs.begin(), funs.end(), sols.begin(), sols.end());
       if (curr != prev)
       {
         curr = theory::Rewriter::rewrite(curr);
         Trace("sygus-infer-debug")
             << "...rewrote " << prev << " to " << curr << std::endl;
-        assertionsToPreprocess->replace(i,curr);
+        assertionsToPreprocess->replace(i, curr);
       }
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool SygusInference::solveSygus(std::vector<Node>& assertions, std::vector< Node >& funs, std::vector< Node >& sols)
+bool SygusInference::solveSygus(std::vector<Node>& assertions,
+                                std::vector<Node>& funs,
+                                std::vector<Node>& sols)
 {
   if (assertions.empty())
   {
@@ -307,15 +307,14 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions, std::vector< Node
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Node body = Node::fromExpr( it->second );
-      Trace("sygus-infer") << "Define " << ff << " as " << body
-                           << std::endl;
+      Node body = Node::fromExpr(it->second);
+      Trace("sygus-infer") << "Define " << ff << " as " << body << std::endl;
       funs.push_back(ff);
       sols.push_back(body);
     }
     else
     {
-      Assert( false );
+      Assert(false);
     }
   }
   return true;

@@ -42,7 +42,7 @@ class SygusInference : public PreprocessingPass
   SygusInference(PreprocessingPassContext* preprocContext);
 
  protected:
-  /** 
+  /**
    * Either replaces all uninterpreted functions in assertions by their
    * interpretation in a sygus solution, or leaves the assertions unmodified.
    */
@@ -55,11 +55,13 @@ class SygusInference : public PreprocessingPass
    *
    * We fail if either a sygus conjecture that corresponds to assertions cannot
    * be inferred, or the sygus conjecture we infer is infeasible.
-   * 
+   *
    * If this function returns true, then we add all uninterpreted symbols s in
    * assertions to funs and their corresponding solution to sols.
    */
-  bool solveSygus(std::vector<Node>& assertions, std::vector< Node >& funs, std::vector< Node >& sols);
+  bool solveSygus(std::vector<Node>& assertions,
+                  std::vector<Node>& funs,
+                  std::vector<Node>& sols);
 };
 
 }  // namespace passes
