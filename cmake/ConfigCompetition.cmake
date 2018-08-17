@@ -27,3 +27,4 @@ cvc4_set_option(ENABLE_MUZZLE ON)
 cvc4_set_option(ENABLE_VALGRIND OFF)
 # enable_shared=no
 cvc4_set_option(ENABLE_SHARED OFF)
+cvc4_set_option(ENABLE_UNIT_TESTING OFF)

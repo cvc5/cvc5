@@ -1,4 +1,6 @@
 set(libmain_src_files
+  command_executor.cpp
+  driver_unified.cpp
   interactive_shell.cpp
   interactive_shell.h
   main.h
@@ -14,8 +16,6 @@ if(USE_READLINE)
 endif()
 
 set(cvc4main_src_files
-  command_executor.cpp
-  driver_unified.cpp
   main.cpp
 )
 
