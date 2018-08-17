@@ -710,11 +710,13 @@ Node SortInference::simplifyNode(
         }
       }
       children[0] = d_symbol_map[op];
-      //make sure all children have been taken care of
-      for( size_t i=0; i<n.getNumChildren(); i++ ){
+      // make sure all children have been given proper types
+      for (size_t i = 0, size = n.getNumChildren(); i < size; i++)
+      {
         TypeNode tn = children[i+1].getType();
         TypeNode tna = getTypeForId( d_op_arg_types[op][i] );
-        if( tn!=tna ){
+        if (!tn.isSubtypeOf(tna))
+        {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
           Assert( false );
         }
