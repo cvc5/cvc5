@@ -132,6 +132,7 @@ option(ENABLE_GPL                "Enable GPL dependencies" OFF)
 # General build options
 # >> 3-valued: INGORE ON OFF, allows to detect if set by user
 #              this is only necessary for options set for build types!
+cvc4_option(ENABLE_ASAN          "Enable ASAN build")
 cvc4_option(ENABLE_ASSERTIONS    "Enable assertions")
 cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
 cvc4_option(ENABLE_DUMPING       "Enable dumpin")
@@ -191,12 +192,17 @@ include_directories(${GMP_INCLUDE_DIR})
 add_check_c_cxx_flag("-O${OPT_LEVEL}")
 add_check_c_flag("-fexceptions")
 add_check_c_cxx_flag("-Wno-deprecated")
-add_check_c_cxx_flag("-Wsuggest-override")
+add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 
 #-----------------------------------------------------------------------------#
 # Build types
 
+if(ENABLE_ASAN)
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
+# Set the default build type to Production
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Production CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
   # Provide drop down menu options in cmake-gui
@@ -219,6 +225,14 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Competition")
 endif()
 
 #-----------------------------------------------------------------------------#
+
+if(ENABLE_ASAN)
+  set(CMAKE_REQUIRED_LIBRARIES -fsanitize=address)
+  add_required_c_cxx_flag("-fsanitize=address")
+  unset(CMAKE_REQUIRED_LIBRARIES)
+  add_required_c_cxx_flag("-fno-omit-frame-pointer")
+  add_check_c_cxx_flag("-fsanitize-recover=address")
+endif()
 
 if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
