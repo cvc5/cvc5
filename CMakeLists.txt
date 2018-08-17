@@ -268,6 +268,9 @@ endif()
 if(ENABLE_UNIT_TESTING)
 	find_package(CxxTest REQUIRED)
 	enable_testing()
+  # Force shared libs for unit tests, static libs with unit tests are not
+  # working right now.
+  set(ENABLE_SHARED ON)
 endif()
 
 if(ENABLE_SHARED)
