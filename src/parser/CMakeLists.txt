@@ -29,7 +29,7 @@ target_link_libraries(cvc4parser parsercvc parsersmt1 parsersmt2 parsertptp cvc4
 target_link_libraries(cvc4parser ${ANTLR_LIBRARIES})
 
 # ANTLR includes required for all subdirectories
-include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
+include_directories(${ANTLR_INCLUDE_DIR})
 add_subdirectory(cvc)
 add_subdirectory(smt1)
 add_subdirectory(smt2)
