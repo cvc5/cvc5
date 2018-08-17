@@ -540,8 +540,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<std::vector<Type>> cargs_pos_int;
         /* Add operator 1 */
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
-        ops_pos_int.push_back(
-            nm->mkConst(Rational(1)).toExpr());
+        ops_pos_int.push_back(nm->mkConst(Rational(1)).toExpr());
         ss << "_1";
         cnames_pos_int.push_back(ss.str());
         cargs_pos_int.push_back(std::vector<Type>());
@@ -612,9 +611,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs.push_back(nullptr);
         weights.push_back(-1);
       }
-
     }
-    else if( types[i].isDatatype() ){
+    else if (types[i].isDatatype())
+    {
       Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
       const Datatype& dt = ((DatatypeType)types[i].toType()).getDatatype();
       for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
@@ -754,7 +753,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       pcs.push_back(nullptr);
       weights.push_back(-1);
     }
-    else if( types[i].isDatatype() ){
+    else if (types[i].isDatatype())
+    {
       //add for testers
       Trace("sygus-grammar-def") << "...add for testers" << std::endl;
       const Datatype& dt = ((DatatypeType)types[i].toType()).getDatatype();
