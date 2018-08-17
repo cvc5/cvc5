@@ -1516,6 +1516,7 @@ REG1_TESTS = \
 	regress1/sygus/cggmp.sy \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
+	regress1/sygus/commutative-stream.sy \
 	regress1/sygus/constant.sy \
 	regress1/sygus/constant-bool-si-all.sy \
 	regress1/sygus/constant-dec-tree-bug.sy \
