@@ -90,8 +90,8 @@ class CVC4_PUBLIC Input {
    * copy construction and assignment.  Mark them private and do not define
    * them.
    */
-  Input(const Input& input) CVC4_UNDEFINED;
-  Input& operator=(const Input& input) CVC4_UNDEFINED;
+  Input(const Input& input) = delete;
+  Input& operator=(const Input& input) = delete;
 
  public:
   /** Create an input for the given file.

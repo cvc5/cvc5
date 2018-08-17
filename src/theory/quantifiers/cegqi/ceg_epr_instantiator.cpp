@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
@@ -32,6 +33,14 @@ void EprInstantiator::reset(CegInstantiator* ci,
                             CegInstEffort effort)
 {
   d_equal_terms.clear();
+}
+
+bool EprInstantiator::hasProcessEqualTerm(CegInstantiator* ci,
+                                          SolvedForm& sf,
+                                          Node pv,
+                                          CegInstEffort effort)
+{
+  return true;
 }
 
 bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
@@ -137,7 +146,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
                                         Node eqc,
                                         std::map<Node, int>& match_score)
 {
-  if (!inst::Trigger::isAtomicTrigger(catom) || !catom.hasSubterm(pv))
+  if (!inst::Trigger::isAtomicTrigger(catom) || !expr::hasSubterm(catom, pv))
   {
     return;
   }

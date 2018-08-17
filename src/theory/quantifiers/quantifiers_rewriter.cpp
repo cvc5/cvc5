@@ -14,14 +14,15 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -738,9 +739,11 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
       }
     }
   }else if( n.getKind()==EQUAL ){
-    for( unsigned i=0; i<2; i++ ){
-      if( n[i].getKind()==BOUND_VARIABLE ){
-        if (!n[1 - i].hasSubterm(n[i]))
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (n[i].getKind() == BOUND_VARIABLE)
+      {
+        if (!expr::hasSubterm(n[1 - i], n[i]))
         {
           return true;
         }
@@ -838,8 +841,9 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
-  return !s.hasSubterm(v) && s.getType().isSubtypeOf(v.getType());
+bool QuantifiersRewriter::isVariableElim(Node v, Node s)
+{
+  return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
 void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
@@ -1076,7 +1080,7 @@ bool QuantifiersRewriter::computeVariableElimLit(
       Trace("var-elim-quant")
           << "Variable eliminate based on bit-vector inversion : " << var
           << " -> " << slv << std::endl;
-      Assert(!slv.hasSubterm(var));
+      Assert(!expr::hasSubterm(slv, var));
       Assert(slv.getType().isSubtypeOf(var.getType()));
       vars.push_back(var);
       subs.push_back(slv);

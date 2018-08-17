@@ -175,11 +175,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
-  d_card_size = 256;
-  if (options::stdPrintASCII())
-  {
-    d_card_size = 128;
-  }
+  d_card_size = TheoryStringsRewriter::getAlphabetCardinality();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -701,6 +697,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
 void TheoryStrings::preRegisterTerm(TNode n) {
   if( d_pregistered_terms_cache.find(n) == d_pregistered_terms_cache.end() ) {
     d_pregistered_terms_cache.insert(n);
+    Trace("strings-preregister")
+        << "TheoryString::preregister : " << n << std::endl;
     //check for logic exceptions
     Kind k = n.getKind();
     if( !options::stringExp() ){
@@ -732,7 +730,28 @@ void TheoryStrings::preRegisterTerm(TNode n) {
       default: {
         registerTerm(n, 0);
         TypeNode tn = n.getType();
+        if (tn.isRegExp() && n.isVar())
+        {
+          std::stringstream ss;
+          ss << "Regular expression variables are not supported.";
+          throw LogicException(ss.str());
+        }
         if( tn.isString() ) {
+          // all characters of constants should fall in the alphabet
+          if (n.isConst())
+          {
+            std::vector<unsigned> vec = n.getConst<String>().getVec();
+            for (unsigned u : vec)
+            {
+              if (u >= d_card_size)
+              {
+                std::stringstream ss;
+                ss << "Characters in string \"" << n
+                   << "\" are outside of the given alphabet.";
+                throw LogicException(ss.str());
+              }
+            }
+          }
           // if finite model finding is enabled,
           // then we minimize the length of this term if it is a variable
           // but not an internally generated Skolem, or a term that does
@@ -4907,7 +4926,10 @@ void TheoryStrings::initializeStrategy()
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
     addStrategyStep(CHECK_CYCLES);
-    addStrategyStep(CHECK_FLAT_FORMS);
+    if (options::stringFlatForms())
+    {
+      addStrategyStep(CHECK_FLAT_FORMS);
+    }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
     if (options::stringEager())
     {

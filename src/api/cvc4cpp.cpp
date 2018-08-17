@@ -95,6 +95,10 @@ std::string Result::getUnknownExplanation(void) const
 
 std::string Result::toString(void) const { return d_result->toString(); }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Result Result::getResult(void) const { return *d_result; }
+
 std::ostream& operator<<(std::ostream& out, const Result& r)
 {
   out << r.toString();
@@ -801,6 +805,10 @@ std::string Sort::toString() const
   return d_type->toString();
 }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Type Sort::getType(void) const { return *d_type; }
+
 std::ostream& operator<<(std::ostream& out, const Sort& s)
 {
   out << s.toString();
@@ -942,6 +950,10 @@ Term::const_iterator Term::end() const
   return Term::const_iterator(new CVC4::Expr::const_iterator(d_expr->end()));
 }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Expr Term::getExpr(void) const { return *d_expr; }
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   out << t.toString();
@@ -1029,6 +1041,10 @@ bool OpTerm::isNull() const { return d_expr->isNull(); }
 
 std::string OpTerm::toString() const { return d_expr->toString(); }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Expr OpTerm::getExpr(void) const { return *d_expr; }
+
 std::ostream& operator<<(std::ostream& out, const OpTerm& t)
 {
   out << t.toString();
@@ -1097,6 +1113,14 @@ std::string DatatypeConstructorDecl::toString() const
   return ss.str();
 }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::DatatypeConstructor DatatypeConstructorDecl::getDatatypeConstructor(
+    void) const
+{
+  return *d_ctor;
+}
+
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructorDecl& ctordecl)
 {
@@ -1146,6 +1170,10 @@ std::string DatatypeDecl::toString() const
   return ss.str();
 }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Datatype DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelectorDecl& stordecl)
 {
@@ -1169,6 +1197,14 @@ std::string DatatypeSelector::toString() const
   std::stringstream ss;
   ss << *d_stor;
   return ss.str();
+}
+
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::DatatypeConstructorArg DatatypeSelector::getDatatypeConstructorArg(
+    void) const
+{
+  return *d_stor;
 }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
@@ -1287,6 +1323,14 @@ std::string DatatypeConstructor::toString() const
   return ss.str();
 }
 
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::DatatypeConstructor DatatypeConstructor::getDatatypeConstructor(
+    void) const
+{
+  return *d_ctor;
+}
+
 std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 {
   out << ctor.toString();
@@ -1332,6 +1376,10 @@ Datatype::const_iterator Datatype::end() const
 {
   return Datatype::const_iterator(*d_dtype, false);
 }
+
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Datatype Datatype::getDatatype(void) const { return *d_dtype; }
 
 Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
                                          bool begin)
@@ -1429,12 +1477,13 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(Options* opts) : d_opts(new Options())
+Solver::Solver(Options* opts)
 {
-  if (opts) d_opts->copyValues(*opts);
-  d_exprMgr = std::unique_ptr<ExprManager>(new ExprManager(*d_opts));
-  d_smtEngine = std::unique_ptr<SmtEngine>(new SmtEngine(d_exprMgr.get()));
-  d_rng = std::unique_ptr<Random>(new Random((*d_opts)[options::seed]));
+  Options* o = opts == nullptr ?  new Options() : opts;
+  d_exprMgr.reset(new ExprManager(*o));
+  d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
+  d_rng.reset(new Random((*o)[options::seed]));
+  if (opts == nullptr) delete o;
 }
 
 Solver::~Solver() {}
@@ -1704,7 +1753,7 @@ Term Solver::mkString(const std::string& s) const
 
 Term Solver::mkString(const unsigned char c) const
 {
-  return d_exprMgr->mkConst(String(c));
+  return d_exprMgr->mkConst(String(std::string(1, c)));
 }
 
 Term Solver::mkString(const std::vector<unsigned>& s) const
@@ -2776,6 +2825,18 @@ void Solver::setOption(const std::string& option,
   // CHECK: !d_smtEngine->d_fullInited, else option can't be set
   d_smtEngine->setOption(option, value);
 }
+
+/**
+ * !!! This is only temporarily available until the parser is fully migrated to
+ * the new API. !!!
+ */
+ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
+
+/**
+ * !!! This is only temporarily available until the parser is fully migrated to
+ * the new API. !!!
+ */
+SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
 }  // namespace api
 }  // namespace CVC4
