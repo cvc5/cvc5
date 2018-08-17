@@ -19,6 +19,7 @@
 #include <list>
 #include <vector>
 
+#include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -2110,8 +2111,14 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
 
-  std::set<Node> inputAssertions;
-  PROOF(inputAssertions = proofRecipe->getStep(0)->getAssertions(););
+  std::unique_ptr<std::set<Node>> inputAssertions = nullptr;
+  PROOF({
+    if (proofRecipe)
+    {
+      inputAssertions.reset(
+          new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
+    }
+  });
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -2196,30 +2203,44 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     ++ i;
 
     PROOF({
-        if (proofRecipe) {
-          // If we're expanding the target node of the explanation (this is the first expansion...),
-          // we don't want to add it as a separate proof step. It is already part of the assertions.
-          if (inputAssertions.find(toExplain.node) == inputAssertions.end()) {
-            LemmaProofRecipe::ProofStep proofStep(toExplain.theory, toExplain.node);
-            if (explanation.getKind() == kind::AND) {
-              Node flat = flattenAnd(explanation);
-              for (unsigned k = 0; k < flat.getNumChildren(); ++ k) {
-                // If a true constant or a negation of a false constant we can ignore it
-                if (! ((flat[k].isConst() && flat[k].getConst<bool>()) ||
-                       (flat[k].getKind() == kind::NOT && flat[k][0].isConst() && !flat[k][0].getConst<bool>()))) {
-                  proofStep.addAssertion(flat[k].negate());
-                }
+      if (proofRecipe && inputAssertions)
+      {
+        // If we're expanding the target node of the explanation (this is the
+        // first expansion...), we don't want to add it as a separate proof
+        // step. It is already part of the assertions.
+        if (!ContainsKey(*inputAssertions, toExplain.node))
+        {
+          LemmaProofRecipe::ProofStep proofStep(toExplain.theory,
+                                                toExplain.node);
+          if (explanation.getKind() == kind::AND)
+          {
+            Node flat = flattenAnd(explanation);
+            for (unsigned k = 0; k < flat.getNumChildren(); ++k)
+            {
+              // If a true constant or a negation of a false constant we can
+              // ignore it
+              if (!((flat[k].isConst() && flat[k].getConst<bool>())
+                    || (flat[k].getKind() == kind::NOT && flat[k][0].isConst()
+                        && !flat[k][0].getConst<bool>())))
+              {
+                proofStep.addAssertion(flat[k].negate());
               }
-            } else {
-             if (! ((explanation.isConst() && explanation.getConst<bool>()) ||
-                    (explanation.getKind() == kind::NOT && explanation[0].isConst() && !explanation[0].getConst<bool>()))) {
-               proofStep.addAssertion(explanation.negate());
-             }
             }
-            proofRecipe->addStep(proofStep);
           }
+          else
+          {
+            if (!((explanation.isConst() && explanation.getConst<bool>())
+                  || (explanation.getKind() == kind::NOT
+                      && explanation[0].isConst()
+                      && !explanation[0].getConst<bool>())))
+            {
+              proofStep.addAssertion(explanation.negate());
+            }
+          }
+          proofRecipe->addStep(proofStep);
         }
-      });
+      }
+    });
   }
 
   // Keep only the relevant literals
