@@ -576,8 +576,9 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
     {
       visited.insert(cur);
       Kind ck = cur.getKind();
-      bool isArithDivKind = ( ck == DIVISION_TOTAL || ck == INTS_DIVISION_TOTAL || ck == INTS_MODULUS_TOTAL );
-      Assert( ck != DIVISION && ck != INTS_DIVISION && ck != INTS_MODULUS );
+      bool isArithDivKind = (ck == DIVISION_TOTAL || ck == INTS_DIVISION_TOTAL
+                             || ck == INTS_MODULUS_TOTAL);
+      Assert(ck != DIVISION && ck != INTS_DIVISION && ck != INTS_MODULUS);
       if (restrictLA && (ck == NONLINEAR_MULT || isArithDivKind))
       {
         for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)
