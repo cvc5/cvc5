@@ -27,25 +27,23 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
-
-
-
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
 QuantifierMacros::QuantifierMacros(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "quantifier-macros"){
+    : PreprocessingPass(preprocContext, "quantifier-macros")
+{
   d_ground_macros = false;
-    }
+}
 
 PreprocessingPassResult QuantifierMacros::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -91,14 +89,14 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
           //for now, it is dependent upon all assertions involving macros, this is an over-approximation.
           //a more fine-grained unsat core computation would require caching dependencies for each subterm of the formula, 
           // which is expensive.
-          PROOF( 
-            ProofManager::currentPM()->addDependence(curr, assertions[i]); 
-            for( unsigned j=0; j<macro_assertions.size(); j++ ){
-              if( macro_assertions[j]!=assertions[i] ){
-                ProofManager::currentPM()->addDependence(curr,macro_assertions[j]);
-              }
+          PROOF(ProofManager::currentPM()->addDependence(curr, assertions[i]);
+                for (unsigned j = 0; j < macro_assertions.size(); j++) {
+                  if (macro_assertions[j] != assertions[i])
+                  {
+                    ProofManager::currentPM()->addDependence(
+                        curr, macro_assertions[j]);
                   }
-          );
+                });
           assertions[i] = curr;
           retVal = true;
         }
@@ -155,7 +153,7 @@ bool QuantifierMacros::containsBadOp( Node n, Node op, std::vector< Node >& opc,
       }
       if( std::find( opc.begin(), opc.end(), nop )==opc.end() ){
         opc.push_back( nop );
-    }
+      }
     }else if( d_ground_macros && n.getKind()==FORALL ){
       return true;
     }
@@ -175,7 +173,8 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
   Node icn = d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
-                 ->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
+                 ->getTermUtil()
+                 ->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(f, icn, var);
@@ -214,7 +213,7 @@ void QuantifierMacros::getMacroCandidates( Node n, std::vector< Node >& candidat
     if( n.getKind()==APPLY_UF ){
       if( isBoundVarApplyUf( n ) ){
         candidates.push_back( n );
-    }
+      }
     }else if( n.getKind()==PLUS ){
       for( size_t i=0; i<n.getNumChildren(); i++ ){
         getMacroCandidates( n[i], candidates, visited );
@@ -223,7 +222,7 @@ void QuantifierMacros::getMacroCandidates( Node n, std::vector< Node >& candidat
       //if the LHS is a constant
       if( n.getNumChildren()==2 && n[0].isConst() ){
         getMacroCandidates( n[1], candidates, visited );
-    }
+      }
     }else if( n.getKind()==NOT ){
       getMacroCandidates( n[0], candidates, visited );
     }

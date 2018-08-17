@@ -85,8 +85,9 @@
 #include "preprocessing/passes/ite_simp.h"
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/quantifier_macros.h"
+#include "preprocessing/passes/quantifier_macros.h"
+#include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
@@ -96,7 +97,6 @@
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
-#include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -2719,7 +2719,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(sygusInfer));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
-  d_preprocessingPassRegistry.registerPass("quantifier-macros", std::move(quantifierMacros));
+  d_preprocessingPassRegistry.registerPass("quantifier-macros",
+                                           std::move(quantifierMacros));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
