@@ -526,8 +526,6 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)
         d_cegis_sample_refine.insert(i);
-        std::vector<Node> vars;
-        d_cegis_sampler.getVariables(vars);
         std::vector<Node> pt;
         d_cegis_sampler.getSamplePoint(i, pt);
         Assert(d_base_vars.size() == pt.size());
