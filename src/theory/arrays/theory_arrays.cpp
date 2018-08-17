@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "expr/kind.h"
+#include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "proof/array_proof.h"
@@ -342,11 +343,15 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && !in[1].hasSubterm(in[0]) && (in[1].getType()).isSubtypeOf(in[0].getType()) ){
+      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
+          && (in[1].getType()).isSubtypeOf(in[0].getType()))
+      {
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1]) && (in[0].getType()).isSubtypeOf(in[1].getType())){
+      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
+          && (in[0].getType()).isSubtypeOf(in[1].getType()))
+      {
         outSubstitutions.addSubstitution(in[1], in[0]);
         return PP_ASSERT_STATUS_SOLVED;
       }
