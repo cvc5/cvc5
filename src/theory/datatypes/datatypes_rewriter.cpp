@@ -186,7 +186,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
-Kind getOperatorKindForSygusBuiltin(Node op)
+Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
 {
   Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
@@ -212,7 +212,7 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   {
     return APPLY_UF;
   }
-  return NodeManager::operatorToKind(op);
+  return UNDEFINED_KIND;
 }
 
 Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,

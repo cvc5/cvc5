@@ -128,10 +128,7 @@ class NodeManager {
    * contexts, like as a key in attribute tables), even though
    * normally it's an error to have a TNode to a node value with a
    * reference count of 0.  Being "under deletion" also enables
-   * assertions that inc() is not called on it.  (A poorly-behaving
-   * attribute cleanup function could otherwise create a "Node" that
-   * points to the node value that is in the process of being deleted,
-   * springing it back to life.)
+   * assertions that inc() is not called on it.
    */
   expr::NodeValue* d_nodeUnderDeletion;
 
