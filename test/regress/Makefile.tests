@@ -2,6 +2,7 @@
 equals = =
 
 REG0_TESTS = \
+	regress0/arith/apply2const-test.smt2 \
 	regress0/arith/arith.01.cvc \
 	regress0/arith/arith.02.cvc \
 	regress0/arith/arith.03.cvc \
@@ -436,6 +437,7 @@ REG0_TESTS = \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
+	regress0/fp/ext-rew-test.smt2 \
 	regress0/fuzz_1.smt \
 	regress0/fuzz_3.smt \
 	regress0/get-value-incremental.smt2 \
@@ -494,6 +496,7 @@ REG0_TESTS = \
 	regress0/logops.04.cvc \
 	regress0/logops.05.cvc \
 	regress0/nl/coeff-sat.smt2 \
+	regress0/nl/ext-rew-aggr-test.smt2 \
 	regress0/nl/magnitude-wrong-1020-m.smt2 \
 	regress0/nl/mult-po.smt2 \
 	regress0/nl/nia-wrong-tl.smt2 \
@@ -1111,6 +1114,8 @@ REG1_TESTS = \
 	regress1/fmf/radu-quant-set.smt2 \
 	regress1/fmf/refcount24.cvc.smt2 \
 	regress1/fmf/sc-crash-052316.smt2 \
+	regress1/fmf/sort-inf-int.smt2 \
+	regress1/fmf/sort-inf-int-real.smt2 \
 	regress1/fmf/with-ind-104-core.smt2 \
 	regress1/gensys_brn001.smt2 \
 	regress1/ho/auth0068.smt2 \
@@ -1505,6 +1510,7 @@ REG1_TESTS = \
 	regress1/sygus/array_search_2.sy \
 	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
+	regress1/sygus/bvudiv-by-2.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegisunif-depth1.sy \
 	regress1/sygus/cegis-unif-inv-eq-fair.sy \

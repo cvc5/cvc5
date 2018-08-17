@@ -73,7 +73,6 @@ private:
   //fixed finite set range
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_gr_range;
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_ngr_range;
-  void hasFreeVar( Node f, Node n );
   void process( Node q, Node n, bool pol,
                 std::map< Node, unsigned >& bound_lit_type_map,
                 std::map< int, std::map< Node, Node > >& bound_lit_map,

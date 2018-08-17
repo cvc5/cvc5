@@ -63,28 +63,40 @@ libcvc4_la_SOURCES = \
 	decision/justification_heuristic.h \
 	preprocessing/passes/apply_substs.cpp \
 	preprocessing/passes/apply_substs.h \
+	preprocessing/passes/apply_to_const.cpp \
+	preprocessing/passes/apply_to_const.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
 	preprocessing/passes/bv_ackermann.h \
+	preprocessing/passes/bv_eager_atoms.cpp \
+	preprocessing/passes/bv_eager_atoms.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
 	preprocessing/passes/bv_intro_pow2.h \
+	preprocessing/passes/extended_rewriter_pass.cpp \
+	preprocessing/passes/extended_rewriter_pass.h \
 	preprocessing/passes/int_to_bv.cpp \
 	preprocessing/passes/int_to_bv.h \
+	preprocessing/passes/ite_removal.cpp \
+	preprocessing/passes/ite_removal.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/bool_to_bv.cpp \
 	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_to_bool.cpp \
 	preprocessing/passes/bv_to_bool.h \
+	preprocessing/passes/quantifiers_preprocess.cpp \
+	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \
 	preprocessing/passes/rewrite.h \
 	preprocessing/passes/sep_skolem_emp.cpp \
 	preprocessing/passes/sep_skolem_emp.h \
+	preprocessing/passes/sort_infer.cpp \
+	preprocessing/passes/sort_infer.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
 	preprocessing/passes/symmetry_breaker.cpp \
