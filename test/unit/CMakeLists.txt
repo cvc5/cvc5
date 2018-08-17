@@ -16,6 +16,9 @@ macro(cvc4_add_unit_test is_white name)
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()
+  # Disable the Wsuggest-override warnings for the unit tests. CxxTest generates
+  # code that does not properly add the override keyword to runTest().
+  target_compile_options(${name} PRIVATE -Wno-suggest-override)
 endmacro()
 
 macro(cvc4_add_unit_test_black name)
