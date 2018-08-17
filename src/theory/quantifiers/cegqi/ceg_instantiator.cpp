@@ -19,6 +19,7 @@
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_msum.h"
@@ -1214,7 +1215,7 @@ void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq 
     {
       Node nn = n[i == 0 ? 1 : 0];
       std::map<Node, std::vector<Node> >::iterator it = teq.find(n[i]);
-      if (it != teq.end() && !nn.hasFreeVar()
+      if (it != teq.end() && !expr::hasFreeVar(nn)
           && std::find(it->second.begin(), it->second.end(), nn)
                  == it->second.end())
       {
@@ -1268,7 +1269,7 @@ void CegInstantiator::presolve( Node q ) {
       Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
-      Assert(!lem.hasFreeVar());
+      Assert(!expr::hasFreeVar(lem));
       d_qe->getOutputChannel().lemma( lem, false, true );
     }
   }
