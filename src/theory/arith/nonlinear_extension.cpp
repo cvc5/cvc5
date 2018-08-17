@@ -20,6 +20,7 @@
 #include <cmath>
 #include <set>
 
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
@@ -1199,7 +1200,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         {
           Assert(!slv.isNull());
           // currently do not support substitution-with-coefficients
-          if (veqc.isNull() && !slv.hasSubterm(uv))
+          if (veqc.isNull() && !expr::hasSubterm(slv, uv))
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
@@ -1454,7 +1455,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     // is it a valid variable?
     std::map<Node, std::pair<Node, Node> >::iterator bit =
         d_check_model_bounds.find(v);
-    if (!invalid_vsum.hasSubterm(v) && bit != d_check_model_bounds.end())
+    if (!expr::hasSubterm(invalid_vsum, v) && bit != d_check_model_bounds.end())
     {
       std::map<Node, Node>::iterator it = v_a.find(v);
       if (it != v_a.end())

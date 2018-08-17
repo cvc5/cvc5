@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "expr/node_algorithm.h"
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
 
@@ -85,7 +86,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   Node newAssertion;
   if(node.getKind() == kind::ITE) {
     // If an ITE, replace it
-    if (!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar()))
+    if (!nodeType.isBoolean() && (!inQuant || !expr::hasBoundVar(node)))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
