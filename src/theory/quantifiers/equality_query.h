@@ -114,8 +114,6 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
   Node getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
   int getRepScore( Node n, Node f, int index, TypeNode v_tn );
-  /** flatten representatives */
-  void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory::quantifiers namespace */
