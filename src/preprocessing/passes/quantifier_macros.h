@@ -25,7 +25,6 @@
 #include "expr/type_node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace preprocessing {
