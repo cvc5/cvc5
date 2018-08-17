@@ -36,7 +36,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   // Remove all of the ITE occurrences and normalize
   d_preprocContext->getIteRemover()->run(
       assertions->ref(), assertions->getIteSkolemMap(), true);
-  for (unsigned i = 0; i < assertions->size(); ++i)
+  for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     assertions->replace(i, Rewriter::rewrite((*assertions)[i]));
   }
