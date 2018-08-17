@@ -190,8 +190,6 @@ public:
 };/* class DefinedFunction */
 
 struct SmtEngineStatistics {
-  /** time spent in gaussian elimination */
-  TimerStat d_gaussElimTime;
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** time spent in non-clausal simplification */
@@ -208,8 +206,6 @@ struct SmtEngineStatistics {
   TimerStat d_unconstrainedSimpTime;
   /** time spent in theory preprocessing */
   TimerStat d_theoryPreprocessTime;
-  /** time spent in theory preprocessing */
-  TimerStat d_rewriteApplyToConstTime;
   /** time spent converting to CNF */
   TimerStat d_cnfConversionTime;
   /** Num of assertions before ite removal */
@@ -235,7 +231,6 @@ struct SmtEngineStatistics {
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
   SmtEngineStatistics() :
-    d_gaussElimTime("smt::SmtEngine::gaussElimTime"),
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
     d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
@@ -244,7 +239,6 @@ struct SmtEngineStatistics {
     d_simpITETime("smt::SmtEngine::simpITETime"),
     d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
     d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
-    d_rewriteApplyToConstTime("smt::SmtEngine::rewriteApplyToConstTime"),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
     d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
@@ -257,8 +251,6 @@ struct SmtEngineStatistics {
     d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
-
-    smtStatisticsRegistry()->registerStat(&d_gaussElimTime);
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
@@ -267,7 +259,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_simpITETime);
     smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
-    smtStatisticsRegistry()->registerStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
@@ -282,7 +273,6 @@ struct SmtEngineStatistics {
   }
 
   ~SmtEngineStatistics() {
-    smtStatisticsRegistry()->unregisterStat(&d_gaussElimTime);
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
@@ -291,7 +281,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
     smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
-    smtStatisticsRegistry()->unregisterStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
@@ -4032,7 +4021,6 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::bvGaussElim())
   {
-    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
     d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
   }
 
@@ -4163,9 +4151,6 @@ void SmtEnginePrivate::processAssertions() {
     d_preprocessingPassRegistry.getPass("bv-intro-pow2")->apply(&d_assertions);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-substitution" << endl;
-  dumpAssertions("pre-substitution", d_assertions);
-
   if (options::unsatCores())
   {
     // special rewriting pass for unsat cores, since many of the passes below
@@ -4176,8 +4161,6 @@ void SmtEnginePrivate::processAssertions() {
   {
     d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
   }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-substitution" << endl;
-  dumpAssertions("post-substitution", d_assertions);
 
   // Assertions ARE guaranteed to be rewritten by this point
 #ifdef CVC4_ASSERTIONS
@@ -4188,20 +4171,14 @@ void SmtEnginePrivate::processAssertions() {
 #endif
 
   // Lift bit-vectors of size 1 to bool
-  if(options::bitvectorToBool()) {
-    dumpAssertions("pre-bv-to-bool", d_assertions);
-    Chat() << "...doing bvToBool..." << endl;
+  if (options::bitvectorToBool())
+  {
     d_preprocessingPassRegistry.getPass("bv-to-bool")->apply(&d_assertions);
-    dumpAssertions("post-bv-to-bool", d_assertions);
-    Trace("smt") << "POST bvToBool" << endl;
   }
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if(options::boolToBitvector()) {
-    dumpAssertions("pre-bool-to-bv", d_assertions);
-    Chat() << "...doing boolToBv..." << endl;
+  if (options::boolToBitvector())
+  {
     d_preprocessingPassRegistry.getPass("bool-to-bv")->apply(&d_assertions);
-    dumpAssertions("post-bool-to-bv", d_assertions);
-    Trace("smt") << "POST boolToBv" << endl;
   }
   if(options::sepPreSkolemEmp()) {
     d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
@@ -4387,13 +4364,10 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-repeat-simplify", d_assertions);
 
-  dumpAssertions("pre-rewrite-apply-to-const", d_assertions);
-  if(options::rewriteApplyToConst()) {
-    Chat() << "Rewriting applies to constants..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteApplyToConstTime);
+  if (options::rewriteApplyToConst())
+  {
     d_preprocessingPassRegistry.getPass("apply-to-const")->apply(&d_assertions);
   }
-  dumpAssertions("post-rewrite-apply-to-const", d_assertions);
 
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
