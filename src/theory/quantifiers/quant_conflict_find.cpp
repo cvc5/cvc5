@@ -1870,33 +1870,6 @@ bool QuantConflictFind::areMatchDisequal( TNode n1, TNode n2 ) {
   //}
 }
 
-//-------------------------------------------------- handling assertions / eqc
-
-void QuantConflictFind::assertNode( Node q ) {
-  /*
-  if( d_quantEngine->hasOwnership( q, this ) ){
-    Trace("qcf-proc") << "QCF : assertQuantifier : ";
-    debugPrintQuant("qcf-proc", q);
-    Trace("qcf-proc") << std::endl;
-  }
-  */
-}
-
-/** new node */
-void QuantConflictFind::newEqClass( Node n ) {
-
-}
-
-/** merge */
-void QuantConflictFind::merge( Node a, Node b ) {
-
-}
-
-/** assert disequal */
-void QuantConflictFind::assertDisequal( Node a, Node b ) {
-
-}
-
 //-------------------------------------------------- check function
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
