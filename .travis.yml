@@ -143,7 +143,7 @@ matrix:
             name: "CVC4/CVC4"
             description: "Build submitted via Travis CI"
           notification_email: timothy.alan.king@gmail.com
-          build_command_prepend: "./autogen.sh; ./configure --enable-unit-testing --enable-proof"
+          build_command_prepend: "./autogen.sh; ./configure debug --enable-unit-testing --enable-proof"
           build_command: "make V=1 -j4"
           branch_pattern: coverity_scan
       after_failure:
