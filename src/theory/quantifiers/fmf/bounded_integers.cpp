@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -436,17 +437,23 @@ void BoundedIntegers::checkOwnership(Node f)
                                << bound_lit_map[2][v] << std::endl;
           }
         }else if( it->second==BOUND_FIXED_SET ){
-          setBoundedVar( f, v, BOUND_FIXED_SET );
+          setBoundedVar(f, v, BOUND_FIXED_SET);
           setBoundVar = true;
-          for( unsigned i=0; i<bound_fixed_set[v].size(); i++ ){
+          for (unsigned i = 0; i < bound_fixed_set[v].size(); i++)
+          {
             Node t = bound_fixed_set[v][i];
-            if( t.hasBoundVar() ){
-              d_fixed_set_ngr_range[f][v].push_back( t ); 
-            }else{
-              d_fixed_set_gr_range[f][v].push_back( t ); 
+            if (expr::hasBoundVar(t))
+            {
+              d_fixed_set_ngr_range[f][v].push_back(t);
             }
-          } 
-          Trace("bound-int") << "Variable " << v << " is bound because of disequality conjunction " << bound_lit_map[3][v] << std::endl;
+            else
+            {
+              d_fixed_set_gr_range[f][v].push_back(t);
+            }
+          }
+          Trace("bound-int") << "Variable " << v
+                             << " is bound because of disequality conjunction "
+                             << bound_lit_map[3][v] << std::endl;
         }
         if( setBoundVar ){
           success = true;
@@ -543,9 +550,11 @@ void BoundedIntegers::checkOwnership(Node f)
         Node r = itr->second;
         Assert( !r.isNull() );
         bool isProxy = false;
-        if( r.hasBoundVar() ){
-          //introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem( "bir", r.getType(), "bound for term" );
+        if (expr::hasBoundVar(r))
+        {
+          // introduce a new bound
+          Node new_range = NodeManager::currentNM()->mkSkolem(
+              "bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
@@ -645,13 +654,21 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   return;
 }
 
-bool BoundedIntegers::isGroundRange( Node q, Node v ) {
-  if( isBoundVar(q,v) ){
-    if( d_bound_type[q][v]==BOUND_INT_RANGE ){
-      return !getLowerBound(q,v).hasBoundVar() && !getUpperBound(q,v).hasBoundVar();
-    }else if( d_bound_type[q][v]==BOUND_SET_MEMBER ){
-      return !d_setm_range[q][v].hasBoundVar();
-    }else if( d_bound_type[q][v]==BOUND_FIXED_SET ){
+bool BoundedIntegers::isGroundRange(Node q, Node v)
+{
+  if (isBoundVar(q, v))
+  {
+    if (d_bound_type[q][v] == BOUND_INT_RANGE)
+    {
+      return !expr::hasBoundVar(getLowerBound(q, v))
+             && !expr::hasBoundVar(getUpperBound(q, v));
+    }
+    else if (d_bound_type[q][v] == BOUND_SET_MEMBER)
+    {
+      return !expr::hasBoundVar(d_setm_range[q][v]);
+    }
+    else if (d_bound_type[q][v] == BOUND_FIXED_SET)
+    {
       return !d_fixed_set_ngr_range[q][v].empty();
     }
   }
@@ -684,7 +701,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     return sr;
   }
   Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
-  Assert(!sr.hasFreeVar());
+  Assert(!expr::hasFreeVar(sr));
   Node sro = sr;
   sr = d_quantEngine->getModel()->getValue(sr);
   // if non-constant, then sr does not occur in the model, we fail
@@ -915,4 +932,3 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
     return true;
   }
 }
-

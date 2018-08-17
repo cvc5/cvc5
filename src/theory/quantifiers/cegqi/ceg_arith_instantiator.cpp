@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/partial_model.h"
@@ -851,7 +852,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
         << pv << " " << atom.getKind() << " " << val << std::endl;
   }
   // when not pure LIA/LRA, we must check whether the lhs contains pv
-  if (val.hasSubterm(pv))
+  if (expr::hasSubterm(val, pv))
   {
     Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
     return 0;

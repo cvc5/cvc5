@@ -22,6 +22,7 @@
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/bv_options.h"
 #include "options/options.h"
@@ -31,8 +32,8 @@
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
-#include "smt/term_formula_removal.h"
 #include "smt/logic_exception.h"
+#include "smt/term_formula_removal.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -396,7 +397,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // the atom should not have free variables
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
-      Assert(!preprocessed.hasFreeVar());
+      Assert(!expr::hasFreeVar(preprocessed));
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);

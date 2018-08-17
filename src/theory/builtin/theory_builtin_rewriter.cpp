@@ -19,6 +19,7 @@
 #include "theory/builtin/theory_builtin_rewriter.h"
 
 #include "expr/chain.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 
@@ -88,7 +89,7 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Trace("builtin-rewrite") << "  array rep : " << anode << ", constant = " << anode.isConst() << std::endl;
         Assert( anode.isConst()==retNode.isConst() );
         Assert( retNode.getType()==node.getType() );
-        Assert(node.hasFreeVar() == retNode.hasFreeVar());
+        Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
         return RewriteResponse(REWRITE_DONE, retNode);
       } 
     }else{

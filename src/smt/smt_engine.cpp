@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -69,6 +70,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/passes/apply_substs.h"
+#include "preprocessing/passes/apply_to_const.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_ackermann.h"
@@ -76,11 +78,15 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
+#include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/int_to_bv.h"
+#include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
+#include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
+#include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
@@ -201,8 +207,6 @@ struct SmtEngineStatistics {
   TimerStat d_simpITETime;
   /** time spent in simplifying ITEs */
   TimerStat d_unconstrainedSimpTime;
-  /** time spent removing ITEs */
-  TimerStat d_iteRemovalTime;
   /** time spent in theory preprocessing */
   TimerStat d_theoryPreprocessTime;
   /** time spent in theory preprocessing */
@@ -240,7 +244,6 @@ struct SmtEngineStatistics {
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
     d_simpITETime("smt::SmtEngine::simpITETime"),
     d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
-    d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
     d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
     d_rewriteApplyToConstTime("smt::SmtEngine::rewriteApplyToConstTime"),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
@@ -264,7 +267,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
     smtStatisticsRegistry()->registerStat(&d_simpITETime);
     smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
-    smtStatisticsRegistry()->registerStat(&d_iteRemovalTime);
     smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->registerStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
@@ -289,7 +291,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
     smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
     smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
-    smtStatisticsRegistry()->unregisterStat(&d_iteRemovalTime);
     smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->unregisterStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
@@ -560,12 +561,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** mapping from expressions to name */
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
-public:
-  /**
-   * Map from skolem variables to index in d_assertions containing
-   * corresponding introduced Boolean ite
-   */
-  IteSkolemMap d_iteSkolemMap;
+ public:
+  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
@@ -591,11 +588,6 @@ public:
    * Performs static learning on the assertions.
    */
   void staticLearning();
-
-  /**
-   * Remove ITEs from the assertions.
-   */
-  void removeITEs();
 
   Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
   Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
@@ -635,8 +627,8 @@ public:
    * Remove conjuncts in toRemove from conjunction n. Return # of removed
    * conjuncts.
    */
-  size_t removeFromConjunction(Node& n,
-                               const std::unordered_set<unsigned long>& toRemove);
+  size_t removeFromConjunction(
+      Node& n, const std::unordered_set<unsigned long>& toRemove);
 
   /** Scrub miplib encodings. */
   void doMiplibTrick();
@@ -670,7 +662,6 @@ public:
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.d_userContext),
-        d_iteSkolemMap(),
         d_iteRemover(smt.d_userContext)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
@@ -836,7 +827,7 @@ public:
     d_assertions.clear();
     d_nonClausalLearnedLiterals.clear();
     d_realAssertionsEnd = 0;
-    d_iteSkolemMap.clear();
+    getIteSkolemMap().clear();
   }
 
   /**
@@ -894,66 +885,6 @@ public:
     Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
     Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
     return retval;
-  }
-
-  NodeToNodeHashMap d_rewriteApplyToConstCache;
-  Node rewriteApplyToConst(TNode n) {
-    Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
-
-    if(n.getMetaKind() == kind::metakind::CONSTANT ||
-       n.getMetaKind() == kind::metakind::VARIABLE ||
-       n.getMetaKind() == kind::metakind::NULLARY_OPERATOR)
-    {
-      return n;
-    }
-
-    if(d_rewriteApplyToConstCache.find(n) != d_rewriteApplyToConstCache.end()) {
-      Trace("rewriteApplyToConst") << "in cache :: "
-                                   << d_rewriteApplyToConstCache[n]
-                                   << std::endl;
-      return d_rewriteApplyToConstCache[n];
-    }
-
-    if(n.getKind() == kind::APPLY_UF) {
-      if(n.getNumChildren() == 1 && n[0].isConst() &&
-         n[0].getType().isInteger())
-      {
-        stringstream ss;
-        ss << n.getOperator() << "_";
-        if(n[0].getConst<Rational>() < 0) {
-          ss << "m" << -n[0].getConst<Rational>();
-        } else {
-          ss << n[0];
-        }
-        Node newvar = NodeManager::currentNM()->mkSkolem(
-            ss.str(), n.getType(), "rewriteApplyToConst skolem",
-            NodeManager::SKOLEM_EXACT_NAME);
-        d_rewriteApplyToConstCache[n] = newvar;
-        Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
-        return newvar;
-      } else {
-        stringstream ss;
-        ss << "The rewrite-apply-to-const preprocessor is currently limited;"
-           << std::endl
-           << "it only works if all function symbols are unary and with Integer"
-           << std::endl
-           << "domain, and all applications are to integer values." << std::endl
-           << "Found application: " << n;
-        Unhandled(ss.str());
-      }
-    }
-
-    NodeBuilder<> builder(n.getKind());
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      builder << n.getOperator();
-    }
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      builder << rewriteApplyToConst(n[i]);
-    }
-    Node rewr = builder;
-    d_rewriteApplyToConstCache[n] = rewr;
-    Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
-    return rewr;
   }
 
   void addUseTheoryListListener(TheoryEngine* theoryEngine){
@@ -1045,7 +976,8 @@ SmtEngine::SmtEngine(ExprManager* em)
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext,
+  d_theoryEngine = new TheoryEngine(d_context,
+                                    d_userContext,
                                     d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
                                     d_channels);
@@ -2711,11 +2643,13 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 void SmtEnginePrivate::finishInit()
 {
   d_preprocessingPassContext.reset(
-      new PreprocessingPassContext(&d_smt, d_resourceManager));
+      new PreprocessingPassContext(&d_smt, d_resourceManager, &d_iteRemover));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
   std::unique_ptr<ApplySubsts> applySubsts(
       new ApplySubsts(d_preprocessingPassContext.get()));
+  std::unique_ptr<ApplyToConst> applyToConst(
+      new ApplyToConst(d_preprocessingPassContext.get()));
   std::unique_ptr<BoolToBV> boolToBv(
       new BoolToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<BvAbstraction> bvAbstract(
@@ -2730,24 +2664,35 @@ void SmtEnginePrivate::finishInit()
       new BvIntroPow2(d_preprocessingPassContext.get()));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
+  std::unique_ptr<ExtRewPre> extRewPre(
+      new ExtRewPre(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
+      new QuantifiersPreprocess(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
+  std::unique_ptr<IteRemoval> iteRemoval(
+      new IteRemoval(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
   std::unique_ptr<Rewrite> rewrite(
       new Rewrite(d_preprocessingPassContext.get()));
+  std::unique_ptr<SortInferencePass> sortInfer(
+      new SortInferencePass(d_preprocessingPassContext.get(),
+                            d_smt.d_theoryEngine->getSortInference()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
- std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
+  std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
-   d_preprocessingPassRegistry.registerPass("apply-substs",
+  d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
+  d_preprocessingPassRegistry.registerPass("apply-to-const",
+                                           std::move(applyToConst));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
@@ -2759,13 +2704,20 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
+  d_preprocessingPassRegistry.registerPass("ext-rew-pre", std::move(extRewPre));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
+                                           std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
+  d_preprocessingPassRegistry.registerPass("ite-removal",
+                                           std::move(iteRemoval));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
   d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
                                            std::move(sepSkolemEmp));
+  d_preprocessingPassRegistry.registerPass("sort-inference",
+                                           std::move(sortInfer));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
@@ -2774,18 +2726,21 @@ void SmtEnginePrivate::finishInit()
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
 {
-  stack< triple<Node, Node, bool> > worklist;
+  stack<std::tuple<Node, Node, bool>> worklist;
   stack<Node> result;
-  worklist.push(make_triple(Node(n), Node(n), false));
+  worklist.push(std::make_tuple(Node(n), Node(n), false));
   // The worklist is made of triples, each is input / original node then the output / rewritten node
   // and finally a flag tracking whether the children have been explored (i.e. if this is a downward
   // or upward pass).
 
   do {
     spendResource(options::preprocessStep());
-    n = worklist.top().first;                      // n is the input / original
-    Node node = worklist.top().second;             // node is the output / result
-    bool childrenPushed = worklist.top().third;
+
+    // n is the input / original
+    // node is the output / result
+    Node node;
+    bool childrenPushed;
+    std::tie(n, node, childrenPushed) = worklist.top();
     worklist.pop();
 
     // Working downwards
@@ -2909,10 +2864,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // the partial functions can fall through, in which case we still
       // consider their children
-      worklist.push(make_triple(Node(n), node, true));            // Original and rewritten result
+      worklist.push(std::make_tuple(
+          Node(n), node, true));  // Original and rewritten result
 
       for(size_t i = 0; i < node.getNumChildren(); ++i) {
-        worklist.push(make_triple(node[i], node[i], false));      // Rewrite the children of the result only
+        worklist.push(
+            std::make_tuple(node[i],
+                            node[i],
+                            false));  // Rewrite the children of the result only
       }
 
     } else {
@@ -3009,20 +2968,6 @@ Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, s
   }
   return ret;
 }
-
-void SmtEnginePrivate::removeITEs() {
-  d_smt.finalOptionsAreSet();
-  spendResource(options::preprocessStep());
-  Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
-
-  // Remove all of the ITE occurrences and normalize
-  d_iteRemover.run(d_assertions.ref(), d_iteSkolemMap, true);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-  }
-}
-
-
 
 // do dumping (before/after any preprocessing pass)
 static void dumpAssertions(const char* key,
@@ -3979,7 +3924,8 @@ Result SmtEngine::check() {
        (not d_logic.isQuantified() &&
         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
         )){
-      if(d_private->d_iteSkolemMap.empty()){
+      if (d_private->getIteSkolemMap().empty())
+      {
         options::decisionStopOnly.set(false);
         d_decisionEngine->clearStrategies();
         Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
@@ -4018,8 +3964,9 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
-    if (it != d_iteSkolemMap.end()) {
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
+    if (it != getIteSkolemMap().end())
+    {
       skolemSet.insert(n);
     }
     cache[n] = true;
@@ -4044,9 +3991,10 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
     bool bad = false;
-    if (it != d_iteSkolemMap.end()) {
+    if (it != getIteSkolemMap().end())
+    {
       if (!((*it).first < n)) {
         bad = true;
       }
@@ -4202,19 +4150,14 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::extRewPrep())
   {
-    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
-    for (unsigned i = 0; i < d_assertions.size(); ++i)
-    {
-      Node a = d_assertions[i];
-      d_assertions.replace(i, extr.extendedRewrite(a));
-    }
+    d_preprocessingPassRegistry.getPass("ext-rew-pre")->apply(&d_assertions);
   }
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
     dumpAssertions("pre-unconstrained-simp", d_assertions);
-	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
     unconstrainedSimp();
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
     dumpAssertions("post-unconstrained-simp", d_assertions);
@@ -4232,7 +4175,7 @@ void SmtEnginePrivate::processAssertions() {
   {
     // special rewriting pass for unsat cores, since many of the passes below
     // are skipped
-	  d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
   }
   else
   {
@@ -4274,15 +4217,8 @@ void SmtEnginePrivate::processAssertions() {
 
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node prev = d_assertions[i];
-      Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
-      if( next!=prev ){
-        d_assertions.replace( i, Rewriter::rewrite( next ) );
-        Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
-        Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
+    d_preprocessingPassRegistry.getPass("quantifiers-preprocess")
+        ->apply(&d_assertions);
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
@@ -4337,13 +4273,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
-    //sort inference technique
-    SortInference * si = d_smt.d_theoryEngine->getSortInference();
-    si->simplify( d_assertions.ref(), options::sortInference(), options::ufssFairnessMonotone() );
-    for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
-      d_smt.setPrintFuncInModel( it->first.toExpr(), false );
-      d_smt.setPrintFuncInModel( it->second.toExpr(), true );
-    }
+    d_preprocessingPassRegistry.getPass("sort-inference")->apply(&d_assertions);
   }
 
   if( options::pbRewrites() ){
@@ -4379,22 +4309,15 @@ void SmtEnginePrivate::processAssertions() {
   }
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-ite-removal" << endl;
-  dumpAssertions("pre-ite-removal", d_assertions);
   {
-    Chat() << "removing term ITEs..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_iteRemovalTime);
-    // Remove ITEs, updating d_iteSkolemMap
     d_smt.d_stats->d_numAssertionsPre += d_assertions.size();
-    removeITEs();
+    d_preprocessingPassRegistry.getPass("ite-removal")->apply(&d_assertions);
     // This is needed because when solving incrementally, removeITEs may introduce
     // skolems that were solved for earlier and thus appear in the substitution
     // map.
     d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-ite-removal" << endl;
-  dumpAssertions("post-ite-removal", d_assertions);
 
   dumpAssertions("pre-repeat-simplify", d_assertions);
   if(options::repeatSimp()) {
@@ -4425,8 +4348,8 @@ void SmtEnginePrivate::processAssertions() {
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
       // If either of these is violated, we must add iteExpr as a proper assertion
-      IteSkolemMap::iterator it = d_iteSkolemMap.begin();
-      IteSkolemMap::iterator iend = d_iteSkolemMap.end();
+      IteSkolemMap::iterator it = getIteSkolemMap().begin();
+      IteSkolemMap::iterator iend = getIteSkolemMap().end();
       NodeBuilder<> builder(kind::AND);
       builder << d_assertions[d_realAssertionsEnd - 1];
       vector<TNode> toErase;
@@ -4454,14 +4377,14 @@ void SmtEnginePrivate::processAssertions() {
       }
       if(builder.getNumChildren() > 1) {
         while (!toErase.empty()) {
-          d_iteSkolemMap.erase(toErase.back());
+          getIteSkolemMap().erase(toErase.back());
           toErase.pop_back();
         }
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      removeITEs();
+      d_preprocessingPassRegistry.getPass("ite-removal")->apply(&d_assertions);
       d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
@@ -4473,9 +4396,7 @@ void SmtEnginePrivate::processAssertions() {
   if(options::rewriteApplyToConst()) {
     Chat() << "Rewriting applies to constants..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteApplyToConstTime);
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions[i] = Rewriter::rewrite(rewriteApplyToConst(d_assertions[i]));
-    }
+    d_preprocessingPassRegistry.getPass("apply-to-const")->apply(&d_assertions);
   }
   dumpAssertions("post-rewrite-apply-to-const", d_assertions);
 
@@ -4516,8 +4437,8 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions
-      (d_assertions.ref(), d_realAssertionsEnd, d_iteSkolemMap);
+    d_smt.d_decisionEngine->addAssertions(
+        d_assertions.ref(), d_realAssertionsEnd, getIteSkolemMap());
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -4539,7 +4460,7 @@ void SmtEnginePrivate::processAssertions() {
   d_assertionsProcessed = true;
 
   d_assertions.clear();
-  d_iteSkolemMap.clear();
+  getIteSkolemMap().clear();
 }
 
 void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
@@ -4824,9 +4745,9 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   finalOptionsAreSet();
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << GetUnsatCoreCommand();
+    Dump("benchmark") << GetUnsatAssumptionsCommand();
   }
-  UnsatCore core = getUnsatCore();
+  UnsatCore core = getUnsatCoreInternal();
   vector<Expr> res;
   for (const Expr& e : d_assumptions)
   {
@@ -5189,6 +5110,31 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+UnsatCore SmtEngine::getUnsatCoreInternal()
+{
+#if IS_PROOFS_BUILD
+  if (!options::unsatCores())
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores option is off.");
+  }
+  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
+      || d_problemExtended)
+  {
+    throw RecoverableModalException(
+        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
+        "response.");
+  }
+
+  d_proofManager->traceUnsatCore();  // just to trigger core creation
+  return UnsatCore(this, d_proofManager->extractUnsatCore());
+#else  /* IS_PROOFS_BUILD */
+  throw ModalException(
+      "This build of CVC4 doesn't have proof support (required for unsat "
+      "cores).");
+#endif /* IS_PROOFS_BUILD */
+}
+
 void SmtEngine::checkUnsatCore() {
   Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
 
@@ -5547,23 +5493,7 @@ UnsatCore SmtEngine::getUnsatCore() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
-#if IS_PROOFS_BUILD
-  if(!options::unsatCores()) {
-    throw ModalException("Cannot get an unsat core when produce-unsat-cores option is off.");
-  }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
-    throw RecoverableModalException(
-        "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
-        "response.");
-  }
-
-  d_proofManager->traceUnsatCore();// just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
-#else /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");
-#endif /* IS_PROOFS_BUILD */
+  return getUnsatCoreInternal();
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
