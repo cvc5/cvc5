@@ -18,6 +18,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -356,7 +357,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isBitVector())
   {
-    unsigned size = type.toType().getBitVectorSize();
+    unsigned size = type.getBitVectorSize();
     ops.push_back(bv::utils::mkZero(size));
     ops.push_back(bv::utils::mkOne(size));
   }
