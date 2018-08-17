@@ -34,7 +34,9 @@ libcvc4_la_LDFLAGS = \
 nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
 libcvc4_la_SOURCES = \
 	git_versioninfo.cpp \
-	svn_versioninfo.cpp \
+	api/cvc4cpp.h \
+	api/cvc4cppkind.h \
+	api/cvc4cpp.cpp \
 	context/backtrackable.h \
 	context/cddense_set.h \
 	context/cdhashmap.h \
@@ -48,10 +50,7 @@ libcvc4_la_SOURCES = \
 	context/cdmaybe.h \
 	context/cdo.h \
 	context/cdqueue.h \
-	context/cdtrail_hashmap.h \
-	context/cdtrail_hashmap_forward.h \
 	context/cdtrail_queue.h \
-	context/cdvector.h \
 	context/context.cpp \
 	context/context.h \
 	context/context_mm.cpp \

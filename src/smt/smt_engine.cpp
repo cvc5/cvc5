@@ -2705,7 +2705,6 @@ void SmtEnginePrivate::finishInit()
                                            std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
-<<<<<<< fb1764b1e5c9001a804be32429b47e6b106dddd0
   d_preprocessingPassRegistry.registerPass("ite-removal",
                                            std::move(iteRemoval));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
@@ -2721,12 +2720,6 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
   d_preprocessingPassRegistry.registerPass("quantifier-macros", std::move(quantifierMacros));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
