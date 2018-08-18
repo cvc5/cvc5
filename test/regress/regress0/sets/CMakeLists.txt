@@ -1,6 +1,0 @@
-add_subdirectory(feb3)
-add_subdirectory(jan24)
-add_subdirectory(jan27)
-add_subdirectory(jan28)
-add_subdirectory(jan30)
-add_subdirectory(mar2014)

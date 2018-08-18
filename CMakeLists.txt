@@ -277,7 +277,7 @@ if(ENABLE_PROFILING)
 endif()
 
 if(ENABLE_PROOFS)
-  #TODO RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--enable-proof"
+  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --enable-proof)
   add_definitions(-DCVC4_PROOF)
   set(CVC4_PROOF 1)
 endif()
@@ -350,6 +350,7 @@ if(USE_CRYPTOMINISAT)
 endif()
 
 if(USE_LFSC)
+  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
   find_package(LFSC REQUIRED)
   include_directories(${LFSC_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_LFSC)
