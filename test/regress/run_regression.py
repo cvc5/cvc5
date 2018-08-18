@@ -25,6 +25,9 @@ EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
 REQUIRES = 'REQUIRES: '
 
+EXIT_OK = 0
+EXIT_FAILURE = 1
+g_exit = EXIT_OK
 
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
@@ -129,6 +132,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
     uses a wrapper `wrapper`, tests unsat cores (if unsat_cores is true),
     checks proofs (if proofs is true), or dumps a benchmark and uses that as
     the input (if dump is true)."""
+    global g_exit
 
     if not os.access(cvc4_binary, os.X_OK):
         sys.exit(
@@ -314,6 +318,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
         if output != expected_output:
+            g_exit = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stdout - Flags: {}'.
                 format(command_line_args))
@@ -324,6 +329,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             print('Error output:')
             print(error)
         elif error != expected_error:
+            g_exit = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stderr - Flags: {}'.
                 format(command_line_args))
@@ -331,6 +337,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
                                              expected_error.splitlines()):
                 print(line)
         elif expected_exit_status != exit_status:
+            g_exit = EXIT_FAILURE
             print(
                 'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
                 format(expected_exit_status, exit_status, command_line_args))
@@ -366,3 +373,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    sys.exit(g_exit)
