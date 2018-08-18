@@ -14,32 +14,38 @@ if(USE_READLINE)
   target_link_libraries(main ${Readline_LIBRARIES})
   target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
 endif()
+add_dependencies(main token-headers)
 
-set(cvc4main_src_files
-  main.cpp
-)
-
-add_executable(cvc4-main ${cvc4main_src_files})
-target_compile_definitions(cvc4-main PRIVATE -D__BUILDING_CVC4DRIVER)
-set_target_properties(cvc4-main
+add_executable(cvc4-bin main.cpp)
+target_compile_definitions(cvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
+set_target_properties(cvc4-bin
   PROPERTIES
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-target_link_libraries(cvc4-main main)
-add_dependencies(cvc4-main token-headers)
+target_link_libraries(cvc4-bin main)
 
-#set(pcvc4_src_files
-#  main.cpp
-#  portfolio.cpp
-#  portfolio.h
-#  portfolio_util.cpp
-#  portfolio_util.h
-#  command_executor.cpp
-#  command_executor_portfolio.cpp
-#  command_executor.h
-#  command_executor_portfolio.h
-#  driver_unified.cpp
-#)
+if(ENABLE_PORTFOLIO)
+  set(pcvc4_src_files
+    main.cpp
+    portfolio.cpp
+    portfolio.h
+    portfolio_util.cpp
+    portfolio_util.h
+    command_executor_portfolio.cpp
+    command_executor_portfolio.h
+  )
+
+  add_executable(pcvc4-bin ${pcvc4_src_files})
+  target_compile_definitions(pcvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
+  set_target_properties(pcvc4-bin
+    PROPERTIES
+      OUTPUT_NAME pcvc4
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+  target_link_libraries(pcvc4-bin main)
+  add_dependencies(pcvc4-bin token-headers)
+  target_link_libraries(pcvc4-bin ${Boost_LIBRARIES})
+  target_include_directories(pcvc4-bin PRIVATE ${Boost_INCLUDE_DIRS})
+endif()
 
 add_custom_command(
   OUTPUT cvc_tokens.h
