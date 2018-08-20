@@ -1275,6 +1275,8 @@ REG1_TESTS = \
 	regress1/quantifiers/cdt-0208-to.smt2 \
 	regress1/quantifiers/const.cvc \
 	regress1/quantifiers/constfunc.cvc \
+	regress1/quantifiers/dump-inst.smt2 \
+	regress1/quantifiers/dump-inst-i.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
