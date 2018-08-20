@@ -578,7 +578,7 @@ unsigned DatatypesRewriter::indexOf(Node n)
 Node DatatypesRewriter::mkTester(Node n, int i, const Datatype& dt)
 {
   return NodeManager::currentNM()->mkNode(
-        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
+      kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
 }
 
 Node DatatypesRewriter::mkSplit(Node n, const Datatype& dt)

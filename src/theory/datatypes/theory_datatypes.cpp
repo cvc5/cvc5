@@ -1729,34 +1729,41 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
 void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   //add constructor to equivalence class if not done so already
   int index = getLabelIndex( eqc, n );
-  if( index==-1 || eqc->d_inst ){
+  if (index == -1 || eqc->d_inst)
+  {
     return;
   }
   Node exp;
   Node tt;
-  if( !eqc->d_constructor.get().isNull() ){
+  if (!eqc->d_constructor.get().isNull())
+  {
     exp = d_true;
     tt = eqc->d_constructor;
-  }else{
-    exp = getLabel( n );
+  }
+  else
+  {
+    exp = getLabel(n);
     tt = exp[0];
   }
   const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
-  //instantiate this equivalence class
+  // instantiate this equivalence class
   eqc->d_inst = true;
-  Node tt_cons = getInstantiateCons( tt, dt, index );
+  Node tt_cons = getInstantiateCons(tt, dt, index);
   Node eq;
-  if( tt==tt_cons ){
+  if (tt == tt_cons)
+  {
     return;
   }
-  eq = tt.eqNode( tt_cons );
-  Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq << std::endl;
-  d_pending.push_back( eq );
-  d_pending_exp[ eq ] = exp;
+  eq = tt.eqNode(tt_cons);
+  Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq
+                          << std::endl;
+  d_pending.push_back(eq);
+  d_pending_exp[eq] = exp;
   Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
-  Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp << std::endl;
-  d_infer.push_back( eq );
-  d_infer_exp.push_back( exp );
+  Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
+                           << std::endl;
+  d_infer.push_back(eq);
+  d_infer_exp.push_back(exp);
 }
 
 void TheoryDatatypes::checkCycles() {
