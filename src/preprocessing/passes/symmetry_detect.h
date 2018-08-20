@@ -69,6 +69,8 @@ class Partition
   void normalize();
   /** Print a partition */
   static void printPartition(const char* c, Partition p);
+  /** get substitution */
+  void getSubstitution(std::vector< Node >& vars, std::vector< Node >& subs);
 };
 
 /** partition merger
@@ -176,34 +178,7 @@ class PartitionMerger
                    std::vector<Partition>& partitions,
                    std::unordered_set<unsigned>& active_indices);
 };
-/**
- * We build the partition trie indexed by
- * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. The leaves of a
- * partition trie is the new regions of a partition
- */
-class PartitionTrie
-{
- public:
-  /** Variables at the leave */
-  std::vector<Node> d_variables;
 
-  /** The mapping from a node to its children */
-  std::map<Node, PartitionTrie> d_children;
-
-  /** Add variable v to the trie, indexed by
-   * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. */
-  Node addNode(Node v, std::vector<Partition>& parts);
-
-  /** Get all the new regions of a partition and store in part
-   *
-   * This constructs a new partition, part, where each set in this partition
-   * corresponds to one leaf in the PartitionTrie pt.
-   * var_to_svar: map from variables to symmetry variables to use in part.
-   */
-  void getNewPartition(Partition& part,
-                       PartitionTrie& pt,
-                       std::map<Node, Node>& var_to_svar);
-};
 
 /**
  * This is the class to detect symmetries from input based on terms equality.
