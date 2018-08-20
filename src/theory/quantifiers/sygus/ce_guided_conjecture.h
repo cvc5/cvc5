@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
@@ -28,7 +28,6 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -267,12 +266,12 @@ private:
   /** the guard for non-syntax-guided synthesis */
   Node d_nsg_guard;
   //-------------------------------- end non-syntax guided (deprecated)
-  /** candidate rewrite objects for each program variable
+  /** expression miner managers for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, CandidateRewriteDatabase> d_crrdb;
+  std::map<Node, ExpressionMinerManager> d_exprm;
 };
 
 } /* namespace CVC4::theory::quantifiers */
