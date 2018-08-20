@@ -74,17 +74,21 @@
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_ackermann.h"
+#include "preprocessing/passes/bv_eager_atoms.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/int_to_bv.h"
+#include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
+#include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
@@ -116,7 +120,6 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "theory/quantifiers/sygus_inference.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -188,8 +191,6 @@ public:
 };/* class DefinedFunction */
 
 struct SmtEngineStatistics {
-  /** time spent in gaussian elimination */
-  TimerStat d_gaussElimTime;
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** time spent in non-clausal simplification */
@@ -204,12 +205,8 @@ struct SmtEngineStatistics {
   TimerStat d_simpITETime;
   /** time spent in simplifying ITEs */
   TimerStat d_unconstrainedSimpTime;
-  /** time spent removing ITEs */
-  TimerStat d_iteRemovalTime;
   /** time spent in theory preprocessing */
   TimerStat d_theoryPreprocessTime;
-  /** time spent in theory preprocessing */
-  TimerStat d_rewriteApplyToConstTime;
   /** time spent converting to CNF */
   TimerStat d_cnfConversionTime;
   /** Num of assertions before ite removal */
@@ -235,7 +232,6 @@ struct SmtEngineStatistics {
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
   SmtEngineStatistics() :
-    d_gaussElimTime("smt::SmtEngine::gaussElimTime"),
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
     d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
@@ -243,9 +239,7 @@ struct SmtEngineStatistics {
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
     d_simpITETime("smt::SmtEngine::simpITETime"),
     d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
-    d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
     d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
-    d_rewriteApplyToConstTime("smt::SmtEngine::rewriteApplyToConstTime"),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
     d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
@@ -258,8 +252,6 @@ struct SmtEngineStatistics {
     d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
-
-    smtStatisticsRegistry()->registerStat(&d_gaussElimTime);
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
@@ -267,9 +259,7 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
     smtStatisticsRegistry()->registerStat(&d_simpITETime);
     smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
-    smtStatisticsRegistry()->registerStat(&d_iteRemovalTime);
     smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
-    smtStatisticsRegistry()->registerStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
@@ -284,7 +274,6 @@ struct SmtEngineStatistics {
   }
 
   ~SmtEngineStatistics() {
-    smtStatisticsRegistry()->unregisterStat(&d_gaussElimTime);
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
@@ -292,9 +281,7 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
     smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
     smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
-    smtStatisticsRegistry()->unregisterStat(&d_iteRemovalTime);
     smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
-    smtStatisticsRegistry()->unregisterStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
@@ -563,12 +550,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** mapping from expressions to name */
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
-public:
-  /**
-   * Map from skolem variables to index in d_assertions containing
-   * corresponding introduced Boolean ite
-   */
-  IteSkolemMap d_iteSkolemMap;
+ public:
+  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
@@ -594,11 +577,6 @@ public:
    * Performs static learning on the assertions.
    */
   void staticLearning();
-
-  /**
-   * Remove ITEs from the assertions.
-   */
-  void removeITEs();
 
   Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
   Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
@@ -638,8 +616,8 @@ public:
    * Remove conjuncts in toRemove from conjunction n. Return # of removed
    * conjuncts.
    */
-  size_t removeFromConjunction(Node& n,
-                               const std::unordered_set<unsigned long>& toRemove);
+  size_t removeFromConjunction(
+      Node& n, const std::unordered_set<unsigned long>& toRemove);
 
   /** Scrub miplib encodings. */
   void doMiplibTrick();
@@ -673,7 +651,6 @@ public:
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.d_userContext),
-        d_iteSkolemMap(),
         d_iteRemover(smt.d_userContext)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
@@ -839,7 +816,7 @@ public:
     d_assertions.clear();
     d_nonClausalLearnedLiterals.clear();
     d_realAssertionsEnd = 0;
-    d_iteSkolemMap.clear();
+    getIteSkolemMap().clear();
   }
 
   /**
@@ -988,7 +965,8 @@ SmtEngine::SmtEngine(ExprManager* em)
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext,
+  d_theoryEngine = new TheoryEngine(d_context,
+                                    d_userContext,
                                     d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
                                     d_channels);
@@ -1238,8 +1216,12 @@ void SmtEngine::setDefaults() {
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
+    // Bitvector-divide-by-zero changed semantics in SMT LIB 2.6, thus we
+    // set this option if the input format is SMT LIB 2.6. We also set this
+    // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
-        language::isInputLang_smt2_6(options::inputLanguage()));
+        language::isInputLang_smt2_6(options::inputLanguage())
+        || options::inputLanguage() == language::input::LANG_SYGUS);
   }
   bool is_sygus = false;
   if (options::inputLanguage() == language::input::LANG_SYGUS)
@@ -2655,7 +2637,7 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 void SmtEnginePrivate::finishInit()
 {
   d_preprocessingPassContext.reset(
-      new PreprocessingPassContext(&d_smt, d_resourceManager));
+      new PreprocessingPassContext(&d_smt, d_resourceManager, &d_iteRemover));
   // TODO: register passes here (this will likely change when we add support for
   // actually assembling preprocessing pipelines).
   std::unique_ptr<ApplySubsts> applySubsts(
@@ -2666,6 +2648,8 @@ void SmtEnginePrivate::finishInit()
       new BoolToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<BvAbstraction> bvAbstract(
       new BvAbstraction(d_preprocessingPassContext.get()));
+  std::unique_ptr<BvEagerAtoms> bvEagerAtoms(
+      new BvEagerAtoms(d_preprocessingPassContext.get()));
   std::unique_ptr<BVAckermann> bvAckermann(
       new BVAckermann(d_preprocessingPassContext.get()));
   std::unique_ptr<BVGauss> bvGauss(
@@ -2678,8 +2662,12 @@ void SmtEnginePrivate::finishInit()
       new ExtRewPre(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
+      new QuantifiersPreprocess(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
       new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
+  std::unique_ptr<IteRemoval> iteRemoval(
+      new IteRemoval(d_preprocessingPassContext.get()));
   std::unique_ptr<RealToInt> realToInt(
       new RealToInt(d_preprocessingPassContext.get()));
   std::unique_ptr<Rewrite> rewrite(
@@ -2689,6 +2677,8 @@ void SmtEnginePrivate::finishInit()
                             d_smt.d_theoryEngine->getSortInference()));
   std::unique_ptr<StaticLearning> staticLearning(
       new StaticLearning(d_preprocessingPassContext.get()));
+  std::unique_ptr<SygusInference> sygusInfer(
+      new SygusInference(d_preprocessingPassContext.get()));
   std::unique_ptr<SymBreakerPass> sbProc(
       new SymBreakerPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SynthRewRulesPass> srrProc(
@@ -2704,14 +2694,20 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvAbstract));
   d_preprocessingPassRegistry.registerPass("bv-ackermann",
                                            std::move(bvAckermann));
+  d_preprocessingPassRegistry.registerPass("bv-eager-atoms",
+                                           std::move(bvEagerAtoms));
   d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
   d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
   d_preprocessingPassRegistry.registerPass("ext-rew-pre", std::move(extRewPre));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
+                                           std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
                                            std::move(pbProc));
+  d_preprocessingPassRegistry.registerPass("ite-removal",
+                                           std::move(iteRemoval));
   d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
   d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
   d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
@@ -2720,6 +2716,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(sortInfer));
   d_preprocessingPassRegistry.registerPass("static-learning", 
                                            std::move(staticLearning));
+  d_preprocessingPassRegistry.registerPass("sygus-infer",
+                                           std::move(sygusInfer));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
 }
@@ -2968,20 +2966,6 @@ Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, s
   }
   return ret;
 }
-
-void SmtEnginePrivate::removeITEs() {
-  d_smt.finalOptionsAreSet();
-  spendResource(options::preprocessStep());
-  Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
-
-  // Remove all of the ITE occurrences and normalize
-  d_iteRemover.run(d_assertions.ref(), d_iteSkolemMap, true);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-  }
-}
-
-
 
 // do dumping (before/after any preprocessing pass)
 static void dumpAssertions(const char* key,
@@ -3938,7 +3922,8 @@ Result SmtEngine::check() {
        (not d_logic.isQuantified() &&
         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
         )){
-      if(d_private->d_iteSkolemMap.empty()){
+      if (d_private->getIteSkolemMap().empty())
+      {
         options::decisionStopOnly.set(false);
         d_decisionEngine->clearStrategies();
         Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
@@ -3977,8 +3962,9 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
-    if (it != d_iteSkolemMap.end()) {
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
+    if (it != getIteSkolemMap().end())
+    {
       skolemSet.insert(n);
     }
     cache[n] = true;
@@ -4003,9 +3989,10 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
     bool bad = false;
-    if (it != d_iteSkolemMap.end()) {
+    if (it != getIteSkolemMap().end())
+    {
       if (!((*it).first < n)) {
         bad = true;
       }
@@ -4048,7 +4035,6 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::bvGaussElim())
   {
-    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
     d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
   }
 
@@ -4179,21 +4165,16 @@ void SmtEnginePrivate::processAssertions() {
     d_preprocessingPassRegistry.getPass("bv-intro-pow2")->apply(&d_assertions);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-substitution" << endl;
-  dumpAssertions("pre-substitution", d_assertions);
-
   if (options::unsatCores())
   {
     // special rewriting pass for unsat cores, since many of the passes below
     // are skipped
-	  d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
   }
   else
   {
     d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
   }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-substitution" << endl;
-  dumpAssertions("post-substitution", d_assertions);
 
   // Assertions ARE guaranteed to be rewritten by this point
 #ifdef CVC4_ASSERTIONS
@@ -4204,20 +4185,14 @@ void SmtEnginePrivate::processAssertions() {
 #endif
 
   // Lift bit-vectors of size 1 to bool
-  if(options::bitvectorToBool()) {
-    dumpAssertions("pre-bv-to-bool", d_assertions);
-    Chat() << "...doing bvToBool..." << endl;
+  if (options::bitvectorToBool())
+  {
     d_preprocessingPassRegistry.getPass("bv-to-bool")->apply(&d_assertions);
-    dumpAssertions("post-bv-to-bool", d_assertions);
-    Trace("smt") << "POST bvToBool" << endl;
   }
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if(options::boolToBitvector()) {
-    dumpAssertions("pre-bool-to-bv", d_assertions);
-    Chat() << "...doing boolToBv..." << endl;
+  if (options::boolToBitvector())
+  {
     d_preprocessingPassRegistry.getPass("bool-to-bv")->apply(&d_assertions);
-    dumpAssertions("post-bool-to-bv", d_assertions);
-    Trace("smt") << "POST boolToBv" << endl;
   }
   if(options::sepPreSkolemEmp()) {
     d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
@@ -4228,15 +4203,8 @@ void SmtEnginePrivate::processAssertions() {
 
     dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node prev = d_assertions[i];
-      Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
-      if( next!=prev ){
-        d_assertions.replace( i, Rewriter::rewrite( next ) );
-        Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
-        Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
+    d_preprocessingPassRegistry.getPass("quantifiers-preprocess")
+        ->apply(&d_assertions);
     dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
@@ -4280,12 +4248,7 @@ void SmtEnginePrivate::processAssertions() {
     }
     if (options::sygusInference())
     {
-      // try recast as sygus
-      quantifiers::SygusInference si;
-      if (si.simplify(d_assertions.ref()))
-      {
-        Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
-      }
+      d_preprocessingPassRegistry.getPass("sygus-infer")->apply(&d_assertions);
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
@@ -4327,22 +4290,15 @@ void SmtEnginePrivate::processAssertions() {
   }
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-ite-removal" << endl;
-  dumpAssertions("pre-ite-removal", d_assertions);
   {
-    Chat() << "removing term ITEs..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_iteRemovalTime);
-    // Remove ITEs, updating d_iteSkolemMap
     d_smt.d_stats->d_numAssertionsPre += d_assertions.size();
-    removeITEs();
+    d_preprocessingPassRegistry.getPass("ite-removal")->apply(&d_assertions);
     // This is needed because when solving incrementally, removeITEs may introduce
     // skolems that were solved for earlier and thus appear in the substitution
     // map.
     d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-ite-removal" << endl;
-  dumpAssertions("post-ite-removal", d_assertions);
 
   dumpAssertions("pre-repeat-simplify", d_assertions);
   if(options::repeatSimp()) {
@@ -4373,8 +4329,8 @@ void SmtEnginePrivate::processAssertions() {
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
       // If either of these is violated, we must add iteExpr as a proper assertion
-      IteSkolemMap::iterator it = d_iteSkolemMap.begin();
-      IteSkolemMap::iterator iend = d_iteSkolemMap.end();
+      IteSkolemMap::iterator it = getIteSkolemMap().begin();
+      IteSkolemMap::iterator iend = getIteSkolemMap().end();
       NodeBuilder<> builder(kind::AND);
       builder << d_assertions[d_realAssertionsEnd - 1];
       vector<TNode> toErase;
@@ -4402,14 +4358,14 @@ void SmtEnginePrivate::processAssertions() {
       }
       if(builder.getNumChildren() > 1) {
         while (!toErase.empty()) {
-          d_iteSkolemMap.erase(toErase.back());
+          getIteSkolemMap().erase(toErase.back());
           toErase.pop_back();
         }
         d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      removeITEs();
+      d_preprocessingPassRegistry.getPass("ite-removal")->apply(&d_assertions);
       d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
@@ -4417,13 +4373,10 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-repeat-simplify", d_assertions);
 
-  dumpAssertions("pre-rewrite-apply-to-const", d_assertions);
-  if(options::rewriteApplyToConst()) {
-    Chat() << "Rewriting applies to constants..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteApplyToConstTime);
+  if (options::rewriteApplyToConst())
+  {
     d_preprocessingPassRegistry.getPass("apply-to-const")->apply(&d_assertions);
   }
-  dumpAssertions("post-rewrite-apply-to-const", d_assertions);
 
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
@@ -4450,16 +4403,9 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-theory-preprocessing" << endl;
   dumpAssertions("post-theory-preprocessing", d_assertions);
 
-  // If we are using eager bit-blasting wrap assertions in fake atom so that
-  // everything gets bit-blasted to internal SAT solver
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    for (unsigned i = 0; i < d_assertions.size(); ++i) {
-      TNode atom = d_assertions[i];
-      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
-      d_assertions.replace(i, eager_atom);
-      TheoryModel* m = d_smt.d_theoryEngine->getModel();
-      m->addSubstitution(eager_atom, atom);
-    }
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    d_preprocessingPassRegistry.getPass("bv-eager-atoms")->apply(&d_assertions);
   }
 
   //notify theory engine new preprocessed assertions
@@ -4469,8 +4415,8 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions
-      (d_assertions.ref(), d_realAssertionsEnd, d_iteSkolemMap);
+    d_smt.d_decisionEngine->addAssertions(
+        d_assertions.ref(), d_realAssertionsEnd, getIteSkolemMap());
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -4492,7 +4438,7 @@ void SmtEnginePrivate::processAssertions() {
   d_assertionsProcessed = true;
 
   d_assertions.clear();
-  d_iteSkolemMap.clear();
+  getIteSkolemMap().clear();
 }
 
 void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)

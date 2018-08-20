@@ -38,6 +38,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/term_formula_removal.h"
 #include "theory/substitutions.h"
 
 namespace CVC4 {
@@ -86,6 +87,8 @@ class AssertionPipeline
    */
   void replace(size_t i, const std::vector<Node>& ns);
 
+  IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
+
   context::CDO<unsigned>& getSubstitutionsIndex()
   {
     return d_substitutionsIndex;
@@ -99,12 +102,17 @@ class AssertionPipeline
  private:
   std::vector<Node> d_nodes;
 
+  /**
+   * Map from skolem variables to index in d_assertions containing
+   * corresponding introduced Boolean ite
+   */
+  IteSkolemMap d_iteSkolemMap;
+  
   /* Index for where to store substitutions */
   context::CDO<unsigned> d_substitutionsIndex;
 
   /* The top level substitutions */
   theory::SubstitutionMap d_topLevelSubstitutions;
-
 }; /* class AssertionPipeline */
 
 /**

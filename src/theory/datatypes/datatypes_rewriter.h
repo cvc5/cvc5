@@ -121,6 +121,13 @@ public:
   *   C( x, y ) and z
   */
  static bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
+ /** get operator kind for sygus builtin
+  *
+  * This returns the Kind corresponding to applications of the operator op
+  * when building the builtin version of sygus terms. This is used by the
+  * function mkSygusTerm.
+  */
+ static Kind getOperatorKindForSygusBuiltin(Node op);
  /** make sygus term
   *
   * This function returns a builtin term f( children[0], ..., children[n] )

@@ -13,6 +13,7 @@
  **/
 #include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/partial_model.h"
@@ -662,7 +663,7 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
         }
       }
       //only legal if current quantified formula contains n
-      return d_curr_quant.hasSubterm(n);
+      return expr::hasSubterm(d_curr_quant, n);
     }
   }else{
     return true;

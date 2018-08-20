@@ -9,20 +9,23 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief sygus_inference
+ ** \brief SygusInference
  **/
 
-#include "cvc4_private.h"
+#ifndef __CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#define __CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INFERENCE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_INFERENCE_H
-
+#include <map>
+#include <string>
 #include <vector>
 #include "expr/node.h"
 
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
+namespace preprocessing {
+namespace passes {
 
 /** SygusInference
  *
@@ -33,25 +36,36 @@ namespace quantifiers {
  * problem, thus obtaining a set of model substitutions under which the
  * assertions should simplify to true.
  */
-class SygusInference
+class SygusInference : public PreprocessingPass
 {
  public:
-  SygusInference();
-  ~SygusInference() {}
-  /** simplify assertions
-   *
+  SygusInference(PreprocessingPassContext* preprocContext);
+
+ protected:
+  /**
    * Either replaces all uninterpreted functions in assertions by their
-   * interpretation in the solution found by a separate call to an SMT engine
-   * and returns true, or leaves the assertions unmodified and returns false.
+   * interpretation in a sygus solution, or leaves the assertions unmodified.
+   */
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
+  /** solve sygus
+   *
+   * Returns true if we can recast the input problem assertions as a sygus
+   * problem and successfully solve it using a separate call to an SMT engine.
    *
    * We fail if either a sygus conjecture that corresponds to assertions cannot
    * be inferred, or the sygus conjecture we infer is infeasible.
+   *
+   * If this function returns true, then we add all uninterpreted symbols s in
+   * assertions to funs and their corresponding solution to sols.
    */
-  bool simplify(std::vector<Node>& assertions);
+  bool solveSygus(std::vector<Node>& assertions,
+                  std::vector<Node>& funs,
+                  std::vector<Node>& sols);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_INFERENCE_H */
+#endif /* __CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */

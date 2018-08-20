@@ -434,7 +434,6 @@ REG0_TESTS = \
 	regress0/fmf/quant_real_univ.cvc \
 	regress0/fmf/sat-logic.smt2 \
 	regress0/fmf/sc_bad_model_1221.smt2 \
-	regress0/fmf/sort-inf-int.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
@@ -1115,6 +1114,8 @@ REG1_TESTS = \
 	regress1/fmf/radu-quant-set.smt2 \
 	regress1/fmf/refcount24.cvc.smt2 \
 	regress1/fmf/sc-crash-052316.smt2 \
+	regress1/fmf/sort-inf-int.smt2 \
+	regress1/fmf/sort-inf-int-real.smt2 \
 	regress1/fmf/with-ind-104-core.smt2 \
 	regress1/gensys_brn001.smt2 \
 	regress1/ho/auth0068.smt2 \
@@ -1509,12 +1510,14 @@ REG1_TESTS = \
 	regress1/sygus/array_search_2.sy \
 	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
+	regress1/sygus/bvudiv-by-2.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegisunif-depth1.sy \
 	regress1/sygus/cegis-unif-inv-eq-fair.sy \
 	regress1/sygus/cggmp.sy \
 	regress1/sygus/clock-inc-tuple.sy \
 	regress1/sygus/commutative.sy \
+	regress1/sygus/commutative-stream.sy \
 	regress1/sygus/constant.sy \
 	regress1/sygus/constant-bool-si-all.sy \
 	regress1/sygus/constant-dec-tree-bug.sy \
@@ -1569,6 +1572,7 @@ REG1_TESTS = \
 	regress1/sygus/tl-type-0.sy \
 	regress1/sygus/tl-type-4x.sy \
 	regress1/sygus/tl-type.sy \
+	regress1/sygus/trivial-stream.sy \
 	regress1/sygus/triv-type-mismatch-si.sy \
 	regress1/sygus/twolets1.sy \
 	regress1/sygus/twolets2-orig.sy \
