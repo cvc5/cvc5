@@ -824,24 +824,6 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
         if( !cons1.isNull() && !cons2.isNull() ){
           Trace("datatypes-debug") << "  constructors : " << cons1 << " " << cons2 << std::endl;
           Node unifEq = cons1.eqNode( cons2 );
-          /*
-          std::vector< Node > exp;
-          std::vector< std::pair< TNode, TNode > > deq_cand;
-          bool conf = checkClashModEq( cons1, cons2, exp, deq_cand );
-          if( !conf ){
-            for( unsigned i=0; i<deq_cand.size(); i++ ){
-              if( d_equalityEngine.areDisequal( deq_cand[i].first, deq_cand[i].second, true ) ){
-                conf = true;
-                Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, deq_cand[i].first, deq_cand[i].second );
-                exp.push_back( eq.negate() );
-              }
-            }
-          }
-          if( conf ){
-            exp.push_back( unifEq );
-            d_conflictNode = explain( exp );
-          }
-         */
           std::vector< Node > rew;
           if( DatatypesRewriter::checkClash( cons1, cons2, rew ) ){
             d_conflictNode = explain( unifEq );
@@ -1747,41 +1729,34 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
 void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   //add constructor to equivalence class if not done so already
   int index = getLabelIndex( eqc, n );
-  if( index!=-1 && !eqc->d_inst ){
-    if( options::dtUseTesters() ){
-      Node exp;
-      Node tt;
-      if( !eqc->d_constructor.get().isNull() ){
-        exp = d_true;
-        tt = eqc->d_constructor;
-      }else{
-        exp = getLabel( n );
-        tt = exp[0];
-      }
-      const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
-      //instantiate this equivalence class
-      eqc->d_inst = true;
-      Node tt_cons = getInstantiateCons( tt, dt, index );
-      Node eq;
-      if( tt!=tt_cons ){
-        eq = tt.eqNode( tt_cons );
-        Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq << std::endl;
-        d_pending.push_back( eq );
-        d_pending_exp[ eq ] = exp;
-        Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
-        Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp << std::endl;
-        //eqc->d_inst.set( eq );
-        d_infer.push_back( eq );
-        d_infer_exp.push_back( exp );
-      }
-    }else{
-      eqc->d_inst = true;
-    }
-    //}
-    //else{
-    //  Debug("datatypes-inst") << "Do not instantiate" << std::endl;
-    //}
+  if( index==-1 || eqc->d_inst ){
+    return;
   }
+  Node exp;
+  Node tt;
+  if( !eqc->d_constructor.get().isNull() ){
+    exp = d_true;
+    tt = eqc->d_constructor;
+  }else{
+    exp = getLabel( n );
+    tt = exp[0];
+  }
+  const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
+  //instantiate this equivalence class
+  eqc->d_inst = true;
+  Node tt_cons = getInstantiateCons( tt, dt, index );
+  Node eq;
+  if( tt==tt_cons ){
+    return;
+  }
+  eq = tt.eqNode( tt_cons );
+  Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq << std::endl;
+  d_pending.push_back( eq );
+  d_pending_exp[ eq ] = exp;
+  Trace("datatypes-infer-debug") << "inst : " << eqc << " " << n << std::endl;
+  Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp << std::endl;
+  d_infer.push_back( eq );
+  d_infer_exp.push_back( exp );
 }
 
 void TheoryDatatypes::checkCycles() {
@@ -2195,38 +2170,6 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }else{
     return NodeManager::currentNM()->mkNode( AND, assumptions );
   }
-}
-
-bool TheoryDatatypes::checkClashModEq( TNode n1, TNode n2, std::vector< Node >& exp, std::vector< std::pair< TNode, TNode > >& deq_cand ) {
-  if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
-    if( n1.getOperator() != n2.getOperator() ) {
-      return true;
-    } else {
-      Assert( n1.getNumChildren() == n2.getNumChildren() );
-      for( int i=0; i<(int)n1.getNumChildren(); i++ ) {
-        TNode nc1 = getEqcConstructor( n1[i] );
-        TNode nc2 = getEqcConstructor( n2[i] );
-        if( checkClashModEq( nc1, nc2, exp, deq_cand ) ) {
-          if( nc1!=n1[i] ){
-            exp.push_back( nc1.eqNode( n1[i] ) );
-          }
-          if( nc2!=n2[i] ){
-            exp.push_back( nc2.eqNode( n2[i] ) );
-          }
-          return true;
-        }
-      }
-    }
-  }else if( n1!=n2 ){
-    if( n1.isConst() && n2.isConst() ){
-      return true;
-    }else{
-      if( !areEqual( n1, n2 ) ){
-        deq_cand.push_back( std::pair< TNode, TNode >( n1, n2 ) );
-      }
-    }
-  }
-  return false;
 }
 
 void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
