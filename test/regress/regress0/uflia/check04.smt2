@@ -1,3 +1,7 @@
+; COMMAND-LINE: --incremental
+; EXPECT: sat
+; EXPECT: unsat
+
 (set-logic QF_LIA)
 (declare-fun _b () Int)
 (declare-fun _n () Int)

@@ -169,24 +169,10 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
         sys.exit('"{}" must be *.cvc or *.smt or *.smt2 or *.p or *.sy'.format(
             benchmark_basename))
 
-    # If there is an ".expect" file for the benchmark, read the metadata
-    # from there, otherwise from the benchmark file.
-    metadata_filename = benchmark_path + '.expect'
-    if os.path.isfile(metadata_filename):
-        comment_char = '%'
-    else:
-        metadata_filename = benchmark_path
-
-    metadata_lines = None
-    with open(metadata_filename, 'r') as metadata_file:
-        metadata_lines = metadata_file.readlines()
-
-    benchmark_content = None
-    if metadata_filename == benchmark_path:
-        benchmark_content = ''.join(metadata_lines)
-    else:
-        with open(benchmark_path, 'r') as benchmark_file:
-            benchmark_content = benchmark_file.read()
+    benchmark_lines = None
+    with open(benchmark_path, 'r') as benchmark_file:
+        benchmark_lines = benchmark_file.readlines()
+    benchmark_content = ''.join(benchmark_lines)
 
     # Extract the metadata for the benchmark.
     scrubber = None
@@ -196,7 +182,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
     expected_exit_status = None
     command_lines = []
     requires = []
-    for line in metadata_lines:
+    for line in benchmark_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
             continue
