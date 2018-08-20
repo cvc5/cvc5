@@ -1264,6 +1264,7 @@ REG1_TESTS = \
 	regress1/quantifiers/anti-sk-simp.smt2 \
 	regress1/quantifiers/ari118-bv-2occ-x.smt2 \
 	regress1/quantifiers/arith-rec-fun.smt2 \
+	regress1/quantifiers/arith-snorm.smt2 \
 	regress1/quantifiers/array-unsat-simp3.smt2 \
 	regress1/quantifiers/bi-artm-s.smt2 \
 	regress1/quantifiers/bignum_quant.smt2 \
@@ -1284,6 +1285,7 @@ REG1_TESTS = \
 	regress1/quantifiers/fp-cegqi-unsat.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
 	regress1/quantifiers/horn-simple.smt2 \
+	regress1/quantifiers/infer-arith-trigger-eq.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
