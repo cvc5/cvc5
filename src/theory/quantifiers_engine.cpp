@@ -116,7 +116,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   }
   
   if( options::inferArithTriggerEq() ){
-    d_eq_inference = new quantifiers::EqualityInference( c, options::inferArithTriggerEqExp() );
+    d_eq_inference = new quantifiers::EqualityInference( c, false );
   }else{
     d_eq_inference = NULL;
   }
