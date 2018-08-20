@@ -27,71 +27,85 @@ ExpressionMinerManager::ExpressionMinerManager()
     : d_do_rew_synth(false),
       d_do_query_gen(false),
       d_use_sygus_type(false),
+      d_qe(nullptr),
       d_tds(nullptr)
 {
 }
 
 void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
-                                        bool doRewSynth,
-                                        bool doQueryGen,
-                                        ExtendedRewriter* er,
-                                        TypeNode tn,
-                                        unsigned nsamples,
-                                        bool unique_type_ids,
-                                        unsigned deqThresh)
+                  TypeNode tn,
+                  unsigned nsamples,
+                  bool unique_type_ids)
 {
-  Assert(doRewSynth || doQueryGen);
-  d_do_rew_synth = doRewSynth;
-  d_do_query_gen = doQueryGen;
+  d_do_rew_synth = false;
+  d_do_query_gen = false;
+  d_sygus_fun = Node::null();
   d_use_sygus_type = false;
+  d_qe = nullptr;
   d_tds = nullptr;
   // initialize the sampler
   d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
-  // initialize the candidate rewrite database
-  d_crd.initialize(vars, &d_sampler);
-  d_crd.setExtendedRewriter(er);
-  if (!doRewSynth)
-  {
-    d_crd.setSilent(true);
-  }
-  // initialize the query generator
-  if (doQueryGen)
-  {
-    d_qg.initialize(vars, &d_sampler);
-    d_qg.setThreshold(deqThresh);
-  }
 }
 
-void ExpressionMinerManager::initializeSygus(bool doRewSynth,
-                                             bool doQueryGen,
-                                             QuantifiersEngine* qe,
-                                             Node f,
-                                             unsigned nsamples,
-                                             bool useSygusType,
-                                             unsigned deqThresh)
+void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
+                       Node f,
+                       unsigned nsamples,
+                       bool useSygusType)
 {
-  Assert(doRewSynth || doQueryGen);
-  d_do_rew_synth = doRewSynth;
-  d_do_query_gen = doQueryGen;
+  d_do_rew_synth = false;
+  d_do_query_gen = false;
+  d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
+  d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
   // initialize the sampler
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
-  // get the variables from the sampler
-  std::vector<Node> vars;
+}
+
+void ExpressionMinerManager::enableRewriteRuleSynth()
+{
+  if( d_do_rew_synth )
+  {
+    // already enabled
+    return;
+  }
+  d_do_rew_synth = true;
+  std::vector< Node > vars;
   d_sampler.getVariables(vars);
   // initialize the candidate rewrite database
-  d_crd.initializeSygus(vars, qe, f, &d_sampler);
-  if (!d_do_rew_synth)
+  if( !d_sygus_fun.isNull() )
   {
+    Assert( d_qe!=nullptr );
+    d_crd.initializeSygus(vars, d_qe, d_sygus_fun, &d_sampler);
+  }
+  else
+  {
+    d_crd.initialize(vars, &d_sampler);
+  }
+  d_crd.setExtendedRewriter(&d_ext_rew);
+  d_crd.setSilent(false);
+}
+
+void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
+{
+  if( d_do_query_gen )
+  {
+    // already enabled
+    return;
+  }
+  d_do_query_gen = true; 
+  std::vector< Node > vars;
+  d_sampler.getVariables(vars);
+  // must also enable rewrite rule synthesis
+  if( !d_do_rew_synth )
+  {
+    // initialize the candidate rewrite database, in silent mode
+    enableRewriteRuleSynth();
     d_crd.setSilent(true);
   }
   // initialize the query generator
-  if (d_do_query_gen)
-  {
-    d_qg.initialize(vars, &d_sampler);
-    d_qg.setThreshold(deqThresh);
-  }
+  d_qg.initialize(vars, &d_sampler);
+  d_qg.setThreshold(deqThresh);
 }
 
 bool ExpressionMinerManager::addTerm(Node sol,

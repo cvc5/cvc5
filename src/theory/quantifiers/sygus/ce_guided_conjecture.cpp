@@ -729,20 +729,26 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
       if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()))
       {
         std::map<Node, ExpressionMinerManager>::iterator its =
-            d_crrdb.find(prog);
-        if (its == d_crrdb.end())
+            d_exprm.find(prog);
+        if (its == d_exprm.end())
         {
-          d_crrdb[prog].initializeSygus(options::sygusRewSynth(),
-                                        options::sygusQueryGen(),
+          d_exprm[prog].initializeSygus(
                                         d_qe,
                                         d_candidates[i],
                                         options::sygusSamples(),
-                                        true,
-                                        options::sygusQueryGenThresh());
-          its = d_crrdb.find(prog);
+                                        true);
+          if(options::sygusRewSynth())
+          {
+            d_exprm[prog].enableRewriteRuleSynth();
+          }
+          if( options::sygusQueryGen())
+          {
+            d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
+          }
+          its = d_exprm.find(prog);
         }
         bool rew_print = false;
-        is_unique_term = d_crrdb[prog].addTerm(sol, out, rew_print);
+        is_unique_term = d_exprm[prog].addTerm(sol, out, rew_print);
         if (rew_print)
         {
           ++(cei->d_statistics.d_candidate_rewrites_print);

@@ -271,7 +271,7 @@ private:
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, ExpressionMinerManager> d_crrdb;
+  std::map<Node, ExpressionMinerManager> d_exprm;
 };
 
 } /* namespace CVC4::theory::quantifiers */
