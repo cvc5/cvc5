@@ -9,28 +9,78 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sygus_inference
+ ** \brief Sygus inference module
  **/
 
-#include "theory/quantifiers/sygus_inference.h"
+#include "preprocessing/passes/sygus_inference.h"
+
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+using namespace std;
 using namespace CVC4::kind;
 
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
+namespace preprocessing {
+namespace passes {
 
-SygusInference::SygusInference() {}
+SygusInference::SygusInference(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "sygus-infer"){};
 
-bool SygusInference::simplify(std::vector<Node>& assertions)
+PreprocessingPassResult SygusInference::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
 {
   Trace("sygus-infer") << "Run sygus inference..." << std::endl;
+  std::vector<Node> funs;
+  std::vector<Node> sols;
+  // see if we can succesfully solve the input as a sygus problem
+  if (solveSygus(assertionsToPreprocess->ref(), funs, sols))
+  {
+    Assert(funs.size() == sols.size());
+    // if so, sygus gives us function definitions
+    SmtEngine* master_smte = smt::currentSmtEngine();
+    for (unsigned i = 0, size = funs.size(); i < size; i++)
+    {
+      std::vector<Expr> args;
+      Node sol = sols[i];
+      // if it is a non-constant function
+      if (sol.getKind() == LAMBDA)
+      {
+        for (const Node& v : sol[0])
+        {
+          args.push_back(v.toExpr());
+        }
+        sol = sol[1];
+      }
+      master_smte->defineFunction(funs[i].toExpr(), args, sol.toExpr());
+    }
 
+    // apply substitution to everything, should result in SAT
+    for (unsigned i = 0, size = assertionsToPreprocess->ref().size(); i < size;
+         i++)
+    {
+      Node prev = (*assertionsToPreprocess)[i];
+      Node curr =
+          prev.substitute(funs.begin(), funs.end(), sols.begin(), sols.end());
+      if (curr != prev)
+      {
+        curr = theory::Rewriter::rewrite(curr);
+        Trace("sygus-infer-debug")
+            << "...rewrote " << prev << " to " << curr << std::endl;
+        assertionsToPreprocess->replace(i, curr);
+      }
+    }
+  }
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+bool SygusInference::solveSygus(std::vector<Node>& assertions,
+                                std::vector<Node>& funs,
+                                std::vector<Node>& sols)
+{
   if (assertions.empty())
   {
     Trace("sygus-infer") << "...fail: empty assertions." << std::endl;
@@ -78,19 +128,19 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     std::map<TypeNode, unsigned> type_count;
     Node pas = as;
     // rewrite
-    pas = Rewriter::rewrite(pas);
+    pas = theory::Rewriter::rewrite(pas);
     Trace("sygus-infer") << "assertion : " << pas << std::endl;
     if (pas.getKind() == FORALL)
     {
       // preprocess the quantified formula
-      pas = quantifiers::QuantifiersRewriter::preprocess(pas);
+      pas = theory::quantifiers::QuantifiersRewriter::preprocess(pas);
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
     }
     if (pas.getKind() == FORALL)
     {
       // it must be a standard quantifier
-      QAttributes qa;
-      QuantAttributes::computeQuantAttributes(pas, qa);
+      theory::quantifiers::QAttributes qa;
+      theory::quantifiers::QuantAttributes::computeQuantAttributes(pas, qa);
       if (!qa.isStandard())
       {
         Trace("sygus-infer")
@@ -215,7 +265,7 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
   Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  SygusAttribute ca;
+  theory::SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
@@ -227,7 +277,6 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // make a separate smt call
-  SmtEngine* master_smte = smt::currentSmtEngine();
   SmtEngine rrSygus(nm->toExprManager());
   rrSygus.setLogic(smt::currentSmtEngine()->getLogicInfo());
   rrSygus.assertFormula(body.toExpr());
@@ -249,7 +298,6 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
        it != synth_sols.end();
        ++it)
   {
-    Node lambda = Node::fromExpr(it->second);
     Trace("sygus-infer") << "  synth sol : " << it->first << " -> "
                          << it->second << std::endl;
     Node ffv = Node::fromExpr(it->first);
@@ -259,44 +307,15 @@ bool SygusInference::simplify(std::vector<Node>& assertions)
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Expr body = it->second;
-      std::vector<Expr> args;
-      // if it is a non-constant function
-      if (lambda.getKind() == LAMBDA)
-      {
-        for (const Node& v : lambda[0])
-        {
-          args.push_back(v.toExpr());
-        }
-        body = it->second[1];
-      }
-      Trace("sygus-infer") << "Define " << ff << " as " << it->second
-                           << std::endl;
-      final_ff.push_back(ff);
-      final_ff_sol.push_back(it->second);
-      master_smte->defineFunction(ff.toExpr(), args, body);
-    }
-  }
-
-  // apply substitution to everything, should result in SAT
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
-  {
-    Node prev = assertions[i];
-    Node curr = assertions[i].substitute(final_ff.begin(),
-                                         final_ff.end(),
-                                         final_ff_sol.begin(),
-                                         final_ff_sol.end());
-    if (curr != prev)
-    {
-      curr = Rewriter::rewrite(curr);
-      Trace("sygus-infer-debug")
-          << "...rewrote " << prev << " to " << curr << std::endl;
-      assertions[i] = curr;
+      Node body = Node::fromExpr(it->second);
+      Trace("sygus-infer") << "Define " << ff << " as " << body << std::endl;
+      funs.push_back(ff);
+      sols.push_back(body);
     }
   }
   return true;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
