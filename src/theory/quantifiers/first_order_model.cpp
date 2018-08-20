@@ -24,8 +24,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
-#define USE_INDEX_ORDERING
-
 using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -770,7 +768,7 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
         }
       }
       Trace("fmf-eval-debug") << "Evaluate term " << n << " = ";
-      printRepresentativeDebug( "fmf-eval-debug", val );
+      Trace("fmf-eval-debug") << getRepresentative(val);
       Trace("fmf-eval-debug") << " (term " << val << "), depIndex = " << depIndex << std::endl;
     }
   }
@@ -859,7 +857,6 @@ struct sortGetMaxVariableNum {
 
 void FirstOrderModelIG::makeEvalUfIndexOrder( Node n ){
   if( d_eval_term_index_order.find( n )==d_eval_term_index_order.end() ){
-#ifdef USE_INDEX_ORDERING
     //sort arguments in order of least significant vs. most significant variable in default ordering
     std::map< Node, std::vector< int > > argIndex;
     std::vector< Node > args;
@@ -889,30 +886,8 @@ void FirstOrderModelIG::makeEvalUfIndexOrder( Node n ){
       Debug("fmf-index-order") << d_eval_term_index_order[n][i] << " ";
     }
     Debug("fmf-index-order") << std::endl;
-#else
-    d_eval_uf_use_default[n] = true;
-#endif
   }
 }
-
-/*
-Node FirstOrderModelIG::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
-  std::vector< Node > children;
-  children.push_back(n.getOperator());
-  children.insert(children.end(), args.begin(), args.end());
-  Node nv = NodeManager::currentNM()->mkNode(APPLY_UF, children);
-  //make the term model specifically for nv
-  makeEvalUfModel( nv );
-  int argDepIndex;
-  if( d_eval_uf_use_default[nv] ){
-    return d_uf_model_tree[ n.getOperator() ].getValue( this, nv, argDepIndex );
-  }else{
-    return d_eval_uf_model[ nv ].getValue( this, nv, argDepIndex );
-  }
-}
-*/
-
-
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name) :
 FirstOrderModel(qe, c, name){
@@ -925,17 +900,6 @@ FirstOrderModelFmc::~FirstOrderModelFmc()
     delete (*i).second;
   }
 }
-
-/*
-Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
-  Trace("fmc-uf-model") << "Get model value for " << n << " " << n.getKind() << std::endl;
-  for(unsigned i=0; i<args.size(); i++) {
-    args[i] = getUsedRepresentative(args[i]);
-  }
-  Assert( n.getKind()==APPLY_UF );
-  return d_models[n.getOperator()]->evaluate(this, args);
-}
-*/
 
 void FirstOrderModelFmc::processInitialize( bool ispre ) {
   if( ispre ){
@@ -1110,21 +1074,6 @@ Node FirstOrderModelAbs::getFunctionValue(Node op, const char* argPrefix ) {
   }
   return Node::null();
 }
-
-/*
-Node FirstOrderModelAbs::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
-  Debug("qint-debug") << "get curr uf value " << n << std::endl;
-  if( d_models_valid[n] ){
-    TypeNode tn = n.getType();
-    if( tn.getNumChildren()>0 ){
-      tn = tn[tn.getNumChildren()-1];
-    }
-    return d_models[n]->evaluate( this, tn, args );
-  }else{
-    return Node::null();
-  }
-}
-*/
 
 void FirstOrderModelAbs::processInitializeModelForTerm( Node n ) {
   if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){
