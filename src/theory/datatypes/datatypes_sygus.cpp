@@ -890,8 +890,7 @@ Node SygusSymBreakNew::registerSearchValue(
           int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
           if (pt_index >= 0)
           {
-            (*out)
-                << "; unsound: are not equivalent for : " << std::endl;
+            (*out) << "; unsound: are not equivalent for : " << std::endl;
             std::vector<Node> vars;
             its->second.getVariables(vars);
             std::vector<Node> pt;
@@ -899,14 +898,14 @@ Node SygusSymBreakNew::registerSearchValue(
             Assert(vars.size() == pt.size());
             for (unsigned i = 0, size = pt.size(); i < size; i++)
             {
-              (*out) << "; unsound:    " << vars[i] << " -> "
-                                      << pt[i] << std::endl;
+              (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
+                     << std::endl;
             }
             Node bv_e = its->second.evaluate(bv, pt_index);
             Node pbv_e = its->second.evaluate(bvr, pt_index);
             Assert(bv_e != pbv_e);
-            (*out) << "; unsound: where they evaluate to "
-                                    << bv_e << " and " << pbv_e << std::endl;
+            (*out) << "; unsound: where they evaluate to " << bv_e << " and "
+                   << pbv_e << std::endl;
           }
           else
           {
