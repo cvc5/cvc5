@@ -32,7 +32,7 @@ SygusSampler::SygusSampler()
 }
 
 void SygusSampler::initialize(TypeNode tn,
-                              std::vector<Node>& vars,
+                              const std::vector<Node>& vars,
                               unsigned nsamples,
                               bool unique_type_ids)
 {
@@ -433,11 +433,9 @@ void SygusSampler::getVariables(std::vector<Node>& vars) const
 }
 
 void SygusSampler::getSamplePoint(unsigned index,
-                                  std::vector<Node>& vars,
                                   std::vector<Node>& pt)
 {
   Assert(index < d_samples.size());
-  vars.insert(vars.end(), d_vars.begin(), d_vars.end());
   std::vector<Node>& spt = d_samples[index];
   pt.insert(pt.end(), spt.begin(), spt.end());
 }

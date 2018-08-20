@@ -77,7 +77,7 @@ class SygusSampler : public LazyTrieEvaluator
    * type that is used to determine when a rewrite rule is redundant.
    */
   virtual void initialize(TypeNode tn,
-                          std::vector<Node>& vars,
+                          const std::vector<Node>& vars,
                           unsigned nsamples,
                           bool unique_type_ids = false);
   /** initialize sygus
@@ -110,12 +110,16 @@ class SygusSampler : public LazyTrieEvaluator
    * Appends sample point #index to the vector pt, d_vars to vars.
    */
   void getSamplePoint(unsigned index,
-                      std::vector<Node>& vars,
                       std::vector<Node>& pt);
   /** Add pt to the set of sample points considered by this sampler */
   void addSamplePoint(std::vector<Node>& pt);
   /** evaluate n on sample point index */
   Node evaluate(Node n, unsigned index) override;
+  /**
+   * Compute the variables from the domain of d_var_index that occur in n,
+   * store these in the vector fvs.
+   */
+  void computeFreeVariables(Node n, std::vector<Node>& fvs);
   /**
    * Returns the index of a sample point such that the evaluation of a and b
    * diverge, or -1 if no such sample point exists.
@@ -220,11 +224,6 @@ class SygusSampler : public LazyTrieEvaluator
    * of an argument to function f.
    */
   bool d_is_valid;
-  /**
-   * Compute the variables from the domain of d_var_index that occur in n,
-   * store these in the vector fvs.
-   */
-  void computeFreeVariables(Node n, std::vector<Node>& fvs);
   /** initialize samples
    *
    * Adds nsamples sample points to d_samples.

@@ -347,6 +347,7 @@ REG0_TESTS = \
 	regress0/datatypes/datatype2.cvc \
 	regress0/datatypes/datatype3.cvc \
 	regress0/datatypes/datatype4.cvc \
+	regress0/datatypes/data-nested-codata.smt2 \
 	regress0/datatypes/dt-2.6.smt2 \
 	regress0/datatypes/dt-match-pat-param-2.6.smt2 \
 	regress0/datatypes/dt-param-2.6.smt2 \
@@ -1263,6 +1264,7 @@ REG1_TESTS = \
 	regress1/quantifiers/anti-sk-simp.smt2 \
 	regress1/quantifiers/ari118-bv-2occ-x.smt2 \
 	regress1/quantifiers/arith-rec-fun.smt2 \
+	regress1/quantifiers/arith-snorm.smt2 \
 	regress1/quantifiers/array-unsat-simp3.smt2 \
 	regress1/quantifiers/bi-artm-s.smt2 \
 	regress1/quantifiers/bignum_quant.smt2 \
@@ -1275,12 +1277,15 @@ REG1_TESTS = \
 	regress1/quantifiers/cdt-0208-to.smt2 \
 	regress1/quantifiers/const.cvc \
 	regress1/quantifiers/constfunc.cvc \
+	regress1/quantifiers/dump-inst.smt2 \
+	regress1/quantifiers/dump-inst-i.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
 	regress1/quantifiers/fp-cegqi-unsat.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
 	regress1/quantifiers/horn-simple.smt2 \
+	regress1/quantifiers/infer-arith-trigger-eq.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
@@ -1315,6 +1320,7 @@ REG1_TESTS = \
 	regress1/quantifiers/qbv-test-urem-rewrite.smt2 \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
+	regress1/quantifiers/quant-wf-int-ind.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
 	regress1/quantifiers/repair-const-nterm.smt2 \
 	regress1/quantifiers/recfact.cvc \
@@ -1551,6 +1557,7 @@ REG1_TESTS = \
 	regress1/sygus/no-mention.sy \
 	regress1/sygus/parity-si-rcons.sy \
 	regress1/sygus/pbe_multi.sy \
+	regress1/sygus/phone-1-long.sy \
 	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
