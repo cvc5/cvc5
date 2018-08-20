@@ -733,15 +733,12 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
         if (its == d_exprm.end())
         {
           d_exprm[prog].initializeSygus(
-                                        d_qe,
-                                        d_candidates[i],
-                                        options::sygusSamples(),
-                                        true);
-          if(options::sygusRewSynth())
+              d_qe, d_candidates[i], options::sygusSamples(), true);
+          if (options::sygusRewSynth())
           {
             d_exprm[prog].enableRewriteRuleSynth();
           }
-          if( options::sygusQueryGen())
+          if (options::sygusQueryGen())
           {
             d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }

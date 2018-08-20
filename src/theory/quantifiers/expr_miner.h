@@ -36,8 +36,8 @@ namespace quantifiers {
 class ExprMiner
 {
  public:
-  ExprMiner() : d_sampler(nullptr){}
-  virtual ~ExprMiner(){}
+  ExprMiner() : d_sampler(nullptr) {}
+  virtual ~ExprMiner() {}
   /** initialize
    *
    *
@@ -52,6 +52,7 @@ class ExprMiner
    * output is printed on out by the candidate rewrite generator miner.
    */
   virtual bool addTerm(Node n, std::ostream& out) = 0;
+
  protected:
   /** the set of variables used by this class */
   std::vector<Node> d_vars;

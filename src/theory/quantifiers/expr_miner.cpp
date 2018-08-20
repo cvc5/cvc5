@@ -40,7 +40,7 @@ Node ExprMiner::convertToSkolem(Node n)
   {
     return n;
   }
-  std::vector< Node > sfvs;
+  std::vector<Node> sfvs;
   std::vector<Node> sks;
   // map to skolems
   NodeManager* nm = NodeManager::currentNM();

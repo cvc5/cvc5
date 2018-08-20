@@ -46,7 +46,7 @@ class QueryGenerator : public ExprMiner
 
  private:
   /** cache of all terms registered to this generator */
-  std::unordered_set< Node, NodeHashFunction > d_terms;
+  std::unordered_set<Node, NodeHashFunction> d_terms;
   /** the disequality threshold (number of points)
    *
    */
@@ -63,9 +63,9 @@ class QueryGenerator : public ExprMiner
                    std::vector<Node>& queries,
                    std::vector<std::vector<unsigned>>& queriesPtTrue);
   /** queries for points */
-  std::map<unsigned, std::vector<Node> > d_pt_to_queries;
+  std::map<unsigned, std::vector<Node>> d_pt_to_queries;
   /** queries to points */
-  std::map< Node, std::vector< unsigned > > d_qys_to_points;
+  std::map<Node, std::vector<unsigned>> d_qys_to_points;
   /** check query qy, which is satisfied by sample point spIndex */
   void checkQuery(Node qy, unsigned spIndex);
 };

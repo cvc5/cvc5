@@ -14,11 +14,11 @@
 
 #include "theory/quantifiers/query_generator.h"
 
+#include <fstream>
+#include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/random.h"
-#include <fstream>
-#include "options/quantifiers_options.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -31,7 +31,7 @@ QueryGenerator::QueryGenerator() : d_query_count(0) {}
 
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
-  Assert( ss!=nullptr );
+  Assert(ss != nullptr);
   d_query_count = 0;
   ExprMiner::initialize(vars, ss);
 }
@@ -43,13 +43,13 @@ void QueryGenerator::setThreshold(unsigned deqThresh)
 
 bool QueryGenerator::addTerm(Node n, std::ostream& out)
 {
-  Node nn = n.getKind()==NOT ? n[0] : n;
-  if(d_terms.find(nn)!=d_terms.end())
+  Node nn = n.getKind() == NOT ? n[0] : n;
+  if (d_terms.find(nn) != d_terms.end())
   {
     return false;
   }
   d_terms.insert(nn);
-  
+
   Trace("sygus-qgen") << "QueryGenerator::addTerm : " << n << std::endl;
   unsigned npts = d_sampler->getNumSamplePoints();
   TypeNode tn = n.getType();
@@ -65,7 +65,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   // collect predicate queries (if n is Boolean)
   if (tn.isBoolean())
   {
-    std::map<Node, std::vector<unsigned> > ev_to_pt;
+    std::map<Node, std::vector<unsigned>> ev_to_pt;
     unsigned index = 0;
     unsigned threshCount = 0;
     while (index < npts && threshCount < 2)
@@ -80,7 +80,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     }
     if (threshCount < 2)
     {
-      for (const std::pair<Node, std::vector<unsigned> >& etp : ev_to_pt)
+      for (const std::pair<Node, std::vector<unsigned>>& etp : ev_to_pt)
       {
         if (etp.second.size() < d_deq_thresh)
         {
@@ -114,7 +114,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   // literal queries
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
   {
-    Node qy = queries[i];    
+    Node qy = queries[i];
     std::vector<unsigned>& tIndices = queriesPtTrue[i];
     // we have an interesting query
     out << "(query " << qy << ")  ; " << tIndices.size() << "/" << npts
@@ -122,7 +122,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     AlwaysAssert(!tIndices.empty());
     checkQuery(qy, tIndices[0]);
     // add information
-    for( unsigned& ti : tIndices )
+    for (unsigned& ti : tIndices)
     {
       d_pt_to_queries[ti].push_back(qy);
       d_qys_to_points[qy].push_back(ti);
@@ -149,29 +149,30 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
   // external query
-  if( options::sygusQueryGenDumpFiles() )
+  if (options::sygusQueryGenDumpFiles())
   {
     // Print the query and the query + its model (commented) to queryN.smt2
-    std::vector< Node > pt;
-    d_sampler->getSamplePoint(spIndex,pt);
+    std::vector<Node> pt;
+    d_sampler->getSamplePoint(spIndex, pt);
     unsigned nvars = d_vars.size();
     AlwaysAssert(pt.size() == d_vars.size());
     std::stringstream fname;
     fname << "query" << d_query_count << ".smt2";
-    std::ofstream fs(fname.str(),std::ofstream::out);
+    std::ofstream fs(fname.str(), std::ofstream::out);
     fs << "(set-logic ALL)" << std::endl;
-    for( unsigned i=0; i<2; i++ )
+    for (unsigned i = 0; i < 2; i++)
     {
-      for( unsigned j=0; j<nvars; j++ )
+      for (unsigned j = 0; j < nvars; j++)
       {
         Node x = d_vars[j];
-        if( i==0 )
+        if (i == 0)
         {
           fs << "(declare-fun " << x << " () " << x.getType() << ")";
         }
         else
         {
-          fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j] << ")";
+          fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j]
+             << ")";
         }
         fs << std::endl;
       }
@@ -180,8 +181,8 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     fs << "(check-sat)" << std::endl;
     fs.close();
   }
-  
-  if( options::sygusQueryGenCheck() )
+
+  if (options::sygusQueryGenCheck())
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
     NodeManager* nm = NodeManager::currentNM();
@@ -197,12 +198,12 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     {
       std::stringstream ss;
       ss << "--sygus-rr-query-gen detected unsoundness in CVC4 on input " << qy
-        << "!" << std::endl;
+         << "!" << std::endl;
       ss << "This query has a model : " << std::endl;
-      std::vector< Node > pt;
-      d_sampler->getSamplePoint(spIndex,pt);
+      std::vector<Node> pt;
+      d_sampler->getSamplePoint(spIndex, pt);
       Assert(pt.size() == d_vars.size());
-      for( unsigned i=0, size = pt.size(); i<size; i++ )
+      for (unsigned i = 0, size = pt.size(); i < size; i++)
       {
         ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
       }
@@ -210,22 +211,20 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       AlwaysAssert(false, ss.str().c_str());
     }
   }
-  
-  
+
   d_query_count++;
 }
-
 
 class PtTrieSet
 {
  public:
   PtTrieSet() : d_data(false) {}
-  std::map< Node, PtTrieSet > d_children;
+  std::map<Node, PtTrieSet> d_children;
   bool d_data;
-  bool add( std::vector< Node >& pt )
+  bool add(std::vector<Node>& pt)
   {
     PtTrieSet* pts = this;
-    for( const Node& n : pt )
+    for (const Node& n : pt)
     {
       pts = &(pts->d_children[n]);
     }
@@ -233,10 +232,10 @@ class PtTrieSet
     pts->d_data = true;
     return !ret;
   }
-  void rm( std::vector< Node >& pt )
+  void rm(std::vector<Node>& pt)
   {
     PtTrieSet* pts = this;
-    for( const Node& n : pt )
+    for (const Node& n : pt)
     {
       pts = &(pts->d_children[n]);
     }
@@ -244,13 +243,12 @@ class PtTrieSet
   }
 };
 
-
-
 // FIXME: make robust up to irrelevant variables
-void QueryGenerator::findQueries(LazyTrie* lt,
-                                 Node n,
-                                 std::vector<Node>& queries,
-                                 std::vector<std::vector<unsigned>>& queriesPtTrue)
+void QueryGenerator::findQueries(
+    LazyTrie* lt,
+    Node n,
+    std::vector<Node>& queries,
+    std::vector<std::vector<unsigned>>& queriesPtTrue)
 {
   TypeNode tn = n.getType();
   std::vector<unsigned> eqIndex[2];
@@ -296,7 +294,7 @@ void QueryGenerator::findQueries(LazyTrie* lt,
   unsigned ntotal = d_sampler->getNumSamplePoints();
   unsigned index = 0;
   bool exact = true;
-  bool pushEq[2] = { false, false };
+  bool pushEq[2] = {false, false};
   bool pre = true;
   std::vector<LazyTrie*> visitTr;
   std::vector<unsigned> currIndex;
@@ -314,19 +312,18 @@ void QueryGenerator::findQueries(LazyTrie* lt,
     lt = visitTr.back();
     index = currIndex.back();
     exact = currExact.back();
-    for( unsigned r=0; r<2; r++ )
+    for (unsigned r = 0; r < 2; r++)
     {
       pushEq[r] = pushIndex[r].back();
     }
     pre = preVisit.back();
     if (!pre)
     {
-
       visitTr.pop_back();
       currIndex.pop_back();
       currExact.pop_back();
-      preVisit.pop_back();      
-      for( unsigned r=0; r<2; r++ )
+      preVisit.pop_back();
+      for (unsigned r = 0; r < 2; r++)
       {
         if (pushEq[r])
         {
@@ -338,11 +335,11 @@ void QueryGenerator::findQueries(LazyTrie* lt,
     else
     {
       preVisit[preVisit.size() - 1] = false;
-      for( unsigned r=0; r<2; r++ )
+      for (unsigned r = 0; r < 2; r++)
       {
-        if( pushEq[r] )
+        if (pushEq[r])
         {
-          eqIndex[r].push_back(index-1);
+          eqIndex[r].push_back(index - 1);
         }
       }
       int eqAllow = d_deq_thresh - eqIndex[0].size();
@@ -367,12 +364,14 @@ void QueryGenerator::findQueries(LazyTrie* lt,
           std::vector<unsigned> tIndices;
           if (eqAllow >= 0)
           {
-            tIndices.insert(tIndices.end(), eqIndex[0].begin(), eqIndex[0].end());
+            tIndices.insert(
+                tIndices.end(), eqIndex[0].begin(), eqIndex[0].end());
           }
           else if (deqAllow >= 0)
           {
             query = query.negate();
-            tIndices.insert(tIndices.end(), eqIndex[1].begin(), eqIndex[1].end());
+            tIndices.insert(
+                tIndices.end(), eqIndex[1].begin(), eqIndex[1].end());
           }
           AlwaysAssert(tIndices.size() <= d_deq_thresh);
           if (!tIndices.empty())

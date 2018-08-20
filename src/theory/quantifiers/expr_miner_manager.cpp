@@ -33,9 +33,9 @@ ExpressionMinerManager::ExpressionMinerManager()
 }
 
 void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
-                  TypeNode tn,
-                  unsigned nsamples,
-                  bool unique_type_ids)
+                                        TypeNode tn,
+                                        unsigned nsamples,
+                                        bool unique_type_ids)
 {
   d_do_rew_synth = false;
   d_do_query_gen = false;
@@ -48,9 +48,9 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
 }
 
 void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
-                       Node f,
-                       unsigned nsamples,
-                       bool useSygusType)
+                                             Node f,
+                                             unsigned nsamples,
+                                             bool useSygusType)
 {
   d_do_rew_synth = false;
   d_do_query_gen = false;
@@ -64,18 +64,18 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
 
 void ExpressionMinerManager::enableRewriteRuleSynth()
 {
-  if( d_do_rew_synth )
+  if (d_do_rew_synth)
   {
     // already enabled
     return;
   }
   d_do_rew_synth = true;
-  std::vector< Node > vars;
+  std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // initialize the candidate rewrite database
-  if( !d_sygus_fun.isNull() )
+  if (!d_sygus_fun.isNull())
   {
-    Assert( d_qe!=nullptr );
+    Assert(d_qe != nullptr);
     d_crd.initializeSygus(vars, d_qe, d_sygus_fun, &d_sampler);
   }
   else
@@ -88,16 +88,16 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
 
 void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
 {
-  if( d_do_query_gen )
+  if (d_do_query_gen)
   {
     // already enabled
     return;
   }
-  d_do_query_gen = true; 
-  std::vector< Node > vars;
+  d_do_query_gen = true;
+  std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // must also enable rewrite rule synthesis
-  if( !d_do_rew_synth )
+  if (!d_do_rew_synth)
   {
     // initialize the candidate rewrite database, in silent mode
     enableRewriteRuleSynth();
