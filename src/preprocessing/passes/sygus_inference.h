@@ -51,7 +51,7 @@ class SygusInference : public PreprocessingPass
   /** solve sygus
    *
    * Returns true if we can recast the input problem assertions as a sygus
-   * problem as successfully solve it using a separate call to an SMT engine.
+   * problem and successfully solve it using a separate call to an SMT engine.
    *
    * We fail if either a sygus conjecture that corresponds to assertions cannot
    * be inferred, or the sygus conjecture we infer is infeasible.

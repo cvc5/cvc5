@@ -312,10 +312,6 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
       funs.push_back(ff);
       sols.push_back(body);
     }
-    else
-    {
-      Assert(false);
-    }
   }
   return true;
 }
