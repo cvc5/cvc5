@@ -185,7 +185,6 @@ private:
   bool areEqual( Node a, Node b );
   Node getRepresentative( Node t );
   bool exists( std::vector<Node>&, Node );
-  Node mkAnd( std::vector< TNode >& assumptions );
   inline void addToMembershipDB( Node, Node, Node  );
   static void printNodeMap(const char* fst,
                            const char* snd,

@@ -25,6 +25,8 @@ EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
 REQUIRES = 'REQUIRES: '
 
+EXIT_OK = 0
+EXIT_FAILURE = 1
 
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
@@ -309,11 +311,13 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
     # whether the exit status, stdout output, stderr output are as expected.
     print('1..{}'.format(len(command_line_args_configs)))
     print('# Starting')
+    exit_code = EXIT_OK
     for command_line_args in command_line_args_configs:
         output, error, exit_status = run_benchmark(
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
         if output != expected_output:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stdout - Flags: {}'.
                 format(command_line_args))
@@ -324,6 +328,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             print('Error output:')
             print(error)
         elif error != expected_error:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stderr - Flags: {}'.
                 format(command_line_args))
@@ -331,11 +336,14 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
                                              expected_error.splitlines()):
                 print(line)
         elif expected_exit_status != exit_status:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
                 format(expected_exit_status, exit_status, command_line_args))
         else:
             print('ok - Flags: {}'.format(command_line_args))
+
+    return exit_code
 
 
 def main():
@@ -360,9 +368,10 @@ def main():
 
     timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
-    run_regression(args.enable_proof, args.with_lfsc, args.dump, wrapper,
-                   cvc4_binary, args.benchmark, timeout)
+    return run_regression(args.enable_proof, args.with_lfsc, args.dump, wrapper,
+                          cvc4_binary, args.benchmark, timeout)
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    sys.exit(exit_code)
