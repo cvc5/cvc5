@@ -209,11 +209,6 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
   d_minisat->freezePolarity(v, lit.isNegated());
 }
 
-bool MinisatSatSolver::flipDecision() {
-  Debug("minisat") << "flipDecision()" << std::endl;
-  return d_minisat->flipDecision();
-}
-
 bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }

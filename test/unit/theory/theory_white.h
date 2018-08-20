@@ -68,7 +68,6 @@ class TestOutputChannel : public OutputChannel {
   }
 
   void requirePhase(TNode, bool) override { Unreachable(); }
-  bool flipDecision() override { Unreachable(); }
   void setIncomplete() override { Unreachable(); }
 
   void clear() { d_callHistory.clear(); }
