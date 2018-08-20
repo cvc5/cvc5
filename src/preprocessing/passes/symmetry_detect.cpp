@@ -91,6 +91,25 @@ void Partition::printPartition(const char* c, Partition p)
   }
 }
 
+void Partition::addVariable( Node sv, Node v )
+{
+  d_subvar_to_vars[sv].push_back(v);
+  Assert( d_var_to_subvar.find(v)!=d_var_to_subvar.end() );
+  d_var_to_subvar[v] = sv;
+}
+
+void Partition::removeVariable( Node sv )
+{
+  std::map<Node, std::vector<Node> >::iterator its = d_subvar_to_vars.find(sv);
+  Assert( its!=d_subvar_to_vars.end() );
+  for( const Node& v : its->second )
+  {
+    Assert( d_var_to_subvar.find(v)!=d_var_to_subvar.end() );
+    d_var_to_subvar.erase(v);
+  }
+  d_subvar_to_vars.erase(sv);
+}
+
 void Partition::normalize()
 {
   for (std::pair<const Node, std::vector<Node> > p : d_subvar_to_vars)
@@ -341,10 +360,9 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         p.d_sterm = mkAssociativeNode(d_kind, schildren);
         Assert(p.d_subvar_to_vars.size() == 1);
         Node sb_v = p.d_subvar_to_vars.begin()->first;
-        p.d_subvar_to_vars[sb_v].push_back(merge_var);
         Trace("sym-dt-debug") << "- set var to svar: " << merge_var << " -> "
                               << sb_v << std::endl;
-        p.d_var_to_subvar[merge_var] = sb_v;
+        p.addVariable(sb_v,merge_var);
         return true;
       }
       if (mergeNewVar(curr_index + 1,
@@ -492,14 +510,11 @@ Partition SymmetryDetect::findPartitions(Node node)
   // If node is a variable
   if (node.isVar() && node.getKind() != kind::BOUND_VARIABLE)
   {
-    vector<Node> vars;
     TypeNode type = node.getType();
     Node fresh_var = getSymBreakVariable(type, 0);
-    vars.push_back(node);
     p.d_term = node;
     p.d_sterm = fresh_var;
-    p.d_subvar_to_vars[fresh_var] = vars;
-    p.d_var_to_subvar[node] = fresh_var;
+    p.addVariable(fresh_var, node );
     d_term_partition[node] = p;
     return p;
   }
@@ -589,7 +604,9 @@ Partition SymmetryDetect::findPartitions(Node node)
         Trace("sym-dt-debug") << std::endl;
       }
       // merge children, remove active indices
-      processPartitions(k, partitions, sti.second, active_indices);
+      std::vector< Node > fixedSVar;
+      std::vector< Node > fixedVar;
+      processPartitions(k, partitions, sti.second, active_indices, fixedSVar, fixedVar);
     }
   }
   // initially set substituted term to node
@@ -705,10 +722,8 @@ Partition SymmetryDetect::findPartitions(Node node)
       }
     }
     Trace("sym-dt-debug") << "[sym-dt] Map : " << n << " -> " << useVar << std::endl;
-    p.d_subvar_to_vars[useVar].push_back(n);
-    p.d_var_to_subvar[n] = useVar;
+    p.addVariable(useVar,n);
   }
-  
 
   std::vector< Node > pvars;
   std::vector< Node > psubs;
@@ -778,7 +793,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   AlwaysAssert( p.d_sterm==snode );
   */
   
-
+  // normalize: ensures that variable lists are sorted
   p.normalize();
   d_term_partition[node] = p;
   Partition::printPartition("sym-dt-debug", p);
@@ -828,9 +843,9 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 class NodeTrie
 {
  public:
-  NodeTrie() : d_value(-1) {}
-  /** value of this node, -1 if unset */
-  int d_value;
+  NodeTrie() {}
+  /** value at this node*/
+  std::vector< unsigned > d_value;
   /** children of this node */
   std::map<Node, NodeTrie> d_children;
   /** clear the children */
@@ -845,11 +860,8 @@ class NodeTrie
   {
     if (index == args.size())
     {
-      if (d_value == -1)
-      {
-        d_value = static_cast<int>(value);
-      }
-      return d_value;
+      d_value.push_back(value);
+      return d_value[0];
     }
     return d_children[args[index]].add(value, args, index + 1);
   }
@@ -859,15 +871,110 @@ void SymmetryDetect::processPartitions(
     Kind k,
     std::vector<Partition>& partitions,
     const std::vector<unsigned>& indices,
-    std::unordered_set<unsigned>& active_indices)
+    std::unordered_set<unsigned>& active_indices,
+    std::vector< Node >& fixedSVar,
+    std::vector< Node >& fixedVar)
 {
   Assert(!indices.empty());
   unsigned first_index = indices[0];
-
-  unsigned num_sb_vars = partitions[first_index].d_subvar_to_vars.size();
-  if (num_sb_vars != 1)
+  if (Trace.isOn("sym-dt-debug"))
   {
-    // can only handle symmetries that are classified by { n }
+    Trace("sym-dt-debug") << "[sym-dt] process partitions for ";
+    for (unsigned i : indices)
+    {
+      Trace("sym-dt-debug") << i << " ";
+    }
+    Trace("sym-dt-debug") << std::endl;
+  }
+  unsigned num_sb_vars = partitions[first_index].d_subvar_to_vars.size();
+  Assert( num_sb_vars>0 );
+  if (num_sb_vars > 1)
+  {
+    // see if we can drop, e.g. {x}{A}, {x}{B} ---> {A}, {B}
+    
+    std::map< Node, NodeTrie > svarTrie;
+    std::map< Node, std::map< unsigned, std::vector< unsigned > > > svarEqc;
+    
+    for (unsigned j = 0, size = indices.size(); j < size; j++)
+    {
+      unsigned index = indices[j];
+      Partition& p = partitions[index];
+      for( const std::pair< const Node, std::vector< Node > > ps : p.d_subvar_to_vars )
+      {
+        Node sv = ps.first;
+        unsigned res = svarTrie[sv].add(index,ps.second);
+        svarEqc[sv][res].push_back(index);
+      }
+    }
+    Trace("sym-dt-debug") << "...multiple symmetry breaking variables, regroup and drop" << std::endl;
+    unsigned minGroups = indices.size();
+    Node svarMin;
+    for( const std::pair< const Node, std::map< unsigned, std::vector< unsigned > > > sve : svarEqc )
+    {
+      if( Trace.isOn("sym-dt-debug") )
+      {
+        Trace("sym-dt-debug") << "For " << sve.first << " : ";
+        for( const std::pair< const unsigned, std::vector< unsigned > > svee : sve.second )
+        {
+          Trace("sym-dt-debug") << "{ ";
+          for( unsigned i : svee.second )
+          {
+            Trace("sym-dt-debug") << i << " ";
+          }
+          Trace("sym-dt-debug") << "}";
+        }
+      }
+      unsigned ngroups = sve.second.size();
+      Trace("sym-dt-debug") << ", #groups=" << ngroups << std::endl;
+      if(ngroups<minGroups)
+      {
+        minGroups = ngroups;
+        svarMin = sve.first;
+        if( minGroups==1 )
+        {
+          break;
+        }
+      }
+    }
+    if( minGroups==indices.size() )
+    {
+      // can only handle symmetries that are classified by { n }
+      Trace("sym-dt-debug") << "...failed to merge (multiple symmetry breaking vars with no groups)" << std::endl;
+      return;
+    }
+    // recursive call for each group
+    for( const std::pair< unsigned, std::vector< unsigned > >& svee : svarEqc[svarMin] )
+    {
+      Assert( !svee.second.empty() );
+      unsigned firstIndex = svee.second[0];
+      unsigned nfvars = 0;
+      Trace("sym-dt-debug") << "Recurse, fixing " << svarMin << " -> { ";
+      // add the list of fixed variables
+      for( const Node& v : partitions[firstIndex].d_subvar_to_vars[svarMin] )
+      {
+        Trace("sym-dt-debug") << v << " ";
+        fixedSVar.push_back(svarMin);
+        fixedVar.push_back(v);
+        nfvars++;
+      }
+      Trace("sym-dt-debug") << "}" << std::endl;
+      
+      // remove it from each of the partitions to process
+      for( unsigned pindex : svee.second )
+      {
+        partitions[pindex].removeVariable(svarMin);
+      }
+      
+      // recursive call
+      processPartitions(k,partitions,svee.second,active_indices,fixedSVar,fixedVar);
+      
+      // remove the list of fixed variables
+      for( unsigned k=0; k<nfvars; k++ )
+      {
+        fixedVar.pop_back();
+        fixedSVar.pop_back();
+      }
+    }
     return;
   }
   // separate by number of variables
@@ -932,6 +1039,23 @@ void SymmetryDetect::processPartitions(
     Trace("sym-dt-debug") << "Merge..." << std::endl;
     // now, try to merge these partitions
     mergePartitions(k, partitions, check_indices, active_indices);
+  }
+  // now, re-add the fixed variables 
+  if( !fixedVar.empty() )
+  {
+    for (unsigned j = 0, size = indices.size(); j < size; j++)
+    {
+      unsigned index = indices[j];
+      // if still active
+      if( active_indices.find(index)!=active_indices.end() )
+      {
+        for( unsigned i=0, size = fixedSVar.size(); i<size; i++ )
+        {
+          // add variable
+          partitions[index].addVariable(fixedSVar[i],fixedVar[i]);
+        }
+      }
+    }
   }
 }
 
