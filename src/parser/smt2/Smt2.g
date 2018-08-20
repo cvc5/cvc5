@@ -2435,8 +2435,9 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
         PARSER_STATE->warning(ss.str());
       }
       // do nothing
-    } else if(attr==":axiom" || attr==":conjecture" || attr==":fun-def" ||
-              attr==":sygus" || attr==":synthesis") {
+    }
+    else if (attr==":axiom" || attr==":conjecture" || attr==":fun-def")
+    {
       if(hasValue) {
         std::stringstream ss;
         ss << "warning: Attribute " << attr
