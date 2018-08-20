@@ -66,15 +66,15 @@ class Partition
    */
   std::map<Node, std::vector<Node> > d_subvar_to_vars;
   /** add variable */
-  void addVariable( Node sv, Node v );
+  void addVariable(Node sv, Node v);
   /** remove variable */
-  void removeVariable( Node sv );
+  void removeVariable(Node sv);
   /** sorts the ranges of d_subvar_to_vars. */
   void normalize();
   /** Print a partition */
   static void printPartition(const char* c, Partition p);
   /** get substitution */
-  void getSubstitution(std::vector< Node >& vars, std::vector< Node >& subs);
+  void getSubstitution(std::vector<Node>& vars, std::vector<Node>& subs);
 };
 
 /** partition merger
@@ -275,9 +275,8 @@ class SymmetryDetect
                          std::vector<Partition>& partitions,
                          const std::vector<unsigned>& indices,
                          std::unordered_set<unsigned>& active_indices,
-    std::vector< Node >& fixedSVar,
-    std::vector< Node >& fixedVar
-                        );
+                         std::vector<Node>& fixedSVar,
+                         std::vector<Node>& fixedVar);
   /** merge partitions
    *
    * This method merges groups of partitions occurring in indices using the
