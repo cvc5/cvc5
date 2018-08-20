@@ -267,41 +267,50 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
 
   if( !conj->needsRefinement() ){
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
-    std::vector< Node > clems;
-    conj->doSingleInvCheck( clems );
-    if( !clems.empty() ){
+    std::vector<Node> clems;
+    conj->doSingleInvCheck(clems);
+    if (!clems.empty())
+    {
       d_last_inst_si = true;
-      for( const Node& lem : clems ){
-        Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation instantiation : " << lem << std::endl;
-        d_quantEngine->addLemma( lem );
+      for (const Node& lem : clems)
+      {
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : single invocation instantiation : " << lem
+            << std::endl;
+        d_quantEngine->addLemma(lem);
       }
       d_statistics.d_cegqi_si_lemmas += clems.size();
       Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
       return;
     }
-    
+
     Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
-    std::vector< Node > cclems;
+    std::vector<Node> cclems;
     conj->doCheck(cclems);
     bool addedLemma = false;
-    for( const Node& lem : cclems ){
+    for (const Node& lem : cclems)
+    {
       d_last_inst_si = false;
-      Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem << std::endl;
-      if( d_quantEngine->addLemma( lem ) ){
+      Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem
+                           << std::endl;
+      if (d_quantEngine->addLemma(lem))
+      {
         ++(d_statistics.d_cegqi_lemmas_ce);
         addedLemma = true;
       }else{
-        //this may happen if we eagerly unfold, simplify to true
+        // this may happen if we eagerly unfold, simplify to true
         Trace("cegqi-engine-debug")
             << "  ...FAILED to add candidate!" << std::endl;
       }
     }
-    if( addedLemma ){
+    if (addedLemma)
+    {
       Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
     }else{
-      if( conj->needsRefinement() ){
-        //immediately go to refine candidate
-        checkCegConjecture( conj );
+      if (conj->needsRefinement())
+      {
+        // immediately go to refine candidate
+        checkCegConjecture(conj);
         return;
       }
     }

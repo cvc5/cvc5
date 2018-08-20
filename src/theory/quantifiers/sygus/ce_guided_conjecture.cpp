@@ -163,7 +163,8 @@ void CegConjecture::assign( Node q ) {
   }
   
   // initialize the guard
-  if( d_ceg_si->getGuard().isNull() ){
+  if (d_ceg_si->getGuard().isNull())
+  {
     std::vector< Node > lems;
     d_ceg_si->getInitialSingleInvLemma( lems );
     for( unsigned i=0; i<lems.size(); i++ ){
@@ -186,9 +187,7 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
-Node CegConjecture::getGuard() {
-  return d_ceg_si->getGuard();
-}
+Node CegConjecture::getGuard() { return d_ceg_si->getGuard(); }
 
 bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();

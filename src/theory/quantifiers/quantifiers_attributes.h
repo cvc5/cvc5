@@ -83,8 +83,17 @@ namespace quantifiers {
 struct QAttributes
 {
  public:
-  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
-                  d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
+  QAttributes()
+      : d_hasPattern(false),
+        d_conjecture(false),
+        d_axiom(false),
+        d_sygus(false),
+        d_rr_priority(-1),
+        d_qinstLevel(-1),
+        d_quant_elim(false),
+        d_quant_elim_partial(false)
+  {
+  }
   ~QAttributes(){}
   /** does the quantified formula have a pattern? */
   bool d_hasPattern;
