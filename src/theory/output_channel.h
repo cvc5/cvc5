@@ -156,48 +156,6 @@ class OutputChannel {
   virtual void requirePhase(TNode n, bool phase) = 0;
 
   /**
-   * Flips the most recent unflipped decision to the other phase and
-   * returns true.  If all decisions have been flipped, the root
-   * decision is re-flipped and flipDecision() returns false.  If no
-   * decisions (flipped nor unflipped) are on the decision stack, the
-   * state is not affected and flipDecision() returns false.
-   *
-   * For example, if l1, l2, and l3 are all decision literals, and
-   * have been decided in positive phase, a series of flipDecision()
-   * calls has the following effects:
-   *
-   * l1 l2 l3 <br/>
-   * l1 l2 ~l3 <br/>
-   * l1 ~l2 <br/>
-   * ~l1 <br/>
-   * l1 (and flipDecision() returns false)
-   *
-   * Naturally, flipDecision() might be interleaved with search.  For example:
-   *
-   * l1 l2 l3 <br/>
-   * flipDecision() <br/>
-   * l1 l2 ~l3 <br/>
-   * flipDecision() <br/>
-   * l1 ~l2 <br/>
-   * SAT decides l3 <br/>
-   * l1 ~l2 l3 <br/>
-   * flipDecision() <br/>
-   * l1 ~l2 ~l3 <br/>
-   * flipDecision() <br/>
-   * ~l1 <br/>
-   * SAT decides l2 <br/>
-   * ~l1 l2 <br/>
-   * flipDecision() <br/>
-   * ~l1 ~l2 <br/>
-   * flipDecision() returns FALSE<br/>
-   * l1
-   *
-   * @return true if a decision was flipped; false if no decision
-   * could be flipped, or if the root decision was re-flipped
-   */
-  virtual bool flipDecision() = 0;
-
-  /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.

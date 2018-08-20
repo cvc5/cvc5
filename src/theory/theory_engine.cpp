@@ -2393,14 +2393,12 @@ TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
     propagations(getStatsPrefix(theory) + "::propagations", 0),
     lemmas(getStatsPrefix(theory) + "::lemmas", 0),
     requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
     restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
   smtStatisticsRegistry()->registerStat(&lemmas);
   smtStatisticsRegistry()->registerStat(&requirePhase);
-  smtStatisticsRegistry()->registerStat(&flipDecision);
   smtStatisticsRegistry()->registerStat(&restartDemands);
 }
 
@@ -2409,7 +2407,6 @@ TheoryEngine::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&propagations);
   smtStatisticsRegistry()->unregisterStat(&lemmas);
   smtStatisticsRegistry()->unregisterStat(&requirePhase);
-  smtStatisticsRegistry()->unregisterStat(&flipDecision);
   smtStatisticsRegistry()->unregisterStat(&restartDemands);
 }
 
