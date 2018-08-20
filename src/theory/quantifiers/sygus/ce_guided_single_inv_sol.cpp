@@ -702,19 +702,18 @@ Node CegConjectureSingleInvSol::reconstructSolution(Node sol,
             // if it is not already reconstructed
             if( d_reconstruct.find( itt->second )==d_reconstruct.end() ){
               Trace("csi-rcons") << "...reconstructed " << ns << " for term " << nr << std::endl;
-              constexpr bool do_check = true;//getPathToRoot( itt->second );
               setReconstructed( itt->second, ns );
-              if( do_check ){
-                Trace("csi-rcons-debug") << "...path to root, try reconstruction." << std::endl;
-                d_tmp_fail.clear();
-                Node ret = getReconstructedSolution( d_root_id );
-                if( !ret.isNull() ){
-                  Trace("csi-rcons") << "Sygus solution (after enumeration) is : " << ret << std::endl;
-                  reconstructed = 1;
-                  return ret;
-                }
-              }else{
-                Trace("csi-rcons-debug") << "...no path to root." << std::endl;
+              Trace("csi-rcons-debug")
+                  << "...path to root, try reconstruction." << std::endl;
+              d_tmp_fail.clear();
+              Node ret = getReconstructedSolution(d_root_id);
+              if (!ret.isNull())
+              {
+                Trace("csi-rcons")
+                    << "Sygus solution (after enumeration) is : " << ret
+                    << std::endl;
+                reconstructed = 1;
+                return ret;
               }
             }
           }
