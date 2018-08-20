@@ -94,7 +94,7 @@ void Partition::printPartition(const char* c, Partition p)
 void Partition::addVariable(Node sv, Node v)
 {
   d_subvar_to_vars[sv].push_back(v);
-  Assert(d_var_to_subvar.find(v) != d_var_to_subvar.end());
+  Assert(d_var_to_subvar.find(v) == d_var_to_subvar.end());
   d_var_to_subvar[v] = sv;
 }
 
@@ -892,7 +892,12 @@ void SymmetryDetect::processPartitions(
     Trace("sym-dt-debug") << std::endl;
   }
   unsigned num_sb_vars = partitions[first_index].d_subvar_to_vars.size();
-  Assert(num_sb_vars > 0);
+  if( num_sb_vars==0 )
+  {
+    // no need to merge
+    Trace("sym-dt-debug") << "...trivial (no sym vars)" << std::endl;
+    return;
+  }
   if (num_sb_vars > 1)
   {
     // see if we can drop, e.g. {x}{A}, {x}{B} ---> {A}, {B}
