@@ -32,9 +32,7 @@ class QuantifiersRewriter {
 private:
   static int getPurifyIdLit2( Node n, std::map< Node, int >& visited );
 public:
-  static bool isClause( Node n );
   static bool isLiteral( Node n );
-  static bool isCube( Node n );
 private:
   static bool addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged );
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );

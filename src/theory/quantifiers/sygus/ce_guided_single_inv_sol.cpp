@@ -15,15 +15,16 @@
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 
 #include "expr/datatype.h"
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "theory/quantifiers/sygus/ce_guided_single_inv.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -294,11 +295,12 @@ bool CegConjectureSingleInvSol::getAssignEquality( Node eq, std::vector< Node >&
       Assert( std::find( vars.begin(), vars.end(), eq[r] )==vars.end() );
       if( std::find( new_vars.begin(), new_vars.end(), eq[r] )==new_vars.end() ){
         Node eqro = eq[r==0 ? 1 : 0 ];
-        if (!eqro.hasSubterm(eq[r]))
+        if (!expr::hasSubterm(eqro, eq[r]))
         {
-          Trace("csi-simp-debug") << "---equality " << eq[r] << " = " << eqro << std::endl;
-          new_vars.push_back( eq[r] );
-          new_subs.push_back( eqro );
+          Trace("csi-simp-debug")
+              << "---equality " << eq[r] << " = " << eqro << std::endl;
+          new_vars.push_back(eq[r]);
+          new_subs.push_back(eqro);
           return true;
         }
       }

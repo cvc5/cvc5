@@ -236,14 +236,6 @@ public:
   void registerQuantifier(Node q) override;
 
  public:
-  /** assert quantifier */
-  void assertNode(Node q) override;
-  /** new node */
-  void newEqClass( Node n );
-  /** merge */
-  void merge( Node a, Node b );
-  /** assert disequal */
-  void assertDisequal( Node a, Node b );
   /** needs check */
   bool needsCheck(Theory::Effort level) override;
   /** reset round */
