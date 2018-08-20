@@ -124,7 +124,7 @@ class CandidateRewriteDatabaseGen
   QuantifiersEngine* d_qe;
   /** the variables */
   std::vector<Node> d_vars;
-  /** sygus sampler object for each type FIXME: when rec, can use only one */
+  /** sygus sampler object for each type */
   std::map<TypeNode, SygusSampler> d_sampler;
   /** the number of samples */
   unsigned d_nsamples;

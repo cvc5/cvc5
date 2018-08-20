@@ -726,7 +726,7 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       bool is_unique_term = true;
 
-      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()))
+      if (status != 0 && options::sygusRewSynth())
       {
         std::map<Node, ExpressionMinerManager>::iterator its =
             d_exprm.find(prog);
