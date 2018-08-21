@@ -12,7 +12,7 @@ cvc4_set_option(ENABLE_REPLAY ON)
 # enable_assertions=yes
 cvc4_set_option(ENABLE_ASSERTIONS ON)
 # enable_proof=yes
-cvc4_set_option(ENABLE_PROOFS, ON)
+cvc4_set_option(ENABLE_PROOFS ON)
 # enable_tracing=yes
 cvc4_set_option(ENABLE_TRACING ON)
 # enable_dumping=yes
@@ -20,6 +20,4 @@ cvc4_set_option(ENABLE_DUMPING ON)
 # enable_muzzle=no
 cvc4_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=no
-cvc4_set_option(ENABLE_VALGRIND OFF)
 cvc4_set_option(ENABLE_UNIT_TESTING ON)
-cvc4_set_option(ENABLE_SHARED ON)

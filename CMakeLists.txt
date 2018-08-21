@@ -226,6 +226,13 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Competition")
 endif()
 
 #-----------------------------------------------------------------------------#
+# Option defaults (three-valued options (cvc4_option(...)))
+
+cvc4_set_option(ENABLE_PORTFOLIO OFF)
+cvc4_set_option(ENABLE_SHARED ON)
+cvc4_set_option(ENABLE_VALGRIND OFF)
+
+#-----------------------------------------------------------------------------#
 # Enable the ctest testing framework
 
 enable_testing()
@@ -267,6 +274,8 @@ endif()
 
 if(ENABLE_PORTFOLIO)
   find_package(Boost REQUIRED COMPONENTS thread)
+  # Disable CLN for portfolio builds since it is not thread safe (uses an
+  # unlocked hash table internally).
   set(USE_CLN OFF)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
@@ -547,7 +556,7 @@ endif()
 #message("Bindings     : ${bindings_to_be_built}")
 #message("")
 #message("Multithreaded: ${support_multithreaded}")
-#message("Portfolio    : ${with_portfolio}")
+message("Portfolio         : ${ENABLE_PORTFOLIO}")
 message("")
 #message("ABC          : ${{with_abc}")
 message("CaDiCaL           : ${USE_CADICAL}")
