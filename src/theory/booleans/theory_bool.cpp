@@ -42,18 +42,16 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
   if (in.getKind() == kind::NOT) {
     if (in[0].getKind() == kind::VARIABLE) {
       outSubstitutions.addSubstitution(in[0], NodeManager::currentNM()->mkConst<bool>(false));
-    } else {
-      return PP_ASSERT_STATUS_UNSOLVED;
+      return PP_ASSERT_STATUS_SOLVED;
     }
   } else {
     if (in.getKind() == kind::VARIABLE) {
       outSubstitutions.addSubstitution(in, NodeManager::currentNM()->mkConst<bool>(true));
-    } else {
-      return PP_ASSERT_STATUS_UNSOLVED;
+      return PP_ASSERT_STATUS_SOLVED;
     }
   }
 
-  return PP_ASSERT_STATUS_SOLVED;
+  return Theory::ppAssert(in,outSubstitutions);
 }
 
 /*
