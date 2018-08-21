@@ -2026,4 +2026,4 @@ foreach(file ${regress_4_tests})
   cvc4_add_regression_test(4 ${file})
 endforeach()
 
-add_custom_target(regress COMMAND ctest --output-on-failure -L "regress[0-1]")
+add_custom_target(regress COMMAND ctest --output-on-failure -L "regress[0-1]" $(ARGS))

@@ -38,5 +38,5 @@ if(ENABLE_UNIT_TESTING)
   add_subdirectory(theory)
   add_subdirectory(util)
 
-  add_custom_target(units COMMAND ctest -L "unit")
+  add_custom_target(units COMMAND ctest -L "unit" $(ARGS))
 endif()
