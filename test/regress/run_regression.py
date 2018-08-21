@@ -221,6 +221,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
 
     # Expected output/expected error has not been defined in the metadata for
     # the benchmark. Try to extract the information from the benchmark itself.
+    ignore_output = False
     if expected_output == '' and expected_error == '':
         match = None
         if status_regex:
@@ -232,6 +233,8 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.
             sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
+        else:
+            ignore_output = True
     if expected_exit_status is None:
         expected_exit_status = 0
 
@@ -283,6 +286,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
         extra_command_line_args = []
         if benchmark_ext == '.sy' and \
             '--no-check-synth-sol' not in all_args and \
+            '--sygus-rr' not in all_args and \
             '--check-synth-sol' not in all_args:
             extra_command_line_args = ['--check-synth-sol']
         if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
@@ -316,7 +320,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
         output, error, exit_status = run_benchmark(
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
-        if output != expected_output:
+        if not ignore_output and output != expected_output:
             exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stdout - Flags: {}'.
@@ -327,7 +331,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             print()
             print('Error output:')
             print(error)
-        elif error != expected_error:
+        elif not ignore_output and error != expected_error:
             exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stderr - Flags: {}'.
@@ -340,6 +344,12 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             print(
                 'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
                 format(expected_exit_status, exit_status, command_line_args))
+            print()
+            print('Output:')
+            print(output)
+            print()
+            print('Error output:')
+            print(error)
         else:
             print('ok - Flags: {}'.format(command_line_args))
 

@@ -1,0 +1,23 @@
+; COMMAND-LINE: --sygus-rr --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --no-sygus-sym-break
+; EXIT: 1
+
+(set-logic BV)
+
+(synth-fun f ((s (BitVec 32)) (t (BitVec 32))) (BitVec 32)
+  (
+   (Start (BitVec 32) (
+     s
+     t
+     #x00000000
+     (bvneg  Start)
+     (bvnot  Start)
+     (bvadd  Start Start)
+     (bvmul  Start Start)
+     (bvand  Start Start)
+     (bvlshr Start Start)
+     (bvor   Start Start)
+     (bvshl  Start Start)
+   ))
+))
+
+(check-synth)

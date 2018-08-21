@@ -914,9 +914,8 @@ Node SygusSymBreakNew::registerSearchValue(
           }
           if (options::sygusRewVerifyAbort())
           {
-            AlwaysAssert(
-                false,
-                "--sygus-rr-verify detected unsoundness in the rewriter!");
+            // TODO: We should have a cleaner way of aborting here.
+            std::exit(2);
           }
         }
       }
