@@ -50,8 +50,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
-      d_refine_count(0),
-      d_syntax_guided(false)
+      d_refine_count(0)
 {
   if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
   {
@@ -153,36 +152,19 @@ void CegConjecture::assign( Node q ) {
     Assert(d_master != nullptr);
   }
 
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  Assert(d_qe->getQuantAttributes()->isSygus(q));
+  // if the base instantiation is an existential, store its variables
+  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {
-    // if the base instantiation is an existential, store its variables
-    if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
+    for (const Node& v : d_base_inst[0][0])
     {
-      for (const Node& v : d_base_inst[0][0])
-      {
-        d_inner_vars.push_back(v);
-      }
+      d_inner_vars.push_back(v);
     }
-    d_syntax_guided = true;
-  }
-  else if (d_qe->getQuantAttributes()->isSynthesis(q))
-  {
-    d_syntax_guided = false;
-  }else{
-    Assert( false );
   }
   
   // initialize the guard
-  if( !d_syntax_guided ){
-    if( d_nsg_guard.isNull() ){
-      d_nsg_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-      d_nsg_guard = d_qe->getValuation().ensureLiteral( d_nsg_guard );
-      AlwaysAssert( !d_nsg_guard.isNull() );
-      d_qe->getOutputChannel().requirePhase( d_nsg_guard, true );
-      // negated base as a guarded lemma
-      guarded_lemmas.push_back( d_base_inst.negate() );
-    }
-  }else if( d_ceg_si->getGuard().isNull() ){
+  if (d_ceg_si->getGuard().isNull())
+  {
     std::vector< Node > lems;
     d_ceg_si->getInitialSingleInvLemma( lems );
     for( unsigned i=0; i<lems.size(); i++ ){
@@ -205,9 +187,7 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
-Node CegConjecture::getGuard() {
-  return !d_syntax_guided ? d_nsg_guard : d_ceg_si->getGuard();
-}
+Node CegConjecture::getGuard() { return d_ceg_si->getGuard(); }
 
 bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();
