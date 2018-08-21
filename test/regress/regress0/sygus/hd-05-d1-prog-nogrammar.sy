@@ -1,0 +1,12 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: unsat
+
+(set-logic BV)
+
+(define-fun hd05 ((x (BitVec 32))) (BitVec 32) (bvor x (bvsub x #x00000001)))
+
+(synth-fun f ((x (BitVec 32))) (BitVec 32))
+
+(declare-var x (BitVec 32))
+(constraint (= (hd05 x) (f x)))
+(check-synth)

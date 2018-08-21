@@ -827,6 +827,7 @@ REG0_TESTS = \
 	regress0/sygus/check-generic-red.sy \
 	regress0/sygus/const-var-test.sy \
 	regress0/sygus/dt-no-syntax.sy \
+	regress0/sygus/hd-05-d1-prog-nogrammar.sy \
 	regress0/sygus/let-ringer.sy \
 	regress0/sygus/let-simp.sy \
 	regress0/sygus/no-syntax-test-bool.sy \
