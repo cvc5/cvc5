@@ -468,7 +468,7 @@ void Smt2::setLogic(std::string name) {
   // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
   // higher-order
   if(sygus()) {
-    if( !d_logic.isQuantified() )
+    if (!d_logic.isQuantified())
     {
       warning("Logics in sygus are assumed to contain quantifiers.");
       warning("Omit QF_ from the logic to avoid this warning.");
