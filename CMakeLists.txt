@@ -226,6 +226,11 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Competition")
 endif()
 
 #-----------------------------------------------------------------------------#
+# Enable the ctest testing framework
+
+enable_testing()
+
+#-----------------------------------------------------------------------------#
 
 if(ENABLE_ASAN)
   set(CMAKE_REQUIRED_LIBRARIES -fsanitize=address)
@@ -293,7 +298,6 @@ endif()
 
 if(ENABLE_UNIT_TESTING)
 	find_package(CxxTest REQUIRED)
-	enable_testing()
   # Force shared libs for unit tests, static libs with unit tests are not
   # working right now.
   set(ENABLE_SHARED ON)
