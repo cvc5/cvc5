@@ -14,6 +14,9 @@
  **/
 
 #include "theory/quantifiers/conjecture_generator.h"
+
+#include <utility>
+
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
@@ -882,9 +885,12 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-                for( unsigned i=0; i<=it->second; i++ ){
-                  bvs.push_back( getFreeVar( it->first, i ) );
+              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+                   d_pattern_var_id[lhs])
+              {
+                for (unsigned i = 0; i <= lhs_pattern.second; i++)
+                {
+                  bvs.push_back(getFreeVar(lhs_pattern.first, i));
                 }
               }
               Node rsg;

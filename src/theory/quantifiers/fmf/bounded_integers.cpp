@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
+#include "base/map_util.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -459,7 +460,7 @@ void BoundedIntegers::checkOwnership(Node f)
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if (bound_lit_map[b].find(v) != bound_lit_map[b].end())
+            if (ContainsKey(bound_lit_map[b], v))
             {
               // WARNING_CANDIDATE:
               // This assertion may fail. We intentionally do not enable this in

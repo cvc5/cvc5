@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "base/map_util.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -1036,13 +1037,14 @@ int TransitionInference::incrementTrace( DetTrace& dt, Node loc, bool fwd ) {
     }
   }
   if( fwd ){
-    std::map< Node, std::map< Node, Node > >::iterator it = d_com[0].d_const_eq.find( loc );
-    if( it!=d_com[0].d_const_eq.end() ){
+    if (std::map<Node, Node>* const_eq_loc =
+            FindOrNull(d_com[0].d_const_eq, loc))
+    {
       std::vector< Node > next;
       for( unsigned i=0; i<d_prime_vars.size(); i++ ){
         Node pv = d_prime_vars[i];
-        Assert( it->second.find( pv )!=it->second.end() );
-        Node pvs = it->second[pv];
+        Assert(ContainsKey(*const_eq_loc, pv));
+        Node pvs = (*const_eq_loc)[pv];
         Assert( d_vars.size()==dt.d_curr.size() );
         Node pvsr = Rewriter::rewrite( pvs.substitute( d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end() ) );
         next.push_back( pvsr );
