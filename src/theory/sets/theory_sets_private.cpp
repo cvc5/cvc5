@@ -17,6 +17,7 @@
 #include <algorithm>
 #include "theory/sets/theory_sets_private.h"
 
+#include "base/map_util.h"
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "options/sets_options.h"
@@ -611,10 +612,13 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
-            if( d_bop_index[n.getKind()][r1].find( r2 )==d_bop_index[n.getKind()][r1].end() ){
+            if (!ContainsKey(d_bop_index[n.getKind()][r1], r2))
+            {
               d_bop_index[n.getKind()][r1][r2] = n;
               d_op_list[n.getKind()].push_back( n );
-            }else{
+            }
+            else
+            {
               d_congruent[n] = d_bop_index[n.getKind()][r1][r2];
             }
           }
