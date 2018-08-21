@@ -267,7 +267,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
 
   if( !conj->needsRefinement() ){
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
-    if( conj->isSingleInvocation() )
+    if (conj->isSingleInvocation())
     {
       std::vector<Node> clems;
       conj->doSingleInvCheck(clems);
@@ -290,8 +290,8 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
         // set --cbqi-full to ensure that for most strategies (e.g. BV), we
         // are using a monotonic strategy.
         Trace("cegqi-warn")
-            << "  ...FAILED to add cbqi instantiation for single invocation!" << std::endl;
-        
+            << "  ...FAILED to add cbqi instantiation for single invocation!"
+            << std::endl;
       }
       return;
     }
