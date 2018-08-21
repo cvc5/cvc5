@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
+
 (benchmark B_
   :status sat
   :category { unknown }
