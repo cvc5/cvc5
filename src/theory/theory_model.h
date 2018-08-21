@@ -251,10 +251,6 @@ public:
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
   Cardinality getCardinality(Type t) const override;
-  /** print representative debug function */
-  void printRepresentativeDebug( const char* c, Node r );
-  /** print representative function */
-  void printRepresentative( std::ostream& out, Node r );
 
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */

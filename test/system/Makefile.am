@@ -28,10 +28,8 @@ CLASS_LOG_COMPILER = env DYLD_LIBRARY_PATH=$(abs_top_builddir)/src/bindings/java
 # go into the distribution
 TEST_DEPS_DIST = \
 	cvc3_main.cpp \
-	cvc3_george.h \
 	CVC4JavaTest.java \
 	run_java_test
-#	cvc3_george.cpp
 
 # Make-level dependencies; these don't go in the source distribution
 # but should trigger a re-compile of all unit tests.  Libraries are
@@ -46,7 +44,6 @@ TEST_DEPS_NODIST = \
 if CVC4_BUILD_LIBCOMPAT
 TEST_DEPS_NODIST += \
 	$(abs_top_builddir)/src/compat/libcvc4compat.la
-#	cvc3_george.lo
 endif
 
 TEST_DEPS = \
