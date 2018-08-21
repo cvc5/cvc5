@@ -670,7 +670,10 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
                               std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr,
                               CVC4::Type& ret, bool isNested ){
   if( sgt.d_gterm_type==SygusGTerm::gterm_op || sgt.d_gterm_type==SygusGTerm::gterm_let ){
-    Debug("parser-sygus") << "Add " << sgt.d_expr << " to datatype " << index << ", isLet = " << (sgt.d_gterm_type==SygusGTerm::gterm_let) << std::endl;
+    Debug("parser-sygus") << "Add " << sgt.d_expr << " to datatype " << index
+                          << ", isLet = "
+                          << (sgt.d_gterm_type == SygusGTerm::gterm_let)
+                          << std::endl;
     Kind oldKind;
     Kind newKind = kind::UNDEFINED_KIND;
     //convert to UMINUS if one child of MINUS
@@ -826,11 +829,12 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
       curr_t = sop.getType();
       Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
       // only cache if it is a singleton datatype (has unique expr)
-      if( ops[sub_dt_index].size()==1 )
+      if (ops[sub_dt_index].size() == 1)
       {
         sygus_to_builtin_expr[t] = sop;
-        //store that term sop has dedicated sygus type t
-        if( d_sygus_bound_var_type.find( sop )==d_sygus_bound_var_type.end() ){
+        // store that term sop has dedicated sygus type t
+        if (d_sygus_bound_var_type.find(sop) == d_sygus_bound_var_type.end())
+        {
           d_sygus_bound_var_type[sop] = t;
         }
       }
