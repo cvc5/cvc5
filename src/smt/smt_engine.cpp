@@ -4746,8 +4746,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       }
       else
       {
-        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions,
-                                                     inUnsatCore);
+        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions);
       }
     }
 

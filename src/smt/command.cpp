@@ -385,11 +385,9 @@ std::string PopCommand::getCommandName() const { return "pop"; }
 /* class CheckSatCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-CheckSatCommand::CheckSatCommand() : d_expr(), d_inUnsatCore() {}
-CheckSatCommand::CheckSatCommand(const Expr& expr, bool inUnsatCore)
-    : d_expr(expr), d_inUnsatCore(inUnsatCore)
-{
-}
+CheckSatCommand::CheckSatCommand() : d_expr() {}
+
+CheckSatCommand::CheckSatCommand(const Expr& expr) : d_expr(expr) {}
 
 Expr CheckSatCommand::getExpr() const { return d_expr; }
 void CheckSatCommand::invoke(SmtEngine* smtEngine)
@@ -421,15 +419,15 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* CheckSatCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
 {
-  CheckSatCommand* c = new CheckSatCommand(
-      d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSatCommand* c =
+      new CheckSatCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSatCommand::clone() const
 {
-  CheckSatCommand* c = new CheckSatCommand(d_expr, d_inUnsatCore);
+  CheckSatCommand* c = new CheckSatCommand(d_expr);
   c->d_result = d_result;
   return c;
 }
@@ -440,15 +438,10 @@ std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 /* class CheckSatAssumingCommand                                              */
 /* -------------------------------------------------------------------------- */
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term)
-    : d_terms(), d_inUnsatCore()
-{
-  d_terms.push_back(term);
-}
+CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms({term}) {}
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms,
-                                                 bool inUnsatCore)
-    : d_terms(terms), d_inUnsatCore(inUnsatCore)
+CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms)
+    : d_terms(terms)
 {
 }
 
@@ -496,16 +489,14 @@ Command* CheckSatAssumingCommand::exportTo(
   {
     exportedTerms.push_back(e.exportTo(exprManager, variableMap));
   }
-  CheckSatAssumingCommand* c =
-      new CheckSatAssumingCommand(exportedTerms, d_inUnsatCore);
+  CheckSatAssumingCommand* c = new CheckSatAssumingCommand(exportedTerms);
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSatAssumingCommand::clone() const
 {
-  CheckSatAssumingCommand* c =
-      new CheckSatAssumingCommand(d_terms, d_inUnsatCore);
+  CheckSatAssumingCommand* c = new CheckSatAssumingCommand(d_terms);
   c->d_result = d_result;
   return c;
 }
