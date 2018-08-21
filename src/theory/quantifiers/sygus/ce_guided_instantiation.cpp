@@ -267,20 +267,32 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
 
   if( !conj->needsRefinement() ){
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
-    std::vector<Node> clems;
-    conj->doSingleInvCheck(clems);
-    if (!clems.empty())
+    if( conj->isSingleInvocation() )
     {
-      d_last_inst_si = true;
-      for (const Node& lem : clems)
+      std::vector<Node> clems;
+      conj->doSingleInvCheck(clems);
+      if (!clems.empty())
       {
-        Trace("cegqi-lemma")
-            << "Cegqi::Lemma : single invocation instantiation : " << lem
-            << std::endl;
-        d_quantEngine->addLemma(lem);
+        d_last_inst_si = true;
+        for (const Node& lem : clems)
+        {
+          Trace("cegqi-lemma")
+              << "Cegqi::Lemma : single invocation instantiation : " << lem
+              << std::endl;
+          d_quantEngine->addLemma(lem);
+        }
+        d_statistics.d_cegqi_si_lemmas += clems.size();
+        Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
       }
-      d_statistics.d_cegqi_si_lemmas += clems.size();
-      Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
+      else
+      {
+        // This can happen for non-monotonic instantiation strategies. We
+        // set --cbqi-full to ensure that for most strategies (e.g. BV), we
+        // are using a monotonic strategy.
+        Trace("cegqi-warn")
+            << "  ...FAILED to add cbqi instantiation for single invocation!" << std::endl;
+        
+      }
       return;
     }
 
