@@ -459,10 +459,10 @@ void BoundedIntegers::checkOwnership(Node f)
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            std::map< Node, Node >& blm = bound_lit_map[b];
+            std::map<Node, Node>& blm = bound_lit_map[b];
             if (blm.find(v) != blm.end())
             {
-              std::map< Node, bool >& blmp = bound_lit_pol_map[b];
+              std::map<Node, bool>& blmp = bound_lit_pol_map[b];
               // WARNING_CANDIDATE:
               // This assertion may fail. We intentionally do not enable this in
               // production as it is considered safe for this to fail. We fail
@@ -470,8 +470,7 @@ void BoundedIntegers::checkOwnership(Node f)
               // our attention.
               Assert(blmp.find(v) != blmp.end());
               BoundIntLitAttribute bila;
-              bound_lit_map[b][v].setAttribute(bila,
-                                               blmp[v] ? 1 : 0);
+              bound_lit_map[b][v].setAttribute(bila, blmp[v] ? 1 : 0);
             }
             else
             {

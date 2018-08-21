@@ -611,9 +611,10 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
-            std::map< Node, Node >& binr1 = d_bop_index[n.getKind()][r1];
-            std::map< Node, Node >::iterator itb = binr1.find(r2);
-            if( itb==binr1.end() ){
+            std::map<Node, Node>& binr1 = d_bop_index[n.getKind()][r1];
+            std::map<Node, Node>::iterator itb = binr1.find(r2);
+            if (itb == binr1.end())
+            {
               binr1[r2] = n;
               d_op_list[n.getKind()].push_back( n );
             }else{

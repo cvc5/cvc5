@@ -882,10 +882,12 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for (const std::pair<TypeNode, unsigned>& lhs_pattern : d_pattern_var_id[lhs] )
+              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+                   d_pattern_var_id[lhs])
               {
-                for( unsigned i=0; i<=lhs_pattern.second; i++ ){
-                  bvs.push_back( getFreeVar( lhs_pattern.first, i ) );
+                for (unsigned i = 0; i <= lhs_pattern.second; i++)
+                {
+                  bvs.push_back(getFreeVar(lhs_pattern.first, i));
                 }
               }
               Node rsg;

@@ -646,8 +646,9 @@ void TheorySep::check(Effort e) {
             if( assert_active[fact] ){
               Assert( atom.getKind()==kind::SEP_LABEL );
               TNode s_lbl = atom[1];
-              std::map< Node, std::map< int, Node > >& lms = d_label_map[s_atom];
-              if( lms.find( s_lbl )!=lms.end() ){
+              std::map<Node, std::map<int, Node> >& lms = d_label_map[s_atom];
+              if (lms.find(s_lbl) != lms.end())
+              {
                 Trace("sep-process-debug") << "Active lbl : " << s_lbl << std::endl;
                 active_lbl[s_lbl] = true;
               }
