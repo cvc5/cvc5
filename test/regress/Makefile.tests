@@ -347,6 +347,7 @@ REG0_TESTS = \
 	regress0/datatypes/datatype2.cvc \
 	regress0/datatypes/datatype3.cvc \
 	regress0/datatypes/datatype4.cvc \
+	regress0/datatypes/data-nested-codata.smt2 \
 	regress0/datatypes/dt-2.6.smt2 \
 	regress0/datatypes/dt-match-pat-param-2.6.smt2 \
 	regress0/datatypes/dt-param-2.6.smt2 \
@@ -1263,6 +1264,7 @@ REG1_TESTS = \
 	regress1/quantifiers/anti-sk-simp.smt2 \
 	regress1/quantifiers/ari118-bv-2occ-x.smt2 \
 	regress1/quantifiers/arith-rec-fun.smt2 \
+	regress1/quantifiers/arith-snorm.smt2 \
 	regress1/quantifiers/array-unsat-simp3.smt2 \
 	regress1/quantifiers/bi-artm-s.smt2 \
 	regress1/quantifiers/bignum_quant.smt2 \
@@ -1275,12 +1277,15 @@ REG1_TESTS = \
 	regress1/quantifiers/cdt-0208-to.smt2 \
 	regress1/quantifiers/const.cvc \
 	regress1/quantifiers/constfunc.cvc \
+	regress1/quantifiers/dump-inst.smt2 \
+	regress1/quantifiers/dump-inst-i.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
 	regress1/quantifiers/fp-cegqi-unsat.smt2 \
 	regress1/quantifiers/gauss_init_0030.fof.smt2 \
 	regress1/quantifiers/horn-simple.smt2 \
+	regress1/quantifiers/infer-arith-trigger-eq.smt2 \
 	regress1/quantifiers/inst-max-level-segf.smt2 \
 	regress1/quantifiers/inst-prop-simp.smt2 \
 	regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2 \
@@ -1315,6 +1320,7 @@ REG1_TESTS = \
 	regress1/quantifiers/qbv-test-urem-rewrite.smt2 \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
+	regress1/quantifiers/quant-wf-int-ind.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
 	regress1/quantifiers/repair-const-nterm.smt2 \
 	regress1/quantifiers/recfact.cvc \
@@ -1543,6 +1549,7 @@ REG1_TESTS = \
 	regress1/sygus/list-head-x.sy \
 	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
+	regress1/sygus/max2-bv.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \
 	regress1/sygus/nflat-fwd.sy \
@@ -1551,6 +1558,7 @@ REG1_TESTS = \
 	regress1/sygus/no-mention.sy \
 	regress1/sygus/parity-si-rcons.sy \
 	regress1/sygus/pbe_multi.sy \
+	regress1/sygus/phone-1-long.sy \
 	regress1/sygus/planning-unif.sy \
 	regress1/sygus/process-10-vars.sy \
 	regress1/sygus/qe.sy \
@@ -2009,46 +2017,3 @@ DISABLED_TESTS = \
 	regress2/quantifiers/small-bug1-fixpoint-3.smt2 \
 	regress2/xs-11-20-5-2-5-3.smt \
 	regress2/xs-11-20-5-2-5-3.smt2
-
-TESTS_EXPECT = \
-	regress0/arith/miplib-opt1217--27.smt.expect \
-	regress0/arith/miplib-pp08a-3000.smt.expect \
-	regress0/decision/aufbv-fuzz01.smt.expect \
-	regress0/decision/bitvec0.delta01.smt.expect \
-	regress0/decision/bitvec0.smt.expect \
-	regress0/decision/bitvec5.smt.expect \
-	regress0/decision/bug347.smt.expect \
-	regress0/decision/bug374a.smt.expect \
-	regress0/decision/bug374b.smt2.expect \
-	regress0/decision/just_sat.expect \
-	regress0/decision/just_unsat.expect \
-	regress0/decision/pp-regfile.delta01.smt.expect \
-	regress0/decision/pp-regfile.delta02.smt.expect \
-	regress0/decision/quant-ex1.smt2.expect \
-	regress0/decision/uflia-xs-09-16-3-4-1-5.delta03.smt.expect \
-	regress0/decision/uflia-xs-09-16-3-4-1-5.smt.expect \
-	regress0/decision/wchains010ue.delta02.smt.expect \
-	regress0/decision/wchains010ue.smt.expect \
-	regress0/expect/scrub.01.smt.expect \
-	regress0/expect/scrub.03.smt2.expect \
-	regress0/quantifiers/bug291.smt2.expect \
-	regress0/uflia/check02.smt2.expect \
-	regress0/uflia/check03.smt2.expect \
-	regress0/uflia/check04.smt2.expect \
-	regress0/uflia/check04.smt2.expect \
-	regress0/uflia/stalmark_e7_27_e7_31.ec.minimized.smt2.expect \
-	regress0/uflia/tiny.smt2.expect \
-	regress1/bug216.smt2.expect \
-	regress1/bug590.smt2.expect \
-	regress1/decision/quant-Arrays_Q1-noinfer.smt2.expect \
-	regress1/decision/quant-symmetric_unsat_7.smt2.expect \
-	regress1/push-pop/bug216.smt2.expect \
-	regress1/simplification_bug4.smt2.expect \
-	regress1/uflia/DRAGON_11_e1_2450.ec.minimized.smt2.expect \
-	regress1/uflia/FIREFLY_3_e2_2236_e7_3681.ec.core.smt2.expect \
-	regress1/uflia/speed2_e8_449_e8_517.ec.smt2.expect \
-	regress1/uflia/stalmark_e7_27_e7_31.ec.smt2.expect \
-	regress2/FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2.expect \
-	regress2/uflia-error0.smt2.expect \
-	regress2/xs-09-16-3-4-1-5.decn.smt.expect \
-	regress3/pp-regfile.smt.expect

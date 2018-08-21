@@ -1934,6 +1934,7 @@ void SmtEngine::setDefaults() {
       options::ceGuidedInst.set( true );
     }
   }
+  // if sygus is enabled, set the defaults for sygus
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
     if( !options::cegqiSingleInvMode.wasSetByUser() ){
@@ -1944,6 +1945,11 @@ void SmtEngine::setDefaults() {
     }
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
+    }
+    if (!options::cbqiFullEffort.wasSetByUser())
+    {
+      // should use full effort cbqi for single invocation and repair const
+      options::cbqiFullEffort.set(true);
     }
     if (options::sygusRew())
     {
