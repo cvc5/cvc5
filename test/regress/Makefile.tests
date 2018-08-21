@@ -1549,7 +1549,7 @@ REG1_TESTS = \
 	regress1/sygus/list-head-x.sy \
 	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
-	regress1/sygus/max-2-bv.sy \
+	regress1/sygus/max2-bv.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \
 	regress1/sygus/nflat-fwd.sy \
