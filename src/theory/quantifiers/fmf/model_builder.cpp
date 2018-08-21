@@ -194,7 +194,7 @@ Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
     double score = (1.0 + static_cast<double>(d_value_pro_con[0][v].size()))
                    / (1.0 + static_cast<double>(d_value_pro_con[1][v].size()));
     Debug("fmf-model-cons-debug") << "  - score( ";
-    m->printRepresentativeDebug("fmf-model-cons-debug", v);
+    Debug("fmf-model-cons-debug") << m->getRepresentative(v);
     Debug("fmf-model-cons-debug") << " ) = " << score << std::endl;
     if (score > maxScore)
     {
@@ -213,7 +213,7 @@ Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
     {
       defaultVal = newDefaultVal;
       Debug("fmf-model-cons-debug") << "-> Change default value to ";
-      m->printRepresentativeDebug("fmf-model-cons-debug", defaultVal);
+      Debug("fmf-model-cons-debug") << m->getRepresentative(defaultVal);
       Debug("fmf-model-cons-debug") << std::endl;
     }
     else
@@ -227,7 +227,7 @@ Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
   }
   // get the default term (this term must be defined non-ground in model)
   Debug("fmf-model-cons-debug") << "  Choose ";
-  m->printRepresentativeDebug("fmf-model-cons-debug", defaultVal);
+  Debug("fmf-model-cons-debug") << m->getRepresentative(defaultVal);
   Debug("fmf-model-cons-debug")
       << " as default value (" << defaultTerm << ")" << std::endl;
   Debug("fmf-model-cons-debug")
@@ -437,7 +437,7 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
       fmig->d_uf_model_gen[op].setDefaultValue( d_uf_prefs[op].d_const_val );
       fmig->d_uf_model_gen[op].makeModel( fmig, it->second );
       Debug("fmf-model-cons") << "Function " << op << " is the constant function ";
-      fmig->printRepresentativeDebug( "fmf-model-cons", d_uf_prefs[op].d_const_val );
+      Debug("fmf-model-cons") << d_uf_prefs[op].d_const_val;
       Debug("fmf-model-cons") << std::endl;
       d_uf_model_constructed[op] = true;
     }else{
