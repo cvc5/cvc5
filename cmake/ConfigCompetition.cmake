@@ -16,7 +16,7 @@ cvc4_set_option(ENABLE_REPLAY OFF)
 # enable_assertions=no
 cvc4_set_option(ENABLE_ASSERTIONS OFF)
 # enable_proof=no
-cvc4_set_option(ENABLE_PROOFS, OFF)
+cvc4_set_option(ENABLE_PROOFS OFF)
 # enable_tracing=no
 cvc4_set_option(ENABLE_TRACING OFF)
 # enable_dumping=no
@@ -24,7 +24,6 @@ cvc4_set_option(ENABLE_DUMPING OFF)
 # enable_muzzle=yes
 cvc4_set_option(ENABLE_MUZZLE ON)
 # enable_valgrind=no
-cvc4_set_option(ENABLE_VALGRIND OFF)
 # enable_shared=no
+cvc4_set_option(ENABLE_SHARED OFF)
 cvc4_set_option(ENABLE_UNIT_TESTING OFF)
-cvc4_set_option(ENABLE_SHARED ON)

@@ -20,6 +20,4 @@ cvc4_set_option(ENABLE_DUMPING ON)
 # enable_muzzle=no
 cvc4_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=no
-cvc4_set_option(ENABLE_VALGRIND OFF)
 cvc4_set_option(ENABLE_UNIT_TESTING OFF)
-cvc4_set_option(ENABLE_SHARED ON)
