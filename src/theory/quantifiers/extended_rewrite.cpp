@@ -583,6 +583,11 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
 
 Node ExtendedRewriter::extendedRewriteAndOr(Node n)
 {
+  // all the below rewrites are aggressive
+  if( !d_aggr )
+  {
+    return Node::null();
+  }
   Node new_ret;
   // all kinds are legal to substitute over : hence we give the empty map
   std::map<Kind, bool> bcp_kinds;

@@ -4146,7 +4146,9 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::extRewPrep())
   {
+    Trace("smt-ajr-temp") << "Apply ext-rew-pre..." << std::endl;
     d_preprocessingPassRegistry.getPass("ext-rew-pre")->apply(&d_assertions);
+    Trace("smt-ajr-temp") << "...finished" << std::endl;
   }
 
   // Unconstrained simplification
