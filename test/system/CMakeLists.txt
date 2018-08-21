@@ -24,4 +24,4 @@ cvc4_add_system_test(statistics)
 cvc4_add_system_test(two_smt_engines)
 #TODO java test (needs bindings)
 
-add_custom_target(systemtests COMMAND ctest --output-on-failure -L "system")
+add_custom_target(systemtests COMMAND ctest --output-on-failure -L "system" $(ARGS))
