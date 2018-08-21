@@ -502,9 +502,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Learned literals */
   vector<Node> d_nonClausalLearnedLiterals;
 
-  /** Size of assertions array when preprocessing starts */
-  unsigned d_realAssertionsEnd;
-
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
   bool d_propagatorNeedsFinish;
@@ -640,7 +637,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_nonClausalLearnedLiterals(),
-        d_realAssertionsEnd(0),
         d_propagator(d_nonClausalLearnedLiterals, true, true),
         d_propagatorNeedsFinish(false),
         d_assertions(d_smt.d_userContext),
@@ -815,7 +811,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   void notifyPop() {
     d_assertions.clear();
     d_nonClausalLearnedLiterals.clear();
-    d_realAssertionsEnd = 0;
     getIteSkolemMap().clear();
   }
 
@@ -3254,8 +3249,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
 
   NodeBuilder<> learnedBuilder(kind::AND);
-  Assert(d_realAssertionsEnd <= d_assertions.size());
-  learnedBuilder << d_assertions[d_realAssertionsEnd - 1];
+  Assert(d_assertions.getRealAssertionsEnd() <= d_assertions.size());
+  learnedBuilder << d_assertions[d_assertions.getRealAssertionsEnd() - 1];
 
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
     Node learned = d_nonClausalLearnedLiterals[i];
@@ -3308,8 +3303,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   top_level_substs.addSubstitutions(newSubstitutions);
 
   if(learnedBuilder.getNumChildren() > 1) {
-    d_assertions.replace(d_realAssertionsEnd - 1,
-      Rewriter::rewrite(Node(learnedBuilder)));
+    d_assertions.replace(d_assertions.getRealAssertionsEnd() - 1,
+                         Rewriter::rewrite(Node(learnedBuilder)));
   }
 
   d_propagatorNeedsFinish = true;
@@ -3341,21 +3336,21 @@ bool SmtEnginePrivate::simpITE() {
 
 void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
   size_t curr = d_assertions.size();
-  if(before >= curr ||
-     d_realAssertionsEnd <= 0 ||
-     d_realAssertionsEnd >= curr){
+  if (before >= curr || d_assertions.getRealAssertionsEnd() <= 0
+      || d_assertions.getRealAssertionsEnd() >= curr)
+  {
     return;
   }
 
   // assertions
-  // original: [0 ... d_realAssertionsEnd)
+  // original: [0 ... d_assertions.getRealAssertionsEnd())
   //  can be modified
-  // ites skolems [d_realAssertionsEnd, before)
+  // ites skolems [d_assertions.getRealAssertionsEnd(), before)
   //  cannot be moved
   // added [before, curr)
   //  can be modified
-  Assert(0 < d_realAssertionsEnd);
-  Assert(d_realAssertionsEnd <= before);
+  Assert(0 < d_assertions.getRealAssertionsEnd());
+  Assert(d_assertions.getRealAssertionsEnd() <= before);
   Assert(before < curr);
 
   std::vector<Node> intoConjunction;
@@ -3363,7 +3358,7 @@ void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
     intoConjunction.push_back(d_assertions[i]);
   }
   d_assertions.resize(before);
-  size_t lastBeforeItes = d_realAssertionsEnd - 1;
+  size_t lastBeforeItes = d_assertions.getRealAssertionsEnd() - 1;
   intoConjunction.push_back(d_assertions[lastBeforeItes]);
   Node newLast = util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
   d_assertions.replace(lastBeforeItes, newLast);
@@ -3442,7 +3437,7 @@ size_t SmtEnginePrivate::removeFromConjunction(Node& n, const std::unordered_set
 }
 
 void SmtEnginePrivate::doMiplibTrick() {
-  Assert(d_realAssertionsEnd == d_assertions.size());
+  Assert(d_assertions.getRealAssertionsEnd() == d_assertions.size());
   Assert(!options::incrementalSolving());
 
   const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
@@ -3740,7 +3735,8 @@ void SmtEnginePrivate::doMiplibTrick() {
   }
   if(!removeAssertions.empty()) {
     Debug("miplib") << "SmtEnginePrivate::simplify(): scrubbing miplib encoding..." << endl;
-    for(size_t i = 0; i < d_realAssertionsEnd; ++i) {
+    for (size_t i = 0; i < d_assertions.getRealAssertionsEnd(); ++i)
+    {
       if(removeAssertions.find(d_assertions[i].getId()) != removeAssertions.end()) {
         Debug("miplib") << "SmtEnginePrivate::simplify(): - removing " << d_assertions[i] << endl;
         d_assertions[i] = d_true;
@@ -3761,7 +3757,7 @@ void SmtEnginePrivate::doMiplibTrick() {
   } else {
     Debug("miplib") << "SmtEnginePrivate::simplify(): miplib pass found nothing." << endl;
   }
-  d_realAssertionsEnd = d_assertions.size();
+  d_assertions.updateRealAssertionsEnd();
 }
 
 
@@ -3789,16 +3785,17 @@ bool SmtEnginePrivate::simplifyAssertions()
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
       // do the miplib trick.
-      if( // check that option is on
+      if (  // check that option is on
           options::arithMLTrick() &&
           // miplib rewrites aren't safe in incremental mode
-          ! options::incrementalSolving() &&
+          !options::incrementalSolving() &&
           // only useful in arith
           d_smt.d_logic.isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
-          d_realAssertionsEnd == d_assertions.size() ) {
+          d_assertions.getRealAssertionsEnd() == d_assertions.size())
+      {
         Chat() << "...fixing miplib encodings..." << endl;
         Trace("simplify") << "SmtEnginePrivate::simplify(): "
                           << "looking for miplib pseudobooleans..." << endl;
@@ -4051,7 +4048,7 @@ void SmtEnginePrivate::processAssertions() {
   d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   // any assertions added beyond realAssertionsEnd must NOT affect the
   // equisatisfiability
-  d_realAssertionsEnd = d_assertions.size();
+  d_assertions.updateRealAssertionsEnd();
 
   // Assertions are NOT guaranteed to be rewritten by this point
 
@@ -4331,7 +4328,7 @@ void SmtEnginePrivate::processAssertions() {
       IteSkolemMap::iterator it = getIteSkolemMap().begin();
       IteSkolemMap::iterator iend = getIteSkolemMap().end();
       NodeBuilder<> builder(kind::AND);
-      builder << d_assertions[d_realAssertionsEnd - 1];
+      builder << d_assertions[d_assertions.getRealAssertionsEnd() - 1];
       vector<TNode> toErase;
       for (; it != iend; ++it) {
         if (skolemSet.find((*it).first) == skolemSet.end()) {
@@ -4360,7 +4357,8 @@ void SmtEnginePrivate::processAssertions() {
           getIteSkolemMap().erase(toErase.back());
           toErase.pop_back();
         }
-        d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
+        d_assertions[d_assertions.getRealAssertionsEnd() - 1] =
+            Rewriter::rewrite(Node(builder));
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
@@ -4414,8 +4412,9 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions(
-        d_assertions.ref(), d_realAssertionsEnd, getIteSkolemMap());
+    d_smt.d_decisionEngine->addAssertions(d_assertions.ref(),
+                                          d_assertions.getRealAssertionsEnd(),
+                                          getIteSkolemMap());
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
