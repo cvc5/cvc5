@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --sygus-rr --sygus-samples=1000 --sygus-abort-size=4 --sygus-rr-verify-abort --no-sygus-sym-break
+; SCRUBBER: grep -v -E '(\(define-fun|\(candidate-rewrite|Maximum term size)'
 ; EXIT: 1
 
 (set-logic BV)

@@ -914,8 +914,9 @@ Node SygusSymBreakNew::registerSearchValue(
           }
           if (options::sygusRewVerifyAbort())
           {
-            // TODO: We should have a cleaner way of aborting here.
-            std::exit(2);
+            AlwaysAssert(
+                false,
+                "--sygus-rr-verify detected unsoundness in the rewriter!");
           }
         }
       }
@@ -1444,7 +1445,7 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
       {
         std::stringstream ss;
         ss << "Maximum term size (" << options::sygusAbortSize()
-           << ") for enumerative SyGuS exceeded." << std::endl;
+           << ") for enumerative SyGuS exceeded.";
         throw LogicException(ss.str());
       }
       Assert( !d_this.isNull() );
