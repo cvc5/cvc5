@@ -175,6 +175,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     new_ret = extendedRewriteEqChain(EQUAL, AND, OR, NOT, ret);
     debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
   }
+  Assert( new_ret.isNull() || new_ret!=ret );
   if (new_ret.isNull() && ret.getKind() != ITE)
   {
     // simple ITE pulling
@@ -217,6 +218,13 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
                                << std::endl;
+  if( Trace.isOn("q-ext-rewrite-nf") )
+  {
+    if( n==ret )
+    {
+      Trace("q-ext-rewrite-nf") << "ext-rew normal form : " << n << std::endl;
+    }
+  }
   setCache(n, ret);
   return ret;
 }
@@ -386,6 +394,35 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     if (!new_ret.isNull())
     {
       break;
+    }
+  }
+  if (new_ret.isNull() )
+  {
+    // merging branches
+    for( unsigned i=1; i<=2; i++ )
+    {
+      if( n[i].getKind()==ITE )
+      {
+        Node no = n[3-i];
+        for( unsigned j=1; j<=2; j++ )
+        {
+          if( n[i][j]==no )
+          {
+            // e.g. 
+            // ite( C1, ite( C2, t1, t2 ), t1 ) ----> ite( C1 ^ ~C2, t2, t1 )
+            Node nc1 = i==2 ? n[0].negate() : n[0];
+            Node nc2 = j==1 ? n[i][0].negate() : n[i][0];
+            Node new_cond = nm->mkNode(AND, nc1, nc2 );
+            new_ret = nm->mkNode(ITE,new_cond,n[i][3-j],no);
+            ss_reason << "ITE merge branch";
+            break;
+          }
+        }
+      }
+      if( !new_ret.isNull() )
+      {
+        break;
+      }
     }
   }
 
