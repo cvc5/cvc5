@@ -27,17 +27,22 @@
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
 #include "theory/theory_engine.h"
+#include "theory/booleans/circuit_propagator.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace preprocessing {
+
+using namespace theory;
 
 class PreprocessingPassContext
 {
  public:
   PreprocessingPassContext(SmtEngine* smt,
                            ResourceManager* resourceManager,
-                           RemoveTermFormulas* iteRemover);
+                           RemoveTermFormulas* iteRemover,
+                           booleans::CircuitPropagator* circuitPropagator);
+
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
@@ -45,6 +50,12 @@ class PreprocessingPassContext
   context::Context* getUserContext() { return d_smt->d_userContext; }
   context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
+
+
+  booleans::CircuitPropagator* getCircuitPropagator()
+  {
+    return d_circuitPropagator;
+  }
 
   void spendResource(unsigned amount)
   {
@@ -56,6 +67,9 @@ class PreprocessingPassContext
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
+  /* Enable Integers. */
+  void enableIntegers();
+
  private:
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
@@ -63,6 +77,9 @@ class PreprocessingPassContext
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
+
+  /** Instance of the circuit propagator */
+  booleans::CircuitPropagator* d_circuitPropagator;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
