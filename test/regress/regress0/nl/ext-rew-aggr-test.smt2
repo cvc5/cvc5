@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rew-prep --ext-rew-prep-agg
+; COMMAND-LINE: --ext-rew-prep --ext-rew-prep-agg --no-new-prop
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_NIA)
