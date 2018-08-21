@@ -825,7 +825,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
     if( sop.getKind() != kind::BUILTIN && ( sop.isConst() || cargs[sub_dt_index][0].empty() ) ){
       curr_t = sop.getType();
       Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
-      // only cache if it is a singleton datatype
+      // only cache if it is a singleton datatype (has unique expr)
       if( ops[sub_dt_index].size()==1 )
       {
         sygus_to_builtin_expr[t] = sop;
