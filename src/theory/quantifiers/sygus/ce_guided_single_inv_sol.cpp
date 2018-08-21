@@ -700,11 +700,14 @@ Node CegConjectureSingleInvSol::reconstructSolution(Node sol,
           Node nr = Rewriter::rewrite( nb );//d_qe->getTermDatabaseSygus()->getNormalized( stn, nb, false, false );
           Trace("csi-rcons-debug2") << "  - try " << ns << " -> " << nr << " for " << stn << " " << nr.getKind() << std::endl;
           std::map< Node, int >::iterator itt = d_rcons_to_id[stn].find( nr );
-          if( itt!= d_rcons_to_id[stn].end() ){
+          if (itt != d_rcons_to_id[stn].end())
+          {
             // if it is not already reconstructed
-            if( d_reconstruct.find( itt->second )==d_reconstruct.end() ){
-              Trace("csi-rcons") << "...reconstructed " << ns << " for term " << nr << std::endl;
-              setReconstructed( itt->second, ns );
+            if (d_reconstruct.find(itt->second) == d_reconstruct.end())
+            {
+              Trace("csi-rcons") << "...reconstructed " << ns << " for term "
+                                 << nr << std::endl;
+              setReconstructed(itt->second, ns);
               Trace("csi-rcons-debug")
                   << "...path to root, try reconstruction." << std::endl;
               d_tmp_fail.clear();
