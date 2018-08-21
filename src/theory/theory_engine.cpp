@@ -19,9 +19,11 @@
 #include <list>
 #include <vector>
 
+#include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/bv_options.h"
 #include "options/options.h"
@@ -31,8 +33,8 @@
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
-#include "smt/term_formula_removal.h"
 #include "smt/logic_exception.h"
+#include "smt/term_formula_removal.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -396,7 +398,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // the atom should not have free variables
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
-      Assert(!preprocessed.hasFreeVar());
+      Assert(!expr::hasFreeVar(preprocessed));
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);
@@ -2109,8 +2111,14 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
 
-  std::set<Node> inputAssertions;
-  PROOF(inputAssertions = proofRecipe->getStep(0)->getAssertions(););
+  std::unique_ptr<std::set<Node>> inputAssertions = nullptr;
+  PROOF({
+    if (proofRecipe)
+    {
+      inputAssertions.reset(
+          new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
+    }
+  });
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -2195,30 +2203,44 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     ++ i;
 
     PROOF({
-        if (proofRecipe) {
-          // If we're expanding the target node of the explanation (this is the first expansion...),
-          // we don't want to add it as a separate proof step. It is already part of the assertions.
-          if (inputAssertions.find(toExplain.node) == inputAssertions.end()) {
-            LemmaProofRecipe::ProofStep proofStep(toExplain.theory, toExplain.node);
-            if (explanation.getKind() == kind::AND) {
-              Node flat = flattenAnd(explanation);
-              for (unsigned k = 0; k < flat.getNumChildren(); ++ k) {
-                // If a true constant or a negation of a false constant we can ignore it
-                if (! ((flat[k].isConst() && flat[k].getConst<bool>()) ||
-                       (flat[k].getKind() == kind::NOT && flat[k][0].isConst() && !flat[k][0].getConst<bool>()))) {
-                  proofStep.addAssertion(flat[k].negate());
-                }
+      if (proofRecipe && inputAssertions)
+      {
+        // If we're expanding the target node of the explanation (this is the
+        // first expansion...), we don't want to add it as a separate proof
+        // step. It is already part of the assertions.
+        if (!ContainsKey(*inputAssertions, toExplain.node))
+        {
+          LemmaProofRecipe::ProofStep proofStep(toExplain.theory,
+                                                toExplain.node);
+          if (explanation.getKind() == kind::AND)
+          {
+            Node flat = flattenAnd(explanation);
+            for (unsigned k = 0; k < flat.getNumChildren(); ++k)
+            {
+              // If a true constant or a negation of a false constant we can
+              // ignore it
+              if (!((flat[k].isConst() && flat[k].getConst<bool>())
+                    || (flat[k].getKind() == kind::NOT && flat[k][0].isConst()
+                        && !flat[k][0].getConst<bool>())))
+              {
+                proofStep.addAssertion(flat[k].negate());
               }
-            } else {
-             if (! ((explanation.isConst() && explanation.getConst<bool>()) ||
-                    (explanation.getKind() == kind::NOT && explanation[0].isConst() && !explanation[0].getConst<bool>()))) {
-               proofStep.addAssertion(explanation.negate());
-             }
             }
-            proofRecipe->addStep(proofStep);
           }
+          else
+          {
+            if (!((explanation.isConst() && explanation.getConst<bool>())
+                  || (explanation.getKind() == kind::NOT
+                      && explanation[0].isConst()
+                      && !explanation[0].getConst<bool>())))
+            {
+              proofStep.addAssertion(explanation.negate());
+            }
+          }
+          proofRecipe->addStep(proofStep);
         }
-      });
+      }
+    });
   }
 
   // Keep only the relevant literals
@@ -2371,14 +2393,12 @@ TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
     propagations(getStatsPrefix(theory) + "::propagations", 0),
     lemmas(getStatsPrefix(theory) + "::lemmas", 0),
     requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
     restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
   smtStatisticsRegistry()->registerStat(&lemmas);
   smtStatisticsRegistry()->registerStat(&requirePhase);
-  smtStatisticsRegistry()->registerStat(&flipDecision);
   smtStatisticsRegistry()->registerStat(&restartDemands);
 }
 
@@ -2387,7 +2407,6 @@ TheoryEngine::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&propagations);
   smtStatisticsRegistry()->unregisterStat(&lemmas);
   smtStatisticsRegistry()->unregisterStat(&requirePhase);
-  smtStatisticsRegistry()->unregisterStat(&flipDecision);
   smtStatisticsRegistry()->unregisterStat(&restartDemands);
 }
 

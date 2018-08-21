@@ -1,3 +1,6 @@
+; COMMAND-LINE: --miplib-trick
+; EXPECT: unsat
+
 (benchmark mip_pp08a
 :source {
 Relaxation of the Mixed-Integer Programming

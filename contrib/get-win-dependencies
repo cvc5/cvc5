@@ -74,23 +74,16 @@ echo
 MACHINE_TYPE="x86_64" ANTLR_CONFIGURE_ARGS="--host=$HOST" contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
 [ ${PIPESTATUS[0]} -eq 0 ] || reporterror
 echo
-echo =============================================================================
-echo
-echo "Setting up GMP $GMPVERSION..."
-echo
-( set -ex
-  mkdir gmp-$GMPVERSION
-  cd gmp-$GMPVERSION
-  gmpprefix=`pwd` &&
-  mkdir src &&
-  cd src &&
-  webget https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
-  tar xfj gmp-$GMPVERSION.tar.bz2 &&
-  cd gmp-$GMPVERSION &&
-  ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx ${BUILD_TYPE} &&
-  make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}" &&
-  make install
-) || exit 1
+
+# Setup GMP
+HOST="$HOST" \
+BUILD_TYPE="$BUILD_TYPE" \
+MAKE_CFLAGS="$MAKE_CFLAGS" \
+MAKE_CXXFLAGS="$MAKE_CXXFLAGS" \
+MAKE_LDFLAGS="$MAKE_LDFLAGS" \
+GMPVERSION="$GMPVERSION" \
+  contrib/get-gmp || reporterror
+
 echo
 echo =============================================================================
 echo

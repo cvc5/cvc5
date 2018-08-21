@@ -35,6 +35,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
+#include "util/utility.h"
 
 using namespace std;
 
@@ -1868,7 +1869,7 @@ void GetUnsatAssumptionsCommand::printResult(std::ostream& out,
   }
   else
   {
-    out << d_result << endl;
+    container_to_stream(out, d_result, "(", ")\n", " ");
   }
 }
 

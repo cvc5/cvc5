@@ -20,13 +20,13 @@
 
 #include <iostream>
 #include <map>
+#include <tuple>
 #include <unordered_map>
 
 #include "context/backtrackable.h"
 #include "context/cdlist.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "util/ntuple.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -34,14 +34,12 @@ namespace theory {
 namespace arrays {
 
 typedef context::CDList<TNode> CTNodeList;
-typedef quad<TNode, TNode, TNode, TNode> RowLemmaType;
+using RowLemmaType = std::tuple<TNode, TNode, TNode, TNode>;
 
 struct RowLemmaTypeHashFunction {
   size_t operator()(const RowLemmaType& q) const {
-    TNode n1 = q.first;
-    TNode n2 = q.second;
-    TNode n3 = q.third;
-    TNode n4 = q.fourth;
+    TNode n1, n2, n3, n4;
+    std::tie(n1, n2, n3, n4) = q;
     return (size_t) (n1.getId()*0x9e3779b9 + n2.getId()*0x30000059 +
         n3.getId()*0x60000005 + n4.getId()*0x07FFFFFF);
 
