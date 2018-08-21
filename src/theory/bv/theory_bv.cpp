@@ -864,6 +864,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
   // * bitblaster needs to be left alone until it's done, otherwise it doesn't
   //   know how to explain
   // * equality engine can propagate eagerly
+  // TODO(2348): Determine if ok should be set by propagate. If not, remove ok.
   constexpr bool ok = true;
   if (subtheory == SUB_CORE) {
     d_out->propagate(literal);
