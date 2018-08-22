@@ -194,7 +194,7 @@ class SygusUnifRl : public SygusUnif
   {
    public:
     DecisionTreeInfo()
-        : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0),
+        : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0)
     {
     }
     ~DecisionTreeInfo() {}
