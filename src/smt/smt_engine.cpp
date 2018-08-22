@@ -532,7 +532,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** the set of variables that occur in at least one assertion so far */
   NodeSet d_varsInAssertions;
-  
+
   /**
    * A mapping of all abstract values (actual value |-> abstract) that
    * we've handed out.  This is necessary to ensure that we give the
@@ -596,8 +596,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
 
   /** compute variables in assertions */
-  void computeVariablesInAssertions(std::vector< Node >& assertions);
-  
+  void computeVariablesInAssertions(std::vector<Node>& assertions);
+
   // Simplify ITE structure
   bool simpITE();
 
@@ -3234,32 +3234,39 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
   // add substitutions to model, or as assertions if needed (when incremental)
   TheoryModel* m = d_smt.d_theoryEngine->getModel();
-  Assert( m!=nullptr );
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(m != nullptr);
+  NodeManager* nm = NodeManager::currentNM();
   NodeBuilder<> substitutionsBuilder(kind::AND);
-  for(pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
+  for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
+  {
     Node lhs = (*pos).first;
     Node rhs = newSubstitutions.apply((*pos).second);
     // If using incremental, we must check whether this variable has occurred
     // before now. If it hasn't we can add this as a substitution.
-    if( substs_index==0 || d_varsInAssertions.find(lhs)==d_varsInAssertions.end() )
+    if (substs_index == 0
+        || d_varsInAssertions.find(lhs) == d_varsInAssertions.end())
     {
-      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): substitute: " << lhs << " " << rhs << endl;
-      m->addSubstitution( lhs, rhs );
+      Trace("simplify")
+          << "SmtEnginePrivate::nonClausalSimplify(): substitute: " << lhs
+          << " " << rhs << endl;
+      m->addSubstitution(lhs, rhs);
     }
     else
     {
       // if it has, the substitution becomes an assertion
-      Node eq =nm->mkNode(kind::EQUAL, lhs, rhs);
-      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): substitute: will notify SAT layer of substitution: " << eq << endl;
+      Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
+      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
+                           "substitute: will notify SAT layer of substitution: "
+                        << eq << endl;
       substitutionsBuilder << eq;
     }
   }
   // add to the last assertion if necessary
-  if (substitutionsBuilder.getNumChildren() > 0) {
+  if (substitutionsBuilder.getNumChildren() > 0)
+  {
     substitutionsBuilder << d_assertions[substs_index];
     d_assertions.replace(substs_index,
-                          Rewriter::rewrite(Node(substitutionsBuilder)));
+                         Rewriter::rewrite(Node(substitutionsBuilder)));
   }
 
   NodeBuilder<> learnedBuilder(kind::AND);
@@ -3988,24 +3995,28 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
   cache[n] = true;
 }
 
-void SmtEnginePrivate::computeVariablesInAssertions(std::vector< Node >& assertions)
+void SmtEnginePrivate::computeVariablesInAssertions(
+    std::vector<Node>& assertions)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
-  for( const Node& cn : assertions )
+  for (const Node& cn : assertions)
   {
     visit.push_back(cn);
-    do {
+    do
+    {
       cur = visit.back();
       visit.pop_back();
-      if (visited.find(cur) == visited.end()) {
+      if (visited.find(cur) == visited.end())
+      {
         visited.insert(cur);
-        if( cur.isVar() )
+        if (cur.isVar())
         {
           d_varsInAssertions.insert(cur);
         }
-        for (const Node& cn : cur ){
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
@@ -4460,13 +4471,13 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
-  
+
   // if incremental, compute which variables are assigned
-  if( options::incrementalSolving() )
+  if (options::incrementalSolving())
   {
     computeVariablesInAssertions(d_assertions.ref());
   }
-  
+
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;

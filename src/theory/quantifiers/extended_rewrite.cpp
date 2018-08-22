@@ -77,7 +77,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   NodeManager* nm = NodeManager::currentNM();
 
   //--------------------pre-rewrite
-  if( d_aggr )
+  if (d_aggr)
   {
     Node pre_new_ret;
     if (ret.getKind() == IMPLIES)
@@ -99,8 +99,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     {
       ret = extendedRewrite(pre_new_ret);
 
-      Trace("q-ext-rewrite-debug") << "...ext-pre-rewrite : " << n << " -> "
-                                  << pre_new_ret << std::endl;
+      Trace("q-ext-rewrite-debug")
+          << "...ext-pre-rewrite : " << n << " -> " << pre_new_ret << std::endl;
       setCache(n, ret);
       return ret;
     }
@@ -181,7 +181,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     new_ret = extendedRewriteEqChain(EQUAL, AND, OR, NOT, ret);
     debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
   }
-  Assert( new_ret.isNull() || new_ret!=ret );
+  Assert(new_ret.isNull() || new_ret != ret);
   if (new_ret.isNull() && ret.getKind() != ITE)
   {
     // simple ITE pulling
@@ -224,9 +224,9 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   }
   Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
                                << std::endl;
-  if( Trace.isOn("q-ext-rewrite-nf") )
+  if (Trace.isOn("q-ext-rewrite-nf"))
   {
-    if( n==ret )
+    if (n == ret)
     {
       Trace("q-ext-rewrite-nf") << "ext-rew normal form : " << n << std::endl;
     }
@@ -402,30 +402,30 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       break;
     }
   }
-  if (new_ret.isNull() )
+  if (new_ret.isNull())
   {
     // merging branches
-    for( unsigned i=1; i<=2; i++ )
+    for (unsigned i = 1; i <= 2; i++)
     {
-      if( n[i].getKind()==ITE )
+      if (n[i].getKind() == ITE)
       {
-        Node no = n[3-i];
-        for( unsigned j=1; j<=2; j++ )
+        Node no = n[3 - i];
+        for (unsigned j = 1; j <= 2; j++)
         {
-          if( n[i][j]==no )
+          if (n[i][j] == no)
           {
-            // e.g. 
+            // e.g.
             // ite( C1, ite( C2, t1, t2 ), t1 ) ----> ite( C1 ^ ~C2, t2, t1 )
-            Node nc1 = i==2 ? n[0].negate() : n[0];
-            Node nc2 = j==1 ? n[i][0].negate() : n[i][0];
-            Node new_cond = nm->mkNode(AND, nc1, nc2 );
-            new_ret = nm->mkNode(ITE,new_cond,n[i][3-j],no);
+            Node nc1 = i == 2 ? n[0].negate() : n[0];
+            Node nc2 = j == 1 ? n[i][0].negate() : n[i][0];
+            Node new_cond = nm->mkNode(AND, nc1, nc2);
+            new_ret = nm->mkNode(ITE, new_cond, n[i][3 - j], no);
             ss_reason << "ITE merge branch";
             break;
           }
         }
       }
-      if( !new_ret.isNull() )
+      if (!new_ret.isNull())
       {
         break;
       }
@@ -509,13 +509,13 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
           TNode tv = n[i][0];
           for (unsigned j = 1; j <= 2; j++)
           {
-            // B => ~A implies 
-            //   ite( A, x, ite( B, y, z ) ) --> ite( B, y, ite( A, x, z ) ) 
-            // ~B => ~A implies 
-            //   ite( A, x, ite( B, y, z ) ) --> ite( B, ite( A, x, y ), z ) 
-            // B => A implies 
-            //   ite( A, ite( B, y, z ), x ) --> ite( B, y, ite( A, z, x ) ) 
-            // ~B => A implies 
+            // B => ~A implies
+            //   ite( A, x, ite( B, y, z ) ) --> ite( B, y, ite( A, x, z ) )
+            // ~B => ~A implies
+            //   ite( A, x, ite( B, y, z ) ) --> ite( B, ite( A, x, y ), z )
+            // B => A implies
+            //   ite( A, ite( B, y, z ), x ) --> ite( B, y, ite( A, z, x ) )
+            // ~B => A implies
             //   ite( A, ite( B, y, z ), x ) --> ite( B, ite( A, y, x ), z )
             TNode ts = j == 1 ? d_false : d_true;
             Node cr = n[0].substitute(tv, ts);
@@ -587,7 +587,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
 Node ExtendedRewriter::extendedRewriteAndOr(Node n)
 {
   // all the below rewrites are aggressive
-  if( !d_aggr )
+  if (!d_aggr)
   {
     return Node::null();
   }
@@ -616,7 +616,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
 
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
 {
-  Assert( n.getKind()!=ITE );
+  Assert(n.getKind() != ITE);
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
   std::vector<Node> children;
@@ -652,23 +652,24 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      else if (d_aggr || ( n[i][1].getKind()!=ITE && n[i][2].getKind()!=ITE ) )
+      else if (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE))
       {
-        if( nchildren==2 && ( n[1-i].isVar() || n[1-i].isConst() ) && !n[1-i].getType().isBoolean() && tn.isBoolean() )
+        if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
+            && !n[1 - i].getType().isBoolean() && tn.isBoolean())
         {
           // always pull variable or constant with binary (theory) predicate
           // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-          Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1] );
+          Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
           debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
           return new_ret;
         }
       }
-      if( tn.isBoolean() || d_aggr )
+      if (tn.isBoolean() || d_aggr)
       {
         for (unsigned j = 0; j < 2; j++)
         {
           Node pullr = ite_c[i][j];
-          if (pullr.isConst() || ( d_aggr && pullr == n[i][j + 1]) )
+          if (pullr.isConst() || (d_aggr && pullr == n[i][j + 1]))
           {
             // ITE single child elimination
             // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
@@ -697,7 +698,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
       }
     }
   }
-  if( d_aggr )
+  if (d_aggr)
   {
     for (std::pair<const unsigned, std::map<unsigned, Node> >& ip : ite_c)
     {
