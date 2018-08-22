@@ -693,33 +693,35 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
       }
     }
   }
-
-  for (std::pair<const unsigned, std::map<unsigned, Node> >& ip : ite_c)
+  if( d_aggr )
   {
-    Node nite = n[ip.first];
-    Assert(nite.getKind() == itek);
-    // now, simply pull the ITE and try ITE rewrites
-    Node pull_ite = nm->mkNode(itek, nite[0], ip.second[0], ip.second[1]);
-    pull_ite = Rewriter::rewrite(pull_ite);
-    if (pull_ite.getKind() == ITE)
+    for (std::pair<const unsigned, std::map<unsigned, Node> >& ip : ite_c)
     {
-      Node new_pull_ite = extendedRewriteIte(itek, pull_ite, false);
-      if (!new_pull_ite.isNull())
+      Node nite = n[ip.first];
+      Assert(nite.getKind() == itek);
+      // now, simply pull the ITE and try ITE rewrites
+      Node pull_ite = nm->mkNode(itek, nite[0], ip.second[0], ip.second[1]);
+      pull_ite = Rewriter::rewrite(pull_ite);
+      if (pull_ite.getKind() == ITE)
       {
-        debugExtendedRewrite(n, new_pull_ite, "ITE pull rewrite");
-        return new_pull_ite;
+        Node new_pull_ite = extendedRewriteIte(itek, pull_ite, false);
+        if (!new_pull_ite.isNull())
+        {
+          debugExtendedRewrite(n, new_pull_ite, "ITE pull rewrite");
+          return new_pull_ite;
+        }
       }
-    }
-    else
-    {
-      // A general rewrite could eliminate the ITE by pulling.
-      // An example is:
-      //   ~( ite( C, ~x, ~ite( C, y, x ) ) ) --->
-      //   ite( C, ~~x, ite( C, y, x ) ) --->
-      //   x
-      // where ~ is bitvector negation.
-      debugExtendedRewrite(n, pull_ite, "ITE pull basic elim");
-      return pull_ite;
+      else
+      {
+        // A general rewrite could eliminate the ITE by pulling.
+        // An example is:
+        //   ~( ite( C, ~x, ~ite( C, y, x ) ) ) --->
+        //   ite( C, ~~x, ite( C, y, x ) ) --->
+        //   x
+        // where ~ is bitvector negation.
+        debugExtendedRewrite(n, pull_ite, "ITE pull basic elim");
+        return pull_ite;
+      }
     }
   }
 
