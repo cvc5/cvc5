@@ -860,14 +860,14 @@ Node Trigger::getInversion( Node n, Node x ) {
         }
         x = Rewriter::rewrite( x );
       }else{
-        Assert( !cindexSet );
+        Assert(!cindexSet);
         cindex = i;
         cindexSet = true;
       }
     }
-    if( cindexSet )
+    if (cindexSet)
     {
-      return getInversion( n[cindex], x );
+      return getInversion(n[cindex], x);
     }
   }
   return Node::null();
