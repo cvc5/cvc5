@@ -1205,9 +1205,8 @@ Node SygusUnifIo::constructSol(
           if (strat == strat_ITE && sc > 0)
           {
             EnumCache& ecache_cond = d_ecache[split_cond_enum];
-            Assert( set_split_cond_res_index );
-            Assert(split_cond_res_index
-                   < ecache_cond.d_enum_vals_res.size());
+            Assert(set_split_cond_res_index);
+            Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
             prev = x.d_vals;
             bool ret = x.updateContext(
                 this,

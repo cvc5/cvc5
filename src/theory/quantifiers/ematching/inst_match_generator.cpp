@@ -642,7 +642,9 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
             score_2++;
           }
         }
-        if( !set_score_index || score_1>score_max_1 || ( score_1==score_max_1 && score_2>score_max_2 ) ){
+        if (!set_score_index || score_1 > score_max_1
+            || (score_1 == score_max_1 && score_2 > score_max_2))
+        {
           score_index = i;
           set_score_index = true;
           score_max_1 = score_1;

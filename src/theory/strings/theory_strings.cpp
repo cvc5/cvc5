@@ -2635,7 +2635,9 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
       Trace("strings-solve") << "From " << pinfer[i].d_i << " / " << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev << ") : ";
       Trace("strings-solve")
           << pinfer[i].d_conc << " by " << pinfer[i].d_id << std::endl;
-      if( !set_use_index || pinfer[i].d_id<min_id || ( pinfer[i].d_id==min_id && pinfer[i].d_index>max_index ) ){
+      if (!set_use_index || pinfer[i].d_id < min_id
+          || (pinfer[i].d_id == min_id && pinfer[i].d_index > max_index))
+      {
         min_id = pinfer[i].d_id;
         max_index = pinfer[i].d_index;
         use_index = i;

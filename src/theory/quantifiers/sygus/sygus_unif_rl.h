@@ -193,7 +193,10 @@ class SygusUnifRl : public SygusUnif
   class DecisionTreeInfo
   {
    public:
-    DecisionTreeInfo() : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0), {}
+    DecisionTreeInfo()
+        : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0),
+    {
+    }
     ~DecisionTreeInfo() {}
     /** initializes this class */
     void initialize(Node cond_enum,
