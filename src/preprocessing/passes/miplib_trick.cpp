@@ -604,8 +604,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   }
   if (!removeAssertions.empty())
   {
-    Debug("miplib")
-        << "SmtEnginePrivate::simplify(): scrubbing miplib encoding..." << endl;
+    Debug("miplib") << " scrubbing miplib encoding..." << endl;
     for (size_t i = 0, size = assertionsToPreprocess->getRealAssertionsEnd();
          i < size;
          ++i)
@@ -613,8 +612,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       Node assertion = (*assertionsToPreprocess)[i];
       if (removeAssertions.find(assertion.getId()) != removeAssertions.end())
       {
-        Debug("miplib") << "SmtEnginePrivate::simplify(): - removing "
-                        << assertion << endl;
+        Debug("miplib") << " - removing " << assertion << endl;
         assertionsToPreprocess->replace(i, trueNode);
         ++d_statistics.d_numMiplibAssertionsRemoved;
       }
@@ -623,10 +621,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         size_t removals = removeFromConjunction(assertion, removeAssertions);
         if (removals > 0)
         {
-          Debug("miplib") << "SmtEnginePrivate::simplify(): - reduced "
-                          << assertion << endl;
-          Debug("miplib") << "SmtEnginePrivate::simplify(): -      by "
-                          << removals << " conjuncts" << endl;
+          Debug("miplib") << " - reduced " << assertion << endl;
+          Debug("miplib") << " -      by " << removals << " conjuncts" << endl;
           d_statistics.d_numMiplibAssertionsRemoved += removals;
         }
       }
@@ -638,8 +634,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   }
   else
   {
-    Debug("miplib")
-        << "SmtEnginePrivate::simplify(): miplib pass found nothing." << endl;
+    Debug("miplib") << " miplib pass found nothing." << endl;
   }
   assertionsToPreprocess->updateRealAssertionsEnd();
   return PreprocessingPassResult::NO_CONFLICT;
