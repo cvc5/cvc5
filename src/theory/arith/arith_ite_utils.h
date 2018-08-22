@@ -33,7 +33,7 @@ namespace preprocessing {
 namespace util {
 class ContainsTermITEVisitor;
 }
-}
+}  // namespace preprocessing
 
 namespace theory {
 
@@ -74,24 +74,24 @@ class ArithIteUtils {
   std::vector<Node> d_orBinEqs;
 
 public:
-  ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
-                context::Context* userContext,
-                TheoryModel* model);
-  ~ArithIteUtils();
+ ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
+               context::Context* userContext,
+               TheoryModel* model);
+ ~ArithIteUtils();
 
-  //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
+ //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
 
-  /** removes common sums variables sums from term ites. */
-  Node reduceVariablesInItes(Node n);
+ /** removes common sums variables sums from term ites. */
+ Node reduceVariablesInItes(Node n);
 
-  Node reduceConstantIteByGCD(Node n);
+ Node reduceConstantIteByGCD(Node n);
 
-  void clear();
+ void clear();
 
-  Node applySubstitutions(TNode f);
-  unsigned getSubCount() const;
+ Node applySubstitutions(TNode f);
+ unsigned getSubCount() const;
 
-  void learnSubstitutions(const std::vector<Node>& assertions);
+ void learnSubstitutions(const std::vector<Node>& assertions);
 
 private:
   /* applies this to all children of n and constructs the result */

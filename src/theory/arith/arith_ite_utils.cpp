@@ -140,18 +140,19 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   Unreachable();
 }
 
-ArithIteUtils::ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
-                             context::Context* uc,
-                             TheoryModel* model)
-  : d_contains(contains)
-  , d_subs(NULL)
-  , d_model(model)
-  , d_one(1)
-  , d_subcount(uc, 0)
-  , d_skolems(uc)
-  , d_implies()
-  , d_skolemsAdded()
-  , d_orBinEqs()
+ArithIteUtils::ArithIteUtils(
+    preprocessing::util::ContainsTermITEVisitor& contains,
+    context::Context* uc,
+    TheoryModel* model)
+    : d_contains(contains),
+      d_subs(NULL),
+      d_model(model),
+      d_one(1),
+      d_subcount(uc, 0),
+      d_skolems(uc),
+      d_implies(),
+      d_skolemsAdded(),
+      d_orBinEqs()
 {
   d_subs = new SubstitutionMap(uc);
 }
