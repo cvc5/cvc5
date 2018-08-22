@@ -1998,6 +1998,10 @@ set(regression_disabled_tests
 get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
+add_custom_target(regress
+  COMMAND ctest --output-on-failure -L "regress[0-1]" $(ARGS)
+  DEPENDS cvc4-bin)
+
 macro(cvc4_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
@@ -2025,5 +2029,3 @@ endforeach()
 foreach(file ${regress_4_tests})
   cvc4_add_regression_test(4 ${file})
 endforeach()
-
-add_custom_target(regress COMMAND ctest --output-on-failure -L "regress[0-1]" $(ARGS))
