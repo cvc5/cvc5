@@ -616,6 +616,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
 
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
 {
+  Assert( n.getKind()!=ITE );
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
   std::vector<Node> children;
@@ -651,7 +652,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      else if (d_aggr)
+      else if (d_aggr || ( n[i][1].getKind()!=ITE && n[i][2].getKind()!=ITE ) )
       {
         if( nchildren==2 && ( n[1-i].isVar() || n[1-i].isConst() ) && !n[1-i].getType().isBoolean() && tn.isBoolean() )
         {
@@ -661,17 +662,20 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
           debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
           return new_ret;
         }
+      }
+      if( tn.isBoolean() || d_aggr )
+      {
         for (unsigned j = 0; j < 2; j++)
         {
           Node pullr = ite_c[i][j];
-          if (pullr.isConst() || pullr == n[i][j + 1])
+          if (pullr.isConst() || ( d_aggr && pullr == n[i][j + 1]) )
           {
             // ITE single child elimination
             // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
             // implies
             // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
             Node new_ret;
-            if (tn.isBoolean())
+            if (tn.isBoolean() && pullr.isConst())
             {
               // remove false/true child immediately
               bool pol = pullr.getConst<bool>();
