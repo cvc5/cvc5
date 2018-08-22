@@ -56,7 +56,7 @@ public:
   *
   * Called once at beginning of an instantiation round.
   */
-  virtual void resetInstantiationRound(QuantifiersEngine* qe) = 0;
+  virtual void resetInstantiationRound(QuantifiersEngine* qe) {}
   /** Reset.
   *
   * eqc is the equivalence class to search in (any if eqc=null).
@@ -79,7 +79,10 @@ public:
   virtual int getNextMatch(Node q,
                            InstMatch& m,
                            QuantifiersEngine* qe,
-                           Trigger* tparent) = 0;
+                           Trigger* tparent)
+  {
+    return 0;
+  }
   /** add instantiations
   *
   * This add all available instantiations for q based on the current context
@@ -91,7 +94,10 @@ public:
   */
   virtual int addInstantiations(Node q,
                                 QuantifiersEngine* qe,
-                                Trigger* tparent) = 0;
+                                Trigger* tparent)
+  {
+    return 0;
+  }
   /** get active score
   *
   * A heuristic value indicating how active this generator is.

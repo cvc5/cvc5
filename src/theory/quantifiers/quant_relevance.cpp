@@ -65,33 +65,6 @@ void QuantRelevance::computeSymbols(Node n, std::vector<Node>& syms)
   }
 }
 
-/** set relevance */
-void QuantRelevance::setRelevance(Node s, int r)
-{
-  if (d_computeRel)
-  {
-    int rOld = getRelevance(s);
-    if (rOld == -1 || r < rOld)
-    {
-      d_relevance[s] = r;
-      if (s.getKind() == FORALL)
-      {
-        for (int i = 0; i < (int)d_syms[s].size(); i++)
-        {
-          setRelevance(d_syms[s][i], r);
-        }
-      }
-      else
-      {
-        for (int i = 0; i < (int)d_syms_quants[s].size(); i++)
-        {
-          setRelevance(d_syms_quants[s][i], r + 1);
-        }
-      }
-    }
-  }
-}
-
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
