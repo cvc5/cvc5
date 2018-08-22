@@ -3234,33 +3234,32 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
   // add substitutions to model, or as assertions if needed (when incremental)
   TheoryModel* m = d_smt.d_theoryEngine->getModel();
-  if(m != NULL) {
-    NodeManager * nm = NodeManager::currentNM();
-    NodeBuilder<> substitutionsBuilder(kind::AND);
-    for(pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
-      Node lhs = (*pos).first;
-      Node rhs = newSubstitutions.apply((*pos).second);
-      // If using incremental, we must check whether this variable has occurred
-      // before now. If it hasn't we can add this as a substitution.
-      if( substs_index==0 || d_varsInAssertions.find(lhs)==d_varsInAssertions.end() )
-      {
-        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): substitute: " << lhs << " " << rhs << endl;
-        m->addSubstitution( lhs, rhs );
-      }
-      else
-      {
-        // if it has, the substitution becomes an assertion
-        Node eq =nm->mkNode(kind::EQUAL, lhs, rhs);
-        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): substitute: will notify SAT layer of substitution: " << eq << endl;
-        substitutionsBuilder << eq;
-      }
+  Assert( m!=nullptr );
+  NodeManager * nm = NodeManager::currentNM();
+  NodeBuilder<> substitutionsBuilder(kind::AND);
+  for(pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
+    Node lhs = (*pos).first;
+    Node rhs = newSubstitutions.apply((*pos).second);
+    // If using incremental, we must check whether this variable has occurred
+    // before now. If it hasn't we can add this as a substitution.
+    if( substs_index==0 || d_varsInAssertions.find(lhs)==d_varsInAssertions.end() )
+    {
+      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): substitute: " << lhs << " " << rhs << endl;
+      m->addSubstitution( lhs, rhs );
     }
-    // add to the last assertion if necessary
-    if (substitutionsBuilder.getNumChildren() > 0) {
-      substitutionsBuilder << d_assertions[substs_index];
-      d_assertions.replace(substs_index,
-                           Rewriter::rewrite(Node(substitutionsBuilder)));
+    else
+    {
+      // if it has, the substitution becomes an assertion
+      Node eq =nm->mkNode(kind::EQUAL, lhs, rhs);
+      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): substitute: will notify SAT layer of substitution: " << eq << endl;
+      substitutionsBuilder << eq;
     }
+  }
+  // add to the last assertion if necessary
+  if (substitutionsBuilder.getNumChildren() > 0) {
+    substitutionsBuilder << d_assertions[substs_index];
+    d_assertions.replace(substs_index,
+                          Rewriter::rewrite(Node(substitutionsBuilder)));
   }
 
   NodeBuilder<> learnedBuilder(kind::AND);
