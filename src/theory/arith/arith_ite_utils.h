@@ -29,15 +29,21 @@
 #include "context/cdinsert_hashmap.h"
 
 namespace CVC4 {
-namespace theory {
+namespace preprocessing {
+namespace util {
 class ContainsTermITEVisitor;
+}
+}
+
+namespace theory {
+
 class SubstitutionMap;
 class TheoryModel;
 
 namespace arith {
 
 class ArithIteUtils {
-  ContainsTermITEVisitor& d_contains;
+  preprocessing::util::ContainsTermITEVisitor& d_contains;
   SubstitutionMap* d_subs;
   TheoryModel* d_model;
 
@@ -68,7 +74,7 @@ class ArithIteUtils {
   std::vector<Node> d_orBinEqs;
 
 public:
-  ArithIteUtils(ContainsTermITEVisitor& contains,
+  ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
                 context::Context* userContext,
                 TheoryModel* model);
   ~ArithIteUtils();

@@ -36,6 +36,7 @@
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/logic_exception.h"
 #include "smt/logic_request.h"
 #include "smt/smt_statistics_registry.h"
@@ -59,7 +60,6 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
-#include "theory/ite_utilities.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -5374,7 +5374,7 @@ bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational
   }
 
   // TODO Speed up
-  ContainsTermITEVisitor ctv;
+  preprocessing::util::ContainsTermITEVisitor ctv;
   if(ctv.containsTermITE(t)){
     return false;
   }

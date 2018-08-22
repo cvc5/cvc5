@@ -23,6 +23,7 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
 #include "theory/theory_engine.h"
@@ -59,6 +60,8 @@ class PreprocessingPassContext
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
+
+
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing

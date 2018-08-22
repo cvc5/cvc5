@@ -30,7 +30,8 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-namespace theory {
+namespace preprocessing {
+namespace util {
 
 class IncomingArcCounter;
 class TermITEHeightCounter;
@@ -383,7 +384,8 @@ private:
   Node substitute(TNode e, TNodeMap& substTable, TNodeMap& cache);
 };
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace util
+}  // namespace preprocessing
+}  // namespace CVC4
 
 #endif

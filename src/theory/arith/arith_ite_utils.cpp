@@ -21,9 +21,9 @@
 
 #include "base/output.h"
 #include "options/smt_options.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
-#include "theory/ite_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
@@ -140,7 +140,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   Unreachable();
 }
 
-ArithIteUtils::ArithIteUtils(ContainsTermITEVisitor& contains,
+ArithIteUtils::ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
                              context::Context* uc,
                              TheoryModel* model)
   : d_contains(contains)

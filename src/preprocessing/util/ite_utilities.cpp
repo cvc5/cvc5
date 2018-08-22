@@ -16,17 +16,19 @@
  ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
  ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC '96
  **/
-#include "theory/ite_utilities.h"
+#include "preprocessing/util/ite_utilities.h"
 
 #include <utility>
 
+#include "preprocessing/passes/rewrite.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
 using namespace std;
 namespace CVC4 {
-namespace theory {
+namespace preprocessing {
+namespace util {
 
 namespace ite {
 
@@ -288,7 +290,7 @@ ITECompressor::Statistics::~Statistics(){
 }
 
 Node ITECompressor::push_back_boolean(Node original, Node compressed){
-  Node rewritten = Rewriter::rewrite(compressed);
+  Node rewritten = theory::Rewriter::rewrite(compressed);
   // There is a bug if the rewritter takes a pure boolean expression
   // and changes its theory
   if(rewritten.isConst()){
@@ -460,7 +462,7 @@ bool ITECompressor::compress(std::vector<Node>& assertions){
   for(size_t i = 0; i < original_size && nofalses; ++i){
     Node assertion = assertions[i];
     Node compressed =  compressBoolean(assertion);
-    Node rewritten = Rewriter::rewrite(compressed);
+    Node rewritten = theory::Rewriter::rewrite(compressed);
     assertions[i] = rewritten;
     Assert(!d_contains->containsTermITE(rewritten));
 
@@ -1085,10 +1087,10 @@ Node ITESimplifier::attemptConstantRemoval(TNode atom){
 }
 
 
-bool ITESimplifier::leavesAreConst(TNode e, TheoryId tid)
+bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
 {
   Assert((e.getKind() == kind::ITE && !e.getType().isBoolean()) ||
-         Theory::theoryOf(e) != THEORY_BOOL);
+         theory::Theory::theoryOf(e) != theory::THEORY_BOOL);
   if (e.isConst()) {
     return true;
   }
@@ -1099,7 +1101,7 @@ bool ITESimplifier::leavesAreConst(TNode e, TheoryId tid)
     return (*it).second;
   }
 
-  if (!containsTermITE(e) && Theory::isLeafOf(e, tid)) {
+  if (!containsTermITE(e) && theory::Theory::isLeafOf(e, tid)) {
     d_leavesConstCache[e] = false;
     return false;
   }
@@ -1143,13 +1145,13 @@ Node ITESimplifier::simpConstants(TNode simpContext, TNode iteNode, TNode simpVa
     }
     // Mark the substitution and continue
     Node result = builder;
-    result = Rewriter::rewrite(result);
+    result = theory::Rewriter::rewrite(result);
     d_simpConstCache[pair<Node, Node>(simpContext, iteNode)] = result;
     return result;
   }
 
   if (!containsTermITE(iteNode)) {
-    Node n = Rewriter::rewrite(simpContext.substitute(simpVar, iteNode));
+    Node n = theory::Rewriter::rewrite(simpContext.substitute(simpVar, iteNode));
     d_simpConstCache[pair<Node, Node>(simpContext, iteNode)] = n;
     return n;
   }
@@ -1260,7 +1262,7 @@ Node ITESimplifier::simpITEAtom(TNode atom)
   Node attempt = transformAtom(atom);
   Debug("ite::atom") << "  finished " << instance << endl;
   if(!attempt.isNull()){
-    Node rewritten = Rewriter::rewrite(attempt);
+    Node rewritten = theory::Rewriter::rewrite(attempt);
     Debug("ite::print-success")
       << instance << " "
       << "rewriting " << countReachable(rewritten, kind::ITE)
@@ -1283,7 +1285,7 @@ Node ITESimplifier::simpITEAtom(TNode atom)
                               << "how about?" << atom << endl;
         Debug("ite::simpite") << instance << " "
                               << "\t" << simpContext << endl;
-        return Rewriter::rewrite(simpContext);
+        return theory::Rewriter::rewrite(simpContext);
       }
       Node n = simpConstants(simpContext, iteNode, simpVar);
       if (!n.isNull()) {
@@ -1335,7 +1337,7 @@ Node ITESimplifier::simpITE(TNode assertion)
 
     // If node has no ITE's or already in the cache we're done, pop from the stack
     if (current.getNumChildren() == 0 ||
-        (Theory::theoryOf(current) != THEORY_BOOL && !containsTermITE(current))) {
+        (theory::Theory::theoryOf(current) != theory::THEORY_BOOL && !containsTermITE(current))) {
        d_simpITECache[current] = current;
        ++(d_statistics.d_simpITEVisits);
        toVisit.pop_back();
@@ -1365,7 +1367,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       Node result = builder;
 
       // If this is an atom, we process it
-      if (Theory::theoryOf(result) != THEORY_BOOL &&
+      if (theory::Theory::theoryOf(result) != theory::THEORY_BOOL &&
           result.getType().isBoolean()) {
         result = simpITEAtom(result);
       }
@@ -1375,7 +1377,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       //   //cout << instance << " " << result << current << endl;
       // }
 
-      result = Rewriter::rewrite(result);
+      result = theory::Rewriter::rewrite(result);
       d_simpITECache[current] = result;
       ++(d_statistics.d_simpITEVisits);
       toVisit.pop_back();
@@ -1636,7 +1638,6 @@ ITECareSimplifier::CareSetPtr ITECareSimplifier::CareSetPtr::mkNew(
   return CareSetPtr(val);
 }
 
-
-
-} /* namespace theory */
-} /* namespace CVC4 */
+}  // namespace util
+}  // namespace preprocessing
+}  // namespace CVC4
