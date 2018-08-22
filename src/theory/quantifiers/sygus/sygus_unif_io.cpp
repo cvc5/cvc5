@@ -1177,7 +1177,8 @@ Node SygusUnifIo::constructSol(
 
       // for ITE
       Node split_cond_enum;
-      int split_cond_res_index = -1;
+      unsigned split_cond_res_index = 0;
+      bool set_split_cond_res_index = false;
 
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {
@@ -1204,9 +1205,9 @@ Node SygusUnifIo::constructSol(
           if (strat == strat_ITE && sc > 0)
           {
             EnumCache& ecache_cond = d_ecache[split_cond_enum];
-            Assert(split_cond_res_index >= 0);
+            Assert( set_split_cond_res_index );
             Assert(split_cond_res_index
-                   < (int)ecache_cond.d_enum_vals_res.size());
+                   < ecache_cond.d_enum_vals_res.size());
             prev = x.d_vals;
             bool ret = x.updateContext(
                 this,
@@ -1361,10 +1362,10 @@ Node SygusUnifIo::constructSol(
               Assert(ecache_child.d_enum_val_to_index.find(rec_c)
                      != ecache_child.d_enum_val_to_index.end());
               split_cond_res_index = ecache_child.d_enum_val_to_index[rec_c];
+              set_split_cond_res_index = true;
               split_cond_enum = ce;
-              Assert(split_cond_res_index >= 0);
               Assert(split_cond_res_index
-                     < (int)ecache_child.d_enum_vals_res.size());
+                     < ecache_child.d_enum_vals_res.size());
             }
           }
           else
