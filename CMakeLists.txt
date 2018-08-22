@@ -255,7 +255,10 @@ if(ENABLE_COVERAGE)
   include(CodeCoverage)
   APPEND_COVERAGE_COMPILER_FLAGS()
   add_definitions(-DCVC4_COVERAGE)
-  # TODO set_up_target_for_coverage + regression tests
+  setup_target_for_coverage_lcov(
+    NAME coverage
+    EXECUTABLE ctest $(ARGS)
+    DEPENDENCIES cvc4-bin)
 endif()
 
 if(ENABLE_DUMPING)

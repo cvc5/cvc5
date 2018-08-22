@@ -3,6 +3,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_BINARY_DIR}/src)
 
+add_custom_target(systemtests COMMAND ctest --output-on-failure -L "system" $(ARGS))
+
 set(CVC4_SYSTEM_TEST_FLAGS
   -D__BUILDING_CVC4_SYSTEM_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
@@ -13,6 +15,10 @@ macro(cvc4_add_system_test name)
   target_compile_definitions(${name} PRIVATE ${CVC4_SYSTEM_TEST_FLAGS})
   add_test(system/${name} ${CMAKE_CURRENT_BINARY_DIR}/${name})
   set_tests_properties(system/${name} PROPERTIES LABELS "system")
+  add_dependencies(systemtests ${name})
+  if(ENABLE_COVERAGE)
+    add_dependencies(coverage ${name})
+  endif()
 endmacro()
 
 cvc4_add_system_test(boilerplate)
@@ -23,5 +29,3 @@ cvc4_add_system_test(smt2_compliance)
 cvc4_add_system_test(statistics)
 cvc4_add_system_test(two_smt_engines)
 #TODO java test (needs bindings)
-
-add_custom_target(systemtests COMMAND ctest --output-on-failure -L "system" $(ARGS))
