@@ -28,21 +28,6 @@ void QuantRelevance::registerQuantifier(Node f)
   std::vector<Node> syms;
   computeSymbols(f[1], syms);
   d_syms[f].insert(d_syms[f].begin(), syms.begin(), syms.end());
-  // set initial relevance
-  int minRelevance = -1;
-  for (int i = 0; i < (int)syms.size(); i++)
-  {
-    d_syms_quants[syms[i]].push_back(f);
-    int r = getRelevance(syms[i]);
-    if (r != -1 && (minRelevance == -1 || r < minRelevance))
-    {
-      minRelevance = r;
-    }
-  }
-  if (minRelevance != -1)
-  {
-    setRelevance(f, minRelevance + 1);
-  }
 }
 
 /** compute symbols */
