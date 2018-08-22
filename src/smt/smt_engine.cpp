@@ -468,7 +468,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
-  /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
   /**

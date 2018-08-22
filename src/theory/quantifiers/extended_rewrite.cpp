@@ -652,7 +652,8 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      else if (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE))
+      // only pull ITEs apart if we are aggressive
+      if (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE))
       {
         if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
             && !n[1 - i].getType().isBoolean() && tn.isBoolean())
