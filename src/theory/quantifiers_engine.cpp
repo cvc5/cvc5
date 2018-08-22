@@ -135,7 +135,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::relevantTriggers() ){
-    d_quant_rel = new quantifiers::QuantRelevance();
+    d_quant_rel = new quantifiers::QuantRelevance;
     d_util.push_back(d_quant_rel);
   }else{
     d_quant_rel = NULL;
@@ -563,9 +563,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     if( e==Theory::EFFORT_LAST_CALL ){
-      //if effort is last call, try to minimize model first
-      //uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
-      //if( ufss && !ufss->minimize() ){ return; }
       ++(d_statistics.d_instantiation_rounds_lc);
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
