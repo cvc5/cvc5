@@ -26,10 +26,10 @@
 #ifndef __CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
 #define __CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
 
+#include <unordered_map>
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include <unordered_map>
 
 namespace CVC4 {
 namespace preprocessing {

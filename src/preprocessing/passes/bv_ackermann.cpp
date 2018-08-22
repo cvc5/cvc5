@@ -49,8 +49,7 @@ void addLemmaForPair(TNode args1,
   if (args1.getKind() == kind::APPLY_UF)
   {
     Assert(args1.getOperator() == func);
-    Assert(args2.getKind() == kind::APPLY_UF
-                 && args2.getOperator() == func);
+    Assert(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
     Assert(args1.getNumChildren() == args2.getNumChildren());
 
     std::vector<Node> eqs(args1.getNumChildren());
@@ -90,11 +89,10 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    Node skolem = nm->mkSkolem(
-        "BVSKOLEM$$",
-        tn,
-        "is a variable created by the ackermannization "
-        "preprocessing pass for theory BV");
+    Node skolem = nm->mkSkolem("BVSKOLEM$$",
+                               tn,
+                               "is a variable created by the ackermannization "
+                               "preprocessing pass for theory BV");
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -107,16 +105,17 @@ void storeFunctionAndAddLemmas(TNode func,
      * (otherwise, no lemma is generated).
      * Therefore, we defer this for term in case it is the first element in the
      * set*/
-    if (set.size() == 2) 
+    if (set.size() == 2)
     {
       for (TNode elem : set)
       {
         vec->insert(vec->end(), elem.begin(), elem.end());
       }
-    } else if (set.size() > 2)
+    }
+    else if (set.size() > 2)
     {
       vec->insert(vec->end(), term.begin(), term.end());
-    } 
+    }
   }
 }
 
@@ -136,7 +135,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                std::vector<TNode>* vec,
                                AssertionPipeline* assertions)
 {
-  TNodeSet seen;       
+  TNodeSet seen;
   NodeManager* nm = NodeManager::currentNM();
   TNode term;
   while (!vec->empty())
@@ -145,33 +144,33 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
     vec->pop_back();
     if (seen.find(term) == seen.end())
     {
-        TNode func;
-        if (term.getKind() == kind::APPLY_UF)
+      TNode func;
+      if (term.getKind() == kind::APPLY_UF)
+      {
+        storeFunctionAndAddLemmas(term.getOperator(),
+                                  term,
+                                  fun_to_args,
+                                  fun_to_skolem,
+                                  assertions,
+                                  nm,
+                                  vec);
+      }
+      else if (term.getKind() == kind::SELECT)
+      {
+        storeFunctionAndAddLemmas(
+            term[0], term, fun_to_args, fun_to_skolem, assertions, nm, vec);
+      }
+      else
+      {
+        AlwaysAssert(
+            term.getKind() != kind::STORE,
+            "Cannot use eager bitblasting on QF_ABV formula with stores");
+        /* add children to the vector, so that they are processed later */
+        for (TNode n : term)
         {
-          storeFunctionAndAddLemmas(term.getOperator(),
-                                    term,
-                                    fun_to_args,
-                                    fun_to_skolem,
-                                    assertions,
-                                    nm,
-                                    vec);
+          vec->push_back(n);
         }
-        else if (term.getKind() == kind::SELECT)
-        {
-          storeFunctionAndAddLemmas(
-              term[0], term, fun_to_args, fun_to_skolem, assertions, nm, vec);
-        }
-        else
-        {
-          AlwaysAssert(
-              term.getKind() != kind::STORE,
-              "Cannot use eager bitblasting on QF_ABV formula with stores");
-          /* add children to the vector, so that they are processed later */
-          for (TNode n : term)
-          {
-            vec->push_back(n);
-          }
-        }
+      }
       seen.insert(term);
     }
   }
