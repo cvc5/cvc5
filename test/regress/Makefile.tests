@@ -827,6 +827,7 @@ REG0_TESTS = \
 	regress0/sygus/check-generic-red.sy \
 	regress0/sygus/const-var-test.sy \
 	regress0/sygus/dt-no-syntax.sy \
+	regress0/sygus/hd-05-d1-prog-nogrammar.sy \
 	regress0/sygus/let-ringer.sy \
 	regress0/sygus/let-simp.sy \
 	regress0/sygus/no-syntax-test-bool.sy \
@@ -1513,6 +1514,7 @@ REG1_TESTS = \
 	regress1/strings/type003.smt2 \
 	regress1/strings/username_checker_min.smt2 \
 	regress1/sygus/VC22_a.sy \
+	regress1/sygus/abv.sy \
 	regress1/sygus/array_search_2.sy \
 	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
@@ -1546,9 +1548,11 @@ REG1_TESTS = \
 	regress1/sygus/inv-example.sy \
 	regress1/sygus/inv-unused.sy \
 	regress1/sygus/large-const-simp.sy \
+	regress1/sygus/let-bug-simp.sy \
 	regress1/sygus/list-head-x.sy \
 	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
+	regress1/sygus/max2-bv.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \
 	regress1/sygus/nflat-fwd.sy \
