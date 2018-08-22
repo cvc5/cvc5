@@ -34,7 +34,7 @@ void LogicRequest::widenLogic(theory::TheoryId id) {
 /** Enable Integers if not yet enabled. */
 void LogicRequest::enableIntegers()
 {
-  if(!d_smt.d_logic.areIntegersUsed())
+  if (!d_smt.d_logic.areIntegersUsed())
   {
     d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
     d_smt.d_logic.enableIntegers();

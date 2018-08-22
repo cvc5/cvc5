@@ -26,8 +26,8 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
-#include "theory/theory_engine.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -50,7 +50,6 @@ class PreprocessingPassContext
   context::Context* getUserContext() { return d_smt->d_userContext; }
   context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
-
 
   booleans::CircuitPropagator* getCircuitPropagator()
   {
