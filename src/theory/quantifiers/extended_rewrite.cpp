@@ -77,30 +77,33 @@ Node ExtendedRewriter::extendedRewrite(Node n)
   NodeManager* nm = NodeManager::currentNM();
 
   //--------------------pre-rewrite
-  Node pre_new_ret;
-  if (ret.getKind() == IMPLIES)
+  if( d_aggr )
   {
-    pre_new_ret = nm->mkNode(OR, ret[0].negate(), ret[1]);
-    debugExtendedRewrite(ret, pre_new_ret, "IMPLIES elim");
-  }
-  else if (ret.getKind() == XOR)
-  {
-    pre_new_ret = nm->mkNode(EQUAL, ret[0].negate(), ret[1]);
-    debugExtendedRewrite(ret, pre_new_ret, "XOR elim");
-  }
-  else if (ret.getKind() == NOT)
-  {
-    pre_new_ret = extendedRewriteNnf(ret);
-    debugExtendedRewrite(ret, pre_new_ret, "NNF");
-  }
-  if (!pre_new_ret.isNull())
-  {
-    ret = extendedRewrite(pre_new_ret);
+    Node pre_new_ret;
+    if (ret.getKind() == IMPLIES)
+    {
+      pre_new_ret = nm->mkNode(OR, ret[0].negate(), ret[1]);
+      debugExtendedRewrite(ret, pre_new_ret, "IMPLIES elim");
+    }
+    else if (ret.getKind() == XOR)
+    {
+      pre_new_ret = nm->mkNode(EQUAL, ret[0].negate(), ret[1]);
+      debugExtendedRewrite(ret, pre_new_ret, "XOR elim");
+    }
+    else if (ret.getKind() == NOT)
+    {
+      pre_new_ret = extendedRewriteNnf(ret);
+      debugExtendedRewrite(ret, pre_new_ret, "NNF");
+    }
+    if (!pre_new_ret.isNull())
+    {
+      ret = extendedRewrite(pre_new_ret);
 
-    Trace("q-ext-rewrite-debug") << "...ext-pre-rewrite : " << n << " -> "
-                                 << pre_new_ret << std::endl;
-    setCache(n, ret);
-    return ret;
+      Trace("q-ext-rewrite-debug") << "...ext-pre-rewrite : " << n << " -> "
+                                  << pre_new_ret << std::endl;
+      setCache(n, ret);
+      return ret;
+    }
   }
   //--------------------end pre-rewrite
 
@@ -648,16 +651,16 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      else if( nchildren==2 && ( n[1-i].isVar() || n[1-i].isConst() ) && !n[1-i].getType().isBoolean() && tn.isBoolean() )
-      {
-        // always pull variable or constant with binary (theory) predicate
-        // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-        Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1] );
-        debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
-        return new_ret;
-      }
       else if (d_aggr)
       {
+        if( nchildren==2 && ( n[1-i].isVar() || n[1-i].isConst() ) && !n[1-i].getType().isBoolean() && tn.isBoolean() )
+        {
+          // always pull variable or constant with binary (theory) predicate
+          // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
+          Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1] );
+          debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
+          return new_ret;
+        }
         for (unsigned j = 0; j < 2; j++)
         {
           Node pullr = ite_c[i][j];
