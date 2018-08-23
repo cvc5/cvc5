@@ -23,7 +23,6 @@
 #include "theory/theory_model.h"
 
 //#define ONE_SPLIT_REGION
-//#define DISABLE_QUICK_CLIQUE_CHECKS
 //#define COMBINE_REGIONS_SMALL_INTO_LARGE
 //#define LAZY_REL_EQC
 
@@ -379,21 +378,6 @@ bool Region::check( Theory::Effort level, int cardinality,
   return false;
 }
 
-bool Region::getCandidateClique( int cardinality, std::vector< Node >& clique )
-{
-  if( d_testCliqueSize>=unsigned(cardinality+1) ){
-    //test clique is a clique
-    for( NodeBoolMap::iterator it = d_testClique.begin();
-         it != d_testClique.end(); ++it ){
-      if( (*it).second ){
-        clique.push_back( (*it).first );
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
 void Region::getNumExternalDisequalities(
     std::map< Node, int >& num_ext_disequalities ){
   for( Region::iterator it = begin(); it != end(); ++it ){
@@ -713,25 +697,16 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
           //see if we have any recommended splits from large regions
           for( int i=0; i<(int)d_regions_index; i++ ){
             if( d_regions[i]->valid() && d_regions[i]->getNumReps()>d_cardinality ){
-              //just add the clique lemma
-              if( level==Theory::EFFORT_FULL && options::ufssCliqueSplits() ){
-                std::vector< Node > clique;
-                if( d_regions[i]->getCandidateClique( d_cardinality, clique ) ){
-                  //add clique lemma
-                  addCliqueLemma( clique, out );
-                  return;
-                }
-              }else{
-                int sp = addSplit( d_regions[i], out );
-                if( sp==1 ){
-                  addedLemma = true;
+
+              int sp = addSplit( d_regions[i], out );
+              if( sp==1 ){
+                addedLemma = true;
 #ifdef ONE_SPLIT_REGION
-                  break;
+                break;
 #endif
-                }else if( sp==-1 ){
-                  check( level, out );
-                  return;
-                }
+              }else if( sp==-1 ){
+                check( level, out );
+                return;
               }
             }
           }
@@ -815,67 +790,6 @@ Node SortModel::getNextDecisionRequest(){
   return Node::null();
 }
 
-bool SortModel::minimize( OutputChannel* out, TheoryModel* m ){
-  if( options::ufssTotality() ){
-    //do nothing
-  }else{
-    if( m ){
-#if 0
-      // ensure that the constructed model is minimal
-      // if the model has terms that the strong solver does not know about
-      if( (int)rs->d_type_reps[ d_type ].size()>d_cardinality ){
-        eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &m->getEqualityEngine() );
-        while( !eqcs_i.isFinished() ){
-          Node eqc = (*eqcs_i);
-          if( eqc.getType()==d_type ){
-            //we must ensure that this equivalence class has been accounted for
-            if( d_regions_map.find( eqc )==d_regions_map.end() ){
-              //split on unaccounted for term and cardinality lemma term (as default)
-              Node splitEq = eqc.eqNode( d_cardinality_term );
-              splitEq = Rewriter::rewrite( splitEq );
-              Trace("uf-ss-minimize") << "Last chance minimize : " << splitEq << std::endl;
-              out->split( splitEq );
-              //tell the sat solver to explore the equals branch first
-              out->requirePhase( splitEq, true );
-              ++( d_thss->d_statistics.d_split_lemmas );
-              return false;
-            }
-          }
-          ++eqcs_i;
-        }
-        Assert( false );
-      }
-#endif
-    }else{
-      Trace("uf-ss-debug")  << "Minimize the UF model..." << std::endl;
-      //internal minimize, ensure that model forms a clique:
-      // if two equivalence classes are neither equal nor disequal, add a split
-      int validRegionIndex = -1;
-      for( int i=0; i<(int)d_regions_index; i++ ){
-        if( d_regions[i]->valid() ){
-          if( validRegionIndex!=-1 ){
-            combineRegions( validRegionIndex, i );
-            if( addSplit( d_regions[validRegionIndex], out )!=0 ){
-              Trace("uf-ss-debug") << "Minimize model : combined regions, found split. " << std::endl;
-              return false;
-            }
-          }else{
-            validRegionIndex = i;
-          }
-        }
-      }
-      Assert( validRegionIndex!=-1 );
-      if( addSplit( d_regions[validRegionIndex], out )!=0 ){
-        Trace("uf-ss-debug") << "Minimize model : found split. " << std::endl;
-        return false;
-      }
-      Trace("uf-ss-debug") << "Minimize success. " << std::endl;
-    }
-  }
-  return true;
-}
-
-
 int SortModel::getNumDisequalitiesToRegion( Node n, int ri ){
   int ni = d_regions_map[n];
   int counter = 0;
@@ -950,21 +864,6 @@ void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
         }
       }
     }else{
-      /*
-      if( options::ufssModelInference() ){
-        //check if we are at decision level 0
-        if( d_th->d_valuation.getAssertionLevel()==0 ){
-          Trace("uf-ss-mi") << "We have proved that no models of size " << c << " for type " << d_type << " exist." << std::endl;
-          Trace("uf-ss-mi") << "  # Clique lemmas : " << d_cliques[c].size() << std::endl;
-          if( d_cliques[c].size()==1 ){
-            if( d_totality_terms[c+1].empty() ){
-              Trace("uf-ss-mi") << "*** Establish model" << std::endl;
-              //d_totality_terms[c+1].insert( d_totality_terms[c].begin(), d_cliques[c][0].begin(), d_cliques[c][0].end() );
-            }
-          }
-        }
-      }
-      */
       //see if we need to request a new cardinality
       if( !d_hasCard ){
         bool needsCard = true;
@@ -1248,12 +1147,6 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
   while( clique.size()>size_t(d_cardinality+1) ){
     clique.pop_back();
   }
-  //debugging information
-  if( Trace.isOn("uf-ss-cliques") ){
-    std::vector< Node > clique_vec;
-    clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
-    addClique( d_cardinality, clique_vec );
-  }
   // add as lemma
   std::vector<Node> eqs;
   for (unsigned i = 0, size = clique.size(); i < size; i++)
@@ -1323,25 +1216,14 @@ void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
   }
 }
 
-void SortModel::addClique( int c, std::vector< Node >& clique ) {
-  //if( d_clique_trie[c].add( clique ) ){
-  //  d_cliques[ c ].push_back( clique );
-  //}
-}
-
-
 /** apply totality */
 bool SortModel::applyTotality( int cardinality ){
   return options::ufssTotality() || cardinality<=options::ufssTotalityLimited();
-  // || ( options::ufssModelInference() && !d_totality_terms[cardinality].empty() );
 }
 
 /** get totality lemma terms */
 Node SortModel::getTotalityLemmaTerm( int cardinality, int i ){
   return d_totality_terms[0][i];
-  //}else{
-  //  return d_totality_terms[cardinality][i];
-  //}
 }
 
 void SortModel::simpleCheckCardinality() {
@@ -1909,8 +1791,6 @@ SortModel* StrongSolverTheoryUF::getSortModel( Node n ){
   }
 }
 
-void StrongSolverTheoryUF::notifyRestart(){}
-
 /** get cardinality for sort */
 int StrongSolverTheoryUF::getCardinality( Node n ) {
   SortModel* c = getSortModel( n );
@@ -1927,18 +1807,6 @@ int StrongSolverTheoryUF::getCardinality( TypeNode tn ) {
     return it->second->getCardinality();
   }
   return -1;
-}
-
-bool StrongSolverTheoryUF::minimize( TheoryModel* m ){
-  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-    if( !it->second->minimize( d_out, m ) ){
-      return false;
-    }
-  }
-  for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-    Trace("uf-ss-minimize") << "Cardinality( " << it->first << " ) : " << it->second->getCardinality() << std::endl;
-  }
-  return true;
 }
 
 //print debug
