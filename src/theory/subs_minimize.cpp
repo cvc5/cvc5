@@ -32,6 +32,8 @@ bool SubstitutionMinimize::find(Node n,
 {
   NodeManager* nm = NodeManager::currentNM();
 
+  std::map< Node, std::unordered_set< Node, NodeHashFunction > > fvDepend;
+  
   // the value of each subterm in n under the substitution
   std::unordered_map<TNode, Node, TNodeHashFunction> value;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -64,7 +66,7 @@ bool SubstitutionMinimize::find(Node n,
       {
         value[cur] = Node::null();
         visit.push_back(cur);
-        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        if (cur.getKind()==APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -78,9 +80,17 @@ bool SubstitutionMinimize::find(Node n,
     {
       Node ret = cur;
       std::vector<Node> children;
+      std::vector<Node> vchildren;
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        children.push_back(cur.getOperator());
+        if( cur.getKind()==APPLY_UF )
+        {
+          children.push_back(cur.getOperator());
+        }
+        else
+        {
+          vchildren.push_back(cur.getOperator());
+        }
       }
       for (const Node& cn : cur)
       {
@@ -91,9 +101,9 @@ bool SubstitutionMinimize::find(Node n,
         it = value.find(cn);
         Assert(it != value.end());
         Assert(!it->second.isNull());
-        children.push_back(it->second);
+        vchildren.push_back(it->second);
       }
-      ret = nm->mkNode(cur.getKind(), children);
+      ret = nm->mkNode(cur.getKind(), vchildren);
       ret = Rewriter::rewrite(ret);
       value[cur] = ret;
     }
@@ -106,25 +116,32 @@ bool SubstitutionMinimize::find(Node n,
     return false;
   }
   
+  
+  std::unordered_set< Node, NodeHashFunction > rlvFv;
   // only variables that occur in assertions are relevant
-  std::map< Node, bool > rlvVar;
+  std::map< Node, unsigned > iteBranch;
+  std::map< Node, std::vector< unsigned > > singularArgs;
   
   visit.push_back(n);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv;
   do {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
-      visited.insert(cur);
+    itv = visited.find(cur);
+    if (itv == visited.end()) {
       if( cur.isVar() )
       {
+        visited[cur] = true;
         if( value[cur]!=cur )
         {
-          rlvVar[cur] = true;
+          // must include
+          rlvFv.insert(cur);
         }
       }
       else if( cur.getKind()==ITE )
       {
+        visited[cur] = false;
         // only recurse on relevant branch
         Node bval = value[cur[0]];
         Assert( !bval.isNull() && bval.isConst() );
@@ -134,11 +151,16 @@ bool SubstitutionMinimize::find(Node n,
       }
       else if( cur.getNumChildren()>0 )
       {
+        visited[cur] = false;
         // if the operator is a variable, expand first
+        if( cur.getKind()==APPLY_UF )
+        {
+          // TODO
+        }
       
         // see if there are any singular arguments
         Kind ck = cur.getKind();
-        std::vector< unsigned > singularArg;
+        std::vector< unsigned > singularArgs;
         if( cur.getNumChildren()>1 )
         {
           for (unsigned i=0, size=cur.getNumChildren(); i<size; i++ )
@@ -149,23 +171,41 @@ bool SubstitutionMinimize::find(Node n,
             Assert(!it->second.isNull());
             if (isSingularArg(cn,ck,i) )
             {
-              singularArg.push_back(i);
+              singularArgs.push_back(i);
             }
           }
         }
         // we need to recurse on at most one child
-        if( !singularArg.empty() )
+        if( !singularArgs.empty() )
         {
+          unsigned sindex = 0;
           
+          // TODO : choose best index
+          
+          visit.push_back(cur[singularArgs[sindex]]);
         }
         else
         {
           // recurse on all arguments
+          if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+          {
+            visit.push_back(cur.getOperator());
+          }
+          for (const Node& cn : cur)
+          {
+            visit.push_back(cn);
+          }
         }
       }
     }
   } while (!visit.empty());
   
+  
+  for( const Node& v : rlvFv )
+  {
+    Assert( std::find(vars.begin(),vars.end(),v)!=vars.end());
+    reqVars.push_back(v)
+  }
   
   return true;
 }
