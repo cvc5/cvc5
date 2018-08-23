@@ -669,51 +669,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       dumpAssertions("theory::fullcheck");
     }
   }
-  if( A )
-  {
-    if( B )
-    {
-      // may be partially applied function, in this case we should use HO_APPLY
-      Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
-      if( args.size()>=2 )
-      {
-        if (kind==CVC4::kind::INTS_DIVISION)
-        {
-          // Builtin operators that are not tokenized, are left associative,
-          // but not internally variadic must set this.
-          lassocKind = kind;
-        }
-        else
-        {
-          Type argt = args[0].getType();
-          if( argt.isFunction() )
-          {
-            unsigned arity = static_cast<FunctionType>(argt).getArity();
-            if( args.size()-1<arity )
-            {
-              Debug("parser") << "Partial application of " << args[0];
-              Debug("parser") << " : #argTypes = " << arity;
-              Debug("parser") << ", #args = " << args.size()-1 << std::endl;
-              // must curry the partial application
-              lassocKind = CVC4::kind::HO_APPLY;
-            }
-          }
-        }
-      }
-      if( lassocKind!=CVC4::kind::UNDEFINED_KIND )
-      {
-        expr = EXPR_MANAGER->mkLeftAssociative(lassocKind,args);
-      }
-      else
-      {
-        if (isBuiltinOperator)
-        {
-          PARSER_STATE->checkOperator(kind, args.size());
-        }
-        expr = MK_EXPR(kind, args);
-      }
-    }
-  }
 }
 
 void TheoryEngine::combineTheories() {
