@@ -82,6 +82,7 @@
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
+#include "preprocessing/passes/ite_simp.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
@@ -202,8 +203,6 @@ struct SmtEngineStatistics {
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
   /** time spent in simplifying ITEs */
-  TimerStat d_simpITETime;
-  /** time spent in simplifying ITEs */
   TimerStat d_unconstrainedSimpTime;
   /** time spent in theory preprocessing */
   TimerStat d_theoryPreprocessTime;
@@ -237,7 +236,6 @@ struct SmtEngineStatistics {
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
     d_numMiplibAssertionsRemoved("smt::SmtEngine::numMiplibAssertionsRemoved", 0),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-    d_simpITETime("smt::SmtEngine::simpITETime"),
     d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
     d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
@@ -257,7 +255,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
     smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-    smtStatisticsRegistry()->registerStat(&d_simpITETime);
     smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
@@ -279,7 +276,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
     smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-    smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
     smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
@@ -590,17 +586,8 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
 
-  // Simplify ITE structure
-  bool simpITE();
-
   // Simplify based on unconstrained values
   void unconstrainedSimp();
-
-  /**
-   * Ensures the assertions asserted after before now effectively come before
-   * d_realAssertionsEnd.
-   */
-  void compressBeforeRealAssertions(size_t before);
 
   /**
    * Trace nodes back to their assertions using CircuitPropagator's
@@ -2310,15 +2297,14 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if (key == "source"
-   || key == "category"
-   || key == "difficulty"
-   || key == "notes"
-   || key == "license")
+  if (key == "source" || key == "category" || key == "difficulty"
+      || key == "notes" || key == "name" || key == "license")
   {
     // ignore these
     return;
-  } else if(key == "name") {
+  }
+  else if (key == "filename")
+  {
     d_filename = value.getValue();
     return;
   }
@@ -2666,6 +2652,8 @@ void SmtEnginePrivate::finishInit()
       new GlobalNegate(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
+  std::unique_ptr<ITESimp> iteSimp(
+      new ITESimp(d_preprocessingPassContext.get()));
   std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
       new QuantifiersPreprocess(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
@@ -2708,6 +2696,7 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("global-negate",
                                            std::move(globalNegate));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
+  d_preprocessingPassRegistry.registerPass("ite-simp", std::move(iteSimp));
   d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
                                            std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
@@ -3323,60 +3312,6 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   return true;
 }
 
-bool SmtEnginePrivate::simpITE() {
-  TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
-
-  spendResource(options::preprocessStep());
-
-  Trace("simplify") << "SmtEnginePrivate::simpITE()" << endl;
-
-  unsigned numAssertionOnEntry = d_assertions.size();
-  for (unsigned i = 0; i < d_assertions.size(); ++i) {
-    spendResource(options::preprocessStep());
-    Node result = d_smt.d_theoryEngine->ppSimpITE(d_assertions[i]);
-    d_assertions.replace(i, result);
-    if(result.isConst() && !result.getConst<bool>()){
-      return false;
-    }
-  }
-  bool result = d_smt.d_theoryEngine->donePPSimpITE(d_assertions.ref());
-  if(numAssertionOnEntry < d_assertions.size()){
-    compressBeforeRealAssertions(numAssertionOnEntry);
-  }
-  return result;
-}
-
-void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
-  size_t curr = d_assertions.size();
-  if (before >= curr || d_assertions.getRealAssertionsEnd() <= 0
-      || d_assertions.getRealAssertionsEnd() >= curr)
-  {
-    return;
-  }
-
-  // assertions
-  // original: [0 ... d_assertions.getRealAssertionsEnd())
-  //  can be modified
-  // ites skolems [d_assertions.getRealAssertionsEnd(), before)
-  //  cannot be moved
-  // added [before, curr)
-  //  can be modified
-  Assert(0 < d_assertions.getRealAssertionsEnd());
-  Assert(d_assertions.getRealAssertionsEnd() <= before);
-  Assert(before < curr);
-
-  std::vector<Node> intoConjunction;
-  for(size_t i = before; i<curr; ++i){
-    intoConjunction.push_back(d_assertions[i]);
-  }
-  d_assertions.resize(before);
-  size_t lastBeforeItes = d_assertions.getRealAssertionsEnd() - 1;
-  intoConjunction.push_back(d_assertions[lastBeforeItes]);
-  Node newLast = util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
-  d_assertions.replace(lastBeforeItes, newLast);
-  Assert(d_assertions.size() == before);
-}
-
 void SmtEnginePrivate::unconstrainedSimp() {
   TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
   spendResource(options::preprocessStep());
@@ -3848,11 +3783,14 @@ bool SmtEnginePrivate::simplifyAssertions()
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // ITE simplification
-    if(options::doITESimp() &&
-       (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat())) {
+    if (options::doITESimp()
+        && (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat()))
+    {
       Chat() << "...doing ITE simplification..." << endl;
-      bool noConflict = simpITE();
-      if(!noConflict){
+      PreprocessingPassResult res =
+          d_preprocessingPassRegistry.getPass("ite-simp")->apply(&d_assertions);
+      if (res == PreprocessingPassResult::CONFLICT)
+      {
         Chat() << "...ITE simplification found unsat..." << endl;
         return false;
       }

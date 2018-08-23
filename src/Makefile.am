@@ -83,6 +83,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/ite_removal.cpp \
 	preprocessing/passes/ite_removal.h \
+	preprocessing/passes/ite_simp.cpp \
+	preprocessing/passes/ite_simp.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/bool_to_bv.cpp \
@@ -115,6 +117,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/preprocessing_pass_context.h \
 	preprocessing/preprocessing_pass_registry.cpp \
 	preprocessing/preprocessing_pass_registry.h \
+	preprocessing/util/ite_utilities.cpp \
+	preprocessing/util/ite_utilities.h \
 	printer/dagification_visitor.cpp \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
@@ -205,8 +209,6 @@ libcvc4_la_SOURCES = \
 	theory/evaluator.cpp \
 	theory/evaluator.h \
 	theory/interrupted.h \
-	theory/ite_utilities.cpp \
-	theory/ite_utilities.h \
 	theory/logic_info.cpp \
 	theory/logic_info.h \
 	theory/output_channel.h \
