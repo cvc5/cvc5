@@ -310,8 +310,6 @@ class SygusUnifIo : public SygusUnif
    * register a new value for an enumerator.
    */
   bool d_check_sol;
-  /** whether we have solved the overall conjecture */
-  bool d_solved;
   /** The number of values we have enumerated for all enumerators. */
   unsigned d_cond_count;
   /** The solution for the function of this class, if one has been found */

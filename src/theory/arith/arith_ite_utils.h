@@ -2,7 +2,7 @@
 /*! \file arith_ite_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -29,15 +29,21 @@
 #include "context/cdinsert_hashmap.h"
 
 namespace CVC4 {
-namespace theory {
+namespace preprocessing {
+namespace util {
 class ContainsTermITEVisitor;
+}
+}  // namespace preprocessing
+
+namespace theory {
+
 class SubstitutionMap;
 class TheoryModel;
 
 namespace arith {
 
 class ArithIteUtils {
-  ContainsTermITEVisitor& d_contains;
+  preprocessing::util::ContainsTermITEVisitor& d_contains;
   SubstitutionMap* d_subs;
   TheoryModel* d_model;
 
@@ -68,24 +74,24 @@ class ArithIteUtils {
   std::vector<Node> d_orBinEqs;
 
 public:
-  ArithIteUtils(ContainsTermITEVisitor& contains,
-                context::Context* userContext,
-                TheoryModel* model);
-  ~ArithIteUtils();
+ ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
+               context::Context* userContext,
+               TheoryModel* model);
+ ~ArithIteUtils();
 
-  //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
+ //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
 
-  /** removes common sums variables sums from term ites. */
-  Node reduceVariablesInItes(Node n);
+ /** removes common sums variables sums from term ites. */
+ Node reduceVariablesInItes(Node n);
 
-  Node reduceConstantIteByGCD(Node n);
+ Node reduceConstantIteByGCD(Node n);
 
-  void clear();
+ void clear();
 
-  Node applySubstitutions(TNode f);
-  unsigned getSubCount() const;
+ Node applySubstitutions(TNode f);
+ unsigned getSubCount() const;
 
-  void learnSubstitutions(const std::vector<Node>& assertions);
+ void learnSubstitutions(const std::vector<Node>& assertions);
 
 private:
   /* applies this to all children of n and constructs the result */
