@@ -155,6 +155,8 @@ REG0_TESTS = \
 	regress0/bug605.cvc \
 	regress0/bug639.smt2 \
 	regress0/buggy-ite.smt2 \
+	regress0/bv/ackermann1.smt2 \
+	regress0/bv/ackermann2.smt2 \
 	regress0/bv/bool-to-bv.smt2 \
 	regress0/bv/bug260a.smt \
 	regress0/bv/bug260b.smt \
@@ -827,6 +829,7 @@ REG0_TESTS = \
 	regress0/sygus/check-generic-red.sy \
 	regress0/sygus/const-var-test.sy \
 	regress0/sygus/dt-no-syntax.sy \
+	regress0/sygus/hd-05-d1-prog-nogrammar.sy \
 	regress0/sygus/let-ringer.sy \
 	regress0/sygus/let-simp.sy \
 	regress0/sygus/no-syntax-test-bool.sy \
@@ -1279,6 +1282,7 @@ REG1_TESTS = \
 	regress1/quantifiers/constfunc.cvc \
 	regress1/quantifiers/dump-inst.smt2 \
 	regress1/quantifiers/dump-inst-i.smt2 \
+	regress1/quantifiers/dump-inst-proof.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
@@ -1292,6 +1296,7 @@ REG1_TESTS = \
 	regress1/quantifiers/isaplanner-goal20.smt2 \
 	regress1/quantifiers/is-even.smt2 \
 	regress1/quantifiers/javafe.ast.StmtVec.009.smt2 \
+	regress1/quantifiers/lra-vts-inf.smt2 \
 	regress1/quantifiers/mix-coeff.smt2 \
 	regress1/quantifiers/model_6_1_bv.smt2 \
 	regress1/quantifiers/mutualrec2.cvc \
@@ -1320,6 +1325,8 @@ REG1_TESTS = \
 	regress1/quantifiers/qbv-test-urem-rewrite.smt2 \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
+	regress1/quantifiers/qe.smt2 \
+	regress1/quantifiers/qe-partial.smt2 \
 	regress1/quantifiers/quant-wf-int-ind.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
 	regress1/quantifiers/repair-const-nterm.smt2 \
@@ -1513,6 +1520,7 @@ REG1_TESTS = \
 	regress1/strings/type003.smt2 \
 	regress1/strings/username_checker_min.smt2 \
 	regress1/sygus/VC22_a.sy \
+	regress1/sygus/abv.sy \
 	regress1/sygus/array_search_2.sy \
 	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
@@ -1546,9 +1554,11 @@ REG1_TESTS = \
 	regress1/sygus/inv-example.sy \
 	regress1/sygus/inv-unused.sy \
 	regress1/sygus/large-const-simp.sy \
+	regress1/sygus/let-bug-simp.sy \
 	regress1/sygus/list-head-x.sy \
 	regress1/sygus/logiccell_help.sy \
 	regress1/sygus/max.sy \
+	regress1/sygus/max2-bv.sy \
 	regress1/sygus/multi-fun-polynomial2.sy \
 	regress1/sygus/nflat-fwd-3.sy \
 	regress1/sygus/nflat-fwd.sy \
