@@ -31,7 +31,8 @@ class CDMapBlack : public CxxTest::TestSuite {
   Context* d_context;
 
  public:
-  void setUp() override {
+  void setUp() override
+  {
     d_context = new Context;
     // Debug.on("context");
     // Debug.on("gc");

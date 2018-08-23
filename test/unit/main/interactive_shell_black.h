@@ -45,7 +45,8 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_solver.reset(new api::Solver(&d_options));
   }
 
-  void tearDown() override {
+  void tearDown() override
+  {
     delete d_sin;
     delete d_sout;
   }

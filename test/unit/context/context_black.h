@@ -36,12 +36,10 @@ struct MyContextNotifyObj : public ContextNotifyObj {
     ContextNotifyObj(context, pre),
     nCalls(0) {
   }
-  
+
   ~MyContextNotifyObj() override {}
 
-  void contextNotifyPop() override {
-    ++nCalls;
-  }
+  void contextNotifyPop() override { ++nCalls; }
 };
 
 class MyContextObj : public ContextObj {
@@ -75,18 +73,15 @@ public:
     nSaves(0) {
   }
 
-  ~MyContextObj() override {
-    destroy();
-  }
+  ~MyContextObj() override { destroy(); }
 
-  ContextObj* save(ContextMemoryManager* pcmm) override {
+  ContextObj* save(ContextMemoryManager* pcmm) override
+  {
     ++nSaves;
     return new(pcmm) MyContextObj(*this);
   }
 
-  void restore(ContextObj* contextObj) override {
-    nCalls = notify.nCalls;
-  }
+  void restore(ContextObj* contextObj) override { nCalls = notify.nCalls; }
 
   void makeCurrent() {
     ContextObj::makeCurrent();
@@ -99,17 +94,13 @@ private:
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() override {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() override {
-    delete d_context;
-  }
-
-  void testContextPushPop() {
+  void testContextPushPop()
+  {
     // Test what happens when the context is popped below 0
     // the interface doesn't declare any exceptions
     d_context->push();

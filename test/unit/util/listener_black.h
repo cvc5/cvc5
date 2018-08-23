@@ -30,7 +30,7 @@ class ListenerBlack : public CxxTest::TestSuite {
    public:
     EventListener(std::multiset<std::string>& events, std::string name)
         : d_events(events), d_name(name) {}
-    ~EventListener() override{}
+    ~EventListener() override {}
 
     void notify() override { d_events.insert(d_name); }
 
@@ -45,13 +45,9 @@ public:
     return std::multiset<std::string>(arr, arr + len);
   }
 
-  void setUp() override {
-    d_events.clear();
-  }
+  void setUp() override { d_events.clear(); }
 
-  void tearDown() override {
-    d_events.clear();
-  }
+  void tearDown() override { d_events.clear(); }
 
   void testEmptyCollection() {
     // Makes an new collection and tests that it is empty.

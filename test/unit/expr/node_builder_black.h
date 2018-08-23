@@ -40,9 +40,9 @@ private:
   TypeNode* d_integerType;
   TypeNode* d_realType;
 
-public:
-
-  void setUp() override {
+ public:
+  void setUp() override
+  {
     d_nm = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nm);
 
@@ -52,7 +52,8 @@ public:
     d_realType = new TypeNode(d_nm->realType());
   }
 
-  void tearDown() override {
+  void tearDown() override
+  {
     delete d_integerType;
     delete d_booleanType;
     delete d_realType;

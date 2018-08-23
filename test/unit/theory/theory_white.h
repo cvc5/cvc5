@@ -122,15 +122,14 @@ public:
     return done();
   }
 
-  void check(Effort e) override {
+  void check(Effort e) override
+  {
     while(!done()) {
       getWrapper();
     }
   }
 
-  void presolve() override {
-    Unimplemented();
-  }
+  void presolve() override { Unimplemented(); }
   void preRegisterTerm(TNode n) override {}
   void propagate(Effort level) override {}
   Node explain(TNode n) override { return Node::null(); }
@@ -155,9 +154,9 @@ class TheoryBlack : public CxxTest::TestSuite {
   Node atom0;
   Node atom1;
 
-public:
-
-  void setUp() override {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
@@ -173,14 +172,15 @@ public:
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
-                              *d_logicInfo);
+    d_dummy = new DummyTheory(
+        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
   }
 
-  void tearDown() override {
+  void tearDown() override
+  {
     atom1 = Node::null();
     atom0 = Node::null();
     delete d_dummy;

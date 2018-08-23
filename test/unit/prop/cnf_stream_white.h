@@ -49,7 +49,8 @@ class FakeSatSolver : public SatSolver {
  public:
   FakeSatSolver() : d_nextVar(0), d_addClauseCalled(false) {}
 
-  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) override {
+  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) override
+  {
     return d_nextVar++;
   }
 
@@ -57,12 +58,14 @@ class FakeSatSolver : public SatSolver {
 
   SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(SatClause& c, bool lemma) override {
+  ClauseId addClause(SatClause& c, bool lemma) override
+  {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override {
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
@@ -87,7 +90,10 @@ class FakeSatSolver : public SatSolver {
 
   SatValue solve() override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue solve(long unsigned int& resource) override { return SAT_VALUE_UNKNOWN; }
+  SatValue solve(long unsigned int& resource) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
 
   SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
@@ -122,7 +128,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
   SmtScope* d_scope;
   SmtEngine* d_smt;
 
-  void setUp() override {
+  void setUp() override
+  {
     d_exprManager = new ExprManager();
     d_smt = new SmtEngine(d_exprManager);
     d_smt->d_logic.lock();
@@ -138,7 +145,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
         d_satSolver, d_cnfRegistrar, d_cnfContext, d_smt->channels());
   }
 
-  void tearDown() override {
+  void tearDown() override
+  {
     delete d_cnfStream;
     delete d_cnfContext;
     delete d_cnfRegistrar;

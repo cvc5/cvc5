@@ -30,12 +30,14 @@ class ArrayStoreAllBlack : public CxxTest::TestSuite {
   ExprManagerScope* d_scope;
 
  public:
-  void setUp() override {
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_scope = new ExprManagerScope(*d_em);
   }
 
-  void tearDown() override {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_em;
   }
