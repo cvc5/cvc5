@@ -951,7 +951,7 @@ Expr ExprManager::mkAssociative(Kind kind,
     subChildren.clear();
   }
 
-  /* If there's children left, "top off" the Expr. */
+  // add the leftover children
   if(numChildren > 0) {
     for (; it != end; ++it)
     {
