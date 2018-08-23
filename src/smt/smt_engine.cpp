@@ -2314,6 +2314,11 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     // ignore these
     return;
   }
+  else if (key == "filename")
+  {
+    d_filename = value.getValue();
+    return;
+  }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
   {
     language::input::Language ilang = language::input::LANG_AUTO;
