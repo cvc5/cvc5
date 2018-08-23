@@ -38,8 +38,8 @@ using std::string;
 class MapUtilBlack : public CxxTest::TestSuite
 {
  public:
-  void setUp() {}
-  void tearDown() {}
+  void setUp() override {}
+  void tearDown() override {}
 
   // Returns a map containing {"key"->"value", "other"->"entry"}.
   static const std::map<string, string>& DefaultMap()

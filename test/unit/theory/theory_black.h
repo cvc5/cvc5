@@ -44,9 +44,9 @@ private:
   NodeManager* d_nm;
   SmtScope* d_scope;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
@@ -54,7 +54,8 @@ public:
     d_nm = NodeManager::fromExprManager(d_em);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_smt;
     delete d_em;

@@ -26,7 +26,7 @@ class BitVectorBlack : public CxxTest::TestSuite {
 
 
 public:
- void setUp()
+ void setUp() override
  {
    zero = BitVector(4);
    one = zero.setBit(0);
