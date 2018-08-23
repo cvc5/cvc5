@@ -2308,15 +2308,14 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if (key == "source"
-   || key == "category"
-   || key == "difficulty"
-   || key == "notes"
-   || key == "license")
+  if (key == "source" || key == "category" || key == "difficulty"
+      || key == "notes" || key == "name" || key == "license")
   {
     // ignore these
     return;
-  } else if(key == "name") {
+  }
+  else if (key == "filename")
+  {
     d_filename = value.getValue();
     return;
   }
