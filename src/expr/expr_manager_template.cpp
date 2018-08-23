@@ -921,15 +921,15 @@ Expr ExprManager::mkAssociative(Kind kind,
       "Illegal kind in mkAssociative: %s",
       kind::kindToString(kind).c_str());
 
-  NodeManagerScope nms(d_nodeManager);
   const unsigned int max = maxArity(kind);
-  const unsigned int min = minArity(kind);
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
   if( numChildren <= max ) {
     return mkExpr(kind,children);
   }
+  NodeManagerScope nms(d_nodeManager);
+  const unsigned int min = minArity(kind);
 
   std::vector<Expr>::const_iterator it = children.begin() ;
   std::vector<Expr>::const_iterator end = children.end() ;
@@ -969,6 +969,7 @@ Expr ExprManager::mkAssociative(Kind kind,
 
 Expr ExprManager::mkLeftAssociative(Kind kind, const std::vector<Expr>& children)
 {
+  NodeManagerScope nms(d_nodeManager);
   Node n = children[0];
   for (unsigned i = 1, size = children.size(); i < size; i++)
   {
@@ -979,6 +980,7 @@ Expr ExprManager::mkLeftAssociative(Kind kind, const std::vector<Expr>& children
 
 Expr ExprManager::mkRightAssociative(Kind kind, const std::vector<Expr>& children)
 {
+  NodeManagerScope nms(d_nodeManager);
   Node n = children[children.size() - 1];
   for(unsigned i = children.size() - 1; i > 0;) {
     n = d_nodeManager->mkNode(kind, children[--i].getNode(), n);

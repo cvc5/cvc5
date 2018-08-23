@@ -1961,19 +1961,27 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
       // may be partially applied function, in this case we should use HO_APPLY
       Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
-      if( args.size()>=2 && args[0].getType().isFunction() &&
-          (args.size()-1)<((FunctionType)args[0].getType()).getArity() ){
-        Debug("parser") << "Partial application of " << args[0];
-        Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();
-        Debug("parser") << ", #args = " << args.size()-1 << std::endl;
-        // must curry the application
-        lassocKind = CVC4::kind::HO_APPLY;
-      }
-      else if (kind==CVC4::kind::INTS_DIVISION )
+      if (kind==CVC4::kind::INTS_DIVISION)
       {
         // builtin operators that are not tokenized but are left associative
         // but not internally variadic must set this.
         lassocKind = kind;
+      }
+      else if( args.size()>=2 )
+      {
+        Type argt = args[0].getType();
+        if( argt.isFunction() )
+        {
+          unsigned arity = static_cast<FunctionType>(argt).getArity();
+          if( args.size()-1<arity )
+          {
+            Debug("parser") << "Partial application of " << args[0];
+            Debug("parser") << " : #argTypes = " << arity;
+            Debug("parser") << ", #args = " << args.size()-1 << std::endl;
+            // must curry the partial application
+            lassocKind = CVC4::kind::HO_APPLY;
+          }
+        }
       }
       if( lassocKind!=CVC4::kind::UNDEFINED_KIND )
       {
