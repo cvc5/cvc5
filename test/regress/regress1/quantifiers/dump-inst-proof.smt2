@@ -1,3 +1,4 @@
+; REQUIRES: proof
 ; COMMAND-LINE: --dump-instantiations --proof
 ; EXPECT: unsat
 ; EXPECT: (instantiation (forall ((x Int)) (or (P x) (Q x)) )
