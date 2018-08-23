@@ -25,19 +25,22 @@ namespace CVC4 {
 namespace theory {
 
 /** SubstitutionMinimize
- * 
+ *
  */
-class SubstitutionMinimize 
+class SubstitutionMinimize
 {
-public:
+ public:
   SubstitutionMinimize();
-  ~SubstitutionMinimize(){}
+  ~SubstitutionMinimize() {}
 
-  bool find(Node n, Node target, const std::vector< Node >& vars, const std::vector< Node >& subs,
-            std::vector< Node >& reqVars );
+  bool find(Node n,
+            Node target,
+            const std::vector<Node>& vars,
+            const std::vector<Node>& subs,
+            std::vector<Node>& reqVars);
 };
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__SUBSTITUTION_MINIMIZE_H */

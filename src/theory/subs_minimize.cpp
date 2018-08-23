@@ -21,31 +21,35 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-  
-SubstitutionMinimize::SubstitutionMinimize() {
 
-}
+SubstitutionMinimize::SubstitutionMinimize() {}
 
-bool SubstitutionMinimize::find(Node n, Node target, const std::vector< Node >& vars, const std::vector< Node >& subs,
-                                std::vector< Node >& reqVars )
+bool SubstitutionMinimize::find(Node n,
+                                Node target,
+                                const std::vector<Node>& vars,
+                                const std::vector<Node>& subs,
+                                std::vector<Node>& reqVars)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  
+  NodeManager* nm = NodeManager::currentNM();
+
   // the value of each subterm in n under the substitution
   std::unordered_map<TNode, Node, TNodeHashFunction> value;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = value.find(cur);
 
-    if (it == value.end()) {
-      if( cur.isVar() )
+    if (it == value.end())
+    {
+      if (cur.isVar())
       {
-        const std::vector< Node >::const_iterator& it = std::find(vars.begin(), vars.end(), cur);
+        const std::vector<Node>::const_iterator& it =
+            std::find(vars.begin(), vars.end(), cur);
         if (it == vars.end())
         {
           value[cur] = cur;
@@ -60,23 +64,30 @@ bool SubstitutionMinimize::find(Node n, Node target, const std::vector< Node >& 
       {
         value[cur] = Node::null();
         visit.push_back(cur);
-        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
           visit.push_back(cur.getOperator());
         }
-        for (const Node& cn : cur) {
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
-    } else if (it->second.isNull()) {
+    }
+    else if (it->second.isNull())
+    {
       Node ret = cur;
       std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur) {
+      for (const Node& cn : cur)
+      {
         children.push_back(cn);
       }
-      for( const Node& cn : children ){
+      for (const Node& cn : children)
+      {
         it = value.find(cn);
         Assert(it != value.end());
         Assert(!it->second.isNull());
@@ -89,12 +100,9 @@ bool SubstitutionMinimize::find(Node n, Node target, const std::vector< Node >& 
   } while (!visit.empty());
   Assert(value.find(n) != value.end());
   Assert(!value.find(n)->second.isNull());
-  
-  
-  
-  
+
   return false;
 }
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4
