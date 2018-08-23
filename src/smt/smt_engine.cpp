@@ -728,6 +728,20 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
   {
+    if( B )
+    {
+      if( C ){
+      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS || 
+                   kind==CVC4::kind::DIVISION || kind==CVC4::kind::INTS_DIVISION ) &&
+                 args.size() > 2 ) {
+        /* left-associative, but CVC4 internally only supports 2 args */
+        expr = args[0];
+        for(size_t i = 1; i < args.size(); ++i) {
+          expr = MK_EXPR(kind, expr, args[i]);
+        }
+      }
+    }
+   
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());

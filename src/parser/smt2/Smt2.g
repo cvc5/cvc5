@@ -1807,7 +1807,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = EXPR_MANAGER->mkAssociative(kind, args);
       } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
-      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS ) &&
+      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS || 
+                   kind==CVC4::kind::DIVISION || kind==CVC4::kind::INTS_DIVISION ) &&
                  args.size() > 2 ) {
         /* left-associative, but CVC4 internally only supports 2 args */
         expr = args[0];
