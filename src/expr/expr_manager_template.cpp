@@ -953,7 +953,8 @@ Expr ExprManager::mkAssociative(Kind kind,
 
   /* If there's children left, "top off" the Expr. */
   if(numChildren > 0) {
-    for(; it != end; ++it) {
+    for (; it != end; ++it)
+    {
       newChildren.push_back(*it);
     }
   }
@@ -964,10 +965,11 @@ Expr ExprManager::mkAssociative(Kind kind,
                 "Too few new children in mkAssociative" );
 
   // recurse
-  return mkAssociative(kind,newChildren);
+  return mkAssociative(kind, newChildren);
 }
 
-Expr ExprManager::mkLeftAssociative(Kind kind, const std::vector<Expr>& children)
+Expr ExprManager::mkLeftAssociative(Kind kind,
+                                    const std::vector<Expr>& children)
 {
   NodeManagerScope nms(d_nodeManager);
   Node n = children[0];
@@ -978,11 +980,13 @@ Expr ExprManager::mkLeftAssociative(Kind kind, const std::vector<Expr>& children
   return n.toExpr();
 }
 
-Expr ExprManager::mkRightAssociative(Kind kind, const std::vector<Expr>& children)
+Expr ExprManager::mkRightAssociative(Kind kind,
+                                     const std::vector<Expr>& children)
 {
   NodeManagerScope nms(d_nodeManager);
   Node n = children[children.size() - 1];
-  for(unsigned i = children.size() - 1; i > 0;) {
+  for (unsigned i = children.size() - 1; i > 0;)
+  {
     n = d_nodeManager->mkNode(kind, children[--i].getNode(), n);
   }
   return n.toExpr();
