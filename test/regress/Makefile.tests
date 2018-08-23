@@ -1282,6 +1282,7 @@ REG1_TESTS = \
 	regress1/quantifiers/constfunc.cvc \
 	regress1/quantifiers/dump-inst.smt2 \
 	regress1/quantifiers/dump-inst-i.smt2 \
+	regress1/quantifiers/dump-inst-proof.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
 	regress1/quantifiers/extract-nproc.smt2 \
 	regress1/quantifiers/florian-case-ax.smt2 \
@@ -1295,6 +1296,7 @@ REG1_TESTS = \
 	regress1/quantifiers/isaplanner-goal20.smt2 \
 	regress1/quantifiers/is-even.smt2 \
 	regress1/quantifiers/javafe.ast.StmtVec.009.smt2 \
+	regress1/quantifiers/lra-vts-inf.smt2 \
 	regress1/quantifiers/mix-coeff.smt2 \
 	regress1/quantifiers/model_6_1_bv.smt2 \
 	regress1/quantifiers/mutualrec2.cvc \
@@ -1323,6 +1325,8 @@ REG1_TESTS = \
 	regress1/quantifiers/qbv-test-urem-rewrite.smt2 \
 	regress1/quantifiers/qcft-javafe.filespace.TreeWalker.006.smt2 \
 	regress1/quantifiers/qcft-smtlib3dbc51.smt2 \
+	regress1/quantifiers/qe.smt2 \
+	regress1/quantifiers/qe-partial.smt2 \
 	regress1/quantifiers/quant-wf-int-ind.smt2 \
 	regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2 \
 	regress1/quantifiers/repair-const-nterm.smt2 \
