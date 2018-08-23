@@ -301,6 +301,19 @@ public:
   Expr mkAssociative(Kind kind, const std::vector<Expr>& children);
 
   /**
+   * Create an Expr by applying an binary left-associative operator to the
+   * children. For example, mkLeftAssociative( f, { a, b, c } ) returns 
+   * f( f( a, b ), c ).
+   */
+  Expr mkLeftAssociative(Kind kind, const std::vector<Expr>& children);
+  /**
+   * Create an Expr by applying an binary right-associative operator to the
+   * children. For example, mkRightAssociative( f, { a, b, c } ) returns 
+   * f( a, f( b, c ) ).
+   */
+  Expr mkRightAssociative(Kind kind, const std::vector<Expr>& children);
+
+  /**
    * Determine whether Exprs of a particular Kind have operators.
    * @returns true if Exprs of Kind k have operators.
    */

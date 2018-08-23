@@ -1809,22 +1809,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
       }
       else if ((kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS
-                || kind == CVC4::kind::DIVISION
-                || kind == CVC4::kind::INTS_DIVISION)
+                || kind == CVC4::kind::DIVISION)
                && args.size() > 2)
       {
         /* left-associative, but CVC4 internally only supports 2 args */
-        expr = args[0];
-        for (size_t i = 1; i < args.size(); ++i)
-        {
-          expr = MK_EXPR(kind, expr, args[i]);
-        }
+        expr = EXPR_MANAGER->mkLeftAssociative(kind,args);
       } else if( kind == CVC4::kind::IMPLIES && args.size() > 2 ) {
         /* right-associative, but CVC4 internally only supports 2 args */
-        expr = args[args.size() - 1];
-        for(size_t i = args.size() - 1; i > 0;) {
-          expr = MK_EXPR(kind, args[--i], expr);
-        }
+        expr = EXPR_MANAGER->mkRightAssociative(kind,args);
       } else if( ( kind == CVC4::kind::EQUAL ||
                    kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
                    kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
@@ -1968,15 +1960,27 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         PARSER_STATE->checkOperator(kind, args.size());
       }
       // may be partially applied function, in this case we should use HO_APPLY
+      Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
       if( args.size()>=2 && args[0].getType().isFunction() &&
           (args.size()-1)<((FunctionType)args[0].getType()).getArity() ){
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();
         Debug("parser") << ", #args = " << args.size()-1 << std::endl;
         // must curry the application
-        expr = args[0];
-        expr = PARSER_STATE->mkHoApply( expr, args, 1 );
-      }else{
+        lassocKind = CVC4::kind::HO_APPLY;
+      }
+      else if (kind==CVC4::kind::INTS_DIVISION )
+      {
+        // builtin operators that are not tokenized but are left associative
+        // but not internally variadic must set this.
+        lassocKind = kind;
+      }
+      if( lassocKind!=CVC4::kind::UNDEFINED_KIND )
+      {
+        expr = EXPR_MANAGER->mkLeftAssociative(lassocKind,args);
+      }
+      else
+      {
         expr = MK_EXPR(kind, args);
       }
     }
