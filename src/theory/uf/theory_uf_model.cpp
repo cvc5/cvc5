@@ -289,7 +289,7 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
   }else{
     indent( out, ind );
     out << "return ";
-    m->printRepresentative( out, d_value );
+    out << m->getRepresentative(d_value);
     out << std::endl;
   }
 }

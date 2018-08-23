@@ -552,7 +552,7 @@ class CVC4_PUBLIC CheckSatCommand : public Command
 {
  public:
   CheckSatCommand();
-  CheckSatCommand(const Expr& expr, bool inUnsatCore = true);
+  CheckSatCommand(const Expr& expr);
 
   Expr getExpr() const;
   Result getResult() const;
@@ -566,7 +566,6 @@ class CVC4_PUBLIC CheckSatCommand : public Command
  private:
   Expr d_expr;
   Result d_result;
-  bool d_inUnsatCore;
 }; /* class CheckSatCommand */
 
 /**
@@ -578,8 +577,7 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
 {
  public:
   CheckSatAssumingCommand(Expr term);
-  CheckSatAssumingCommand(const std::vector<Expr>& terms,
-                          bool inUnsatCore = true);
+  CheckSatAssumingCommand(const std::vector<Expr>& terms);
 
   const std::vector<Expr>& getTerms() const;
   Result getResult() const;
@@ -593,7 +591,6 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
  private:
   std::vector<Expr> d_terms;
   Result d_result;
-  bool d_inUnsatCore;
 }; /* class CheckSatAssumingCommand */
 
 class CVC4_PUBLIC QueryCommand : public Command

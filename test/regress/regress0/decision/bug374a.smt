@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark fuzzsmt
 :logic AUFLIA
 :status unknown

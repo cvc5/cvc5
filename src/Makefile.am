@@ -101,6 +101,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/sort_infer.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
+	preprocessing/passes/sygus_inference.cpp \
+	preprocessing/passes/sygus_inference.h \
 	preprocessing/passes/symmetry_breaker.cpp \
 	preprocessing/passes/symmetry_breaker.h \
 	preprocessing/passes/symmetry_detect.cpp \
@@ -542,8 +544,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_unif_strat.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
 	theory/quantifiers/sygus/term_database_sygus.h \
-	theory/quantifiers/sygus_inference.cpp \
-	theory/quantifiers/sygus_inference.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
 	theory/quantifiers/term_database.cpp \

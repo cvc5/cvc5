@@ -25,7 +25,9 @@ namespace CVC4 {
 namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline(context::Context* context)
-    : d_substitutionsIndex(context, 0), d_topLevelSubstitutions(context)
+    : d_substitutionsIndex(context, 0),
+      d_topLevelSubstitutions(context),
+      d_realAssertionsEnd(0)
 {
 }
 

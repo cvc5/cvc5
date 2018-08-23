@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark pp_regfile.smt
   :source {
 Translated from old SVC processor verification benchmarks.  Contact Clark
