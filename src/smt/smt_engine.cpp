@@ -1199,6 +1199,8 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
+std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
