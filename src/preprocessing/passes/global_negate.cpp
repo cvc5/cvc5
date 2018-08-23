@@ -12,21 +12,22 @@
  ** \brief Implementation of global_negate
  **/
 
-#include "theory/quantifiers/global_negate.h"
+#include "preprocessing/passes/global_negate.h"
+#include <vector>
+#include "expr/node.h"
 #include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
+using namespace CVC4::theory;
 
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
+namespace preprocessing {
+namespace passes {
 
-void GlobalNegate::simplify(std::vector<Node>& assertions)
+Node GlobalNegate::simplify(std::vector<Node>& assertions, NodeManager* nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Assert(!assertions.empty());
-
   Trace("cbqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions
   std::vector<Node> free_vars;
@@ -90,21 +91,26 @@ void GlobalNegate::simplify(std::vector<Node>& assertions)
   Trace("cbqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
   body = Rewriter::rewrite(body);
   Trace("cbqi-gn") << "...got (post-rewrite) : " << body << std::endl;
-
-  Node truen = nm->mkConst(true);
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
-  {
-    if (i == 0)
-    {
-      assertions[i] = body;
-    }
-    else
-    {
-      assertions[i] = truen;
-    }
-  }
+  return body;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "global-negate"){};
+
+PreprocessingPassResult GlobalNegate::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
+  Node trueNode = nm->mkConst(true);
+  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  {
+    assertionsToPreprocess->replace(i, trueNode);
+  }
+  assertionsToPreprocess->push_back(simplifiedNode);
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
