@@ -35,7 +35,7 @@ class OutputBlack : public CxxTest::TestSuite {
 
 public:
 
-  void setUp() {
+  void setUp() override {
     DebugChannel.setStream(&d_debugStream);
     TraceChannel.setStream(&d_traceStream);
     NoticeChannel.setStream(&d_noticeStream);
@@ -51,7 +51,7 @@ public:
     d_warningStream.str("");
   }
 
-  void tearDown() {
+  void tearDown() override {
   }
 
   void testOutput() {

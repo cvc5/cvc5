@@ -63,12 +63,12 @@ private:
 
 
 public:
-  void setUp() {
+  void setUp() override {
     d_exprManager = new ExprManager;
   }
 
 
-  void tearDown() {
+  void tearDown() override {
     try {
       delete d_exprManager;
     } catch(Exception e) {

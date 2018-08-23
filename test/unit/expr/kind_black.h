@@ -35,7 +35,7 @@ class KindBlack : public CxxTest::TestSuite {
   int beyond;
   Kind unknown;
 public:
-  void setUp() {
+  void setUp() override {
     undefined = UNDEFINED_KIND;
     null = NULL_EXPR;
     last = LAST_KIND;

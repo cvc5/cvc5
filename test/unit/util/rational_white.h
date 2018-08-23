@@ -35,7 +35,7 @@ public:
 
   void testCompareAgainstZero(){
     Rational q(0);
-    TS_ASSERT_THROWS_NOTHING(q == 0;);
+    TS_ASSERT_THROWS_NOTHING(q = 0;);
     TS_ASSERT_EQUALS(q,0);
   }
 

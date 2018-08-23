@@ -40,13 +40,13 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_scope = new NodeManagerScope(d_nm);
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_scope;
     delete d_em;
   }

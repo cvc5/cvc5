@@ -27,10 +27,10 @@ using namespace std;
 class BinaryHeapBlack : public CxxTest::TestSuite {
 public:
 
-  void setUp() {
+  void setUp() override {
   }
 
-  void tearDown() {
+  void tearDown() override {
   }
 
   /**

@@ -56,7 +56,7 @@ class NodeBlack : public CxxTest::TestSuite {
   TypeNode* d_realType;
 
  public:
-  void setUp() {
+  void setUp() override {
     char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-language=ast");
@@ -70,7 +70,7 @@ class NodeBlack : public CxxTest::TestSuite {
     d_realType = new TypeNode(d_nodeManager->realType());
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_realType;
     delete d_booleanType;
     delete d_scope;

@@ -122,20 +122,20 @@ public:
     return done();
   }
 
-  void check(Effort e) {
+  void check(Effort e) override {
     while(!done()) {
       getWrapper();
     }
   }
 
-  void presolve() {
+  void presolve() override {
     Unimplemented();
   }
-  void preRegisterTerm(TNode n) {}
-  void propagate(Effort level) {}
-  Node explain(TNode n) { return Node::null(); }
+  void preRegisterTerm(TNode n) override {}
+  void propagate(Effort level) override {}
+  Node explain(TNode n) override { return Node::null(); }
   Node getValue(TNode n) { return Node::null(); }
-  string identify() const { return "DummyTheory"; }
+  string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */
 
 class TheoryBlack : public CxxTest::TestSuite {
@@ -157,7 +157,7 @@ class TheoryBlack : public CxxTest::TestSuite {
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
@@ -180,7 +180,7 @@ public:
     atom1 = d_nm->mkConst(false);
   }
 
-  void tearDown() {
+  void tearDown() override {
     atom1 = Node::null();
     atom0 = Node::null();
     delete d_dummy;

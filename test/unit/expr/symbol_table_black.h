@@ -39,7 +39,7 @@ private:
 
 public:
 
-  void setUp() {
+  void setUp() override {
     try {
       d_exprManager = new ExprManager;
     } catch(Exception e) {
@@ -48,7 +48,7 @@ public:
     }
   }
 
-  void tearDown() {
+  void tearDown() override {
     try {
       delete d_exprManager;
     } catch(Exception e) {

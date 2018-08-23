@@ -35,7 +35,7 @@ private:
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_cmm = new ContextMemoryManager();
   }
 
@@ -96,7 +96,7 @@ public:
 #endif /* __CVC4__CONTEXT__CONTEXT_MM_H */
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_cmm;
   }
 };

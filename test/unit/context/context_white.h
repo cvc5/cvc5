@@ -31,11 +31,11 @@ private:
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_context = new Context;
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_context;
   }
 

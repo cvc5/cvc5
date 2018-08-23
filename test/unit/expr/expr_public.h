@@ -52,7 +52,7 @@ private:
 
 public:
 
-  void setUp() {
+  void setUp() override {
     try {
 
       char *argv[2];
@@ -84,7 +84,7 @@ public:
     }
   }
 
-  void tearDown() {
+  void tearDown() override {
     try {
       delete r2;
       delete r1;

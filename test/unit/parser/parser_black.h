@@ -217,11 +217,11 @@ class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Cvc4ParserTest() : ParserBlack(LANG_CVC4) { }
 
-  void setUp() {
+  void setUp() override {
     super::setUp();
   }
 
-  void tearDown() {
+  void tearDown() override {
     super::tearDown();
   }
 
@@ -307,11 +307,11 @@ class Smt1ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Smt1ParserTest() : ParserBlack(LANG_SMTLIB_V1) { }
 
-  void setUp() {
+  void setUp() override {
     super::setUp();
   }
 
-  void tearDown() {
+  void tearDown() override {
     super::tearDown();
   }
 
@@ -376,15 +376,15 @@ class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Smt2ParserTest() : ParserBlack(LANG_SMTLIB_V2) { }
 
-  void setUp() {
+  void setUp() override {
     super::setUp();
   }
 
-  void tearDown() {
+  void tearDown() override {
     super::tearDown();
   }
 
-  virtual void setupContext(Parser& parser) {
+  void setupContext(Parser& parser) override {
     if(dynamic_cast<Smt2*>(&parser) != NULL){
       dynamic_cast<Smt2*>(&parser)->addTheory(Smt2::THEORY_CORE);
     }

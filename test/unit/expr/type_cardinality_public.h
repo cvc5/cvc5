@@ -34,11 +34,11 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_em = new ExprManager();
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_em;
   }
 

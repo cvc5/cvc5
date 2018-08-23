@@ -37,9 +37,9 @@ struct MyContextNotifyObj : public ContextNotifyObj {
     nCalls(0) {
   }
   
-  virtual ~MyContextNotifyObj() {}
+  ~MyContextNotifyObj() override {}
 
-  void contextNotifyPop() {
+  void contextNotifyPop() override {
     ++nCalls;
   }
 };
@@ -75,16 +75,16 @@ public:
     nSaves(0) {
   }
 
-  virtual ~MyContextObj() {
+  ~MyContextObj() override {
     destroy();
   }
 
-  ContextObj* save(ContextMemoryManager* pcmm) {
+  ContextObj* save(ContextMemoryManager* pcmm) override {
     ++nSaves;
     return new(pcmm) MyContextObj(*this);
   }
 
-  void restore(ContextObj* contextObj) {
+  void restore(ContextObj* contextObj) override {
     nCalls = notify.nCalls;
   }
 
@@ -101,11 +101,11 @@ private:
 
 public:
 
-  void setUp() {
+  void setUp() override {
     d_context = new Context;
   }
 
-  void tearDown() {
+  void tearDown() override {
     delete d_context;
   }
 

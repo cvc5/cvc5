@@ -63,7 +63,7 @@ public:
 
   void testCompareAgainstZero(){
     Integer z(0);
-    TS_ASSERT_THROWS_NOTHING(z == 0;);
+    TS_ASSERT_THROWS_NOTHING(z = 0;);
     TS_ASSERT_EQUALS(z,0);
   }
 
