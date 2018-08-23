@@ -1956,30 +1956,30 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
         }
       }
-      if(isBuiltinOperator) {
-        PARSER_STATE->checkOperator(kind, args.size());
-      }
       // may be partially applied function, in this case we should use HO_APPLY
       Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
-      if (kind==CVC4::kind::INTS_DIVISION)
+      if( args.size()>=2 )
       {
-        // builtin operators that are not tokenized but are left associative
-        // but not internally variadic must set this.
-        lassocKind = kind;
-      }
-      else if( args.size()>=2 )
-      {
-        Type argt = args[0].getType();
-        if( argt.isFunction() )
+        if (kind==CVC4::kind::INTS_DIVISION)
         {
-          unsigned arity = static_cast<FunctionType>(argt).getArity();
-          if( args.size()-1<arity )
+          // Builtin operators that are not tokenized, are left associative,
+          // but not internally variadic must set this.
+          lassocKind = kind;
+        }
+        else
+        {
+          Type argt = args[0].getType();
+          if( argt.isFunction() )
           {
-            Debug("parser") << "Partial application of " << args[0];
-            Debug("parser") << " : #argTypes = " << arity;
-            Debug("parser") << ", #args = " << args.size()-1 << std::endl;
-            // must curry the partial application
-            lassocKind = CVC4::kind::HO_APPLY;
+            unsigned arity = static_cast<FunctionType>(argt).getArity();
+            if( args.size()-1<arity )
+            {
+              Debug("parser") << "Partial application of " << args[0];
+              Debug("parser") << " : #argTypes = " << arity;
+              Debug("parser") << ", #args = " << args.size()-1 << std::endl;
+              // must curry the partial application
+              lassocKind = CVC4::kind::HO_APPLY;
+            }
           }
         }
       }
@@ -1989,6 +1989,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
       else
       {
+        if (isBuiltinOperator)
+        {
+          PARSER_STATE->checkOperator(kind, args.size());
+        }
         expr = MK_EXPR(kind, args);
       }
     }
