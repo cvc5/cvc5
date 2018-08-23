@@ -101,10 +101,6 @@ void InstMatch::clear() {
 }
 
 Node InstMatch::get(int i) const { return d_vals[i]; }
-void InstMatch::getInst(std::vector<Node>& inst) const
-{
-  inst.insert(inst.end(), d_vals.begin(), d_vals.end());
-}
 
 void InstMatch::setValue( int i, TNode n ) {
   d_vals[i] = n;
