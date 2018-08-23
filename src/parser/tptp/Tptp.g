@@ -249,7 +249,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      seq->addCommand(new SetInfoCommand("name", SExpr(filename)));
+      seq->addCommand(new SetInfoCommand("filename", SExpr(filename)));
       if(PARSER_STATE->hasConjecture()) {
         seq->addCommand(new QueryCommand(MK_CONST(bool(false))));
       } else {

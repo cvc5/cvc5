@@ -42,27 +42,6 @@ void SygusUnif::initializeCandidate(
   d_strategy[f].initialize(qe, f, enums);
 }
 
-bool SygusUnif::constructSolution(std::vector<Node>& sols,
-                                  std::vector<Node>& lemmas)
-{
-  // initialize a call to construct solution
-  initializeConstructSol();
-  for (const Node& f : d_candidates)
-  {
-    // initialize a call to construct solution for function f
-    initializeConstructSolFor(f);
-    // call the virtual construct solution method
-    Node e = d_strategy[f].getRootEnumerator();
-    Node sol = constructSol(f, e, role_equal, 1, lemmas);
-    if (sol.isNull())
-    {
-      return false;
-    }
-    sols.push_back(sol);
-  }
-  return true;
-}
-
 Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
