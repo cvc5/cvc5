@@ -107,6 +107,14 @@ struct KindValueToTableValueMapping {
 
 namespace attr {
 
+// Returns a 64 bit integer with a single `bit` set when `bit` < 64.
+// Avoids problems in (1 << x) when sizeof(x) <= sizeof(uint64_t).
+inline uint64_t GetBitSet(uint64_t bit)
+{
+  constexpr uint64_t kOne = 1;
+  return kOne << bit;
+}
+
 /**
  * An "AttrHash<value_type>"---the hash table underlying
  * attributes---is simply a mapping of pair<unique-attribute-id, Node>
@@ -153,18 +161,16 @@ class AttrHash<bool> :
     BitAccessor& operator=(bool b) {
       if(b) {
         // set the bit
-        d_word |= (1 << d_bit);
+        d_word |= GetBitSet(d_bit);
       } else {
         // clear the bit
-        d_word &= ~(1 << d_bit);
+        d_word &= ~GetBitSet(d_bit);
       }
 
       return *this;
     }
 
-    operator bool() const {
-      return (d_word & (1 << d_bit)) ? true : false;
-    }
+    operator bool() const { return (d_word & GetBitSet(d_bit)) ? true : false; }
   };/* class AttrHash<bool>::BitAccessor */
 
   /**
@@ -226,9 +232,10 @@ class AttrHash<bool> :
       d_bit(bit) {
     }
 
-    std::pair<NodeValue* const, bool> operator*() {
-      return std::make_pair(d_entry->first,
-                            (d_entry->second & (1 << d_bit)) ? true : false);
+    std::pair<NodeValue* const, bool> operator*()
+    {
+      return std::make_pair(
+          d_entry->first, (d_entry->second & GetBitSet(d_bit)) ? true : false);
     }
 
     bool operator==(const ConstBitIterator& b) {
