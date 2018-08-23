@@ -60,7 +60,6 @@ class PreprocessingPassContext
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
-
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
