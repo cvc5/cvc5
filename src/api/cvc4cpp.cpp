@@ -609,10 +609,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     };
 
 namespace {
-bool isDefinedKind(Kind k)
-{
-  return k > UNDEFINED_KIND && k < LAST_KIND;
-}
+bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
 Kind intToExtKind(CVC4::Kind k)
 {
@@ -1858,7 +1855,8 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
   PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
                           || kind == CONST_BITVECTOR,
                       kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR",
+                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
+                      "CONST_RATIONAL or CONST_BITVECTOR",
                       kindToString(kind).c_str());
   if (kind == ABSTRACT_VALUE)
   {
@@ -1873,11 +1871,11 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE
-             || kind == CONST_RATIONAL
-             || kind == CONST_BITVECTOR,
+  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                          || kind == CONST_BITVECTOR,
                       kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR",
+                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
+                      "CONST_RATIONAL or CONST_BITVECTOR",
                       kindToString(kind).c_str());
   if (kind == ABSTRACT_VALUE)
   {
@@ -1892,11 +1890,11 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE
-             || kind == CONST_RATIONAL
-             || kind == CONST_BITVECTOR,
+  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                          || kind == CONST_BITVECTOR,
                       kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR",
+                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
+                      "CONST_RATIONAL or CONST_BITVECTOR",
                       kindToString(kind).c_str());
   if (kind == ABSTRACT_VALUE)
   {
@@ -1911,11 +1909,11 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE
-             || kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  PrettyCheckArgument(
+      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+      kind,
+      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
+      kindToString(kind).c_str());
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1925,11 +1923,11 @@ Term Solver::mkConst(Kind kind, int32_t arg) const
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE
-             || kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  PrettyCheckArgument(
+      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+      kind,
+      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
+      kindToString(kind).c_str());
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1939,11 +1937,11 @@ Term Solver::mkConst(Kind kind, int64_t arg) const
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE
-             || kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  PrettyCheckArgument(
+      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+      kind,
+      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
+      kindToString(kind).c_str());
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -2039,12 +2037,11 @@ Term Solver::mkBoundVar(Sort sort) const
 
 Term Solver::mkTerm(Kind kind) const
 {
-  PrettyCheckArgument(kind == PI
-            || kind == REGEXP_EMPTY
-            || kind == REGEXP_SIGMA,
-                      kind,
-                      "Invalid kind '%s', expected PI or REGEXP_EMPTY or REGEXP_SIGMA",
-                      kindToString(kind).c_str());
+  PrettyCheckArgument(
+      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA,
+      kind,
+      "Invalid kind '%s', expected PI or REGEXP_EMPTY or REGEXP_SIGMA",
+      kindToString(kind).c_str());
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
     return d_exprMgr->mkExpr(extToIntKind(kind), std::vector<Expr>());
@@ -2055,8 +2052,7 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Sort sort) const
 {
-  PrettyCheckArgument(kind == SEP_NIL
-            || kind == UNIVERSE_SET,
+  PrettyCheckArgument(kind == SEP_NIL || kind == UNIVERSE_SET,
                       kind,
                       "Invalid kind '%s'",
                       kindToString(kind).c_str());
