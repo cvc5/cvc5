@@ -633,7 +633,8 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   std::map<unsigned, std::map<unsigned, Node> > ite_c;
   for (unsigned i = 0; i < nchildren; i++)
   {
-    if (n[i].getKind() == itek)
+    // only pull ITEs apart if we are aggressive
+    if (n[i].getKind() == itek && (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE)))
     {
       unsigned ii = hasOp ? i + 1 : i;
       for (unsigned j = 0; j < 2; j++)
@@ -652,8 +653,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      // only pull ITEs apart if we are aggressive
-      if (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE))
+      if (d_aggr)
       {
         if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
             && !n[1 - i].getType().isBoolean() && tn.isBoolean())
@@ -664,13 +664,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
           debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
           return new_ret;
         }
-      }
-      if (tn.isBoolean() || d_aggr)
-      {
         for (unsigned j = 0; j < 2; j++)
         {
           Node pullr = ite_c[i][j];
-          if (pullr.isConst() || (d_aggr && pullr == n[i][j + 1]))
+          if (pullr.isConst() || pullr == n[i][j + 1])
           {
             // ITE single child elimination
             // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
