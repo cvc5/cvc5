@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark bitvec0.smt
 :logic QF_BV
 :extrafuns ((t BitVec[32]))

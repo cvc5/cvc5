@@ -2625,7 +2625,8 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
   }
   if( !pinfer.empty() ){
     //now, determine which of the possible inferences we want to add
-    int use_index = -1;
+    unsigned use_index = 0;
+    bool set_use_index = false;
     Trace("strings-solve") << "Possible inferences (" << pinfer.size() << ") : " << std::endl;
     unsigned min_id = 9;
     unsigned max_index = 0;
@@ -2634,10 +2635,13 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
       Trace("strings-solve") << "From " << pinfer[i].d_i << " / " << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev << ") : ";
       Trace("strings-solve")
           << pinfer[i].d_conc << " by " << pinfer[i].d_id << std::endl;
-      if( use_index==-1 || pinfer[i].d_id<min_id || ( pinfer[i].d_id==min_id && pinfer[i].d_index>max_index ) ){
+      if (!set_use_index || pinfer[i].d_id < min_id
+          || (pinfer[i].d_id == min_id && pinfer[i].d_index > max_index))
+      {
         min_id = pinfer[i].d_id;
         max_index = pinfer[i].d_index;
         use_index = i;
+        set_use_index = true;
       }
     }
     //send the inference

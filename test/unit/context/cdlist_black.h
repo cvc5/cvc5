@@ -40,9 +40,9 @@ class CDListBlack : public CxxTest::TestSuite {
   Context* d_context;
 
  public:
-  void setUp() { d_context = new Context(); }
+  void setUp() override { d_context = new Context(); }
 
-  void tearDown() { delete d_context; }
+  void tearDown() override { delete d_context; }
 
   // test at different sizes.  this triggers grow() behavior differently.
   // grow() was completely broken in revision 256

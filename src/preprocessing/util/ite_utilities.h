@@ -2,7 +2,7 @@
 /*! \file ite_utilities.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Andres Noetzli
+ **   Tim King, Aina Niemetz, Paul Meng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -14,7 +14,8 @@
  ** This module implements preprocessing phases designed to simplify ITE
  ** expressions.  Based on:
  ** Kim, Somenzi, Jin.  Efficient Term-ITE Conversion for SMT.  FMCAD 2009.
- ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC '96
+ ** Burch, Jerry.  Techniques for Verifying Superscalar Microprocessors.  DAC
+ *'96
  **/
 
 #include "cvc4_private.h"
@@ -30,7 +31,8 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-namespace theory {
+namespace preprocessing {
+namespace util {
 
 class IncomingArcCounter;
 class TermITEHeightCounter;
@@ -41,8 +43,9 @@ class ITECareSimplifier;
 /**
  * A caching visitor that computes whether a node contains a term ite.
  */
-class ContainsTermITEVisitor {
-public:
+class ContainsTermITEVisitor
+{
+ public:
   ContainsTermITEVisitor();
   ~ContainsTermITEVisitor();
 
@@ -55,7 +58,7 @@ public:
   /** returns the size of the cache. */
   size_t cache_size() const { return d_cache.size(); }
 
-private:
+ private:
   typedef std::unordered_map<Node, bool, NodeHashFunction> NodeBoolMap;
   NodeBoolMap d_cache;
 };
@@ -94,22 +97,28 @@ class ITEUtilities
   ITECareSimplifier* d_careSimp;
 };
 
-class IncomingArcCounter {
-public:
+class IncomingArcCounter
+{
+ public:
   IncomingArcCounter(bool skipVars = false, bool skipConstants = false);
   ~IncomingArcCounter();
   void computeReachability(const std::vector<Node>& assertions);
 
-  inline uint32_t lookupIncoming(Node n) const {
+  inline uint32_t lookupIncoming(Node n) const
+  {
     NodeCountMap::const_iterator it = d_reachCount.find(n);
-    if(it == d_reachCount.end()){
+    if (it == d_reachCount.end())
+    {
       return 0;
-    }else{
+    }
+    else
+    {
       return (*it).second;
     }
   }
   void clear();
-private:
+
+ private:
   typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
   NodeCountMap d_reachCount;
 
@@ -117,8 +126,9 @@ private:
   bool d_skipConstants;
 };
 
-class TermITEHeightCounter {
-public:
+class TermITEHeightCounter
+{
+ public:
   TermITEHeightCounter();
   ~TermITEHeightCounter();
 
@@ -130,7 +140,8 @@ public:
    *  - termITEHeight(leaves) = 0
    *  - termITEHeight(e: term-ite(c, t, e) ) =
    *     1 + max(termITEHeight(t), termITEHeight(e)) ; Don't include c
-   *  - termITEHeight(e not term ite) = max_{c in children(e)) (termITEHeight(c))
+   *  - termITEHeight(e not term ite) = max_{c in children(e))
+   * (termITEHeight(c))
    */
   uint32_t termITEHeight(TNode e);
 
@@ -140,7 +151,7 @@ public:
   /** Size of the cache. */
   size_t cache_size() const;
 
-private:
+ private:
   typedef std::unordered_map<Node, uint32_t, NodeHashFunction> NodeCountMap;
   NodeCountMap d_termITEHeight;
 }; /* class TermITEHeightCounter */
@@ -149,8 +160,9 @@ private:
  * A routine designed to undo the potentially large blow up
  * due to expansion caused by the ite simplifier.
  */
-class ITECompressor {
-public:
+class ITECompressor
+{
+ public:
   ITECompressor(ContainsTermITEVisitor* contains);
   ~ITECompressor();
 
@@ -160,9 +172,8 @@ public:
   /* garbage Collects the compressor. */
   void garbageCollect();
 
-private:
-
-  Node d_true; /* Copy of true. */
+ private:
+  Node d_true;  /* Copy of true. */
   Node d_false; /* Copy of false. */
   ContainsTermITEVisitor* d_contains;
   std::vector<Node>* d_assertions;
@@ -179,8 +190,9 @@ private:
   Node compressTerm(Node toCompress);
   Node compressBoolean(Node toCompress);
 
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_compressCalls;
     IntStat d_skolemsAdded;
     Statistics();
@@ -189,8 +201,9 @@ private:
   Statistics d_statistics;
 }; /* class ITECompressor */
 
-class ITESimplifier {
-public:
+class ITESimplifier
+{
+ public:
   ITESimplifier(ContainsTermITEVisitor* d_containsVisitor);
   ~ITESimplifier();
 
@@ -199,16 +212,18 @@ public:
   bool doneALotOfWorkHeuristic() const;
   void clearSimpITECaches();
 
-private:
+ private:
   Node d_true;
   Node d_false;
 
   ContainsTermITEVisitor* d_containsVisitor;
-  inline bool containsTermITE(TNode n) {
+  inline bool containsTermITE(TNode n)
+  {
     return d_containsVisitor->containsTermITE(n);
   }
   TermITEHeightCounter d_termITEHeight;
-  inline uint32_t termITEHeight(TNode e) {
+  inline uint32_t termITEHeight(TNode e)
+  {
     return d_termITEHeight.termITEHeight(e);
   }
 
@@ -216,7 +231,8 @@ private:
   //     constant
   // or  termITE(cnd, ConstantIte, ConstantIte)
   typedef std::vector<Node> NodeVec;
-  typedef std::unordered_map<Node, NodeVec*, NodeHashFunction > ConstantLeavesMap;
+  typedef std::unordered_map<Node, NodeVec*, NodeHashFunction>
+      ConstantLeavesMap;
   ConstantLeavesMap d_constantLeaves;
 
   // d_constantLeaves satisfies the following invariants:
@@ -224,7 +240,8 @@ private:
   // containsTermITE(x):
   // - not isKey(x) then this value is uncomputed
   // - d_constantLeaves[x] == NULL, then this contains a non-constant leaf
-  // - d_constantLeaves[x] != NULL, then this contains a sorted list of constant leaf
+  // - d_constantLeaves[x] != NULL, then this contains a sorted list of constant
+  // leaf
   bool isConstantIte(TNode e);
 
   /** If its not a constant and containsTermITE(ite),
@@ -233,7 +250,6 @@ private:
 
   // Lists all of the vectors in d_constantLeaves for fast deletion.
   std::vector<NodeVec*> d_allocatedConstantLeaves;
-
 
   /* transforms */
   Node transformAtom(TNode atom);
@@ -276,10 +292,10 @@ private:
   NodeMap d_simpITECache;
   Node simpITEAtom(TNode atom);
 
-
-private:
-  class Statistics {
-  public:
+ private:
+  class Statistics
+  {
+   public:
     IntStat d_maxNonConstantsFolded;
     IntStat d_unexpected;
     IntStat d_unsimplified;
@@ -297,16 +313,17 @@ private:
   Statistics d_statistics;
 };
 
-class ITECareSimplifier {
-public:
+class ITECareSimplifier
+{
+ public:
   ITECareSimplifier();
   ~ITECareSimplifier();
 
   Node simplifyWithCare(TNode e);
 
   void clear();
-private:
 
+ private:
   /**
    * This should always equal the number of care sets allocated by
    * this object - the number of these that have been deleted. This is
@@ -321,46 +338,58 @@ private:
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
 
   class CareSetPtr;
-  class CareSetPtrVal {
+  class CareSetPtrVal
+  {
    public:
     bool safeToGarbageCollect() const { return d_refCount == 0; }
+
    private:
     friend class ITECareSimplifier::CareSetPtr;
     ITECareSimplifier& d_iteSimplifier;
     unsigned d_refCount;
     std::set<Node> d_careSet;
     CareSetPtrVal(ITECareSimplifier& simp)
-        : d_iteSimplifier(simp), d_refCount(1) {}
+        : d_iteSimplifier(simp), d_refCount(1)
+    {
+    }
   }; /* class ITECareSimplifier::CareSetPtrVal */
 
   std::vector<CareSetPtrVal*> d_usedSets;
-  void careSetPtrGC(CareSetPtrVal* val) {
-    d_usedSets.push_back(val);
-  }
+  void careSetPtrGC(CareSetPtrVal* val) { d_usedSets.push_back(val); }
 
-  class CareSetPtr {
+  class CareSetPtr
+  {
     CareSetPtrVal* d_val;
     CareSetPtr(CareSetPtrVal* val) : d_val(val) {}
-  public:
+
+   public:
     CareSetPtr() : d_val(NULL) {}
-    CareSetPtr(const CareSetPtr& cs) {
+    CareSetPtr(const CareSetPtr& cs)
+    {
       d_val = cs.d_val;
-      if (d_val != NULL) {
+      if (d_val != NULL)
+      {
         ++(d_val->d_refCount);
       }
     }
-    ~CareSetPtr() {
-      if (d_val != NULL && (--(d_val->d_refCount) == 0)) {
+    ~CareSetPtr()
+    {
+      if (d_val != NULL && (--(d_val->d_refCount) == 0))
+      {
         d_val->d_iteSimplifier.careSetPtrGC(d_val);
       }
     }
-    CareSetPtr& operator=(const CareSetPtr& cs) {
-      if (d_val != cs.d_val) {
-        if (d_val != NULL && (--(d_val->d_refCount) == 0)) {
+    CareSetPtr& operator=(const CareSetPtr& cs)
+    {
+      if (d_val != cs.d_val)
+      {
+        if (d_val != NULL && (--(d_val->d_refCount) == 0))
+        {
           d_val->d_iteSimplifier.careSetPtrGC(d_val);
         }
         d_val = cs.d_val;
-        if (d_val != NULL) {
+        if (d_val != NULL)
+        {
           ++(d_val->d_refCount);
         }
       }
@@ -369,7 +398,8 @@ private:
     std::set<Node>& getCareSet() { return d_val->d_careSet; }
 
     static CareSetPtr mkNew(ITECareSimplifier& simp);
-    static CareSetPtr recycle(CareSetPtrVal* val) {
+    static CareSetPtr recycle(CareSetPtrVal* val)
+    {
       Assert(val != NULL && val->d_refCount == 0);
       val->d_refCount = 1;
       return CareSetPtr(val);
@@ -383,7 +413,8 @@ private:
   Node substitute(TNode e, TNodeMap& substTable, TNodeMap& cache);
 };
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace util
+}  // namespace preprocessing
+}  // namespace CVC4
 
 #endif
