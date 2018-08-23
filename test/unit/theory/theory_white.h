@@ -122,20 +122,19 @@ public:
     return done();
   }
 
-  void check(Effort e) {
+  void check(Effort e) override
+  {
     while(!done()) {
       getWrapper();
     }
   }
 
-  void presolve() {
-    Unimplemented();
-  }
-  void preRegisterTerm(TNode n) {}
-  void propagate(Effort level) {}
-  Node explain(TNode n) { return Node::null(); }
+  void presolve() override { Unimplemented(); }
+  void preRegisterTerm(TNode n) override {}
+  void propagate(Effort level) override {}
+  Node explain(TNode n) override { return Node::null(); }
   Node getValue(TNode n) { return Node::null(); }
-  string identify() const { return "DummyTheory"; }
+  string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */
 
 class TheoryBlack : public CxxTest::TestSuite {
@@ -155,9 +154,9 @@ class TheoryBlack : public CxxTest::TestSuite {
   Node atom0;
   Node atom1;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
@@ -173,14 +172,15 @@ public:
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
-                              *d_logicInfo);
+    d_dummy = new DummyTheory(
+        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     atom1 = Node::null();
     atom0 = Node::null();
     delete d_dummy;
