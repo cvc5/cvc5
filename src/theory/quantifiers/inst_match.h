@@ -80,8 +80,6 @@ public:
   }
   /** get the i^th term in the instantiation */
   Node get(int i) const;
-  /** append the terms of this instantiation to inst */
-  void getInst(std::vector<Node>& inst) const;
   /** set/overwrites the i^th field in the instantiation with n */
   void setValue( int i, TNode n );
   /** set the i^th term in the instantiation to n

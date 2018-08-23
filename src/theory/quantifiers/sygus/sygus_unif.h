@@ -85,7 +85,7 @@ class SygusUnif
    * channel by the caller.
    */
   virtual bool constructSolution(std::vector<Node>& sols,
-                                 std::vector<Node>& lemmas);
+                                 std::vector<Node>& lemmas) = 0;
 
  protected:
   /** reference to quantifier engine */

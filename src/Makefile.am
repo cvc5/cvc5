@@ -77,6 +77,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_intro_pow2.h \
 	preprocessing/passes/extended_rewriter_pass.cpp \
 	preprocessing/passes/extended_rewriter_pass.h \
+	preprocessing/passes/global_negate.cpp \
+	preprocessing/passes/global_negate.h \
 	preprocessing/passes/int_to_bv.cpp \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/ite_removal.cpp \
@@ -462,8 +464,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fmf/model_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
-	theory/quantifiers/global_negate.cpp \
-	theory/quantifiers/global_negate.h \
 	theory/quantifiers/instantiate.cpp \
 	theory/quantifiers/instantiate.h \
 	theory/quantifiers/inst_match.cpp \
