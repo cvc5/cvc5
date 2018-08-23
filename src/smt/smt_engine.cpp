@@ -79,6 +79,7 @@
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
+#include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
@@ -115,7 +116,6 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/global_negate.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
@@ -728,20 +728,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
   {
-    if( B )
-    {
-      if( C ){
-      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS || 
-                   kind==CVC4::kind::DIVISION || kind==CVC4::kind::INTS_DIVISION ) &&
-                 args.size() > 2 ) {
-        /* left-associative, but CVC4 internally only supports 2 args */
-        expr = args[0];
-        for(size_t i = 1; i < args.size(); ++i) {
-          expr = MK_EXPR(kind, expr, args[i]);
-        }
-      }
-    }
-   
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());
@@ -2674,6 +2660,8 @@ void SmtEnginePrivate::finishInit()
       new BVToBool(d_preprocessingPassContext.get()));
   std::unique_ptr<ExtRewPre> extRewPre(
       new ExtRewPre(d_preprocessingPassContext.get()));
+  std::unique_ptr<GlobalNegate> globalNegate(
+      new GlobalNegate(d_preprocessingPassContext.get()));
   std::unique_ptr<IntToBV> intToBV(
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
@@ -2715,6 +2703,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(bvIntroPow2));
   d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
   d_preprocessingPassRegistry.registerPass("ext-rew-pre", std::move(extRewPre));
+  d_preprocessingPassRegistry.registerPass("global-negate",
+                                           std::move(globalNegate));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
                                            std::move(quantifiersPreprocess));
@@ -4099,8 +4089,7 @@ void SmtEnginePrivate::processAssertions() {
   if (options::globalNegate())
   {
     // global negation of the formula
-    quantifiers::GlobalNegate gn;
-    gn.simplify(d_assertions.ref());
+    d_preprocessingPassRegistry.getPass("global-negate")->apply(&d_assertions);
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
   }
 
