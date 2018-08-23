@@ -65,6 +65,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/apply_substs.h \
 	preprocessing/passes/apply_to_const.cpp \
 	preprocessing/passes/apply_to_const.h \
+	preprocessing/passes/bool_to_bv.cpp \
+	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
@@ -75,6 +77,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
 	preprocessing/passes/bv_intro_pow2.h \
+	preprocessing/passes/bv_to_bool.cpp \
+	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/extended_rewriter_pass.cpp \
 	preprocessing/passes/extended_rewriter_pass.h \
 	preprocessing/passes/int_to_bv.cpp \
@@ -83,10 +87,6 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/ite_removal.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
-	preprocessing/passes/bool_to_bv.cpp \
-	preprocessing/passes/bool_to_bv.h \
-	preprocessing/passes/bv_to_bool.cpp \
-	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/quantifiers_preprocess.cpp \
 	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/real_to_int.cpp \
@@ -107,6 +107,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/passes/synth_rew_rules.cpp \
 	preprocessing/passes/synth_rew_rules.h \
+	preprocessing/passes/unconstrained_simplifier.cpp \
+	preprocessing/passes/unconstrained_simplifier.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
@@ -236,8 +238,6 @@ libcvc4_la_SOURCES = \
 	theory/type_enumerator.h \
 	theory/type_set.cpp \
 	theory/type_set.h \
-	theory/unconstrained_simplifier.cpp \
-	theory/unconstrained_simplifier.h \
 	theory/valuation.cpp \
 	theory/valuation.h \
 	theory/arith/approx_simplex.cpp \

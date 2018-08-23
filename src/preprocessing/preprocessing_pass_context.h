@@ -42,12 +42,15 @@ class PreprocessingPassContext
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
   context::Context* getUserContext() { return d_smt->d_userContext; }
+  context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
 
   void spendResource(unsigned amount)
   {
     d_resourceManager->spendResource(amount);
   }
+
+  const LogicInfo& getLogicInfo() { return d_smt->d_logic; }
 
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
